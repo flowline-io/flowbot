@@ -340,7 +340,7 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ ConfigRow(item model.ConfigItem) {
-	<tr id={ templ.Sprintf("config-%d", item.ID) } hx-target="this" class="border-b border-gray-200 hover:bg-gray-50">
+	<tr id={ configRowID(item) } hx-target="this" class="border-b border-gray-200 hover:bg-gray-50">
 		<td class="px-4 py-3 text-sm text-gray-600">{ templ.Sprintf("%d", item.ID) }</td>
 		<td class="px-4 py-3 text-sm text-gray-900 font-mono">{ item.UID }</td>
 		<td class="px-4 py-3 text-sm text-gray-900">{ item.Topic }</td>
@@ -349,11 +349,11 @@ templ ConfigRow(item model.ConfigItem) {
 		<td class="px-4 py-3 text-sm text-gray-500">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
 		<td class="px-4 py-3 text-sm">
 			<div class="flex gap-2">
-				<button hx-get={ templ.Sprintf("/service/web/configs/%d/edit", item.ID) }
+				<button hx-get={ configEditURL(item) }
 					class="text-blue-600 hover:text-blue-800 font-medium">
 					Edit
 				</button>
-				<button hx-delete={ templ.Sprintf("/service/web/configs/%d", item.ID) }
+				<button hx-delete={ configKeyURL(item) }
 					hx-confirm="Delete this config?"
 					class="text-red-600 hover:text-red-800 font-medium">
 					Delete
@@ -369,51 +369,62 @@ templ ConfigRow(item model.ConfigItem) {
 ```templ
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
 
 templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 	var actionURL string
 	if isNew {
 		actionURL = "/service/web/configs"
 	} else {
-		actionURL = templ.Sprintf("/service/web/configs/%d", item.ID)
+		actionURL = configKeyURL(item)
 	}
 
-	<tr id={ templ.Sprintf("config-form-%d", item.ID) } hx-target="this">
+	<tr id={ configFormID(item, isNew) } hx-target="this">
 		<td class="px-4 py-2"></td>
 		<td class="px-4 py-2">
 			<input type="text" name="uid" value={ item.UID }
-				class="w-full border rounded px-2 py-1 text-sm { fieldError(errors, "uid") }"
+				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "uid") }
 				placeholder="uid"/>
 			<div class="text-red-500 text-xs">{ errors["uid"] }</div>
 		</td>
 		<td class="px-4 py-2">
 			<input type="text" name="topic" value={ item.Topic }
-				class="w-full border rounded px-2 py-1 text-sm { fieldError(errors, "topic") }"
+				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "topic") }
 				placeholder="topic"/>
 			<div class="text-red-500 text-xs">{ errors["topic"] }</div>
 		</td>
 		<td class="px-4 py-2">
 			<input type="text" name="key" value={ item.Key }
-				class="w-full border rounded px-2 py-1 text-sm { fieldError(errors, "key") }"
+				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "key") }
 				placeholder="key"/>
 			<div class="text-red-500 text-xs">{ errors["key"] }</div>
 		</td>
 		<td class="px-4 py-2">
 			<textarea name="value" rows="2"
-				class="w-full border rounded px-2 py-1 text-sm font-mono { fieldError(errors, "value") }"
+				class={ "w-full border rounded px-2 py-1 text-sm font-mono " + fieldError(errors, "value") }
 				placeholder='{"key": "value"}'>{ valueJSON(item.Value) }</textarea>
 			<div class="text-red-500 text-xs">{ errors["value"] }</div>
 		</td>
 		<td class="px-4 py-2"></td>
 		<td class="px-4 py-2">
 			<div class="flex gap-2">
-				<button
-					hx-post={ actionURL }
-					hx-include="closest tr"
-					class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
-					Save
-				</button>
+				if isNew {
+					<button
+						hx-post={ actionURL }
+						hx-include="closest tr"
+						class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+						Save
+					</button>
+				} else {
+					<button
+						hx-put={ actionURL }
+						hx-include="closest tr"
+						class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+						Save
+					</button>
+				}
 				<button hx-get={ cancelURL(item, isNew) }
 					class="text-gray-600 hover:text-gray-800 text-sm">
 					Cancel
@@ -422,11 +433,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 		</td>
 	</tr>
 }
-
-// Helper functions — must be in a separate Go file in the same package.
 ```
-
-Note: The `valuePreview`, `fieldError`, `valueJSON`, and `cancelURL` helper functions will be created in Step 4 below as a Go file in the same `partials` package.
 
 - [ ] **Step 3: Create `pkg/views/partials/config_table.templ`**
 
@@ -471,6 +478,7 @@ package partials
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/bytedance/sonic"
 
@@ -505,15 +513,44 @@ func valueJSON(kv types.KV) string {
 	return string(b)
 }
 
+// configKeyURL returns the key-based URL for a config item.
+func configKeyURL(item model.ConfigItem) string {
+	return fmt.Sprintf("/service/web/configs/%s/%s/%s",
+		url.PathEscape(item.UID),
+		url.PathEscape(item.Topic),
+		url.PathEscape(item.Key),
+	)
+}
+
+// configEditURL returns the edit URL for a config item.
+func configEditURL(item model.ConfigItem) string {
+	return configKeyURL(item) + "/edit"
+}
+
+// configRowID returns the DOM element ID for a config row.
+func configRowID(item model.ConfigItem) string {
+	return fmt.Sprintf("config-%s-%s-%s",
+		url.PathEscape(item.UID),
+		url.PathEscape(item.Topic),
+		url.PathEscape(item.Key),
+	)
+}
+
+// configFormID returns the DOM element ID for a config form row.
+func configFormID(item model.ConfigItem, isNew bool) string {
+	if isNew {
+		return "config-form-new"
+	}
+	return "config-form-" + configRowID(item)
+}
+
 func cancelURL(item model.ConfigItem, isNew bool) string {
 	if isNew {
 		return "/service/web/configs/list"
 	}
-	return fmt.Sprintf("/service/web/configs/%d", item.ID)
+	return configKeyURL(item)
 }
 ```
-
-- [ ] **Step 5: Note on helpers** — the `templ` calls in config_form.templ use `fieldError`, `valueJSON`, `cancelURL`. These are Go functions from the partials package. They will compile once the `helpers.go` file is present.
 
 - [ ] **Step 6: Generate Templ and verify compilation**
 
@@ -824,67 +861,21 @@ git commit -m "feat: add web module with Register, Init, and unit tests"
 ```go
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/gofiber/fiber/v3"
 
-	smith "github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
-
-// stubStore implements a subset of store.Adapter for handler testing.
-type stubStore struct {
-	configs []model.ConfigItem
-	err     error
-}
-
-func (s *stubStore) ListConfigs(_ context.Context, _ smith.ListConfigOptions) ([]model.ConfigItem, error) {
-	return s.configs, s.err
-}
-
-func (s *stubStore) ConfigSet(_ context.Context, _ types.Uid, _, _ string, _ types.KV) error {
-	if s.err != nil {
-		return s.err
-	}
-	return nil
-}
-
-func (s *stubStore) ConfigGet(_ context.Context, _ types.Uid, _, _ string) (types.KV, error) {
-	return nil, types.ErrNotFound
-}
-
-func (s *stubStore) ConfigDelete(_ context.Context, _ types.Uid, _, _ string) error {
-	return nil
-}
-
-// stub methods to satisfy Adapter interface
-func (s *stubStore) IsOpen() bool                                     { return false }
-func (s *stubStore) Open(conf smith.StoreType) error                  { return nil }
-func (s *stubStore) Close() error                                     { return nil }
-func (s *stubStore) SetMaxResults(val int)                            {}
-func (s *stubStore) CreateDb(reset bool) error                        { return nil }
-func (s *stubStore) UpgradeDb() error                                 { return nil }
-func (s *stubStore) Version() int                                     { return 0 }
-func (s *stubStore) DB() *sql.DB                                      { return nil }
-func (s *stubStore) SetSessCache(_ sqldb.SessCache)                   {}
-func (s *stubStore) SetUidCache(_ sqldb.UidCache)                     {}
-func (s *stubStore) GetName() string                                  { return "stub" }
-func (s *stubStore) IsNewNode() bool                                  { return false }
-func (s *stubStore) MaybeUpgradeDb(_ context.Context) error           { return nil }
-```
-
-Note: This stub gets complex fast because `store.Adapter` has ~100 methods. A better approach: use `smith.Database = &stubStore{}` as a test helper and only stub the methods we need. However, since `smith.Database` is a variable, we can assign it in `TestMain`. 
-
-Let me simplify — the handlers test uses a real Fiber test app with a mock store interface. We'll define a minimal interface for the config methods.
-
-Actually, for simplicity, let's create a **mock store adapter** file in the test that implements the full Adapter interface with no-ops, and then override just the config methods.
-
-Let me create the test differently — we'll use a `testStore` that embeds a real store adapter interface but panics on un-stubbed methods:
-
-Better approach: Create a test helper file `internal/modules/web/test_helper_test.go` that provides a test store implementation.
 
 - [ ] **Step 2: Create `internal/modules/web/test_helper_test.go`**
 
@@ -894,8 +885,6 @@ package web
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -905,8 +894,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-// testStore implements store.Adapter with minimal stubs for web handler tests.
+// testStore implements store.Adapter by embedding the interface and overriding
+// only the methods needed for web handler tests.
 type testStore struct {
+	store.Adapter
 	configs     []model.ConfigItem
 	configErr   error
 	setConfigFn func(uid types.Uid, topic, key string, value types.KV) error
@@ -939,142 +930,20 @@ func (s *testStore) ConfigDelete(_ context.Context, uid types.Uid, topic, key st
 	return nil
 }
 
-// ---- stub no-ops for remaining Adapter interface ----
-
-func (s *testStore) IsOpen() bool                                          { return false }
-func (s *testStore) Open(_ store.StoreType) error                          { return nil }
-func (s *testStore) Close() error                                          { return nil }
-func (s *testStore) SetMaxResults(_ int)                                   {}
-func (s *testStore) CreateDb(_ bool) error                                 { return nil }
-func (s *testStore) UpgradeDb() error                                      { return nil }
-func (s *testStore) Version() int                                          { return 0 }
-func (s *testStore) DB() *sql.DB                                           { return nil }
-func (s *testStore) SetSessCache(_ store.SessCache)                        {}
-func (s *testStore) SetUidCache(_ store.UidCache)                          {}
-func (s *testStore) GetName() string                                       { return "test" }
-func (s *testStore) IsNewNode() bool                                       { return false }
-func (s *testStore) MaybeUpgradeDb(_ context.Context) error                { return nil }
-func (s *testStore) UsersEqualOrIncrSeqID(_ context.Context, _ int, _ int) (bool, error) { return true, nil }
-func (s *testStore) GetNextSeqID(_ context.Context) (int, error)           { return 1, nil }
-func (s *testStore) GetDBVersion(_ context.Context) (int, error)           { return 0, nil }
-func (s *testStore) SetDBVersion(_ context.Context, _ int) error           { return nil }
-
-func (s *testStore) CreateUser(_ context.Context, _ *gen.User) (int64, error)                              { return 0, nil }
-func (s *testStore) UpdateUser(_ context.Context, _ *gen.User) error                                      { return nil }
-func (s *testStore) DeleteUser(_ context.Context, _ int64) error                                           { return nil }
-func (s *testStore) GetUser(_ context.Context, _ int64) (gen.User, error)                                  { return gen.User{}, nil }
-func (s *testStore) GetUserByUID(_ context.Context, _ types.Uid) (gen.User, error)                         { return gen.User{}, nil }
-func (s *testStore) GetUsers(_ context.Context) ([]*gen.User, error)                                       { return nil, nil }
-func (s *testStore) CreateFile(_ context.Context, _ *gen.File) (int64, error)                              { return 0, nil }
-func (s *testStore) GetFile(_ context.Context, _ int64) (gen.File, error)                                  { return gen.File{}, nil }
-func (s *testStore) GetFiles(_ context.Context, _ types.Uid, _, _ int, _ int) ([]*gen.File, error)         { return nil, nil }
-func (s *testStore) GetFilesCount(_ context.Context, _ types.Uid, _ string) (int, error)                   { return 0, nil }
-func (s *testStore) DeleteFile(_ context.Context, _ int64) error                                           { return nil }
-func (s *testStore) MediaInsert(_ context.Context, _ *gen.File) (int64, error)                             { return 0, nil }
-func (s *testStore) MediaGet(_ context.Context, _ int64) (gen.File, error)                                 { return gen.File{}, nil }
-func (s *testStore) MediaDelete(_ context.Context, _ int64) error                                          { return nil }
-func (s *testStore) MediaGetUseFileRecord(_ context.Context, _ string) (gen.File, error)                   { return gen.File{}, nil }
-func (s *testStore) CreateMessage(_ context.Context, _ *gen.Message) (int64, error)                        { return 0, nil }
-func (s *testStore) CreateMessageRev(_ context.Context, _ *gen.MessageRev) (int64, error)                  { return 0, nil }
-func (s *testStore) GetMessage(_ context.Context, _ int64) (gen.Message, error)                            { return gen.Message{}, nil }
-func (s *testStore) GetLastMessage(_ context.Context, _ types.Uid, _ string) (gen.Message, error)          { return gen.Message{}, nil }
-func (s *testStore) GetMessagesBySeq(_ context.Context, _ types.Uid, _, _, _ int) ([]*gen.Message, error)  { return nil, nil }
-func (s *testStore) GetMessagesByIds(_ context.Context, _ []int64) ([]*gen.Message, error)                 { return nil, nil }
-func (s *testStore) DeleteMessages(_ context.Context, _, _, _ int64) error                                 { return nil }
-func (s *testStore) GetTopicLastMsgTime(_ context.Context, _ types.Uid, _ string) (time.Time, error)       { return time.Time{}, nil }
-func (s *testStore) GetMsgTotalCountByTopic(_ context.Context, _ types.Uid, _ string) (int, error)         { return 0, nil }
-func (s *testStore) GetMsgDeleteTotalCountByTopic(_ context.Context, _ types.Uid, _ string) (int, error)   { return 0, nil }
-func (s *testStore) SaveMessages(_ context.Context, _ types.Uid, _ []*gen.Message) error                   { return nil }
-func (s *testStore) CreateBot(_ context.Context, _ *gen.Bot) (int64, error)                                { return 0, nil }
-func (s *testStore) UpdateBot(_ context.Context, _ *gen.Bot) error                                         { return nil }
-func (s *testStore) DeleteBot(_ context.Context, _ string) error                                           { return nil }
-func (s *testStore) GetBot(_ context.Context, _ string) (gen.Bot, error)                                   { return gen.Bot{}, nil }
-func (s *testStore) GetBots(_ context.Context) ([]*gen.Bot, error)                                         { return nil, nil }
-func (s *testStore) CreateChannel(_ context.Context, _ *gen.Channel) (int64, error)                        { return 0, nil }
-func (s *testStore) UpdateChannel(_ context.Context, _ *gen.Channel) error                                 { return nil }
-func (s *testStore) DeleteChannel(_ context.Context, _ string) error                                       { return nil }
-func (s *testStore) GetChannelByName(_ context.Context, _ string) (*gen.Channel, error)                    { return nil, nil }
-func (s *testStore) GetChannels(_ context.Context) ([]*gen.Channel, error)                                 { return nil, nil }
-func (s *testStore) DataSet(_ context.Context, _ types.Uid, _, _ string, _ types.KV) error                 { return nil }
-func (s *testStore) DataGet(_ context.Context, _ types.Uid, _, _ string) (types.KV, error)                 { return nil, nil }
-func (s *testStore) DataList(_ context.Context, _ types.Uid, _ string, _ types.DataFilter) ([]*gen.Data, error) { return nil, nil }
-func (s *testStore) DataDelete(_ context.Context, _ types.Uid, _, _ string) error                          { return nil }
-func (s *testStore) ListConfigByPrefix(_ context.Context, _ types.Uid, _, _ string) ([]*gen.ConfigData, error) { return nil, nil }
-func (s *testStore) OAuthSet(_ context.Context, _ gen.OAuth) error                                         { return nil }
-func (s *testStore) OAuthGet(_ context.Context, _ types.Uid, _, _ string) (gen.OAuth, error)               { return gen.OAuth{}, nil }
-func (s *testStore) OAuthGetAvailable(_ context.Context, _ string) ([]gen.OAuth, error)                    { return nil, nil }
-func (s *testStore) FormSet(_ context.Context, _ string, _ gen.Form) error                                 { return nil }
-func (s *testStore) FormGet(_ context.Context, _ string) (gen.Form, error)                                 { return gen.Form{}, nil }
-func (s *testStore) PageSet(_ context.Context, _ string, _ gen.Page) error                                 { return nil }
-func (s *testStore) PageGet(_ context.Context, _ string) (gen.Page, error)                                 { return gen.Page{}, nil }
-func (s *testStore) BehaviorSet(_ context.Context, _ gen.Behavior) error                                   { return nil }
-func (s *testStore) BehaviorGet(_ context.Context, _ types.Uid, _ string) (gen.Behavior, error)            { return gen.Behavior{}, nil }
-func (s *testStore) BehaviorList(_ context.Context, _ types.Uid) ([]*gen.Behavior, error)                  { return nil, nil }
-func (s *testStore) BehaviorIncrease(_ context.Context, _ types.Uid, _ string, _ int) error                { return nil }
-func (s *testStore) ParameterSet(_ context.Context, _ string, _ types.KV, _ time.Time) error               { return nil }
-func (s *testStore) ParameterGet(_ context.Context, _ string) (gen.Parameter, error)                       { return gen.Parameter{}, nil }
-func (s *testStore) ParameterDelete(_ context.Context, _ string) error                                     { return nil }
-func (s *testStore) CreateInstruct(_ context.Context, _ *gen.Instruct) (int64, error)                      { return 0, nil }
-func (s *testStore) ListInstruct(_ context.Context, _ types.Uid, _ bool, _ int) ([]*gen.Instruct, error)   { return nil, nil }
-func (s *testStore) UpdateInstruct(_ context.Context, _ *gen.Instruct) error                               { return nil }
-func (s *testStore) CreateCounter(_ context.Context, _ *gen.Counter) (int64, error)                        { return 0, nil }
-func (s *testStore) IncreaseCounter(_ context.Context, _, _ int64) error                                   { return nil }
-func (s *testStore) DecreaseCounter(_ context.Context, _, _ int64) error                                   { return nil }
-func (s *testStore) ListCounter(_ context.Context, _ types.Uid, _ string) ([]*gen.Counter, error)          { return nil, nil }
-func (s *testStore) GetCounter(_ context.Context, _ int64) (gen.Counter, error)                            { return gen.Counter{}, nil }
-func (s *testStore) GetCounterByFlag(_ context.Context, _ types.Uid, _, _ string) (gen.Counter, error)     { return gen.Counter{}, nil }
-func (s *testStore) GetAgents(_ context.Context) ([]*gen.Agent, error)                                     { return nil, nil }
-func (s *testStore) GetAgentByHostid(_ context.Context, _ types.Uid, _, _ string) (*gen.Agent, error)      { return nil, nil }
-func (s *testStore) CreateAgent(_ context.Context, _ *gen.Agent) (int64, error)                            { return 0, nil }
-func (s *testStore) UpdateAgentLastOnlineAt(_ context.Context, _ types.Uid, _, _ string, _ time.Time) error { return nil }
-func (s *testStore) UpdateAgentOnlineDuration(_ context.Context, _ types.Uid, _, _ string, _ time.Time) error { return nil }
-
-// remaining methods below (event store, pipeline store, audit, etc.)
-func (s *testStore) CreateDataEvent(_ context.Context, _ *gen.DataEvent) (int64, error)                    { return 0, nil }
-func (s *testStore) GetDataEvent(_ context.Context, _ types.Uid, _, _ string) (gen.DataEvent, error)       { return gen.DataEvent{}, nil }
-func (s *testStore) ListDataEvents(_ context.Context, _ types.DataFilter) ([]*gen.DataEvent, error)        { return nil, nil }
-func (s *testStore) DeleteDataEvent(_ context.Context, _ types.Uid, _, _ string) error                      { return nil }
-func (s *testStore) CreateEventConsumption(_ context.Context, _ *gen.EventConsumption) (int64, error)      { return 0, nil }
-func (s *testStore) GetEventConsumption(_ context.Context, _ string) (gen.EventConsumption, error)         { return gen.EventConsumption{}, nil }
-func (s *testStore) CreateEventOutbox(_ context.Context, _ *gen.EventOutbox) (int64, error)                { return 0, nil }
-func (s *testStore) GetPendingEventOutboxes(_ context.Context, _ int) ([]*gen.EventOutbox, error)          { return nil, nil }
-func (s *testStore) MarkEventOutboxSent(_ context.Context, _ int64) error                                  { return nil }
-func (s *testStore) CreatePipelineDefinition(_ context.Context, _ *gen.PipelineDefinition) (int64, error)  { return 0, nil }
-func (s *testStore) GetPipelineDefinition(_ context.Context, _ string) (gen.PipelineDefinition, error)     { return gen.PipelineDefinition{}, nil }
-func (s *testStore) ListPipelineDefinitions(_ context.Context) ([]*gen.PipelineDefinition, error)          { return nil, nil }
-func (s *testStore) CreatePipelineRun(_ context.Context, _ *gen.PipelineRun) (int64, error)                { return 0, nil }
-func (s *testStore) GetPipelineRun(_ context.Context, _ int64) (gen.PipelineRun, error)                    { return gen.PipelineRun{}, nil }
-func (s *testStore) ListPipelineRuns(_ context.Context, _ int64) ([]*gen.PipelineRun, error)               { return nil, nil }
-func (s *testStore) UpdatePipelineRun(_ context.Context, _ int64, _ types.KV) error                        { return nil }
-func (s *testStore) CreatePipelineStep(_ context.Context, _ *gen.PipelineStep) (int64, error)              { return 0, nil }
-func (s *testStore) GetPipelineStep(_ context.Context, _ int64) (gen.PipelineStep, error)                  { return gen.PipelineStep{}, nil }
-func (s *testStore) ListPipelineSteps(_ context.Context, _ int64) ([]*gen.PipelineStep, error)             { return nil, nil }
-func (s *testStore) UpdatePipelineStep(_ context.Context, _ int64, _ types.KV) error                       { return nil }
-func (s *testStore) CreatePipelineCheckpoint(_ context.Context, _ *gen.PipelineCheckpoint) (int64, error)  { return 0, nil }
-func (s *testStore) GetPipelineCheckpoint(_ context.Context, _ int64) (gen.PipelineCheckpoint, error)      { return gen.PipelineCheckpoint{}, nil }
-func (s *testStore) CreatePollingState(_ context.Context, _ *gen.PollingState) (int64, error)              { return 0, nil }
-func (s *testStore) GetPollingState(_ context.Context, _, _ string) (gen.PollingState, error)              { return gen.PollingState{}, nil }
-func (s *testStore) UpsertPollingState(_ context.Context, _ *gen.PollingState) error                       { return nil }
-func (s *testStore) CreateWorkflowRun(_ context.Context, _ *gen.WorkflowRun) (int64, error)                { return 0, nil }
-func (s *testStore) GetWorkflowRun(_ context.Context, _ int64) (gen.WorkflowRun, error)                    { return gen.WorkflowRun{}, nil }
-func (s *testStore) ListWorkflowRuns(_ context.Context, _ int64) ([]*gen.WorkflowRun, error)               { return nil, nil }
-func (s *testStore) UpdateWorkflowRun(_ context.Context, _ int64, _ types.KV) error                        { return nil }
-func (s *testStore) CreateWorkflowStepRun(_ context.Context, _ *gen.WorkflowStepRun) (int64, error)        { return 0, nil }
-func (s *testStore) GetWorkflowStepRun(_ context.Context, _ int64) (gen.WorkflowStepRun, error)            { return gen.WorkflowStepRun{}, nil }
-func (s *testStore) ListWorkflowStepRuns(_ context.Context, _ int64) ([]*gen.WorkflowStepRun, error)       { return nil, nil }
-func (s *testStore) UpdateWorkflowStepRun(_ context.Context, _ int64, _ types.KV) error                    { return nil }
-func (s *testStore) RecordEvent(_ context.Context, _ store.AuditStore) error                                { return nil }
-func (s *testStore) RecordFailed(_ context.Context, _ store.AuditStore, _ error) error                      { return nil }
-func (s *testStore) RecordRejected(_ context.Context, _ store.AuditStore, _ string) error                   { return nil }
-func (s *testStore) RecordPluginAudit(_ context.Context, _ store.AuditStore) error                          { return nil }
-func (s *testStore) CreateResourceLink(_ context.Context, _ *gen.ResourceLink) (int64, error)               { return 0, nil }
-func (s *testStore) GetResourceLink(_ context.Context, _ int64) (gen.ResourceLink, error)                   { return gen.ResourceLink{}, nil }
-func (s *testStore) ListResourceLinks(_ context.Context, _ store.ResourceChainFilter) ([]*gen.ResourceLink, error) { return nil, nil }
-func (s *testStore) CreateApp(_ context.Context, _ *gen.App) (int64, error)                                { return 0, nil }
-func (s *testStore) GetApp(_ context.Context, _ int64) (gen.App, error)                                    { return gen.App{}, nil }
-func (s *testStore) GetAppByName(_ context.Context, _ string) (gen.App, error)                             { return gen.App{}, nil }
-func (s *testStore) ListApps(_ context.Context) ([]*gen.App, error)                                         { return nil, nil }
-func (s *testStore) DeleteApp(_ context.Context, _ int64) error                                             { return nil }
+// Methods required by the Adapter interface that embedded nil won't satisfy at runtime.
+func (s *testStore) IsOpen() bool                           { return false }
+func (s *testStore) Open(_ store.StoreType) error           { return nil }
+func (s *testStore) Close() error                           { return nil }
+func (s *testStore) SetMaxResults(_ int)                    {}
+func (s *testStore) CreateDb(_ bool) error                  { return nil }
+func (s *testStore) UpgradeDb() error                       { return nil }
+func (s *testStore) Version() int                           { return 0 }
+func (s *testStore) DB() *sql.DB                            { return nil }
+func (s *testStore) SetSessCache(_ store.SessCache)         {}
+func (s *testStore) SetUidCache(_ store.UidCache)           {}
+func (s *testStore) GetName() string                        { return "test" }
+func (s *testStore) IsNewNode() bool                        { return false }
+func (s *testStore) MaybeUpgradeDb(_ context.Context) error { return nil }
 
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
@@ -1087,9 +956,9 @@ func setupTestApp() (*fiber.App, *testStore) {
 }
 
 // createTestConfig returns a sample ConfigItem for tests.
-func createTestConfig(id int64, uid, topic, key string) model.ConfigItem {
+func createTestConfig(uid, topic, key string) model.ConfigItem {
 	return model.ConfigItem{
-		ID:     id,
+		ID:     1,
 		UID:    uid,
 		Topic:  topic,
 		Key:    key,
@@ -1099,6 +968,8 @@ func createTestConfig(id int64, uid, topic, key string) model.ConfigItem {
 	}
 }
 ```
+
+Note: `store.Adapter` is embedded as an interface (nil value). Go allows this — any method NOT overridden on `testStore` will panic at runtime if called. The methods we DO override (`ListConfigs`, `ConfigSet`, `ConfigGet`, `ConfigDelete`) and the required interface methods (`IsOpen`, `Open`, `Close`, etc.) are explicitly defined so they never panic. This avoids writing ~100 stub methods. Requires `time` and `database/sql` imports.
 
 - [ ] **Step 3: Write handler test cases in `module_test.go` (append)**
 
@@ -1113,7 +984,7 @@ func TestConfigsPage(t *testing.T) {
 	}{
 		{
 			name:         "renders page with configs",
-			storeConfigs: []model.ConfigItem{createTestConfig(1, "u1", "t1", "k1")},
+			storeConfigs: []model.ConfigItem{createTestConfig("u1", "t1", "k1")},
 			wantStatus:   http.StatusOK,
 			wantContains: "k1",
 		},
@@ -1163,7 +1034,7 @@ func TestListConfigs(t *testing.T) {
 	}{
 		{
 			name:         "renders config table",
-			storeConfigs: []model.ConfigItem{createTestConfig(1, "u1", "t1", "k1")},
+			storeConfigs: []model.ConfigItem{createTestConfig("u1", "t1", "k1")},
 			wantStatus:   http.StatusOK,
 			wantContains: "k1",
 		},
@@ -1174,10 +1045,10 @@ func TestListConfigs(t *testing.T) {
 			wantContains: "No configs",
 		},
 		{
-			name:         "renders multiple rows",
+			name: "renders multiple rows",
 			storeConfigs: []model.ConfigItem{
-				createTestConfig(1, "u1", "t1", "k1"),
-				createTestConfig(2, "u2", "t2", "k2"),
+				createTestConfig("u1", "t1", "k1"),
+				createTestConfig("u2", "t2", "k2"),
 			},
 			wantStatus:   http.StatusOK,
 			wantContains: "k2",
@@ -1218,20 +1089,71 @@ func TestDeleteConfig(t *testing.T) {
 			wantStatus: http.StatusInternalServerError,
 		},
 		{
-			name:       "delete non-existent id still returns 200",
-			wantStatus: http.StatusOK,
+			name:       "delete non-existent config returns 404",
+			wantStatus: http.StatusNotFound,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp()
-			ts.delConfigFn = func(uid types.Uid, topic, key string) error {
-				return tt.delErr
+			if tt.delErr != nil {
+				ts.delConfigFn = func(uid types.Uid, topic, key string) error {
+					return tt.delErr
+				}
 			}
 			defer func() { store.Database = nil }()
 
-			req := httptest.NewRequest(http.MethodDelete, "/service/web/configs/1", nil)
+			req := httptest.NewRequest(http.MethodDelete,
+				"/service/web/configs/u1/t1/k1", nil)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestGetConfig(t *testing.T) {
+	tests := []struct {
+		name         string
+		getFn        func(uid types.Uid, topic, key string) (types.KV, error)
+		wantStatus   int
+		wantContains string
+	}{
+		{
+			name: "existing config returns row",
+			getFn: func(uid types.Uid, topic, key string) (types.KV, error) {
+				return types.KV{"v": "foo"}, nil
+			},
+			wantStatus:   http.StatusOK,
+			wantContains: `"v":"foo"`,
+		},
+		{
+			name: "not found returns 404",
+			getFn: func(uid types.Uid, topic, key string) (types.KV, error) {
+				return nil, types.ErrNotFound
+			},
+			wantStatus: http.StatusNotFound,
+		},
+		{
+			name: "store error returns 500",
+			getFn: func(uid types.Uid, topic, key string) (types.KV, error) {
+				return nil, fmt.Errorf("db down")
+			},
+			wantStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			ts.getConfigFn = tt.getFn
+			defer func() { store.Database = nil }()
+
+			req := httptest.NewRequest(http.MethodGet,
+				"/service/web/configs/u1/t1/k1", nil)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -1242,10 +1164,44 @@ func TestDeleteConfig(t *testing.T) {
 }
 ```
 
-- [ ] **Step 4: Run tests — they should fail (no handlers yet)**
+- [ ] **Step 5: Run tests — they should fail (no handlers yet)**
 
 ```bash
 go test ./internal/modules/web/ -v -run TestConfigsPage
+```
+
+Expected: FAIL — `cannot find route` or `404`.
+
+- [ ] **Step 6: Write the full webservice.go (shown above) and module_test.go (shown above) and run all handler tests**
+
+The full webservice.go has correct imports already. The module_test.go import block needs:
+
+```go
+import (
+	"context"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/gofiber/fiber/v3"
+
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+```
+
+And the test_helper_test.go needs: `"context"`, `"database/sql"`, `"net/http"`, `"time"`, `store`, `gen` (if any), `types`, `model`, `fiber`.
+
+- [ ] **Step 7: Verify compilation**
+
+```bash
+go build ./internal/modules/web/...
 ```
 
 Expected: FAIL — `cannot find route` or `404`.
@@ -1260,7 +1216,9 @@ package web
 import (
 	"context"
 	"net/http"
+	"net/url"
 
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -1275,18 +1233,25 @@ import (
 var webserviceRules = []webservice.Rule{
 	webservice.Get("/configs", configsPage),
 	webservice.Get("/configs/list", listConfigs),
-	webservice.Get("/configs/{id}", getConfig),
 	webservice.Get("/configs/new", newConfigForm),
 	webservice.Post("/configs", createConfig),
-	webservice.Get("/configs/{id}/edit", editConfigForm),
-	webservice.Put("/configs/{id}", updateConfig),
-	webservice.Delete("/configs/{id}", deleteConfig),
+	webservice.Get("/configs/{uid}/{topic}/{key}", getConfig),
+	webservice.Get("/configs/{uid}/{topic}/{key}/edit", editConfigForm),
+	webservice.Put("/configs/{uid}/{topic}/{key}", updateConfig),
+	webservice.Delete("/configs/{uid}/{topic}/{key}", deleteConfig),
+}
+
+// requireAuth checks auth context; returns nil if OK, error if unauthorized.
+func requireAuth(ctx fiber.Ctx) error {
+	if route.GetRequestContext(ctx) == nil {
+		return ctx.SendStatus(http.StatusUnauthorized)
+	}
+	return nil
 }
 
 func configsPage(ctx fiber.Ctx) error {
-	rc := route.GetRequestContext(ctx)
-	if rc == nil {
-		return ctx.SendStatus(http.StatusUnauthorized)
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
 	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{Limit: 100})
 	if err != nil {
@@ -1297,9 +1262,8 @@ func configsPage(ctx fiber.Ctx) error {
 }
 
 func listConfigs(ctx fiber.Ctx) error {
-	rc := route.GetRequestContext(ctx)
-	if rc == nil {
-		return ctx.SendStatus(http.StatusUnauthorized)
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
 	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{Limit: 100})
 	if err != nil {
@@ -1311,34 +1275,42 @@ func listConfigs(ctx fiber.Ctx) error {
 }
 
 func getConfig(ctx fiber.Ctx) error {
-	id, err := ctx.ParamsInt("id", 0)
-	if err != nil || id <= 0 {
-		return types.Errorf(types.ErrInvalidArgument, "invalid id")
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
-	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{})
+	uid, topic, key, err := decodeConfigParams(ctx)
 	if err != nil {
+		return err
+	}
+	value, err := store.Database.ConfigGet(context.Background(), types.Uid(uid), topic, key)
+	if err != nil {
+		if types.IsNotFound(err) {
+			ctx.Status(http.StatusNotFound)
+			return renderError(ctx, "Config not found")
+		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to load config")
 	}
-	for _, item := range items {
-		if item.ID == int64(id) {
-			ctx.Type("html")
-			return partials.ConfigRow(item).Render(context.Background(), ctx.Response().BodyWriter())
-		}
-	}
-	ctx.Status(http.StatusNotFound)
-	return renderError(ctx, "Config not found")
+	ctx.Type("html")
+	return partials.ConfigRow(model.ConfigItem{
+		UID:   uid,
+		Topic: topic,
+		Key:   key,
+		Value: value,
+	}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func newConfigForm(ctx fiber.Ctx) error {
+	if err := requireAuth(ctx); err != nil {
+		return err
+	}
 	ctx.Type("html")
 	return partials.ConfigForm(model.ConfigItem{}, true, nil).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func createConfig(ctx fiber.Ctx) error {
-	rc := route.GetRequestContext(ctx)
-	if rc == nil {
-		return ctx.SendStatus(http.StatusUnauthorized)
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
 	uid := ctx.FormValue("uid")
 	topic := ctx.FormValue("topic")
@@ -1378,7 +1350,7 @@ func createConfig(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to create config")
 	}
 
-	// Render the new row for HTMX swap
+	// Return the new row using the composite key — no ID=0 problem.
 	ctx.Type("html")
 	return partials.ConfigRow(model.ConfigItem{
 		UID:   uid,
@@ -1389,43 +1361,52 @@ func createConfig(ctx fiber.Ctx) error {
 }
 
 func editConfigForm(ctx fiber.Ctx) error {
-	id, err := ctx.ParamsInt("id", 0)
-	if err != nil || id <= 0 {
-		return types.Errorf(types.ErrInvalidArgument, "invalid id")
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
-	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{})
+	uid, topic, key, err := decodeConfigParams(ctx)
 	if err != nil {
+		return err
+	}
+	value, err := store.Database.ConfigGet(context.Background(), types.Uid(uid), topic, key)
+	if err != nil {
+		if types.IsNotFound(err) {
+			ctx.Status(http.StatusNotFound)
+			return renderError(ctx, "Config not found")
+		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to load config")
 	}
-	for _, item := range items {
-		if item.ID == int64(id) {
-			ctx.Type("html")
-			return partials.ConfigForm(item, false, nil).Render(context.Background(), ctx.Response().BodyWriter())
-		}
-	}
-	ctx.Status(http.StatusNotFound)
-	return renderError(ctx, "Config not found")
+	ctx.Type("html")
+	return partials.ConfigForm(model.ConfigItem{
+		UID:   uid,
+		Topic: topic,
+		Key:   key,
+		Value: value,
+	}, false, nil).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func updateConfig(ctx fiber.Ctx) error {
-	id, err := ctx.ParamsInt("id", 0)
-	if err != nil || id <= 0 {
-		return types.Errorf(types.ErrInvalidArgument, "invalid id")
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
-	uid := ctx.FormValue("uid")
-	topic := ctx.FormValue("topic")
-	key := ctx.FormValue("key")
+	urlUID, urlTopic, urlKey, err := decodeConfigParams(ctx)
+	if err != nil {
+		return err
+	}
+	formUID := ctx.FormValue("uid")
+	formTopic := ctx.FormValue("topic")
+	formKey := ctx.FormValue("key")
 	valueRaw := ctx.FormValue("value")
 
 	errors := make(map[string]string)
-	if uid == "" {
+	if formUID == "" {
 		errors["uid"] = "UID is required"
 	}
-	if topic == "" {
+	if formTopic == "" {
 		errors["topic"] = "Topic is required"
 	}
-	if key == "" {
+	if formKey == "" {
 		errors["key"] = "Key is required"
 	}
 	var value types.KV
@@ -1438,16 +1419,22 @@ func updateConfig(ctx fiber.Ctx) error {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
 		return partials.ConfigForm(model.ConfigItem{
-			ID:    int64(id),
-			UID:   uid,
-			Topic: topic,
-			Key:   key,
+			UID:   formUID,
+			Topic: formTopic,
+			Key:   formKey,
 			Value: value,
 		}, false, errors).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 
-	// Update via existing ConfigSet
-	err = store.Database.ConfigSet(context.Background(), types.Uid(uid), topic, key, value)
+	// If composite key changed, delete old record and insert new.
+	if formUID != urlUID || formTopic != urlTopic || formKey != urlKey {
+		if err := store.Database.ConfigDelete(context.Background(), types.Uid(urlUID), urlTopic, urlKey); err != nil {
+			ctx.Status(http.StatusInternalServerError)
+			return renderError(ctx, "Failed to update config")
+		}
+	}
+
+	err = store.Database.ConfigSet(context.Background(), types.Uid(formUID), formTopic, formKey, value)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to update config")
@@ -1455,36 +1442,41 @@ func updateConfig(ctx fiber.Ctx) error {
 
 	ctx.Type("html")
 	return partials.ConfigRow(model.ConfigItem{
-		ID:    int64(id),
-		UID:   uid,
-		Topic: topic,
-		Key:   key,
+		UID:   formUID,
+		Topic: formTopic,
+		Key:   formKey,
 		Value: value,
 	}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func deleteConfig(ctx fiber.Ctx) error {
-	id, err := ctx.ParamsInt("id", 0)
-	if err != nil || id <= 0 {
-		return types.Errorf(types.ErrInvalidArgument, "invalid id")
+	if err := requireAuth(ctx); err != nil {
+		return err
 	}
-	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{})
+	uid, topic, key, err := decodeConfigParams(ctx)
+	if err != nil {
+		return err
+	}
+	err = store.Database.ConfigDelete(context.Background(), types.Uid(uid), topic, key)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load config")
+		return renderError(ctx, "Failed to delete config")
 	}
-	for _, item := range items {
-		if item.ID == int64(id) {
-			err = store.Database.ConfigDelete(context.Background(), types.Uid(item.UID), item.Topic, item.Key)
-			if err != nil {
-				ctx.Status(http.StatusInternalServerError)
-				return renderError(ctx, "Failed to delete config")
-			}
-			return ctx.SendStatus(http.StatusOK)
-		}
+	return ctx.SendStatus(http.StatusOK)
+}
+
+// decodeConfigParams extracts and decodes uid, topic, key from URL path params.
+func decodeConfigParams(ctx fiber.Ctx) (uid, topic, key string, err error) {
+	uid, e1 := url.PathUnescape(ctx.Params("uid"))
+	topic, e2 := url.PathUnescape(ctx.Params("topic"))
+	key, e3 := url.PathUnescape(ctx.Params("key"))
+	if e1 != nil || e2 != nil || e3 != nil {
+		return "", "", "", types.Errorf(types.ErrInvalidArgument, "invalid config params")
 	}
-	ctx.Status(http.StatusNotFound)
-	return renderError(ctx, "Config not found")
+	if uid == "" || topic == "" || key == "" {
+		return "", "", "", types.Errorf(types.ErrInvalidArgument, "uid, topic, and key are required")
+	}
+	return uid, topic, key, nil
 }
 
 // renderError returns an HTML partial with an error message.
@@ -1495,39 +1487,10 @@ func renderError(ctx fiber.Ctx, msg string) error {
 }
 ```
 
-- [ ] **Step 6: Add missing imports to `webservice.go` imports block**
-
-Make sure the file imports:
-```go
-import (
-	"context"
-	"net/http"
-
-	"github.com/bytedance/sonic"
-	"github.com/gofiber/fiber/v3"
-
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/route"
-	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/model"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/flowline-io/flowbot/pkg/views/pages"
-	"github.com/flowline-io/flowbot/pkg/views/partials"
-)
-```
-
-Also add the missing `io` import to `module_test.go` and the `time` import.
-
-- [ ] **Step 7: Verify compilation**
-
-```bash
-go build ./internal/modules/web/...
-```
-
 - [ ] **Step 8: Run the handler tests**
 
 ```bash
-go test ./internal/modules/web/ -v -run "TestConfigsPage|TestListConfigs|TestDeleteConfig"
+go test ./internal/modules/web/ -v -run "TestConfigsPage|TestListConfigs|TestDeleteConfig|TestGetConfig"
 ```
 
 Expected: All pass.
