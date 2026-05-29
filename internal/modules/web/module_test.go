@@ -556,3 +556,174 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		body             string
+		setConfigFn      func(uid types.Uid, topic, key string, value types.KV) error
+		wantStatus       int
+		wantBodyContains string
+	}{
+		{
+			name:             "valid JSON object creates config successfully",
+			body:             "uid=u1&topic=t1&key=k1&value=%7B%22enabled%22%3Atrue%7D",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+		},
+		{
+			name:             "non-object JSON value returns 422 with descriptive error",
+			body:             "uid=u1&topic=t1&key=k1&value=42",
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Value must be a JSON object",
+		},
+		{
+			name:             "invalid JSON value returns 422 with invalid JSON error",
+			body:             "uid=u1&topic=t1&key=k1&value=not-json",
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Invalid JSON",
+		},
+		{
+			name:             "empty JSON object value creates config successfully",
+			body:             "uid=u1&topic=t1&key=k1&value=%7B%7D",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+		},
+		{
+			name:             "empty value field creates config successfully",
+			body:             "uid=u1&topic=t1&key=k1&value=",
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+		},
+		{
+			name:             "missing uid returns 422 with required error",
+			body:             "uid=&topic=t1&key=k1&value=%7B%7D",
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "UID is required",
+		},
+		{
+			name:             "missing key returns 422 with required error",
+			body:             "uid=u1&topic=t1&key=&value=%7B%7D",
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Key is required",
+		},
+		{
+			name:        "store error returns 500",
+			body:        "uid=u1&topic=t1&key=k1&value=%7B%7D",
+			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
+			wantStatus:  http.StatusInternalServerError,
+		},
+		{
+			name:             "JSON string value returns 422 with descriptive error",
+			body:             "uid=u1&topic=t1&key=k1&value=%22hello%22",
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Value must be a JSON object",
+		},
+		{
+			name:             "JSON array value returns 422 with descriptive error",
+			body:             "uid=u1&topic=t1&key=k1&value=%5B1%2C2%2C3%5D",
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Value must be a JSON object",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			if tt.setConfigFn != nil {
+				ts.setConfigFn = tt.setConfigFn
+			}
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodPost, "/service/web/configs", strings.NewReader(tt.body))
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if tt.wantBodyContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				if !strings.Contains(string(body), tt.wantBodyContains) {
+					t.Errorf("want body containing %q, got %s", tt.wantBodyContains, string(body))
+				}
+			}
+		})
+	}
+}
+
+func TestUpdateConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		path             string
+		body             string
+		getConfigFn      func(uid types.Uid, topic, key string) (types.KV, error)
+		setConfigFn      func(uid types.Uid, topic, key string, value types.KV) error
+		wantStatus       int
+		wantBodyContains string
+	}{
+		{
+			name:             "valid JSON object updates config successfully",
+			path:             "/service/web/configs/u1/t1/k1",
+			body:             "value=%7B%22enabled%22%3Atrue%7D",
+			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+		},
+		{
+			name:             "non-object JSON value returns 422 with descriptive error",
+			path:             "/service/web/configs/u1/t1/k1",
+			body:             "value=42",
+			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Value must be a JSON object",
+		},
+		{
+			name:             "invalid JSON value returns 422 with invalid JSON error",
+			path:             "/service/web/configs/u1/t1/k1",
+			body:             "value=not-json",
+			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
+			wantStatus:       http.StatusUnprocessableEntity,
+			wantBodyContains: "Invalid JSON",
+		},
+		{
+			name:             "empty value field updates config with empty map",
+			path:             "/service/web/configs/u1/t1/k1",
+			body:             "value=",
+			getConfigFn:      func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "k1",
+		},
+		{
+			name:        "store error returns 500",
+			path:        "/service/web/configs/u1/t1/k1",
+			body:        "value=%7B%7D",
+			getConfigFn: func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
+			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
+			wantStatus:  http.StatusInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			ts.getConfigFn = tt.getConfigFn
+			if tt.setConfigFn != nil {
+				ts.setConfigFn = tt.setConfigFn
+			}
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodPut, tt.path, strings.NewReader(tt.body))
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if tt.wantBodyContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				if !strings.Contains(string(body), tt.wantBodyContains) {
+					t.Errorf("want body containing %q, got %s", tt.wantBodyContains, string(body))
+				}
+			}
+		})
+	}
+}

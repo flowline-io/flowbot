@@ -166,7 +166,11 @@ func createConfig(ctx fiber.Ctx) error {
 	var value types.KV
 	if valueRaw != "" {
 		if err := sonic.Unmarshal([]byte(valueRaw), &value); err != nil {
-			errorsMsg["value"] = "Invalid JSON"
+			if sonic.Valid([]byte(valueRaw)) {
+				errorsMsg["value"] = "Value must be a JSON object, e.g. {\"key\": \"value\"}"
+			} else {
+				errorsMsg["value"] = "Invalid JSON"
+			}
 		}
 	}
 	if len(errorsMsg) > 0 {
@@ -216,9 +220,13 @@ func updateConfig(ctx fiber.Ctx) error {
 	var value types.KV
 	if valueRaw != "" {
 		if err := sonic.Unmarshal([]byte(valueRaw), &value); err != nil {
+			errMsg := "Invalid JSON"
+			if sonic.Valid([]byte(valueRaw)) {
+				errMsg = "Value must be a JSON object, e.g. {\"key\": \"value\"}"
+			}
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": "Invalid JSON"}).Render(context.Background(), ctx.Response().BodyWriter())
+			return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": errMsg}).Render(context.Background(), ctx.Response().BodyWriter())
 		}
 	}
 	err = store.Database.ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
