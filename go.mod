@@ -9,6 +9,7 @@ require (
 	github.com/RealAlexandreAI/json-repair v0.0.15
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
+	github.com/a-h/templ v0.3.1020
 	github.com/adrg/xdg v0.5.3
 	github.com/alicebob/miniredis/v2 v2.38.0
 	github.com/bwmarrin/discordgo v0.29.0
@@ -22,6 +23,7 @@ require (
 	github.com/flc1125/go-cron/v4 v4.10.0
 	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-playground/validator/v10 v10.30.2
+	github.com/go-rod/rod v0.116.2
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/contrib/v3/swaggo v1.0.6
 	github.com/gofiber/contrib/v3/zerolog v1.0.6
@@ -41,7 +43,7 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.8
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
-	github.com/prometheus/common v0.67.5
+	github.com/prometheus/common v0.68.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.20.0
 	github.com/redis/go-redis/v9 v9.20.0
 	github.com/rs/zerolog v1.35.1
@@ -134,7 +136,6 @@ require (
 	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/STARRY-S/zip v0.2.1 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
-	github.com/a-h/templ v0.3.1020 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/agnivade/levenshtein v1.2.2-0.20250519083737-420867539855 // indirect
 	github.com/air-verse/air v1.64.5 // indirect
@@ -296,7 +297,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-restruct/restruct v1.2.0-alpha // indirect
-	github.com/go-rod/rod v0.116.2 // indirect
 	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/go-task/task/v3 v3.48.0 // indirect
