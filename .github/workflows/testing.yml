@@ -58,3 +58,27 @@ jobs:
         with:
           name: specs-report
           path: specs-report.xml
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '^1.26'
+          cache: true
+
+      - name: Go mod download
+        run: go mod download
+
+      - name: E2E Browser Tests
+        run: go tool task test:e2e
+
+      - name: Upload E2E Screenshots
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: e2e-screenshots
+          path: tests/e2e/test-reports/
