@@ -80,6 +80,18 @@ func (moduleHandler) Rules() []any {
 	return []any{webserviceRules}
 }
 
+// InitForE2E initializes the web module handler for e2e testing.
+// It calls the package-level handler.Init with the provided JSON config,
+// bypassing the uber/fx dependency injection used in production.
+func InitForE2E(configData json.RawMessage) error {
+	return handler.Init(configData)
+}
+
+// MountForE2E mounts web module routes onto the given Fiber app.
+func MountForE2E(app *fiber.App) {
+	handler.Webservice(app)
+}
+
 // authConfig returns the parsed authentication configuration.
 func authConfig() AuthConfig {
 	return handler.authConfig
