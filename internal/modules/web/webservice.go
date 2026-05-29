@@ -157,44 +157,22 @@ func updateConfig(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	formUID := ctx.FormValue("uid")
-	formTopic := ctx.FormValue("topic")
-	formKey := ctx.FormValue("key")
 	valueRaw := ctx.FormValue("value")
-	errorsMsg := make(map[string]string)
-	if formUID == "" {
-		errorsMsg["uid"] = "UID is required"
-	}
-	if formTopic == "" {
-		errorsMsg["topic"] = "Topic is required"
-	}
-	if formKey == "" {
-		errorsMsg["key"] = "Key is required"
-	}
 	var value types.KV
 	if valueRaw != "" {
 		if err := sonic.Unmarshal([]byte(valueRaw), &value); err != nil {
-			errorsMsg["value"] = "Invalid JSON"
+			ctx.Status(http.StatusUnprocessableEntity)
+			ctx.Type("html")
+			return partials.ConfigForm(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}, false, map[string]string{"value": "Invalid JSON"}).Render(context.Background(), ctx.Response().BodyWriter())
 		}
 	}
-	if len(errorsMsg) > 0 {
-		ctx.Status(http.StatusUnprocessableEntity)
-		ctx.Type("html")
-		return partials.ConfigForm(model.ConfigItem{UID: formUID, Topic: formTopic, Key: formKey, Value: value}, false, errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
-	}
-	if formUID != urlUID || formTopic != urlTopic || formKey != urlKey {
-		if err := store.Database.ConfigDelete(context.Background(), types.Uid(urlUID), urlTopic, urlKey); err != nil {
-			ctx.Status(http.StatusInternalServerError)
-			return renderError(ctx, "Failed to update config")
-		}
-	}
-	err = store.Database.ConfigSet(context.Background(), types.Uid(formUID), formTopic, formKey, value)
+	err = store.Database.ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to update config")
 	}
 	ctx.Type("html")
-	return partials.ConfigRow(model.ConfigItem{UID: formUID, Topic: formTopic, Key: formKey, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
+	return partials.ConfigRow(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func deleteConfig(ctx fiber.Ctx) error {
