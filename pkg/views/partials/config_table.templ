@@ -21,7 +21,7 @@ templ ConfigTable(items []model.ConfigItem) {
 				@ConfigRow(item)
 			}
 			if len(items) == 0 {
-				<tr>
+				<tr id="configs-empty">
 					<td colspan="7" class="px-4 py-6 text-center text-sm text-gray-500">No configs found.</td>
 				</tr>
 			}

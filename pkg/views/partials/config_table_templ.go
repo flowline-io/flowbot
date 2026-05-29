@@ -42,7 +42,7 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			}
 		}
 		if len(items) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr><td colspan=\"7\" class=\"px-4 py-6 text-center text-sm text-gray-500\">No configs found.</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"configs-empty\"><td colspan=\"7\" class=\"px-4 py-6 text-center text-sm text-gray-500\">No configs found.</td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

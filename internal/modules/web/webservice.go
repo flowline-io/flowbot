@@ -180,6 +180,8 @@ func createConfig(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to create config")
 	}
 	ctx.Type("html")
+	// Remove empty-state row now that a config exists
+	ctx.Response().BodyWriter().Write([]byte(`<tr id="configs-empty" hx-swap-oob="delete"></tr>`))
 	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
