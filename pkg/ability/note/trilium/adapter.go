@@ -29,8 +29,13 @@ type Adapter struct {
 }
 
 // New creates an Adapter using the default provider client (reads config from YAML).
+// It returns nil when the provider is not configured.
 func New() notesvc.Service {
-	return NewWithClient(provider.GetClient())
+	c := provider.GetClient()
+	if c == nil {
+		return nil
+	}
+	return NewWithClient(c)
 }
 
 // NewWithClient creates an Adapter with a specific client, useful for testing.

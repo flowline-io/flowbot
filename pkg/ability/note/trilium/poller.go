@@ -21,9 +21,14 @@ type NotePoller struct {
 }
 
 // NewPoller creates a NotePoller backed by a default adapter.
+// It returns nil when the provider is not configured.
 func NewPoller() ability.PollingResource {
+	svc := New()
+	if svc == nil {
+		return nil
+	}
 	return &NotePoller{
-		svc:     New(),
+		svc:     svc,
 		secret:  []byte("note-polling-secret-v1"),
 		nowFunc: time.Now,
 	}

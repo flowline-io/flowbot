@@ -275,8 +275,11 @@ func NewEventSourceManager(
 }
 
 // RegisterPolling registers a polling resource. The poll interval is derived from
-// the resource's DefaultInterval method.
+// the resource's DefaultInterval method. Nil resources are silently skipped.
 func (m *EventSourceManager) RegisterPolling(r PollingResource) {
+	if r == nil {
+		return
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.pollers[r.ResourceName()] = &pollEntry{
