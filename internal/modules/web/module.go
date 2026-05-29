@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
 
+	webassets "github.com/flowline-io/flowbot"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 )
@@ -70,7 +71,7 @@ func (moduleHandler) Bootstrap() error {
 
 // Webservice mounts web module routes on the fiber app.
 func (moduleHandler) Webservice(app *fiber.App) {
-	app.Get("/static/*", static.New("./public"))
+	app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))
 	module.Webservice(app, Name, webserviceRules)
 }
 
