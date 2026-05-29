@@ -142,6 +142,8 @@ func newConfigForm(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
+	// Remove any existing new-config form row to prevent accumulation
+	ctx.Response().BodyWriter().Write([]byte(`<tr id="config-form-new" hx-swap-oob="delete"></tr>`))
 	return partials.ConfigForm(model.ConfigItem{}, true, nil).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
@@ -263,13 +265,13 @@ func loginSubmit(ctx fiber.Ctx) error {
 	cfg := authConfig()
 	if username == "" || username != cfg.Username || password != cfg.Password {
 		ctx.Type("html")
-		return pages.LoginPage(next, "Invalid username or password").Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.LoginForm(next, "Invalid username or password").Render(context.Background(), ctx.Response().BodyWriter())
 	}
 	token, err := auth.NewToken()
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to generate token: %w", err))
 		ctx.Type("html")
-		return pages.LoginPage(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.LoginForm(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
 	}
 	uid := types.Uid("user-" + username)
 	params := types.KV{
@@ -281,7 +283,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 	if err := store.Database.ParameterSet(context.Background(), token, params, expiredAt); err != nil {
 		flog.Error(fmt.Errorf("failed to store token: %w", err))
 		ctx.Type("html")
-		return pages.LoginPage(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.LoginForm(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
 	}
 	ctx.Cookie(&fiber.Cookie{
 		Name:     "accessToken",

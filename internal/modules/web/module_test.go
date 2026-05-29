@@ -420,6 +420,66 @@ func TestLoginSubmit(t *testing.T) {
 	}
 }
 
+func TestLoginSubmitReturnsFragmentOnError(t *testing.T) {
+	tests := []struct {
+		name         string
+		username     string
+		password     string
+		notContains  []string
+		wantContains string
+	}{
+		{
+			name:         "wrong password returns form fragment not full page",
+			username:     "admin",
+			password:     "wrong",
+			notContains:  []string{"<!DOCTYPE", "<html", "<body", "<nav"},
+			wantContains: "Invalid username or password",
+		},
+		{
+			name:         "empty credentials returns form fragment not full page",
+			username:     "",
+			password:     "",
+			notContains:  []string{"<!DOCTYPE", "<html", "<body", "<nav"},
+			wantContains: "Invalid username or password",
+		},
+		{
+			name:         "param set error returns form fragment not full page",
+			username:     "admin",
+			password:     "admin",
+			notContains:  []string{"<!DOCTYPE", "<html", "<body", "<nav"},
+			wantContains: "Internal error",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			if tt.username == "admin" && tt.password == "admin" {
+				ts.paramSetFn = func(_ context.Context, _ string, _ types.KV, _ time.Time) error {
+					return fmt.Errorf("db down")
+				}
+			}
+			form := url.Values{}
+			form.Set("username", tt.username)
+			form.Set("password", tt.password)
+			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			body, _ := io.ReadAll(resp.Body)
+			bodyStr := string(body)
+			for _, s := range tt.notContains {
+				if strings.Contains(bodyStr, s) {
+					t.Errorf("response should NOT contain %q but it did", s)
+				}
+			}
+			if !strings.Contains(bodyStr, tt.wantContains) {
+				t.Errorf("wanted body containing %q", tt.wantContains)
+			}
+		})
+	}
+}
+
 func TestLogout(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -553,6 +613,61 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 				body, _ := io.ReadAll(resp.Body)
 				if !strings.Contains(string(body), tt.wantBodyContains) {
 					t.Errorf("want body containing %q", tt.wantBodyContains)
+				}
+			}
+		})
+	}
+}
+
+func TestNewConfigFormIncludesCleanup(t *testing.T) {
+	tests := []struct {
+		name            string
+		wantStatus      int
+		wantContains    string
+		wantOOBDelete   bool
+	}{
+		{
+			name:          "new config form includes cleanup for existing forms",
+			wantStatus:    http.StatusOK,
+			wantContains:  `id="config-form-new"`,
+			wantOOBDelete: true,
+		},
+		{
+			name:          "new config form returns fragment not full page",
+			wantStatus:    http.StatusOK,
+			wantContains:  `hx-post="/service/web/configs"`,
+			wantOOBDelete: true,
+		},
+		{
+			name:          "new config form is a table row element",
+			wantStatus:    http.StatusOK,
+			wantContains:  `<tr`,
+			wantOOBDelete: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/new", nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			bodyStr := string(body)
+
+			if !strings.Contains(bodyStr, tt.wantContains) {
+				t.Errorf("want body containing %q", tt.wantContains)
+			}
+
+			if tt.wantOOBDelete {
+				hasOOB := strings.Contains(bodyStr, `hx-swap-oob`) && strings.Contains(bodyStr, `"delete"`)
+				if !hasOOB {
+					t.Errorf("expected OOB delete for config-form-new, got body: %s", bodyStr)
 				}
 			}
 		})
