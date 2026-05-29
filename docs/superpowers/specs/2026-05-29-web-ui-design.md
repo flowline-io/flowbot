@@ -71,7 +71,7 @@ All routes require authentication (no `WithNotAuth()`).
 
 | Method | Path | Handler | Returns |
 |--------|------|---------|---------|
-| `GET` | `/service/web/configs` | `configsPage` | `layout.Base(pages.ConfigsPage())` |
+| `GET` | `/service/web/configs` | `configsPage` | `layout.Base(pages.ConfigsPage(initialItems))` — server-side pre-render, no empty flash |
 
 ### HTMX partial routes
 
@@ -127,7 +127,7 @@ The existing `ConfigSet`, `ConfigGet`, `ConfigDelete` methods are used for indiv
 HTML skeleton with `<head>`, Tailwind CDN (dev), Alpine.js CDN, HTMX CDN, global nav bar. Uses `@templ.Children()` slot for page content.
 
 ### `pages/configs.templ`
-Full page embedding `layout.Base`. Contains the "New Config" button and a `<div id="configs-table">` that triggers `hx-get="/service/web/configs/list"` on load.
+Full page embedding `layout.Base`. Receives `[]ConfigItem` pre-fetched by the handler. Contains the "New Config" button and renders the config table directly from initial data — no `hx-get` on load. The table remains a valid HTMX target for subsequent partial refreshes (search, pagination, manual reload).
 
 ### `partials/config_table.templ`
 Renders a `<table>` with headers (ID, UID, Topic, Key, Value preview, Actions). Body is `id="configs-rows"` containing all rows.
@@ -140,8 +140,11 @@ Inline form with `uid`, `topic`, `key` inputs and `value` textarea (JSON). Used 
 
 ## HTMX Interaction Flows
 
-### List refresh after mutation
-After POST create returns `partials.ConfigRow` prepended via `hx-swap="afterbegin"`, then `hx-on::after-settle` triggers a full table refresh.
+### Initial page load
+Handler fetches data from store, passes `[]ConfigItem` directly to `pages.ConfigsPage()`. No client-side `hx-get` on load — zero round-trips for first paint.
+
+### Inline create
+Click "New Config" → `partials.ConfigForm` inserted at top of table. Submit POST → if 200, returns `partials.ConfigRow` swapped in place of the form. No subsequent full table refresh — single network call, instant result.
 
 ### Inline edit
 Click "Edit" → row replaced with `partials.ConfigForm` (pre-filled). Submit PUT → if 200, swaps form back to `partials.ConfigRow`. If 422, form remains with errors.
@@ -149,8 +152,8 @@ Click "Edit" → row replaced with `partials.ConfigForm` (pre-filled). Submit PU
 ### Delete
 Click "Delete" → `hx-confirm` dialog, `hx-delete`, server returns 200 empty → `hx-target` row removed from DOM.
 
-### Inline create
-Click "New Config" → `partials.ConfigForm` inserted at top of table. Submit POST → if 200, swaps to `partials.ConfigRow`. If 422, form with errors.
+### Manual refresh
+A "Refresh" button on the page emits `hx-get="/service/web/configs/list"` targeting the table container. Used for explicit reload, search, or pagination.
 
 ## Error Handling
 
