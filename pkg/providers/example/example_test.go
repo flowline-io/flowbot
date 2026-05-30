@@ -14,6 +14,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
+// unreachableAddr is a loopback address on a different IP than httptest.NewServer's 127.0.0.1.
+// Using a separate IP prevents the kernel from reassigning a closed server's port to another
+// parallel test server, which would cause the subsequent request to land on the wrong handler.
+const unreachableAddr = "http://127.0.0.2:1"
+
 func TestGetClient_Defaults(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -86,11 +91,10 @@ func TestNewExample(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		handler  http.HandlerFunc
-		path     string
-		wantErr  bool
-		closeSrv bool
+		name    string
+		handler http.HandlerFunc
+		path    string
+		wantErr bool
 	}{
 		{
 			name: "successful get returns post",
@@ -110,25 +114,22 @@ func TestGet(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error returns err",
-			wantErr:  true,
-			closeSrv: true,
+			name:    "connection error returns err",
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewExample(srv.URL, "")
-			if tt.closeSrv {
-				srv.Close()
+			var endpoint string
+			if tt.wantErr {
+				endpoint = unreachableAddr
 			} else {
+				srv := httptest.NewServer(tt.handler)
 				defer srv.Close()
+				endpoint = srv.URL
 			}
+			c := NewExample(endpoint, "")
 			resp, err := c.Get(context.Background(), tt.path)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -143,10 +144,9 @@ func TestGet(t *testing.T) {
 func TestPost(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		data     any
-		wantErr  bool
-		closeSrv bool
+		name    string
+		data    any
+		wantErr bool
 	}{
 		{
 			name: "successful post returns response",
@@ -157,29 +157,30 @@ func TestPost(t *testing.T) {
 			data: nil,
 		},
 		{
-			name:     "connection error",
-			data:     map[string]string{"title": "test"},
-			wantErr:  true,
-			closeSrv: true,
+			name:    "connection error",
+			data:    map[string]string{"title": "test"},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var callCount atomic.Int32
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				callCount.Add(1)
-				assert.Equal(t, "POST", r.Method)
-				assert.Equal(t, "/posts", r.URL.Path)
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"userId":1,"id":101,"title":"test","body":"bar"}`))
-			}))
-			c := NewExample(srv.URL, "")
-			if tt.closeSrv {
-				srv.Close()
+			var endpoint string
+			if tt.wantErr {
+				endpoint = unreachableAddr
 			} else {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					callCount.Add(1)
+					assert.Equal(t, "POST", r.Method)
+					assert.Equal(t, "/posts", r.URL.Path)
+					w.Header().Set("Content-Type", "application/json")
+					_, _ = w.Write([]byte(`{"userId":1,"id":101,"title":"test","body":"bar"}`))
+				}))
 				defer srv.Close()
+				endpoint = srv.URL
 			}
+			c := NewExample(endpoint, "")
 			resp, err := c.Post(context.Background(), "", tt.data)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -195,11 +196,10 @@ func TestPost(t *testing.T) {
 func TestPut(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		path     string
-		handler  http.HandlerFunc
-		wantErr  bool
-		closeSrv bool
+		name    string
+		path    string
+		handler http.HandlerFunc
+		wantErr bool
 	}{
 		{
 			name: "successful put",
@@ -212,9 +212,8 @@ func TestPut(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			wantErr:  true,
-			closeSrv: true,
+			name:    "connection error",
+			wantErr: true,
 		},
 		{
 			name: "put with data and path",
@@ -230,17 +229,15 @@ func TestPut(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewExample(srv.URL, "")
-			if tt.closeSrv {
-				srv.Close()
+			var endpoint string
+			if tt.wantErr {
+				endpoint = unreachableAddr
 			} else {
+				srv := httptest.NewServer(tt.handler)
 				defer srv.Close()
+				endpoint = srv.URL
 			}
+			c := NewExample(endpoint, "")
 			resp, err := c.Put(context.Background(), tt.path, map[string]string{"key": "val"})
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -255,11 +252,10 @@ func TestPut(t *testing.T) {
 func TestDelete(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		path     string
-		handler  http.HandlerFunc
-		wantErr  bool
-		closeSrv bool
+		name    string
+		path    string
+		handler http.HandlerFunc
+		wantErr bool
 	}{
 		{
 			name: "successful delete",
@@ -272,9 +268,8 @@ func TestDelete(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			wantErr:  true,
-			closeSrv: true,
+			name:    "connection error",
+			wantErr: true,
 		},
 		{
 			name: "delete with path",
@@ -290,17 +285,15 @@ func TestDelete(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewExample(srv.URL, "")
-			if tt.closeSrv {
-				srv.Close()
+			var endpoint string
+			if tt.wantErr {
+				endpoint = unreachableAddr
 			} else {
+				srv := httptest.NewServer(tt.handler)
 				defer srv.Close()
+				endpoint = srv.URL
 			}
+			c := NewExample(endpoint, "")
 			resp, err := c.Delete(context.Background(), tt.path)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -349,17 +342,15 @@ func TestGetStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewExample(srv.URL, "")
+			var endpoint string
 			if tt.wantErr {
-				srv.Close()
+				endpoint = unreachableAddr
 			} else {
+				srv := httptest.NewServer(tt.handler)
 				defer srv.Close()
+				endpoint = srv.URL
 			}
+			c := NewExample(endpoint, "")
 			resp, err := c.GetStatus(context.Background(), tt.code)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -411,32 +402,33 @@ func TestGetWithDelay(t *testing.T) {
 func TestListRawEvents(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		cursor   string
-		wantErr  bool
-		closeSrv bool
+		name    string
+		cursor  string
+		wantErr bool
 	}{
 		{name: "list with no cursor", cursor: ""},
 		{name: "list with cursor pagination", cursor: "1"},
-		{name: "connection error", cursor: "", wantErr: true, closeSrv: true},
+		{name: "connection error", cursor: "", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "/posts", r.URL.Path)
-				if tt.cursor != "" {
-					assert.Equal(t, tt.cursor, r.URL.Query().Get("_page"))
-				}
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`[{"userId":1,"id":1,"title":"hello","body":"world"}]`))
-			}))
-			c := NewExample(srv.URL, "")
-			if tt.closeSrv {
-				srv.Close()
+			var endpoint string
+			if tt.wantErr {
+				endpoint = unreachableAddr
 			} else {
+				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(t, "/posts", r.URL.Path)
+					if tt.cursor != "" {
+						assert.Equal(t, tt.cursor, r.URL.Query().Get("_page"))
+					}
+					w.Header().Set("Content-Type", "application/json")
+					_, _ = w.Write([]byte(`[{"userId":1,"id":1,"title":"hello","body":"world"}]`))
+				}))
 				defer srv.Close()
+				endpoint = srv.URL
 			}
+			c := NewExample(endpoint, "")
 			items, next, err := c.ListRawEvents(context.Background(), tt.cursor)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -469,8 +461,7 @@ func TestOAuthMethods(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "example-token", tk.AccessToken)
 	})
-	t.Run("OAuthProvider interface compliance", func(t *testing.T) {
-		t.Parallel()
+	t.Run("OAuthProvider interface compliance", func(_ *testing.T) {
 		var _ providers.OAuthProvider = NewExample("https://jsonplaceholder.typicode.com", "")
 	})
 }
