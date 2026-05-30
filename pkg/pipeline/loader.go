@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
+	"gopkg.in/yaml.v3"
 
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -319,8 +319,11 @@ func (t TriggerEntry) toEngineTrigger() Trigger {
 
 // ParseEditorYAML parses a YAML string into an EditorDefinition.
 func ParseEditorYAML(yamlStr string) (*EditorDefinition, error) {
+	if yamlStr == "" {
+		return nil, fmt.Errorf("parse editor yaml: empty input")
+	}
 	var def EditorDefinition
-	if err := sonic.Unmarshal([]byte(yamlStr), &def); err != nil {
+	if err := yaml.Unmarshal([]byte(yamlStr), &def); err != nil {
 		return nil, fmt.Errorf("parse editor yaml: %w", err)
 	}
 	return &def, nil

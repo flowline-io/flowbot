@@ -118,7 +118,24 @@ func publishPipeline(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
 	s := getPipelineDefStore()
-	def, err := s.PublishDefinition(context.Background(), name, body.Version)
+
+	// Validate YAML structure before publishing
+	def, err := s.GetDefinitionByName(context.Background(), name)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{
+				"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"},
+			})
+		}
+		return types.Errorf(types.ErrInternal, "publish: get pipeline: %v", err)
+	}
+	if _, err := pipeline.ParseEditorYAML(def.YamlDraft); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": "YAML validation failed: " + err.Error()},
+		})
+	}
+
+	def, err = s.PublishDefinition(context.Background(), name, body.Version)
 	if err != nil {
 		if errors.Is(err, types.ErrConflict) {
 			return c.Status(409).JSON(fiber.Map{
@@ -138,6 +155,14 @@ func publishPipeline(c fiber.Ctx) error {
 func deletePipeline(c fiber.Ctx) error {
 	name := c.Params("name")
 	s := getPipelineDefStore()
+	// Check existence first so we can return 404
+	_, err := s.GetDefinitionByName(context.Background(), name)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"}})
+		}
+		return types.Errorf(types.ErrInternal, "delete pipeline: %v", err)
+	}
 	count, err := s.DeleteDefinitionByName(context.Background(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "delete pipeline: %v", err)
