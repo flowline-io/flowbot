@@ -64,9 +64,19 @@ func Description(v string) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldEQ(FieldDescription, v))
 }
 
-// Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
-func Enabled(v bool) predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldEQ(FieldEnabled, v))
+// YamlDraft applies equality check predicate on the "yaml_draft" field. It's identical to YamlDraftEQ.
+func YamlDraft(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldYamlDraft, v))
+}
+
+// YamlPublished applies equality check predicate on the "yaml_published" field. It's identical to YamlPublishedEQ.
+func YamlPublished(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldYamlPublished, v))
+}
+
+// Version applies equality check predicate on the "version" field. It's identical to VersionEQ.
+func Version(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldVersion, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -219,34 +229,204 @@ func DescriptionContainsFold(v string) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// EnabledEQ applies the EQ predicate on the "enabled" field.
-func EnabledEQ(v bool) predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldEQ(FieldEnabled, v))
+// YamlDraftEQ applies the EQ predicate on the "yaml_draft" field.
+func YamlDraftEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldYamlDraft, v))
 }
 
-// EnabledNEQ applies the NEQ predicate on the "enabled" field.
-func EnabledNEQ(v bool) predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldNEQ(FieldEnabled, v))
+// YamlDraftNEQ applies the NEQ predicate on the "yaml_draft" field.
+func YamlDraftNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldYamlDraft, v))
 }
 
-// TriggerIsNil applies the IsNil predicate on the "trigger" field.
-func TriggerIsNil() predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldIsNull(FieldTrigger))
+// YamlDraftIn applies the In predicate on the "yaml_draft" field.
+func YamlDraftIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldYamlDraft, vs...))
 }
 
-// TriggerNotNil applies the NotNil predicate on the "trigger" field.
-func TriggerNotNil() predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldNotNull(FieldTrigger))
+// YamlDraftNotIn applies the NotIn predicate on the "yaml_draft" field.
+func YamlDraftNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldYamlDraft, vs...))
 }
 
-// StepsIsNil applies the IsNil predicate on the "steps" field.
-func StepsIsNil() predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldIsNull(FieldSteps))
+// YamlDraftGT applies the GT predicate on the "yaml_draft" field.
+func YamlDraftGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldYamlDraft, v))
 }
 
-// StepsNotNil applies the NotNil predicate on the "steps" field.
-func StepsNotNil() predicate.PipelineDefinition {
-	return predicate.PipelineDefinition(sql.FieldNotNull(FieldSteps))
+// YamlDraftGTE applies the GTE predicate on the "yaml_draft" field.
+func YamlDraftGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldYamlDraft, v))
+}
+
+// YamlDraftLT applies the LT predicate on the "yaml_draft" field.
+func YamlDraftLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldYamlDraft, v))
+}
+
+// YamlDraftLTE applies the LTE predicate on the "yaml_draft" field.
+func YamlDraftLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldYamlDraft, v))
+}
+
+// YamlDraftContains applies the Contains predicate on the "yaml_draft" field.
+func YamlDraftContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldYamlDraft, v))
+}
+
+// YamlDraftHasPrefix applies the HasPrefix predicate on the "yaml_draft" field.
+func YamlDraftHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldYamlDraft, v))
+}
+
+// YamlDraftHasSuffix applies the HasSuffix predicate on the "yaml_draft" field.
+func YamlDraftHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldYamlDraft, v))
+}
+
+// YamlDraftEqualFold applies the EqualFold predicate on the "yaml_draft" field.
+func YamlDraftEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldYamlDraft, v))
+}
+
+// YamlDraftContainsFold applies the ContainsFold predicate on the "yaml_draft" field.
+func YamlDraftContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldYamlDraft, v))
+}
+
+// YamlPublishedEQ applies the EQ predicate on the "yaml_published" field.
+func YamlPublishedEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldYamlPublished, v))
+}
+
+// YamlPublishedNEQ applies the NEQ predicate on the "yaml_published" field.
+func YamlPublishedNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldYamlPublished, v))
+}
+
+// YamlPublishedIn applies the In predicate on the "yaml_published" field.
+func YamlPublishedIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldYamlPublished, vs...))
+}
+
+// YamlPublishedNotIn applies the NotIn predicate on the "yaml_published" field.
+func YamlPublishedNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldYamlPublished, vs...))
+}
+
+// YamlPublishedGT applies the GT predicate on the "yaml_published" field.
+func YamlPublishedGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldYamlPublished, v))
+}
+
+// YamlPublishedGTE applies the GTE predicate on the "yaml_published" field.
+func YamlPublishedGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldYamlPublished, v))
+}
+
+// YamlPublishedLT applies the LT predicate on the "yaml_published" field.
+func YamlPublishedLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldYamlPublished, v))
+}
+
+// YamlPublishedLTE applies the LTE predicate on the "yaml_published" field.
+func YamlPublishedLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldYamlPublished, v))
+}
+
+// YamlPublishedContains applies the Contains predicate on the "yaml_published" field.
+func YamlPublishedContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldYamlPublished, v))
+}
+
+// YamlPublishedHasPrefix applies the HasPrefix predicate on the "yaml_published" field.
+func YamlPublishedHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldYamlPublished, v))
+}
+
+// YamlPublishedHasSuffix applies the HasSuffix predicate on the "yaml_published" field.
+func YamlPublishedHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldYamlPublished, v))
+}
+
+// YamlPublishedIsNil applies the IsNil predicate on the "yaml_published" field.
+func YamlPublishedIsNil() predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIsNull(FieldYamlPublished))
+}
+
+// YamlPublishedNotNil applies the NotNil predicate on the "yaml_published" field.
+func YamlPublishedNotNil() predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotNull(FieldYamlPublished))
+}
+
+// YamlPublishedEqualFold applies the EqualFold predicate on the "yaml_published" field.
+func YamlPublishedEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldYamlPublished, v))
+}
+
+// YamlPublishedContainsFold applies the ContainsFold predicate on the "yaml_published" field.
+func YamlPublishedContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldYamlPublished, v))
+}
+
+// VersionEQ applies the EQ predicate on the "version" field.
+func VersionEQ(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldVersion, v))
+}
+
+// VersionNEQ applies the NEQ predicate on the "version" field.
+func VersionNEQ(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldVersion, v))
+}
+
+// VersionIn applies the In predicate on the "version" field.
+func VersionIn(vs ...int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldVersion, vs...))
+}
+
+// VersionNotIn applies the NotIn predicate on the "version" field.
+func VersionNotIn(vs ...int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldVersion, vs...))
+}
+
+// VersionGT applies the GT predicate on the "version" field.
+func VersionGT(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldVersion, v))
+}
+
+// VersionGTE applies the GTE predicate on the "version" field.
+func VersionGTE(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldVersion, v))
+}
+
+// VersionLT applies the LT predicate on the "version" field.
+func VersionLT(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldVersion, v))
+}
+
+// VersionLTE applies the LTE predicate on the "version" field.
+func VersionLTE(v int) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldVersion, v))
+}
+
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v Status) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v Status) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...Status) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...Status) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldStatus, vs...))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"regexp"
 	"time"
 
 	"entgo.io/ent"
@@ -16,11 +17,14 @@ type PipelineDefinition struct {
 func (PipelineDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Immutable(),
-		field.String("name").NotEmpty().Unique(),
+		field.String("name").NotEmpty().Unique().
+			Comment("pipeline name, must match ^[a-z0-9][a-z0-9_-]*$").
+			Match(regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)),
 		field.String("description").Optional().Default(""),
-		field.Bool("enabled").Default(true),
-		field.JSON("trigger", map[string]any{}).Optional(),
-		field.JSON("steps", map[string]any{}).Optional(),
+		field.Text("yaml_draft").NotEmpty().Default(""),
+		field.Text("yaml_published").Optional().Nillable(),
+		field.Int("version").Default(1),
+		field.Enum("status").Values("draft", "published").Default("draft"),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

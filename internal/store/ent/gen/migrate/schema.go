@@ -855,9 +855,10 @@ var (
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "trigger", Type: field.TypeJSON, Nullable: true},
-		{Name: "steps", Type: field.TypeJSON, Nullable: true},
+		{Name: "yaml_draft", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "yaml_published", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "version", Type: field.TypeInt, Default: 1},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "published"}, Default: "draft"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

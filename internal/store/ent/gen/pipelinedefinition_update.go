@@ -62,41 +62,72 @@ func (_u *PipelineDefinitionUpdate) ClearDescription() *PipelineDefinitionUpdate
 	return _u
 }
 
-// SetEnabled sets the "enabled" field.
-func (_u *PipelineDefinitionUpdate) SetEnabled(v bool) *PipelineDefinitionUpdate {
-	_u.mutation.SetEnabled(v)
+// SetYamlDraft sets the "yaml_draft" field.
+func (_u *PipelineDefinitionUpdate) SetYamlDraft(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetYamlDraft(v)
 	return _u
 }
 
-// SetNillableEnabled sets the "enabled" field if the given value is not nil.
-func (_u *PipelineDefinitionUpdate) SetNillableEnabled(v *bool) *PipelineDefinitionUpdate {
+// SetNillableYamlDraft sets the "yaml_draft" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableYamlDraft(v *string) *PipelineDefinitionUpdate {
 	if v != nil {
-		_u.SetEnabled(*v)
+		_u.SetYamlDraft(*v)
 	}
 	return _u
 }
 
-// SetTrigger sets the "trigger" field.
-func (_u *PipelineDefinitionUpdate) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpdate {
-	_u.mutation.SetTrigger(v)
+// SetYamlPublished sets the "yaml_published" field.
+func (_u *PipelineDefinitionUpdate) SetYamlPublished(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetYamlPublished(v)
 	return _u
 }
 
-// ClearTrigger clears the value of the "trigger" field.
-func (_u *PipelineDefinitionUpdate) ClearTrigger() *PipelineDefinitionUpdate {
-	_u.mutation.ClearTrigger()
+// SetNillableYamlPublished sets the "yaml_published" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableYamlPublished(v *string) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetYamlPublished(*v)
+	}
 	return _u
 }
 
-// SetSteps sets the "steps" field.
-func (_u *PipelineDefinitionUpdate) SetSteps(v map[string]interface{}) *PipelineDefinitionUpdate {
-	_u.mutation.SetSteps(v)
+// ClearYamlPublished clears the value of the "yaml_published" field.
+func (_u *PipelineDefinitionUpdate) ClearYamlPublished() *PipelineDefinitionUpdate {
+	_u.mutation.ClearYamlPublished()
 	return _u
 }
 
-// ClearSteps clears the value of the "steps" field.
-func (_u *PipelineDefinitionUpdate) ClearSteps() *PipelineDefinitionUpdate {
-	_u.mutation.ClearSteps()
+// SetVersion sets the "version" field.
+func (_u *PipelineDefinitionUpdate) SetVersion(v int) *PipelineDefinitionUpdate {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableVersion(v *int) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetVersion(*v)
+	}
+	return _u
+}
+
+// AddVersion adds value to the "version" field.
+func (_u *PipelineDefinitionUpdate) AddVersion(v int) *PipelineDefinitionUpdate {
+	_u.mutation.AddVersion(v)
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *PipelineDefinitionUpdate) SetStatus(v pipelinedefinition.Status) *PipelineDefinitionUpdate {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableStatus(v *pipelinedefinition.Status) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
 	return _u
 }
 
@@ -154,6 +185,16 @@ func (_u *PipelineDefinitionUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.YamlDraft(); ok {
+		if err := pipelinedefinition.YamlDraftValidator(v); err != nil {
+			return &ValidationError{Name: "yaml_draft", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.yaml_draft": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := pipelinedefinition.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -178,20 +219,23 @@ func (_u *PipelineDefinitionUpdate) sqlSave(ctx context.Context) (_node int, err
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(pipelinedefinition.FieldDescription, field.TypeString)
 	}
-	if value, ok := _u.mutation.Enabled(); ok {
-		_spec.SetField(pipelinedefinition.FieldEnabled, field.TypeBool, value)
+	if value, ok := _u.mutation.YamlDraft(); ok {
+		_spec.SetField(pipelinedefinition.FieldYamlDraft, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Trigger(); ok {
-		_spec.SetField(pipelinedefinition.FieldTrigger, field.TypeJSON, value)
+	if value, ok := _u.mutation.YamlPublished(); ok {
+		_spec.SetField(pipelinedefinition.FieldYamlPublished, field.TypeString, value)
 	}
-	if _u.mutation.TriggerCleared() {
-		_spec.ClearField(pipelinedefinition.FieldTrigger, field.TypeJSON)
+	if _u.mutation.YamlPublishedCleared() {
+		_spec.ClearField(pipelinedefinition.FieldYamlPublished, field.TypeString)
 	}
-	if value, ok := _u.mutation.Steps(); ok {
-		_spec.SetField(pipelinedefinition.FieldSteps, field.TypeJSON, value)
+	if value, ok := _u.mutation.Version(); ok {
+		_spec.SetField(pipelinedefinition.FieldVersion, field.TypeInt, value)
 	}
-	if _u.mutation.StepsCleared() {
-		_spec.ClearField(pipelinedefinition.FieldSteps, field.TypeJSON)
+	if value, ok := _u.mutation.AddedVersion(); ok {
+		_spec.AddField(pipelinedefinition.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(pipelinedefinition.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldUpdatedAt, field.TypeTime, value)
@@ -250,41 +294,72 @@ func (_u *PipelineDefinitionUpdateOne) ClearDescription() *PipelineDefinitionUpd
 	return _u
 }
 
-// SetEnabled sets the "enabled" field.
-func (_u *PipelineDefinitionUpdateOne) SetEnabled(v bool) *PipelineDefinitionUpdateOne {
-	_u.mutation.SetEnabled(v)
+// SetYamlDraft sets the "yaml_draft" field.
+func (_u *PipelineDefinitionUpdateOne) SetYamlDraft(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetYamlDraft(v)
 	return _u
 }
 
-// SetNillableEnabled sets the "enabled" field if the given value is not nil.
-func (_u *PipelineDefinitionUpdateOne) SetNillableEnabled(v *bool) *PipelineDefinitionUpdateOne {
+// SetNillableYamlDraft sets the "yaml_draft" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableYamlDraft(v *string) *PipelineDefinitionUpdateOne {
 	if v != nil {
-		_u.SetEnabled(*v)
+		_u.SetYamlDraft(*v)
 	}
 	return _u
 }
 
-// SetTrigger sets the "trigger" field.
-func (_u *PipelineDefinitionUpdateOne) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpdateOne {
-	_u.mutation.SetTrigger(v)
+// SetYamlPublished sets the "yaml_published" field.
+func (_u *PipelineDefinitionUpdateOne) SetYamlPublished(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetYamlPublished(v)
 	return _u
 }
 
-// ClearTrigger clears the value of the "trigger" field.
-func (_u *PipelineDefinitionUpdateOne) ClearTrigger() *PipelineDefinitionUpdateOne {
-	_u.mutation.ClearTrigger()
+// SetNillableYamlPublished sets the "yaml_published" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableYamlPublished(v *string) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetYamlPublished(*v)
+	}
 	return _u
 }
 
-// SetSteps sets the "steps" field.
-func (_u *PipelineDefinitionUpdateOne) SetSteps(v map[string]interface{}) *PipelineDefinitionUpdateOne {
-	_u.mutation.SetSteps(v)
+// ClearYamlPublished clears the value of the "yaml_published" field.
+func (_u *PipelineDefinitionUpdateOne) ClearYamlPublished() *PipelineDefinitionUpdateOne {
+	_u.mutation.ClearYamlPublished()
 	return _u
 }
 
-// ClearSteps clears the value of the "steps" field.
-func (_u *PipelineDefinitionUpdateOne) ClearSteps() *PipelineDefinitionUpdateOne {
-	_u.mutation.ClearSteps()
+// SetVersion sets the "version" field.
+func (_u *PipelineDefinitionUpdateOne) SetVersion(v int) *PipelineDefinitionUpdateOne {
+	_u.mutation.ResetVersion()
+	_u.mutation.SetVersion(v)
+	return _u
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableVersion(v *int) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetVersion(*v)
+	}
+	return _u
+}
+
+// AddVersion adds value to the "version" field.
+func (_u *PipelineDefinitionUpdateOne) AddVersion(v int) *PipelineDefinitionUpdateOne {
+	_u.mutation.AddVersion(v)
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *PipelineDefinitionUpdateOne) SetStatus(v pipelinedefinition.Status) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableStatus(v *pipelinedefinition.Status) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
 	return _u
 }
 
@@ -355,6 +430,16 @@ func (_u *PipelineDefinitionUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.name": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.YamlDraft(); ok {
+		if err := pipelinedefinition.YamlDraftValidator(v); err != nil {
+			return &ValidationError{Name: "yaml_draft", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.yaml_draft": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.Status(); ok {
+		if err := pipelinedefinition.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -396,20 +481,23 @@ func (_u *PipelineDefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Pipe
 	if _u.mutation.DescriptionCleared() {
 		_spec.ClearField(pipelinedefinition.FieldDescription, field.TypeString)
 	}
-	if value, ok := _u.mutation.Enabled(); ok {
-		_spec.SetField(pipelinedefinition.FieldEnabled, field.TypeBool, value)
+	if value, ok := _u.mutation.YamlDraft(); ok {
+		_spec.SetField(pipelinedefinition.FieldYamlDraft, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Trigger(); ok {
-		_spec.SetField(pipelinedefinition.FieldTrigger, field.TypeJSON, value)
+	if value, ok := _u.mutation.YamlPublished(); ok {
+		_spec.SetField(pipelinedefinition.FieldYamlPublished, field.TypeString, value)
 	}
-	if _u.mutation.TriggerCleared() {
-		_spec.ClearField(pipelinedefinition.FieldTrigger, field.TypeJSON)
+	if _u.mutation.YamlPublishedCleared() {
+		_spec.ClearField(pipelinedefinition.FieldYamlPublished, field.TypeString)
 	}
-	if value, ok := _u.mutation.Steps(); ok {
-		_spec.SetField(pipelinedefinition.FieldSteps, field.TypeJSON, value)
+	if value, ok := _u.mutation.Version(); ok {
+		_spec.SetField(pipelinedefinition.FieldVersion, field.TypeInt, value)
 	}
-	if _u.mutation.StepsCleared() {
-		_spec.ClearField(pipelinedefinition.FieldSteps, field.TypeJSON)
+	if value, ok := _u.mutation.AddedVersion(); ok {
+		_spec.AddField(pipelinedefinition.FieldVersion, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(pipelinedefinition.FieldStatus, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldUpdatedAt, field.TypeTime, value)

@@ -16,7 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventconsumption"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
@@ -484,38 +484,6 @@ func NewPipelineStore(client *gen.Client) *PipelineStore {
 	return &PipelineStore{client: client}
 }
 
-func (s *PipelineStore) UpsertDefinition(ctx context.Context, name, description string, enabled bool, trigger, steps map[string]any) error {
-	if s == nil || s.client == nil {
-		return nil
-	}
-	existing, err := s.client.PipelineDefinition.Query().
-		Where(pipelinedefinition.Name(name)).
-		Only(ctx)
-	if err != nil {
-		if !gen.IsNotFound(err) {
-			return err
-		}
-		now := time.Now()
-		_, err = s.client.PipelineDefinition.Create().
-			SetName(name).
-			SetDescription(description).
-			SetEnabled(enabled).
-			SetTrigger(map[string]any(trigger)).
-			SetSteps(map[string]any(steps)).
-			SetCreatedAt(now).
-			SetUpdatedAt(now).
-			Save(ctx)
-		return err
-	}
-	_, err = s.client.PipelineDefinition.UpdateOneID(existing.ID).
-		SetDescription(description).
-		SetEnabled(enabled).
-		SetTrigger(map[string]any(trigger)).
-		SetSteps(map[string]any(steps)).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
-	return err
-}
 
 func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*gen.PipelineRun, error) {
 	if s == nil || s.client == nil {

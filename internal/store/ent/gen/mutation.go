@@ -28070,20 +28070,22 @@ func (m *ParameterMutation) ResetEdge(name string) error {
 // PipelineDefinitionMutation represents an operation that mutates the PipelineDefinition nodes in the graph.
 type PipelineDefinitionMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	name          *string
-	description   *string
-	enabled       *bool
-	trigger       *map[string]interface{}
-	steps         *map[string]interface{}
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*PipelineDefinition, error)
-	predicates    []predicate.PipelineDefinition
+	op             Op
+	typ            string
+	id             *int64
+	name           *string
+	description    *string
+	yaml_draft     *string
+	yaml_published *string
+	version        *int
+	addversion     *int
+	status         *pipelinedefinition.Status
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*PipelineDefinition, error)
+	predicates     []predicate.PipelineDefinition
 }
 
 var _ ent.Mutation = (*PipelineDefinitionMutation)(nil)
@@ -28275,138 +28277,181 @@ func (m *PipelineDefinitionMutation) ResetDescription() {
 	delete(m.clearedFields, pipelinedefinition.FieldDescription)
 }
 
-// SetEnabled sets the "enabled" field.
-func (m *PipelineDefinitionMutation) SetEnabled(b bool) {
-	m.enabled = &b
+// SetYamlDraft sets the "yaml_draft" field.
+func (m *PipelineDefinitionMutation) SetYamlDraft(s string) {
+	m.yaml_draft = &s
 }
 
-// Enabled returns the value of the "enabled" field in the mutation.
-func (m *PipelineDefinitionMutation) Enabled() (r bool, exists bool) {
-	v := m.enabled
+// YamlDraft returns the value of the "yaml_draft" field in the mutation.
+func (m *PipelineDefinitionMutation) YamlDraft() (r string, exists bool) {
+	v := m.yaml_draft
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldEnabled returns the old "enabled" field's value of the PipelineDefinition entity.
+// OldYamlDraft returns the old "yaml_draft" field's value of the PipelineDefinition entity.
 // If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PipelineDefinitionMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+func (m *PipelineDefinitionMutation) OldYamlDraft(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+		return v, errors.New("OldYamlDraft is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldEnabled requires an ID field in the mutation")
+		return v, errors.New("OldYamlDraft requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+		return v, fmt.Errorf("querying old value for OldYamlDraft: %w", err)
 	}
-	return oldValue.Enabled, nil
+	return oldValue.YamlDraft, nil
 }
 
-// ResetEnabled resets all changes to the "enabled" field.
-func (m *PipelineDefinitionMutation) ResetEnabled() {
-	m.enabled = nil
+// ResetYamlDraft resets all changes to the "yaml_draft" field.
+func (m *PipelineDefinitionMutation) ResetYamlDraft() {
+	m.yaml_draft = nil
 }
 
-// SetTrigger sets the "trigger" field.
-func (m *PipelineDefinitionMutation) SetTrigger(value map[string]interface{}) {
-	m.trigger = &value
+// SetYamlPublished sets the "yaml_published" field.
+func (m *PipelineDefinitionMutation) SetYamlPublished(s string) {
+	m.yaml_published = &s
 }
 
-// Trigger returns the value of the "trigger" field in the mutation.
-func (m *PipelineDefinitionMutation) Trigger() (r map[string]interface{}, exists bool) {
-	v := m.trigger
+// YamlPublished returns the value of the "yaml_published" field in the mutation.
+func (m *PipelineDefinitionMutation) YamlPublished() (r string, exists bool) {
+	v := m.yaml_published
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTrigger returns the old "trigger" field's value of the PipelineDefinition entity.
+// OldYamlPublished returns the old "yaml_published" field's value of the PipelineDefinition entity.
 // If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PipelineDefinitionMutation) OldTrigger(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *PipelineDefinitionMutation) OldYamlPublished(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTrigger is only allowed on UpdateOne operations")
+		return v, errors.New("OldYamlPublished is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTrigger requires an ID field in the mutation")
+		return v, errors.New("OldYamlPublished requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTrigger: %w", err)
+		return v, fmt.Errorf("querying old value for OldYamlPublished: %w", err)
 	}
-	return oldValue.Trigger, nil
+	return oldValue.YamlPublished, nil
 }
 
-// ClearTrigger clears the value of the "trigger" field.
-func (m *PipelineDefinitionMutation) ClearTrigger() {
-	m.trigger = nil
-	m.clearedFields[pipelinedefinition.FieldTrigger] = struct{}{}
+// ClearYamlPublished clears the value of the "yaml_published" field.
+func (m *PipelineDefinitionMutation) ClearYamlPublished() {
+	m.yaml_published = nil
+	m.clearedFields[pipelinedefinition.FieldYamlPublished] = struct{}{}
 }
 
-// TriggerCleared returns if the "trigger" field was cleared in this mutation.
-func (m *PipelineDefinitionMutation) TriggerCleared() bool {
-	_, ok := m.clearedFields[pipelinedefinition.FieldTrigger]
+// YamlPublishedCleared returns if the "yaml_published" field was cleared in this mutation.
+func (m *PipelineDefinitionMutation) YamlPublishedCleared() bool {
+	_, ok := m.clearedFields[pipelinedefinition.FieldYamlPublished]
 	return ok
 }
 
-// ResetTrigger resets all changes to the "trigger" field.
-func (m *PipelineDefinitionMutation) ResetTrigger() {
-	m.trigger = nil
-	delete(m.clearedFields, pipelinedefinition.FieldTrigger)
+// ResetYamlPublished resets all changes to the "yaml_published" field.
+func (m *PipelineDefinitionMutation) ResetYamlPublished() {
+	m.yaml_published = nil
+	delete(m.clearedFields, pipelinedefinition.FieldYamlPublished)
 }
 
-// SetSteps sets the "steps" field.
-func (m *PipelineDefinitionMutation) SetSteps(value map[string]interface{}) {
-	m.steps = &value
+// SetVersion sets the "version" field.
+func (m *PipelineDefinitionMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
 }
 
-// Steps returns the value of the "steps" field in the mutation.
-func (m *PipelineDefinitionMutation) Steps() (r map[string]interface{}, exists bool) {
-	v := m.steps
+// Version returns the value of the "version" field in the mutation.
+func (m *PipelineDefinitionMutation) Version() (r int, exists bool) {
+	v := m.version
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldSteps returns the old "steps" field's value of the PipelineDefinition entity.
+// OldVersion returns the old "version" field's value of the PipelineDefinition entity.
 // If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PipelineDefinitionMutation) OldSteps(ctx context.Context) (v map[string]interface{}, err error) {
+func (m *PipelineDefinitionMutation) OldVersion(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSteps is only allowed on UpdateOne operations")
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSteps requires an ID field in the mutation")
+		return v, errors.New("OldVersion requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSteps: %w", err)
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
 	}
-	return oldValue.Steps, nil
+	return oldValue.Version, nil
 }
 
-// ClearSteps clears the value of the "steps" field.
-func (m *PipelineDefinitionMutation) ClearSteps() {
-	m.steps = nil
-	m.clearedFields[pipelinedefinition.FieldSteps] = struct{}{}
+// AddVersion adds i to the "version" field.
+func (m *PipelineDefinitionMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
 }
 
-// StepsCleared returns if the "steps" field was cleared in this mutation.
-func (m *PipelineDefinitionMutation) StepsCleared() bool {
-	_, ok := m.clearedFields[pipelinedefinition.FieldSteps]
-	return ok
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *PipelineDefinitionMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
 }
 
-// ResetSteps resets all changes to the "steps" field.
-func (m *PipelineDefinitionMutation) ResetSteps() {
-	m.steps = nil
-	delete(m.clearedFields, pipelinedefinition.FieldSteps)
+// ResetVersion resets all changes to the "version" field.
+func (m *PipelineDefinitionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PipelineDefinitionMutation) SetStatus(pi pipelinedefinition.Status) {
+	m.status = &pi
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PipelineDefinitionMutation) Status() (r pipelinedefinition.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldStatus(ctx context.Context) (v pipelinedefinition.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PipelineDefinitionMutation) ResetStatus() {
+	m.status = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -28515,21 +28560,24 @@ func (m *PipelineDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PipelineDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, pipelinedefinition.FieldName)
 	}
 	if m.description != nil {
 		fields = append(fields, pipelinedefinition.FieldDescription)
 	}
-	if m.enabled != nil {
-		fields = append(fields, pipelinedefinition.FieldEnabled)
+	if m.yaml_draft != nil {
+		fields = append(fields, pipelinedefinition.FieldYamlDraft)
 	}
-	if m.trigger != nil {
-		fields = append(fields, pipelinedefinition.FieldTrigger)
+	if m.yaml_published != nil {
+		fields = append(fields, pipelinedefinition.FieldYamlPublished)
 	}
-	if m.steps != nil {
-		fields = append(fields, pipelinedefinition.FieldSteps)
+	if m.version != nil {
+		fields = append(fields, pipelinedefinition.FieldVersion)
+	}
+	if m.status != nil {
+		fields = append(fields, pipelinedefinition.FieldStatus)
 	}
 	if m.created_at != nil {
 		fields = append(fields, pipelinedefinition.FieldCreatedAt)
@@ -28549,12 +28597,14 @@ func (m *PipelineDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case pipelinedefinition.FieldDescription:
 		return m.Description()
-	case pipelinedefinition.FieldEnabled:
-		return m.Enabled()
-	case pipelinedefinition.FieldTrigger:
-		return m.Trigger()
-	case pipelinedefinition.FieldSteps:
-		return m.Steps()
+	case pipelinedefinition.FieldYamlDraft:
+		return m.YamlDraft()
+	case pipelinedefinition.FieldYamlPublished:
+		return m.YamlPublished()
+	case pipelinedefinition.FieldVersion:
+		return m.Version()
+	case pipelinedefinition.FieldStatus:
+		return m.Status()
 	case pipelinedefinition.FieldCreatedAt:
 		return m.CreatedAt()
 	case pipelinedefinition.FieldUpdatedAt:
@@ -28572,12 +28622,14 @@ func (m *PipelineDefinitionMutation) OldField(ctx context.Context, name string) 
 		return m.OldName(ctx)
 	case pipelinedefinition.FieldDescription:
 		return m.OldDescription(ctx)
-	case pipelinedefinition.FieldEnabled:
-		return m.OldEnabled(ctx)
-	case pipelinedefinition.FieldTrigger:
-		return m.OldTrigger(ctx)
-	case pipelinedefinition.FieldSteps:
-		return m.OldSteps(ctx)
+	case pipelinedefinition.FieldYamlDraft:
+		return m.OldYamlDraft(ctx)
+	case pipelinedefinition.FieldYamlPublished:
+		return m.OldYamlPublished(ctx)
+	case pipelinedefinition.FieldVersion:
+		return m.OldVersion(ctx)
+	case pipelinedefinition.FieldStatus:
+		return m.OldStatus(ctx)
 	case pipelinedefinition.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case pipelinedefinition.FieldUpdatedAt:
@@ -28605,26 +28657,33 @@ func (m *PipelineDefinitionMutation) SetField(name string, value ent.Value) erro
 		}
 		m.SetDescription(v)
 		return nil
-	case pipelinedefinition.FieldEnabled:
-		v, ok := value.(bool)
+	case pipelinedefinition.FieldYamlDraft:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetEnabled(v)
+		m.SetYamlDraft(v)
 		return nil
-	case pipelinedefinition.FieldTrigger:
-		v, ok := value.(map[string]interface{})
+	case pipelinedefinition.FieldYamlPublished:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTrigger(v)
+		m.SetYamlPublished(v)
 		return nil
-	case pipelinedefinition.FieldSteps:
-		v, ok := value.(map[string]interface{})
+	case pipelinedefinition.FieldVersion:
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetSteps(v)
+		m.SetVersion(v)
+		return nil
+	case pipelinedefinition.FieldStatus:
+		v, ok := value.(pipelinedefinition.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
 		return nil
 	case pipelinedefinition.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -28647,13 +28706,21 @@ func (m *PipelineDefinitionMutation) SetField(name string, value ent.Value) erro
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PipelineDefinitionMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, pipelinedefinition.FieldVersion)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PipelineDefinitionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pipelinedefinition.FieldVersion:
+		return m.AddedVersion()
+	}
 	return nil, false
 }
 
@@ -28662,6 +28729,13 @@ func (m *PipelineDefinitionMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PipelineDefinitionMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case pipelinedefinition.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
 	}
 	return fmt.Errorf("unknown PipelineDefinition numeric field %s", name)
 }
@@ -28673,11 +28747,8 @@ func (m *PipelineDefinitionMutation) ClearedFields() []string {
 	if m.FieldCleared(pipelinedefinition.FieldDescription) {
 		fields = append(fields, pipelinedefinition.FieldDescription)
 	}
-	if m.FieldCleared(pipelinedefinition.FieldTrigger) {
-		fields = append(fields, pipelinedefinition.FieldTrigger)
-	}
-	if m.FieldCleared(pipelinedefinition.FieldSteps) {
-		fields = append(fields, pipelinedefinition.FieldSteps)
+	if m.FieldCleared(pipelinedefinition.FieldYamlPublished) {
+		fields = append(fields, pipelinedefinition.FieldYamlPublished)
 	}
 	return fields
 }
@@ -28696,11 +28767,8 @@ func (m *PipelineDefinitionMutation) ClearField(name string) error {
 	case pipelinedefinition.FieldDescription:
 		m.ClearDescription()
 		return nil
-	case pipelinedefinition.FieldTrigger:
-		m.ClearTrigger()
-		return nil
-	case pipelinedefinition.FieldSteps:
-		m.ClearSteps()
+	case pipelinedefinition.FieldYamlPublished:
+		m.ClearYamlPublished()
 		return nil
 	}
 	return fmt.Errorf("unknown PipelineDefinition nullable field %s", name)
@@ -28716,14 +28784,17 @@ func (m *PipelineDefinitionMutation) ResetField(name string) error {
 	case pipelinedefinition.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case pipelinedefinition.FieldEnabled:
-		m.ResetEnabled()
+	case pipelinedefinition.FieldYamlDraft:
+		m.ResetYamlDraft()
 		return nil
-	case pipelinedefinition.FieldTrigger:
-		m.ResetTrigger()
+	case pipelinedefinition.FieldYamlPublished:
+		m.ResetYamlPublished()
 		return nil
-	case pipelinedefinition.FieldSteps:
-		m.ResetSteps()
+	case pipelinedefinition.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case pipelinedefinition.FieldStatus:
+		m.ResetStatus()
 		return nil
 	case pipelinedefinition.FieldCreatedAt:
 		m.ResetCreatedAt()

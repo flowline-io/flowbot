@@ -1102,21 +1102,41 @@ func init() {
 	// pipelinedefinitionDescName is the schema descriptor for name field.
 	pipelinedefinitionDescName := pipelinedefinitionFields[1].Descriptor()
 	// pipelinedefinition.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	pipelinedefinition.NameValidator = pipelinedefinitionDescName.Validators[0].(func(string) error)
+	pipelinedefinition.NameValidator = func() func(string) error {
+		validators := pipelinedefinitionDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	// pipelinedefinitionDescDescription is the schema descriptor for description field.
 	pipelinedefinitionDescDescription := pipelinedefinitionFields[2].Descriptor()
 	// pipelinedefinition.DefaultDescription holds the default value on creation for the description field.
 	pipelinedefinition.DefaultDescription = pipelinedefinitionDescDescription.Default.(string)
-	// pipelinedefinitionDescEnabled is the schema descriptor for enabled field.
-	pipelinedefinitionDescEnabled := pipelinedefinitionFields[3].Descriptor()
-	// pipelinedefinition.DefaultEnabled holds the default value on creation for the enabled field.
-	pipelinedefinition.DefaultEnabled = pipelinedefinitionDescEnabled.Default.(bool)
+	// pipelinedefinitionDescYamlDraft is the schema descriptor for yaml_draft field.
+	pipelinedefinitionDescYamlDraft := pipelinedefinitionFields[3].Descriptor()
+	// pipelinedefinition.DefaultYamlDraft holds the default value on creation for the yaml_draft field.
+	pipelinedefinition.DefaultYamlDraft = pipelinedefinitionDescYamlDraft.Default.(string)
+	// pipelinedefinition.YamlDraftValidator is a validator for the "yaml_draft" field. It is called by the builders before save.
+	pipelinedefinition.YamlDraftValidator = pipelinedefinitionDescYamlDraft.Validators[0].(func(string) error)
+	// pipelinedefinitionDescVersion is the schema descriptor for version field.
+	pipelinedefinitionDescVersion := pipelinedefinitionFields[5].Descriptor()
+	// pipelinedefinition.DefaultVersion holds the default value on creation for the version field.
+	pipelinedefinition.DefaultVersion = pipelinedefinitionDescVersion.Default.(int)
 	// pipelinedefinitionDescCreatedAt is the schema descriptor for created_at field.
-	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[6].Descriptor()
+	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[7].Descriptor()
 	// pipelinedefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pipelinedefinition.DefaultCreatedAt = pipelinedefinitionDescCreatedAt.Default.(func() time.Time)
 	// pipelinedefinitionDescUpdatedAt is the schema descriptor for updated_at field.
-	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[7].Descriptor()
+	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[8].Descriptor()
 	// pipelinedefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	pipelinedefinition.DefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.Default.(func() time.Time)
 	// pipelinedefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

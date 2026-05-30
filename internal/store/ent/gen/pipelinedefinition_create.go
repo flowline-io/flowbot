@@ -42,29 +42,59 @@ func (_c *PipelineDefinitionCreate) SetNillableDescription(v *string) *PipelineD
 	return _c
 }
 
-// SetEnabled sets the "enabled" field.
-func (_c *PipelineDefinitionCreate) SetEnabled(v bool) *PipelineDefinitionCreate {
-	_c.mutation.SetEnabled(v)
+// SetYamlDraft sets the "yaml_draft" field.
+func (_c *PipelineDefinitionCreate) SetYamlDraft(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetYamlDraft(v)
 	return _c
 }
 
-// SetNillableEnabled sets the "enabled" field if the given value is not nil.
-func (_c *PipelineDefinitionCreate) SetNillableEnabled(v *bool) *PipelineDefinitionCreate {
+// SetNillableYamlDraft sets the "yaml_draft" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableYamlDraft(v *string) *PipelineDefinitionCreate {
 	if v != nil {
-		_c.SetEnabled(*v)
+		_c.SetYamlDraft(*v)
 	}
 	return _c
 }
 
-// SetTrigger sets the "trigger" field.
-func (_c *PipelineDefinitionCreate) SetTrigger(v map[string]interface{}) *PipelineDefinitionCreate {
-	_c.mutation.SetTrigger(v)
+// SetYamlPublished sets the "yaml_published" field.
+func (_c *PipelineDefinitionCreate) SetYamlPublished(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetYamlPublished(v)
 	return _c
 }
 
-// SetSteps sets the "steps" field.
-func (_c *PipelineDefinitionCreate) SetSteps(v map[string]interface{}) *PipelineDefinitionCreate {
-	_c.mutation.SetSteps(v)
+// SetNillableYamlPublished sets the "yaml_published" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableYamlPublished(v *string) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetYamlPublished(*v)
+	}
+	return _c
+}
+
+// SetVersion sets the "version" field.
+func (_c *PipelineDefinitionCreate) SetVersion(v int) *PipelineDefinitionCreate {
+	_c.mutation.SetVersion(v)
+	return _c
+}
+
+// SetNillableVersion sets the "version" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableVersion(v *int) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetVersion(*v)
+	}
+	return _c
+}
+
+// SetStatus sets the "status" field.
+func (_c *PipelineDefinitionCreate) SetStatus(v pipelinedefinition.Status) *PipelineDefinitionCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableStatus(v *pipelinedefinition.Status) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
 	return _c
 }
 
@@ -141,9 +171,17 @@ func (_c *PipelineDefinitionCreate) defaults() {
 		v := pipelinedefinition.DefaultDescription
 		_c.mutation.SetDescription(v)
 	}
-	if _, ok := _c.mutation.Enabled(); !ok {
-		v := pipelinedefinition.DefaultEnabled
-		_c.mutation.SetEnabled(v)
+	if _, ok := _c.mutation.YamlDraft(); !ok {
+		v := pipelinedefinition.DefaultYamlDraft
+		_c.mutation.SetYamlDraft(v)
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		v := pipelinedefinition.DefaultVersion
+		_c.mutation.SetVersion(v)
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := pipelinedefinition.DefaultStatus
+		_c.mutation.SetStatus(v)
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := pipelinedefinition.DefaultCreatedAt()
@@ -165,8 +203,24 @@ func (_c *PipelineDefinitionCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.name": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Enabled(); !ok {
-		return &ValidationError{Name: "enabled", err: errors.New(`gen: missing required field "PipelineDefinition.enabled"`)}
+	if _, ok := _c.mutation.YamlDraft(); !ok {
+		return &ValidationError{Name: "yaml_draft", err: errors.New(`gen: missing required field "PipelineDefinition.yaml_draft"`)}
+	}
+	if v, ok := _c.mutation.YamlDraft(); ok {
+		if err := pipelinedefinition.YamlDraftValidator(v); err != nil {
+			return &ValidationError{Name: "yaml_draft", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.yaml_draft": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.Version(); !ok {
+		return &ValidationError{Name: "version", err: errors.New(`gen: missing required field "PipelineDefinition.version"`)}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`gen: missing required field "PipelineDefinition.status"`)}
+	}
+	if v, ok := _c.mutation.Status(); ok {
+		if err := pipelinedefinition.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.status": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "PipelineDefinition.created_at"`)}
@@ -215,17 +269,21 @@ func (_c *PipelineDefinitionCreate) createSpec() (*PipelineDefinition, *sqlgraph
 		_spec.SetField(pipelinedefinition.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := _c.mutation.Enabled(); ok {
-		_spec.SetField(pipelinedefinition.FieldEnabled, field.TypeBool, value)
-		_node.Enabled = value
+	if value, ok := _c.mutation.YamlDraft(); ok {
+		_spec.SetField(pipelinedefinition.FieldYamlDraft, field.TypeString, value)
+		_node.YamlDraft = value
 	}
-	if value, ok := _c.mutation.Trigger(); ok {
-		_spec.SetField(pipelinedefinition.FieldTrigger, field.TypeJSON, value)
-		_node.Trigger = value
+	if value, ok := _c.mutation.YamlPublished(); ok {
+		_spec.SetField(pipelinedefinition.FieldYamlPublished, field.TypeString, value)
+		_node.YamlPublished = &value
 	}
-	if value, ok := _c.mutation.Steps(); ok {
-		_spec.SetField(pipelinedefinition.FieldSteps, field.TypeJSON, value)
-		_node.Steps = value
+	if value, ok := _c.mutation.Version(); ok {
+		_spec.SetField(pipelinedefinition.FieldVersion, field.TypeInt, value)
+		_node.Version = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(pipelinedefinition.FieldStatus, field.TypeEnum, value)
+		_node.Status = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldCreatedAt, field.TypeTime, value)
@@ -317,51 +375,63 @@ func (u *PipelineDefinitionUpsert) ClearDescription() *PipelineDefinitionUpsert 
 	return u
 }
 
-// SetEnabled sets the "enabled" field.
-func (u *PipelineDefinitionUpsert) SetEnabled(v bool) *PipelineDefinitionUpsert {
-	u.Set(pipelinedefinition.FieldEnabled, v)
+// SetYamlDraft sets the "yaml_draft" field.
+func (u *PipelineDefinitionUpsert) SetYamlDraft(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldYamlDraft, v)
 	return u
 }
 
-// UpdateEnabled sets the "enabled" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsert) UpdateEnabled() *PipelineDefinitionUpsert {
-	u.SetExcluded(pipelinedefinition.FieldEnabled)
+// UpdateYamlDraft sets the "yaml_draft" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateYamlDraft() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldYamlDraft)
 	return u
 }
 
-// SetTrigger sets the "trigger" field.
-func (u *PipelineDefinitionUpsert) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpsert {
-	u.Set(pipelinedefinition.FieldTrigger, v)
+// SetYamlPublished sets the "yaml_published" field.
+func (u *PipelineDefinitionUpsert) SetYamlPublished(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldYamlPublished, v)
 	return u
 }
 
-// UpdateTrigger sets the "trigger" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsert) UpdateTrigger() *PipelineDefinitionUpsert {
-	u.SetExcluded(pipelinedefinition.FieldTrigger)
+// UpdateYamlPublished sets the "yaml_published" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateYamlPublished() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldYamlPublished)
 	return u
 }
 
-// ClearTrigger clears the value of the "trigger" field.
-func (u *PipelineDefinitionUpsert) ClearTrigger() *PipelineDefinitionUpsert {
-	u.SetNull(pipelinedefinition.FieldTrigger)
+// ClearYamlPublished clears the value of the "yaml_published" field.
+func (u *PipelineDefinitionUpsert) ClearYamlPublished() *PipelineDefinitionUpsert {
+	u.SetNull(pipelinedefinition.FieldYamlPublished)
 	return u
 }
 
-// SetSteps sets the "steps" field.
-func (u *PipelineDefinitionUpsert) SetSteps(v map[string]interface{}) *PipelineDefinitionUpsert {
-	u.Set(pipelinedefinition.FieldSteps, v)
+// SetVersion sets the "version" field.
+func (u *PipelineDefinitionUpsert) SetVersion(v int) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldVersion, v)
 	return u
 }
 
-// UpdateSteps sets the "steps" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsert) UpdateSteps() *PipelineDefinitionUpsert {
-	u.SetExcluded(pipelinedefinition.FieldSteps)
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateVersion() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldVersion)
 	return u
 }
 
-// ClearSteps clears the value of the "steps" field.
-func (u *PipelineDefinitionUpsert) ClearSteps() *PipelineDefinitionUpsert {
-	u.SetNull(pipelinedefinition.FieldSteps)
+// AddVersion adds v to the "version" field.
+func (u *PipelineDefinitionUpsert) AddVersion(v int) *PipelineDefinitionUpsert {
+	u.Add(pipelinedefinition.FieldVersion, v)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *PipelineDefinitionUpsert) SetStatus(v pipelinedefinition.Status) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateStatus() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldStatus)
 	return u
 }
 
@@ -463,59 +533,73 @@ func (u *PipelineDefinitionUpsertOne) ClearDescription() *PipelineDefinitionUpse
 	})
 }
 
-// SetEnabled sets the "enabled" field.
-func (u *PipelineDefinitionUpsertOne) SetEnabled(v bool) *PipelineDefinitionUpsertOne {
+// SetYamlDraft sets the "yaml_draft" field.
+func (u *PipelineDefinitionUpsertOne) SetYamlDraft(v string) *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.SetEnabled(v)
+		s.SetYamlDraft(v)
 	})
 }
 
-// UpdateEnabled sets the "enabled" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsertOne) UpdateEnabled() *PipelineDefinitionUpsertOne {
+// UpdateYamlDraft sets the "yaml_draft" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateYamlDraft() *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.UpdateEnabled()
+		s.UpdateYamlDraft()
 	})
 }
 
-// SetTrigger sets the "trigger" field.
-func (u *PipelineDefinitionUpsertOne) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpsertOne {
+// SetYamlPublished sets the "yaml_published" field.
+func (u *PipelineDefinitionUpsertOne) SetYamlPublished(v string) *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.SetTrigger(v)
+		s.SetYamlPublished(v)
 	})
 }
 
-// UpdateTrigger sets the "trigger" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsertOne) UpdateTrigger() *PipelineDefinitionUpsertOne {
+// UpdateYamlPublished sets the "yaml_published" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateYamlPublished() *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.UpdateTrigger()
+		s.UpdateYamlPublished()
 	})
 }
 
-// ClearTrigger clears the value of the "trigger" field.
-func (u *PipelineDefinitionUpsertOne) ClearTrigger() *PipelineDefinitionUpsertOne {
+// ClearYamlPublished clears the value of the "yaml_published" field.
+func (u *PipelineDefinitionUpsertOne) ClearYamlPublished() *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.ClearTrigger()
+		s.ClearYamlPublished()
 	})
 }
 
-// SetSteps sets the "steps" field.
-func (u *PipelineDefinitionUpsertOne) SetSteps(v map[string]interface{}) *PipelineDefinitionUpsertOne {
+// SetVersion sets the "version" field.
+func (u *PipelineDefinitionUpsertOne) SetVersion(v int) *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.SetSteps(v)
+		s.SetVersion(v)
 	})
 }
 
-// UpdateSteps sets the "steps" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsertOne) UpdateSteps() *PipelineDefinitionUpsertOne {
+// AddVersion adds v to the "version" field.
+func (u *PipelineDefinitionUpsertOne) AddVersion(v int) *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.UpdateSteps()
+		s.AddVersion(v)
 	})
 }
 
-// ClearSteps clears the value of the "steps" field.
-func (u *PipelineDefinitionUpsertOne) ClearSteps() *PipelineDefinitionUpsertOne {
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateVersion() *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.ClearSteps()
+		s.UpdateVersion()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *PipelineDefinitionUpsertOne) SetStatus(v pipelinedefinition.Status) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateStatus() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateStatus()
 	})
 }
 
@@ -785,59 +869,73 @@ func (u *PipelineDefinitionUpsertBulk) ClearDescription() *PipelineDefinitionUps
 	})
 }
 
-// SetEnabled sets the "enabled" field.
-func (u *PipelineDefinitionUpsertBulk) SetEnabled(v bool) *PipelineDefinitionUpsertBulk {
+// SetYamlDraft sets the "yaml_draft" field.
+func (u *PipelineDefinitionUpsertBulk) SetYamlDraft(v string) *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.SetEnabled(v)
+		s.SetYamlDraft(v)
 	})
 }
 
-// UpdateEnabled sets the "enabled" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsertBulk) UpdateEnabled() *PipelineDefinitionUpsertBulk {
+// UpdateYamlDraft sets the "yaml_draft" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateYamlDraft() *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.UpdateEnabled()
+		s.UpdateYamlDraft()
 	})
 }
 
-// SetTrigger sets the "trigger" field.
-func (u *PipelineDefinitionUpsertBulk) SetTrigger(v map[string]interface{}) *PipelineDefinitionUpsertBulk {
+// SetYamlPublished sets the "yaml_published" field.
+func (u *PipelineDefinitionUpsertBulk) SetYamlPublished(v string) *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.SetTrigger(v)
+		s.SetYamlPublished(v)
 	})
 }
 
-// UpdateTrigger sets the "trigger" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsertBulk) UpdateTrigger() *PipelineDefinitionUpsertBulk {
+// UpdateYamlPublished sets the "yaml_published" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateYamlPublished() *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.UpdateTrigger()
+		s.UpdateYamlPublished()
 	})
 }
 
-// ClearTrigger clears the value of the "trigger" field.
-func (u *PipelineDefinitionUpsertBulk) ClearTrigger() *PipelineDefinitionUpsertBulk {
+// ClearYamlPublished clears the value of the "yaml_published" field.
+func (u *PipelineDefinitionUpsertBulk) ClearYamlPublished() *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.ClearTrigger()
+		s.ClearYamlPublished()
 	})
 }
 
-// SetSteps sets the "steps" field.
-func (u *PipelineDefinitionUpsertBulk) SetSteps(v map[string]interface{}) *PipelineDefinitionUpsertBulk {
+// SetVersion sets the "version" field.
+func (u *PipelineDefinitionUpsertBulk) SetVersion(v int) *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.SetSteps(v)
+		s.SetVersion(v)
 	})
 }
 
-// UpdateSteps sets the "steps" field to the value that was provided on create.
-func (u *PipelineDefinitionUpsertBulk) UpdateSteps() *PipelineDefinitionUpsertBulk {
+// AddVersion adds v to the "version" field.
+func (u *PipelineDefinitionUpsertBulk) AddVersion(v int) *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.UpdateSteps()
+		s.AddVersion(v)
 	})
 }
 
-// ClearSteps clears the value of the "steps" field.
-func (u *PipelineDefinitionUpsertBulk) ClearSteps() *PipelineDefinitionUpsertBulk {
+// UpdateVersion sets the "version" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateVersion() *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
-		s.ClearSteps()
+		s.UpdateVersion()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *PipelineDefinitionUpsertBulk) SetStatus(v pipelinedefinition.Status) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateStatus() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateStatus()
 	})
 }
 

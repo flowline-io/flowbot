@@ -3,7 +3,6 @@
 package gen
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -18,16 +17,18 @@ type PipelineDefinition struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
+	// pipeline name, must match ^[a-z0-9][a-z0-9_-]*$
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Enabled holds the value of the "enabled" field.
-	Enabled bool `json:"enabled,omitempty"`
-	// Trigger holds the value of the "trigger" field.
-	Trigger map[string]interface{} `json:"trigger,omitempty"`
-	// Steps holds the value of the "steps" field.
-	Steps map[string]interface{} `json:"steps,omitempty"`
+	// YamlDraft holds the value of the "yaml_draft" field.
+	YamlDraft string `json:"yaml_draft,omitempty"`
+	// YamlPublished holds the value of the "yaml_published" field.
+	YamlPublished *string `json:"yaml_published,omitempty"`
+	// Version holds the value of the "version" field.
+	Version int `json:"version,omitempty"`
+	// Status holds the value of the "status" field.
+	Status pipelinedefinition.Status `json:"status,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -40,13 +41,9 @@ func (*PipelineDefinition) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case pipelinedefinition.FieldTrigger, pipelinedefinition.FieldSteps:
-			values[i] = new([]byte)
-		case pipelinedefinition.FieldEnabled:
-			values[i] = new(sql.NullBool)
-		case pipelinedefinition.FieldID:
+		case pipelinedefinition.FieldID, pipelinedefinition.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case pipelinedefinition.FieldName, pipelinedefinition.FieldDescription:
+		case pipelinedefinition.FieldName, pipelinedefinition.FieldDescription, pipelinedefinition.FieldYamlDraft, pipelinedefinition.FieldYamlPublished, pipelinedefinition.FieldStatus:
 			values[i] = new(sql.NullString)
 		case pipelinedefinition.FieldCreatedAt, pipelinedefinition.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -83,27 +80,30 @@ func (_m *PipelineDefinition) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				_m.Description = value.String
 			}
-		case pipelinedefinition.FieldEnabled:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field enabled", values[i])
+		case pipelinedefinition.FieldYamlDraft:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field yaml_draft", values[i])
 			} else if value.Valid {
-				_m.Enabled = value.Bool
+				_m.YamlDraft = value.String
 			}
-		case pipelinedefinition.FieldTrigger:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field trigger", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Trigger); err != nil {
-					return fmt.Errorf("unmarshal field trigger: %w", err)
-				}
+		case pipelinedefinition.FieldYamlPublished:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field yaml_published", values[i])
+			} else if value.Valid {
+				_m.YamlPublished = new(string)
+				*_m.YamlPublished = value.String
 			}
-		case pipelinedefinition.FieldSteps:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field steps", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Steps); err != nil {
-					return fmt.Errorf("unmarshal field steps: %w", err)
-				}
+		case pipelinedefinition.FieldVersion:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field version", values[i])
+			} else if value.Valid {
+				_m.Version = int(value.Int64)
+			}
+		case pipelinedefinition.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = pipelinedefinition.Status(value.String)
 			}
 		case pipelinedefinition.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -159,14 +159,19 @@ func (_m *PipelineDefinition) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(_m.Description)
 	builder.WriteString(", ")
-	builder.WriteString("enabled=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Enabled))
+	builder.WriteString("yaml_draft=")
+	builder.WriteString(_m.YamlDraft)
 	builder.WriteString(", ")
-	builder.WriteString("trigger=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Trigger))
+	if v := _m.YamlPublished; v != nil {
+		builder.WriteString("yaml_published=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("steps=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Steps))
+	builder.WriteString("version=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Version))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
