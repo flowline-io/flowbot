@@ -1125,8 +1125,6 @@ func init() {
 	pipelinedefinitionDescYamlDraft := pipelinedefinitionFields[3].Descriptor()
 	// pipelinedefinition.DefaultYamlDraft holds the default value on creation for the yaml_draft field.
 	pipelinedefinition.DefaultYamlDraft = pipelinedefinitionDescYamlDraft.Default.(string)
-	// pipelinedefinition.YamlDraftValidator is a validator for the "yaml_draft" field. It is called by the builders before save.
-	pipelinedefinition.YamlDraftValidator = pipelinedefinitionDescYamlDraft.Validators[0].(func(string) error)
 	// pipelinedefinitionDescVersion is the schema descriptor for version field.
 	pipelinedefinitionDescVersion := pipelinedefinitionFields[5].Descriptor()
 	// pipelinedefinition.DefaultVersion holds the default value on creation for the version field.

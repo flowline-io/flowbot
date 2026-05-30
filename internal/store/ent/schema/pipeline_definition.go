@@ -21,7 +21,7 @@ func (PipelineDefinition) Fields() []ent.Field {
 			Comment("pipeline name, must match ^[a-z0-9][a-z0-9_-]*$").
 			Match(regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)),
 		field.String("description").Optional().Default(""),
-		field.Text("yaml_draft").NotEmpty().Default(""),
+		field.Text("yaml_draft").Default(""),
 		field.Text("yaml_published").Optional().Nillable(),
 		field.Int("version").Default(1),
 		field.Enum("status").Values("draft", "published").Default("draft"),

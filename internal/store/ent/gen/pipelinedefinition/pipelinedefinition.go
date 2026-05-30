@@ -64,8 +64,6 @@ var (
 	DefaultDescription string
 	// DefaultYamlDraft holds the default value on creation for the "yaml_draft" field.
 	DefaultYamlDraft string
-	// YamlDraftValidator is a validator for the "yaml_draft" field. It is called by the builders before save.
-	YamlDraftValidator func(string) error
 	// DefaultVersion holds the default value on creation for the "version" field.
 	DefaultVersion int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

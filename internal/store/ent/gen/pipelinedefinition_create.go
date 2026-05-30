@@ -206,11 +206,6 @@ func (_c *PipelineDefinitionCreate) check() error {
 	if _, ok := _c.mutation.YamlDraft(); !ok {
 		return &ValidationError{Name: "yaml_draft", err: errors.New(`gen: missing required field "PipelineDefinition.yaml_draft"`)}
 	}
-	if v, ok := _c.mutation.YamlDraft(); ok {
-		if err := pipelinedefinition.YamlDraftValidator(v); err != nil {
-			return &ValidationError{Name: "yaml_draft", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.yaml_draft": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Version(); !ok {
 		return &ValidationError{Name: "version", err: errors.New(`gen: missing required field "PipelineDefinition.version"`)}
 	}

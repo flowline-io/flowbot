@@ -185,11 +185,6 @@ func (_u *PipelineDefinitionUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.YamlDraft(); ok {
-		if err := pipelinedefinition.YamlDraftValidator(v); err != nil {
-			return &ValidationError{Name: "yaml_draft", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.yaml_draft": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := pipelinedefinition.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.status": %w`, err)}
@@ -428,11 +423,6 @@ func (_u *PipelineDefinitionUpdateOne) check() error {
 	if v, ok := _u.mutation.Name(); ok {
 		if err := pipelinedefinition.NameValidator(v); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.name": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.YamlDraft(); ok {
-		if err := pipelinedefinition.YamlDraftValidator(v); err != nil {
-			return &ValidationError{Name: "yaml_draft", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.yaml_draft": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Status(); ok {
