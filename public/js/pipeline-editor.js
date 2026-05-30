@@ -1,5 +1,7 @@
-document.addEventListener('alpine:init', () => {
-  Alpine.data('pipelineEditor', () => ({
+(function() {
+  function register() {
+    Alpine.data('pipelineEditor', () => ({
+
     name: '', description: '', status: 'draft', version: 1, dirty: false,
     undoStack: [], redoStack: [],
     triggers: [], steps: [],
@@ -276,4 +278,11 @@ document.addEventListener('alpine:init', () => {
       } catch (e) { console.error('Test failed:', e); this.testResults = { success: false, error: e.message }; }
     }
   }));
-});
+  }
+
+  if (window.Alpine) {
+    register();
+  } else {
+    document.addEventListener('alpine:init', register);
+  }
+})();
