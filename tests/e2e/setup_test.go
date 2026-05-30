@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/samber/oops"
@@ -176,7 +177,8 @@ func run(m *testing.M) int {
 	}()
 	defer app.Shutdown()
 
-	browser = rod.New().MustConnect()
+	launcherURL := launcher.New().NoSandbox(true).MustLaunch()
+	browser = rod.New().ControlURL(launcherURL).MustConnect()
 	defer browser.MustClose()
 
 	return m.Run()
