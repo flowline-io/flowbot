@@ -4,7 +4,7 @@ import "github.com/flowline-io/flowbot/pkg/views/layout"
 
 templ PipelineEditorPage(name string) {
 	@layout.Base("Pipeline: " + name) {
-		<div x-data="pipelineEditor()" x-init={ "init('" + name + "')" } data-testid="pipeline-editor">
+		<div x-data="pipelineEditor()" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
 			<!-- Header -->
 			<div class="bg-white border-b border-gray-200 px-6 py-3 mb-4 rounded-t-lg shadow-sm flex items-center justify-between">
 				<div class="flex items-center gap-4">
@@ -172,7 +172,7 @@ templ PipelineEditorPage(name string) {
 								<label class="block text-sm font-medium text-gray-700 mb-1">Params (JSON)</label>
 								<textarea rows="6" x-model="steps[selectedNode.index].paramsText"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono mb-3"
-									placeholder="{\"title\": \"{{event.title}}\"}"
+										placeholder='{ &quot;title&quot;: &quot;event.title&quot; }'
 									@input="drawerDirty = true"
 									data-testid="params-editor"></textarea>
 								<button type="button" @click="openVariablePicker(selectedNode.index)"
@@ -196,7 +196,7 @@ templ PipelineEditorPage(name string) {
 								<label class="block text-sm font-medium text-gray-700 mb-1">Mock Payload (JSON)</label>
 								<textarea x-model="testMockPayload" rows="4"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono mb-3"
-									placeholder="{\"title\": \"Test Item\"}" data-testid="mock-payload"></textarea>
+									placeholder="Mock payload JSON" data-testid="mock-payload"></textarea>
 								<button type="button" @click="loadMockPayload"
 									class="text-sm text-blue-600 hover:text-blue-800 mb-3 block"
 									data-testid="btn-load-mock">Load sample data</button>

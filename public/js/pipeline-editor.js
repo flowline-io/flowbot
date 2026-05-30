@@ -9,8 +9,10 @@ document.addEventListener('alpine:init', () => {
     errors: [], publishDisabled: false,
     autoSaveTimer: null, testTriggerSource: 'event', testMockPayload: '{}', testResults: null,
 
-    init(name) {
-      this.name = name || '';
+    init() {
+      const el = this.$el;
+      const name = el.dataset.pipelineName || '';
+      this.name = name;
       if (name) this.loadPipeline(name);
       this.pushUndo();
     },
