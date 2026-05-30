@@ -18,6 +18,7 @@ through a browser UI instead of editing YAML files directly.
 | Module location | Extend existing `internal/modules/web/` |
 | Scope (v1) | Definitions CRUD + read-only run history |
 | Trigger schema | Multiple triggers array with OR logic |
+| Branching / Router | Out of scope for V1 (strict linear steps only) |
 | All UI text | English only |
 
 ## 1. Database Schema
@@ -31,12 +32,16 @@ CREATE TABLE pipeline_definitions (
     description    TEXT DEFAULT '',
     yaml_draft     TEXT NOT NULL DEFAULT '',
     yaml_published TEXT DEFAULT '',
+    version        INT NOT NULL DEFAULT 1,
     status         TEXT NOT NULL DEFAULT 'draft',
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT name_format CHECK (name ~ '^[a-z0-9][a-z0-9_-]*$')
 );
 ```
 
+- `name`: lowercase alphanumeric, must start with letter or digit, allows `_` and `-`. Validated both at DB level and API level.
+- `version`: optimistic locking counter, incremented on every `UpdateDraft` and `Publish`. Included in PUT request body; server rejects with 409 if version mismatch.
 - `yaml_draft`: current working copy, auto-saved every 30s
 - `yaml_published`: set when user publishes, copied from draft
 - `status`: 'draft' when no published version exists or draft differs from published; 'published' when draft matches published
@@ -49,11 +54,15 @@ type PipelineDefinitionStore struct { client *gen.Client }
 func (s *PipelineDefinitionStore) Create(ctx, name, description string) (*gen.PipelineDefinition, error)
 func (s *PipelineDefinitionStore) GetByName(ctx, name string) (*gen.PipelineDefinition, error)
 func (s *PipelineDefinitionStore) List(ctx) ([]*gen.PipelineDefinition, error)
-func (s *PipelineDefinitionStore) UpdateDraft(ctx, name, yamlDraft string) (*gen.PipelineDefinition, error)
-func (s *PipelineDefinitionStore) Publish(ctx, name string) (*gen.PipelineDefinition, error)
-func (s *PipelineDefinitionStore) Delete(ctx, name string) error
+func (s *PipelineDefinitionStore) UpdateDraft(ctx, name, yamlDraft string, version int) (*gen.PipelineDefinition, error)
+func (s *PipelineDefinitionStore) Publish(ctx, name string, version int) (*gen.PipelineDefinition, error)
+func (s *PipelineDefinitionStore) DeleteByName(ctx, name string) (int64, error) // returns count of deleted runs
 func (s *PipelineDefinitionStore) ListPublished(ctx) ([]pipeline.DefinitionRecord, error)
 ```
+
+`UpdateDraft` and `Publish` accept a `version` parameter and use a conditional UPDATE (`WHERE version = $version`). If the version does not match (row not found), return `types.ErrConflict`. The `version` is auto-incremented on success.
+
+`DeleteByName` removes the definition and all associated pipeline runs (ON DELETE CASCADE or explicit cleanup). Returns the count of deleted runs so the UI can show: "Delete this pipeline? 1,234 associated run records will also be removed."
 
 All methods follow the existing DAO pattern: nil-safe, ent-generated client calls,
 errors wrapped with `%w`. No query code outside `store.go`.
@@ -127,13 +136,67 @@ All routes under `/service/web/pipelines` within the web module.
 | `GET` | `/pipelines/new` | `pipelineEditorPage` | New pipeline canvas |
 | `GET` | `/pipelines/:name` | `pipelineEditorPage` | Edit pipeline canvas (loads draft) |
 | `POST` | `/pipelines` | `createPipeline` | Create pipeline, redirect to editor |
-| `PUT` | `/pipelines/:name` | `updatePipelineDraft` | Auto-save draft YAML |
-| `PUT` | `/pipelines/:name/publish` | `publishPipeline` | Publish: copy draft to published |
-| `DELETE` | `/pipelines/:name` | `deletePipeline` | Delete pipeline definition |
+| `PUT` | `/pipelines/:name` | `updatePipelineDraft` | Auto-save draft YAML (body: `{yaml, version}`) |
+| `PUT` | `/pipelines/:name/publish` | `publishPipeline` | Publish (body: `{version}`) |
+| `DELETE` | `/pipelines/:name` | `deletePipeline` | Delete pipeline definition + cascade runs |
 | `GET` | `/pipelines/:name/yaml` | `getPipelineYaml` | Return current draft YAML |
+| `GET` | `/pipelines/:name/mock` | `getMockPayload` | Get sample payload for test (see below) |
 | `POST` | `/pipelines/:name/test` | `testPipelineStep` | Test: execute up to given step |
 | `GET` | `/pipelines/:name/runs` | `pipelineRunsPage` | Run history page |
 | `GET` | `/pipelines/:name/runs/list` | `pipelineRunsTable` | HTMX partial: run rows |
+
+### Mock payload endpoint
+
+`GET /service/web/pipelines/:name/mock?source=webhook`
+
+Returns a sample payload for the selected trigger source so the test drawer can pre-fill the mock JSON instead of showing a blank textarea.
+
+Query params:
+- `source` (required): `event`, `webhook`, or `cron`
+
+Response (webhook source):
+```json
+{
+  "source": "webhook",
+  "payload": {
+    "event_id": "mock-wb-001",
+    "title": "Sample webhook payload",
+    "body": {}
+  },
+  "note": "Edit fields above to customize your test data."
+}
+```
+
+Response (event source with `type` param):
+```json
+{
+  "source": "event",
+  "payload": {
+    "event_id": "mock-ev-001",
+    "event_type": "item.created",
+    "title": "",
+    "entity_id": "",
+    "source": "",
+    "capability": "example",
+    "operation": "create"
+  },
+  "note": "Generated from event schema. Fill in values to match your expected data."
+}
+```
+
+Response (cron source):
+```json
+{
+  "source": "cron",
+  "payload": {},
+  "note": "Cron-triggered pipelines have no event payload. Steps can only reference {{steps.*}} and {{input.*}}."
+}
+```
+
+The mock endpoint generates payloads based on:
+- **Webhook**: Returns the structure with common webhook fields; if a recent webhook run exists, returns its actual payload as a template.
+- **Event**: Looks up the event type in the hub registry and generates a JSON skeleton with all known fields from the `DataEvent` struct.
+- **Cron**: Returns an empty payload (cron has no event data).
 
 ### Test endpoint details
 
@@ -196,7 +259,7 @@ or publish events. Timeout: 30 seconds.
 }
 ```
 
-HTTP status codes: 400 (validation), 404 (not found), 409 (name conflict), 422 (publish validation), 500 (internal).
+HTTP status codes: 400 (validation), 404 (not found), 409 (name conflict or optimistic lock version mismatch), 422 (publish validation), 500 (internal).
 
 ## 4. Frontend Architecture
 
@@ -214,7 +277,8 @@ internal/modules/web/
 │   └── pipeline_partials.templ  #   trigger cards, step cards, drawer partials
 public/
 ├── js/
-│   └── pipeline-editor.js       # NEW: Alpine.js canvas component
+│   ├── pipeline-editor.js       # NEW: Alpine.js canvas component
+│   └── pipeline-pill-editor.js  # NEW: Mention.js / tag-pill input component
 ```
 
 ### Page structure
@@ -268,6 +332,7 @@ public/
   name: 'example-pipeline',
   description: '',
   status: 'draft',
+  version: 1,
   dirty: false,
   
   // Undo/redo
@@ -303,7 +368,16 @@ public/
 
 ### Key interactions
 
-**Variable pill**: Rendered inside `contenteditable` divs as `<span contenteditable="false" class="var-pill">{{event.title}}</span>`. Backspace deletes the entire pill atomically. Max width 150px with ellipsis; hover shows full tooltip.
+**Variable pill**: Input fields that accept template variables use a lightweight mention/tag library instead of raw `contenteditable`. Using `contenteditable` with Alpine.js causes caret position loss and DOM thrashing on re-render. The recommended approach:
+
+- Use a library like **Tribute.js** (no dependencies, ~10KB) or a minimal custom `<input-tag>` web component that renders pills as non-editable inline tokens
+- Alpine.js manages the data model (the raw template string with `{{...}}` markers) and the input field's value
+- The pill library handles rendering: tokens appear as styled capsules; backspace deletes the entire capsule atomically; typing `{` triggers the variable picker (or clicking the `{x}` button)
+- Alpine receives the final string value (e.g., `{{default 'Untitled' event.title}}`), never manipulates the pill DOM directly
+
+The pill library is loaded as a separate JS bundle in `public/js/pipeline-pill-editor.js`. The Alpine component binds to it via `x-init` and a custom directive.
+
+**Variable pill styling**: Max width 150px with ellipsis on pill text; hover shows full tooltip. Display format: `{{event.title}}` rendered as blue capsule.
 
 **Cascade error check**: After any add/remove/move, scan all steps. For each `{{steps.X.Y}}` reference, verify step X exists at a lower index. Flag affected cards with red border and affected fields with red error text.
 
@@ -315,7 +389,7 @@ public/
 
 **Drawer dirty-state**: When params modified and backdrop clicked or Escape pressed, confirm: "You have unsaved changes. Discard them?"
 
-**Auto-save**: Debounced `PUT /pipelines/:name` every 30 seconds. Shows "Saved" indicator briefly, then "Draft" with timestamp.
+**Auto-save**: Debounced `PUT /pipelines/:name` every 30 seconds, sending `{yaml, version}` in body. On success, update local `version` to the returned value. On 409 response, show: "This draft was modified elsewhere. Please refresh the page."
 
 **Undo/redo**: Push full state snapshot to undo stack on each mutation (add/remove/move/edit). Ctrl+Z / Ctrl+Y triggers restore. Stack limited to 50 entries.
 
@@ -338,7 +412,12 @@ public/
 
 ### Server-side
 
+On `POST /pipelines`:
+- Validate `name` matches `^[a-z0-9][a-z0-9_-]*$` (lowercase, starts with alnum, alnum + `_-` only)
+- Return 400 if name is invalid: "Pipeline name must start with a letter or digit and contain only lowercase letters, digits, hyphens, and underscores."
+
 On `PUT /pipelines/:name` and `PUT /pipelines/:name/publish`:
+- Compare `version` with current DB version; return 409 if mismatch: "This draft was modified elsewhere. Please refresh the page."
 - Parse and validate YAML structure
 - On publish: validate cron expressions via `go-cron` parser
 - On publish: check for duplicate pipeline names
@@ -377,22 +456,49 @@ func initPipeline() {
 
 ### Multi-trigger expansion
 
-The editor YAML stores triggers as an array. Engine expands each enabled trigger into its own `Definition` with the same steps. A pipeline with 2 enabled triggers produces 2 engine definitions, each with an independent `Trigger` struct.
+The editor YAML stores triggers as an array. The engine's internal registry keys definitions by name, which would collide if two fan-out definitions share the same parent name. To avoid this, `expandDefinitions()` generates compound names by appending a trigger-type suffix:
 
-Runtime matching:
-- `DataEvent.EventType == "item.created"` matches the event-triggered definition
-- Webhook `POST /webhook/gh` matches the webhook-triggered definition
-- Cron `*/5 * * * *` matches the cron-triggered definition
+```go
+func expandDefinitions(defs []EditorDefinition) []Definition {
+    var expanded []Definition
+    for _, d := range defs {
+        for i, t := range d.Triggers {
+            if !t.Enabled {
+                continue
+            }
+            compoundName := fmt.Sprintf("%s__trigger_%s_%d", d.Name, t.Type, i)
+            expanded = append(expanded, Definition{
+                Name:        compoundName,
+                Description: d.Description,
+                Enabled:     d.Enabled,
+                Resumable:   d.Resumable,
+                Trigger:     t.ToEngineTrigger(),
+                Steps:       d.Steps,
+                ParentName:  d.Name, // for run history mapping
+            })
+        }
+    }
+    return expanded
+}
+```
+
+Runtime matching uses the compound names internally. When recording pipeline runs (in `PipelineStore`), the run record includes both the compound engine name and the original `parent_name` field. Run history queries match by `parent_name` to aggregate all trigger variants under the user-facing pipeline name.
+
+Example: `example-pipeline` with Event + Webhook triggers becomes:
+- `example-pipeline__trigger_event_0` (engine name)
+- `example-pipeline__trigger_webhook_1` (engine name)
+- Both store `parent_name: "example-pipeline"` in run records
 
 ## 7. Editor vs Engine Types
 
 The editor works with its own YAML schema (multiple `triggers` array, editor-level struct).
-The engine's `Definition` type retains a single `Trigger` field — unchanged.
+The engine's `Definition` type retains a single `Trigger` field — unchanged, but gains a `ParentName` field for run history aggregation.
 
 Translation happens in `pkg/pipeline/loader.go`:
 - Editor YAML is parsed into an editor-level `EditorDefinition` struct (with `[]TriggerEntry`)
-- `expandDefinitions()` fans out each enabled trigger entry into a separate engine `Definition`
-- A pipeline with 1 Event + 1 Webhook trigger becomes 2 engine `Definition` instances, same name and steps
+- `expandDefinitions()` fans out each enabled trigger entry into a separate engine `Definition` with compound names (see section 6)
+- A pipeline with 1 Event + 1 Webhook trigger becomes 2 engine `Definition` instances
+- Run history queries use `parent_name` to aggregate results back to the user-facing pipeline name
 
 ## 8. Navigation
 
@@ -410,7 +516,7 @@ Position: between "Flowbot" brand link and "Configs". The nav becomes: Flowbot |
 - Page transitions via HTMX (list ↔ editor, list ↔ runs)
 - Canvas interactivity via Alpine.js (triggers, steps, drawer, pills, undo/redo)
 - `data-testid` attributes on all interactive elements
-- Tailwind CSS for styling; only `.var-pill` needs custom atomic-block CSS
+- Tailwind CSS for general styling; pill rendering handled by the tag-input library
 - `templ` for server-rendered HTML (list page, runs page, empty states)
 - Store methods in `store.go` only, all queries via ent
 - Route handlers in `pipeline_webservice.go`, auth via `route.WithAuthRequired()`
