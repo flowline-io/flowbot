@@ -68,14 +68,19 @@ templ PipelineEditorPage(name string) {
 				<div class="flex flex-col items-center" data-testid="steps-zone">
 					<template x-for="(step, idx) in steps" :key="idx">
 						<div class="w-full max-w-md">
-							<div class="flex justify-center py-2">
+							<div class="flex flex-col items-center py-1">
+								<div x-show="idx > 0" class="w-0.5 h-4 bg-gray-300"></div>
 								<button type="button" @click="addStep(idx)" data-testid="btn-add-step"
 									class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-blue-400 flex items-center justify-center text-gray-400 hover:text-blue-500 bg-white shadow-sm">+</button>
+								<svg x-show="idx > 0" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+								</svg>
 							</div>
 							@StepCard()
 						</div>
 					</template>
-					<div class="flex justify-center py-2">
+					<div class="flex flex-col items-center py-1">
+						<div x-show="steps.length > 0" class="w-0.5 h-4 bg-gray-300"></div>
 						<button type="button" @click="addStep(steps.length)" data-testid="btn-add-step-end"
 							class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-blue-400 flex items-center justify-center text-gray-400 hover:text-blue-500 bg-white shadow-sm">+</button>
 					</div>
