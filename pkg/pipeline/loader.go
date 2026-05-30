@@ -301,7 +301,12 @@ func (t TriggerEntry) toEngineTrigger() Trigger {
 	case "cron":
 		tr.Cron = t.Cron
 		if t.CronTimeout != "" {
-			tr.CronTimeout, _ = time.ParseDuration(t.CronTimeout)
+			d, err := time.ParseDuration(t.CronTimeout)
+			if err != nil {
+				flog.Error(fmt.Errorf("pipeline cron: invalid cron_timeout %q: %w", t.CronTimeout, err))
+			} else {
+				tr.CronTimeout = d
+			}
 		}
 		if tr.CronTimeout == 0 {
 			tr.CronTimeout = 10 * time.Minute
