@@ -105,13 +105,15 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			return handler(ctx)
 		}
 
-		var r http.Request
-		if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
-			auditAuthReject(ctx, "auth.token.validate.fail", "request conversion failed")
-			return protocol.ErrNotAuthorized.Wrap(err)
+		accessToken := ctx.Cookies(accessTokenKey)
+		if accessToken == "" {
+			var r http.Request
+			if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
+				auditAuthReject(ctx, "auth.token.validate.fail", "request conversion failed")
+				return protocol.ErrNotAuthorized.Wrap(err)
+			}
+			accessToken = GetAccessToken(&r)
 		}
-
-		accessToken := GetAccessToken(&r)
 		if accessToken == "" {
 			auditAuthReject(ctx, "auth.token.validate.fail", "missing token")
 			return protocol.ErrNotAuthorized.New("Missing token")
