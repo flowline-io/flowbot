@@ -63,11 +63,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 				</button>
 				<button type="button"
 					hx-get={ cancelURL(item, isNew) }
-					if isNew {
-						hx-target="#configs-table"
-					} else {
-						hx-target="closest tr"
-					}
+					hx-target="#configs-table"
 					hx-swap="outerHTML"
 					data-testid="config-cancel"
 					class="text-gray-600 hover:text-gray-800 text-sm">
