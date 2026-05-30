@@ -25,6 +25,8 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -226,7 +228,7 @@ func seedConfig(t *testing.T, uid, topic, key string, value interface{}) {
 	}
 }
 
-// ResetDB truncates config and parameter tables (except the test token).
+// ResetDB truncates config, parameter, and pipeline tables (except the test token).
 // Call at the top of each CRUD test case to prevent state bleeding.
 func ResetDB(t *testing.T) {
 	t.Helper()
@@ -241,4 +243,39 @@ func ResetDB(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reset db parameter: %v", err)
 	}
+
+	_, err = client.PipelineStepRun.Delete().Exec(ctx)
+	if err != nil {
+		t.Fatalf("reset db pipelinesteprun: %v", err)
+	}
+	_, err = client.EventConsumption.Delete().Exec(ctx)
+	if err != nil {
+		t.Fatalf("reset db eventconsumption: %v", err)
+	}
+	_, err = client.PipelineRun.Delete().Exec(ctx)
+	if err != nil {
+		t.Fatalf("reset db pipelinerun: %v", err)
+	}
+	_, err = client.PipelineDefinition.Delete().Exec(ctx)
+	if err != nil {
+		t.Fatalf("reset db pipelinedefinition: %v", err)
+	}
+}
+
+// seedPipeline creates a pipeline definition directly via the ent client.
+func seedPipeline(t *testing.T, name string) {
+	t.Helper()
+	client := store.Database.GetDB().(*gen.Client)
+	ctx := context.Background()
+	now := time.Now()
+	_, err := client.PipelineDefinition.Create().
+		SetName(name).
+		SetYamlDraft("").
+		SetNillableYamlPublished(nil).
+		SetVersion(1).
+		SetStatus("draft").
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	require.NoError(t, err)
 }
