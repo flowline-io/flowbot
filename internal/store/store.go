@@ -695,6 +695,147 @@ func (s *PipelineStore) RecordResourceLink(ctx context.Context, link *gen.Resour
 	return err
 }
 
+// CreateDefinition creates a new pipeline definition with initial yaml_draft and version 1.
+func (s *PipelineStore) CreateDefinition(ctx context.Context, name, description string) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	now := time.Now()
+	_, err := s.client.PipelineDefinition.Create().
+		SetName(name).
+		SetDescription(description).
+		SetYamlDraft("").
+		SetNillableYamlPublished(nil).
+		SetVersion(1).
+		SetStatus("draft").
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	return err
+}
+
+// GetDefinitionByName returns a pipeline definition by name.
+func (s *PipelineStore) GetDefinitionByName(ctx context.Context, name string) (*gen.PipelineDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, types.ErrNotFound
+	}
+	def, err := s.client.PipelineDefinition.Query().
+		Where(pipelinedefinition.Name(name)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, err
+	}
+	return def, nil
+}
+
+// ListDefinitions returns all pipeline definitions ordered by updated_at desc.
+func (s *PipelineStore) ListDefinitions(ctx context.Context) ([]*gen.PipelineDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	return s.client.PipelineDefinition.Query().
+		Order(gen.Desc(pipelinedefinition.FieldUpdatedAt)).
+		All(ctx)
+}
+
+// UpdateDefinitionDraft updates the yaml_draft with atomic optimistic locking.
+// Uses conditional UPDATE WHERE version=X. Returns ErrConflict if no row matched.
+func (s *PipelineStore) UpdateDefinitionDraft(ctx context.Context, name, yamlDraft string, version int) (*gen.PipelineDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	n, err := s.client.PipelineDefinition.Update().
+		Where(
+			pipelinedefinition.Name(name),
+			pipelinedefinition.Version(version),
+		).
+		SetYamlDraft(yamlDraft).
+		SetVersion(version + 1).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if n == 0 {
+		return nil, types.ErrConflict
+	}
+	return s.GetDefinitionByName(ctx, name)
+}
+
+// PublishDefinition copies yaml_draft to yaml_published with atomic optimistic locking.
+func (s *PipelineStore) PublishDefinition(ctx context.Context, name string, version int) (*gen.PipelineDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	// Read current yaml_draft to copy into yaml_published.
+	def, err := s.GetDefinitionByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if def.YamlDraft == "" {
+		return nil, types.ErrConflict
+	}
+	n, err := s.client.PipelineDefinition.Update().
+		Where(
+			pipelinedefinition.Name(name),
+			pipelinedefinition.Version(version),
+		).
+		SetYamlPublished(def.YamlDraft).
+		SetVersion(version + 1).
+		SetStatus("published").
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if n == 0 {
+		return nil, types.ErrConflict
+	}
+	return s.GetDefinitionByName(ctx, name)
+}
+
+// DeleteDefinitionByName removes a pipeline definition and its associated runs.
+// Returns the number of pipeline runs that were deleted.
+func (s *PipelineStore) DeleteDefinitionByName(ctx context.Context, name string) (int64, error) {
+	if s == nil || s.client == nil {
+		return 0, nil
+	}
+	runCount, err := s.client.PipelineRun.Delete().
+		Where(pipelinerun.PipelineName(name)).
+		Exec(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("delete runs for %s: %w", name, err)
+	}
+	_, err = s.client.PipelineDefinition.Delete().
+		Where(pipelinedefinition.Name(name)).
+		Exec(ctx)
+	if err != nil {
+		return int64(runCount), fmt.Errorf("delete definition %s: %w", name, err)
+	}
+	return int64(runCount), nil
+}
+
+// GetRunsByParentName returns pipeline runs matching a parent pipeline name.
+// Matches both exact name and compound trigger names (name__trigger_*).
+func (s *PipelineStore) GetRunsByParentName(ctx context.Context, parentName string) ([]*gen.PipelineRun, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	return s.client.PipelineRun.Query().
+		Where(
+			pipelinerun.Or(
+				pipelinerun.PipelineName(parentName),
+				pipelinerun.PipelineNameHasPrefix(parentName+"__trigger_"),
+			),
+		).
+		Order(gen.Desc(pipelinerun.FieldCreatedAt)).
+		Limit(100).
+		All(ctx)
+}
+
 // ListPublishedDefinitions returns all pipeline definitions that are published
 // and have a non-nil yaml_published field.
 func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipeline.DefinitionRecord, error) {

@@ -217,13 +217,12 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 	Describe("Pipeline engine with store", func() {
 		It("creates pipeline definitions via store", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			err := pipelineStore.UpsertDefinition(
+			name := "stored-pipeline-" + types.Id()
+			desc := "test stored definition"
+			err := pipelineStore.CreateDefinition(
 				context.Background(),
-				"stored-pipeline-"+types.Id(),
-				"test stored definition",
-				true,
-				schema.JSON{"event": "test.event"},
-				schema.JSON{"steps": []string{"step-1"}},
+				name,
+				desc,
 			)
 			Expect(err).NotTo(HaveOccurred())
 		})
