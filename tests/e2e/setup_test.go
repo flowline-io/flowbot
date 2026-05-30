@@ -71,12 +71,11 @@ func run(m *testing.M) int {
 		}
 	}()
 
-	pgDSN, err := pgContainer.ConnectionString(ctx)
+	pgDSN, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "postgres connection string: %v\n", err)
 		return 1
 	}
-	pgDSN += " sslmode=disable"
 
 	redisContainer, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
