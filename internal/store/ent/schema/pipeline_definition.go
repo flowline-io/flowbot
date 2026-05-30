@@ -18,8 +18,8 @@ func (PipelineDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Immutable(),
 		field.String("name").NotEmpty().Unique().
-			Comment("pipeline name, must match ^[a-z0-9][a-z0-9_-]*$").
-			Match(regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)),
+			Comment("pipeline name, must match ^[a-zA-Z0-9][a-zA-Z0-9_-]*$").
+			Match(regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_-]*$`)),
 		field.String("description").Optional().Default(""),
 		field.Text("yaml_draft").Default(""),
 		field.Text("yaml_published").Optional().Nillable(),
