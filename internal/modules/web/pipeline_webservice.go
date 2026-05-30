@@ -13,25 +13,26 @@ import (
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 var pipelineWebserviceRules = []webservice.Rule{
-	webservice.Get("/pipelines", pipelineListPage),
-	webservice.Get("/pipelines/list", pipelineListTable),
-	webservice.Get("/pipelines/capabilities", getCapabilities),
-	webservice.Get("/pipelines/:name", pipelineEditorPage),
-	webservice.Post("/pipelines", createPipeline),
-	webservice.Put("/pipelines/:name", updatePipelineDraft),
-	webservice.Put("/pipelines/:name/publish", publishPipeline),
-	webservice.Delete("/pipelines/:name", deletePipeline),
-	webservice.Get("/pipelines/:name/yaml", getPipelineYaml),
-	webservice.Get("/pipelines/:name/mock", getMockPayload),
-	webservice.Post("/pipelines/:name/test", testPipelineStep),
-	webservice.Get("/pipelines/:name/runs", pipelineRunsPage),
-	webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable),
+	webservice.Get("/pipelines", pipelineListPage, route.WithNotAuth()),
+	webservice.Get("/pipelines/list", pipelineListTable, route.WithNotAuth()),
+	webservice.Get("/pipelines/capabilities", getCapabilities, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name", pipelineEditorPage, route.WithNotAuth()),
+	webservice.Post("/pipelines", createPipeline, route.WithNotAuth()),
+	webservice.Put("/pipelines/:name", updatePipelineDraft, route.WithNotAuth()),
+	webservice.Put("/pipelines/:name/publish", publishPipeline, route.WithNotAuth()),
+	webservice.Delete("/pipelines/:name", deletePipeline, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/yaml", getPipelineYaml, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/mock", getMockPayload, route.WithNotAuth()),
+	webservice.Post("/pipelines/:name/test", testPipelineStep, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/runs", pipelineRunsPage, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable, route.WithNotAuth()),
 }
 
 func getPipelineDefStore() *store.PipelineStore {
