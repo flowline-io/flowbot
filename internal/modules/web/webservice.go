@@ -24,6 +24,7 @@ import (
 )
 
 var webserviceRules = []webservice.Rule{
+	webservice.Get("/home", homePage, route.WithNotAuth()),
 	webservice.Get("/login", loginPage, route.WithNotAuth()),
 	webservice.Post("/login", loginSubmit, route.WithNotAuth()),
 	webservice.Post("/logout", logout, route.WithNotAuth()),
@@ -89,6 +90,11 @@ func redirectToLogin(ctx fiber.Ctx) error {
 	next := string(ctx.Request().URI().RequestURI())
 	nextEncoded := url.QueryEscape(next)
 	return ctx.Redirect().To("/service/web/login?next=" + nextEncoded)
+}
+
+func homePage(ctx fiber.Ctx) error {
+	ctx.Type("html")
+	return pages.HomePage().Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func configsPage(ctx fiber.Ctx) error {
