@@ -215,6 +215,7 @@ func loginViaCookie(t *testing.T) *rod.Page {
 		Name:  "accessToken",
 		Value: testToken,
 		URL:   baseURL,
+		Path:  "/",
 	})
 	return page
 }
