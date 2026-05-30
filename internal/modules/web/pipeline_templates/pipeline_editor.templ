@@ -204,6 +204,7 @@ templ PipelineEditorPage(name string) {
 									class="w-full bg-blue-600 text-white py-2 rounded text-sm font-medium hover:bg-blue-700 mb-4"
 									data-testid="btn-run-test">Test up to this step</button>
 								<div x-show="testResults" data-testid="test-results" class="border-t pt-4">
+									<template x-if="testResults?.steps">
 									<template x-for="r in testResults.steps" :key="r.name">
 										<div class="mb-3 text-sm">
 											<div class="flex items-center gap-2">
@@ -216,6 +217,7 @@ templ PipelineEditorPage(name string) {
 												x-text="JSON.stringify(r.output, null, 2)"></pre>
 											<div x-show="r.error" class="text-red-600 text-xs mt-1" x-text="r.error"></div>
 										</div>
+									</template>
 									</template>
 								</div>
 							</div>
