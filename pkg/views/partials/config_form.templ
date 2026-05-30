@@ -11,7 +11,8 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 		} else {
 			hx-put={ configKeyURL(item) }
 		}
-		hx-target="this" hx-swap="outerHTML">
+		hx-target="this" hx-swap="outerHTML"
+		hx-include="[name='uid'], [name='topic'], [name='key'], [name='value']">
 		<td class="px-4 py-2"></td>
 		<td class="px-4 py-2">
 			<input type="text" name="uid" value={ item.UID }
