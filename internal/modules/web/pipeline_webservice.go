@@ -155,7 +155,6 @@ func publishPipeline(c fiber.Ctx) error {
 func deletePipeline(c fiber.Ctx) error {
 	name := c.Params("name")
 	s := getPipelineDefStore()
-	// Check existence first so we can return 404
 	_, err := s.GetDefinitionByName(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
@@ -163,11 +162,17 @@ func deletePipeline(c fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "delete pipeline: %v", err)
 	}
-	count, err := s.DeleteDefinitionByName(context.Background(), name)
+	_, err = s.DeleteDefinitionByName(context.Background(), name)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "delete pipeline: %v", err)
 	}
-	return c.JSON(fiber.Map{"deleted": true, "run_count": count})
+	// Return refreshed table HTML (HTMX target is #pipeline-list-container)
+	defs, err := s.ListDefinitions(context.Background())
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
+	}
+	c.Type("html")
+	return pipeline_templates.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func getPipelineYaml(c fiber.Ctx) error {

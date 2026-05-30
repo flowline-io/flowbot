@@ -228,7 +228,7 @@ var _ = Describe("Pipeline CRUD API", Label("pipeline", "web", "api"), func() {
 	})
 
 	Describe("DELETE /service/web/pipelines/:name", func() {
-		It("deletes pipeline and returns run_count", func() {
+		It("deletes pipeline and verifies removal from DB", func() {
 			name := "bdd-del-" + types.Id()
 			seedBDDPipeline(name, "draft")
 
@@ -236,11 +236,6 @@ var _ = Describe("Pipeline CRUD API", Label("pipeline", "web", "api"), func() {
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
-
-			body := ReadBody(resp)
-			var result map[string]any
-			sonic.Unmarshal(body, &result)
-			Expect(result["deleted"]).To(BeTrue())
 
 			// Verify not in DB
 			exists, _ := EntClient.PipelineDefinition.Query().
@@ -392,11 +387,11 @@ func mountPipelineRoutes(app *fiber.App) {
 			}
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
-		count, err := pipeStore.DeleteDefinitionByName(context.Background(), name)
+		_, err = pipeStore.DeleteDefinitionByName(context.Background(), name)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-}
-	return c.JSON(fiber.Map{"deleted": true, "run_count": count})
+		}
+		return c.SendStatus(http.StatusOK)
 	})
 
 	// GET /service/web/pipelines/:name/mock
