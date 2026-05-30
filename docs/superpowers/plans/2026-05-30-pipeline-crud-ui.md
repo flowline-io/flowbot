@@ -6,7 +6,7 @@
 
 **Architecture:** Database-backed pipeline definitions (ent schema + store), REST API under `/service/web/pipelines` in the web module, Alpine.js canvas editor in templ templates, multi-trigger fan-out in the pipeline engine via compound names.
 
-**Tech Stack:** Go 1.26+, ent (PostgreSQL + SQLite tests), Fiber v3, templ + HTMX + Alpine.js, Tribute.js for variable pills, Tailwind CSS v4
+**Tech Stack:** Go 1.26+, ent (PostgreSQL + SQLite tests), Fiber v3, templ + HTMX + Alpine.js, js-yaml for client-side YAML, Tailwind CSS v4
 
 **Design Spec:** `docs/superpowers/specs/2026-05-30-pipeline-crud-ui-design.md`
 
@@ -31,7 +31,7 @@
 | `internal/modules/web/pipeline_templates/pipeline_runs.templ` | Create | Run history page + table partial |
 | `internal/modules/web/pipeline_templates/pipeline_partials.templ` | Create | Trigger cards, step cards, drawer, var picker |
 | `public/js/pipeline-editor.js` | Create | Alpine.js canvas component |
-| `public/js/pipeline-pill-editor.js` | Create | Tribute.js variable pill input component |
+| `public/css/input.css` | Modify | Variable pill display CSS |
 | `internal/modules/web/webservice.go` | Modify | Add pipeline webservice rules |
 | `internal/modules/web/module.go` | Modify | Add pipeline template/static serving, store injection |
 | `pkg/views/layout/base.templ` | Modify | Add Pipelines nav link |
@@ -356,65 +356,61 @@ func (s *PipelineStore) ListDefinitions(ctx context.Context) ([]*gen.PipelineDef
 		All(ctx)
 }
 
-// UpdateDefinitionDraft updates the yaml_draft for a pipeline with optimistic locking.
-// Returns types.ErrConflict if the version does not match.
+// UpdateDefinitionDraft updates the yaml_draft for a pipeline with atomic optimistic locking.
+// Uses a conditional UPDATE with version in the WHERE clause to prevent TOC-TOU races.
+// Returns types.ErrConflict if no row matched (version mismatch).
 func (s *PipelineStore) UpdateDefinitionDraft(ctx context.Context, name, yamlDraft string, version int) (*gen.PipelineDefinition, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	def, err := s.client.PipelineDefinition.Query().
-		Where(pipelinedefinition.Name(name)).
-		Only(ctx)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return nil, types.ErrNotFound
-		}
-		return nil, err
-	}
-	if def.Version != version {
-		return nil, types.ErrConflict
-	}
-	updated, err := def.Update().
+	n, err := s.client.PipelineDefinition.Update().
+		Where(
+			pipelinedefinition.Name(name),
+			pipelinedefinition.Version(version),
+		).
 		SetYamlDraft(yamlDraft).
-		SetVersion(def.Version + 1).
+		SetVersion(version + 1).
 		SetUpdatedAt(time.Now()).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return updated, nil
+	if n == 0 {
+		return nil, types.ErrConflict
+	}
+	return s.GetDefinitionByName(ctx, name)
 }
 
-// PublishDefinition copies yaml_draft to yaml_published with optimistic locking.
+// PublishDefinition copies yaml_draft to yaml_published with atomic optimistic locking.
 func (s *PipelineStore) PublishDefinition(ctx context.Context, name string, version int) (*gen.PipelineDefinition, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	def, err := s.client.PipelineDefinition.Query().
-		Where(pipelinedefinition.Name(name)).
-		Only(ctx)
-	if err != nil {
-		if gen.IsNotFound(err) {
-			return nil, types.ErrNotFound
-		}
-		return nil, err
-	}
-	if def.Version != version {
-		return nil, types.ErrConflict
-	}
-	if def.YamlDraft == "" {
-		return nil, fmt.Errorf("cannot publish empty draft")
-	}
-	updated, err := def.Update().
-		SetYamlPublished(def.YamlDraft).
-		SetVersion(def.Version + 1).
+	n, err := s.client.PipelineDefinition.Update().
+		Where(
+			pipelinedefinition.Name(name),
+			pipelinedefinition.Version(version),
+			pipelinedefinition.YamlDraftNEQ(""), // reject empty draft at DB level
+		).
+		SetYamlPublished(pipelinedefinition.Raw("yaml_draft")).
+		SetVersion(version + 1).
 		SetStatus("published").
 		SetUpdatedAt(time.Now()).
 		Save(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return updated, nil
+	if n == 0 {
+		// Could be version mismatch or empty draft — distinguish by checking existence
+		exist, err := s.client.PipelineDefinition.Query().
+			Where(pipelinedefinition.Name(name)).
+			Exist(ctx)
+		if err != nil || !exist {
+			return nil, types.ErrNotFound
+		}
+		return nil, types.ErrConflict
+	}
+	return s.GetDefinitionByName(ctx, name)
 }
 
 // DeleteDefinitionByName removes a pipeline definition and cascades to related runs.
@@ -1308,7 +1304,7 @@ git commit -m "feat: add mock payload and test execution pipeline handlers"
 **Files:**
 - Create: `internal/modules/web/pipeline_templates/pipeline_list.templ`
 
-- [ ] **Step 1: Create pipeline list template**
+- [ ] **Step 1: Create pipeline list template with create modal**
 
 Create `internal/modules/web/pipeline_templates/pipeline_list.templ`:
 
@@ -1326,8 +1322,7 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 			<div class="flex items-center justify-between mb-6">
 				<h1 class="text-2xl font-semibold text-gray-800">Pipelines</h1>
 				<button type="button"
-					hx-get="/service/web/pipelines/new"
-					hx-target="body"
+					onclick="document.getElementById('create-modal').classList.remove('hidden')"
 					data-testid="btn-new-pipeline"
 					class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium">
 					+ New Pipeline
@@ -1335,6 +1330,36 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">
 				@PipelineListTable(defs)
+			</div>
+		</div>
+
+		<!-- Create Modal -->
+		<div id="create-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+			data-testid="create-modal">
+			<div class="bg-white rounded-lg shadow-xl p-6 w-96" @click.outside="document.getElementById('create-modal').classList.add('hidden')">
+				<h3 class="text-lg font-medium text-gray-800 mb-4">New Pipeline</h3>
+				<form hx-post="/service/web/pipelines" hx-target="body" data-testid="create-form">
+					<label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+					<input type="text" name="name" required pattern="[a-z0-9][a-z0-9_-]*"
+						class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
+						placeholder="my-pipeline"
+						title="Lowercase letters, digits, hyphens, underscores. Must start with letter or digit."
+						data-testid="input-pipeline-name">
+					<label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+					<input type="text" name="description"
+						class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4"
+						placeholder="Brief description"
+						data-testid="input-pipeline-desc">
+					<div class="flex justify-end gap-2">
+						<button type="button"
+							onclick="document.getElementById('create-modal').classList.add('hidden')"
+							class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+							data-testid="btn-cancel-create">Cancel</button>
+						<button type="submit"
+							class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+							data-testid="btn-submit-create">Create</button>
+					</div>
+				</form>
 			</div>
 		</div>
 	}
@@ -2242,7 +2267,22 @@ document.addEventListener('alpine:init', () => {
       if (this.variablePickerTarget === null) return;
       const step = this.steps[this.variablePickerTarget];
       const template = `{{${path}}}`;
-      step.paramsText = step.paramsText + template;
+
+      // Insert at cursor position in the params textarea
+      const textarea = document.querySelector('[data-testid="params-editor"]');
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = step.paramsText || '';
+        step.paramsText = text.substring(0, start) + template + text.substring(end);
+        setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(start + template.length, start + template.length);
+        }, 50);
+      } else {
+        step.paramsText = (step.paramsText || '') + template;
+      }
+
       this.variablePickerOpen = false;
       this.markDirty();
     },
@@ -2401,6 +2441,9 @@ document.addEventListener('alpine:init', () => {
     },
 
     async runTest() {
+      // Force save so the server tests the latest params, not stale DB data
+      await this.saveDraft();
+
       const upToIdx = this.selectedNode?.index;
       if (upToIdx === null || upToIdx === undefined) return;
       try {
@@ -2432,79 +2475,40 @@ git commit -m "feat: add Alpine.js pipeline canvas component"
 
 ---
 
-### Task 12: Create Variable Pill Editor (Tribute.js)
+### Task 12: Variable Pill Styling CSS
 
 **Files:**
-- Create: `public/js/pipeline-pill-editor.js`
+- Modify: `public/css/input.css`
 
-- [ ] **Step 1: Create variable pill component**
+- [ ] **Step 1: Add variable pill CSS**
 
-Create `public/js/pipeline-pill-editor.js`:
+Variable pills are inserted as inline template strings (`{{event.title}}`) in the params textarea. For styling within the textarea context, add a helper CSS class for the pill preview shown in step card parameter summaries (not for use inside the textarea itself, since `textarea` does not support inline styled tokens).
 
-```javascript
-// Variable pill input component using a simple tag/token approach.
-// For inline template variable insertion in text inputs.
-// Tribute.js integration for @mention-style variable selection.
+In `public/css/input.css`, append:
 
-class PipelinePillEditor {
-  constructor(element, getVariablesCallback) {
-    this.element = element;
-    this.getVariables = getVariablesCallback;
-    this.init();
-  }
-
-  init() {
-    // Listen for '{' key to trigger variable picker
-    this.element.addEventListener('keydown', (e) => {
-      if (e.key === '{') {
-        const cursor = this.element.selectionStart;
-        const text = this.element.value;
-        // Check if the previous char is also '{' to detect '{{' start
-        if (cursor > 0 && text[cursor - 1] === '{') {
-          e.preventDefault();
-          // Signal Alpine to open variable picker
-          this.element.dispatchEvent(new CustomEvent('pill-editor:open-picker', {
-            bubbles: true,
-            detail: { input: this.element }
-          }));
-        }
-      }
-    });
-  }
-
-  insertVariable(variablePath) {
-    const cursor = this.element.selectionStart;
-    const text = this.element.value;
-    const template = `{{${variablePath}}}`;
-    // If we're after '{{', remove it and insert the full template
-    if (text.substring(cursor - 2, cursor) === '{{') {
-      this.element.value =
-        text.substring(0, cursor - 2) + template + text.substring(cursor);
-    } else {
-      this.element.value =
-        text.substring(0, cursor) + template + text.substring(cursor);
-    }
-    // Move cursor past the inserted template
-    const newPos = cursor - 2 + template.length;
-    this.element.setSelectionRange(newPos, newPos);
-    this.element.focus();
-    this.element.dispatchEvent(new Event('input', { bubbles: true }));
-  }
+```css
+/* Variable pill display in step card param previews */
+.var-pill {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
-
-// Auto-initialize on elements with data-pill-editor attribute
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-pill-editor]').forEach(el => {
-    new PipelinePillEditor(el, () => []);
-  });
-});
 ```
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add public/js/pipeline-pill-editor.js
-git commit -m "feat: add variable pill editor component"
+git add public/css/input.css
+git commit -m "feat: add variable pill display CSS"
 ```
 
 ---
@@ -2564,19 +2568,18 @@ import (
 )
 
 var pipelineWebserviceRules = []webservice.Rule{
-    webservice.Get("/pipelines", pipelineListPage, route.WithNotAuth()),
-    webservice.Get("/pipelines/list", pipelineListTable, route.WithNotAuth()),
-    webservice.Get("/pipelines/new", pipelineEditorPage, route.WithNotAuth()),
-    webservice.Get("/pipelines/:name", pipelineEditorPage, route.WithNotAuth()),
-    webservice.Post("/pipelines", createPipeline, route.WithNotAuth()),
-    webservice.Put("/pipelines/:name", updatePipelineDraft, route.WithNotAuth()),
-    webservice.Put("/pipelines/:name/publish", publishPipeline, route.WithNotAuth()),
-    webservice.Delete("/pipelines/:name", deletePipeline, route.WithNotAuth()),
-    webservice.Get("/pipelines/:name/yaml", getPipelineYaml, route.WithNotAuth()),
-    webservice.Get("/pipelines/:name/mock", getMockPayload, route.WithNotAuth()),
-    webservice.Post("/pipelines/:name/test", testPipelineStep, route.WithNotAuth()),
-    webservice.Get("/pipelines/:name/runs", pipelineRunsPage, route.WithNotAuth()),
-    webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable, route.WithNotAuth()),
+	webservice.Get("/pipelines", pipelineListPage, route.WithNotAuth()),
+	webservice.Get("/pipelines/list", pipelineListTable, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name", pipelineEditorPage, route.WithNotAuth()),
+	webservice.Post("/pipelines", createPipeline, route.WithNotAuth()),
+	webservice.Put("/pipelines/:name", updatePipelineDraft, route.WithNotAuth()),
+	webservice.Put("/pipelines/:name/publish", publishPipeline, route.WithNotAuth()),
+	webservice.Delete("/pipelines/:name", deletePipeline, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/yaml", getPipelineYaml, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/mock", getMockPayload, route.WithNotAuth()),
+	webservice.Post("/pipelines/:name/test", testPipelineStep, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/runs", pipelineRunsPage, route.WithNotAuth()),
+	webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable, route.WithNotAuth()),
 }
 ```
 
