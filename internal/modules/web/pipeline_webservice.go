@@ -76,6 +76,12 @@ func createPipeline(c fiber.Ctx) error {
 	}
 	s := getPipelineDefStore()
 	if err := s.CreateDefinition(context.Background(), name, description); err != nil {
+		if errors.Is(err, types.ErrAlreadyExists) {
+			c.Response().Header.Set("HX-Retarget", "#create-form")
+			c.Response().Header.Set("HX-Reswap", "beforebegin")
+			c.Type("html")
+			return c.SendString(fmt.Sprintf(`<div class="bg-red-50 border border-red-200 rounded px-4 py-2 mb-4 text-red-700 text-sm">Pipeline "%s" already exists.</div>`, name))
+		}
 		return types.Errorf(types.ErrInternal, "create pipeline: %v", err)
 	}
 	c.Response().Header.Set("HX-Redirect", "/service/web/pipelines/"+name)

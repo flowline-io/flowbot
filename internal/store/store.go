@@ -711,7 +711,13 @@ func (s *PipelineStore) CreateDefinition(ctx context.Context, name, description 
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
 		Save(ctx)
-	return err
+	if err != nil {
+		if gen.IsConstraintError(err) {
+			return fmt.Errorf("pipeline %q %w", name, types.ErrAlreadyExists)
+		}
+		return err
+	}
+	return nil
 }
 
 // GetDefinitionByName returns a pipeline definition by name.
