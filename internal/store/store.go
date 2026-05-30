@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventconsumption"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
@@ -27,6 +28,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/media"
+	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -691,6 +693,38 @@ func (s *PipelineStore) RecordResourceLink(ctx context.Context, link *gen.Resour
 		Ignore().
 		Exec(ctx)
 	return err
+}
+
+// ListPublishedDefinitions returns all pipeline definitions that are published
+// and have a non-nil yaml_published field.
+func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipeline.DefinitionRecord, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	rows, err := s.client.PipelineDefinition.Query().
+		Where(
+			pipelinedefinition.StatusEQ(pipelinedefinition.Status("published")),
+			pipelinedefinition.YamlPublishedNotNil(),
+		).
+		Order(gen.Asc(pipelinedefinition.FieldName)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list published pipeline definitions: %w", err)
+	}
+	records := make([]pipeline.DefinitionRecord, 0, len(rows))
+	for _, row := range rows {
+		yamlContent := ""
+		if row.YamlPublished != nil {
+			yamlContent = *row.YamlPublished
+		}
+		records = append(records, pipeline.DefinitionRecord{
+			Name:        row.Name,
+			Description: row.Description,
+			YAML:        yamlContent,
+			UpdatedAt:   row.UpdatedAt,
+		})
+	}
+	return records, nil
 }
 
 // ---------------------------------------------------------------------------

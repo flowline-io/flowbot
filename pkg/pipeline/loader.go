@@ -1,10 +1,12 @@
 package pipeline
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
 
 	"github.com/flowline-io/flowbot/pkg/backoff"
@@ -20,6 +22,7 @@ type Definition struct {
 	Resumable   bool
 	Trigger     Trigger
 	Steps       []Step
+	ParentName  string
 }
 
 type Trigger struct {
@@ -261,4 +264,79 @@ func validateCronExpr(spec string) error {
 	p := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
 	_, err := p.Parse(spec)
 	return err
+}
+
+// ExpandDefinitions fans out an editor definition with multiple triggers into
+// engine Definition instances with compound names to avoid key collisions.
+func ExpandDefinitions(defs []EditorDefinition) []Definition {
+	var expanded []Definition
+	for _, d := range defs {
+		if !d.Enabled {
+			continue
+		}
+		for i, t := range d.Triggers {
+			if !t.Enabled {
+				continue
+			}
+			compoundName := fmt.Sprintf("%s__trigger_%s_%d", d.Name, t.Type, i)
+			expanded = append(expanded, Definition{
+				Name:        compoundName,
+				Description: d.Description,
+				Enabled:     true,
+				Resumable:   d.Resumable,
+				Trigger:     t.toEngineTrigger(),
+				Steps:       d.Steps,
+				ParentName:  d.Name,
+			})
+		}
+	}
+	return expanded
+}
+
+func (t TriggerEntry) toEngineTrigger() Trigger {
+	tr := Trigger{}
+	switch t.Type {
+	case "event":
+		tr.Event = t.Event
+	case "cron":
+		tr.Cron = t.Cron
+		if t.CronTimeout != "" {
+			tr.CronTimeout, _ = time.ParseDuration(t.CronTimeout)
+		}
+		if tr.CronTimeout == 0 {
+			tr.CronTimeout = 10 * time.Minute
+		}
+	case "webhook":
+		tr.Webhook = t.Webhook
+	}
+	return tr
+}
+
+// ParseEditorYAML parses a YAML string into an EditorDefinition.
+func ParseEditorYAML(yamlStr string) (*EditorDefinition, error) {
+	var def EditorDefinition
+	if err := sonic.Unmarshal([]byte(yamlStr), &def); err != nil {
+		return nil, fmt.Errorf("parse editor yaml: %w", err)
+	}
+	return &def, nil
+}
+
+// LoadFromDB loads published pipeline definitions from a DefinitionReader.
+func LoadFromDB(ctx context.Context, reader DefinitionReader) ([]Definition, error) {
+	if reader == nil {
+		return nil, nil
+	}
+	records, err := reader.ListPublishedDefinitions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("load definitions from db: %w", err)
+	}
+	var allDefs []Definition
+	for _, rec := range records {
+		ed, err := ParseEditorYAML(rec.YAML)
+		if err != nil {
+			return nil, fmt.Errorf("parse %s: %w", rec.Name, err)
+		}
+		allDefs = append(allDefs, ExpandDefinitions([]EditorDefinition{*ed})...)
+	}
+	return allDefs, nil
 }

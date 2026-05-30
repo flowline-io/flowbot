@@ -41,6 +41,18 @@ func initPipeline(
 	}
 
 	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
+	ctx := context.Background()
+	if store.Database != nil && store.Database.GetDB() != nil {
+		if client, ok := store.Database.GetDB().(*store.Client); ok {
+			pipelineDefStore := store.NewPipelineStore(client)
+			dbDefs, err := pipeline.LoadFromDB(ctx, pipelineDefStore)
+			if err != nil {
+				flog.Error(fmt.Errorf("load pipeline defs from db: %w", err))
+			} else {
+				pipelineDefs = mergeDefinitions(pipelineDefs, dbDefs)
+			}
+		}
+	}
 	if len(pipelineDefs) == 0 {
 		flog.Info("no pipelines configured, skipping pipeline engine")
 		return nil
@@ -258,4 +270,24 @@ func (a *pollingPersistenceAdapter) LoadAll(ctx context.Context) (map[string]abi
 
 func (a *pollingPersistenceAdapter) Save(ctx context.Context, resourceName, cursor string, knownHashes map[string]string) error {
 	return a.store.Save(ctx, resourceName, cursor, knownHashes)
+}
+
+func mergeDefinitions(fileDefs, dbDefs []pipeline.Definition) []pipeline.Definition {
+	if len(dbDefs) == 0 {
+		return fileDefs
+	}
+	seen := make(map[string]bool, len(dbDefs))
+	for _, d := range dbDefs {
+		seen[d.Name] = true
+	}
+	merged := make([]pipeline.Definition, 0, len(fileDefs)+len(dbDefs))
+	merged = append(merged, dbDefs...)
+	for _, d := range fileDefs {
+		if seen[d.Name] {
+			continue
+		}
+		merged = append(merged, d)
+		seen[d.Name] = true
+	}
+	return merged
 }

@@ -406,6 +406,73 @@ func TestFindByEvent(t *testing.T) {
 	})
 }
 
+func TestExpandDefinitions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		input    EditorDefinition
+		wantLen  int
+		wantName string
+	}{
+		{
+			name: "single event trigger",
+			input: EditorDefinition{
+				Name: "test", Enabled: true,
+				Triggers: []TriggerEntry{
+					{Type: "event", Enabled: true, Event: "item.created"},
+				},
+			},
+			wantLen:  1,
+			wantName: "test__trigger_event_0",
+		},
+		{
+			name: "event and webhook triggers",
+			input: EditorDefinition{
+				Name: "multi", Enabled: true,
+				Triggers: []TriggerEntry{
+					{Type: "event", Enabled: true, Event: "item.created"},
+					{Type: "webhook", Enabled: true, Webhook: &WebhookConfig{Path: "/gh"}},
+				},
+			},
+			wantLen:  2,
+			wantName: "multi__trigger_event_0",
+		},
+		{
+			name: "disabled trigger skipped",
+			input: EditorDefinition{
+				Name: "skip", Enabled: true,
+				Triggers: []TriggerEntry{
+					{Type: "event", Enabled: false, Event: "i.x"},
+					{Type: "cron", Enabled: true, Cron: "* * * * *"},
+				},
+			},
+			wantLen:  1,
+			wantName: "skip__trigger_cron_1",
+		},
+		{
+			name: "disabled editor definition produces empty",
+			input: EditorDefinition{
+				Name: "off", Enabled: false,
+				Triggers: []TriggerEntry{
+					{Type: "event", Enabled: true, Event: "i.x"},
+				},
+			},
+			wantLen: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			defs := ExpandDefinitions([]EditorDefinition{tt.input})
+			assert.Len(t, defs, tt.wantLen)
+			if tt.wantLen > 0 {
+				assert.Equal(t, tt.wantName, defs[0].Name)
+				assert.Equal(t, tt.input.Name, defs[0].ParentName)
+			}
+		})
+	}
+}
+
 func TestRenderContext(t *testing.T) {
 	t.Parallel()
 	t.Run("new-render-context", func(t *testing.T) {
