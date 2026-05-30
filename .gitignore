@@ -62,5 +62,3 @@ opencode.jsonc
 # Build artifacts
 public/css/styles.css
 
-# e2e test failure screenshots
-tests/e2e/test-reports/

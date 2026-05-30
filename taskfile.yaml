@@ -158,11 +158,6 @@ tasks:
     cmds:
       - go test -count=10 -race ./...
 
-  test:e2e:
-    desc: Run end-to-end web UI tests
-    cmds:
-      - go tool gotestsum --packages="./tests/e2e/..." -- -tags e2e -count=1 -v
-
   # Documentation tasks
   swagger:
     desc: Generate Swagger API documentation
