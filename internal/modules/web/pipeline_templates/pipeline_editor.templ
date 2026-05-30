@@ -237,16 +237,16 @@ templ PipelineEditorPage(name string) {
 						<button @click="insertVariable('event.entity_id')" class="block w-full text-left px-2 py-1 hover:bg-blue-50 rounded text-gray-700">event.entity_id</button>
 						<button @click="insertVariable('event.source')" class="block w-full text-left px-2 py-1 hover:bg-blue-50 rounded text-gray-700">event.source</button>
 						<button @click="insertVariable('event.capability')" class="block w-full text-left px-2 py-1 hover:bg-blue-50 rounded text-gray-700">event.capability</button>
-						<template x-for="idx in [...Array(selectedNode?.index || 0).keys()]" :key="idx">
+						<template x-for="idx in [...Array(selectedNode?.index || 0).keys()]" :key="idx" x-show="steps[idx]">
 							<div>
-								<div class="text-xs text-gray-400 uppercase mt-2 mb-1" x-text="'steps.' + steps[idx].name"></div>
-								<button @click="{ const v = 'steps.' + steps[idx].name + '.id'; insertVariable(v) }"
+								<div class="text-xs text-gray-400 uppercase mt-2 mb-1" x-text="'steps.' + steps[idx]?.name"></div>
+								<button @click={ "insertVariable('steps.' + steps[idx]?.name + '.id')" }
 									class="block w-full text-left px-2 py-1 hover:bg-blue-50 rounded text-gray-700">
-									<span x-text="'steps.' + steps[idx].name + '.id'"></span>
+									<span x-text="'steps.' + steps[idx]?.name + '.id'"></span>
 								</button>
-								<button @click="{ const v = 'steps.' + steps[idx].name + '.result'; insertVariable(v) }"
+								<button @click={ "insertVariable('steps.' + steps[idx]?.name + '.result')" }
 									class="block w-full text-left px-2 py-1 hover:bg-blue-50 rounded text-gray-700">
-									<span x-text="'steps.' + steps[idx].name + '.result'"></span>
+									<span x-text="'steps.' + steps[idx]?.name + '.result'"></span>
 								</button>
 							</div>
 						</template>
