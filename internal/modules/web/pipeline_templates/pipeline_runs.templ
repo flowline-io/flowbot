@@ -1,0 +1,98 @@
+package pipeline_templates
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+)
+
+templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
+	@layout.Base("Runs: " + name) {
+		<div class="max-w-4xl mx-auto">
+			<div class="flex items-center justify-between mb-6">
+				<h1 class="text-xl font-semibold text-gray-800">
+					Run History: <a href={ templ.URL("/service/web/pipelines/" + name) } class="text-blue-600 hover:underline">{ name }</a>
+				</h1>
+			</div>
+			<div id="pipeline-runs-container" data-testid="pipeline-runs-container">
+				@PipelineRunsTable(runs)
+			</div>
+		</div>
+	}
+}
+
+templ PipelineRunsTable(runs []*gen.PipelineRun) {
+	if len(runs) == 0 {
+		<div class="text-center py-12 text-gray-400" data-testid="runs-empty">
+			<p>No runs recorded yet.</p>
+		</div>
+	} else {
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" data-testid="runs-table">
+			<table class="w-full text-sm text-left">
+				<thead class="bg-gray-50 text-gray-600">
+					<tr>
+						<th class="px-6 py-3 font-medium">Run ID</th>
+						<th class="px-6 py-3 font-medium">Event</th>
+						<th class="px-6 py-3 font-medium">Status</th>
+						<th class="px-6 py-3 font-medium">Started</th>
+						<th class="px-6 py-3 font-medium">Duration</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					for _, r := range runs {
+						<tr class="hover:bg-gray-50">
+							<td class="px-6 py-3 font-mono text-xs text-gray-600">{ fmt.Sprint(r.ID) }</td>
+							<td class="px-6 py-3 text-gray-600">{ r.EventID }</td>
+							<td class="px-6 py-3">
+								<span class={ runsStatusClass(int(r.Status)) }>{ runsStatusText(int(r.Status)) }</span>
+							</td>
+							<td class="px-6 py-3 text-gray-500 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
+							<td class="px-6 py-3 text-gray-500 text-xs">{ runsDuration(r) }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+func runsStatusClass(status int) string {
+	switch status {
+	case 2:
+		return "text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
+	case 4:
+		return "text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
+	case 3:
+		return "text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full"
+	default:
+		return "text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+	}
+}
+
+func runsStatusText(status int) string {
+	switch status {
+	case 2:
+		return "Success"
+	case 4:
+		return "Failed"
+	case 3:
+		return "Cancelled"
+	case 1:
+		return "Running"
+	default:
+		return "Started"
+	}
+}
+
+func runsDuration(r *gen.PipelineRun) string {
+	if r.CompletedAt == nil {
+		return "-"
+	}
+	d := r.CompletedAt.Sub(r.CreatedAt)
+	if d < time.Second {
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	}
+	return d.Round(time.Second).String()
+}

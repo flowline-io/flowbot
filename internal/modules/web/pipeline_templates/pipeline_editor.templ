@@ -1,0 +1,26 @@
+package pipeline_templates
+
+import "github.com/flowline-io/flowbot/pkg/views/layout"
+
+templ PipelineEditorPage(name string) {
+	@layout.Base("Pipeline: " + name) {
+		<div x-data="pipelineEditor()" x-init={ "init('" + name + "')" } data-testid="pipeline-editor">
+			<div class="bg-white border-b border-gray-200 px-6 py-3 mb-4 rounded-t-lg shadow-sm flex items-center justify-between">
+				<h2 class="text-lg font-semibold text-gray-800" data-testid="pipeline-title">{ name }</h2>
+				<div class="flex items-center gap-2">
+					<button type="button" @click="undo" :disabled="undoStack.length === 0"
+						class="text-sm px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30" data-testid="btn-undo">Undo</button>
+					<button type="button" @click="redo" :disabled="redoStack.length === 0"
+						class="text-sm px-3 py-1 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-30" data-testid="btn-redo">Redo</button>
+					<a :href="'/service/web/pipelines/' + name + '/runs'"
+						class="text-sm px-3 py-1 rounded border border-gray-200 hover:bg-gray-50" data-testid="btn-run-history">Run History</a>
+					<button type="button" @click="saveDraft"
+						class="text-sm px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 font-medium" data-testid="btn-save-draft">Save Draft</button>
+					<button type="button" @click="publish"
+						class="text-sm px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 font-medium" data-testid="btn-publish">Publish</button>
+				</div>
+			</div>
+			<p class="text-gray-400 text-center py-12">Canvas component is being loaded...</p>
+		</div>
+	}
+}

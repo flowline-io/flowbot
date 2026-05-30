@@ -369,19 +369,19 @@ func TestLoginSubmit(t *testing.T) {
 			wantCookieSet:  true,
 		},
 		{
-			name:         "wrong password shows error",
-			username:     "admin",
-			password:     "wrong",
-			wantStatus:   http.StatusOK,
-			wantContains: "Invalid username or password",
+			name:          "wrong password shows error",
+			username:      "admin",
+			password:      "wrong",
+			wantStatus:    http.StatusOK,
+			wantContains:  "Invalid username or password",
 			wantCookieSet: false,
 		},
 		{
-			name:         "empty username shows error",
-			username:     "",
-			password:     "admin",
-			wantStatus:   http.StatusOK,
-			wantContains: "Invalid username or password",
+			name:          "empty username shows error",
+			username:      "",
+			password:      "admin",
+			wantStatus:    http.StatusOK,
+			wantContains:  "Invalid username or password",
 			wantCookieSet: false,
 		},
 		{
@@ -403,12 +403,12 @@ func TestLoginSubmit(t *testing.T) {
 			wantCookieSet:  true,
 		},
 		{
-			name:        "param set error renders error",
-			username:    "admin",
-			password:    "admin",
-			paramSetErr: fmt.Errorf("db down"),
-			wantStatus:  http.StatusOK,
-			wantContains: "Internal error",
+			name:          "param set error renders error",
+			username:      "admin",
+			password:      "admin",
+			paramSetErr:   fmt.Errorf("db down"),
+			wantStatus:    http.StatusOK,
+			wantContains:  "Internal error",
 			wantCookieSet: false,
 		},
 	}
@@ -652,10 +652,10 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 
 func TestNewConfigFormIncludesCleanup(t *testing.T) {
 	tests := []struct {
-		name            string
-		wantStatus      int
-		wantContains    string
-		wantOOBDelete   bool
+		name          string
+		wantStatus    int
+		wantContains  string
+		wantOOBDelete bool
 	}{
 		{
 			name:          "new config form includes cleanup for existing forms",

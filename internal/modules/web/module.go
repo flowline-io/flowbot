@@ -73,11 +73,12 @@ func (moduleHandler) Bootstrap() error {
 func (moduleHandler) Webservice(app *fiber.App) {
 	app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))
 	module.Webservice(app, Name, webserviceRules)
+	module.Webservice(app, Name, pipelineWebserviceRules)
 }
 
 // Rules returns the web module rule definitions.
 func (moduleHandler) Rules() []any {
-	return []any{webserviceRules}
+	return []any{webserviceRules, pipelineWebserviceRules}
 }
 
 // InitForE2E initializes the web module handler for e2e testing.
