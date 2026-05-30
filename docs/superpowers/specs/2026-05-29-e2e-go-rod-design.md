@@ -61,6 +61,7 @@ All files use `//go:build e2e` build tag. Framework: testify with table-driven p
 ## setup_test.go
 
 Global state (package-level):
+
 - `browser *rod.Browser` — one per process, shared across tests
 - `baseURL string` — `http://127.0.0.1:{dynamic-port}`
 - `app *fiber.App` — for Cleanup
@@ -68,15 +69,15 @@ Global state (package-level):
 
 ### Lifecycle contract (principle 6)
 
-| Resource | Init | Cleanup |
-|----------|------|---------|
-| PostgreSQL container | `TestMain` pre-run | `TestMain` defer |
-| Redis container | `TestMain` pre-run | `TestMain` defer |
-| Fiber app | `TestMain` pre-run | `TestMain` defer `app.Shutdown()` |
-| `rod.Browser` | `TestMain` pre-run | `TestMain` defer `browser.MustClose()` |
-| Per-test `BrowserContext` | Each test `browser.MustContext()` | `t.Cleanup(ctx.MustClose)` |
-| Per-test page | Each test via `NewPage(t)` | `t.Cleanup(page.MustClose)` |
-| Per-test screenshot | `t.Cleanup` on `t.Failed()` | `page.MustScreenshot("test-reports/{name}.png")` |
+| Resource                  | Init                              | Cleanup                                          |
+| ------------------------- | --------------------------------- | ------------------------------------------------ |
+| PostgreSQL container      | `TestMain` pre-run                | `TestMain` defer                                 |
+| Redis container           | `TestMain` pre-run                | `TestMain` defer                                 |
+| Fiber app                 | `TestMain` pre-run                | `TestMain` defer `app.Shutdown()`                |
+| `rod.Browser`             | `TestMain` pre-run                | `TestMain` defer `browser.MustClose()`           |
+| Per-test `BrowserContext` | Each test `browser.MustContext()` | `t.Cleanup(ctx.MustClose)`                       |
+| Per-test page             | Each test via `NewPage(t)`        | `t.Cleanup(page.MustClose)`                      |
+| Per-test screenshot       | `t.Cleanup` on `t.Failed()`       | `page.MustScreenshot("test-reports/{name}.png")` |
 
 ### Port isolation (principle 1)
 
@@ -93,12 +94,13 @@ No hardcoded ports. OS assigns a free port via port 0.
 A fixed database `flowbot_e2e` is used (no parallel test processes in e2e). Tables are truncated once in `TestMain` after migrations and before tests run.
 
 Additionally, a `ResetDB(t *testing.T)` helper truncates all tables at the start of each CRUD test case. This prevents data state bleeding between test cases within a table-driven test. Call `ResetDB(t)` at the top of each `t.Run` for any test that modifies database state (create, update, delete).```go
-ResetDB := func(t *testing.T) {
-    if err := store.Database.Reset(); err != nil {
-        t.Fatalf("reset db: %v", err)
-    }
+ResetDB := func(t \*testing.T) {
+if err := store.Database.Reset(); err != nil {
+t.Fatalf("reset db: %v", err)
 }
-```
+}
+
+````
 
 ### Context isolation (principle 2)
 
@@ -124,7 +126,7 @@ func loginViaCookie(t *testing.T) *rod.Page
 
 // seedConfig creates a config directly via store adapter.
 func seedConfig(t *testing.T, uid, topic, key string, value any) int64
-```
+````
 
 ### Programmatic login (cookie injection)
 
@@ -154,6 +156,7 @@ Selectors: `[data-testid="login-form"]`, `[data-testid="login-username"]`, `[dat
 ### TestLoginSubmit
 
 Cases:
+
 - valid credentials (set via store seed or env) → redirected to /configs, `accessToken` cookie set
 - invalid username → error message shown via `[data-testid="login-error"]`, still on login page
 - empty credentials → error message shown
@@ -190,6 +193,7 @@ store.Database.ParameterSet(ctx, "web", "username_" + token, "admin")
 ### TestConfigCreate
 
 Cases:
+
 - Create a string config → row appears with correct values
 - Create a numeric config → JSON value renders correctly
 - Create without required fields → error messages on form fields
@@ -225,26 +229,26 @@ Flow: `ResetDB(t)` → `loginViaCookie(t)` → click `[data-testid="configs-new"
 
 18 markers across 6 `.templ` files in `pkg/views/`:
 
-| Template | Element | `data-testid` |
-|----------|---------|---------------|
-| `pages/login.templ` | `<form>` | `login-form` |
-| `pages/login.templ` | `<input name="username">` | `login-username` |
-| `pages/login.templ` | `<input name="password">` | `login-password` |
-| `pages/login.templ` | `<button type="submit">` | `login-submit` |
-| `pages/login.templ` | Error `<p>` | `login-error` |
-| `pages/configs.templ` | "New Config" button | `configs-new` |
-| `pages/configs.templ` | "Refresh" button | `configs-refresh` |
-| `partials/config_table.templ` | Table container `<div>` | `configs-table` |
-| `partials/config_row.templ` | "Edit" button | `config-edit` |
-| `partials/config_row.templ` | "Delete" button | `config-delete` |
-| `partials/config_form.templ` | `<input name="uid">` | `config-uid` |
-| `partials/config_form.templ` | `<input name="topic">` | `config-topic` |
-| `partials/config_form.templ` | `<input name="key">` | `config-key` |
-| `partials/config_form.templ` | `<textarea name="value">` | `config-value` |
-| `partials/config_form.templ` | "Save" button | `config-save` |
-| `partials/config_form.templ` | "Cancel" button | `config-cancel` |
-| `layout/base.templ` | Nav "Configs" link | `nav-configs` |
-| `layout/base.templ` | "Logout" button | `nav-logout` |
+| Template                      | Element                   | `data-testid`     |
+| ----------------------------- | ------------------------- | ----------------- |
+| `pages/login.templ`           | `<form>`                  | `login-form`      |
+| `pages/login.templ`           | `<input name="username">` | `login-username`  |
+| `pages/login.templ`           | `<input name="password">` | `login-password`  |
+| `pages/login.templ`           | `<button type="submit">`  | `login-submit`    |
+| `pages/login.templ`           | Error `<p>`               | `login-error`     |
+| `pages/configs.templ`         | "New Config" button       | `configs-new`     |
+| `pages/configs.templ`         | "Refresh" button          | `configs-refresh` |
+| `partials/config_table.templ` | Table container `<div>`   | `configs-table`   |
+| `partials/config_row.templ`   | "Edit" button             | `config-edit`     |
+| `partials/config_row.templ`   | "Delete" button           | `config-delete`   |
+| `partials/config_form.templ`  | `<input name="uid">`      | `config-uid`      |
+| `partials/config_form.templ`  | `<input name="topic">`    | `config-topic`    |
+| `partials/config_form.templ`  | `<input name="key">`      | `config-key`      |
+| `partials/config_form.templ`  | `<textarea name="value">` | `config-value`    |
+| `partials/config_form.templ`  | "Save" button             | `config-save`     |
+| `partials/config_form.templ`  | "Cancel" button           | `config-cancel`   |
+| `layout/base.templ`           | Nav "Configs" link        | `nav-configs`     |
+| `layout/base.templ`           | "Logout" button           | `nav-logout`      |
 
 Go-rod selectors exclusively use `[data-testid="xxx"]` — no Tailwind class selectors (principle 4).
 
@@ -259,7 +263,7 @@ e2e:
     - uses: actions/checkout@v6
     - uses: actions/setup-go@v6
       with:
-        go-version: '^1.26'
+        go-version: "^1.26"
         cache: true
     - run: go mod download
     - run: go tool task test:e2e
@@ -284,6 +288,7 @@ The `e2e` job runs in parallel with `race` and `bdd`. No explicit Docker setup i
 ## Go-rod Dependencies
 
 Add to `go.mod`:
+
 - `github.com/go-rod/rod` (v0.116.2, already in go.sum as transitive)
 - Chromium browser: go-rod auto-downloads via `rod/lib/launcher` or system-installed `chromium-browser` in CI
 
@@ -296,24 +301,24 @@ The full Go-rod section:
 ```markdown
 ## E2E Testing (Go-rod)
 
-| Rule | Principle |
-|------|-----------|
-| Port isolation | `net.Listen("tcp", "127.0.0.1:0")` — never hardcode ports |
-| Context isolation | `browser.MustContext()` per test — incognito session per case |
-| No hardcoded sleep | `page.MustWaitRequestIdle()` / `page.MustWaitStable()` — Go-rod auto-wait |
-| HTMX wait strategy | Prefer `MustWaitRequestIdle()` after Ajax-triggering actions; wait for injected elements |
-| Dialog handling | `page.MustHandleDialog()` with goroutine — never `MustAcceptDialog()` alone |
-| Test identifiers | `data-testid` attributes on `.templ` elements — no CSS class selectors |
-| Failure screenshots | `t.Cleanup` + `page.MustScreenshot("test-reports/...")` — artifact upload |
-| Lifecycle defense | `run(m)` wrapper in `TestMain` — `os.Exit(run(m))` ensures defer runs |
-| Programmatic login | Cookie injection via `page.MustSetCookies()` for CRUD tests; UI login only in login_test.go |
-| DB isolation | `ResetDB(t)` at top of each CRUD `t.Run` to prevent state bleeding |
-| Location | `tests/e2e/` with `//go:build e2e` tag |
-| Framework | testify table-driven, min 3 cases per table, `t.Run` per case |
-| Backend | testcontainers (PostgreSQL + Redis) with real migrations |
-| Server | `fiber.App` on dynamic port, not full `cmd/flowbot` binary |
-| Commands | `go tool task test:e2e` local, CI job `e2e` in `testing.yml` |
-| Screenshots | `tests/e2e/test-reports/` — gitignored, uploaded as CI artifacts on failure |
+| Rule                | Principle                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| Port isolation      | `net.Listen("tcp", "127.0.0.1:0")` — never hardcode ports                                   |
+| Context isolation   | `browser.MustContext()` per test — incognito session per case                               |
+| No hardcoded sleep  | `page.MustWaitRequestIdle()` / `page.MustWaitStable()` — Go-rod auto-wait                   |
+| HTMX wait strategy  | Prefer `MustWaitRequestIdle()` after Ajax-triggering actions; wait for injected elements    |
+| Dialog handling     | `page.MustHandleDialog()` with goroutine — never `MustAcceptDialog()` alone                 |
+| Test identifiers    | `data-testid` attributes on `.templ` elements — no CSS class selectors                      |
+| Failure screenshots | `t.Cleanup` + `page.MustScreenshot("test-reports/...")` — artifact upload                   |
+| Lifecycle defense   | `run(m)` wrapper in `TestMain` — `os.Exit(run(m))` ensures defer runs                       |
+| Programmatic login  | Cookie injection via `page.MustSetCookies()` for CRUD tests; UI login only in login_test.go |
+| DB isolation        | `ResetDB(t)` at top of each CRUD `t.Run` to prevent state bleeding                          |
+| Location            | `tests/e2e/` with `//go:build e2e` tag                                                      |
+| Framework           | testify table-driven, min 3 cases per table, `t.Run` per case                               |
+| Backend             | testcontainers (PostgreSQL + Redis) with real migrations                                    |
+| Server              | `fiber.App` on dynamic port, not full `cmd/flowbot` binary                                  |
+| Commands            | `go tool task test:e2e` local, CI job `e2e` in `testing.yml`                                |
+| Screenshots         | `tests/e2e/test-reports/` — gitignored, uploaded as CI artifacts on failure                 |
 ```
 
 ## Testing Strategy
@@ -327,6 +332,7 @@ The full Go-rod section:
 ### Table-driven pattern
 
 All test functions follow:
+
 ```go
 func TestXxx(t *testing.T) {
     tests := []struct {
@@ -369,12 +375,14 @@ Never use `time.Sleep`.
 HTMX swaps are Ajax-driven and DOM changes can be subtle. The recommended patterns are:
 
 1. **Network-idle after click** — for actions that trigger HTMX requests:
+
    ```go
    page.MustElement(`[data-testid="config-edit"]`).MustClick()
    page.MustWaitRequestIdle()
    ```
 
 2. **Element-appearance after swap** — for waiting on specific HTMX-injected content:
+
    ```go
    page.MustElementR("[data-testid='configs-table'] tr", "some-value")
    ```
@@ -388,24 +396,24 @@ HTMX swaps are Ajax-driven and DOM changes can be subtle. The recommended patter
 
 ## Files Modified
 
-| File | Change |
-|------|--------|
-| `.github/workflows/testing.yml` | Add `e2e` parallel job |
-| `taskfile.yaml` | Add `test:e2e` task |
-| `AGENTS.md` | Add E2E Testing (Go-rod) section |
-| `.gitignore` | Add `tests/e2e/test-reports/` |
-| `go.mod` | Add `github.com/go-rod/rod` direct dependency |
-| `pkg/views/pages/login.templ` | Add 5 `data-testid` markers |
-| `pkg/views/pages/configs.templ` | Add 2 `data-testid` markers |
-| `pkg/views/partials/config_table.templ` | Add 1 `data-testid` marker |
-| `pkg/views/partials/config_row.templ` | Add 2 `data-testid` markers |
-| `pkg/views/partials/config_form.templ` | Add 6 `data-testid` markers |
-| `pkg/views/layout/base.templ` | Add 2 `data-testid` markers |
+| File                                    | Change                                        |
+| --------------------------------------- | --------------------------------------------- |
+| `.github/workflows/testing.yml`         | Add `e2e` parallel job                        |
+| `taskfile.yaml`                         | Add `test:e2e` task                           |
+| `AGENTS.md`                             | Add E2E Testing (Go-rod) section              |
+| `.gitignore`                            | Add `tests/e2e/test-reports/`                 |
+| `go.mod`                                | Add `github.com/go-rod/rod` direct dependency |
+| `pkg/views/pages/login.templ`           | Add 5 `data-testid` markers                   |
+| `pkg/views/pages/configs.templ`         | Add 2 `data-testid` markers                   |
+| `pkg/views/partials/config_table.templ` | Add 1 `data-testid` marker                    |
+| `pkg/views/partials/config_row.templ`   | Add 2 `data-testid` markers                   |
+| `pkg/views/partials/config_form.templ`  | Add 6 `data-testid` markers                   |
+| `pkg/views/layout/base.templ`           | Add 2 `data-testid` markers                   |
 
 ## Files Created
 
-| File | Purpose |
-|------|---------|
-| `tests/e2e/setup_test.go` | TestMain, testcontainers, Browser, Fiber app |
-| `tests/e2e/login_test.go` | Login flow tests |
-| `tests/e2e/config_crud_test.go` | Config CRUD tests |
+| File                            | Purpose                                      |
+| ------------------------------- | -------------------------------------------- |
+| `tests/e2e/setup_test.go`       | TestMain, testcontainers, Browser, Fiber app |
+| `tests/e2e/login_test.go`       | Login flow tests                             |
+| `tests/e2e/config_crud_test.go` | Config CRUD tests                            |

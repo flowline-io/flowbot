@@ -11,15 +11,15 @@ through a browser UI instead of editing YAML files directly.
 
 ## Decisions
 
-| Decision | Choice |
-|----------|--------|
-| Frontend approach | templ + HTMX + Alpine.js, fixed vertical sequence (no free-form drag) |
-| Storage | Database-backed (`pipeline_definitions` table) with draft + published columns |
-| Module location | Extend existing `internal/modules/web/` |
-| Scope (v1) | Definitions CRUD + read-only run history |
-| Trigger schema | Multiple triggers array with OR logic |
-| Branching / Router | Out of scope for V1 (strict linear steps only) |
-| All UI text | English only |
+| Decision           | Choice                                                                        |
+| ------------------ | ----------------------------------------------------------------------------- |
+| Frontend approach  | templ + HTMX + Alpine.js, fixed vertical sequence (no free-form drag)         |
+| Storage            | Database-backed (`pipeline_definitions` table) with draft + published columns |
+| Module location    | Extend existing `internal/modules/web/`                                       |
+| Scope (v1)         | Definitions CRUD + read-only run history                                      |
+| Trigger schema     | Multiple triggers array with OR logic                                         |
+| Branching / Router | Out of scope for V1 (strict linear steps only)                                |
+| All UI text        | English only                                                                  |
 
 ## 1. Database Schema
 
@@ -110,7 +110,7 @@ steps:
     capability: notify
     operation: send
     params:
-      message: 'Created {{steps.create-item.id}}'
+      message: "Created {{steps.create-item.id}}"
 ```
 
 ### Template syntax
@@ -129,21 +129,21 @@ described in the original spec is not supported; use `{{default ...}}` instead.
 
 All routes under `/service/web/pipelines` within the web module.
 
-| Method | Path | Handler | Description |
-|--------|------|---------|-------------|
-| `GET` | `/pipelines` | `pipelineListPage` | Pipeline list page |
-| `GET` | `/pipelines/list` | `pipelineListTable` | HTMX partial: list rows |
-| `GET` | `/pipelines/new` | `pipelineEditorPage` | New pipeline canvas |
-| `GET` | `/pipelines/:name` | `pipelineEditorPage` | Edit pipeline canvas (loads draft) |
-| `POST` | `/pipelines` | `createPipeline` | Create pipeline, redirect to editor |
-| `PUT` | `/pipelines/:name` | `updatePipelineDraft` | Auto-save draft YAML (body: `{yaml, version}`) |
-| `PUT` | `/pipelines/:name/publish` | `publishPipeline` | Publish (body: `{version}`) |
-| `DELETE` | `/pipelines/:name` | `deletePipeline` | Delete pipeline definition + cascade runs |
-| `GET` | `/pipelines/:name/yaml` | `getPipelineYaml` | Return current draft YAML |
-| `GET` | `/pipelines/:name/mock` | `getMockPayload` | Get sample payload for test (see below) |
-| `POST` | `/pipelines/:name/test` | `testPipelineStep` | Test: execute up to given step |
-| `GET` | `/pipelines/:name/runs` | `pipelineRunsPage` | Run history page |
-| `GET` | `/pipelines/:name/runs/list` | `pipelineRunsTable` | HTMX partial: run rows |
+| Method   | Path                         | Handler               | Description                                    |
+| -------- | ---------------------------- | --------------------- | ---------------------------------------------- |
+| `GET`    | `/pipelines`                 | `pipelineListPage`    | Pipeline list page                             |
+| `GET`    | `/pipelines/list`            | `pipelineListTable`   | HTMX partial: list rows                        |
+| `GET`    | `/pipelines/new`             | `pipelineEditorPage`  | New pipeline canvas                            |
+| `GET`    | `/pipelines/:name`           | `pipelineEditorPage`  | Edit pipeline canvas (loads draft)             |
+| `POST`   | `/pipelines`                 | `createPipeline`      | Create pipeline, redirect to editor            |
+| `PUT`    | `/pipelines/:name`           | `updatePipelineDraft` | Auto-save draft YAML (body: `{yaml, version}`) |
+| `PUT`    | `/pipelines/:name/publish`   | `publishPipeline`     | Publish (body: `{version}`)                    |
+| `DELETE` | `/pipelines/:name`           | `deletePipeline`      | Delete pipeline definition + cascade runs      |
+| `GET`    | `/pipelines/:name/yaml`      | `getPipelineYaml`     | Return current draft YAML                      |
+| `GET`    | `/pipelines/:name/mock`      | `getMockPayload`      | Get sample payload for test (see below)        |
+| `POST`   | `/pipelines/:name/test`      | `testPipelineStep`    | Test: execute up to given step                 |
+| `GET`    | `/pipelines/:name/runs`      | `pipelineRunsPage`    | Run history page                               |
+| `GET`    | `/pipelines/:name/runs/list` | `pipelineRunsTable`   | HTMX partial: run rows                         |
 
 ### Mock payload endpoint
 
@@ -152,9 +152,11 @@ All routes under `/service/web/pipelines` within the web module.
 Returns a sample payload for the selected trigger source so the test drawer can pre-fill the mock JSON instead of showing a blank textarea.
 
 Query params:
+
 - `source` (required): `event`, `webhook`, or `cron`
 
 Response (webhook source):
+
 ```json
 {
   "source": "webhook",
@@ -168,6 +170,7 @@ Response (webhook source):
 ```
 
 Response (event source with `type` param):
+
 ```json
 {
   "source": "event",
@@ -185,6 +188,7 @@ Response (event source with `type` param):
 ```
 
 Response (cron source):
+
 ```json
 {
   "source": "cron",
@@ -194,6 +198,7 @@ Response (cron source):
 ```
 
 The mock endpoint generates payloads based on:
+
 - **Webhook**: Returns the structure with common webhook fields; if a recent webhook run exists, returns its actual payload as a template.
 - **Event**: Looks up the event type in the hub registry and generates a JSON skeleton with all known fields from the `DataEvent` struct.
 - **Cron**: Returns an empty payload (cron has no event data).
@@ -203,6 +208,7 @@ The mock endpoint generates payloads based on:
 `POST /service/web/pipelines/:name/test`
 
 Request:
+
 ```json
 {
   "trigger_source": "event",
@@ -215,6 +221,7 @@ Request:
 ```
 
 Response (success):
+
 ```json
 {
   "success": true,
@@ -234,6 +241,7 @@ Response (success):
 ```
 
 Response (error):
+
 ```json
 {
   "success": false,
@@ -253,7 +261,10 @@ or publish events. Timeout: 30 seconds.
     "code": "VALIDATION_ERROR",
     "message": "pipeline validation failed",
     "details": [
-      { "path": "steps[0].params.title", "message": "Upstream variable {{steps.foo.bar}} does not exist" }
+      {
+        "path": "steps[0].params.title",
+        "message": "Upstream variable {{steps.foo.bar}} does not exist"
+      }
     ]
   }
 }
@@ -334,15 +345,15 @@ public/
   status: 'draft',
   version: 1,
   dirty: false,
-  
+
   // Undo/redo
   undoStack: [],
   redoStack: [],
-  
+
   // Data
   triggers: [],
   steps: [],
-  
+
   // UI state
   selectedNode: null,       // { type: 'trigger'|'step', index: N }
   drawerOpen: false,
@@ -351,16 +362,16 @@ public/
   drawerDirty: false,       // params modified, prompt on close
   codeView: false,
   yamlText: '',
-  
+
   // Variable picker
   variablePickerOpen: false,
   variablePickerTarget: null,
   variablePickerSource: 'event',
-  
+
   // Validation
   errors: [],
   publishDisabled: false,
-  
+
   // Auto-save
   autoSaveTimer: null,
 }
@@ -397,26 +408,28 @@ The pill library is loaded as a separate JS bundle in `public/js/pipeline-pill-e
 
 ### Client-side (runs on every state change)
 
-| Check | Trigger | UI effect |
-|-------|---------|-----------|
-| At least 1 enabled trigger | Publish button | Disabled: "At least one trigger must be enabled" |
-| At least 1 step | Publish button | Disabled: "At least one step is required" |
-| `{{steps.X.Y}}` references deleted step X | Card + field | Red border, "Upstream variable {{steps.X.Y}} is invalid or has been removed" |
-| `{{steps.X.Y}}` references step X at higher index | Card + field | Red border, "Depends on [Step X] which must be above this step" |
-| `{{event.field}}` used, no enabled trigger provides it | Pill inline | Yellow warning icon, "May be empty under active triggers" |
-| Step capability/operation not set | Card + field | Red border, "Capability and operation are required" |
-| Step name is empty | Card | Red border, "Step name is required" |
-| Cron expression invalid | Trigger card | Red border, "Invalid cron expression" |
-| Webhook path empty | Trigger card | Red border, "Webhook path is required" |
-| Webhook auth: both token and hmac empty | Trigger card | Red border, "At least one auth method is required" |
+| Check                                                  | Trigger        | UI effect                                                                    |
+| ------------------------------------------------------ | -------------- | ---------------------------------------------------------------------------- |
+| At least 1 enabled trigger                             | Publish button | Disabled: "At least one trigger must be enabled"                             |
+| At least 1 step                                        | Publish button | Disabled: "At least one step is required"                                    |
+| `{{steps.X.Y}}` references deleted step X              | Card + field   | Red border, "Upstream variable {{steps.X.Y}} is invalid or has been removed" |
+| `{{steps.X.Y}}` references step X at higher index      | Card + field   | Red border, "Depends on [Step X] which must be above this step"              |
+| `{{event.field}}` used, no enabled trigger provides it | Pill inline    | Yellow warning icon, "May be empty under active triggers"                    |
+| Step capability/operation not set                      | Card + field   | Red border, "Capability and operation are required"                          |
+| Step name is empty                                     | Card           | Red border, "Step name is required"                                          |
+| Cron expression invalid                                | Trigger card   | Red border, "Invalid cron expression"                                        |
+| Webhook path empty                                     | Trigger card   | Red border, "Webhook path is required"                                       |
+| Webhook auth: both token and hmac empty                | Trigger card   | Red border, "At least one auth method is required"                           |
 
 ### Server-side
 
 On `POST /pipelines`:
+
 - Validate `name` matches `^[a-z0-9][a-z0-9_-]*$` (lowercase, starts with alnum, alnum + `_-` only)
 - Return 400 if name is invalid: "Pipeline name must start with a letter or digit and contain only lowercase letters, digits, hyphens, and underscores."
 
 On `PUT /pipelines/:name` and `PUT /pipelines/:name/publish`:
+
 - Compare `version` with current DB version; return 409 if mismatch: "This draft was modified elsewhere. Please refresh the page."
 - Parse and validate YAML structure
 - On publish: validate cron expressions via `go-cron` parser
@@ -485,6 +498,7 @@ func expandDefinitions(defs []EditorDefinition) []Definition {
 Runtime matching uses the compound names internally. When recording pipeline runs (in `PipelineStore`), the run record includes both the compound engine name and the original `parent_name` field. Run history queries match by `parent_name` to aggregate all trigger variants under the user-facing pipeline name.
 
 Example: `example-pipeline` with Event + Webhook triggers becomes:
+
 - `example-pipeline__trigger_event_0` (engine name)
 - `example-pipeline__trigger_webhook_1` (engine name)
 - Both store `parent_name: "example-pipeline"` in run records
@@ -495,6 +509,7 @@ The editor works with its own YAML schema (multiple `triggers` array, editor-lev
 The engine's `Definition` type retains a single `Trigger` field — unchanged, but gains a `ParentName` field for run history aggregation.
 
 Translation happens in `pkg/pipeline/loader.go`:
+
 - Editor YAML is parsed into an editor-level `EditorDefinition` struct (with `[]TriggerEntry`)
 - `expandDefinitions()` fans out each enabled trigger entry into a separate engine `Definition` with compound names (see section 6)
 - A pipeline with 1 Event + 1 Webhook trigger becomes 2 engine `Definition` instances
@@ -505,7 +520,12 @@ Translation happens in `pkg/pipeline/loader.go`:
 Add "Pipelines" link to `pkg/views/layout/base.templ` nav bar, next to the existing "Configs" link:
 
 ```html
-<a href="/service/web/pipelines" data-testid="nav-pipelines" class="hover:text-gray-900">Pipelines</a>
+<a
+  href="/service/web/pipelines"
+  data-testid="nav-pipelines"
+  class="hover:text-gray-900"
+  >Pipelines</a
+>
 ```
 
 Position: between "Flowbot" brand link and "Configs". The nav becomes: Flowbot | Pipelines | Configs | Logout.
@@ -525,17 +545,20 @@ Position: between "Flowbot" brand link and "Configs". The nav becomes: Flowbot |
 ## 10. Test Coverage
 
 ### Unit tests (TDD)
+
 - Store: Create, GetByName, List, UpdateDraft, Publish, Delete, ListPublished
 - Handlers: create, update, publish, delete, test execution, YAML get
 - Validation: client-side rules via Alpine.js test harness, server-side rules
 
 ### BDD tests (Ginkgo v2)
+
 - Full pipeline lifecycle: create → edit → add triggers/steps → test → publish
 - Draft auto-save and recovery
 - Error cascade on step deletion
 - Publish rejection with invalid config
 
 ### E2E tests (Go-rod)
+
 - List page: create, delete pipelines
 - Editor: add triggers, add steps, configure params, variable picker
 - Publish workflow

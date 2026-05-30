@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -260,9 +261,7 @@ func testPipelineStep(c fiber.Ctx) error {
 		return c.JSON(fiber.Map{"success": false, "error": "step index out of range"})
 	}
 	event := types.DataEvent{Data: make(map[string]any)}
-	for k, v := range body.MockPayload {
-		event.Data[k] = v
-	}
+	maps.Copy(event.Data, body.MockPayload)
 	event.EventID = "mock-test-" + name
 	if eid, ok := body.MockPayload["event_id"].(string); ok {
 		event.EventID = eid

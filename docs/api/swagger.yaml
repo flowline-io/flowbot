@@ -131,48 +131,6 @@ paths:
       summary: Receive example webhook events
       tags:
         - example
-  /server/stacktrace:
-    get:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/types.KV"
-                type: object
-      security:
-        - ApiKeyAuth: []
-      summary: get server or goroutines stacktrace
-      tags:
-        - dev
-  /server/upload:
-    post:
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-              - $ref: "#/definitions/protocol.Response"
-              - properties:
-                  data:
-                    $ref: "#/definitions/types.KV"
-                type: object
-      security:
-        - ApiKeyAuth: []
-      summary: upload PicGO upload api
-      tags:
-        - dev
 schemes:
   - http
 securityDefinitions:

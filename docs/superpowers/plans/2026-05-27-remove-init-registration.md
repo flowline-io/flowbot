@@ -13,6 +13,7 @@
 ### Task 1: LLM Providers — Remove init(), export Register functions
 
 **Files:**
+
 - Modify: `pkg/llm/gemini.go`
 - Modify: `pkg/llm/openai.go`
 - Modify: `pkg/llm/anthropic.go`
@@ -93,6 +94,7 @@ git commit -m "refactor(llm): replace init() with exported Register functions"
 ### Task 2: OAuth Providers — Remove init(), export Register functions
 
 **Files:**
+
 - Modify: `pkg/providers/github/github.go`
 - Modify: `pkg/providers/slack/slack.go`
 - Modify: `pkg/providers/dropbox/dropbox.go`
@@ -183,6 +185,7 @@ git commit -m "refactor(providers): replace init() with exported Register functi
 ### Task 3: Reexec Handler — Remove init(), export Register function
 
 **Files:**
+
 - Modify: `pkg/executor/runtime/shell/shell.go`
 
 - [ ] **Step 1: Edit shell.go — replace init() with Register()**
@@ -221,6 +224,7 @@ git commit -m "refactor(executor): replace init() with exported Register functio
 ### Task 4: Add LLM wiring in internal/server/llm.go
 
 **Files:**
+
 - Create: `internal/server/llm.go`
 
 - [ ] **Step 1: Create internal/server/llm.go**
@@ -261,6 +265,7 @@ git commit -m "feat(server): add LLM provider wiring module"
 ### Task 5: Add OAuth wiring in internal/server/providers.go
 
 **Files:**
+
 - Create: `internal/server/providers.go`
 
 - [ ] **Step 1: Create internal/server/providers.go**
@@ -303,6 +308,7 @@ git commit -m "feat(server): add OAuth provider wiring module"
 ### Task 6: Add Reexec wiring in internal/server/reexec.go
 
 **Files:**
+
 - Create: `internal/server/reexec.go`
 
 - [ ] **Step 1: Create internal/server/reexec.go**
@@ -341,6 +347,7 @@ git commit -m "feat(server): add reexec handler wiring module"
 ### Task 7: Wire new modules into internal/server/fx.go
 
 **Files:**
+
 - Modify: `internal/server/fx.go`
 
 - [ ] **Step 1: Edit fx.go — add LLMModules, OAuthModules, ReexecModules to Modules**
@@ -387,6 +394,7 @@ git commit -m "feat(server): wire LLM, OAuth, and reexec modules into fx"
 ### Task 8: Fix LLM tests — add Register calls in TestMain
 
 **Files:**
+
 - Modify: `pkg/llm/llm_test.go`
 
 - [ ] **Step 1: Edit llm_test.go — add Register calls before m.Run()**

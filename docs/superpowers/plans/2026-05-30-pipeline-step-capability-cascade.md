@@ -12,14 +12,14 @@
 
 ### File Map
 
-| Action | File | Purpose |
-|--------|------|---------|
-| Create | `docs/superpowers/specs/2026-05-30-pipeline-step-capability-cascade-design.md` | Design spec |
-| Modify | `internal/modules/web/pipeline_webservice.go` | Add `getCapabilities` handler + route |
-| Modify | `public/js/pipeline-editor.js` | Add capabilities fetch + ops lookup |
-| Modify | `internal/modules/web/pipeline_templates/pipeline_editor.templ` | Replace inputs with selects |
-| Modify | `tests/specs/pipeline_crud_api_spec_test.go` | Add BDD test for new endpoint |
-| Create | `docs/superpowers/plans/2026-05-30-pipeline-step-capability-cascade.md` | This plan |
+| Action | File                                                                           | Purpose                               |
+| ------ | ------------------------------------------------------------------------------ | ------------------------------------- |
+| Create | `docs/superpowers/specs/2026-05-30-pipeline-step-capability-cascade-design.md` | Design spec                           |
+| Modify | `internal/modules/web/pipeline_webservice.go`                                  | Add `getCapabilities` handler + route |
+| Modify | `public/js/pipeline-editor.js`                                                 | Add capabilities fetch + ops lookup   |
+| Modify | `internal/modules/web/pipeline_templates/pipeline_editor.templ`                | Replace inputs with selects           |
+| Modify | `tests/specs/pipeline_crud_api_spec_test.go`                                   | Add BDD test for new endpoint         |
+| Create | `docs/superpowers/plans/2026-05-30-pipeline-step-capability-cascade.md`        | This plan                             |
 
 ---
 
@@ -33,6 +33,7 @@
 ### Task 2: Add `getCapabilities` endpoint (TDD)
 
 **Files:**
+
 - Modify: `internal/modules/web/pipeline_webservice.go`
 - Modify: `tests/specs/pipeline_crud_api_spec_test.go`
 
@@ -91,21 +92,25 @@ Describe("Pipeline Step Capability Selects", func() {
 ```bash
 go tool task test:specs -- --focus="Pipeline Step Capability Selects"
 ```
+
 Expected: FAIL — route not registered.
 
 - [ ] **Step 3: Add route + handler to `pipeline_webservice.go`**
 
 Add import:
+
 ```go
 "github.com/flowline-io/flowbot/pkg/hub"
 ```
 
 Add route BEFORE `/pipelines/:name` rules:
+
 ```go
 webservice.Get("/pipelines/capabilities", getCapabilities),
 ```
 
 Add handler:
+
 ```go
 // getCapabilities returns all registered capabilities with their operations
 // for the pipeline editor capability/operation select dropdowns.
@@ -119,6 +124,7 @@ func getCapabilities(ctx fiber.Ctx) error {
 ```bash
 go tool task test:specs -- --focus="Pipeline Step Capability Selects"
 ```
+
 Expected: PASS.
 
 - [ ] **Step 5: Run all BDD tests**
@@ -126,6 +132,7 @@ Expected: PASS.
 ```bash
 go tool task test:specs
 ```
+
 Expected: All pass.
 
 - [ ] **Step 6: Commit**
@@ -195,18 +202,25 @@ git commit -m "feat: add capability fetch and operation lookup to pipeline edito
 ### Task 4: Replace templ inputs with selects + regenerate
 
 **Files:**
+
 - Modify: `internal/modules/web/pipeline_templates/pipeline_editor.templ`
 
 - [ ] **Step 1: Replace capability `<input>` (lines 180-183) with `<select>`**
 
 ```html
-<select x-model="steps[selectedNode.index].capability"
-    @change="steps[selectedNode.index].operation = getOperationsFor(steps[selectedNode.index].capability)[0]?.name || ''; drawerDirty = true"
-    class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-    data-testid="step-capability-select">
+<select
+  x-model="steps[selectedNode.index].capability"
+  @change="steps[selectedNode.index].operation = getOperationsFor(steps[selectedNode.index].capability)[0]?.name || ''; drawerDirty = true"
+  class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
+  data-testid="step-capability-select"
+>
   <option value="" disabled>Select capability...</option>
   <template x-for="cap in capabilities" :key="cap.type">
-    <option :value="cap.type" x-text="cap.type" :title="cap.description"></option>
+    <option
+      :value="cap.type"
+      x-text="cap.type"
+      :title="cap.description"
+    ></option>
   </template>
 </select>
 ```
@@ -214,12 +228,17 @@ git commit -m "feat: add capability fetch and operation lookup to pipeline edito
 - [ ] **Step 2: Replace operation `<input>` (lines 184-187) with `<select>`**
 
 ```html
-<select x-model="steps[selectedNode.index].operation"
-    @change="drawerDirty = true"
-    class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-    data-testid="step-operation-select">
+<select
+  x-model="steps[selectedNode.index].operation"
+  @change="drawerDirty = true"
+  class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
+  data-testid="step-operation-select"
+>
   <option value="" disabled>Select operation...</option>
-  <template x-for="op in getOperationsFor(steps[selectedNode.index].capability)" :key="op.name">
+  <template
+    x-for="op in getOperationsFor(steps[selectedNode.index].capability)"
+    :key="op.name"
+  >
     <option :value="op.name" x-text="op.name" :title="op.description"></option>
   </template>
 </select>
@@ -230,6 +249,7 @@ git commit -m "feat: add capability fetch and operation lookup to pipeline edito
 ```bash
 go tool task templ
 ```
+
 Expected: No errors.
 
 - [ ] **Step 4: Verify build compiles**
@@ -237,6 +257,7 @@ Expected: No errors.
 ```bash
 go tool task build
 ```
+
 Expected: Compiles successfully.
 
 - [ ] **Step 5: Commit**
@@ -255,6 +276,7 @@ git commit -m "feat: replace step capability/operation inputs with cascading sel
 ```bash
 go tool task lint
 ```
+
 Expected: No new violations.
 
 - [ ] **Step 2: Run unit tests**
@@ -262,6 +284,7 @@ Expected: No new violations.
 ```bash
 go tool task test
 ```
+
 Expected: All pass.
 
 - [ ] **Step 3: Run BDD spec tests**
@@ -269,6 +292,7 @@ Expected: All pass.
 ```bash
 go tool task test:specs
 ```
+
 Expected: All pass.
 
 ---
@@ -280,6 +304,7 @@ Expected: All pass.
 ```bash
 grep -r 'step-capability-input\|step-operation-input' tests/e2e/ || echo "no matches"
 ```
+
 If no matches found, skip. Otherwise update to `step-capability-select` / `step-operation-select`.
 
 ---

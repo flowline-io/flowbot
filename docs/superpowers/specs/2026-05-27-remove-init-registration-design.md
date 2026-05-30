@@ -36,59 +36,59 @@ Three wiring files added under `internal/server/`, mirroring existing `notify.go
 
 ### LLM Providers
 
-| File                     | Change                                     |
-| ------------------------ | ------------------------------------------ |
-| `pkg/llm/gemini.go`     | Remove `init()`, export `RegisterGemini()` |
-| `pkg/llm/openai.go`     | Remove `init()`, export `RegisterOpenAI()` |
-| `pkg/llm/anthropic.go`  | Remove `init()`, export `RegisterAnthropic()` |
+| File                     | Change                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `pkg/llm/gemini.go`      | Remove `init()`, export `RegisterGemini()`                                      |
+| `pkg/llm/openai.go`      | Remove `init()`, export `RegisterOpenAI()`                                      |
+| `pkg/llm/anthropic.go`   | Remove `init()`, export `RegisterAnthropic()`                                   |
 | `internal/server/llm.go` | New: `fx.Invoke(llm.RegisterGemini, llm.RegisterOpenAI, llm.RegisterAnthropic)` |
 
 ### OAuth Providers
 
-| File                              | Change                                                 |
-| --------------------------------- | ------------------------------------------------------ |
-| `pkg/providers/github/github.go` | Remove `init()`, export `Register()`                   |
-| `pkg/providers/slack/slack.go`   | Remove `init()`, export `Register()`                   |
-| `pkg/providers/dropbox/dropbox.go` | Remove `init()`, export `Register()`                 |
-| `internal/server/providers.go`   | New: `fx.Invoke(github.Register, slack.Register, dropbox.Register)` |
+| File                               | Change                                                              |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| `pkg/providers/github/github.go`   | Remove `init()`, export `Register()`                                |
+| `pkg/providers/slack/slack.go`     | Remove `init()`, export `Register()`                                |
+| `pkg/providers/dropbox/dropbox.go` | Remove `init()`, export `Register()`                                |
+| `internal/server/providers.go`     | New: `fx.Invoke(github.Register, slack.Register, dropbox.Register)` |
 
 ### Reexec Handler
 
-| File                                     | Change                               |
-| ---------------------------------------- | ------------------------------------ |
-| `pkg/executor/runtime/shell/shell.go`   | Remove `init()`, export `Register()` |
-| `internal/server/reexec.go`             | New: `fx.Invoke(shell.Register)`     |
+| File                                  | Change                               |
+| ------------------------------------- | ------------------------------------ |
+| `pkg/executor/runtime/shell/shell.go` | Remove `init()`, export `Register()` |
+| `internal/server/reexec.go`           | New: `fx.Invoke(shell.Register)`     |
 
 ### Entry Point Wiring
 
-| File                         | Change                                              |
-| ---------------------------- | --------------------------------------------------- |
-| `internal/server/server.go`  | Add `LLMModules`, `OAuthModules`, `ReexecModules` to fx App options |
+| File                        | Change                                                              |
+| --------------------------- | ------------------------------------------------------------------- |
+| `internal/server/server.go` | Add `LLMModules`, `OAuthModules`, `ReexecModules` to fx App options |
 
 ### Unchanged
 
-| Component                                    | Reason                                       |
-| -------------------------------------------- | -------------------------------------------- |
-| `pkg/llm/provider.go` (`register()` helper)  | Internal helper, no API change               |
-| `pkg/providers/providers.go` (registry map)  | Global map stays, only call site changes     |
-| `pkg/utils/reexec/rexec.go` (registry map)   | Same as above                                |
-| All `GetClient()` / `GetConfig()` functions  | Provider clients unchanged                   |
-| Provider interface types                     | No interface changes                         |
+| Component                                   | Reason                                   |
+| ------------------------------------------- | ---------------------------------------- |
+| `pkg/llm/provider.go` (`register()` helper) | Internal helper, no API change           |
+| `pkg/providers/providers.go` (registry map) | Global map stays, only call site changes |
+| `pkg/utils/reexec/rexec.go` (registry map)  | Same as above                            |
+| All `GetClient()` / `GetConfig()` functions | Provider clients unchanged               |
+| Provider interface types                    | No interface changes                     |
 
 ### Tests
 
-| Pattern                        | Before                                             | After                                          |
-| ------------------------------ | -------------------------------------------------- | ---------------------------------------------- |
-| Import triggers registration   | `import "pkg/llm"` auto-registers all three        | Import has no side effect                      |
-| Selective per-test registration| Not possible                                       | `llm.RegisterOpenAI()` in test body            |
-| Test isolation                 | Order-dependent, tests leak registrations to others| Each test controls its own registrations       |
+| Pattern                         | Before                                              | After                                    |
+| ------------------------------- | --------------------------------------------------- | ---------------------------------------- |
+| Import triggers registration    | `import "pkg/llm"` auto-registers all three         | Import has no side effect                |
+| Selective per-test registration | Not possible                                        | `llm.RegisterOpenAI()` in test body      |
+| Test isolation                  | Order-dependent, tests leak registrations to others | Each test controls its own registrations |
 
 Two test files depend on `init()` side effects and need explicit `Register()` calls in `TestMain`:
 
-| File                             | Fix                                                    |
-| -------------------------------- | ------------------------------------------------------ |
-| `pkg/llm/provider_test.go`      | Add `llm.RegisterGemini|OpenAI|Anthropic()` in TestMain |
-| `pkg/llm/client_test.go`        | Same as above                                          |
+| File                       | Fix                     |
+| -------------------------- | ----------------------- | ------ | ------------------------ |
+| `pkg/llm/provider_test.go` | Add `llm.RegisterGemini | OpenAI | Anthropic()` in TestMain |
+| `pkg/llm/client_test.go`   | Same as above           |
 
 Other tests (e.g. `pkg/ability/github/github/adapter_test.go`) import provider packages only for type references and use fake clients — no change needed.
 
@@ -98,9 +98,9 @@ Other tests (e.g. `pkg/ability/github/github/adapter_test.go`) import provider p
 
 ## Risk Assessment
 
-| Risk                                    | Mitigation                                            |
-| --------------------------------------- | ----------------------------------------------------- |
-| Missing `Register()` call in wiring     | Server fails on first use with provider-not-found error, caught in dev/CI |
-| Forgetting `Register()` in existing test| Test fails with "unknown provider", easy to diagnose  |
-| Concurrent registration in tests        | Registry RWMutex already in place, no change needed   |
-| Auto-generated files using init()       | `internal/store/ent/gen/` and `docs/api/docs.go` not in scope |
+| Risk                                     | Mitigation                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------- |
+| Missing `Register()` call in wiring      | Server fails on first use with provider-not-found error, caught in dev/CI |
+| Forgetting `Register()` in existing test | Test fails with "unknown provider", easy to diagnose                      |
+| Concurrent registration in tests         | Registry RWMutex already in place, no change needed                       |
+| Auto-generated files using init()        | `internal/store/ent/gen/` and `docs/api/docs.go` not in scope             |

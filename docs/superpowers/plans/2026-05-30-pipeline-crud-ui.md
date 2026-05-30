@@ -14,36 +14,37 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|---------------|
-| `internal/store/ent/schema/pipeline_definition.go` | Modify | Updated schema: yaml_draft, yaml_published, version fields |
-| `internal/store/store.go` | Modify | PipelineDefinitionStore methods + remove UpsertDefinition |
-| `internal/store/store_test.go` | Modify | Tests for new store methods |
-| `pkg/pipeline/loader.go` | Modify | EditorDefinition types, expandDefinitions, LoadFromDB |
-| `pkg/pipeline/definition.go` | Create | Editor YAML schema types (EditorDefinition, TriggerEntry) |
-| `pkg/pipeline/pipeline_test.go` | Modify | Tests for expandDefinitions, LoadFromDB |
-| `pkg/pipeline/engine.go` | Modify | Add ParentName to Definition, use compound names |
-| `internal/server/pipeline.go` | Modify | Wire LoadFromDB, merge definitions |
-| `internal/modules/web/pipeline_webservice.go` | Create | All pipeline API handlers |
-| `internal/modules/web/pipeline_webservice_test.go` | Create | TDD unit tests for handlers |
-| `internal/modules/web/pipeline_templates/pipeline_list.templ` | Create | Pipeline list page + table partial |
-| `internal/modules/web/pipeline_templates/pipeline_editor.templ` | Create | Canvas editor page (Alpine.js) |
-| `internal/modules/web/pipeline_templates/pipeline_runs.templ` | Create | Run history page + table partial |
-| `internal/modules/web/pipeline_templates/pipeline_partials.templ` | Create | Trigger cards, step cards, drawer, var picker |
-| `public/js/pipeline-editor.js` | Create | Alpine.js canvas component |
-| `public/css/input.css` | Modify | Variable pill display CSS |
-| `internal/modules/web/webservice.go` | Modify | Add pipeline webservice rules |
-| `internal/modules/web/module.go` | Modify | Add pipeline template/static serving, store injection |
-| `pkg/views/layout/base.templ` | Modify | Add Pipelines nav link |
-| `tests/specs/pipeline_spec_test.go` | Modify | Fix test using removed UpsertDefinition |
-| `tests/e2e/pipeline_crud_test.go` | Create | E2E tests |
-| `tests/specs/pipeline_editor_spec_test.go` | Create | BDD tests |
+| File                                                              | Action | Responsibility                                             |
+| ----------------------------------------------------------------- | ------ | ---------------------------------------------------------- |
+| `internal/store/ent/schema/pipeline_definition.go`                | Modify | Updated schema: yaml_draft, yaml_published, version fields |
+| `internal/store/store.go`                                         | Modify | PipelineDefinitionStore methods + remove UpsertDefinition  |
+| `internal/store/store_test.go`                                    | Modify | Tests for new store methods                                |
+| `pkg/pipeline/loader.go`                                          | Modify | EditorDefinition types, expandDefinitions, LoadFromDB      |
+| `pkg/pipeline/definition.go`                                      | Create | Editor YAML schema types (EditorDefinition, TriggerEntry)  |
+| `pkg/pipeline/pipeline_test.go`                                   | Modify | Tests for expandDefinitions, LoadFromDB                    |
+| `pkg/pipeline/engine.go`                                          | Modify | Add ParentName to Definition, use compound names           |
+| `internal/server/pipeline.go`                                     | Modify | Wire LoadFromDB, merge definitions                         |
+| `internal/modules/web/pipeline_webservice.go`                     | Create | All pipeline API handlers                                  |
+| `internal/modules/web/pipeline_webservice_test.go`                | Create | TDD unit tests for handlers                                |
+| `internal/modules/web/pipeline_templates/pipeline_list.templ`     | Create | Pipeline list page + table partial                         |
+| `internal/modules/web/pipeline_templates/pipeline_editor.templ`   | Create | Canvas editor page (Alpine.js)                             |
+| `internal/modules/web/pipeline_templates/pipeline_runs.templ`     | Create | Run history page + table partial                           |
+| `internal/modules/web/pipeline_templates/pipeline_partials.templ` | Create | Trigger cards, step cards, drawer, var picker              |
+| `public/js/pipeline-editor.js`                                    | Create | Alpine.js canvas component                                 |
+| `public/css/input.css`                                            | Modify | Variable pill display CSS                                  |
+| `internal/modules/web/webservice.go`                              | Modify | Add pipeline webservice rules                              |
+| `internal/modules/web/module.go`                                  | Modify | Add pipeline template/static serving, store injection      |
+| `pkg/views/layout/base.templ`                                     | Modify | Add Pipelines nav link                                     |
+| `tests/specs/pipeline_spec_test.go`                               | Modify | Fix test using removed UpsertDefinition                    |
+| `tests/e2e/pipeline_crud_test.go`                                 | Create | E2E tests                                                  |
+| `tests/specs/pipeline_editor_spec_test.go`                        | Create | BDD tests                                                  |
 
 ---
 
 ### Task 1: Update Ent Schema for PipelineDefinition
 
 **Files:**
+
 - Modify: `internal/store/ent/schema/pipeline_definition.go`
 
 - [ ] **Step 1: Replace schema fields**
@@ -111,6 +112,7 @@ git commit -m "feat: update PipelineDefinition schema for web CRUD (yaml_draft, 
 ### Task 2: Add PipelineDefinitionStore Methods
 
 **Files:**
+
 - Modify: `internal/store/store.go` (lines ~474-518)
 - Modify: `internal/store/store_test.go`
 
@@ -303,6 +305,7 @@ func TestPipelineDefinitionStore_ListAndDelete(t *testing.T) {
 ```bash
 go test ./internal/store/ -run "TestPipelineDefinitionStore" -v
 ```
+
 Expected: compilation error — `CreateDefinition`, `GetDefinitionByName`, etc. are not defined.
 
 - [ ] **Step 3: Remove old UpsertDefinition and add new methods in store.go**
@@ -467,6 +470,7 @@ func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipelin
 - [ ] **Step 4: Add imports to store.go**
 
 Add to the imports block in `store.go`:
+
 - `"github.com/flowline-io/flowbot/pkg/pipeline"` (if not already imported)
 
 - [ ] **Step 5: Fix the existing test file that uses UpsertDefinition**
@@ -478,6 +482,7 @@ In `tests/specs/pipeline_spec_test.go`, find the `UpsertDefinition` call and rep
 ```bash
 go test ./internal/store/ -run "TestPipelineDefinitionStore" -v
 ```
+
 Expected: All tests pass.
 
 - [ ] **Step 7: Commit**
@@ -492,6 +497,7 @@ git commit -m "feat: add PipelineDefinitionStore methods for web CRUD with optim
 ### Task 3: Add Editor YAML Types and Engine Loading
 
 **Files:**
+
 - Create: `pkg/pipeline/definition.go`
 - Modify: `pkg/pipeline/loader.go`
 - Modify: `internal/server/pipeline.go`
@@ -723,6 +729,7 @@ func TestExpandDefinitions(t *testing.T) {
 ```bash
 go test ./pkg/pipeline/ -run TestExpandDefinitions -v
 ```
+
 Expected: All pass.
 
 - [ ] **Step 6: Wire DB loading in initPipeline**
@@ -730,6 +737,7 @@ Expected: All pass.
 In `internal/server/pipeline.go`, modify `initPipeline`:
 
 Replace:
+
 ```go
 pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
 if len(pipelineDefs) == 0 {
@@ -738,6 +746,7 @@ if len(pipelineDefs) == 0 {
 ```
 
 With:
+
 ```go
 pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
 ctx := context.Background()
@@ -794,6 +803,7 @@ git commit -m "feat: add editor YAML types, expandDefinitions, LoadFromDB with D
 ### Task 4: Create Pipeline API Handlers (Part 1 — List, Create, Get)
 
 **Files:**
+
 - Create: `internal/modules/web/pipeline_webservice.go`
 - Create: `internal/modules/web/pipeline_webservice_test.go`
 
@@ -910,6 +920,7 @@ func TestPipelineListPage(t *testing.T) {
 ```bash
 go test ./internal/modules/web/ -run TestPipelineListPage -v
 ```
+
 Expected: compilation error — `pipelineListPage` not defined.
 
 - [ ] **Step 3: Create pipeline_webservice.go skeleton**
@@ -1011,6 +1022,7 @@ func createPipeline(c fiber.Ctx) error {
 ### Task 5: Create Pipeline API Handlers (Part 2 — Update, Publish, Delete, YAML)
 
 **Files:**
+
 - Modify: `internal/modules/web/pipeline_webservice.go`
 
 - [ ] **Step 1: Add remaining handlers**
@@ -1104,6 +1116,7 @@ func getPipelineYaml(c fiber.Ctx) error {
 - [ ] **Step 2: Add imports**
 
 Add to the imports in `pipeline_webservice.go`:
+
 ```go
 import (
 	"errors"
@@ -1123,6 +1136,7 @@ git commit -m "feat: add pipeline API handlers (list, create, get, update, publi
 ### Task 6: Create Mock Payload and Test Execution Handlers
 
 **Files:**
+
 - Modify: `internal/modules/web/pipeline_webservice.go`
 
 - [ ] **Step 1: Add mock payload handler**
@@ -1280,6 +1294,7 @@ func runTestExecution(pipelineName string, ed *pipeline.EditorDefinition, source
 - [ ] **Step 2: Add imports for test execution**
 
 In `pipeline_webservice.go`, add:
+
 ```go
 import (
 	"fmt"
@@ -1302,6 +1317,7 @@ git commit -m "feat: add mock payload and test execution pipeline handlers"
 ### Task 7: Create Pipeline List Templates
 
 **Files:**
+
 - Create: `internal/modules/web/pipeline_templates/pipeline_list.templ`
 
 - [ ] **Step 1: Create pipeline list template with create modal**
@@ -1436,6 +1452,7 @@ git commit -m "feat: add pipeline list page and table templ templates"
 ### Task 8: Create Pipeline Editor Canvas Template (Alpine.js)
 
 **Files:**
+
 - Create: `internal/modules/web/pipeline_templates/pipeline_editor.templ`
 
 - [ ] **Step 1: Create editor template**
@@ -1740,6 +1757,7 @@ git commit -m "feat: add pipeline editor canvas template with Alpine.js"
 ### Task 9: Create Trigger/Step Partial Templates
 
 **Files:**
+
 - Create: `internal/modules/web/pipeline_templates/pipeline_partials.templ`
 
 - [ ] **Step 1: Create partials template**
@@ -1828,6 +1846,7 @@ git commit -m "feat: add pipeline trigger card and step card partial templates"
 ### Task 10: Create Pipeline Runs Template
 
 **Files:**
+
 - Create: `internal/modules/web/pipeline_templates/pipeline_runs.templ`
 
 - [ ] **Step 1: Create runs template**
@@ -2004,6 +2023,7 @@ git commit -m "feat: add pipeline runs page, handler, and store query"
 ### Task 11: Create Alpine.js Canvas Component
 
 **Files:**
+
 - Create: `public/js/pipeline-editor.js`
 
 - [ ] **Step 1: Create Alpine.js component**
@@ -2011,11 +2031,11 @@ git commit -m "feat: add pipeline runs page, handler, and store query"
 Create `public/js/pipeline-editor.js`:
 
 ```javascript
-document.addEventListener('alpine:init', () => {
-  Alpine.data('pipelineEditor', () => ({
-    name: '',
-    description: '',
-    status: 'draft',
+document.addEventListener("alpine:init", () => {
+  Alpine.data("pipelineEditor", () => ({
+    name: "",
+    description: "",
+    status: "draft",
     version: 1,
     dirty: false,
 
@@ -2028,32 +2048,32 @@ document.addEventListener('alpine:init', () => {
     selectedNode: null,
     drawerOpen: false,
     drawerExpanded: false,
-    drawerTab: 'setup',
+    drawerTab: "setup",
     drawerDirty: false,
     codeView: false,
-    yamlText: '',
+    yamlText: "",
 
     variablePickerOpen: false,
     variablePickerTarget: null,
-    variablePickerSource: 'event',
+    variablePickerSource: "event",
 
     errors: [],
     publishDisabled: false,
 
     autoSaveTimer: null,
 
-    testTriggerSource: 'event',
-    testMockPayload: '{}',
+    testTriggerSource: "event",
+    testMockPayload: "{}",
     testResults: null,
 
     init(name) {
-      this.name = name || '';
-      if (name && name !== 'new') {
+      this.name = name || "";
+      if (name && name !== "new") {
         this.loadPipeline(name);
       } else {
         this.triggers = [];
         this.steps = [];
-        this.status = 'draft';
+        this.status = "draft";
         this.version = 1;
       }
       this.pushUndo();
@@ -2069,7 +2089,7 @@ document.addEventListener('alpine:init', () => {
           this.parseYamlToState(data.yaml);
         }
       } catch (e) {
-        console.error('Failed to load pipeline:', e);
+        console.error("Failed to load pipeline:", e);
       }
     },
 
@@ -2079,23 +2099,27 @@ document.addEventListener('alpine:init', () => {
       try {
         const obj = jsyaml.load(yaml); // assumes js-yaml is loaded
         this.name = obj.name || this.name;
-        this.description = obj.description || '';
-        this.triggers = (obj.triggers || []).map(t => ({
-          type: t.type || 'event',
+        this.description = obj.description || "";
+        this.triggers = (obj.triggers || []).map((t) => ({
+          type: t.type || "event",
           enabled: t.enabled !== false,
-          event: t.event || '',
-          cron: t.cron || '',
-          webhook: t.webhook || { path: '', method: 'POST', auth: { token: '', hmac_secret: '' } }
+          event: t.event || "",
+          cron: t.cron || "",
+          webhook: t.webhook || {
+            path: "",
+            method: "POST",
+            auth: { token: "", hmac_secret: "" },
+          },
         }));
-        this.steps = (obj.steps || []).map(s => ({
-          name: s.name || '',
-          capability: s.capability || '',
-          operation: s.operation || '',
-          paramsText: JSON.stringify(s.params || {}, null, 2)
+        this.steps = (obj.steps || []).map((s) => ({
+          name: s.name || "",
+          capability: s.capability || "",
+          operation: s.operation || "",
+          paramsText: JSON.stringify(s.params || {}, null, 2),
         }));
         this.validate();
       } catch (e) {
-        console.error('YAML parse error:', e);
+        console.error("YAML parse error:", e);
       }
     },
 
@@ -2105,29 +2129,39 @@ document.addEventListener('alpine:init', () => {
         description: this.description,
         enabled: true,
         resumable: false,
-        triggers: this.triggers.map(t => {
+        triggers: this.triggers.map((t) => {
           const entry = { type: t.type, enabled: t.enabled };
-          if (t.type === 'event') entry.event = t.event;
-          if (t.type === 'cron') entry.cron = t.cron;
-          if (t.type === 'webhook') entry.webhook = t.webhook;
+          if (t.type === "event") entry.event = t.event;
+          if (t.type === "cron") entry.cron = t.cron;
+          if (t.type === "webhook") entry.webhook = t.webhook;
           return entry;
         }),
-        steps: this.steps.map(s => ({
+        steps: this.steps.map((s) => ({
           name: s.name,
           capability: s.capability,
           operation: s.operation,
-          params: (() => { try { return JSON.parse(s.paramsText || '{}'); } catch(e) { return {}; } })()
-        }))
+          params: (() => {
+            try {
+              return JSON.parse(s.paramsText || "{}");
+            } catch (e) {
+              return {};
+            }
+          })(),
+        })),
       };
       return jsyaml.dump(obj);
     },
 
     // --- Undo/redo ---
     pushUndo() {
-      this.undoStack.push(JSON.parse(JSON.stringify({
-        triggers: this.triggers,
-        steps: this.steps
-      })));
+      this.undoStack.push(
+        JSON.parse(
+          JSON.stringify({
+            triggers: this.triggers,
+            steps: this.steps,
+          }),
+        ),
+      );
       if (this.undoStack.length > 50) this.undoStack.shift();
       this.redoStack = [];
     },
@@ -2156,7 +2190,17 @@ document.addEventListener('alpine:init', () => {
     // --- Triggers ---
     addTrigger() {
       this.pushUndo();
-      this.triggers.push({ type: 'event', enabled: true, event: '', cron: '', webhook: { path: '', method: 'POST', auth: { token: '', hmac_secret: '' } } });
+      this.triggers.push({
+        type: "event",
+        enabled: true,
+        event: "",
+        cron: "",
+        webhook: {
+          path: "",
+          method: "POST",
+          auth: { token: "", hmac_secret: "" },
+        },
+      });
       this.markDirty();
     },
 
@@ -2170,10 +2214,15 @@ document.addEventListener('alpine:init', () => {
     // --- Steps ---
     addStep(afterIdx) {
       this.pushUndo();
-      const newStep = { name: '', capability: '', operation: '', paramsText: '{}' };
+      const newStep = {
+        name: "",
+        capability: "",
+        operation: "",
+        paramsText: "{}",
+      };
       this.steps.splice(afterIdx, 0, newStep);
       this.markDirty();
-      this.selectNode('step', afterIdx);
+      this.selectNode("step", afterIdx);
     },
 
     removeStep(idx) {
@@ -2191,7 +2240,9 @@ document.addEventListener('alpine:init', () => {
       if (idx === 0) return;
       const step = this.steps[idx];
       if (this.dependsOnStep(step, idx - 1)) {
-        alert('Cannot move: this step depends on data from a step above the target position.');
+        alert(
+          "Cannot move: this step depends on data from a step above the target position.",
+        );
         return;
       }
       this.pushUndo();
@@ -2205,7 +2256,7 @@ document.addEventListener('alpine:init', () => {
       if (idx >= this.steps.length - 1) return;
       const stepBelow = this.steps[idx + 1];
       if (this.dependsOnStep(stepBelow, idx, this.steps[idx])) {
-        alert('Cannot move: the step below depends on this step\'s data.');
+        alert("Cannot move: the step below depends on this step's data.");
         return;
       }
       this.pushUndo();
@@ -2218,16 +2269,16 @@ document.addEventListener('alpine:init', () => {
     duplicateStep(idx) {
       this.pushUndo();
       const copy = JSON.parse(JSON.stringify(this.steps[idx]));
-      copy.name = copy.name + '-copy';
+      copy.name = copy.name + "-copy";
       this.steps.splice(idx + 1, 0, copy);
       this.markDirty();
     },
 
     dependsOnStep(step, targetIdx, movedStep) {
       const re = /\{\{steps\.(\w+)\./g;
-      const refs = [...(step.paramsText || '').matchAll(re)].map(m => m[1]);
+      const refs = [...(step.paramsText || "").matchAll(re)].map((m) => m[1]);
       for (const ref of refs) {
-        const refIdx = this.steps.findIndex(s => s.name === ref);
+        const refIdx = this.steps.findIndex((s) => s.name === ref);
         if (refIdx >= targetIdx) return true;
       }
       return false;
@@ -2236,17 +2287,17 @@ document.addEventListener('alpine:init', () => {
     // --- Drawer ---
     selectNode(type, idx) {
       if (this.drawerDirty && this.selectedNode) {
-        if (!confirm('You have unsaved changes. Discard them?')) return;
+        if (!confirm("You have unsaved changes. Discard them?")) return;
       }
       this.selectedNode = { type, index: idx };
       this.drawerOpen = true;
       this.drawerDirty = false;
-      this.drawerTab = 'setup';
+      this.drawerTab = "setup";
     },
 
     closeDrawer() {
       if (this.drawerDirty) {
-        if (!confirm('You have unsaved changes. Discard them?')) return;
+        if (!confirm("You have unsaved changes. Discard them?")) return;
       }
       this.drawerOpen = false;
       this.selectedNode = null;
@@ -2273,14 +2324,18 @@ document.addEventListener('alpine:init', () => {
       if (textarea) {
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const text = step.paramsText || '';
-        step.paramsText = text.substring(0, start) + template + text.substring(end);
+        const text = step.paramsText || "";
+        step.paramsText =
+          text.substring(0, start) + template + text.substring(end);
         setTimeout(() => {
           textarea.focus();
-          textarea.setSelectionRange(start + template.length, start + template.length);
+          textarea.setSelectionRange(
+            start + template.length,
+            start + template.length,
+          );
         }, 50);
       } else {
-        step.paramsText = (step.paramsText || '') + template;
+        step.paramsText = (step.paramsText || "") + template;
       }
 
       this.variablePickerOpen = false;
@@ -2292,31 +2347,54 @@ document.addEventListener('alpine:init', () => {
       this.errors = [];
 
       // At least one enabled trigger
-      const enabledTriggers = this.triggers.filter(t => t.enabled);
+      const enabledTriggers = this.triggers.filter((t) => t.enabled);
       if (enabledTriggers.length === 0) {
-        this.errors.push({ node: { type: 'trigger', index: -1 }, message: 'At least one trigger must be enabled' });
+        this.errors.push({
+          node: { type: "trigger", index: -1 },
+          message: "At least one trigger must be enabled",
+        });
       }
 
       // At least one step
       if (this.steps.length === 0) {
-        this.errors.push({ node: { type: 'step', index: -1 }, message: 'At least one step is required' });
+        this.errors.push({
+          node: { type: "step", index: -1 },
+          message: "At least one step is required",
+        });
       }
 
       // Validate each trigger
       for (let i = 0; i < this.triggers.length; i++) {
         const t = this.triggers[i];
         if (!t.enabled) continue;
-        if (t.type === 'event' && !t.event) {
-          this.errors.push({ node: { type: 'trigger', index: i }, message: 'Event type is required' });
+        if (t.type === "event" && !t.event) {
+          this.errors.push({
+            node: { type: "trigger", index: i },
+            message: "Event type is required",
+          });
         }
-        if (t.type === 'webhook' && (!t.webhook || !t.webhook.path)) {
-          this.errors.push({ node: { type: 'trigger', index: i }, message: 'Webhook path is required' });
+        if (t.type === "webhook" && (!t.webhook || !t.webhook.path)) {
+          this.errors.push({
+            node: { type: "trigger", index: i },
+            message: "Webhook path is required",
+          });
         }
-        if (t.type === 'webhook' && t.webhook && !t.webhook.auth.token && !t.webhook.auth.hmac_secret) {
-          this.errors.push({ node: { type: 'trigger', index: i }, message: 'At least one auth method is required' });
+        if (
+          t.type === "webhook" &&
+          t.webhook &&
+          !t.webhook.auth.token &&
+          !t.webhook.auth.hmac_secret
+        ) {
+          this.errors.push({
+            node: { type: "trigger", index: i },
+            message: "At least one auth method is required",
+          });
         }
-        if (t.type === 'cron' && !t.cron) {
-          this.errors.push({ node: { type: 'trigger', index: i }, message: 'Cron expression is required' });
+        if (t.type === "cron" && !t.cron) {
+          this.errors.push({
+            node: { type: "trigger", index: i },
+            message: "Cron expression is required",
+          });
         }
       }
 
@@ -2324,24 +2402,39 @@ document.addEventListener('alpine:init', () => {
       for (let i = 0; i < this.steps.length; i++) {
         const s = this.steps[i];
         if (!s.name) {
-          this.errors.push({ node: { type: 'step', index: i }, message: 'Step name is required' });
+          this.errors.push({
+            node: { type: "step", index: i },
+            message: "Step name is required",
+          });
         }
         if (!s.capability) {
-          this.errors.push({ node: { type: 'step', index: i }, message: 'Capability is required' });
+          this.errors.push({
+            node: { type: "step", index: i },
+            message: "Capability is required",
+          });
         }
         if (!s.operation) {
-          this.errors.push({ node: { type: 'step', index: i }, message: 'Operation is required' });
+          this.errors.push({
+            node: { type: "step", index: i },
+            message: "Operation is required",
+          });
         }
 
         // Check upstream variable references
         const re = /\{\{steps\.(\w+)\./g;
-        const refs = [...(s.paramsText || '').matchAll(re)].map(m => m[1]);
+        const refs = [...(s.paramsText || "").matchAll(re)].map((m) => m[1]);
         for (const ref of refs) {
-          const refIdx = this.steps.findIndex(ss => ss.name === ref);
+          const refIdx = this.steps.findIndex((ss) => ss.name === ref);
           if (refIdx === -1) {
-            this.errors.push({ node: { type: 'step', index: i }, message: `Upstream variable {{steps.${ref}.*}} is invalid or has been removed` });
+            this.errors.push({
+              node: { type: "step", index: i },
+              message: `Upstream variable {{steps.${ref}.*}} is invalid or has been removed`,
+            });
           } else if (refIdx >= i) {
-            this.errors.push({ node: { type: 'step', index: i }, message: `Depends on [${ref}] which must be above this step` });
+            this.errors.push({
+              node: { type: "step", index: i },
+              message: `Depends on [${ref}] which must be above this step`,
+            });
           }
         }
       }
@@ -2350,11 +2443,19 @@ document.addEventListener('alpine:init', () => {
     },
 
     getTriggerErrorClass(idx) {
-      return this.errors.some(e => e.node.type === 'trigger' && e.node.index === idx) ? 'border-red-400' : '';
+      return this.errors.some(
+        (e) => e.node.type === "trigger" && e.node.index === idx,
+      )
+        ? "border-red-400"
+        : "";
     },
 
     getStepErrorClass(idx) {
-      return this.errors.some(e => e.node.type === 'step' && e.node.index === idx) ? 'border-red-400' : '';
+      return this.errors.some(
+        (e) => e.node.type === "step" && e.node.index === idx,
+      )
+        ? "border-red-400"
+        : "";
     },
 
     // --- Code view ---
@@ -2365,7 +2466,10 @@ document.addEventListener('alpine:init', () => {
           this.codeView = false;
           this.validate();
         } catch (e) {
-          alert('YAML syntax error. Fix errors before switching back to visual mode.\n' + e.message);
+          alert(
+            "YAML syntax error. Fix errors before switching back to visual mode.\n" +
+              e.message,
+          );
         }
       } else {
         this.yamlText = this.stateToYaml();
@@ -2390,12 +2494,12 @@ document.addEventListener('alpine:init', () => {
       const yaml = this.stateToYaml();
       try {
         const resp = await fetch(`/service/web/pipelines/${this.name}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ yaml, version: this.version })
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ yaml, version: this.version }),
         });
         if (resp.status === 409) {
-          alert('This draft was modified elsewhere. Please refresh the page.');
+          alert("This draft was modified elsewhere. Please refresh the page.");
           return;
         }
         const data = await resp.json();
@@ -2403,7 +2507,7 @@ document.addEventListener('alpine:init', () => {
         this.status = data.status;
         this.dirty = false;
       } catch (e) {
-        console.error('Auto-save failed:', e);
+        console.error("Auto-save failed:", e);
       }
     },
 
@@ -2411,32 +2515,37 @@ document.addEventListener('alpine:init', () => {
       if (this.publishDisabled) return;
       await this.saveDraft();
       try {
-        const resp = await fetch(`/service/web/pipelines/${this.name}/publish`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ version: this.version })
-        });
+        const resp = await fetch(
+          `/service/web/pipelines/${this.name}/publish`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ version: this.version }),
+          },
+        );
         if (resp.status === 409) {
-          alert('This draft was modified elsewhere. Please refresh the page.');
+          alert("This draft was modified elsewhere. Please refresh the page.");
           return;
         }
         const data = await resp.json();
         this.version = data.version;
-        this.status = 'published';
+        this.status = "published";
       } catch (e) {
-        console.error('Publish failed:', e);
-        alert('Publish failed: ' + e.message);
+        console.error("Publish failed:", e);
+        alert("Publish failed: " + e.message);
       }
     },
 
     // --- Test ---
     async loadMockPayload() {
       try {
-        const resp = await fetch(`/service/web/pipelines/${this.name}/mock?source=${this.testTriggerSource}`);
+        const resp = await fetch(
+          `/service/web/pipelines/${this.name}/mock?source=${this.testTriggerSource}`,
+        );
         const data = await resp.json();
         this.testMockPayload = JSON.stringify(data.payload, null, 2);
       } catch (e) {
-        console.error('Failed to load mock payload:', e);
+        console.error("Failed to load mock payload:", e);
       }
     },
 
@@ -2448,20 +2557,20 @@ document.addEventListener('alpine:init', () => {
       if (upToIdx === null || upToIdx === undefined) return;
       try {
         const resp = await fetch(`/service/web/pipelines/${this.name}/test`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             trigger_source: this.testTriggerSource,
-            mock_payload: JSON.parse(this.testMockPayload || '{}'),
-            up_to_step_index: upToIdx
-          })
+            mock_payload: JSON.parse(this.testMockPayload || "{}"),
+            up_to_step_index: upToIdx,
+          }),
         });
         this.testResults = await resp.json();
       } catch (e) {
-        console.error('Test failed:', e);
+        console.error("Test failed:", e);
         this.testResults = { success: false, error: e.message };
       }
-    }
+    },
   }));
 });
 ```
@@ -2478,6 +2587,7 @@ git commit -m "feat: add Alpine.js pipeline canvas component"
 ### Task 12: Variable Pill Styling CSS
 
 **Files:**
+
 - Modify: `public/css/input.css`
 
 - [ ] **Step 1: Add variable pill CSS**
@@ -2516,6 +2626,7 @@ git commit -m "feat: add variable pill display CSS"
 ### Task 13: Wire Navigation and Module Registration
 
 **Files:**
+
 - Modify: `pkg/views/layout/base.templ`
 - Modify: `internal/modules/web/webservice.go`
 - Modify: `internal/modules/web/module.go`
@@ -2525,16 +2636,35 @@ git commit -m "feat: add variable pill display CSS"
 In `pkg/views/layout/base.templ`, update the nav section:
 
 Replace:
+
 ```html
 <div class="flex gap-4 text-sm text-gray-600 items-center">
-    <a href="/service/web/configs" data-testid="nav-configs" class="hover:text-gray-900">Configs</a>
+  <a
+    href="/service/web/configs"
+    data-testid="nav-configs"
+    class="hover:text-gray-900"
+    >Configs</a
+  >
+</div>
 ```
 
 With:
+
 ```html
 <div class="flex gap-4 text-sm text-gray-600 items-center">
-    <a href="/service/web/pipelines" data-testid="nav-pipelines" class="hover:text-gray-900">Pipelines</a>
-    <a href="/service/web/configs" data-testid="nav-configs" class="hover:text-gray-900">Configs</a>
+  <a
+    href="/service/web/pipelines"
+    data-testid="nav-pipelines"
+    class="hover:text-gray-900"
+    >Pipelines</a
+  >
+  <a
+    href="/service/web/configs"
+    data-testid="nav-configs"
+    class="hover:text-gray-900"
+    >Configs</a
+  >
+</div>
 ```
 
 - [ ] **Step 2: Add pipeline webservice rules**
@@ -2609,6 +2739,7 @@ git commit -m "feat: wire pipelines nav, webservice rules, and module registrati
 ### Task 14: Integration — Fix Build, Tests, and Missing Pieces
 
 **Files:**
+
 - Various
 
 - [ ] **Step 1: Run full build to find compilation errors**
@@ -2620,6 +2751,7 @@ go build ./...
 - [ ] **Step 2: Fix import errors in pipeline_webservice.go**
 
 Ensure all imports are correct:
+
 ```go
 import (
     "context"
@@ -2641,6 +2773,7 @@ import (
 - [ ] **Step 3: Fix import of gen in pipeline_templates**
 
 Make sure `pipeline_templates` imports the generated ent package correctly:
+
 ```go
 import (
     "fmt"
@@ -2652,6 +2785,7 @@ import (
 - [ ] **Step 4: Add js-yaml CDN to base layout**
 
 In `base.templ`, add js-yaml for client-side YAML parsing:
+
 ```html
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
 ```
@@ -2674,10 +2808,13 @@ go test ./internal/modules/web/... -v
 - [ ] **Step 7: Fix remaining spec test**
 
 Fix `tests/specs/pipeline_spec_test.go` line 220, replace:
+
 ```go
 err := pipelineStore.UpsertDefinition(ctx, name, desc, enabled, trigger, steps)
 ```
+
 With:
+
 ```go
 err := pipelineStore.CreateDefinition(ctx, name, desc)
 // Then update draft if needed
@@ -2702,6 +2839,7 @@ git commit -m "fix: resolve build errors, imports, and test compatibility for pi
 ### Task 15: E2E Tests
 
 **Files:**
+
 - Create: `tests/e2e/pipeline_crud_test.go`
 
 - [ ] **Step 1: Create E2E test skeleton**
@@ -2771,6 +2909,7 @@ git commit -m "test: add pipeline CRUD e2e test skeleton"
 ### Task 16: BDD Spec Tests
 
 **Files:**
+
 - Create: `tests/specs/pipeline_editor_spec_test.go`
 
 - [ ] **Step 1: Create BDD test skeleton**

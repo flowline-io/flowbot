@@ -4,16 +4,16 @@
 
 /* Variable pill display in step card param previews */
 .var-pill {
-  display: inline-block;
-  background: #dbeafe;
-  color: #1e40af;
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-family: monospace;
-  font-size: 0.75rem;
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: middle;
+	display: inline-block;
+	background: #dbeafe;
+	color: #1e40af;
+	border-radius: 4px;
+	padding: 1px 6px;
+	font-family: monospace;
+	font-size: 0.75rem;
+	max-width: 150px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: middle;
 }

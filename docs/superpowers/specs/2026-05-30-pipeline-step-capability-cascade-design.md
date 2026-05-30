@@ -12,12 +12,12 @@ based on the selected capability.
 
 ## Decisions
 
-| Decision | Choice |
-|---|---|
-| Capability data source | `GET /service/web/pipelines/capabilities`, calls `hub.Default.List()` server-side |
-| Frontend pattern | Alpine.js: `fetch()` on init, `getOperationsFor()` method for computed options |
-| Operation on capability change | Reset to first available operation |
-| Auth | Inherits pipeline page auth (web-login token with `admin:*`); no scope check added |
+| Decision                       | Choice                                                                             |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| Capability data source         | `GET /service/web/pipelines/capabilities`, calls `hub.Default.List()` server-side  |
+| Frontend pattern               | Alpine.js: `fetch()` on init, `getOperationsFor()` method for computed options     |
+| Operation on capability change | Reset to first available operation                                                 |
+| Auth                           | Inherits pipeline page auth (web-login token with `admin:*`); no scope check added |
 
 ## Backend: getCapabilities endpoint
 
@@ -75,22 +75,33 @@ Call `await this.fetchCapabilities();` in `init()` after loading pipeline data.
 ### `pipeline_editor.templ` replacements
 
 ```html
-<select x-model="steps[selectedNode.index].capability"
-    @change="steps[selectedNode.index].operation = getOperationsFor(steps[selectedNode.index].capability)[0]?.name || ''; drawerDirty = true"
-    class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-    data-testid="step-capability-select">
+<select
+  x-model="steps[selectedNode.index].capability"
+  @change="steps[selectedNode.index].operation = getOperationsFor(steps[selectedNode.index].capability)[0]?.name || ''; drawerDirty = true"
+  class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
+  data-testid="step-capability-select"
+>
   <option value="" disabled>Select capability...</option>
   <template x-for="cap in capabilities" :key="cap.type">
-    <option :value="cap.type" x-text="cap.type" :title="cap.description"></option>
+    <option
+      :value="cap.type"
+      x-text="cap.type"
+      :title="cap.description"
+    ></option>
   </template>
 </select>
 
-<select x-model="steps[selectedNode.index].operation"
-    @change="drawerDirty = true"
-    class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-    data-testid="step-operation-select">
+<select
+  x-model="steps[selectedNode.index].operation"
+  @change="drawerDirty = true"
+  class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
+  data-testid="step-operation-select"
+>
   <option value="" disabled>Select operation...</option>
-  <template x-for="op in getOperationsFor(steps[selectedNode.index].capability)" :key="op.name">
+  <template
+    x-for="op in getOperationsFor(steps[selectedNode.index].capability)"
+    :key="op.name"
+  >
     <option :value="op.name" x-text="op.name" :title="op.description"></option>
   </template>
 </select>
@@ -98,13 +109,13 @@ Call `await this.fetchCapabilities();` in `init()` after loading pipeline data.
 
 ## Behavior Matrix
 
-| Scenario | Capability dropdown | Operation dropdown |
-|---|---|---|
-| New step, drawer opens | "Select capability..." placeholder | "Select operation..." placeholder |
-| Select "bookmark" | "bookmark" selected | Auto-selects first bookmark operation |
-| Change to "note" | "note" selected | Resets to first note operation |
-| Load existing pipeline | Pre-selected from YAML | Pre-selected from YAML |
-| Capability with zero ops | Selected | Placeholder, no options |
+| Scenario                 | Capability dropdown                | Operation dropdown                    |
+| ------------------------ | ---------------------------------- | ------------------------------------- |
+| New step, drawer opens   | "Select capability..." placeholder | "Select operation..." placeholder     |
+| Select "bookmark"        | "bookmark" selected                | Auto-selects first bookmark operation |
+| Change to "note"         | "note" selected                    | Resets to first note operation        |
+| Load existing pipeline   | Pre-selected from YAML             | Pre-selected from YAML                |
+| Capability with zero ops | Selected                           | Placeholder, no options               |
 
 ## Not Changed
 

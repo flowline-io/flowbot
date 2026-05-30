@@ -13,6 +13,7 @@
 ### Task 1: Add AuthConfig to Module Config & Handler
 
 **Files:**
+
 - Modify: `internal/modules/web/module.go:27-50`
 
 - [ ] **Step 1: Add AuthConfig struct and update configType**
@@ -42,6 +43,7 @@ type moduleHandler struct {
 - [ ] **Step 3: Store parsed auth config in Init()**
 
 Add after `handler.initialized = true`:
+
 ```go
 handler.authConfig = config.Auth
 ```
@@ -49,6 +51,7 @@ handler.authConfig = config.Auth
 - [ ] **Step 4: Add a getter for authConfig from handler**
 
 At the bottom of `module.go`, add:
+
 ```go
 func authConfig() AuthConfig {
 	return handler.authConfig
@@ -67,6 +70,7 @@ git commit -m "feat(web): add AuthConfig to module handler"
 ### Task 2: Create Login Templ Template
 
 **Files:**
+
 - Create: `pkg/views/pages/login.templ`
 
 - [ ] **Step 1: Write the login template**
@@ -124,11 +128,13 @@ git commit -m "feat(web): add login page Templ template"
 ### Task 3: Add Login/Logout Handlers + Update Auth in webservice.go
 
 **Files:**
+
 - Modify: `internal/modules/web/webservice.go`
 
 - [ ] **Step 1: Add new imports**
 
 Add to existing imports:
+
 ```go
 import (
 	// ... existing imports
@@ -142,6 +148,7 @@ import (
 - [ ] **Step 2: Add login/logout routes to webserviceRules with WithNotAuth option**
 
 Replace the existing `webserviceRules` declaration:
+
 ```go
 var webserviceRules = []webservice.Rule{
 	webservice.Get("/login", loginPage, route.WithNotAuth()),
@@ -161,6 +168,7 @@ var webserviceRules = []webservice.Rule{
 - [ ] **Step 3: Replace requireAuth with authenticateWeb and isAuthenticated helpers**
 
 Replace the existing `requireAuth` function with these three functions:
+
 ```go
 // isAuthenticated reads the accessToken cookie, validates it against the database,
 // and sets RequestContext in Locals on success. Returns true if the user is authenticated.
@@ -226,6 +234,7 @@ func redirectToLogin(ctx fiber.Ctx) error {
 - [ ] **Step 4: Update all existing handlers to call authenticateWeb instead of requireAuth**
 
 Replace all `if err := requireAuth(ctx); err != nil { return err }` with:
+
 ```go
 if err := authenticateWeb(ctx); err != nil {
 	return err
@@ -324,6 +333,7 @@ Verify `strings` is in imports (used by `strings.HasPrefix`, `strings.Contains`)
 ```bash
 go tool task lint
 ```
+
 Expected: no errors from web module files.
 
 - [ ] **Step 10: Commit**
@@ -338,12 +348,14 @@ git commit -m "feat(web): add login/logout handlers, refactor auth for web route
 ### Task 4: Update testStore and Add Tests
 
 **Files:**
+
 - Modify: `internal/modules/web/test_helper_test.go`
 - Modify: `internal/modules/web/module_test.go`
 
 - [ ] **Step 1: Add ParameterSet and ParameterDelete to testStore**
 
 Add fields to `testStore`:
+
 ```go
 type testStore struct {
 	store.Adapter
@@ -359,6 +371,7 @@ type testStore struct {
 ```
 
 Update `ParameterGet` to use `paramGetFn` if set:
+
 ```go
 func (s *testStore) ParameterGet(ctx context.Context, flag string) (gen.Parameter, error) {
 	if s.paramGetFn != nil {
@@ -374,6 +387,7 @@ func (s *testStore) ParameterGet(ctx context.Context, flag string) (gen.Paramete
 ```
 
 Add new methods:
+
 ```go
 func (s *testStore) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
 	if s.paramSetFn != nil {
@@ -412,6 +426,7 @@ func setupTestApp() (*fiber.App, *testStore) {
 - [ ] **Step 3: Update existing configs tests to use cookie auth**
 
 Replace all `?accessToken=test` query params with cookie. Example for `TestConfigsPage`:
+
 ```go
 req := httptest.NewRequest(http.MethodGet, "/service/web/configs", nil)
 req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
@@ -776,6 +791,7 @@ Add `time` and `net/url` to imports. Add `"github.com/flowline-io/flowbot/intern
 ```bash
 go test ./internal/modules/web/ -v -count=1
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 10: Run lint**
@@ -783,6 +799,7 @@ Expected: all tests PASS
 ```bash
 go tool task lint
 ```
+
 Expected: no errors
 
 - [ ] **Step 11: Commit**
@@ -797,17 +814,19 @@ git commit -m "test(web): add login, logout, and auth redirect tests"
 ### Task 5: Update flowbot.yaml Configuration
 
 **Files:**
+
 - Modify: `flowbot.yaml`
 
 - [ ] **Step 1: Add auth section under web config**
 
 In `flowbot.yaml`, find the `web:` section and update it:
+
 ```yaml
-  - name: web
-    enabled: true
-    auth:
-      username: "admin"
-      password: "admin"
+- name: web
+  enabled: true
+  auth:
+    username: "admin"
+    password: "admin"
 ```
 
 If the web section uses the short format `web.enabled: true`, convert it to the expanded `bots:` list format matching how other modules are configured. Check the existing bots section first.
@@ -834,6 +853,7 @@ git commit -m "config: add web auth credentials"
 ```bash
 go test ./internal/modules/web/ -v -count=1
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 2: Run full project lint**
@@ -841,6 +861,7 @@ Expected: all tests PASS
 ```bash
 go tool task lint
 ```
+
 Expected: no errors
 
 - [ ] **Step 3: Run all project tests**
@@ -848,6 +869,7 @@ Expected: no errors
 ```bash
 go tool task test
 ```
+
 Expected: all tests PASS
 
 - [ ] **Step 4: Verify Templ generation is up to date**
@@ -855,4 +877,5 @@ Expected: all tests PASS
 ```bash
 go tool task templ
 ```
+
 Expected: no changes (already regenerated in Task 2)

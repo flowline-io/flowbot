@@ -486,7 +486,6 @@ func NewPipelineStore(client *gen.Client) *PipelineStore {
 	return &PipelineStore{client: client}
 }
 
-
 func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*gen.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil

@@ -9,13 +9,13 @@ Introduce a server-rendered web UI layer using Go Fiber + Templ + HTMX + Alpine.
 
 ## Tech Stack
 
-| Layer | Tech | Role |
-|-------|------|------|
-| HTTP Server | Fiber v3 | Routes, middleware, auth |
-| Templates | Templ | Type-safe server-side HTML rendering |
-| Interactivity | HTMX | Partial page updates, form submissions |
-| UI Styling | Tailwind CSS v4 | Utility-first CSS |
-| Lightweight JS | Alpine.js | Toggle/dropdown/transitions (Alpine-only) |
+| Layer          | Tech            | Role                                      |
+| -------------- | --------------- | ----------------------------------------- |
+| HTTP Server    | Fiber v3        | Routes, middleware, auth                  |
+| Templates      | Templ           | Type-safe server-side HTML rendering      |
+| Interactivity  | HTMX            | Partial page updates, form submissions    |
+| UI Styling     | Tailwind CSS v4 | Utility-first CSS                         |
+| Lightweight JS | Alpine.js       | Toggle/dropdown/transitions (Alpine-only) |
 
 ## Directory Structure
 
@@ -69,21 +69,21 @@ All routes require authentication (no `WithNotAuth()`).
 
 ### Page-level routes
 
-| Method | Path | Handler | Returns |
-|--------|------|---------|---------|
-| `GET` | `/service/web/configs` | `configsPage` | `layout.Base(pages.ConfigsPage(initialItems))` — server-side pre-render, no empty flash |
+| Method | Path                   | Handler       | Returns                                                                                 |
+| ------ | ---------------------- | ------------- | --------------------------------------------------------------------------------------- |
+| `GET`  | `/service/web/configs` | `configsPage` | `layout.Base(pages.ConfigsPage(initialItems))` — server-side pre-render, no empty flash |
 
 ### HTMX partial routes
 
-| Method | Path | Handler | Returns |
-|--------|------|---------|---------|
-| `GET` | `/service/web/configs/list` | `listConfigs` | `partials.ConfigTable(result)` |
-| `GET` | `/service/web/configs/{id}` | `getConfig` | `partials.ConfigRow(item)` |
-| `GET` | `/service/web/configs/new` | `newConfigForm` | `partials.ConfigForm(empty)` |
-| `POST` | `/service/web/configs` | `createConfig` | `partials.ConfigRow` (success) or `partials.ConfigForm` (422) |
-| `GET` | `/service/web/configs/{id}/edit` | `editConfigForm` | `partials.ConfigForm(item)` |
-| `PUT` | `/service/web/configs/{id}` | `updateConfig` | `partials.ConfigRow` (success) or `partials.ConfigForm` (422) |
-| `DELETE` | `/service/web/configs/{id}` | `deleteConfig` | Empty 200 (HTMX removes DOM) |
+| Method   | Path                             | Handler          | Returns                                                       |
+| -------- | -------------------------------- | ---------------- | ------------------------------------------------------------- |
+| `GET`    | `/service/web/configs/list`      | `listConfigs`    | `partials.ConfigTable(result)`                                |
+| `GET`    | `/service/web/configs/{id}`      | `getConfig`      | `partials.ConfigRow(item)`                                    |
+| `GET`    | `/service/web/configs/new`       | `newConfigForm`  | `partials.ConfigForm(empty)`                                  |
+| `POST`   | `/service/web/configs`           | `createConfig`   | `partials.ConfigRow` (success) or `partials.ConfigForm` (422) |
+| `GET`    | `/service/web/configs/{id}/edit` | `editConfigForm` | `partials.ConfigForm(item)`                                   |
+| `PUT`    | `/service/web/configs/{id}`      | `updateConfig`   | `partials.ConfigRow` (success) or `partials.ConfigForm` (422) |
+| `DELETE` | `/service/web/configs/{id}`      | `deleteConfig`   | Empty 200 (HTMX removes DOM)                                  |
 
 ## Data Model
 
@@ -124,51 +124,62 @@ The existing `ConfigSet`, `ConfigGet`, `ConfigDelete` methods are used for indiv
 ## View Components
 
 ### `layout/base.templ`
+
 HTML skeleton with `<head>`, Tailwind CDN (dev), Alpine.js CDN, HTMX CDN, global nav bar. Uses `@templ.Children()` slot for page content.
 
 ### `pages/configs.templ`
+
 Full page embedding `layout.Base`. Receives `[]ConfigItem` pre-fetched by the handler. Contains the "New Config" button and renders the config table directly from initial data — no `hx-get` on load. The table remains a valid HTMX target for subsequent partial refreshes (search, pagination, manual reload).
 
 ### `partials/config_table.templ`
+
 Renders a `<table>` with headers (ID, UID, Topic, Key, Value preview, Actions). Body is `id="configs-rows"` containing all rows.
 
 ### `partials/config_row.templ`
+
 Single `<tr>` with `hx-target="this"`. Displays one `ConfigItem`. "Edit" triggers `hx-get` to swap row with inline form. "Delete" triggers `hx-delete` with confirm dialog.
 
 ### `partials/config_form.templ`
+
 Inline form with `uid`, `topic`, `key` inputs and `value` textarea (JSON). Used for both create (`hx-post`) and edit (`hx-put`). On validation errors (422), re-renders same form with error messages.
 
 ## HTMX Interaction Flows
 
 ### Initial page load
+
 Handler fetches data from store, passes `[]ConfigItem` directly to `pages.ConfigsPage()`. No client-side `hx-get` on load — zero round-trips for first paint.
 
 ### Inline create
+
 Click "New Config" → `partials.ConfigForm` inserted at top of table. Submit POST → if 200, returns `partials.ConfigRow` swapped in place of the form. No subsequent full table refresh — single network call, instant result.
 
 ### Inline edit
+
 Click "Edit" → row replaced with `partials.ConfigForm` (pre-filled). Submit PUT → if 200, swaps form back to `partials.ConfigRow`. If 422, form remains with errors.
 
 ### Delete
+
 Click "Delete" → `hx-confirm` dialog, `hx-delete`, server returns 200 empty → `hx-target` row removed from DOM.
 
 ### Manual refresh
+
 A "Refresh" button on the page emits `hx-get="/service/web/configs/list"` targeting the table container. Used for explicit reload, search, or pagination.
 
 ## Error Handling
 
-| Scenario | HTTP Status | Response |
-|----------|-------------|----------|
-| Validation failure | 422 | Re-render `partials.ConfigForm` with error messages |
-| Not found (edit/delete) | 404 | `<div class="text-red-500">` with message |
-| Store error | 500 | Generic error partial, logged server-side |
-| Auth failure | 401 | Handled by `Authorize` middleware |
+| Scenario                | HTTP Status | Response                                            |
+| ----------------------- | ----------- | --------------------------------------------------- |
+| Validation failure      | 422         | Re-render `partials.ConfigForm` with error messages |
+| Not found (edit/delete) | 404         | `<div class="text-red-500">` with message           |
+| Store error             | 500         | Generic error partial, logged server-side           |
+| Auth failure            | 401         | Handled by `Authorize` middleware                   |
 
 All errors use `types.Errorf(types.ErrXxx, ...)`. No `panic`.
 
 ## Build Tooling
 
 ### `package.json`
+
 ```json
 {
   "devDependencies": {
@@ -181,14 +192,16 @@ All errors use `types.Errorf(types.ErrXxx, ...)`. No `panic`.
 ```
 
 ### `taskfile.yaml` additions
+
 ```yaml
-templ:   go tool templ generate
-css:     npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css
+templ: go tool templ generate
+css: npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css
 css:min: npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css --minify
-web:     go tool task templ && go tool task css
+web: go tool task templ && go tool task css
 ```
 
 ### `go.mod` additions
+
 ```
 tool github.com/a-h/templ/cmd/templ
 ```

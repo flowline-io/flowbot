@@ -55,12 +55,12 @@ type moduleHandler struct {
 
 ### Route table
 
-| Method | Path | Handler | Auth | Notes |
-|--------|------|---------|------|-------|
-| `GET` | `/service/web/login` | `loginPage` | *none* | Renders login form |
-| `POST` | `/service/web/login` | `loginSubmit` | *none* | Validates credentials, sets cookie |
-| `POST` | `/service/web/logout` | `logout` | *none* | Deletes token, clears cookie |
-| `GET/POST/PUT/DELETE` | `/service/web/configs/*` | existing handlers | *modified* | Redirect to login if unauthenticated |
+| Method                | Path                     | Handler           | Auth       | Notes                                |
+| --------------------- | ------------------------ | ----------------- | ---------- | ------------------------------------ |
+| `GET`                 | `/service/web/login`     | `loginPage`       | _none_     | Renders login form                   |
+| `POST`                | `/service/web/login`     | `loginSubmit`     | _none_     | Validates credentials, sets cookie   |
+| `POST`                | `/service/web/logout`    | `logout`          | _none_     | Deletes token, clears cookie         |
+| `GET/POST/PUT/DELETE` | `/service/web/configs/*` | existing handlers | _modified_ | Redirect to login if unauthenticated |
 
 ### `requireAuth()` modification
 
@@ -92,6 +92,7 @@ The form submits via HTMX (`hx-post`). Two response paths:
 **Success:** Server sets `HX-Redirect` response header to the target URL. HTMX picks this up and performs a client-side `window.location` redirect (handy because the `Set-Cookie` header on the same response ensures the cookie is written before navigation).
 
 Success steps:
+
 1. Parse form values (`username`, `password`, `next`)
 2. Compare against `authConfig.Username` / `authConfig.Password`
 3. On mismatch: re-render `pages.LoginPage` with error message (200), no redirect
@@ -159,13 +160,13 @@ Prevents `?next=https://evil.com/` style attacks.
 
 ## Security Considerations
 
-| Concern | Mitigation |
-|---------|------------|
-| Cookie hijacking | `HttpOnly` (JS can't read), `Secure` (TLS only), `SameSite=Lax` |
-| Token storage | SHA-256 hash in DB, raw token only in HttpOnly cookie |
-| Open redirect | `next` validated to start with `/`, reject `//` and `:` |
-| Brute force | Not addressed — single-user homelab, rate limiter (50req/10s) already in middleware stack |
-| Config file exposure | `flowbot.yaml` protected by file permissions |
+| Concern              | Mitigation                                                                                |
+| -------------------- | ----------------------------------------------------------------------------------------- |
+| Cookie hijacking     | `HttpOnly` (JS can't read), `Secure` (TLS only), `SameSite=Lax`                           |
+| Token storage        | SHA-256 hash in DB, raw token only in HttpOnly cookie                                     |
+| Open redirect        | `next` validated to start with `/`, reject `//` and `:`                                   |
+| Brute force          | Not addressed — single-user homelab, rate limiter (50req/10s) already in middleware stack |
+| Config file exposure | `flowbot.yaml` protected by file permissions                                              |
 
 ## Testing
 
@@ -173,12 +174,12 @@ Prevents `?next=https://evil.com/` style attacks.
 
 All tests follow table-driven pattern with `t.Run`. Three new test functions:
 
-| Test function | Cases |
-|---|---|
-| `TestLoginPage` | no cookie → 200, valid cookie → 302, missing `next` param |
-| `TestLoginSubmit` | correct creds → 302 + set-cookie, wrong password → 200 + error, empty username → 200 + error, correct creds + `next` → redirect to `next`, illegal `next` → fallback, empty `next` → fallback |
-| `TestLogout` | has cookie → 302 + clear cookie, no cookie → 302 |
-| `TestRequireAuthRedirect` | no AuthContext → 302 to login, valid AuthContext → 200 through |
+| Test function             | Cases                                                                                                                                                                                         |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `TestLoginPage`           | no cookie → 200, valid cookie → 302, missing `next` param                                                                                                                                     |
+| `TestLoginSubmit`         | correct creds → 302 + set-cookie, wrong password → 200 + error, empty username → 200 + error, correct creds + `next` → redirect to `next`, illegal `next` → fallback, empty `next` → fallback |
+| `TestLogout`              | has cookie → 302 + clear cookie, no cookie → 302                                                                                                                                              |
+| `TestRequireAuthRedirect` | no AuthContext → 302 to login, valid AuthContext → 200 through                                                                                                                                |
 
 ### Test helper (`internal/modules/web/test_helper_test.go`)
 

@@ -14,31 +14,32 @@
 
 ## File Map
 
-| Action | File | Responsibility |
-|--------|------|----------------|
-| Create | `package.json` | npm deps for Tailwind CLI + prettier |
-| Create | `public/css/input.css` | Tailwind v4 CSS entry |
-| Create | `public/js/app.js` | Alpine data, HTMX extensions |
-| Create | `pkg/types/model/config.go` | ConfigItem struct for Templ templates |
-| Modify | `internal/store/store.go` | Add `ListConfigs` to Adapter interface + `ListConfigOptions` |
-| Modify | `internal/store/postgres/adapter.go` | Implement `ListConfigs` |
-| Create | `pkg/views/layout/base.templ` | HTML skeleton with `<head>`, nav, scripts |
-| Create | `pkg/views/pages/configs.templ` | Config list page (receives pre-fetched data) |
-| Create | `pkg/views/partials/config_table.templ` | Config table partial (HTMX target) |
-| Create | `pkg/views/partials/config_row.templ` | Single config row (HTMX target) |
-| Create | `pkg/views/partials/config_form.templ` | Inline create/edit form with validation errors |
-| Create | `internal/modules/web/module.go` | moduleHandler, Register(), Init(), Webservice() |
-| Create | `internal/modules/web/webservice.go` | HTTP handlers (page + 7 HTMX routes) |
-| Create | `internal/modules/web/module_test.go` | TDD tests for handlers and module init |
-| Modify | `internal/modules/fx.go` | Add `web.Register` to fx.Invoke |
-| Modify | `taskfile.yaml` | Add `templ`, `css`, `web` tasks |
-| Modify | `go.mod` | Add `github.com/a-h/templ` tool directive |
+| Action | File                                    | Responsibility                                               |
+| ------ | --------------------------------------- | ------------------------------------------------------------ |
+| Create | `package.json`                          | npm deps for Tailwind CLI + prettier                         |
+| Create | `public/css/input.css`                  | Tailwind v4 CSS entry                                        |
+| Create | `public/js/app.js`                      | Alpine data, HTMX extensions                                 |
+| Create | `pkg/types/model/config.go`             | ConfigItem struct for Templ templates                        |
+| Modify | `internal/store/store.go`               | Add `ListConfigs` to Adapter interface + `ListConfigOptions` |
+| Modify | `internal/store/postgres/adapter.go`    | Implement `ListConfigs`                                      |
+| Create | `pkg/views/layout/base.templ`           | HTML skeleton with `<head>`, nav, scripts                    |
+| Create | `pkg/views/pages/configs.templ`         | Config list page (receives pre-fetched data)                 |
+| Create | `pkg/views/partials/config_table.templ` | Config table partial (HTMX target)                           |
+| Create | `pkg/views/partials/config_row.templ`   | Single config row (HTMX target)                              |
+| Create | `pkg/views/partials/config_form.templ`  | Inline create/edit form with validation errors               |
+| Create | `internal/modules/web/module.go`        | moduleHandler, Register(), Init(), Webservice()              |
+| Create | `internal/modules/web/webservice.go`    | HTTP handlers (page + 7 HTMX routes)                         |
+| Create | `internal/modules/web/module_test.go`   | TDD tests for handlers and module init                       |
+| Modify | `internal/modules/fx.go`                | Add `web.Register` to fx.Invoke                              |
+| Modify | `taskfile.yaml`                         | Add `templ`, `css`, `web` tasks                              |
+| Modify | `go.mod`                                | Add `github.com/a-h/templ` tool directive                    |
 
 ---
 
 ### Task 1: Node.js project config and static assets
 
 **Files:**
+
 - Create: `package.json`
 - Create: `public/css/input.css`
 - Create: `public/js/app.js`
@@ -103,6 +104,7 @@ git commit -m "feat: add project scaffolding for Tailwind CSS v4 and static asse
 ### Task 2: Data model — ConfigItem
 
 **Files:**
+
 - Create: `pkg/types/model/config.go`
 
 - [ ] **Step 1: Create `pkg/types/model/config.go`**
@@ -149,6 +151,7 @@ git commit -m "feat: add ConfigItem model for UI views"
 ### Task 3: Store layer — ListConfigs
 
 **Files:**
+
 - Modify: `internal/store/store.go`
 - Modify: `internal/store/postgres/adapter.go`
 
@@ -248,6 +251,7 @@ git commit -m "feat: add ListConfigs to store for config table full-scan with se
 ### Task 4: Templ layout
 
 **Files:**
+
 - Create: `pkg/views/layout/base.templ`
 - Create: `pkg/views/layout/base_templ.go` (generated)
 
@@ -327,6 +331,7 @@ git commit -m "feat: add Templ layout base with Tailwind, Alpine.js, HTMX CDN"
 ### Task 5: Templ partials — config_row, config_form, config_table
 
 **Files:**
+
 - Create: `pkg/views/partials/config_row.templ`
 - Create: `pkg/views/partials/config_form.templ`
 - Create: `pkg/views/partials/config_table.templ`
@@ -572,6 +577,7 @@ git commit -m "feat: add Templ config partials — row, form, table, helpers"
 ### Task 6: Templ page — configs page
 
 **Files:**
+
 - Create: `pkg/views/pages/configs.templ`
 
 - [ ] **Step 1: Create `pkg/views/pages/configs.templ`**
@@ -630,6 +636,7 @@ git commit -m "feat: add Templ configs page with server-side pre-rendered data"
 ### Task 7: Web module — module.go with tests
 
 **Files:**
+
 - Create: `internal/modules/web/module.go`
 - Create: `internal/modules/web/module_test.go`
 
@@ -853,12 +860,13 @@ git commit -m "feat: add web module with Register, Init, and unit tests"
 ### Task 8: Web module — webservice handlers with tests
 
 **Files:**
+
 - Modify: `internal/modules/web/webservice.go`
 - Modify: `internal/modules/web/module_test.go` (add handler tests)
 
 - [ ] **Step 1: Write handler tests in `module_test.go` (append after existing tests)**
 
-```go
+````go
 import (
 	"context"
 	"fmt"
@@ -967,7 +975,7 @@ func createTestConfig(uid, topic, key string) model.ConfigItem {
 		UpdatedAt: time.Now(),
 	}
 }
-```
+````
 
 Note: `store.Adapter` is embedded as an interface (nil value). Go allows this — any method NOT overridden on `testStore` will panic at runtime if called. The methods we DO override (`ListConfigs`, `ConfigSet`, `ConfigGet`, `ConfigDelete`) and the required interface methods (`IsOpen`, `Open`, `Close`, etc.) are explicitly defined so they never panic. This avoids writing ~100 stub methods. Requires `time` and `database/sql` imports.
 
@@ -1515,6 +1523,7 @@ git commit -m "feat: add web module handlers for configs CRUD with TDD tests"
 ### Task 9: Module registration
 
 **Files:**
+
 - Modify: `internal/modules/fx.go`
 
 - [ ] **Step 1: Add web.Register to `internal/modules/fx.go`**
@@ -1559,6 +1568,7 @@ git commit -m "feat: register web module in fx container"
 ### Task 10: Build tooling in taskfile.yaml
 
 **Files:**
+
 - Modify: `taskfile.yaml`
 
 - [ ] **Step 1: Add tasks to `taskfile.yaml`**
@@ -1566,27 +1576,27 @@ git commit -m "feat: register web module in fx container"
 After the `ent` task (line 216), add:
 
 ```yaml
-  # Web UI tasks
-  templ:
-    desc: Generate Go code from Templ templates
-    cmds:
-      - go tool templ generate
+# Web UI tasks
+templ:
+  desc: Generate Go code from Templ templates
+  cmds:
+    - go tool templ generate
 
-  css:
-    desc: Build Tailwind CSS
-    cmds:
-      - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css
+css:
+  desc: Build Tailwind CSS
+  cmds:
+    - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css
 
-  css:min:
-    desc: Build Tailwind CSS minified for production
-    cmds:
-      - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css --minify
+css:min:
+  desc: Build Tailwind CSS minified for production
+  cmds:
+    - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css --minify
 
-  web:
-    desc: Build web UI (Templ + Tailwind)
-    cmds:
-      - task: templ
-      - task: css
+web:
+  desc: Build web UI (Templ + Tailwind)
+  cmds:
+    - task: templ
+    - task: css
 ```
 
 - [ ] **Step 2: Commit**
@@ -1601,6 +1611,7 @@ git commit -m "feat: add Templ and Tailwind build tasks to taskfile"
 ### Task 11: Full build and verification
 
 **Files:**
+
 - None (verification only)
 
 - [ ] **Step 1: Generate Templ and CSS**

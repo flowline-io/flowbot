@@ -206,8 +206,8 @@ func TestContext_SetTimeoutUsesTraceCtxAsParent(t *testing.T) {
 func TestContext_CancelReturnsCancelFunc(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		setup     func() *Context
+		name       string
+		setup      func() *Context
 		wantCancel bool
 	}{
 		{
@@ -220,8 +220,8 @@ func TestContext_CancelReturnsCancelFunc(t *testing.T) {
 			wantCancel: true,
 		},
 		{
-			name:      "Cancel returns nil without SetTimeout",
-			setup:     func() *Context { return &Context{} },
+			name:       "Cancel returns nil without SetTimeout",
+			setup:      func() *Context { return &Context{} },
 			wantCancel: false,
 		},
 		{
