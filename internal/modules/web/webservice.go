@@ -323,11 +323,11 @@ func logout(ctx fiber.Ctx) error {
 	}
 	ctx.Cookie(&fiber.Cookie{
 		Name:     "accessToken",
-		Value:    "",
+		Value:    "deleted",
+		Expires:  time.Unix(0, 0),
 		HTTPOnly: true,
 		SameSite: "Lax",
 		Path:     "/",
-		MaxAge:   0,
 	})
 	ctx.Set("HX-Redirect", "/service/web/login")
 	return nil
