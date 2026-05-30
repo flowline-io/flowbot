@@ -11,7 +11,7 @@ import (
 // FS is the embedded filesystem rooted at the public/ directory.
 // Use it with fiber's static middleware Config.FS field.
 //
-//go:embed public/*
+//go:embed all:public
 var FS embed.FS
 
 // SubFS is the embedded filesystem with the "public" prefix stripped,

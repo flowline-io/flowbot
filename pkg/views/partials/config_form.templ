@@ -5,13 +5,7 @@ import (
 )
 
 templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
-	<tr id={ configFormID(item, isNew) }
-		if isNew {
-			hx-post="/service/web/configs"
-		} else {
-			hx-put={ configKeyURL(item) }
-		}
-		hx-target="this" hx-swap="outerHTML">
+	<tr id={ configFormID(item, isNew) }>
 		<td class="px-4 py-2"></td>
 		<td class="px-4 py-2">
 			<input type="text" name="uid" value={ item.UID }
@@ -56,14 +50,26 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 		<td class="px-4 py-2"></td>
 		<td class="px-4 py-2">
 			<div class="flex gap-2">
-				<button type="submit"
+				<button type="button"
+					if isNew {
+						hx-post="/service/web/configs"
+					} else {
+						hx-put={ configKeyURL(item) }
+					}
+					hx-target="closest tr"
+					hx-swap="outerHTML"
+					hx-include="closest tr"
 					data-testid="config-save"
 					class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
 					Save
 				</button>
 				<button type="button"
 					hx-get={ cancelURL(item, isNew) }
-					hx-target="#configs-table"
+					if isNew {
+						hx-target="#configs-table"
+					} else {
+						hx-target="closest tr"
+					}
 					hx-swap="outerHTML"
 					data-testid="config-cancel"
 					class="text-gray-600 hover:text-gray-800 text-sm">
