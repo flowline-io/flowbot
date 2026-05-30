@@ -349,7 +349,7 @@ func parseConfigValue(raw string) types.KV {
 		return types.KV{}
 	}
 	var value types.KV
-	if sonic.Unmarshal([]byte(raw), &value) == nil {
+	if sonic.Unmarshal([]byte(raw), &value) == nil && value != nil {
 		return value
 	}
 	if !sonic.Valid([]byte(raw)) {

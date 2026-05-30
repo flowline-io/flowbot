@@ -135,6 +135,11 @@ func TestConfigDelete(t *testing.T) {
 			wait := page.MustWaitRequestIdle()
 			wait()
 
+			waitDialog, handleDialog := page.MustHandleDialog()
+			go func() {
+				waitDialog()
+				handleDialog(true, "")
+			}()
 			page.MustElement(`[data-testid="config-delete"]`).MustClick()
 
 			wait = page.MustWaitRequestIdle()
