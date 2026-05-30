@@ -10,12 +10,14 @@
     variablePickerOpen: false, variablePickerTarget: null, variablePickerSource: 'event',
     errors: [], publishDisabled: false,
     autoSaveTimer: null, testTriggerSource: 'event', testMockPayload: '{}', testResults: null,
+    capabilities: [],
 
     init() {
       const el = this.$el;
       const name = el.dataset.pipelineName || '';
       this.name = name;
       if (name) this.loadPipeline(name);
+      this.fetchCapabilities();
       this.pushUndo();
     },
 
@@ -27,6 +29,19 @@
         this.status = data.status;
         if (data.yaml) this.parseYamlToState(data.yaml);
       } catch (e) { console.error('Failed to load pipeline:', e); }
+    },
+
+    async fetchCapabilities() {
+      try {
+        const resp = await fetch('/service/web/pipelines/capabilities');
+        const json = await resp.json();
+        this.capabilities = json.data || [];
+      } catch (e) { console.error('Failed to load capabilities:', e); }
+    },
+
+    getOperationsFor(capType) {
+      const cap = this.capabilities.find(c => c.type === capType);
+      return cap ? (cap.operations || []) : [];
     },
 
     parseYamlToState(yaml) {

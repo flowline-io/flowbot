@@ -178,13 +178,25 @@ templ PipelineEditorPage(name string) {
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
 									placeholder="my-step" data-testid="step-name-input">
 								<label class="block text-sm font-medium text-gray-700 mb-1">Capability</label>
-								<input type="text" x-model="steps[selectedNode.index].capability"
+								<select x-model="steps[selectedNode.index].capability"
+									@change="steps[selectedNode.index].operation = getOperationsFor(steps[selectedNode.index].capability)[0]?.name || ''; drawerDirty = true"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-									placeholder="example" data-testid="step-capability-input">
+									data-testid="step-capability-select">
+									<option value="" disabled>Select capability...</option>
+									<template x-for="cap in capabilities" :key="cap.type">
+										<option :value="cap.type" x-text="cap.type" :title="cap.description"></option>
+									</template>
+								</select>
 								<label class="block text-sm font-medium text-gray-700 mb-1">Operation</label>
-								<input type="text" x-model="steps[selectedNode.index].operation"
+								<select x-model="steps[selectedNode.index].operation"
+									@change="drawerDirty = true"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-									placeholder="create" data-testid="step-operation-input">
+									data-testid="step-operation-select">
+									<option value="" disabled>Select operation...</option>
+									<template x-for="op in getOperationsFor(steps[selectedNode.index].capability)" :key="op.name">
+										<option :value="op.name" x-text="op.name" :title="op.description"></option>
+									</template>
+								</select>
 								<label class="block text-sm font-medium text-gray-700 mb-1">Params (JSON)</label>
 								<textarea rows="6" x-model="steps[selectedNode.index].paramsText"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono mb-3"

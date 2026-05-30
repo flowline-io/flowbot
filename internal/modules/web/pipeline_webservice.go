@@ -11,14 +11,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/web/pipeline_templates"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines", pipelineListPage),
 	webservice.Get("/pipelines/list", pipelineListTable),
+	webservice.Get("/pipelines/capabilities", getCapabilities),
 	webservice.Get("/pipelines/:name", pipelineEditorPage),
 	webservice.Post("/pipelines", createPipeline),
 	webservice.Put("/pipelines/:name", updatePipelineDraft),
@@ -312,4 +315,10 @@ func pipelineRunsTable(c fiber.Ctx) error {
 	}
 	c.Type("html")
 	return pipeline_templates.PipelineRunsTable(runs).Render(context.Background(), c.Response().BodyWriter())
+}
+
+// getCapabilities returns all registered capabilities with their operations
+// for the pipeline editor capability/operation select dropdowns.
+func getCapabilities(ctx fiber.Ctx) error {
+	return ctx.JSON(protocol.NewSuccessResponse(hub.Default.List()))
 }

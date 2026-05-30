@@ -91,6 +91,28 @@ var _ = Describe("Pipeline CRUD API", Label("pipeline", "web", "api"), func() {
 		})
 	})
 
+	Describe("GET /service/web/pipelines/capabilities", func() {
+		It("returns capabilities list with operations", func() {
+			req := MakeRequest(http.MethodGet, "/service/web/pipelines/capabilities", nil)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+			body := ReadBody(resp)
+			var result map[string]any
+			Expect(sonic.Unmarshal(body, &result)).To(Succeed())
+			Expect(result["status"]).To(Equal("success"))
+			data, ok := result["data"].([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(data)).To(BeNumerically(">", 0))
+			firstCap := data[0].(map[string]interface{})
+			Expect(firstCap["type"]).To(Equal("bookmark"))
+			operations, ok := firstCap["operations"].([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(operations)).To(BeNumerically(">", 0))
+		})
+	})
+
 	Describe("GET /service/web/pipelines/:name/yaml", func() {
 		It("returns draft yaml for existing pipeline", func() {
 			name := "bdd-yaml-" + types.Id()
@@ -318,6 +340,25 @@ func mountPipelineRoutes(app *fiber.App) {
 		}
 		c.Response().Header.Set("HX-Redirect", "/service/web/pipelines/"+body.Name)
 		return c.SendStatus(http.StatusOK)
+	})
+
+	// GET /service/web/pipelines/capabilities
+	app.Get("/service/web/pipelines/capabilities", func(c fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"status": "success",
+			"data": []fiber.Map{
+				{
+					"type":        "bookmark",
+					"backend":     "native",
+					"description": "bookmark management",
+					"operations": []fiber.Map{
+						{"name": "list", "description": "list bookmarks"},
+						{"name": "create", "description": "create bookmark"},
+						{"name": "get", "description": "get bookmark"},
+					},
+				},
+			},
+		})
 	})
 
 	// GET /service/web/pipelines/:name/yaml
