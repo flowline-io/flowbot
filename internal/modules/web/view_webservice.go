@@ -19,9 +19,9 @@ import (
 )
 
 var viewWebserviceRules = []webservice.Rule{
-	webservice.Get("/view/{token}", viewPage, route.WithNotAuth()),
+	webservice.Get("/view/:token", viewPage, route.WithNotAuth()),
 	webservice.Post("/view", createView, route.WithNotAuth()),
-	webservice.Delete("/view/{token}", deleteView, route.WithNotAuth()),
+	webservice.Delete("/view/:token", deleteView, route.WithNotAuth()),
 }
 
 // viewPage renders a shareable view page by token.

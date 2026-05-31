@@ -2,6 +2,8 @@ package web
 
 import (
 	"context"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -11,6 +13,8 @@ import (
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type testStore struct {
@@ -23,6 +27,7 @@ type testStore struct {
 	paramGetFn  func(ctx context.Context, flag string) (gen.Parameter, error)
 	paramSetFn  func(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
 	paramDelFn  func(ctx context.Context, flag string) error
+	dbClient    *store.Client // in-memory SQLite client for view handler tests
 }
 
 func (s *testStore) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {
@@ -78,7 +83,12 @@ func (*testStore) Close() error                     { return nil }
 func (*testStore) IsOpen() bool                     { return false }
 func (*testStore) GetName() string                  { return "test" }
 func (*testStore) Stats() any                       { return nil }
-func (*testStore) GetDB() any                       { return nil }
+func (s *testStore) GetDB() any {
+	if s.dbClient != nil {
+		return s.dbClient
+	}
+	return nil
+}
 
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
@@ -94,6 +104,37 @@ func setupTestApp() (*fiber.App, *testStore) {
 	var h moduleHandler
 	h.Webservice(app)
 	return app, ts
+}
+
+// setupTestAppWithDB creates a Fiber test app wired with an in-memory SQLite
+// database for tests that need real PageDataStore operations (view handlers).
+// Each call opens a private in-memory database identified by t.Name().
+func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
+	t.Helper()
+
+	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+	dbClient, err := gen.Open("sqlite3", "file:"+dbName+"?mode=memory&cache=shared&_fk=1")
+	if err != nil {
+		t.Fatalf("failed opening sqlite: %v", err)
+	}
+	if err := dbClient.Schema.Create(context.Background()); err != nil {
+		t.Fatalf("failed creating schema: %v", err)
+	}
+	t.Cleanup(func() { dbClient.Close() })
+
+	ts := &testStore{dbClient: dbClient}
+	store.Database = ts
+	handler = moduleHandler{
+		authConfig: AuthConfig{Username: "admin", Password: "admin"},
+	}
+	config = configType{
+		Enabled: true,
+		Auth:    AuthConfig{Username: "admin", Password: "admin"},
+	}
+	app := fiber.New()
+	var h moduleHandler
+	h.Webservice(app)
+	return app, ts, dbClient
 }
 
 func createTestConfig(uid, topic, key string) model.ConfigItem {
