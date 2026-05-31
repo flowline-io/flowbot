@@ -56,12 +56,10 @@ templ PipelineEditorPage(name string) {
 					<h3 class="text-sm font-medium text-blue-800 mb-3">Trigger Conditions (any enabled trigger starts the pipeline)</h3>
 					<template x-for="(t, idx) in triggers" :key="idx">
 						<div>
-							<div x-show="idx > 0" class="flex flex-col items-center py-1">
-								<div class="w-0.5 h-3 bg-gray-300"></div>
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-								</svg>
-							</div>
+						<div x-show="idx > 0" class="flex flex-col items-center py-1">
+							<div class="w-0.5 h-3 bg-gray-300"></div>
+							<div class="text-center text-xs text-gray-400 my-1">- OR -</div>
+						</div>
 							<div class="mb-3">
 								@TriggerCard()
 							</div>
@@ -70,8 +68,7 @@ templ PipelineEditorPage(name string) {
 					<div x-show="triggers.length > 0" class="flex flex-col items-center py-1">
 						<div class="w-0.5 h-3 bg-gray-300"></div>
 					</div>
-					<div x-show="triggers.length > 1" class="text-center text-xs text-gray-400 my-1">- OR -</div>
-					<button type="button" @click="addTrigger" data-testid="btn-add-trigger"
+				<button type="button" @click="addTrigger" data-testid="btn-add-trigger"
 						class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ Add Trigger</button>
 				</div>
 
