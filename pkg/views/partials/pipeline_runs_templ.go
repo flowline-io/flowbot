@@ -365,7 +365,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(s.Params) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"relative inline-block group\" data-testid=\"step-params\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors\">P</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre-wrap shadow-lg\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"relative inline-block group\" data-testid=\"step-params\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors\">P</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -393,7 +393,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				if len(s.Result) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"relative inline-block group\" data-testid=\"step-result\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-green-100 group-hover:text-green-600 transition-colors\">R</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre-wrap shadow-lg\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"relative inline-block group\" data-testid=\"step-result\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-green-100 group-hover:text-green-600 transition-colors\">R</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
