@@ -147,9 +147,7 @@
 
       onOperationChange(idx) {
         const step = this.steps[idx];
-        if (this.isParamsDefault(step.paramsText)) {
-          step.paramsText = this.getDefaultParams(step.capability, step.operation);
-        }
+        step.paramsText = this.getDefaultParams(step.capability, step.operation);
         this.drawerDirty = true;
       },
 
