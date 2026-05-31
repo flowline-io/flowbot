@@ -23,7 +23,6 @@ tasks:
   build:
     desc: Build flowbot server
     cmds:
-      - task: css
       - GOEXPERIMENT=goroutineleakprofile go build -v -o bin/flowbot ./cmd
 
   build:composer:
@@ -47,7 +46,6 @@ tasks:
   run:
     desc: Run flowbot server
     cmds:
-      - task: css
       - go run -tags swagger ./cmd
 
   run:composer:
