@@ -123,6 +123,10 @@ var _ = SynchronizedBeforeSuite(
 
 		App = setupTestApp()
 
+		// Register pipeline CRUD BDD routes before any test-specific
+		// BeforeEach can mount the web module's auth-protected versions.
+		mountPipelineRoutes(App)
+
 		GinkgoWriter.Printf("Process %d: database=%s\n", procID, dbName)
 	},
 )
