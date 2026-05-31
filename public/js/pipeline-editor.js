@@ -153,6 +153,13 @@
         this.drawerDirty = true;
       },
 
+      getCurrentOperationInput(idx) {
+        const step = this.steps[idx];
+        if (!step || !step.capability || !step.operation) return [];
+        const op = this.getOperation(step.capability, step.operation);
+        return op ? op.input || [] : [];
+      },
+
       getEventsForTrigger() {
         const groups = [];
         for (const cap of this.capabilities) {

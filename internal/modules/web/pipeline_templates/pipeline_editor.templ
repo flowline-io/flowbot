@@ -206,11 +206,25 @@ templ PipelineEditorPage(name string) {
 									</template>
 								</select>
 								<label class="block text-sm font-medium text-gray-700 mb-1">Params (JSON)</label>
-								<textarea rows="6" x-model="steps[selectedNode.index].paramsText"
+								<textarea rows="10" x-model="steps[selectedNode.index].paramsText"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono mb-3"
 										placeholder='{ &quot;title&quot;: &quot;event.title&quot; }'
 									@input="drawerDirty = true"
 									data-testid="params-editor"></textarea>
+								<template x-if="getCurrentOperationInput(selectedNode.index).length > 0">
+									<div class="mb-3 border border-gray-200 rounded bg-gray-50">
+										<div class="text-xs font-medium text-gray-500 uppercase px-3 py-2 border-b border-gray-200">Parameters</div>
+										<template x-for="p in getCurrentOperationInput(selectedNode.index)" :key="p.name">
+											<div class="flex items-start gap-2 px-3 py-2 border-b border-gray-100 last:border-b-0">
+												<span class="text-xs font-mono font-medium text-gray-800 min-w-[100px]" x-text="p.name"></span>
+												<span class="text-xs font-mono text-gray-400 bg-gray-200 rounded px-1.5 py-0.5 min-w-[60px] text-center" x-text="p.type"></span>
+												<span x-show="p.required" class="text-xs font-medium text-red-600 bg-red-50 rounded px-1.5 py-0.5">required</span>
+												<span x-show="!p.required" class="text-xs text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">optional</span>
+												<span class="text-xs text-gray-500 flex-1" x-text="p.description" x-show="p.description"></span>
+											</div>
+										</template>
+									</div>
+								</template>
 								<button type="button" @click="openVariablePicker(selectedNode.index)"
 									class="text-sm text-blue-600 hover:text-blue-800 font-medium"
 									data-testid="btn-open-var-picker">&#123;x&#125; Insert Variable</button>
