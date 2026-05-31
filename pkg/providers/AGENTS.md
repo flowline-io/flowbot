@@ -6,7 +6,7 @@ Third-party service integrations with standardized OAuth and API patterns.
 
 ```
 providers/
-├── providers.go        # Base interfaces (OAuthProvider, GetConfig, RedirectURI)
+├── providers.go        # Base interfaces and utilities (OAuthProvider, GetConfig, RedirectURI)
 ├── example/            # Reference implementation — follow this for new providers
 │   ├── example.go      # Provider struct, GetClient(), NewXxx(), CRUD, OAuth
 │   ├── types.go        # Request/response/webhook-payload types
@@ -24,6 +24,8 @@ providers/
 - OAuth providers implement `GetAuthorizeURL` / `GetAccessToken`. See `example/example.go` for the complete OAuth reference.
 - Export a `Register()` function that calls `providers.RegisterOAuthProvider(ID, factory)` and wire it via `fx.Invoke` in `internal/server/providers.go`.
 - Constructor pattern: `GetClient()` reads config via `providers.GetConfig()` then calls `NewXxx()`. See `example/example.go` for the full pattern.
+  - `GetClient()` may return `(*T, error)` when config validation is required; the example returns `*T` directly for simplicity.
+- Not all providers implement OAuth — token/API-key providers skip `Register()` and `fx.Invoke` wiring.
 
 ## Rules
 

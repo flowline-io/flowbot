@@ -10,7 +10,9 @@ Multi-platform chat and messaging integrations. Each platform implements the `pr
 
 ```
 internal/platforms/
-├── platforms.go          # Caller dispatch, MessageConvert, PlatformRegister, GetCaller
+├── caller.go            # Caller dispatch (Caller struct, Do method)
+├── convert.go           # MessageConvert (MsgPayload -> protocol.Message)
+├── registry.go          # PlatformRegister, GetCaller
 ├── <platform>/
 │   ├── driver.go         # Driver struct + NewDriver() → protocol.Driver
 │   ├── adapter.go        # Adapter struct → protocol.Adapter (MessageConvert, EventConvert)
@@ -20,7 +22,7 @@ internal/platforms/
 │   └── blockkit.go       # Optional: platform-specific rendering helpers (e.g. Slack Block Kit)
 ```
 
-## Core Package (`platforms.go`)
+## Core Package (`caller.go`, `convert.go`, `registry.go`)
 
 - **`Caller`** — bundles an `Action` and `Adapter`. `Caller.Do(req)` dispatches `SendMessage`/`UpdateMessage`/`DeleteMessage` to the platform's `Action` based on `req.Action`.
 - **`PlatformRegister(name, caller)`** — persists the platform to the database (idempotent) and stores the `Caller` in the in-memory registry.

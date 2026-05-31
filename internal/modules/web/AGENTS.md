@@ -6,29 +6,40 @@ Server-rendered HTML pages with HTMX + Alpine.js interactivity.
 
 ```text
 internal/modules/web/
-├── module.go              # moduleHandler, Register(), Init(), Webservice(), Rules()
-├── webservice.go          # General routes (home, login, configs CRUD), auth middleware
-├── pipeline_webservice.go # Pipeline-specific routes (CRUD, editor, run history, test)
-├── module_test.go         # Unit tests
-└── test_helper_test.go    # E2E test helpers
+├── module.go               # moduleHandler, Register(), Init(), Webservice(), Rules()
+├── webservice.go           # General routes (home, login, configs CRUD), auth middleware
+├── pipeline_webservice.go  # Pipeline-specific routes (CRUD, editor, run history, test)
+├── view_webservice.go      # Shareable view page routes (create, view, delete)
+├── types.go                # View rendering types (viewTemplateFn, viewTemplates)
+├── ratelimit.go            # Login rate limiter
+├── module_test.go          # Unit tests
+└── test_helper_test.go     # E2E test helpers
 
 pkg/views/
 ├── layout/
-│   └── base.templ         # Global HTML skeleton (htmx, alpinejs, js-yaml, daisyui)
+│   └── base.templ          # Global HTML skeleton (htmx, alpinejs, js-yaml, daisyui)
 ├── pages/
-│   ├── home.templ         # HomePage
-│   ├── login.templ        # LoginPage, LoginForm
-│   ├── configs.templ      # ConfigsPage
-│   ├── pipeline_list.templ    # PipelineListPage
-│   ├── pipeline_editor.templ  # PipelineEditorPage (SPA: Alpine.js)
-│   └── pipeline_runs.templ    # PipelineRunsPage
+│   ├── home.templ          # HomePage
+│   ├── login.templ         # LoginPage, LoginForm
+│   ├── configs.templ       # ConfigsPage
+│   ├── view.templ          # ViewPage (shareable content)
+│   ├── pipeline_list.templ     # PipelineListPage
+│   ├── pipeline_editor.templ   # PipelineEditorPage (SPA: Alpine.js)
+│   └── pipeline_runs.templ     # PipelineRunsPage
 └── partials/
-    ├── config_form.templ       # ConfigForm
-    ├── config_row.templ        # ConfigRow
-    ├── config_table.templ      # ConfigTable
-    ├── pipeline_list.templ     # PipelineListTable
-    ├── pipeline_partials.templ # TriggerCard, StepCard
-    └── pipeline_runs.templ     # PipelineRunsTable, PipelineStepRunsDetail
+    ├── helpers.go               # Shared Go helper functions
+    ├── config_form.templ        # ConfigForm
+    ├── config_row.templ         # ConfigRow
+    ├── config_table.templ       # ConfigTable
+    ├── pipeline_list.templ      # PipelineListTable
+    ├── pipeline_partials.templ  # TriggerCard, StepCard
+    ├── pipeline_runs.templ      # PipelineRunsTable, PipelineStepRunsDetail
+    ├── view_expired.templ       # Expired page placeholder
+    ├── view_form.templ          # Read-only form partial
+    ├── view_image.templ         # Image content partial
+    ├── view_markdown.templ      # Markdown content partial
+    ├── view_pipeline_run.templ  # Pipeline run content partial
+    └── view_text.templ          # Plain text content partial
 ```
 
 ## Architecture
@@ -40,7 +51,7 @@ pkg/views/
 | SPA components | [Alpine.js 3.x](https://alpinejs.dev) | Pipeline editor (visual/code modes, undo/redo, drawer) |
 | CSS | [DaisyUI v5](https://daisyui.com) | Component CSS via CDN (built on Tailwind CSS) |
 | YAML handling | [js-yaml](https://github.com/nodeca/js-yaml) | YAML ↔ JSON conversion in pipeline editor |
-| Static embedding | `embed.FS` (`webassets.go`) | CSS/JS served from binary, no runtime filesystem dependency |
+| Static embedding | `embed.FS` (project-root `webassets.go`) | CSS/JS served from binary (package `webassets`), no runtime filesystem dependency |
 
 ## Template Conventions
 
@@ -94,7 +105,7 @@ pkg/views/
 ## CSS / DaisyUI
 
 - Framework: [DaisyUI v5](https://daisyui.com) (built on Tailwind CSS v4)
-- Delivery: CDN (`daisyui@5` + `@tailwindcss/browser@4` + `daizyui@5/themes.css`), no local build step
+- Delivery: CDN (`daisyui@5` + `@tailwindcss/browser@4` + `daisyui@5/themes.css`), no local build step
 - Theme: `data-theme="light"` on `<html>`, configurable via themes.css CDN
 - Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.FS`
 - Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, etc.
@@ -103,7 +114,7 @@ pkg/views/
 ## Static Assets
 
 - Directory: `public/` (embedded via `//go:embed all:public` in `webassets.go`).
-- JavaScript: `public/js/` — Alpine.js components, utility scripts.
+- JavaScript: `public/js/` — Alpine.js components (`pipeline-editor.js`), utility scripts (`app.js`).
 - Served via: `app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))`.
 - CDN scripts (htmx, alpinejs, js-yaml) loaded from external URLs in `base.templ`.
 
@@ -132,7 +143,7 @@ pkg/views/
 
 - Never put view templates under `internal/modules/` — use `pkg/views/`.
 - Never mix page and partial templates in the same `.templ` file — split into `pages/` and `partials/`.
-- Never use `encoding/json` — use `github.com/bytedance/sonic`.
+- Never use `encoding/json` Marshal/Unmarshal — use `github.com/bytedance/sonic`. `json.RawMessage` type from stdlib is allowed.
 - Never return JSON from an endpoint that HTMX expects as HTML — set `c.Type("html")`.
 - Never inline complex JavaScript in templates — put it in `public/js/`.
 - Never skip `data-testid` on interactive elements.

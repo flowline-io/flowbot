@@ -6,7 +6,7 @@ General-purpose utility functions with unit tests.
 
 ```
 utils/
-├── utils.go, file.go, json.go, network.go, slice.go, string.go, ...
+├── utils.go, file.go, network.go, slice.go, string.go, ...
 ├── reexec/   # Self-reexec for upgrades
 ├── sets/     # Generic set types (int, string)
 └── syncx/    # Generic sync.Map wrapper
@@ -15,8 +15,8 @@ utils/
 ## Rules
 
 - Every `.go` file must have a corresponding `*_test.go`.
-- Use `utils.NewSingleton()` for thread-safe single init.
-- Use `utils.WaitSignal()` to block on SIGTERM/SIGINT.
+- Use `utils.CheckSingleton()` for thread-safe single init.
+- Use `utils.SignalHandler()` to block on SIGTERM/SIGINT.
 
 ## Commands
 

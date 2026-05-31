@@ -91,7 +91,7 @@ See `types.go` for the full interface definition.
 - File name: `provider.go` for logic, `provider_test.go` for tests
 - Use `resty.dev/v3` for HTTP client
 - Error wrapping: `fmt.Errorf("<protocol>: %w", err)` or `fmt.Errorf("<protocol>: non-200 response %d", ...)`
-- Log success at `flog.Debug` level, failures at `flog.Error` level
+- Log success at `flog.Debug` or `flog.Info` level, failures at `flog.Error` level
 - ID constant uses the protocol scheme string (may contain hyphens for backward compatibility)
 - The `doSend` pattern enables testing via HTTP mock server injection
 

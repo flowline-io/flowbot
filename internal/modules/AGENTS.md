@@ -11,10 +11,7 @@ modules/<name>/
 ├── form.go         # Interactive forms
 ├── webhook.go      # HTTP webhooks
 ├── webservice.go   # HTTP handlers
-├── page.go         # UI pages
-├── *_test.go       # Tests for each component (TDD: table-driven)
-├── *_suite_test.go # BDD integration tests (Ginkgo v2 + Gomega)
-├── static/         # Static assets
+├── *_test.go       # Tests (TDD: table-driven)
 └── utils.go        # Helper functions
 ```
 
@@ -22,8 +19,8 @@ modules/<name>/
 
 - When creating or modifying a module, reference `internal/modules/example/` for file structure, naming, and code style.
 - `module.go`: `moduleHandler` struct embedding `module.Base`, `Register()` → `module.Register(Name, &handler)`, `Init(jsonconf) error` with `configType{Enabled bool}`, `Rules() []any`, `Webservice(app)`
-- `webservice.go`: `module.FiberRule` definitions, route handlers call `ability.Invoke()`
-- `webhook.go`: Webhook route rule delegating to `EventSourceManager.WebhookHandler()`
+- `webservice.go`: `webservice.Rule` definitions, route handlers call `ability.Invoke()`
+- `webhook.go`: Webhook route rule; hub modules may register webhooks directly in `Bootstrap()` via `EventSourceManager.RegisterWebhook()`
 
 ## Rules
 
@@ -38,4 +35,5 @@ modules/<name>/
 
 - Each component has `*_test.go` counterpart
 - Table-driven tests with `require`/`assert`
+- BDD integration tests live under `tests/specs/` (Ginkgo v2 + Gomega)
 - Mock external dependencies

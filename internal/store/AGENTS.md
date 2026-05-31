@@ -9,8 +9,8 @@ store/
 ├── store.go       # Adapter, connection management, all store types and DB queries
 ├── store_test.go  # Store unit tests
 ├── ent/           # Ent schema definitions and generated code
-├── ent/schema/    # Ent schema definitions (tables) + domain types (types.go)
-├── ent/gen/       # Ent generated code
+│   ├── schema/    # Ent schema definitions (tables) + domain types (types.go)
+│   └── gen/       # Ent generated code
 └── postgres/      # PostgreSQL adapter
 ```
 

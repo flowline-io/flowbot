@@ -12,20 +12,27 @@ ability/
 ├── page.go                  # PageRequest, PageInfo, ListResult[T]
 ├── cursor.go                # Cursor encoding with per-adapter secrets
 ├── operations.go            # Operation constants + IsMutation() + Operations map
-├── event_source.go          # WebhookConverter interface, PollingResource interface, PollResult
-├── poller.go                # Poll scheduling, state, and event source management
+├── eventsource.go           # WebhookConverter, PollingResource, PollResult, EventSourceManager, webhook handler, poll scheduling
 ├── pool.go                  # Adapter pool for health/availability
-├── webhook.go               # HTTP handler for webhook delivery
-├── conformance/             # Shared conformance suites + helpers (one file per capability)
+├── invoke_test.go           # Invoker unit tests
+├── *_test.go                # Co-located tests (cursor, eventsource, operations, page, params, pool)
+├── conformance/             # Shared conformance suites + helpers
 │   ├── conformance.go       # CanceledContext, CursorSecret, TestTime, RequireListResult, ...
+│   ├── conformance_test.go  # Conformance helper tests
+│   ├── example.go           # Example conformance suite
 │   ├── forge.go             # ForgeConfig + RunForgeConformance()
+│   ├── github.go            # GithubConfig + RunGithubConformance()
 │   ├── kanban.go            # KanbanConfig + RunKanbanConformance()
 │   ├── bookmark.go          # BookmarkConfig + RunBookmarkConformance()
-│   └── reader.go            # ReaderConfig + RunReaderConformance()
+│   ├── reader.go            # ReaderConfig + RunReaderConformance()
+│   ├── memo.go              # MemoConfig + RunMemoConformance()
+│   ├── note.go              # NoteConfig + RunNoteConformance()
+│   ├── pagination.go        # Pagination helper utilities
+│   └── pagination_test.go   # Pagination helper tests
 ├── example/                 # Reference capability — follow this for new capabilities
 │   ├── interface.go         # Service interface + query types
 │   ├── descriptor.go        # Descriptor(), RegisterService(), per-operation invoke*()
-│   ├── conformance.go       # Self-contained conformance suite (Config + ServiceFactory)
+│   ├── descriptor_test.go   # Descriptor tests
 │   └── example/             # Reference provider adapter — follow this for new backends
 │       ├── adapter.go       # Adapter struct implementing Service, New() / NewWithClient()
 │       ├── webhook.go       # WebhookConverter implementation (optional)
@@ -34,15 +41,18 @@ ability/
 │       ├── webhook_test.go  # Webhook signature verification tests
 │       ├── poller_test.go   # Poller unit tests
 │       └── conformance_test.go  # Wires factory to the conformance suite
-├── <capability>/            # Per-capability: forge, kanban, bookmark, reader, notify, ...
+├── <capability>/            # Per-capability: forge, kanban, bookmark, reader, notify, github, memo, note, ...
 │   ├── interface.go         # Service interface
 │   ├── descriptor.go        # Descriptor(), RegisterService(), invoke*() per operation
+│   ├── descriptor_test.go   # Descriptor tests
 │   ├── params.go            # Capability-specific param helpers (optional)
 │   └── <backend>/           # Per-provider adapter
 │       ├── adapter.go       # Adapter struct implementing <capability>.Service
 │       ├── webhook.go       # WebhookConverter (optional, if provider sends webhooks)
+│       ├── poller.go        # PollingResource (optional, if provider lacks webhooks)
 │       ├── adapter_test.go
 │       ├── webhook_test.go
+│       ├── poller_test.go
 │       └── conformance_test.go
 ```
 

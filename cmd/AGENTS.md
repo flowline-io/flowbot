@@ -5,8 +5,8 @@
 | Binary   | Main file          | Purpose                    | DI  |
 | -------- | ------------------ | -------------------------- | --- |
 | server   | `main.go`          | HTTP API server (Fiber v3) | fx  |
-| composer | `composer/main.go` | Dev tools (schema doc)     | —   |
-| cli      | `cli/main.go`      | Admin CLI commands         | —   |
+| composer | `composer/main.go` | Dev tooling (admin, webdoc, skills, schema doc) | —   |
+| cli      | `cli/main.go`      | Admin CLI commands                          | —   |
 
 ## Commands
 
