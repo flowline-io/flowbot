@@ -38,6 +38,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/objective"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -1081,6 +1082,28 @@ func init() {
 	page.DefaultUpdatedAt = pageDescUpdatedAt.Default.(func() time.Time)
 	// page.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	page.UpdateDefaultUpdatedAt = pageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	pagedataFields := schema.PageData{}.Fields()
+	_ = pagedataFields
+	// pagedataDescToken is the schema descriptor for token field.
+	pagedataDescToken := pagedataFields[1].Descriptor()
+	// pagedata.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	pagedata.TokenValidator = pagedataDescToken.Validators[0].(func(string) error)
+	// pagedataDescType is the schema descriptor for type field.
+	pagedataDescType := pagedataFields[2].Descriptor()
+	// pagedata.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	pagedata.TypeValidator = pagedataDescType.Validators[0].(func(string) error)
+	// pagedataDescTitle is the schema descriptor for title field.
+	pagedataDescTitle := pagedataFields[3].Descriptor()
+	// pagedata.DefaultTitle holds the default value on creation for the title field.
+	pagedata.DefaultTitle = pagedataDescTitle.Default.(string)
+	// pagedataDescCreatedBy is the schema descriptor for created_by field.
+	pagedataDescCreatedBy := pagedataFields[5].Descriptor()
+	// pagedata.DefaultCreatedBy holds the default value on creation for the created_by field.
+	pagedata.DefaultCreatedBy = pagedataDescCreatedBy.Default.(string)
+	// pagedataDescCreatedAt is the schema descriptor for created_at field.
+	pagedataDescCreatedAt := pagedataFields[7].Descriptor()
+	// pagedata.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pagedata.DefaultCreatedAt = pagedataDescCreatedAt.Default.(func() time.Time)
 	parameterFields := schema.Parameter{}.Fields()
 	_ = parameterFields
 	// parameterDescFlag is the schema descriptor for flag field.

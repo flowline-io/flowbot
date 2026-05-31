@@ -45,6 +45,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/objective"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -162,6 +163,7 @@ func checkColumn(t, c string) error {
 			oauth.Table:               oauth.ValidColumn,
 			objective.Table:           objective.ValidColumn,
 			page.Table:                page.ValidColumn,
+			pagedata.Table:            pagedata.ValidColumn,
 			parameter.Table:           parameter.ValidColumn,
 			pipelinedefinition.Table:  pipelinedefinition.ValidColumn,
 			pipelinerun.Table:         pipelinerun.ValidColumn,

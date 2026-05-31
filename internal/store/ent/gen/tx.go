@@ -78,6 +78,8 @@ type Tx struct {
 	Objective *ObjectiveClient
 	// Page is the client for interacting with the Page builders.
 	Page *PageClient
+	// PageData is the client for interacting with the PageData builders.
+	PageData *PageDataClient
 	// Parameter is the client for interacting with the Parameter builders.
 	Parameter *ParameterClient
 	// PipelineDefinition is the client for interacting with the PipelineDefinition builders.
@@ -290,6 +292,7 @@ func (tx *Tx) init() {
 	tx.OAuth = NewOAuthClient(tx.config)
 	tx.Objective = NewObjectiveClient(tx.config)
 	tx.Page = NewPageClient(tx.config)
+	tx.PageData = NewPageDataClient(tx.config)
 	tx.Parameter = NewParameterClient(tx.config)
 	tx.PipelineDefinition = NewPipelineDefinitionClient(tx.config)
 	tx.PipelineRun = NewPipelineRunClient(tx.config)

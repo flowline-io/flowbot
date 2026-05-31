@@ -835,6 +835,30 @@ var (
 			},
 		},
 	}
+	// PageDataColumns holds the columns for the "page_data" table.
+	PageDataColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "type", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "data", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// PageDataTable holds the schema information for the "page_data" table.
+	PageDataTable = &schema.Table{
+		Name:       "page_data",
+		Columns:    PageDataColumns,
+		PrimaryKey: []*schema.Column{PageDataColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pagedata_token",
+				Unique:  true,
+				Columns: []*schema.Column{PageDataColumns[1]},
+			},
+		},
+	}
 	// ParameterColumns holds the columns for the "parameter" table.
 	ParameterColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1516,6 +1540,7 @@ var (
 		OauthTable,
 		ObjectivesTable,
 		PagesTable,
+		PageDataTable,
 		ParameterTable,
 		PipelineDefinitionsTable,
 		PipelineRunsTable,
@@ -1645,6 +1670,9 @@ func init() {
 	}
 	PagesTable.Annotation = &entsql.Annotation{
 		Table: "pages",
+	}
+	PageDataTable.Annotation = &entsql.Annotation{
+		Table: "page_data",
 	}
 	ParameterTable.Annotation = &entsql.Annotation{
 		Table: "parameter",

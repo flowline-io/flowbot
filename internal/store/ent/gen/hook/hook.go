@@ -405,6 +405,18 @@ func (f PageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PageMutation", m)
 }
 
+// The PageDataFunc type is an adapter to allow the use of ordinary
+// function as PageData mutator.
+type PageDataFunc func(context.Context, *gen.PageDataMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PageDataFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PageDataMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PageDataMutation", m)
+}
+
 // The ParameterFunc type is an adapter to allow the use of ordinary
 // function as Parameter mutator.
 type ParameterFunc func(context.Context, *gen.ParameterMutation) (gen.Value, error)

@@ -48,6 +48,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/objective"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
@@ -145,6 +146,8 @@ type Client struct {
 	Objective *ObjectiveClient
 	// Page is the client for interacting with the Page builders.
 	Page *PageClient
+	// PageData is the client for interacting with the PageData builders.
+	PageData *PageDataClient
 	// Parameter is the client for interacting with the Parameter builders.
 	Parameter *ParameterClient
 	// PipelineDefinition is the client for interacting with the PipelineDefinition builders.
@@ -237,6 +240,7 @@ func (c *Client) init() {
 	c.OAuth = NewOAuthClient(c.config)
 	c.Objective = NewObjectiveClient(c.config)
 	c.Page = NewPageClient(c.config)
+	c.PageData = NewPageDataClient(c.config)
 	c.Parameter = NewParameterClient(c.config)
 	c.PipelineDefinition = NewPipelineDefinitionClient(c.config)
 	c.PipelineRun = NewPipelineRunClient(c.config)
@@ -386,6 +390,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		OAuth:               NewOAuthClient(cfg),
 		Objective:           NewObjectiveClient(cfg),
 		Page:                NewPageClient(cfg),
+		PageData:            NewPageDataClient(cfg),
 		Parameter:           NewParameterClient(cfg),
 		PipelineDefinition:  NewPipelineDefinitionClient(cfg),
 		PipelineRun:         NewPipelineRunClient(cfg),
@@ -462,6 +467,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		OAuth:               NewOAuthClient(cfg),
 		Objective:           NewObjectiveClient(cfg),
 		Page:                NewPageClient(cfg),
+		PageData:            NewPageDataClient(cfg),
 		Parameter:           NewParameterClient(cfg),
 		PipelineDefinition:  NewPipelineDefinitionClient(cfg),
 		PipelineRun:         NewPipelineRunClient(cfg),
@@ -520,12 +526,12 @@ func (c *Client) Use(hooks ...Hook) {
 		c.CounterRecord, c.Cycle, c.Dag, c.Data, c.DataEvent, c.EventConsumption,
 		c.EventOutbox, c.Execution, c.Fileupload, c.Flow, c.FlowEdge, c.FlowJob,
 		c.FlowNode, c.Form, c.Instruct, c.Job, c.KeyResult, c.KeyResultValue,
-		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
-		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit,
-		c.ResourceLink, c.Review, c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url,
-		c.User, c.Workflow, c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun,
-		c.WorkflowTrigger,
+		c.Message, c.OAuth, c.Objective, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.RateLimit, c.ResourceLink, c.Review, c.ReviewEvaluation,
+		c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow, c.WorkflowRun,
+		c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -540,12 +546,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.CounterRecord, c.Cycle, c.Dag, c.Data, c.DataEvent, c.EventConsumption,
 		c.EventOutbox, c.Execution, c.Fileupload, c.Flow, c.FlowEdge, c.FlowJob,
 		c.FlowNode, c.Form, c.Instruct, c.Job, c.KeyResult, c.KeyResultValue,
-		c.Message, c.OAuth, c.Objective, c.Page, c.Parameter, c.PipelineDefinition,
-		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.RateLimit,
-		c.ResourceLink, c.Review, c.ReviewEvaluation, c.Step, c.Todo, c.Topic, c.Url,
-		c.User, c.Workflow, c.WorkflowRun, c.WorkflowScript, c.WorkflowStepRun,
-		c.WorkflowTrigger,
+		c.Message, c.OAuth, c.Objective, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.RateLimit, c.ResourceLink, c.Review, c.ReviewEvaluation,
+		c.Step, c.Todo, c.Topic, c.Url, c.User, c.Workflow, c.WorkflowRun,
+		c.WorkflowScript, c.WorkflowStepRun, c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -620,6 +626,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Objective.mutate(ctx, m)
 	case *PageMutation:
 		return c.Page.mutate(ctx, m)
+	case *PageDataMutation:
+		return c.PageData.mutate(ctx, m)
 	case *ParameterMutation:
 		return c.Parameter.mutate(ctx, m)
 	case *PipelineDefinitionMutation:
@@ -5190,6 +5198,139 @@ func (c *PageClient) mutate(ctx context.Context, m *PageMutation) (Value, error)
 	}
 }
 
+// PageDataClient is a client for the PageData schema.
+type PageDataClient struct {
+	config
+}
+
+// NewPageDataClient returns a client for the PageData from the given config.
+func NewPageDataClient(c config) *PageDataClient {
+	return &PageDataClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pagedata.Hooks(f(g(h())))`.
+func (c *PageDataClient) Use(hooks ...Hook) {
+	c.hooks.PageData = append(c.hooks.PageData, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pagedata.Intercept(f(g(h())))`.
+func (c *PageDataClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PageData = append(c.inters.PageData, interceptors...)
+}
+
+// Create returns a builder for creating a PageData entity.
+func (c *PageDataClient) Create() *PageDataCreate {
+	mutation := newPageDataMutation(c.config, OpCreate)
+	return &PageDataCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PageData entities.
+func (c *PageDataClient) CreateBulk(builders ...*PageDataCreate) *PageDataCreateBulk {
+	return &PageDataCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PageDataClient) MapCreateBulk(slice any, setFunc func(*PageDataCreate, int)) *PageDataCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PageDataCreateBulk{err: fmt.Errorf("calling to PageDataClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PageDataCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PageDataCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PageData.
+func (c *PageDataClient) Update() *PageDataUpdate {
+	mutation := newPageDataMutation(c.config, OpUpdate)
+	return &PageDataUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PageDataClient) UpdateOne(_m *PageData) *PageDataUpdateOne {
+	mutation := newPageDataMutation(c.config, OpUpdateOne, withPageData(_m))
+	return &PageDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PageDataClient) UpdateOneID(id int64) *PageDataUpdateOne {
+	mutation := newPageDataMutation(c.config, OpUpdateOne, withPageDataID(id))
+	return &PageDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PageData.
+func (c *PageDataClient) Delete() *PageDataDelete {
+	mutation := newPageDataMutation(c.config, OpDelete)
+	return &PageDataDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PageDataClient) DeleteOne(_m *PageData) *PageDataDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PageDataClient) DeleteOneID(id int64) *PageDataDeleteOne {
+	builder := c.Delete().Where(pagedata.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PageDataDeleteOne{builder}
+}
+
+// Query returns a query builder for PageData.
+func (c *PageDataClient) Query() *PageDataQuery {
+	return &PageDataQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePageData},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PageData entity by its id.
+func (c *PageDataClient) Get(ctx context.Context, id int64) (*PageData, error) {
+	return c.Query().Where(pagedata.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PageDataClient) GetX(ctx context.Context, id int64) *PageData {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PageDataClient) Hooks() []Hook {
+	return c.hooks.PageData
+}
+
+// Interceptors returns the client interceptors.
+func (c *PageDataClient) Interceptors() []Interceptor {
+	return c.inters.PageData
+}
+
+func (c *PageDataClient) mutate(ctx context.Context, m *PageDataMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PageDataCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PageDataUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PageDataUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PageDataDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PageData mutation op: %q", m.Op())
+	}
+}
+
 // ParameterClient is a client for the Parameter schema.
 type ParameterClient struct {
 	config
@@ -8549,21 +8690,21 @@ type (
 		ConfigData, Connection, Counter, CounterRecord, Cycle, Dag, Data, DataEvent,
 		EventConsumption, EventOutbox, Execution, Fileupload, Flow, FlowEdge, FlowJob,
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
-		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, RateLimit, ResourceLink, Review, ReviewEvaluation, Step, Todo,
-		Topic, Url, User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
-		WorkflowTrigger []ent.Hook
+		Objective, Page, PageData, Parameter, PipelineDefinition, PipelineRun,
+		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, RateLimit, ResourceLink, Review, ReviewEvaluation,
+		Step, Todo, Topic, Url, User, Workflow, WorkflowRun, WorkflowScript,
+		WorkflowStepRun, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ConfigData, Connection, Counter, CounterRecord, Cycle, Dag, Data, DataEvent,
 		EventConsumption, EventOutbox, Execution, Fileupload, Flow, FlowEdge, FlowJob,
 		FlowNode, Form, Instruct, Job, KeyResult, KeyResultValue, Message, OAuth,
-		Objective, Page, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, RateLimit, ResourceLink, Review, ReviewEvaluation, Step, Todo,
-		Topic, Url, User, Workflow, WorkflowRun, WorkflowScript, WorkflowStepRun,
-		WorkflowTrigger []ent.Interceptor
+		Objective, Page, PageData, Parameter, PipelineDefinition, PipelineRun,
+		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, RateLimit, ResourceLink, Review, ReviewEvaluation,
+		Step, Todo, Topic, Url, User, Workflow, WorkflowRun, WorkflowScript,
+		WorkflowStepRun, WorkflowTrigger []ent.Interceptor
 	}
 )

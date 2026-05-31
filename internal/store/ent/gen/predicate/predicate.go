@@ -105,6 +105,9 @@ type Objective func(*sql.Selector)
 // Page is the predicate function for page builders.
 type Page func(*sql.Selector)
 
+// PageData is the predicate function for pagedata builders.
+type PageData func(*sql.Selector)
+
 // Parameter is the predicate function for parameter builders.
 type Parameter func(*sql.Selector)
 
