@@ -1405,6 +1405,9 @@ func NewPageDataStore(client *gen.Client) *PageDataStore {
 
 // CreatePageData inserts a new page_data row.
 func (s *PageDataStore) CreatePageData(ctx context.Context, token string, pageType string, title string, data types.KV, createdBy string, expiresAt *time.Time) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
 	m := s.client.PageData.Create().
 		SetToken(token).
 		SetType(pageType).
@@ -1422,6 +1425,9 @@ func (s *PageDataStore) CreatePageData(ctx context.Context, token string, pageTy
 
 // GetPageDataByToken retrieves a page_data row by token. Returns nil if not found.
 func (s *PageDataStore) GetPageDataByToken(ctx context.Context, token string) (*gen.PageData, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
 	pageData, err := s.client.PageData.Query().
 		Where(pagedata.TokenEQ(token)).
 		Only(ctx)
@@ -1436,6 +1442,9 @@ func (s *PageDataStore) GetPageDataByToken(ctx context.Context, token string) (*
 
 // DeletePageData removes a page_data row by token. Returns the number of deleted rows.
 func (s *PageDataStore) DeletePageData(ctx context.Context, token string) (int, error) {
+	if s == nil || s.client == nil {
+		return 0, nil
+	}
 	affected, err := s.client.PageData.Delete().
 		Where(pagedata.TokenEQ(token)).
 		Exec(ctx)
@@ -1447,6 +1456,9 @@ func (s *PageDataStore) DeletePageData(ctx context.Context, token string) (int, 
 
 // DeleteExpiredPageData removes rows where expires_at < now(). Returns the number of deleted rows.
 func (s *PageDataStore) DeleteExpiredPageData(ctx context.Context) (int64, error) {
+	if s == nil || s.client == nil {
+		return 0, nil
+	}
 	affected, err := s.client.PageData.Delete().
 		Where(pagedata.ExpiresAtLT(time.Now())).
 		Exec(ctx)
