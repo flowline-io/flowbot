@@ -8,11 +8,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
-	"github.com/gofiber/fiber/v3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -350,18 +348,4 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			Expect(affected).To(Equal(0))
 		})
 	})
-
-	// Convenience helpers scoped to this suite.
-	JSONRequest := func(method, path string, body []byte) *http.Request {
-		req := MakeRequest(method, path, body)
-		req.Header.Set("Content-Type", "application/json")
-		return req
-	}
-
-	ReadBody := func(resp *http.Response) []byte {
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		Expect(err).NotTo(HaveOccurred())
-		return body
-	}
 })
