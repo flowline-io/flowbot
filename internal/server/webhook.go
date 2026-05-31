@@ -19,6 +19,42 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+// sensitiveHeaders are HTTP header names that must not be captured in webhook
+// event data. All comparisons are case-insensitive.
+var sensitiveHeaders = map[string]struct{}{
+	"authorization":         {},
+	"x-webhook-token":       {},
+	"x-hub-signature":       {},
+	"x-hub-signature-256":   {},
+	"x-accesstoken":         {},
+	"cookie":                {},
+	"set-cookie":            {},
+	"x-api-key":             {},
+	"proxy-authorization":   {},
+}
+
+// sanitizeWebhookHeaders returns a copy of the request headers with sensitive
+// headers removed. The wcfg auth header names are also excluded.
+func sanitizeWebhookHeaders(c fiber.Ctx, wcfg *pipeline.WebhookConfig) map[string]string {
+	headers := make(map[string]string)
+	c.Request().Header.VisitAll(func(key, value []byte) {
+		canonical := http.CanonicalHeaderKey(string(key))
+		if _, sensitive := sensitiveHeaders[strings.ToLower(canonical)]; sensitive {
+			return
+		}
+		if wcfg != nil {
+			if wcfg.Auth.TokenHeader != "" && strings.ToLower(canonical) == strings.ToLower(wcfg.Auth.TokenHeader) {
+				return
+			}
+			if wcfg.Auth.HMACHeader != "" && strings.ToLower(canonical) == strings.ToLower(wcfg.Auth.HMACHeader) {
+				return
+			}
+		}
+		headers[canonical] = string(value)
+	})
+	return headers
+}
+
 // registerWebhookRoutes registers webhook HTTP routes on the Fiber app
 // for each webhook-enabled pipeline definition.
 func registerWebhookRoutes(engine *pipeline.Engine) error {
@@ -70,10 +106,7 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 			Source:    "webhook",
 		}
 
-		headers := make(map[string]string)
-		c.Request().Header.VisitAll(func(key, value []byte) {
-			headers[http.CanonicalHeaderKey(string(key))] = string(value)
-		})
+		headers := sanitizeWebhookHeaders(c, wcfg)
 
 		body := c.Body()
 

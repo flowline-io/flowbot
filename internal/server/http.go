@@ -2,8 +2,7 @@ package server
 
 import (
 	"errors"
-	"fmt"
-	"runtime/trace"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,7 +14,6 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/favicon"
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
-	"github.com/gofiber/fiber/v3/middleware/pprof"
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/rs/zerolog"
@@ -127,30 +125,8 @@ func newHTTPServer() *fiber.App {
 			return lo.Contains(skipPaths, c.Path())
 		},
 	}))
-	// pprof
-	app.Use(pprof.New(pprof.Config{Prefix: "/server-debugger", Next: authPprof}))
-
-	// flight recorder
-	fr := trace.NewFlightRecorder(trace.FlightRecorderConfig{})
-	if err := fr.Start(); err != nil {
-		flog.Error(fmt.Errorf("failed to start flight recorder: %w", err))
-	} else {
-		flog.Info("flight recorder started")
-
-		// add debug route for flight recorder
-		app.Get("/server-debugger/debug/trace", func(c fiber.Ctx) error {
-			// Use the same auth logic as pprof
-			if authPprof(c) {
-				return c.SendStatus(fiber.StatusUnauthorized)
-			}
-
-			c.Set("Content-Type", "application/octet-stream")
-			c.Set("Content-Disposition", `attachment; filename="trace.out"`)
-
-			_, err := fr.WriteTo(c.Response().BodyWriter())
-			return err
-		})
-	}
+	// security headers
+	app.Use(securityHeadersMiddleware)
 
 	// favicon
 	app.Use(favicon.New())
@@ -166,4 +142,17 @@ func newHTTPServer() *fiber.App {
 	sharedAppMu.Unlock()
 
 	return app
+}
+
+// securityHeadersMiddleware adds security-related HTTP response headers.
+// CSP is not applied to /swagger/ paths because Swagger UI requires
+// inline scripts, styles, and external resources.
+func securityHeadersMiddleware(c fiber.Ctx) error {
+	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
+	c.Set(fiber.HeaderXFrameOptions, "DENY")
+	c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
+	if !strings.HasPrefix(c.Path(), "/swagger/") {
+		c.Set("Content-Security-Policy", "default-src 'self'")
+	}
+	return c.Next()
 }

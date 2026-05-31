@@ -22,7 +22,6 @@ var skippedPaths = []string{
 	"/readyz",
 	"/healthz",
 	"/metrics",
-	"/server-debugger/debug/trace",
 }
 
 // FiberMiddleware returns a Fiber v3 middleware that creates an OTel span for each request.

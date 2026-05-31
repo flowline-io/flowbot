@@ -306,3 +306,114 @@ func TestWebhookHandler_AuthFailureReturns401(t *testing.T) {
 		})
 	}
 }
+
+func TestSanitizeWebhookHeaders(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		wcfg             *pipeline.WebhookConfig
+		headersToSet     map[string]string
+		expectedPresent  []string
+		expectedAbsent   []string
+	}{
+		{
+			name: "strips standard sensitive headers",
+			headersToSet: map[string]string{
+				"Authorization":        "Bearer token123",
+				"X-Webhook-Token":      "secret-token",
+				"X-Hub-Signature-256":  "sha256=abc",
+				"Cookie":               "session=abc123",
+				"Content-Type":         "application/json",
+				"User-Agent":           "TestAgent/1.0",
+				"Accept":               "application/json",
+			},
+			expectedPresent: []string{"Content-Type", "User-Agent", "Accept"},
+			expectedAbsent:  []string{"Authorization", "X-Webhook-Token", "X-Hub-Signature-256", "Cookie"},
+		},
+		{
+			name: "strips configured custom auth headers",
+			wcfg: &pipeline.WebhookConfig{
+				Auth: pipeline.WebhookAuthConfig{
+					Token:       "tok",
+					TokenHeader: "X-Custom-Auth",
+					HMACSecret:  "sec",
+					HMACHeader:  "X-Custom-Sig",
+				},
+			},
+			headersToSet: map[string]string{
+				"X-Custom-Auth": "tok",
+				"X-Custom-Sig":  "sig",
+				"Content-Type":  "text/plain",
+			},
+			expectedPresent: []string{"Content-Type"},
+			expectedAbsent:  []string{"X-Custom-Auth", "X-Custom-Sig"},
+		},
+		{
+			name: "case-insensitive header matching",
+			headersToSet: map[string]string{
+				"authorization":  "Bearer token123",
+				"x-webhook-token": "secret",
+				"Content-Type":   "application/json",
+			},
+			expectedPresent: []string{"Content-Type"},
+			expectedAbsent:  []string{"Authorization", "X-Webhook-Token"},
+		},
+		{
+			name:         "nil wcfg does not panic",
+			wcfg:         nil,
+			headersToSet: map[string]string{"Accept": "*/*", "Authorization": "secret"},
+			expectedPresent: []string{"Accept"},
+			expectedAbsent:  []string{"Authorization"},
+		},
+		{
+			name:         "request with no headers returns empty map",
+			wcfg:         &pipeline.WebhookConfig{},
+			headersToSet: map[string]string{},
+			expectedPresent: nil,
+			expectedAbsent:  nil,
+		},
+		{
+			name: "custom auth header that matches a standard sensitive header",
+			wcfg: &pipeline.WebhookConfig{
+				Auth: pipeline.WebhookAuthConfig{
+					Token:       "tok",
+					TokenHeader: "Authorization",
+				},
+			},
+			headersToSet: map[string]string{
+				"Authorization": "Bearer tok",
+				"Content-Type":  "application/json",
+			},
+			expectedPresent: []string{"Content-Type"},
+			expectedAbsent:  []string{"Authorization"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := fiber.New()
+			defer app.Shutdown()
+
+			app.Post("/test-headers", func(c fiber.Ctx) error {
+				hdrs := sanitizeWebhookHeaders(c, tt.wcfg)
+				for _, h := range tt.expectedPresent {
+					assert.Contains(t, hdrs, h, "expected header %s to be present", h)
+				}
+				for _, h := range tt.expectedAbsent {
+					assert.NotContains(t, hdrs, h, "expected header %s to be absent", h)
+				}
+				return c.SendStatus(fiber.StatusOK)
+			})
+
+			req, err := http.NewRequest("POST", "/test-headers", strings.NewReader("body"))
+			require.NoError(t, err)
+			for k, v := range tt.headersToSet {
+				req.Header.Set(k, v)
+			}
+
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+		})
+	}
+}
