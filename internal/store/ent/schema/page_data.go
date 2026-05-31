@@ -32,7 +32,7 @@ func (PageData) Fields() []ent.Field {
 // Indexes of the PageData.
 func (PageData) Indexes() []ent.Index {
 	return []ent.Index{
-		index.Fields("token").Unique(),
+		index.Fields("expires_at"),
 	}
 }
 

@@ -853,9 +853,9 @@ var (
 		PrimaryKey: []*schema.Column{PageDataColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "pagedata_token",
-				Unique:  true,
-				Columns: []*schema.Column{PageDataColumns[1]},
+				Name:    "pagedata_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{PageDataColumns[6]},
 			},
 		},
 	}
