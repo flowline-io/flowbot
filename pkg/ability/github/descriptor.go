@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // Descriptor returns the hub capability descriptor for the GitHub capability.
@@ -29,6 +30,9 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 			{Name: ability.OpGithubGetFileContent, Description: "Get file content", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpGithubListNotifications, Description: "List notifications", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpGithubListReleases, Description: "List releases", Scopes: []string{auth.ScopeServiceForgeRead}},
+		},
+		Events: []hub.EventDef{
+			{Name: types.EventForgePush, Description: "Fires when code is pushed"},
 		},
 	}
 }

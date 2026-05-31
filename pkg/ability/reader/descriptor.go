@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func Descriptor(backend, app string, svc Service) hub.Descriptor {
@@ -26,6 +27,12 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 			{Name: ability.OpReaderMarkEntryUnread, Description: "Mark entry as unread", Scopes: []string{auth.ScopeServiceReaderWrite}},
 			{Name: ability.OpReaderStarEntry, Description: "Star an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
 			{Name: ability.OpReaderUnstarEntry, Description: "Unstar an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
+		},
+		Events: []hub.EventDef{
+			{Name: types.EventReaderEntryNew, Description: "Fires when a new feed entry is received"},
+			{Name: types.EventReaderEntrySaved, Description: "Fires when a feed entry is saved"},
+			{Name: types.EventReaderEntryStarred, Description: "Fires when a feed entry is starred"},
+			{Name: types.EventReaderEntryRead, Description: "Fires when a feed entry is marked as read"},
 		},
 	}
 }

@@ -31,6 +31,12 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 			{Name: ability.OpBookmarkDetachTags, Description: "Detach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
 			{Name: ability.OpBookmarkCheckURL, Description: "Check whether a URL exists", Scopes: []string{auth.ScopeServiceBookmarkRead}},
 		},
+		Events: []hub.EventDef{
+			{Name: types.EventBookmarkCreated, Description: "Fires when a bookmark is created"},
+			{Name: types.EventBookmarkUpdated, Description: "Fires when a bookmark is updated"},
+			{Name: types.EventBookmarkArchived, Description: "Fires when a bookmark is archived"},
+			{Name: types.EventBookmarkDeleted, Description: "Fires when a bookmark is deleted"},
+		},
 	}
 }
 

@@ -140,9 +140,23 @@ templ PipelineEditorPage(name string) {
 								</select>
 								<div x-show="triggers[selectedNode.index].type === 'event'">
 									<label class="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
-									<input type="text" x-model="triggers[selectedNode.index].event"
+									<select x-model="triggers[selectedNode.index].event"
 										class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
-										placeholder="item.created" data-testid="trigger-event-input">
+										data-testid="trigger-event-select" required>
+										<option value="" disabled>Select event...</option>
+										<template x-for="group in getEventsForTrigger()" :key="group.capability">
+											<optgroup :label="group.capability">
+												<template x-for="ev in group.events" :key="ev.name">
+													<option :value="ev.name" x-text="ev.name" :title="ev.description"></option>
+												</template>
+											</optgroup>
+										</template>
+										<template x-if="triggers[selectedNode.index].event && !isEventKnown(triggers[selectedNode.index].event)">
+											<optgroup label="Custom">
+												<option :value="triggers[selectedNode.index].event" x-text="triggers[selectedNode.index].event + ' (custom)'" selected></option>
+											</optgroup>
+										</template>
+									</select>
 								</div>
 								<div x-show="triggers[selectedNode.index].type === 'webhook'">
 									<label class="block text-sm font-medium text-gray-700 mb-1">Path</label>

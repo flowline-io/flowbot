@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // Descriptor returns the hub capability descriptor for forge.
@@ -27,6 +28,13 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 			{Name: ability.OpForgeGetIssue, Description: "Get an issue", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpForgeGetCommitDiff, Description: "Get commit diff", Scopes: []string{auth.ScopeServiceForgeRead}},
 			{Name: ability.OpForgeGetFileContent, Description: "Get file content", Scopes: []string{auth.ScopeServiceForgeRead}},
+		},
+		Events: []hub.EventDef{
+			{Name: types.EventForgeIssueOpened, Description: "Fires when an issue is opened"},
+			{Name: types.EventForgeIssueClosed, Description: "Fires when an issue is closed"},
+			{Name: types.EventForgeIssueReopened, Description: "Fires when an issue is reopened"},
+			{Name: types.EventForgeIssueEdited, Description: "Fires when an issue is edited"},
+			{Name: types.EventForgePush, Description: "Fires when code is pushed"},
 		},
 	}
 }

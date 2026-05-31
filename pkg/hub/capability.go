@@ -18,6 +18,13 @@ const (
 	CapMemo         CapabilityType = "memo"
 )
 
+// EventDef describes an event that a capability emits.
+type EventDef struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitzero"`
+}
+
+// ParamDef describes a parameter for an operation.
 type ParamDef struct {
 	Name        string `json:"name"`
 	Type        string `json:"type"`
@@ -39,6 +46,7 @@ type Descriptor struct {
 	App         string         `json:"app"`
 	Description string         `json:"description,omitzero"`
 	Operations  []Operation    `json:"operations,omitzero"`
+	Events      []EventDef     `json:"events,omitzero"`
 	Instance    any            `json:"-"`
 	Healthy     bool           `json:"healthy"`
 }

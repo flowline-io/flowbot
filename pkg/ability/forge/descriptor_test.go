@@ -52,6 +52,7 @@ func TestDescriptor(t *testing.T) {
 			assert.Equal(t, tt.wantHealthy, desc.Healthy)
 			assert.Equal(t, "Forge capability", desc.Description)
 			assert.Len(t, desc.Operations, 6)
+			assert.Len(t, desc.Events, 5)
 		})
 	}
 }
@@ -78,6 +79,31 @@ func TestDescriptor_Operations(t *testing.T) {
 				opNames[i] = op.Name
 			}
 			assert.Contains(t, opNames, tt.op)
+		})
+	}
+}
+
+func TestDescriptor_Events(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		event string
+	}{
+		{"has forge.issue.opened event", "forge.issue.opened"},
+		{"has forge.issue.closed event", "forge.issue.closed"},
+		{"has forge.issue.reopened event", "forge.issue.reopened"},
+		{"has forge.issue.edited event", "forge.issue.edited"},
+		{"has forge.push event", "forge.push"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			desc := Descriptor("g", "g", nil)
+			eventNames := make([]string, len(desc.Events))
+			for i, ev := range desc.Events {
+				eventNames[i] = ev.Name
+			}
+			assert.Contains(t, eventNames, tt.event)
 		})
 	}
 }

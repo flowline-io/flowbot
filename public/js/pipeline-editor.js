@@ -64,6 +64,24 @@
         return cap ? cap.operations || [] : [];
       },
 
+      getEventsForTrigger() {
+        const groups = [];
+        for (const cap of this.capabilities) {
+          if (cap.events && cap.events.length > 0) {
+            groups.push({ capability: cap.type, description: cap.description, events: cap.events });
+          }
+        }
+        return groups;
+      },
+
+      isEventKnown(eventName) {
+        if (!eventName) return true;
+        for (const cap of this.capabilities) {
+          if ((cap.events || []).some((e) => e.name === eventName)) return true;
+        }
+        return false;
+      },
+
       parseYamlToState(yaml) {
         try {
           const obj = jsyaml.load(yaml);

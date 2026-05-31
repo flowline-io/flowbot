@@ -31,6 +31,13 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 			{Name: ability.OpKanbanGetColumns, Description: "Get columns", Scopes: []string{auth.ScopeServiceKanbanRead}},
 			{Name: ability.OpKanbanSearchTasks, Description: "Search tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
 		},
+		Events: []hub.EventDef{
+			{Name: types.EventKanbanTaskCreated, Description: "Fires when a task is created"},
+			{Name: types.EventKanbanTaskUpdated, Description: "Fires when a task is updated"},
+			{Name: types.EventKanbanTaskCompleted, Description: "Fires when a task is completed"},
+			{Name: types.EventKanbanTaskOpened, Description: "Fires when a task is opened"},
+			{Name: types.EventKanbanTaskMoved, Description: "Fires when a task is moved"},
+		},
 	}
 }
 
