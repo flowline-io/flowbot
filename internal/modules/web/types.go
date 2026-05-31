@@ -36,7 +36,7 @@ func markdownView(data types.KV) templ.Component {
 	content, _ := data.String("content")
 	html := blackfriday.Run([]byte(content))
 	html = bluemonday.UGCPolicy().SanitizeBytes(html)
-	return partials.ViewMarkdownContent(templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+	return partials.ViewMarkdownContent(templ.ComponentFunc(func(_ context.Context, w io.Writer) error {
 		_, err := w.Write(html)
 		return err
 	}))
