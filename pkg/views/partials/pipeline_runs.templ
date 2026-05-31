@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bytedance/sonic"
+
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
 
@@ -72,6 +74,8 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 						<th class="px-4 py-2 text-left font-medium text-gray-500">Status</th>
 						<th class="px-4 py-2 text-left font-medium text-gray-500">Attempt</th>
 						<th class="px-4 py-2 text-left font-medium text-gray-500">Duration</th>
+						<th class="px-4 py-2 text-center font-medium text-gray-500 w-10">Params</th>
+						<th class="px-4 py-2 text-center font-medium text-gray-500 w-10">Result</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-gray-100">
@@ -85,6 +89,34 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 							</td>
 							<td class="px-4 py-2 text-gray-500">{ fmt.Sprint(s.Attempt) }</td>
 							<td class="px-4 py-2 text-gray-500">{ stepRunsDuration(s) }</td>
+							<td class="px-4 py-2 text-center">
+								if len(s.Params) > 0 {
+									<div class="relative inline-block group" data-testid="step-params">
+										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">P</span>
+										<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+											<div class="bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre-wrap shadow-lg">
+												{ sprintJSON(s.Params) }
+											</div>
+										</div>
+									</div>
+								} else {
+									<span class="text-gray-300 text-[10px]">-</span>
+								}
+							</td>
+							<td class="px-4 py-2 text-center">
+								if len(s.Result) > 0 {
+									<div class="relative inline-block group" data-testid="step-result">
+										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-green-100 group-hover:text-green-600 transition-colors">R</span>
+										<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+											<div class="bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre-wrap shadow-lg">
+												{ sprintJSON(s.Result) }
+											</div>
+										</div>
+									</div>
+								} else {
+									<span class="text-gray-300 text-[10px]">-</span>
+								}
+							</td>
 						</tr>
 					}
 				</tbody>
@@ -141,4 +173,15 @@ func stepRunsDuration(sr *gen.PipelineStepRun) string {
 		return fmt.Sprintf("%dms", d.Milliseconds())
 	}
 	return d.Round(time.Second).String()
+}
+
+func sprintJSON(m map[string]any) string {
+	if len(m) == 0 {
+		return ""
+	}
+	data, err := sonic.MarshalIndent(m, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("(error: %v)", err)
+	}
+	return string(data)
 }
