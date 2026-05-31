@@ -82,32 +82,32 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/service/web/login\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"login-form\" class=\"max-w-sm mx-auto mt-20 bg-white rounded-lg shadow-sm border border-gray-200 p-6\"><h1 class=\"text-xl font-semibold text-gray-900 mb-6 text-center\">Flowbot</h1><input type=\"hidden\" name=\"next\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/service/web/login\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"login-form\" class=\"card bg-base-100 w-96 shadow-sm max-w-sm mx-auto mt-20\"><div class=\"card-body !p-6\"><h1 class=\"card-title justify-center text-base-content mb-6\">Flowbot</h1><input type=\"hidden\" name=\"next\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(nextURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 21, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 22, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium text-gray-700 mb-1\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" data-testid=\"login-username\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm\"></div><div class=\"mb-4\"><label for=\"password\" class=\"block text-sm font-medium text-gray-700 mb-1\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"current-password\" data-testid=\"login-password\" class=\"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" data-testid=\"login-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-4\"><label for=\"password\" class=\"block text-sm font-medium mb-1\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"current-password\" data-testid=\"login-password\" class=\"input input-bordered w-full\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if errorMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"text-red-500 text-sm mb-4\" data-testid=\"login-error\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"text-error text-sm mb-4\" data-testid=\"login-error\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 35, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 36, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -118,7 +118,7 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<button type=\"submit\" data-testid=\"login-submit\" class=\"w-full bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700\">Login</button></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<button type=\"submit\" data-testid=\"login-submit\" class=\"btn btn-primary w-full\">Login</button></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

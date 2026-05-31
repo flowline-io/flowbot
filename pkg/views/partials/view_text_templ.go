@@ -29,7 +29,7 @@ func ViewTextContent(content string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<pre class=\"bg-white rounded-lg shadow-sm border border-gray-200 p-6 whitespace-pre-wrap text-gray-800 text-sm font-mono\" data-testid=\"view-text-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<pre class=\"bg-base-100 rounded-box shadow-sm border border-base-300 p-6 whitespace-pre-wrap text-base-content text-sm font-mono\" data-testid=\"view-text-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

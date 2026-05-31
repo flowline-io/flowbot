@@ -14,7 +14,7 @@ internal/modules/web/
 
 pkg/views/
 ├── layout/
-│   └── base.templ         # Global HTML skeleton (htmx, alpinejs, js-yaml, tailwind)
+│   └── base.templ         # Global HTML skeleton (htmx, alpinejs, js-yaml, daisyui)
 ├── pages/
 │   ├── home.templ         # HomePage
 │   ├── login.templ        # LoginPage, LoginForm
@@ -38,7 +38,7 @@ pkg/views/
 | Templates | [templ](https://templ.guide) v0.3 | Server-side HTML rendering, type-safe Go templates |
 | Interactivity | [HTMX 2.x](https://htmx.org) | Partial page updates, form submissions, click-to-load |
 | SPA components | [Alpine.js 3.x](https://alpinejs.dev) | Pipeline editor (visual/code modes, undo/redo, drawer) |
-| CSS | [Tailwind CSS v4](https://tailwindcss.com) | Utility-first CSS via `npx tailwindcss` |
+| CSS | [DaisyUI v5](https://daisyui.com) | Component CSS via CDN (built on Tailwind CSS) |
 | YAML handling | [js-yaml](https://github.com/nodeca/js-yaml) | YAML ↔ JSON conversion in pipeline editor |
 | Static embedding | `embed.FS` (`webassets.go`) | CSS/JS served from binary, no runtime filesystem dependency |
 
@@ -48,7 +48,7 @@ pkg/views/
 - **Partials** (`pkg/views/partials/`): Fragment templates rendered standalone or as HTMX responses. Package `partials`. May contain shared Go helper functions.
 - **Layout** (`pkg/views/layout/`): Global HTML skeleton with `<nav>`, CDN script tags, CSS link. Package `layout`.
 - Pages import partials: `import "github.com/flowline-io/flowbot/pkg/views/partials"` and call `@partials.Xxx()`.
-- Do not put multi-line inline CSS; use Tailwind utility classes.
+- Do not put multi-line inline CSS; use Tailwind utility classes or DaisyUI component classes.
 - Test IDs use `data-testid="kebab-case"` on interactive elements.
 - Generated `*_templ.go` files are regenerated via `templ generate pkg/views/...`. Never edit generated files.
 - Always regenerate after changing `.templ` files.
@@ -91,14 +91,14 @@ pkg/views/
 - Trigger cards and step cards are templ partials rendered with Alpine directives (`:class`, `@click`, `x-text`).
 - CDN: `https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js` loaded in `base.templ`.
 
-## CSS / Tailwind
+## CSS / DaisyUI
 
-- Source: `public/css/input.css` (imports tailwind + custom classes)
-- Output: `public/css/styles.css` (generated)
-- Build: `npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css`
-- Served at `/static/css/styles.css` via embedded `webassets.FS`.
-- Tailwind v4: no `tailwind.config.js`, configured via CSS imports.
-- Custom utility: `.var-pill` in `input.css` for variable picker pills in pipeline editor.
+- Framework: [DaisyUI v5](https://daisyui.com) (built on Tailwind CSS v4)
+- Delivery: CDN (`daisyui@5` + `@tailwindcss/browser@4` + `daizyui@5/themes.css`), no local build step
+- Theme: `data-theme="light"` on `<html>`, configurable via themes.css CDN
+- Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.FS`
+- Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, etc.
+- Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
 
 ## Static Assets
 

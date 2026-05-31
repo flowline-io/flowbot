@@ -29,7 +29,7 @@ func ViewExpiredPage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center py-16\" data-testid=\"view-expired\"><p class=\"text-gray-400 text-lg\">Page not found or expired.</p><a href=\"/service/web/home\" class=\"mt-4 inline-block text-blue-600 hover:text-blue-800 text-sm\">Return to home</a></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center py-16\" data-testid=\"view-expired\"><p class=\"text-base-content/30 text-lg\">Page not found or expired.</p><a href=\"/service/web/home\" class=\"mt-4 inline-block link link-hover text-primary text-sm\">Return to home</a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

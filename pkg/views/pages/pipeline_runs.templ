@@ -10,8 +10,8 @@ templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
 	@layout.Base("Runs: " + name) {
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center justify-between mb-6">
-				<h1 class="text-xl font-semibold text-gray-800">
-					Run History: <a href={ templ.URL("/service/web/pipelines/" + name) } class="text-blue-600 hover:underline">{ name }</a>
+				<h1 class="text-xl font-semibold text-base-content">
+					Run History: <a href={ templ.URL("/service/web/pipelines/" + name) } class="link link-hover text-primary">{ name }</a>
 				</h1>
 			</div>
 			<div id="pipeline-runs-container" data-testid="pipeline-runs-container">

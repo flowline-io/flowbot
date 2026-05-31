@@ -10,11 +10,11 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 	@layout.Base("Pipelines") {
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center justify-between mb-6">
-				<h1 class="text-2xl font-semibold text-gray-800">Pipelines</h1>
+				<h1 class="text-2xl font-semibold text-base-content">Pipelines</h1>
 				<button type="button"
-					onclick="document.getElementById('create-modal').classList.remove('hidden')"
+					onclick="document.getElementById('create-modal').showModal()"
 					data-testid="btn-new-pipeline"
-					class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium">
+					class="btn btn-primary">
 					+ New Pipeline
 				</button>
 			</div>
@@ -22,32 +22,36 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 				@partials.PipelineListTable(defs)
 			</div>
 		</div>
-		<div id="create-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30" data-testid="create-modal">
-			<div class="bg-white rounded-lg shadow-xl p-6 w-96">
-				<h3 class="text-lg font-medium text-gray-800 mb-4">New Pipeline</h3>
+		<dialog id="create-modal" class="modal" data-testid="create-modal">
+			<div class="modal-box">
+				<h3 class="text-lg font-medium text-base-content mb-4">New Pipeline</h3>
 				<form id="create-form" hx-post="/service/web/pipelines" hx-target="body" data-testid="create-form">
-					<label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+					<label class="label">
+						<span class="label-text">Name</span>
+					</label>
 					<input type="text" name="name" required pattern="[a-zA-Z0-9][a-zA-Z0-9_\-]*"
-						class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
+						class="input input-bordered w-full mb-3"
 						placeholder="my-pipeline"
 						title="Letters, digits, hyphens, underscores. Must start with letter or digit."
 						data-testid="input-pipeline-name">
-					<label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+					<label class="label">
+						<span class="label-text">Description (optional)</span>
+					</label>
 					<input type="text" name="description"
-						class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-4"
+						class="input input-bordered w-full mb-4"
 						placeholder="Brief description"
 						data-testid="input-pipeline-desc">
-					<div class="flex justify-end gap-2">
+					<div class="modal-action">
 						<button type="button"
-							onclick="document.getElementById('create-modal').classList.add('hidden')"
-							class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
+							onclick="document.getElementById('create-modal').close()"
+							class="btn btn-ghost"
 							data-testid="btn-cancel-create">Cancel</button>
 						<button type="submit"
-							class="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+							class="btn btn-primary"
 							data-testid="btn-submit-create">Create</button>
 					</div>
 				</form>
 			</div>
-		</div>
+		</dialog>
 	}
 }

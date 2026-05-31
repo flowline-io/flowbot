@@ -46,19 +46,19 @@ func ViewPage(title string, body templ.Component, expired bool) templ.Component 
 			}
 			ctx = templ.InitializeContext(ctx)
 			if expired {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-4 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-700\" data-testid=\"view-expired-banner\">This page has expired and may no longer be available.</div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-4 alert alert-warning\" data-testid=\"view-expired-banner\">This page has expired and may no longer be available.</div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " <h1 class=\"text-2xl font-semibold text-gray-800 mb-6\" data-testid=\"view-title\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " <h1 class=\"text-2xl font-semibold text-base-content mb-6\" data-testid=\"view-title\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/view.templ`, Line: 13, Col: 88}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/view.templ`, Line: 13, Col: 92}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {

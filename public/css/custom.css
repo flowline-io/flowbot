@@ -1,12 +1,8 @@
-@import "tailwindcss";
-@source "../../pkg/views";
-@source not "../../docs";
-
 /* Variable pill display in step card param previews */
 .var-pill {
 	display: inline-block;
-	background: #dbeafe;
-	color: #1e40af;
+	background: oklch(from var(--p) l c h / 0.1);
+	color: var(--p);
 	border-radius: 4px;
 	padding: 1px 6px;
 	font-family: monospace;

@@ -31,7 +31,7 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"configs-table\" data-testid=\"configs-table\" class=\"bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden\"><table class=\"w-full\"><thead class=\"bg-gray-50 border-b border-gray-200\"><tr><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">ID</th><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">UID</th><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Topic</th><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Key</th><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Value</th><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Updated</th><th class=\"px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Actions</th></tr></thead> <tbody id=\"configs-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"configs-table\" data-testid=\"configs-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">ID</th><th class=\"text-xs uppercase\">UID</th><th class=\"text-xs uppercase\">Topic</th><th class=\"text-xs uppercase\">Key</th><th class=\"text-xs uppercase\">Value</th><th class=\"text-xs uppercase\">Updated</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"configs-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -42,7 +42,7 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			}
 		}
 		if len(items) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"configs-empty\"><td colspan=\"7\" class=\"px-4 py-6 text-center text-sm text-gray-500\">No configs found.</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"configs-empty\"><td colspan=\"7\" class=\"text-center text-base-content/50\">No configs found.</td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

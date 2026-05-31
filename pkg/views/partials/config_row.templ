@@ -8,24 +8,24 @@ import (
 )
 
 templ ConfigRow(item model.ConfigItem) {
-	<tr id={ configRowID(item) } hx-target="this" hx-swap="outerHTML" class="border-b border-gray-200 hover:bg-gray-50">
-		<td class="px-4 py-3 text-sm text-gray-600">{ fmt.Sprintf("%d", item.ID) }</td>
-		<td class="px-4 py-3 text-sm text-gray-900 font-mono">{ item.UID }</td>
-		<td class="px-4 py-3 text-sm text-gray-900">{ item.Topic }</td>
-		<td class="px-4 py-3 text-sm text-gray-900 font-mono">{ item.Key }</td>
-		<td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">{ valuePreview(item.Value) }</td>
-		<td class="px-4 py-3 text-sm text-gray-500">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
-		<td class="px-4 py-3 text-sm">
+	<tr id={ configRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="text-base-content/70">{ fmt.Sprintf("%d", item.ID) }</td>
+		<td class="text-base-content font-mono">{ item.UID }</td>
+		<td class="text-base-content">{ item.Topic }</td>
+		<td class="text-base-content font-mono">{ item.Key }</td>
+		<td class="text-base-content/50 max-w-xs truncate">{ valuePreview(item.Value) }</td>
+		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+		<td>
 			<div class="flex gap-2">
 				<button hx-get={ configEditURL(item) }
 					data-testid="config-edit"
-					class="text-blue-600 hover:text-blue-800 font-medium">
+					class="btn btn-ghost btn-xs text-primary">
 					Edit
 				</button>
 				<button hx-delete={ configKeyURL(item) }
 					hx-confirm="Delete this config?"
 					data-testid="config-delete"
-					class="text-red-600 hover:text-red-800 font-medium">
+					class="btn btn-ghost btn-xs text-error">
 					Delete
 				</button>
 			</div>

@@ -5,13 +5,13 @@ import (
 )
 
 templ ViewPipelineRunContent(steps any) {
-	<div class="bg-white rounded-lg shadow-sm border border-gray-200" data-testid="view-pipeline-run-content">
+	<div class="card bg-base-100 shadow-sm" data-testid="view-pipeline-run-content">
 		if steps == nil {
-			<div class="p-6 text-sm text-gray-400">No step run data available.</div>
+			<div class="card-body text-sm text-base-content/30">No step run data available.</div>
 		} else if stepList, ok := steps.([]*gen.PipelineStepRun); ok {
 			@PipelineStepRunsDetail(stepList)
 		} else {
-			<div class="p-6 text-sm text-gray-400">Unable to render pipeline run data.</div>
+			<div class="card-body text-sm text-base-content/30">Unable to render pipeline run data.</div>
 		}
 	</div>
 }

@@ -6,11 +6,11 @@ import "github.com/flowline-io/flowbot/pkg/views/layout"
 templ ViewPage(title string, body templ.Component, expired bool) {
 	@layout.Base(title + " — Flowbot") {
 		if expired {
-			<div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3 text-sm text-yellow-700" data-testid="view-expired-banner">
+			<div class="mb-4 alert alert-warning" data-testid="view-expired-banner">
 				This page has expired and may no longer be available.
 			</div>
 		}
-		<h1 class="text-2xl font-semibold text-gray-800 mb-6" data-testid="view-title">{ title }</h1>
+		<h1 class="text-2xl font-semibold text-base-content mb-6" data-testid="view-title">{ title }</h1>
 		@body
 	}
 }

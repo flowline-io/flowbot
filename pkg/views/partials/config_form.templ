@@ -6,49 +6,49 @@ import (
 
 templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 	<tr id={ configFormID(item, isNew) }>
-		<td class="px-4 py-2"></td>
-		<td class="px-4 py-2">
+		<td></td>
+		<td>
 			<input type="text" name="uid" value={ item.UID }
 				data-testid="config-uid"
-				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "uid") }
+				class={ "input input-bordered input-sm w-full " + fieldError(errors, "uid") }
 				placeholder="uid"
 				if !isNew {
 					readonly="readonly"
 				}
 			/>
-			<div class="text-red-500 text-xs">{ errors["uid"] }</div>
+			<div class="text-error text-xs">{ errors["uid"] }</div>
 		</td>
-		<td class="px-4 py-2">
+		<td>
 			<input type="text" name="topic" value={ item.Topic }
 				data-testid="config-topic"
-				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "topic") }
+				class={ "input input-bordered input-sm w-full " + fieldError(errors, "topic") }
 				placeholder="topic"
 				if !isNew {
 					readonly="readonly"
 				}
 			/>
-			<div class="text-red-500 text-xs">{ errors["topic"] }</div>
+			<div class="text-error text-xs">{ errors["topic"] }</div>
 		</td>
-		<td class="px-4 py-2">
+		<td>
 			<input type="text" name="key" value={ item.Key }
 				data-testid="config-key"
-				class={ "w-full border rounded px-2 py-1 text-sm " + fieldError(errors, "key") }
+				class={ "input input-bordered input-sm w-full " + fieldError(errors, "key") }
 				placeholder="key"
 				if !isNew {
 					readonly="readonly"
 				}
 			/>
-			<div class="text-red-500 text-xs">{ errors["key"] }</div>
+			<div class="text-error text-xs">{ errors["key"] }</div>
 		</td>
-		<td class="px-4 py-2">
+		<td>
 			<textarea name="value" rows="2"
 				data-testid="config-value"
-				class={ "w-full border rounded px-2 py-1 text-sm font-mono " + fieldError(errors, "value") }
+				class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "value") }
 				placeholder='{"key": "value"}'>{ valueJSON(item.Value) }</textarea>
-			<div class="text-red-500 text-xs">{ errors["value"] }</div>
+			<div class="text-error text-xs">{ errors["value"] }</div>
 		</td>
-		<td class="px-4 py-2"></td>
-		<td class="px-4 py-2">
+		<td></td>
+		<td>
 			<div class="flex gap-2">
 				<button type="button"
 					if isNew {
@@ -60,7 +60,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 					hx-swap="outerHTML"
 					hx-include="[name='uid'], [name='topic'], [name='key'], [name='value']"
 					data-testid="config-save"
-					class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+					class="btn btn-primary btn-sm">
 					Save
 				</button>
 				<button type="button"
@@ -68,7 +68,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 					hx-target="#configs-table"
 					hx-swap="outerHTML"
 					data-testid="config-cancel"
-					class="text-gray-600 hover:text-gray-800 text-sm">
+					class="btn btn-ghost btn-sm">
 					Cancel
 				</button>
 			</div>

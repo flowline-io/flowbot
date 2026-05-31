@@ -1,49 +1,49 @@
 package partials
 
 templ TriggerCard() {
-	<div class="bg-white rounded-lg shadow-sm border p-3 flex items-center justify-between cursor-pointer"
+	<div class="card bg-base-100 shadow-sm card-body p-3 flex flex-row items-center justify-between cursor-pointer"
 		:class="getTriggerErrorClass(idx)"
 		@click="selectNode('trigger', idx)" data-testid="trigger-card">
 		<div class="flex items-center gap-3">
-			<div class="w-8 h-8 rounded bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-bold">
+			<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
 				<span x-show="t.type === 'event'">E</span>
 				<span x-show="t.type === 'webhook'">W</span>
 				<span x-show="t.type === 'cron'">C</span>
 			</div>
 			<div>
-				<div class="text-sm font-medium text-gray-800" x-text="'Event: ' + (t.event || '...')" x-show="t.type === 'event'"></div>
-				<div class="text-sm font-medium text-gray-800" x-text="'Webhook: ' + ((t.webhook && t.webhook.path) || '...')" x-show="t.type === 'webhook'"></div>
-				<div class="text-sm font-medium text-gray-800" x-text="'Cron: ' + (t.cron || '...')" x-show="t.type === 'cron'"></div>
+				<div class="text-sm font-medium text-base-content" x-text="'Event: ' + (t.event || '...')" x-show="t.type === 'event'"></div>
+				<div class="text-sm font-medium text-base-content" x-text="'Webhook: ' + ((t.webhook && t.webhook.path) || '...')" x-show="t.type === 'webhook'"></div>
+				<div class="text-sm font-medium text-base-content" x-text="'Cron: ' + (t.cron || '...')" x-show="t.type === 'cron'"></div>
 			</div>
 		</div>
 		<div class="flex items-center gap-2">
 			<label class="relative inline-flex items-center cursor-pointer">
 				<input type="checkbox" x-model="t.enabled" class="sr-only peer" data-testid="trigger-switch">
-				<div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+				<div class="w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
 			</label>
-			<button type="button" @click.stop="removeTrigger(idx)" class="text-gray-400 hover:text-red-500" data-testid="btn-remove-trigger">&times;</button>
+			<button type="button" @click.stop="removeTrigger(idx)" class="text-base-content/30 hover:text-error" data-testid="btn-remove-trigger">&times;</button>
 		</div>
 	</div>
 }
 
 templ StepCard() {
-	<div class="bg-white rounded-lg shadow-sm border p-4 relative group cursor-pointer"
+	<div class="card bg-base-100 shadow-sm card-body p-4 relative group cursor-pointer"
 		:class="getStepErrorClass(idx)"
 		@click="selectNode('step', idx)" data-testid="step-card">
-		<div class="absolute -top-2 right-2 hidden group-hover:flex gap-1 bg-white border rounded shadow-sm px-2 py-0.5 text-xs">
-			<button type="button" @click.stop="moveStepUp(idx)" class="text-gray-400 hover:text-gray-600" data-testid="btn-move-up">Up</button>
-			<button type="button" @click.stop="moveStepDown(idx)" class="text-gray-400 hover:text-gray-600" data-testid="btn-move-down">Down</button>
-			<button type="button" @click.stop="duplicateStep(idx)" class="text-gray-400 hover:text-gray-600" data-testid="btn-copy-step">Copy</button>
-			<button type="button" @click.stop="removeStep(idx)" class="text-red-400 hover:text-red-600" data-testid="btn-delete-step">Delete</button>
+		<div class="absolute -top-2 right-2 hidden group-hover:flex gap-1 bg-base-100 border rounded-box shadow-sm px-2 py-0.5 text-xs">
+			<button type="button" @click.stop="moveStepUp(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-move-up">Up</button>
+			<button type="button" @click.stop="moveStepDown(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-move-down">Down</button>
+			<button type="button" @click.stop="duplicateStep(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-copy-step">Copy</button>
+			<button type="button" @click.stop="removeStep(idx)" class="text-error/50 hover:text-error" data-testid="btn-delete-step">Delete</button>
 		</div>
 		<div class="flex items-center gap-3">
-			<div class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-bold" x-text="(step.capability || '?')[0].toUpperCase()"></div>
+			<div class="w-8 h-8 rounded bg-base-200 flex items-center justify-center text-base-content/50 text-xs font-bold" x-text="(step.capability || '?')[0].toUpperCase()"></div>
 			<div class="flex-1 min-w-0">
-				<div class="text-sm font-medium text-gray-800 truncate" x-text="step.name || 'Unnamed Step'"></div>
-				<div class="text-xs text-gray-400 truncate" x-text="step.capability + '.' + step.operation"></div>
+				<div class="text-sm font-medium text-base-content truncate" x-text="step.name || 'Unnamed Step'"></div>
+				<div class="text-xs text-base-content/30 truncate" x-text="step.capability + '.' + step.operation"></div>
 			</div>
-			<button type="button" @click.stop="selectNode('step', idx)" class="text-gray-400 hover:text-gray-600">...</button>
+			<button type="button" @click.stop="selectNode('step', idx)" class="text-base-content/30 hover:text-base-content">...</button>
 		</div>
-		<div x-show="step.paramsText" class="mt-2 text-xs text-gray-500 line-clamp-2 font-mono bg-gray-50 rounded p-2" x-text="step.paramsText"></div>
+		<div x-show="step.paramsText" class="mt-2 text-xs text-base-content/50 line-clamp-2 font-mono bg-base-200 rounded-box p-2" x-text="step.paramsText"></div>
 	</div>
 }

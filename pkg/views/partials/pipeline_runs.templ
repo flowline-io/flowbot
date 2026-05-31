@@ -11,25 +11,25 @@ import (
 
 templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 	if len(runs) == 0 {
-		<div class="text-center py-12 text-gray-400" data-testid="runs-empty">
+		<div class="text-center py-12 text-base-content/30" data-testid="runs-empty">
 			<p>No runs recorded yet.</p>
 		</div>
 	} else {
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" data-testid="runs-table">
-			<table class="w-full text-sm text-left">
-				<thead class="bg-gray-50 text-gray-600">
+		<div class="overflow-x-auto" data-testid="runs-table">
+			<table class="table">
+				<thead>
 					<tr>
-						<th class="px-6 py-3 font-medium w-8"></th>
-						<th class="px-6 py-3 font-medium">Run ID</th>
-						<th class="px-6 py-3 font-medium">Event</th>
-						<th class="px-6 py-3 font-medium">Status</th>
-						<th class="px-6 py-3 font-medium">Started</th>
-						<th class="px-6 py-3 font-medium">Duration</th>
+						<th class="w-8"></th>
+						<th>Run ID</th>
+						<th>Event</th>
+						<th>Status</th>
+						<th>Started</th>
+						<th>Duration</th>
 					</tr>
 				</thead>
 				for _, r := range runs {
-					<tbody id={ "run-" + fmt.Sprint(r.ID) } class="border-b border-gray-100">
-						<tr class="cursor-pointer hover:bg-blue-50 transition-colors"
+					<tbody id={ "run-" + fmt.Sprint(r.ID) }>
+						<tr class="cursor-pointer hover"
 							hx-get={ templ.URL("/service/web/pipelines/" + name + "/runs/" + fmt.Sprint(r.ID) + "/steps") }
 							hx-trigger="click"
 							hx-target={ "#steps-" + fmt.Sprint(r.ID) + " td" }
@@ -38,16 +38,16 @@ templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 							onclick="var rid=this.dataset.runId;var td=document.getElementById('steps-'+rid).querySelector('td');var cv=this.querySelector('.chevron');if(td.innerHTML.trim()){td.innerHTML='';cv.classList.remove('rotate-90');return false}"
 							data-run-id={ fmt.Sprint(r.ID) }
 							data-testid={ "run-row-" + fmt.Sprint(r.ID) }>
-							<td class="px-6 py-3 w-8 text-gray-400">
-								<span class="chevron inline-block transition-transform duration-200">▶</span>
+							<td class="text-base-content/30">
+								<span class="chevron inline-block transition-transform duration-200">&#9654;</span>
 							</td>
-							<td class="px-6 py-3 font-mono text-xs text-gray-600">{ fmt.Sprint(r.ID) }</td>
-							<td class="px-6 py-3 text-gray-600">{ r.EventID }</td>
-							<td class="px-6 py-3">
+							<td class="font-mono text-xs text-base-content/70">{ fmt.Sprint(r.ID) }</td>
+							<td class="text-base-content/70">{ r.EventID }</td>
+							<td>
 								<span class={ runsStatusClass(int(r.Status)) }>{ runsStatusText(int(r.Status)) }</span>
 							</td>
-							<td class="px-6 py-3 text-gray-500 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
-							<td class="px-6 py-3 text-gray-500 text-xs">{ runsDuration(r) }</td>
+							<td class="text-base-content/50 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
+							<td class="text-base-content/50 text-xs">{ runsDuration(r) }</td>
 						</tr>
 						<tr id={ "steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
 							<td colspan="6"></td>
@@ -61,60 +61,60 @@ templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 
 templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 	if len(steps) == 0 {
-		<div class="text-sm text-gray-400 py-3 text-center">No step runs recorded for this run.</div>
+		<div class="text-sm text-base-content/30 py-3 text-center">No step runs recorded for this run.</div>
 	} else {
 		<div class="px-4 py-3" data-testid="step-runs-detail">
-			<div class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Step Runs</div>
-			<table class="w-full text-xs border border-gray-100 rounded">
-				<thead class="bg-gray-50">
+			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Step Runs</div>
+			<table class="table table-xs">
+				<thead>
 					<tr>
-						<th class="px-4 py-2 text-left font-medium text-gray-500">Step</th>
-						<th class="px-4 py-2 text-left font-medium text-gray-500">Capability</th>
-						<th class="px-4 py-2 text-left font-medium text-gray-500">Operation</th>
-						<th class="px-4 py-2 text-left font-medium text-gray-500">Status</th>
-						<th class="px-4 py-2 text-left font-medium text-gray-500">Attempt</th>
-						<th class="px-4 py-2 text-left font-medium text-gray-500">Duration</th>
-						<th class="px-4 py-2 text-center font-medium text-gray-500 w-10">Params</th>
-						<th class="px-4 py-2 text-center font-medium text-gray-500 w-10">Result</th>
+						<th>Step</th>
+						<th>Capability</th>
+						<th>Operation</th>
+						<th>Status</th>
+						<th>Attempt</th>
+						<th>Duration</th>
+						<th class="text-center w-10">Params</th>
+						<th class="text-center w-10">Result</th>
 					</tr>
 				</thead>
-				<tbody class="divide-y divide-gray-100">
+				<tbody>
 					for _, s := range steps {
 						<tr>
-							<td class="px-4 py-2 font-medium text-gray-700">{ s.StepName }</td>
-							<td class="px-4 py-2 text-gray-500">{ s.Capability }</td>
-							<td class="px-4 py-2 text-gray-500">{ s.Operation }</td>
-							<td class="px-4 py-2">
+							<td class="font-medium text-base-content">{ s.StepName }</td>
+							<td class="text-base-content/50">{ s.Capability }</td>
+							<td class="text-base-content/50">{ s.Operation }</td>
+							<td>
 								<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
 							</td>
-							<td class="px-4 py-2 text-gray-500">{ fmt.Sprint(s.Attempt) }</td>
-							<td class="px-4 py-2 text-gray-500">{ stepRunsDuration(s) }</td>
-							<td class="px-4 py-2 text-center">
+							<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
+							<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
+							<td class="text-center">
 								if len(s.Params) > 0 {
 									<div class="relative inline-block group" data-testid="step-params">
-										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">P</span>
+										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-base-200 text-base-content/50 text-[10px] font-bold cursor-default group-hover:bg-primary/10 group-hover:text-primary transition-colors">P</span>
 										<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-											<div class="bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left">
+											<div class="bg-neutral text-neutral-content text-[11px] rounded-box px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left">
 												{ sprintJSON(s.Params) }
 											</div>
 										</div>
 									</div>
 								} else {
-									<span class="text-gray-300 text-[10px]">-</span>
+									<span class="text-base-content/10 text-[10px]">-</span>
 								}
 							</td>
-							<td class="px-4 py-2 text-center">
+							<td class="text-center">
 								if len(s.Result) > 0 {
 									<div class="relative inline-block group" data-testid="step-result">
-										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-green-100 group-hover:text-green-600 transition-colors">R</span>
+										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-base-200 text-base-content/50 text-[10px] font-bold cursor-default group-hover:bg-success/10 group-hover:text-success transition-colors">R</span>
 										<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-											<div class="bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left">
+											<div class="bg-neutral text-neutral-content text-[11px] rounded-box px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left">
 												{ sprintJSON(s.Result) }
 											</div>
 										</div>
 									</div>
 								} else {
-									<span class="text-gray-300 text-[10px]">-</span>
+									<span class="text-base-content/10 text-[10px]">-</span>
 								}
 							</td>
 						</tr>
@@ -128,13 +128,13 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 func runsStatusClass(status int) string {
 	switch status {
 	case 2:
-		return "text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
+		return "badge badge-success"
 	case 4:
-		return "text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
+		return "badge badge-error"
 	case 3:
-		return "text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full"
+		return "badge badge-warning"
 	default:
-		return "text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+		return "badge badge-ghost"
 	}
 }
 

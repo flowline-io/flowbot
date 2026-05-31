@@ -39,12 +39,12 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(runs) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center py-12 text-gray-400\" data-testid=\"runs-empty\"><p>No runs recorded yet.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"text-center py-12 text-base-content/30\" data-testid=\"runs-empty\"><p>No runs recorded yet.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden\" data-testid=\"runs-table\"><table class=\"w-full text-sm text-left\"><thead class=\"bg-gray-50 text-gray-600\"><tr><th class=\"px-6 py-3 font-medium w-8\"></th><th class=\"px-6 py-3 font-medium\">Run ID</th><th class=\"px-6 py-3 font-medium\">Event</th><th class=\"px-6 py-3 font-medium\">Status</th><th class=\"px-6 py-3 font-medium\">Started</th><th class=\"px-6 py-3 font-medium\">Duration</th></tr></thead> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"overflow-x-auto\" data-testid=\"runs-table\"><table class=\"table\"><thead><tr><th class=\"w-8\"></th><th>Run ID</th><th>Event</th><th>Status</th><th>Started</th><th>Duration</th></tr></thead> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -62,7 +62,7 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" class=\"border-b border-gray-100\"><tr class=\"cursor-pointer hover:bg-blue-50 transition-colors\" hx-get=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><tr class=\"cursor-pointer hover\" hx-get=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -114,33 +114,33 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><td class=\"px-6 py-3 w-8 text-gray-400\"><span class=\"chevron inline-block transition-transform duration-200\">▶</span></td><td class=\"px-6 py-3 font-mono text-xs text-gray-600\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><td class=\"text-base-content/30\"><span class=\"chevron inline-block transition-transform duration-200\">&#9654;</span></td><td class=\"font-mono text-xs text-base-content/70\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(r.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 44, Col: 79}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 44, Col: 76}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</td><td class=\"px-6 py-3 text-gray-600\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</td><td class=\"text-base-content/70\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(r.EventID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 45, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 45, Col: 51}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</td><td class=\"px-6 py-3\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</td><td>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -175,27 +175,27 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></td><td class=\"px-6 py-3 text-gray-500 text-xs\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</span></td><td class=\"text-base-content/50 text-xs\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(r.CreatedAt.Format("2006-01-02 15:04:05"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 49, Col: 94}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 49, Col: 91}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</td><td class=\"px-6 py-3 text-gray-500 text-xs\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</td><td class=\"text-base-content/50 text-xs\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(runsDuration(r))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 50, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 50, Col: 65}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -250,56 +250,56 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(steps) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"text-sm text-gray-400 py-3 text-center\">No step runs recorded for this run.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div class=\"text-sm text-base-content/30 py-3 text-center\">No step runs recorded for this run.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"px-4 py-3\" data-testid=\"step-runs-detail\"><div class=\"text-xs font-medium text-gray-400 uppercase tracking-wider mb-2\">Step Runs</div><table class=\"w-full text-xs border border-gray-100 rounded\"><thead class=\"bg-gray-50\"><tr><th class=\"px-4 py-2 text-left font-medium text-gray-500\">Step</th><th class=\"px-4 py-2 text-left font-medium text-gray-500\">Capability</th><th class=\"px-4 py-2 text-left font-medium text-gray-500\">Operation</th><th class=\"px-4 py-2 text-left font-medium text-gray-500\">Status</th><th class=\"px-4 py-2 text-left font-medium text-gray-500\">Attempt</th><th class=\"px-4 py-2 text-left font-medium text-gray-500\">Duration</th><th class=\"px-4 py-2 text-center font-medium text-gray-500 w-10\">Params</th><th class=\"px-4 py-2 text-center font-medium text-gray-500 w-10\">Result</th></tr></thead> <tbody class=\"divide-y divide-gray-100\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"px-4 py-3\" data-testid=\"step-runs-detail\"><div class=\"text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2\">Step Runs</div><table class=\"table table-xs\"><thead><tr><th>Step</th><th>Capability</th><th>Operation</th><th>Status</th><th>Attempt</th><th>Duration</th><th class=\"text-center w-10\">Params</th><th class=\"text-center w-10\">Result</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, s := range steps {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<tr><td class=\"px-4 py-2 font-medium text-gray-700\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<tr><td class=\"font-medium text-base-content\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(s.StepName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 84, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 84, Col: 61}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</td><td class=\"px-4 py-2 text-gray-500\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</td><td class=\"text-base-content/50\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(s.Capability)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 85, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 85, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</td><td class=\"px-4 py-2 text-gray-500\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</td><td class=\"text-base-content/50\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var18 string
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(s.Operation)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 86, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 86, Col: 53}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td class=\"px-4 py-2\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -334,38 +334,38 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span></td><td class=\"px-4 py-2 text-gray-500\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span></td><td class=\"text-base-content/50\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(s.Attempt))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 90, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 90, Col: 63}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</td><td class=\"px-4 py-2 text-gray-500\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</td><td class=\"text-base-content/50\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(stepRunsDuration(s))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 91, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 91, Col: 61}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</td><td class=\"px-4 py-2 text-center\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</td><td class=\"text-center\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if len(s.Params) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"relative inline-block group\" data-testid=\"step-params\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors\">P</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"relative inline-block group\" data-testid=\"step-params\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-base-200 text-base-content/50 text-[10px] font-bold cursor-default group-hover:bg-primary/10 group-hover:text-primary transition-colors\">P</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-neutral text-neutral-content text-[11px] rounded-box px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -383,17 +383,17 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"text-gray-300 text-[10px]\">-</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"text-base-content/10 text-[10px]\">-</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</td><td class=\"px-4 py-2 text-center\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</td><td class=\"text-center\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if len(s.Result) > 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"relative inline-block group\" data-testid=\"step-result\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold cursor-default group-hover:bg-green-100 group-hover:text-green-600 transition-colors\">R</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-gray-800 text-gray-200 text-[11px] rounded px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"relative inline-block group\" data-testid=\"step-result\"><span class=\"inline-flex items-center justify-center w-5 h-5 rounded bg-base-200 text-base-content/50 text-[10px] font-bold cursor-default group-hover:bg-success/10 group-hover:text-success transition-colors\">R</span><div class=\"absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20\"><div class=\"bg-neutral text-neutral-content text-[11px] rounded-box px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -411,7 +411,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"text-gray-300 text-[10px]\">-</span>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"text-base-content/10 text-[10px]\">-</span>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -433,13 +433,13 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 func runsStatusClass(status int) string {
 	switch status {
 	case 2:
-		return "text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
+		return "badge badge-success"
 	case 4:
-		return "text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
+		return "badge badge-error"
 	case 3:
-		return "text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full"
+		return "badge badge-warning"
 	default:
-		return "text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+		return "badge badge-ghost"
 	}
 }
 

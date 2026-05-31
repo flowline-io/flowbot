@@ -223,18 +223,7 @@ tasks:
     cmds:
       - go tool templ generate
 
-  css:
-    desc: Build Tailwind CSS
-    cmds:
-      - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css
-
-  css:min:
-    desc: Build Tailwind CSS minified for production
-    cmds:
-      - npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/styles.css --minify
-
   web:
-    desc: Build web UI (Templ + Tailwind)
+    desc: Build web UI (Templ)
     cmds:
       - task: templ
-      - task: css
