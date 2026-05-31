@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -324,6 +325,7 @@ func NewAuditStore(client *gen.Client) *AuditStore {
 // Record writes an audit entry to persistent storage.
 // If the store or client is nil, the call is silently skipped.
 // Audit write failures are logged and do not propagate to the caller.
+// Sensitive fields in entry.Request are redacted before storage.
 func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
 	if s == nil || s.client == nil {
 		return nil
@@ -339,7 +341,7 @@ func (s *AuditStore) Record(ctx context.Context, entry audit.Entry) error {
 		details["user_agent"] = entry.Subject.UserAgent
 	}
 	if entry.Request != nil {
-		details["request"] = entry.Request
+		details["request"] = sanitizeAuditValue(entry.Request)
 	}
 	now := time.Now()
 	_, err := s.client.AuditLog.Create().
@@ -394,6 +396,50 @@ func wrapResult(request any, key, value string) map[string]any {
 		}
 	}
 	return m
+}
+
+// auditSensitiveKeys lists request field names that are redacted from audit
+// logs. All comparisons are case-insensitive (lowercase).
+var auditSensitiveKeys = map[string]struct{}{
+	"password":     {},
+	"passwd":       {},
+	"secret":       {},
+	"token":        {},
+	"api_key":      {},
+	"apikey":       {},
+	"authorization": {},
+	"cookie":       {},
+	"private_key":  {},
+	"access_token": {},
+	"auth":         {},
+	"credential":   {},
+	"signature":    {},
+}
+
+// sanitizeAuditValue recursively redacts sensitive fields from audit data.
+// Map keys matching auditSensitiveKeys are replaced with "[redacted]".
+// Non-map values are returned unchanged.
+func sanitizeAuditValue(v any) any {
+	switch val := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(val))
+		for k, vv := range val {
+			if _, sensitive := auditSensitiveKeys[strings.ToLower(k)]; sensitive {
+				out[k] = "[redacted]"
+				continue
+			}
+			out[k] = sanitizeAuditValue(vv)
+		}
+		return out
+	case []any:
+		out := make([]any, len(val))
+		for i, vv := range val {
+			out[i] = sanitizeAuditValue(vv)
+		}
+		return out
+	default:
+		return v
+	}
 }
 
 // ---------------------------------------------------------------------------

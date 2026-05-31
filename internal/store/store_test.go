@@ -179,6 +179,92 @@ func TestAuditStore_SubjectExtraction(t *testing.T) {
 	}
 }
 
+func TestSanitizeAuditValue(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		input  any
+		expect any
+	}{
+		{
+			name:   "nil input",
+			input:  nil,
+			expect: nil,
+		},
+		{
+			name:   "string passes through",
+			input:  "hello",
+			expect: "hello",
+		},
+		{
+			name:   "int passes through",
+			input:  42,
+			expect: 42,
+		},
+		{
+			name: "redacts password and token keys",
+			input: map[string]any{
+				"username":  "alice",
+				"password":  "secret123",
+				"token":     "abc.def.ghi",
+				"api_key":   "key-1234",
+				"action":    "login",
+			},
+			expect: map[string]any{
+				"username":  "alice",
+				"password":  "[redacted]",
+				"token":     "[redacted]",
+				"api_key":   "[redacted]",
+				"action":    "login",
+			},
+		},
+		{
+			name: "case-insensitive redaction",
+			input: map[string]any{
+				"PASSWORD": "MyP@ss",
+				"Password": "AnotherP@ss",
+			},
+			expect: map[string]any{
+				"PASSWORD": "[redacted]",
+				"Password": "[redacted]",
+			},
+		},
+		{
+			name: "recursively redacts nested maps",
+			input: map[string]any{
+				"user": map[string]any{
+					"name":     "bob",
+					"password": "nested-secret",
+				},
+			},
+			expect: map[string]any{
+				"user": map[string]any{
+					"name":     "bob",
+					"password": "[redacted]",
+				},
+			},
+		},
+		{
+			name: "redacts in arrays",
+			input: []any{
+				map[string]any{"id": "1", "secret": "s1"},
+				map[string]any{"id": "2", "secret": "s2"},
+			},
+			expect: []any{
+				map[string]any{"id": "1", "secret": "[redacted]"},
+				map[string]any{"id": "2", "secret": "[redacted]"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := sanitizeAuditValue(tt.input)
+			assert.Equal(t, tt.expect, got)
+		})
+	}
+}
+
 // ---------------------------------------------------------------------------
 // PollingStateStore tests
 // ---------------------------------------------------------------------------

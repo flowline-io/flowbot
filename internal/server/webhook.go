@@ -113,8 +113,9 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 		if wcfg.Payload == config.WebhookPayloadMapped {
 			var parsed map[string]any
 			if err := sonic.Unmarshal(body, &parsed); err != nil {
+				flog.Warn("webhook %s: invalid JSON for mapped payload", def.Name)
 				return c.Status(fiber.StatusBadRequest).
-					SendString("invalid JSON body for mapped payload: " + err.Error())
+					SendString("invalid JSON body")
 			}
 			dataEvent.Data = types.KV(parsed)
 		} else {

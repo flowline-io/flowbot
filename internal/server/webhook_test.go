@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -153,6 +154,7 @@ func TestWebhookHandler_Integration(t *testing.T) {
 		contentType string
 		setHeaders  func(req *http.Request)
 		wantStatus  int
+		wantBody    string
 	}{
 		{
 			name: "happy path token auth mapped payload returns 202",
@@ -201,6 +203,7 @@ func TestWebhookHandler_Integration(t *testing.T) {
 				req.Header.Set("X-Webhook-Token", "tok")
 			},
 			wantStatus: fiber.StatusBadRequest,
+			wantBody:   "invalid JSON body",
 		},
 	}
 	for _, tt := range tests {
@@ -229,6 +232,11 @@ func TestWebhookHandler_Integration(t *testing.T) {
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantBody != "" {
+				bodyBytes, readErr := io.ReadAll(resp.Body)
+				require.NoError(t, readErr)
+				assert.Equal(t, tt.wantBody, string(bodyBytes))
+			}
 		})
 	}
 }
