@@ -153,30 +153,6 @@ func (f CounterRecordFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.CounterRecordMutation", m)
 }
 
-// The CycleFunc type is an adapter to allow the use of ordinary
-// function as Cycle mutator.
-type CycleFunc func(context.Context, *gen.CycleMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f CycleFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.CycleMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.CycleMutation", m)
-}
-
-// The DagFunc type is an adapter to allow the use of ordinary
-// function as Dag mutator.
-type DagFunc func(context.Context, *gen.DagMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f DagFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.DagMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.DagMutation", m)
-}
-
 // The DataFunc type is an adapter to allow the use of ordinary
 // function as Data mutator.
 type DataFunc func(context.Context, *gen.DataMutation) (gen.Value, error)
@@ -225,18 +201,6 @@ func (f EventOutboxFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.EventOutboxMutation", m)
 }
 
-// The ExecutionFunc type is an adapter to allow the use of ordinary
-// function as Execution mutator.
-type ExecutionFunc func(context.Context, *gen.ExecutionMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ExecutionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ExecutionMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ExecutionMutation", m)
-}
-
 // The FileuploadFunc type is an adapter to allow the use of ordinary
 // function as Fileupload mutator.
 type FileuploadFunc func(context.Context, *gen.FileuploadMutation) (gen.Value, error)
@@ -247,54 +211,6 @@ func (f FileuploadFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FileuploadMutation", m)
-}
-
-// The FlowFunc type is an adapter to allow the use of ordinary
-// function as Flow mutator.
-type FlowFunc func(context.Context, *gen.FlowMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FlowFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.FlowMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FlowMutation", m)
-}
-
-// The FlowEdgeFunc type is an adapter to allow the use of ordinary
-// function as FlowEdge mutator.
-type FlowEdgeFunc func(context.Context, *gen.FlowEdgeMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FlowEdgeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.FlowEdgeMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FlowEdgeMutation", m)
-}
-
-// The FlowJobFunc type is an adapter to allow the use of ordinary
-// function as FlowJob mutator.
-type FlowJobFunc func(context.Context, *gen.FlowJobMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FlowJobFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.FlowJobMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FlowJobMutation", m)
-}
-
-// The FlowNodeFunc type is an adapter to allow the use of ordinary
-// function as FlowNode mutator.
-type FlowNodeFunc func(context.Context, *gen.FlowNodeMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f FlowNodeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.FlowNodeMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.FlowNodeMutation", m)
 }
 
 // The FormFunc type is an adapter to allow the use of ordinary
@@ -321,42 +237,6 @@ func (f InstructFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.InstructMutation", m)
 }
 
-// The JobFunc type is an adapter to allow the use of ordinary
-// function as Job mutator.
-type JobFunc func(context.Context, *gen.JobMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f JobFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.JobMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.JobMutation", m)
-}
-
-// The KeyResultFunc type is an adapter to allow the use of ordinary
-// function as KeyResult mutator.
-type KeyResultFunc func(context.Context, *gen.KeyResultMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f KeyResultFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.KeyResultMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.KeyResultMutation", m)
-}
-
-// The KeyResultValueFunc type is an adapter to allow the use of ordinary
-// function as KeyResultValue mutator.
-type KeyResultValueFunc func(context.Context, *gen.KeyResultValueMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f KeyResultValueFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.KeyResultValueMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.KeyResultValueMutation", m)
-}
-
 // The MessageFunc type is an adapter to allow the use of ordinary
 // function as Message mutator.
 type MessageFunc func(context.Context, *gen.MessageMutation) (gen.Value, error)
@@ -379,18 +259,6 @@ func (f OAuthFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.OAuthMutation", m)
-}
-
-// The ObjectiveFunc type is an adapter to allow the use of ordinary
-// function as Objective mutator.
-type ObjectiveFunc func(context.Context, *gen.ObjectiveMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ObjectiveFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ObjectiveMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ObjectiveMutation", m)
 }
 
 // The PageFunc type is an adapter to allow the use of ordinary
@@ -537,18 +405,6 @@ func (f PollingStateFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PollingStateMutation", m)
 }
 
-// The RateLimitFunc type is an adapter to allow the use of ordinary
-// function as RateLimit mutator.
-type RateLimitFunc func(context.Context, *gen.RateLimitMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f RateLimitFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.RateLimitMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.RateLimitMutation", m)
-}
-
 // The ResourceLinkFunc type is an adapter to allow the use of ordinary
 // function as ResourceLink mutator.
 type ResourceLinkFunc func(context.Context, *gen.ResourceLinkMutation) (gen.Value, error)
@@ -559,54 +415,6 @@ func (f ResourceLinkFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ResourceLinkMutation", m)
-}
-
-// The ReviewFunc type is an adapter to allow the use of ordinary
-// function as Review mutator.
-type ReviewFunc func(context.Context, *gen.ReviewMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ReviewFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ReviewMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ReviewMutation", m)
-}
-
-// The ReviewEvaluationFunc type is an adapter to allow the use of ordinary
-// function as ReviewEvaluation mutator.
-type ReviewEvaluationFunc func(context.Context, *gen.ReviewEvaluationMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f ReviewEvaluationFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.ReviewEvaluationMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ReviewEvaluationMutation", m)
-}
-
-// The StepFunc type is an adapter to allow the use of ordinary
-// function as Step mutator.
-type StepFunc func(context.Context, *gen.StepMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f StepFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.StepMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.StepMutation", m)
-}
-
-// The TodoFunc type is an adapter to allow the use of ordinary
-// function as Todo mutator.
-type TodoFunc func(context.Context, *gen.TodoMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f TodoFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.TodoMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.TodoMutation", m)
 }
 
 // The TopicFunc type is an adapter to allow the use of ordinary
@@ -645,18 +453,6 @@ func (f UserFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserMutation", m)
 }
 
-// The WorkflowFunc type is an adapter to allow the use of ordinary
-// function as Workflow mutator.
-type WorkflowFunc func(context.Context, *gen.WorkflowMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f WorkflowFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.WorkflowMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowMutation", m)
-}
-
 // The WorkflowRunFunc type is an adapter to allow the use of ordinary
 // function as WorkflowRun mutator.
 type WorkflowRunFunc func(context.Context, *gen.WorkflowRunMutation) (gen.Value, error)
@@ -669,18 +465,6 @@ func (f WorkflowRunFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value,
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowRunMutation", m)
 }
 
-// The WorkflowScriptFunc type is an adapter to allow the use of ordinary
-// function as WorkflowScript mutator.
-type WorkflowScriptFunc func(context.Context, *gen.WorkflowScriptMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f WorkflowScriptFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.WorkflowScriptMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowScriptMutation", m)
-}
-
 // The WorkflowStepRunFunc type is an adapter to allow the use of ordinary
 // function as WorkflowStepRun mutator.
 type WorkflowStepRunFunc func(context.Context, *gen.WorkflowStepRunMutation) (gen.Value, error)
@@ -691,18 +475,6 @@ func (f WorkflowStepRunFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowStepRunMutation", m)
-}
-
-// The WorkflowTriggerFunc type is an adapter to allow the use of ordinary
-// function as WorkflowTrigger mutator.
-type WorkflowTriggerFunc func(context.Context, *gen.WorkflowTriggerMutation) (gen.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f WorkflowTriggerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
-	if mv, ok := m.(*gen.WorkflowTriggerMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowTriggerMutation", m)
 }
 
 // Condition is a hook condition function.

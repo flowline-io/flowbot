@@ -7,7 +7,6 @@ Operations and development documentation for Flowbot.
 - [Deployment](./deployment.md) — Binary, Docker, and systemd deployment methods with health checks
 - [Monitoring](./monitoring.md) — Grafana dashboard, Prometheus metrics via PushGateway, and alerting rules
 - [Tracing](./tracing.md) — OpenTelemetry distributed tracing across all components
-- [Recovery](./recovery.md) — Restart recovery for incomplete pipeline runs and workflow jobs
 - [Conformance](./conformance.md) — Ability adapter conformance test suite for provider development
 
 ## Development Tools

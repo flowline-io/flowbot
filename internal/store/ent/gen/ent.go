@@ -24,26 +24,15 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counterrecord"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/cycle"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/dag"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventconsumption"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/execution"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/flow"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/flowedge"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/flowjob"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/flownode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/job"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/keyresult"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/keyresultvalue"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/objective"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
@@ -56,20 +45,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformchanneluser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/ratelimit"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/review"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/reviewevaluation"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/step"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/todo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowscript"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowtrigger"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -142,26 +123,15 @@ func checkColumn(t, c string) error {
 			connection.Table:          connection.ValidColumn,
 			counter.Table:             counter.ValidColumn,
 			counterrecord.Table:       counterrecord.ValidColumn,
-			cycle.Table:               cycle.ValidColumn,
-			dag.Table:                 dag.ValidColumn,
 			data.Table:                data.ValidColumn,
 			dataevent.Table:           dataevent.ValidColumn,
 			eventconsumption.Table:    eventconsumption.ValidColumn,
 			eventoutbox.Table:         eventoutbox.ValidColumn,
-			execution.Table:           execution.ValidColumn,
 			fileupload.Table:          fileupload.ValidColumn,
-			flow.Table:                flow.ValidColumn,
-			flowedge.Table:            flowedge.ValidColumn,
-			flowjob.Table:             flowjob.ValidColumn,
-			flownode.Table:            flownode.ValidColumn,
 			form.Table:                form.ValidColumn,
 			instruct.Table:            instruct.ValidColumn,
-			job.Table:                 job.ValidColumn,
-			keyresult.Table:           keyresult.ValidColumn,
-			keyresultvalue.Table:      keyresultvalue.ValidColumn,
 			message.Table:             message.ValidColumn,
 			oauth.Table:               oauth.ValidColumn,
-			objective.Table:           objective.ValidColumn,
 			page.Table:                page.ValidColumn,
 			pagedata.Table:            pagedata.ValidColumn,
 			parameter.Table:           parameter.ValidColumn,
@@ -174,20 +144,12 @@ func checkColumn(t, c string) error {
 			platformchanneluser.Table: platformchanneluser.ValidColumn,
 			platformuser.Table:        platformuser.ValidColumn,
 			pollingstate.Table:        pollingstate.ValidColumn,
-			ratelimit.Table:           ratelimit.ValidColumn,
 			resourcelink.Table:        resourcelink.ValidColumn,
-			review.Table:              review.ValidColumn,
-			reviewevaluation.Table:    reviewevaluation.ValidColumn,
-			step.Table:                step.ValidColumn,
-			todo.Table:                todo.ValidColumn,
 			topic.Table:               topic.ValidColumn,
 			url.Table:                 url.ValidColumn,
 			user.Table:                user.ValidColumn,
-			workflow.Table:            workflow.ValidColumn,
 			workflowrun.Table:         workflowrun.ValidColumn,
-			workflowscript.Table:      workflowscript.ValidColumn,
 			workflowsteprun.Table:     workflowsteprun.ValidColumn,
-			workflowtrigger.Table:     workflowtrigger.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

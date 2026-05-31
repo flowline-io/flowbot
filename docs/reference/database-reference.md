@@ -22,15 +22,6 @@ Full table schema is in [`schema.md`](./schema.md).
 - `platform_channel_users` — Channel-user associations
 - `platform_bots` — Platform bot registrations
 
-### Workflow System
-
-- `workflow` — Workflow definitions
-- `workflow_script` — Versioned workflow scripts
-- `workflow_trigger` — Triggers (manual, webhook, cron)
-- `jobs` — Execution jobs
-- `steps` — Job execution steps
-- `dag` — DAG definitions
-
 ### Bot System
 
 - `bots` — Bot definitions
@@ -41,15 +32,6 @@ Full table schema is in [`schema.md`](./schema.md).
 
 - `messages` — Message records
 - `channels` — Channel management
-
-### OKR System
-
-- `objectives` — Objectives
-- `key_results` — Key results
-- `key_result_values` — Key result value tracking
-- `reviews` / `review_evaluations` — Review records
-- `cycles` — OKR cycles
-- `todos` — Todo items
 
 ### Data Storage
 

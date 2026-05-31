@@ -36,10 +36,6 @@ type Tx struct {
 	Counter *CounterClient
 	// CounterRecord is the client for interacting with the CounterRecord builders.
 	CounterRecord *CounterRecordClient
-	// Cycle is the client for interacting with the Cycle builders.
-	Cycle *CycleClient
-	// Dag is the client for interacting with the Dag builders.
-	Dag *DagClient
 	// Data is the client for interacting with the Data builders.
 	Data *DataClient
 	// DataEvent is the client for interacting with the DataEvent builders.
@@ -48,34 +44,16 @@ type Tx struct {
 	EventConsumption *EventConsumptionClient
 	// EventOutbox is the client for interacting with the EventOutbox builders.
 	EventOutbox *EventOutboxClient
-	// Execution is the client for interacting with the Execution builders.
-	Execution *ExecutionClient
 	// Fileupload is the client for interacting with the Fileupload builders.
 	Fileupload *FileuploadClient
-	// Flow is the client for interacting with the Flow builders.
-	Flow *FlowClient
-	// FlowEdge is the client for interacting with the FlowEdge builders.
-	FlowEdge *FlowEdgeClient
-	// FlowJob is the client for interacting with the FlowJob builders.
-	FlowJob *FlowJobClient
-	// FlowNode is the client for interacting with the FlowNode builders.
-	FlowNode *FlowNodeClient
 	// Form is the client for interacting with the Form builders.
 	Form *FormClient
 	// Instruct is the client for interacting with the Instruct builders.
 	Instruct *InstructClient
-	// Job is the client for interacting with the Job builders.
-	Job *JobClient
-	// KeyResult is the client for interacting with the KeyResult builders.
-	KeyResult *KeyResultClient
-	// KeyResultValue is the client for interacting with the KeyResultValue builders.
-	KeyResultValue *KeyResultValueClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// OAuth is the client for interacting with the OAuth builders.
 	OAuth *OAuthClient
-	// Objective is the client for interacting with the Objective builders.
-	Objective *ObjectiveClient
 	// Page is the client for interacting with the Page builders.
 	Page *PageClient
 	// PageData is the client for interacting with the PageData builders.
@@ -100,34 +78,18 @@ type Tx struct {
 	PlatformUser *PlatformUserClient
 	// PollingState is the client for interacting with the PollingState builders.
 	PollingState *PollingStateClient
-	// RateLimit is the client for interacting with the RateLimit builders.
-	RateLimit *RateLimitClient
 	// ResourceLink is the client for interacting with the ResourceLink builders.
 	ResourceLink *ResourceLinkClient
-	// Review is the client for interacting with the Review builders.
-	Review *ReviewClient
-	// ReviewEvaluation is the client for interacting with the ReviewEvaluation builders.
-	ReviewEvaluation *ReviewEvaluationClient
-	// Step is the client for interacting with the Step builders.
-	Step *StepClient
-	// Todo is the client for interacting with the Todo builders.
-	Todo *TodoClient
 	// Topic is the client for interacting with the Topic builders.
 	Topic *TopicClient
 	// Url is the client for interacting with the Url builders.
 	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
-	// Workflow is the client for interacting with the Workflow builders.
-	Workflow *WorkflowClient
 	// WorkflowRun is the client for interacting with the WorkflowRun builders.
 	WorkflowRun *WorkflowRunClient
-	// WorkflowScript is the client for interacting with the WorkflowScript builders.
-	WorkflowScript *WorkflowScriptClient
 	// WorkflowStepRun is the client for interacting with the WorkflowStepRun builders.
 	WorkflowStepRun *WorkflowStepRunClient
-	// WorkflowTrigger is the client for interacting with the WorkflowTrigger builders.
-	WorkflowTrigger *WorkflowTriggerClient
 
 	// lazily loaded.
 	client     *Client
@@ -271,26 +233,15 @@ func (tx *Tx) init() {
 	tx.Connection = NewConnectionClient(tx.config)
 	tx.Counter = NewCounterClient(tx.config)
 	tx.CounterRecord = NewCounterRecordClient(tx.config)
-	tx.Cycle = NewCycleClient(tx.config)
-	tx.Dag = NewDagClient(tx.config)
 	tx.Data = NewDataClient(tx.config)
 	tx.DataEvent = NewDataEventClient(tx.config)
 	tx.EventConsumption = NewEventConsumptionClient(tx.config)
 	tx.EventOutbox = NewEventOutboxClient(tx.config)
-	tx.Execution = NewExecutionClient(tx.config)
 	tx.Fileupload = NewFileuploadClient(tx.config)
-	tx.Flow = NewFlowClient(tx.config)
-	tx.FlowEdge = NewFlowEdgeClient(tx.config)
-	tx.FlowJob = NewFlowJobClient(tx.config)
-	tx.FlowNode = NewFlowNodeClient(tx.config)
 	tx.Form = NewFormClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)
-	tx.Job = NewJobClient(tx.config)
-	tx.KeyResult = NewKeyResultClient(tx.config)
-	tx.KeyResultValue = NewKeyResultValueClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.OAuth = NewOAuthClient(tx.config)
-	tx.Objective = NewObjectiveClient(tx.config)
 	tx.Page = NewPageClient(tx.config)
 	tx.PageData = NewPageDataClient(tx.config)
 	tx.Parameter = NewParameterClient(tx.config)
@@ -303,20 +254,12 @@ func (tx *Tx) init() {
 	tx.PlatformChannelUser = NewPlatformChannelUserClient(tx.config)
 	tx.PlatformUser = NewPlatformUserClient(tx.config)
 	tx.PollingState = NewPollingStateClient(tx.config)
-	tx.RateLimit = NewRateLimitClient(tx.config)
 	tx.ResourceLink = NewResourceLinkClient(tx.config)
-	tx.Review = NewReviewClient(tx.config)
-	tx.ReviewEvaluation = NewReviewEvaluationClient(tx.config)
-	tx.Step = NewStepClient(tx.config)
-	tx.Todo = NewTodoClient(tx.config)
 	tx.Topic = NewTopicClient(tx.config)
 	tx.Url = NewURLClient(tx.config)
 	tx.User = NewUserClient(tx.config)
-	tx.Workflow = NewWorkflowClient(tx.config)
 	tx.WorkflowRun = NewWorkflowRunClient(tx.config)
-	tx.WorkflowScript = NewWorkflowScriptClient(tx.config)
 	tx.WorkflowStepRun = NewWorkflowStepRunClient(tx.config)
-	tx.WorkflowTrigger = NewWorkflowTriggerClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

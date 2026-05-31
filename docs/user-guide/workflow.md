@@ -204,29 +204,6 @@ Tasks with unknown dependencies in `conn` are also rejected.
 
 Note: `conn` is currently used only for validation. Execution order is strictly determined by the `pipeline` list, not the DAG topology.
 
-## Persistent State (resumable)
-
-When `resumable: true`, the workflow engine persists execution state via the `WorkflowStore` to PostgreSQL:
-
-### Tables Used
-
-| Table              | Purpose                                                 |
-| ------------------ | ------------------------------------------------------- |
-| `jobs`             | Workflow run: state, workflow_id, timing                |
-| `steps`            | Per-task execution: action, input, output, state, error |
-| `workflow`         | Workflow definition: name, state, counters              |
-| `workflow_script`  | YAML content: lang, code, version                       |
-| `workflow_trigger` | Trigger config: type, rule                              |
-
-### State Flow
-
-```
-Job: Ready → Start → Running → Succeeded / Canceled / Failed
-Step: Created → Ready → Start → Running → Succeeded / Failed / Canceled / Skipped
-```
-
-Each step creates a `steps` record before execution and updates it on completion. The `output` field stores the task result for downstream parameter resolution.
-
 ## Execution Flow
 
 ### Sequential
@@ -288,6 +265,4 @@ Content-Type: application/json
 go test ./pkg/workflow/...   # Unit tests for parsing, DAG, params, runner
 ```
 
-## Recovery
 
-See [Recovery Manager](../developer-guide/recovery.md) for restart recovery of incomplete workflow jobs.

@@ -82,7 +82,7 @@ Slack, Pushover, ntfy, Message Pusher (with rules/ throttling/aggregation and te
 
 ### Shared Packages (31)
 
-ability, auth, backoff, bulkhead, cache, client, config, event, executor, flog, homelab (with probe/ sub-package), hub, llm, media, metrics, module, notify, page, parser, pipeline, profiling, providers, rdb, recovery, route, stats, trace, types, utils, validate, workflow
+ability, auth, backoff, bulkhead, cache, client, config, event, executor, flog, homelab (with probe/ sub-package), hub, llm, media, metrics, module, notify, page, parser, pipeline, profiling, providers, rdb, route, stats, trace, types, utils, validate, workflow
 
 ### CI/CD (`.github/workflows/`)
 

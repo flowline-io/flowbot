@@ -42,12 +42,6 @@ type Counter func(*sql.Selector)
 // CounterRecord is the predicate function for counterrecord builders.
 type CounterRecord func(*sql.Selector)
 
-// Cycle is the predicate function for cycle builders.
-type Cycle func(*sql.Selector)
-
-// Dag is the predicate function for dag builders.
-type Dag func(*sql.Selector)
-
 // Data is the predicate function for data builders.
 type Data func(*sql.Selector)
 
@@ -60,23 +54,8 @@ type EventConsumption func(*sql.Selector)
 // EventOutbox is the predicate function for eventoutbox builders.
 type EventOutbox func(*sql.Selector)
 
-// Execution is the predicate function for execution builders.
-type Execution func(*sql.Selector)
-
 // Fileupload is the predicate function for fileupload builders.
 type Fileupload func(*sql.Selector)
-
-// Flow is the predicate function for flow builders.
-type Flow func(*sql.Selector)
-
-// FlowEdge is the predicate function for flowedge builders.
-type FlowEdge func(*sql.Selector)
-
-// FlowJob is the predicate function for flowjob builders.
-type FlowJob func(*sql.Selector)
-
-// FlowNode is the predicate function for flownode builders.
-type FlowNode func(*sql.Selector)
 
 // Form is the predicate function for form builders.
 type Form func(*sql.Selector)
@@ -84,23 +63,11 @@ type Form func(*sql.Selector)
 // Instruct is the predicate function for instruct builders.
 type Instruct func(*sql.Selector)
 
-// Job is the predicate function for job builders.
-type Job func(*sql.Selector)
-
-// KeyResult is the predicate function for keyresult builders.
-type KeyResult func(*sql.Selector)
-
-// KeyResultValue is the predicate function for keyresultvalue builders.
-type KeyResultValue func(*sql.Selector)
-
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 
 // OAuth is the predicate function for oauth builders.
 type OAuth func(*sql.Selector)
-
-// Objective is the predicate function for objective builders.
-type Objective func(*sql.Selector)
 
 // Page is the predicate function for page builders.
 type Page func(*sql.Selector)
@@ -138,23 +105,8 @@ type PlatformUser func(*sql.Selector)
 // PollingState is the predicate function for pollingstate builders.
 type PollingState func(*sql.Selector)
 
-// RateLimit is the predicate function for ratelimit builders.
-type RateLimit func(*sql.Selector)
-
 // ResourceLink is the predicate function for resourcelink builders.
 type ResourceLink func(*sql.Selector)
-
-// Review is the predicate function for review builders.
-type Review func(*sql.Selector)
-
-// ReviewEvaluation is the predicate function for reviewevaluation builders.
-type ReviewEvaluation func(*sql.Selector)
-
-// Step is the predicate function for step builders.
-type Step func(*sql.Selector)
-
-// Todo is the predicate function for todo builders.
-type Todo func(*sql.Selector)
 
 // Topic is the predicate function for topic builders.
 type Topic func(*sql.Selector)
@@ -165,17 +117,8 @@ type Url func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
-// Workflow is the predicate function for workflow builders.
-type Workflow func(*sql.Selector)
-
 // WorkflowRun is the predicate function for workflowrun builders.
 type WorkflowRun func(*sql.Selector)
 
-// WorkflowScript is the predicate function for workflowscript builders.
-type WorkflowScript func(*sql.Selector)
-
 // WorkflowStepRun is the predicate function for workflowsteprun builders.
 type WorkflowStepRun func(*sql.Selector)
-
-// WorkflowTrigger is the predicate function for workflowtrigger builders.
-type WorkflowTrigger func(*sql.Selector)

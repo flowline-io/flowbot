@@ -238,63 +238,6 @@ var (
 		Columns:    CounterRecordsColumns,
 		PrimaryKey: []*schema.Column{CounterRecordsColumns[0]},
 	}
-	// CyclesColumns holds the columns for the "cycles" table.
-	CyclesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "objectives", Type: field.TypeString},
-		{Name: "start_date", Type: field.TypeTime},
-		{Name: "end_date", Type: field.TypeTime},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// CyclesTable holds the schema information for the "cycles" table.
-	CyclesTable = &schema.Table{
-		Name:       "cycles",
-		Columns:    CyclesColumns,
-		PrimaryKey: []*schema.Column{CyclesColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "cycle_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{CyclesColumns[1], CyclesColumns[2]},
-			},
-		},
-	}
-	// DagColumns holds the columns for the "dag" table.
-	DagColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "script_id", Type: field.TypeInt64},
-		{Name: "script_version", Type: field.TypeInt32, Default: 0},
-		{Name: "nodes", Type: field.TypeJSON},
-		{Name: "edges", Type: field.TypeJSON},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "workflow_id", Type: field.TypeInt64, Unique: true, Nullable: true},
-	}
-	// DagTable holds the schema information for the "dag" table.
-	DagTable = &schema.Table{
-		Name:       "dag",
-		Columns:    DagColumns,
-		PrimaryKey: []*schema.Column{DagColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "dag_workflow_dag",
-				Columns:    []*schema.Column{DagColumns[7]},
-				RefColumns: []*schema.Column{WorkflowColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "dag_workflow_id",
-				Unique:  false,
-				Columns: []*schema.Column{DagColumns[7]},
-			},
-		},
-	}
 	// DataColumns holds the columns for the "data" table.
 	DataColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -391,29 +334,6 @@ var (
 		Columns:    EventOutboxColumns,
 		PrimaryKey: []*schema.Column{EventOutboxColumns[0]},
 	}
-	// ExecutionsColumns holds the columns for the "executions" table.
-	ExecutionsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flow_id", Type: field.TypeInt64},
-		{Name: "execution_id", Type: field.TypeString},
-		{Name: "trigger_type", Type: field.TypeString},
-		{Name: "trigger_id", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "payload", Type: field.TypeJSON, Nullable: true},
-		{Name: "variables", Type: field.TypeJSON, Nullable: true},
-		{Name: "result", Type: field.TypeJSON, Nullable: true},
-		{Name: "error", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "started_at", Type: field.TypeTime, Nullable: true},
-		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// ExecutionsTable holds the schema information for the "executions" table.
-	ExecutionsTable = &schema.Table{
-		Name:       "executions",
-		Columns:    ExecutionsColumns,
-		PrimaryKey: []*schema.Column{ExecutionsColumns[0]},
-	}
 	// FileuploadsColumns holds the columns for the "fileuploads" table.
 	FileuploadsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -449,91 +369,6 @@ var (
 				Columns: []*schema.Column{FileuploadsColumns[2]},
 			},
 		},
-	}
-	// FlowsColumns holds the columns for the "flows" table.
-	FlowsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "enabled", Type: field.TypeBool, Default: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// FlowsTable holds the schema information for the "flows" table.
-	FlowsTable = &schema.Table{
-		Name:       "flows",
-		Columns:    FlowsColumns,
-		PrimaryKey: []*schema.Column{FlowsColumns[0]},
-	}
-	// FlowEdgesColumns holds the columns for the "flow_edges" table.
-	FlowEdgesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flow_id", Type: field.TypeInt64},
-		{Name: "edge_id", Type: field.TypeString},
-		{Name: "source_node", Type: field.TypeString},
-		{Name: "target_node", Type: field.TypeString},
-		{Name: "source_port", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "target_port", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "label", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// FlowEdgesTable holds the schema information for the "flow_edges" table.
-	FlowEdgesTable = &schema.Table{
-		Name:       "flow_edges",
-		Columns:    FlowEdgesColumns,
-		PrimaryKey: []*schema.Column{FlowEdgesColumns[0]},
-	}
-	// FlowJobsColumns holds the columns for the "flow_jobs" table.
-	FlowJobsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flow_id", Type: field.TypeInt64},
-		{Name: "execution_id", Type: field.TypeString},
-		{Name: "node_id", Type: field.TypeString},
-		{Name: "node_type", Type: field.TypeString},
-		{Name: "bot", Type: field.TypeString},
-		{Name: "rule_id", Type: field.TypeString},
-		{Name: "attempt", Type: field.TypeInt, Default: 1},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "params", Type: field.TypeJSON, Nullable: true},
-		{Name: "result", Type: field.TypeJSON, Nullable: true},
-		{Name: "error", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "started_at", Type: field.TypeTime, Nullable: true},
-		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// FlowJobsTable holds the schema information for the "flow_jobs" table.
-	FlowJobsTable = &schema.Table{
-		Name:       "flow_jobs",
-		Columns:    FlowJobsColumns,
-		PrimaryKey: []*schema.Column{FlowJobsColumns[0]},
-	}
-	// FlowNodesColumns holds the columns for the "flow_nodes" table.
-	FlowNodesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flow_id", Type: field.TypeInt64},
-		{Name: "node_id", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
-		{Name: "bot", Type: field.TypeString},
-		{Name: "rule_id", Type: field.TypeString},
-		{Name: "label", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "position_x", Type: field.TypeInt, Default: 0},
-		{Name: "position_y", Type: field.TypeInt, Default: 0},
-		{Name: "parameters", Type: field.TypeJSON, Nullable: true},
-		{Name: "variables", Type: field.TypeJSON, Nullable: true},
-		{Name: "conditions", Type: field.TypeJSON, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// FlowNodesTable holds the schema information for the "flow_nodes" table.
-	FlowNodesTable = &schema.Table{
-		Name:       "flow_nodes",
-		Columns:    FlowNodesColumns,
-		PrimaryKey: []*schema.Column{FlowNodesColumns[0]},
 	}
 	// FormColumns holds the columns for the "form" table.
 	FormColumns = []*schema.Column{
@@ -596,112 +431,6 @@ var (
 				Name:    "instruct_no",
 				Unique:  false,
 				Columns: []*schema.Column{InstructColumns[1]},
-			},
-		},
-	}
-	// JobsColumns holds the columns for the "jobs" table.
-	JobsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "workflow_id", Type: field.TypeInt64},
-		{Name: "dag_id", Type: field.TypeInt64},
-		{Name: "trigger_id", Type: field.TypeInt64},
-		{Name: "script_version", Type: field.TypeInt32, Default: 0},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "started_at", Type: field.TypeTime, Nullable: true},
-		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// JobsTable holds the schema information for the "jobs" table.
-	JobsTable = &schema.Table{
-		Name:       "jobs",
-		Columns:    JobsColumns,
-		PrimaryKey: []*schema.Column{JobsColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "job_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{JobsColumns[1], JobsColumns[2]},
-			},
-			{
-				Name:    "job_workflow_id",
-				Unique:  false,
-				Columns: []*schema.Column{JobsColumns[3]},
-			},
-			{
-				Name:    "job_state",
-				Unique:  false,
-				Columns: []*schema.Column{JobsColumns[7]},
-			},
-		},
-	}
-	// KeyResultsColumns holds the columns for the "key_results" table.
-	KeyResultsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "sequence", Type: field.TypeInt32, Default: 0},
-		{Name: "title", Type: field.TypeString},
-		{Name: "memo", Type: field.TypeString, Default: ""},
-		{Name: "initial_value", Type: field.TypeInt32, Default: 0},
-		{Name: "target_value", Type: field.TypeInt32, Default: 0},
-		{Name: "current_value", Type: field.TypeInt32, Default: 0},
-		{Name: "value_mode", Type: field.TypeString, Default: ""},
-		{Name: "tag", Type: field.TypeString, Default: ""},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "objective_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// KeyResultsTable holds the schema information for the "key_results" table.
-	KeyResultsTable = &schema.Table{
-		Name:       "key_results",
-		Columns:    KeyResultsColumns,
-		PrimaryKey: []*schema.Column{KeyResultsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "key_results_objectives_key_results",
-				Columns:    []*schema.Column{KeyResultsColumns[13]},
-				RefColumns: []*schema.Column{ObjectivesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "keyresult_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{KeyResultsColumns[1], KeyResultsColumns[2]},
-			},
-		},
-	}
-	// KeyResultValuesColumns holds the columns for the "key_result_values" table.
-	KeyResultValuesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "value", Type: field.TypeInt32, Default: 0},
-		{Name: "memo", Type: field.TypeString, Default: ""},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "key_result_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// KeyResultValuesTable holds the schema information for the "key_result_values" table.
-	KeyResultValuesTable = &schema.Table{
-		Name:       "key_result_values",
-		Columns:    KeyResultValuesColumns,
-		PrimaryKey: []*schema.Column{KeyResultValuesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "key_result_values_key_results_key_result_values",
-				Columns:    []*schema.Column{KeyResultValuesColumns[5]},
-				RefColumns: []*schema.Column{KeyResultsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "keyresultvalue_key_result_id",
-				Unique:  false,
-				Columns: []*schema.Column{KeyResultValuesColumns[5]},
 			},
 		},
 	}
@@ -769,39 +498,6 @@ var (
 				Name:    "oauth_type",
 				Unique:  false,
 				Columns: []*schema.Column{OauthColumns[4]},
-			},
-		},
-	}
-	// ObjectivesColumns holds the columns for the "objectives" table.
-	ObjectivesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "sequence", Type: field.TypeInt32, Default: 0},
-		{Name: "progress", Type: field.TypeInt32, Default: 0},
-		{Name: "title", Type: field.TypeString},
-		{Name: "memo", Type: field.TypeString, Default: ""},
-		{Name: "motive", Type: field.TypeString, Default: ""},
-		{Name: "feasibility", Type: field.TypeString, Default: ""},
-		{Name: "is_plan", Type: field.TypeInt32, Default: 0},
-		{Name: "plan_start", Type: field.TypeTime},
-		{Name: "plan_end", Type: field.TypeTime},
-		{Name: "total_value", Type: field.TypeInt32, Default: 0},
-		{Name: "current_value", Type: field.TypeInt32, Default: 0},
-		{Name: "tag", Type: field.TypeString, Default: ""},
-		{Name: "created_data", Type: field.TypeTime},
-		{Name: "updated_date", Type: field.TypeTime},
-	}
-	// ObjectivesTable holds the schema information for the "objectives" table.
-	ObjectivesTable = &schema.Table{
-		Name:       "objectives",
-		Columns:    ObjectivesColumns,
-		PrimaryKey: []*schema.Column{ObjectivesColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "objective_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{ObjectivesColumns[1], ObjectivesColumns[2]},
 			},
 		},
 	}
@@ -1098,24 +794,6 @@ var (
 		Columns:    PollingStateColumns,
 		PrimaryKey: []*schema.Column{PollingStateColumns[0]},
 	}
-	// RateLimitsColumns holds the columns for the "rate_limits" table.
-	RateLimitsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "flow_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "node_id", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "limit_type", Type: field.TypeString},
-		{Name: "limit_value", Type: field.TypeInt, Default: 0},
-		{Name: "window_size", Type: field.TypeInt, Default: 60},
-		{Name: "window_unit", Type: field.TypeString, Default: "second"},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// RateLimitsTable holds the schema information for the "rate_limits" table.
-	RateLimitsTable = &schema.Table{
-		Name:       "rate_limits",
-		Columns:    RateLimitsColumns,
-		PrimaryKey: []*schema.Column{RateLimitsColumns[0]},
-	}
 	// ResourceLinksColumns holds the columns for the "resource_links" table.
 	ResourceLinksColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1161,173 +839,6 @@ var (
 				Name:    "resourcelink_target_event_id",
 				Unique:  false,
 				Columns: []*schema.Column{ResourceLinksColumns[2]},
-			},
-		},
-	}
-	// ReviewsColumns holds the columns for the "reviews" table.
-	ReviewsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "type", Type: field.TypeInt32, Default: 0},
-		{Name: "rating", Type: field.TypeInt32, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "objective_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// ReviewsTable holds the schema information for the "reviews" table.
-	ReviewsTable = &schema.Table{
-		Name:       "reviews",
-		Columns:    ReviewsColumns,
-		PrimaryKey: []*schema.Column{ReviewsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "reviews_objectives_reviews",
-				Columns:    []*schema.Column{ReviewsColumns[7]},
-				RefColumns: []*schema.Column{ObjectivesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "review_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{ReviewsColumns[1], ReviewsColumns[2]},
-			},
-		},
-	}
-	// ReviewEvaluationsColumns holds the columns for the "review_evaluations" table.
-	ReviewEvaluationsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "question", Type: field.TypeString},
-		{Name: "reason", Type: field.TypeString, Default: ""},
-		{Name: "solving", Type: field.TypeString, Default: ""},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "review_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// ReviewEvaluationsTable holds the schema information for the "review_evaluations" table.
-	ReviewEvaluationsTable = &schema.Table{
-		Name:       "review_evaluations",
-		Columns:    ReviewEvaluationsColumns,
-		PrimaryKey: []*schema.Column{ReviewEvaluationsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "review_evaluations_reviews_evaluations",
-				Columns:    []*schema.Column{ReviewEvaluationsColumns[8]},
-				RefColumns: []*schema.Column{ReviewsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "reviewevaluation_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{ReviewEvaluationsColumns[1], ReviewEvaluationsColumns[2]},
-			},
-			{
-				Name:    "reviewevaluation_review_id",
-				Unique:  false,
-				Columns: []*schema.Column{ReviewEvaluationsColumns[8]},
-			},
-		},
-	}
-	// StepsColumns holds the columns for the "steps" table.
-	StepsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "action", Type: field.TypeJSON},
-		{Name: "name", Type: field.TypeString, Default: ""},
-		{Name: "describe", Type: field.TypeString, Default: ""},
-		{Name: "node_id", Type: field.TypeString, Default: ""},
-		{Name: "depend", Type: field.TypeJSON},
-		{Name: "input", Type: field.TypeJSON, Nullable: true},
-		{Name: "output", Type: field.TypeJSON, Nullable: true},
-		{Name: "error", Type: field.TypeString, Nullable: true, Default: ""},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "started_at", Type: field.TypeTime, Nullable: true},
-		{Name: "ended_at", Type: field.TypeTime, Nullable: true},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "job_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// StepsTable holds the schema information for the "steps" table.
-	StepsTable = &schema.Table{
-		Name:       "steps",
-		Columns:    StepsColumns,
-		PrimaryKey: []*schema.Column{StepsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "steps_jobs_steps",
-				Columns:    []*schema.Column{StepsColumns[16]},
-				RefColumns: []*schema.Column{JobsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "step_uid_topic",
-				Unique:  false,
-				Columns: []*schema.Column{StepsColumns[1], StepsColumns[2]},
-			},
-			{
-				Name:    "step_job_id",
-				Unique:  false,
-				Columns: []*schema.Column{StepsColumns[16]},
-			},
-			{
-				Name:    "step_node_id",
-				Unique:  false,
-				Columns: []*schema.Column{StepsColumns[6]},
-			},
-			{
-				Name:    "step_state",
-				Unique:  false,
-				Columns: []*schema.Column{StepsColumns[11]},
-			},
-		},
-	}
-	// TodosColumns holds the columns for the "todos" table.
-	TodosColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "sequence", Type: field.TypeInt32, Default: 0},
-		{Name: "content", Type: field.TypeString},
-		{Name: "category", Type: field.TypeString, Default: ""},
-		{Name: "remark", Type: field.TypeString, Default: ""},
-		{Name: "priority", Type: field.TypeInt32, Default: 0},
-		{Name: "is_remind_at_time", Type: field.TypeInt32, Default: 0},
-		{Name: "remind_at", Type: field.TypeInt64, Default: 0},
-		{Name: "repeat_method", Type: field.TypeString, Default: ""},
-		{Name: "repeat_rule", Type: field.TypeString, Default: ""},
-		{Name: "repeat_end_at", Type: field.TypeInt64, Default: 0},
-		{Name: "complete", Type: field.TypeInt32, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "key_result_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "parent_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// TodosTable holds the schema information for the "todos" table.
-	TodosTable = &schema.Table{
-		Name:       "todos",
-		Columns:    TodosColumns,
-		PrimaryKey: []*schema.Column{TodosColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "todos_key_results_todos",
-				Columns:    []*schema.Column{TodosColumns[16]},
-				RefColumns: []*schema.Column{KeyResultsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "todos_todos_sub_todos",
-				Columns:    []*schema.Column{TodosColumns[17]},
-				RefColumns: []*schema.Column{TodosColumns[0]},
-				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -1383,28 +894,6 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
-	// WorkflowColumns holds the columns for the "workflow" table.
-	WorkflowColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "uid", Type: field.TypeString},
-		{Name: "topic", Type: field.TypeString},
-		{Name: "flag", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString},
-		{Name: "describe", Type: field.TypeString, Default: ""},
-		{Name: "successful_count", Type: field.TypeInt32, Default: 0},
-		{Name: "failed_count", Type: field.TypeInt32, Default: 0},
-		{Name: "running_count", Type: field.TypeInt32, Default: 0},
-		{Name: "canceled_count", Type: field.TypeInt32, Default: 0},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// WorkflowTable holds the schema information for the "workflow" table.
-	WorkflowTable = &schema.Table{
-		Name:       "workflow",
-		Columns:    WorkflowColumns,
-		PrimaryKey: []*schema.Column{WorkflowColumns[0]},
-	}
 	// WorkflowRunsColumns holds the columns for the "workflow_runs" table.
 	WorkflowRunsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1433,22 +922,6 @@ var (
 				Columns: []*schema.Column{WorkflowRunsColumns[1]},
 			},
 		},
-	}
-	// WorkflowScriptColumns holds the columns for the "workflow_script" table.
-	WorkflowScriptColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "workflow_id", Type: field.TypeInt64, Nullable: true},
-		{Name: "lang", Type: field.TypeString},
-		{Name: "code", Type: field.TypeString},
-		{Name: "version", Type: field.TypeInt32, Default: 1},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-	}
-	// WorkflowScriptTable holds the schema information for the "workflow_script" table.
-	WorkflowScriptTable = &schema.Table{
-		Name:       "workflow_script",
-		Columns:    WorkflowScriptColumns,
-		PrimaryKey: []*schema.Column{WorkflowScriptColumns[0]},
 	}
 	// WorkflowStepRunsColumns holds the columns for the "workflow_step_runs" table.
 	WorkflowStepRunsColumns = []*schema.Column{
@@ -1480,31 +953,6 @@ var (
 			},
 		},
 	}
-	// WorkflowTriggerColumns holds the columns for the "workflow_trigger" table.
-	WorkflowTriggerColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt64, Increment: true},
-		{Name: "type", Type: field.TypeString},
-		{Name: "rule", Type: field.TypeJSON, Nullable: true},
-		{Name: "count", Type: field.TypeInt32, Default: 0},
-		{Name: "state", Type: field.TypeInt, Default: 0},
-		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "workflow_id", Type: field.TypeInt64, Nullable: true},
-	}
-	// WorkflowTriggerTable holds the schema information for the "workflow_trigger" table.
-	WorkflowTriggerTable = &schema.Table{
-		Name:       "workflow_trigger",
-		Columns:    WorkflowTriggerColumns,
-		PrimaryKey: []*schema.Column{WorkflowTriggerColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "workflow_trigger_workflow_triggers",
-				Columns:    []*schema.Column{WorkflowTriggerColumns[7]},
-				RefColumns: []*schema.Column{WorkflowColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AgentsTable,
@@ -1519,26 +967,15 @@ var (
 		ConnectionsTable,
 		CountersTable,
 		CounterRecordsTable,
-		CyclesTable,
-		DagTable,
 		DataTable,
 		DataEventsTable,
 		EventConsumptionsTable,
 		EventOutboxTable,
-		ExecutionsTable,
 		FileuploadsTable,
-		FlowsTable,
-		FlowEdgesTable,
-		FlowJobsTable,
-		FlowNodesTable,
 		FormTable,
 		InstructTable,
-		JobsTable,
-		KeyResultsTable,
-		KeyResultValuesTable,
 		MessagesTable,
 		OauthTable,
-		ObjectivesTable,
 		PagesTable,
 		PageDataTable,
 		ParameterTable,
@@ -1551,20 +988,12 @@ var (
 		PlatformChannelUsersTable,
 		PlatformUsersTable,
 		PollingStateTable,
-		RateLimitsTable,
 		ResourceLinksTable,
-		ReviewsTable,
-		ReviewEvaluationsTable,
-		StepsTable,
-		TodosTable,
 		TopicsTable,
 		UrlsTable,
 		UsersTable,
-		WorkflowTable,
 		WorkflowRunsTable,
-		WorkflowScriptTable,
 		WorkflowStepRunsTable,
-		WorkflowTriggerTable,
 	}
 )
 
@@ -1605,13 +1034,6 @@ func init() {
 	CounterRecordsTable.Annotation = &entsql.Annotation{
 		Table: "counter_records",
 	}
-	CyclesTable.Annotation = &entsql.Annotation{
-		Table: "cycles",
-	}
-	DagTable.ForeignKeys[0].RefTable = WorkflowTable
-	DagTable.Annotation = &entsql.Annotation{
-		Table: "dag",
-	}
 	DataTable.Annotation = &entsql.Annotation{
 		Table: "data",
 	}
@@ -1624,23 +1046,8 @@ func init() {
 	EventOutboxTable.Annotation = &entsql.Annotation{
 		Table: "event_outbox",
 	}
-	ExecutionsTable.Annotation = &entsql.Annotation{
-		Table: "executions",
-	}
 	FileuploadsTable.Annotation = &entsql.Annotation{
 		Table: "fileuploads",
-	}
-	FlowsTable.Annotation = &entsql.Annotation{
-		Table: "flows",
-	}
-	FlowEdgesTable.Annotation = &entsql.Annotation{
-		Table: "flow_edges",
-	}
-	FlowJobsTable.Annotation = &entsql.Annotation{
-		Table: "flow_jobs",
-	}
-	FlowNodesTable.Annotation = &entsql.Annotation{
-		Table: "flow_nodes",
 	}
 	FormTable.Annotation = &entsql.Annotation{
 		Table: "form",
@@ -1648,25 +1055,11 @@ func init() {
 	InstructTable.Annotation = &entsql.Annotation{
 		Table: "instruct",
 	}
-	JobsTable.Annotation = &entsql.Annotation{
-		Table: "jobs",
-	}
-	KeyResultsTable.ForeignKeys[0].RefTable = ObjectivesTable
-	KeyResultsTable.Annotation = &entsql.Annotation{
-		Table: "key_results",
-	}
-	KeyResultValuesTable.ForeignKeys[0].RefTable = KeyResultsTable
-	KeyResultValuesTable.Annotation = &entsql.Annotation{
-		Table: "key_result_values",
-	}
 	MessagesTable.Annotation = &entsql.Annotation{
 		Table: "messages",
 	}
 	OauthTable.Annotation = &entsql.Annotation{
 		Table: "oauth",
-	}
-	ObjectivesTable.Annotation = &entsql.Annotation{
-		Table: "objectives",
 	}
 	PagesTable.Annotation = &entsql.Annotation{
 		Table: "pages",
@@ -1704,28 +1097,8 @@ func init() {
 	PollingStateTable.Annotation = &entsql.Annotation{
 		Table: "polling_state",
 	}
-	RateLimitsTable.Annotation = &entsql.Annotation{
-		Table: "rate_limits",
-	}
 	ResourceLinksTable.Annotation = &entsql.Annotation{
 		Table: "resource_links",
-	}
-	ReviewsTable.ForeignKeys[0].RefTable = ObjectivesTable
-	ReviewsTable.Annotation = &entsql.Annotation{
-		Table: "reviews",
-	}
-	ReviewEvaluationsTable.ForeignKeys[0].RefTable = ReviewsTable
-	ReviewEvaluationsTable.Annotation = &entsql.Annotation{
-		Table: "review_evaluations",
-	}
-	StepsTable.ForeignKeys[0].RefTable = JobsTable
-	StepsTable.Annotation = &entsql.Annotation{
-		Table: "steps",
-	}
-	TodosTable.ForeignKeys[0].RefTable = KeyResultsTable
-	TodosTable.ForeignKeys[1].RefTable = TodosTable
-	TodosTable.Annotation = &entsql.Annotation{
-		Table: "todos",
 	}
 	TopicsTable.Annotation = &entsql.Annotation{
 		Table: "topics",
@@ -1736,20 +1109,10 @@ func init() {
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
 	}
-	WorkflowTable.Annotation = &entsql.Annotation{
-		Table: "workflow",
-	}
 	WorkflowRunsTable.Annotation = &entsql.Annotation{
 		Table: "workflow_runs",
 	}
-	WorkflowScriptTable.Annotation = &entsql.Annotation{
-		Table: "workflow_script",
-	}
 	WorkflowStepRunsTable.Annotation = &entsql.Annotation{
 		Table: "workflow_step_runs",
-	}
-	WorkflowTriggerTable.ForeignKeys[0].RefTable = WorkflowTable
-	WorkflowTriggerTable.Annotation = &entsql.Annotation{
-		Table: "workflow_trigger",
 	}
 }
