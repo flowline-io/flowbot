@@ -72,10 +72,9 @@ func configFormID(item model.ConfigItem, isNew bool) string {
 	return "config-form-" + configRowID(item)
 }
 
-// cancelURL returns the cancel URL based on whether the form is for a new or existing item.
-func cancelURL(item model.ConfigItem, isNew bool) string {
-	if isNew {
-		return "/service/web/configs/list"
-	}
-	return configKeyURL(item)
+// cancelURL returns the cancel URL for a config form.
+// For new items, returns the list endpoint to refresh the full table and remove the form row.
+// For edits, also returns the list endpoint so the row is restored with up-to-date data.
+func cancelURL(_ model.ConfigItem, _ bool) string {
+	return "/service/web/configs/list"
 }
