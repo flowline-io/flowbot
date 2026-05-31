@@ -22,12 +22,66 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: ability.OpForgeGetUser, Description: "Get authenticated user", Scopes: []string{auth.ScopeServiceForgeRead}},
-			{Name: ability.OpForgeGetRepo, Description: "Get a repository", Scopes: []string{auth.ScopeServiceForgeRead}},
-			{Name: ability.OpForgeListIssues, Description: "List issues", Scopes: []string{auth.ScopeServiceForgeRead}},
-			{Name: ability.OpForgeGetIssue, Description: "Get an issue", Scopes: []string{auth.ScopeServiceForgeRead}},
-			{Name: ability.OpForgeGetCommitDiff, Description: "Get commit diff", Scopes: []string{auth.ScopeServiceForgeRead}},
-			{Name: ability.OpForgeGetFileContent, Description: "Get file content", Scopes: []string{auth.ScopeServiceForgeRead}},
+			{
+				Name:        ability.OpForgeGetUser,
+				Description: "Get authenticated user",
+				Scopes:      []string{auth.ScopeServiceForgeRead},
+			},
+			{
+				Name:        ability.OpForgeGetRepo,
+				Description: "Get a repository",
+				Scopes:      []string{auth.ScopeServiceForgeRead},
+				Input: []hub.ParamDef{
+					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
+					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
+				},
+			},
+			{
+				Name:        ability.OpForgeListIssues,
+				Description: "List issues",
+				Scopes:      []string{auth.ScopeServiceForgeRead},
+				Input: []hub.ParamDef{
+					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "state", Type: "string", Required: false, Description: "Issue state filter (open/closed)"},
+				},
+			},
+			{
+				Name:        ability.OpForgeGetIssue,
+				Description: "Get an issue",
+				Scopes:      []string{auth.ScopeServiceForgeRead},
+				Input: []hub.ParamDef{
+					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
+					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
+					{Name: "index", Type: "int64", Required: true, Description: "Issue index number"},
+				},
+			},
+			{
+				Name:        ability.OpForgeGetCommitDiff,
+				Description: "Get commit diff",
+				Scopes:      []string{auth.ScopeServiceForgeRead},
+				Input: []hub.ParamDef{
+					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
+					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
+					{Name: "commit_id", Type: "string", Required: true, Description: "Commit hash"},
+				},
+			},
+			{
+				Name:        ability.OpForgeGetFileContent,
+				Description: "Get file content",
+				Scopes:      []string{auth.ScopeServiceForgeRead},
+				Input: []hub.ParamDef{
+					{Name: "owner", Type: "string", Required: true, Description: "Repository owner"},
+					{Name: "repo", Type: "string", Required: true, Description: "Repository name"},
+					{Name: "commit_id", Type: "string", Required: true, Description: "Commit hash"},
+					{Name: "file_path", Type: "string", Required: true, Description: "File path"},
+					{Name: "line_start", Type: "int", Required: false, Description: "Starting line number"},
+					{Name: "line_count", Type: "int", Required: false, Description: "Number of lines to fetch"},
+				},
+			},
 		},
 		Events: []hub.EventDef{
 			{Name: types.EventForgeIssueOpened, Description: "Fires when an issue is opened"},

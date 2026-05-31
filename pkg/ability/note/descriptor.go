@@ -22,15 +22,85 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: ability.OpNoteList, Description: "List notes", Scopes: []string{auth.ScopeServiceNoteRead}},
-			{Name: ability.OpNoteGet, Description: "Get a note", Scopes: []string{auth.ScopeServiceNoteRead}},
-			{Name: ability.OpNoteCreate, Description: "Create a note", Scopes: []string{auth.ScopeServiceNoteWrite}},
-			{Name: ability.OpNoteUpdate, Description: "Update a note", Scopes: []string{auth.ScopeServiceNoteWrite}},
-			{Name: ability.OpNoteDelete, Description: "Delete a note", Scopes: []string{auth.ScopeServiceNoteWrite}},
-			{Name: ability.OpNoteGetContent, Description: "Get note content", Scopes: []string{auth.ScopeServiceNoteRead}},
-			{Name: ability.OpNoteSetContent, Description: "Set note content", Scopes: []string{auth.ScopeServiceNoteWrite}},
-			{Name: ability.OpNoteSearch, Description: "Search notes", Scopes: []string{auth.ScopeServiceNoteRead}},
-			{Name: ability.OpNoteGetAppInfo, Description: "Get note server info", Scopes: []string{auth.ScopeServiceNoteRead}},
+			{
+				Name:        ability.OpNoteList,
+				Description: "List notes",
+				Scopes:      []string{auth.ScopeServiceNoteRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "query", Type: "string", Required: false, Description: "Search query filter"},
+				},
+			},
+			{
+				Name:        ability.OpNoteGet,
+				Description: "Get a note",
+				Scopes:      []string{auth.ScopeServiceNoteRead},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Note ID"},
+				},
+			},
+			{
+				Name:        ability.OpNoteCreate,
+				Description: "Create a note",
+				Scopes:      []string{auth.ScopeServiceNoteWrite},
+				Input: []hub.ParamDef{
+					{Name: "title", Type: "string", Required: true, Description: "Note title"},
+					{Name: "content", Type: "string", Required: false, Description: "Note content"},
+					{Name: "type", Type: "string", Required: false, Description: "Note type"},
+					{Name: "parent_note_id", Type: "string", Required: false, Description: "Parent note ID"},
+				},
+			},
+			{
+				Name:        ability.OpNoteUpdate,
+				Description: "Update a note",
+				Scopes:      []string{auth.ScopeServiceNoteWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Note ID"},
+					{Name: "title", Type: "string", Required: false, Description: "New title"},
+					{Name: "content", Type: "string", Required: false, Description: "New content"},
+				},
+			},
+			{
+				Name:        ability.OpNoteDelete,
+				Description: "Delete a note",
+				Scopes:      []string{auth.ScopeServiceNoteWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Note ID"},
+				},
+			},
+			{
+				Name:        ability.OpNoteGetContent,
+				Description: "Get note content",
+				Scopes:      []string{auth.ScopeServiceNoteRead},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Note ID"},
+				},
+			},
+			{
+				Name:        ability.OpNoteSetContent,
+				Description: "Set note content",
+				Scopes:      []string{auth.ScopeServiceNoteWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Note ID"},
+					{Name: "content", Type: "string", Required: true, Description: "Note content"},
+				},
+			},
+			{
+				Name:        ability.OpNoteSearch,
+				Description: "Search notes",
+				Scopes:      []string{auth.ScopeServiceNoteRead},
+				Input: []hub.ParamDef{
+					{Name: "query", Type: "string", Required: true, Description: "Search query string"},
+				},
+			},
+			{
+				Name:        ability.OpNoteGetAppInfo,
+				Description: "Get note server info",
+				Scopes:      []string{auth.ScopeServiceNoteRead},
+			},
 		},
 	}
 }

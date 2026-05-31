@@ -27,6 +27,7 @@
       testMockPayload: "{}",
       testResults: null,
       capabilities: [],
+      _defaultTemplateSet: null,
 
       init() {
         const el = this.$el;
@@ -54,6 +55,16 @@
           const resp = await fetch("/service/web/pipelines/capabilities");
           const json = await resp.json();
           this.capabilities = json.data || [];
+          const set = new Set();
+          for (const cap of this.capabilities) {
+            for (const op of cap.operations || []) {
+              if (op.input && op.input.length > 0) {
+                set.add(this.buildParamsTemplate(op.input));
+              }
+            }
+          }
+          set.add("{}");
+          this._defaultTemplateSet = set;
         } catch (e) {
           console.error("Failed to load capabilities:", e);
         }
@@ -62,6 +73,84 @@
       getOperationsFor(capType) {
         const cap = this.capabilities.find((c) => c.type === capType);
         return cap ? cap.operations || [] : [];
+      },
+
+      getOperation(capType, opName) {
+        const ops = this.getOperationsFor(capType);
+        return ops.find((o) => o.name === opName) || null;
+      },
+
+      typeDefaultValue(type) {
+        switch (type) {
+        case "string":
+          return "<string>";
+        case "int":
+        case "int64":
+          return 0;
+        case "bool":
+          return false;
+        case "[]string":
+          return [];
+        case "map[string]any":
+          return {};
+        default:
+          console.warn("Unknown ParamDef type:", type);
+          return "<string>";
+        }
+      },
+
+      getDefaultParams(capType, opName) {
+        const op = this.getOperation(capType, opName);
+        if (!op || !op.input || op.input.length === 0) {
+          return "{}";
+        }
+        return this.buildParamsTemplate(op.input);
+      },
+
+      buildParamsTemplate(input) {
+        const obj = {};
+        for (const p of input) {
+          obj[p.name] = this.typeDefaultValue(p.type);
+        }
+        return JSON.stringify(obj, null, 2);
+      },
+
+      isParamsDefault(paramsText) {
+        if (!paramsText) return true;
+        const trimmed = paramsText.trim();
+        if (this._defaultTemplateSet && this._defaultTemplateSet.has(trimmed)) {
+          return true;
+        }
+        for (const cap of this.capabilities) {
+          for (const op of cap.operations || []) {
+            if (this.getDefaultParams(cap.type, op.name).trim() === trimmed) {
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+
+      onCapabilityChange(idx) {
+        const capType = this.steps[idx].capability;
+        const wasDefault = this.isParamsDefault(this.steps[idx].paramsText);
+        const firstOp = this.getOperationsFor(capType)[0];
+        this.steps[idx].operation = firstOp ? firstOp.name : "";
+        if (wasDefault && this.steps[idx].operation) {
+          this.steps[idx].paramsText = this.getDefaultParams(
+            capType,
+            this.steps[idx].operation,
+          );
+        }
+        this.drawerDirty = true;
+      },
+
+      onOperationChange(idx) {
+        const step = this.steps[idx];
+        if (this.isParamsDefault(step.paramsText)) {
+          step.paramsText = this.getDefaultParams(step.capability, step.operation);
+        }
+        this.drawerDirty = true;
       },
 
       getEventsForTrigger() {

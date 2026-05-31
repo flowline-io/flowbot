@@ -19,12 +19,55 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: ability.OpMemoList, Description: "List memos", Scopes: []string{auth.ScopeServiceMemoRead}},
-			{Name: ability.OpMemoGet, Description: "Get a memo", Scopes: []string{auth.ScopeServiceMemoRead}},
-			{Name: ability.OpMemoCreate, Description: "Create a memo", Scopes: []string{auth.ScopeServiceMemoWrite}},
-			{Name: ability.OpMemoUpdate, Description: "Update a memo", Scopes: []string{auth.ScopeServiceMemoWrite}},
-			{Name: ability.OpMemoDelete, Description: "Delete a memo", Scopes: []string{auth.ScopeServiceMemoWrite}},
-			{Name: ability.OpMemoHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceMemoRead}},
+			{
+				Name:        ability.OpMemoList,
+				Description: "List memos",
+				Scopes:      []string{auth.ScopeServiceMemoRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+				},
+			},
+			{
+				Name:        ability.OpMemoGet,
+				Description: "Get a memo",
+				Scopes:      []string{auth.ScopeServiceMemoRead},
+				Input: []hub.ParamDef{
+					{Name: "name", Type: "string", Required: true, Description: "Memo name"},
+				},
+			},
+			{
+				Name:        ability.OpMemoCreate,
+				Description: "Create a memo",
+				Scopes:      []string{auth.ScopeServiceMemoWrite},
+				Input: []hub.ParamDef{
+					{Name: "content", Type: "string", Required: true, Description: "Memo content"},
+					{Name: "visibility", Type: "string", Required: false, Description: "Visibility setting"},
+				},
+			},
+			{
+				Name:        ability.OpMemoUpdate,
+				Description: "Update a memo",
+				Scopes:      []string{auth.ScopeServiceMemoWrite},
+				Input: []hub.ParamDef{
+					{Name: "name", Type: "string", Required: true, Description: "Memo name"},
+				},
+			},
+			{
+				Name:        ability.OpMemoDelete,
+				Description: "Delete a memo",
+				Scopes:      []string{auth.ScopeServiceMemoWrite},
+				Input: []hub.ParamDef{
+					{Name: "name", Type: "string", Required: true, Description: "Memo name"},
+				},
+			},
+			{
+				Name:        ability.OpMemoHealth,
+				Description: "Health check",
+				Scopes:      []string{auth.ScopeServiceMemoRead},
+			},
 		},
 	}
 }

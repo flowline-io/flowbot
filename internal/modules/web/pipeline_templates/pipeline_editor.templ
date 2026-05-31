@@ -187,7 +187,7 @@ templ PipelineEditorPage(name string) {
 									placeholder="my-step" data-testid="step-name-input">
 								<label class="block text-sm font-medium text-gray-700 mb-1">Capability</label>
 								<select x-model="steps[selectedNode.index].capability"
-									@change="steps[selectedNode.index].operation = getOperationsFor(steps[selectedNode.index].capability)[0]?.name || ''; drawerDirty = true"
+									@change="onCapabilityChange(selectedNode.index)"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
 									data-testid="step-capability-select">
 									<option value="" disabled>Select capability...</option>
@@ -197,7 +197,7 @@ templ PipelineEditorPage(name string) {
 								</select>
 								<label class="block text-sm font-medium text-gray-700 mb-1">Operation</label>
 								<select x-model="steps[selectedNode.index].operation"
-									@change="drawerDirty = true"
+									@change="onOperationChange(selectedNode.index)"
 									class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3"
 									data-testid="step-operation-select">
 									<option value="" disabled>Select operation...</option>

@@ -21,15 +21,99 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: ability.OpKanbanListTasks, Description: "List tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
-			{Name: ability.OpKanbanGetTask, Description: "Get a task", Scopes: []string{auth.ScopeServiceKanbanRead}},
-			{Name: ability.OpKanbanCreateTask, Description: "Create a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: ability.OpKanbanUpdateTask, Description: "Update a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: ability.OpKanbanDeleteTask, Description: "Delete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: ability.OpKanbanMoveTask, Description: "Move a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: ability.OpKanbanCompleteTask, Description: "Complete a task", Scopes: []string{auth.ScopeServiceKanbanWrite}},
-			{Name: ability.OpKanbanGetColumns, Description: "Get columns", Scopes: []string{auth.ScopeServiceKanbanRead}},
-			{Name: ability.OpKanbanSearchTasks, Description: "Search tasks", Scopes: []string{auth.ScopeServiceKanbanRead}},
+			{
+				Name:        ability.OpKanbanListTasks,
+				Description: "List tasks",
+				Scopes:      []string{auth.ScopeServiceKanbanRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "project_id", Type: "int", Required: false, Description: "Project ID filter"},
+					{Name: "status", Type: "string", Required: false, Description: "Task status filter"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanGetTask,
+				Description: "Get a task",
+				Scopes:      []string{auth.ScopeServiceKanbanRead},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanCreateTask,
+				Description: "Create a task",
+				Scopes:      []string{auth.ScopeServiceKanbanWrite},
+				Input: []hub.ParamDef{
+					{Name: "title", Type: "string", Required: false, Description: "Task title"},
+					{Name: "description", Type: "string", Required: false, Description: "Task description"},
+					{Name: "project_id", Type: "int", Required: false, Description: "Project ID"},
+					{Name: "column_id", Type: "int", Required: false, Description: "Column ID"},
+					{Name: "tags", Type: "[]string", Required: false, Description: "Tags to assign"},
+					{Name: "reference", Type: "string", Required: false, Description: "Reference URL or text"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanUpdateTask,
+				Description: "Update a task",
+				Scopes:      []string{auth.ScopeServiceKanbanWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
+					{Name: "title", Type: "string", Required: false, Description: "New title"},
+					{Name: "description", Type: "string", Required: false, Description: "New description"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanDeleteTask,
+				Description: "Delete a task",
+				Scopes:      []string{auth.ScopeServiceKanbanWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanMoveTask,
+				Description: "Move a task",
+				Scopes:      []string{auth.ScopeServiceKanbanWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
+					{Name: "column_id", Type: "int", Required: false, Description: "Target column ID"},
+					{Name: "position", Type: "int", Required: false, Description: "Position in column"},
+					{Name: "swimlane_id", Type: "int", Required: false, Description: "Target swimlane ID"},
+					{Name: "project_id", Type: "int", Required: false, Description: "Target project ID"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanCompleteTask,
+				Description: "Complete a task",
+				Scopes:      []string{auth.ScopeServiceKanbanWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int", Required: true, Description: "Task ID"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanGetColumns,
+				Description: "Get columns",
+				Scopes:      []string{auth.ScopeServiceKanbanRead},
+				Input: []hub.ParamDef{
+					{Name: "project_id", Type: "int", Required: false, Description: "Project ID (defaults to 1)"},
+				},
+			},
+			{
+				Name:        ability.OpKanbanSearchTasks,
+				Description: "Search tasks",
+				Scopes:      []string{auth.ScopeServiceKanbanRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "q", Type: "string", Required: false, Description: "Search query"},
+					{Name: "project_id", Type: "int", Required: false, Description: "Project ID filter"},
+				},
+			},
 		},
 		Events: []hub.EventDef{
 			{Name: types.EventKanbanTaskCreated, Description: "Fires when a task is created"},

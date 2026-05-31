@@ -20,13 +20,70 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: ability.OpReaderListFeeds, Description: "List feeds", Scopes: []string{auth.ScopeServiceReaderRead}},
-			{Name: ability.OpReaderCreateFeed, Description: "Create a feed", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: ability.OpReaderListEntries, Description: "List entries", Scopes: []string{auth.ScopeServiceReaderRead}},
-			{Name: ability.OpReaderMarkEntryRead, Description: "Mark entry as read", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: ability.OpReaderMarkEntryUnread, Description: "Mark entry as unread", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: ability.OpReaderStarEntry, Description: "Star an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
-			{Name: ability.OpReaderUnstarEntry, Description: "Unstar an entry", Scopes: []string{auth.ScopeServiceReaderWrite}},
+			{
+				Name:        ability.OpReaderListFeeds,
+				Description: "List feeds",
+				Scopes:      []string{auth.ScopeServiceReaderRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+				},
+			},
+			{
+				Name:        ability.OpReaderCreateFeed,
+				Description: "Create a feed",
+				Scopes:      []string{auth.ScopeServiceReaderWrite},
+				Input: []hub.ParamDef{
+					{Name: "feed_url", Type: "string", Required: true, Description: "Feed URL to subscribe to"},
+				},
+			},
+			{
+				Name:        ability.OpReaderListEntries,
+				Description: "List entries",
+				Scopes:      []string{auth.ScopeServiceReaderRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "status", Type: "string", Required: false, Description: "Entry status filter"},
+					{Name: "feed_id", Type: "int64", Required: false, Description: "Feed ID filter"},
+				},
+			},
+			{
+				Name:        ability.OpReaderMarkEntryRead,
+				Description: "Mark entry as read",
+				Scopes:      []string{auth.ScopeServiceReaderWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int64", Required: true, Description: "Entry ID"},
+				},
+			},
+			{
+				Name:        ability.OpReaderMarkEntryUnread,
+				Description: "Mark entry as unread",
+				Scopes:      []string{auth.ScopeServiceReaderWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int64", Required: true, Description: "Entry ID"},
+				},
+			},
+			{
+				Name:        ability.OpReaderStarEntry,
+				Description: "Star an entry",
+				Scopes:      []string{auth.ScopeServiceReaderWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int64", Required: true, Description: "Entry ID"},
+				},
+			},
+			{
+				Name:        ability.OpReaderUnstarEntry,
+				Description: "Unstar an entry",
+				Scopes:      []string{auth.ScopeServiceReaderWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "int64", Required: true, Description: "Entry ID"},
+				},
+			},
 		},
 		Events: []hub.EventDef{
 			{Name: types.EventReaderEntryNew, Description: "Fires when a new feed entry is received"},

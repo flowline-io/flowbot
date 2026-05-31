@@ -21,15 +21,89 @@ func Descriptor(backend, app string, svc Service) hub.Descriptor {
 		Instance:    svc,
 		Healthy:     svc != nil,
 		Operations: []hub.Operation{
-			{Name: ability.OpBookmarkList, Description: "List bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead}},
-			{Name: ability.OpBookmarkGet, Description: "Get a bookmark", Scopes: []string{auth.ScopeServiceBookmarkRead}},
-			{Name: ability.OpBookmarkCreate, Description: "Create a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: ability.OpBookmarkDelete, Description: "Delete a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: ability.OpBookmarkArchive, Description: "Archive a bookmark", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: ability.OpBookmarkSearch, Description: "Search bookmarks", Scopes: []string{auth.ScopeServiceBookmarkRead}},
-			{Name: ability.OpBookmarkAttachTags, Description: "Attach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: ability.OpBookmarkDetachTags, Description: "Detach tags", Scopes: []string{auth.ScopeServiceBookmarkWrite}},
-			{Name: ability.OpBookmarkCheckURL, Description: "Check whether a URL exists", Scopes: []string{auth.ScopeServiceBookmarkRead}},
+			{
+				Name:        ability.OpBookmarkList,
+				Description: "List bookmarks",
+				Scopes:      []string{auth.ScopeServiceBookmarkRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "archived", Type: "bool", Required: false, Description: "Filter by archive status"},
+					{Name: "favourited", Type: "bool", Required: false, Description: "Filter by favourite status"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkGet,
+				Description: "Get a bookmark",
+				Scopes:      []string{auth.ScopeServiceBookmarkRead},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkCreate,
+				Description: "Create a bookmark",
+				Scopes:      []string{auth.ScopeServiceBookmarkWrite},
+				Input: []hub.ParamDef{
+					{Name: "url", Type: "string", Required: true, Description: "URL to bookmark"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkDelete,
+				Description: "Delete a bookmark",
+				Scopes:      []string{auth.ScopeServiceBookmarkWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkArchive,
+				Description: "Archive a bookmark",
+				Scopes:      []string{auth.ScopeServiceBookmarkWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkSearch,
+				Description: "Search bookmarks",
+				Scopes:      []string{auth.ScopeServiceBookmarkRead},
+				Input: []hub.ParamDef{
+					{Name: "limit", Type: "int", Required: false, Description: "Maximum items per page"},
+					{Name: "cursor", Type: "string", Required: false, Description: "Pagination cursor"},
+					{Name: "sort_by", Type: "string", Required: false, Description: "Field to sort by"},
+					{Name: "sort_order", Type: "string", Required: false, Description: "Sort order (asc/desc)"},
+					{Name: "q", Type: "string", Required: false, Description: "Search query"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkAttachTags,
+				Description: "Attach tags",
+				Scopes:      []string{auth.ScopeServiceBookmarkWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
+					{Name: "tags", Type: "[]string", Required: true, Description: "Tags to attach"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkDetachTags,
+				Description: "Detach tags",
+				Scopes:      []string{auth.ScopeServiceBookmarkWrite},
+				Input: []hub.ParamDef{
+					{Name: "id", Type: "string", Required: true, Description: "Bookmark ID"},
+					{Name: "tags", Type: "[]string", Required: true, Description: "Tags to detach"},
+				},
+			},
+			{
+				Name:        ability.OpBookmarkCheckURL,
+				Description: "Check whether a URL exists",
+				Scopes:      []string{auth.ScopeServiceBookmarkRead},
+				Input: []hub.ParamDef{
+					{Name: "url", Type: "string", Required: true, Description: "URL to check"},
+				},
+			},
 		},
 		Events: []hub.EventDef{
 			{Name: types.EventBookmarkCreated, Description: "Fires when a bookmark is created"},
