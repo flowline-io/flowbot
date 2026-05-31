@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	_ "github.com/flowline-io/flowbot/internal/store/ent/gen/runtime"
@@ -503,4 +504,160 @@ func TestPollingStateStore_Update(t *testing.T) {
 			}
 		})
 	}
+}
+
+// ---------------------------------------------------------------------------
+// PageDataStore tests
+// ---------------------------------------------------------------------------
+
+func TestPageDataStore_CreateAndGet(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPageDataStore(client)
+	ctx := context.Background()
+
+	// Seed a page for the retrieval test
+	err := store.CreatePageData(ctx, "seed-token", "text", "Seed", types.KV{"content": "hello"}, "testuser", nil)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name     string
+		token    string
+		wantNil  bool
+		wantType string
+		wantErr  bool
+	}{
+		{
+			name:     "retrieve existing page",
+			token:    "seed-token",
+			wantNil:  false,
+			wantType: "text",
+			wantErr:  false,
+		},
+		{
+			name:    "retrieve non-existent page",
+			token:   "nonexistent-token",
+			wantNil: true,
+			wantErr: false,
+		},
+		{
+			name:    "retrieve with empty token",
+			token:   "",
+			wantNil: true,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pageData, err := store.GetPageDataByToken(ctx, tt.token)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			if tt.wantNil {
+				assert.Nil(t, pageData)
+			} else {
+				assert.NotNil(t, pageData)
+				if !tt.wantNil {
+					assert.Equal(t, tt.wantType, pageData.Type)
+				}
+			}
+		})
+	}
+}
+
+func TestPageDataStore_CreateDuplicateToken(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPageDataStore(client)
+	ctx := context.Background()
+
+	token := "dup-token"
+	err := store.CreatePageData(ctx, token, "text", "First", types.KV{"content": "a"}, "user1", nil)
+	require.NoError(t, err)
+
+	err = store.CreatePageData(ctx, token, "text", "Second", types.KV{"content": "b"}, "user2", nil)
+	require.Error(t, err, "duplicate token should return error")
+}
+
+func TestPageDataStore_Delete(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPageDataStore(client)
+	ctx := context.Background()
+
+	token := "del-token"
+	err := store.CreatePageData(ctx, token, "text", "ToDelete", types.KV{}, "user", nil)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name         string
+		token        string
+		wantAffected int
+		wantErr      bool
+	}{
+		{
+			name:         "delete existing page",
+			token:        token,
+			wantAffected: 1,
+			wantErr:      false,
+		},
+		{
+			name:         "delete already deleted page",
+			token:        token,
+			wantAffected: 0,
+			wantErr:      false,
+		},
+		{
+			name:         "delete non-existent page",
+			token:        "no-such-token",
+			wantAffected: 0,
+			wantErr:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			affected, err := store.DeletePageData(ctx, tt.token)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tt.wantAffected, affected)
+		})
+	}
+}
+
+func TestPageDataStore_DeleteExpired(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPageDataStore(client)
+	ctx := context.Background()
+
+	oneHourAgo := time.Now().Add(-1 * time.Hour)
+	oneHourLater := time.Now().Add(1 * time.Hour)
+
+	err := store.CreatePageData(ctx, "expired-token", "text", "Expired", types.KV{}, "user", &oneHourAgo)
+	require.NoError(t, err)
+
+	err = store.CreatePageData(ctx, "active-token", "text", "Active", types.KV{}, "user", &oneHourLater)
+	require.NoError(t, err)
+
+	err = store.CreatePageData(ctx, "no-expiry-token", "text", "Forever", types.KV{}, "user", nil)
+	require.NoError(t, err)
+
+	count, err := store.DeleteExpiredPageData(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), count, "only the expired page should be deleted")
+
+	// Verify expired page is gone
+	pageData, err := store.GetPageDataByToken(ctx, "expired-token")
+	require.NoError(t, err)
+	assert.Nil(t, pageData, "expired page should be deleted")
+
+	// Verify active pages remain
+	pageData, err = store.GetPageDataByToken(ctx, "active-token")
+	require.NoError(t, err)
+	assert.NotNil(t, pageData, "active page should remain")
+
+	pageData, err = store.GetPageDataByToken(ctx, "no-expiry-token")
+	require.NoError(t, err)
+	assert.NotNil(t, pageData, "no-expiry page should remain")
 }
