@@ -1,0 +1,7 @@
+package partials
+
+templ viewImageContent(url string, alt string) {
+	<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="view-image-content">
+		<img src={ templ.URL(url) } alt={ alt } class="max-w-full h-auto rounded"/>
+	</div>
+}

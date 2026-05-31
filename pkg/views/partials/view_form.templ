@@ -1,0 +1,22 @@
+package partials
+
+import "fmt"
+
+templ viewFormContent(fields []any) {
+	<div class="bg-white rounded-lg shadow-sm border border-gray-200" data-testid="view-form-content">
+		if len(fields) == 0 {
+			<div class="p-6 text-sm text-gray-400">No fields to display.</div>
+		} else {
+			<div class="divide-y divide-gray-100">
+				for _, f := range fields {
+					<div class="flex px-6 py-4">
+						if fm, ok := f.(map[string]any); ok {
+							<dt class="w-1/3 text-sm font-medium text-gray-500">{ fmt.Sprint(fm["label"]) }</dt>
+							<dd class="w-2/3 text-sm text-gray-800 font-mono">{ fmt.Sprint(fm["value"]) }</dd>
+						}
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
