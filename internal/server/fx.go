@@ -50,6 +50,7 @@ var Modules = fx.Options(
 		handlePlatform,
 		RunServer,
 		profiling.NewProfiler,
+		initPageDataCleanup,
 	),
 )
 
