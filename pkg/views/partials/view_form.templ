@@ -2,7 +2,7 @@ package partials
 
 import "fmt"
 
-templ viewFormContent(fields []any) {
+templ ViewFormContent(fields []any) {
 	<div class="bg-white rounded-lg shadow-sm border border-gray-200" data-testid="view-form-content">
 		if len(fields) == 0 {
 			<div class="p-6 text-sm text-gray-400">No fields to display.</div>

@@ -4,7 +4,7 @@ import (
 	gen "github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
 
-templ viewPipelineRunContent(steps any) {
+templ ViewPipelineRunContent(steps any) {
 	<div class="bg-white rounded-lg shadow-sm border border-gray-200" data-testid="view-pipeline-run-content">
 		if steps == nil {
 			<div class="p-6 text-sm text-gray-400">No step run data available.</div>
