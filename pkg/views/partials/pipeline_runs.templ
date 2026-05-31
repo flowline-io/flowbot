@@ -1,0 +1,144 @@
+package partials
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+)
+
+templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
+	if len(runs) == 0 {
+		<div class="text-center py-12 text-gray-400" data-testid="runs-empty">
+			<p>No runs recorded yet.</p>
+		</div>
+	} else {
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" data-testid="runs-table">
+			<table class="w-full text-sm text-left">
+				<thead class="bg-gray-50 text-gray-600">
+					<tr>
+						<th class="px-6 py-3 font-medium w-8"></th>
+						<th class="px-6 py-3 font-medium">Run ID</th>
+						<th class="px-6 py-3 font-medium">Event</th>
+						<th class="px-6 py-3 font-medium">Status</th>
+						<th class="px-6 py-3 font-medium">Started</th>
+						<th class="px-6 py-3 font-medium">Duration</th>
+					</tr>
+				</thead>
+				for _, r := range runs {
+					<tbody id={ "run-" + fmt.Sprint(r.ID) } class="border-b border-gray-100">
+						<tr class="cursor-pointer hover:bg-blue-50 transition-colors"
+							hx-get={ templ.URL("/service/web/pipelines/" + name + "/runs/" + fmt.Sprint(r.ID) + "/steps") }
+							hx-trigger="click"
+							hx-target={ "#steps-" + fmt.Sprint(r.ID) + " td" }
+							hx-swap="innerHTML show:top"
+							hx-on::after-request="this.querySelector('.chevron').classList.add('rotate-90')"
+							onclick="var rid=this.dataset.runId;var td=document.getElementById('steps-'+rid).querySelector('td');var cv=this.querySelector('.chevron');if(td.innerHTML.trim()){td.innerHTML='';cv.classList.remove('rotate-90');return false}"
+							data-run-id={ fmt.Sprint(r.ID) }
+							data-testid={ "run-row-" + fmt.Sprint(r.ID) }>
+							<td class="px-6 py-3 w-8 text-gray-400">
+								<span class="chevron inline-block transition-transform duration-200">▶</span>
+							</td>
+							<td class="px-6 py-3 font-mono text-xs text-gray-600">{ fmt.Sprint(r.ID) }</td>
+							<td class="px-6 py-3 text-gray-600">{ r.EventID }</td>
+							<td class="px-6 py-3">
+								<span class={ runsStatusClass(int(r.Status)) }>{ runsStatusText(int(r.Status)) }</span>
+							</td>
+							<td class="px-6 py-3 text-gray-500 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
+							<td class="px-6 py-3 text-gray-500 text-xs">{ runsDuration(r) }</td>
+						</tr>
+						<tr id={ "steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
+							<td colspan="6"></td>
+						</tr>
+					</tbody>
+				}
+			</table>
+		</div>
+	}
+}
+
+templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
+	if len(steps) == 0 {
+		<div class="text-sm text-gray-400 py-3 text-center">No step runs recorded for this run.</div>
+	} else {
+		<div class="px-4 py-3" data-testid="step-runs-detail">
+			<div class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Step Runs</div>
+			<table class="w-full text-xs border border-gray-100 rounded">
+				<thead class="bg-gray-50">
+					<tr>
+						<th class="px-4 py-2 text-left font-medium text-gray-500">Step</th>
+						<th class="px-4 py-2 text-left font-medium text-gray-500">Capability</th>
+						<th class="px-4 py-2 text-left font-medium text-gray-500">Operation</th>
+						<th class="px-4 py-2 text-left font-medium text-gray-500">Status</th>
+						<th class="px-4 py-2 text-left font-medium text-gray-500">Attempt</th>
+						<th class="px-4 py-2 text-left font-medium text-gray-500">Duration</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					for _, s := range steps {
+						<tr>
+							<td class="px-4 py-2 font-medium text-gray-700">{ s.StepName }</td>
+							<td class="px-4 py-2 text-gray-500">{ s.Capability }</td>
+							<td class="px-4 py-2 text-gray-500">{ s.Operation }</td>
+							<td class="px-4 py-2">
+								<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
+							</td>
+							<td class="px-4 py-2 text-gray-500">{ fmt.Sprint(s.Attempt) }</td>
+							<td class="px-4 py-2 text-gray-500">{ stepRunsDuration(s) }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+func runsStatusClass(status int) string {
+	switch status {
+	case 2:
+		return "text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
+	case 4:
+		return "text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full"
+	case 3:
+		return "text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full"
+	default:
+		return "text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"
+	}
+}
+
+func runsStatusText(status int) string {
+	switch status {
+	case 2:
+		return "Success"
+	case 4:
+		return "Failed"
+	case 3:
+		return "Cancelled"
+	case 1:
+		return "Running"
+	default:
+		return "Started"
+	}
+}
+
+func runsDuration(r *gen.PipelineRun) string {
+	if r.CompletedAt == nil {
+		return "-"
+	}
+	d := r.CompletedAt.Sub(r.CreatedAt)
+	if d < time.Second {
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	}
+	return d.Round(time.Second).String()
+}
+
+func stepRunsDuration(sr *gen.PipelineStepRun) string {
+	if sr.CompletedAt == nil {
+		return "-"
+	}
+	d := sr.CompletedAt.Sub(sr.StartedAt)
+	if d < time.Second {
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	}
+	return d.Round(time.Second).String()
+}

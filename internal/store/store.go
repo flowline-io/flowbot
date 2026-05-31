@@ -19,6 +19,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
@@ -838,6 +839,18 @@ func (s *PipelineStore) GetRunsByParentName(ctx context.Context, parentName stri
 		).
 		Order(gen.Desc(pipelinerun.FieldCreatedAt)).
 		Limit(100).
+		All(ctx)
+}
+
+// GetStepRunsByRunID returns all step runs for a given pipeline run, ordered by ID.
+func (s *PipelineStore) GetStepRunsByRunID(ctx context.Context, runID int64) ([]*gen.PipelineStepRun, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	return s.client.PipelineStepRun.Query().
+		Where(pipelinesteprun.PipelineRunIDEQ(runID)).
+		Order(gen.Asc(pipelinesteprun.FieldID)).
+		Limit(200).
 		All(ctx)
 }
 

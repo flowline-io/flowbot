@@ -1,0 +1,51 @@
+package partials
+
+import "github.com/flowline-io/flowbot/internal/store/ent/gen"
+
+templ PipelineListTable(defs []*gen.PipelineDefinition) {
+	if len(defs) == 0 {
+		<div class="text-center py-12 text-gray-400" data-testid="pipeline-empty">
+			<p class="text-lg">No pipelines yet.</p>
+			<p class="text-sm mt-2">Create your first pipeline to get started.</p>
+		</div>
+	} else {
+		<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden" data-testid="pipeline-table">
+			<table class="w-full text-sm text-left">
+				<thead class="bg-gray-50 text-gray-600">
+					<tr>
+						<th class="px-6 py-3 font-medium">Name</th>
+						<th class="px-6 py-3 font-medium">Status</th>
+						<th class="px-6 py-3 font-medium">Updated</th>
+						<th class="px-6 py-3 font-medium text-right">Actions</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100">
+					for _, d := range defs {
+						<tr class="hover:bg-gray-50">
+							<td class="px-6 py-3 font-medium text-gray-800">
+								<a href={ templ.URL("/service/web/pipelines/" + d.Name) } class="hover:text-blue-600">{ d.Name }</a>
+							</td>
+							<td class="px-6 py-3">
+								if d.Status == "published" {
+									<span class="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+										<span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>Published
+									</span>
+								} else {
+									<span class="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Draft</span>
+								}
+							</td>
+							<td class="px-6 py-3 text-gray-500 text-xs">{ d.UpdatedAt.Format("2006-01-02 15:04") }</td>
+							<td class="px-6 py-3 text-right">
+								<button type="button"
+									hx-delete={ templ.URL("/service/web/pipelines/" + d.Name) }
+									hx-target="#pipeline-list-container"
+									hx-confirm="Delete this pipeline? Associated run records will also be removed."
+									class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}

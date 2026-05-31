@@ -5,11 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/modules/web/pipeline_templates"
+	"github.com/flowline-io/flowbot/pkg/views/pages"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -33,6 +35,7 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Post("/pipelines/:name/test", testPipelineStep),
 	webservice.Get("/pipelines/:name/runs", pipelineRunsPage),
 	webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable),
+	webservice.Get("/pipelines/:name/runs/:runID/steps", pipelineRunSteps),
 }
 
 func getPipelineDefStore() *store.PipelineStore {
@@ -53,7 +56,7 @@ func pipelineListPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
 	c.Type("html")
-	return pipeline_templates.PipelineListPage(defs).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineListPage(defs).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineListTable(c fiber.Ctx) error {
@@ -63,13 +66,13 @@ func pipelineListTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
 	c.Type("html")
-	return pipeline_templates.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineEditorPage(c fiber.Ctx) error {
 	name := c.Params("name")
 	c.Type("html")
-	return pipeline_templates.PipelineEditorPage(name).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineEditorPage(name).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func createPipeline(c fiber.Ctx) error {
@@ -182,7 +185,7 @@ func deletePipeline(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
 	c.Type("html")
-	return pipeline_templates.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func getPipelineYaml(c fiber.Ctx) error {
@@ -302,7 +305,7 @@ func pipelineRunsPage(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return pipeline_templates.PipelineRunsPage(name, runs).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineRunsPage(name, runs).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineRunsTable(c fiber.Ctx) error {
@@ -313,7 +316,21 @@ func pipelineRunsTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get runs: %v", err)
 	}
 	c.Type("html")
-	return pipeline_templates.PipelineRunsTable(runs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineRunsTable(name, runs).Render(context.Background(), c.Response().BodyWriter())
+}
+
+func pipelineRunSteps(c fiber.Ctx) error {
+	runID, err := strconv.ParseInt(c.Params("runID"), 10, 64)
+	if err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid run ID: %v", err)
+	}
+	s := getPipelineDefStore()
+	steps, err := s.GetStepRunsByRunID(context.Background(), runID)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "get step runs: %v", err)
+	}
+	c.Type("html")
+	return partials.PipelineStepRunsDetail(steps).Render(context.Background(), c.Response().BodyWriter())
 }
 
 // getCapabilities returns all registered capabilities with their operations

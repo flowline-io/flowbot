@@ -1,0 +1,196 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ PipelineEditorPage(name string) {
+	@layout.Base("Pipeline: " + name) {
+		<div x-data="pipelineEditor()" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
+			<!-- Header -->
+			<div class="bg-white border-b border-gray-200 px-6 py-3 mb-4 rounded-t-lg shadow-sm flex items-center justify-between">
+				<div class="flex items-center gap-4">
+					<h2 class="text-lg font-semibold text-gray-800" x-text="name" data-testid="pipeline-title"></h2>
+					<span x-show="status === 'draft'" class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full" data-testid="status-badge">Draft</span>
+					<span x-show="status === 'published'" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full" data-testid="status-badge">Published</span>
+				</div>
+				<div class="flex items-center gap-2">
+					<a :href="'/service/web/pipelines/' + name + '/runs'" class="text-sm text-gray-500 hover:text-gray-700 border rounded px-3 py-1.5 font-medium" data-testid="btn-run-history">Run History</a>
+					<button type="button" @click="showTestRunner = !showTestRunner" class="text-sm text-gray-500 hover:text-gray-700 border rounded px-3 py-1.5 font-medium" data-testid="btn-test-runner">Test</button>
+					<div class="flex items-center gap-1 border rounded px-1 py-1">
+						<button type="button" :class="mode === 'visual' ? 'bg-gray-200 text-gray-800' : 'text-gray-400'" @click="mode = 'visual'" class="text-sm px-2 py-0.5 rounded font-medium" data-testid="btn-mode-visual">Visual</button>
+						<button type="button" :class="mode === 'code' ? 'bg-gray-200 text-gray-800' : 'text-gray-400'" @click="mode = 'code'" class="text-sm px-2 py-0.5 rounded font-medium" data-testid="btn-mode-code">Code</button>
+					</div>
+					<button type="button" @click="undo" :disabled="!canUndo" class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 font-medium" data-testid="btn-undo">Undo</button>
+					<button type="button" @click="redo" :disabled="!canRedo" class="text-sm text-gray-500 hover:text-gray-700 disabled:opacity-30 font-medium" data-testid="btn-redo">Redo</button>
+					<button type="button" @click="saveDraft" :disabled="saving" class="bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700 disabled:opacity-50 font-medium" data-testid="btn-save-draft" x-text="saving ? 'Saving...' : 'Save Draft'"></button>
+					<button type="button" @click="publish" :disabled="publishing || loadingPublish" class="bg-green-600 text-white px-4 py-1.5 rounded text-sm hover:bg-green-700 disabled:opacity-50 font-medium" data-testid="btn-publish" x-text="publishing ? 'Publishing...' : 'Publish'"></button>
+				</div>
+			</div>
+
+			<!-- Test Runner Panel -->
+			<div x-show="showTestRunner" x-transition class="bg-white border border-gray-200 rounded-lg p-4 mb-4 shadow-sm" data-testid="test-runner-panel">
+				<div class="flex items-center gap-3 mb-3">
+					<label class="text-sm font-medium text-gray-700">Trigger Source:</label>
+					<select x-model="testTriggerSource" class="border border-gray-300 rounded px-2 py-1 text-sm">
+						<option value="event">Event</option>
+						<option value="webhook">Webhook</option>
+						<option value="cron">Cron</option>
+					</select>
+					<button type="button" @click="loadMockPayload" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Load Mock Payload</button>
+					<label class="text-sm font-medium text-gray-700 ml-2">Run up to step:</label>
+					<select x-model="testUpToStep" class="border border-gray-300 rounded px-2 py-1 text-sm">
+						<template x-for="(step, idx) in steps" :key="idx">
+							<option :value="idx" x-text="(idx+1) + ': ' + step.name"></option>
+						</template>
+					</select>
+				</div>
+				<div class="flex gap-2">
+					<textarea x-model="testMockPayload" rows="5"
+						class="flex-1 border border-gray-300 rounded px-3 py-2 text-xs font-mono"
+						placeholder="Paste JSON payload here..."></textarea>
+				</div>
+				<div class="flex items-center gap-2 mt-3">
+					<button type="button" @click="runTest" :disabled="testing" class="bg-purple-600 text-white px-4 py-1.5 rounded text-sm hover:bg-purple-700 disabled:opacity-50 font-medium" data-testid="btn-run-test" x-text="testing ? 'Running...' : 'Run Test'"></button>
+				</div>
+				<div x-show="testResults !== null" class="mt-3" data-testid="test-results">
+					<div class="text-sm font-medium mb-2" :class="testResults.success ? 'text-green-700' : 'text-red-700'" x-text="testResults.success ? 'Test Passed' : 'Test Failed'"></div>
+					<template x-for="(item, idx) in testResults.steps" :key="idx">
+						<div class="border rounded px-3 py-2 mb-1 text-xs" :class="item.status === 'ok' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'">
+							<span class="font-medium" x-text="item.name"></span>
+							<span class="text-gray-500 ml-2" x-show="item.duration_ms" x-text="'('+item.duration_ms+'ms)'"></span>
+							<div class="text-gray-600 font-mono mt-1" x-show="item.rendered_params" x-text="JSON.stringify(item.rendered_params, null, 2)"></div>
+							<div class="text-red-600 mt-1" x-text="item.error" x-show="item.error"></div>
+						</div>
+					</template>
+				</div>
+			</div>
+
+			<!-- Visual Mode -->
+			<div x-show="mode === 'visual'" data-testid="visual-mode-panel">
+				<div class="border-2 border-dashed border-blue-200 bg-blue-50/30 rounded-lg p-4 mb-6" data-testid="trigger-zone">
+					<h3 class="text-sm font-medium text-blue-800 mb-3">Trigger Conditions (any enabled trigger starts the pipeline)</h3>
+					<template x-for="(t, idx) in triggers" :key="idx">
+						<div>
+						<div x-show="idx > 0" class="text-center text-xs text-gray-400 my-3">- OR -</div>
+							<div class="mb-3">
+								@partials.TriggerCard()
+							</div>
+						</div>
+					</template>
+					<div x-show="triggers.length > 0" class="flex flex-col items-center py-1">
+						<div class="w-0.5 h-3 bg-gray-300"></div>
+					</div>
+				<button type="button" @click="addTrigger" data-testid="btn-add-trigger"
+					class="text-sm text-blue-600 hover:text-blue-800 font-medium">+ Add Trigger</button>
+				</div>
+
+				<!-- Steps Zone -->
+				<div class="flex flex-col items-center" data-testid="steps-zone">
+					<template x-for="(step, idx) in steps" :key="idx">
+						<div class="w-full max-w-md">
+							<div class="flex flex-col items-center py-1">
+								<div x-show="idx > 0" class="w-0.5 h-4 bg-gray-300"></div>
+								<button type="button" @click="addStep(idx)" data-testid="btn-add-step"
+									class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-blue-400 flex items-center justify-center text-gray-400 hover:text-blue-500 bg-white shadow-sm">+</button>
+								<svg x-show="idx > 0" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+								</svg>
+							</div>
+							@partials.StepCard()
+						</div>
+					</template>
+					<div class="flex flex-col items-center py-1">
+						<div x-show="steps.length > 0" class="w-0.5 h-4 bg-gray-300"></div>
+						<button type="button" @click="addStep(steps.length)" data-testid="btn-add-step-end"
+							class="w-8 h-8 rounded-full border-2 border-gray-300 hover:border-blue-400 flex items-center justify-center text-gray-400 hover:text-blue-500 bg-white shadow-sm">+</button>
+					</div>
+				</div>
+
+				<!-- Step Drawer -->
+				<div x-show="selectedNode !== null" x-transition class="fixed right-0 top-0 h-full w-96 bg-white shadow-2xl border-l border-gray-200 z-40 overflow-y-auto" data-testid="step-drawer">
+					<div class="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+						<h3 class="font-semibold text-gray-800" x-text="selectedType === 'step' ? 'Step ' + (selectedIndex + 1) : 'Trigger ' + (selectedIndex + 1)"></h3>
+						<button type="button" @click="selectedNode = null" class="text-gray-400 hover:text-gray-600">&times;</button>
+					</div>
+					<div class="p-4">
+						<template x-if="selectedType === 'trigger'">
+							<div>
+								<label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+								<select x-model="getSelectedTrigger().type" @change="onTriggerTypeChange()" class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+									<option value="event">Event</option>
+									<option value="webhook">Webhook</option>
+									<option value="cron">Cron</option>
+								</select>
+								<div x-show="getSelectedTrigger().type === 'event'">
+									<label class="block text-sm font-medium text-gray-700 mb-1">Event Type</label>
+									<input type="text" x-model="getSelectedTrigger().event" placeholder="item.created"
+										class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+								</div>
+								<div x-show="getSelectedTrigger().type === 'webhook'">
+									<label class="block text-sm font-medium text-gray-700 mb-1">Path</label>
+									<input type="text" x-model="getSelectedTrigger().webhook.path" placeholder="/hooks/my-pipeline"
+										class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+								</div>
+								<div x-show="getSelectedTrigger().type === 'cron'">
+									<label class="block text-sm font-medium text-gray-700 mb-1">Cron Expression</label>
+									<input type="text" x-model="getSelectedTrigger().cron" placeholder="0 * * * *"
+										class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+								</div>
+							</div>
+						</template>
+						<template x-if="selectedType === 'step'">
+							<div>
+								<label class="block text-sm font-medium text-gray-700 mb-1">Step Name</label>
+								<input type="text" x-model="getSelectedStep().name" placeholder="e.g. Notify Users"
+									class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+								<label class="block text-sm font-medium text-gray-700 mb-1">Capability</label>
+								<select x-model="getSelectedStep().capability" @change="onStepCapabilityChange()" class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+									<option value="">-- Select --</option>
+									<template x-for="(ops, cap) in capabilities" :key="cap">
+										<option :value="cap" x-text="cap"></option>
+									</template>
+								</select>
+								<label class="block text-sm font-medium text-gray-700 mb-1">Operation</label>
+								<select x-model="getSelectedStep().operation" class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3">
+									<option value="">-- Select --</option>
+									<template x-for="op in getOperationsForCapability(getSelectedStep().capability)" :key="op">
+										<option :value="op" x-text="op"></option>
+									</template>
+								</select>
+								<label class="block text-sm font-medium text-gray-700 mb-1">Params (YAML)</label>
+								<div class="flex items-center gap-1 mb-1">
+									<button type="button" @click="insertVariable('event_id')" class="text-xs bg-gray-100 text-gray-600 rounded px-1.5 py-0.5 hover:bg-gray-200">event_id</button>
+									<button type="button" @click="insertVariable('event_type')" class="text-xs bg-gray-100 text-gray-600 rounded px-1.5 py-0.5 hover:bg-gray-200">event_type</button>
+									<button type="button" @click="insertVariable('trigger_step_name')" class="text-xs bg-gray-100 text-gray-600 rounded px-1.5 py-0.5 hover:bg-gray-200">prev_output</button>
+								</div>
+								<textarea x-model="getSelectedStep().paramsText" rows="6" placeholder="key: value"
+									@input="updateStepParams()"
+									class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"></textarea>
+								<div class="mt-3">
+									<label class="block text-sm font-medium text-gray-700 mb-1">Retry</label>
+									<div class="flex items-center gap-2">
+										<input type="number" x-model="getSelectedStep().retry.max_attempts" min="0" max="10" class="border border-gray-300 rounded px-2 py-1 text-sm w-20">
+										<span class="text-sm text-gray-500">attempts</span>
+									</div>
+									<div class="flex items-center gap-2 mt-1">
+										<input type="text" x-model="getSelectedStep().retry.backoff" placeholder="1s" class="border border-gray-300 rounded px-2 py-1 text-sm w-20">
+										<span class="text-sm text-gray-500">backoff</span>
+									</div>
+								</div>
+							</div>
+						</template>
+					</div>
+				</div>
+			</div>
+
+			<!-- Code Mode -->
+			<div x-show="mode === 'code'" data-testid="code-mode-panel">
+				<textarea x-model="yamlText" rows="20" @input="onYamlChange()"
+					class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm font-mono bg-white shadow-sm"
+					placeholder="name: my-pipeline&#10;triggers:&#10;  - type: event&#10;    event: item.created&#10;    enabled: true&#10;steps:&#10;  - name: Example Step&#10;    capability: example&#10;    operation: create&#10;    params:&#10;      key: value"></textarea>
+			</div>
+		</div>
+	}
+}

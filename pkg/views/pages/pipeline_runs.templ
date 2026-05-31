@@ -1,0 +1,22 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
+	@layout.Base("Runs: " + name) {
+		<div class="max-w-4xl mx-auto">
+			<div class="flex items-center justify-between mb-6">
+				<h1 class="text-xl font-semibold text-gray-800">
+					Run History: <a href={ templ.URL("/service/web/pipelines/" + name) } class="text-blue-600 hover:underline">{ name }</a>
+				</h1>
+			</div>
+			<div id="pipeline-runs-container" data-testid="pipeline-runs-container">
+				@partials.PipelineRunsTable(name, runs)
+			</div>
+		</div>
+	}
+}

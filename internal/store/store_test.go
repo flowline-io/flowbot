@@ -397,6 +397,57 @@ func TestPipelineDefinitionStore_ListAndDelete(t *testing.T) {
 	assert.Equal(t, int64(0), count)
 }
 
+func TestPipelineStore_GetStepRunsByRunID(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPipelineStore(client)
+
+	ctx := context.Background()
+	run, err := store.CreateRun(ctx, "step-test-pipeline", "ev-step-001", "test.event")
+	require.NoError(t, err)
+
+	_, err = store.CreateStepRun(ctx, run.ID, "step-a", "notify", "send", map[string]any{"to": "user1"}, 1)
+	require.NoError(t, err)
+	_, err = store.CreateStepRun(ctx, run.ID, "step-b", "transform", "map", map[string]any{"key": "val"}, 1)
+	require.NoError(t, err)
+	_, err = store.CreateStepRun(ctx, run.ID, "step-c", "store", "save", map[string]any{}, 1)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		runID     int64
+		wantCount int
+	}{
+		{
+			name:      "happy path - returns all 3 step runs",
+			runID:     run.ID,
+			wantCount: 3,
+		},
+		{
+			name:      "non-existent run returns empty list",
+			runID:     run.ID + 99999,
+			wantCount: 0,
+		},
+		{
+			name:      "zero run ID returns empty list",
+			runID:     0,
+			wantCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			steps, err := store.GetStepRunsByRunID(ctx, tt.runID)
+			require.NoError(t, err)
+			assert.Len(t, steps, tt.wantCount)
+			if tt.wantCount > 0 {
+				assert.Equal(t, "step-a", steps[0].StepName)
+				assert.Equal(t, "step-b", steps[1].StepName)
+				assert.Equal(t, "step-c", steps[2].StepName)
+			}
+		})
+	}
+}
+
 func TestPollingStateStore_Update(t *testing.T) {
 	client := getTestClient(t)
 	store := NewPollingStateStore(client)
