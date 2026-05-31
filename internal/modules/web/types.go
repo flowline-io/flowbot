@@ -1,7 +1,12 @@
 package web
 
 import (
+	"context"
+	"io"
+
 	"github.com/a-h/templ"
+	"github.com/microcosm-cc/bluemonday"
+	blackfriday "github.com/russross/blackfriday/v2"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -26,10 +31,15 @@ func textView(data types.KV) templ.Component {
 	return partials.ViewTextContent(content)
 }
 
-// markdownView renders markdown content.
+// markdownView renders markdown content as sanitized HTML.
 func markdownView(data types.KV) templ.Component {
 	content, _ := data.String("content")
-	return partials.ViewMarkdownContent(content)
+	html := blackfriday.Run([]byte(content))
+	html = bluemonday.UGCPolicy().SanitizeBytes(html)
+	return partials.ViewMarkdownContent(templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		_, err := w.Write(html)
+		return err
+	}))
 }
 
 // imageView renders an image.
