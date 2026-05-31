@@ -56,10 +56,7 @@ templ PipelineEditorPage(name string) {
 					<h3 class="text-sm font-medium text-blue-800 mb-3">Trigger Conditions (any enabled trigger starts the pipeline)</h3>
 					<template x-for="(t, idx) in triggers" :key="idx">
 						<div>
-						<div x-show="idx > 0" class="flex flex-col items-center py-1">
-							<div class="w-0.5 h-3 bg-gray-300"></div>
-							<div class="text-center text-xs text-gray-400 my-1">- OR -</div>
-						</div>
+						<div x-show="idx > 0" class="text-center text-xs text-gray-400 py-1">- OR -</div>
 							<div class="mb-3">
 								@TriggerCard()
 							</div>
