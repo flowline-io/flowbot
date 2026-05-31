@@ -321,9 +321,18 @@ platform:
 
 # Module configuration list
 modules:
-  - name: example
+  - name: web
     enabled: true
-    environment: development
+    auth:
+      username: admin
+      password: admin
+      # Brute force protection for login
+      brute_force:
+        enabled: true
+        max_attempts: 5          # progressive delay starts at this count
+        lockout_attempts: 10     # full lockout after this many failures
+        lockout_duration: 15m    # how long the lockout lasts
+        window_duration: 15m     # sliding window for counting attempts
 
 # Third-party service configuration
 vendors:

@@ -15,5 +15,6 @@ var Modules = fx.Options(
 		example.Register,
 		hub.Register,
 		web.Register,
+		web.SetLoginRateLimiterCache,
 	),
 )

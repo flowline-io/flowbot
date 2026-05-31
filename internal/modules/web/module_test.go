@@ -902,3 +902,129 @@ func TestUpdateConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestLoginSubmitRateLimitLocked(t *testing.T) {
+	tests := []struct {
+		name         string
+		setup        func(*mockRateLimitStore)
+		wantStatus   int
+		wantContains string
+	}{
+		{
+			name: "locked IP returns lockout message",
+			setup: func(m *mockRateLimitStore) {
+				m.setLock("0.0.0.0")
+			},
+			wantStatus:   http.StatusOK,
+			wantContains: "Account temporarily locked",
+		},
+		{
+			name: "below threshold shows normal error on wrong password",
+			setup: func(m *mockRateLimitStore) {
+				m.setAttempts("0.0.0.0", 2)
+			},
+			wantStatus:   http.StatusOK,
+			wantContains: "Invalid username or password",
+		},
+		{
+			name: "some failed attempts not locked shows error",
+			setup: func(m *mockRateLimitStore) {
+				m.setAttempts("0.0.0.0", 4)
+			},
+			wantStatus:   http.StatusOK,
+			wantContains: "Invalid username or password",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _, mockStore := setupTestAppWithRateLimiter()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; loginLimiter = nil }()
+			if tt.setup != nil {
+				tt.setup(mockStore)
+			}
+			form := url.Values{}
+			form.Set("username", "admin")
+			form.Set("password", "wrong")
+			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantContains) {
+				t.Errorf("want body containing %q, got %q", tt.wantContains, string(body))
+			}
+		})
+	}
+}
+
+func TestLoginSubmitSuccessClearsRateLimit(t *testing.T) {
+	tests := []struct {
+		name           string
+		setup          func(*mockRateLimitStore)
+		wantStatus     int
+		wantHXRedirect string
+		wantCookieSet  bool
+	}{
+		{
+			name: "success clears existing failure count",
+			setup: func(m *mockRateLimitStore) {
+				m.setAttempts("0.0.0.0", 4)
+			},
+			wantStatus:     http.StatusOK,
+			wantHXRedirect: "/service/web/configs",
+			wantCookieSet:  true,
+		},
+		{
+			name: "success with no prior failures works normally",
+			setup: func(m *mockRateLimitStore) {
+				m.setAttempts("0.0.0.0", 1)
+			},
+			wantStatus:     http.StatusOK,
+			wantHXRedirect: "/service/web/configs",
+			wantCookieSet:  true,
+		},
+		{
+			name:           "success with clean state works normally",
+			wantStatus:     http.StatusOK,
+			wantHXRedirect: "/service/web/configs",
+			wantCookieSet:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _, mockStore := setupTestAppWithRateLimiter()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; loginLimiter = nil }()
+			if tt.setup != nil {
+				tt.setup(mockStore)
+			}
+			form := url.Values{}
+			form.Set("username", "admin")
+			form.Set("password", "admin")
+			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if tt.wantHXRedirect != "" {
+				got := resp.Header.Get("HX-Redirect")
+				if got != tt.wantHXRedirect {
+					t.Errorf("want HX-Redirect %q, got %q", tt.wantHXRedirect, got)
+				}
+			}
+			assertCookie(t, resp, tt.wantCookieSet)
+			attemptVal, _ := mockStore.GetInt64(context.Background(), attemptKey("0.0.0.0"))
+			if attemptVal != 0 {
+				t.Errorf("expected attempts cleared, got %d", attemptVal)
+			}
+			exists, _ := mockStore.Exists(context.Background(), lockKey("0.0.0.0"))
+			if exists {
+				t.Error("expected lock cleared")
+			}
+		})
+	}
+}

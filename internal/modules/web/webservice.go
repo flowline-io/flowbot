@@ -272,15 +272,63 @@ func loginPage(ctx fiber.Ctx) error {
 	return pages.LoginPage(next, "").Render(context.Background(), ctx.Response().BodyWriter())
 }
 
+const (
+	msgAccountLocked          = "Account temporarily locked. Please try again later."
+	msgTooManyFailedAttempts  = "Too many failed attempts. Account temporarily locked. Please try again later."
+	msgInvalidCredentials     = "Invalid username or password"
+)
+
+// checkLoginRateLimit checks the rate limiter for the current IP.
+// Returns an empty string if the request is allowed, or an error message if blocked.
+func checkLoginRateLimit(ctx fiber.Ctx) string {
+	if loginLimiter == nil {
+		return ""
+	}
+	_, locked := loginLimiter.Allow(ctx.Context(), ctx.IP())
+	if locked {
+		return msgAccountLocked
+	}
+	return ""
+}
+
+// recordLoginFailure records a failed login attempt and returns the appropriate error message.
+func recordLoginFailure(ctx fiber.Ctx) string {
+	if loginLimiter == nil {
+		return msgInvalidCredentials
+	}
+	locked, _ := loginLimiter.RecordFailure(ctx.Context(), ctx.IP())
+	if locked {
+		return msgTooManyFailedAttempts
+	}
+	return msgInvalidCredentials
+}
+
+// loginSuccessCleanup clears rate limit state after a successful login.
+func loginSuccessCleanup(ctx fiber.Ctx) {
+	if loginLimiter != nil {
+		loginLimiter.RecordSuccess(ctx.Context(), ctx.IP())
+	}
+}
+
 func loginSubmit(ctx fiber.Ctx) error {
 	username := ctx.FormValue("username")
 	password := ctx.FormValue("password")
 	next := ctx.FormValue("next")
 	cfg := authConfig()
-	if username == "" || username != cfg.Username || password != cfg.Password {
+
+	if blocked := checkLoginRateLimit(ctx); blocked != "" {
 		ctx.Type("html")
-		return pages.LoginForm(next, "Invalid username or password").Render(context.Background(), ctx.Response().BodyWriter())
+		return pages.LoginForm(next, blocked).Render(context.Background(), ctx.Response().BodyWriter())
 	}
+
+	if username == "" || username != cfg.Username || password != cfg.Password {
+		msg := recordLoginFailure(ctx)
+		ctx.Type("html")
+		return pages.LoginForm(next, msg).Render(context.Background(), ctx.Response().BodyWriter())
+	}
+
+	loginSuccessCleanup(ctx)
+
 	token, err := auth.NewToken()
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to generate token: %w", err))

@@ -10,6 +10,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/cache"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -100,10 +101,30 @@ func setupTestApp() (*fiber.App, *testStore) {
 		Enabled: true,
 		Auth:    AuthConfig{Username: "admin", Password: "admin"},
 	}
+	loginLimiter = nil
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
 	return app, ts
+}
+
+// setupTestAppWithRateLimiter creates a Fiber test app with an active login rate limiter.
+func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore) {
+	ts := &testStore{}
+	store.Database = ts
+	handler = moduleHandler{
+		authConfig: AuthConfig{Username: "admin", Password: "admin"},
+	}
+	config = configType{
+		Enabled: true,
+		Auth:    AuthConfig{Username: "admin", Password: "admin"},
+	}
+	mockStore := newMockRateLimitStore()
+	loginLimiter = newLoginRateLimiter(mockStore, 5, 10, cache.TTL(15*time.Minute), cache.TTL(15*time.Minute))
+	app := fiber.New()
+	var h moduleHandler
+	h.Webservice(app)
+	return app, ts, mockStore
 }
 
 // setupTestAppWithDB creates a Fiber test app wired with an in-memory SQLite
