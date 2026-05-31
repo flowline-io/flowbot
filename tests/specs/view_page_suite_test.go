@@ -352,13 +352,13 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 	})
 
 	// Convenience helpers scoped to this suite.
-	func JSONRequest(method, path string, body []byte) *http.Request {
+	JSONRequest := func(method, path string, body []byte) *http.Request {
 		req := MakeRequest(method, path, body)
 		req.Header.Set("Content-Type", "application/json")
 		return req
 	}
 
-	func ReadBody(resp *http.Response) []byte {
+	ReadBody := func(resp *http.Response) []byte {
 		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		Expect(err).NotTo(HaveOccurred())

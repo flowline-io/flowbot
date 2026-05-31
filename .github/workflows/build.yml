@@ -55,14 +55,5 @@ jobs:
       - name: Go mod download
         run: go mod download
 
-      - name: Install Node.js dependencies
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: npm ci
-        run: npm ci
-
       - name: Build server
         run: go tool task build
