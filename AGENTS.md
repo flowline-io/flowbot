@@ -28,7 +28,8 @@ Homelab Data Hub & Capability Orchestration Center.
   - Provider: `pkg/providers/example/` — demonstrates `GetClient()`/`NewXxx()`, OAuth, CRUD, config reading, webhook payload types
   - Ability: `pkg/ability/example/` — demonstrates `Service` interface, `Descriptor()`/`RegisterService()`, `WebhookConverter`, `PollingResource`, conformance, and adapter pattern (`example/adapter.go`)
   - Module: `internal/modules/example/` — demonstrates `moduleHandler`, `module.Base`, `Register()`, `Init()`, `Rules()`, `Webservice()`, rule definitions
-- **Format**: `go fmt` + `npx prettier`
+- **Format**: run command `go tool task format`
+- **JS Style**: Use single quotes (`'`) for strings
 - **Lint**: `revive` (strict, see `revive.toml`)
 - **Imports**: stdlib → third-party → internal
 - **Naming**: packages lowercase, types CamelCase

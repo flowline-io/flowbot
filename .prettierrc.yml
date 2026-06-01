@@ -1,7 +1,0 @@
-overrides:
-  - files: '*.yml'
-    options:
-      singleQuote: true
-  - files: '*.json'
-    options:
-      singleQuote: false

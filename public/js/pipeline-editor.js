@@ -1,9 +1,9 @@
 (function () {
   function register() {
-    Alpine.data("pipelineEditor", () => ({
-      name: "",
-      description: "",
-      status: "draft",
+    Alpine.data('pipelineEditor', () => ({
+      name: '',
+      description: '',
+      status: 'draft',
       version: 1,
       dirty: false,
       undoStack: [],
@@ -13,25 +13,25 @@
       selectedNode: null,
       drawerOpen: false,
       drawerExpanded: false,
-      drawerTab: "setup",
+      drawerTab: 'setup',
       drawerDirty: false,
       codeView: false,
-      yamlText: "",
+      yamlText: '',
       variablePickerOpen: false,
       variablePickerTarget: null,
-      variablePickerSource: "event",
+      variablePickerSource: 'event',
       errors: [],
       publishDisabled: false,
       autoSaveTimer: null,
-      testTriggerSource: "event",
-      testMockPayload: "{}",
+      testTriggerSource: 'event',
+      testMockPayload: '{}',
       testResults: null,
       capabilities: [],
-      _defaultTemplateSet: null,
+      defaultTemplateSet: null,
 
       init() {
         const el = this.$el;
-        const name = el.dataset.pipelineName || "";
+        const name = el.dataset.pipelineName || '';
         this.name = name;
         if (name) this.loadPipeline(name);
         this.fetchCapabilities();
@@ -46,13 +46,13 @@
           this.status = data.status;
           if (data.yaml) this.parseYamlToState(data.yaml);
         } catch (e) {
-          console.error("Failed to load pipeline:", e);
+          console.error('Failed to load pipeline:', e);
         }
       },
 
       async fetchCapabilities() {
         try {
-          const resp = await fetch("/service/web/pipelines/capabilities");
+          const resp = await fetch('/service/web/pipelines/capabilities');
           const json = await resp.json();
           this.capabilities = json.data || [];
           const set = new Set();
@@ -63,10 +63,10 @@
               }
             }
           }
-          set.add("{}");
-          this._defaultTemplateSet = set;
+          set.add('{}');
+          this.defaultTemplateSet = set;
         } catch (e) {
-          console.error("Failed to load capabilities:", e);
+          console.error('Failed to load capabilities:', e);
         }
       },
 
@@ -82,27 +82,27 @@
 
       typeDefaultValue(type) {
         switch (type) {
-        case "string":
-          return "<string>";
-        case "int":
-        case "int64":
-          return 0;
-        case "bool":
-          return false;
-        case "[]string":
-          return [];
-        case "map[string]any":
-          return {};
-        default:
-          console.warn("Unknown ParamDef type:", type);
-          return "<string>";
+          case 'string':
+            return '<string>';
+          case 'int':
+          case 'int64':
+            return 0;
+          case 'bool':
+            return false;
+          case '[]string':
+            return [];
+          case 'map[string]any':
+            return {};
+          default:
+            console.warn('Unknown ParamDef type:', type);
+            return '<string>';
         }
       },
 
       getDefaultParams(capType, opName) {
         const op = this.getOperation(capType, opName);
         if (!op || !op.input || op.input.length === 0) {
-          return "{}";
+          return '{}';
         }
         return this.buildParamsTemplate(op.input);
       },
@@ -118,7 +118,7 @@
       isParamsDefault(paramsText) {
         if (!paramsText) return true;
         const trimmed = paramsText.trim();
-        if (this._defaultTemplateSet && this._defaultTemplateSet.has(trimmed)) {
+        if (this.defaultTemplateSet && this.defaultTemplateSet.has(trimmed)) {
           return true;
         }
         for (const cap of this.capabilities) {
@@ -135,7 +135,7 @@
         const capType = this.steps[idx].capability;
         const wasDefault = this.isParamsDefault(this.steps[idx].paramsText);
         const firstOp = this.getOperationsFor(capType)[0];
-        this.steps[idx].operation = firstOp ? firstOp.name : "";
+        this.steps[idx].operation = firstOp ? firstOp.name : '';
         if (wasDefault && this.steps[idx].operation) {
           this.steps[idx].paramsText = this.getDefaultParams(
             capType,
@@ -147,7 +147,10 @@
 
       onOperationChange(idx) {
         const step = this.steps[idx];
-        step.paramsText = this.getDefaultParams(step.capability, step.operation);
+        step.paramsText = this.getDefaultParams(
+          step.capability,
+          step.operation,
+        );
         this.drawerDirty = true;
       },
 
@@ -162,7 +165,11 @@
         const groups = [];
         for (const cap of this.capabilities) {
           if (cap.events && cap.events.length > 0) {
-            groups.push({ capability: cap.type, description: cap.description, events: cap.events });
+            groups.push({
+              capability: cap.type,
+              description: cap.description,
+              events: cap.events,
+            });
           }
         }
         return groups;
@@ -180,27 +187,27 @@
         try {
           const obj = jsyaml.load(yaml);
           this.name = obj.name || this.name;
-          this.description = obj.description || "";
+          this.description = obj.description || '';
           this.triggers = (obj.triggers || []).map((t) => ({
-            type: t.type || "event",
+            type: t.type || 'event',
             enabled: t.enabled !== false,
-            event: t.event || "",
-            cron: t.cron || "",
+            event: t.event || '',
+            cron: t.cron || '',
             webhook: t.webhook || {
-              path: "",
-              method: "POST",
-              auth: { token: "", hmac_secret: "" },
+              path: '',
+              method: 'POST',
+              auth: { token: '', hmac_secret: '' },
             },
           }));
           this.steps = (obj.steps || []).map((s) => ({
-            name: s.name || "",
-            capability: s.capability || "",
-            operation: s.operation || "",
+            name: s.name || '',
+            capability: s.capability || '',
+            operation: s.operation || '',
             paramsText: JSON.stringify(s.params || {}, null, 2),
           }));
           this.validate();
         } catch (e) {
-          console.error("YAML parse error:", e);
+          console.error('YAML parse error:', e);
         }
       },
 
@@ -212,9 +219,9 @@
           resumable: false,
           triggers: this.triggers.map((t) => {
             const e = { type: t.type, enabled: t.enabled };
-            if (t.type === "event") e.event = t.event;
-            if (t.type === "cron") e.cron = t.cron;
-            if (t.type === "webhook") e.webhook = t.webhook;
+            if (t.type === 'event') e.event = t.event;
+            if (t.type === 'cron') e.cron = t.cron;
+            if (t.type === 'webhook') e.webhook = t.webhook;
             return e;
           }),
           steps: this.steps.map((s) => ({
@@ -223,8 +230,8 @@
             operation: s.operation,
             params: (() => {
               try {
-                return JSON.parse(s.paramsText || "{}");
-              } catch (e) {
+                return JSON.parse(s.paramsText || '{}');
+              } catch {
                 return {};
               }
             })(),
@@ -266,14 +273,14 @@
       addTrigger() {
         this.pushUndo();
         this.triggers.push({
-          type: "event",
+          type: 'event',
           enabled: true,
-          event: "",
-          cron: "",
+          event: '',
+          cron: '',
           webhook: {
-            path: "",
-            method: "POST",
-            auth: { token: "", hmac_secret: "" },
+            path: '',
+            method: 'POST',
+            auth: { token: '', hmac_secret: '' },
           },
         });
         this.markDirty();
@@ -289,13 +296,13 @@
       addStep(afterIdx) {
         this.pushUndo();
         this.steps.splice(afterIdx, 0, {
-          name: "",
-          capability: "",
-          operation: "",
-          paramsText: "{}",
+          name: '',
+          capability: '',
+          operation: '',
+          paramsText: '{}',
         });
         this.markDirty();
-        this.selectNode("step", afterIdx);
+        this.selectNode('step', afterIdx);
       },
 
       removeStep(idx) {
@@ -311,7 +318,7 @@
         if (idx === 0) return;
         if (this.dependsOnStep(this.steps[idx], idx - 1)) {
           alert(
-            "Cannot move: this step depends on data from a step above the target position.",
+            'Cannot move: this step depends on data from a step above the target position.',
           );
           return;
         }
@@ -338,14 +345,14 @@
       duplicateStep(idx) {
         this.pushUndo();
         const copy = JSON.parse(JSON.stringify(this.steps[idx]));
-        copy.name = copy.name + "-copy";
+        copy.name = copy.name + '-copy';
         this.steps.splice(idx + 1, 0, copy);
         this.markDirty();
       },
 
       dependsOnStep(step, targetIdx) {
         const re = /\{\{steps\.(\w+)\./g;
-        const refs = [...(step.paramsText || "").matchAll(re)].map((m) => m[1]);
+        const refs = [...(step.paramsText || '').matchAll(re)].map((m) => m[1]);
         return refs.some(
           (ref) => this.steps.findIndex((s) => s.name === ref) >= targetIdx,
         );
@@ -353,17 +360,17 @@
 
       selectNode(type, idx) {
         if (this.drawerDirty && this.selectedNode) {
-          if (!confirm("You have unsaved changes. Discard them?")) return;
+          if (!confirm('You have unsaved changes. Discard them?')) return;
         }
         this.selectedNode = { type, index: idx };
         this.drawerOpen = true;
         this.drawerDirty = false;
-        this.drawerTab = "setup";
+        this.drawerTab = 'setup';
       },
 
       closeDrawer() {
         if (this.drawerDirty) {
-          if (!confirm("You have unsaved changes. Discard them?")) return;
+          if (!confirm('You have unsaved changes. Discard them?')) return;
         }
         this.drawerOpen = false;
         this.selectedNode = null;
@@ -382,7 +389,7 @@
       insertVariable(path) {
         if (this.variablePickerTarget === null) return;
         const step = this.steps[this.variablePickerTarget];
-        const template = "{{" + path + "}}";
+        const template = '{{' + path + '}}';
         const textarea = document.querySelector(
           '[data-testid="params-editor"]',
         );
@@ -390,9 +397,9 @@
           const start = textarea.selectionStart;
           const end = textarea.selectionEnd;
           step.paramsText =
-            (step.paramsText || "").substring(0, start) +
+            (step.paramsText || '').substring(0, start) +
             template +
-            (step.paramsText || "").substring(end);
+            (step.paramsText || '').substring(end);
           setTimeout(() => {
             textarea.focus();
             textarea.setSelectionRange(
@@ -401,7 +408,7 @@
             );
           }, 50);
         } else {
-          step.paramsText = (step.paramsText || "") + template;
+          step.paramsText = (step.paramsText || '') + template;
         }
         this.variablePickerOpen = false;
         this.markDirty();
@@ -411,77 +418,77 @@
         this.errors = [];
         if (this.triggers.filter((t) => t.enabled).length === 0)
           this.errors.push({
-            node: { type: "trigger", index: -1 },
-            message: "At least one trigger must be enabled",
+            node: { type: 'trigger', index: -1 },
+            message: 'At least one trigger must be enabled',
           });
         if (this.steps.length === 0)
           this.errors.push({
-            node: { type: "step", index: -1 },
-            message: "At least one step is required",
+            node: { type: 'step', index: -1 },
+            message: 'At least one step is required',
           });
         for (let i = 0; i < this.triggers.length; i++) {
           const t = this.triggers[i];
           if (!t.enabled) continue;
-          if (t.type === "event" && !t.event)
+          if (t.type === 'event' && !t.event)
             this.errors.push({
-              node: { type: "trigger", index: i },
-              message: "Event type is required",
+              node: { type: 'trigger', index: i },
+              message: 'Event type is required',
             });
-          if (t.type === "webhook" && (!t.webhook || !t.webhook.path))
+          if (t.type === 'webhook' && (!t.webhook || !t.webhook.path))
             this.errors.push({
-              node: { type: "trigger", index: i },
-              message: "Webhook path is required",
+              node: { type: 'trigger', index: i },
+              message: 'Webhook path is required',
             });
           if (
-            t.type === "webhook" &&
+            t.type === 'webhook' &&
             t.webhook &&
             !t.webhook.auth.token &&
             !t.webhook.auth.hmac_secret
           )
             this.errors.push({
-              node: { type: "trigger", index: i },
-              message: "At least one auth method is required",
+              node: { type: 'trigger', index: i },
+              message: 'At least one auth method is required',
             });
-          if (t.type === "cron" && !t.cron)
+          if (t.type === 'cron' && !t.cron)
             this.errors.push({
-              node: { type: "trigger", index: i },
-              message: "Cron expression is required",
+              node: { type: 'trigger', index: i },
+              message: 'Cron expression is required',
             });
         }
         for (let i = 0; i < this.steps.length; i++) {
           const s = this.steps[i];
           if (!s.name)
             this.errors.push({
-              node: { type: "step", index: i },
-              message: "Step name is required",
+              node: { type: 'step', index: i },
+              message: 'Step name is required',
             });
           if (!s.capability)
             this.errors.push({
-              node: { type: "step", index: i },
-              message: "Capability is required",
+              node: { type: 'step', index: i },
+              message: 'Capability is required',
             });
           if (!s.operation)
             this.errors.push({
-              node: { type: "step", index: i },
-              message: "Operation is required",
+              node: { type: 'step', index: i },
+              message: 'Operation is required',
             });
           const re = /\{\{steps\.(\w+)\./g;
-          const refs = [...(s.paramsText || "").matchAll(re)].map((m) => m[1]);
+          const refs = [...(s.paramsText || '').matchAll(re)].map((m) => m[1]);
           for (const ref of refs) {
             const ri = this.steps.findIndex((ss) => ss.name === ref);
             if (ri === -1)
               this.errors.push({
-                node: { type: "step", index: i },
+                node: { type: 'step', index: i },
                 message:
-                  "Upstream variable {{steps." +
+                  'Upstream variable {{steps.' +
                   ref +
-                  ".*}} is invalid or has been removed",
+                  '.*}} is invalid or has been removed',
               });
             else if (ri >= i)
               this.errors.push({
-                node: { type: "step", index: i },
+                node: { type: 'step', index: i },
                 message:
-                  "Depends on [" + ref + "] which must be above this step",
+                  'Depends on [' + ref + '] which must be above this step',
               });
           }
         }
@@ -490,17 +497,17 @@
 
       getTriggerErrorClass(idx) {
         return this.errors.some(
-          (e) => e.node.type === "trigger" && e.node.index === idx,
+          (e) => e.node.type === 'trigger' && e.node.index === idx,
         )
-          ? "border-red-400"
-          : "";
+          ? 'border-red-400'
+          : '';
       },
       getStepErrorClass(idx) {
         return this.errors.some(
-          (e) => e.node.type === "step" && e.node.index === idx,
+          (e) => e.node.type === 'step' && e.node.index === idx,
         )
-          ? "border-red-400"
-          : "";
+          ? 'border-red-400'
+          : '';
       },
 
       toggleCodeView() {
@@ -511,7 +518,7 @@
             this.validate();
           } catch (e) {
             alert(
-              "YAML syntax error. Fix errors before switching back to visual mode.\n" +
+              'YAML syntax error. Fix errors before switching back to visual mode.\n' +
                 e.message,
             );
           }
@@ -535,14 +542,14 @@
       async saveDraft() {
         const yaml = this.stateToYaml();
         try {
-          const resp = await fetch("/service/web/pipelines/" + this.name, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
+          const resp = await fetch('/service/web/pipelines/' + this.name, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ yaml, version: this.version }),
           });
           if (resp.status === 409) {
             alert(
-              "This draft was modified elsewhere. Please refresh the page.",
+              'This draft was modified elsewhere. Please refresh the page.',
             );
             return;
           }
@@ -551,7 +558,7 @@
           this.status = data.status;
           this.dirty = false;
         } catch (e) {
-          console.error("Auto-save failed:", e);
+          console.error('Auto-save failed:', e);
         }
       },
 
@@ -560,40 +567,40 @@
         await this.saveDraft();
         try {
           const resp = await fetch(
-            "/service/web/pipelines/" + this.name + "/publish",
+            '/service/web/pipelines/' + this.name + '/publish',
             {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ version: this.version }),
             },
           );
           if (resp.status === 409) {
             alert(
-              "This draft was modified elsewhere. Please refresh the page.",
+              'This draft was modified elsewhere. Please refresh the page.',
             );
             return;
           }
           const data = await resp.json();
           this.version = data.version;
-          this.status = "published";
+          this.status = 'published';
         } catch (e) {
-          console.error("Publish failed:", e);
-          alert("Publish failed: " + e.message);
+          console.error('Publish failed:', e);
+          alert('Publish failed: ' + e.message);
         }
       },
 
       async loadMockPayload() {
         try {
           const resp = await fetch(
-            "/service/web/pipelines/" +
+            '/service/web/pipelines/' +
               this.name +
-              "/mock?source=" +
+              '/mock?source=' +
               this.testTriggerSource,
           );
           const data = await resp.json();
           this.testMockPayload = JSON.stringify(data.payload, null, 2);
         } catch (e) {
-          console.error("Failed to load mock payload:", e);
+          console.error('Failed to load mock payload:', e);
         }
       },
 
@@ -603,20 +610,20 @@
         if (upToIdx === null || upToIdx === undefined) return;
         try {
           const resp = await fetch(
-            "/service/web/pipelines/" + this.name + "/test",
+            '/service/web/pipelines/' + this.name + '/test',
             {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 trigger_source: this.testTriggerSource,
-                mock_payload: JSON.parse(this.testMockPayload || "{}"),
+                mock_payload: JSON.parse(this.testMockPayload || '{}'),
                 up_to_step_index: upToIdx,
               }),
             },
           );
           this.testResults = await resp.json();
         } catch (e) {
-          console.error("Test failed:", e);
+          console.error('Test failed:', e);
           this.testResults = { success: false, error: e.message };
         }
       },
@@ -626,6 +633,6 @@
   if (window.Alpine) {
     register();
   } else {
-    document.addEventListener("alpine:init", register);
+    document.addEventListener('alpine:init', register);
   }
 })();

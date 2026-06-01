@@ -75,6 +75,7 @@ tasks:
       - go tool revive -config revive.toml -formatter friendly ./...
       - task: lint:testify
       - task: lint:action
+      - task: lint:js
 
   lint:action:
     desc: Lint GitHub Actions workflow files
@@ -86,11 +87,16 @@ tasks:
     cmds:
       - go tool testifylint ./...
 
+  lint:js:
+    desc: Lint usage of testify
+    cmds:
+      - oxlint ./public
+
   format:
     desc: Format code (Go and other files)
     cmds:
       - go fmt ./...
-      - npx prettier --write .
+      - oxfmt ./public
 
   tidy:
     desc: Clean up Go module dependencies
@@ -123,11 +129,6 @@ tasks:
     desc: Run tests in short mode (skip integration tests)
     cmds:
       - go test -short ./...
-
-  test:utils:
-    desc: Run tests in pkg/utils package
-    cmds:
-      - go tool gotestsum --hide-summary=skipped --packages="./pkg/utils/..."
 
   test:specs:
     desc: Run Ginkgo BDD acceptance tests (parallel, requires Docker)
@@ -183,21 +184,14 @@ tasks:
     desc: Install all development tools
     cmds:
       - go mod download
-      - npm install -g prettier
+      - npm install -g oxfmt
+      - npm install -g oxlint
 
   # Release tasks
   snapshot:
     desc: Create snapshot release
     cmds:
       - go tool goreleaser release --snapshot --clean
-
-  # Utility tasks
-  clean:
-    desc: Clean build artifacts and temporary files
-    cmds:
-      - go clean -cache -testcache
-      - cmd: rm -rf bin/ tmp/ coverage.out coverage.html
-        ignore_error: true
 
   air:
     desc: Run with live reload using air
@@ -209,19 +203,12 @@ tasks:
     cmds:
       - go fix ./...
 
-  # Code generation tasks
   ent:
     desc: Generate ent code from database
     cmds:
       - go generate ./internal/store/ent/
 
-  # Web UI tasks
   templ:
     desc: Generate Go code from Templ templates
     cmds:
       - go tool templ generate
-
-  web:
-    desc: Build web UI (Templ)
-    cmds:
-      - task: templ

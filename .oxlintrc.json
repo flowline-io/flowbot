@@ -1,0 +1,30 @@
+{
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "globals": {
+    "MyPublicSDK": "readonly",
+    "$": "readonly"
+  },
+  "plugins": [
+    "import",
+    "unicorn"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn",
+    "style": "off"
+  },
+  "rules": {
+    "no-console": [
+      "error",
+      {
+        "allow": ["error", "warn"]
+      }
+    ],
+    "no-debugger": "error",
+    "no-restricted-globals": ["error", "event", "name", "length"]
+  }
+}

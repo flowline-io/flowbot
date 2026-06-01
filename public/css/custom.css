@@ -1,15 +1,15 @@
 /* Variable pill display in step card param previews */
 .var-pill {
-	display: inline-block;
-	background: oklch(from var(--p) l c h / 0.1);
-	color: var(--p);
-	border-radius: 4px;
-	padding: 1px 6px;
-	font-family: monospace;
-	font-size: 0.75rem;
-	max-width: 150px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	vertical-align: middle;
+  display: inline-block;
+  background: oklch(from var(--p) l c h / 0.1);
+  color: var(--p);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: monospace;
+  font-size: 0.75rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
