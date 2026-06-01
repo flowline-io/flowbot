@@ -128,6 +128,9 @@ func newHTTPServer() *fiber.App {
 	// security headers
 	app.Use(securityHeadersMiddleware)
 
+	// static asset caching
+	app.Use(staticCacheMiddleware)
+
 	// favicon
 	app.Use(favicon.New())
 
@@ -145,14 +148,28 @@ func newHTTPServer() *fiber.App {
 }
 
 // securityHeadersMiddleware adds security-related HTTP response headers.
-// CSP is not applied to /swagger/ paths because Swagger UI requires
-// inline scripts, styles, and external resources.
+// CSP allows inline styles needed by the Tailwind CSS browser runtime
+// and daisyui.
 func securityHeadersMiddleware(c fiber.Ctx) error {
 	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
 	c.Set(fiber.HeaderXFrameOptions, "DENY")
 	c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
 	if !strings.HasPrefix(c.Path(), "/swagger/") {
-		c.Set("Content-Security-Policy", "default-src 'self'")
+		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'")
+	}
+	return c.Next()
+}
+
+// staticCacheMiddleware sets long-lived cache headers for static assets.
+// Vendor files are version-pinned; app files change less frequently.
+func staticCacheMiddleware(c fiber.Ctx) error {
+	if !strings.HasPrefix(c.Path(), "/static/") {
+		return c.Next()
+	}
+	if strings.HasPrefix(c.Path(), "/static/vendor/") {
+		c.Set(fiber.HeaderCacheControl, "public, max-age=31536000, immutable")
+	} else {
+		c.Set(fiber.HeaderCacheControl, "public, max-age=3600")
 	}
 	return c.Next()
 }

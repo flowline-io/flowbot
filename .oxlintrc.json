@@ -17,6 +17,7 @@
     "perf": "warn",
     "style": "off"
   },
+  "ignorePatterns": ["public/vendor/**"],
   "rules": {
     "no-console": [
       "error",

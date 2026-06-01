@@ -204,18 +204,18 @@ func TestSanitizeAuditValue(t *testing.T) {
 		{
 			name: "redacts password and token keys",
 			input: map[string]any{
-				"username":  "alice",
-				"password":  "secret123",
-				"token":     "abc.def.ghi",
-				"api_key":   "key-1234",
-				"action":    "login",
+				"username": "alice",
+				"password": "secret123",
+				"token":    "abc.def.ghi",
+				"api_key":  "key-1234",
+				"action":   "login",
 			},
 			expect: map[string]any{
-				"username":  "alice",
-				"password":  "[redacted]",
-				"token":     "[redacted]",
-				"api_key":   "[redacted]",
-				"action":    "login",
+				"username": "alice",
+				"password": "[redacted]",
+				"token":    "[redacted]",
+				"api_key":  "[redacted]",
+				"action":   "login",
 			},
 		},
 		{

@@ -13,3 +13,99 @@
   white-space: nowrap;
   vertical-align: middle;
 }
+
+/* Toast notifications */
+.toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.875rem;
+  max-width: 24rem;
+  animation: toast-slide-in 0.3s ease-out;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+.toast-item.toast-removing {
+  opacity: 0;
+  transform: translateX(100%);
+}
+.toast-item.toast-success {
+  background: oklch(from var(--su) l c h / 0.15);
+  color: var(--su);
+  border: 1px solid oklch(from var(--su) l c h / 0.3);
+}
+.toast-item.toast-error {
+  background: oklch(from var(--er) l c h / 0.15);
+  color: var(--er);
+  border: 1px solid oklch(from var(--er) l c h / 0.3);
+}
+.toast-item.toast-warning {
+  background: oklch(from var(--wa) l c h / 0.15);
+  color: var(--wa);
+  border: 1px solid oklch(from var(--wa) l c h / 0.3);
+}
+.toast-item.toast-info {
+  background: oklch(from var(--in) l c h / 0.15);
+  color: var(--in);
+  border: 1px solid oklch(from var(--in) l c h / 0.3);
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Loading skeleton */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+.skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: var(--fallback-bc, currentColor);
+  opacity: 0.1;
+  border-radius: 0.25rem;
+}
+
+/* Spinner */
+.htmx-indicator.spinner::after {
+  content: '';
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-rotate 0.6s linear infinite;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}

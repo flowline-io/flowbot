@@ -273,9 +273,9 @@ func loginPage(ctx fiber.Ctx) error {
 }
 
 const (
-	msgAccountLocked          = "Account temporarily locked. Please try again later."
-	msgTooManyFailedAttempts  = "Too many failed attempts. Account temporarily locked. Please try again later."
-	msgInvalidCredentials     = "Invalid username or password"
+	msgAccountLocked         = "Account temporarily locked. Please try again later."
+	msgTooManyFailedAttempts = "Too many failed attempts. Account temporarily locked. Please try again later."
+	msgInvalidCredentials    = "Invalid username or password"
 )
 
 // checkLoginRateLimit checks the rate limiter for the current IP.

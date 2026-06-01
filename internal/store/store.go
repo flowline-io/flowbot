@@ -401,19 +401,19 @@ func wrapResult(request any, key, value string) map[string]any {
 // auditSensitiveKeys lists request field names that are redacted from audit
 // logs. All comparisons are case-insensitive (lowercase).
 var auditSensitiveKeys = map[string]struct{}{
-	"password":     {},
-	"passwd":       {},
-	"secret":       {},
-	"token":        {},
-	"api_key":      {},
-	"apikey":       {},
+	"password":      {},
+	"passwd":        {},
+	"secret":        {},
+	"token":         {},
+	"api_key":       {},
+	"apikey":        {},
 	"authorization": {},
-	"cookie":       {},
-	"private_key":  {},
-	"access_token": {},
-	"auth":         {},
-	"credential":   {},
-	"signature":    {},
+	"cookie":        {},
+	"private_key":   {},
+	"access_token":  {},
+	"auth":          {},
+	"credential":    {},
+	"signature":     {},
 }
 
 // sanitizeAuditValue recursively redacts sensitive fields from audit data.

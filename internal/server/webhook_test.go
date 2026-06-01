@@ -318,22 +318,22 @@ func TestWebhookHandler_AuthFailureReturns401(t *testing.T) {
 func TestSanitizeWebhookHeaders(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		wcfg             *pipeline.WebhookConfig
-		headersToSet     map[string]string
-		expectedPresent  []string
-		expectedAbsent   []string
+		name            string
+		wcfg            *pipeline.WebhookConfig
+		headersToSet    map[string]string
+		expectedPresent []string
+		expectedAbsent  []string
 	}{
 		{
 			name: "strips standard sensitive headers",
 			headersToSet: map[string]string{
-				"Authorization":        "Bearer token123",
-				"X-Webhook-Token":      "secret-token",
-				"X-Hub-Signature-256":  "sha256=abc",
-				"Cookie":               "session=abc123",
-				"Content-Type":         "application/json",
-				"User-Agent":           "TestAgent/1.0",
-				"Accept":               "application/json",
+				"Authorization":       "Bearer token123",
+				"X-Webhook-Token":     "secret-token",
+				"X-Hub-Signature-256": "sha256=abc",
+				"Cookie":              "session=abc123",
+				"Content-Type":        "application/json",
+				"User-Agent":          "TestAgent/1.0",
+				"Accept":              "application/json",
 			},
 			expectedPresent: []string{"Content-Type", "User-Agent", "Accept"},
 			expectedAbsent:  []string{"Authorization", "X-Webhook-Token", "X-Hub-Signature-256", "Cookie"},
@@ -359,24 +359,24 @@ func TestSanitizeWebhookHeaders(t *testing.T) {
 		{
 			name: "case-insensitive header matching",
 			headersToSet: map[string]string{
-				"authorization":  "Bearer token123",
+				"authorization":   "Bearer token123",
 				"x-webhook-token": "secret",
-				"Content-Type":   "application/json",
+				"Content-Type":    "application/json",
 			},
 			expectedPresent: []string{"Content-Type"},
 			expectedAbsent:  []string{"Authorization", "X-Webhook-Token"},
 		},
 		{
-			name:         "nil wcfg does not panic",
-			wcfg:         nil,
-			headersToSet: map[string]string{"Accept": "*/*", "Authorization": "secret"},
+			name:            "nil wcfg does not panic",
+			wcfg:            nil,
+			headersToSet:    map[string]string{"Accept": "*/*", "Authorization": "secret"},
 			expectedPresent: []string{"Accept"},
 			expectedAbsent:  []string{"Authorization"},
 		},
 		{
-			name:         "request with no headers returns empty map",
-			wcfg:         &pipeline.WebhookConfig{},
-			headersToSet: map[string]string{},
+			name:            "request with no headers returns empty map",
+			wcfg:            &pipeline.WebhookConfig{},
+			headersToSet:    map[string]string{},
 			expectedPresent: nil,
 			expectedAbsent:  nil,
 		},

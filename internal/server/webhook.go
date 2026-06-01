@@ -22,15 +22,15 @@ import (
 // sensitiveHeaders are HTTP header names that must not be captured in webhook
 // event data. All comparisons are case-insensitive.
 var sensitiveHeaders = map[string]struct{}{
-	"authorization":         {},
-	"x-webhook-token":       {},
-	"x-hub-signature":       {},
-	"x-hub-signature-256":   {},
-	"x-accesstoken":         {},
-	"cookie":                {},
-	"set-cookie":            {},
-	"x-api-key":             {},
-	"proxy-authorization":   {},
+	"authorization":       {},
+	"x-webhook-token":     {},
+	"x-hub-signature":     {},
+	"x-hub-signature-256": {},
+	"x-accesstoken":       {},
+	"cookie":              {},
+	"set-cookie":          {},
+	"x-api-key":           {},
+	"proxy-authorization": {},
 }
 
 // sanitizeWebhookHeaders returns a copy of the request headers with sensitive

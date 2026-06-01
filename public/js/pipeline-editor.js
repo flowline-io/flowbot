@@ -28,6 +28,10 @@
       testResults: null,
       capabilities: [],
       defaultTemplateSet: null,
+      loading: false,
+      saving: false,
+      testing: false,
+      publishing: false,
 
       init() {
         const el = this.$el;
@@ -39,6 +43,7 @@
       },
 
       async loadPipeline(name) {
+        this.loading = true;
         try {
           const resp = await fetch(`/service/web/pipelines/${name}/yaml`);
           const data = await resp.json();
@@ -47,6 +52,9 @@
           if (data.yaml) this.parseYamlToState(data.yaml);
         } catch (e) {
           console.error('Failed to load pipeline:', e);
+          showToast('Failed to load pipeline', 'error');
+        } finally {
+          this.loading = false;
         }
       },
 
@@ -317,8 +325,9 @@
       moveStepUp(idx) {
         if (idx === 0) return;
         if (this.dependsOnStep(this.steps[idx], idx - 1)) {
-          alert(
+          showToast(
             'Cannot move: this step depends on data from a step above the target position.',
+            'warning',
           );
           return;
         }
@@ -332,7 +341,10 @@
       moveStepDown(idx) {
         if (idx >= this.steps.length - 1) return;
         if (this.dependsOnStep(this.steps[idx + 1], idx, this.steps[idx])) {
-          alert("Cannot move: the step below depends on this step's data.");
+          showToast(
+            "Cannot move: the step below depends on this step's data.",
+            'warning',
+          );
           return;
         }
         this.pushUndo();
@@ -517,9 +529,10 @@
             this.codeView = false;
             this.validate();
           } catch (e) {
-            alert(
+            showToast(
               'YAML syntax error. Fix errors before switching back to visual mode.\n' +
                 e.message,
+              'error',
             );
           }
         } else {
@@ -540,6 +553,7 @@
       },
 
       async saveDraft() {
+        this.saving = true;
         const yaml = this.stateToYaml();
         try {
           const resp = await fetch('/service/web/pipelines/' + this.name, {
@@ -548,8 +562,9 @@
             body: JSON.stringify({ yaml, version: this.version }),
           });
           if (resp.status === 409) {
-            alert(
+            showToast(
               'This draft was modified elsewhere. Please refresh the page.',
+              'error',
             );
             return;
           }
@@ -557,13 +572,17 @@
           this.version = data.version;
           this.status = data.status;
           this.dirty = false;
+          showToast('Draft saved', 'success');
         } catch (e) {
           console.error('Auto-save failed:', e);
+        } finally {
+          this.saving = false;
         }
       },
 
       async publish() {
         if (this.publishDisabled) return;
+        this.publishing = true;
         await this.saveDraft();
         try {
           const resp = await fetch(
@@ -575,17 +594,21 @@
             },
           );
           if (resp.status === 409) {
-            alert(
+            showToast(
               'This draft was modified elsewhere. Please refresh the page.',
+              'error',
             );
             return;
           }
           const data = await resp.json();
           this.version = data.version;
           this.status = 'published';
+          showToast('Pipeline published', 'success');
         } catch (e) {
           console.error('Publish failed:', e);
-          alert('Publish failed: ' + e.message);
+          showToast('Publish failed: ' + e.message, 'error');
+        } finally {
+          this.publishing = false;
         }
       },
 
@@ -608,6 +631,7 @@
         await this.saveDraft();
         const upToIdx = this.selectedNode?.index;
         if (upToIdx === null || upToIdx === undefined) return;
+        this.testing = true;
         try {
           const resp = await fetch(
             '/service/web/pipelines/' + this.name + '/test',
@@ -625,6 +649,9 @@
         } catch (e) {
           console.error('Test failed:', e);
           this.testResults = { success: false, error: e.message };
+          showToast('Test failed: ' + e.message, 'error');
+        } finally {
+          this.testing = false;
         }
       },
     }));

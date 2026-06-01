@@ -10,8 +10,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/pkg/views/pages"
-	"github.com/flowline-io/flowbot/pkg/views/partials"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -19,6 +17,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/views/pages"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 var pipelineWebserviceRules = []webservice.Rule{

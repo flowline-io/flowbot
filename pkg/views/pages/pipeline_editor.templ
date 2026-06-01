@@ -7,9 +7,18 @@ import (
 
 templ PipelineEditorPage(name string) {
 	@layout.Base("Pipeline: " + name) {
+		<script src="/static/vendor/js-yaml.min.js"></script>
+		<script src="/static/js/pipeline-editor.js"></script>
 		<div x-data="pipelineEditor()" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
+			<!-- Loading skeleton -->
+			<div x-show="loading" class="space-y-4" data-testid="pipeline-loading">
+				<div class="skeleton h-12 w-full rounded-box"></div>
+				<div class="skeleton h-32 w-full rounded-box"></div>
+				<div class="skeleton h-32 w-full rounded-box"></div>
+			</div>
+
 			<!-- Header -->
-			<div class="bg-base-100 border-b border-base-300 px-6 py-3 mb-4 rounded-t-box shadow-sm flex items-center justify-between">
+			<div x-show="!loading" class="bg-base-100 border-b border-base-300 px-6 py-3 mb-4 rounded-t-box shadow-sm flex items-center justify-between">
 				<div class="flex items-center gap-4">
 					<h2 class="text-lg font-semibold text-base-content" x-text="name" data-testid="pipeline-title"></h2>
 					<span x-show="status === 'draft'" class="badge badge-ghost" data-testid="status-badge">Draft</span>
@@ -29,31 +38,44 @@ templ PipelineEditorPage(name string) {
 						class="btn btn-ghost btn-sm"
 						data-testid="btn-run-history">Run History</a>
 					<button type="button" @click="saveDraft"
+						:disabled="saving"
 						class="btn btn-ghost btn-sm"
-						data-testid="btn-save-draft">Save Draft</button>
+						data-testid="btn-save-draft">
+						<span x-show="!saving">Save Draft</span>
+						<span x-show="saving" class="flex items-center gap-1">
+							<span class="inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin"></span>
+							Saving...
+						</span>
+					</button>
 					<button type="button" @click="publish"
-						:disabled="publishDisabled"
+						:disabled="publishDisabled || publishing"
 						class="btn btn-primary btn-sm"
-						data-testid="btn-publish">Publish</button>
+						data-testid="btn-publish">
+						<span x-show="!publishing">Publish</span>
+						<span x-show="publishing" class="flex items-center gap-1">
+							<span class="inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin"></span>
+							Publishing...
+						</span>
+					</button>
 				</div>
 			</div>
 
 			<!-- Error summary -->
-			<div x-show="errors.length > 0"
+			<div x-show="!loading && errors.length > 0"
 				class="alert alert-error mb-4 text-sm"
 				data-testid="error-summary">
 				<span x-text="errors.length"></span> node(s) contain errors. Publish is disabled.
 			</div>
 
 			<!-- Code View -->
-			<div x-show="codeView" class="mb-4">
+			<div x-show="!loading && codeView" class="mb-4">
 				<textarea x-model="yamlText" rows="20"
 					class="textarea textarea-bordered w-full font-mono"
 					data-testid="yaml-editor"></textarea>
 			</div>
 
 			<!-- Visual View -->
-			<div x-show="!codeView">
+			<div x-show="!loading && !codeView">
 				<!-- Trigger Zone -->
 				<div class="border-2 border-dashed border-primary/30 bg-primary/5 rounded-box p-4 mb-6" data-testid="trigger-zone">
 					<h3 class="text-sm font-medium text-primary mb-3">Trigger Conditions (any enabled trigger starts the pipeline)</h3>
@@ -254,8 +276,15 @@ templ PipelineEditorPage(name string) {
 									class="btn btn-ghost btn-sm text-primary mb-3"
 									data-testid="btn-load-mock">Load sample data</button>
 								<button type="button" @click="runTest"
+									:disabled="testing"
 									class="btn btn-primary btn-block mb-4"
-									data-testid="btn-run-test">Test up to this step</button>
+									data-testid="btn-run-test">
+									<span x-show="!testing">Test up to this step</span>
+									<span x-show="testing" class="flex items-center justify-center gap-1">
+										<span class="inline-block w-3 h-3 border-2 border-current border-r-transparent rounded-full animate-spin"></span>
+										Testing...
+									</span>
+								</button>
 								<div x-show="testResults" data-testid="test-results" class="border-t border-base-300 pt-4">
 									<template x-if="testResults?.steps">
 									<template x-for="r in testResults.steps" :key="r.name">

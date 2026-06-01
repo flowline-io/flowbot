@@ -11,9 +11,9 @@ import (
 
 // mockRateLimitStore is an in-memory test double implementing rateLimitStore.
 type mockRateLimitStore struct {
-	mu    sync.RWMutex
-	ints  map[string]int64
-	strs  map[string]bool
+	mu   sync.RWMutex
+	ints map[string]int64
+	strs map[string]bool
 }
 
 func newMockRateLimitStore() *mockRateLimitStore {
