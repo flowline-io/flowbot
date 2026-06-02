@@ -123,7 +123,7 @@ func CapabilitiesPage(descriptors []hub.Descriptor, types []string, providers []
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.CapabilityGrid(descriptors).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.CapabilityGrid(descriptors, false).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

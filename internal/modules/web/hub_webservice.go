@@ -238,9 +238,10 @@ func hubCapabilitiesGrid(c fiber.Ctx) error {
 
 	typeFilter := c.Query("type")
 	providerFilter := c.Query("provider")
+	filtered := typeFilter != "" || providerFilter != ""
 
-	if typeFilter != "" || providerFilter != "" {
-		filtered := make([]hub.Descriptor, 0, len(descriptors))
+	if filtered {
+		tmp := make([]hub.Descriptor, 0, len(descriptors))
 		for _, d := range descriptors {
 			if typeFilter != "" && string(d.Type) != typeFilter {
 				continue
@@ -248,13 +249,13 @@ func hubCapabilitiesGrid(c fiber.Ctx) error {
 			if providerFilter != "" && d.Backend != providerFilter {
 				continue
 			}
-			filtered = append(filtered, d)
+			tmp = append(tmp, d)
 		}
-		descriptors = filtered
+		descriptors = tmp
 	}
 
 	c.Type("html")
-	return partials.CapabilityGrid(descriptors).Render(c.Context(), c.Response().BodyWriter())
+	return partials.CapabilityGrid(descriptors, filtered).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // uniqueTypes extracts unique capability type strings from descriptors, sorted.

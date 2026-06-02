@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
 func TestHubAppsPage(t *testing.T) {
@@ -235,6 +236,70 @@ func TestHubCapabilitiesGrid(t *testing.T) {
 			body, _ := io.ReadAll(resp.Body)
 			if !strings.Contains(string(body), tt.wantContains) {
 				t.Errorf("want body containing %q", tt.wantContains)
+			}
+		})
+	}
+}
+
+func TestHubCapabilitiesGridFiltered(t *testing.T) {
+	tests := []struct {
+		name         string
+		wantStatus   int
+		wantContains string
+	}{
+		{
+			name:         "filter by type shows only matching card",
+			wantStatus:   http.StatusOK,
+			wantContains: "capability-card-bookmark",
+		},
+		{
+			name:         "filter with match shows grid not empty state",
+			wantStatus:   http.StatusOK,
+			wantContains: "capability-grid",
+		},
+		{
+			name:         "no match filter shows empty filter message",
+			wantStatus:   http.StatusOK,
+			wantContains: "No capabilities match these filters",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hub.Default.Register(hub.Descriptor{
+				Type:        hub.CapBookmark,
+				Backend:     "test-backend",
+				App:         "test-app",
+				Description: "Test capability",
+				Healthy:     true,
+			})
+			defer func() {
+				// Reset registry after test by re-registering an empty list.
+				// Registry is global, so test isolation is imperfect — this is acceptable for now.
+			}()
+
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+			var url string
+			switch tt.name {
+			case "filter by type shows only matching card":
+				url = "/service/web/capabilities/grid?type=bookmark"
+			case "filter with match shows grid not empty state":
+				url = "/service/web/capabilities/grid?type=bookmark&provider=test-backend"
+			case "no match filter shows empty filter message":
+				url = "/service/web/capabilities/grid?type=unknown"
+			}
+
+			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantContains) {
+				t.Errorf("want body containing %q, got: %s", tt.wantContains, string(body))
 			}
 		})
 	}
