@@ -167,8 +167,32 @@ func (s *PipelineStore) PipelineStats(ctx context.Context, name string, since ti
     return stats, nil
 }
 
+// dialectDateExpr returns a dialect-aware DATE_TRUNC expression for GROUP BY.
+func (s *PipelineStore) dialectDateExpr(groupBy string) string {
+    dialect := s.client.Dialect()
+    switch dialect {
+    case "postgres":
+        switch groupBy {
+        case "week":
+            return "DATE_TRUNC('week', completed_at)::date"
+        case "month":
+            return "DATE_TRUNC('month', completed_at)::date"
+        default:
+            return "DATE_TRUNC('day', completed_at)::date"
+        }
+    default: // sqlite3 (tests) and fallback
+        switch groupBy {
+        case "week":
+            return "strftime('%Y-W%W', completed_at)"
+        case "month":
+            return "strftime('%Y-%m', completed_at)"
+        default:
+            return "DATE(completed_at)"
+        }
+    }
+}
+
 // loadSuccessRate runs a GROUP BY date query returning []SuccessRatePoint.
-// Uses ent's Modify() to inject DATE() expression.
 func (s *PipelineStore) loadSuccessRate(ctx context.Context, name string, since time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
     q := s.client.PipelineRun.Query().Where(pipelinerun.CompletedAtNotNil())
     if name != "" {
@@ -178,13 +202,7 @@ func (s *PipelineStore) loadSuccessRate(ctx context.Context, name string, since 
         q = q.Where(pipelinerun.StartedAtGTE(since))
     }
 
-    // Determine date trunc expression (SQLite-compatible for tests)
-    dateExpr := "DATE(completed_at)"
-    if groupBy == "week" {
-        dateExpr = "strftime('%Y-W%W', completed_at)"
-    } else if groupBy == "month" {
-        dateExpr = "strftime('%Y-%m', completed_at)"
-    }
+    dateExpr := s.dialectDateExpr(groupBy)
 
     type row struct {
         Date    string `sql:"date"`
@@ -220,10 +238,28 @@ func (s *PipelineStore) loadSuccessRate(ctx context.Context, name string, since 
     return points, nil
 }
 
-// loadDurationBuckets counts runs by duration into 4 buckets: 0-1s, 1-5s, 5-30s, 30s+.
-// Uses ent's Modify() + Scan() for aggregation.
+// dialectBucketExpr returns a dialect-aware CASE expression for duration bucketing.
+func (s *PipelineStore) dialectBucketExpr(startCol, endCol string) string {
+    dialect := s.client.Dialect()
+    if dialect == "postgres" {
+        return fmt.Sprintf(`CASE
+            WHEN EXTRACT(EPOCH FROM (%s - %s)) < 1 THEN '0-1s'
+            WHEN EXTRACT(EPOCH FROM (%s - %s)) < 5 THEN '1-5s'
+            WHEN EXTRACT(EPOCH FROM (%s - %s)) < 30 THEN '5-30s'
+            ELSE '30s+'
+        END`, endCol, startCol, endCol, startCol, endCol, startCol)
+    }
+    // sqlite3 (tests) and fallback
+    return fmt.Sprintf(`CASE
+        WHEN (julianday(%[1]s) - julianday(%[2]s)) * 86400000 < 1000 THEN '0-1s'
+        WHEN (julianday(%[1]s) - julianday(%[2]s)) * 86400000 < 5000 THEN '1-5s'
+        WHEN (julianday(%[1]s) - julianday(%[2]s)) * 86400000 < 30000 THEN '5-30s'
+        ELSE '30s+'
+    END`, endCol, startCol)
+}
+
+// loadDurationBuckets counts runs by duration into 4 buckets.
 func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
-    // Query pipeline_runs for pipeline-level duration
     q := s.client.PipelineRun.Query().Where(pipelinerun.CompletedAtNotNil())
     if name != "" {
         q = q.Where(pipelinerun.PipelineName(name))
@@ -238,16 +274,10 @@ func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, si
     }
     var rows []bucketRow
 
-    // SQLite: julianday for test compatibility.
-    // In production (Postgres), use EXTRACT(EPOCH FROM ...). Consider dialect detection.
+    bucketExpr := s.dialectBucketExpr("started_at", "completed_at")
     err := q.Modify(func(sel *sql.Selector) {
         sel.Select(
-            sql.Expr(`CASE
-                WHEN (julianday(completed_at) - julianday(started_at)) * 86400000 < 1000 THEN '0-1s'
-                WHEN (julianday(completed_at) - julianday(started_at)) * 86400000 < 5000 THEN '1-5s'
-                WHEN (julianday(completed_at) - julianday(started_at)) * 86400000 < 30000 THEN '5-30s'
-                ELSE '30s+'
-            END AS bucket`),
+            sql.Expr(bucketExpr+" AS bucket"),
             sql.Expr("COUNT(*) AS count"),
         )
         sel.GroupBy(sql.Expr("1"))
@@ -284,14 +314,10 @@ func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string
     }
     var rows []bucketRow
 
+    bucketExpr := s.dialectBucketExpr("started_at", "completed_at")
     err := q.Modify(func(sel *sql.Selector) {
         sel.Select(
-            sql.Expr(`CASE
-                WHEN (julianday(completed_at) - julianday(started_at)) * 86400000 < 1000 THEN '0-1s'
-                WHEN (julianday(completed_at) - julianday(started_at)) * 86400000 < 5000 THEN '1-5s'
-                WHEN (julianday(completed_at) - julianday(started_at)) * 86400000 < 30000 THEN '5-30s'
-                ELSE '30s+'
-            END AS bucket`),
+            sql.Expr(bucketExpr+" AS bucket"),
             sql.Expr("COUNT(*) AS count"),
         )
         sel.GroupBy(sql.Expr("1"))
@@ -368,7 +394,7 @@ func emptyDurationBuckets() []types.DurationEntry {
 }
 ```
 
-**NOTE:** The SQL expressions use SQLite syntax (`julianday`, `strftime`) for test compatibility. For PostgreSQL in production, these need `EXTRACT(EPOCH FROM ...)` and `DATE_TRUNC(...)`. The implementation should detect the database dialect (e.g., from ent's `drv.Dialect()`) and choose the appropriate SQL expression.
+**NOTE:** All SQL expressions use dialect detection via `s.client.Dialect()` — SQLite functions for tests, Postgres-native functions (`DATE_TRUNC`, `EXTRACT(EPOCH FROM ...)`) for production. The `dialectDateExpr` and `dialectBucketExpr` helpers in the implementation above handle this.
 
 - [ ] **Step 2: Write store test**
 
@@ -513,17 +539,22 @@ Add `triggerSource string` param to `executePipeline`. Update:
 - `ExecuteWebhook` → pass `"webhook"` to `executePipeline`
 - Any `ResumePipeline` call that calls `createRunRecord`
 
-- [ ] **Step 5: Update all test and spec CreateRun callers**
+- [ ] **Step 5: Regenerate mocks**
+
+Run: `go generate ./pkg/pipeline/...`
+If the project uses mockgen/mockery for `RunStore`, regenerate mocks to match the updated interface signature.
+
+- [ ] **Step 6: Update all test and spec CreateRun callers**
 
 Search for all `CreateRun(` calls in test files. Use: `rg "CreateRun\(" --include="*.go" -l`. Add `"event"` as the 5th argument.
 
-- [ ] **Step 6: Verify build and tests**
+- [ ] **Step 7: Verify build and tests**
 
 Run: `go build ./...`
 Run: `go test ./internal/store/ ./pkg/pipeline/ ./tests/specs/ -count=1`
 Expected: All compile and tests pass.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add internal/store/store.go pkg/pipeline/engine.go internal/server/webhook.go internal/store/store_test.go tests/specs/event_spec_test.go
@@ -641,6 +672,7 @@ git commit -m "feat: add GET /pipelines/stats and /pipelines/:name/stats routes"
 package partials
 
 import (
+    "net/url"
     "time"
 
     "github.com/bytedance/sonic"
@@ -736,12 +768,12 @@ func buildStatsURL(name string, days int, groupBy string) string {
     }
     u := "/service/web/pipelines/stats"
     if name != "" {
-        u = "/service/web/pipelines/" + name + "/stats"
+        u = "/service/web/pipelines/" + url.PathEscape(name) + "/stats"
     }
     if since != "" {
-        return u + "?groupBy=" + groupBy + "&since=" + since
+        return u + "?groupBy=" + url.QueryEscape(groupBy) + "&since=" + url.QueryEscape(since)
     }
-    return u + "?groupBy=" + groupBy
+    return u + "?groupBy=" + url.QueryEscape(groupBy)
 }
 ```
 
