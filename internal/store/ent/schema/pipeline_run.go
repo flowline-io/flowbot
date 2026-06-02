@@ -20,6 +20,9 @@ func (PipelineRun) Fields() []ent.Field {
 		field.String("pipeline_name").NotEmpty(),
 		field.String("event_id").NotEmpty().Unique(),
 		field.String("event_type").Default(""),
+		field.Enum("trigger_source").
+			Values("event", "webhook", "cron", "manual").
+			Default("event"),
 		field.Int("status").Default(0),
 		field.String("error").Optional().Default(""),
 		field.JSON("checkpoint_data", map[string]any{}).Optional(),

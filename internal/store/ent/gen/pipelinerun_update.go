@@ -70,6 +70,20 @@ func (_u *PipelineRunUpdate) SetNillableEventType(v *string) *PipelineRunUpdate 
 	return _u
 }
 
+// SetTriggerSource sets the "trigger_source" field.
+func (_u *PipelineRunUpdate) SetTriggerSource(v pipelinerun.TriggerSource) *PipelineRunUpdate {
+	_u.mutation.SetTriggerSource(v)
+	return _u
+}
+
+// SetNillableTriggerSource sets the "trigger_source" field if the given value is not nil.
+func (_u *PipelineRunUpdate) SetNillableTriggerSource(v *pipelinerun.TriggerSource) *PipelineRunUpdate {
+	if v != nil {
+		_u.SetTriggerSource(*v)
+	}
+	return _u
+}
+
 // SetStatus sets the "status" field.
 func (_u *PipelineRunUpdate) SetStatus(v int) *PipelineRunUpdate {
 	_u.mutation.ResetStatus()
@@ -221,6 +235,11 @@ func (_u *PipelineRunUpdate) check() error {
 			return &ValidationError{Name: "event_id", err: fmt.Errorf(`gen: validator failed for field "PipelineRun.event_id": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TriggerSource(); ok {
+		if err := pipelinerun.TriggerSourceValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_source", err: fmt.Errorf(`gen: validator failed for field "PipelineRun.trigger_source": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -244,6 +263,9 @@ func (_u *PipelineRunUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.EventType(); ok {
 		_spec.SetField(pipelinerun.FieldEventType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TriggerSource(); ok {
+		_spec.SetField(pipelinerun.FieldTriggerSource, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(pipelinerun.FieldStatus, field.TypeInt, value)
@@ -336,6 +358,20 @@ func (_u *PipelineRunUpdateOne) SetEventType(v string) *PipelineRunUpdateOne {
 func (_u *PipelineRunUpdateOne) SetNillableEventType(v *string) *PipelineRunUpdateOne {
 	if v != nil {
 		_u.SetEventType(*v)
+	}
+	return _u
+}
+
+// SetTriggerSource sets the "trigger_source" field.
+func (_u *PipelineRunUpdateOne) SetTriggerSource(v pipelinerun.TriggerSource) *PipelineRunUpdateOne {
+	_u.mutation.SetTriggerSource(v)
+	return _u
+}
+
+// SetNillableTriggerSource sets the "trigger_source" field if the given value is not nil.
+func (_u *PipelineRunUpdateOne) SetNillableTriggerSource(v *pipelinerun.TriggerSource) *PipelineRunUpdateOne {
+	if v != nil {
+		_u.SetTriggerSource(*v)
 	}
 	return _u
 }
@@ -504,6 +540,11 @@ func (_u *PipelineRunUpdateOne) check() error {
 			return &ValidationError{Name: "event_id", err: fmt.Errorf(`gen: validator failed for field "PipelineRun.event_id": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.TriggerSource(); ok {
+		if err := pipelinerun.TriggerSourceValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_source", err: fmt.Errorf(`gen: validator failed for field "PipelineRun.trigger_source": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -544,6 +585,9 @@ func (_u *PipelineRunUpdateOne) sqlSave(ctx context.Context) (_node *PipelineRun
 	}
 	if value, ok := _u.mutation.EventType(); ok {
 		_spec.SetField(pipelinerun.FieldEventType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.TriggerSource(); ok {
+		_spec.SetField(pipelinerun.FieldTriggerSource, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(pipelinerun.FieldStatus, field.TypeInt, value)

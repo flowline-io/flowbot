@@ -634,6 +634,7 @@ var (
 		{Name: "pipeline_name", Type: field.TypeString},
 		{Name: "event_id", Type: field.TypeString, Unique: true},
 		{Name: "event_type", Type: field.TypeString, Default: ""},
+		{Name: "trigger_source", Type: field.TypeEnum, Enums: []string{"event", "webhook", "cron", "manual"}, Default: "event"},
 		{Name: "status", Type: field.TypeInt, Default: 0},
 		{Name: "error", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "checkpoint_data", Type: field.TypeJSON, Nullable: true},

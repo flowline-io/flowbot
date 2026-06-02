@@ -48,6 +48,20 @@ func (_c *PipelineRunCreate) SetNillableEventType(v *string) *PipelineRunCreate 
 	return _c
 }
 
+// SetTriggerSource sets the "trigger_source" field.
+func (_c *PipelineRunCreate) SetTriggerSource(v pipelinerun.TriggerSource) *PipelineRunCreate {
+	_c.mutation.SetTriggerSource(v)
+	return _c
+}
+
+// SetNillableTriggerSource sets the "trigger_source" field if the given value is not nil.
+func (_c *PipelineRunCreate) SetNillableTriggerSource(v *pipelinerun.TriggerSource) *PipelineRunCreate {
+	if v != nil {
+		_c.SetTriggerSource(*v)
+	}
+	return _c
+}
+
 // SetStatus sets the "status" field.
 func (_c *PipelineRunCreate) SetStatus(v int) *PipelineRunCreate {
 	_c.mutation.SetStatus(v)
@@ -175,6 +189,10 @@ func (_c *PipelineRunCreate) defaults() {
 		v := pipelinerun.DefaultEventType
 		_c.mutation.SetEventType(v)
 	}
+	if _, ok := _c.mutation.TriggerSource(); !ok {
+		v := pipelinerun.DefaultTriggerSource
+		_c.mutation.SetTriggerSource(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := pipelinerun.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -209,6 +227,14 @@ func (_c *PipelineRunCreate) check() error {
 	}
 	if _, ok := _c.mutation.EventType(); !ok {
 		return &ValidationError{Name: "event_type", err: errors.New(`gen: missing required field "PipelineRun.event_type"`)}
+	}
+	if _, ok := _c.mutation.TriggerSource(); !ok {
+		return &ValidationError{Name: "trigger_source", err: errors.New(`gen: missing required field "PipelineRun.trigger_source"`)}
+	}
+	if v, ok := _c.mutation.TriggerSource(); ok {
+		if err := pipelinerun.TriggerSourceValidator(v); err != nil {
+			return &ValidationError{Name: "trigger_source", err: fmt.Errorf(`gen: validator failed for field "PipelineRun.trigger_source": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`gen: missing required field "PipelineRun.status"`)}
@@ -263,6 +289,10 @@ func (_c *PipelineRunCreate) createSpec() (*PipelineRun, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.EventType(); ok {
 		_spec.SetField(pipelinerun.FieldEventType, field.TypeString, value)
 		_node.EventType = value
+	}
+	if value, ok := _c.mutation.TriggerSource(); ok {
+		_spec.SetField(pipelinerun.FieldTriggerSource, field.TypeEnum, value)
+		_node.TriggerSource = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(pipelinerun.FieldStatus, field.TypeInt, value)
@@ -377,6 +407,18 @@ func (u *PipelineRunUpsert) SetEventType(v string) *PipelineRunUpsert {
 // UpdateEventType sets the "event_type" field to the value that was provided on create.
 func (u *PipelineRunUpsert) UpdateEventType() *PipelineRunUpsert {
 	u.SetExcluded(pipelinerun.FieldEventType)
+	return u
+}
+
+// SetTriggerSource sets the "trigger_source" field.
+func (u *PipelineRunUpsert) SetTriggerSource(v pipelinerun.TriggerSource) *PipelineRunUpsert {
+	u.Set(pipelinerun.FieldTriggerSource, v)
+	return u
+}
+
+// UpdateTriggerSource sets the "trigger_source" field to the value that was provided on create.
+func (u *PipelineRunUpsert) UpdateTriggerSource() *PipelineRunUpsert {
+	u.SetExcluded(pipelinerun.FieldTriggerSource)
 	return u
 }
 
@@ -572,6 +614,20 @@ func (u *PipelineRunUpsertOne) SetEventType(v string) *PipelineRunUpsertOne {
 func (u *PipelineRunUpsertOne) UpdateEventType() *PipelineRunUpsertOne {
 	return u.Update(func(s *PipelineRunUpsert) {
 		s.UpdateEventType()
+	})
+}
+
+// SetTriggerSource sets the "trigger_source" field.
+func (u *PipelineRunUpsertOne) SetTriggerSource(v pipelinerun.TriggerSource) *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetTriggerSource(v)
+	})
+}
+
+// UpdateTriggerSource sets the "trigger_source" field to the value that was provided on create.
+func (u *PipelineRunUpsertOne) UpdateTriggerSource() *PipelineRunUpsertOne {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateTriggerSource()
 	})
 }
 
@@ -950,6 +1006,20 @@ func (u *PipelineRunUpsertBulk) SetEventType(v string) *PipelineRunUpsertBulk {
 func (u *PipelineRunUpsertBulk) UpdateEventType() *PipelineRunUpsertBulk {
 	return u.Update(func(s *PipelineRunUpsert) {
 		s.UpdateEventType()
+	})
+}
+
+// SetTriggerSource sets the "trigger_source" field.
+func (u *PipelineRunUpsertBulk) SetTriggerSource(v pipelinerun.TriggerSource) *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.SetTriggerSource(v)
+	})
+}
+
+// UpdateTriggerSource sets the "trigger_source" field to the value that was provided on create.
+func (u *PipelineRunUpsertBulk) UpdateTriggerSource() *PipelineRunUpsertBulk {
+	return u.Update(func(s *PipelineRunUpsert) {
+		s.UpdateTriggerSource()
 	})
 }
 

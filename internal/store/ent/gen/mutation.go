@@ -18738,6 +18738,7 @@ type PipelineRunMutation struct {
 	pipeline_name   *string
 	event_id        *string
 	event_type      *string
+	trigger_source  *pipelinerun.TriggerSource
 	status          *int
 	addstatus       *int
 	error           *string
@@ -18962,6 +18963,42 @@ func (m *PipelineRunMutation) OldEventType(ctx context.Context) (v string, err e
 // ResetEventType resets all changes to the "event_type" field.
 func (m *PipelineRunMutation) ResetEventType() {
 	m.event_type = nil
+}
+
+// SetTriggerSource sets the "trigger_source" field.
+func (m *PipelineRunMutation) SetTriggerSource(ps pipelinerun.TriggerSource) {
+	m.trigger_source = &ps
+}
+
+// TriggerSource returns the value of the "trigger_source" field in the mutation.
+func (m *PipelineRunMutation) TriggerSource() (r pipelinerun.TriggerSource, exists bool) {
+	v := m.trigger_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTriggerSource returns the old "trigger_source" field's value of the PipelineRun entity.
+// If the PipelineRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineRunMutation) OldTriggerSource(ctx context.Context) (v pipelinerun.TriggerSource, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTriggerSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTriggerSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTriggerSource: %w", err)
+	}
+	return oldValue.TriggerSource, nil
+}
+
+// ResetTriggerSource resets all changes to the "trigger_source" field.
+func (m *PipelineRunMutation) ResetTriggerSource() {
+	m.trigger_source = nil
 }
 
 // SetStatus sets the "status" field.
@@ -19322,7 +19359,7 @@ func (m *PipelineRunMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PipelineRunMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.pipeline_name != nil {
 		fields = append(fields, pipelinerun.FieldPipelineName)
 	}
@@ -19331,6 +19368,9 @@ func (m *PipelineRunMutation) Fields() []string {
 	}
 	if m.event_type != nil {
 		fields = append(fields, pipelinerun.FieldEventType)
+	}
+	if m.trigger_source != nil {
+		fields = append(fields, pipelinerun.FieldTriggerSource)
 	}
 	if m.status != nil {
 		fields = append(fields, pipelinerun.FieldStatus)
@@ -19367,6 +19407,8 @@ func (m *PipelineRunMutation) Field(name string) (ent.Value, bool) {
 		return m.EventID()
 	case pipelinerun.FieldEventType:
 		return m.EventType()
+	case pipelinerun.FieldTriggerSource:
+		return m.TriggerSource()
 	case pipelinerun.FieldStatus:
 		return m.Status()
 	case pipelinerun.FieldError:
@@ -19396,6 +19438,8 @@ func (m *PipelineRunMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldEventID(ctx)
 	case pipelinerun.FieldEventType:
 		return m.OldEventType(ctx)
+	case pipelinerun.FieldTriggerSource:
+		return m.OldTriggerSource(ctx)
 	case pipelinerun.FieldStatus:
 		return m.OldStatus(ctx)
 	case pipelinerun.FieldError:
@@ -19439,6 +19483,13 @@ func (m *PipelineRunMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEventType(v)
+		return nil
+	case pipelinerun.FieldTriggerSource:
+		v, ok := value.(pipelinerun.TriggerSource)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTriggerSource(v)
 		return nil
 	case pipelinerun.FieldStatus:
 		v, ok := value.(int)
@@ -19588,6 +19639,9 @@ func (m *PipelineRunMutation) ResetField(name string) error {
 		return nil
 	case pipelinerun.FieldEventType:
 		m.ResetEventType()
+		return nil
+	case pipelinerun.FieldTriggerSource:
+		m.ResetTriggerSource()
 		return nil
 	case pipelinerun.FieldStatus:
 		m.ResetStatus()

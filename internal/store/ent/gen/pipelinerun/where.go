@@ -294,6 +294,26 @@ func EventTypeContainsFold(v string) predicate.PipelineRun {
 	return predicate.PipelineRun(sql.FieldContainsFold(FieldEventType, v))
 }
 
+// TriggerSourceEQ applies the EQ predicate on the "trigger_source" field.
+func TriggerSourceEQ(v TriggerSource) predicate.PipelineRun {
+	return predicate.PipelineRun(sql.FieldEQ(FieldTriggerSource, v))
+}
+
+// TriggerSourceNEQ applies the NEQ predicate on the "trigger_source" field.
+func TriggerSourceNEQ(v TriggerSource) predicate.PipelineRun {
+	return predicate.PipelineRun(sql.FieldNEQ(FieldTriggerSource, v))
+}
+
+// TriggerSourceIn applies the In predicate on the "trigger_source" field.
+func TriggerSourceIn(vs ...TriggerSource) predicate.PipelineRun {
+	return predicate.PipelineRun(sql.FieldIn(FieldTriggerSource, vs...))
+}
+
+// TriggerSourceNotIn applies the NotIn predicate on the "trigger_source" field.
+func TriggerSourceNotIn(vs ...TriggerSource) predicate.PipelineRun {
+	return predicate.PipelineRun(sql.FieldNotIn(FieldTriggerSource, vs...))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v int) predicate.PipelineRun {
 	return predicate.PipelineRun(sql.FieldEQ(FieldStatus, v))

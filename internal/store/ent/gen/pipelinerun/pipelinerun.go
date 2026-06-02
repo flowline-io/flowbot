@@ -3,6 +3,7 @@
 package pipelinerun
 
 import (
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -19,6 +20,8 @@ const (
 	FieldEventID = "event_id"
 	// FieldEventType holds the string denoting the event_type field in the database.
 	FieldEventType = "event_type"
+	// FieldTriggerSource holds the string denoting the trigger_source field in the database.
+	FieldTriggerSource = "trigger_source"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldError holds the string denoting the error field in the database.
@@ -43,6 +46,7 @@ var Columns = []string{
 	FieldPipelineName,
 	FieldEventID,
 	FieldEventType,
+	FieldTriggerSource,
 	FieldStatus,
 	FieldError,
 	FieldCheckpointData,
@@ -77,6 +81,34 @@ var (
 	DefaultCreatedAt func() time.Time
 )
 
+// TriggerSource defines the type for the "trigger_source" enum field.
+type TriggerSource string
+
+// TriggerSourceEvent is the default value of the TriggerSource enum.
+const DefaultTriggerSource = TriggerSourceEvent
+
+// TriggerSource values.
+const (
+	TriggerSourceEvent   TriggerSource = "event"
+	TriggerSourceWebhook TriggerSource = "webhook"
+	TriggerSourceCron    TriggerSource = "cron"
+	TriggerSourceManual  TriggerSource = "manual"
+)
+
+func (ts TriggerSource) String() string {
+	return string(ts)
+}
+
+// TriggerSourceValidator is a validator for the "trigger_source" field enum values. It is called by the builders before save.
+func TriggerSourceValidator(ts TriggerSource) error {
+	switch ts {
+	case TriggerSourceEvent, TriggerSourceWebhook, TriggerSourceCron, TriggerSourceManual:
+		return nil
+	default:
+		return fmt.Errorf("pipelinerun: invalid enum value for trigger_source field: %q", ts)
+	}
+}
+
 // OrderOption defines the ordering options for the PipelineRun queries.
 type OrderOption func(*sql.Selector)
 
@@ -98,6 +130,11 @@ func ByEventID(opts ...sql.OrderTermOption) OrderOption {
 // ByEventType orders the results by the event_type field.
 func ByEventType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEventType, opts...).ToFunc()
+}
+
+// ByTriggerSource orders the results by the trigger_source field.
+func ByTriggerSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTriggerSource, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

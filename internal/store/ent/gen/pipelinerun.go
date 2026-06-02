@@ -24,6 +24,8 @@ type PipelineRun struct {
 	EventID string `json:"event_id,omitempty"`
 	// EventType holds the value of the "event_type" field.
 	EventType string `json:"event_type,omitempty"`
+	// TriggerSource holds the value of the "trigger_source" field.
+	TriggerSource pipelinerun.TriggerSource `json:"trigger_source,omitempty"`
 	// Status holds the value of the "status" field.
 	Status int `json:"status,omitempty"`
 	// Error holds the value of the "error" field.
@@ -50,7 +52,7 @@ func (*PipelineRun) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case pipelinerun.FieldID, pipelinerun.FieldStatus:
 			values[i] = new(sql.NullInt64)
-		case pipelinerun.FieldPipelineName, pipelinerun.FieldEventID, pipelinerun.FieldEventType, pipelinerun.FieldError:
+		case pipelinerun.FieldPipelineName, pipelinerun.FieldEventID, pipelinerun.FieldEventType, pipelinerun.FieldTriggerSource, pipelinerun.FieldError:
 			values[i] = new(sql.NullString)
 		case pipelinerun.FieldLastHeartbeat, pipelinerun.FieldStartedAt, pipelinerun.FieldCompletedAt, pipelinerun.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -92,6 +94,12 @@ func (_m *PipelineRun) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field event_type", values[i])
 			} else if value.Valid {
 				_m.EventType = value.String
+			}
+		case pipelinerun.FieldTriggerSource:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field trigger_source", values[i])
+			} else if value.Valid {
+				_m.TriggerSource = pipelinerun.TriggerSource(value.String)
 			}
 		case pipelinerun.FieldStatus:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -183,6 +191,9 @@ func (_m *PipelineRun) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("event_type=")
 	builder.WriteString(_m.EventType)
+	builder.WriteString(", ")
+	builder.WriteString("trigger_source=")
+	builder.WriteString(fmt.Sprintf("%v", _m.TriggerSource))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

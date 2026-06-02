@@ -793,15 +793,15 @@ func init() {
 	// pipelinerun.DefaultEventType holds the default value on creation for the event_type field.
 	pipelinerun.DefaultEventType = pipelinerunDescEventType.Default.(string)
 	// pipelinerunDescStatus is the schema descriptor for status field.
-	pipelinerunDescStatus := pipelinerunFields[4].Descriptor()
+	pipelinerunDescStatus := pipelinerunFields[5].Descriptor()
 	// pipelinerun.DefaultStatus holds the default value on creation for the status field.
 	pipelinerun.DefaultStatus = pipelinerunDescStatus.Default.(int)
 	// pipelinerunDescError is the schema descriptor for error field.
-	pipelinerunDescError := pipelinerunFields[5].Descriptor()
+	pipelinerunDescError := pipelinerunFields[6].Descriptor()
 	// pipelinerun.DefaultError holds the default value on creation for the error field.
 	pipelinerun.DefaultError = pipelinerunDescError.Default.(string)
 	// pipelinerunDescCreatedAt is the schema descriptor for created_at field.
-	pipelinerunDescCreatedAt := pipelinerunFields[10].Descriptor()
+	pipelinerunDescCreatedAt := pipelinerunFields[11].Descriptor()
 	// pipelinerun.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pipelinerun.DefaultCreatedAt = pipelinerunDescCreatedAt.Default.(func() time.Time)
 	pipelinesteprunFields := schema.PipelineStepRun{}.Fields()
