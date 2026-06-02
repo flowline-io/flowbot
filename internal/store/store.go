@@ -901,6 +901,36 @@ func (s *PipelineStore) GetStepRunsByRunID(ctx context.Context, runID int64) ([]
 		All(ctx)
 }
 
+// GetRunByID returns a pipeline run by its database ID.
+func (s *PipelineStore) GetRunByID(ctx context.Context, id int64) (*gen.PipelineRun, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	run, err := s.client.PipelineRun.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, err
+	}
+	return run, nil
+}
+
+// ListStepRunsByRunID returns all step runs for a pipeline run, ordered by creation time.
+func (s *PipelineStore) ListStepRunsByRunID(ctx context.Context, runID int64) ([]*gen.PipelineStepRun, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	steps, err := s.client.PipelineStepRun.Query().
+		Where(pipelinesteprun.PipelineRunIDEQ(runID)).
+		Order(gen.Asc(pipelinesteprun.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return steps, nil
+}
+
 // ListPublishedDefinitions returns all pipeline definitions that are published
 // and have a non-nil yaml_published field.
 func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipeline.DefinitionRecord, error) {

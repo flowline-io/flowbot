@@ -1,19 +1,23 @@
 package web
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"maps"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -36,6 +40,8 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/:name/runs", pipelineRunsPage),
 	webservice.Get("/pipelines/:name/runs/list", pipelineRunsTable),
 	webservice.Get("/pipelines/:name/runs/:runID/steps", pipelineRunSteps),
+	webservice.Get("/pipelines/:name/runs/:runID/live", pipelineRunLivePage),
+	webservice.Get("/pipelines/:name/runs/:runID/live/watch", watchPipelineRunLive),
 }
 
 func getPipelineDefStore() *store.PipelineStore {
@@ -337,4 +343,148 @@ func pipelineRunSteps(c fiber.Ctx) error {
 // for the pipeline editor capability/operation select dropdowns.
 func getCapabilities(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(hub.Default.List()))
+}
+
+// watchPipelineRunLive opens an SSE stream for a running pipeline.
+func watchPipelineRunLive(c fiber.Ctx) error {
+	runIDParam := c.Params("runID")
+	runID, err := strconv.ParseInt(runIDParam, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("invalid runID")
+	}
+	stream := pipeline.StreamName(runID)
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+
+	ctx := c.Context()
+	redisClient := rdb.Client
+	if redisClient == nil {
+		return c.Status(fiber.StatusServiceUnavailable).SendString("redis not available")
+	}
+
+	return c.SendStreamWriter(func(w *bufio.Writer) {
+		lastID := "0"
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				result, err := redisClient.XRead(ctx, &redis.XReadArgs{
+					Streams: []string{stream, lastID},
+					Count:   10,
+					Block:   5 * time.Second,
+				}).Result()
+
+				if errors.Is(err, context.Canceled) {
+					return
+				}
+				if err == redis.Nil || len(result) == 0 {
+					fmt.Fprintf(w, ": heartbeat\n\n")
+					if fErr := w.Flush(); fErr != nil {
+						return
+					}
+					continue
+				}
+				if err != nil {
+					time.Sleep(2 * time.Second)
+					continue
+				}
+				for _, msg := range result[0].Messages {
+					lastID = msg.ID
+					data, ok := msg.Values["data"].(string)
+					if !ok {
+						continue
+					}
+					fmt.Fprintf(w, "data: %s\n\n", data)
+					if fErr := w.Flush(); fErr != nil {
+						return
+					}
+					if strings.Contains(data, `"status":"complete"`) ||
+						strings.Contains(data, `"status":"failed"`) {
+						return
+					}
+				}
+			}
+		}
+	})
+}
+
+// pipelineRunLivePage renders the live run dashboard page.
+func pipelineRunLivePage(c fiber.Ctx) error {
+	pipelineName := c.Params("name")
+	runIDParam := c.Params("runID")
+	runID, err := strconv.ParseInt(runIDParam, 10, 64)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("invalid runID")
+	}
+
+	s := getPipelineDefStore()
+	if s == nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("store not available")
+	}
+
+	run, err := s.GetRunByID(context.Background(), runID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(fiber.StatusNotFound).SendString("run not found")
+		}
+		return c.Status(fiber.StatusInternalServerError).SendString("failed to load run")
+	}
+
+	steps, err := s.ListStepRunsByRunID(context.Background(), runID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("failed to load steps")
+	}
+
+	stepStatus := func(st int) string {
+		switch st {
+		case 1:
+			return "running"
+		case 2:
+			return "done"
+		case 4:
+			return "error"
+		default:
+			return "pending"
+		}
+	}
+	runStatus := func(st int) string {
+		switch st {
+		case 1:
+			return "running"
+		case 2:
+			return "done"
+		case 4:
+			return "failed"
+		default:
+			return "pending"
+		}
+	}
+
+	initSteps := make([]pages.StepState, len(steps))
+	for i, s := range steps {
+		ss := pages.StepState{
+			Name:   s.StepName,
+			Status: stepStatus(s.Status),
+			Output: s.Result,
+			Error:  s.Error,
+			Input:  s.Params,
+		}
+		if s.CompletedAt != nil && !s.StartedAt.IsZero() {
+			ss.ElapsedMs = s.CompletedAt.Sub(s.StartedAt).Milliseconds()
+		}
+		initSteps[i] = ss
+	}
+
+	c.Type("html")
+	return pages.PipelineRunLivePage(pages.PipelineRunLiveParams{
+		RunID:        runID,
+		PipelineName: pipelineName,
+		Trigger:      run.EventType,
+		TotalSteps:   len(steps),
+		RunStatus:    runStatus(run.Status),
+		Steps:        initSteps,
+	}).Render(context.Background(), c.Response().BodyWriter())
 }
