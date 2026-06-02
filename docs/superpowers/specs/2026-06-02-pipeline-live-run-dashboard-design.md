@@ -71,25 +71,32 @@ type pipelineStepCallback struct {
 
 func (c *pipelineStepCallback) OnRunStart(ctx, runID, ...) {
     evt := StepProgressEvent{..., Status: "start", StepIndex: -1, TotalSteps: total}
-    c.publish(ctx, runID, evt)
+    c.publish(runID, evt)
+    c.rdb.Expire(ctx, streamName(runID), 24*time.Hour) // failsafe TTL
 }
 
-func (c *pipelineStepCallback) OnStepStart/Done/Error(...) { ... c.publish(ctx, runID, evt) }
+func (c *pipelineStepCallback) OnStepStart/Done/Error(...) { ... c.publish(runID, evt) }
 
 func (c *pipelineStepCallback) OnRunComplete(ctx, runID, name string, elapsed int64, failed bool, errMsg string) {
     status := "complete"
     if failed { status = "failed" }
     evt := StepProgressEvent{..., Status: status, ElapsedMs: elapsed, Error: errMsg, StepIndex: -1}
-    c.publish(ctx, runID, evt)
-    c.rdb.Expire(ctx, streamName(runID), 5*time.Minute) // TTL for graceful SSE drain
+    c.publish(runID, evt)
+    c.rdb.Expire(ctx, streamName(runID), 5*time.Minute) // drain TTL
 }
 
-func (c *pipelineStepCallback) publish(ctx context.Context, runID int64, evt StepProgressEvent) {
+// publish sends a progress event to Redis Stream asynchronously
+// to avoid blocking the pipeline engine on Redis latency.
+func (c *pipelineStepCallback) publish(runID int64, evt StepProgressEvent) {
     payload, _ := sonic.Marshal(evt)
-    c.rdb.XAdd(ctx, &redis.XAddArgs{
-        Stream: streamName(runID),
-        Values: map[string]any{"data": payload},
-    })
+    go func() {
+        pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+        defer cancel()
+        c.rdb.XAdd(pubCtx, &redis.XAddArgs{
+            Stream: streamName(runID),
+            Values: map[string]any{"data": payload},
+        })
+    }()
 }
 
 func streamName(runID int64) string { return fmt.Sprintf("pipeline:run:%d", runID) }
@@ -129,9 +136,19 @@ func (h moduleHandler) watchPipelineRunLive(c *fiber.Ctx) error {
                     Count:   10,
                     Block:   5 * time.Second,
                 }).Result()
-                if err != nil || len(result) == 0 {
+
+                if errors.Is(err, context.Canceled) {
+                    return // client disconnected
+                }
+                if err == redis.Nil || len(result) == 0 {
+                    // timeout waiting for new messages, send heartbeat
                     fmt.Fprintf(w, ": heartbeat\n\n")
                     w.Flush()
+                    continue
+                }
+                if err != nil {
+                    // real Redis error, backoff to avoid hot loop
+                    time.Sleep(2 * time.Second)
                     continue
                 }
                 for _, msg := range result[0].Messages {
@@ -139,7 +156,6 @@ func (h moduleHandler) watchPipelineRunLive(c *fiber.Ctx) error {
                     data := msg.Values["data"].(string)
                     fmt.Fprintf(w, "data: %s\n\n", data)
                     w.Flush()
-                    // Close stream when run-level complete/failed event is sent
                     if strings.Contains(data, `"status":"complete"`) ||
                        strings.Contains(data, `"status":"failed"`) {
                         return
@@ -180,9 +196,7 @@ Alpine.data('pipelineRunLive', (initial) => ({
     eventSource: null,
 
     init() {
-        this.completed = this.steps.filter(s => s.status === 'done').length
-        this.failedSteps = this.steps.filter(s => s.status === 'error').length
-        this.totalElapsed = this.steps.reduce((s, v) => s + (v.elapsed_ms || 0), 0)
+        this.recalc()
 
         const idx = this.steps.findIndex(s => s.status === 'running' || s.status === 'pending')
         this.selectedIndex = idx >= 0 ? idx : this.steps.length - 1
@@ -194,8 +208,21 @@ Alpine.data('pipelineRunLive', (initial) => ({
                 const evt = JSON.parse(e.data)
                 this.applyEvent(evt)
             }
-            this.eventSource.onerror = () => { this.eventSource.close() }
+            this.eventSource.onerror = () => {
+                if (this.runStatus === 'done' || this.runStatus === 'failed') {
+                    this.eventSource.close()
+                }
+                // otherwise let browser auto-reconnect
+            }
         }
+    },
+
+    // recalc recomputes summary counters from the steps array.
+    // Called on init and after each applyEvent to ensure idempotency.
+    recalc() {
+        this.completed = this.steps.filter(s => s.status === 'done').length
+        this.failedSteps = this.steps.filter(s => s.status === 'error').length
+        this.totalElapsed = this.steps.reduce((s, v) => s + (v.elapsed_ms || 0), 0)
     },
 
     applyEvent(evt) {
@@ -210,16 +237,15 @@ Alpine.data('pipelineRunLive', (initial) => ({
         step.status = evt.status
         if (evt.status === 'done') {
             step.output = evt.output; step.elapsed_ms = evt.elapsed_ms
-            this.completed++; this.totalElapsed += evt.elapsed_ms
         }
         if (evt.status === 'error') {
             step.error = evt.error; step.elapsed_ms = evt.elapsed_ms
-            this.failedSteps++; this.totalElapsed += evt.elapsed_ms
         }
         if (evt.status === 'running') {
             step.input = evt.input
             this.selectedIndex = evt.step_index
         }
+        this.recalc()
     },
 
     selectStep(idx) { this.selectedIndex = idx },
@@ -259,7 +285,7 @@ Alpine.data('pipelineRunLive', (initial) => ({
 |---|---|
 | Run not found / invalid runID | 404 page |
 | Run already done/failed | Render completed view, no SSE connect |
-| SSE connection lost mid-run | `onerror` closes EventSource; user refreshes (page re-renders current state from DB) |
+| SSE connection lost mid-run | Browser auto-reconnects (native EventSource behavior); if run completes during disconnect, `onerror` sees `runStatus=done` and closes gracefully |
 | Redis unavailable | SSE handler returns 503; page shows "Live tracking unavailable" |
 | Callback nil (tests, no Redis configured) | Engine skips silently, no events published |
 | Empty steps (0-step pipeline) | `OnRunStart` → `OnRunComplete` immediately |
@@ -295,7 +321,7 @@ Run list page (`/pipelines/:name/runs`) adds a "Live" link on rows where `status
 - Callback nil-safe — engine checks before calling
 - StepIndex -1 convention for run-level events (start/complete/failed)
 - Cookie auth via existing middleware, same origin SSE
-- Stream TTL 5 minutes set on run completion for graceful SSE drain
+- Stream TTL: 24h failsafe on `OnRunStart`, shortened to 5m on `OnRunComplete` for graceful SSE drain
 - `data-testid` attributes on all interactive elements
 - Store methods in `store.go` only, all queries via ent-generated client
 
