@@ -82,8 +82,8 @@ func (_q *NotificationRecordQuery) FirstX(ctx context.Context) *NotificationReco
 
 // FirstID returns the first NotificationRecord ID from the query.
 // Returns a *NotFoundError when no NotificationRecord ID was found.
-func (_q *NotificationRecordQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *NotificationRecordQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = _q.Limit(1).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (_q *NotificationRecordQuery) FirstID(ctx context.Context) (id int, err err
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (_q *NotificationRecordQuery) FirstIDX(ctx context.Context) int {
+func (_q *NotificationRecordQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := _q.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +133,8 @@ func (_q *NotificationRecordQuery) OnlyX(ctx context.Context) *NotificationRecor
 // OnlyID is like Only, but returns the only NotificationRecord ID in the query.
 // Returns a *NotSingularError when more than one NotificationRecord ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (_q *NotificationRecordQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (_q *NotificationRecordQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = _q.Limit(2).IDs(setContextOp(ctx, _q.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +150,7 @@ func (_q *NotificationRecordQuery) OnlyID(ctx context.Context) (id int, err erro
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (_q *NotificationRecordQuery) OnlyIDX(ctx context.Context) int {
+func (_q *NotificationRecordQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := _q.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +178,7 @@ func (_q *NotificationRecordQuery) AllX(ctx context.Context) []*NotificationReco
 }
 
 // IDs executes the query and returns a list of NotificationRecord IDs.
-func (_q *NotificationRecordQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (_q *NotificationRecordQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if _q.ctx.Unique == nil && _q.path != nil {
 		_q.Unique(true)
 	}
@@ -190,7 +190,7 @@ func (_q *NotificationRecordQuery) IDs(ctx context.Context) (ids []int, err erro
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (_q *NotificationRecordQuery) IDsX(ctx context.Context) []int {
+func (_q *NotificationRecordQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := _q.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -365,7 +365,7 @@ func (_q *NotificationRecordQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (_q *NotificationRecordQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(notificationrecord.Table, notificationrecord.Columns, sqlgraph.NewFieldSpec(notificationrecord.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(notificationrecord.Table, notificationrecord.Columns, sqlgraph.NewFieldSpec(notificationrecord.FieldID, field.TypeInt64))
 	_spec.From = _q.sql
 	if unique := _q.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

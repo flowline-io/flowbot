@@ -479,7 +479,7 @@ var (
 	}
 	// NotificationRecordsColumns holds the columns for the "notification_records" table.
 	NotificationRecordsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "uid", Type: field.TypeString},
 		{Name: "channel", Type: field.TypeString},
 		{Name: "template_id", Type: field.TypeString},

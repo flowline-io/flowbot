@@ -16,7 +16,7 @@ type NotificationRecord struct {
 
 func (NotificationRecord) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("id").Immutable(),
+		field.Int64("id").Immutable(),
 		field.String("uid").NotEmpty(),
 		field.String("channel").NotEmpty(),
 		field.String("template_id").NotEmpty(),

@@ -103,7 +103,7 @@ func (_c *NotificationRecordCreate) SetNillableCreatedAt(v *time.Time) *Notifica
 }
 
 // SetID sets the "id" field.
-func (_c *NotificationRecordCreate) SetID(v int) *NotificationRecordCreate {
+func (_c *NotificationRecordCreate) SetID(v int64) *NotificationRecordCreate {
 	_c.mutation.SetID(v)
 	return _c
 }
@@ -220,7 +220,7 @@ func (_c *NotificationRecordCreate) sqlSave(ctx context.Context) (*NotificationR
 	}
 	if _spec.ID.Value != _node.ID {
 		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
+		_node.ID = int64(id)
 	}
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
@@ -230,7 +230,7 @@ func (_c *NotificationRecordCreate) sqlSave(ctx context.Context) (*NotificationR
 func (_c *NotificationRecordCreate) createSpec() (*NotificationRecord, *sqlgraph.CreateSpec) {
 	var (
 		_node = &NotificationRecord{config: _c.config}
-		_spec = sqlgraph.NewCreateSpec(notificationrecord.Table, sqlgraph.NewFieldSpec(notificationrecord.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(notificationrecord.Table, sqlgraph.NewFieldSpec(notificationrecord.FieldID, field.TypeInt64))
 	)
 	_spec.OnConflict = _c.conflict
 	if id, ok := _c.mutation.ID(); ok {
@@ -583,7 +583,7 @@ func (u *NotificationRecordUpsertOne) ExecX(ctx context.Context) {
 }
 
 // Exec executes the UPSERT query and returns the inserted/updated ID.
-func (u *NotificationRecordUpsertOne) ID(ctx context.Context) (id int, err error) {
+func (u *NotificationRecordUpsertOne) ID(ctx context.Context) (id int64, err error) {
 	node, err := u.create.Save(ctx)
 	if err != nil {
 		return id, err
@@ -592,7 +592,7 @@ func (u *NotificationRecordUpsertOne) ID(ctx context.Context) (id int, err error
 }
 
 // IDX is like ID, but panics if an error occurs.
-func (u *NotificationRecordUpsertOne) IDX(ctx context.Context) int {
+func (u *NotificationRecordUpsertOne) IDX(ctx context.Context) int64 {
 	id, err := u.ID(ctx)
 	if err != nil {
 		panic(err)
@@ -649,7 +649,7 @@ func (_c *NotificationRecordCreateBulk) Save(ctx context.Context) ([]*Notificati
 				mutation.id = &nodes[i].ID
 				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

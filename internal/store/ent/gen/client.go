@@ -3251,7 +3251,7 @@ func (c *NotificationRecordClient) UpdateOne(_m *NotificationRecord) *Notificati
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *NotificationRecordClient) UpdateOneID(id int) *NotificationRecordUpdateOne {
+func (c *NotificationRecordClient) UpdateOneID(id int64) *NotificationRecordUpdateOne {
 	mutation := newNotificationRecordMutation(c.config, OpUpdateOne, withNotificationRecordID(id))
 	return &NotificationRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -3268,7 +3268,7 @@ func (c *NotificationRecordClient) DeleteOne(_m *NotificationRecord) *Notificati
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *NotificationRecordClient) DeleteOneID(id int) *NotificationRecordDeleteOne {
+func (c *NotificationRecordClient) DeleteOneID(id int64) *NotificationRecordDeleteOne {
 	builder := c.Delete().Where(notificationrecord.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -3285,12 +3285,12 @@ func (c *NotificationRecordClient) Query() *NotificationRecordQuery {
 }
 
 // Get returns a NotificationRecord entity by its id.
-func (c *NotificationRecordClient) Get(ctx context.Context, id int) (*NotificationRecord, error) {
+func (c *NotificationRecordClient) Get(ctx context.Context, id int64) (*NotificationRecord, error) {
 	return c.Query().Where(notificationrecord.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *NotificationRecordClient) GetX(ctx context.Context, id int) *NotificationRecord {
+func (c *NotificationRecordClient) GetX(ctx context.Context, id int64) *NotificationRecord {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
