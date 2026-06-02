@@ -120,10 +120,20 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 			dataEvent.Data = types.KV(parsed)
 		} else {
 			dataEvent.Data = make(types.KV)
-			dataEvent.Data["_webhook_body"] = string(body)
+			dataEvent.Data["_webhook_body"] = truncateWebhookBody(body)
+		if len(body) > maxWebhookBodySize {
+			dataEvent.Data["_webhook_body_truncated"] = true
+		}
 		}
 
 		dataEvent.Data["_webhook_headers"] = headers
+
+		if dataEvent.Data == nil {
+			dataEvent.Data = make(types.KV)
+		}
+		dataEvent.Data["_webhook_method"] = string(c.Request().Header.Method())
+		dataEvent.Data["_webhook_path"] = string(c.Request().URI().Path())
+		dataEvent.Data["_webhook_status"] = fiber.StatusAccepted
 
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -188,4 +198,15 @@ func verifyHMACSHA256(secret string, body []byte, signature string) bool {
 	_, _ = mac.Write(body)
 	actual := mac.Sum(nil)
 	return hmac.Equal(actual, expected)
+}
+
+// maxWebhookBodySize is the maximum webhook body size in bytes stored in events.
+const maxWebhookBodySize = 64 * 1024
+
+// truncateWebhookBody truncates the webhook body to maxWebhookBodySize bytes.
+func truncateWebhookBody(body []byte) string {
+	if len(body) <= maxWebhookBodySize {
+		return string(body)
+	}
+	return string(body[:maxWebhookBodySize])
 }
