@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -34,6 +35,9 @@ var hubWebserviceRules = []webservice.Rule{
 
 // hubAppsPage renders the full apps list page.
 func hubAppsPage(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
 	apps := homelab.DefaultRegistry.List()
 	updatedAts := loadUpdatedAts(c.Context())
 	c.Type("html")
@@ -42,6 +46,9 @@ func hubAppsPage(c fiber.Ctx) error {
 
 // hubAppsList returns the table partial for HTMX auto-refresh.
 func hubAppsList(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
 	apps := homelab.DefaultRegistry.List()
 	updatedAts := loadUpdatedAts(c.Context())
 	c.Type("html")
@@ -50,12 +57,18 @@ func hubAppsList(c fiber.Ctx) error {
 
 // hubAppDetailPage renders the full detail page for a single app.
 func hubAppDetailPage(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
 		return c.Status(http.StatusNotFound).SendString("app not found")
 	}
-	status, _ := homelab.DefaultRuntime.Status(c.Context(), app)
+	status, err := homelab.DefaultRuntime.Status(c.Context(), app)
+	if err != nil {
+		status = app.Status
+	}
 	perms := homelab.DefaultRegistry.Permissions()
 	c.Type("html")
 	return pages.HubAppDetailPage(app, status, perms).Render(c.Context(), c.Response().BodyWriter())
@@ -63,6 +76,9 @@ func hubAppDetailPage(c fiber.Ctx) error {
 
 // hubAppStatusPartial returns the status badge partial for HTMX swaps after actions.
 func hubAppStatusPartial(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
@@ -78,6 +94,9 @@ func hubAppStatusPartial(c fiber.Ctx) error {
 
 // hubAppLogsSSE streams logs via Server-Sent Events.
 func hubAppLogsSSE(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
@@ -146,6 +165,9 @@ func hubAppUpdateAction(c fiber.Ctx) error {
 
 // hubLifecycleAction performs a lifecycle operation on an app and returns the status partial.
 func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.App) error, operation string) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
 	name := c.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {
@@ -177,7 +199,11 @@ func loadUpdatedAts(ctx context.Context) map[string]string {
 		return nil
 	}
 	infos, err := store.NewHubStore(client).ListApps(ctx)
-	if err != nil || len(infos) == 0 {
+	if err != nil {
+		flog.Warn("hub: loadUpdatedAts failed: %v", err)
+		return nil
+	}
+	if len(infos) == 0 {
 		return nil
 	}
 	m := make(map[string]string, len(infos))

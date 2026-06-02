@@ -147,28 +147,32 @@ func TestHubAppLogsSSENotFound(t *testing.T) {
 	}
 }
 
-func TestHubAppsOpenAccess(t *testing.T) {
+func TestHubAppsUnauthenticated(t *testing.T) {
 	tests := []struct {
-		name         string
-		method       string
-		path         string
-		wantContains string
+		name   string
+		method string
+		path   string
 	}{
-		{name: "GET /hub renders apps page without auth", method: http.MethodGet, path: "/service/web/hub", wantContains: "Apps"},
-		{name: "GET /hub/list renders partial without auth", method: http.MethodGet, path: "/service/web/hub/list", wantContains: "hub-apps-table"},
-		{name: "POST /hub/test/start returns 404 without auth (no redirect)", method: http.MethodPost, path: "/service/web/hub/test/start", wantContains: "app not found"},
-		{name: "GET /hub/test/logs/stream returns 404 without auth (no redirect)", method: http.MethodGet, path: "/service/web/hub/test/logs/stream", wantContains: "app not found"},
+		{name: "GET /hub redirects to login", method: http.MethodGet, path: "/service/web/hub"},
+		{name: "GET /hub/list redirects to login", method: http.MethodGet, path: "/service/web/hub/list"},
+		{name: "authenticated pages render with valid token", method: http.MethodGet, path: "/service/web/hub"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, nil)
+			if tt.name == "authenticated pages render with valid token" {
+				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
-			body, _ := io.ReadAll(resp.Body)
-			if !strings.Contains(string(body), tt.wantContains) {
-				t.Errorf("want body containing %q", tt.wantContains)
+			if tt.name == "authenticated pages render with valid token" {
+				if resp.StatusCode != http.StatusOK {
+					t.Errorf("want status 200 with token, got %d", resp.StatusCode)
+				}
+			} else if resp.StatusCode != http.StatusSeeOther {
+				t.Errorf("want status %d (redirect), got %d", http.StatusSeeOther, resp.StatusCode)
 			}
 		})
 	}
