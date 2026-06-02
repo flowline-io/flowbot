@@ -1,0 +1,51 @@
+package partials
+
+import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+
+type RelationTreeParams struct {
+	Node       schema.ResourceRef
+	Upstream   []schema.ResourceEdge
+	Downstream []schema.ResourceEdge
+}
+
+templ RelationTree(p RelationTreeParams) {
+	<div data-testid="relations-tree">
+		<input type="hidden" name="node" value={ p.Node.App + "|" + p.Node.Capability + "|" + p.Node.EntityID } />
+		<div class="text-sm text-base-content/60 mb-2">Upstream</div>
+		if len(p.Upstream) == 0 {
+			<div class="text-xs text-base-content/40 pl-4 mb-3">None</div>
+		}
+		for _, edge := range p.Upstream {
+			<div class="pl-2">
+				@RelationEdgeBadge(edge, "upstream")
+				@RelationNodeCard(schema.ResourceRef{
+					App:        edge.SourceApp,
+					Capability: edge.SourceCapability,
+					EntityID:   edge.SourceEntityID,
+				}, "upstream-child")
+			</div>
+		}
+		<div class={ "card card-bordered bg-primary/5 shadow-sm mb-2" }>
+			<div class="card-body p-3">
+				<div class="flex items-center justify-between">
+					<span class="font-semibold text-sm">{ p.Node.Capability } #{ p.Node.EntityID }</span>
+					<span class="badge badge-sm badge-primary">{ p.Node.App }</span>
+				</div>
+			</div>
+		</div>
+		<div class="text-sm text-base-content/60 mb-2">Downstream</div>
+		if len(p.Downstream) == 0 {
+			<div class="text-xs text-base-content/40 pl-4 mb-3">None</div>
+		}
+		for _, edge := range p.Downstream {
+			<div class="pl-2">
+				@RelationEdgeBadge(edge, "downstream")
+				@RelationNodeCard(schema.ResourceRef{
+					App:        edge.TargetApp,
+					Capability: edge.TargetCapability,
+					EntityID:   edge.TargetEntityID,
+				}, "downstream-child")
+			</div>
+		}
+	</div>
+}

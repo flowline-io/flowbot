@@ -1,0 +1,23 @@
+package partials
+
+import (
+	"time"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+)
+
+templ RelationEdgeBadge(edge schema.ResourceEdge, direction string) {
+	<div class="flex items-center gap-1 py-1 px-1"
+		hx-get={ templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_entity=" + edge.TargetEntityID + "&pipeline=" + edge.PipelineName + "&created_at=" + edge.CreatedAt.Format(time.RFC3339)) }
+		hx-trigger="click"
+		hx-target="#relations-detail"
+		hx-swap="innerHTML"
+		data-testid="relation-edge-badge"
+	>
+		<span class={ "badge badge-sm", templ.KV("badge-primary", direction == "downstream"), templ.KV("badge-accent", direction == "upstream") }>
+			{ edge.PipelineName }
+		</span>
+		<span class="text-xs text-base-content/40">
+			{ edge.CreatedAt.Format("Jan 02") }
+		</span>
+	</div>
+}

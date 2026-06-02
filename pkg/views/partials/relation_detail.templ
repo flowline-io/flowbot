@@ -1,0 +1,35 @@
+package partials
+
+import (
+	"time"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+)
+
+type RelationDetailParams struct {
+	Type string // "node" or "edge"
+	Node    schema.ResourceRef
+	Edge    schema.ResourceEdge
+}
+
+templ RelationDetail(p RelationDetailParams) {
+	<div class="card bg-base-100 shadow-sm sticky top-4">
+		<div class="card-body p-4">
+			if p.Type == "node" {
+				<h3 class="card-title text-sm">Resource Node</h3>
+				<div class="mt-2 space-y-1 text-sm">
+					<div><span class="font-medium">Capability:</span> { p.Node.Capability }</div>
+					<div><span class="font-medium">App:</span> { p.Node.App }</div>
+					<div><span class="font-medium">Entity ID:</span> <code class="text-xs">{ p.Node.EntityID }</code></div>
+				</div>
+			} else if p.Type == "edge" {
+				<h3 class="card-title text-sm">Relation Edge</h3>
+				<div class="mt-2 space-y-1 text-sm">
+					<div><span class="font-medium">Pipeline:</span> { p.Edge.PipelineName }</div>
+					<div><span class="font-medium">Source:</span> { p.Edge.SourceCapability } #{ p.Edge.SourceEntityID } ({ p.Edge.SourceApp })</div>
+					<div><span class="font-medium">Target:</span> { p.Edge.TargetCapability } #{ p.Edge.TargetEntityID } ({ p.Edge.TargetApp })</div>
+					<div><span class="font-medium">Created:</span> { p.Edge.CreatedAt.Format(time.RFC3339) }</div>
+				</div>
+			}
+		</div>
+	</div>
+}

@@ -1,0 +1,20 @@
+package partials
+
+import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+
+templ RelationNodeCard(ref schema.ResourceRef, side string) {
+	<div class={ "card card-compact card-bordered bg-base-100 shadow-sm mb-2" }
+		hx-get={ templ.URL("/service/web/relations/tree?node=" + ref.App + "|" + ref.Capability + "|" + ref.EntityID) }
+		hx-trigger="click"
+		hx-target="#relations-tree"
+		hx-swap="innerHTML"
+		data-testid={ "relation-node-" + side }
+	>
+		<div class="card-body p-3 cursor-pointer hover:bg-base-200">
+			<div class="flex items-center justify-between">
+				<span class="font-medium text-sm">{ ref.Capability } #{ ref.EntityID }</span>
+				<span class="badge badge-sm badge-ghost">{ ref.App }</span>
+			</div>
+		</div>
+	</div>
+}
