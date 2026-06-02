@@ -161,3 +161,16 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 func createTestConfig(uid, topic, key string) model.ConfigItem {
 	return model.ConfigItem{ID: 1, UID: uid, Topic: topic, Key: key, Value: types.KV{"v": "test"}, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 }
+
+// setupTestAppForRelations creates a Fiber test app with in-memory SQLite
+// and pre-seeded resource links for relations tests.
+func setupTestAppForRelations(t *testing.T, seedFn func(context.Context, *store.Client) error) (*fiber.App, *testStore, *store.Client) {
+	t.Helper()
+	app, ts, client := setupTestAppWithDB(t)
+	if seedFn != nil {
+		if err := seedFn(context.Background(), client); err != nil {
+			t.Fatalf("failed to seed: %v", err)
+		}
+	}
+	return app, ts, client
+}
