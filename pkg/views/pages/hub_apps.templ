@@ -1,0 +1,17 @@
+// Package pages provides full-page Templ views.
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ HubAppsPage(apps []homelab.App, updatedAts map[string]string) {
+	@layout.Base("Apps — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Apps</h1>
+		</div>
+		@partials.HubAppsTable(apps, updatedAts)
+	}
+}
