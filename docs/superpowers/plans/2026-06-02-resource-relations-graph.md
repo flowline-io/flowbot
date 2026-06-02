@@ -177,8 +177,10 @@ Add to `ResourceChainStore`:
 ```go
 // SearchNodes returns distinct (app, capability, entity_id) tuples from
 // resource_links where source_entity_id or target_entity_id contains the query.
-// Supports limit + cursor pagination.
-func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, cursor string) ([]schema.ResourceRef, string, error) {
+// The cursor parameter is reserved for future use; not implemented in MVP.
+// Schema-qualified entity IDs (e.g. "github|issue|42") must be passed via the
+// tree endpoint, not the search endpoint.
+func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, _ string) ([]schema.ResourceRef, string, error) {
 	if s == nil || s.client == nil || query == "" {
 		return nil, "", nil
 	}
@@ -186,32 +188,27 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 		limit = 20
 	}
 
-	// Use raw SQL for DISTINCT across two columns via UNION
-	queryJSON := fmt.Sprintf(`%%%s%%`, query)
-	rows, err := s.client.ResourceLink.Query().
-		Where(func(selector *sql.Selector) {
-			selector.Where(sql.ExprP(`
-				source_entity_id LIKE $1 OR target_entity_id LIKE $1
-			`, queryJSON))
-		}).
-		QueryContext(ctx)
+	// Fetch candidate links using Ent-safe Contains predicates (database-agnostic).
+	links, err := s.client.ResourceLink.Query().
+		Where(
+			resourcelink.Or(
+				resourcelink.SourceEntityIDContains(query),
+				resourcelink.TargetEntityIDContains(query),
+			),
+		).
+		Order(resourcelink.ByCreatedAt(sql.OrderDesc())).
+		Limit(limit * 2). // over-fetch to allow in-memory dedup
+		All(ctx)
 	if err != nil {
 		return nil, "", fmt.Errorf("search nodes: %w", err)
 	}
-	defer rows.Close()
 
-	// Build distinct set of (app, capability, entity)
+	// Deduplicate by (app, capability, entity_id) in Go memory.
 	seen := make(map[string]bool)
 	var results []schema.ResourceRef
 
-	// scan from both source and target pairs
-	for rows.Next() {
-		var rl gen.ResourceLink
-		if err := s.client.ResourceLink.Scan(rows, &rl); err != nil {
-			return nil, "", fmt.Errorf("search nodes scan: %w", err)
-		}
-		// Check source side
-		if matchesLike(rl.SourceEntityID, query) {
+	for _, rl := range links {
+		if strings.Contains(strings.ToLower(rl.SourceEntityID), strings.ToLower(query)) {
 			key := rl.SourceApp + "|" + rl.SourceCapability + "|" + rl.SourceEntityID
 			if !seen[key] {
 				seen[key] = true
@@ -222,8 +219,7 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 				})
 			}
 		}
-		// Check target side
-		if matchesLike(rl.TargetEntityID, query) {
+		if strings.Contains(strings.ToLower(rl.TargetEntityID), strings.ToLower(query)) {
 			key := rl.TargetApp + "|" + rl.TargetCapability + "|" + rl.TargetEntityID
 			if !seen[key] {
 				seen[key] = true
@@ -236,23 +232,16 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 		}
 	}
 
-	// apply limit
-	var nextCursor string
+	// apply limit after dedup
 	if len(results) > limit {
-		nextCursor = strconv.Itoa(limit)
 		results = results[:limit]
 	}
 
-	return results, nextCursor, nil
-}
-
-// matchesLike checks if s contains substr (case-insensitive).
-func matchesLike(s, substr string) bool {
-	return len(substr) > 0 && strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+	return results, "", nil
 }
 ```
 
-Add needed imports at top of store.go: `"strconv"` and `"strings"`.
+Add needed imports at top of store.go: `"strings"`.
 
 - [ ] **Step 2: Run format and verify compilation**
 
@@ -643,9 +632,9 @@ templ RelationsPage(p RelationsPageParams) {
 					hx-swap="innerHTML"
 				>
 					<option value="">All time</option>
-					<option value="7d">Last 7 days</option>
-					<option value="30d">Last 30 days</option>
-					<option value="90d">Last 90 days</option>
+					<option value="168h">Last 7 days</option>
+					<option value="720h">Last 30 days</option>
+					<option value="2160h">Last 90 days</option>
 				</select>
 			</div>
 			<div id="relations-search-results" class="mb-6"></div>
@@ -720,11 +709,14 @@ templ RelationNodeCard(ref schema.ResourceRef, side string) {
 ```templ
 package partials
 
-import "github.com/flowline-io/flowbot/internal/store/ent/schema"
+import (
+	"time"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+)
 
 templ RelationEdgeBadge(edge schema.ResourceEdge, direction string) {
 	<div class="flex items-center gap-1 py-1 px-1"
-		hx-get={ templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_entity=" + edge.TargetEntityID) }
+		hx-get={ templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_entity=" + edge.TargetEntityID + "&pipeline=" + edge.PipelineName + "&created_at=" + edge.CreatedAt.Format(time.RFC3339)) }
 		hx-trigger="click"
 		hx-target="#relations-detail"
 		hx-swap="innerHTML"
@@ -799,6 +791,7 @@ type RelationTreeParams struct {
 
 templ RelationTree(p RelationTreeParams) {
 	<div data-testid="relations-tree">
+		<input type="hidden" name="node" value={ p.Node.App + "|" + p.Node.Capability + "|" + p.Node.EntityID } />
 		<div class="text-sm text-base-content/60 mb-2">Upstream</div>
 		if len(p.Upstream) == 0 {
 			<div class="text-xs text-base-content/40 pl-4 mb-3">None</div>
