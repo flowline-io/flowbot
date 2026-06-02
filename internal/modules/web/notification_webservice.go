@@ -136,7 +136,10 @@ func retryNotification(ctx fiber.Ctx) error {
 	}
 
 	notifyUid := types.Uid(rec.UID)
-	_ = notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload)
+	if err := notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload); err != nil {
+		ctx.Type("html")
+		return partials.EmptyState("Retry failed: "+err.Error()).Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
 
 	// Wait briefly for the async record goroutine to persist the retry outcome
 	time.Sleep(50 * time.Millisecond)

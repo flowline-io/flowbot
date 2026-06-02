@@ -19,8 +19,8 @@ import (
 var handlers map[string]Notifyer
 
 const (
-	// payloadKeySummary is the key in the GatewaySend payload map for the summary text.
-	payloadKeySummary = "summary"
+	// PayloadKeySummary is the key in the GatewaySend payload map for the summary text.
+	PayloadKeySummary = "summary"
 	// defaultKeepRecords is the number of notification records to retain per user.
 	defaultKeepRecords = 200
 )
@@ -146,7 +146,7 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 	}
 
 	var summary string
-	if s, ok := payload[payloadKeySummary].(string); ok {
+	if s, ok := payload[PayloadKeySummary].(string); ok {
 		summary = s
 	}
 

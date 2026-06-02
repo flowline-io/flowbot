@@ -32,7 +32,7 @@ templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
 				</thead>
 				<tbody id="notifications-rows">
 				for _, r := range records {
-					<tr id={ "notify-row-" + strconv.Itoa(int(r.ID)) }>
+					<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }>
 						<td class="text-xs whitespace-nowrap">{ r.CreatedAt.Format("15:04:05") }</td>
 						<td><span class="badge badge-outline badge-xs">{ r.Channel }</span></td>
 						<td class="text-xs font-mono">{ r.TemplateID }</td>
@@ -41,12 +41,12 @@ templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
 							<span class={ statusBadgeClass(string(r.Status)) } title={ r.ErrorMsg }>{ string(r.Status) }</span>
 							if string(r.Status) == "failed" {
 								<button class="btn btn-xs btn-outline btn-error"
-									hx-post={ templ.URL("/service/web/notifications/" + strconv.Itoa(int(r.ID)) + "/retry") }
-									hx-target={ "#notify-row-" + strconv.Itoa(int(r.ID)) }
+									hx-post={ templ.URL("/service/web/notifications/" + strconv.FormatInt(r.ID, 10) + "/retry") }
+									hx-target={ "#notify-row-" + strconv.FormatInt(r.ID, 10) }
 									hx-swap="outerHTML"
 									hx-disabled-elt="this"
 									title="Retries go through normal delivery. Rate limits still apply."
-									data-testid={ "retry-btn-" + strconv.Itoa(int(r.ID)) }>Retry</button>
+									data-testid={ "retry-btn-" + strconv.FormatInt(r.ID, 10) }>Retry</button>
 							}
 						</td>
 					</tr>
