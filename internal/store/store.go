@@ -1601,6 +1601,70 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 	return relations, nil
 }
 
+// FindNodeRelations returns upstream and downstream edges for a node identified
+// by (app, capability, entityID). Optional pipeline filter and time window.
+func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, app, capability, entityID string, pipeline string, since time.Duration) ([]schema.ResourceEdge, []schema.ResourceEdge, error) {
+	if s == nil || s.client == nil {
+		return nil, nil, nil
+	}
+
+	base := func() *gen.ResourceLinkQuery {
+		q := s.client.ResourceLink.Query()
+		if pipeline != "" {
+			q = q.Where(resourcelink.PipelineName(pipeline))
+		}
+		if since > 0 {
+			q = q.Where(resourcelink.CreatedAtGT(time.Now().Add(-since)))
+		}
+		return q
+	}
+
+	// downstream: source = this node
+	downLinks, err := base().
+		Where(
+			resourcelink.SourceApp(app),
+			resourcelink.SourceCapability(capability),
+			resourcelink.SourceEntityID(entityID),
+		).
+		Order(resourcelink.ByCreatedAt()).
+		All(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("find downstream edges: %w", err)
+	}
+
+	// upstream: target = this node
+	upLinks, err := base().
+		Where(
+			resourcelink.TargetApp(app),
+			resourcelink.TargetCapability(capability),
+			resourcelink.TargetEntityID(entityID),
+		).
+		Order(resourcelink.ByCreatedAt()).
+		All(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("find upstream edges: %w", err)
+	}
+
+	toEdges := func(links []*gen.ResourceLink) []schema.ResourceEdge {
+		edges := make([]schema.ResourceEdge, len(links))
+		for i, l := range links {
+			edges[i] = schema.ResourceEdge{
+				SourceApp:        l.SourceApp,
+				SourceCapability: l.SourceCapability,
+				SourceEntityID:   l.SourceEntityID,
+				TargetApp:        l.TargetApp,
+				TargetCapability: l.TargetCapability,
+				TargetEntityID:   l.TargetEntityID,
+				PipelineName:     l.PipelineName,
+				CreatedAt:        l.CreatedAt,
+			}
+		}
+		return edges
+	}
+
+	return toEdges(upLinks), toEdges(downLinks), nil
+}
+
 // ParameterIsExpired checks whether the given access token parameter has expired.
 func ParameterIsExpired(p gen.Parameter) bool {
 	return p.ExpiredAt.Before(time.Now())
