@@ -521,6 +521,61 @@ func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) er
 	return err
 }
 
+// ListDataEventsOptions holds filters and pagination for listing data events.
+type ListDataEventsOptions struct {
+	Limit     int    // max 100, default 20
+	Cursor    string // opaque CreatedAt cursor
+	Source    string // filter by source, empty = all
+	EventType string // filter by event type, empty = all
+	Webhook   bool   // if true, only events where data->>'_webhook_method' IS NOT NULL
+}
+
+// ListDataEvents returns paginated data_events ordered by created_at DESC.
+// Uses cursor-based pagination (limit+1 pattern).
+func (s *EventStore) ListDataEvents(ctx context.Context, opts ListDataEventsOptions) ([]*gen.DataEvent, string, error) {
+	if s == nil || s.client == nil {
+		return nil, "", nil
+	}
+	if opts.Limit <= 0 || opts.Limit > 100 {
+		opts.Limit = 20
+	}
+
+	q := s.client.DataEvent.Query().
+		Order(dataevent.ByCreatedAt(sql.OrderDesc())).
+		Limit(opts.Limit + 1)
+
+	if opts.Source != "" {
+		q = q.Where(dataevent.Source(opts.Source))
+	}
+	if opts.EventType != "" {
+		q = q.Where(dataevent.EventType(opts.EventType))
+	}
+	if opts.Webhook {
+		q = q.Where(func(selector *sql.Selector) {
+			selector.Where(sql.ExprP("data->>'_webhook_method' IS NOT NULL"))
+		})
+	}
+
+	if opts.Cursor != "" {
+		if t, err := time.Parse("2006-01-02T15:04:05.999999Z", opts.Cursor); err == nil {
+			q = q.Where(dataevent.CreatedAtLT(t))
+		}
+	}
+
+	events, err := q.All(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("list data events: %w", err)
+	}
+
+	var nextCursor string
+	if len(events) > opts.Limit {
+		nextCursor = events[opts.Limit-1].CreatedAt.Format("2006-01-02T15:04:05.999999Z")
+		events = events[:opts.Limit]
+	}
+
+	return events, nextCursor, nil
+}
+
 // ---------------------------------------------------------------------------
 // PipelineStore
 // ---------------------------------------------------------------------------
