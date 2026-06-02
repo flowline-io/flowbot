@@ -109,7 +109,7 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
 								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
 							</tr>
-							<tr class="step-detail-row hidden">
+							<tr class="step-detail-row hidden" data-testid={ "step-detail-row-" + s.StepName }>
 								<td colspan="7">
 									<div class="space-y-1 py-1">
 										if len(s.Params) > 0 {
