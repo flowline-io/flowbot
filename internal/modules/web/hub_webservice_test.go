@@ -177,3 +177,96 @@ func TestHubAppsUnauthenticated(t *testing.T) {
 		})
 	}
 }
+
+func TestHubCapabilitiesPage(t *testing.T) {
+	tests := []struct {
+		name         string
+		wantStatus   int
+		wantContains string
+	}{
+		{name: "renders capabilities page", wantStatus: http.StatusOK, wantContains: "Capabilities — Flowbot"},
+		{name: "includes filter dropdown for type", wantStatus: http.StatusOK, wantContains: "capability-type-filter"},
+		{name: "shows empty state when no capabilities", wantStatus: http.StatusOK, wantContains: "No capabilities registered"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodGet, "/service/web/capabilities", nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantContains) {
+				t.Errorf("want body containing %q", tt.wantContains)
+			}
+		})
+	}
+}
+
+func TestHubCapabilitiesGrid(t *testing.T) {
+	tests := []struct {
+		name         string
+		wantStatus   int
+		wantContains string
+	}{
+		{name: "renders grid partial", wantStatus: http.StatusOK, wantContains: "capability-grid"},
+		{name: "empty state shown when no capabilities", wantStatus: http.StatusOK, wantContains: "No capabilities registered"},
+		{name: "accepts type query param", wantStatus: http.StatusOK, wantContains: "capability-grid"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			url := "/service/web/capabilities/grid"
+			if tt.name == "accepts type query param" {
+				url = "/service/web/capabilities/grid?type=bookmark"
+			}
+			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantContains) {
+				t.Errorf("want body containing %q", tt.wantContains)
+			}
+		})
+	}
+}
+
+func TestHubCapabilitiesUnauthenticated(t *testing.T) {
+	tests := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{name: "GET /capabilities redirects to login", method: http.MethodGet, path: "/service/web/capabilities"},
+		{name: "GET /capabilities/grid redirects to login", method: http.MethodGet, path: "/service/web/capabilities/grid"},
+		{name: "authenticated capabilities page renders OK", method: http.MethodGet, path: "/service/web/capabilities"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			if tt.name == "authenticated capabilities page renders OK" {
+				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			}
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.name == "authenticated capabilities page renders OK" {
+				if resp.StatusCode != http.StatusOK {
+					t.Errorf("want status 200 with token, got %d", resp.StatusCode)
+				}
+			} else if resp.StatusCode != http.StatusSeeOther {
+				t.Errorf("want status %d (redirect), got %d", http.StatusSeeOther, resp.StatusCode)
+			}
+		})
+	}
+}
