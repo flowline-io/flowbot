@@ -32,6 +32,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -131,6 +132,7 @@ func checkColumn(t, c string) error {
 			form.Table:                form.ValidColumn,
 			instruct.Table:            instruct.ValidColumn,
 			message.Table:             message.ValidColumn,
+			notificationrecord.Table:  notificationrecord.ValidColumn,
 			oauth.Table:               oauth.ValidColumn,
 			page.Table:                page.ValidColumn,
 			pagedata.Table:            pagedata.ValidColumn,

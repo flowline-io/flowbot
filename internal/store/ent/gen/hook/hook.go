@@ -249,6 +249,18 @@ func (f MessageFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.MessageMutation", m)
 }
 
+// The NotificationRecordFunc type is an adapter to allow the use of ordinary
+// function as NotificationRecord mutator.
+type NotificationRecordFunc func(context.Context, *gen.NotificationRecordMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotificationRecordFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.NotificationRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.NotificationRecordMutation", m)
+}
+
 // The OAuthFunc type is an adapter to allow the use of ordinary
 // function as OAuth mutator.
 type OAuthFunc func(context.Context, *gen.OAuthMutation) (gen.Value, error)

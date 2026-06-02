@@ -52,6 +52,8 @@ type Tx struct {
 	Instruct *InstructClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// NotificationRecord is the client for interacting with the NotificationRecord builders.
+	NotificationRecord *NotificationRecordClient
 	// OAuth is the client for interacting with the OAuth builders.
 	OAuth *OAuthClient
 	// Page is the client for interacting with the Page builders.
@@ -241,6 +243,7 @@ func (tx *Tx) init() {
 	tx.Form = NewFormClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
+	tx.NotificationRecord = NewNotificationRecordClient(tx.config)
 	tx.OAuth = NewOAuthClient(tx.config)
 	tx.Page = NewPageClient(tx.config)
 	tx.PageData = NewPageDataClient(tx.config)

@@ -477,6 +477,36 @@ var (
 			},
 		},
 	}
+	// NotificationRecordsColumns holds the columns for the "notification_records" table.
+	NotificationRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "channel", Type: field.TypeString},
+		{Name: "template_id", Type: field.TypeString},
+		{Name: "summary", Type: field.TypeString, Default: ""},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"success", "failed", "dropped", "throttled", "aggregated", "muted"}, Default: "success"},
+		{Name: "error_msg", Type: field.TypeString, Default: ""},
+		{Name: "payload_snapshot", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// NotificationRecordsTable holds the schema information for the "notification_records" table.
+	NotificationRecordsTable = &schema.Table{
+		Name:       "notification_records",
+		Columns:    NotificationRecordsColumns,
+		PrimaryKey: []*schema.Column{NotificationRecordsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notificationrecord_uid_id",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[0]},
+			},
+			{
+				Name:    "notificationrecord_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[8]},
+			},
+		},
+	}
 	// OauthColumns holds the columns for the "oauth" table.
 	OauthColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -985,6 +1015,7 @@ var (
 		FormTable,
 		InstructTable,
 		MessagesTable,
+		NotificationRecordsTable,
 		OauthTable,
 		PagesTable,
 		PageDataTable,
@@ -1067,6 +1098,9 @@ func init() {
 	}
 	MessagesTable.Annotation = &entsql.Annotation{
 		Table: "messages",
+	}
+	NotificationRecordsTable.Annotation = &entsql.Annotation{
+		Table: "notification_records",
 	}
 	OauthTable.Annotation = &entsql.Annotation{
 		Table: "oauth",

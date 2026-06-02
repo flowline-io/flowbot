@@ -34,6 +34,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -100,6 +101,8 @@ type Client struct {
 	Instruct *InstructClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
+	// NotificationRecord is the client for interacting with the NotificationRecord builders.
+	NotificationRecord *NotificationRecordClient
 	// OAuth is the client for interacting with the OAuth builders.
 	OAuth *OAuthClient
 	// Page is the client for interacting with the Page builders.
@@ -169,6 +172,7 @@ func (c *Client) init() {
 	c.Form = NewFormClient(c.config)
 	c.Instruct = NewInstructClient(c.config)
 	c.Message = NewMessageClient(c.config)
+	c.NotificationRecord = NewNotificationRecordClient(c.config)
 	c.OAuth = NewOAuthClient(c.config)
 	c.Page = NewPageClient(c.config)
 	c.PageData = NewPageDataClient(c.config)
@@ -300,6 +304,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Form:                NewFormClient(cfg),
 		Instruct:            NewInstructClient(cfg),
 		Message:             NewMessageClient(cfg),
+		NotificationRecord:  NewNotificationRecordClient(cfg),
 		OAuth:               NewOAuthClient(cfg),
 		Page:                NewPageClient(cfg),
 		PageData:            NewPageDataClient(cfg),
@@ -358,6 +363,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Form:                NewFormClient(cfg),
 		Instruct:            NewInstructClient(cfg),
 		Message:             NewMessageClient(cfg),
+		NotificationRecord:  NewNotificationRecordClient(cfg),
 		OAuth:               NewOAuthClient(cfg),
 		Page:                NewPageClient(cfg),
 		PageData:            NewPageDataClient(cfg),
@@ -409,11 +415,11 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.OAuth, c.Page, c.PageData,
-		c.Parameter, c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun,
-		c.Platform, c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser,
-		c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User,
-		c.WorkflowRun, c.WorkflowStepRun,
+		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Use(hooks...)
 	}
@@ -426,11 +432,11 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.OAuth, c.Page, c.PageData,
-		c.Parameter, c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun,
-		c.Platform, c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser,
-		c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User,
-		c.WorkflowRun, c.WorkflowStepRun,
+		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -479,6 +485,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Instruct.mutate(ctx, m)
 	case *MessageMutation:
 		return c.Message.mutate(ctx, m)
+	case *NotificationRecordMutation:
+		return c.NotificationRecord.mutate(ctx, m)
 	case *OAuthMutation:
 		return c.OAuth.mutate(ctx, m)
 	case *PageMutation:
@@ -3182,6 +3190,139 @@ func (c *MessageClient) mutate(ctx context.Context, m *MessageMutation) (Value, 
 	}
 }
 
+// NotificationRecordClient is a client for the NotificationRecord schema.
+type NotificationRecordClient struct {
+	config
+}
+
+// NewNotificationRecordClient returns a client for the NotificationRecord from the given config.
+func NewNotificationRecordClient(c config) *NotificationRecordClient {
+	return &NotificationRecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notificationrecord.Hooks(f(g(h())))`.
+func (c *NotificationRecordClient) Use(hooks ...Hook) {
+	c.hooks.NotificationRecord = append(c.hooks.NotificationRecord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notificationrecord.Intercept(f(g(h())))`.
+func (c *NotificationRecordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotificationRecord = append(c.inters.NotificationRecord, interceptors...)
+}
+
+// Create returns a builder for creating a NotificationRecord entity.
+func (c *NotificationRecordClient) Create() *NotificationRecordCreate {
+	mutation := newNotificationRecordMutation(c.config, OpCreate)
+	return &NotificationRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotificationRecord entities.
+func (c *NotificationRecordClient) CreateBulk(builders ...*NotificationRecordCreate) *NotificationRecordCreateBulk {
+	return &NotificationRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotificationRecordClient) MapCreateBulk(slice any, setFunc func(*NotificationRecordCreate, int)) *NotificationRecordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotificationRecordCreateBulk{err: fmt.Errorf("calling to NotificationRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotificationRecordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotificationRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotificationRecord.
+func (c *NotificationRecordClient) Update() *NotificationRecordUpdate {
+	mutation := newNotificationRecordMutation(c.config, OpUpdate)
+	return &NotificationRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotificationRecordClient) UpdateOne(_m *NotificationRecord) *NotificationRecordUpdateOne {
+	mutation := newNotificationRecordMutation(c.config, OpUpdateOne, withNotificationRecord(_m))
+	return &NotificationRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotificationRecordClient) UpdateOneID(id int) *NotificationRecordUpdateOne {
+	mutation := newNotificationRecordMutation(c.config, OpUpdateOne, withNotificationRecordID(id))
+	return &NotificationRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotificationRecord.
+func (c *NotificationRecordClient) Delete() *NotificationRecordDelete {
+	mutation := newNotificationRecordMutation(c.config, OpDelete)
+	return &NotificationRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotificationRecordClient) DeleteOne(_m *NotificationRecord) *NotificationRecordDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotificationRecordClient) DeleteOneID(id int) *NotificationRecordDeleteOne {
+	builder := c.Delete().Where(notificationrecord.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotificationRecordDeleteOne{builder}
+}
+
+// Query returns a query builder for NotificationRecord.
+func (c *NotificationRecordClient) Query() *NotificationRecordQuery {
+	return &NotificationRecordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotificationRecord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotificationRecord entity by its id.
+func (c *NotificationRecordClient) Get(ctx context.Context, id int) (*NotificationRecord, error) {
+	return c.Query().Where(notificationrecord.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotificationRecordClient) GetX(ctx context.Context, id int) *NotificationRecord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotificationRecordClient) Hooks() []Hook {
+	return c.hooks.NotificationRecord
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotificationRecordClient) Interceptors() []Interceptor {
+	return c.inters.NotificationRecord
+}
+
+func (c *NotificationRecordClient) mutate(ctx context.Context, m *NotificationRecordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotificationRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotificationRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotificationRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotificationRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown NotificationRecord mutation op: %q", m.Op())
+	}
+}
+
 // OAuthClient is a client for the OAuth schema.
 type OAuthClient struct {
 	config
@@ -5714,19 +5855,19 @@ type (
 	hooks struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message, OAuth,
-		Page, PageData, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
-		WorkflowStepRun []ent.Hook
+		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
+		NotificationRecord, OAuth, Page, PageData, Parameter, PipelineDefinition,
+		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
+		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
+		User, WorkflowRun, WorkflowStepRun []ent.Hook
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message, OAuth,
-		Page, PageData, Parameter, PipelineDefinition, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
-		WorkflowStepRun []ent.Interceptor
+		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
+		NotificationRecord, OAuth, Page, PageData, Parameter, PipelineDefinition,
+		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
+		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
+		User, WorkflowRun, WorkflowStepRun []ent.Interceptor
 	}
 )

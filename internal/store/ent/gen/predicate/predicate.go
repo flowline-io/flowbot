@@ -66,6 +66,9 @@ type Instruct func(*sql.Selector)
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 
+// NotificationRecord is the predicate function for notificationrecord builders.
+type NotificationRecord func(*sql.Selector)
+
 // OAuth is the predicate function for oauth builders.
 type OAuth func(*sql.Selector)
 

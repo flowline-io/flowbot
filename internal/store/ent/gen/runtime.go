@@ -25,6 +25,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -607,6 +608,32 @@ func init() {
 	message.DefaultUpdatedAt = messageDescUpdatedAt.Default.(func() time.Time)
 	// message.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	message.UpdateDefaultUpdatedAt = messageDescUpdatedAt.UpdateDefault.(func() time.Time)
+	notificationrecordFields := schema.NotificationRecord{}.Fields()
+	_ = notificationrecordFields
+	// notificationrecordDescUID is the schema descriptor for uid field.
+	notificationrecordDescUID := notificationrecordFields[1].Descriptor()
+	// notificationrecord.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	notificationrecord.UIDValidator = notificationrecordDescUID.Validators[0].(func(string) error)
+	// notificationrecordDescChannel is the schema descriptor for channel field.
+	notificationrecordDescChannel := notificationrecordFields[2].Descriptor()
+	// notificationrecord.ChannelValidator is a validator for the "channel" field. It is called by the builders before save.
+	notificationrecord.ChannelValidator = notificationrecordDescChannel.Validators[0].(func(string) error)
+	// notificationrecordDescTemplateID is the schema descriptor for template_id field.
+	notificationrecordDescTemplateID := notificationrecordFields[3].Descriptor()
+	// notificationrecord.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	notificationrecord.TemplateIDValidator = notificationrecordDescTemplateID.Validators[0].(func(string) error)
+	// notificationrecordDescSummary is the schema descriptor for summary field.
+	notificationrecordDescSummary := notificationrecordFields[4].Descriptor()
+	// notificationrecord.DefaultSummary holds the default value on creation for the summary field.
+	notificationrecord.DefaultSummary = notificationrecordDescSummary.Default.(string)
+	// notificationrecordDescErrorMsg is the schema descriptor for error_msg field.
+	notificationrecordDescErrorMsg := notificationrecordFields[6].Descriptor()
+	// notificationrecord.DefaultErrorMsg holds the default value on creation for the error_msg field.
+	notificationrecord.DefaultErrorMsg = notificationrecordDescErrorMsg.Default.(string)
+	// notificationrecordDescCreatedAt is the schema descriptor for created_at field.
+	notificationrecordDescCreatedAt := notificationrecordFields[8].Descriptor()
+	// notificationrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notificationrecord.DefaultCreatedAt = notificationrecordDescCreatedAt.Default.(func() time.Time)
 	oauthFields := schema.OAuth{}.Fields()
 	_ = oauthFields
 	// oauthDescUID is the schema descriptor for uid field.
