@@ -111,7 +111,7 @@ var _ = Describe("Event System", Label("event"), func() {
 
 		It("re-queues failed events for retry", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "test-pipeline", "fail-event-"+types.Id(), types.EventBookmarkCreated)
+			run, err := pipelineStore.CreateRun(context.Background(), "test-pipeline", "fail-event-"+types.Id(), types.EventBookmarkCreated, "event")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(run.ID).NotTo(BeZero())
 
@@ -128,7 +128,7 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Event Delivery", func() {
 		It("creates pipeline_run record on execution start", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "delivery-test", "delivery-event-"+types.Id(), types.EventBookmarkArchived)
+			run, err := pipelineStore.CreateRun(context.Background(), "delivery-test", "delivery-event-"+types.Id(), types.EventBookmarkArchived, "event")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(run.PipelineName).To(Equal("delivery-test"))
 			Expect(run.EventType).To(Equal(types.EventBookmarkArchived))
@@ -140,7 +140,7 @@ var _ = Describe("Event System", Label("event"), func() {
 
 		It("updates pipeline_run status on completion", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "status-test", "status-event-"+types.Id(), types.EventKanbanTaskCreated)
+			run, err := pipelineStore.CreateRun(context.Background(), "status-test", "status-event-"+types.Id(), types.EventKanbanTaskCreated, "event")
 			Expect(err).NotTo(HaveOccurred())
 
 			err = pipelineStore.UpdateRunStatus(context.Background(), run.ID, int(schema.PipelineDone), "")
@@ -153,7 +153,7 @@ var _ = Describe("Event System", Label("event"), func() {
 
 		It("records step execution results", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "step-test", "step-event-"+types.Id(), types.EventReaderEntryStarred)
+			run, err := pipelineStore.CreateRun(context.Background(), "step-test", "step-event-"+types.Id(), types.EventReaderEntryStarred, "event")
 			Expect(err).NotTo(HaveOccurred())
 
 			params := schema.JSON{"url": "https://example.com"}
@@ -275,7 +275,7 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Pipeline run heartbeat", func() {
 		It("updates heartbeat timestamp", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "heartbeat-test", "hb-event-"+types.Id(), types.EventBookmarkArchived)
+			run, err := pipelineStore.CreateRun(context.Background(), "heartbeat-test", "hb-event-"+types.Id(), types.EventBookmarkArchived, "event")
 			Expect(err).NotTo(HaveOccurred())
 
 			err = pipelineStore.UpdateRunHeartbeat(context.Background(), run.ID)
@@ -290,7 +290,7 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Pipeline checkpoint", func() {
 		It("saves and retrieves checkpoint data", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "checkpoint-test", "cp-event-"+types.Id(), types.EventReaderEntryRead)
+			run, err := pipelineStore.CreateRun(context.Background(), "checkpoint-test", "cp-event-"+types.Id(), types.EventReaderEntryRead, "event")
 			Expect(err).NotTo(HaveOccurred())
 
 			checkpoint := map[string]any{
@@ -311,7 +311,7 @@ var _ = Describe("Event System", Label("event"), func() {
 	Describe("Incomplete runs", func() {
 		It("finds runs that did not complete", func() {
 			pipelineStore := store.NewPipelineStore(EntClient)
-			run, err := pipelineStore.CreateRun(context.Background(), "incomplete-test", "inc-event-"+types.Id(), types.EventBookmarkCreated)
+			run, err := pipelineStore.CreateRun(context.Background(), "incomplete-test", "inc-event-"+types.Id(), types.EventBookmarkCreated, "event")
 			Expect(err).NotTo(HaveOccurred())
 
 			time.Sleep(100 * time.Millisecond)

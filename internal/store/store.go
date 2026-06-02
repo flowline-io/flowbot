@@ -677,7 +677,7 @@ func NewPipelineStore(client *gen.Client) *PipelineStore {
 	return &PipelineStore{client: client}
 }
 
-func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*gen.PipelineRun, error) {
+func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, eventType, triggerSource string) (*gen.PipelineRun, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -686,6 +686,7 @@ func (s *PipelineStore) CreateRun(ctx context.Context, pipelineName, eventID, ev
 		SetPipelineName(pipelineName).
 		SetEventID(eventID).
 		SetEventType(eventType).
+		SetTriggerSource(pipelinerun.TriggerSource(triggerSource)).
 		SetStatus(int(schema.PipelineStart)).
 		SetStartedAt(now).
 		SetCreatedAt(now).

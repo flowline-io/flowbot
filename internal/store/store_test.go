@@ -490,7 +490,7 @@ func TestPipelineStore_GetStepRunsByRunID(t *testing.T) {
 	store := NewPipelineStore(client)
 
 	ctx := context.Background()
-	run, err := store.CreateRun(ctx, "step-test-pipeline", "ev-step-001", "test.event")
+	run, err := store.CreateRun(ctx, "step-test-pipeline", "ev-step-001", "test.event", "event")
 	require.NoError(t, err)
 
 	_, err = store.CreateStepRun(ctx, run.ID, "step-a", "notify", "send", map[string]any{"to": "user1"}, 1)

@@ -69,7 +69,7 @@ func mergeTags(upstream types.KV, stepTags any) types.KV {
 
 // RunStore abstracts persistence for pipeline runs, steps, checkpoints and event consumption.
 type RunStore interface {
-	CreateRun(ctx context.Context, pipelineName, eventID, eventType string) (*gen.PipelineRun, error)
+	CreateRun(ctx context.Context, pipelineName, eventID, eventType, triggerSource string) (*gen.PipelineRun, error)
 	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
 	CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (*gen.PipelineStepRun, error)
 	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
@@ -166,7 +166,7 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 				mu.Lock()
 				defer mu.Unlock()
 			}
-			if err := e.executePipeline(ctx, def, event); err != nil {
+			if err := e.executePipeline(ctx, def, event, "event"); err != nil {
 				flog.Error(fmt.Errorf("pipeline %s: %w", def.Name, err))
 			}
 		}()
@@ -175,7 +175,7 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 	return nil
 }
 
-func (e *Engine) executePipeline(ctx context.Context, def Definition, event types.DataEvent) error {
+func (e *Engine) executePipeline(ctx context.Context, def Definition, event types.DataEvent, triggerSource string) error {
 	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".execute",
 		otelattr.String("pipeline.name", def.Name),
 		otelattr.String("event.id", event.EventID),
@@ -195,7 +195,7 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 		return nil
 	}
 
-	runID, err := e.createRunRecord(ctx, def.Name, event.EventID, event.EventType)
+	runID, err := e.createRunRecord(ctx, def.Name, event.EventID, event.EventType, triggerSource)
 	if err != nil {
 		return err
 	}
@@ -394,11 +394,11 @@ func buildStepResults(rc *RenderContext) map[string]*StepResult {
 	return result
 }
 
-func (e *Engine) createRunRecord(ctx context.Context, name, eventID, eventType string) (int64, error) {
+func (e *Engine) createRunRecord(ctx context.Context, name, eventID, eventType, triggerSource string) (int64, error) {
 	if e.store == nil {
 		return 0, nil
 	}
-	run, err := e.store.CreateRun(ctx, name, eventID, eventType)
+	run, err := e.store.CreateRun(ctx, name, eventID, eventType, triggerSource)
 	if err != nil {
 		return 0, fmt.Errorf("create run: %w", err)
 	}
@@ -685,7 +685,7 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	execCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	err := e.executePipeline(execCtx, def, dataEvent)
+	err := e.executePipeline(execCtx, def, dataEvent, "cron")
 	if e.pipelineMetrics != nil {
 		status := "done"
 		if err != nil {
@@ -708,7 +708,7 @@ func (e *Engine) ExecuteWebhook(ctx context.Context, def *Definition, event type
 		mu.Lock()
 		defer mu.Unlock()
 	}
-	return e.executePipeline(ctx, *def, event)
+	return e.executePipeline(ctx, *def, event, "webhook")
 }
 
 // triggerDescription returns a human-readable trigger description string.
