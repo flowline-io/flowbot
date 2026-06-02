@@ -46,6 +46,12 @@ templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 							<td class="text-base-content/70">{ r.EventID }</td>
 							<td>
 								<span class={ runsStatusClass(int(r.Status)) }>{ runsStatusText(int(r.Status)) }</span>
+								if r.Status == 1 {
+									<a href={ templ.URL("/service/web/pipelines/" + name + "/runs/" + fmt.Sprintf("%d", r.ID) + "/live") }
+									   class="btn btn-xs btn-info ml-2" data-testid="live-link">
+										Live
+									</a>
+								}
 							</td>
 							<td class="text-base-content/50 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
 							<td class="text-base-content/50 text-xs">{ runsDuration(r) }</td>
