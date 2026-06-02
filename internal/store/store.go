@@ -1106,6 +1106,250 @@ func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipelin
 	return records, nil
 }
 
+// PipelineStats returns aggregated pipeline run statistics for chart rendering.
+// name empty = all pipelines. since zero = no time filter. groupBy = "day"|"week"|"month".
+func (s *PipelineStore) PipelineStats(ctx context.Context, name string, since time.Time, groupBy string) (*types.PipelineStats, error) {
+	if s == nil || s.client == nil {
+		return emptyPipelineStats(), nil
+	}
+	stats := &types.PipelineStats{}
+
+	var err error
+	stats.SuccessRateTrend, err = s.loadSuccessRate(ctx, name, since, groupBy)
+	if err != nil {
+		return nil, fmt.Errorf("success rate: %w", err)
+	}
+	stats.DurationDistribution.Pipeline, err = s.loadDurationBuckets(ctx, name, since)
+	if err != nil {
+		return nil, fmt.Errorf("pipeline duration: %w", err)
+	}
+	stats.DurationDistribution.Step, err = s.loadStepDurationBuckets(ctx, name, since)
+	if err != nil {
+		return nil, fmt.Errorf("step duration: %w", err)
+	}
+	stats.TriggerSourcePie, err = s.loadTriggerSources(ctx, name, since)
+	if err != nil {
+		return nil, fmt.Errorf("trigger sources: %w", err)
+	}
+	return stats, nil
+}
+
+// loadSuccessRate fetches completed runs and computes success rate points in Go.
+// Ent v0.14.6 does not expose Modify() on query builders, so custom SQL GROUP BY
+// expressions are handled via in-memory aggregation after fetching raw data.
+func (s *PipelineStore) loadSuccessRate(ctx context.Context, name string, since time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
+	runs, err := s.fetchCompletedRuns(ctx, name, since)
+	if err != nil {
+		return nil, err
+	}
+	return computeSuccessRate(runs, groupBy), nil
+}
+
+// fetchCompletedRuns returns completed pipeline runs filtered by name and since time.
+func (s *PipelineStore) fetchCompletedRuns(ctx context.Context, name string, since time.Time) ([]*gen.PipelineRun, error) {
+	q := s.client.PipelineRun.Query().Where(pipelinerun.CompletedAtNotNil())
+	if name != "" {
+		q = q.Where(pipelinerun.PipelineName(name))
+	}
+	if !since.IsZero() {
+		q = q.Where(pipelinerun.StartedAtGTE(since))
+	}
+	return q.All(ctx)
+}
+
+// computeSuccessRate aggregates completed runs into success rate points grouped by date.
+func computeSuccessRate(runs []*gen.PipelineRun, groupBy string) []types.SuccessRatePoint {
+	type dayStats struct {
+		total   int64
+		success int64
+	}
+	buckets := make(map[string]*dayStats)
+	for _, r := range runs {
+		if r.CompletedAt == nil {
+			continue
+		}
+		key := dateGroupKey(*r.CompletedAt, groupBy)
+		if buckets[key] == nil {
+			buckets[key] = &dayStats{}
+		}
+		buckets[key].total++
+		if r.Status == int(schema.PipelineDone) {
+			buckets[key].success++
+		}
+	}
+	keys := make([]string, 0, len(buckets))
+	for k := range buckets {
+		keys = append(keys, k)
+	}
+	for i := 0; i < len(keys); i++ {
+		for j := i + 1; j < len(keys); j++ {
+			if keys[i] > keys[j] {
+				keys[i], keys[j] = keys[j], keys[i]
+			}
+		}
+	}
+	points := make([]types.SuccessRatePoint, 0, len(keys))
+	for _, k := range keys {
+		s := buckets[k]
+		rate := float64(0)
+		if s.total > 0 {
+			rate = float64(s.success) / float64(s.total)
+		}
+		points = append(points, types.SuccessRatePoint{
+			Date: k, Total: s.total, Success: s.success, Rate: rate,
+		})
+	}
+	if points == nil {
+		points = []types.SuccessRatePoint{}
+	}
+	return points
+}
+
+// dateGroupKey returns a date grouping key based on the requested granularity.
+func dateGroupKey(t time.Time, groupBy string) string {
+	switch groupBy {
+	case "week":
+		y, w := t.ISOWeek()
+		return fmt.Sprintf("%d-W%02d", y, w)
+	case "month":
+		return t.Format("2006-01")
+	default:
+		return t.Format("2006-01-02")
+	}
+}
+
+// loadDurationBuckets fetches completed runs and buckets by duration in Go.
+func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
+	q := s.client.PipelineRun.Query().Where(pipelinerun.CompletedAtNotNil())
+	if name != "" {
+		q = q.Where(pipelinerun.PipelineName(name))
+	}
+	if !since.IsZero() {
+		q = q.Where(pipelinerun.StartedAtGTE(since))
+	}
+
+	runs, err := q.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := emptyDurationBuckets()
+	for _, r := range runs {
+		if r.StartedAt.IsZero() || r.CompletedAt == nil {
+			continue
+		}
+		dur := r.CompletedAt.Sub(r.StartedAt)
+		switch {
+		case dur < time.Second:
+			result[0].Count++
+		case dur < 5*time.Second:
+			result[1].Count++
+		case dur < 30*time.Second:
+			result[2].Count++
+		default:
+			result[3].Count++
+		}
+	}
+	return result, nil
+}
+
+// loadStepDurationBuckets fetches completed step runs and buckets by duration.
+func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
+	q := s.client.PipelineStepRun.Query().Where(pipelinesteprun.CompletedAtNotNil())
+	if name != "" {
+		runIDs, err := s.client.PipelineRun.Query().
+			Where(pipelinerun.PipelineName(name)).
+			IDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if len(runIDs) == 0 {
+			return emptyDurationBuckets(), nil
+		}
+		q = q.Where(pipelinesteprun.PipelineRunIDIn(runIDs...))
+	}
+	if !since.IsZero() {
+		q = q.Where(pipelinesteprun.StartedAtGTE(since))
+	}
+
+	steps, err := q.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := emptyDurationBuckets()
+	for _, st := range steps {
+		if st.StartedAt.IsZero() || st.CompletedAt == nil {
+			continue
+		}
+		dur := st.CompletedAt.Sub(st.StartedAt)
+		switch {
+		case dur < time.Second:
+			result[0].Count++
+		case dur < 5*time.Second:
+			result[1].Count++
+		case dur < 30*time.Second:
+			result[2].Count++
+		default:
+			result[3].Count++
+		}
+	}
+	return result, nil
+}
+
+// loadTriggerSources counts runs grouped by trigger_source using ent GroupBy.
+func (s *PipelineStore) loadTriggerSources(ctx context.Context, name string, since time.Time) ([]types.TriggerSourceCount, error) {
+	q := s.client.PipelineRun.Query()
+	if name != "" {
+		q = q.Where(pipelinerun.PipelineName(name))
+	}
+	if !since.IsZero() {
+		q = q.Where(pipelinerun.StartedAtGTE(since))
+	}
+
+	type row struct {
+		Source string `sql:"trigger_source"`
+		Count  int64  `sql:"count"`
+	}
+	var rows []row
+
+	err := q.GroupBy(pipelinerun.FieldTriggerSource).
+		Aggregate(gen.Count()).
+		Scan(ctx, &rows)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]int64{"event": 0, "webhook": 0, "cron": 0, "manual": 0}
+	for _, r := range rows {
+		result[r.Source] = r.Count
+	}
+	return []types.TriggerSourceCount{
+		{Source: "event", Count: result["event"]},
+		{Source: "webhook", Count: result["webhook"]},
+		{Source: "cron", Count: result["cron"]},
+		{Source: "manual", Count: result["manual"]},
+	}, nil
+}
+
+func emptyPipelineStats() *types.PipelineStats {
+	return &types.PipelineStats{
+		TriggerSourcePie: []types.TriggerSourceCount{
+			{Source: "event"}, {Source: "webhook"}, {Source: "cron"}, {Source: "manual"},
+		},
+		DurationDistribution: types.DurationDistribution{
+			Pipeline: emptyDurationBuckets(),
+			Step:     emptyDurationBuckets(),
+		},
+	}
+}
+
+func emptyDurationBuckets() []types.DurationEntry {
+	return []types.DurationEntry{
+		{Bucket: "0-1s"}, {Bucket: "1-5s"}, {Bucket: "5-30s"}, {Bucket: "30s+"},
+	}
+}
+
 // ---------------------------------------------------------------------------
 // PollingStateStore
 // ---------------------------------------------------------------------------
