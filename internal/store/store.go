@@ -442,6 +442,13 @@ func sanitizeAuditValue(v any) any {
 	}
 }
 
+// PipelineRunInfo is a lightweight view of a pipeline run for event matching display.
+type PipelineRunInfo struct {
+	PipelineName string
+	EventID      string
+	Status       string
+}
+
 // ---------------------------------------------------------------------------
 // EventStore
 // ---------------------------------------------------------------------------
@@ -574,6 +581,79 @@ func (s *EventStore) ListDataEvents(ctx context.Context, opts ListDataEventsOpti
 	}
 
 	return events, nextCursor, nil
+}
+
+// ListDistinctEventSources returns unique source values from data_events
+// created within the given duration (e.g. 30*24*time.Hour for last 30 days).
+func (s *EventStore) ListDistinctEventSources(ctx context.Context, since time.Duration) ([]string, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	sources, err := s.client.DataEvent.Query().
+		Where(dataevent.CreatedAtGT(time.Now().Add(-since))).
+		GroupBy(dataevent.FieldSource).
+		Strings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list distinct event sources: %w", err)
+	}
+	return sources, nil
+}
+
+// ListDistinctEventTypes returns unique event_type values from data_events
+// created within the given duration.
+func (s *EventStore) ListDistinctEventTypes(ctx context.Context, since time.Duration) ([]string, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	types, err := s.client.DataEvent.Query().
+		Where(dataevent.CreatedAtGT(time.Now().Add(-since))).
+		GroupBy(dataevent.FieldEventType).
+		Strings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list distinct event types: %w", err)
+	}
+	return types, nil
+}
+
+// GetDataEventByEventID looks up a single data event by its event_id.
+func (s *EventStore) GetDataEventByEventID(ctx context.Context, eventID string) (*gen.DataEvent, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	e, err := s.client.DataEvent.Query().
+		Where(dataevent.EventID(eventID)).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("get data event by id: %w", err)
+	}
+	return e, nil
+}
+
+// GetPipelineRunsForEvents batch-looks up pipeline runs for the given event IDs.
+// Returns a map of eventID -> []PipelineRunInfo.
+func (s *EventStore) GetPipelineRunsForEvents(ctx context.Context, eventIDs []string) (map[string][]PipelineRunInfo, error) {
+	if s == nil || s.client == nil || len(eventIDs) == 0 {
+		return nil, nil
+	}
+	runs, err := s.client.PipelineRun.Query().
+		Where(pipelinerun.EventIDIn(eventIDs...)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get pipeline runs for events: %w", err)
+	}
+	result := make(map[string][]PipelineRunInfo, len(runs))
+	for _, r := range runs {
+		info := PipelineRunInfo{
+			PipelineName: r.PipelineName,
+			EventID:      r.EventID,
+			Status:       fmt.Sprintf("%d", r.Status),
+		}
+		result[r.EventID] = append(result[r.EventID], info)
+	}
+	return result, nil
 }
 
 // ---------------------------------------------------------------------------
