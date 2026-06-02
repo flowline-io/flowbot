@@ -1,0 +1,17 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/hub"
+
+templ CapabilityGrid(descriptors []hub.Descriptor) {
+	<div id="capability-grid" data-testid="capability-grid">
+		if len(descriptors) == 0 {
+			@EmptyState("No capabilities registered")
+		} else {
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				for _, d := range descriptors {
+					@CapabilityCard(d)
+				}
+			</div>
+		}
+	</div>
+}

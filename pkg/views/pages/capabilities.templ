@@ -1,0 +1,44 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ CapabilitiesPage(descriptors []hub.Descriptor, types []string, providers []string) {
+	@layout.Base("Capabilities — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Capabilities</h1>
+		</div>
+		<div class="flex items-center gap-3 mb-4">
+			<select id="capability-type-filter" name="type"
+				hx-get="/service/web/capabilities/grid"
+				hx-trigger="change"
+				hx-target="#capability-grid"
+				hx-swap="outerHTML"
+				hx-include="[name='provider']"
+				data-testid="capability-type-filter"
+				class="select select-bordered select-sm">
+				<option value="">All Types</option>
+				for _, t := range types {
+					<option value={ t }>{ t }</option>
+				}
+			</select>
+			<select name="provider"
+				hx-get="/service/web/capabilities/grid"
+				hx-trigger="change"
+				hx-target="#capability-grid"
+				hx-swap="outerHTML"
+				hx-include="[name='type']"
+				data-testid="capability-provider-filter"
+				class="select select-bordered select-sm">
+				<option value="">All Providers</option>
+				for _, p := range providers {
+					<option value={ p }>{ p }</option>
+				}
+			</select>
+		</div>
+		@partials.CapabilityGrid(descriptors)
+	}
+}
