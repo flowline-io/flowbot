@@ -485,6 +485,12 @@ func (s *EventStore) AppendDataEvent(ctx context.Context, event types.DataEvent)
 		c = c.SetTags(map[string]any(event.Tags))
 	}
 	_, err := c.Save(ctx)
+	if err == nil && event.Source != "" {
+		types.EventFilterCache.SetSource(event.Source)
+	}
+	if err == nil && event.EventType != "" {
+		types.EventFilterCache.SetEventType(event.EventType)
+	}
 	return err
 }
 
