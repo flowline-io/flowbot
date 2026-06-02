@@ -1,0 +1,19 @@
+package partials
+
+templ WebhookPayloadDetail(headersJSON, bodyJSON string, bodyTruncated bool) {
+	<td colspan="6" class="p-0">
+		<div class="p-3 space-y-3">
+			<details open>
+				<summary class="text-sm font-semibold cursor-pointer">Request Headers</summary>
+				<pre class="bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48 mt-1">{ headersJSON }</pre>
+			</details>
+			<details open>
+				<summary class="text-sm font-semibold cursor-pointer">Request Body</summary>
+				<pre class="bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96 mt-1">{ bodyJSON }</pre>
+			</details>
+			if bodyTruncated {
+				<div class="text-xs text-warning mt-1">Body truncated to 64KB</div>
+			}
+		</div>
+	</td>
+}
