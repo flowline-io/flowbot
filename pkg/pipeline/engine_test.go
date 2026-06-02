@@ -476,25 +476,87 @@ func TestHandleEvent_WithTagsDoesNotCrash(t *testing.T) {
 func TestStepCallback_OrderOfCalls(t *testing.T) {
 	t.Parallel()
 
-	mockCB := &mockStepCallback{}
-	mockCB.OnRunStart(context.Background(), 1, "p", "event:x", 2, []string{"a", "b"})
-	mockCB.OnStepStart(context.Background(), 1, "p", 0, "a", nil)
-	mockCB.OnStepDone(context.Background(), 1, "p", 0, "a", nil, 100)
-	mockCB.OnStepStart(context.Background(), 1, "p", 1, "b", nil)
-	mockCB.OnStepDone(context.Background(), 1, "p", 1, "b", nil, 200)
-	mockCB.OnRunComplete(context.Background(), 1, "p", 300, false, "")
+	type callSpec struct {
+		method    string
+		stepIndex int
+		stepName  string
+		elapsedMs int64
+		status    string
+	}
+	tests := []struct {
+		name          string
+		calls         []callSpec
+		expectedOrder []string
+	}{
+		{
+			name: "happy path — two steps, all success",
+			calls: []callSpec{
+				{method: "OnRunStart", stepIndex: -1},
+				{method: "OnStepStart", stepIndex: 0, stepName: "a"},
+				{method: "OnStepDone", stepIndex: 0, stepName: "a", elapsedMs: 100},
+				{method: "OnStepStart", stepIndex: 1, stepName: "b"},
+				{method: "OnStepDone", stepIndex: 1, stepName: "b", elapsedMs: 200},
+				{method: "OnRunComplete", elapsedMs: 300, status: "complete"},
+			},
+			expectedOrder: []string{
+				"OnRunStart", "OnStepStart", "OnStepDone",
+				"OnStepStart", "OnStepDone", "OnRunComplete",
+			},
+		},
+		{
+			name: "error path — step fails, run reports error",
+			calls: []callSpec{
+				{method: "OnRunStart", stepIndex: -1},
+				{method: "OnStepStart", stepIndex: 0, stepName: "bad"},
+				{method: "OnStepError", stepIndex: 0, stepName: "bad", elapsedMs: 50},
+				{method: "OnRunComplete", elapsedMs: 100, status: "failed"},
+			},
+			expectedOrder: []string{
+				"OnRunStart", "OnStepStart", "OnStepError", "OnRunComplete",
+			},
+		},
+		{
+			name: "single step — simplest pipeline",
+			calls: []callSpec{
+				{method: "OnRunStart", stepIndex: -1},
+				{method: "OnStepStart", stepIndex: 0, stepName: "only"},
+				{method: "OnStepDone", stepIndex: 0, stepName: "only", elapsedMs: 42},
+				{method: "OnRunComplete", elapsedMs: 50, status: "complete"},
+			},
+			expectedOrder: []string{
+				"OnRunStart", "OnStepStart", "OnStepDone", "OnRunComplete",
+			},
+		},
+	}
 
-	expectedOrder := []string{
-		"OnRunStart", "OnStepStart", "OnStepDone",
-		"OnStepStart", "OnStepDone", "OnRunComplete",
-	}
-	if len(mockCB.calls) != len(expectedOrder) {
-		t.Fatalf("got %d calls, want %d", len(mockCB.calls), len(expectedOrder))
-	}
-	for i, call := range mockCB.calls {
-		if call.method != expectedOrder[i] {
-			t.Errorf("call %d: got %s, want %s", i, call.method, expectedOrder[i])
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			mockCB := &mockStepCallback{}
+			for _, c := range tt.calls {
+				switch c.method {
+				case "OnRunStart":
+					mockCB.OnRunStart(context.Background(), 1, "p", "event:x", len(tt.calls)-2, nil)
+				case "OnStepStart":
+					mockCB.OnStepStart(context.Background(), 1, "p", c.stepIndex, c.stepName, nil)
+				case "OnStepDone":
+					mockCB.OnStepDone(context.Background(), 1, "p", c.stepIndex, c.stepName, nil, c.elapsedMs)
+				case "OnStepError":
+					mockCB.OnStepError(context.Background(), 1, "p", c.stepIndex, c.stepName, assert.AnError, c.elapsedMs)
+				case "OnRunComplete":
+					failed := c.status == "failed"
+					mockCB.OnRunComplete(context.Background(), 1, "p", c.elapsedMs, failed, "test error")
+				}
+			}
+			if len(mockCB.calls) != len(tt.expectedOrder) {
+				t.Fatalf("got %d calls, want %d", len(mockCB.calls), len(tt.expectedOrder))
+			}
+			for i, call := range mockCB.calls {
+				if call.method != tt.expectedOrder[i] {
+					t.Errorf("call %d: got %s, want %s", i, call.method, tt.expectedOrder[i])
+				}
+			}
+		})
 	}
 }
 
