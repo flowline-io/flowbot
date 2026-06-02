@@ -526,7 +526,12 @@ func pipelineStats(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "pipeline stats: %v", err)
 	}
 
-	return c.JSON(stats)
+	accept := c.Get("Accept", "")
+	if accept == "application/json" {
+		return c.JSON(stats)
+	}
+	c.Type("html")
+	return partials.PipelineStats(name, stats).Render(context.Background(), c.Response().BodyWriter())
 }
 
 // stepRunStatusLabel converts an ent PipelineStepRun status int to a display string.
