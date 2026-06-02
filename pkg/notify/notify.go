@@ -134,26 +134,41 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 		return nil
 	}
 
-	// check if template exists
 	if engine.GetTemplateID(templateID) == "" {
 		return types.Errorf(types.ErrNotFound, "template %s not found", templateID)
 	}
 
+	var summary string
+	if s, ok := payload["summary"].(string); ok {
+		summary = s
+	}
+
 	var errs []error
 	for _, channel := range channels {
-		result, err := evaluateAndRenderNotification(ctx, templateID, channel, payload)
+		eval, err := evaluateAndRenderNotification(ctx, templateID, channel, payload)
 		if err != nil {
 			errs = append(errs, err)
+			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), payload)
 			continue
 		}
-		if result == nil {
+		if eval == nil {
+			continue
+		}
+		if eval.action != "" {
+			recordAsync(uid, channel, templateID, summary, eval.action, "", payload)
+			continue
+		}
+		if eval.renderResult == nil {
 			continue
 		}
 
-		msg := buildNotifyMessage(result, payload)
+		msg := buildNotifyMessage(eval.renderResult, payload)
 
 		if err := sendToUserChannel(ctx, uid, templateID, channel, msg); err != nil {
 			errs = append(errs, err)
+			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), payload)
+		} else {
+			recordAsync(uid, channel, templateID, summary, "success", "", payload)
 		}
 	}
 
@@ -163,9 +178,15 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 	return nil
 }
 
+// evalResult holds the result of notification evaluation, including rule actions.
+type evalResult struct {
+	renderResult *notifytmpl.RenderResult
+	action       string // "dropped", "muted", "throttled", "aggregated", or ""
+}
+
 // evaluateAndRenderNotification applies rules and renders the template for a single channel.
-// Returns nil result (no error) when the message should be skipped due to rules.
-func evaluateAndRenderNotification(ctx context.Context, templateID, channel string, payload map[string]any) (*notifytmpl.RenderResult, error) {
+// Returns nil result and nil error when the message should be skipped due to rules.
+func evaluateAndRenderNotification(ctx context.Context, templateID, channel string, payload map[string]any) (*evalResult, error) {
 	ruleEngine := notifyrules.GetEngine()
 	if ruleEngine != nil {
 		ruleResult := ruleEngine.Evaluate(ctx, templateID, channel)
@@ -173,17 +194,17 @@ func evaluateAndRenderNotification(ctx context.Context, templateID, channel stri
 			switch ruleResult.Action {
 			case config.NotifyRuleActionDrop:
 				flog.Info("[notify] message dropped by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-				return nil, nil
+				return &evalResult{action: "dropped"}, nil
 			case config.NotifyRuleActionMute:
 				flog.Info("[notify] message muted by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-				return nil, nil
+				return &evalResult{action: "muted"}, nil
 			case config.NotifyRuleActionThrottle:
 				if handleThrottleRule(ctx, ruleResult, templateID, channel) {
-					return nil, nil
+					return &evalResult{action: "throttled"}, nil
 				}
 			case config.NotifyRuleActionAggregate:
 				if handleAggregateRule(ctx, ruleResult, templateID, channel, payload) {
-					return nil, nil
+					return &evalResult{action: "aggregated"}, nil
 				}
 			}
 		}
@@ -195,7 +216,7 @@ func evaluateAndRenderNotification(ctx context.Context, templateID, channel stri
 		flog.Warn("[notify] failed to render template %s for channel %s: %v", templateID, channel, err)
 		return nil, err
 	}
-	return result, nil
+	return &evalResult{renderResult: result}, nil
 }
 
 // handleThrottleRule checks throttle limits for a rule and returns true if the message should be skipped.
@@ -289,4 +310,39 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel s
 		return err
 	}
 	return nil
+}
+
+// getNotifyStore returns the NotifyStore from the global database adapter,
+// or nil if the store is not available.
+func getNotifyStore() *store.NotifyStore {
+	if store.Database == nil || store.Database.GetDB() == nil {
+		return nil
+	}
+	client, ok := store.Database.GetDB().(*store.Client)
+	if !ok {
+		return nil
+	}
+	return store.NewNotifyStore(client)
+}
+
+// recordAsync writes a notification delivery record in a goroutine with a 2s timeout.
+// It also triggers deferred rolling window cleanup (best-effort).
+func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg string, payload map[string]any) {
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+
+		ns := getNotifyStore()
+		if ns == nil {
+			return
+		}
+		if _, err := ns.Record(ctx, uid.String(), channel, templateID, summary, status, errMsg, payload); err != nil {
+			flog.Warn("[notify] failed to record notification: %v", err)
+			return
+		}
+		// Rolling window cleanup (best-effort, keep last 200 per user)
+		if err := ns.DeleteOldest(ctx, uid.String(), 200); err != nil {
+			flog.Warn("[notify] failed to cleanup old notifications: %v", err)
+		}
+	}()
 }
