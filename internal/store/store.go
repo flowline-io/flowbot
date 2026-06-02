@@ -1676,12 +1676,12 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 		limit = 20
 	}
 
-	// Fetch candidate links using Ent-safe Contains predicates (database-agnostic).
+	// Fetch candidate links using Ent-safe case-insensitive predicates.
 	links, err := s.client.ResourceLink.Query().
 		Where(
 			resourcelink.Or(
-				resourcelink.SourceEntityIDContains(query),
-				resourcelink.TargetEntityIDContains(query),
+				resourcelink.SourceEntityIDContainsFold(query),
+				resourcelink.TargetEntityIDContainsFold(query),
 			),
 		).
 		Order(resourcelink.ByCreatedAt(sql.OrderDesc())).
@@ -1694,9 +1694,10 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 	// Deduplicate by (app, capability, entity_id) in Go memory.
 	seen := make(map[string]bool)
 	var results []schema.ResourceRef
+	lowerQuery := strings.ToLower(query)
 
 	for _, rl := range links {
-		if strings.Contains(strings.ToLower(rl.SourceEntityID), strings.ToLower(query)) {
+		if strings.Contains(strings.ToLower(rl.SourceEntityID), lowerQuery) {
 			key := rl.SourceApp + "|" + rl.SourceCapability + "|" + rl.SourceEntityID
 			if !seen[key] {
 				seen[key] = true
@@ -1707,7 +1708,7 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 				})
 			}
 		}
-		if strings.Contains(strings.ToLower(rl.TargetEntityID), strings.ToLower(query)) {
+		if strings.Contains(strings.ToLower(rl.TargetEntityID), lowerQuery) {
 			key := rl.TargetApp + "|" + rl.TargetCapability + "|" + rl.TargetEntityID
 			if !seen[key] {
 				seen[key] = true
