@@ -747,3 +747,77 @@ func TestPageDataStore_DeleteExpired(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, pageData, "no-expiry page should remain")
 }
+
+// ---------------------------------------------------------------------------
+// EventStore tests
+// ---------------------------------------------------------------------------
+
+func TestListDataEvents(t *testing.T) {
+	t.Parallel()
+	client := getTestClient(t)
+	store := NewEventStore(client)
+	ctx := context.Background()
+
+	events := []types.DataEvent{
+		{EventID: "evt-001", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#42"},
+		{EventID: "evt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "bookmark", EntityID: "url-1"},
+		{EventID: "evt-003", EventType: "entry.new", Source: "reader", Capability: "reader", EntityID: "feed-5"},
+	}
+
+	for _, e := range events {
+		require.NoError(t, store.AppendDataEvent(ctx, e))
+	}
+
+	tests := []struct {
+		name          string
+		opts          ListDataEventsOptions
+		wantCount     int
+		wantHasCursor bool
+	}{
+		{
+			name:      "list all events",
+			opts:      ListDataEventsOptions{Limit: 10},
+			wantCount: 3,
+		},
+		{
+			name:      "filter by source github",
+			opts:      ListDataEventsOptions{Limit: 10, Source: "github"},
+			wantCount: 1,
+		},
+		{
+			name:      "filter by unknown source returns empty",
+			opts:      ListDataEventsOptions{Limit: 10, Source: "unknown"},
+			wantCount: 0,
+		},
+		{
+			name:      "filter by event type",
+			opts:      ListDataEventsOptions{Limit: 10, EventType: "bookmark.created"},
+			wantCount: 1,
+		},
+		{
+			name:          "pagination with cursor returns cursor",
+			opts:          ListDataEventsOptions{Limit: 1},
+			wantCount:     1,
+			wantHasCursor: true,
+		},
+		{
+			name:          "pagination last page no cursor",
+			opts:          ListDataEventsOptions{Limit: 10},
+			wantCount:     3,
+			wantHasCursor: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, cursor, err := store.ListDataEvents(ctx, tt.opts)
+			require.NoError(t, err)
+			assert.Len(t, got, tt.wantCount)
+			if tt.wantHasCursor {
+				assert.NotEmpty(t, cursor)
+			} else {
+				assert.Empty(t, cursor)
+			}
+		})
+	}
+}
