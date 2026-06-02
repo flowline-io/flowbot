@@ -1602,16 +1602,16 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 }
 
 // FindNodeRelations returns upstream and downstream edges for a node identified
-// by (app, capability, entityID). Optional pipeline filter and time window.
-func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, app, capability, entityID string, pipeline string, since time.Duration) ([]schema.ResourceEdge, []schema.ResourceEdge, error) {
+// by (appName, capability, entityID). Optional pipelineName filter and time window.
+func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, capability, entityID string, pipelineName string, since time.Duration) ([]schema.ResourceEdge, []schema.ResourceEdge, error) {
 	if s == nil || s.client == nil {
 		return nil, nil, nil
 	}
 
 	base := func() *gen.ResourceLinkQuery {
 		q := s.client.ResourceLink.Query()
-		if pipeline != "" {
-			q = q.Where(resourcelink.PipelineName(pipeline))
+		if pipelineName != "" {
+			q = q.Where(resourcelink.PipelineName(pipelineName))
 		}
 		if since > 0 {
 			q = q.Where(resourcelink.CreatedAtGT(time.Now().Add(-since)))
@@ -1622,7 +1622,7 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, app, capabil
 	// downstream: source = this node
 	downLinks, err := base().
 		Where(
-			resourcelink.SourceApp(app),
+			resourcelink.SourceApp(appName),
 			resourcelink.SourceCapability(capability),
 			resourcelink.SourceEntityID(entityID),
 		).
@@ -1635,7 +1635,7 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, app, capabil
 	// upstream: target = this node
 	upLinks, err := base().
 		Where(
-			resourcelink.TargetApp(app),
+			resourcelink.TargetApp(appName),
 			resourcelink.TargetCapability(capability),
 			resourcelink.TargetEntityID(entityID),
 		).
