@@ -1901,7 +1901,7 @@ func (s *NotifyStore) GetRecord(ctx context.Context, id int64) (*gen.Notificatio
 	rec, err := s.client.NotificationRecord.Get(ctx, id)
 	if err != nil {
 		if gen.IsNotFound(err) {
-			return nil, nil
+			return nil, types.ErrNotFound
 		}
 		return nil, fmt.Errorf("get notification record: %w", err)
 	}

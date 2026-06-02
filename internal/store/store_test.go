@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	_ "github.com/flowline-io/flowbot/internal/store/ent/gen/runtime"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
@@ -1053,11 +1054,10 @@ func TestNotifyStore_ListRecords_Pagination(t *testing.T) {
 	ns := NewNotifyStore(client)
 	ctx := context.Background()
 
-	for i := range 25 {
+	for range 25 {
 		_, err := ns.Record(ctx, "user_p", "slack", "test.template", "", "success", "", nil)
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
-		_ = i
 	}
 
 	tests := []struct {
@@ -1118,10 +1118,15 @@ func TestNotifyStore_DeleteOldest(t *testing.T) {
 
 	err := ns.DeleteOldest(ctx, "user_d", 5)
 	require.NoError(t, err)
+	count, err := client.NotificationRecord.Query().Where(notificationrecord.UID("user_d")).Count(ctx)
+	require.NoError(t, err)
+	assert.LessOrEqual(t, count, 5, "should keep at most 5 records")
 
+	// keepN=20 is greater than current count, should be no-op
 	err = ns.DeleteOldest(ctx, "user_d", 20)
 	require.NoError(t, err)
 
+	// keepN=0 is no-op (best-effort cleanup, not a truncation)
 	err = ns.DeleteOldest(ctx, "user_d", 0)
 	require.NoError(t, err)
 }
