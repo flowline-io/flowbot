@@ -18,6 +18,13 @@ import (
 
 var handlers map[string]Notifyer
 
+const (
+	// payloadKeySummary is the key in the GatewaySend payload map for the summary text.
+	payloadKeySummary = "summary"
+	// defaultKeepRecords is the number of notification records to retain per user.
+	defaultKeepRecords = 200
+)
+
 func Register(id string, notifyer Notifyer) {
 	if handlers == nil {
 		handlers = make(map[string]Notifyer)
@@ -139,7 +146,7 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 	}
 
 	var summary string
-	if s, ok := payload["summary"].(string); ok {
+	if s, ok := payload[payloadKeySummary].(string); ok {
 		summary = s
 	}
 
@@ -328,6 +335,11 @@ func getNotifyStore() *store.NotifyStore {
 // recordAsync writes a notification delivery record in a goroutine with a 2s timeout.
 // It also triggers deferred rolling window cleanup (best-effort).
 func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg string, payload map[string]any) {
+	// Shallow-copy payload to avoid data race if caller mutates the map after returning.
+	payloadCopy := make(map[string]any, len(payload))
+	for k, v := range payload {
+		payloadCopy[k] = v
+	}
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -336,12 +348,12 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 		if ns == nil {
 			return
 		}
-		if _, err := ns.Record(ctx, uid.String(), channel, templateID, summary, status, errMsg, payload); err != nil {
+		if _, err := ns.Record(ctx, uid.String(), channel, templateID, summary, status, errMsg, payloadCopy); err != nil {
 			flog.Warn("[notify] failed to record notification: %v", err)
 			return
 		}
-		// Rolling window cleanup (best-effort, keep last 200 per user)
-		if err := ns.DeleteOldest(ctx, uid.String(), 200); err != nil {
+		// Rolling window cleanup (best-effort, keep last N per user)
+		if err := ns.DeleteOldest(ctx, uid.String(), defaultKeepRecords); err != nil {
 			flog.Warn("[notify] failed to cleanup old notifications: %v", err)
 		}
 	}()
