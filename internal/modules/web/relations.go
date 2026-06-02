@@ -150,8 +150,10 @@ func relationsDetail(ctx fiber.Ctx) error {
 		}).Render(ctx.Context(), ctx.Response().BodyWriter())
 	case "edge":
 		sourceApp := ctx.Query("source_app")
+		sourceCap := ctx.Query("source_capability")
 		sourceEntity := ctx.Query("source_entity")
 		targetApp := ctx.Query("target_app")
+		targetCap := ctx.Query("target_capability")
 		targetEntity := ctx.Query("target_entity")
 		pipeline := ctx.Query("pipeline")
 		createdStr := ctx.Query("created_at")
@@ -162,12 +164,14 @@ func relationsDetail(ctx fiber.Ctx) error {
 		return partials.RelationDetail(partials.RelationDetailParams{
 			Type: "edge",
 			Edge: schema.ResourceEdge{
-				SourceApp:      sourceApp,
-				SourceEntityID: sourceEntity,
-				TargetApp:      targetApp,
-				TargetEntityID: targetEntity,
-				PipelineName:   pipeline,
-				CreatedAt:      createdAt,
+				SourceApp:        sourceApp,
+				SourceCapability: sourceCap,
+				SourceEntityID:   sourceEntity,
+				TargetApp:        targetApp,
+				TargetCapability: targetCap,
+				TargetEntityID:   targetEntity,
+				PipelineName:     pipeline,
+				CreatedAt:        createdAt,
 			},
 		}).Render(ctx.Context(), ctx.Response().BodyWriter())
 	default:

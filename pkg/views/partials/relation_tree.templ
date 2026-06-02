@@ -48,4 +48,10 @@ templ RelationTree(p RelationTreeParams) {
 			</div>
 		}
 	</div>
+	<div id="relations-detail-parent" hx-swap-oob="innerHTML:#relations-detail">
+		@RelationDetail(RelationDetailParams{
+			Type: "node",
+			Node: p.Node,
+		})
+	</div>
 }

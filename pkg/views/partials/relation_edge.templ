@@ -7,7 +7,7 @@ import (
 
 templ RelationEdgeBadge(edge schema.ResourceEdge, direction string) {
 	<div class="flex items-center gap-1 py-1 px-1"
-		hx-get={ templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_entity=" + edge.TargetEntityID + "&pipeline=" + edge.PipelineName + "&created_at=" + edge.CreatedAt.Format(time.RFC3339)) }
+		hx-get={ templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_capability=" + edge.SourceCapability + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_capability=" + edge.TargetCapability + "&target_entity=" + edge.TargetEntityID + "&pipeline=" + edge.PipelineName + "&created_at=" + edge.CreatedAt.Format(time.RFC3339)) }
 		hx-trigger="click"
 		hx-target="#relations-detail"
 		hx-swap="innerHTML"

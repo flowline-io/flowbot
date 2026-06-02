@@ -39,9 +39,9 @@ func RelationEdgeBadge(edge schema.ResourceEdge, direction string) templ.Compone
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_entity=" + edge.TargetEntityID + "&pipeline=" + edge.PipelineName + "&created_at=" + edge.CreatedAt.Format(time.RFC3339)))
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/relations/detail?type=edge&source_app=" + edge.SourceApp + "&source_capability=" + edge.SourceCapability + "&source_entity=" + edge.SourceEntityID + "&target_app=" + edge.TargetApp + "&target_capability=" + edge.TargetCapability + "&target_entity=" + edge.TargetEntityID + "&pipeline=" + edge.PipelineName + "&created_at=" + edge.CreatedAt.Format(time.RFC3339)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/relation_edge.templ`, Line: 10, Col: 300}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/relation_edge.templ`, Line: 10, Col: 396}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
