@@ -71,11 +71,11 @@ func eventsPage(ctx fiber.Ctx) error {
 
 	ctx.Type("html")
 	return pages.EventsPage(pages.EventsPageParams{
-		ActiveTab:   "data-events",
-		Sources:     sources,
-		EventTypes:  eventTypes,
-		Events:      events,
-		NextCursor:  nextCursor,
+		ActiveTab:  "data-events",
+		Sources:    sources,
+		EventTypes: eventTypes,
+		Events:     events,
+		NextCursor: nextCursor,
 	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

@@ -319,9 +319,9 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel s
 	return nil
 }
 
-// getNotifyStore returns the NotifyStore from the global database adapter,
+// GetNotifyStore returns the NotifyStore from the global database adapter,
 // or nil if the store is not available.
-func getNotifyStore() *store.NotifyStore {
+func GetNotifyStore() *store.NotifyStore {
 	if store.Database == nil || store.Database.GetDB() == nil {
 		return nil
 	}
@@ -344,7 +344,7 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
-		ns := getNotifyStore()
+		ns := GetNotifyStore()
 		if ns == nil {
 			return
 		}

@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -19,17 +20,6 @@ var notificationWebserviceRules = []webservice.Rule{
 	webservice.Get("/notifications", notificationsPage, route.WithNotAuth()),
 	webservice.Get("/notifications/list", notificationsTable, route.WithNotAuth()),
 	webservice.Post("/notifications/:id/retry", retryNotification, route.WithNotAuth()),
-}
-
-func getNotifyStoreWeb() *store.NotifyStore {
-	if store.Database == nil || store.Database.GetDB() == nil {
-		return nil
-	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewNotifyStore(client)
 }
 
 func getUID(ctx fiber.Ctx) string {
@@ -50,7 +40,7 @@ func notificationsPage(ctx fiber.Ctx) error {
 		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
-	ns := getNotifyStoreWeb()
+	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
 		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -81,7 +71,7 @@ func notificationsTable(ctx fiber.Ctx) error {
 
 	cursor := ctx.Query("cursor")
 
-	ns := getNotifyStoreWeb()
+	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
 		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -118,7 +108,7 @@ func retryNotification(ctx fiber.Ctx) error {
 		return ctx.SendString("Invalid ID")
 	}
 
-	ns := getNotifyStoreWeb()
+	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
 		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -146,7 +136,10 @@ func retryNotification(ctx fiber.Ctx) error {
 	}
 
 	notifyUid := types.Uid(rec.UID)
-	err = notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload)
+	_ = notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload)
+
+	// Wait briefly for the async record goroutine to persist the retry outcome
+	time.Sleep(50 * time.Millisecond)
 
 	records, nextCursor, listErr := ns.ListRecords(context.Background(), uid, store.ListNotifyRecordsOptions{Limit: 20})
 	if listErr != nil {
