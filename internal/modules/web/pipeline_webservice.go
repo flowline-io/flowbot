@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"maps"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 
@@ -426,8 +426,12 @@ func writeSSEEvent(w *bufio.Writer, data string) bool {
 	if fErr := w.Flush(); fErr != nil {
 		return true
 	}
-	return strings.Contains(data, `"status":"complete"`) ||
-		strings.Contains(data, `"status":"failed"`)
+	var evt pipeline.StepProgressEvent
+	if err := sonic.UnmarshalString(data, &evt); err != nil {
+		return false
+	}
+	return evt.StepIndex == -1 &&
+		(evt.Status == "complete" || evt.Status == "failed")
 }
 
 // pipelineRunLivePage renders the live run dashboard page.

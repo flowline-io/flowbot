@@ -200,14 +200,7 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 		return err
 	}
 
-	if e.callback != nil {
-		triggerDesc := triggerDescription(def.Trigger)
-		stepNames := make([]string, len(def.Steps))
-		for i, s := range def.Steps {
-			stepNames[i] = s.Name
-		}
-		e.callback.OnRunStart(ctx, runID, def.Name, triggerDesc, len(def.Steps), stepNames)
-	}
+	e.emitRunStart(ctx, runID, &def)
 
 	rc := NewRenderContext(event)
 	failed := false
@@ -604,6 +597,9 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		rc.RecordStepResult(name, sr.Output)
 	}
 
+	e.emitRunStart(ctx, runID, def)
+
+	startTime := e.clock.Now()
 	failed := false
 	var finalErr error
 	for i := cp.StepIndex; i < len(def.Steps); i++ {
@@ -625,6 +621,8 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 	}
 
 	e.finishRunRecord(ctx, runID, failed, finalErr)
+	e.emitRunComplete(ctx, runID, def, startTime, failed, finalErr)
+
 	return finalErr
 }
 
@@ -725,6 +723,33 @@ func triggerDescription(t Trigger) string {
 		return "cron:" + t.Cron
 	}
 	return "unknown"
+}
+
+// emitRunStart emits a run-level start event via the callback.
+func (e *Engine) emitRunStart(ctx context.Context, runID int64, def *Definition) {
+	if e.callback == nil {
+		return
+	}
+	triggerDesc := triggerDescription(def.Trigger)
+	stepNames := make([]string, len(def.Steps))
+	for i, s := range def.Steps {
+		stepNames[i] = s.Name
+	}
+	e.callback.OnRunStart(ctx, runID, def.Name, triggerDesc, len(def.Steps), stepNames)
+}
+
+// emitRunComplete emits a run-level completion event via the callback.
+func (e *Engine) emitRunComplete(ctx context.Context, runID int64, def *Definition,
+	startTime time.Time, failed bool, finalErr error) {
+	if e.callback == nil {
+		return
+	}
+	elapsed := e.clock.Now().Sub(startTime).Milliseconds()
+	var errMsg string
+	if finalErr != nil {
+		errMsg = finalErr.Error()
+	}
+	e.callback.OnRunComplete(ctx, runID, def.Name, elapsed, failed, errMsg)
 }
 
 // MutexFor returns the per-pipeline mutex for the given pipeline name.
