@@ -126,11 +126,10 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 			}
 		}
 
-		dataEvent.Data["_webhook_headers"] = headers
-
 		if dataEvent.Data == nil {
 			dataEvent.Data = make(types.KV)
 		}
+		dataEvent.Data["_webhook_headers"] = headers
 		dataEvent.Data["_webhook_method"] = string(c.Request().Header.Method())
 		dataEvent.Data["_webhook_path"] = string(c.Request().URI().Path())
 		dataEvent.Data["_webhook_status"] = fiber.StatusAccepted

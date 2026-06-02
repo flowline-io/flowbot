@@ -1,8 +1,6 @@
 package web
 
 import (
-	"context"
-
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
@@ -62,12 +60,23 @@ func eventsPage(ctx fiber.Ctx) error {
 	sources := types.EventFilterCache.Sources()
 	eventTypes := types.EventFilterCache.EventTypes()
 
+	s := getEventStore()
+	var events []*gen.DataEvent
+	var nextCursor string
+	if s != nil {
+		events, nextCursor, _ = s.ListDataEvents(ctx.Context(), store.ListDataEventsOptions{
+			Limit: 20,
+		})
+	}
+
 	ctx.Type("html")
 	return pages.EventsPage(pages.EventsPageParams{
-		ActiveTab:  "data-events",
-		Sources:    sources,
-		EventTypes: eventTypes,
-	}).Render(context.Background(), ctx.Response().BodyWriter())
+		ActiveTab:   "data-events",
+		Sources:     sources,
+		EventTypes:  eventTypes,
+		Events:      events,
+		NextCursor:  nextCursor,
+	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func dataEventsTable(ctx fiber.Ctx) error {
@@ -81,9 +90,9 @@ func dataEventsTable(ctx fiber.Ctx) error {
 	s := getEventStore()
 	if s == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	events, nextCursor, err := s.ListDataEvents(context.Background(), store.ListDataEventsOptions{
+	events, nextCursor, err := s.ListDataEvents(ctx.Context(), store.ListDataEventsOptions{
 		Limit:     20,
 		Cursor:    cursor,
 		Source:    sourceFilter,
@@ -91,7 +100,7 @@ func dataEventsTable(ctx fiber.Ctx) error {
 	})
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load events: "+err.Error()).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Failed to load events").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	sources := types.EventFilterCache.Sources()
@@ -99,7 +108,7 @@ func dataEventsTable(ctx fiber.Ctx) error {
 
 	ctx.Type("html")
 	return partials.DataEventsTable(sources, eventTypes, sourceFilter, typeFilter, events, nextCursor).
-		Render(context.Background(), ctx.Response().BodyWriter())
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func webhookLogsTable(ctx fiber.Ctx) error {
@@ -113,9 +122,9 @@ func webhookLogsTable(ctx fiber.Ctx) error {
 	s := getEventStore()
 	if s == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	events, nextCursor, err := s.ListDataEvents(context.Background(), store.ListDataEventsOptions{
+	events, nextCursor, err := s.ListDataEvents(ctx.Context(), store.ListDataEventsOptions{
 		Limit:     20,
 		Cursor:    cursor,
 		Source:    sourceFilter,
@@ -124,7 +133,7 @@ func webhookLogsTable(ctx fiber.Ctx) error {
 	})
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load webhook logs: "+err.Error()).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Failed to load webhook logs").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	sources := types.EventFilterCache.Sources()
@@ -132,7 +141,7 @@ func webhookLogsTable(ctx fiber.Ctx) error {
 
 	ctx.Type("html")
 	return partials.WebhookLogsTable(sources, eventTypes, sourceFilter, typeFilter, events, nextCursor).
-		Render(context.Background(), ctx.Response().BodyWriter())
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func eventPayload(ctx fiber.Ctx) error {
@@ -144,12 +153,12 @@ func eventPayload(ctx fiber.Ctx) error {
 	s := getEventStore()
 	if s == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	found, err := s.GetDataEventByEventID(context.Background(), eventID)
+	found, err := s.GetDataEventByEventID(ctx.Context(), eventID)
 	if err != nil || found == nil {
 		ctx.Type("html")
-		return partials.EmptyState("Event not found").Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Event not found").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	payloadJSON := "{}"
@@ -182,10 +191,10 @@ func eventPayload(ctx fiber.Ctx) error {
 		}
 		ctx.Type("html")
 		return partials.WebhookPayloadDetail(headersJSON, bodyJSON, bodyTruncated).
-			Render(context.Background(), ctx.Response().BodyWriter())
+			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
 	ctx.Type("html")
 	return partials.EventPayloadDetail(payloadJSON).
-		Render(context.Background(), ctx.Response().BodyWriter())
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }

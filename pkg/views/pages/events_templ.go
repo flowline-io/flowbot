@@ -9,7 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 type EventsPageParams struct {
@@ -18,6 +20,8 @@ type EventsPageParams struct {
 	EventTypes   []string
 	SourceFilter string
 	TypeFilter   string
+	Events       []*gen.DataEvent // preloaded for initial render
+	NextCursor   string
 }
 
 func EventsPage(p EventsPageParams) templ.Component {
@@ -82,7 +86,7 @@ func EventsPage(p EventsPageParams) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/events/data-events?source=" + p.SourceFilter + "&type=" + p.TypeFilter))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/events.templ`, Line: 22, Col: 109}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/events.templ`, Line: 26, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -117,13 +121,23 @@ func EventsPage(p EventsPageParams) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/events/webhook-logs?source=" + p.SourceFilter + "&type=" + p.TypeFilter))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/events.templ`, Line: 30, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/events.templ`, Line: 34, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#events-content\" hx-swap=\"innerHTML\" hx-push-url=\"true\" hx-trigger=\"click\" data-testid=\"tab-webhook-logs\">Webhook Logs</a></div><div id=\"events-content\"></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#events-content\" hx-swap=\"innerHTML\" hx-push-url=\"true\" hx-trigger=\"click\" data-testid=\"tab-webhook-logs\">Webhook Logs</a></div><div id=\"events-content\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if p.ActiveTab == "data-events" {
+				templ_7745c5c3_Err = partials.DataEventsTable(p.Sources, p.EventTypes, p.SourceFilter, p.TypeFilter, p.Events, p.NextCursor).Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -1,15 +1,19 @@
 package pages
 
 import (
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 type EventsPageParams struct {
-	ActiveTab    string // "data-events" or "webhook-logs"
+	ActiveTab    string           // "data-events" or "webhook-logs"
 	Sources      []string
 	EventTypes   []string
 	SourceFilter string
 	TypeFilter   string
+	Events       []*gen.DataEvent // preloaded for initial render
+	NextCursor   string
 }
 
 templ EventsPage(p EventsPageParams) {
@@ -34,7 +38,11 @@ templ EventsPage(p EventsPageParams) {
 					hx-trigger="click"
 					data-testid="tab-webhook-logs">Webhook Logs</a>
 			</div>
-			<div id="events-content"></div>
+			<div id="events-content">
+				if p.ActiveTab == "data-events" {
+					@partials.DataEventsTable(p.Sources, p.EventTypes, p.SourceFilter, p.TypeFilter, p.Events, p.NextCursor)
+				}
+			</div>
 		</div>
 	}
 }
