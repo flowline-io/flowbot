@@ -1365,6 +1365,29 @@ type HubStore struct {
 	client *gen.Client
 }
 
+// AppInfo is a lightweight projection of store-level app metadata.
+type AppInfo struct {
+	Name      string
+	UpdatedAt time.Time
+}
+
+// ListApps returns all apps from the database with Name and UpdatedAt.
+// When the client is nil, returns nil (safe for no-DB environments).
+func (s *HubStore) ListApps(ctx context.Context) ([]AppInfo, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	rows, err := s.client.App.Query().Select(app.FieldName, app.FieldUpdatedAt).Order(app.ByName()).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	infos := make([]AppInfo, len(rows))
+	for i, r := range rows {
+		infos[i] = AppInfo{Name: r.Name, UpdatedAt: r.UpdatedAt}
+	}
+	return infos, nil
+}
+
 // NewHubStore returns a HubStore backed by the given Ent client.
 func NewHubStore(client *gen.Client) *HubStore {
 	return &HubStore{client: client}

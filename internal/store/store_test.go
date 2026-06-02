@@ -1290,3 +1290,77 @@ func TestResourceChainStore_SearchNodes(t *testing.T) {
 		})
 	}
 }
+
+// ---------------------------------------------------------------------------
+// HubStore tests
+// ---------------------------------------------------------------------------
+
+func TestHubStore_ListApps(t *testing.T) {
+	tests := []struct {
+		name      string
+		seeds     []func(*gen.Client) error
+		wantLen   int
+		wantNames []string
+	}{
+		{
+			name:    "empty list when no apps",
+			wantLen: 0,
+		},
+		{
+			name: "single app",
+			seeds: []func(c *gen.Client) error{
+				func(c *gen.Client) error {
+					_, err := c.App.Create().SetName("test-app").SetPath("/test").SetStatus("running").Save(context.Background())
+					return err
+				},
+			},
+			wantLen:   1,
+			wantNames: []string{"test-app"},
+		},
+		{
+			name: "multiple apps sorted by name",
+			seeds: []func(c *gen.Client) error{
+				func(c *gen.Client) error {
+					_, err := c.App.Create().SetName("app-b").SetPath("/b").SetStatus("running").Save(context.Background())
+					return err
+				},
+				func(c *gen.Client) error {
+					_, err := c.App.Create().SetName("app-a").SetPath("/a").SetStatus("stopped").Save(context.Background())
+					return err
+				},
+			},
+			wantLen:   2,
+			wantNames: []string{"app-a", "app-b"},
+		},
+		{
+			name:    "nil store returns nil not error",
+			wantLen: -1, // special: no seed, test nil store
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantLen == -1 {
+				var s *HubStore
+				infos, err := s.ListApps(context.Background())
+				require.NoError(t, err)
+				assert.Nil(t, infos)
+				return
+			}
+			client := getTestClient(t)
+			for _, seed := range tt.seeds {
+				require.NoError(t, seed(client))
+			}
+			s := NewHubStore(client)
+			infos, err := s.ListApps(context.Background())
+			require.NoError(t, err)
+			assert.Len(t, infos, tt.wantLen)
+			if tt.wantNames != nil {
+				names := make([]string, len(infos))
+				for i, info := range infos {
+					names[i] = info.Name
+				}
+				assert.Equal(t, tt.wantNames, names)
+			}
+		})
+	}
+}

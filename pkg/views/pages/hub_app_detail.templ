@@ -89,6 +89,7 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 			<div class="card-body">
 				<h2 class="card-title text-lg">Logs</h2>
 				<pre id="log-panel"
+					data-url={ templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100") }
 					class="bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto"
 					data-testid="log-panel">
 					Loading logs...
@@ -96,18 +97,18 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 				<script>
 					(function() {
 						var panel = document.getElementById('log-panel');
-						var url = '/service/web/hub/' + { templ.URL(app.Name) } + '/logs/stream?tail=100';
+						var url = panel.getAttribute('data-url');
 						var es = new EventSource(url);
-						panel.innerHTML = '';
+						panel.textContent = '';
 						es.onmessage = function(e) {
-							panel.innerHTML += e.data + '\n';
+							panel.appendChild(document.createTextNode(e.data + '\n'));
 							panel.scrollTop = panel.scrollHeight;
 						};
 						es.onerror = function() {
 							if (es.readyState === EventSource.CLOSED) {
-								panel.innerHTML += '\n-- Log stream ended --';
+								panel.appendChild(document.createTextNode('\n-- Log stream ended --'));
+								es.close();
 							}
-							es.close();
 						};
 					})();
 				</script>
