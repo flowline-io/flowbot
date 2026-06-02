@@ -371,44 +371,63 @@ func watchPipelineRunLive(c fiber.Ctx) error {
 			case <-ctx.Done():
 				return
 			default:
-				result, err := redisClient.XRead(ctx, &redis.XReadArgs{
-					Streams: []string{stream, lastID},
-					Count:   10,
-					Block:   5 * time.Second,
-				}).Result()
-
-				if errors.Is(err, context.Canceled) {
+				result, err := redisClient.XRead(ctx, broadcastStreamReadArgs(stream, lastID)).Result()
+				if done := handleStreamRead(w, result, err, &lastID); done {
 					return
-				}
-				if err == redis.Nil || len(result) == 0 {
-					fmt.Fprintf(w, ": heartbeat\n\n")
-					if fErr := w.Flush(); fErr != nil {
-						return
-					}
-					continue
-				}
-				if err != nil {
-					time.Sleep(2 * time.Second)
-					continue
-				}
-				for _, msg := range result[0].Messages {
-					lastID = msg.ID
-					data, ok := msg.Values["data"].(string)
-					if !ok {
-						continue
-					}
-					fmt.Fprintf(w, "data: %s\n\n", data)
-					if fErr := w.Flush(); fErr != nil {
-						return
-					}
-					if strings.Contains(data, `"status":"complete"`) ||
-						strings.Contains(data, `"status":"failed"`) {
-						return
-					}
 				}
 			}
 		}
 	})
+}
+
+func broadcastStreamReadArgs(stream, lastID string) *redis.XReadArgs {
+	return &redis.XReadArgs{
+		Streams: []string{stream, lastID},
+		Count:   10,
+		Block:   5 * time.Second,
+	}
+}
+
+func handleStreamRead(w *bufio.Writer, result []redis.XStream, err error, lastID *string) bool {
+	if errors.Is(err, context.Canceled) {
+		return true
+	}
+	if err == redis.Nil || len(result) == 0 {
+		return writeHeartbeat(w)
+	}
+	if err != nil {
+		time.Sleep(2 * time.Second)
+		return false
+	}
+	for _, msg := range result[0].Messages {
+		*lastID = msg.ID
+		data, ok := msg.Values["data"].(string)
+		if !ok {
+			continue
+		}
+		if done := writeSSEEvent(w, data); done {
+			return true
+		}
+	}
+	return false
+}
+
+func writeHeartbeat(w *bufio.Writer) bool {
+	if _, fErr := fmt.Fprintf(w, ": heartbeat\n\n"); fErr != nil {
+		return true
+	}
+	return w.Flush() != nil
+}
+
+func writeSSEEvent(w *bufio.Writer, data string) bool {
+	if _, fErr := fmt.Fprintf(w, "data: %s\n\n", data); fErr != nil {
+		return true
+	}
+	if fErr := w.Flush(); fErr != nil {
+		return true
+	}
+	return strings.Contains(data, `"status":"complete"`) ||
+		strings.Contains(data, `"status":"failed"`)
 }
 
 // pipelineRunLivePage renders the live run dashboard page.
@@ -438,36 +457,11 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("failed to load steps")
 	}
 
-	stepStatus := func(st int) string {
-		switch st {
-		case 1:
-			return "running"
-		case 2:
-			return "done"
-		case 4:
-			return "error"
-		default:
-			return "pending"
-		}
-	}
-	runStatus := func(st int) string {
-		switch st {
-		case 1:
-			return "running"
-		case 2:
-			return "done"
-		case 4:
-			return "failed"
-		default:
-			return "pending"
-		}
-	}
-
 	initSteps := make([]pages.StepState, len(steps))
 	for i, s := range steps {
 		ss := pages.StepState{
 			Name:   s.StepName,
-			Status: stepStatus(s.Status),
+			Status: stepRunStatusLabel(s.Status),
 			Output: s.Result,
 			Error:  s.Error,
 			Input:  s.Params,
@@ -484,7 +478,35 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 		PipelineName: pipelineName,
 		Trigger:      run.EventType,
 		TotalSteps:   len(steps),
-		RunStatus:    runStatus(run.Status),
+		RunStatus:    pipelineRunStatusLabel(run.Status),
 		Steps:        initSteps,
 	}).Render(context.Background(), c.Response().BodyWriter())
+}
+
+// stepRunStatusLabel converts an ent PipelineStepRun status int to a display string.
+func stepRunStatusLabel(status int) string {
+	switch status {
+	case 1:
+		return "running"
+	case 2:
+		return "done"
+	case 4:
+		return "error"
+	default:
+		return "pending"
+	}
+}
+
+// pipelineRunStatusLabel converts an ent PipelineRun status int to a display string.
+func pipelineRunStatusLabel(status int) string {
+	switch status {
+	case 1:
+		return "running"
+	case 2:
+		return "done"
+	case 4:
+		return "failed"
+	default:
+		return "pending"
+	}
 }
