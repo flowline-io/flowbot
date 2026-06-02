@@ -42,6 +42,8 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/:name/runs/:runID/steps", pipelineRunSteps),
 	webservice.Get("/pipelines/:name/runs/:runID/live", pipelineRunLivePage),
 	webservice.Get("/pipelines/:name/runs/:runID/live/watch", watchPipelineRunLive),
+	webservice.Get("/pipelines/stats", pipelineStats),
+	webservice.Get("/pipelines/:name/stats", pipelineStats),
 }
 
 func getPipelineDefStore() *store.PipelineStore {
@@ -485,6 +487,46 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 		RunStatus:    pipelineRunStatusLabel(run.Status),
 		Steps:        initSteps,
 	}).Render(context.Background(), c.Response().BodyWriter())
+}
+
+func pipelineStats(c fiber.Ctx) error {
+	name := c.Params("name")
+	sinceStr := c.Query("since", "")
+	since := time.Time{}
+	if sinceStr != "" {
+		parsed, err := time.Parse("2006-01-02", sinceStr)
+		if err != nil {
+			return types.Errorf(types.ErrInvalidArgument, "invalid since date: %v", err)
+		}
+		since = parsed
+	} else {
+		since = time.Now().AddDate(0, 0, -30)
+	}
+	groupBy := c.Query("groupBy", "day")
+	if groupBy != "day" && groupBy != "week" && groupBy != "month" {
+		return types.Errorf(types.ErrInvalidArgument, "groupBy must be day, week, or month")
+	}
+
+	s := getPipelineDefStore()
+	if s == nil {
+		return types.Errorf(types.ErrInternal, "store not available")
+	}
+	if name != "" {
+		_, err := s.GetDefinitionByName(context.Background(), name)
+		if err != nil {
+			if errors.Is(err, types.ErrNotFound) {
+				return types.Errorf(types.ErrNotFound, "pipeline %s not found", name)
+			}
+			return types.Errorf(types.ErrInternal, "get pipeline: %v", err)
+		}
+	}
+
+	stats, err := s.PipelineStats(context.Background(), name, since, groupBy)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "pipeline stats: %v", err)
+	}
+
+	return c.JSON(stats)
 }
 
 // stepRunStatusLabel converts an ent PipelineStepRun status int to a display string.
