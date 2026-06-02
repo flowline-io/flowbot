@@ -446,9 +446,10 @@ func sanitizeAuditValue(v any) any {
 
 // PipelineRunInfo is a lightweight view of a pipeline run for event matching display.
 type PipelineRunInfo struct {
-	PipelineName string
-	EventID      string
-	Status       string
+	PipelineName  string
+	EventID       string
+	Status        string
+	TriggerSource string
 }
 
 // ---------------------------------------------------------------------------
@@ -655,9 +656,10 @@ func (s *EventStore) GetPipelineRunsForEvents(ctx context.Context, eventIDs []st
 	result := make(map[string][]PipelineRunInfo, len(runs))
 	for _, r := range runs {
 		info := PipelineRunInfo{
-			PipelineName: r.PipelineName,
-			EventID:      r.EventID,
-			Status:       fmt.Sprintf("%d", r.Status),
+			PipelineName:  r.PipelineName,
+			EventID:       r.EventID,
+			Status:        fmt.Sprintf("%d", r.Status),
+			TriggerSource: string(r.TriggerSource),
 		}
 		result[r.EventID] = append(result[r.EventID], info)
 	}
