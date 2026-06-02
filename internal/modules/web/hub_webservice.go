@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"sort"
+	"slices"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -223,10 +223,10 @@ func hubCapabilitiesPage(c fiber.Ctx) error {
 		return err
 	}
 	descriptors := hub.Default.List()
-	types := uniqueTypes(descriptors)
-	providers := uniqueProviders(descriptors)
+	typeList := uniqueTypes(descriptors)
+	providerList := uniqueProviders(descriptors)
 	c.Type("html")
-	return pages.CapabilitiesPage(descriptors, types, providers).Render(c.Context(), c.Response().BodyWriter())
+	return pages.CapabilitiesPage(descriptors, typeList, providerList).Render(c.Context(), c.Response().BodyWriter())
 }
 
 // hubCapabilitiesGrid returns the filtered card grid partial for HTMX swaps.
@@ -268,7 +268,7 @@ func uniqueTypes(descriptors []hub.Descriptor) []string {
 			result = append(result, t)
 		}
 	}
-	sort.Strings(result)
+	slices.Sort(result)
 	return result
 }
 
@@ -285,6 +285,6 @@ func uniqueProviders(descriptors []hub.Descriptor) []string {
 			result = append(result, d.Backend)
 		}
 	}
-	sort.Strings(result)
+	slices.Sort(result)
 	return result
 }
