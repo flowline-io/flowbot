@@ -2,11 +2,14 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -17,9 +20,98 @@ import (
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 )
+
+// pipelineStepCallback publishes pipeline progress events to Redis Streams.
+type pipelineStepCallback struct {
+	rdb *redis.Client
+}
+
+// NewPipelineStepCallback creates a callback backed by the Redis client.
+// Returns nil if rdb is nil.
+func NewPipelineStepCallback(rdb *redis.Client) pipeline.StepCallback {
+	if rdb == nil {
+		return nil
+	}
+	return &pipelineStepCallback{rdb: rdb}
+}
+
+func (c *pipelineStepCallback) OnRunStart(ctx context.Context, runID int64, pipelineName string,
+	trigger string, totalSteps int, stepNames []string) {
+	evt := pipeline.StepProgressEvent{
+		RunID: runID, PipelineName: pipelineName,
+		StepIndex: -1, Status: "start", TotalSteps: totalSteps,
+	}
+	c.publish(runID, evt)
+	c.rdb.Expire(ctx, pipeline.StreamName(runID), pipeline.StreamTTLFailsafe)
+}
+
+func (c *pipelineStepCallback) OnStepStart(ctx context.Context, runID int64, pipelineName string,
+	stepIndex int, stepName string, input map[string]any) {
+	evt := pipeline.StepProgressEvent{
+		RunID: runID, PipelineName: pipelineName,
+		StepIndex: stepIndex, StepName: stepName,
+		Status: "running", Input: input,
+	}
+	c.publish(runID, evt)
+}
+
+func (c *pipelineStepCallback) OnStepDone(ctx context.Context, runID int64, pipelineName string,
+	stepIndex int, stepName string, output map[string]any, elapsedMs int64) {
+	evt := pipeline.StepProgressEvent{
+		RunID: runID, PipelineName: pipelineName,
+		StepIndex: stepIndex, StepName: stepName,
+		Status: "done", Output: output, ElapsedMs: elapsedMs,
+	}
+	c.publish(runID, evt)
+}
+
+func (c *pipelineStepCallback) OnStepError(ctx context.Context, runID int64, pipelineName string,
+	stepIndex int, stepName string, err error, elapsedMs int64) {
+	evt := pipeline.StepProgressEvent{
+		RunID: runID, PipelineName: pipelineName,
+		StepIndex: stepIndex, StepName: stepName,
+		Status: "error", Error: err.Error(), ElapsedMs: elapsedMs,
+	}
+	c.publish(runID, evt)
+}
+
+func (c *pipelineStepCallback) OnRunComplete(ctx context.Context, runID int64, pipelineName string,
+	elapsedMs int64, failed bool, errMsg string) {
+	status := "complete"
+	if failed {
+		status = "failed"
+	}
+	evt := pipeline.StepProgressEvent{
+		RunID: runID, PipelineName: pipelineName,
+		StepIndex: -1, Status: status, ElapsedMs: elapsedMs, Error: errMsg,
+	}
+	c.publish(runID, evt)
+	c.rdb.Expire(ctx, pipeline.StreamName(runID), pipeline.StreamTTLDrain)
+}
+
+// publish sends a progress event to the per-run Redis Stream asynchronously
+// to avoid blocking the pipeline engine on Redis latency or errors.
+func (c *pipelineStepCallback) publish(runID int64, evt pipeline.StepProgressEvent) {
+	payload, err := sonic.Marshal(evt)
+	if err != nil {
+		return
+	}
+	go func() {
+		pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		if err := c.rdb.XAdd(pubCtx, &redis.XAddArgs{
+			Stream: pipeline.StreamName(runID),
+			Values: map[string]any{"data": payload},
+		}).Err(); err != nil && !errors.Is(err, context.Canceled) {
+			log.Printf("warn: failed to publish pipeline live event run=%d step=%s status=%s: %v",
+				runID, evt.StepName, evt.Status, err)
+		}
+	}()
+}
 
 const DataEventTopic = "pipeline:data_event"
 
@@ -89,6 +181,10 @@ func setupPipelineEngine(
 	}
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
+
+	if rdb.Client != nil {
+		engine.SetCallback(NewPipelineStepCallback(rdb.Client))
+	}
 
 	if err := registerWebhookRoutes(engine); err != nil {
 		return nil, fmt.Errorf("register webhook routes: %w", err)
