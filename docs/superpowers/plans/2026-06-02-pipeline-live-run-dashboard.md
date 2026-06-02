@@ -520,10 +520,13 @@ func (c *pipelineStepCallback) publish(runID int64, evt pipeline.StepProgressEve
 	go func() {
 		pubCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
-		c.rdb.XAdd(pubCtx, &redis.XAddArgs{
+		if err := c.rdb.XAdd(pubCtx, &redis.XAddArgs{
 			Stream: pipeline.StreamName(runID),
 			Values: map[string]any{"data": payload},
-		}).Err() // errors are intentionally ignored — best-effort progress push
+		}).Err(); err != nil && !errors.Is(err, context.Canceled) {
+			log.Printf("warn: failed to publish pipeline live event run=%d step=%s status=%s: %v",
+				runID, evt.StepName, evt.Status, err)
+		}
 	}()
 }
 ```
@@ -741,27 +744,19 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("failed to load steps")
 	}
 
-	// Map step runs to initial Alpine.js state
-	type stepState struct {
-		Name      string         `json:"name"`
-		Status    string         `json:"status"`
-		ElapsedMs int64          `json:"elapsed_ms"`
-		Output    map[string]any `json:"output"`
-		Error     string         `json:"error"`
-		Input     map[string]any `json:"input"`
-	}
-	initSteps := make([]stepState, len(steps))
+	// Map step runs to pages.StepState for the template
+	initSteps := make([]pages.StepState, len(steps))
 	for i, s := range steps {
 		status := "pending"
 		switch s.Status {
-		case 1: // PipelineStart → "running" (or check actual status constants)
+		case 1: // PipelineStart → running
 			status = "running"
 		case 2: // PipelineDone
 			status = "done"
 		case 4: // PipelineFailed
 			status = "error"
 		}
-		initSteps[i] = stepState{
+		ss := pages.StepState{
 			Name:   s.StepName,
 			Status: status,
 			Output: s.Result,
@@ -769,8 +764,9 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 			Input:  s.Params,
 		}
 		if s.CompletedAt != nil && s.StartedAt != nil {
-			initSteps[i].ElapsedMs = s.CompletedAt.Sub(s.StartedAt).Milliseconds()
+			ss.ElapsedMs = s.CompletedAt.Sub(s.StartedAt).Milliseconds()
 		}
+		initSteps[i] = ss
 	}
 
 	runStatus := "pending"
@@ -823,9 +819,18 @@ git commit -m "feat: add live dashboard page handler with store methods"
 package pages
 
 import (
-	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 )
+
+// StepState represents the initial state of one pipeline step for Alpine.js.
+type StepState struct {
+	Name      string         `json:"name"`
+	Status    string         `json:"status"`
+	ElapsedMs int64          `json:"elapsed_ms"`
+	Output    map[string]any `json:"output"`
+	Error     string         `json:"error"`
+	Input     map[string]any `json:"input"`
+}
 
 // PipelineRunLiveParams holds all data for the live dashboard page.
 type PipelineRunLiveParams struct {
@@ -834,14 +839,14 @@ type PipelineRunLiveParams struct {
 	Trigger      string
 	TotalSteps   int
 	RunStatus    string
-	Steps        any // serialized to JSON for Alpine initial state
+	Steps        []StepState // initial step states (server-rendered)
 }
 
 // PipelineRunLivePage renders the live run dashboard.
 templ PipelineRunLivePage(p PipelineRunLiveParams) {
 	@layout.Base("Live: " + p.PipelineName) {
 		<script src="/static/js/pipeline-run-live.js" defer></script>
-		<div class="max-w-6xl mx-auto">
+		<div class="max-w-6xl mx-auto" x-data="pipelineRunLive(initialData)" x-init="init()" data-testid="live-dashboard">
 			<!-- Header -->
 			<div class="flex items-center justify-between mb-4">
 				<div>
@@ -852,8 +857,8 @@ templ PipelineRunLivePage(p PipelineRunLiveParams) {
 					<p class="text-sm text-base-content/60 mt-1">Trigger: { p.Trigger }</p>
 				</div>
 				<div class="flex items-center gap-4">
-					<span class="text-lg font-mono tabular-nums" id="total-elapsed">0s</span>
-					<span id="run-status-badge" class="badge badge-info">Running</span>
+					<span class="text-lg font-mono tabular-nums" x-text="formattedElapsed">0s</span>
+					<span class="badge" :class="runStatusClass()" x-text="runStatus" data-testid="run-status-badge">Running</span>
 				</div>
 			</div>
 
@@ -861,46 +866,72 @@ templ PipelineRunLivePage(p PipelineRunLiveParams) {
 			<div class="grid grid-cols-12 gap-4">
 				<!-- Left: Step list -->
 				<div class="col-span-4 space-y-1" data-testid="step-list">
-					for i, step := range p.Steps {
-						// rendered server-side as initial state
-						// Alpine.js will update on SSE events
-					}
+					<template x-for="(step, idx) in steps" :key="idx">
+						<div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-base-300"
+						     :class="selectedIndex === idx ? 'bg-base-300' : ''"
+						     @click="selectStep(idx)" data-testid="step-row">
+							<span class="indicator w-6 h-6 flex items-center justify-center text-sm"
+							      :class="stepStatusIndicator(step.status)"
+							      x-text="stepStatusIcon(step.status)">○</span>
+							<span class="text-sm font-medium" x-text="step.name" data-testid="step-name"></span>
+						</div>
+					</template>
 				</div>
 				<!-- Right: Detail panel -->
 				<div class="col-span-8 bg-base-200 rounded-box p-4" data-testid="step-detail">
-					<p class="text-base-content/60">Select a step to view details</p>
+					<template x-if="selectedStep">
+						<div>
+							<h3 class="font-semibold mb-2" x-text="selectedStep.name" data-testid="detail-name"></h3>
+							<div class="space-y-2 text-sm">
+								<div><span class="text-base-content/60">Status: </span>
+									<span x-text="selectedStep.status" data-testid="detail-status"></span></div>
+								<div x-show="selectedStep.elapsed_ms">
+									<span class="text-base-content/60">Elapsed: </span>
+									<span x-text="(selectedStep.elapsed_ms / 1000).toFixed(1) + 's'" data-testid="detail-elapsed"></span></div>
+								<div x-show="selectedStep.input">
+									<span class="text-base-content/60">Input: </span>
+									<pre class="text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40"
+									     x-text="JSON.stringify(selectedStep.input, null, 2)" data-testid="detail-input"></pre></div>
+								<div x-show="selectedStep.output">
+									<span class="text-base-content/60">Output: </span>
+									<pre class="text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40"
+									     x-text="JSON.stringify(selectedStep.output, null, 2)" data-testid="detail-output"></pre></div>
+								<div x-show="selectedStep.error">
+									<span class="text-base-content/60">Error: </span>
+									<span class="text-error" x-text="selectedStep.error" data-testid="detail-error"></span></div>
+							</div>
+						</div>
+					</template>
+					<template x-if="!selectedStep">
+						<p class="text-base-content/60">Select a step to view details</p>
+					</template>
 				</div>
 			</div>
 
 			<!-- Summary bar -->
-			<div class="mt-4 bg-base-200 rounded-box p-3 flex items-center gap-4 text-sm"
+			<div class="mt-4 bg-base-200 rounded-box p-3 flex items-center gap-3 text-sm"
 			     data-testid="summary-bar">
-				<span id="summary-completed">0</span> completed,
-				<span id="summary-running">0</span> running,
-				<span id="summary-pending">0</span> pending
-				<span class="ml-auto">Steps: <span id="summary-progress">0/0</span></span>
+				<span x-text="completed + ' done'"></span>
+				<span class="text-base-content/40">|</span>
+				<span x-text="(steps.length - completed - failedSteps) + ' pending'"></span>
+				<span class="text-base-content/40">|</span>
+				<span x-show="failedSteps > 0" x-text="failedSteps + ' failed'" class="text-error"></span>
+				<span class="ml-auto">Steps: <span x-text="completed + '/' + steps.length" data-testid="summary-progress"></span></span>
 			</div>
 		</div>
 
-		<!-- Initial state injection -->
-		<script>
-			(function() {
-				var initialData = {
-					runID: { p.RunID },
-					pipelineName: "{ p.PipelineName }",
-					trigger: "{ p.Trigger }",
-					totalSteps: { p.TotalSteps },
-					runStatus: "{ p.RunStatus }",
-					steps: /* serialized steps JSON */
-				};
-				window.__pipelineRunLiveInitial = initialData;
-			})();
-		</script>
+		<!-- Initial state injected safely via templ.JSONScript -->
+		@templ.JSONScript("initial-data", map[string]any{
+			"runID":        p.RunID,
+			"pipelineName": p.PipelineName,
+			"trigger":      p.Trigger,
+			"totalSteps":   p.TotalSteps,
+			"runStatus":    p.RunStatus,
+			"steps":        p.Steps,
+		})
 	}
 }
 ```
-
-Note: The exact templ syntax will need adjustment for the for-loop over steps and the JSON serialization. The `templ` language uses Go expressions inside `{ }` and template control flow. Steps data is passed as generic `any` and serialized via `sonic.MarshalString` to inject into the inline script.
 
 - [ ] **Step 2: Generate Go code from template**
 
@@ -937,21 +968,27 @@ git commit -m "feat: add live run dashboard page template"
 ```javascript
 'use strict';
 
-Alpine.data('pipelineRunLive', (initial) => ({
-  runID: initial.runID,
-  pipelineName: initial.pipelineName,
-  trigger: initial.trigger,
-  totalSteps: initial.totalSteps,
-  steps: initial.steps,
-  selectedIndex: -1,
-  totalElapsed: 0,
-  completed: 0,
-  failedSteps: 0,
-  runStatus: initial.runStatus,
-  eventSource: null,
+document.addEventListener('alpine:init', function () {
+  // Read initial state from @templ.JSONScript injected element
+  var el = document.getElementById('initial-data');
+  var initial = el ? JSON.parse(el.textContent) : { steps: [], runStatus: 'done' };
 
-  init() {
-    this.recalc();
+  Alpine.data('pipelineRunLive', function () {
+    return {
+      runID: initial.runID,
+      pipelineName: initial.pipelineName,
+      trigger: initial.trigger,
+      totalSteps: initial.totalSteps,
+      steps: initial.steps || [],
+      selectedIndex: -1,
+      totalElapsed: 0,
+      completed: 0,
+      failedSteps: 0,
+      runStatus: initial.runStatus || 'pending',
+      eventSource: null,
+
+      init: function () {
+        this.recalc();
 
     var idx = this.steps.findIndex(function (s) {
       return s.status === 'running' || s.status === 'pending';
@@ -1013,18 +1050,47 @@ Alpine.data('pipelineRunLive', (initial) => ({
     this.recalc();
   },
 
-  selectStep: function (idx) { this.selectedIndex = idx; },
+      selectStep: function (idx) { this.selectedIndex = idx; },
 
-  get selectedStep() {
-    return this.steps[this.selectedIndex] || null;
-  },
+      get selectedStep() {
+        return this.steps[this.selectedIndex] || null;
+      },
 
-  get formattedElapsed() {
-    var ms = this.totalElapsed;
-    if (ms < 1000) return ms + 'ms';
-    return (ms / 1000).toFixed(1) + 's';
-  }
-}));
+      get formattedElapsed() {
+        var ms = this.totalElapsed;
+        if (ms < 1000) return ms + 'ms';
+        return (ms / 1000).toFixed(1) + 's';
+      },
+
+      stepStatusIndicator: function (status) {
+        return {
+          pending: 'text-base-content/30',
+          running: 'text-info animate-pulse',
+          done: 'text-success',
+          error: 'text-error'
+        }[status] || '';
+      },
+
+      stepStatusIcon: function (status) {
+        return {
+          pending: '\u25CB',   // ○
+          running: '\u25C9',   // ◉
+          done: '\u2713',      // ✓
+          error: '\u2717'      // ✗
+        }[status] || '?';
+      },
+
+      runStatusClass: function () {
+        return {
+          pending: 'badge-ghost',
+          running: 'badge-info',
+          done: 'badge-success',
+          failed: 'badge-error'
+        }[this.runStatus] || 'badge-ghost';
+      }
+    };
+  });
+});
 ```
 
 - [ ] **Step 2: Verify the file is embedded**
