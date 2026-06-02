@@ -2,6 +2,7 @@ package pipeline
 
 import (
 	"context"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -11,6 +12,60 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
+
+// mockStepCallback records all callback invocations for test assertions.
+type mockStepCallback struct {
+	calls []mockCallbackCall
+	mu    sync.Mutex
+}
+
+type mockCallbackCall struct {
+	method    string
+	runID     int64
+	stepIndex int
+	stepName  string
+	status    string
+	elapsedMs int64
+}
+
+func (m *mockStepCallback) OnRunStart(ctx context.Context, runID int64, pipelineName string,
+	trigger string, totalSteps int, stepNames []string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.calls = append(m.calls, mockCallbackCall{method: "OnRunStart", runID: runID})
+}
+
+func (m *mockStepCallback) OnStepStart(ctx context.Context, runID int64, pipelineName string,
+	stepIndex int, stepName string, input map[string]any) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.calls = append(m.calls, mockCallbackCall{method: "OnStepStart", runID: runID, stepIndex: stepIndex, stepName: stepName})
+}
+
+func (m *mockStepCallback) OnStepDone(ctx context.Context, runID int64, pipelineName string,
+	stepIndex int, stepName string, output map[string]any, elapsedMs int64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.calls = append(m.calls, mockCallbackCall{method: "OnStepDone", runID: runID, stepIndex: stepIndex, stepName: stepName, elapsedMs: elapsedMs})
+}
+
+func (m *mockStepCallback) OnStepError(ctx context.Context, runID int64, pipelineName string,
+	stepIndex int, stepName string, err error, elapsedMs int64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.calls = append(m.calls, mockCallbackCall{method: "OnStepError", runID: runID, stepIndex: stepIndex, stepName: stepName, elapsedMs: elapsedMs})
+}
+
+func (m *mockStepCallback) OnRunComplete(ctx context.Context, runID int64, pipelineName string,
+	elapsedMs int64, failed bool, errMsg string) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	status := "complete"
+	if failed {
+		status = "failed"
+	}
+	m.calls = append(m.calls, mockCallbackCall{method: "OnRunComplete", runID: runID, status: status, elapsedMs: elapsedMs})
+}
 
 func TestNewEngine_CronRegistration(t *testing.T) {
 	t.Parallel()
@@ -416,4 +471,75 @@ func TestHandleEvent_WithTagsDoesNotCrash(t *testing.T) {
 	// handleEvent returns nil even on step failure; verify no crash from tag merge or nil Resource check
 	err := e.Handler()(context.Background(), event)
 	assert.NoError(t, err)
+}
+
+func TestStepCallback_OrderOfCalls(t *testing.T) {
+	t.Parallel()
+
+	mockCB := &mockStepCallback{}
+	mockCB.OnRunStart(context.Background(), 1, "p", "event:x", 2, []string{"a", "b"})
+	mockCB.OnStepStart(context.Background(), 1, "p", 0, "a", nil)
+	mockCB.OnStepDone(context.Background(), 1, "p", 0, "a", nil, 100)
+	mockCB.OnStepStart(context.Background(), 1, "p", 1, "b", nil)
+	mockCB.OnStepDone(context.Background(), 1, "p", 1, "b", nil, 200)
+	mockCB.OnRunComplete(context.Background(), 1, "p", 300, false, "")
+
+	expectedOrder := []string{
+		"OnRunStart", "OnStepStart", "OnStepDone",
+		"OnStepStart", "OnStepDone", "OnRunComplete",
+	}
+	if len(mockCB.calls) != len(expectedOrder) {
+		t.Fatalf("got %d calls, want %d", len(mockCB.calls), len(expectedOrder))
+	}
+	for i, call := range mockCB.calls {
+		if call.method != expectedOrder[i] {
+			t.Errorf("call %d: got %s, want %s", i, call.method, expectedOrder[i])
+		}
+	}
+}
+
+func TestEngine_SetCallback(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		setCB   func(e *Engine)
+		wantNil bool
+	}{
+		{
+			name:    "no callback set — nil",
+			setCB:   func(e *Engine) {},
+			wantNil: true,
+		},
+		{
+			name: "set callback — stored",
+			setCB: func(e *Engine) {
+				e.SetCallback(&mockStepCallback{})
+			},
+			wantNil: false,
+		},
+		{
+			name: "set then nil — cleared",
+			setCB: func(e *Engine) {
+				e.SetCallback(&mockStepCallback{})
+				e.SetCallback(nil)
+			},
+			wantNil: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := NewEngine(nil, nil, nil, noopPC, noopEC)
+			defer e.Stop()
+			tt.setCB(e)
+			if tt.wantNil && e.callback != nil {
+				t.Error("expected callback to be nil")
+			}
+			if !tt.wantNil && e.callback == nil {
+				t.Error("expected callback to be set")
+			}
+		})
+	}
 }
