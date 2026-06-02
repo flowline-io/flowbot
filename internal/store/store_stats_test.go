@@ -80,17 +80,20 @@ func TestPipelineStats_SuccessRateTrend(t *testing.T) {
 }
 
 func TestPipelineStats_NilSafe(t *testing.T) {
-	var nilStore *PipelineStore
-	stats, err := nilStore.PipelineStats(context.Background(), "", time.Time{}, "day")
-	require.NoError(t, err)
-	require.NotNil(t, stats)
-	assert.Len(t, stats.TriggerSourcePie, 4)
-}
-
-func TestPipelineStats_ZeroValueClient(t *testing.T) {
-	store := &PipelineStore{client: nil}
-	stats, err := store.PipelineStats(context.Background(), "", time.Time{}, "day")
-	require.NoError(t, err)
-	require.NotNil(t, stats)
-	assert.Len(t, stats.TriggerSourcePie, 4)
+	tests := []struct {
+		name  string
+		store *PipelineStore
+	}{
+		{name: "nil store pointer", store: nil},
+		{name: "zero-value store with nil client", store: &PipelineStore{}},
+		{name: "zero-value store with explicit nil client", store: &PipelineStore{client: nil}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stats, err := tt.store.PipelineStats(context.Background(), "", time.Time{}, "day")
+			require.NoError(t, err)
+			require.NotNil(t, stats)
+			assert.Len(t, stats.TriggerSourcePie, 4)
+		})
+	}
 }
