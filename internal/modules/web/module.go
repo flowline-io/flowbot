@@ -2,6 +2,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
+	"github.com/flowline-io/flowbot/pkg/types"
+
+	"github.com/flowline-io/flowbot/internal/store"
 )
 
 const Name = "web"
@@ -105,6 +109,21 @@ func (moduleHandler) IsReady() bool {
 
 // Bootstrap performs post-initialization setup.
 func (moduleHandler) Bootstrap() error {
+	if !handler.initialized {
+		return nil
+	}
+	if store.Database != nil && store.Database.GetDB() != nil {
+		if client, ok := store.Database.GetDB().(*store.Client); ok {
+			es := store.NewEventStore(client)
+			sources, err := es.ListDistinctEventSources(context.Background(), 30*24*time.Hour)
+			if err == nil {
+				distinctTypes, err2 := es.ListDistinctEventTypes(context.Background(), 30*24*time.Hour)
+				if err2 == nil {
+					types.EventFilterCache.Hydrate(sources, distinctTypes)
+				}
+			}
+		}
+	}
 	return nil
 }
 

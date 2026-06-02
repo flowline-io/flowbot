@@ -121,9 +121,9 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 		} else {
 			dataEvent.Data = make(types.KV)
 			dataEvent.Data["_webhook_body"] = truncateWebhookBody(body)
-		if len(body) > maxWebhookBodySize {
-			dataEvent.Data["_webhook_body_truncated"] = true
-		}
+			if len(body) > maxWebhookBodySize {
+				dataEvent.Data["_webhook_body_truncated"] = true
+			}
 		}
 
 		dataEvent.Data["_webhook_headers"] = headers

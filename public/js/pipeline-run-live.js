@@ -3,7 +3,9 @@
 document.addEventListener('alpine:init', function () {
   Alpine.data('pipelineRunLive', function () {
     var el = document.getElementById('initial-data');
-    var initial = el ? JSON.parse(el.textContent) : { steps: [], runStatus: 'done' };
+    var initial = el
+      ? JSON.parse(el.textContent)
+      : { steps: [], runStatus: 'done' };
 
     return {
       runID: initial.runID,
@@ -28,7 +30,10 @@ document.addEventListener('alpine:init', function () {
 
         if (this.runStatus === 'running') {
           var self = this;
-          var watchURL = window.location.pathname.replace(/\/live$/, '/live/watch');
+          var watchURL = window.location.pathname.replace(
+            /\/live$/,
+            '/live/watch',
+          );
           this.eventSource = new EventSource(watchURL);
           this.eventSource.onmessage = function (e) {
             var evt = JSON.parse(e.data);
@@ -80,7 +85,9 @@ document.addEventListener('alpine:init', function () {
         this.recalc();
       },
 
-      selectStep: function (idx) { this.selectedIndex = idx; },
+      selectStep: function (idx) {
+        this.selectedIndex = idx;
+      },
 
       get selectedStep() {
         return this.steps[this.selectedIndex] || null;
@@ -93,31 +100,37 @@ document.addEventListener('alpine:init', function () {
       },
 
       stepStatusIndicator: function (status) {
-        return {
-          pending: 'text-base-content/30',
-          running: 'text-info animate-pulse',
-          done: 'text-success',
-          error: 'text-error'
-        }[status] || '';
+        return (
+          {
+            pending: 'text-base-content/30',
+            running: 'text-info animate-pulse',
+            done: 'text-success',
+            error: 'text-error',
+          }[status] || ''
+        );
       },
 
       stepStatusIcon: function (status) {
-        return {
-          pending: '\u25CB',
-          running: '\u25C9',
-          done: '\u2713',
-          error: '\u2717'
-        }[status] || '?';
+        return (
+          {
+            pending: '\u25CB',
+            running: '\u25C9',
+            done: '\u2713',
+            error: '\u2717',
+          }[status] || '?'
+        );
       },
 
       runStatusClass: function () {
-        return {
-          pending: 'badge-ghost',
-          running: 'badge-info',
-          done: 'badge-success',
-          failed: 'badge-error'
-        }[this.runStatus] || 'badge-ghost';
-      }
+        return (
+          {
+            pending: 'badge-ghost',
+            running: 'badge-info',
+            done: 'badge-success',
+            failed: 'badge-error',
+          }[this.runStatus] || 'badge-ghost'
+        );
+      },
     };
   });
 });

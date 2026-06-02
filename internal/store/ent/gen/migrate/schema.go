@@ -298,6 +298,16 @@ var (
 					Type: "GIN",
 				},
 			},
+			{
+				Name:    "dataevent_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{DataEventsColumns[14]},
+			},
+			{
+				Name:    "dataevent_source_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{DataEventsColumns[3], DataEventsColumns[14]},
+			},
 		},
 	}
 	// EventConsumptionsColumns holds the columns for the "event_consumptions" table.

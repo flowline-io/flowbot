@@ -38,6 +38,10 @@ func (DataEvent) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("event_type"),
 		index.Fields("tags").Annotations(entsql.IndexType("GIN")),
+		// Cursor-based pagination
+		index.Fields("created_at"),
+		// Filtered pagination by source
+		index.Fields("source", "created_at"),
 	}
 }
 

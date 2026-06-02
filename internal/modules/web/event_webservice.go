@@ -9,9 +9,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
-	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -91,7 +91,7 @@ func dataEventsTable(ctx fiber.Ctx) error {
 	})
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load events: " + err.Error()).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Failed to load events: "+err.Error()).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 
 	sources := types.EventFilterCache.Sources()
@@ -124,7 +124,7 @@ func webhookLogsTable(ctx fiber.Ctx) error {
 	})
 	if err != nil {
 		ctx.Type("html")
-		return partials.EmptyState("Failed to load webhook logs: " + err.Error()).Render(context.Background(), ctx.Response().BodyWriter())
+		return partials.EmptyState("Failed to load webhook logs: "+err.Error()).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 
 	sources := types.EventFilterCache.Sources()

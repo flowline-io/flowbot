@@ -44,10 +44,10 @@ func TestFilterCacheSetSource(t *testing.T) {
 func TestFilterCacheHydrate(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name          string
-		initialSrcs   []string
-		hydrateSrcs   []string
-		wantSrcCount  int
+		name         string
+		initialSrcs  []string
+		hydrateSrcs  []string
+		wantSrcCount int
 	}{
 		{
 			name:         "hydrate into empty cache",
