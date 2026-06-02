@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -13,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -23,6 +25,8 @@ import (
 var hubWebserviceRules = []webservice.Rule{
 	webservice.Get("/hub", hubAppsPage, route.WithNotAuth()),
 	webservice.Get("/hub/list", hubAppsList, route.WithNotAuth()),
+	webservice.Get("/capabilities", hubCapabilitiesPage, route.WithNotAuth()),
+	webservice.Get("/capabilities/grid", hubCapabilitiesGrid, route.WithNotAuth()),
 	webservice.Get("/hub/:name", hubAppDetailPage, route.WithNotAuth()),
 	webservice.Get("/hub/:name/status", hubAppStatusPartial, route.WithNotAuth()),
 	webservice.Get("/hub/:name/logs/stream", hubAppLogsSSE, route.WithNotAuth()),
@@ -211,4 +215,76 @@ func loadUpdatedAts(ctx context.Context) map[string]string {
 		m[info.Name] = info.UpdatedAt.Format("2006-01-02 15:04")
 	}
 	return m
+}
+
+// hubCapabilitiesPage renders the full capabilities browser page.
+func hubCapabilitiesPage(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
+	descriptors := hub.Default.List()
+	types := uniqueTypes(descriptors)
+	providers := uniqueProviders(descriptors)
+	c.Type("html")
+	return pages.CapabilitiesPage(descriptors, types, providers).Render(c.Context(), c.Response().BodyWriter())
+}
+
+// hubCapabilitiesGrid returns the filtered card grid partial for HTMX swaps.
+func hubCapabilitiesGrid(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
+	descriptors := hub.Default.List()
+
+	typeFilter := c.Query("type")
+	providerFilter := c.Query("provider")
+
+	if typeFilter != "" || providerFilter != "" {
+		filtered := make([]hub.Descriptor, 0, len(descriptors))
+		for _, d := range descriptors {
+			if typeFilter != "" && string(d.Type) != typeFilter {
+				continue
+			}
+			if providerFilter != "" && d.Backend != providerFilter {
+				continue
+			}
+			filtered = append(filtered, d)
+		}
+		descriptors = filtered
+	}
+
+	c.Type("html")
+	return partials.CapabilityGrid(descriptors).Render(c.Context(), c.Response().BodyWriter())
+}
+
+// uniqueTypes extracts unique capability type strings from descriptors, sorted.
+func uniqueTypes(descriptors []hub.Descriptor) []string {
+	seen := make(map[string]struct{})
+	result := make([]string, 0, len(descriptors))
+	for _, d := range descriptors {
+		t := string(d.Type)
+		if _, ok := seen[t]; !ok {
+			seen[t] = struct{}{}
+			result = append(result, t)
+		}
+	}
+	sort.Strings(result)
+	return result
+}
+
+// uniqueProviders extracts unique backend strings from descriptors, sorted.
+func uniqueProviders(descriptors []hub.Descriptor) []string {
+	seen := make(map[string]struct{})
+	result := make([]string, 0, len(descriptors))
+	for _, d := range descriptors {
+		if d.Backend == "" {
+			continue
+		}
+		if _, ok := seen[d.Backend]; !ok {
+			seen[d.Backend] = struct{}{}
+			result = append(result, d.Backend)
+		}
+	}
+	sort.Strings(result)
+	return result
 }
