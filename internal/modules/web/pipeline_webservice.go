@@ -499,8 +499,6 @@ func pipelineStats(c fiber.Ctx) error {
 			return types.Errorf(types.ErrInvalidArgument, "invalid since date: %v", err)
 		}
 		since = parsed
-	} else {
-		since = time.Now().AddDate(0, 0, -30)
 	}
 	groupBy := c.Query("groupBy", "day")
 	if groupBy != "day" && groupBy != "week" && groupBy != "month" {
