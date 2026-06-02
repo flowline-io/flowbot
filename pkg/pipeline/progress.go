@@ -1,4 +1,4 @@
-// Package pipeline provides the workflow execution engine.
+// Package pipeline provides the event-driven pipeline execution engine.
 package pipeline
 
 import (
