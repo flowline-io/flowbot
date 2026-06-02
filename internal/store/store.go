@@ -611,14 +611,14 @@ func (s *EventStore) ListDistinctEventTypes(ctx context.Context, since time.Dura
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	types, err := s.client.DataEvent.Query().
+	distinctTypes, err := s.client.DataEvent.Query().
 		Where(dataevent.CreatedAtGT(time.Now().Add(-since))).
 		GroupBy(dataevent.FieldEventType).
 		Strings(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("list distinct event types: %w", err)
 	}
-	return types, nil
+	return distinctTypes, nil
 }
 
 // GetDataEventByEventID looks up a single data event by its event_id.
