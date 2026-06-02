@@ -28,36 +28,36 @@ type mockCallbackCall struct {
 	elapsedMs int64
 }
 
-func (m *mockStepCallback) OnRunStart(ctx context.Context, runID int64, pipelineName string,
-	trigger string, totalSteps int, stepNames []string) {
+func (m *mockStepCallback) OnRunStart(_ context.Context, runID int64, _ string,
+	_ string, _ int, _ []string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.calls = append(m.calls, mockCallbackCall{method: "OnRunStart", runID: runID})
 }
 
-func (m *mockStepCallback) OnStepStart(ctx context.Context, runID int64, pipelineName string,
-	stepIndex int, stepName string, input map[string]any) {
+func (m *mockStepCallback) OnStepStart(_ context.Context, runID int64, _ string,
+	stepIndex int, stepName string, _ map[string]any) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.calls = append(m.calls, mockCallbackCall{method: "OnStepStart", runID: runID, stepIndex: stepIndex, stepName: stepName})
 }
 
-func (m *mockStepCallback) OnStepDone(ctx context.Context, runID int64, pipelineName string,
-	stepIndex int, stepName string, output map[string]any, elapsedMs int64) {
+func (m *mockStepCallback) OnStepDone(_ context.Context, runID int64, _ string,
+	stepIndex int, stepName string, _ map[string]any, elapsedMs int64) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.calls = append(m.calls, mockCallbackCall{method: "OnStepDone", runID: runID, stepIndex: stepIndex, stepName: stepName, elapsedMs: elapsedMs})
 }
 
-func (m *mockStepCallback) OnStepError(ctx context.Context, runID int64, pipelineName string,
-	stepIndex int, stepName string, err error, elapsedMs int64) {
+func (m *mockStepCallback) OnStepError(_ context.Context, runID int64, _ string,
+	stepIndex int, stepName string, _ error, elapsedMs int64) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.calls = append(m.calls, mockCallbackCall{method: "OnStepError", runID: runID, stepIndex: stepIndex, stepName: stepName, elapsedMs: elapsedMs})
 }
 
-func (m *mockStepCallback) OnRunComplete(ctx context.Context, runID int64, pipelineName string,
-	elapsedMs int64, failed bool, errMsg string) {
+func (m *mockStepCallback) OnRunComplete(_ context.Context, runID int64, _ string,
+	elapsedMs int64, failed bool, _ string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	status := "complete"
@@ -570,7 +570,7 @@ func TestEngine_SetCallback(t *testing.T) {
 	}{
 		{
 			name:    "no callback set — nil",
-			setCB:   func(e *Engine) {},
+			setCB:   func(_ *Engine) {},
 			wantNil: true,
 		},
 		{

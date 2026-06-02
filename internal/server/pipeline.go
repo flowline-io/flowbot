@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -32,24 +31,24 @@ type pipelineStepCallback struct {
 
 // NewPipelineStepCallback creates a callback backed by the Redis client.
 // Returns nil if rdb is nil.
-func NewPipelineStepCallback(rdb *redis.Client) pipeline.StepCallback {
-	if rdb == nil {
+func NewPipelineStepCallback(client *redis.Client) pipeline.StepCallback {
+	if client == nil {
 		return nil
 	}
-	return &pipelineStepCallback{rdb: rdb}
+	return &pipelineStepCallback{rdb: client}
 }
 
-func (c *pipelineStepCallback) OnRunStart(ctx context.Context, runID int64, pipelineName string,
-	trigger string, totalSteps int, stepNames []string) {
+func (c *pipelineStepCallback) OnRunStart(_ context.Context, runID int64, pipelineName string,
+	_ string, totalSteps int, _ []string) {
 	evt := pipeline.StepProgressEvent{
 		RunID: runID, PipelineName: pipelineName,
 		StepIndex: -1, Status: "start", TotalSteps: totalSteps,
 	}
 	c.publish(runID, evt)
-	c.rdb.Expire(ctx, pipeline.StreamName(runID), pipeline.StreamTTLFailsafe)
+	c.publishExpire(runID, pipeline.StreamTTLFailsafe)
 }
 
-func (c *pipelineStepCallback) OnStepStart(ctx context.Context, runID int64, pipelineName string,
+func (c *pipelineStepCallback) OnStepStart(_ context.Context, runID int64, pipelineName string,
 	stepIndex int, stepName string, input map[string]any) {
 	evt := pipeline.StepProgressEvent{
 		RunID: runID, PipelineName: pipelineName,
@@ -59,7 +58,7 @@ func (c *pipelineStepCallback) OnStepStart(ctx context.Context, runID int64, pip
 	c.publish(runID, evt)
 }
 
-func (c *pipelineStepCallback) OnStepDone(ctx context.Context, runID int64, pipelineName string,
+func (c *pipelineStepCallback) OnStepDone(_ context.Context, runID int64, pipelineName string,
 	stepIndex int, stepName string, output map[string]any, elapsedMs int64) {
 	evt := pipeline.StepProgressEvent{
 		RunID: runID, PipelineName: pipelineName,
@@ -69,7 +68,7 @@ func (c *pipelineStepCallback) OnStepDone(ctx context.Context, runID int64, pipe
 	c.publish(runID, evt)
 }
 
-func (c *pipelineStepCallback) OnStepError(ctx context.Context, runID int64, pipelineName string,
+func (c *pipelineStepCallback) OnStepError(_ context.Context, runID int64, pipelineName string,
 	stepIndex int, stepName string, err error, elapsedMs int64) {
 	evt := pipeline.StepProgressEvent{
 		RunID: runID, PipelineName: pipelineName,
@@ -79,7 +78,7 @@ func (c *pipelineStepCallback) OnStepError(ctx context.Context, runID int64, pip
 	c.publish(runID, evt)
 }
 
-func (c *pipelineStepCallback) OnRunComplete(ctx context.Context, runID int64, pipelineName string,
+func (c *pipelineStepCallback) OnRunComplete(_ context.Context, runID int64, pipelineName string,
 	elapsedMs int64, failed bool, errMsg string) {
 	status := "complete"
 	if failed {
@@ -90,7 +89,18 @@ func (c *pipelineStepCallback) OnRunComplete(ctx context.Context, runID int64, p
 		StepIndex: -1, Status: status, ElapsedMs: elapsedMs, Error: errMsg,
 	}
 	c.publish(runID, evt)
-	c.rdb.Expire(ctx, pipeline.StreamName(runID), pipeline.StreamTTLDrain)
+	c.publishExpire(runID, pipeline.StreamTTLDrain)
+}
+
+// publishExpire sets a TTL on the stream asynchronously.
+func (c *pipelineStepCallback) publishExpire(runID int64, ttl time.Duration) {
+	go func() {
+		expCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		if err := c.rdb.Expire(expCtx, pipeline.StreamName(runID), ttl).Err(); err != nil {
+			flog.Warn("pipeline live: Expire stream failed run=%d: %v", runID, err)
+		}
+	}()
 }
 
 // publish sends a progress event to the per-run Redis Stream asynchronously
@@ -98,6 +108,8 @@ func (c *pipelineStepCallback) OnRunComplete(ctx context.Context, runID int64, p
 func (c *pipelineStepCallback) publish(runID int64, evt pipeline.StepProgressEvent) {
 	payload, err := sonic.Marshal(evt)
 	if err != nil {
+		flog.Warn("pipeline live: marshal event failed run=%d step=%s: %v",
+			runID, evt.StepName, err)
 		return
 	}
 	go func() {
@@ -107,7 +119,7 @@ func (c *pipelineStepCallback) publish(runID int64, evt pipeline.StepProgressEve
 			Stream: pipeline.StreamName(runID),
 			Values: map[string]any{"data": payload},
 		}).Err(); err != nil && !errors.Is(err, context.Canceled) {
-			log.Printf("warn: failed to publish pipeline live event run=%d step=%s status=%s: %v",
+			flog.Warn("pipeline live: XAdd failed run=%d step=%s status=%s: %v",
 				runID, evt.StepName, evt.Status, err)
 		}
 	}()
