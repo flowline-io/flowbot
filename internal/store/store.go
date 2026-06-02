@@ -1665,6 +1665,69 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, cap
 	return toEdges(upLinks), toEdges(downLinks), nil
 }
 
+// SearchNodes returns distinct (app, capability, entity_id) tuples from
+// resource_links where source_entity_id or target_entity_id contains the query.
+// The cursor parameter is reserved for future use; not implemented in MVP.
+func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, _ string) ([]schema.ResourceRef, string, error) {
+	if s == nil || s.client == nil || query == "" {
+		return nil, "", nil
+	}
+	if limit <= 0 || limit > 50 {
+		limit = 20
+	}
+
+	// Fetch candidate links using Ent-safe Contains predicates (database-agnostic).
+	links, err := s.client.ResourceLink.Query().
+		Where(
+			resourcelink.Or(
+				resourcelink.SourceEntityIDContains(query),
+				resourcelink.TargetEntityIDContains(query),
+			),
+		).
+		Order(resourcelink.ByCreatedAt(sql.OrderDesc())).
+		Limit(limit * 2). // over-fetch to allow in-memory dedup
+		All(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("search nodes: %w", err)
+	}
+
+	// Deduplicate by (app, capability, entity_id) in Go memory.
+	seen := make(map[string]bool)
+	var results []schema.ResourceRef
+
+	for _, rl := range links {
+		if strings.Contains(strings.ToLower(rl.SourceEntityID), strings.ToLower(query)) {
+			key := rl.SourceApp + "|" + rl.SourceCapability + "|" + rl.SourceEntityID
+			if !seen[key] {
+				seen[key] = true
+				results = append(results, schema.ResourceRef{
+					App:        rl.SourceApp,
+					Capability: rl.SourceCapability,
+					EntityID:   rl.SourceEntityID,
+				})
+			}
+		}
+		if strings.Contains(strings.ToLower(rl.TargetEntityID), strings.ToLower(query)) {
+			key := rl.TargetApp + "|" + rl.TargetCapability + "|" + rl.TargetEntityID
+			if !seen[key] {
+				seen[key] = true
+				results = append(results, schema.ResourceRef{
+					App:        rl.TargetApp,
+					Capability: rl.TargetCapability,
+					EntityID:   rl.TargetEntityID,
+				})
+			}
+		}
+	}
+
+	// apply limit after dedup
+	if len(results) > limit {
+		results = results[:limit]
+	}
+
+	return results, "", nil
+}
+
 // ParameterIsExpired checks whether the given access token parameter has expired.
 func ParameterIsExpired(p gen.Parameter) bool {
 	return p.ExpiredAt.Before(time.Now())
