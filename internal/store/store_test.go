@@ -821,3 +821,279 @@ func TestListDataEvents(t *testing.T) {
 		})
 	}
 }
+
+// ---------------------------------------------------------------------------
+// ResourceChainStore tests
+// ---------------------------------------------------------------------------
+
+func TestResourceChainStore_FindNodeRelations(t *testing.T) {
+	tests := []struct {
+		name       string
+		setupLinks []func(ctx context.Context, client *gen.Client)
+		appName    string
+		capability string
+		entityID   string
+		pipeline   string
+		since      time.Duration
+		wantUp     int
+		wantDown   int
+	}{
+		{
+			name:       "nil store returns empty",
+			setupLinks: nil,
+			appName:    "github",
+			capability: "issue",
+			entityID:   "42",
+			wantUp:     0,
+			wantDown:   0,
+		},
+		{
+			name: "finds downstream edges",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-1").
+						SetTargetEventID("tgt-1").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("forge").
+						SetTargetCapability("issue").
+						SetTargetEntityID("99").
+						SetPipelineName("sync-issues").
+						Save(ctx)
+				},
+			},
+			appName:    "github",
+			capability: "issue",
+			entityID:   "42",
+			wantUp:     0,
+			wantDown:   1,
+		},
+		{
+			name: "finds upstream edges",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-2").
+						SetTargetEventID("tgt-2").
+						SetSourceApp("forge").
+						SetSourceCapability("issue").
+						SetSourceEntityID("99").
+						SetTargetApp("github").
+						SetTargetCapability("issue").
+						SetTargetEntityID("42").
+						SetPipelineName("sync-issues").
+						Save(ctx)
+				},
+			},
+			appName:    "github",
+			capability: "issue",
+			entityID:   "42",
+			wantUp:     1,
+			wantDown:   0,
+		},
+		{
+			name: "pipeline filter excludes non-matching",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-3").
+						SetTargetEventID("tgt-3").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("forge").
+						SetTargetCapability("issue").
+						SetTargetEntityID("99").
+						SetPipelineName("sync-issues").
+						Save(ctx)
+				},
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-4").
+						SetTargetEventID("tgt-4").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("kanban").
+						SetTargetCapability("task").
+						SetTargetEntityID("10").
+						SetPipelineName("other").
+						Save(ctx)
+				},
+			},
+			appName:    "github",
+			capability: "issue",
+			entityID:   "42",
+			pipeline:   "sync-issues",
+			wantUp:     0,
+			wantDown:   1,
+		},
+		{
+			name: "since filter includes recent edges",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-5").
+						SetTargetEventID("tgt-5").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("forge").
+						SetTargetCapability("issue").
+						SetTargetEntityID("99").
+						SetPipelineName("sync-issues").
+						Save(ctx)
+				},
+			},
+			appName:    "github",
+			capability: "issue",
+			entityID:   "42",
+			since:      10 * 365 * 24 * time.Hour,
+			wantUp:     0,
+			wantDown:   1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setupLinks == nil {
+				store := NewResourceChainStore(nil)
+				up, down, err := store.FindNodeRelations(context.Background(), tt.appName, tt.capability, tt.entityID, tt.pipeline, tt.since)
+				require.NoError(t, err)
+				assert.Len(t, up, tt.wantUp)
+				assert.Len(t, down, tt.wantDown)
+				return
+			}
+			client := getTestClient(t)
+			for _, fn := range tt.setupLinks {
+				fn(context.Background(), client)
+			}
+			store := NewResourceChainStore(client)
+			up, down, err := store.FindNodeRelations(context.Background(), tt.appName, tt.capability, tt.entityID, tt.pipeline, tt.since)
+			require.NoError(t, err)
+			assert.Len(t, up, tt.wantUp)
+			assert.Len(t, down, tt.wantDown)
+		})
+	}
+}
+
+func TestResourceChainStore_SearchNodes(t *testing.T) {
+	tests := []struct {
+		name       string
+		setupLinks []func(ctx context.Context, client *gen.Client)
+		query      string
+		limit      int
+		want       int
+	}{
+		{
+			name:  "nil store returns empty",
+			query: "42",
+			limit: 20,
+			want:  0,
+		},
+		{
+			name: "matches source entity",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-a").
+						SetTargetEventID("tgt-a").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("forge").
+						SetTargetCapability("issue").
+						SetTargetEntityID("99").
+						SetPipelineName("sync").
+						Save(ctx)
+				},
+			},
+			query: "42",
+			limit: 20,
+			want:  1,
+		},
+		{
+			name: "matches target entity",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-b").
+						SetTargetEventID("tgt-b").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("10").
+						SetTargetApp("forge").
+						SetTargetCapability("issue").
+						SetTargetEntityID("task-89").
+						SetPipelineName("sync").
+						Save(ctx)
+				},
+			},
+			query: "task",
+			limit: 20,
+			want:  1,
+		},
+		{
+			name: "deduplicates same node appearing in multiple links",
+			setupLinks: []func(ctx context.Context, client *gen.Client){
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-c1").
+						SetTargetEventID("tgt-c1").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("forge").
+						SetTargetCapability("issue").
+						SetTargetEntityID("99").
+						SetPipelineName("sync").
+						Save(ctx)
+				},
+				func(ctx context.Context, client *gen.Client) {
+					client.ResourceLink.Create().
+						SetSourceEventID("src-c2").
+						SetTargetEventID("tgt-c2").
+						SetSourceApp("github").
+						SetSourceCapability("issue").
+						SetSourceEntityID("42").
+						SetTargetApp("kanban").
+						SetTargetCapability("task").
+						SetTargetEntityID("10").
+						SetPipelineName("notify").
+						Save(ctx)
+				},
+			},
+			query: "42",
+			limit: 20,
+			want:  1,
+		},
+		{
+			name:  "empty query returns empty",
+			query: "",
+			limit: 20,
+			want:  0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setupLinks == nil {
+				store := NewResourceChainStore(nil)
+				results, _, err := store.SearchNodes(context.Background(), tt.query, tt.limit, "")
+				require.NoError(t, err)
+				assert.Len(t, results, tt.want)
+				return
+			}
+			client := getTestClient(t)
+			for _, fn := range tt.setupLinks {
+				fn(context.Background(), client)
+			}
+			store := NewResourceChainStore(client)
+			results, _, err := store.SearchNodes(context.Background(), tt.query, tt.limit, "")
+			require.NoError(t, err)
+			assert.Len(t, results, tt.want)
+		})
+	}
+}
