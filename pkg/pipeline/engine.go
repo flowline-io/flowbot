@@ -93,6 +93,7 @@ type Engine struct {
 	mu              map[string]*sync.Mutex
 	cron            *cron.Cron
 	clock           Clock
+	callback        StepCallback
 }
 
 func NewEngine(defs []Definition, store RunStore, auditor audit.Auditor, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
@@ -142,6 +143,11 @@ func NewEngineWithClock(defs []Definition, store RunStore, auditor audit.Auditor
 
 func (e *Engine) Handler() func(ctx context.Context, event types.DataEvent) error {
 	return e.handler
+}
+
+// SetCallback sets the progress event callback. Pass nil to disable.
+func (e *Engine) SetCallback(cb StepCallback) {
+	e.callback = cb
 }
 
 func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
@@ -194,6 +200,15 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 		return err
 	}
 
+	if e.callback != nil {
+		triggerDesc := triggerDescription(def.Trigger)
+		stepNames := make([]string, len(def.Steps))
+		for i, s := range def.Steps {
+			stepNames[i] = s.Name
+		}
+		e.callback.OnRunStart(ctx, runID, def.Name, triggerDesc, len(def.Steps), stepNames)
+	}
+
 	rc := NewRenderContext(event)
 	failed := false
 	var finalErr error
@@ -201,7 +216,7 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	for i, step := range def.Steps {
 		e.saveCheckpointIfResumable(ctx, def, event, rc, i, runID)
 
-		if err := e.executeStep(ctx, rc, step, runID, def.Name, def.Resumable); err != nil {
+		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, def.Resumable); err != nil {
 			failed = true
 			finalErr = err
 			break
@@ -219,6 +234,15 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 
 	e.finishRunRecord(ctx, runID, failed, finalErr)
 
+	if e.callback != nil {
+		elapsed := time.Since(runStart).Milliseconds()
+		var errMsg string
+		if finalErr != nil {
+			errMsg = finalErr.Error()
+		}
+		e.callback.OnRunComplete(ctx, runID, def.Name, elapsed, failed, errMsg)
+	}
+
 	if finalErr != nil {
 		e.auditPipelineEvent(ctx, def.Name, "pipeline.fail", event.EventID, event.EventType)
 		return finalErr
@@ -227,7 +251,7 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	return nil
 }
 
-func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string, resumable bool) error {
+func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, runID int64, pipelineName string, stepIndex int, resumable bool) error {
 	ctx, span := trace.StartSpan(ctx, "pipeline."+pipelineName+".step."+step.Name,
 		otelattr.String("pipeline.step.name", step.Name),
 		otelattr.String("pipeline.step.capability", string(step.Capability)),
@@ -240,6 +264,10 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	renderedParams, err := rc.RenderParams(step.Params)
 	if err != nil {
 		return fmt.Errorf("render params step %s: %w", step.Name, err)
+	}
+
+	if e.callback != nil {
+		e.callback.OnStepStart(ctx, runID, pipelineName, stepIndex, step.Name, renderedParams)
 	}
 
 	if ability.IsMutation(step.Operation) && len(rc.Event.Tags) > 0 {
@@ -291,12 +319,18 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	if retryErr != nil {
 		stepErr := formatStepError(step.Name, retryErr, attempt)
 		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr.Error(), attempt, stepStart)
+		if e.callback != nil {
+			e.callback.OnStepError(ctx, runID, pipelineName, stepIndex, step.Name, stepErr, time.Since(stepStart).Milliseconds())
+		}
 		return stepErr
 	}
 
 	rc.RecordStepResult(step.Name, stepResult)
 	e.saveResourceLink(ctx, rc, step, stepResource, runID, pipelineName)
 	e.recordStepSuccess(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), stepResult, attempt, stepStart)
+	if e.callback != nil {
+		e.callback.OnStepDone(ctx, runID, pipelineName, stepIndex, step.Name, stepResult, time.Since(stepStart).Milliseconds())
+	}
 	flog.Info("pipeline %s step %s completed (attempt %d)", pipelineName, step.Name, attempt)
 	return nil
 }
@@ -583,7 +617,7 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 			flog.Error(fmt.Errorf("save checkpoint during resume run %d step %d: %w", runID, i, cpErr))
 		}
 
-		if err := e.executeStep(ctx, rc, step, runID, def.Name, true); err != nil {
+		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, true); err != nil {
 			failed = true
 			finalErr = err
 			break
@@ -677,6 +711,20 @@ func (e *Engine) ExecuteWebhook(ctx context.Context, def *Definition, event type
 		defer mu.Unlock()
 	}
 	return e.executePipeline(ctx, *def, event)
+}
+
+// triggerDescription returns a human-readable trigger description string.
+func triggerDescription(t Trigger) string {
+	if t.Event != "" {
+		return "event:" + t.Event
+	}
+	if t.Webhook != nil && t.Webhook.Path != "" {
+		return "webhook:" + t.Webhook.Path
+	}
+	if t.Cron != "" {
+		return "cron:" + t.Cron
+	}
+	return "unknown"
 }
 
 // MutexFor returns the per-pipeline mutex for the given pipeline name.
