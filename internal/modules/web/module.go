@@ -134,11 +134,12 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, Name, pipelineWebserviceRules)
 	module.Webservice(app, Name, viewWebserviceRules)
 	module.Webservice(app, Name, eventWebserviceRules)
+	module.Webservice(app, Name, relationsWebserviceRules)
 }
 
 // Rules returns the web module rule definitions.
 func (moduleHandler) Rules() []any {
-	return []any{webserviceRules, pipelineWebserviceRules, viewWebserviceRules, eventWebserviceRules}
+	return []any{webserviceRules, pipelineWebserviceRules, viewWebserviceRules, eventWebserviceRules, relationsWebserviceRules}
 }
 
 // InitForE2E initializes the web module handler for e2e testing.
