@@ -70,56 +70,68 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 			<table class="table table-xs">
 				<thead>
 					<tr>
+						<th class="w-8"></th>
 						<th>Step</th>
 						<th>Capability</th>
 						<th>Operation</th>
 						<th>Status</th>
 						<th>Attempt</th>
 						<th>Duration</th>
-						<th class="text-center w-10">Params</th>
-						<th class="text-center w-10">Result</th>
 					</tr>
 				</thead>
 				<tbody>
 					for _, s := range steps {
-						<tr>
-							<td class="font-medium text-base-content">{ s.StepName }</td>
-							<td class="text-base-content/50">{ s.Capability }</td>
-							<td class="text-base-content/50">{ s.Operation }</td>
-							<td>
-								<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
-							</td>
-							<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
-							<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
-							<td class="text-center">
-								if len(s.Params) > 0 {
-									<div class="relative inline-block group" data-testid="step-params">
-										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-base-200 text-base-content/50 text-[10px] font-bold cursor-default group-hover:bg-primary/10 group-hover:text-primary transition-colors">P</span>
-										<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-											<div class="bg-neutral text-neutral-content text-[11px] rounded-box px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left">
-												{ sprintJSON(s.Params) }
-											</div>
-										</div>
+						if len(s.Params) == 0 && len(s.Result) == 0 {
+							<tr data-testid={ "step-row-" + s.StepName }>
+								<td></td>
+								<td class="font-medium text-base-content">{ s.StepName }</td>
+								<td class="text-base-content/50">{ s.Capability }</td>
+								<td class="text-base-content/50">{ s.Operation }</td>
+								<td>
+									<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
+								</td>
+								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
+								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
+							</tr>
+						} else {
+							<tr class="cursor-pointer hover"
+								data-testid={ "step-row-" + s.StepName }
+								onclick="event.stopPropagation();var c=this.querySelector('.step-chevron');c.classList.toggle('rotate-90');this.nextElementSibling.classList.toggle('hidden')">
+								<td class="text-base-content/30">
+									<span class="step-chevron inline-block transition-transform duration-200">&#9654;</span>
+								</td>
+								<td class="font-medium text-base-content">{ s.StepName }</td>
+								<td class="text-base-content/50">{ s.Capability }</td>
+								<td class="text-base-content/50">{ s.Operation }</td>
+								<td>
+									<span class={ runsStatusClass(int(s.Status)) }>{ runsStatusText(int(s.Status)) }</span>
+								</td>
+								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
+								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
+							</tr>
+							<tr class="step-detail-row hidden">
+								<td colspan="7">
+									<div class="space-y-1 py-1">
+										if len(s.Params) > 0 {
+											<details class="mb-1" open>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Input</summary>
+												<pre class="bg-base-200 rounded-box p-2 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre">{ sprintJSON(s.Params) }</pre>
+											</details>
+										} else {
+											<div class="text-xs text-base-content/20 italic py-1">Input: (empty)</div>
+										}
+										if len(s.Result) > 0 {
+											<details open>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Output</summary>
+												<pre class="bg-base-200 rounded-box p-2 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre">{ sprintJSON(s.Result) }</pre>
+											</details>
+										} else {
+											<div class="text-xs text-base-content/20 italic py-1">Output: (empty)</div>
+										}
 									</div>
-								} else {
-									<span class="text-base-content/10 text-[10px]">-</span>
-								}
-							</td>
-							<td class="text-center">
-								if len(s.Result) > 0 {
-									<div class="relative inline-block group" data-testid="step-result">
-										<span class="inline-flex items-center justify-center w-5 h-5 rounded bg-base-200 text-base-content/50 text-[10px] font-bold cursor-default group-hover:bg-success/10 group-hover:text-success transition-colors">R</span>
-										<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-											<div class="bg-neutral text-neutral-content text-[11px] rounded-box px-3 py-2 w-72 max-h-48 overflow-auto font-mono whitespace-pre shadow-lg text-left">
-												{ sprintJSON(s.Result) }
-											</div>
-										</div>
-									</div>
-								} else {
-									<span class="text-base-content/10 text-[10px]">-</span>
-								}
-							</td>
-						</tr>
+								</td>
+							</tr>
+						}
 					}
 				</tbody>
 			</table>
