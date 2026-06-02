@@ -979,6 +979,194 @@ func TestResourceChainStore_FindNodeRelations(t *testing.T) {
 	}
 }
 
+// ---------------------------------------------------------------------------
+// NotifyStore tests
+// ---------------------------------------------------------------------------
+
+func TestNotifyStore_Record(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		uid     string
+		channel string
+		tpl     string
+		summary string
+		status  string
+		errMsg  string
+		payload map[string]any
+	}{
+		{
+			name:    "success record with summary",
+			uid:     "user1",
+			channel: "slack",
+			tpl:     "bookmark.created",
+			summary: "New bookmark: example.com",
+			status:  "success",
+			errMsg:  "",
+			payload: map[string]any{"url": "https://example.com", "summary": "New bookmark: example.com"},
+		},
+		{
+			name:    "failed record with error",
+			uid:     "user1",
+			channel: "pushover",
+			tpl:     "task.alert",
+			summary: "Task #42 created",
+			status:  "failed",
+			errMsg:  "connection timeout",
+			payload: map[string]any{"summary": "Task #42 created"},
+		},
+		{
+			name:    "dropped record no error",
+			uid:     "user2",
+			channel: "ntfy",
+			tpl:     "system.health",
+			summary: "",
+			status:  "dropped",
+			errMsg:  "",
+			payload: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id, err := ns.Record(ctx, tt.uid, tt.channel, tt.tpl, tt.summary, tt.status, tt.errMsg, tt.payload)
+			require.NoError(t, err)
+			assert.Positive(t, id)
+
+			rec, err := ns.GetRecord(ctx, id)
+			require.NoError(t, err)
+			require.NotNil(t, rec)
+			assert.Equal(t, tt.uid, rec.UID)
+			assert.Equal(t, tt.channel, rec.Channel)
+			assert.Equal(t, tt.tpl, rec.TemplateID)
+			assert.Equal(t, tt.summary, rec.Summary)
+			assert.Equal(t, tt.status, string(rec.Status))
+			assert.Equal(t, tt.errMsg, rec.ErrorMsg)
+		})
+	}
+}
+
+func TestNotifyStore_ListRecords_Pagination(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+
+	for i := range 25 {
+		_, err := ns.Record(ctx, "user_p", "slack", "test.template", "", "success", "", nil)
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+		_ = i
+	}
+
+	tests := []struct {
+		name       string
+		limit      int
+		cursor     string
+		wantCount  int
+		wantCursor bool
+	}{
+		{
+			name:       "first page of 10",
+			limit:      10,
+			cursor:     "",
+			wantCount:  10,
+			wantCursor: true,
+		},
+		{
+			name:       "page of 30 exceeds total",
+			limit:      30,
+			cursor:     "",
+			wantCount:  25,
+			wantCursor: false,
+		},
+		{
+			name:       "page of 0 defaults to 20",
+			limit:      0,
+			cursor:     "",
+			wantCount:  20,
+			wantCursor: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			records, nextCursor, err := ns.ListRecords(ctx, "user_p", ListNotifyRecordsOptions{
+				Limit:  tt.limit,
+				Cursor: tt.cursor,
+			})
+			require.NoError(t, err)
+			assert.Len(t, records, tt.wantCount)
+			if tt.wantCursor {
+				assert.NotEmpty(t, nextCursor)
+			} else {
+				assert.Empty(t, nextCursor)
+			}
+		})
+	}
+}
+
+func TestNotifyStore_DeleteOldest(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+
+	for range 10 {
+		_, err := ns.Record(ctx, "user_d", "slack", "test.template", "", "success", "", nil)
+		require.NoError(t, err)
+	}
+
+	err := ns.DeleteOldest(ctx, "user_d", 5)
+	require.NoError(t, err)
+
+	err = ns.DeleteOldest(ctx, "user_d", 20)
+	require.NoError(t, err)
+
+	err = ns.DeleteOldest(ctx, "user_d", 0)
+	require.NoError(t, err)
+}
+
+func TestNotifyStore_Cursor_Pagination_Continuity(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+
+	for range 25 {
+		_, err := ns.Record(ctx, "user_c", "slack", "test.template", "", "success", "", nil)
+		require.NoError(t, err)
+		time.Sleep(time.Millisecond)
+	}
+
+	page1, cursor1, err := ns.ListRecords(ctx, "user_c", ListNotifyRecordsOptions{Limit: 10})
+	require.NoError(t, err)
+	require.Len(t, page1, 10)
+	require.NotEmpty(t, cursor1)
+
+	page2, cursor2, err := ns.ListRecords(ctx, "user_c", ListNotifyRecordsOptions{Limit: 10, Cursor: cursor1})
+	require.NoError(t, err)
+	require.Len(t, page2, 10)
+	require.NotEmpty(t, cursor2)
+
+	page3, cursor3, err := ns.ListRecords(ctx, "user_c", ListNotifyRecordsOptions{Limit: 10, Cursor: cursor2})
+	require.NoError(t, err)
+	require.Len(t, page3, 5)
+	require.Empty(t, cursor3)
+
+	idSet := make(map[int64]bool)
+	for _, rec := range page1 {
+		idSet[rec.ID] = true
+	}
+	for _, rec := range page2 {
+		assert.False(t, idSet[rec.ID], "page2 should not contain IDs from page1")
+		idSet[rec.ID] = true
+	}
+	for _, rec := range page3 {
+		assert.False(t, idSet[rec.ID], "page3 should not contain IDs from page1/page2")
+		idSet[rec.ID] = true
+	}
+	assert.Len(t, idSet, 25)
+}
+
 func TestResourceChainStore_SearchNodes(t *testing.T) {
 	tests := []struct {
 		name       string
