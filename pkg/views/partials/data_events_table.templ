@@ -1,85 +1,66 @@
 package partials
 
-import "github.com/flowline-io/flowbot/internal/store/ent/gen"
+import (
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+)
 
-templ DataEventsTable(sources, eventTypes []string, sourceFilter, typeFilter string, events []*gen.DataEvent, nextCursor string) {
-	<div class="card bg-base-100 shadow-sm" id="data-events-table" data-testid="data-events-table">
-		<form class="flex flex-wrap items-end gap-2 p-3 bg-base-200 rounded-t-box"
-			hx-get="/service/web/events/data-events"
-			hx-target="#data-events-table"
-			hx-swap="outerHTML"
-			hx-push-url="true"
-			hx-trigger="submit">
-			<label class="form-control max-w-xs">
-				<div class="label"><span class="label-text text-xs">Source</span></div>
-				<select name="source" class="select select-bordered select-sm">
-					<option value="">All</option>
-					for _, s := range sources {
-						<option value={ s } selected={ templ.KV(s == sourceFilter, true) }>{ s }</option>
-					}
-				</select>
-			</label>
-			<label class="form-control max-w-xs">
-				<div class="label"><span class="label-text text-xs">Event Type</span></div>
-				<select name="type" class="select select-bordered select-sm">
-					<option value="">All</option>
-					for _, t := range eventTypes {
-						<option value={ t } selected={ templ.KV(t == typeFilter, true) }>{ t }</option>
-					}
-				</select>
-			</label>
-			<button type="submit" class="btn btn-sm btn-primary" data-testid="filter-apply">Apply</button>
-		</form>
+func eventPipelineName(eventID string, runMap map[string][]store.PipelineRunInfo) string {
+	if runs, ok := runMap[eventID]; ok && len(runs) > 0 {
+		return runs[0].PipelineName
+	}
+	return ""
+}
 
-		<div class="overflow-x-auto">
-			<table class="table">
-				<thead>
-				<tr>
-					<th class="text-xs uppercase">Time</th>
-					<th class="text-xs uppercase">Event Type</th>
-					<th class="text-xs uppercase">Source / Capability</th>
-					<th class="text-xs uppercase">Entity</th>
-					<th class="text-xs uppercase">Pipeline</th>
-				</tr>
-				</thead>
-				<tbody id="events-rows">
-				for _, e := range events {
-					<tbody id={ "event-" + e.EventID }>
-						<tr class="cursor-pointer hover"
-							hx-get={ templ.URL("/service/web/events/payload/" + e.EventID) }
-							hx-trigger="click"
-							hx-target={ "#detail-" + e.EventID }
-							hx-swap="innerHTML show:top">
-							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("15:04:05") }</td>
-							<td><span class="badge badge-ghost badge-xs">{ e.EventType }</span></td>
-							<td class="text-xs">{ e.Source } / { e.Capability }</td>
-							<td class="text-xs font-mono">{ e.EntityID }</td>
-							<td id={ "match-" + e.EventID } class="text-xs">
-								<span class="loading loading-spinner loading-xs htmx-indicator"></span>
-							</td>
-						</tr>
-						<tr id={ "detail-" + e.EventID } class="hidden">
-							<td colspan="5"></td>
-						</tr>
-					</tbody>
-				}
-				if len(events) == 0 {
-					<tr id="events-empty">
-						<td colspan="5" class="text-center text-base-content/50 py-4">No events found.</td>
+templ DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) {
+	<div id="events-table-container">
+		<div class="card bg-base-100 shadow-sm" id="data-events-table" data-testid="data-events-table">
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+					<tr>
+						<th class="text-xs uppercase">Time</th>
+						<th class="text-xs uppercase">Event Type</th>
+						<th class="text-xs uppercase">Source / Capability</th>
+						<th class="text-xs uppercase">Entity</th>
+						<th class="text-xs uppercase">Pipeline</th>
 					</tr>
-				}
-				</tbody>
-			</table>
-		</div>
-
-		if nextCursor != "" {
-			<div class="p-3 text-center" id="load-more-container">
-				<button class="btn btn-sm btn-ghost"
-					hx-get={ templ.URL("/service/web/events/data-events?source=" + sourceFilter + "&type=" + typeFilter + "&cursor=" + nextCursor) }
-					hx-target="#load-more-container"
-					hx-swap="outerHTML"
-					data-testid="load-more">Load more</button>
+					</thead>
+					<tbody>
+					for _, e := range events {
+						<tbody id={ "event-" + e.EventID }>
+							<tr class="cursor-pointer hover"
+								hx-get={ templ.URL("/service/web/events/payload/" + e.EventID) }
+								hx-trigger="click"
+								hx-target={ "#detail-" + e.EventID }
+								hx-swap="innerHTML show:top">
+								<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("15:04:05") }</td>
+								<td><span class="badge badge-ghost badge-xs">{ e.EventType }</span></td>
+								<td class="text-xs">{ e.Source }{ if e.Capability != "" { " / " + e.Capability } }</td>
+								<td class="text-xs font-mono">{ e.EntityID }</td>
+								<td class="text-xs">
+									pipelineName := eventPipelineName(e.EventID, runMap)
+									if pipelineName != "" {
+										{pipelineName}
+									} else {
+										<span class="text-base-content/30">-</span>
+									}
+								</td>
+							</tr>
+							<tr id={ "detail-" + e.EventID } class="hidden">
+								<td colspan="5"></td>
+							</tr>
+						</tbody>
+					}
+					if len(events) == 0 {
+						<tr>
+							<td colspan="5" class="text-center text-base-content/50 py-4">No events found.</td>
+						</tr>
+					}
+					</tbody>
+				</table>
 			</div>
-		}
+			@EventPagination(pageInfo)
+		</div>
 	</div>
 }
