@@ -1,0 +1,50 @@
+// Package pages provides full-page Templ views.
+package pages
+
+import "github.com/flowline-io/flowbot/pkg/views/layout"
+
+templ NotifySettingsPage() {
+	@layout.Base("Notification Settings — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Notification Settings</h1>
+		</div>
+
+		<div role="tablist" class="tabs tabs-bordered mb-4">
+			<input type="radio" name="notify-tabs" class="tab" aria-label="Channels" checked="checked"/>
+			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notify-settings/channels/new"
+						hx-target="#notify-channels-rows"
+						hx-swap="afterbegin"
+						data-testid="channels-new"
+						class="btn btn-primary btn-sm">
+						New Channel
+					</button>
+				</div>
+				<div hx-get="/service/web/notify-settings/channels/list"
+					hx-trigger="load"
+					hx-swap="outerHTML">
+					<div class="skeleton h-32 w-full"></div>
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label="Rules"/>
+			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notify-settings/rules/new"
+						hx-target="#notify-rules-rows"
+						hx-swap="afterbegin"
+						data-testid="rules-new"
+						class="btn btn-primary btn-sm">
+						New Rule
+					</button>
+				</div>
+				<div hx-get="/service/web/notify-settings/rules/list"
+					hx-trigger="load once"
+					hx-swap="outerHTML">
+					<div class="skeleton h-32 w-full"></div>
+				</div>
+			</div>
+		</div>
+	}
+}
