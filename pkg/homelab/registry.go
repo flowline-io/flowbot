@@ -14,6 +14,10 @@ type Registry struct {
 
 var DefaultRegistry = NewRegistry()
 
+// RunRescan triggers a full homelab scan + probe + registry update.
+// Set by internal/server during initialization to avoid import cycles.
+var RunRescan func() error
+
 func NewRegistry() *Registry {
 	return &Registry{apps: make(map[string]App)}
 }
