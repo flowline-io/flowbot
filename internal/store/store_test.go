@@ -869,7 +869,6 @@ func TestListDataEvents(t *testing.T) {
 }
 
 func TestCountDataEvents(t *testing.T) {
-	t.Parallel()
 	client := getTestClient(t)
 	store := NewEventStore(client)
 	ctx := context.Background()
@@ -915,7 +914,6 @@ func TestCountDataEvents(t *testing.T) {
 }
 
 func TestListDistinctEventPipelineNames(t *testing.T) {
-	t.Parallel()
 	client := getTestClient(t)
 	store := NewEventStore(client)
 	ctx := context.Background()
