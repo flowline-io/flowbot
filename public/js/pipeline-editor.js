@@ -646,9 +646,15 @@
         this.dragFromIdx = null;
         this.dragOverIdx = null;
         e.target.closest('[data-sort-idx]')?.classList.remove('opacity-50');
-        this.$el.querySelectorAll('.drag-over-highlight').forEach(function(el) {
-          el.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
-        });
+        this.$el
+          .querySelectorAll('.drag-over-highlight')
+          .forEach(function (el) {
+            el.classList.remove(
+              'drag-over-highlight',
+              'border-t-2',
+              'border-primary',
+            );
+          });
       },
 
       onStepDragOver(idx, e) {
@@ -658,30 +664,58 @@
         this.dragOverIdx = idx;
         var stepEl = e.currentTarget.closest('[data-sort-idx]');
         if (stepEl) {
-          this.$el.querySelectorAll('.drag-over-highlight').forEach(function(el) {
-            el.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
-          });
-          stepEl.classList.add('drag-over-highlight', 'border-t-2', 'border-primary');
+          this.$el
+            .querySelectorAll('.drag-over-highlight')
+            .forEach(function (el) {
+              el.classList.remove(
+                'drag-over-highlight',
+                'border-t-2',
+                'border-primary',
+              );
+            });
+          stepEl.classList.add(
+            'drag-over-highlight',
+            'border-t-2',
+            'border-primary',
+          );
         }
       },
 
       onStepDragLeave(e) {
         var stepEl = e.currentTarget.closest('[data-sort-idx]');
         if (stepEl) {
-          stepEl.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
+          stepEl.classList.remove(
+            'drag-over-highlight',
+            'border-t-2',
+            'border-primary',
+          );
         }
       },
 
       onStepDrop(idx, e) {
         e.preventDefault();
         this.dragOverIdx = null;
-        this.$el.querySelectorAll('.drag-over-highlight').forEach(function(el) {
-          el.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
-        });
+        this.$el
+          .querySelectorAll('.drag-over-highlight')
+          .forEach(function (el) {
+            el.classList.remove(
+              'drag-over-highlight',
+              'border-t-2',
+              'border-primary',
+            );
+          });
         if (this.dragFromIdx === null || this.dragFromIdx === idx) return;
 
-        if (this.dependsOnStep(this.steps[this.dragFromIdx], Math.min(idx, this.dragFromIdx))) {
-          showToast('Cannot move: this step depends on data from a step at or above the target position.', 'warning');
+        if (
+          this.dependsOnStep(
+            this.steps[this.dragFromIdx],
+            Math.min(idx, this.dragFromIdx),
+          )
+        ) {
+          showToast(
+            'Cannot move: this step depends on data from a step at or above the target position.',
+            'warning',
+          );
           return;
         }
 
@@ -714,10 +748,14 @@
         var file = e.target.files[0];
         if (!file) return;
         try {
-          var text = await new Promise(function(resolve, reject) {
+          var text = await new Promise(function (resolve, reject) {
             var reader = new FileReader();
-            reader.onload = function(e) { resolve(e.target.result); };
-            reader.onerror = function(e) { reject(e); };
+            reader.addEventListener('load', function (ev) {
+              resolve(ev.target.result);
+            });
+            reader.addEventListener('error', function (ev) {
+              reject(ev);
+            });
             reader.readAsText(file);
           });
           var obj = jsyaml.load(text);
@@ -740,7 +778,9 @@
       async loadVersions() {
         this.historyLoading = true;
         try {
-          var resp = await fetch('/service/web/pipelines/' + this.name + '/versions');
+          var resp = await fetch(
+            '/service/web/pipelines/' + this.name + '/versions',
+          );
           if (!resp.ok) {
             this.versions = [];
             return;
@@ -765,7 +805,9 @@
         this.selectedVersion = v;
         this.historyLoading = true;
         try {
-          var resp = await fetch('/service/web/pipelines/' + this.name + '/versions/' + v.version);
+          var resp = await fetch(
+            '/service/web/pipelines/' + this.name + '/versions/' + v.version,
+          );
           if (!resp.ok) throw new Error('Not found');
           var data = await resp.json();
           this.selectedVersionYaml = data.yaml;
@@ -801,7 +843,10 @@
       toggleCompareVersion(v) {
         if (this.compareLeft && this.compareLeft.version === v.version) {
           this.compareLeft = null;
-        } else if (this.compareRight && this.compareRight.version === v.version) {
+        } else if (
+          this.compareRight &&
+          this.compareRight.version === v.version
+        ) {
           this.compareRight = null;
         } else if (!this.compareLeft) {
           this.compareLeft = v;
@@ -817,8 +862,10 @@
         var left = this.compareLeft;
         var right = this.compareRight;
         var self = this;
-        var fetchYaml = async function(v) {
-          var resp = await fetch('/service/web/pipelines/' + self.name + '/versions/' + v.version);
+        var fetchYaml = async function (v) {
+          var resp = await fetch(
+            '/service/web/pipelines/' + self.name + '/versions/' + v.version,
+          );
           var data = await resp.json();
           return data.yaml || '';
         };
@@ -827,7 +874,7 @@
           var leftYaml = await fetchYaml(left);
           var rightYaml = await fetchYaml(right);
           var changes = Diff.diffLines(leftYaml || '', rightYaml || '');
-          this.diffResult = changes.map(function(part) {
+          this.diffResult = changes.map(function (part) {
             return {
               text: part.value,
               added: part.added,
@@ -839,7 +886,6 @@
           this.diffResult = null;
         }
       },
-
     }));
   }
 
