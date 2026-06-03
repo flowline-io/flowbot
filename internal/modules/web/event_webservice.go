@@ -33,8 +33,7 @@ func requireAdmin(ctx fiber.Ctx) error {
 	}
 	scopes := route.GetScopes(ctx)
 	if !auth.HasScope(scopes, auth.ScopeAdmin) {
-		ctx.Status(fiber.StatusForbidden)
-		return ctx.SendString("Admin access required")
+		return fiber.NewError(fiber.StatusForbidden, "Admin access required")
 	}
 	return nil
 }
@@ -227,42 +226,16 @@ func dataEventsTable(c fiber.Ctx) error {
 	if err := requireAdmin(c); err != nil {
 		return err
 	}
-	source := c.Query("source")
-	typeFilter := c.Query("type")
-	cursor := c.Query("cursor")
-	u := "/service/web/events/filtered-events?tab=data-events"
-	if source != "" {
-		u += "&source=" + source
-	}
-	if typeFilter != "" {
-		u += "&type=" + typeFilter
-	}
-	if cursor != "" {
-		u += "&cursor=" + cursor
-	}
-	c.Set("HX-Redirect", u)
-	return c.SendStatus(200)
+	c.Request().URI().QueryArgs().Set("tab", "data-events")
+	return filteredEventsTable(c)
 }
 
 func webhookLogsTable(c fiber.Ctx) error {
 	if err := requireAdmin(c); err != nil {
 		return err
 	}
-	source := c.Query("source")
-	typeFilter := c.Query("type")
-	cursor := c.Query("cursor")
-	u := "/service/web/events/filtered-events?tab=webhook-logs"
-	if source != "" {
-		u += "&source=" + source
-	}
-	if typeFilter != "" {
-		u += "&type=" + typeFilter
-	}
-	if cursor != "" {
-		u += "&cursor=" + cursor
-	}
-	c.Set("HX-Redirect", u)
-	return c.SendStatus(200)
+	c.Request().URI().QueryArgs().Set("tab", "webhook-logs")
+	return filteredEventsTable(c)
 }
 
 func eventPayload(ctx fiber.Ctx) error {

@@ -223,8 +223,11 @@ func setupTestApp() *fiber.App {
 		BodyLimit:    20 * 1024 * 1024,
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			var fiberErr *fiber.Error
-			if errors.As(err, &fiberErr) && fiberErr.Code >= 300 && fiberErr.Code < 400 {
-				return nil
+			if errors.As(err, &fiberErr) {
+				if fiberErr.Code >= 300 && fiberErr.Code < 400 {
+					return nil
+				}
+				return c.Status(fiberErr.Code).SendString(fiberErr.Message)
 			}
 			if oopsErr, ok := oops.AsOops(err); ok {
 				if oopsErr.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
