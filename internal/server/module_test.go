@@ -307,6 +307,11 @@ func (*testStoreAdapter) UpdateNotifyRule(context.Context, int64, model.NotifyRu
 }
 func (*testStoreAdapter) DeleteNotifyRule(context.Context, int64) error { return nil }
 func (*testStoreAdapter) MaskNotifyURI(string, string) string           { return "" }
+func (*testStoreAdapter) CreateToken(_ context.Context, _ types.Uid, _ time.Time, _ []string) (string, error) {
+	return "", nil
+}
+func (*testStoreAdapter) ListTokens(_ context.Context) ([]model.TokenItem, error) { return nil, nil }
+func (*testStoreAdapter) RevokeToken(_ context.Context, _ string) error          { return nil }
 
 func TestRegisterModules_CreatesNewBot(t *testing.T) {
 	tests := []struct {
