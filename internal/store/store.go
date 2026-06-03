@@ -1938,8 +1938,8 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, cap
 }
 
 // SearchNodes returns distinct (app, capability, entity_id) tuples from
-// resource_links where source_entity_id or target_entity_id contains the query.
-// The cursor parameter is reserved for future use; not implemented in MVP.
+// resource_links where any of entity_id, app, or capability fields contain
+// the query. The cursor parameter is reserved for future use; not implemented in MVP.
 func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, _ string) ([]schema.ResourceRef, string, error) {
 	if s == nil || s.client == nil || query == "" {
 		return nil, "", nil
@@ -1948,28 +1948,48 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 		limit = 20
 	}
 
-	// Fetch candidate links using Ent-safe case-insensitive predicates.
 	links, err := s.client.ResourceLink.Query().
 		Where(
 			resourcelink.Or(
 				resourcelink.SourceEntityIDContainsFold(query),
 				resourcelink.TargetEntityIDContainsFold(query),
+				resourcelink.SourceAppContainsFold(query),
+				resourcelink.TargetAppContainsFold(query),
+				resourcelink.SourceCapabilityContainsFold(query),
+				resourcelink.TargetCapabilityContainsFold(query),
 			),
 		).
 		Order(resourcelink.ByCreatedAt(sql.OrderDesc())).
-		Limit(limit * 2). // over-fetch to allow in-memory dedup
+		Limit(limit * 2).
 		All(ctx)
 	if err != nil {
 		return nil, "", fmt.Errorf("search nodes: %w", err)
 	}
 
-	// Deduplicate by (app, capability, entity_id) in Go memory.
+	results := searchNodesDedup(links, strings.ToLower(query), limit)
+	return results, "", nil
+}
+
+// searchNodeFieldMatches returns true if any of the candidate fields contain
+// the lowercase query string (case-insensitive).
+func searchNodeFieldMatches(lowerQuery string, fields ...string) bool {
+	for _, f := range fields {
+		if strings.Contains(strings.ToLower(f), lowerQuery) {
+			return true
+		}
+	}
+	return false
+}
+
+// searchNodesDedup collects unique (app, capability, entity_id) tuples from
+// a list of resource links, matching the query against entity ID, app, and
+// capability fields on both source and target sides.
+func searchNodesDedup(links []*gen.ResourceLink, lowerQuery string, limit int) []schema.ResourceRef {
 	seen := make(map[string]bool)
 	var results []schema.ResourceRef
-	lowerQuery := strings.ToLower(query)
 
 	for _, rl := range links {
-		if strings.Contains(strings.ToLower(rl.SourceEntityID), lowerQuery) {
+		if searchNodeFieldMatches(lowerQuery, rl.SourceEntityID, rl.SourceApp, rl.SourceCapability) {
 			key := rl.SourceApp + "|" + rl.SourceCapability + "|" + rl.SourceEntityID
 			if !seen[key] {
 				seen[key] = true
@@ -1980,7 +2000,7 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 				})
 			}
 		}
-		if strings.Contains(strings.ToLower(rl.TargetEntityID), lowerQuery) {
+		if searchNodeFieldMatches(lowerQuery, rl.TargetEntityID, rl.TargetApp, rl.TargetCapability) {
 			key := rl.TargetApp + "|" + rl.TargetCapability + "|" + rl.TargetEntityID
 			if !seen[key] {
 				seen[key] = true
@@ -1993,12 +2013,10 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 		}
 	}
 
-	// apply limit after dedup
 	if len(results) > limit {
 		results = results[:limit]
 	}
-
-	return results, "", nil
+	return results
 }
 
 // ParameterIsExpired checks whether the given access token parameter has expired.

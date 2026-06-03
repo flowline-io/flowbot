@@ -62,6 +62,9 @@ func newHTTPServer() *fiber.App {
 			// Fiber errors (e.g. ErrNotFound, ErrMethodNotAllowed)
 			var fiberErr *fiber.Error
 			if errors.As(err, &fiberErr) {
+				if fiberErr.Code >= 300 && fiberErr.Code < 400 {
+					return nil
+				}
 				return ctx.Status(fiberErr.Code).
 					JSON(protocol.NewFailedResponse(err))
 			}

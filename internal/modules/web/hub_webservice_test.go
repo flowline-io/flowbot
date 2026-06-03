@@ -265,6 +265,10 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			oldDefault := hub.Default
+			hub.Default = hub.NewRegistry()
+			defer func() { hub.Default = oldDefault }()
+
 			hub.Default.Register(hub.Descriptor{
 				Type:        hub.CapBookmark,
 				Backend:     "test-backend",
@@ -272,10 +276,6 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 				Description: "Test capability",
 				Healthy:     true,
 			})
-			defer func() {
-				// Reset registry after test by re-registering an empty list.
-				// Registry is global, so test isolation is imperfect — this is acceptable for now.
-			}()
 
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()

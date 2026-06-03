@@ -89,7 +89,8 @@ func authenticateWeb(ctx fiber.Ctx) error {
 func redirectToLogin(ctx fiber.Ctx) error {
 	next := string(ctx.Request().URI().RequestURI())
 	nextEncoded := url.QueryEscape(next)
-	return ctx.Redirect().To("/service/web/login?next=" + nextEncoded)
+	ctx.Redirect().To("/service/web/login?next=" + nextEncoded)
+	return fiber.NewError(fiber.StatusSeeOther, "redirect to login")
 }
 
 func homePage(ctx fiber.Ctx) error {

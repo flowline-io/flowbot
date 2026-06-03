@@ -6,6 +6,7 @@ package specs
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -221,6 +222,10 @@ func setupTestApp() *fiber.App {
 		WriteTimeout: 5 * time.Second,
 		BodyLimit:    20 * 1024 * 1024,
 		ErrorHandler: func(c fiber.Ctx, err error) error {
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) && fiberErr.Code >= 300 && fiberErr.Code < 400 {
+				return nil
+			}
 			if oopsErr, ok := oops.AsOops(err); ok {
 				if oopsErr.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
 					return c.Status(fiber.StatusUnauthorized).

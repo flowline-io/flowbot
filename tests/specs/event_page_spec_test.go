@@ -60,7 +60,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 		adminAdapter = &eventWebAdapter{
 			ent:    EntClient,
 			uid:    "bdd-admin-uid-" + types.Id(),
-			scopes: []string{"admin", "read", "write"},
+			scopes: []string{"admin:*", "read", "write"},
 		}
 		userAdapter = &eventWebAdapter{
 			ent:    EntClient,
