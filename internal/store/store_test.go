@@ -868,6 +868,52 @@ func TestListDataEvents(t *testing.T) {
 	}
 }
 
+func TestCountDataEvents(t *testing.T) {
+	t.Parallel()
+	client := getTestClient(t)
+	store := NewEventStore(client)
+	ctx := context.Background()
+
+	events := []types.DataEvent{
+		{EventID: "cnt-001", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#1"},
+		{EventID: "cnt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "bookmark", EntityID: "url-1"},
+		{EventID: "cnt-003", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#2"},
+	}
+	for _, e := range events {
+		require.NoError(t, store.AppendDataEvent(ctx, e))
+	}
+
+	tests := []struct {
+		name      string
+		opts      ListDataEventsOptions
+		wantCount int64
+	}{
+		{
+			name:      "count all events",
+			opts:      ListDataEventsOptions{Limit: 20},
+			wantCount: 3,
+		},
+		{
+			name:      "count filtered by source",
+			opts:      ListDataEventsOptions{Limit: 20, Source: "github"},
+			wantCount: 2,
+		},
+		{
+			name:      "count filtered by event type",
+			opts:      ListDataEventsOptions{Limit: 20, EventType: "bookmark.created"},
+			wantCount: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			count, err := store.CountDataEvents(ctx, tt.opts)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantCount, count)
+		})
+	}
+}
+
 // ---------------------------------------------------------------------------
 // ResourceChainStore tests
 // ---------------------------------------------------------------------------

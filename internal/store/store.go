@@ -644,6 +644,23 @@ func applyDataEventFilters(client *gen.Client, opts ListDataEventsOptions) *gen.
 	return q
 }
 
+// CountDataEvents returns the total number of data_events matching the given filters.
+// Uses the same filter predicates as ListDataEvents without pagination.
+func (s *EventStore) CountDataEvents(ctx context.Context, opts ListDataEventsOptions) (int64, error) {
+	if s == nil || s.client == nil {
+		return 0, nil
+	}
+
+	q := applyDataEventFilters(s.client, opts)
+
+	count, err := q.Count(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("count data events: %w", err)
+	}
+
+	return int64(count), nil
+}
+
 // ListDistinctEventSources returns unique source values from data_events
 // created within the given duration (e.g. 30*24*time.Hour for last 30 days).
 func (s *EventStore) ListDistinctEventSources(ctx context.Context, since time.Duration) ([]string, error) {
