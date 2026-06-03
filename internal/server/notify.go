@@ -3,8 +3,13 @@ package server
 import (
 	"context"
 
+	"github.com/bytedance/sonic"
+
+	storeDB "github.com/flowline-io/flowbot/internal/store"
 	abilitynotify "github.com/flowline-io/flowbot/pkg/ability/notify"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify/messagepusher"
 	"github.com/flowline-io/flowbot/pkg/notify/ntfy"
 	"github.com/flowline-io/flowbot/pkg/notify/pushover"
@@ -27,18 +32,54 @@ var NotifyModules = fx.Options(
 
 func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 	lc.Append(fx.Hook{
-		OnStart: func(_ context.Context) error {
-			// initialize template engine
+		OnStart: func(ctx context.Context) error {
 			if err := notifytmpl.Init(); err != nil {
 				return err
 			}
 
-			// initialize rule engine with RedisStore
-			if err := notifyrules.Init(store); err != nil {
-				return err
+			engine := notifyrules.GetEngine()
+			if engine == nil {
+				engine = notifyrules.New(store)
 			}
 
-			// register notify capability with ability framework
+			enabled := true
+			rules, err := storeDB.Database.ListNotifyRules(ctx, storeDB.ListNotifyRuleOptions{Enabled: &enabled})
+			if err != nil {
+				flog.Warn("failed to load notify rules from DB: %v", err)
+			} else {
+				configRules := make([]config.NotifyRule, 0, len(rules))
+				for _, r := range rules {
+					if !r.Enabled {
+						continue
+					}
+					var cond string
+					if r.Condition != "" {
+						cond = r.Condition
+					}
+					var params config.NotifyRuleParams
+					if r.ParamsJSON != "" {
+						if err := sonic.Unmarshal([]byte(r.ParamsJSON), &params); err != nil {
+							flog.Warn("skipping notify rule %s: invalid params JSON: %v", r.RuleID, err)
+							continue
+						}
+					}
+					configRules = append(configRules, config.NotifyRule{
+						ID:     r.RuleID,
+						Action: config.NotifyRuleAction(r.Action),
+						Match: config.NotifyRuleMatch{
+							Event:   r.EventPattern,
+							Channel: r.ChannelPattern,
+						},
+						Condition: cond,
+						Priority:  r.Priority,
+						Params:    params,
+					})
+				}
+				if err := engine.LoadConfig(configRules); err != nil {
+					return err
+				}
+			}
+
 			return abilitynotify.Register()
 		},
 		OnStop: func(_ context.Context) error {
