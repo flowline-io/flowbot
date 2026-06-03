@@ -24,6 +24,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pollingstate"
@@ -1047,6 +1048,38 @@ func (s *PipelineStore) GetDefinitionByName(ctx context.Context, name string) (*
 	return def, nil
 }
 
+// ListDefinitionVersions returns all published version snapshots for a pipeline,
+// ordered by version descending (newest first).
+func (s *PipelineStore) ListDefinitionVersions(ctx context.Context, name string) ([]*gen.PipelineDefinitionVersion, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	return s.client.PipelineDefinitionVersion.Query().
+		Where(pipelinedefinitionversion.PipelineName(name)).
+		Order(gen.Desc(pipelinedefinitionversion.FieldVersion)).
+		All(ctx)
+}
+
+// GetDefinitionVersion returns a single version snapshot by pipeline name and version number.
+func (s *PipelineStore) GetDefinitionVersion(ctx context.Context, name string, version int) (*gen.PipelineDefinitionVersion, error) {
+	if s == nil || s.client == nil {
+		return nil, types.ErrNotFound
+	}
+	def, err := s.client.PipelineDefinitionVersion.Query().
+		Where(
+			pipelinedefinitionversion.PipelineName(name),
+			pipelinedefinitionversion.Version(version),
+		).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, err
+	}
+	return def, nil
+}
+
 // ListDefinitions returns all pipeline definitions ordered by updated_at desc.
 func (s *PipelineStore) ListDefinitions(ctx context.Context) ([]*gen.PipelineDefinition, error) {
 	if s == nil || s.client == nil {
@@ -1082,11 +1115,11 @@ func (s *PipelineStore) UpdateDefinitionDraft(ctx context.Context, name, yamlDra
 }
 
 // PublishDefinition copies yaml_draft to yaml_published with atomic optimistic locking.
+// Also inserts a version snapshot into pipeline_definition_versions.
 func (s *PipelineStore) PublishDefinition(ctx context.Context, name string, version int) (*gen.PipelineDefinition, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
-	// Read current yaml_draft to copy into yaml_published.
 	def, err := s.GetDefinitionByName(ctx, name)
 	if err != nil {
 		return nil, err
@@ -1110,6 +1143,16 @@ func (s *PipelineStore) PublishDefinition(ctx context.Context, name string, vers
 	if n == 0 {
 		return nil, types.ErrConflict
 	}
+
+	if _, err := s.client.PipelineDefinitionVersion.Create().
+		SetPipelineName(name).
+		SetVersion(version + 1).
+		SetYaml(def.YamlDraft).
+		SetCreatedAt(time.Now()).
+		Save(ctx); err != nil {
+		return nil, fmt.Errorf("publish: insert version snapshot: %w", err)
+	}
+
 	return s.GetDefinitionByName(ctx, name)
 }
 
