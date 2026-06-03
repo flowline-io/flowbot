@@ -753,6 +753,8 @@ func TestPageDataStore_DeleteExpired(t *testing.T) {
 // EventStore tests
 // ---------------------------------------------------------------------------
 
+func timePtr(t time.Time) *time.Time { return &t }
+
 func TestListDataEvents(t *testing.T) {
 	t.Parallel()
 	client := getTestClient(t)
@@ -768,6 +770,8 @@ func TestListDataEvents(t *testing.T) {
 	for _, e := range events {
 		require.NoError(t, store.AppendDataEvent(ctx, e))
 	}
+
+	futureCursor := time.Now().Add(time.Hour).Format("2006-01-02T15:04:05.999999Z")
 
 	tests := []struct {
 		name          string
@@ -797,7 +801,7 @@ func TestListDataEvents(t *testing.T) {
 		},
 		{
 			name:          "pagination with cursor returns cursor",
-			opts:          ListDataEventsOptions{Limit: 1},
+			opts:          ListDataEventsOptions{Limit: 1, Cursor: futureCursor},
 			wantCount:     1,
 			wantHasCursor: true,
 		},
@@ -806,6 +810,47 @@ func TestListDataEvents(t *testing.T) {
 			opts:          ListDataEventsOptions{Limit: 10},
 			wantCount:     3,
 			wantHasCursor: false,
+		},
+		{
+			name:      "search matches source field",
+			opts:      ListDataEventsOptions{Limit: 10, Search: "github"},
+			wantCount: 1,
+		},
+		{
+			name:      "search matches data payload",
+			opts:      ListDataEventsOptions{Limit: 10, Search: "feed"},
+			wantCount: 1,
+		},
+		{
+			name:      "search no match",
+			opts:      ListDataEventsOptions{Limit: 10, Search: "nomatchxyz"},
+			wantCount: 0,
+		},
+		{
+			name:      "pipeline name filter returns matched events",
+			opts:      ListDataEventsOptions{Limit: 10, PipelineName: "test-pipeline"},
+			wantCount: 0,
+		},
+		{
+			name:      "time start filter returns events after time",
+			opts:      ListDataEventsOptions{Limit: 10, TimeStart: timePtr(time.Now().Add(-10 * time.Minute))},
+			wantCount: 3,
+		},
+		{
+			name:      "time end filter returns events before time",
+			opts:      ListDataEventsOptions{Limit: 10, TimeEnd: timePtr(time.Now().Add(-1 * time.Hour))},
+			wantCount: 0,
+		},
+		{
+			name:          "offset-based pagination page 1",
+			opts:          ListDataEventsOptions{Limit: 1, Offset: 0},
+			wantCount:     1,
+			wantHasCursor: false,
+		},
+		{
+			name:      "offset-based pagination page 2",
+			opts:      ListDataEventsOptions{Limit: 1, Offset: 1},
+			wantCount: 1,
 		},
 	}
 

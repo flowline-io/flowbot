@@ -539,15 +539,20 @@ func (s *EventStore) MarkOutboxPublished(ctx context.Context, eventID string) er
 
 // ListDataEventsOptions holds filters and pagination for listing data events.
 type ListDataEventsOptions struct {
-	Limit     int    // max 100, default 20
-	Cursor    string // opaque CreatedAt cursor
-	Source    string // filter by source, empty = all
-	EventType string // filter by event type, empty = all
-	Webhook   bool   // if true, only events where data->>'_webhook_method' IS NOT NULL
+	Limit        int        // max 100, default 20
+	Offset       int        // page offset for offset-based pagination
+	Cursor       string     // opaque CreatedAt cursor (backward compatible)
+	Source       string     // filter by source, empty = all
+	EventType    string     // filter by event type, empty = all
+	Webhook      bool       // if true, only events where data->>'_webhook_method' IS NOT NULL
+	Search       string     // ILIKE match against source and data::text
+	PipelineName string     // filter events that triggered a specific pipeline
+	TimeStart    *time.Time // created_at >= TimeStart
+	TimeEnd      *time.Time // created_at <= TimeEnd
 }
 
 // ListDataEvents returns paginated data_events ordered by created_at DESC.
-// Uses cursor-based pagination (limit+1 pattern).
+// Supports offset-based pagination (when Offset > 0) and cursor-based (backward compatible).
 func (s *EventStore) ListDataEvents(ctx context.Context, opts ListDataEventsOptions) ([]*gen.DataEvent, string, error) {
 	if s == nil || s.client == nil {
 		return nil, "", nil
@@ -556,22 +561,20 @@ func (s *EventStore) ListDataEvents(ctx context.Context, opts ListDataEventsOpti
 		opts.Limit = 20
 	}
 
-	q := s.client.DataEvent.Query().
-		Order(dataevent.ByCreatedAt(sql.OrderDesc())).
-		Limit(opts.Limit + 1)
+	q := applyDataEventFilters(s.client, opts)
 
-	if opts.Source != "" {
-		q = q.Where(dataevent.Source(opts.Source))
-	}
-	if opts.EventType != "" {
-		q = q.Where(dataevent.EventType(opts.EventType))
-	}
-	if opts.Webhook {
-		q = q.Where(func(selector *sql.Selector) {
-			selector.Where(sql.ExprP("data->>'_webhook_method' IS NOT NULL"))
-		})
+	// Offset-based pagination (mutually exclusive with cursor)
+	if opts.Offset > 0 || opts.Cursor == "" {
+		q = q.Offset(opts.Offset).Limit(opts.Limit)
+		events, err := q.All(ctx)
+		if err != nil {
+			return nil, "", fmt.Errorf("list data events: %w", err)
+		}
+		return events, "", nil
 	}
 
+	// Cursor-based pagination (backward compatible)
+	q = q.Limit(opts.Limit + 1)
 	if opts.Cursor != "" {
 		if t, err := time.Parse("2006-01-02T15:04:05.999999Z", opts.Cursor); err == nil {
 			q = q.Where(dataevent.CreatedAtLT(t))
@@ -590,6 +593,49 @@ func (s *EventStore) ListDataEvents(ctx context.Context, opts ListDataEventsOpti
 	}
 
 	return events, nextCursor, nil
+}
+
+// applyDataEventFilters applies all filter options from ListDataEventsOptions
+// to a new base query ordered by created_at DESC.
+func applyDataEventFilters(client *gen.Client, opts ListDataEventsOptions) *gen.DataEventQuery {
+	q := client.DataEvent.Query().
+		Order(dataevent.ByCreatedAt(sql.OrderDesc()))
+
+	if opts.Source != "" {
+		q = q.Where(dataevent.Source(opts.Source))
+	}
+	if opts.EventType != "" {
+		q = q.Where(dataevent.EventType(opts.EventType))
+	}
+	if opts.Webhook {
+		q = q.Where(func(selector *sql.Selector) {
+			selector.Where(sql.ExprP("data->>'_webhook_method' IS NOT NULL"))
+		})
+	}
+	if opts.Search != "" {
+		q = q.Where(func(s *sql.Selector) {
+			s.Where(sql.ExprP(
+				"source LIKE '%' || $1 || '%' OR entity_id LIKE '%' || $1 || '%' OR capability LIKE '%' || $1 || '%' OR CAST(data AS TEXT) LIKE '%' || $1 || '%'",
+				opts.Search,
+			))
+		})
+	}
+	if opts.PipelineName != "" {
+		q = q.Where(func(s *sql.Selector) {
+			s.Where(sql.ExprP(
+				"event_id IN (SELECT event_id FROM pipeline_runs WHERE pipeline_name = $1)",
+				opts.PipelineName,
+			))
+		})
+	}
+	if opts.TimeStart != nil {
+		q = q.Where(dataevent.CreatedAtGTE(*opts.TimeStart))
+	}
+	if opts.TimeEnd != nil {
+		q = q.Where(dataevent.CreatedAtLTE(*opts.TimeEnd))
+	}
+
+	return q
 }
 
 // ListDistinctEventSources returns unique source values from data_events
