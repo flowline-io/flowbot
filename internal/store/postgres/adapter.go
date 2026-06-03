@@ -28,6 +28,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
@@ -1801,6 +1802,128 @@ func maskEnd(s string) string {
 		return s[:4] + "******"
 	}
 	return "******"
+}
+
+// ---------------------------------------------------------------------------
+// NotifyRule CRUD
+// ---------------------------------------------------------------------------
+
+func (a *adapter) CreateNotifyRule(ctx context.Context, rule model.NotifyRule) (int64, error) {
+	var params map[string]any
+	if rule.ParamsJSON != "" {
+		if err := sonic.Unmarshal([]byte(rule.ParamsJSON), &params); err != nil {
+			return 0, fmt.Errorf("postgres: create notify rule params parse: %w", err)
+		}
+	} else {
+		params = map[string]any{}
+	}
+	r, err := a.client.NotifyRule.Create().
+		SetRuleID(rule.RuleID).
+		SetName(rule.Name).
+		SetAction(notifyrule.Action(rule.Action)).
+		SetEventPattern(rule.EventPattern).
+		SetChannelPattern(rule.ChannelPattern).
+		SetNillableCondition(nilString(rule.Condition)).
+		SetPriority(rule.Priority).
+		SetParams(params).
+		SetEnabled(rule.Enabled).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: create notify rule: %w", err)
+	}
+	return r.ID, nil
+}
+
+func (a *adapter) GetNotifyRule(ctx context.Context, id int64) (model.NotifyRule, error) {
+	r, err := a.client.NotifyRule.Query().Where(notifyrule.IDEQ(id)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyRule{}, types.ErrNotFound
+		}
+		return model.NotifyRule{}, fmt.Errorf("postgres: get notify rule: %w", err)
+	}
+	return notifyRuleToModel(r), nil
+}
+
+func (a *adapter) ListNotifyRules(ctx context.Context, opts store.ListNotifyRuleOptions) ([]model.NotifyRule, error) {
+	q := a.client.NotifyRule.Query()
+	if opts.Enabled != nil {
+		q = q.Where(notifyrule.Enabled(*opts.Enabled))
+	}
+	rules, err := q.Order(gen.Desc(notifyrule.FieldPriority)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list notify rules: %w", err)
+	}
+	result := make([]model.NotifyRule, len(rules))
+	for i, r := range rules {
+		result[i] = notifyRuleToModel(r)
+	}
+	return result, nil
+}
+
+func (a *adapter) UpdateNotifyRule(ctx context.Context, id int64, rule model.NotifyRule) error {
+	var params map[string]any
+	if rule.ParamsJSON != "" {
+		if err := sonic.Unmarshal([]byte(rule.ParamsJSON), &params); err != nil {
+			return fmt.Errorf("postgres: update notify rule params parse: %w", err)
+		}
+	} else {
+		params = map[string]any{}
+	}
+	n, err := a.client.NotifyRule.Update().Where(notifyrule.IDEQ(id)).
+		SetRuleID(rule.RuleID).
+		SetName(rule.Name).
+		SetAction(notifyrule.Action(rule.Action)).
+		SetEventPattern(rule.EventPattern).
+		SetChannelPattern(rule.ChannelPattern).
+		SetNillableCondition(nilString(rule.Condition)).
+		SetPriority(rule.Priority).
+		SetParams(params).
+		SetEnabled(rule.Enabled).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update notify rule: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteNotifyRule(ctx context.Context, id int64) error {
+	_, err := a.client.NotifyRule.Delete().Where(notifyrule.IDEQ(id)).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete notify rule: %w", err)
+	}
+	return nil
+}
+
+func notifyRuleToModel(r *gen.NotifyRule) model.NotifyRule {
+	paramsJSON, _ := sonic.MarshalString(r.Params)
+	return model.NotifyRule{
+		ID:             r.ID,
+		RuleID:         r.RuleID,
+		Name:           r.Name,
+		Action:         string(r.Action),
+		EventPattern:   r.EventPattern,
+		ChannelPattern: r.ChannelPattern,
+		Condition:      r.Condition,
+		Priority:       r.Priority,
+		ParamsJSON:     paramsJSON,
+		Enabled:        r.Enabled,
+		CreatedAt:      r.CreatedAt,
+		UpdatedAt:      r.UpdatedAt,
+	}
+}
+
+func nilString(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 // ---------------------------------------------------------------------------
