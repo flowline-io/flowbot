@@ -261,7 +261,7 @@ func EventPagination(info PageInfo) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" data-testid=\"pagination-jump\"> <button class=\"btn btn-xs btn-ghost\" x-on:click=\"\n\t\t\t\t\tconst pageVal = $el.parentElement.querySelector('input').value;\n\t\t\t\t\tconst url = '/service/web/events/filtered-events?page=' + pageVal;\n\t\t\t\t\thtmx.ajax('GET', url, { target: '#events-table-container', swap: 'innerHTML' });\n\t\t\t\t\" data-testid=\"pagination-go\">Go</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" name=\"page\" data-testid=\"pagination-jump\"> <button class=\"btn btn-xs btn-ghost\" hx-get=\"/service/web/events/filtered-events\" hx-include=\"[data-filter-input], input[name='page']\" hx-target=\"#events-table-container\" hx-swap=\"innerHTML\" data-testid=\"pagination-go\">Go</button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

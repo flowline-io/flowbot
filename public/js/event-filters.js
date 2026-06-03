@@ -57,8 +57,8 @@ Alpine.data('eventFilters', () => ({
     if (this.pipeline) params.set('pipeline', this.pipeline);
     if (this.source) params.set('source', this.source);
     if (this.eventType) params.set('type', this.eventType);
-    if (this.timeStart) params.set('time_start', new Date(this.timeStart).toISOString());
-    if (this.timeEnd) params.set('time_end', new Date(this.timeEnd).toISOString());
+    if (this.timeStart) params.set('time_start', this.timeStart + ':00Z');
+    if (this.timeEnd) params.set('time_end', this.timeEnd + ':00Z');
     params.set('page', '1');
     return params.toString();
   },

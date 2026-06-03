@@ -62,14 +62,13 @@ templ EventPagination(info PageInfo) {
 		</div>
 		<div class="flex items-center gap-1">
 			<span class="text-xs text-base-content/50">Go to</span>
-			<input type="number" class="input input-bordered input-xs w-16" min="1" max={ fmt.Sprintf("%d", info.TotalPages) }
+			<input type="number" class="input input-bordered input-xs w-16" min="1" max={ fmt.Sprintf("%d", info.TotalPages) } name="page"
 				data-testid="pagination-jump"/>
 			<button class="btn btn-xs btn-ghost"
-				x-on:click="
-					const pageVal = $el.parentElement.querySelector('input').value;
-					const url = '/service/web/events/filtered-events?page=' + pageVal;
-					htmx.ajax('GET', url, { target: '#events-table-container', swap: 'innerHTML' });
-				"
+				hx-get="/service/web/events/filtered-events"
+				hx-include="[data-filter-input], input[name='page']"
+				hx-target="#events-table-container"
+				hx-swap="innerHTML"
 				data-testid="pagination-go">Go</button>
 		</div>
 	</div>
