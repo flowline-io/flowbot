@@ -38,6 +38,8 @@ Add a web UI page for managing notification channels and routing rules. Currentl
 
 Represents a globally-configured notification destination. The URI stored here is used for connectivity testing. Per-user channel URIs (for actual notification delivery) remain in the `configs` table keyed as `notify:<channel_name>` -- that per-user mechanism is unchanged and out of scope for this task. The channel list in this UI serves as a registry of available channel types that rules can reference.
 
+**Security**: URIs contain sensitive tokens (API keys, webhook URLs). The URI is stored encrypted at rest using AES-256-GCM (or the existing secret encryption mechanism if one exists). At display time, tokens are masked: e.g. `slack://hooks.slack.com/services/T******/B******/C******`. In edit mode, the URI field uses `type="password"` with a show/hide toggle, and the stored encrypted value is never sent to the client for display -- the field is blank on edit, requiring re-entry or leave-blank-to-keep.
+
 | Field | Type | Attributes | Description |
 |-------|------|------------|-------------|
 | `id` | bigint | PK, auto | Internal ID |
@@ -125,13 +127,51 @@ Templates continue to load from `flowbot.yaml` via `notifytmpl.Init()`.
 New method `rules.Engine.Reload(ctx)` that:
 1. Calls `store.Database.ListNotifyRules(ctx, enabled=true)` 
 2. Builds fresh `[]config.NotifyRule`
-3. Calls `LoadConfig()` with the new slice (atomically replaces internal rule list)
+3. Calls `LoadConfig()` with the new slice
 
 Called after every rule create/update/delete in the web handler.
 
+### Concurrency Safety
+
+The `rules.Engine` holds its rule list behind a `sync.RWMutex`. `Evaluate()` acquires a read lock; `LoadConfig()` and `Reload()` acquire a write lock. This ensures zero data races between in-flight rule evaluations and hot reloads. All public methods on `Engine` that read rules (`Evaluate`, `CheckThrottle`, `EnqueueForAggregation`, `SetAggregateTimer`) acquire `RLock`; only `LoadConfig` and `Reload` acquire `Lock`. This is verified via `go test -race`.
+
 ### Connectivity Test
 
-`TestNotifyChannel` resolves the channel URI against the registered provider's `Templates()` patterns via `notify.ParseTemplate()`, then dispatches a test `Message{Title: "Test Notification", Body: "Connectivity test from Flowbot", Priority: Low}` through the provider's `Send()`. Uses the authenticated user's UID from the session. Records result in `notification_records` for audit.
+`TestNotifyChannel` resolves the channel URI against the registered provider's `Templates()` patterns via `notify.ParseTemplate()`, then dispatches a test `Message{Title: "Test Notification", Body: "Connectivity test from Flowbot", Priority: Low}` through the provider's `Send()`. Uses the authenticated user's UID from the session -- the test message is a 1:1 delivery to the configured channel URI only; it does not broadcast to any user group. Records result in `notification_records` for audit.
+
+## Data Validation
+
+All validation happens in the HTTP handler layer before reaching the store, returning 400 with inline form errors on failure.
+
+### Condition Expression Validation
+
+Before persisting a rule with a non-empty `condition`, the handler calls `rules.ValidateCondition(expr string) error` which parses the expression using the same grammar as `evalCondition` in the rules engine. Invalid syntax (e.g. `time.hour >> 5`) is rejected with a descriptive error message in the form.
+
+### Glob Pattern Validation
+
+`event_pattern` and `channel_pattern` are validated using `filepath.Match("*", pattern)` to ensure they are valid glob syntax. Patterns like `infra.[` (unclosed bracket) are rejected before storage.
+
+### Params Validation by Action
+
+Based on the selected `action`, params are unmarshalled into the corresponding struct and validated:
+
+| Action | Validation |
+|--------|-----------|
+| `throttle` | `window` must parse as `time.Duration` (e.g. "5m", "60s"); `limit` must be > 0 |
+| `aggregate` | `window` must parse as `time.Duration`; `digest_tpl_id` must reference an existing template ID from `notifytmpl.GetEngine()` |
+| `mute` / `drop` | params must be `{}` (rejected if non-empty) |
+
+## Edge Cases
+
+### Stale Template References
+
+When an aggregate rule's `digest_tpl_id` references a template that no longer exists in `flowbot.yaml`:
+- Engine: at evaluation time, if the template is not found, log a warning and fall back to rendering with an empty template (delivers raw payload as body); does not panic.
+- UI: the rules table checks each aggregate rule's `digest_tpl_id` against the currently loaded template engine. Missing references are flagged with a warning badge (`⚠ Unknown template`) in the row, prompting the user to update the rule.
+
+### Engine Reload Failure
+
+If `Reload()` encounters a store error, the existing rule set is preserved (not replaced with empty). The error is logged. The HTTP handler still returns success to the user since their data was persisted -- the rules will take effect on the next successful reload or server restart.
 
 ## UI Design
 
@@ -140,9 +180,10 @@ Called after every rule create/update/delete in the web handler.
 Wraps in `@layout.Base("Notification Settings — Flowbot")` with two tabs using DaisyUI tab component (`role="tablist"`). Each tab's content is lazy-loaded via HTMX on first click (`hx-get` + `hx-trigger="click once"`) to avoid loading both tables on initial page render.
 
 **Channels Tab** -- Table of configured channels:
-- Columns: Name, Protocol, URI (truncated), Status (enabled/disabled badge), Actions
+- Columns: Name, Protocol, URI (masked, e.g. `slack://T******/B******`), Status (enabled/disabled badge), Actions
 - Actions per row: Edit, Delete, Test (shows spinner then success/error toast via HTMX trigger)
 - "New Channel" button prepends inline form row
+- Edit form: URI field is `type="password"`, never pre-filled with stored value (leave blank to keep existing)
 
 **Rules Tab** -- Table of rules sorted by priority descending:
 - Columns: Priority, Name, Action (colored badge), Event Pattern, Channel Pattern, Enabled, Actions
@@ -162,7 +203,17 @@ Base fields: Name, Rule ID, Action (select dropdown), Event Pattern, Channel Pat
 
 ### Channel Form Fields
 
-Name, Protocol (select from registered providers via `notify.List()` -- Slack, ntfy, Pushover, MessagePusher), URI (with placeholder hint showing the provider's template patterns), Enabled toggle.
+Name, Protocol (select from registered providers via `notify.List()` -- Slack, ntfy, Pushover, MessagePusher), URI (input `type="password"` with show/hide toggle; placeholder hint showing the provider's URI template patterns; left blank on edit to preserve existing value), Enabled toggle.
+
+### URI Masking
+
+Storage helper functions on the store adapter:
+
+- `MaskURI(protocol, uri string) string` -- produces display-safe masked form, e.g. `slack://T******/B******/C******` by splitting on `/` and masking token segments while preserving the scheme prefix and host. Each provider gets a masking implementation based on its URI template structure.
+- `EncryptURI(uri string) ([]byte, error)` -- encrypts before DB write.
+- `DecryptURI(cipher []byte) (string, error)` -- decrypts for internal use (connectivity test, actual send). Never exposed to UI.
+
+If no existing encryption mechanism exists in the project, encryption is deferred to a follow-up task; masking-only is applied as the minimum viable security measure.
 
 ### Partials
 
@@ -191,7 +242,7 @@ GET  /notify-settings/channels/new          -> NotifyChannelForm partial (create
 POST /notify-settings/channels              -> createChannel, return NotifyChannelRow
 GET  /notify-settings/channels/:id/edit     -> NotifyChannelForm partial (edit mode)
 PUT  /notify-settings/channels/:id          -> updateChannel, return NotifyChannelRow
-DELETE /notify-settings/channels/:id        -> deleteChannel (empty 200 + OOB cleanup)
+DELETE /notify-settings/channels/:id        -> deleteChannel (empty 200, button uses hx-target="closest tr" hx-swap="delete")
 POST /notify-settings/channels/:id/test     -> testChannel, return HX-Trigger toast
 
 GET  /notify-settings/rules/list            -> NotifyRulesTable partial
@@ -199,7 +250,7 @@ GET  /notify-settings/rules/new             -> NotifyRuleForm partial (create mo
 POST /notify-settings/rules                 -> createRule, return NotifyRuleRow, trigger engine reload
 GET  /notify-settings/rules/:id/edit        -> NotifyRuleForm partial (edit mode)
 PUT  /notify-settings/rules/:id             -> updateRule, return NotifyRuleRow, trigger engine reload
-DELETE /notify-settings/rules/:id           -> deleteRule (empty 200), trigger engine reload
+DELETE /notify-settings/rules/:id           -> deleteRule (empty 200, button uses hx-target="closest tr" hx-swap="delete")
 ```
 
 ### Route Registration
@@ -209,13 +260,13 @@ Registered in `internal/modules/web/module.go` via `module.Webservice(app, Name,
 
 ## Error Handling
 
-- Form validation errors: returned inline in the same form partial with per-field error styling (red border, error message below input)
+- Form validation errors: returned inline in the same form partial with per-field error styling (red border, error message below input). Covers: empty required fields, invalid condition expression syntax, malformed glob patterns, invalid params (bad duration format, limit <= 0, unknown digest_tpl_id)
 - Connectivity test failure: `HX-Trigger` response header with `{"showToast": {"type": "error", "message": "Connection failed: ..."}}`; status badge updated via OOB swap
 - Connectivity test success: `HX-Trigger` response header with `{"showToast": {"type": "success", "message": "Connection successful"}}`
 - Not found: HTTP 404, wraps `types.ErrNotFound`
 - Duplicate rule_id or channel name: HTTP 409
 - Internal DB errors: HTTP 500, wraps `types.ErrInternal`
-- Engine reload failure after CRUD: logged as error, does not block the HTTP response
+- Engine reload failure after CRUD: logged as error, does not block the HTTP response; existing rule set preserved in engine
 
 ## Testing
 
@@ -223,18 +274,27 @@ Registered in `internal/modules/web/module.go` via `module.Webservice(app, Name,
 
 - Store methods: create, get, list, update, delete for both notify_channel and notify_rule (minimum 3 cases each)
 - `rules.Engine.Reload()`: loads from store, replaces rules, handles empty store, handles store error
+- Concurrency: `Engine.Evaluate()` and `Engine.Reload()` called concurrently from multiple goroutines; verified with `go test -race` (zero data races)
 - Channel connectivity test: success, provider error, malformed URI
+- URI masking: slack, ntfy, pushover, message-pusher token patterns all masked correctly
+- Condition validation: valid expressions pass, syntax errors rejected
+- Params validation: valid throttle/aggregate params pass, invalid window format rejected, limit <= 0 rejected
+- Glob validation: valid patterns pass, malformed patterns like `[unclosed` rejected
+- Stale template handling: engine gracefully handles missing digest_tpl_id (no panic, log warning)
+- Dirty data recovery: startup loads rules, encounters a rule with invalid jsonb params -> logs error, skips that rule, loads remaining rules successfully
 
 ### BDD Specs (Ginkgo/Gomega)
 
-- Full page renders with both tabs
-- CRUD lifecycle: create channel/rule -> appears in table -> edit -> updated in table -> delete -> removed
-- Conditional form fields change based on action dropdown selection
+- Full page renders with both tabs (lazy-loaded)
+- CRUD lifecycle: create channel/rule -> appears in table -> edit -> updated in table -> delete -> row removed
+- Conditional form fields change based on action dropdown selection (Alpine.js `x-show`)
 - Test connectivity shows success/error toast
 - Rule priority sorting in table
-- Engine reload after rule mutation
+- Engine reload after rule mutation (hot reload takes effect)
 - Empty state rendering when no channels/rules exist
-- Form validation errors displayed inline
+- Form validation errors displayed inline for all field types
+- URI field is type="password" in channel form, masked in table
+- Stale template references show warning badge in rules table
 
 ## Files Changed
 
