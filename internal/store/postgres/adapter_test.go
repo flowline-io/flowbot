@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -13,13 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// schemaMu serializes ent schema creation to avoid data races
+// in ent's internal migration code when tests run in parallel.
+var schemaMu sync.Mutex
+
 func getTestClient(t *testing.T) *gen.Client {
 	t.Helper()
 	client, err := gen.Open("sqlite3", "file::memory:?_fk=1")
 	if err != nil {
 		t.Fatalf("failed opening connection to sqlite: %v", err)
 	}
-	if err := client.Schema.Create(context.Background()); err != nil {
+	schemaMu.Lock()
+	err = client.Schema.Create(context.Background())
+	schemaMu.Unlock()
+	if err != nil {
 		t.Fatalf("failed creating schema resources: %v", err)
 	}
 	t.Cleanup(func() { client.Close() })
@@ -125,7 +132,7 @@ func TestCreateToken(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.True(t, len(token) > 10)
+			assert.Greater(t, len(token), 10)
 			assert.Contains(t, token, "fb_")
 			items, err := a.ListTokens(context.Background())
 			require.NoError(t, err)
@@ -182,14 +189,13 @@ func TestRevokeToken(t *testing.T) {
 			err := a.RevokeToken(context.Background(), flag)
 			if tt.wantErr {
 				require.Error(t, err)
-				assert.True(t, errors.Is(err, tt.errIs),
-					"expected error wrapping %v, got %v", tt.errIs, err)
+				assert.ErrorIs(t, err, tt.errIs)
 				return
 			}
 			require.NoError(t, err)
 			items, err := a.ListTokens(context.Background())
 			require.NoError(t, err)
-			assert.Len(t, items, 0)
+			assert.Empty(t, items)
 		})
 	}
 }

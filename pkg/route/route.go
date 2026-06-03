@@ -106,18 +106,9 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			return handler(ctx)
 		}
 
-		accessToken := ctx.Cookies(accessTokenKey)
-		if accessToken == "" {
-			var r http.Request
-			if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
-				auditAuthReject(ctx, "auth.token.validate.fail", "request conversion failed")
-				return protocol.ErrNotAuthorized.Wrap(err)
-			}
-			accessToken = GetAccessToken(&r)
-		}
-		if accessToken == "" {
-			auditAuthReject(ctx, "auth.token.validate.fail", "missing token")
-			return protocol.ErrNotAuthorized.New("Missing token")
+		accessToken, err := resolveAccessToken(ctx)
+		if err != nil {
+			return err
 		}
 
 		p, err := store.Database.ParameterGet(context.Background(), accessToken)
@@ -136,32 +127,8 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 			return protocol.ErrNotAuthorized.New("uid empty")
 		}
 
-		var scopes []string
-		if raw, ok := paramKV["scopes"]; ok {
-			switch v := raw.(type) {
-			case []any:
-				for _, item := range v {
-					if s, ok := item.(string); ok {
-						scopes = append(scopes, s)
-					}
-				}
-			case []string:
-				scopes = v
-			}
-		}
-
-		// Update last_used_at with 60s throttle to avoid write-on-every-request.
-		if lastUsedRaw, ok := paramKV["last_used_at"]; ok {
-			if lastUsedStr, isStr := lastUsedRaw.(string); isStr {
-				lastUsed, parseErr := time.Parse(time.RFC3339Nano, lastUsedStr)
-				if parseErr == nil && time.Since(lastUsed) < 60*time.Second {
-					goto skipUpdate
-				}
-			}
-		}
-		paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-		_ = store.Database.ParameterSet(context.Background(), accessToken, paramKV, p.ExpiredAt)
-	skipUpdate:
+		scopes := parseScopes(paramKV)
+		throttledUpdateLastUsed(paramKV, accessToken, p.ExpiredAt)
 
 		ctx.Locals(requestContextKey, &RequestContext{
 			UID:    uid,
@@ -172,6 +139,79 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 
 		return handler(ctx)
 	}
+}
+
+// resolveAccessToken extracts the access token from cookies or the HTTP request.
+func resolveAccessToken(ctx fiber.Ctx) (string, error) {
+	accessToken := ctx.Cookies(accessTokenKey)
+	if accessToken != "" {
+		return accessToken, nil
+	}
+
+	var r http.Request
+	if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
+		auditAuthReject(ctx, "auth.token.validate.fail", "request conversion failed")
+		return "", protocol.ErrNotAuthorized.Wrap(err)
+	}
+	accessToken = GetAccessToken(&r)
+	if accessToken == "" {
+		auditAuthReject(ctx, "auth.token.validate.fail", "missing token")
+		return "", protocol.ErrNotAuthorized.New("Missing token")
+	}
+	return accessToken, nil
+}
+
+// parseScopes extracts string scopes from the param KV store.
+func parseScopes(paramKV types.KV) []string {
+	raw, ok := paramKV["scopes"]
+	if !ok {
+		return nil
+	}
+
+	switch v := raw.(type) {
+	case []any:
+		scopes := make([]string, 0, len(v))
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				scopes = append(scopes, s)
+			}
+		}
+		return scopes
+	case []string:
+		return v
+	default:
+		return nil
+	}
+}
+
+// throttledUpdateLastUsed updates last_used_at in params with a 60s throttle
+// to avoid a database write on every request.
+func throttledUpdateLastUsed(paramKV types.KV, token string, expiredAt time.Time) {
+	if shouldUpdateLastUsed(paramKV) {
+		paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+		_ = store.Database.ParameterSet(context.Background(), token, paramKV, expiredAt)
+	}
+}
+
+// shouldUpdateLastUsed returns true when last_used_at is missing, unparseable,
+// or older than 60s.
+func shouldUpdateLastUsed(paramKV types.KV) bool {
+	lastUsedRaw, ok := paramKV["last_used_at"]
+	if !ok {
+		return true
+	}
+
+	lastUsedStr, isStr := lastUsedRaw.(string)
+	if !isStr {
+		return true
+	}
+
+	lastUsed, parseErr := time.Parse(time.RFC3339Nano, lastUsedStr)
+	if parseErr != nil {
+		return true
+	}
+
+	return time.Since(lastUsed) >= 60*time.Second
 }
 
 // GetRequestContext returns the typed RequestContext from fiber.Locals.

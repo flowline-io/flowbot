@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -19,13 +20,20 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// schemaMu serializes ent schema creation to avoid data races
+// in ent's internal migration code when tests run in parallel.
+var schemaMu sync.Mutex
+
 func getTestClient(t *testing.T) *gen.Client {
 	t.Helper()
 	client, err := gen.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	if err != nil {
 		t.Fatalf("failed opening connection to sqlite: %v", err)
 	}
-	if err := client.Schema.Create(context.Background()); err != nil {
+	schemaMu.Lock()
+	err = client.Schema.Create(context.Background())
+	schemaMu.Unlock()
+	if err != nil {
 		t.Fatalf("failed creating schema resources: %v", err)
 	}
 	t.Cleanup(func() { client.Close() })
