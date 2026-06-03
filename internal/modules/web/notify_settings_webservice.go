@@ -14,7 +14,6 @@ import (
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/route"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -195,14 +194,14 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		ctx.Set("HX-Trigger", `{"showToast": {"type": "error", "message": "Connection failed: `+err.Error()+`"}}`)
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
-			_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "failed", err.Error(), nil)
+			_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "Test connectivity", "failed", err.Error(), nil)
 		}
 		return ctx.SendString("")
 	}
 	ctx.Set("HX-Trigger", `{"showToast": {"type": "success", "message": "Connection successful"}}`)
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
-		_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "success", "", nil)
+		_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "Test connectivity", "success", "", nil)
 	}
 	return ctx.SendString("")
 }
