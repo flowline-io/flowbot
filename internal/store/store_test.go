@@ -914,6 +914,81 @@ func TestCountDataEvents(t *testing.T) {
 	}
 }
 
+func TestListDistinctEventPipelineNames(t *testing.T) {
+	t.Parallel()
+	client := getTestClient(t)
+	store := NewEventStore(client)
+	ctx := context.Background()
+
+	tests := []struct {
+		name      string
+		setup     func()
+		wantCount int
+		wantNames []string
+	}{
+		{
+			name:      "no pipeline runs returns empty",
+			setup:     func() {},
+			wantCount: 0,
+		},
+		{
+			name: "single pipeline name",
+			setup: func() {
+				now := time.Now()
+				client.PipelineRun.Create().
+					SetPipelineName("test-pipeline").
+					SetEventID("evt-1").
+					SetEventType("test.event").
+					SetTriggerSource("event").
+					SetStatus(1).
+					SetStartedAt(now).
+					SetCreatedAt(now).
+					SaveX(ctx)
+			},
+			wantCount: 1,
+			wantNames: []string{"test-pipeline"},
+		},
+		{
+			name: "multiple pipeline names deduped and sorted",
+			setup: func() {
+				now := time.Now()
+				client.PipelineRun.Create().
+					SetPipelineName("beta-pipeline").
+					SetEventID("evt-2").
+					SetEventType("test.event").
+					SetTriggerSource("event").
+					SetStatus(1).
+					SetStartedAt(now).
+					SetCreatedAt(now).
+					SaveX(ctx)
+				client.PipelineRun.Create().
+					SetPipelineName("alpha-pipeline").
+					SetEventID("evt-3").
+					SetEventType("test.event").
+					SetTriggerSource("event").
+					SetStatus(1).
+					SetStartedAt(now).
+					SetCreatedAt(now).
+					SaveX(ctx)
+			},
+			wantCount: 3,
+			wantNames: []string{"alpha-pipeline", "beta-pipeline", "test-pipeline"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup()
+			names, err := store.ListDistinctEventPipelineNames(ctx)
+			require.NoError(t, err)
+			assert.Len(t, names, tt.wantCount)
+			if tt.wantNames != nil {
+				assert.Equal(t, tt.wantNames, names)
+			}
+		})
+	}
+}
+
 // ---------------------------------------------------------------------------
 // ResourceChainStore tests
 // ---------------------------------------------------------------------------

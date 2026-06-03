@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -659,6 +660,24 @@ func (s *EventStore) CountDataEvents(ctx context.Context, opts ListDataEventsOpt
 	}
 
 	return int64(count), nil
+}
+
+// ListDistinctEventPipelineNames returns distinct pipeline names from pipeline_runs
+// that have matched events, ordered alphabetically.
+func (s *EventStore) ListDistinctEventPipelineNames(ctx context.Context) ([]string, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+
+	rows, err := s.client.PipelineRun.Query().
+		GroupBy(pipelinerun.FieldPipelineName).
+		Strings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list distinct pipeline names: %w", err)
+	}
+
+	slices.Sort(rows)
+	return rows, nil
 }
 
 // ListDistinctEventSources returns unique source values from data_events
