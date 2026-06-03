@@ -762,7 +762,7 @@ func TestListDataEvents(t *testing.T) {
 	ctx := context.Background()
 
 	events := []types.DataEvent{
-		{EventID: "evt-001", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#42"},
+		{EventID: "evt-001", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#42", Data: map[string]any{"title": "feed event data"}},
 		{EventID: "evt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "bookmark", EntityID: "url-1"},
 		{EventID: "evt-003", EventType: "entry.new", Source: "reader", Capability: "reader", EntityID: "feed-5"},
 	}
@@ -842,10 +842,10 @@ func TestListDataEvents(t *testing.T) {
 			wantCount: 0,
 		},
 		{
-			name:          "offset-based pagination page 1",
-			opts:          ListDataEventsOptions{Limit: 1, Offset: 0},
+			name:          "cursor-based pagination single item",
+			opts:          ListDataEventsOptions{Limit: 1},
 			wantCount:     1,
-			wantHasCursor: false,
+			wantHasCursor: true,
 		},
 		{
 			name:      "offset-based pagination page 2",

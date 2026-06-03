@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 
 	"github.com/bytedance/sonic"
@@ -564,7 +565,7 @@ func (s *EventStore) ListDataEvents(ctx context.Context, opts ListDataEventsOpti
 	q := applyDataEventFilters(s.client, opts)
 
 	// Offset-based pagination (mutually exclusive with cursor)
-	if opts.Offset > 0 || opts.Cursor == "" {
+	if opts.Offset > 0 {
 		q = q.Offset(opts.Offset).Limit(opts.Limit)
 		events, err := q.All(ctx)
 		if err != nil {
@@ -613,12 +614,17 @@ func applyDataEventFilters(client *gen.Client, opts ListDataEventsOptions) *gen.
 		})
 	}
 	if opts.Search != "" {
-		q = q.Where(func(s *sql.Selector) {
-			s.Where(sql.ExprP(
-				"source LIKE '%' || $1 || '%' OR entity_id LIKE '%' || $1 || '%' OR capability LIKE '%' || $1 || '%' OR CAST(data AS TEXT) LIKE '%' || $1 || '%'",
-				opts.Search,
-			))
-		})
+		q = q.Where(sql.OrPredicates(
+			func(s *sql.Selector) { s.Where(sql.ContainsFold("source", opts.Search)) },
+			func(s *sql.Selector) {
+				switch s.Dialect() {
+				case dialect.Postgres:
+					s.Where(sql.ExprP("CAST(data AS TEXT) ILIKE '%' || $1 || '%'", opts.Search))
+				default:
+					s.Where(sql.ExprP("LOWER(CAST(data AS TEXT)) LIKE LOWER('%' || $1 || '%')", opts.Search))
+				}
+			},
+		))
 	}
 	if opts.PipelineName != "" {
 		q = q.Where(func(s *sql.Selector) {
