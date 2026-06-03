@@ -32,13 +32,19 @@ templ PipelineEditorPage(name string) {
 					<button type="button" @click="redo" :disabled="redoStack.length === 0"
 						class="btn btn-ghost btn-sm"
 						data-testid="btn-redo">Redo</button>
-					<button type="button" @click="toggleCodeView"
-						class="btn btn-ghost btn-sm font-mono"
-						data-testid="btn-code-view">&lt;/&gt; Code</button>
-					<a :href="'/service/web/pipelines/' + name + '/runs'"
-						class="btn btn-ghost btn-sm"
-						data-testid="btn-run-history">Run History</a>
-					<button type="button" @click="saveDraft"
+				<button type="button" @click="toggleCodeView"
+					class="btn btn-ghost btn-sm font-mono"
+					data-testid="btn-code-view">&lt;/&gt; Code</button>
+				<a :href="'/service/web/pipelines/' + name + '/runs'"
+					class="btn btn-ghost btn-sm"
+					data-testid="btn-run-history">Run History</a>
+				<button type="button" @click="downloadYaml"
+					class="btn btn-ghost btn-sm"
+					data-testid="btn-download-yaml">Download</button>
+				<button type="button" @click="triggerImport"
+					class="btn btn-ghost btn-sm"
+					data-testid="btn-import-yaml">Import</button>
+				<button type="button" @click="saveDraft"
 						:disabled="saving"
 						class="btn btn-ghost btn-sm"
 						data-testid="btn-save-draft">
@@ -59,9 +65,12 @@ templ PipelineEditorPage(name string) {
 						</span>
 					</button>
 				</div>
-			</div>
+		</div>
 
-			<!-- Error summary -->
+		<input type="file" accept=".yaml,.yml" @change="handleYamlImport($event)"
+			id="yaml-import-input" class="hidden" data-testid="yaml-import-input">
+
+		<!-- Error summary -->
 			<div x-show="!loading && errors.length > 0"
 				class="alert alert-error mb-4 text-sm"
 				data-testid="error-summary">

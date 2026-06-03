@@ -683,6 +683,50 @@
         this.dragFromIdx = null;
       },
 
+      downloadYaml() {
+        var yaml = this.stateToYaml();
+        var blob = new Blob([yaml], { type: 'application/x-yaml' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = (this.name || 'pipeline') + '.yaml';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      },
+
+      triggerImport() {
+        this.$el.querySelector('#yaml-import-input').click();
+      },
+
+      async handleYamlImport(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        try {
+          var text = await new Promise(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function(e) { resolve(e.target.result); };
+            reader.onerror = function(e) { reject(e); };
+            reader.readAsText(file);
+          });
+          var obj = jsyaml.load(text);
+          if (!obj || typeof obj !== 'object') {
+            showToast('Invalid YAML: not a pipeline definition', 'error');
+            return;
+          }
+          this.pushUndo();
+          this.parseYamlToState(text);
+          this.markDirty();
+          this.validate();
+          showToast('YAML imported successfully', 'success');
+        } catch (err) {
+          showToast('Import failed: ' + err.message, 'error');
+        } finally {
+          e.target.value = '';
+        }
+      },
+
     }));
   }
 
