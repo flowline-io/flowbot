@@ -753,8 +753,6 @@ func TestPageDataStore_DeleteExpired(t *testing.T) {
 // EventStore tests
 // ---------------------------------------------------------------------------
 
-func timePtr(t time.Time) *time.Time { return &t }
-
 func TestListDataEvents(t *testing.T) {
 	t.Parallel()
 	client := getTestClient(t)
@@ -833,12 +831,12 @@ func TestListDataEvents(t *testing.T) {
 		},
 		{
 			name:      "time start filter returns events after time",
-			opts:      ListDataEventsOptions{Limit: 10, TimeStart: timePtr(time.Now().Add(-10 * time.Minute))},
+			opts:      ListDataEventsOptions{Limit: 10, TimeStart: new(time.Now().Add(-10 * time.Minute))},
 			wantCount: 3,
 		},
 		{
 			name:      "time end filter returns events before time",
-			opts:      ListDataEventsOptions{Limit: 10, TimeEnd: timePtr(time.Now().Add(-1 * time.Hour))},
+			opts:      ListDataEventsOptions{Limit: 10, TimeEnd: new(time.Now().Add(-1 * time.Hour))},
 			wantCount: 0,
 		},
 		{

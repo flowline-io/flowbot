@@ -13,7 +13,7 @@
 
   function initChart(canvas) {
     var type = canvas.dataset.chartType;
-    if (!type || canvas._chart) return;
+    if (!type || canvas.chartInstance) return;
 
     var statsEl = document.getElementById('chart-success-rate');
     if (!statsEl || !statsEl.dataset.stats) return;
@@ -27,7 +27,7 @@
 
     if (type === 'line') {
       var trend = stats.success_rate_trend || [];
-      canvas._chart = new Chart(canvas, {
+      canvas.chartInstance = new Chart(canvas, {
         type: 'line',
         data: {
           labels: trend.map(function (p) {
@@ -66,7 +66,7 @@
       });
     } else if (type === 'bar') {
       var pipeline = (stats.duration_distribution || {}).pipeline || [];
-      canvas._chart = new Chart(canvas, {
+      canvas.chartInstance = new Chart(canvas, {
         type: 'bar',
         data: {
           labels: pipeline.map(function (b) {
@@ -91,7 +91,7 @@
       });
     } else if (type === 'doughnut') {
       var pie = stats.trigger_source_pie || [];
-      canvas._chart = new Chart(canvas, {
+      canvas.chartInstance = new Chart(canvas, {
         type: 'doughnut',
         data: {
           labels: pie.map(function (s) {
@@ -118,9 +118,9 @@
 
   function destroyCharts(container) {
     container.querySelectorAll('canvas').forEach(function (c) {
-      if (c._chart) {
-        c._chart.destroy();
-        c._chart = null;
+      if (c.chartInstance) {
+        c.chartInstance.destroy();
+        c.chartInstance = null;
       }
     });
   }

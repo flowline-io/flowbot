@@ -35,15 +35,15 @@ document.addEventListener('alpine:init', function () {
             '/live/watch',
           );
           this.eventSource = new EventSource(watchURL);
-          this.eventSource.onmessage = function (e) {
+          this.eventSource.addEventListener('message', function (e) {
             var evt = JSON.parse(e.data);
             self.applyEvent(evt);
-          };
-          this.eventSource.onerror = function () {
+          });
+          this.eventSource.addEventListener('error', function () {
             if (self.runStatus === 'done' || self.runStatus === 'failed') {
               self.eventSource.close();
             }
-          };
+          });
         }
       },
 

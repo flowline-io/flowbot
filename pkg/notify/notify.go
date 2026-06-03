@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"regexp"
 	"strings"
 	"time"
@@ -337,9 +338,7 @@ func GetNotifyStore() *store.NotifyStore {
 func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg string, payload map[string]any) {
 	// Shallow-copy payload to avoid data race if caller mutates the map after returning.
 	payloadCopy := make(map[string]any, len(payload))
-	for k, v := range payload {
-		payloadCopy[k] = v
-	}
+	maps.Copy(payloadCopy, payload)
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()

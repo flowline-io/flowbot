@@ -79,7 +79,7 @@ Alpine.data('eventFilters', () => ({
   },
 
   debounceSearch() {
-    clearTimeout(this._searchTimer);
-    this._searchTimer = setTimeout(() => this.submitFilter(), 300);
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => this.submitFilter(), 300);
   },
 }));

@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"maps"
 	"strconv"
 	"time"
 
@@ -130,9 +131,7 @@ func retryNotification(ctx fiber.Ctx) error {
 
 	payload := make(map[string]any)
 	if rec.PayloadSnapshot != nil {
-		for k, v := range rec.PayloadSnapshot {
-			payload[k] = v
-		}
+		maps.Copy(payload, rec.PayloadSnapshot)
 	}
 
 	notifyUid := types.Uid(rec.UID)
