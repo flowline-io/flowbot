@@ -69,6 +69,12 @@ type Message func(*sql.Selector)
 // NotificationRecord is the predicate function for notificationrecord builders.
 type NotificationRecord func(*sql.Selector)
 
+// NotifyChannel is the predicate function for notifychannel builders.
+type NotifyChannel func(*sql.Selector)
+
+// NotifyRule is the predicate function for notifyrule builders.
+type NotifyRule func(*sql.Selector)
+
 // OAuth is the predicate function for oauth builders.
 type OAuth func(*sql.Selector)
 

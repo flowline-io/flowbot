@@ -507,6 +507,67 @@ var (
 			},
 		},
 	}
+	// NotifyChannelsColumns holds the columns for the "notify_channels" table.
+	NotifyChannelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "protocol", Type: field.TypeString},
+		{Name: "uri", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// NotifyChannelsTable holds the schema information for the "notify_channels" table.
+	NotifyChannelsTable = &schema.Table{
+		Name:       "notify_channels",
+		Columns:    NotifyChannelsColumns,
+		PrimaryKey: []*schema.Column{NotifyChannelsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notifychannel_protocol",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyChannelsColumns[2]},
+			},
+			{
+				Name:    "notifychannel_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyChannelsColumns[4]},
+			},
+		},
+	}
+	// NotifyRulesColumns holds the columns for the "notify_rules" table.
+	NotifyRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "rule_id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "action", Type: field.TypeEnum, Enums: []string{"throttle", "aggregate", "mute", "drop"}},
+		{Name: "event_pattern", Type: field.TypeString, Default: "*"},
+		{Name: "channel_pattern", Type: field.TypeString, Default: "*"},
+		{Name: "condition", Type: field.TypeString, Nullable: true},
+		{Name: "priority", Type: field.TypeInt, Default: 0},
+		{Name: "params", Type: field.TypeJSON},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// NotifyRulesTable holds the schema information for the "notify_rules" table.
+	NotifyRulesTable = &schema.Table{
+		Name:       "notify_rules",
+		Columns:    NotifyRulesColumns,
+		PrimaryKey: []*schema.Column{NotifyRulesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notifyrule_priority",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyRulesColumns[7]},
+			},
+			{
+				Name:    "notifyrule_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyRulesColumns[9]},
+			},
+		},
+	}
 	// OauthColumns holds the columns for the "oauth" table.
 	OauthColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1017,6 +1078,8 @@ var (
 		InstructTable,
 		MessagesTable,
 		NotificationRecordsTable,
+		NotifyChannelsTable,
+		NotifyRulesTable,
 		OauthTable,
 		PagesTable,
 		PageDataTable,
@@ -1102,6 +1165,12 @@ func init() {
 	}
 	NotificationRecordsTable.Annotation = &entsql.Annotation{
 		Table: "notification_records",
+	}
+	NotifyChannelsTable.Annotation = &entsql.Annotation{
+		Table: "notify_channels",
+	}
+	NotifyRulesTable.Annotation = &entsql.Annotation{
+		Table: "notify_rules",
 	}
 	OauthTable.Annotation = &entsql.Annotation{
 		Table: "oauth",

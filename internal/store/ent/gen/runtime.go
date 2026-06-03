@@ -26,6 +26,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -634,6 +636,74 @@ func init() {
 	notificationrecordDescCreatedAt := notificationrecordFields[8].Descriptor()
 	// notificationrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
 	notificationrecord.DefaultCreatedAt = notificationrecordDescCreatedAt.Default.(func() time.Time)
+	notifychannelFields := schema.NotifyChannel{}.Fields()
+	_ = notifychannelFields
+	// notifychannelDescName is the schema descriptor for name field.
+	notifychannelDescName := notifychannelFields[1].Descriptor()
+	// notifychannel.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notifychannel.NameValidator = notifychannelDescName.Validators[0].(func(string) error)
+	// notifychannelDescProtocol is the schema descriptor for protocol field.
+	notifychannelDescProtocol := notifychannelFields[2].Descriptor()
+	// notifychannel.ProtocolValidator is a validator for the "protocol" field. It is called by the builders before save.
+	notifychannel.ProtocolValidator = notifychannelDescProtocol.Validators[0].(func(string) error)
+	// notifychannelDescURI is the schema descriptor for uri field.
+	notifychannelDescURI := notifychannelFields[3].Descriptor()
+	// notifychannel.URIValidator is a validator for the "uri" field. It is called by the builders before save.
+	notifychannel.URIValidator = notifychannelDescURI.Validators[0].(func(string) error)
+	// notifychannelDescEnabled is the schema descriptor for enabled field.
+	notifychannelDescEnabled := notifychannelFields[4].Descriptor()
+	// notifychannel.DefaultEnabled holds the default value on creation for the enabled field.
+	notifychannel.DefaultEnabled = notifychannelDescEnabled.Default.(bool)
+	// notifychannelDescCreatedAt is the schema descriptor for created_at field.
+	notifychannelDescCreatedAt := notifychannelFields[5].Descriptor()
+	// notifychannel.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notifychannel.DefaultCreatedAt = notifychannelDescCreatedAt.Default.(func() time.Time)
+	// notifychannelDescUpdatedAt is the schema descriptor for updated_at field.
+	notifychannelDescUpdatedAt := notifychannelFields[6].Descriptor()
+	// notifychannel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notifychannel.DefaultUpdatedAt = notifychannelDescUpdatedAt.Default.(func() time.Time)
+	// notifychannel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notifychannel.UpdateDefaultUpdatedAt = notifychannelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	notifyruleFields := schema.NotifyRule{}.Fields()
+	_ = notifyruleFields
+	// notifyruleDescRuleID is the schema descriptor for rule_id field.
+	notifyruleDescRuleID := notifyruleFields[1].Descriptor()
+	// notifyrule.RuleIDValidator is a validator for the "rule_id" field. It is called by the builders before save.
+	notifyrule.RuleIDValidator = notifyruleDescRuleID.Validators[0].(func(string) error)
+	// notifyruleDescName is the schema descriptor for name field.
+	notifyruleDescName := notifyruleFields[2].Descriptor()
+	// notifyrule.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notifyrule.NameValidator = notifyruleDescName.Validators[0].(func(string) error)
+	// notifyruleDescEventPattern is the schema descriptor for event_pattern field.
+	notifyruleDescEventPattern := notifyruleFields[4].Descriptor()
+	// notifyrule.DefaultEventPattern holds the default value on creation for the event_pattern field.
+	notifyrule.DefaultEventPattern = notifyruleDescEventPattern.Default.(string)
+	// notifyrule.EventPatternValidator is a validator for the "event_pattern" field. It is called by the builders before save.
+	notifyrule.EventPatternValidator = notifyruleDescEventPattern.Validators[0].(func(string) error)
+	// notifyruleDescChannelPattern is the schema descriptor for channel_pattern field.
+	notifyruleDescChannelPattern := notifyruleFields[5].Descriptor()
+	// notifyrule.DefaultChannelPattern holds the default value on creation for the channel_pattern field.
+	notifyrule.DefaultChannelPattern = notifyruleDescChannelPattern.Default.(string)
+	// notifyrule.ChannelPatternValidator is a validator for the "channel_pattern" field. It is called by the builders before save.
+	notifyrule.ChannelPatternValidator = notifyruleDescChannelPattern.Validators[0].(func(string) error)
+	// notifyruleDescPriority is the schema descriptor for priority field.
+	notifyruleDescPriority := notifyruleFields[7].Descriptor()
+	// notifyrule.DefaultPriority holds the default value on creation for the priority field.
+	notifyrule.DefaultPriority = notifyruleDescPriority.Default.(int)
+	// notifyruleDescEnabled is the schema descriptor for enabled field.
+	notifyruleDescEnabled := notifyruleFields[9].Descriptor()
+	// notifyrule.DefaultEnabled holds the default value on creation for the enabled field.
+	notifyrule.DefaultEnabled = notifyruleDescEnabled.Default.(bool)
+	// notifyruleDescCreatedAt is the schema descriptor for created_at field.
+	notifyruleDescCreatedAt := notifyruleFields[10].Descriptor()
+	// notifyrule.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notifyrule.DefaultCreatedAt = notifyruleDescCreatedAt.Default.(func() time.Time)
+	// notifyruleDescUpdatedAt is the schema descriptor for updated_at field.
+	notifyruleDescUpdatedAt := notifyruleFields[11].Descriptor()
+	// notifyrule.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notifyrule.DefaultUpdatedAt = notifyruleDescUpdatedAt.Default.(func() time.Time)
+	// notifyrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notifyrule.UpdateDefaultUpdatedAt = notifyruleDescUpdatedAt.UpdateDefault.(func() time.Time)
 	oauthFields := schema.OAuth{}.Fields()
 	_ = oauthFields
 	// oauthDescUID is the schema descriptor for uid field.

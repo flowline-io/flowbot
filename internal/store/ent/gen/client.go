@@ -35,6 +35,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -103,6 +105,10 @@ type Client struct {
 	Message *MessageClient
 	// NotificationRecord is the client for interacting with the NotificationRecord builders.
 	NotificationRecord *NotificationRecordClient
+	// NotifyChannel is the client for interacting with the NotifyChannel builders.
+	NotifyChannel *NotifyChannelClient
+	// NotifyRule is the client for interacting with the NotifyRule builders.
+	NotifyRule *NotifyRuleClient
 	// OAuth is the client for interacting with the OAuth builders.
 	OAuth *OAuthClient
 	// Page is the client for interacting with the Page builders.
@@ -173,6 +179,8 @@ func (c *Client) init() {
 	c.Instruct = NewInstructClient(c.config)
 	c.Message = NewMessageClient(c.config)
 	c.NotificationRecord = NewNotificationRecordClient(c.config)
+	c.NotifyChannel = NewNotifyChannelClient(c.config)
+	c.NotifyRule = NewNotifyRuleClient(c.config)
 	c.OAuth = NewOAuthClient(c.config)
 	c.Page = NewPageClient(c.config)
 	c.PageData = NewPageDataClient(c.config)
@@ -305,6 +313,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Instruct:            NewInstructClient(cfg),
 		Message:             NewMessageClient(cfg),
 		NotificationRecord:  NewNotificationRecordClient(cfg),
+		NotifyChannel:       NewNotifyChannelClient(cfg),
+		NotifyRule:          NewNotifyRuleClient(cfg),
 		OAuth:               NewOAuthClient(cfg),
 		Page:                NewPageClient(cfg),
 		PageData:            NewPageDataClient(cfg),
@@ -364,6 +374,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Instruct:            NewInstructClient(cfg),
 		Message:             NewMessageClient(cfg),
 		NotificationRecord:  NewNotificationRecordClient(cfg),
+		NotifyChannel:       NewNotifyChannelClient(cfg),
+		NotifyRule:          NewNotifyRuleClient(cfg),
 		OAuth:               NewOAuthClient(cfg),
 		Page:                NewPageClient(cfg),
 		PageData:            NewPageDataClient(cfg),
@@ -415,11 +427,12 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
+		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
+		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
+		c.WorkflowStepRun,
 	} {
 		n.Use(hooks...)
 	}
@@ -432,11 +445,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
+		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
+		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
+		c.WorkflowStepRun,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -487,6 +501,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Message.mutate(ctx, m)
 	case *NotificationRecordMutation:
 		return c.NotificationRecord.mutate(ctx, m)
+	case *NotifyChannelMutation:
+		return c.NotifyChannel.mutate(ctx, m)
+	case *NotifyRuleMutation:
+		return c.NotifyRule.mutate(ctx, m)
 	case *OAuthMutation:
 		return c.OAuth.mutate(ctx, m)
 	case *PageMutation:
@@ -3323,6 +3341,272 @@ func (c *NotificationRecordClient) mutate(ctx context.Context, m *NotificationRe
 	}
 }
 
+// NotifyChannelClient is a client for the NotifyChannel schema.
+type NotifyChannelClient struct {
+	config
+}
+
+// NewNotifyChannelClient returns a client for the NotifyChannel from the given config.
+func NewNotifyChannelClient(c config) *NotifyChannelClient {
+	return &NotifyChannelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notifychannel.Hooks(f(g(h())))`.
+func (c *NotifyChannelClient) Use(hooks ...Hook) {
+	c.hooks.NotifyChannel = append(c.hooks.NotifyChannel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notifychannel.Intercept(f(g(h())))`.
+func (c *NotifyChannelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotifyChannel = append(c.inters.NotifyChannel, interceptors...)
+}
+
+// Create returns a builder for creating a NotifyChannel entity.
+func (c *NotifyChannelClient) Create() *NotifyChannelCreate {
+	mutation := newNotifyChannelMutation(c.config, OpCreate)
+	return &NotifyChannelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotifyChannel entities.
+func (c *NotifyChannelClient) CreateBulk(builders ...*NotifyChannelCreate) *NotifyChannelCreateBulk {
+	return &NotifyChannelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotifyChannelClient) MapCreateBulk(slice any, setFunc func(*NotifyChannelCreate, int)) *NotifyChannelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotifyChannelCreateBulk{err: fmt.Errorf("calling to NotifyChannelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotifyChannelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotifyChannelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotifyChannel.
+func (c *NotifyChannelClient) Update() *NotifyChannelUpdate {
+	mutation := newNotifyChannelMutation(c.config, OpUpdate)
+	return &NotifyChannelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotifyChannelClient) UpdateOne(_m *NotifyChannel) *NotifyChannelUpdateOne {
+	mutation := newNotifyChannelMutation(c.config, OpUpdateOne, withNotifyChannel(_m))
+	return &NotifyChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotifyChannelClient) UpdateOneID(id int64) *NotifyChannelUpdateOne {
+	mutation := newNotifyChannelMutation(c.config, OpUpdateOne, withNotifyChannelID(id))
+	return &NotifyChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotifyChannel.
+func (c *NotifyChannelClient) Delete() *NotifyChannelDelete {
+	mutation := newNotifyChannelMutation(c.config, OpDelete)
+	return &NotifyChannelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotifyChannelClient) DeleteOne(_m *NotifyChannel) *NotifyChannelDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotifyChannelClient) DeleteOneID(id int64) *NotifyChannelDeleteOne {
+	builder := c.Delete().Where(notifychannel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotifyChannelDeleteOne{builder}
+}
+
+// Query returns a query builder for NotifyChannel.
+func (c *NotifyChannelClient) Query() *NotifyChannelQuery {
+	return &NotifyChannelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotifyChannel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotifyChannel entity by its id.
+func (c *NotifyChannelClient) Get(ctx context.Context, id int64) (*NotifyChannel, error) {
+	return c.Query().Where(notifychannel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotifyChannelClient) GetX(ctx context.Context, id int64) *NotifyChannel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotifyChannelClient) Hooks() []Hook {
+	return c.hooks.NotifyChannel
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotifyChannelClient) Interceptors() []Interceptor {
+	return c.inters.NotifyChannel
+}
+
+func (c *NotifyChannelClient) mutate(ctx context.Context, m *NotifyChannelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotifyChannelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotifyChannelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotifyChannelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotifyChannelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown NotifyChannel mutation op: %q", m.Op())
+	}
+}
+
+// NotifyRuleClient is a client for the NotifyRule schema.
+type NotifyRuleClient struct {
+	config
+}
+
+// NewNotifyRuleClient returns a client for the NotifyRule from the given config.
+func NewNotifyRuleClient(c config) *NotifyRuleClient {
+	return &NotifyRuleClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notifyrule.Hooks(f(g(h())))`.
+func (c *NotifyRuleClient) Use(hooks ...Hook) {
+	c.hooks.NotifyRule = append(c.hooks.NotifyRule, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notifyrule.Intercept(f(g(h())))`.
+func (c *NotifyRuleClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotifyRule = append(c.inters.NotifyRule, interceptors...)
+}
+
+// Create returns a builder for creating a NotifyRule entity.
+func (c *NotifyRuleClient) Create() *NotifyRuleCreate {
+	mutation := newNotifyRuleMutation(c.config, OpCreate)
+	return &NotifyRuleCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotifyRule entities.
+func (c *NotifyRuleClient) CreateBulk(builders ...*NotifyRuleCreate) *NotifyRuleCreateBulk {
+	return &NotifyRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotifyRuleClient) MapCreateBulk(slice any, setFunc func(*NotifyRuleCreate, int)) *NotifyRuleCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotifyRuleCreateBulk{err: fmt.Errorf("calling to NotifyRuleClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotifyRuleCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotifyRuleCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotifyRule.
+func (c *NotifyRuleClient) Update() *NotifyRuleUpdate {
+	mutation := newNotifyRuleMutation(c.config, OpUpdate)
+	return &NotifyRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotifyRuleClient) UpdateOne(_m *NotifyRule) *NotifyRuleUpdateOne {
+	mutation := newNotifyRuleMutation(c.config, OpUpdateOne, withNotifyRule(_m))
+	return &NotifyRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotifyRuleClient) UpdateOneID(id int64) *NotifyRuleUpdateOne {
+	mutation := newNotifyRuleMutation(c.config, OpUpdateOne, withNotifyRuleID(id))
+	return &NotifyRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotifyRule.
+func (c *NotifyRuleClient) Delete() *NotifyRuleDelete {
+	mutation := newNotifyRuleMutation(c.config, OpDelete)
+	return &NotifyRuleDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotifyRuleClient) DeleteOne(_m *NotifyRule) *NotifyRuleDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotifyRuleClient) DeleteOneID(id int64) *NotifyRuleDeleteOne {
+	builder := c.Delete().Where(notifyrule.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotifyRuleDeleteOne{builder}
+}
+
+// Query returns a query builder for NotifyRule.
+func (c *NotifyRuleClient) Query() *NotifyRuleQuery {
+	return &NotifyRuleQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotifyRule},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotifyRule entity by its id.
+func (c *NotifyRuleClient) Get(ctx context.Context, id int64) (*NotifyRule, error) {
+	return c.Query().Where(notifyrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotifyRuleClient) GetX(ctx context.Context, id int64) *NotifyRule {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotifyRuleClient) Hooks() []Hook {
+	return c.hooks.NotifyRule
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotifyRuleClient) Interceptors() []Interceptor {
+	return c.inters.NotifyRule
+}
+
+func (c *NotifyRuleClient) mutate(ctx context.Context, m *NotifyRuleMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotifyRuleCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotifyRuleUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotifyRuleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotifyRuleDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown NotifyRule mutation op: %q", m.Op())
+	}
+}
+
 // OAuthClient is a client for the OAuth schema.
 type OAuthClient struct {
 	config
@@ -5856,18 +6140,18 @@ type (
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
-		NotificationRecord, OAuth, Page, PageData, Parameter, PipelineDefinition,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WorkflowRun, WorkflowStepRun []ent.Hook
+		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		Parameter, PipelineDefinition, PipelineRun, PipelineStepRun, Platform,
+		PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
+		ResourceLink, Topic, Url, User, WorkflowRun, WorkflowStepRun []ent.Hook
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
-		NotificationRecord, OAuth, Page, PageData, Parameter, PipelineDefinition,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WorkflowRun, WorkflowStepRun []ent.Interceptor
+		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		Parameter, PipelineDefinition, PipelineRun, PipelineStepRun, Platform,
+		PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
+		ResourceLink, Topic, Url, User, WorkflowRun, WorkflowStepRun []ent.Interceptor
 	}
 )
