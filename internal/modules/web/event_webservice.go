@@ -1,6 +1,10 @@
 package web
 
 import (
+	"fmt"
+	"strconv"
+	"time"
+
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
@@ -17,6 +21,7 @@ import (
 
 var eventWebserviceRules = []webservice.Rule{
 	webservice.Get("/events", eventsPage, route.WithNotAuth()),
+	webservice.Get("/events/filtered-events", filteredEventsTable, route.WithNotAuth()),
 	webservice.Get("/events/data-events", dataEventsTable, route.WithNotAuth()),
 	webservice.Get("/events/webhook-logs", webhookLogsTable, route.WithNotAuth()),
 	webservice.Get("/events/payload/:eventID", eventPayload, route.WithNotAuth()),
@@ -53,6 +58,73 @@ func hasWebhookData(e *gen.DataEvent) bool {
 	return hasMethod
 }
 
+// parseTimeParam parses a time query parameter supporting RFC3339 and datetime-local formats.
+func parseTimeParam(s string) (time.Time, error) {
+	formats := []string{time.RFC3339, "2006-01-02T15:04"}
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("cannot parse time: %s", s)
+}
+
+// parseEventFilterParams extracts filter parameters from the request query string.
+func parseEventFilterParams(c fiber.Ctx) store.ListDataEventsOptions {
+	opts := store.ListDataEventsOptions{
+		Source:    c.Query("source"),
+		EventType: c.Query("type"),
+		Search:    c.Query("search"),
+	}
+
+	if p := c.Query("pipeline"); p != "" {
+		opts.PipelineName = p
+	}
+
+	perPage := 20
+	if pp := c.Query("per_page"); pp != "" {
+		if v, err := strconv.Atoi(pp); err == nil && v > 0 {
+			if v > 100 {
+				v = 100
+			}
+			perPage = v
+		}
+	}
+	opts.Limit = perPage
+
+	page := 1
+	if pg := c.Query("page"); pg != "" {
+		if v, err := strconv.Atoi(pg); err == nil && v > 0 {
+			page = v
+		}
+	}
+	opts.Offset = (page - 1) * perPage
+
+	if ts := c.Query("time_start"); ts != "" {
+		if t, err := parseTimeParam(ts); err == nil {
+			opts.TimeStart = &t
+		}
+	}
+	if te := c.Query("time_end"); te != "" {
+		if t, err := parseTimeParam(te); err == nil {
+			opts.TimeEnd = &t
+		}
+	}
+
+	// Invalid time range: ignore both
+	if opts.TimeStart != nil && opts.TimeEnd != nil && opts.TimeEnd.Before(*opts.TimeStart) {
+		opts.TimeStart = nil
+		opts.TimeEnd = nil
+	}
+
+	tab := c.Query("tab")
+	if tab == "webhook-logs" {
+		opts.Webhook = true
+	}
+
+	return opts
+}
+
 func eventsPage(ctx fiber.Ctx) error {
 	if err := requireAdmin(ctx); err != nil {
 		return err
@@ -61,87 +133,128 @@ func eventsPage(ctx fiber.Ctx) error {
 	eventTypes := types.EventFilterCache.EventTypes()
 
 	s := getEventStore()
-	var events []*gen.DataEvent
-	var nextCursor string
+	var pipelineNames []string
 	if s != nil {
-		events, nextCursor, _ = s.ListDataEvents(ctx.Context(), store.ListDataEventsOptions{
-			Limit: 20,
-		})
+		pipelineNames, _ = s.ListDistinctEventPipelineNames(ctx.Context())
 	}
 
 	ctx.Type("html")
 	return pages.EventsPage(pages.EventsPageParams{
-		ActiveTab:  "data-events",
-		Sources:    sources,
-		EventTypes: eventTypes,
-		Events:     events,
-		NextCursor: nextCursor,
+		Sources:       sources,
+		EventTypes:    eventTypes,
+		PipelineNames: pipelineNames,
 	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
-func dataEventsTable(ctx fiber.Ctx) error {
-	if err := requireAdmin(ctx); err != nil {
+func filteredEventsTable(c fiber.Ctx) error {
+	if err := requireAdmin(c); err != nil {
 		return err
 	}
-	sourceFilter := ctx.Query("source")
-	typeFilter := ctx.Query("type")
-	cursor := ctx.Query("cursor")
 
 	s := getEventStore()
 	if s == nil {
-		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+		c.Type("html")
+		return partials.EmptyState("Store not available").Render(c.Context(), c.Response().BodyWriter())
 	}
-	events, nextCursor, err := s.ListDataEvents(ctx.Context(), store.ListDataEventsOptions{
-		Limit:     20,
-		Cursor:    cursor,
-		Source:    sourceFilter,
-		EventType: typeFilter,
-	})
+
+	opts := parseEventFilterParams(c)
+
+	total, err := s.CountDataEvents(c.Context(), opts)
 	if err != nil {
-		ctx.Type("html")
-		return partials.EmptyState("Failed to load events").Render(ctx.Context(), ctx.Response().BodyWriter())
+		c.Type("html")
+		return partials.EmptyState("Failed to count events").Render(c.Context(), c.Response().BodyWriter())
 	}
+
+	events, _, err := s.ListDataEvents(c.Context(), opts)
+	if err != nil {
+		c.Type("html")
+		return partials.EmptyState("Failed to load events").Render(c.Context(), c.Response().BodyWriter())
+	}
+
+	// Build event ID list for pipeline name lookups
+	eventIDs := make([]string, len(events))
+	for i, e := range events {
+		eventIDs[i] = e.EventID
+	}
+
+	runMap, _ := s.GetPipelineRunsForEvents(c.Context(), eventIDs)
 
 	sources := types.EventFilterCache.Sources()
 	eventTypes := types.EventFilterCache.EventTypes()
 
-	ctx.Type("html")
-	return partials.DataEventsTable(sources, eventTypes, sourceFilter, typeFilter, events, nextCursor).
-		Render(ctx.Context(), ctx.Response().BodyWriter())
+	perPage := opts.Limit
+	totalPages := int(total) / perPage
+	if int(total)%perPage != 0 {
+		totalPages++
+	}
+	currentPage := 1
+	if pg := c.Query("page"); pg != "" {
+		if v, err := strconv.Atoi(pg); err == nil && v > 0 {
+			currentPage = v
+		}
+	}
+	if currentPage > totalPages && totalPages > 0 {
+		currentPage = totalPages
+	}
+
+	pageInfo := partials.PageInfo{
+		Page:       currentPage,
+		TotalPages: totalPages,
+		Total:      total,
+		PerPage:    perPage,
+		HasPrev:    currentPage > 1,
+		HasNext:    currentPage < totalPages,
+	}
+
+	c.Type("html")
+	if opts.Webhook {
+		return partials.WebhookLogsTable(sources, eventTypes, events, pageInfo, runMap).
+			Render(c.Context(), c.Response().BodyWriter())
+	}
+	return partials.DataEventsTable(sources, eventTypes, events, pageInfo, runMap).
+		Render(c.Context(), c.Response().BodyWriter())
 }
 
-func webhookLogsTable(ctx fiber.Ctx) error {
-	if err := requireAdmin(ctx); err != nil {
+func dataEventsTable(c fiber.Ctx) error {
+	if err := requireAdmin(c); err != nil {
 		return err
 	}
-	sourceFilter := ctx.Query("source")
-	typeFilter := ctx.Query("type")
-	cursor := ctx.Query("cursor")
-
-	s := getEventStore()
-	if s == nil {
-		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+	source := c.Query("source")
+	typeFilter := c.Query("type")
+	cursor := c.Query("cursor")
+	u := "/service/web/events/filtered-events?tab=data-events"
+	if source != "" {
+		u += "&source=" + source
 	}
-	events, nextCursor, err := s.ListDataEvents(ctx.Context(), store.ListDataEventsOptions{
-		Limit:     20,
-		Cursor:    cursor,
-		Source:    sourceFilter,
-		EventType: typeFilter,
-		Webhook:   true,
-	})
-	if err != nil {
-		ctx.Type("html")
-		return partials.EmptyState("Failed to load webhook logs").Render(ctx.Context(), ctx.Response().BodyWriter())
+	if typeFilter != "" {
+		u += "&type=" + typeFilter
 	}
+	if cursor != "" {
+		u += "&cursor=" + cursor
+	}
+	c.Set("HX-Redirect", u)
+	return c.SendStatus(200)
+}
 
-	sources := types.EventFilterCache.Sources()
-	eventTypes := types.EventFilterCache.EventTypes()
-
-	ctx.Type("html")
-	return partials.WebhookLogsTable(sources, eventTypes, sourceFilter, typeFilter, events, nextCursor).
-		Render(ctx.Context(), ctx.Response().BodyWriter())
+func webhookLogsTable(c fiber.Ctx) error {
+	if err := requireAdmin(c); err != nil {
+		return err
+	}
+	source := c.Query("source")
+	typeFilter := c.Query("type")
+	cursor := c.Query("cursor")
+	u := "/service/web/events/filtered-events?tab=webhook-logs"
+	if source != "" {
+		u += "&source=" + source
+	}
+	if typeFilter != "" {
+		u += "&type=" + typeFilter
+	}
+	if cursor != "" {
+		u += "&cursor=" + cursor
+	}
+	c.Set("HX-Redirect", u)
+	return c.SendStatus(200)
 }
 
 func eventPayload(ctx fiber.Ctx) error {
