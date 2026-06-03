@@ -74,7 +74,7 @@ require (
 	golang.org/x/term v0.43.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
-	miniflux.app/v2 v2.3.0
+	miniflux.app/v2 v2.3.1
 	resty.dev/v3 v3.0.0-beta.6
 )
 
