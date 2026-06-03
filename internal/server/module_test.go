@@ -306,7 +306,7 @@ func (*testStoreAdapter) UpdateNotifyRule(context.Context, int64, model.NotifyRu
 	return nil
 }
 func (*testStoreAdapter) DeleteNotifyRule(context.Context, int64) error { return nil }
-func (*testStoreAdapter) MaskNotifyURI(string, string) string { return "" }
+func (*testStoreAdapter) MaskNotifyURI(string, string) string           { return "" }
 
 func TestRegisterModules_CreatesNewBot(t *testing.T) {
 	tests := []struct {
