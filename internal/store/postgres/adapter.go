@@ -1204,7 +1204,7 @@ func (a *adapter) ListTokens(ctx context.Context) ([]model.TokenItem, error) {
 		}
 		var lastUsedAt *time.Time
 		if usedStr, ok := paramsKV.String("last_used_at"); ok && usedStr != "" {
-			if t, err := time.Parse(time.RFC3339, usedStr); err == nil {
+			if t, err := time.Parse(time.RFC3339Nano, usedStr); err == nil {
 				lastUsedAt = &t
 			}
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -101,6 +102,22 @@ func tokensCreate(ctx fiber.Ctx) error {
 		return partials.TokenForm(errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 
+	validScopes := make(map[string]bool)
+	for _, s := range auth.AllScopes() {
+		validScopes[s.Value] = true
+	}
+	for _, s := range scopes {
+		if !validScopes[s] {
+			errorsMsg["scopes"] = fmt.Sprintf("Invalid scope: %s", s)
+			break
+		}
+	}
+	if len(errorsMsg) > 0 {
+		ctx.Status(http.StatusUnprocessableEntity)
+		ctx.Type("html")
+		return partials.TokenForm(errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
+	}
+
 	token, err := store.Database.CreateToken(
 		context.Background(),
 		types.Uid(uidVal),
@@ -123,7 +140,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="tokens-empty" hx-swap-oob="delete"></tr>`))
 	alert := fmt.Sprintf(
-		`<div data-testid="token-created-alert" hx-swap-oob="innerHTML:#token-alert-container" class="alert alert-success"><span><strong>Token created:</strong> <code class="font-mono text-xs">%s</code></span><button class="btn btn-ghost btn-xs" data-testid="token-copy-btn" onclick="navigator.clipboard.writeText('%s');this.textContent='Copied!'">Copy</button></div>`,
+		`<div data-testid="token-created-alert" hx-swap-oob="innerHTML:#token-alert-container" class="alert alert-success"><span><strong>Token created:</strong> <code class="font-mono text-xs">%s</code></span><button class="btn btn-ghost btn-xs" data-testid="token-copy-btn" data-token="%s" onclick="navigator.clipboard.writeText(this.dataset.token);this.textContent='Copied!'">Copy</button></div>`,
 		token, token,
 	)
 	ctx.Response().BodyWriter().Write([]byte(alert))
