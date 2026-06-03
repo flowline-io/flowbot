@@ -1,0 +1,128 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string, templateIDs []string) {
+	<tr id={ notifyRuleFormID(item, isNew) } x-data={ "{ action: '" + item.Action + "' }" }>
+		<td>
+			<input type="number" name="priority" value={ fmt.Sprintf("%d", item.Priority) }
+				data-testid="rule-priority"
+				class={ "input input-bordered input-sm w-16 " + fieldError(errors, "priority") }
+				min="0"
+			/>
+		</td>
+		<td>
+			<input type="text" name="name" value={ item.Name }
+				data-testid="rule-name"
+				class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
+				placeholder="Rule name"
+			/>
+			<div class="text-error text-xs">{ errors["name"] }</div>
+		</td>
+		<td>
+			<select name="action"
+				data-testid="rule-action"
+				x-model="action"
+				class={ "select select-bordered select-sm w-full " + fieldError(errors, "action") }>
+				<option value="">Select...</option>
+				<option value="throttle" if item.Action == "throttle" { selected }>throttle</option>
+				<option value="aggregate" if item.Action == "aggregate" { selected }>aggregate</option>
+				<option value="mute" if item.Action == "mute" { selected }>mute</option>
+				<option value="drop" if item.Action == "drop" { selected }>drop</option>
+			</select>
+			<div class="text-error text-xs">{ errors["action"] }</div>
+		</td>
+		<td>
+			<input type="text" name="event_pattern" value={ item.EventPattern }
+				data-testid="rule-event-pattern"
+				class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "event_pattern") }
+				placeholder='*'
+			/>
+			<input type="text" name="rule_id" value={ item.RuleID }
+				data-testid="rule-id"
+				class={ "input input-bordered input-sm w-full mt-1 font-mono " + fieldError(errors, "rule_id") }
+				placeholder="rule_id (e.g. night_mute)"
+			/>
+			<div class="text-error text-xs">{ errors["rule_id"] }</div>
+			<div class="text-error text-xs">{ errors["event_pattern"] }</div>
+		</td>
+		<td>
+			<input type="text" name="channel_pattern" value={ item.ChannelPattern }
+				data-testid="rule-channel-pattern"
+				class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "channel_pattern") }
+				placeholder='*'
+			/>
+			<div class="text-error text-xs">{ errors["channel_pattern"] }</div>
+		</td>
+		<td>
+			<label class="flex items-center gap-1 cursor-pointer">
+				<input type="checkbox" name="enabled"
+					data-testid="rule-enabled"
+					if item.Enabled { checked }
+					class="checkbox checkbox-sm"/>
+				<span class="text-xs">Enabled</span>
+			</label>
+		</td>
+		<td>
+			<div class="flex flex-col gap-1">
+				<div x-show="action === 'mute'">
+					<input type="text" name="condition" value={ item.Condition }
+						data-testid="rule-condition"
+						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "condition") }
+						placeholder='time.hour >= 23 || time.hour < 8'
+					/>
+					<div class="text-error text-xs">{ errors["condition"] }</div>
+				</div>
+				<div x-show="action === 'throttle' || action === 'aggregate'">
+					<textarea name="params_json" rows="3"
+						data-testid="rule-params"
+						class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "params_json") }
+						placeholder='{"window": "5m", "limit": 1}'
+					>{ item.ParamsJSON }</textarea>
+					if errors["params_json"] != "" {
+						<div class="text-error text-xs">{ errors["params_json"] }</div>
+				} else if item.Action == "aggregate" && len(templateIDs) > 0 {
+					<div class="text-xs text-base-content/50 mt-1">Available templates:
+					for i, tid := range templateIDs {
+						if i > 0 {
+							, 
+						}
+						{ tid }
+					}
+					</div>
+					}
+				</div>
+				<div class="flex gap-1 mt-1">
+					<button type="button"
+						if isNew {
+							hx-post="/service/web/notify-settings/rules"
+						} else {
+							hx-put={ notifyRuleDeleteURL(item) }
+						}
+						hx-target="closest tr"
+						hx-swap="outerHTML"
+						hx-include="[name='name'], [name='rule_id'], [name='action'], [name='event_pattern'], [name='channel_pattern'], [name='condition'], [name='priority'], [name='params_json'], [name='enabled']"
+						data-testid="rule-save"
+						class="btn btn-primary btn-sm">
+						Save
+					</button>
+					<button type="button"
+						hx-get={ notifyRuleCancelURL() }
+						hx-target="#notify-rules-table"
+						hx-swap="outerHTML"
+						data-testid="rule-cancel"
+						class="btn btn-ghost btn-sm">
+						Cancel
+					</button>
+				</div>
+				if errors["_save"] != "" {
+					<div class="text-error text-xs mt-1">{ errors["_save"] }</div>
+				}
+			</div>
+		</td>
+	</tr>
+}

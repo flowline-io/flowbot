@@ -1,0 +1,35 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
+	<div class="card bg-base-100 shadow-sm">
+		<div id="notify-rules-table"
+			data-testid="notify-rules-table"
+			class="overflow-x-auto">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="text-xs uppercase">Priority</th>
+					<th class="text-xs uppercase">Name</th>
+					<th class="text-xs uppercase">Action</th>
+					<th class="text-xs uppercase">Event</th>
+					<th class="text-xs uppercase">Channel</th>
+					<th class="text-xs uppercase">Status</th>
+					<th class="text-xs uppercase">Actions</th>
+				</tr>
+				</thead>
+				<tbody id="notify-rules-rows">
+				for _, rule := range rules {
+					@NotifyRuleRow(rule, templateIDs)
+				}
+				if len(rules) == 0 {
+					<tr id="notify-rules-empty">
+						<td colspan="7" class="text-center text-base-content/50">No notification rules configured.</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

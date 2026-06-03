@@ -1,0 +1,40 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ NotifyRuleRow(item model.NotifyRule, templateIDs []string) {
+	<tr id={ notifyRuleRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="text-base-content/70 text-center">{ fmt.Sprintf("%d", item.Priority) }</td>
+		<td class="text-base-content font-medium">
+			{ item.Name }
+			if item.Action == "aggregate" && item.ParamsJSON != "" && !hasTemplateForRule(item, templateIDs) {
+				<span class="tooltip" data-tip="Template not found in current config" data-testid="rule-stale-template">&#9888;</span>
+			}
+		</td>
+		<td><span class={ actionBadgeClass(item.Action) }>{ item.Action }</span></td>
+		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.EventPattern, 30) }</td>
+		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.ChannelPattern, 30) }</td>
+		<td>
+			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		</td>
+		<td>
+			<div class="flex gap-1">
+				<button hx-get={ notifyRuleEditURL(item) }
+					data-testid="rule-edit"
+					class="btn btn-ghost btn-xs text-primary">
+					Edit
+				</button>
+				<button hx-delete={ notifyRuleDeleteURL(item) }
+					hx-confirm="Delete this rule?"
+					data-testid="rule-delete"
+					class="btn btn-ghost btn-xs text-error">
+					Delete
+				</button>
+			</div>
+		</td>
+	</tr>
+}
