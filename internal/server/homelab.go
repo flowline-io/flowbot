@@ -14,20 +14,20 @@ import (
 
 var homelabRuntime homelab.Runtime = homelab.NoopRuntime{}
 
-func initHomelabRegistry(cfg config.Homelab) error {
+// RunHomelabScan executes a full homelab scan + probe + registry update cycle.
+// It walks the configured apps directory, discovers compose files, runs the
+// probe engine for endpoint/auth discovery, and replaces the default registry.
+// Exported for use by the homelab web handler to support manual rescan.
+func RunHomelabScan(cfg config.Homelab) error {
 	homeConfig := homelabConfig(cfg)
-	homelabRuntime = homelab.NewRuntime(homeConfig.Runtime, homeConfig.AppsDir)
-	homelab.DefaultRuntime = homelabRuntime
 	if homeConfig.AppsDir == "" && homeConfig.Root == "" {
-		flog.Info("homelab app registry disabled: homelab.apps_dir and homelab.root are empty")
-		return nil
+		return fmt.Errorf("homelab app registry disabled: apps_dir and root are empty")
 	}
 	apps, err := homelab.NewScanner(homeConfig).Scan()
 	if err != nil {
 		return fmt.Errorf("scan homelab apps: %w", err)
 	}
 
-	// Run probe engine to enrich apps with runtime endpoint and auth discovery.
 	if eng := probe.NewEngine(homeConfig.Discovery); eng != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), homeConfig.Discovery.ProbeTimeout*2)
 		defer cancel()
@@ -46,8 +46,19 @@ func initHomelabRegistry(cfg config.Homelab) error {
 			}
 		}
 	}
-	flog.Info("homelab app registry initialized with %d apps", len(apps))
+	flog.Info("homelab app registry rescanned with %d apps", len(apps))
 	return nil
+}
+
+func initHomelabRegistry(cfg config.Homelab) error {
+	hcfg := homelabConfig(cfg)
+	homelabRuntime = homelab.NewRuntime(hcfg.Runtime, hcfg.AppsDir)
+	homelab.DefaultRuntime = homelabRuntime
+	if cfg.AppsDir == "" && cfg.Root == "" {
+		flog.Info("homelab app registry disabled: homelab.apps_dir and homelab.root are empty")
+		return nil
+	}
+	return RunHomelabScan(cfg)
 }
 
 func homelabConfig(cfg config.Homelab) homelab.Config {

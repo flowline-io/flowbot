@@ -287,3 +287,31 @@ func TestMergeProbeResults(t *testing.T) {
 		})
 	}
 }
+
+func TestRunHomelabScan(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		cfg  config.Homelab
+	}{
+		{
+			name: "disabled_config_returns_error",
+			cfg:  config.Homelab{AppsDir: "", Root: ""},
+		},
+		{
+			name: "nonexistent_apps_dir_returns_error",
+			cfg:  config.Homelab{AppsDir: "/nonexistent/path", Root: ""},
+		},
+		{
+			name: "nonexistent_root_returns_error",
+			cfg:  config.Homelab{AppsDir: "", Root: "/nonexistent/root"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := RunHomelabScan(tt.cfg)
+			assert.Error(t, err)
+		})
+	}
+}
