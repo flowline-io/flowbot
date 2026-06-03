@@ -1,0 +1,62 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/auth"
+
+templ TokenForm(errors map[string]string) {
+	<tr id="token-form-new" data-testid="token-form">
+		<td>
+			<input type="text" name="uid"
+				data-testid="token-form-uid"
+				class={ "input input-bordered input-sm w-full " + fieldError(errors, "uid") }
+				placeholder="user:name"/>
+			<div class="text-error text-xs">{ errors["uid"] }</div>
+		</td>
+		<td></td>
+		<td></td>
+		<td></td>
+		<td>
+			<select name="expires" data-testid="token-form-expires"
+				class="select select-bordered select-sm w-full">
+				<option value="168h">7 days</option>
+				<option value="720h">30 days</option>
+				<option value="2160h">90 days</option>
+				<option value="8760h" selected>1 year</option>
+			</select>
+			<div class="text-error text-xs">{ errors["expires"] }</div>
+		</td>
+		<td>
+			<div class="flex flex-col gap-0.5">
+				for _, s := range auth.AllScopes() {
+					<label class="flex items-center gap-1 text-xs cursor-pointer">
+						<input type="checkbox" name="scopes" value={ s.Value }
+							data-testid={ "token-form-scope-" + s.Value }
+							class="checkbox checkbox-xs"/>
+						<span>{ s.Value }</span>
+					</label>
+				}
+			</div>
+			<div class="text-error text-xs">{ errors["scopes"] }</div>
+		</td>
+		<td>
+			<div class="flex gap-2">
+				<button type="button"
+					hx-post="/service/web/tokens"
+					hx-target="#tokens-rows"
+					hx-swap="afterbegin"
+					hx-include="[name='uid'], [name='expires'], [name='scopes']"
+					data-testid="token-form-save"
+					class="btn btn-primary btn-sm">
+					Save
+				</button>
+				<button type="button"
+					hx-get="/service/web/tokens/list"
+					hx-target="#tokens-table"
+					hx-swap="outerHTML"
+					data-testid="token-form-cancel"
+					class="btn btn-ghost btn-sm">
+					Cancel
+				</button>
+			</div>
+		</td>
+	</tr>
+}

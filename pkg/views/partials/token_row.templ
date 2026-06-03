@@ -1,0 +1,46 @@
+package partials
+
+import (
+	"net/url"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ TokenRow(item model.TokenItem) {
+	<tr id={ tokenRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="font-mono">{ item.UID.String() }</td>
+		<td class="font-mono text-xs">{ tokenPrefix(item.Token) }</td>
+		<td class="text-base-content/50">{ item.CreatedAt.Format("2006-01-02 15:04") }</td>
+		<td class="text-base-content/50">
+			if item.LastUsedAt != nil {
+				{ item.LastUsedAt.Format("2006-01-02 15:04") }
+			} else {
+				<span class="text-base-content/30">never</span>
+			}
+		</td>
+		<td class="text-base-content/50">{ item.ExpiredAt.Format("2006-01-02 15:04") }</td>
+		<td>
+			<div class="flex flex-wrap gap-1">
+				for _, s := range item.Scopes {
+					<span class="badge badge-sm badge-outline">{ scopeBadge(s) }</span>
+				}
+			</div>
+		</td>
+		<td>
+			<button hx-delete={ tokenRevokeURL(item) }
+				hx-confirm="Revoke this token? It will stop working immediately."
+				data-testid="token-revoke-btn"
+				class="btn btn-ghost btn-xs text-error">
+				Revoke
+			</button>
+		</td>
+	</tr>
+}
+
+func tokenRowID(item model.TokenItem) string {
+	return "token-" + url.PathEscape(item.Token)
+}
+
+func tokenRevokeURL(item model.TokenItem) string {
+	return "/service/web/tokens/" + url.PathEscape(item.Token)
+}
