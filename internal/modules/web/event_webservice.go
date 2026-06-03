@@ -81,6 +81,18 @@ func parseEventFilterParams(c fiber.Ctx) store.ListDataEventsOptions {
 		opts.PipelineName = p
 	}
 
+	parsePagination(c, &opts)
+	parseTimeRange(c, &opts)
+
+	if c.Query("tab") == "webhook-logs" {
+		opts.Webhook = true
+	}
+
+	return opts
+}
+
+// parsePagination extracts per_page and page parameters into the options.
+func parsePagination(c fiber.Ctx, opts *store.ListDataEventsOptions) {
 	perPage := 20
 	if pp := c.Query("per_page"); pp != "" {
 		if v, err := strconv.Atoi(pp); err == nil && v > 0 {
@@ -99,7 +111,11 @@ func parseEventFilterParams(c fiber.Ctx) store.ListDataEventsOptions {
 		}
 	}
 	opts.Offset = (page - 1) * perPage
+}
 
+// parseTimeRange extracts time_start and time_end parameters into the options.
+// If the end time is before the start time, both are discarded.
+func parseTimeRange(c fiber.Ctx, opts *store.ListDataEventsOptions) {
 	if ts := c.Query("time_start"); ts != "" {
 		if t, err := parseTimeParam(ts); err == nil {
 			opts.TimeStart = &t
@@ -111,18 +127,10 @@ func parseEventFilterParams(c fiber.Ctx) store.ListDataEventsOptions {
 		}
 	}
 
-	// Invalid time range: ignore both
 	if opts.TimeStart != nil && opts.TimeEnd != nil && opts.TimeEnd.Before(*opts.TimeStart) {
 		opts.TimeStart = nil
 		opts.TimeEnd = nil
 	}
-
-	tab := c.Query("tab")
-	if tab == "webhook-logs" {
-		opts.Webhook = true
-	}
-
-	return opts
 }
 
 func eventsPage(ctx fiber.Ctx) error {
