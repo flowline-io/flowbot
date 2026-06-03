@@ -40,7 +40,9 @@ Alpine.data('eventFilters', () => ({
     this.timeRange = range;
     if (durations[range]) {
       this.timeEnd = now.toISOString().slice(0, 16);
-      this.timeStart = new Date(now - durations[range]).toISOString().slice(0, 16);
+      this.timeStart = new Date(now - durations[range])
+        .toISOString()
+        .slice(0, 16);
     }
     this.submitFilter();
   },
@@ -65,7 +67,10 @@ Alpine.data('eventFilters', () => ({
 
   submitFilter() {
     const url = '/service/web/events/filtered-events?' + this.getFilterParams();
-    htmx.ajax('GET', url, { target: '#events-table-container', swap: 'innerHTML' });
+    htmx.ajax('GET', url, {
+      target: '#events-table-container',
+      swap: 'innerHTML',
+    });
   },
 
   switchTab(newTab) {
@@ -76,5 +81,5 @@ Alpine.data('eventFilters', () => ({
   debounceSearch() {
     clearTimeout(this._searchTimer);
     this._searchTimer = setTimeout(() => this.submitFilter(), 300);
-  }
+  },
 }));
