@@ -3,6 +3,7 @@ package rules
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"strings"
 	"sync"
@@ -69,6 +70,16 @@ func (e *Engine) LoadConfig(rules []config.NotifyRule) error {
 
 	e.rules = sorted
 	return nil
+}
+
+// Reload refreshes the rule list from the database.
+// Called after rule CRUD operations to enable hot-reload without restart.
+func (e *Engine) Reload(ctx context.Context, loader func(context.Context) ([]config.NotifyRule, error)) error {
+	rules, err := loader(ctx)
+	if err != nil {
+		return err
+	}
+	return e.LoadConfig(rules)
 }
 
 // EvalResult represents the outcome of rule evaluation.
@@ -209,4 +220,44 @@ func evalTimeCondition(condition string) bool {
 		}
 	}
 	return false
+}
+
+// ValidateCondition checks whether a condition expression string is syntactically valid.
+// It uses the same parsing logic as evalCondition but without evaluating time values.
+func ValidateCondition(condition string) error {
+	if condition == "" {
+		return nil
+	}
+	// validate each || part
+	parts := strings.SplitSeq(condition, "||")
+	for part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			return fmt.Errorf("rules: empty expression after ||")
+		}
+		andParts := strings.SplitSeq(part, "&&")
+		for ap := range andParts {
+			ap = strings.TrimSpace(ap)
+			if ap == "" {
+				return fmt.Errorf("rules: empty expression after &&")
+			}
+			if err := validateTimeExpression(ap); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func validateTimeExpression(expr string) error {
+	expr = strings.TrimSpace(expr)
+	if !strings.HasPrefix(expr, "time.hour ") {
+		return fmt.Errorf("rules: expected 'time.hour <op> N', got %q", expr)
+	}
+	for _, op := range []string{">=", "<=", "==", ">", "<"} {
+		if strings.Contains(expr, " "+op+" ") || strings.HasPrefix(expr[len("time.hour "):], op+" ") {
+			return nil
+		}
+	}
+	return fmt.Errorf("rules: unknown operator in %q", expr)
 }
