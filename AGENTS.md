@@ -59,6 +59,7 @@ Homelab Data Hub & Capability Orchestration Center.
 - Never use Redis Stream as sole event store — persist to PostgreSQL data_events
 - Never skip delivery/audit/idempotency records
 - Never write database query code outside `internal/store/store.go`
+- Never remove `t.Parallel()` to hide test race conditions — fix the root cause instead (e.g. shared-state serialization)
 - Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic`. `json.RawMessage` type from stdlib is allowed.
 
 ## Build & Test, Generate command
