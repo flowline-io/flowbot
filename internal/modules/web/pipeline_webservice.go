@@ -44,6 +44,8 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/:name/runs/:runID/live/watch", watchPipelineRunLive),
 	webservice.Get("/pipelines/stats", pipelineStats),
 	webservice.Get("/pipelines/:name/stats", pipelineStats),
+	webservice.Get("/pipelines/:name/versions", listPipelineVersions),
+	webservice.Get("/pipelines/:name/versions/:version", getPipelineVersion),
 }
 
 func getPipelineDefStore() *store.PipelineStore {
@@ -210,6 +212,53 @@ func getPipelineYaml(c fiber.Ctx) error {
 		"yaml":    def.YamlDraft,
 		"version": def.Version,
 		"status":  def.Status,
+	})
+}
+
+func listPipelineVersions(c fiber.Ctx) error {
+	name := c.Params("name")
+	s := getPipelineDefStore()
+	// Verify pipeline exists first, since ListDefinitionVersions does not
+	// return ErrNotFound for an unknown pipeline name.
+	_, err := s.GetDefinitionByName(context.Background(), name)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
+		}
+		return types.Errorf(types.ErrInternal, "list versions: %v", err)
+	}
+	vers, err := s.ListDefinitionVersions(context.Background(), name)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list versions: %v", err)
+	}
+	items := make([]fiber.Map, 0, len(vers))
+	for _, v := range vers {
+		items = append(items, fiber.Map{
+			"version":    v.Version,
+			"created_at": v.CreatedAt,
+		})
+	}
+	return c.JSON(items)
+}
+
+func getPipelineVersion(c fiber.Ctx) error {
+	name := c.Params("name")
+	version, err := strconv.Atoi(c.Params("version"))
+	if err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid version: %v", err)
+	}
+	s := getPipelineDefStore()
+	ver, err := s.GetDefinitionVersion(context.Background(), name, version)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
+		}
+		return types.Errorf(types.ErrInternal, "get version: %v", err)
+	}
+	return c.JSON(fiber.Map{
+		"yaml":       ver.Yaml,
+		"version":    ver.Version,
+		"created_at": ver.CreatedAt,
 	})
 }
 
