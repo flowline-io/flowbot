@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -26,6 +27,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
@@ -1600,6 +1602,205 @@ func (a *adapter) UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, 
 		return fmt.Errorf("postgres: updateagentonlineduration: %w", err)
 	}
 	return nil
+}
+
+// ---------------------------------------------------------------------------
+// NotifyChannel CRUD
+// ---------------------------------------------------------------------------
+
+func (a *adapter) CreateNotifyChannel(ctx context.Context, name, protocol, uri string) (int64, error) {
+	ch, err := a.client.NotifyChannel.Create().
+		SetName(name).
+		SetProtocol(protocol).
+		SetURI(uri).
+		SetEnabled(true).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: create notify channel: %w", err)
+	}
+	return ch.ID, nil
+}
+
+func (a *adapter) GetNotifyChannel(ctx context.Context, id int64) (model.NotifyChannel, error) {
+	ch, err := a.client.NotifyChannel.Query().Where(notifychannel.IDEQ(id)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyChannel{}, types.ErrNotFound
+		}
+		return model.NotifyChannel{}, fmt.Errorf("postgres: get notify channel: %w", err)
+	}
+	return model.NotifyChannel{
+		ID:        ch.ID,
+		Name:      ch.Name,
+		Protocol:  ch.Protocol,
+		URI:       a.MaskNotifyURI(ch.Protocol, ch.URI),
+		Enabled:   ch.Enabled,
+		CreatedAt: ch.CreatedAt,
+		UpdatedAt: ch.UpdatedAt,
+	}, nil
+}
+
+func (a *adapter) GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error) {
+	ch, err := a.client.NotifyChannel.Query().Where(notifychannel.IDEQ(id)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyChannel{}, types.ErrNotFound
+		}
+		return model.NotifyChannel{}, fmt.Errorf("postgres: get notify channel raw: %w", err)
+	}
+	return model.NotifyChannel{
+		ID:        ch.ID,
+		Name:      ch.Name,
+		Protocol:  ch.Protocol,
+		URI:       ch.URI,
+		Enabled:   ch.Enabled,
+		CreatedAt: ch.CreatedAt,
+		UpdatedAt: ch.UpdatedAt,
+	}, nil
+}
+
+func (a *adapter) ListNotifyChannels(ctx context.Context, opts store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
+	q := a.client.NotifyChannel.Query()
+	if opts.Protocol != "" {
+		q = q.Where(notifychannel.Protocol(opts.Protocol))
+	}
+	if opts.Enabled != nil {
+		q = q.Where(notifychannel.Enabled(*opts.Enabled))
+	}
+	chs, err := q.Order(gen.Asc(notifychannel.FieldName)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list notify channels: %w", err)
+	}
+	result := make([]model.NotifyChannel, len(chs))
+	for i, ch := range chs {
+		result[i] = model.NotifyChannel{
+			ID:        ch.ID,
+			Name:      ch.Name,
+			Protocol:  ch.Protocol,
+			URI:       a.MaskNotifyURI(ch.Protocol, ch.URI),
+			Enabled:   ch.Enabled,
+			CreatedAt: ch.CreatedAt,
+			UpdatedAt: ch.UpdatedAt,
+		}
+	}
+	return result, nil
+}
+
+func (a *adapter) UpdateNotifyChannel(ctx context.Context, id int64, name, protocol, uri string, enabled bool) error {
+	upd := a.client.NotifyChannel.Update().Where(notifychannel.IDEQ(id)).
+		SetName(name).
+		SetProtocol(protocol).
+		SetEnabled(enabled).
+		SetUpdatedAt(time.Now())
+	if uri != "" {
+		upd = upd.SetURI(uri)
+	}
+	n, err := upd.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update notify channel: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteNotifyChannel(ctx context.Context, id int64) error {
+	_, err := a.client.NotifyChannel.Delete().Where(notifychannel.IDEQ(id)).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete notify channel: %w", err)
+	}
+	return nil
+}
+
+// MaskNotifyURI produces a display-safe masked form of a notification URI.
+func (a *adapter) MaskNotifyURI(protocol, uri string) string {
+	switch protocol {
+	case "slack":
+		return maskSlackURI(uri)
+	case "ntfy":
+		return maskNtfyURI(uri)
+	case "pushover":
+		return maskPushoverURI(uri)
+	case "message-pusher":
+		return maskMessagePusherURI(uri)
+	default:
+		if len(uri) > 30 {
+			return uri[:27] + "..."
+		}
+		return uri
+	}
+}
+
+func maskSlackURI(uri string) string {
+	parts := strings.SplitN(uri, "://", 2)
+	if len(parts) < 2 {
+		return "slack://******"
+	}
+	pathParts := strings.Split(parts[1], "/")
+	if len(pathParts) > 3 {
+		pathParts[len(pathParts)-3] = "T******"
+	}
+	if len(pathParts) > 2 {
+		pathParts[len(pathParts)-2] = "B******"
+	}
+	if len(pathParts) > 1 {
+		pathParts[len(pathParts)-1] = "C******"
+	}
+	return parts[0] + "://" + strings.Join(pathParts, "/")
+}
+
+func maskNtfyURI(uri string) string {
+	parts := strings.SplitN(uri, "://", 2)
+	if len(parts) < 2 {
+		return "ntfy://******"
+	}
+	hostParts := strings.SplitN(parts[1], "/", 2)
+	if len(hostParts) < 2 {
+		return parts[0] + "://" + hostParts[0] + "/******"
+	}
+	return parts[0] + "://" + hostParts[0] + "/******"
+}
+
+func maskPushoverURI(uri string) string {
+	parts := strings.SplitN(uri, "://", 2)
+	if len(parts) < 2 {
+		return "pushover://******"
+	}
+	userIdx := strings.Index(parts[1], "@")
+	if userIdx < 0 {
+		return parts[0] + "://U******@" + maskEnd(parts[1])
+	}
+	return parts[0] + "://U******@A******"
+}
+
+func maskMessagePusherURI(uri string) string {
+	parts := strings.SplitN(uri, "://", 2)
+	if len(parts) < 2 {
+		return "message-pusher://******"
+	}
+	atIdx := strings.Index(parts[1], "@")
+	if atIdx < 0 {
+		return parts[0] + "://******"
+	}
+	finalSlash := strings.LastIndex(parts[1], "/")
+	if finalSlash < 0 {
+		return parts[0] + "://" + parts[1][:atIdx+1] + "domain/******/******"
+	}
+	secondLast := strings.LastIndex(parts[1][:finalSlash], "/")
+	if secondLast < 0 {
+		return parts[0] + "://" + parts[1][:finalSlash+1] + "******"
+	}
+	return parts[0] + "://" + parts[1][:secondLast+1] + "******/******"
+}
+
+func maskEnd(s string) string {
+	if len(s) > 8 {
+		return s[:4] + "******"
+	}
+	return "******"
 }
 
 // ---------------------------------------------------------------------------
