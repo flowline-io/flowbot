@@ -113,6 +113,21 @@ func (e *Engine) GetTemplateID(eventType string) string {
 	return ""
 }
 
+// ListTemplateIDs returns all registered template IDs in the engine.
+func (e *Engine) ListTemplateIDs() []string {
+	ids := make([]string, 0, len(e.templates))
+	for id := range e.templates {
+		ids = append(ids, id)
+	}
+	return ids
+}
+
+// HasTemplate returns true if the given template ID exists in the engine.
+func (e *Engine) HasTemplate(id string) bool {
+	_, ok := e.templates[id]
+	return ok
+}
+
 func compileTemplate(tmplStr, _ string) (*template.Template, error) {
 	tmpl := template.New("notify").Funcs(sprig.FuncMap()).Funcs(template.FuncMap{
 		"eventTime": eventTime,
