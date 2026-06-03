@@ -1,0 +1,76 @@
+package partials
+
+import "fmt"
+
+templ EventPagination(info PageInfo) {
+	if info.Total == 0 {
+		return
+	}
+	<div class="flex flex-wrap items-center justify-between p-3 border-t border-base-300" data-testid="pagination">
+		<div class="flex items-center gap-2">
+			<select class="select select-bordered select-xs"
+				name="per_page"
+				hx-get="/service/web/events/filtered-events"
+				hx-include="[data-filter-input]"
+				hx-target="#events-table-container"
+				hx-swap="innerHTML"
+				data-testid="per-page-select">
+				<option value="10" selected={ templ.KV(info.PerPage == 10, true) }>10</option>
+				<option value="20" selected={ templ.KV(info.PerPage == 20, true) }>20</option>
+				<option value="50" selected={ templ.KV(info.PerPage == 50, true) }>50</option>
+				<option value="100" selected={ templ.KV(info.PerPage == 100, true) }>100</option>
+			</select>
+		</div>
+		<div class="text-xs text-base-content/70">
+			Showing { fmt.Sprintf("%d", (info.Page-1)*info.PerPage+1) }-{ fmt.Sprintf("%d", min(info.Page*info.PerPage, int(info.Total))) } of { fmt.Sprintf("%d", info.Total) }
+		</div>
+		<div class="flex items-center gap-1">
+			<button class="btn btn-xs btn-ghost"
+				if !info.HasPrev {
+					disabled
+				}
+				hx-get={ templ.URL("/service/web/events/filtered-events?page=" + fmt.Sprintf("%d", info.Page-1)) }
+				hx-include="[data-filter-input]"
+				hx-target="#events-table-container"
+				hx-swap="innerHTML"
+				data-testid="pagination-prev">Prev</button>
+
+			for _, p := range pageNumbers(info.Page, info.TotalPages) {
+				if p == 0 {
+					<span class="px-1 text-xs">...</span>
+				} else if p == info.Page {
+					<span class="btn btn-xs btn-primary" data-testid="pagination-page-active">{ fmt.Sprintf("%d", p) }</span>
+				} else {
+					<button class="btn btn-xs btn-ghost"
+						hx-get={ templ.URL("/service/web/events/filtered-events?page=" + fmt.Sprintf("%d", p)) }
+						hx-include="[data-filter-input]"
+						hx-target="#events-table-container"
+						hx-swap="innerHTML"
+						data-testid={ "pagination-page-" + fmt.Sprintf("%d", p) }>{ fmt.Sprintf("%d", p) }</button>
+				}
+			}
+
+			<button class="btn btn-xs btn-ghost"
+				if !info.HasNext {
+					disabled
+				}
+				hx-get={ templ.URL("/service/web/events/filtered-events?page=" + fmt.Sprintf("%d", info.Page+1)) }
+				hx-include="[data-filter-input]"
+				hx-target="#events-table-container"
+				hx-swap="innerHTML"
+				data-testid="pagination-next">Next</button>
+		</div>
+		<div class="flex items-center gap-1">
+			<span class="text-xs text-base-content/50">Go to</span>
+			<input type="number" class="input input-bordered input-xs w-16" min="1" max={ fmt.Sprintf("%d", info.TotalPages) }
+				data-testid="pagination-jump"/>
+			<button class="btn btn-xs btn-ghost"
+				x-on:click="
+					const pageVal = $el.parentElement.querySelector('input').value;
+					const url = '/service/web/events/filtered-events?page=' + pageVal;
+					htmx.ajax('GET', url, { target: '#events-table-container', swap: 'innerHTML' });
+				"
+				data-testid="pagination-go">Go</button>
+		</div>
+	</div>
+}

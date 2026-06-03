@@ -11,6 +11,43 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
+// PageInfo holds pagination state for the event table.
+type PageInfo struct {
+	Page       int
+	TotalPages int
+	Total      int64
+	PerPage    int
+	HasPrev    bool
+	HasNext    bool
+}
+
+// pageNumbers returns the page numbers to display in pagination.
+// Returns a slice where 0 represents an ellipsis.
+func pageNumbers(current, total int) []int {
+	if total <= 7 {
+		nums := make([]int, total)
+		for i := range nums {
+			nums[i] = i + 1
+		}
+		return nums
+	}
+	result := make([]int, 0, 7)
+	result = append(result, 1)
+	if current-2 > 2 {
+		result = append(result, 0)
+	}
+	start := max(2, current-2)
+	end := min(total-1, current+2)
+	for i := start; i <= end; i++ {
+		result = append(result, i)
+	}
+	if current+2 < total-1 {
+		result = append(result, 0)
+	}
+	result = append(result, total)
+	return result
+}
+
 // valuePreview returns a truncated JSON representation of a KV map for display.
 func valuePreview(kv types.KV) string {
 	b, err := sonic.Marshal(kv)

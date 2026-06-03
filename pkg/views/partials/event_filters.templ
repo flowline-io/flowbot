@@ -1,0 +1,84 @@
+package partials
+
+type FilterBarParams struct {
+	Tab            string
+	Sources        []string
+	EventTypes     []string
+	PipelineNames  []string
+	SourceFilter   string
+	TypeFilter     string
+	PipelineFilter string
+	SearchFilter   string
+	TimeStart      string
+	TimeEnd        string
+}
+
+templ FilterBar(p FilterBarParams) {
+	<div class="card bg-base-100 shadow-sm mb-4" id="event-filter-bar" data-testid="event-filter-bar">
+		<div class="card-body p-3">
+			<div class="flex flex-wrap items-center gap-2 mb-2">
+				<div class="join">
+					<button type="button" class="btn btn-sm join-item"
+						x-on:click="setTimeRange('1h')"
+						x-bind:class="timeRange === '1h' ? 'btn-primary' : ''"
+						data-testid="time-range-1h">1h</button>
+					<button type="button" class="btn btn-sm join-item"
+						x-on:click="setTimeRange('24h')"
+						x-bind:class="timeRange === '24h' ? 'btn-primary' : ''"
+						data-testid="time-range-24h">24h</button>
+					<button type="button" class="btn btn-sm join-item"
+						x-on:click="setTimeRange('7d')"
+						x-bind:class="timeRange === '7d' ? 'btn-primary' : ''"
+						data-testid="time-range-7d">7d</button>
+				</div>
+				<input type="datetime-local" class="input input-bordered input-sm"
+					x-model="timeStart" x-on:change="onDateChange()"
+					data-filter-input name="time_start"
+					data-testid="time-start"/>
+				<span class="text-xs text-base-content/50">~</span>
+				<input type="datetime-local" class="input input-bordered input-sm"
+					x-model="timeEnd" x-on:change="onDateChange()"
+					data-filter-input name="time_end"
+					data-testid="time-end"/>
+			</div>
+			<div class="flex flex-wrap items-center gap-2">
+				<input type="search" class="input input-bordered input-sm w-64"
+					placeholder="Search events..."
+					x-model="search"
+					x-on:keyup="debounceSearch()"
+					data-filter-input name="search"
+					data-testid="search-input"/>
+				<select class="select select-bordered select-sm"
+					data-filter-input name="pipeline"
+					x-model="pipeline"
+					x-on:change="submitFilter()"
+					data-testid="pipeline-select">
+					<option value="">All pipelines</option>
+					for _, name := range p.PipelineNames {
+						<option value={ name } selected={ templ.KV(name == p.PipelineFilter, true) }>{ name }</option>
+					}
+				</select>
+				<select class="select select-bordered select-sm"
+					data-filter-input name="source"
+					x-model="source"
+					x-on:change="submitFilter()"
+					data-testid="source-select">
+					<option value="">All sources</option>
+					for _, s := range p.Sources {
+						<option value={ s } selected={ templ.KV(s == p.SourceFilter, true) }>{ s }</option>
+					}
+				</select>
+				<select class="select select-bordered select-sm"
+					data-filter-input name="type"
+					x-model="eventType"
+					x-on:change="submitFilter()"
+					data-testid="type-select">
+					<option value="">All types</option>
+					for _, t := range p.EventTypes {
+						<option value={ t } selected={ templ.KV(t == p.TypeFilter, true) }>{ t }</option>
+					}
+				</select>
+			</div>
+		</div>
+	</div>
+}
