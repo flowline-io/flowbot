@@ -1,0 +1,72 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ NotifyChannelForm(item model.NotifyChannel, isNew bool, errors map[string]string, protocols []string) {
+	<tr id={ notifyChannelFormID(item, isNew) }>
+		<td>
+			<input type="text" name="name" value={ item.Name }
+				data-testid="channel-name"
+				class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
+				placeholder="Channel name"
+			/>
+			<div class="text-error text-xs">{ errors["name"] }</div>
+		</td>
+		<td>
+			<select name="protocol"
+				data-testid="channel-protocol"
+				class={ "select select-bordered select-sm w-full " + fieldError(errors, "protocol") }>
+				<option value="">Select...</option>
+				for _, p := range protocols {
+					<option value={ p } if item.Protocol == p { selected }>{ p }</option>
+				}
+			</select>
+			<div class="text-error text-xs">{ errors["protocol"] }</div>
+		</td>
+		<td>
+			<input type="password" name="uri"
+				data-testid="channel-uri"
+				class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "uri") }
+				placeholder="slack://hooks.slack.com/services/..."
+			/>
+			<div class="text-error text-xs">{ errors["uri"] }</div>
+		</td>
+		<td>
+			<label class="flex items-center gap-1 cursor-pointer">
+				<input type="checkbox" name="enabled"
+					data-testid="channel-enabled"
+					if item.Enabled { checked }
+					class="checkbox checkbox-sm"/>
+				<span class="text-xs">Enabled</span>
+			</label>
+		</td>
+		<td>
+			<div class="flex gap-1">
+				<button type="button"
+					if isNew {
+						hx-post="/service/web/notify-settings/channels"
+					} else {
+						hx-put={ notifyChannelDeleteURL(item) }
+					}
+					hx-target="closest tr"
+					hx-swap="outerHTML"
+					hx-include="[name='name'], [name='protocol'], [name='uri'], [name='enabled']"
+					data-testid="channel-save"
+					class="btn btn-primary btn-sm">
+					Save
+				</button>
+				<button type="button"
+					hx-get={ notifyChannelCancelURL() }
+					hx-target="#notify-channels-table"
+					hx-swap="outerHTML"
+					data-testid="channel-cancel"
+					class="btn btn-ghost btn-sm">
+					Cancel
+				</button>
+			</div>
+			if errors["_save"] != "" {
+				<div class="text-error text-xs mt-1">{ errors["_save"] }</div>
+			}
+		</td>
+	</tr>
+}

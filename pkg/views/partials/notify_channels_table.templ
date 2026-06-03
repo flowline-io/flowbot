@@ -1,0 +1,33 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ NotifyChannelsTable(channels []model.NotifyChannel) {
+	<div class="card bg-base-100 shadow-sm">
+		<div id="notify-channels-table"
+			data-testid="notify-channels-table"
+			class="overflow-x-auto">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="text-xs uppercase">Name</th>
+					<th class="text-xs uppercase">Protocol</th>
+					<th class="text-xs uppercase">URI</th>
+					<th class="text-xs uppercase">Status</th>
+					<th class="text-xs uppercase">Actions</th>
+				</tr>
+				</thead>
+				<tbody id="notify-channels-rows">
+				for _, ch := range channels {
+					@NotifyChannelRow(ch)
+				}
+				if len(channels) == 0 {
+					<tr id="notify-channels-empty">
+						<td colspan="5" class="text-center text-base-content/50">No notification channels configured.</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

@@ -1,0 +1,42 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ NotifyChannelRow(item model.NotifyChannel) {
+	<tr id={ notifyChannelRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="text-base-content font-medium">{ item.Name }</td>
+		<td class="text-base-content/70">
+			<span class="badge badge-outline">{ item.Protocol }</span>
+		</td>
+		<td class="text-base-content/50 font-mono text-xs max-w-xs truncate">{ item.URI }</td>
+		<td>
+			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		</td>
+		<td>
+			<div class="flex gap-1">
+				<button hx-get={ notifyChannelEditURL(item) }
+					data-testid="channel-edit"
+					class="btn btn-ghost btn-xs text-primary">
+					Edit
+				</button>
+				<button hx-post={ notifyChannelTestURL(item) }
+					data-testid="channel-test"
+					class="btn btn-ghost btn-xs text-info"
+					hx-indicator={ "#channel-test-spinner-" + fmt.Sprintf("%d", item.ID) }>
+					Test
+					<span id={ "channel-test-spinner-" + fmt.Sprintf("%d", item.ID) } class="htmx-indicator loading loading-spinner loading-xs"></span>
+				</button>
+				<button hx-delete={ notifyChannelDeleteURL(item) }
+					hx-confirm="Delete this channel?"
+					data-testid="channel-delete"
+					class="btn btn-ghost btn-xs text-error">
+					Delete
+				</button>
+			</div>
+		</td>
+	</tr>
+}
