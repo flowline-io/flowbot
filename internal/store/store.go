@@ -180,6 +180,17 @@ type ListConfigOptions struct {
 	Search string
 }
 
+// ListNotifyChannelOptions holds filtering options for listing notification channels.
+type ListNotifyChannelOptions struct {
+	Protocol string
+	Enabled  *bool // nil = all, true = enabled only, false = disabled only
+}
+
+// ListNotifyRuleOptions holds filtering and sorting options for listing notification rules.
+type ListNotifyRuleOptions struct {
+	Enabled *bool // nil = all, true = enabled only, false = disabled only
+}
+
 type Adapter interface {
 	// General
 
@@ -301,6 +312,24 @@ type Adapter interface {
 	CreateAgent(ctx context.Context, agent *gen.Agent) (int64, error)
 	UpdateAgentLastOnlineAt(ctx context.Context, uid types.Uid, topic, hostid string, lastOnlineAt time.Time) error
 	UpdateAgentOnlineDuration(ctx context.Context, uid types.Uid, topic, hostid string, offlineTime time.Time) error
+
+	// NotifyChannel CRUD
+	CreateNotifyChannel(ctx context.Context, name, protocol, uri string) (int64, error)
+	GetNotifyChannel(ctx context.Context, id int64) (model.NotifyChannel, error)     // returns masked URI
+	GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error)   // returns raw URI (internal use only)
+	ListNotifyChannels(ctx context.Context, opts ListNotifyChannelOptions) ([]model.NotifyChannel, error)
+	UpdateNotifyChannel(ctx context.Context, id int64, name, protocol, uri string, enabled bool) error
+	DeleteNotifyChannel(ctx context.Context, id int64) error
+
+	// NotifyRule CRUD
+	CreateNotifyRule(ctx context.Context, rule model.NotifyRule) (int64, error)
+	GetNotifyRule(ctx context.Context, id int64) (model.NotifyRule, error)
+	ListNotifyRules(ctx context.Context, opts ListNotifyRuleOptions) ([]model.NotifyRule, error)
+	UpdateNotifyRule(ctx context.Context, id int64, rule model.NotifyRule) error
+	DeleteNotifyRule(ctx context.Context, id int64) error
+
+	// Notify URI masking
+	MaskNotifyURI(protocol, uri string) string
 }
 
 var Database Adapter
