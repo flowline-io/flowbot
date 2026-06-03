@@ -68,12 +68,11 @@ templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pa
 								<td><span class="badge badge-sm">{ webhookMethod(e) }</span></td>
 								<td><span class="badge badge-success badge-sm">202</span></td>
 								<td class="text-xs">
-									pipelineName := eventPipelineName(e.EventID, runMap)
-									if pipelineName != "" {
-										{pipelineName}
-									} else {
-										<span class="text-base-content/30">-</span>
-									}
+								if eventPipelineName(e.EventID, runMap) != "" {
+									{ eventPipelineName(e.EventID, runMap) }
+								} else {
+									<span class="text-base-content/30">-</span>
+								}
 								</td>
 							</tr>
 							<tr id={ "wh-detail-" + e.EventID } class="hidden">

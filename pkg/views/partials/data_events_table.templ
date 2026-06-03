@@ -5,6 +5,13 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
 
+func formatSourceCapability(source, capability string) string {
+	if capability != "" {
+		return source + " / " + capability
+	}
+	return source
+}
+
 func eventPipelineName(eventID string, runMap map[string][]store.PipelineRunInfo) string {
 	if runs, ok := runMap[eventID]; ok && len(runs) > 0 {
 		return runs[0].PipelineName
@@ -36,15 +43,14 @@ templ DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 								hx-swap="innerHTML show:top">
 								<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("15:04:05") }</td>
 								<td><span class="badge badge-ghost badge-xs">{ e.EventType }</span></td>
-								<td class="text-xs">{ e.Source }{ if e.Capability != "" { " / " + e.Capability } }</td>
+								<td class="text-xs">{ formatSourceCapability(e.Source, e.Capability) }</td>
 								<td class="text-xs font-mono">{ e.EntityID }</td>
 								<td class="text-xs">
-									pipelineName := eventPipelineName(e.EventID, runMap)
-									if pipelineName != "" {
-										{pipelineName}
-									} else {
-										<span class="text-base-content/30">-</span>
-									}
+								if eventPipelineName(e.EventID, runMap) != "" {
+									{ eventPipelineName(e.EventID, runMap) }
+								} else {
+									<span class="text-base-content/30">-</span>
+								}
 								</td>
 							</tr>
 							<tr id={ "detail-" + e.EventID } class="hidden">
