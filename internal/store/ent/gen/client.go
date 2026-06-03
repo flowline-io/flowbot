@@ -42,6 +42,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
@@ -119,6 +120,8 @@ type Client struct {
 	Parameter *ParameterClient
 	// PipelineDefinition is the client for interacting with the PipelineDefinition builders.
 	PipelineDefinition *PipelineDefinitionClient
+	// PipelineDefinitionVersion is the client for interacting with the PipelineDefinitionVersion builders.
+	PipelineDefinitionVersion *PipelineDefinitionVersionClient
 	// PipelineRun is the client for interacting with the PipelineRun builders.
 	PipelineRun *PipelineRunClient
 	// PipelineStepRun is the client for interacting with the PipelineStepRun builders.
@@ -186,6 +189,7 @@ func (c *Client) init() {
 	c.PageData = NewPageDataClient(c.config)
 	c.Parameter = NewParameterClient(c.config)
 	c.PipelineDefinition = NewPipelineDefinitionClient(c.config)
+	c.PipelineDefinitionVersion = NewPipelineDefinitionVersionClient(c.config)
 	c.PipelineRun = NewPipelineRunClient(c.config)
 	c.PipelineStepRun = NewPipelineStepRunClient(c.config)
 	c.Platform = NewPlatformClient(c.config)
@@ -290,50 +294,51 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Agent:               NewAgentClient(cfg),
-		App:                 NewAppClient(cfg),
-		AuditLog:            NewAuditLogClient(cfg),
-		Authentication:      NewAuthenticationClient(cfg),
-		Behavior:            NewBehaviorClient(cfg),
-		Bot:                 NewBotClient(cfg),
-		CapabilityBinding:   NewCapabilityBindingClient(cfg),
-		Channel:             NewChannelClient(cfg),
-		ConfigData:          NewConfigDataClient(cfg),
-		Connection:          NewConnectionClient(cfg),
-		Counter:             NewCounterClient(cfg),
-		CounterRecord:       NewCounterRecordClient(cfg),
-		Data:                NewDataClient(cfg),
-		DataEvent:           NewDataEventClient(cfg),
-		EventConsumption:    NewEventConsumptionClient(cfg),
-		EventOutbox:         NewEventOutboxClient(cfg),
-		Fileupload:          NewFileuploadClient(cfg),
-		Form:                NewFormClient(cfg),
-		Instruct:            NewInstructClient(cfg),
-		Message:             NewMessageClient(cfg),
-		NotificationRecord:  NewNotificationRecordClient(cfg),
-		NotifyChannel:       NewNotifyChannelClient(cfg),
-		NotifyRule:          NewNotifyRuleClient(cfg),
-		OAuth:               NewOAuthClient(cfg),
-		Page:                NewPageClient(cfg),
-		PageData:            NewPageDataClient(cfg),
-		Parameter:           NewParameterClient(cfg),
-		PipelineDefinition:  NewPipelineDefinitionClient(cfg),
-		PipelineRun:         NewPipelineRunClient(cfg),
-		PipelineStepRun:     NewPipelineStepRunClient(cfg),
-		Platform:            NewPlatformClient(cfg),
-		PlatformBot:         NewPlatformBotClient(cfg),
-		PlatformChannel:     NewPlatformChannelClient(cfg),
-		PlatformChannelUser: NewPlatformChannelUserClient(cfg),
-		PlatformUser:        NewPlatformUserClient(cfg),
-		PollingState:        NewPollingStateClient(cfg),
-		ResourceLink:        NewResourceLinkClient(cfg),
-		Topic:               NewTopicClient(cfg),
-		Url:                 NewURLClient(cfg),
-		User:                NewUserClient(cfg),
-		WorkflowRun:         NewWorkflowRunClient(cfg),
-		WorkflowStepRun:     NewWorkflowStepRunClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		Agent:                     NewAgentClient(cfg),
+		App:                       NewAppClient(cfg),
+		AuditLog:                  NewAuditLogClient(cfg),
+		Authentication:            NewAuthenticationClient(cfg),
+		Behavior:                  NewBehaviorClient(cfg),
+		Bot:                       NewBotClient(cfg),
+		CapabilityBinding:         NewCapabilityBindingClient(cfg),
+		Channel:                   NewChannelClient(cfg),
+		ConfigData:                NewConfigDataClient(cfg),
+		Connection:                NewConnectionClient(cfg),
+		Counter:                   NewCounterClient(cfg),
+		CounterRecord:             NewCounterRecordClient(cfg),
+		Data:                      NewDataClient(cfg),
+		DataEvent:                 NewDataEventClient(cfg),
+		EventConsumption:          NewEventConsumptionClient(cfg),
+		EventOutbox:               NewEventOutboxClient(cfg),
+		Fileupload:                NewFileuploadClient(cfg),
+		Form:                      NewFormClient(cfg),
+		Instruct:                  NewInstructClient(cfg),
+		Message:                   NewMessageClient(cfg),
+		NotificationRecord:        NewNotificationRecordClient(cfg),
+		NotifyChannel:             NewNotifyChannelClient(cfg),
+		NotifyRule:                NewNotifyRuleClient(cfg),
+		OAuth:                     NewOAuthClient(cfg),
+		Page:                      NewPageClient(cfg),
+		PageData:                  NewPageDataClient(cfg),
+		Parameter:                 NewParameterClient(cfg),
+		PipelineDefinition:        NewPipelineDefinitionClient(cfg),
+		PipelineDefinitionVersion: NewPipelineDefinitionVersionClient(cfg),
+		PipelineRun:               NewPipelineRunClient(cfg),
+		PipelineStepRun:           NewPipelineStepRunClient(cfg),
+		Platform:                  NewPlatformClient(cfg),
+		PlatformBot:               NewPlatformBotClient(cfg),
+		PlatformChannel:           NewPlatformChannelClient(cfg),
+		PlatformChannelUser:       NewPlatformChannelUserClient(cfg),
+		PlatformUser:              NewPlatformUserClient(cfg),
+		PollingState:              NewPollingStateClient(cfg),
+		ResourceLink:              NewResourceLinkClient(cfg),
+		Topic:                     NewTopicClient(cfg),
+		Url:                       NewURLClient(cfg),
+		User:                      NewUserClient(cfg),
+		WorkflowRun:               NewWorkflowRunClient(cfg),
+		WorkflowStepRun:           NewWorkflowStepRunClient(cfg),
 	}, nil
 }
 
@@ -351,50 +356,51 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:                 ctx,
-		config:              cfg,
-		Agent:               NewAgentClient(cfg),
-		App:                 NewAppClient(cfg),
-		AuditLog:            NewAuditLogClient(cfg),
-		Authentication:      NewAuthenticationClient(cfg),
-		Behavior:            NewBehaviorClient(cfg),
-		Bot:                 NewBotClient(cfg),
-		CapabilityBinding:   NewCapabilityBindingClient(cfg),
-		Channel:             NewChannelClient(cfg),
-		ConfigData:          NewConfigDataClient(cfg),
-		Connection:          NewConnectionClient(cfg),
-		Counter:             NewCounterClient(cfg),
-		CounterRecord:       NewCounterRecordClient(cfg),
-		Data:                NewDataClient(cfg),
-		DataEvent:           NewDataEventClient(cfg),
-		EventConsumption:    NewEventConsumptionClient(cfg),
-		EventOutbox:         NewEventOutboxClient(cfg),
-		Fileupload:          NewFileuploadClient(cfg),
-		Form:                NewFormClient(cfg),
-		Instruct:            NewInstructClient(cfg),
-		Message:             NewMessageClient(cfg),
-		NotificationRecord:  NewNotificationRecordClient(cfg),
-		NotifyChannel:       NewNotifyChannelClient(cfg),
-		NotifyRule:          NewNotifyRuleClient(cfg),
-		OAuth:               NewOAuthClient(cfg),
-		Page:                NewPageClient(cfg),
-		PageData:            NewPageDataClient(cfg),
-		Parameter:           NewParameterClient(cfg),
-		PipelineDefinition:  NewPipelineDefinitionClient(cfg),
-		PipelineRun:         NewPipelineRunClient(cfg),
-		PipelineStepRun:     NewPipelineStepRunClient(cfg),
-		Platform:            NewPlatformClient(cfg),
-		PlatformBot:         NewPlatformBotClient(cfg),
-		PlatformChannel:     NewPlatformChannelClient(cfg),
-		PlatformChannelUser: NewPlatformChannelUserClient(cfg),
-		PlatformUser:        NewPlatformUserClient(cfg),
-		PollingState:        NewPollingStateClient(cfg),
-		ResourceLink:        NewResourceLinkClient(cfg),
-		Topic:               NewTopicClient(cfg),
-		Url:                 NewURLClient(cfg),
-		User:                NewUserClient(cfg),
-		WorkflowRun:         NewWorkflowRunClient(cfg),
-		WorkflowStepRun:     NewWorkflowStepRunClient(cfg),
+		ctx:                       ctx,
+		config:                    cfg,
+		Agent:                     NewAgentClient(cfg),
+		App:                       NewAppClient(cfg),
+		AuditLog:                  NewAuditLogClient(cfg),
+		Authentication:            NewAuthenticationClient(cfg),
+		Behavior:                  NewBehaviorClient(cfg),
+		Bot:                       NewBotClient(cfg),
+		CapabilityBinding:         NewCapabilityBindingClient(cfg),
+		Channel:                   NewChannelClient(cfg),
+		ConfigData:                NewConfigDataClient(cfg),
+		Connection:                NewConnectionClient(cfg),
+		Counter:                   NewCounterClient(cfg),
+		CounterRecord:             NewCounterRecordClient(cfg),
+		Data:                      NewDataClient(cfg),
+		DataEvent:                 NewDataEventClient(cfg),
+		EventConsumption:          NewEventConsumptionClient(cfg),
+		EventOutbox:               NewEventOutboxClient(cfg),
+		Fileupload:                NewFileuploadClient(cfg),
+		Form:                      NewFormClient(cfg),
+		Instruct:                  NewInstructClient(cfg),
+		Message:                   NewMessageClient(cfg),
+		NotificationRecord:        NewNotificationRecordClient(cfg),
+		NotifyChannel:             NewNotifyChannelClient(cfg),
+		NotifyRule:                NewNotifyRuleClient(cfg),
+		OAuth:                     NewOAuthClient(cfg),
+		Page:                      NewPageClient(cfg),
+		PageData:                  NewPageDataClient(cfg),
+		Parameter:                 NewParameterClient(cfg),
+		PipelineDefinition:        NewPipelineDefinitionClient(cfg),
+		PipelineDefinitionVersion: NewPipelineDefinitionVersionClient(cfg),
+		PipelineRun:               NewPipelineRunClient(cfg),
+		PipelineStepRun:           NewPipelineStepRunClient(cfg),
+		Platform:                  NewPlatformClient(cfg),
+		PlatformBot:               NewPlatformBotClient(cfg),
+		PlatformChannel:           NewPlatformChannelClient(cfg),
+		PlatformChannelUser:       NewPlatformChannelUserClient(cfg),
+		PlatformUser:              NewPlatformUserClient(cfg),
+		PollingState:              NewPollingStateClient(cfg),
+		ResourceLink:              NewResourceLinkClient(cfg),
+		Topic:                     NewTopicClient(cfg),
+		Url:                       NewURLClient(cfg),
+		User:                      NewUserClient(cfg),
+		WorkflowRun:               NewWorkflowRunClient(cfg),
+		WorkflowStepRun:           NewWorkflowStepRunClient(cfg),
 	}, nil
 }
 
@@ -429,10 +435,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
 		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
 		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
-		c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
-		c.WorkflowStepRun,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Use(hooks...)
 	}
@@ -447,10 +453,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
 		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
 		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
-		c.PipelineDefinition, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
-		c.WorkflowStepRun,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -515,6 +521,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Parameter.mutate(ctx, m)
 	case *PipelineDefinitionMutation:
 		return c.PipelineDefinition.mutate(ctx, m)
+	case *PipelineDefinitionVersionMutation:
+		return c.PipelineDefinitionVersion.mutate(ctx, m)
 	case *PipelineRunMutation:
 		return c.PipelineRun.mutate(ctx, m)
 	case *PipelineStepRunMutation:
@@ -4272,6 +4280,139 @@ func (c *PipelineDefinitionClient) mutate(ctx context.Context, m *PipelineDefini
 	}
 }
 
+// PipelineDefinitionVersionClient is a client for the PipelineDefinitionVersion schema.
+type PipelineDefinitionVersionClient struct {
+	config
+}
+
+// NewPipelineDefinitionVersionClient returns a client for the PipelineDefinitionVersion from the given config.
+func NewPipelineDefinitionVersionClient(c config) *PipelineDefinitionVersionClient {
+	return &PipelineDefinitionVersionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pipelinedefinitionversion.Hooks(f(g(h())))`.
+func (c *PipelineDefinitionVersionClient) Use(hooks ...Hook) {
+	c.hooks.PipelineDefinitionVersion = append(c.hooks.PipelineDefinitionVersion, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pipelinedefinitionversion.Intercept(f(g(h())))`.
+func (c *PipelineDefinitionVersionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PipelineDefinitionVersion = append(c.inters.PipelineDefinitionVersion, interceptors...)
+}
+
+// Create returns a builder for creating a PipelineDefinitionVersion entity.
+func (c *PipelineDefinitionVersionClient) Create() *PipelineDefinitionVersionCreate {
+	mutation := newPipelineDefinitionVersionMutation(c.config, OpCreate)
+	return &PipelineDefinitionVersionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PipelineDefinitionVersion entities.
+func (c *PipelineDefinitionVersionClient) CreateBulk(builders ...*PipelineDefinitionVersionCreate) *PipelineDefinitionVersionCreateBulk {
+	return &PipelineDefinitionVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PipelineDefinitionVersionClient) MapCreateBulk(slice any, setFunc func(*PipelineDefinitionVersionCreate, int)) *PipelineDefinitionVersionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PipelineDefinitionVersionCreateBulk{err: fmt.Errorf("calling to PipelineDefinitionVersionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PipelineDefinitionVersionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PipelineDefinitionVersionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PipelineDefinitionVersion.
+func (c *PipelineDefinitionVersionClient) Update() *PipelineDefinitionVersionUpdate {
+	mutation := newPipelineDefinitionVersionMutation(c.config, OpUpdate)
+	return &PipelineDefinitionVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PipelineDefinitionVersionClient) UpdateOne(_m *PipelineDefinitionVersion) *PipelineDefinitionVersionUpdateOne {
+	mutation := newPipelineDefinitionVersionMutation(c.config, OpUpdateOne, withPipelineDefinitionVersion(_m))
+	return &PipelineDefinitionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PipelineDefinitionVersionClient) UpdateOneID(id int64) *PipelineDefinitionVersionUpdateOne {
+	mutation := newPipelineDefinitionVersionMutation(c.config, OpUpdateOne, withPipelineDefinitionVersionID(id))
+	return &PipelineDefinitionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PipelineDefinitionVersion.
+func (c *PipelineDefinitionVersionClient) Delete() *PipelineDefinitionVersionDelete {
+	mutation := newPipelineDefinitionVersionMutation(c.config, OpDelete)
+	return &PipelineDefinitionVersionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PipelineDefinitionVersionClient) DeleteOne(_m *PipelineDefinitionVersion) *PipelineDefinitionVersionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PipelineDefinitionVersionClient) DeleteOneID(id int64) *PipelineDefinitionVersionDeleteOne {
+	builder := c.Delete().Where(pipelinedefinitionversion.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PipelineDefinitionVersionDeleteOne{builder}
+}
+
+// Query returns a query builder for PipelineDefinitionVersion.
+func (c *PipelineDefinitionVersionClient) Query() *PipelineDefinitionVersionQuery {
+	return &PipelineDefinitionVersionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePipelineDefinitionVersion},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PipelineDefinitionVersion entity by its id.
+func (c *PipelineDefinitionVersionClient) Get(ctx context.Context, id int64) (*PipelineDefinitionVersion, error) {
+	return c.Query().Where(pipelinedefinitionversion.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PipelineDefinitionVersionClient) GetX(ctx context.Context, id int64) *PipelineDefinitionVersion {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PipelineDefinitionVersionClient) Hooks() []Hook {
+	return c.hooks.PipelineDefinitionVersion
+}
+
+// Interceptors returns the client interceptors.
+func (c *PipelineDefinitionVersionClient) Interceptors() []Interceptor {
+	return c.inters.PipelineDefinitionVersion
+}
+
+func (c *PipelineDefinitionVersionClient) mutate(ctx context.Context, m *PipelineDefinitionVersionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PipelineDefinitionVersionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PipelineDefinitionVersionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PipelineDefinitionVersionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PipelineDefinitionVersionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown PipelineDefinitionVersion mutation op: %q", m.Op())
+	}
+}
+
 // PipelineRunClient is a client for the PipelineRun schema.
 type PipelineRunClient struct {
 	config
@@ -6141,17 +6282,19 @@ type (
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
 		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
-		Parameter, PipelineDefinition, PipelineRun, PipelineStepRun, Platform,
-		PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
-		ResourceLink, Topic, Url, User, WorkflowRun, WorkflowStepRun []ent.Hook
+		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
+		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
+		WorkflowStepRun []ent.Hook
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
 		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
-		Parameter, PipelineDefinition, PipelineRun, PipelineStepRun, Platform,
-		PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser, PollingState,
-		ResourceLink, Topic, Url, User, WorkflowRun, WorkflowStepRun []ent.Interceptor
+		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
+		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
+		WorkflowStepRun []ent.Interceptor
 	}
 )

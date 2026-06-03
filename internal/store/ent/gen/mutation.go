@@ -39,6 +39,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
@@ -65,48 +66,49 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAgent               = "Agent"
-	TypeApp                 = "App"
-	TypeAuditLog            = "AuditLog"
-	TypeAuthentication      = "Authentication"
-	TypeBehavior            = "Behavior"
-	TypeBot                 = "Bot"
-	TypeCapabilityBinding   = "CapabilityBinding"
-	TypeChannel             = "Channel"
-	TypeConfigData          = "ConfigData"
-	TypeConnection          = "Connection"
-	TypeCounter             = "Counter"
-	TypeCounterRecord       = "CounterRecord"
-	TypeData                = "Data"
-	TypeDataEvent           = "DataEvent"
-	TypeEventConsumption    = "EventConsumption"
-	TypeEventOutbox         = "EventOutbox"
-	TypeFileupload          = "Fileupload"
-	TypeForm                = "Form"
-	TypeInstruct            = "Instruct"
-	TypeMessage             = "Message"
-	TypeNotificationRecord  = "NotificationRecord"
-	TypeNotifyChannel       = "NotifyChannel"
-	TypeNotifyRule          = "NotifyRule"
-	TypeOAuth               = "OAuth"
-	TypePage                = "Page"
-	TypePageData            = "PageData"
-	TypeParameter           = "Parameter"
-	TypePipelineDefinition  = "PipelineDefinition"
-	TypePipelineRun         = "PipelineRun"
-	TypePipelineStepRun     = "PipelineStepRun"
-	TypePlatform            = "Platform"
-	TypePlatformBot         = "PlatformBot"
-	TypePlatformChannel     = "PlatformChannel"
-	TypePlatformChannelUser = "PlatformChannelUser"
-	TypePlatformUser        = "PlatformUser"
-	TypePollingState        = "PollingState"
-	TypeResourceLink        = "ResourceLink"
-	TypeTopic               = "Topic"
-	TypeURL                 = "Url"
-	TypeUser                = "User"
-	TypeWorkflowRun         = "WorkflowRun"
-	TypeWorkflowStepRun     = "WorkflowStepRun"
+	TypeAgent                     = "Agent"
+	TypeApp                       = "App"
+	TypeAuditLog                  = "AuditLog"
+	TypeAuthentication            = "Authentication"
+	TypeBehavior                  = "Behavior"
+	TypeBot                       = "Bot"
+	TypeCapabilityBinding         = "CapabilityBinding"
+	TypeChannel                   = "Channel"
+	TypeConfigData                = "ConfigData"
+	TypeConnection                = "Connection"
+	TypeCounter                   = "Counter"
+	TypeCounterRecord             = "CounterRecord"
+	TypeData                      = "Data"
+	TypeDataEvent                 = "DataEvent"
+	TypeEventConsumption          = "EventConsumption"
+	TypeEventOutbox               = "EventOutbox"
+	TypeFileupload                = "Fileupload"
+	TypeForm                      = "Form"
+	TypeInstruct                  = "Instruct"
+	TypeMessage                   = "Message"
+	TypeNotificationRecord        = "NotificationRecord"
+	TypeNotifyChannel             = "NotifyChannel"
+	TypeNotifyRule                = "NotifyRule"
+	TypeOAuth                     = "OAuth"
+	TypePage                      = "Page"
+	TypePageData                  = "PageData"
+	TypeParameter                 = "Parameter"
+	TypePipelineDefinition        = "PipelineDefinition"
+	TypePipelineDefinitionVersion = "PipelineDefinitionVersion"
+	TypePipelineRun               = "PipelineRun"
+	TypePipelineStepRun           = "PipelineStepRun"
+	TypePlatform                  = "Platform"
+	TypePlatformBot               = "PlatformBot"
+	TypePlatformChannel           = "PlatformChannel"
+	TypePlatformChannelUser       = "PlatformChannelUser"
+	TypePlatformUser              = "PlatformUser"
+	TypePollingState              = "PollingState"
+	TypeResourceLink              = "ResourceLink"
+	TypeTopic                     = "Topic"
+	TypeURL                       = "Url"
+	TypeUser                      = "User"
+	TypeWorkflowRun               = "WorkflowRun"
+	TypeWorkflowStepRun           = "WorkflowStepRun"
 )
 
 // AgentMutation represents an operation that mutates the Agent nodes in the graph.
@@ -20263,6 +20265,536 @@ func (m *PipelineDefinitionMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PipelineDefinitionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown PipelineDefinition edge %s", name)
+}
+
+// PipelineDefinitionVersionMutation represents an operation that mutates the PipelineDefinitionVersion nodes in the graph.
+type PipelineDefinitionVersionMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	pipeline_name *string
+	version       *int
+	addversion    *int
+	yaml          *string
+	created_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*PipelineDefinitionVersion, error)
+	predicates    []predicate.PipelineDefinitionVersion
+}
+
+var _ ent.Mutation = (*PipelineDefinitionVersionMutation)(nil)
+
+// pipelinedefinitionversionOption allows management of the mutation configuration using functional options.
+type pipelinedefinitionversionOption func(*PipelineDefinitionVersionMutation)
+
+// newPipelineDefinitionVersionMutation creates new mutation for the PipelineDefinitionVersion entity.
+func newPipelineDefinitionVersionMutation(c config, op Op, opts ...pipelinedefinitionversionOption) *PipelineDefinitionVersionMutation {
+	m := &PipelineDefinitionVersionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePipelineDefinitionVersion,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPipelineDefinitionVersionID sets the ID field of the mutation.
+func withPipelineDefinitionVersionID(id int64) pipelinedefinitionversionOption {
+	return func(m *PipelineDefinitionVersionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PipelineDefinitionVersion
+		)
+		m.oldValue = func(ctx context.Context) (*PipelineDefinitionVersion, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PipelineDefinitionVersion.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPipelineDefinitionVersion sets the old PipelineDefinitionVersion of the mutation.
+func withPipelineDefinitionVersion(node *PipelineDefinitionVersion) pipelinedefinitionversionOption {
+	return func(m *PipelineDefinitionVersionMutation) {
+		m.oldValue = func(context.Context) (*PipelineDefinitionVersion, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PipelineDefinitionVersionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PipelineDefinitionVersionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of PipelineDefinitionVersion entities.
+func (m *PipelineDefinitionVersionMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PipelineDefinitionVersionMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PipelineDefinitionVersionMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PipelineDefinitionVersion.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPipelineName sets the "pipeline_name" field.
+func (m *PipelineDefinitionVersionMutation) SetPipelineName(s string) {
+	m.pipeline_name = &s
+}
+
+// PipelineName returns the value of the "pipeline_name" field in the mutation.
+func (m *PipelineDefinitionVersionMutation) PipelineName() (r string, exists bool) {
+	v := m.pipeline_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPipelineName returns the old "pipeline_name" field's value of the PipelineDefinitionVersion entity.
+// If the PipelineDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionVersionMutation) OldPipelineName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPipelineName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPipelineName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPipelineName: %w", err)
+	}
+	return oldValue.PipelineName, nil
+}
+
+// ResetPipelineName resets all changes to the "pipeline_name" field.
+func (m *PipelineDefinitionVersionMutation) ResetPipelineName() {
+	m.pipeline_name = nil
+}
+
+// SetVersion sets the "version" field.
+func (m *PipelineDefinitionVersionMutation) SetVersion(i int) {
+	m.version = &i
+	m.addversion = nil
+}
+
+// Version returns the value of the "version" field in the mutation.
+func (m *PipelineDefinitionVersionMutation) Version() (r int, exists bool) {
+	v := m.version
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVersion returns the old "version" field's value of the PipelineDefinitionVersion entity.
+// If the PipelineDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionVersionMutation) OldVersion(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVersion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVersion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVersion: %w", err)
+	}
+	return oldValue.Version, nil
+}
+
+// AddVersion adds i to the "version" field.
+func (m *PipelineDefinitionVersionMutation) AddVersion(i int) {
+	if m.addversion != nil {
+		*m.addversion += i
+	} else {
+		m.addversion = &i
+	}
+}
+
+// AddedVersion returns the value that was added to the "version" field in this mutation.
+func (m *PipelineDefinitionVersionMutation) AddedVersion() (r int, exists bool) {
+	v := m.addversion
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetVersion resets all changes to the "version" field.
+func (m *PipelineDefinitionVersionMutation) ResetVersion() {
+	m.version = nil
+	m.addversion = nil
+}
+
+// SetYaml sets the "yaml" field.
+func (m *PipelineDefinitionVersionMutation) SetYaml(s string) {
+	m.yaml = &s
+}
+
+// Yaml returns the value of the "yaml" field in the mutation.
+func (m *PipelineDefinitionVersionMutation) Yaml() (r string, exists bool) {
+	v := m.yaml
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldYaml returns the old "yaml" field's value of the PipelineDefinitionVersion entity.
+// If the PipelineDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionVersionMutation) OldYaml(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldYaml is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldYaml requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldYaml: %w", err)
+	}
+	return oldValue.Yaml, nil
+}
+
+// ResetYaml resets all changes to the "yaml" field.
+func (m *PipelineDefinitionVersionMutation) ResetYaml() {
+	m.yaml = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PipelineDefinitionVersionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PipelineDefinitionVersionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PipelineDefinitionVersion entity.
+// If the PipelineDefinitionVersion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionVersionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PipelineDefinitionVersionMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the PipelineDefinitionVersionMutation builder.
+func (m *PipelineDefinitionVersionMutation) Where(ps ...predicate.PipelineDefinitionVersion) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PipelineDefinitionVersionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PipelineDefinitionVersionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PipelineDefinitionVersion, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PipelineDefinitionVersionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PipelineDefinitionVersionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PipelineDefinitionVersion).
+func (m *PipelineDefinitionVersionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PipelineDefinitionVersionMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.pipeline_name != nil {
+		fields = append(fields, pipelinedefinitionversion.FieldPipelineName)
+	}
+	if m.version != nil {
+		fields = append(fields, pipelinedefinitionversion.FieldVersion)
+	}
+	if m.yaml != nil {
+		fields = append(fields, pipelinedefinitionversion.FieldYaml)
+	}
+	if m.created_at != nil {
+		fields = append(fields, pipelinedefinitionversion.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PipelineDefinitionVersionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pipelinedefinitionversion.FieldPipelineName:
+		return m.PipelineName()
+	case pipelinedefinitionversion.FieldVersion:
+		return m.Version()
+	case pipelinedefinitionversion.FieldYaml:
+		return m.Yaml()
+	case pipelinedefinitionversion.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PipelineDefinitionVersionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pipelinedefinitionversion.FieldPipelineName:
+		return m.OldPipelineName(ctx)
+	case pipelinedefinitionversion.FieldVersion:
+		return m.OldVersion(ctx)
+	case pipelinedefinitionversion.FieldYaml:
+		return m.OldYaml(ctx)
+	case pipelinedefinitionversion.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown PipelineDefinitionVersion field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PipelineDefinitionVersionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pipelinedefinitionversion.FieldPipelineName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPipelineName(v)
+		return nil
+	case pipelinedefinitionversion.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVersion(v)
+		return nil
+	case pipelinedefinitionversion.FieldYaml:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetYaml(v)
+		return nil
+	case pipelinedefinitionversion.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PipelineDefinitionVersion field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PipelineDefinitionVersionMutation) AddedFields() []string {
+	var fields []string
+	if m.addversion != nil {
+		fields = append(fields, pipelinedefinitionversion.FieldVersion)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PipelineDefinitionVersionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pipelinedefinitionversion.FieldVersion:
+		return m.AddedVersion()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PipelineDefinitionVersionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case pipelinedefinitionversion.FieldVersion:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddVersion(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PipelineDefinitionVersion numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PipelineDefinitionVersionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PipelineDefinitionVersionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PipelineDefinitionVersionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PipelineDefinitionVersion nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PipelineDefinitionVersionMutation) ResetField(name string) error {
+	switch name {
+	case pipelinedefinitionversion.FieldPipelineName:
+		m.ResetPipelineName()
+		return nil
+	case pipelinedefinitionversion.FieldVersion:
+		m.ResetVersion()
+		return nil
+	case pipelinedefinitionversion.FieldYaml:
+		m.ResetYaml()
+		return nil
+	case pipelinedefinitionversion.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown PipelineDefinitionVersion field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PipelineDefinitionVersionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PipelineDefinitionVersionMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PipelineDefinitionVersionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PipelineDefinitionVersionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PipelineDefinitionVersionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PipelineDefinitionVersionMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PipelineDefinitionVersionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PipelineDefinitionVersion unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PipelineDefinitionVersionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PipelineDefinitionVersion edge %s", name)
 }
 
 // PipelineRunMutation represents an operation that mutates the PipelineRun nodes in the graph.

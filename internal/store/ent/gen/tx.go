@@ -68,6 +68,8 @@ type Tx struct {
 	Parameter *ParameterClient
 	// PipelineDefinition is the client for interacting with the PipelineDefinition builders.
 	PipelineDefinition *PipelineDefinitionClient
+	// PipelineDefinitionVersion is the client for interacting with the PipelineDefinitionVersion builders.
+	PipelineDefinitionVersion *PipelineDefinitionVersionClient
 	// PipelineRun is the client for interacting with the PipelineRun builders.
 	PipelineRun *PipelineRunClient
 	// PipelineStepRun is the client for interacting with the PipelineStepRun builders.
@@ -255,6 +257,7 @@ func (tx *Tx) init() {
 	tx.PageData = NewPageDataClient(tx.config)
 	tx.Parameter = NewParameterClient(tx.config)
 	tx.PipelineDefinition = NewPipelineDefinitionClient(tx.config)
+	tx.PipelineDefinitionVersion = NewPipelineDefinitionVersionClient(tx.config)
 	tx.PipelineRun = NewPipelineRunClient(tx.config)
 	tx.PipelineStepRun = NewPipelineStepRunClient(tx.config)
 	tx.Platform = NewPlatformClient(tx.config)

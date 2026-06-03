@@ -33,6 +33,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinesteprun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platform"
@@ -848,6 +849,20 @@ func init() {
 	pipelinedefinition.DefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.Default.(func() time.Time)
 	// pipelinedefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	pipelinedefinition.UpdateDefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	pipelinedefinitionversionFields := schema.PipelineDefinitionVersion{}.Fields()
+	_ = pipelinedefinitionversionFields
+	// pipelinedefinitionversionDescPipelineName is the schema descriptor for pipeline_name field.
+	pipelinedefinitionversionDescPipelineName := pipelinedefinitionversionFields[1].Descriptor()
+	// pipelinedefinitionversion.PipelineNameValidator is a validator for the "pipeline_name" field. It is called by the builders before save.
+	pipelinedefinitionversion.PipelineNameValidator = pipelinedefinitionversionDescPipelineName.Validators[0].(func(string) error)
+	// pipelinedefinitionversionDescYaml is the schema descriptor for yaml field.
+	pipelinedefinitionversionDescYaml := pipelinedefinitionversionFields[3].Descriptor()
+	// pipelinedefinitionversion.YamlValidator is a validator for the "yaml" field. It is called by the builders before save.
+	pipelinedefinitionversion.YamlValidator = pipelinedefinitionversionDescYaml.Validators[0].(func(string) error)
+	// pipelinedefinitionversionDescCreatedAt is the schema descriptor for created_at field.
+	pipelinedefinitionversionDescCreatedAt := pipelinedefinitionversionFields[4].Descriptor()
+	// pipelinedefinitionversion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pipelinedefinitionversion.DefaultCreatedAt = pipelinedefinitionversionDescCreatedAt.Default.(func() time.Time)
 	pipelinerunFields := schema.PipelineRun{}.Fields()
 	_ = pipelinerunFields
 	// pipelinerunDescPipelineName is the schema descriptor for pipeline_name field.

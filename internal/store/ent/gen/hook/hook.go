@@ -345,6 +345,18 @@ func (f PipelineDefinitionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PipelineDefinitionMutation", m)
 }
 
+// The PipelineDefinitionVersionFunc type is an adapter to allow the use of ordinary
+// function as PipelineDefinitionVersion mutator.
+type PipelineDefinitionVersionFunc func(context.Context, *gen.PipelineDefinitionVersionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PipelineDefinitionVersionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.PipelineDefinitionVersionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.PipelineDefinitionVersionMutation", m)
+}
+
 // The PipelineRunFunc type is an adapter to allow the use of ordinary
 // function as PipelineRun mutator.
 type PipelineRunFunc func(context.Context, *gen.PipelineRunMutation) (gen.Value, error)

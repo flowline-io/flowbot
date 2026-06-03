@@ -90,6 +90,9 @@ type Parameter func(*sql.Selector)
 // PipelineDefinition is the predicate function for pipelinedefinition builders.
 type PipelineDefinition func(*sql.Selector)
 
+// PipelineDefinitionVersion is the predicate function for pipelinedefinitionversion builders.
+type PipelineDefinitionVersion func(*sql.Selector)
+
 // PipelineRun is the predicate function for pipelinerun builders.
 type PipelineRun func(*sql.Selector)
 

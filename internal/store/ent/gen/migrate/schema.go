@@ -689,6 +689,27 @@ var (
 		Columns:    PipelineDefinitionsColumns,
 		PrimaryKey: []*schema.Column{PipelineDefinitionsColumns[0]},
 	}
+	// PipelineDefinitionVersionsColumns holds the columns for the "pipeline_definition_versions" table.
+	PipelineDefinitionVersionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "pipeline_name", Type: field.TypeString},
+		{Name: "version", Type: field.TypeInt},
+		{Name: "yaml", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// PipelineDefinitionVersionsTable holds the schema information for the "pipeline_definition_versions" table.
+	PipelineDefinitionVersionsTable = &schema.Table{
+		Name:       "pipeline_definition_versions",
+		Columns:    PipelineDefinitionVersionsColumns,
+		PrimaryKey: []*schema.Column{PipelineDefinitionVersionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "pipelinedefinitionversion_pipeline_name_version",
+				Unique:  true,
+				Columns: []*schema.Column{PipelineDefinitionVersionsColumns[1], PipelineDefinitionVersionsColumns[2]},
+			},
+		},
+	}
 	// PipelineRunsColumns holds the columns for the "pipeline_runs" table.
 	PipelineRunsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1085,6 +1106,7 @@ var (
 		PageDataTable,
 		ParameterTable,
 		PipelineDefinitionsTable,
+		PipelineDefinitionVersionsTable,
 		PipelineRunsTable,
 		PipelineStepRunsTable,
 		PlatformsTable,
@@ -1186,6 +1208,9 @@ func init() {
 	}
 	PipelineDefinitionsTable.Annotation = &entsql.Annotation{
 		Table: "pipeline_definitions",
+	}
+	PipelineDefinitionVersionsTable.Annotation = &entsql.Annotation{
+		Table: "pipeline_definition_versions",
 	}
 	PipelineRunsTable.Annotation = &entsql.Annotation{
 		Table: "pipeline_runs",
