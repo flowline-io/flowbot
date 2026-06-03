@@ -29,10 +29,15 @@ templ TriggerCard() {
 templ StepCard() {
 	<div class="card bg-base-100 shadow-sm card-body p-4 relative group cursor-pointer"
 		:class="getStepErrorClass(idx)"
+		draggable="true"
+		:data-sort-idx="idx"
+		@dragstart="onStepDragStart(idx, $event)"
+		@dragend="onStepDragEnd($event)"
+		@dragover="onStepDragOver(idx, $event)"
+		@dragleave="onStepDragLeave($event)"
+		@drop="onStepDrop(idx, $event)"
 		@click="selectNode('step', idx)" data-testid="step-card">
 		<div class="absolute -top-2 right-2 hidden group-hover:flex gap-1 bg-base-100 border rounded-box shadow-sm px-2 py-0.5 text-xs">
-			<button type="button" @click.stop="moveStepUp(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-move-up">Up</button>
-			<button type="button" @click.stop="moveStepDown(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-move-down">Down</button>
 			<button type="button" @click.stop="duplicateStep(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-copy-step">Copy</button>
 			<button type="button" @click.stop="removeStep(idx)" class="text-error/50 hover:text-error" data-testid="btn-delete-step">Delete</button>
 		</div>

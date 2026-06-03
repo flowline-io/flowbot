@@ -32,6 +32,8 @@
       saving: false,
       testing: false,
       publishing: false,
+      dragFromIdx: null,
+      dragOverIdx: null,
 
       init() {
         const el = this.$el;
@@ -320,38 +322,6 @@
         this.validate();
         if (this.drawerOpen && this.selectedNode?.index === idx)
           this.drawerOpen = false;
-      },
-
-      moveStepUp(idx) {
-        if (idx === 0) return;
-        if (this.dependsOnStep(this.steps[idx], idx - 1)) {
-          showToast(
-            'Cannot move: this step depends on data from a step above the target position.',
-            'warning',
-          );
-          return;
-        }
-        this.pushUndo();
-        const step = this.steps.splice(idx, 1)[0];
-        this.steps.splice(idx - 1, 0, step);
-        this.markDirty();
-        this.validate();
-      },
-
-      moveStepDown(idx) {
-        if (idx >= this.steps.length - 1) return;
-        if (this.dependsOnStep(this.steps[idx + 1], idx, this.steps[idx])) {
-          showToast(
-            "Cannot move: the step below depends on this step's data.",
-            'warning',
-          );
-          return;
-        }
-        this.pushUndo();
-        const step = this.steps.splice(idx, 1)[0];
-        this.steps.splice(idx + 1, 0, step);
-        this.markDirty();
-        this.validate();
       },
 
       duplicateStep(idx) {
@@ -654,6 +624,65 @@
           this.testing = false;
         }
       },
+
+      onStepDragStart(idx, e) {
+        this.dragFromIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(idx));
+        e.target.closest('[data-sort-idx]').classList.add('opacity-50');
+      },
+
+      onStepDragEnd(e) {
+        this.dragFromIdx = null;
+        this.dragOverIdx = null;
+        e.target.closest('[data-sort-idx]')?.classList.remove('opacity-50');
+        this.$el.querySelectorAll('.drag-over-highlight').forEach(function(el) {
+          el.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
+        });
+      },
+
+      onStepDragOver(idx, e) {
+        e.preventDefault();
+        if (idx === this.dragFromIdx) return;
+        e.dataTransfer.dropEffect = 'move';
+        this.dragOverIdx = idx;
+        var stepEl = e.currentTarget.closest('[data-sort-idx]');
+        if (stepEl) {
+          this.$el.querySelectorAll('.drag-over-highlight').forEach(function(el) {
+            el.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
+          });
+          stepEl.classList.add('drag-over-highlight', 'border-t-2', 'border-primary');
+        }
+      },
+
+      onStepDragLeave(e) {
+        var stepEl = e.currentTarget.closest('[data-sort-idx]');
+        if (stepEl) {
+          stepEl.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
+        }
+      },
+
+      onStepDrop(idx, e) {
+        e.preventDefault();
+        this.dragOverIdx = null;
+        this.$el.querySelectorAll('.drag-over-highlight').forEach(function(el) {
+          el.classList.remove('drag-over-highlight', 'border-t-2', 'border-primary');
+        });
+        if (this.dragFromIdx === null || this.dragFromIdx === idx) return;
+
+        if (this.dependsOnStep(this.steps[this.dragFromIdx], Math.min(idx, this.dragFromIdx))) {
+          showToast('Cannot move: this step depends on data from a step at or above the target position.', 'warning');
+          return;
+        }
+
+        this.pushUndo();
+        var item = this.steps.splice(this.dragFromIdx, 1)[0];
+        this.steps.splice(idx, 0, item);
+        this.markDirty();
+        this.validate();
+        this.dragFromIdx = null;
+      },
+
     }));
   }
 
