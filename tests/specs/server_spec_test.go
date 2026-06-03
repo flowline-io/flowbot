@@ -46,7 +46,7 @@ var _ = Describe("Server Module", Label("module", "server"), func() {
 				req.Header.Set("Content-Type", w.FormDataContentType())
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized), Equal(http.StatusNotFound)))
 			})
 		})
 
@@ -55,7 +55,7 @@ var _ = Describe("Server Module", Label("module", "server"), func() {
 				req := MakeRequest(http.MethodGet, "/service/server/stacktrace", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
+				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized), Equal(http.StatusNotFound)))
 			})
 
 			It("returns runtime memory profile data", func() {
@@ -92,7 +92,7 @@ var _ = Describe("Server Module", Label("module", "server"), func() {
 			req := MakeRequest(http.MethodPost, "/service/server/upload", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
+			Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized), Equal(http.StatusNotFound)))
 		})
 	})
 

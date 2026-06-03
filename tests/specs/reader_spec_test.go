@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bytedance/sonic"
+	hubmod "github.com/flowline-io/flowbot/internal/modules/hub"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 
@@ -16,6 +17,10 @@ import (
 )
 
 var _ = Describe("Reader Module", Label("module", "reader"), func() {
+
+	BeforeEach(func() {
+		hubmod.MountForE2E(App)
+	})
 
 	Describe("Webservice — Feeds", func() {
 		Context("GET /", func() {

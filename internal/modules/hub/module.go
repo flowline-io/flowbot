@@ -167,5 +167,15 @@ func (moduleHandler) Input(_ types.Context, _ types.KV, _ any) (types.MsgPayload
 	return types.TextMsg{Text: "Input"}, nil
 }
 
+// InitForE2E initializes the hub module handler for e2e testing.
+func InitForE2E(configData json.RawMessage) error {
+	return handler.Init(configData)
+}
+
+// MountForE2E mounts hub module routes onto the given Fiber app.
+func MountForE2E(app *fiber.App) {
+	handler.Webservice(app)
+}
+
 // Form rules for github module (formerly separate).
 var formRules []form.Rule

@@ -2026,7 +2026,8 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, cap
 }
 
 // SearchNodes returns distinct (app, capability, entity_id) tuples from
-// resource_links where source_entity_id or target_entity_id contains the query.
+// resource_links where source_entity_id, target_entity_id, source_app,
+// target_app, source_capability, or target_capability contains the query.
 // The cursor parameter is reserved for future use; not implemented in MVP.
 func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, _ string) ([]schema.ResourceRef, string, error) {
 	if s == nil || s.client == nil || query == "" {
@@ -2042,6 +2043,10 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 			resourcelink.Or(
 				resourcelink.SourceEntityIDContainsFold(query),
 				resourcelink.TargetEntityIDContainsFold(query),
+				resourcelink.SourceAppContainsFold(query),
+				resourcelink.TargetAppContainsFold(query),
+				resourcelink.SourceCapabilityContainsFold(query),
+				resourcelink.TargetCapabilityContainsFold(query),
 			),
 		).
 		Order(resourcelink.ByCreatedAt(sql.OrderDesc())).

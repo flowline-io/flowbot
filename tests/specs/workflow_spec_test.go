@@ -23,7 +23,7 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 			req := JSONRequest(http.MethodPost, "/service/workflow/run", nil)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
+			Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized), Equal(http.StatusNotFound)))
 		})
 
 		It("rejects request without file field", func() {

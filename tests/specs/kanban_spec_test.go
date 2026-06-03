@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/bytedance/sonic"
+	hubmod "github.com/flowline-io/flowbot/internal/modules/hub"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -17,6 +18,10 @@ import (
 )
 
 var _ = Describe("Kanban Module", Label("module", "kanban"), func() {
+
+	BeforeEach(func() {
+		hubmod.MountForE2E(App)
+	})
 
 	Describe("Webservice — Tasks", func() {
 		Context("GET /", func() {
