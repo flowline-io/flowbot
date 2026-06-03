@@ -1,0 +1,170 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+)
+
+templ HomelabDetailPage(app homelab.App, status homelab.AppStatus, version string, scannedAt string) {
+	@layout.Base(app.Name + " — Flowbot") {
+		<div class="mb-4">
+			<a href="/service/web/homelab" class="btn btn-ghost btn-sm">← Back to Registry</a>
+		</div>
+		<div class="card bg-base-100 shadow-sm mb-6">
+			<div class="card-body">
+				<div class="flex items-center gap-3 mb-4">
+					<div class="avatar placeholder bg-primary">
+						<div class="w-12 rounded-full text-white">
+							<span class="text-xl font-semibold">
+								if app.Name != "" {
+									{ string(app.Name[0]) }
+								}
+							</span>
+						</div>
+					</div>
+					<div>
+						<h1 class="card-title text-2xl">{ app.Name }</h1>
+						<div class="flex items-center gap-2 mt-1">
+							@HomelabDetailStatusBadge(status)
+							<span class="text-sm text-base-content/50">Health: { string(app.Health) }</span>
+						</div>
+					</div>
+				</div>
+				<div class="grid grid-cols-2 gap-2 text-sm text-base-content/70 mb-4">
+					<div>
+						<span class="text-base-content/50">Path:</span>
+						<code class="text-xs">{ app.Path }</code>
+					</div>
+					if app.ComposeFile != "" {
+						<div>
+							<span class="text-base-content/50">Compose:</span>
+							<code class="text-xs">{ app.ComposeFile }</code>
+						</div>
+					}
+					if version != "" {
+						<div>
+							<span class="text-base-content/50">Version:</span>
+							<span class="badge badge-sm">{ version }</span>
+						</div>
+					}
+					if scannedAt != "" {
+						<div>
+							<span class="text-base-content/50">Last Discovered:</span>
+							<span>{ scannedAt }</span>
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+		if len(app.Services) > 0 {
+			<div class="card bg-base-100 shadow-sm mb-6">
+				<div class="card-body">
+					<h2 class="card-title text-lg mb-2">Services</h2>
+					<div class="overflow-x-auto">
+						<table class="table table-xs">
+							<thead>
+								<tr>
+									<th>Service</th>
+									<th>Image</th>
+									<th>Container</th>
+									<th>Ports</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, svc := range app.Services {
+									<tr>
+										<td class="font-medium">{ svc.Name }</td>
+										<td><code class="text-xs">{ svc.Image }</code></td>
+										<td>{ svc.Container }</td>
+										<td>
+											<div class="flex flex-wrap gap-1">
+												for _, p := range svc.Ports {
+													<span class="badge badge-ghost badge-xs">
+														if p.HostPort != "" {
+															{ p.HostPort }:{ p.Container }
+														} else {
+															{ p.Container }
+														}
+														if p.Protocol != "" {
+															/{ p.Protocol }
+														}
+													</span>
+												}
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		}
+		if len(app.Capabilities) > 0 {
+			<div class="card bg-base-100 shadow-sm mb-6">
+				<div class="card-body">
+					<h2 class="card-title text-lg mb-2">Exposed Endpoints</h2>
+					<div class="overflow-x-auto">
+						<table class="table table-xs">
+							<thead>
+								<tr>
+									<th>Capability</th>
+									<th>Backend</th>
+									<th>Base URL</th>
+									<th>Auth</th>
+									<th>Health</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, cap := range app.Capabilities {
+									<tr>
+										<td><span class="badge badge-primary badge-xs">{ cap.Capability }</span></td>
+										<td>{ cap.Backend }</td>
+										<td>
+											if cap.Endpoint != nil && cap.Endpoint.BaseURL != "" {
+												<a href={ cap.Endpoint.BaseURL } target="_blank"
+													class="link link-hover text-xs">
+													{ cap.Endpoint.BaseURL }
+												</a>
+											}
+										</td>
+										<td>
+											if cap.Auth != nil {
+												<span class="badge badge-ghost badge-xs">{ string(cap.Auth.Type) }</span>
+											} else {
+												<span class="text-base-content/50 text-xs">-</span>
+											}
+										</td>
+										<td>
+											if cap.Endpoint != nil && cap.Endpoint.Health != "" {
+												<a href={ cap.Endpoint.Health } target="_blank"
+													class="link link-hover text-xs">
+													{ cap.Endpoint.Health }
+												</a>
+											} else {
+												<span class="text-base-content/50 text-xs">-</span>
+											}
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		}
+	}
+}
+
+templ HomelabDetailStatusBadge(status homelab.AppStatus) {
+	switch status {
+	case homelab.AppStatusRunning:
+		<span class="badge badge-success" data-testid="status-badge">online</span>
+	case homelab.AppStatusStopped:
+		<span class="badge badge-ghost" data-testid="status-badge">offline</span>
+	case homelab.AppStatusPartial:
+		<span class="badge badge-warning" data-testid="status-badge">warning</span>
+	default:
+		<span class="badge badge-error" data-testid="status-badge">unknown</span>
+	}
+}

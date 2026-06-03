@@ -1,0 +1,17 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ HomelabPage(apps []homelab.App, scannedAt string) {
+	@layout.Base("Registry — Flowbot") {
+		<script src="/static/js/homelab-registry.js" defer></script>
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Homelab Registry</h1>
+		</div>
+		@partials.HomelabGrid(apps, scannedAt)
+	}
+}
