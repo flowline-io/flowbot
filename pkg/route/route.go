@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
@@ -148,6 +149,19 @@ func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 				scopes = v
 			}
 		}
+
+		// Update last_used_at with 60s throttle to avoid write-on-every-request.
+		if lastUsedRaw, ok := paramKV["last_used_at"]; ok {
+			if lastUsedStr, isStr := lastUsedRaw.(string); isStr {
+				lastUsed, parseErr := time.Parse(time.RFC3339Nano, lastUsedStr)
+				if parseErr == nil && time.Since(lastUsed) < 60*time.Second {
+					goto skipUpdate
+				}
+			}
+		}
+		paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+		_ = store.Database.ParameterSet(context.Background(), accessToken, paramKV, p.ExpiredAt)
+	skipUpdate:
 
 		ctx.Locals(requestContextKey, &RequestContext{
 			UID:    uid,
