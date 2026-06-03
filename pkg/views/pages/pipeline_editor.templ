@@ -140,22 +140,53 @@ templ PipelineEditorPage(name string) {
 			data-testid="history-sidebar">
 			<div class="p-4">
 				<div class="flex items-center justify-between mb-4">
-					<h3 class="font-medium text-base-content">Version History</h3>
-					<button type="button" @click="historyOpen = false" class="btn btn-ghost btn-sm" data-testid="btn-close-history">&times;</button>
-				</div>
+			<h3 class="font-medium text-base-content">Version History</h3>
+				<button type="button" @click="historyOpen = false" class="btn btn-ghost btn-sm" data-testid="btn-close-history">&times;</button>
+			</div>
+			<button type="button" @click="toggleCompareMode"
+				:class="compareMode ? 'btn-primary' : 'btn-ghost'"
+				class="btn btn-xs mb-3"
+				data-testid="btn-compare">Compare</button>
 
-				<div x-show="!selectedVersion" data-testid="version-list">
-					<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
-					<div x-show="!historyLoading && versions.length === 0" class="text-sm text-base-content/30">No published versions yet.</div>
-					<template x-for="v in versions" :key="v.version">
-						<button type="button" @click="selectVersion(v)"
-							class="w-full text-left p-2 rounded-box hover:bg-base-200 mb-1 flex items-center justify-between"
-							data-testid="version-item">
-							<span class="badge badge-sm" x-text="'v' + v.version"></span>
-							<span class="text-xs text-base-content/30" x-text="relativeTime(v.created_at)"></span>
-						</button>
-					</template>
+			<div x-show="!selectedVersion && !compareMode" data-testid="version-list">
+				<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
+				<div x-show="!historyLoading && versions.length === 0" class="text-sm text-base-content/30">No published versions yet.</div>
+				<template x-for="v in versions" :key="v.version">
+					<button type="button" @click="selectVersion(v)"
+						class="w-full text-left p-2 rounded-box hover:bg-base-200 mb-1 flex items-center justify-between"
+						data-testid="version-item">
+						<span class="badge badge-sm" x-text="'v' + v.version"></span>
+						<span class="text-xs text-base-content/30" x-text="relativeTime(v.created_at)"></span>
+					</button>
+				</template>
+			</div>
+
+			<div x-show="!selectedVersion && compareMode" data-testid="compare-list">
+				<p class="text-xs text-base-content/30 mb-2">Select two versions to compare</p>
+				<template x-for="v in versions" :key="v.version">
+					<div @click="toggleCompareVersion(v)"
+						:class="(compareLeft && compareLeft.version === v.version) || (compareRight && compareRight.version === v.version) ? 'bg-primary/10' : ''"
+						class="p-2 rounded-box hover:bg-base-200 mb-1 cursor-pointer flex items-center gap-2"
+						data-testid="compare-item">
+						<span class="text-sm" x-text="'v' + v.version"></span>
+						<span class="flex-1 text-xs text-base-content/30" x-text="relativeTime(v.created_at)"></span>
+						<span x-show="compareLeft && compareLeft.version === v.version" class="text-xs font-bold text-primary">LEFT</span>
+						<span x-show="compareRight && compareRight.version === v.version" class="text-xs font-bold text-primary">RIGHT</span>
+					</div>
+				</template>
+
+				<div x-show="diffResult" class="mt-4" data-testid="diff-result">
+					<div class="text-xs font-medium mb-2">
+						<span class="badge badge-sm" x-text="'v' + compareLeft.version"></span>
+						vs
+						<span class="badge badge-sm" x-text="'v' + compareRight.version"></span>
+					</div>
+					<pre class="text-xs font-mono bg-base-200 rounded-box p-3 overflow-x-auto max-h-96"><template x-for="chunk in diffResult"><span :class="chunk.added ? 'bg-success/20 text-success' : (chunk.removed ? 'bg-error/20 text-error' : '')" x-text="chunk.text"></span></template></pre>
 				</div>
+				<div x-show="compareLeft && compareRight && !diffResult" class="text-xs text-base-content/30 mt-4">
+					Select two versions to see diff
+				</div>
+			</div>
 
 				<div x-show="selectedVersion" data-testid="version-preview">
 					<button type="button" @click="selectedVersion = null"

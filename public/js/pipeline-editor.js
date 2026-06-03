@@ -39,6 +39,10 @@
       selectedVersion: null,
       selectedVersionYaml: '',
       historyLoading: false,
+      compareMode: false,
+      compareLeft: null,
+      compareRight: null,
+      diffResult: null,
 
       init() {
         const el = this.$el;
@@ -783,6 +787,57 @@
         if (hours < 24) return hours + ' hours ago';
         var days = Math.floor(hours / 24);
         return days + ' days ago';
+      },
+
+      toggleCompareMode() {
+        this.compareMode = !this.compareMode;
+        if (!this.compareMode) {
+          this.compareLeft = null;
+          this.compareRight = null;
+          this.diffResult = null;
+        }
+      },
+
+      toggleCompareVersion(v) {
+        if (this.compareLeft && this.compareLeft.version === v.version) {
+          this.compareLeft = null;
+        } else if (this.compareRight && this.compareRight.version === v.version) {
+          this.compareRight = null;
+        } else if (!this.compareLeft) {
+          this.compareLeft = v;
+        } else if (!this.compareRight) {
+          this.compareRight = v;
+        }
+        if (this.compareLeft && this.compareRight) {
+          this.computeDiff();
+        }
+      },
+
+      async computeDiff() {
+        var left = this.compareLeft;
+        var right = this.compareRight;
+        var self = this;
+        var fetchYaml = async function(v) {
+          var resp = await fetch('/service/web/pipelines/' + self.name + '/versions/' + v.version);
+          var data = await resp.json();
+          return data.yaml || '';
+        };
+
+        try {
+          var leftYaml = await fetchYaml(left);
+          var rightYaml = await fetchYaml(right);
+          var changes = Diff.diffLines(leftYaml || '', rightYaml || '');
+          this.diffResult = changes.map(function(part) {
+            return {
+              text: part.value,
+              added: part.added,
+              removed: part.removed,
+            };
+          });
+        } catch (e) {
+          console.error('Diff error:', e);
+          this.diffResult = null;
+        }
       },
 
     }));
