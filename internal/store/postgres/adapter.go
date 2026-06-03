@@ -1182,13 +1182,12 @@ func (a *adapter) ListTokens(ctx context.Context) ([]model.TokenItem, error) {
 	cutoff := time.Now().Add(-30 * 24 * time.Hour)
 	result := make([]model.TokenItem, 0, len(rows))
 	for _, r := range rows {
+		paramsKV := types.KV(r.Params)
 		if r.ExpiredAt.Before(cutoff) {
-			paramsKV := types.KV(r.Params)
 			if _, hasUsed := paramsKV["last_used_at"]; !hasUsed {
 				continue
 			}
 		}
-		paramsKV := types.KV(r.Params)
 		uidStr, _ := paramsKV.String("uid")
 		var scopes []string
 		if raw, ok := paramsKV["scopes"]; ok {
@@ -1245,12 +1244,12 @@ func (a *adapter) CreateToken(ctx context.Context, uid types.Uid, expiresAt time
 }
 
 func (a *adapter) RevokeToken(ctx context.Context, flag string) error {
-	_, err := a.client.Parameter.Delete().Where(parameter.FlagEQ(flag)).Exec(ctx)
+	n, err := a.client.Parameter.Delete().Where(parameter.FlagEQ(flag)).Exec(ctx)
 	if err != nil {
-		if gen.IsNotFound(err) {
-			return types.ErrNotFound
-		}
 		return fmt.Errorf("postgres: revoke token: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
 	}
 	return nil
 }
