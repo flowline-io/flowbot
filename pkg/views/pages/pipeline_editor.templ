@@ -32,6 +32,10 @@ templ PipelineEditorPage(name string) {
 					<button type="button" @click="redo" :disabled="redoStack.length === 0"
 						class="btn btn-ghost btn-sm"
 						data-testid="btn-redo">Redo</button>
+				<button type="button" @click="toggleHistory"
+					:class="historyOpen ? 'btn-active' : ''"
+					class="btn btn-ghost btn-sm"
+					data-testid="btn-history">History</button>
 				<button type="button" @click="toggleCodeView"
 					class="btn btn-ghost btn-sm font-mono"
 					data-testid="btn-code-view">&lt;/&gt; Code</button>
@@ -128,9 +132,48 @@ templ PipelineEditorPage(name string) {
 						<p>No steps yet. Click + to add your first step.</p>
 					</div>
 				</div>
-			</div>
+		</div>
 
-			<!-- Drawer Backdrop -->
+		<!-- Version History Sidebar -->
+		<div x-show="historyOpen"
+			class="fixed right-0 top-0 h-full w-80 bg-base-100 shadow-xl z-30 overflow-y-auto border-l border-base-300"
+			data-testid="history-sidebar">
+			<div class="p-4">
+				<div class="flex items-center justify-between mb-4">
+					<h3 class="font-medium text-base-content">Version History</h3>
+					<button type="button" @click="historyOpen = false" class="btn btn-ghost btn-sm" data-testid="btn-close-history">&times;</button>
+				</div>
+
+				<div x-show="!selectedVersion" data-testid="version-list">
+					<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
+					<div x-show="!historyLoading && versions.length === 0" class="text-sm text-base-content/30">No published versions yet.</div>
+					<template x-for="v in versions" :key="v.version">
+						<button type="button" @click="selectVersion(v)"
+							class="w-full text-left p-2 rounded-box hover:bg-base-200 mb-1 flex items-center justify-between"
+							data-testid="version-item">
+							<span class="badge badge-sm" x-text="'v' + v.version"></span>
+							<span class="text-xs text-base-content/30" x-text="relativeTime(v.created_at)"></span>
+						</button>
+					</template>
+				</div>
+
+				<div x-show="selectedVersion" data-testid="version-preview">
+					<button type="button" @click="selectedVersion = null"
+						class="btn btn-ghost btn-sm mb-3">Back to list</button>
+					<div class="flex items-center gap-2 mb-2">
+						<span class="badge" x-text="'v' + selectedVersion.version"></span>
+						<span class="text-xs text-base-content/30" x-text="relativeTime(selectedVersion.created_at)"></span>
+					</div>
+					<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
+					<pre x-show="!historyLoading && selectedVersionYaml"
+						class="text-xs bg-base-200 rounded-box p-3 overflow-x-auto max-h-96 font-mono"
+						x-text="selectedVersionYaml"></pre>
+					<div x-show="!historyLoading && !selectedVersionYaml" class="text-sm text-base-content/30">No content</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Drawer Backdrop -->
 			<div x-show="drawerOpen" class="fixed inset-0 bg-black/30 z-40" @click="closeDrawer" data-testid="drawer-backdrop"></div>
 
 			<!-- Configuration Drawer -->

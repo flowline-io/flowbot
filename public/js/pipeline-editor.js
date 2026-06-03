@@ -34,6 +34,11 @@
       publishing: false,
       dragFromIdx: null,
       dragOverIdx: null,
+      historyOpen: false,
+      versions: [],
+      selectedVersion: null,
+      selectedVersionYaml: '',
+      historyLoading: false,
 
       init() {
         const el = this.$el;
@@ -42,6 +47,7 @@
         if (name) this.loadPipeline(name);
         this.fetchCapabilities();
         this.pushUndo();
+        this.loadVersions();
       },
 
       async loadPipeline(name) {
@@ -725,6 +731,58 @@
         } finally {
           e.target.value = '';
         }
+      },
+
+      async loadVersions() {
+        this.historyLoading = true;
+        try {
+          var resp = await fetch('/service/web/pipelines/' + this.name + '/versions');
+          if (!resp.ok) {
+            this.versions = [];
+            return;
+          }
+          this.versions = await resp.json();
+        } catch (e) {
+          console.error('Failed to load versions:', e);
+          this.versions = [];
+        } finally {
+          this.historyLoading = false;
+        }
+      },
+
+      toggleHistory() {
+        this.historyOpen = !this.historyOpen;
+        if (this.historyOpen && this.versions.length === 0) {
+          this.loadVersions();
+        }
+      },
+
+      async selectVersion(v) {
+        this.selectedVersion = v;
+        this.historyLoading = true;
+        try {
+          var resp = await fetch('/service/web/pipelines/' + this.name + '/versions/' + v.version);
+          if (!resp.ok) throw new Error('Not found');
+          var data = await resp.json();
+          this.selectedVersionYaml = data.yaml;
+        } catch (e) {
+          console.error('Failed to load version:', e);
+          this.selectedVersionYaml = '';
+        } finally {
+          this.historyLoading = false;
+        }
+      },
+
+      relativeTime(isoStr) {
+        var d = new Date(isoStr);
+        var now = new Date();
+        var diff = now - d;
+        var mins = Math.floor(diff / 60000);
+        if (mins < 60) return mins + ' minutes ago';
+        var hours = Math.floor(mins / 60);
+        if (hours < 24) return hours + ' hours ago';
+        var days = Math.floor(hours / 24);
+        return days + ' days ago';
       },
 
     }));
