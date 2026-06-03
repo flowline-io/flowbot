@@ -38,6 +38,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/platformuser"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -1165,6 +1166,91 @@ func (a *adapter) ParameterDelete(ctx context.Context, flag string) error {
 	_, err := a.client.Parameter.Delete().Where(parameter.FlagEQ(flag)).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: parameterdelete: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) ListTokens(ctx context.Context) ([]model.TokenItem, error) {
+	rows, err := a.client.Parameter.Query().
+		Where(parameter.FlagHasPrefix("fb_")).
+		Order(gen.Desc(parameter.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list tokens: %w", err)
+	}
+
+	cutoff := time.Now().Add(-30 * 24 * time.Hour)
+	result := make([]model.TokenItem, 0, len(rows))
+	for _, r := range rows {
+		if r.ExpiredAt.Before(cutoff) {
+			paramsKV := types.KV(r.Params)
+			if _, hasUsed := paramsKV["last_used_at"]; !hasUsed {
+				continue
+			}
+		}
+		paramsKV := types.KV(r.Params)
+		uidStr, _ := paramsKV.String("uid")
+		var scopes []string
+		if raw, ok := paramsKV["scopes"]; ok {
+			switch v := raw.(type) {
+			case []any:
+				for _, item := range v {
+					if s, ok := item.(string); ok {
+						scopes = append(scopes, s)
+					}
+				}
+			case []string:
+				scopes = v
+			}
+		}
+		var lastUsedAt *time.Time
+		if usedStr, ok := paramsKV.String("last_used_at"); ok && usedStr != "" {
+			if t, err := time.Parse(time.RFC3339, usedStr); err == nil {
+				lastUsedAt = &t
+			}
+		}
+		result = append(result, model.TokenItem{
+			Token:      r.Flag,
+			UID:        types.Uid(uidStr),
+			Scopes:     scopes,
+			CreatedAt:  r.CreatedAt,
+			LastUsedAt: lastUsedAt,
+			ExpiredAt:  r.ExpiredAt,
+		})
+	}
+	return result, nil
+}
+
+func (a *adapter) CreateToken(ctx context.Context, uid types.Uid, expiresAt time.Time, scopes []string) (string, error) {
+	token, err := auth.NewToken()
+	if err != nil {
+		return "", fmt.Errorf("postgres: create token: %w", err)
+	}
+	params := types.KV{
+		"uid":    string(uid),
+		"scopes": scopes,
+	}
+	now := time.Now()
+	_, err = a.client.Parameter.Create().
+		SetFlag(token).
+		SetParams(map[string]any(params)).
+		SetExpiredAt(expiresAt).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		return "", fmt.Errorf("postgres: create token: %w", err)
+	}
+	return token, nil
+}
+
+func (a *adapter) RevokeToken(ctx context.Context, flag string) error {
+	_, err := a.client.Parameter.Delete().Where(parameter.FlagEQ(flag)).Exec(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return types.ErrNotFound
+		}
+		return fmt.Errorf("postgres: revoke token: %w", err)
 	}
 	return nil
 }
