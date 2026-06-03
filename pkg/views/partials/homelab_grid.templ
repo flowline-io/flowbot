@@ -1,0 +1,64 @@
+package partials
+
+import (
+	"sort"
+
+	"github.com/flowline-io/flowbot/pkg/homelab"
+)
+
+func uniqueCapTypes(apps []homelab.App) []string {
+	seen := make(map[string]struct{})
+	for _, app := range apps {
+		for _, cap := range app.Capabilities {
+			seen[cap.Capability] = struct{}{}
+		}
+	}
+	result := make([]string, 0, len(seen))
+	for k := range seen {
+		result = append(result, k)
+	}
+	sort.Strings(result)
+	return result
+}
+
+templ HomelabGrid(apps []homelab.App, scannedAt string) {
+	<div id="homelab-registry" x-data="homelabRegistry()"
+		data-testid="homelab-registry">
+		<div class="flex items-end gap-2 mb-4 flex-wrap">
+			<div class="form-control flex-1 min-w-48">
+				<input type="search" class="input input-bordered input-sm"
+					placeholder="Search apps..."
+					x-model="search"
+					data-testid="homelab-search"/>
+			</div>
+			<select class="select select-bordered select-sm"
+				x-model="filterCapability"
+				data-testid="homelab-capability-filter">
+				<option value="">All Capabilities</option>
+				for _, capType := range uniqueCapTypes(apps) {
+					<option value={ capType }>{ capType }</option>
+				}
+			</select>
+			<button hx-post="/service/web/homelab/rescan"
+				class="btn btn-sm btn-outline"
+				data-testid="homelab-rescan">
+				<span class="loading loading-spinner loading-xs htmx-indicator mr-1"></span>
+				Rescan
+			</button>
+			if scannedAt != "" {
+				<span class="text-xs text-base-content/50"
+					data-testid="homelab-scanned-at">Last scan: { scannedAt }</span>
+			}
+		</div>
+		if len(apps) == 0 {
+			@EmptyState("No apps discovered. Configure homelab.apps_dir in flowbot.yaml.")
+		} else {
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+				data-testid="homelab-card-grid">
+				for _, app := range apps {
+					@HomelabCard(app)
+				}
+			</div>
+		}
+	</div>
+}
