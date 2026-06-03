@@ -2062,28 +2062,8 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 	lowerQuery := strings.ToLower(query)
 
 	for _, rl := range links {
-		if strings.Contains(strings.ToLower(rl.SourceEntityID), lowerQuery) {
-			key := rl.SourceApp + "|" + rl.SourceCapability + "|" + rl.SourceEntityID
-			if !seen[key] {
-				seen[key] = true
-				results = append(results, schema.ResourceRef{
-					App:        rl.SourceApp,
-					Capability: rl.SourceCapability,
-					EntityID:   rl.SourceEntityID,
-				})
-			}
-		}
-		if strings.Contains(strings.ToLower(rl.TargetEntityID), lowerQuery) {
-			key := rl.TargetApp + "|" + rl.TargetCapability + "|" + rl.TargetEntityID
-			if !seen[key] {
-				seen[key] = true
-				results = append(results, schema.ResourceRef{
-					App:        rl.TargetApp,
-					Capability: rl.TargetCapability,
-					EntityID:   rl.TargetEntityID,
-				})
-			}
-		}
+		addSourceResult(rl, lowerQuery, seen, &results)
+		addTargetResult(rl, lowerQuery, seen, &results)
 	}
 
 	// apply limit after dedup
@@ -2092,6 +2072,49 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 	}
 
 	return results, "", nil
+}
+
+// addSourceResult adds the source side of a resource link to results
+// if any of its fields match the query.
+func addSourceResult(rl *gen.ResourceLink, lowerQuery string, seen map[string]bool, results *[]schema.ResourceRef) {
+	if !matchesField(rl.SourceEntityID, rl.SourceApp, rl.SourceCapability, lowerQuery) {
+		return
+	}
+	key := rl.SourceApp + "|" + rl.SourceCapability + "|" + rl.SourceEntityID
+	if seen[key] {
+		return
+	}
+	seen[key] = true
+	*results = append(*results, schema.ResourceRef{
+		App:        rl.SourceApp,
+		Capability: rl.SourceCapability,
+		EntityID:   rl.SourceEntityID,
+	})
+}
+
+// addTargetResult adds the target side of a resource link to results
+// if any of its fields match the query.
+func addTargetResult(rl *gen.ResourceLink, lowerQuery string, seen map[string]bool, results *[]schema.ResourceRef) {
+	if !matchesField(rl.TargetEntityID, rl.TargetApp, rl.TargetCapability, lowerQuery) {
+		return
+	}
+	key := rl.TargetApp + "|" + rl.TargetCapability + "|" + rl.TargetEntityID
+	if seen[key] {
+		return
+	}
+	seen[key] = true
+	*results = append(*results, schema.ResourceRef{
+		App:        rl.TargetApp,
+		Capability: rl.TargetCapability,
+		EntityID:   rl.TargetEntityID,
+	})
+}
+
+// matchesField returns true if any of the given fields contain the query (case-insensitive).
+func matchesField(entityID, appName, capability, lowerQuery string) bool {
+	return strings.Contains(strings.ToLower(entityID), lowerQuery) ||
+		strings.Contains(strings.ToLower(appName), lowerQuery) ||
+		strings.Contains(strings.ToLower(capability), lowerQuery)
 }
 
 // ParameterIsExpired checks whether the given access token parameter has expired.
