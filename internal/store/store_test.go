@@ -3,11 +3,13 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	_ "github.com/flowline-io/flowbot/internal/store/ent/gen/runtime"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
@@ -1522,6 +1524,139 @@ func TestHubStore_ListApps(t *testing.T) {
 					names[i] = info.Name
 				}
 				assert.Equal(t, tt.wantNames, names)
+			}
+		})
+	}
+}
+
+// ---------------------------------------------------------------------------
+// PipelineStore version tests
+// ---------------------------------------------------------------------------
+
+func TestPipelineStore_Versions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "publish creates version snapshot"},
+		{name: "publish twice stores two versions"},
+		{name: "ListDefinitionVersions ordered newest first"},
+		{name: "GetDefinitionVersion returns correct YAML"},
+		{name: "GetDefinitionVersion not found returns ErrNotFound"},
+		{name: "ListDefinitionVersions empty for never-published pipeline"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := getTestClient(t)
+			store := NewPipelineStore(client)
+			ctx := context.Background()
+
+			switch tt.name {
+			case "publish creates version snapshot":
+				err := store.CreateDefinition(ctx, "vtest-pub1", "")
+				require.NoError(t, err)
+
+				_, err = client.PipelineDefinition.Update().
+					Where(pipelinedefinition.Name("vtest-pub1")).
+					SetYamlDraft("name: vtest-pub1\nsteps: []").
+					Save(ctx)
+				require.NoError(t, err)
+
+				_, err = store.PublishDefinition(ctx, "vtest-pub1", 1)
+				require.NoError(t, err)
+
+				vers, err := store.ListDefinitionVersions(ctx, "vtest-pub1")
+				require.NoError(t, err)
+				require.Len(t, vers, 1)
+				assert.Equal(t, 2, vers[0].Version)
+				assert.Equal(t, "name: vtest-pub1\nsteps: []", vers[0].Yaml)
+
+			case "publish twice stores two versions":
+				err := store.CreateDefinition(ctx, "vtest-pub2", "")
+				require.NoError(t, err)
+
+				_, err = client.PipelineDefinition.Update().
+					Where(pipelinedefinition.Name("vtest-pub2")).
+					SetYamlDraft("name: v1\nsteps: []").
+					Save(ctx)
+				require.NoError(t, err)
+
+				_, err = store.PublishDefinition(ctx, "vtest-pub2", 1)
+				require.NoError(t, err)
+
+				_, err = client.PipelineDefinition.Update().
+					Where(pipelinedefinition.Name("vtest-pub2")).
+					SetYamlDraft("name: v2\nsteps: [a]").
+					Save(ctx)
+				require.NoError(t, err)
+
+				_, err = store.PublishDefinition(ctx, "vtest-pub2", 2)
+				require.NoError(t, err)
+
+				vers, err := store.ListDefinitionVersions(ctx, "vtest-pub2")
+				require.NoError(t, err)
+				require.Len(t, vers, 2)
+				assert.Equal(t, 3, vers[0].Version)
+				assert.Equal(t, "name: v2\nsteps: [a]", vers[0].Yaml)
+				assert.Equal(t, 2, vers[1].Version)
+				assert.Equal(t, "name: v1\nsteps: []", vers[1].Yaml)
+
+			case "ListDefinitionVersions ordered newest first":
+				err := store.CreateDefinition(ctx, "vtest-order", "")
+				require.NoError(t, err)
+
+				for i := range 3 {
+					yaml := fmt.Sprintf("name: vtest-order\nsteps: [step%d]", i)
+					_, err = client.PipelineDefinition.Update().
+						Where(pipelinedefinition.Name("vtest-order")).
+						SetYamlDraft(yaml).
+						Save(ctx)
+					require.NoError(t, err)
+
+					currentVer := i + 1
+					_, err = store.PublishDefinition(ctx, "vtest-order", currentVer)
+					require.NoError(t, err)
+				}
+
+				vers, err := store.ListDefinitionVersions(ctx, "vtest-order")
+				require.NoError(t, err)
+				require.Len(t, vers, 3)
+				assert.Equal(t, 4, vers[0].Version)
+				assert.Equal(t, 3, vers[1].Version)
+				assert.Equal(t, 2, vers[2].Version)
+
+			case "GetDefinitionVersion returns correct YAML":
+				err := store.CreateDefinition(ctx, "vtest-get", "")
+				require.NoError(t, err)
+
+				_, err = client.PipelineDefinition.Update().
+					Where(pipelinedefinition.Name("vtest-get")).
+					SetYamlDraft("name: vtest-get\nsteps:\n  - name: s1").
+					Save(ctx)
+				require.NoError(t, err)
+
+				_, err = store.PublishDefinition(ctx, "vtest-get", 1)
+				require.NoError(t, err)
+
+				ver, err := store.GetDefinitionVersion(ctx, "vtest-get", 2)
+				require.NoError(t, err)
+				assert.Equal(t, 2, ver.Version)
+				assert.Equal(t, "name: vtest-get\nsteps:\n  - name: s1", ver.Yaml)
+
+			case "GetDefinitionVersion not found returns ErrNotFound":
+				err := store.CreateDefinition(ctx, "vtest-nf", "")
+				require.NoError(t, err)
+
+				_, err = store.GetDefinitionVersion(ctx, "vtest-nf", 99)
+				require.ErrorIs(t, err, types.ErrNotFound)
+
+			case "ListDefinitionVersions empty for never-published pipeline":
+				err := store.CreateDefinition(ctx, "vtest-empty", "")
+				require.NoError(t, err)
+
+				vers, err := store.ListDefinitionVersions(ctx, "vtest-empty")
+				require.NoError(t, err)
+				assert.Empty(t, vers)
 			}
 		})
 	}
