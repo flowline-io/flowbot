@@ -298,6 +298,13 @@ type Adapter interface {
 	ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
 	ParameterGet(ctx context.Context, flag string) (gen.Parameter, error)
 	ParameterDelete(ctx context.Context, flag string) error
+	// ListTokens returns all token parameters (flag LIKE 'fb_%'), sorted by created_at desc.
+	ListTokens(ctx context.Context) ([]model.TokenItem, error)
+	// CreateToken generates a new token and persists it as a parameter row.
+	// Returns the plaintext token string.
+	CreateToken(ctx context.Context, uid types.Uid, expiresAt time.Time, scopes []string) (string, error)
+	// RevokeToken deletes the parameter row identified by the token flag.
+	RevokeToken(ctx context.Context, flag string) error
 	CreateInstruct(ctx context.Context, instruct *gen.Instruct) (int64, error)
 	ListInstruct(ctx context.Context, uid types.Uid, isExpire bool, limit int) ([]*gen.Instruct, error)
 	UpdateInstruct(ctx context.Context, instruct *gen.Instruct) error
