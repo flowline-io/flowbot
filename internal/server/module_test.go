@@ -277,6 +277,36 @@ func (*testStoreAdapter) UpdateAgentLastOnlineAt(context.Context, types.Uid, str
 func (*testStoreAdapter) UpdateAgentOnlineDuration(context.Context, types.Uid, string, string, time.Time) error {
 	return nil
 }
+func (*testStoreAdapter) CreateNotifyChannel(context.Context, string, string, string) (int64, error) {
+	return 0, nil
+}
+func (*testStoreAdapter) GetNotifyChannel(context.Context, int64) (model.NotifyChannel, error) {
+	return model.NotifyChannel{}, nil
+}
+func (*testStoreAdapter) GetNotifyChannelRaw(context.Context, int64) (model.NotifyChannel, error) {
+	return model.NotifyChannel{}, nil
+}
+func (*testStoreAdapter) ListNotifyChannels(context.Context, store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) UpdateNotifyChannel(context.Context, int64, string, string, string, bool) error {
+	return nil
+}
+func (*testStoreAdapter) DeleteNotifyChannel(context.Context, int64) error { return nil }
+func (*testStoreAdapter) CreateNotifyRule(context.Context, model.NotifyRule) (int64, error) {
+	return 0, nil
+}
+func (*testStoreAdapter) GetNotifyRule(context.Context, int64) (model.NotifyRule, error) {
+	return model.NotifyRule{}, nil
+}
+func (*testStoreAdapter) ListNotifyRules(context.Context, store.ListNotifyRuleOptions) ([]model.NotifyRule, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) UpdateNotifyRule(context.Context, int64, model.NotifyRule) error {
+	return nil
+}
+func (*testStoreAdapter) DeleteNotifyRule(context.Context, int64) error { return nil }
+func (*testStoreAdapter) MaskNotifyURI(string, string) string { return "" }
 
 func TestRegisterModules_CreatesNewBot(t *testing.T) {
 	tests := []struct {

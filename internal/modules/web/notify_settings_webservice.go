@@ -413,41 +413,47 @@ func validateRuleForm(rule model.NotifyRule) map[string]string {
 			errs["condition"] = err.Error()
 		}
 	}
-	if rule.ParamsJSON != "" {
-		var params map[string]any
-		if err := sonic.Unmarshal([]byte(rule.ParamsJSON), &params); err != nil {
-			errs["params_json"] = "Invalid JSON: " + err.Error()
-		} else {
-			switch rule.Action {
-			case "throttle":
-				if w, ok := params["window"].(string); !ok || w == "" {
-					errs["params_json"] = "Window is required"
-				}
-				if l, ok := params["limit"]; !ok {
-					errs["params_json"] = "Limit is required"
-				} else {
-					switch v := l.(type) {
-					case float64:
-						if v <= 0 {
-							errs["params_json"] = "Limit must be > 0"
-						}
-					default:
-						errs["params_json"] = "Limit must be a number"
-					}
-				}
-			case "aggregate":
-				if w, ok := params["window"].(string); !ok || w == "" {
-					errs["params_json"] = "Window is required"
-				}
-				if tid, ok := params["digest_tpl_id"].(string); ok && tid != "" {
-					if eng := notifytmpl.GetEngine(); eng != nil && !eng.HasTemplate(tid) {
-						errs["params_json"] = "Unknown template: " + tid
-					}
-				}
-			}
+	validateNotifyRuleParams(rule, &errs)
+	return errs
+}
+
+func validateNotifyRuleParams(rule model.NotifyRule, errs *map[string]string) {
+	if rule.ParamsJSON == "" {
+		return
+	}
+	var params map[string]any
+	if err := sonic.Unmarshal([]byte(rule.ParamsJSON), &params); err != nil {
+		(*errs)["params_json"] = "Invalid JSON: " + err.Error()
+		return
+	}
+	switch rule.Action {
+	case "throttle":
+		validateThrottleParams(params, errs)
+	case "aggregate":
+		validateAggregateParams(params, errs)
+	}
+}
+
+func validateThrottleParams(params map[string]any, errs *map[string]string) {
+	if w, ok := params["window"].(string); !ok || w == "" {
+		(*errs)["params_json"] = "Window is required"
+	}
+	if l, ok := params["limit"]; !ok {
+		(*errs)["params_json"] = "Limit is required"
+	} else if v, ok := l.(float64); ok && v <= 0 {
+		(*errs)["params_json"] = "Limit must be > 0"
+	}
+}
+
+func validateAggregateParams(params map[string]any, errs *map[string]string) {
+	if w, ok := params["window"].(string); !ok || w == "" {
+		(*errs)["params_json"] = "Window is required"
+	}
+	if tid, ok := params["digest_tpl_id"].(string); ok && tid != "" {
+		if eng := notifytmpl.GetEngine(); eng != nil && !eng.HasTemplate(tid) {
+			(*errs)["params_json"] = "Unknown template: " + tid
 		}
 	}
-	return errs
 }
 
 func reloadRulesEngine(ctx context.Context) {

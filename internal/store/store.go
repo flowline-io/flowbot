@@ -315,8 +315,8 @@ type Adapter interface {
 
 	// NotifyChannel CRUD
 	CreateNotifyChannel(ctx context.Context, name, protocol, uri string) (int64, error)
-	GetNotifyChannel(ctx context.Context, id int64) (model.NotifyChannel, error)     // returns masked URI
-	GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error)   // returns raw URI (internal use only)
+	GetNotifyChannel(ctx context.Context, id int64) (model.NotifyChannel, error)    // returns masked URI
+	GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error) // returns raw URI (internal use only)
 	ListNotifyChannels(ctx context.Context, opts ListNotifyChannelOptions) ([]model.NotifyChannel, error)
 	UpdateNotifyChannel(ctx context.Context, id int64, name, protocol, uri string, enabled bool) error
 	DeleteNotifyChannel(ctx context.Context, id int64) error

@@ -1718,6 +1718,7 @@ func (a *adapter) DeleteNotifyChannel(ctx context.Context, id int64) error {
 
 // MaskNotifyURI produces a display-safe masked form of a notification URI.
 func (a *adapter) MaskNotifyURI(protocol, uri string) string {
+	_ = a
 	switch protocol {
 	case "slack":
 		return maskSlackURI(uri)
