@@ -1,0 +1,26 @@
+// Package pages provides full-page Templ views.
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ TokensPage(items []model.TokenItem) {
+	@layout.Base("Tokens — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold">Tokens</h1>
+			<button
+				hx-get="/service/web/tokens/new"
+				hx-target="#tokens-rows"
+				hx-swap="afterbegin"
+				data-testid="token-new-btn"
+				class="btn btn-primary btn-sm">
+				New Token
+			</button>
+		</div>
+		<div id="token-alert-container" class="mb-4"></div>
+		@partials.TokenTable(items)
+	}
+}
