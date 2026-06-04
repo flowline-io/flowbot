@@ -205,6 +205,8 @@ type Adapter interface {
 	GetName() string
 	// Stats returns the DB connection stats object.
 	Stats() any
+	// Ping checks database connectivity and returns the round-trip latency.
+	Ping(ctx context.Context) (time.Duration, error)
 	// GetDB returns the underlying DB connection
 	GetDB() any
 

@@ -180,6 +180,16 @@ func (a *adapter) GetClient() *gen.Client {
 	return a.client
 }
 
+// Ping checks PostgreSQL connectivity and returns the round-trip latency.
+func (a *adapter) Ping(ctx context.Context) (time.Duration, error) {
+	if a.db == nil {
+		return 0, fmt.Errorf("postgres: database not initialized")
+	}
+	start := time.Now()
+	err := a.db.PingContext(ctx)
+	return time.Since(start), err
+}
+
 func (a *adapter) GetDB() any {
 	return a.client
 }
