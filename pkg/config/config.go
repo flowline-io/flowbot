@@ -640,6 +640,14 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 	}
 	log.Printf("API served from root URL path '%s'\n", App.ApiPath)
 
+	// Validate config before starting any subsystems
+	if err := App.Validate(); err != nil {
+		return nil, fmt.Errorf("config validation failed:\n%w", err)
+	}
+	if err := App.ReachabilityCheck(context.Background()); err != nil {
+		return nil, fmt.Errorf("dependency check failed:\n%w", err)
+	}
+
 	// fx hooks
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
@@ -648,10 +656,15 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 				log.Printf("Config file changed: %s\n", e.String())
 
 				// Reload
-				err := viper.Unmarshal(&App)
-				if err != nil {
-					log.Printf("[config] Failed to unmarshal config: %v", err)
-				}
+			err := viper.Unmarshal(&App)
+			if err != nil {
+				log.Printf("[config] Failed to unmarshal config: %v", err)
+				return
+			}
+			// Validate reloaded config, warn if invalid but don't crash
+			if err := App.Validate(); err != nil {
+				log.Printf("[config] Reloaded config is invalid, keeping previous: %v", err)
+			}
 			})
 			viper.WatchConfig()
 
