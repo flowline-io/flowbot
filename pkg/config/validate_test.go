@@ -366,7 +366,7 @@ func TestValidate_HappyPath(t *testing.T) {
 	}{
 		{
 			name:   "default valid config",
-			mutate: func(c *Type) {},
+			mutate: func(_ *Type) {},
 		},
 		{
 			name: "with optional fields set",

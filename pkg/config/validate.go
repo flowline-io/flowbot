@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	// Register pgx driver for database/sql.
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/redis/go-redis/v9"
 
@@ -24,9 +25,9 @@ func (ve ValidationErrors) Error() string {
 	var b strings.Builder
 	for i, e := range ve {
 		if i > 0 {
-			b.WriteByte('\n')
+			_ = b.WriteByte('\n')
 		}
-		b.WriteString(e.Error())
+		_, _ = b.WriteString(e.Error())
 	}
 	return b.String()
 }
@@ -37,7 +38,29 @@ func (ve ValidationErrors) Error() string {
 func (t *Type) Validate() error {
 	var errs ValidationErrors
 
-	// Struct tag validation on sub-structs
+	errs = t.validateStructTags(errs)
+	errs = t.validateStore(errs)
+	errs = t.validateDurations(errs)
+
+	// Listen host:port
+	if t.Listen != "" {
+		if _, _, err := net.SplitHostPort(t.Listen); err != nil {
+			errs = append(errs, fmt.Errorf("listen: invalid host:port %q. Fix: set listen in flowbot.yaml (e.g. \":6060\")", t.Listen))
+		}
+	}
+
+	modelNames := make(map[string]bool)
+	errs, modelNames = t.validateModels(errs, modelNames)
+	errs = t.validateAgents(errs, modelNames)
+
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
+}
+
+// validateStructTags runs playground-validator struct tag checks on sub-structs.
+func (t *Type) validateStructTags(errs ValidationErrors) ValidationErrors {
 	if err := validate.Validate.Struct(t.Redis); err != nil {
 		errs = appendTagErrors(errs, err, "redis")
 	}
@@ -70,37 +93,37 @@ func (t *Type) Validate() error {
 	if err := validate.Validate.Struct(t.Platform.Tailchat); err != nil {
 		errs = appendTagErrors(errs, err, "platform.tailchat")
 	}
+	return errs
+}
 
-	// Imperative checks
-
-	// Listen host:port
-	if t.Listen != "" {
-		if _, _, err := net.SplitHostPort(t.Listen); err != nil {
-			errs = append(errs, fmt.Errorf("listen: invalid host:port %q. Fix: set listen in flowbot.yaml (e.g. \":6060\")", t.Listen))
-		}
-	}
-
-	// Store adapter
+// validateStore checks the store adapter configuration.
+func (t *Type) validateStore(errs ValidationErrors) ValidationErrors {
 	if t.Store.UseAdapter == "" {
 		errs = append(errs, fmt.Errorf("store.use_adapter: must not be empty. Fix: set store_config.use_adapter in flowbot.yaml"))
-	} else {
-		adapterMap := t.Store.Adapters
-		if adapterMap == nil || len(adapterMap) == 0 {
-			errs = append(errs, fmt.Errorf("store.adapters: must contain adapter %q. Fix: set store_config.adapters.%s in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
-		} else {
-			adapterCfg, ok := adapterMap[t.Store.UseAdapter]
-			if !ok {
-				errs = append(errs, fmt.Errorf("store.adapters: adapter %q not found in adapters map. Fix: set store_config.adapters.%s in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
-			} else {
-				dsn := extractDSN(adapterCfg)
-				if dsn == "" {
-					errs = append(errs, fmt.Errorf("store.adapters.%s.dsn: must not be empty. Fix: set store_config.adapters.%s.dsn in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
-				}
-			}
-		}
+		return errs
 	}
 
-	// Duration strings
+	adapterMap := t.Store.Adapters
+	if adapterMap == nil || len(adapterMap) == 0 {
+		errs = append(errs, fmt.Errorf("store.adapters: must contain adapter %q. Fix: set store_config.adapters.%s in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
+		return errs
+	}
+
+	adapterCfg, ok := adapterMap[t.Store.UseAdapter]
+	if !ok {
+		errs = append(errs, fmt.Errorf("store.adapters: adapter %q not found in adapters map. Fix: set store_config.adapters.%s in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
+		return errs
+	}
+
+	dsn := extractDSN(adapterCfg)
+	if dsn == "" {
+		errs = append(errs, fmt.Errorf("store.adapters.%s.dsn: must not be empty. Fix: set store_config.adapters.%s.dsn in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
+	}
+	return errs
+}
+
+// validateDurations checks that all duration fields parse as valid Go duration strings.
+func (t *Type) validateDurations(errs ValidationErrors) ValidationErrors {
 	if t.Homelab.Discovery.ProbeTimeout != "" {
 		if _, err := time.ParseDuration(t.Homelab.Discovery.ProbeTimeout); err != nil {
 			errs = append(errs, fmt.Errorf("homelab.discovery.probe_timeout: invalid duration %q. Fix: set a valid Go duration (e.g. \"30s\") in homelab.discovery.probe_timeout in flowbot.yaml", t.Homelab.Discovery.ProbeTimeout))
@@ -111,9 +134,12 @@ func (t *Type) Validate() error {
 			errs = append(errs, fmt.Errorf("ability.event_pool.expiry_duration: invalid duration %q. Fix: set a valid Go duration (e.g. \"30s\") in ability.event_pool.expiry_duration in flowbot.yaml", t.Ability.EventPool.ExpiryDuration))
 		}
 	}
+	return errs
+}
 
-	// Models
-	modelNames := make(map[string]bool)
+// validateModels validates model configurations and collects model names for
+// agent reference checks.
+func (t *Type) validateModels(errs ValidationErrors, modelNames map[string]bool) (ValidationErrors, map[string]bool) {
 	for i, m := range t.Models {
 		if m.Provider == "" {
 			errs = append(errs, fmt.Errorf("models[%d].provider: must not be empty. Fix: set models[%d].provider in flowbot.yaml", i, i))
@@ -129,8 +155,11 @@ func (t *Type) Validate() error {
 			}
 		}
 	}
+	return errs, modelNames
+}
 
-	// Agents
+// validateAgents validates agent configurations against known model names.
+func (t *Type) validateAgents(errs ValidationErrors, modelNames map[string]bool) ValidationErrors {
 	for i, a := range t.Agents {
 		if a.Name == "" {
 			errs = append(errs, fmt.Errorf("agents[%d].name: must not be empty. Fix: set agents[%d].name in flowbot.yaml", i, i))
@@ -139,11 +168,7 @@ func (t *Type) Validate() error {
 			errs = append(errs, fmt.Errorf("agents[%d].model: %q not found in models. Fix: reference an existing model name in agents[%d].model in flowbot.yaml", i, a.Model, i))
 		}
 	}
-
-	if len(errs) > 0 {
-		return errs
-	}
-	return nil
+	return errs
 }
 
 // extractDSN extracts the DSN string from an adapter config stored as `any`.
@@ -152,7 +177,10 @@ func extractDSN(cfg any) string {
 	if !ok {
 		return ""
 	}
-	dsn, _ := m["dsn"].(string)
+	dsn, ok := m["dsn"].(string)
+	if !ok {
+		return ""
+	}
 	return dsn
 }
 
@@ -188,7 +216,7 @@ func (t *Type) ReachabilityCheck(ctx context.Context) error {
 					if err := db.PingContext(dbCtx); err != nil {
 						errs = append(errs, fmt.Errorf("postgres: ping failed: %w. Fix: verify PostgreSQL is running and reachable", err))
 					}
-					db.Close()
+					_ = db.Close()
 				}
 				cancel()
 			}
