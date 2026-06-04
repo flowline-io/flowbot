@@ -301,64 +301,207 @@ func TestValidate_Conditional(t *testing.T) {
 func TestValidate_Accumulated(t *testing.T) {
 	t.Parallel()
 
-	cfg := validConfig()
-	cfg.Redis.Host = ""
-	cfg.Redis.Password = ""
-	cfg.Store.UseAdapter = ""
-	cfg.Store.Adapters = nil
-
-	err := cfg.Validate()
-	assert.Error(t, err)
-	errStr := err.Error()
-	assert.Contains(t, errStr, "redis.Host")
-	assert.Contains(t, errStr, "redis.Password")
-	assert.Contains(t, errStr, "store.use_adapter")
-	// Verify multiple lines (one per error)
-	lines := 0
-	for _, ch := range errStr {
-		if ch == '\n' {
-			lines++
-		}
+	tests := []struct {
+		name         string
+		mutate       func(*Type)
+		wantContains []string
+		minNewlines  int
+	}{
+		{
+			name:         "redis host empty only",
+			mutate:       func(c *Type) { c.Redis.Host = "" },
+			wantContains: []string{"redis.Host"},
+		},
+		{
+			name: "dsn empty only",
+			mutate: func(c *Type) {
+				c.Store.Adapters = map[string]any{
+					"postgres": map[string]any{},
+				}
+			},
+			wantContains: []string{"dsn"},
+		},
+		{
+			name: "both empty",
+			mutate: func(c *Type) {
+				c.Redis.Host = ""
+				c.Store.UseAdapter = ""
+				c.Store.Adapters = nil
+			},
+			wantContains: []string{"redis.Host", "store.use_adapter"},
+			minNewlines:  1,
+		},
 	}
-	assert.GreaterOrEqual(t, lines, 2, "should have at least 2 newlines for 3+ errors")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := validConfig()
+			tt.mutate(&cfg)
+			err := cfg.Validate()
+			assert.Error(t, err)
+			errStr := err.Error()
+			for _, want := range tt.wantContains {
+				assert.Contains(t, errStr, want)
+			}
+			if tt.minNewlines > 0 {
+				lines := 0
+				for _, ch := range errStr {
+					if ch == '\n' {
+						lines++
+					}
+				}
+				assert.GreaterOrEqual(t, lines, tt.minNewlines)
+			}
+		})
+	}
 }
 
 func TestValidate_HappyPath(t *testing.T) {
 	t.Parallel()
 
-	cfg := validConfig()
-	err := cfg.Validate()
-	assert.NoError(t, err)
+	tests := []struct {
+		name   string
+		mutate func(*Type)
+	}{
+		{
+			name:   "default valid config",
+			mutate: func(c *Type) {},
+		},
+		{
+			name: "with optional fields set",
+			mutate: func(c *Type) {
+				c.Flowbot.URL = "http://example.com"
+				c.Log.Level = "debug"
+			},
+		},
+		{
+			name: "with all platforms disabled",
+			mutate: func(c *Type) {
+				c.Platform.Slack.Enabled = false
+				c.Platform.Discord.Enabled = false
+				c.Platform.Tailchat.Enabled = false
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := validConfig()
+			tt.mutate(&cfg)
+			err := cfg.Validate()
+			assert.NoError(t, err)
+		})
+	}
 }
 
 func TestReachabilityCheck_RedisUnreachable(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping reachability test in short mode")
 	}
+	t.Parallel()
 
-	cfg := validConfig()
-	cfg.Redis.Host = "255.255.255.255"
-	cfg.Redis.Port = 9999
-	cfg.Redis.Password = "nope"
+	tests := []struct {
+		name    string
+		mutate  func(*Type)
+		wantErr string
+	}{
+		{
+			name: "unreachable host",
+			mutate: func(c *Type) {
+				c.Redis.Host = "255.255.255.255"
+				c.Redis.Port = 9999
+				c.Redis.Password = "nope"
+			},
+			wantErr: "redis",
+		},
+		{
+			name: "wrong port",
+			mutate: func(c *Type) {
+				c.Redis.Host = "127.0.0.1"
+				c.Redis.Port = 9999
+				c.Redis.Password = "secret"
+			},
+			wantErr: "redis",
+		},
+		{
+			name: "unreachable subnet",
+			mutate: func(c *Type) {
+				c.Redis.Host = "10.255.255.255"
+				c.Redis.Port = 6379
+				c.Redis.Password = "secret"
+			},
+			wantErr: "redis",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	err := cfg.ReachabilityCheck(t.Context())
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "redis")
+			cfg := validConfig()
+			tt.mutate(&cfg)
+			err := cfg.ReachabilityCheck(t.Context())
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
 }
 
 func TestReachabilityCheck_PostgresUnreachable(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping reachability test in short mode")
 	}
+	t.Parallel()
 
-	cfg := validConfig()
-	cfg.Store.Adapters = map[string]any{
-		"postgres": map[string]any{
-			"dsn": "postgres://nonexistent:bad@255.255.255.255:9999/fake?sslmode=disable",
+	tests := []struct {
+		name    string
+		mutate  func(*Type)
+		wantErr string
+	}{
+		{
+			name: "unreachable host",
+			mutate: func(c *Type) {
+				c.Store.Adapters = map[string]any{
+					"postgres": map[string]any{
+						"dsn": "postgres://nonexistent:bad@255.255.255.255:9999/fake?sslmode=disable",
+					},
+				}
+			},
+			wantErr: "postgres",
+		},
+		{
+			name: "invalid DSN",
+			mutate: func(c *Type) {
+				c.Store.Adapters = map[string]any{
+					"postgres": map[string]any{
+						"dsn": "not-a-valid-dsn",
+					},
+				}
+			},
+			wantErr: "postgres",
+		},
+		{
+			name: "connection refused",
+			mutate: func(c *Type) {
+				c.Store.Adapters = map[string]any{
+					"postgres": map[string]any{
+						"dsn": "postgres://user:pass@127.0.0.1:5433/flowbot?sslmode=disable",
+					},
+				}
+			},
+			wantErr: "postgres",
 		},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	err := cfg.ReachabilityCheck(t.Context())
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "postgres")
+			cfg := validConfig()
+			tt.mutate(&cfg)
+			err := cfg.ReachabilityCheck(t.Context())
+			assert.Error(t, err)
+			assert.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
 }
