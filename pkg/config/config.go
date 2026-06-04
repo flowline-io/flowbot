@@ -656,15 +656,15 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 				log.Printf("Config file changed: %s\n", e.String())
 
 				// Reload
-			err := viper.Unmarshal(&App)
-			if err != nil {
-				log.Printf("[config] Failed to unmarshal config: %v", err)
-				return
-			}
-			// Validate reloaded config, warn if invalid but don't crash
-			if err := App.Validate(); err != nil {
-				log.Printf("[config] Reloaded config is invalid, keeping previous: %v", err)
-			}
+				err := viper.Unmarshal(&App)
+				if err != nil {
+					log.Printf("[config] Failed to unmarshal config: %v", err)
+					return
+				}
+				// Validate reloaded config, warn if invalid but don't crash
+				if err := App.Validate(); err != nil {
+					log.Printf("[config] Reloaded config is invalid, keeping previous: %v", err)
+				}
 			})
 			viper.WatchConfig()
 

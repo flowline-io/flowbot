@@ -100,19 +100,19 @@ func TestValidate_Format(t *testing.T) {
 		noErr   bool
 	}{
 		{
-			name:  "valid log level debug",
+			name:   "valid log level debug",
 			mutate: func(c *Type) { c.Log.Level = "debug" },
-			noErr: true,
+			noErr:  true,
 		},
 		{
-			name:  "valid log level info",
+			name:   "valid log level info",
 			mutate: func(c *Type) { c.Log.Level = "info" },
-			noErr: true,
+			noErr:  true,
 		},
 		{
-			name:  "valid log level warn",
+			name:   "valid log level warn",
 			mutate: func(c *Type) { c.Log.Level = "warn" },
-			noErr: true,
+			noErr:  true,
 		},
 		{
 			name:    "invalid log level",
@@ -170,9 +170,9 @@ func TestValidate_Format(t *testing.T) {
 			wantErr: "expiry_duration",
 		},
 		{
-			name:  "valid flowbot url",
+			name:   "valid flowbot url",
 			mutate: func(c *Type) { c.Flowbot.URL = "http://example.com" },
-			noErr: true,
+			noErr:  true,
 		},
 		{
 			name:    "invalid flowbot url",
