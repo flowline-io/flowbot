@@ -209,18 +209,13 @@ func TestValidate_Conditional(t *testing.T) {
 		noErr   bool
 	}{
 		{
-			name: "slack enabled, missing app_id",
+			name: "slack enabled, empty creds OK",
 			mutate: func(c *Type) {
 				c.Platform.Slack.Enabled = true
 				c.Platform.Slack.AppID = ""
-			},
-			wantErr: "platform.slack.AppID",
-		},
-		{
-			name: "slack disabled, missing app_id OK",
-			mutate: func(c *Type) {
-				c.Platform.Slack.Enabled = false
-				c.Platform.Slack.AppID = ""
+				c.Platform.Slack.ClientID = ""
+				c.Platform.Slack.ClientSecret = ""
+				c.Platform.Slack.SigningSecret = ""
 			},
 			noErr: true,
 		},

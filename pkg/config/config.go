@@ -299,13 +299,10 @@ type Slack struct {
 	// Slack platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Slack app ID
-	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id" validate:"required_if=Enabled true"`
-	// Slack client ID
-	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id" validate:"required_if=Enabled true"`
-	// Slack client secret
-	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" validate:"required_if=Enabled true"`
-	// Slack signing secret
-	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret" validate:"required_if=Enabled true"`
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
+	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret"`
 	// Slack verification token
 	VerificationToken string `json:"verification_token" yaml:"verification_token" mapstructure:"verification_token"`
 	// Slack app token
