@@ -2,12 +2,16 @@ package config
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -165,9 +169,51 @@ func appendTagErrors(errs ValidationErrors, err error, prefix string) Validation
 	return errs
 }
 
-// ReachabilityCheck is a stub — full implementation provided separately.
+// ReachabilityCheck attempts PostgreSQL and Redis connections with short
+// timeouts to verify that dependencies are reachable. Only call this after
+// Validate() passes, since it assumes required fields are non-empty.
 func (t *Type) ReachabilityCheck(ctx context.Context) error {
-	return fmt.Errorf("reachability check not yet implemented")
+	var errs ValidationErrors
+
+	adapterMap := t.Store.Adapters
+	if adapterMap != nil && t.Store.UseAdapter != "" {
+		if adapterCfg, ok := adapterMap[t.Store.UseAdapter]; ok {
+			dsn := extractDSN(adapterCfg)
+			if dsn != "" {
+				dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+				db, err := sql.Open("pgx", dsn)
+				if err != nil {
+					errs = append(errs, fmt.Errorf("postgres: cannot open connection: %w. Fix: verify DSN in store_config.adapters.%s.dsn", err, t.Store.UseAdapter))
+				} else {
+					if err := db.PingContext(dbCtx); err != nil {
+						errs = append(errs, fmt.Errorf("postgres: ping failed: %w. Fix: verify PostgreSQL is running and reachable", err))
+					}
+					db.Close()
+				}
+				cancel()
+			}
+		}
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:         net.JoinHostPort(t.Redis.Host, strconv.Itoa(t.Redis.Port)),
+		Password:     t.Redis.Password,
+		DB:           t.Redis.DB,
+		DialTimeout:  3 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+	})
+	defer rdb.Close()
+	redisCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+	if err := rdb.Ping(redisCtx).Err(); err != nil {
+		errs = append(errs, fmt.Errorf("redis: ping failed: %w. Fix: verify Redis is running at %s", err, net.JoinHostPort(t.Redis.Host, strconv.Itoa(t.Redis.Port))))
+	}
+
+	if len(errs) > 0 {
+		return errs
+	}
+	return nil
 }
 
 // formatTagError returns a human-readable description for a validation tag failure.
