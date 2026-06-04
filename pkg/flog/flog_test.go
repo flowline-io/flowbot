@@ -2,10 +2,13 @@ package flog
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSetLevel(t *testing.T) {
@@ -366,4 +369,64 @@ func TestFatal(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestRecentErrors(t *testing.T) {
+	t.Run("empty buffer returns empty slice", func(t *testing.T) {
+		ClearErrorBuffer()
+		entries := RecentErrors()
+		require.Empty(t, entries)
+	})
+
+	t.Run("captures error entries", func(t *testing.T) {
+		ClearErrorBuffer()
+		recordError(fmt.Errorf("test error 1"))
+		recordError(fmt.Errorf("test error 2"))
+		entries := RecentErrors()
+		require.Len(t, entries, 2)
+		require.Equal(t, "test error 1", entries[0].Message)
+		require.Equal(t, "test error 2", entries[1].Message)
+		require.NotZero(t, entries[0].Time)
+	})
+
+	t.Run("ring buffer wraps at capacity", func(t *testing.T) {
+		ClearErrorBuffer()
+		for i := 0; i < 55; i++ {
+			recordError(fmt.Errorf("error %d", i))
+		}
+		entries := RecentErrors()
+		require.Len(t, entries, errorBufferCapacity)
+		require.Contains(t, entries[0].Message, "error 5")
+		require.Contains(t, entries[errorBufferCapacity-1].Message, "error 54")
+	})
+
+	t.Run("thread-safe concurrent writes", func(t *testing.T) {
+		ClearErrorBuffer()
+		var wg sync.WaitGroup
+		for i := 0; i < 10; i++ {
+			wg.Add(1)
+			go func(id int) {
+				defer wg.Done()
+				for j := 0; j < 10; j++ {
+					recordError(fmt.Errorf("goroutine %d error %d", id, j))
+				}
+			}(i)
+		}
+		wg.Wait()
+		entries := RecentErrors()
+		require.NotEmpty(t, entries)
+	})
+
+	t.Run("caller field populated", func(t *testing.T) {
+		ClearErrorBuffer()
+		callerTestHelper(fmt.Errorf("caller test"))
+		entries := RecentErrors()
+		require.Len(t, entries, 1)
+		require.Contains(t, entries[0].Caller, "flog_test.go")
+	})
+}
+
+//go:noinline
+func callerTestHelper(err error) {
+	Err(err)
 }

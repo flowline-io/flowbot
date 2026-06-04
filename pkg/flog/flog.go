@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -30,6 +32,75 @@ var (
 	defaultLvl         zerolog.Level
 	zerologGlobalsInit sync.Once
 )
+
+// ErrorEntry represents a recorded error log entry for health dashboard display.
+type ErrorEntry struct {
+	Time    time.Time `json:"time"`
+	Message string    `json:"message"`
+	Caller  string    `json:"caller,omitzero"`
+}
+
+const errorBufferCapacity = 50
+
+var (
+	errorBuf    = make([]ErrorEntry, 0, errorBufferCapacity)
+	errorBufMu  sync.Mutex
+	errorBufPos int
+)
+
+// recordError adds an error entry to the in-memory ring buffer.
+// It is called by Err() to capture recent errors for the health dashboard.
+func recordError(err error) {
+	entry := ErrorEntry{
+		Time:    time.Now(),
+		Message: err.Error(),
+	}
+	// Capture caller: skip recordError, Err/Error, and the original caller.
+	// Call chain: user code → Error() → Err() → recordError()
+	_, file, line, ok := runtime.Caller(3)
+	if ok {
+		entry.Caller = filepath.Base(file) + ":" + strconv.Itoa(line)
+	}
+
+	errorBufMu.Lock()
+	defer errorBufMu.Unlock()
+
+	if len(errorBuf) < errorBufferCapacity {
+		errorBuf = append(errorBuf, entry)
+	} else {
+		errorBuf[errorBufPos%errorBufferCapacity] = entry
+	}
+	errorBufPos++
+}
+
+// RecentErrors returns a copy of recent error entries in insertion order.
+// Returns at most errorBufferCapacity entries, oldest first.
+func RecentErrors() []ErrorEntry {
+	errorBufMu.Lock()
+	defer errorBufMu.Unlock()
+
+	if len(errorBuf) < errorBufferCapacity {
+		result := make([]ErrorEntry, len(errorBuf))
+		copy(result, errorBuf)
+		return result
+	}
+	// Ring buffer full: return in order from oldest to newest.
+	start := errorBufPos % errorBufferCapacity
+	result := make([]ErrorEntry, 0, errorBufferCapacity)
+	for i := 0; i < errorBufferCapacity; i++ {
+		idx := (start + i) % errorBufferCapacity
+		result = append(result, errorBuf[idx])
+	}
+	return result
+}
+
+// ClearErrorBuffer clears the error buffer. Exported for tests.
+func ClearErrorBuffer() {
+	errorBufMu.Lock()
+	defer errorBufMu.Unlock()
+	errorBuf = make([]ErrorEntry, 0, errorBufferCapacity)
+	errorBufPos = 0
+}
 
 // Config holds all logging configuration.
 type Config struct {
@@ -410,6 +481,7 @@ func Error(err error) {
 
 // Err logs an error without triggering alarm.
 func Err(err error) {
+	recordError(err)
 	stateMu.RLock()
 	evt := l.Error().Err(err)
 	stateMu.RUnlock()
