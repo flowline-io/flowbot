@@ -475,12 +475,12 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 
 	// Capability health checks
 	descriptors := hub.Default.List()
-	results := make(chan partials.HealthzCap, len(descriptors))
+	caps := make([]partials.HealthzCap, len(descriptors))
 	var wg sync.WaitGroup
 
-	for _, desc := range descriptors {
+	for i, desc := range descriptors {
 		wg.Add(1)
-		go func(d hub.Descriptor) {
+		go func(idx int, d hub.Descriptor) {
 			defer wg.Done()
 			capCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 			defer cancel()
@@ -492,7 +492,7 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 
 			result, err := ability.Invoke(capCtx, d.Type, "health", map[string]any{})
 			if err != nil {
-				if errors.Is(err, context.DeadlineExceeded) {
+				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					info.Status = "timeout"
 				} else {
 					info.Status = "unhealthy"
@@ -507,14 +507,11 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 			} else {
 				info.Status = "na"
 			}
-			results <- info
-		}(desc)
+			caps[idx] = info
+		}(i, desc)
 	}
 	wg.Wait()
-	close(results)
-	for info := range results {
-		data.Capabilities = append(data.Capabilities, info)
-	}
+	data.Capabilities = caps
 
 	// Recent errors (last 10)
 	allErrors := flog.RecentErrors()
