@@ -4,7 +4,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -95,10 +94,6 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 		if err := sonic.Unmarshal(raw, &conf); err != nil {
 			return fmt.Errorf("postgres: unmarshal adapter config: %w", err)
 		}
-	}
-
-	if conf.DSN == "" {
-		return errors.New("postgres: DSN is required")
 	}
 
 	if conf.SqlTimeout <= 0 {

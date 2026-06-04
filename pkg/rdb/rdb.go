@@ -23,11 +23,6 @@ var Client *redis.Client
 // Connection pool parameters use go-redis defaults when set to zero, except ReadTimeout
 // and WriteTimeout which fall back to 60s for backward compatibility.
 func NewClient(lc fx.Lifecycle, _ *config.Type) (*redis.Client, error) {
-	addr := net.JoinHostPort(config.App.Redis.Host, strconv.Itoa(config.App.Redis.Port))
-	password := config.App.Redis.Password
-	if addr == ":" || password == "" {
-		return nil, fmt.Errorf("redis config error")
-	}
 	Client = redis.NewClient(redisOptions(config.App.Redis))
 	if err := redisotel.InstrumentTracing(Client); err != nil {
 		return nil, fmt.Errorf("failed to instrument redis with tracing: %w", err)
