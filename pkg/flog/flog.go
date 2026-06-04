@@ -426,6 +426,7 @@ func WarnFields(msg string, fields map[string]any) {
 
 // ErrFields logs an error with structured fields, without triggering alarm.
 func ErrFields(err error, msg string, fields map[string]any) {
+	recordError(err)
 	stateMu.RLock()
 	evt := l.Error().Err(err)
 	stateMu.RUnlock()

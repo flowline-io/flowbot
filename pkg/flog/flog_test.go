@@ -396,8 +396,8 @@ func TestRecentErrors(t *testing.T) {
 		}
 		entries := RecentErrors()
 		require.Len(t, entries, errorBufferCapacity)
-		require.Contains(t, entries[0].Message, "error 5")
-		require.Contains(t, entries[errorBufferCapacity-1].Message, "error 54")
+		require.Equal(t, "error 5", entries[0].Message)
+		require.Equal(t, "error 54", entries[errorBufferCapacity-1].Message)
 	})
 
 	t.Run("thread-safe concurrent writes", func(t *testing.T) {
