@@ -3,6 +3,7 @@ package partials
 import (
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/bytedance/sonic"
 
@@ -111,10 +112,5 @@ func hasTemplateForRule(item model.NotifyRule, templateIDs []string) bool {
 	if !ok || tid == "" {
 		return true
 	}
-	for _, id := range templateIDs {
-		if id == tid {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(templateIDs, tid)
 }

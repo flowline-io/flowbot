@@ -1,181 +1,213 @@
 {
-  "schemes": ["http"],
-  "swagger": "2.0",
-  "info": {
-    "description": "Flowbot Chatbot API",
-    "title": "Flowbot API",
-    "contact": {},
-    "license": {
-      "name": "GPL 3.0",
-      "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Flowbot Chatbot API",
+        "title": "Flowbot API",
+        "contact": {},
+        "license": {
+            "name": "GPL 3.0",
+            "url": "https://github.com/flowline-io/flowbot/blob/master/LICENSE"
+        },
+        "version": "1.0"
     },
-    "version": "1.0"
-  },
-  "host": "localhost:6060",
-  "basePath": "/service",
-  "paths": {
-    "/example/create": {
-      "post": {
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["example"],
-        "summary": "Create example item",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/protocol.Response"
-            }
-          }
-        }
-      }
-    },
-    "/example/delete": {
-      "delete": {
-        "tags": ["example"],
-        "summary": "Delete example item",
-        "parameters": [
-          {
-            "type": "string",
-            "description": "item id",
-            "name": "id",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/protocol.Response"
-            }
-          }
-        }
-      }
-    },
-    "/example/example": {
-      "get": {
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["example"],
-        "summary": "Show example",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/protocol.Response"
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "$ref": "#/definitions/types.KV"
+    "host": "localhost:6060",
+    "basePath": "/service",
+    "paths": {
+        "/example/create": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Create example item",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
                     }
-                  }
                 }
-              ]
             }
-          }
+        },
+        "/example/delete": {
+            "delete": {
+                "tags": [
+                    "example"
+                ],
+                "summary": "Delete example item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "item id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/example/example": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Show example",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/types.KV"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/example/get": {
+            "get": {
+                "tags": [
+                    "example"
+                ],
+                "summary": "Get example item",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "item id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/example/health": {
+            "get": {
+                "tags": [
+                    "example"
+                ],
+                "summary": "Example health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/protocol.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/example/webhook/example": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "example"
+                ],
+                "summary": "Receive example webhook events",
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
-      }
     },
-    "/example/get": {
-      "get": {
-        "tags": ["example"],
-        "summary": "Get example item",
-        "parameters": [
-          {
+    "definitions": {
+        "protocol.Response": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Response data"
+                },
+                "message": {
+                    "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
+                    "type": "string"
+                },
+                "retcode": {
+                    "description": "The return code, which must conform to the return code rules defined later on this page",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/protocol.ResponseStatus"
+                        }
+                    ]
+                }
+            }
+        },
+        "protocol.ResponseStatus": {
             "type": "string",
-            "description": "item id",
-            "name": "id",
-            "in": "query",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/protocol.Response"
-            }
-          }
-        }
-      }
-    },
-    "/example/health": {
-      "get": {
-        "tags": ["example"],
-        "summary": "Example health check",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "$ref": "#/definitions/protocol.Response"
-            }
-          }
-        }
-      }
-    },
-    "/example/webhook/example": {
-      "post": {
-        "consumes": ["application/json"],
-        "produces": ["application/json"],
-        "tags": ["example"],
-        "summary": "Receive example webhook events",
-        "responses": {
-          "202": {
-            "description": "Accepted",
-            "schema": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    }
-  },
-  "definitions": {
-    "protocol.Response": {
-      "type": "object",
-      "properties": {
-        "data": {
-          "description": "Response data"
+            "enum": [
+                "ok",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "Success",
+                "Failed"
+            ]
         },
-        "message": {
-          "description": "Error message, it is recommended to fill in a human-readable error message when the action fails to execute,\nor an empty string when it succeeds.",
-          "type": "string"
-        },
-        "retcode": {
-          "description": "The return code, which must conform to the return code rules defined later on this page",
-          "type": "string"
-        },
-        "status": {
-          "description": "Execution status (success or failure), must be one of ok and failed,\nindicating successful and unsuccessful execution, respectively.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/protocol.ResponseStatus"
-            }
-          ]
+        "types.KV": {
+            "type": "object",
+            "additionalProperties": {}
         }
-      }
     },
-    "protocol.ResponseStatus": {
-      "type": "string",
-      "enum": ["ok", "failed"],
-      "x-enum-varnames": ["Success", "Failed"]
-    },
-    "types.KV": {
-      "type": "object",
-      "additionalProperties": {}
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "access token",
+            "type": "apiKey",
+            "name": "X-AccessToken",
+            "in": "header"
+        }
     }
-  },
-  "securityDefinitions": {
-    "ApiKeyAuth": {
-      "description": "access token",
-      "type": "apiKey",
-      "name": "X-AccessToken",
-      "in": "header"
-    }
-  }
 }

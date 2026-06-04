@@ -391,7 +391,7 @@ func TestRecentErrors(t *testing.T) {
 
 	t.Run("ring buffer wraps at capacity", func(t *testing.T) {
 		ClearErrorBuffer()
-		for i := 0; i < 55; i++ {
+		for i := range 55 {
 			recordError(fmt.Errorf("error %d", i))
 		}
 		entries := RecentErrors()
@@ -403,11 +403,11 @@ func TestRecentErrors(t *testing.T) {
 	t.Run("thread-safe concurrent writes", func(t *testing.T) {
 		ClearErrorBuffer()
 		var wg sync.WaitGroup
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			wg.Add(1)
 			go func(id int) {
 				defer wg.Done()
-				for j := 0; j < 10; j++ {
+				for j := range 10 {
 					recordError(fmt.Errorf("goroutine %d error %d", id, j))
 				}
 			}(i)

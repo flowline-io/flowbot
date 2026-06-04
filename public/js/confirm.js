@@ -20,14 +20,25 @@
     var cancelEl = document.getElementById('confirm-modal-cancel');
     var confirmEl = document.getElementById('confirm-modal-confirm');
     if (cancelEl) {
-      cancelEl.addEventListener('click', function () { closeModal(false); });
+      cancelEl.addEventListener('click', function () {
+        closeModal(false);
+      });
     }
     if (confirmEl) {
-      confirmEl.addEventListener('click', function () { closeModal(true); });
+      confirmEl.addEventListener('click', function () {
+        closeModal(true);
+      });
     }
   }
 
-  function openModal(title, message, confirmText, confirmClass, onConfirm, onCancel) {
+  function openModal(
+    title,
+    message,
+    confirmText,
+    confirmClass,
+    onConfirm,
+    onCancel,
+  ) {
     var m = getModal();
     if (!m) return;
     titleEl.textContent = title;
@@ -61,7 +72,7 @@
       opts.confirmText,
       opts.confirmClass,
       opts.onConfirm,
-      opts.onCancel
+      opts.onCancel,
     );
   };
 
@@ -90,6 +101,6 @@
         }, 200);
       });
     },
-    true
+    true,
   );
 })();

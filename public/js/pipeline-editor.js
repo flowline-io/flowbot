@@ -320,7 +320,9 @@
           message: 'Remove this trigger from the pipeline?',
           confirmText: 'Remove',
           confirmClass: 'btn-error',
-          onConfirm: function () { self.removeTrigger(idx); }
+          onConfirm: function () {
+            self.removeTrigger(idx);
+          },
         });
       },
 
@@ -352,7 +354,9 @@
           message: 'Delete this step from the pipeline?',
           confirmText: 'Delete',
           confirmClass: 'btn-error',
-          onConfirm: function () { self.removeStep(idx); }
+          onConfirm: function () {
+            self.removeStep(idx);
+          },
         });
       },
 
@@ -385,7 +389,7 @@
               self.drawerOpen = true;
               self.drawerDirty = false;
               self.drawerTab = 'setup';
-            }
+            },
           });
           return;
         }
@@ -407,7 +411,7 @@
               self.drawerOpen = false;
               self.selectedNode = null;
               self.drawerDirty = false;
-            }
+            },
           });
           return;
         }

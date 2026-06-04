@@ -87,7 +87,7 @@ func RecentErrors() []ErrorEntry {
 	// Ring buffer full: return in order from oldest to newest.
 	start := errorBufPos % errorBufferCapacity
 	result := make([]ErrorEntry, 0, errorBufferCapacity)
-	for i := 0; i < errorBufferCapacity; i++ {
+	for i := range errorBufferCapacity {
 		idx := (start + i) % errorBufferCapacity
 		result = append(result, errorBuf[idx])
 	}
