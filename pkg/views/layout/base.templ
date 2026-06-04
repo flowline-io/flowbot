@@ -1,6 +1,8 @@
 // Package layout provides the global HTML skeleton for all pages.
 package layout
 
+import "github.com/flowline-io/flowbot/pkg/views/partials"
+
 templ Base(title string) {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="light">
@@ -15,6 +17,7 @@ templ Base(title string) {
 		<script src="/static/vendor/htmx.min.js"></script>
 		<script src="/static/vendor/tailwind-browser.min.js"></script>
 		<script src="/static/js/app.js"></script>
+		<script src="/static/js/confirm.js" defer></script>
 		<script src="/static/vendor/chart.js.min.js" defer></script>
 		<script src="/static/js/pipeline-stats.js" defer></script>
 		<script src="/static/js/event-filters.js" defer></script>
@@ -27,17 +30,32 @@ templ Base(title string) {
 				<a href="/service/web/home" class="btn btn-ghost text-xl normal-case">Flowbot</a>
 			</div>
 			<div class="navbar-end flex items-center gap-1">
-				<a href="/service/web/pipelines" data-testid="nav-pipelines" class="btn btn-ghost btn-sm">Pipelines</a>
-				<a href="/service/web/events" data-testid="nav-events" class="btn btn-ghost btn-sm">Events</a>
-				<a href="/service/web/notifications" data-testid="nav-notifications" class="btn btn-ghost btn-sm">Notifications</a>
-				<a href="/service/web/notify-settings" data-testid="nav-notify-settings" class="btn btn-ghost btn-sm">Notify Settings</a>
-				<a href="/service/web/relations" data-testid="nav-relations" class="btn btn-ghost btn-sm">Relations</a>
-				<a href="/service/web/configs" data-testid="nav-configs" class="btn btn-ghost btn-sm">Configs</a>
-				<a href="/service/web/hub" data-testid="nav-hub" class="btn btn-ghost btn-sm">Apps</a>
-				<a href="/service/web/homelab" data-testid="nav-homelab" class="btn btn-ghost btn-sm">Registry</a>
-				<a href="/service/web/tokens" data-testid="nav-tokens" class="btn btn-ghost btn-sm">Tokens</a>
-				<a href="/service/web/capabilities" data-testid="nav-capabilities" class="btn btn-ghost btn-sm">Capabilities</a>
-				<a href="/service/web/healthz" data-testid="nav-healthz" class="btn btn-ghost btn-sm">Health</a>
+				<div class="dropdown dropdown-hover">
+					<div tabindex="0" role="button" data-testid="nav-group-automation" class="btn btn-ghost btn-sm">Automation</div>
+					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+						<li><a href="/service/web/pipelines" data-testid="nav-pipelines">Pipelines</a></li>
+						<li><a href="/service/web/events" data-testid="nav-events">Events</a></li>
+						<li><a href="/service/web/relations" data-testid="nav-relations">Relations</a></li>
+					</ul>
+				</div>
+				<div class="dropdown dropdown-hover">
+					<div tabindex="0" role="button" data-testid="nav-group-data" class="btn btn-ghost btn-sm">Data</div>
+					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+						<li><a href="/service/web/notifications" data-testid="nav-notifications">Notifications</a></li>
+						<li><a href="/service/web/notify-settings" data-testid="nav-notify-settings">Notify Settings</a></li>
+						<li><a href="/service/web/configs" data-testid="nav-configs">Configs</a></li>
+					</ul>
+				</div>
+				<div class="dropdown dropdown-hover">
+					<div tabindex="0" role="button" data-testid="nav-group-admin" class="btn btn-ghost btn-sm">Admin</div>
+					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+						<li><a href="/service/web/hub" data-testid="nav-hub">Apps</a></li>
+						<li><a href="/service/web/homelab" data-testid="nav-homelab">Registry</a></li>
+						<li><a href="/service/web/tokens" data-testid="nav-tokens">Tokens</a></li>
+						<li><a href="/service/web/capabilities" data-testid="nav-capabilities">Capabilities</a></li>
+						<li><a href="/service/web/healthz" data-testid="nav-healthz">Health</a></li>
+					</ul>
+				</div>
 				<div x-data="{
 					theme: 'light',
 					open: false,
@@ -79,6 +97,7 @@ templ Base(title string) {
 			{ children... }
 		</main>
 		<div id="toast-container" class="toast toast-end" data-testid="toast-container"></div>
+		@partials.ConfirmModal()
 		<style>
 			.htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
 			.htmx-request .htmx-indicator { opacity: 1; }

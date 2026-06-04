@@ -1,0 +1,17 @@
+package partials
+
+templ ConfirmModal() {
+	<dialog id="confirm-modal" class="modal" data-testid="confirm-modal">
+		<div class="modal-box">
+			<h3 id="confirm-modal-title" class="text-lg font-bold"></h3>
+			<p id="confirm-modal-body" class="py-4"></p>
+			<div class="modal-action">
+				<button id="confirm-modal-cancel" class="btn btn-ghost" data-testid="confirm-modal-cancel">Cancel</button>
+				<button id="confirm-modal-confirm" class="btn btn-error" data-testid="confirm-modal-confirm">Confirm</button>
+			</div>
+		</div>
+		<form method="dialog" class="modal-backdrop">
+			<button>close</button>
+		</form>
+	</dialog>
+}

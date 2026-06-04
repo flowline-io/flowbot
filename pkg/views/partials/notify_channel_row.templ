@@ -31,7 +31,10 @@ templ NotifyChannelRow(item model.NotifyChannel) {
 					<span id={ "channel-test-spinner-" + fmt.Sprintf("%d", item.ID) } class="htmx-indicator loading loading-spinner loading-xs"></span>
 				</button>
 				<button hx-delete={ notifyChannelDeleteURL(item) }
-					hx-confirm="Delete this channel?"
+					data-confirm="Delete this channel?"
+					data-confirm-title="Delete Channel"
+					data-confirm-btn="Delete"
+					data-confirm-class="btn-error"
 					data-testid="channel-delete"
 					class="btn btn-ghost btn-xs text-error">
 					Delete

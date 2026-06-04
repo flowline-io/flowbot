@@ -187,7 +187,7 @@ func NotifyChannelRow(item model.NotifyChannel) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" hx-confirm=\"Delete this channel?\" data-testid=\"channel-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></div></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-confirm=\"Delete this channel?\" data-confirm-title=\"Delete Channel\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"channel-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></div></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

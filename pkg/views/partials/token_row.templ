@@ -28,7 +28,10 @@ templ TokenRow(item model.TokenItem) {
 		</td>
 		<td>
 			<button hx-delete={ tokenRevokeURL(item) }
-				hx-confirm="Revoke this token? It will stop working immediately."
+				data-confirm="Revoke this token? It will stop working immediately."
+				data-confirm-title="Revoke Token"
+				data-confirm-btn="Revoke"
+				data-confirm-class="btn-error"
 				data-testid="token-revoke-btn"
 				class="btn btn-ghost btn-xs text-error">
 				Revoke

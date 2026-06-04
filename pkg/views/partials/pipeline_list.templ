@@ -40,7 +40,10 @@ templ PipelineListTable(defs []*gen.PipelineDefinition) {
 								<button type="button"
 									hx-delete={ templ.URL("/service/web/pipelines/" + d.Name) }
 									hx-target="#pipeline-list-container"
-									hx-confirm="Delete this pipeline? Associated run records will also be removed."
+									data-confirm="Delete this pipeline? Associated run records will also be removed."
+									data-confirm-title="Delete Pipeline"
+									data-confirm-btn="Delete"
+									data-confirm-class="btn-error"
 									class="btn btn-ghost btn-xs text-error">Delete</button>
 							</td>
 						</tr>

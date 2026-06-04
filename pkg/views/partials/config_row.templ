@@ -23,7 +23,10 @@ templ ConfigRow(item model.ConfigItem) {
 					Edit
 				</button>
 				<button hx-delete={ configKeyURL(item) }
-					hx-confirm="Delete this config?"
+					data-confirm="Delete this config?"
+					data-confirm-title="Delete Config"
+					data-confirm-btn="Delete"
+					data-confirm-class="btn-error"
 					data-testid="config-delete"
 					class="btn btn-ghost btn-xs text-error">
 					Delete

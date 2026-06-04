@@ -21,7 +21,7 @@ templ TriggerCard() {
 				<input type="checkbox" x-model="t.enabled" class="sr-only peer" data-testid="trigger-switch">
 				<div class="w-9 h-5 bg-base-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
 			</label>
-			<button type="button" @click.stop="removeTrigger(idx)" class="text-base-content/30 hover:text-error" data-testid="btn-remove-trigger">&times;</button>
+			<button type="button" @click.stop="confirmRemoveTrigger(idx)" class="text-base-content/30 hover:text-error" data-testid="btn-remove-trigger">&times;</button>
 		</div>
 	</div>
 }
@@ -39,7 +39,7 @@ templ StepCard() {
 		@click="selectNode('step', idx)" data-testid="step-card">
 		<div class="absolute -top-2 right-2 hidden group-hover:flex gap-1 bg-base-100 border rounded-box shadow-sm px-2 py-0.5 text-xs">
 			<button type="button" @click.stop="duplicateStep(idx)" class="text-base-content/30 hover:text-base-content" data-testid="btn-copy-step">Copy</button>
-			<button type="button" @click.stop="removeStep(idx)" class="text-error/50 hover:text-error" data-testid="btn-delete-step">Delete</button>
+			<button type="button" @click.stop="confirmRemoveStep(idx)" class="text-error/50 hover:text-error" data-testid="btn-delete-step">Delete</button>
 		</div>
 		<div class="flex items-center gap-3">
 			<div class="w-8 h-8 rounded bg-base-200 flex items-center justify-center text-base-content/50 text-xs font-bold" x-text="(step.capability || '?')[0].toUpperCase()"></div>

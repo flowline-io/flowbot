@@ -156,7 +156,7 @@ func TokenRow(item model.TokenItem) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-confirm=\"Revoke this token? It will stop working immediately.\" data-testid=\"token-revoke-btn\" class=\"btn btn-ghost btn-xs text-error\">Revoke</button></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" data-confirm=\"Revoke this token? It will stop working immediately.\" data-confirm-title=\"Revoke Token\" data-confirm-btn=\"Revoke\" data-confirm-class=\"btn-error\" data-testid=\"token-revoke-btn\" class=\"btn btn-ghost btn-xs text-error\">Revoke</button></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

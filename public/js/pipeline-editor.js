@@ -313,6 +313,17 @@
         this.validate();
       },
 
+      confirmRemoveTrigger(idx) {
+        var self = this;
+        showConfirmModal({
+          title: 'Remove Trigger',
+          message: 'Remove this trigger from the pipeline?',
+          confirmText: 'Remove',
+          confirmClass: 'btn-error',
+          onConfirm: function () { self.removeTrigger(idx); }
+        });
+      },
+
       addStep(afterIdx) {
         this.pushUndo();
         this.steps.splice(afterIdx, 0, {
@@ -334,6 +345,17 @@
           this.drawerOpen = false;
       },
 
+      confirmRemoveStep(idx) {
+        var self = this;
+        showConfirmModal({
+          title: 'Delete Step',
+          message: 'Delete this step from the pipeline?',
+          confirmText: 'Delete',
+          confirmClass: 'btn-error',
+          onConfirm: function () { self.removeStep(idx); }
+        });
+      },
+
       duplicateStep(idx) {
         this.pushUndo();
         const copy = JSON.parse(JSON.stringify(this.steps[idx]));
@@ -352,7 +374,20 @@
 
       selectNode(type, idx) {
         if (this.drawerDirty && this.selectedNode) {
-          if (!confirm('You have unsaved changes. Discard them?')) return;
+          var self = this;
+          showConfirmModal({
+            title: 'Discard Changes',
+            message: 'You have unsaved changes. Discard them?',
+            confirmText: 'Discard',
+            confirmClass: 'btn-error',
+            onConfirm: function () {
+              self.selectedNode = { type, index: idx };
+              self.drawerOpen = true;
+              self.drawerDirty = false;
+              self.drawerTab = 'setup';
+            }
+          });
+          return;
         }
         this.selectedNode = { type, index: idx };
         this.drawerOpen = true;
@@ -362,7 +397,19 @@
 
       closeDrawer() {
         if (this.drawerDirty) {
-          if (!confirm('You have unsaved changes. Discard them?')) return;
+          var self = this;
+          showConfirmModal({
+            title: 'Discard Changes',
+            message: 'You have unsaved changes. Discard them?',
+            confirmText: 'Discard',
+            confirmClass: 'btn-error',
+            onConfirm: function () {
+              self.drawerOpen = false;
+              self.selectedNode = null;
+              self.drawerDirty = false;
+            }
+          });
+          return;
         }
         this.drawerOpen = false;
         this.selectedNode = null;

@@ -46,6 +46,10 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 						<button hx-post={ templ.URL("/service/web/hub/" + app.Name + "/stop") }
 							hx-target="#status-area"
 							hx-swap="innerHTML"
+							data-confirm={ "Stop " + app.Name + "? This will shut down the application." }
+							data-confirm-title="Stop App"
+							data-confirm-btn="Stop"
+							data-confirm-class="btn-error"
 							data-testid="btn-stop"
 							class="btn btn-sm btn-error">
 							Stop
@@ -56,6 +60,10 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 						<button hx-post={ templ.URL("/service/web/hub/" + app.Name + "/restart") }
 							hx-target="#status-area"
 							hx-swap="innerHTML"
+							data-confirm={ "Restart " + app.Name + "? This will interrupt the running application." }
+							data-confirm-title="Restart App"
+							data-confirm-btn="Restart"
+							data-confirm-class="btn-warning"
 							data-testid="btn-restart"
 							class="btn btn-sm btn-warning">
 							Restart

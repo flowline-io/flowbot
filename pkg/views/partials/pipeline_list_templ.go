@@ -109,7 +109,7 @@ func PipelineListTable(defs []*gen.PipelineDefinition) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-target=\"#pipeline-list-container\" hx-confirm=\"Delete this pipeline? Associated run records will also be removed.\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-target=\"#pipeline-list-container\" data-confirm=\"Delete this pipeline? Associated run records will also be removed.\" data-confirm-title=\"Delete Pipeline\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

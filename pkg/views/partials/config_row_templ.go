@@ -154,7 +154,7 @@ func ConfigRow(item model.ConfigItem) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-confirm=\"Delete this config?\" data-testid=\"config-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></div></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" data-confirm=\"Delete this config?\" data-confirm-title=\"Delete Config\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"config-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></div></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
