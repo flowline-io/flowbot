@@ -161,7 +161,7 @@ type Tracing struct {
 	// Enabled toggles trace export
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Endpoint is the OTLP HTTP endpoint (e.g. http://localhost:4318/v1/traces)
-	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint" validate:"required_if=Enabled true,url"`
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint" validate:"required_if=Enabled true,omitempty,url"`
 	// ServiceName identifies this service in traces
 	ServiceName string `json:"service_name" yaml:"service_name" mapstructure:"service_name"`
 	// Environment tag (development, staging, production)
@@ -175,7 +175,7 @@ type Profiling struct {
 	// Enabled toggles continuous profiling
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// ServerAddress is the Pyroscope server URL (e.g. http://localhost:4040)
-	ServerAddress string `json:"server_address" yaml:"server_address" mapstructure:"server_address" validate:"required_if=Enabled true,url"`
+	ServerAddress string `json:"server_address" yaml:"server_address" mapstructure:"server_address" validate:"required_if=Enabled true,omitempty,url"`
 	// ServiceName identifies this service in profiles
 	ServiceName string `json:"service_name" yaml:"service_name" mapstructure:"service_name"`
 	// Environment tag (development, staging, production)
@@ -338,7 +338,7 @@ type Tailchat struct {
 	// Tailchat platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Tailchat API URL
-	ApiURL string `json:"api_url" yaml:"api_url" mapstructure:"api_url" validate:"required_if=Enabled true,url"`
+	ApiURL string `json:"api_url" yaml:"api_url" mapstructure:"api_url" validate:"required_if=Enabled true,omitempty,url"`
 	// Tailchat app ID
 	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
 	// Tailchat app secret
