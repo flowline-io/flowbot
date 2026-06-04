@@ -3,22 +3,6 @@ document.addEventListener('alpine:init', () => {
   Alpine.store('toasts', []);
 });
 
-function setTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('flowbot-theme', theme);
-}
-
-// Theme toggle
-document.addEventListener('DOMContentLoaded', () => {
-  const toggle = document.querySelector('[data-testid="theme-toggle"]');
-  if (!toggle) return;
-
-  toggle.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme');
-    setTheme(current === 'light' ? 'dark' : 'light');
-  });
-});
-
 // Toast notification system - used by pipeline-editor.js and other components
 // eslint-disable-next-line no-unused-vars
 function showToast(message, type) {
