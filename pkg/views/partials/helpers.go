@@ -8,9 +8,34 @@ import (
 
 	"github.com/bytedance/sonic"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
+
+// HealthzData is the data model for the health dashboard.
+type HealthzData struct {
+	PostgresLatency time.Duration
+	PostgresOk      bool
+	RedisLatency    time.Duration
+	RedisOk         bool
+	Goroutines      int
+	HeapAlloc       uint64
+	TotalAlloc      uint64
+	SysMem          uint64
+	NumGC           uint32
+	LastGCPause     time.Duration
+	Capabilities    []HealthzCap
+	Errors          []flog.ErrorEntry
+}
+
+// HealthzCap represents a capability health status for display.
+type HealthzCap struct {
+	Type    string
+	Backend string
+	Status  string
+	Error   string
+}
 
 // PageInfo holds pagination state for the event table.
 type PageInfo struct {
@@ -142,5 +167,5 @@ func formatBytes(b uint64) string {
 		div *= unit
 		exp++
 	}
-	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "KMGTPE"[exp])
+	return fmt.Sprintf("%.1f %ciB", float64(b)/float64(div), "KMGTPE"[exp])
 }

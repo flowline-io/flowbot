@@ -1,35 +1,5 @@
 package partials
 
-import (
-	"time"
-
-	"github.com/flowline-io/flowbot/pkg/flog"
-)
-
-// HealthzData is the data model for the health dashboard.
-type HealthzData struct {
-	PostgresLatency time.Duration
-	PostgresOk      bool
-	RedisLatency    time.Duration
-	RedisOk         bool
-	Goroutines      int
-	HeapAlloc       uint64
-	TotalAlloc      uint64
-	SysMem          uint64
-	NumGC           uint32
-	LastGCPause     time.Duration
-	Capabilities    []HealthzCap
-	Errors          []flog.ErrorEntry
-}
-
-// HealthzCap represents a capability health status for display.
-type HealthzCap struct {
-	Name   string
-	Type   string
-	Status string
-	Error  string
-}
-
 templ HealthzStatus(data HealthzData) {
 	<div id="healthz-status"
 		data-testid="healthz-status"
@@ -131,18 +101,21 @@ templ HealthzStatus(data HealthzData) {
 							<tbody>
 								for _, cap := range data.Capabilities {
 									<tr>
-										<td class="font-medium">{ cap.Name }</td>
-										<td class="text-base-content/70 text-xs">{ cap.Type }</td>
-										<td>
-											if cap.Status == "healthy" {
-												<span class="badge badge-success badge-sm">healthy</span>
-											} else if cap.Status == "timeout" {
-												<span class="badge badge-warning badge-sm">timeout</span>
-											} else if cap.Status == "na" {
-												<span class="badge badge-ghost badge-sm">n/a</span>
-											} else {
-												<span class="badge badge-error badge-sm">{ cap.Status }</span>
-											}
+							<td class="font-medium">{ cap.Type }</td>
+							<td class="text-base-content/70 text-xs">{ cap.Backend }</td>
+							<td>
+								if cap.Status == "healthy" {
+									<span class="badge badge-success badge-sm">healthy</span>
+								} else if cap.Status == "timeout" {
+									<span class="badge badge-warning badge-sm">timeout</span>
+								} else if cap.Status == "na" {
+									<span class="badge badge-ghost badge-sm">n/a</span>
+								} else {
+									<span class="badge badge-error badge-sm">{ cap.Status }</span>
+									if cap.Error != "" {
+										<span class="text-xs text-error ml-1">{ cap.Error }</span>
+									}
+								}
 										</td>
 									</tr>
 								}
@@ -167,11 +140,9 @@ templ HealthzStatus(data HealthzData) {
 						} else {
 							<ul class="list-disc list-inside space-y-1">
 								for _, e := range data.Errors {
-									<li class="text-xs text-error">
-										<span class="text-base-content/50">{ e.Time.Format("15:04:05") }</span>
-										{" "}
-										{ e.Message }
-									</li>
+							<li class="text-xs text-error">
+								<span class="text-base-content/50">{ e.Time.Format("15:04:05") }</span> { e.Message }
+							</li>
 								}
 							</ul>
 						}
