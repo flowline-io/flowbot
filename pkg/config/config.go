@@ -161,13 +161,13 @@ type Tracing struct {
 	// Enabled toggles trace export
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Endpoint is the OTLP HTTP endpoint (e.g. http://localhost:4318/v1/traces)
-	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint" validate:"required_if=Enabled true,url"`
 	// ServiceName identifies this service in traces
 	ServiceName string `json:"service_name" yaml:"service_name" mapstructure:"service_name"`
 	// Environment tag (development, staging, production)
 	Environment string `json:"environment" yaml:"environment" mapstructure:"environment"`
 	// SampleRate controls trace sampling (0.0-1.0)
-	SampleRate float64 `json:"sample_rate" yaml:"sample_rate" mapstructure:"sample_rate"`
+	SampleRate float64 `json:"sample_rate" yaml:"sample_rate" mapstructure:"sample_rate" validate:"omitempty,gte=0,lte=1"`
 }
 
 // Profiling configures Pyroscope continuous profiling.
@@ -175,7 +175,7 @@ type Profiling struct {
 	// Enabled toggles continuous profiling
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// ServerAddress is the Pyroscope server URL (e.g. http://localhost:4040)
-	ServerAddress string `json:"server_address" yaml:"server_address" mapstructure:"server_address"`
+	ServerAddress string `json:"server_address" yaml:"server_address" mapstructure:"server_address" validate:"required_if=Enabled true,url"`
 	// ServiceName identifies this service in profiles
 	ServiceName string `json:"service_name" yaml:"service_name" mapstructure:"service_name"`
 	// Environment tag (development, staging, production)
@@ -209,7 +209,7 @@ type StoreType struct {
 
 type Log struct {
 	// Log level: debug, info, warn, error, fatal, panic
-	Level string `json:"level" yaml:"level" mapstructure:"level"`
+	Level string `json:"level" yaml:"level" mapstructure:"level" validate:"omitempty,oneof=debug info warn error fatal panic"`
 	// Caller enables caller (file:line) info in all log levels
 	Caller bool `json:"caller" yaml:"caller" mapstructure:"caller"`
 	// StackTrace enables full stack traces on errors
@@ -251,13 +251,13 @@ type LogRotation struct {
 // Redis stores connection and pool configuration for the Redis client.
 type Redis struct {
 	// Redis host
-	Host string `json:"host" yaml:"host" mapstructure:"host"`
+	Host string `json:"host" yaml:"host" mapstructure:"host" validate:"required,min=1"`
 	// Redis port
-	Port int `json:"port" yaml:"port" mapstructure:"port"`
+	Port int `json:"port" yaml:"port" mapstructure:"port" validate:"required,gte=1,lte=65535"`
 	// Redis database
 	DB int `json:"db" yaml:"db" mapstructure:"db"`
 	// Redis password
-	Password string `json:"password" yaml:"pass" mapstructure:"password"`
+	Password string `json:"password" yaml:"pass" mapstructure:"password" validate:"required,min=1"`
 	// Maximum number of connections in the pool (0 = go-redis default: 10*GOMAXPROCS)
 	PoolSize int `json:"pool_size" yaml:"pool_size" mapstructure:"pool_size"`
 	// Minimum number of idle connections maintained in the pool (0 = default: none)
@@ -299,13 +299,13 @@ type Slack struct {
 	// Slack platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Slack app ID
-	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id" validate:"required_if=Enabled true"`
 	// Slack client ID
-	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id" validate:"required_if=Enabled true"`
 	// Slack client secret
-	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" validate:"required_if=Enabled true"`
 	// Slack signing secret
-	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret"`
+	SigningSecret string `json:"signing_secret" yaml:"signing_secret" mapstructure:"signing_secret" validate:"required_if=Enabled true"`
 	// Slack verification token
 	VerificationToken string `json:"verification_token" yaml:"verification_token" mapstructure:"verification_token"`
 	// Slack app token
@@ -318,15 +318,15 @@ type Discord struct {
 	// Discord platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Discord app ID
-	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
+	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id" validate:"required_if=Enabled true"`
 	// Discord public key
-	PublicKey string `json:"public_key" yaml:"public_key" mapstructure:"public_key"`
+	PublicKey string `json:"public_key" yaml:"public_key" mapstructure:"public_key" validate:"required_if=Enabled true"`
 	// Discord client ID
-	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id"`
+	ClientID string `json:"client_id" yaml:"client_id" mapstructure:"client_id" validate:"required_if=Enabled true"`
 	// Discord client secret
-	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret"`
+	ClientSecret string `json:"client_secret" yaml:"client_secret" mapstructure:"client_secret" validate:"required_if=Enabled true"`
 	// Discord bot token
-	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token"`
+	BotToken string `json:"bot_token" yaml:"bot_token" mapstructure:"bot_token" validate:"required_if=Enabled true"`
 }
 
 type Telegram struct {
@@ -338,7 +338,7 @@ type Tailchat struct {
 	// Tailchat platform configuration
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Tailchat API URL
-	ApiURL string `json:"api_url" yaml:"api_url" mapstructure:"api_url"`
+	ApiURL string `json:"api_url" yaml:"api_url" mapstructure:"api_url" validate:"required_if=Enabled true,url"`
 	// Tailchat app ID
 	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
 	// Tailchat app secret
@@ -414,7 +414,7 @@ type Search struct {
 
 type Flowbot struct {
 	// Flowbot URL
-	URL string `json:"url" yaml:"url" mapstructure:"url"`
+	URL string `json:"url" yaml:"url" mapstructure:"url" validate:"omitempty,url"`
 	// Flowbot channel path
 	ChannelPath string `json:"channel_path" yaml:"channel_path" mapstructure:"channel_path"`
 	// language
