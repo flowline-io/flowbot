@@ -11,6 +11,7 @@ var cacheStore *cache.RedisStore
 // SetCacheStore sets the cache store for server functions.
 func SetCacheStore(s *cache.RedisStore) {
 	cacheStore = s
+	cache.SetDefaultRedisStore(s)
 }
 
 type structValidator struct {

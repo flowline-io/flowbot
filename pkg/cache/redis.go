@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -200,6 +201,13 @@ func (s *RedisStore) GetMetricsInt64(key string) int64 {
 	k := NewKey("metrics", "gauge", key)
 	v, _ := s.GetInt64(context.Background(), k)
 	return v
+}
+
+// Ping checks Redis connectivity and returns the round-trip latency.
+func (s *RedisStore) Ping(ctx context.Context) (time.Duration, error) {
+	start := time.Now()
+	err := s.client.Ping(ctx).Err()
+	return time.Since(start), err
 }
 
 // toAny converts a string slice to an any slice for go-redis variadic args.

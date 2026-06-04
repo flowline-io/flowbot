@@ -13,6 +13,20 @@ import (
 
 var Instance *Cache
 
+var defaultRedisStore *RedisStore
+
+// SetDefaultRedisStore sets the global Redis store for health checks and other
+// cross-package access. Called once during server initialization.
+func SetDefaultRedisStore(s *RedisStore) {
+	defaultRedisStore = s
+}
+
+// DefaultRedisStore returns the global Redis store. May return nil before
+// initialization.
+func DefaultRedisStore() *RedisStore {
+	return defaultRedisStore
+}
+
 type Cache struct {
 	i        *ristretto.Cache[string, any]
 	keyIndex sync.Map
