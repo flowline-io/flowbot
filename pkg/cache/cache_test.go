@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -571,4 +573,46 @@ func TestCacheTTLExpiration(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestDefaultRedisStore tests the global Redis store accessor.
+func TestDefaultRedisStore(t *testing.T) {
+	t.Run("returns nil before set", func(t *testing.T) {
+		prev := DefaultRedisStore()
+		SetDefaultRedisStore(nil)
+		t.Cleanup(func() { SetDefaultRedisStore(prev) })
+
+		require.Nil(t, DefaultRedisStore())
+	})
+
+	t.Run("returns store after set", func(t *testing.T) {
+		prev := DefaultRedisStore()
+		t.Cleanup(func() { SetDefaultRedisStore(prev) })
+
+		mr := miniredis.RunT(t)
+		client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		t.Cleanup(func() { _ = client.Close() })
+		store := NewRedisStore(client)
+
+		SetDefaultRedisStore(store)
+		require.Same(t, store, DefaultRedisStore())
+	})
+
+	t.Run("replace with different store", func(t *testing.T) {
+		prev := DefaultRedisStore()
+		t.Cleanup(func() { SetDefaultRedisStore(prev) })
+
+		mr := miniredis.RunT(t)
+		client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		t.Cleanup(func() { _ = client.Close() })
+		store1 := NewRedisStore(client)
+		store2 := NewRedisStore(client)
+
+		SetDefaultRedisStore(store1)
+		require.Same(t, store1, DefaultRedisStore())
+
+		SetDefaultRedisStore(store2)
+		require.Same(t, store2, DefaultRedisStore())
+		require.NotSame(t, store1, DefaultRedisStore())
+	})
 }

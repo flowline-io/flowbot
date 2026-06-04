@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -231,5 +232,48 @@ func TestRedisStoreUtilityMethods(t *testing.T) {
 		ok, err := store.ExistsRaw(context.Background(), "no:such:key")
 		require.NoError(t, err)
 		require.False(t, ok)
+	})
+}
+
+// TestRedisStore_Ping tests the Ping method.
+func TestRedisStore_Ping(t *testing.T) {
+	t.Run("ping succeeds with healthy redis", func(t *testing.T) {
+		mr := miniredis.RunT(t)
+		client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		t.Cleanup(func() { _ = client.Close() })
+		store := NewRedisStore(client)
+
+		dur, err := store.Ping(context.Background())
+		require.NoError(t, err)
+		require.GreaterOrEqual(t, dur, time.Duration(0))
+	})
+
+	t.Run("ping fails with closed client", func(t *testing.T) {
+		mr := miniredis.RunT(t)
+		client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		store := NewRedisStore(client)
+		require.NoError(t, client.Close())
+
+		_, err := store.Ping(context.Background())
+		require.Error(t, err)
+	})
+
+	t.Run("ping fails after miniredis shutdown", func(t *testing.T) {
+		mr := miniredis.RunT(t)
+		client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		t.Cleanup(func() { _ = client.Close() })
+		store := NewRedisStore(client)
+
+		mr.Close()
+
+		_, err := store.Ping(context.Background())
+		require.Error(t, err)
+	})
+
+	t.Run("ping nil client panics", func(t *testing.T) {
+		store := &RedisStore{}
+		require.Panics(t, func() {
+			_, _ = store.Ping(context.Background())
+		})
 	})
 }
