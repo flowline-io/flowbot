@@ -77,6 +77,7 @@ func (*testStoreAdapter) Close() error                { return nil }
 func (*testStoreAdapter) IsOpen() bool                { return true }
 func (*testStoreAdapter) GetName() string             { return "test" }
 func (*testStoreAdapter) Stats() any                  { return nil }
+func (*testStoreAdapter) Ping(_ context.Context) (time.Duration, error) { return 0, nil }
 func (*testStoreAdapter) GetDB() any                  { return nil }
 func (*testStoreAdapter) UserCreate(context.Context, *gen.User) error {
 	return nil
