@@ -1,0 +1,183 @@
+package partials
+
+import (
+	"time"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
+)
+
+// HealthzData is the data model for the health dashboard.
+type HealthzData struct {
+	PostgresLatency time.Duration
+	PostgresOk      bool
+	RedisLatency    time.Duration
+	RedisOk         bool
+	Goroutines      int
+	HeapAlloc       uint64
+	TotalAlloc      uint64
+	SysMem          uint64
+	NumGC           uint32
+	LastGCPause     time.Duration
+	Capabilities    []HealthzCap
+	Errors          []flog.ErrorEntry
+}
+
+// HealthzCap represents a capability health status for display.
+type HealthzCap struct {
+	Name   string
+	Type   string
+	Status string
+	Error  string
+}
+
+templ HealthzStatus(data HealthzData) {
+	<div id="healthz-status"
+		data-testid="healthz-status"
+		hx-get="/service/web/healthz"
+		hx-trigger="every 30s"
+		hx-swap="outerHTML">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			<!-- DB Latency -->
+			<div class="card bg-base-100 shadow-sm" data-testid="healthz-db-latency">
+				<div class="card-body">
+					<h2 class="card-title text-base">Database Latency</h2>
+					<div class="grid grid-cols-2 gap-4">
+						<div class="stat">
+							<div class="stat-title text-xs">PostgreSQL</div>
+							<div class="stat-value text-lg">
+								if data.PostgresOk {
+									{ formatDuration(data.PostgresLatency) }
+								} else {
+									<span class="text-error">unreachable</span>
+								}
+							</div>
+							<div class="stat-desc text-xs">
+								if data.PostgresOk {
+									<span class="text-success">connected</span>
+								} else {
+									<span class="text-error">disconnected</span>
+								}
+							</div>
+						</div>
+						<div class="stat">
+							<div class="stat-title text-xs">Redis</div>
+							<div class="stat-value text-lg">
+								if data.RedisOk {
+									{ formatDuration(data.RedisLatency) }
+								} else {
+									<span class="text-error">unreachable</span>
+								}
+							</div>
+							<div class="stat-desc text-xs">
+								if data.RedisOk {
+									<span class="text-success">connected</span>
+								} else {
+									<span class="text-error">disconnected</span>
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Runtime -->
+			<div class="card bg-base-100 shadow-sm" data-testid="healthz-runtime">
+				<div class="card-body">
+					<h2 class="card-title text-base">Runtime</h2>
+					<div class="grid grid-cols-3 gap-4">
+						<div class="stat">
+							<div class="stat-title text-xs">Goroutines</div>
+							<div class="stat-value text-lg">{ data.Goroutines }</div>
+						</div>
+						<div class="stat">
+							<div class="stat-title text-xs">Heap Alloc</div>
+							<div class="stat-value text-lg">{ formatBytes(data.HeapAlloc) }</div>
+						</div>
+						<div class="stat">
+							<div class="stat-title text-xs">Total Alloc</div>
+							<div class="stat-value text-lg">{ formatBytes(data.TotalAlloc) }</div>
+						</div>
+						<div class="stat">
+							<div class="stat-title text-xs">Sys Memory</div>
+							<div class="stat-value text-lg">{ formatBytes(data.SysMem) }</div>
+						</div>
+						<div class="stat">
+							<div class="stat-title text-xs">GC Cycles</div>
+							<div class="stat-value text-lg">{ data.NumGC }</div>
+						</div>
+						<div class="stat">
+							<div class="stat-title text-xs">Last GC Pause</div>
+							<div class="stat-value text-lg">{ formatDuration(data.LastGCPause) }</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+			<!-- Capability Status -->
+			<div class="card bg-base-100 shadow-sm" data-testid="healthz-capabilities">
+				<div class="card-body">
+					<h2 class="card-title text-base">Capability Status</h2>
+					<div class="overflow-x-auto max-h-64 overflow-y-auto">
+						<table class="table table-sm">
+							<thead>
+								<tr>
+									<th>Capability</th>
+									<th>Backend</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								for _, cap := range data.Capabilities {
+									<tr>
+										<td class="font-medium">{ cap.Name }</td>
+										<td class="text-base-content/70 text-xs">{ cap.Type }</td>
+										<td>
+											if cap.Status == "healthy" {
+												<span class="badge badge-success badge-sm">healthy</span>
+											} else if cap.Status == "timeout" {
+												<span class="badge badge-warning badge-sm">timeout</span>
+											} else if cap.Status == "na" {
+												<span class="badge badge-ghost badge-sm">n/a</span>
+											} else {
+												<span class="badge badge-error badge-sm">{ cap.Status }</span>
+											}
+										</td>
+									</tr>
+								}
+								if len(data.Capabilities) == 0 {
+									<tr>
+										<td colspan="3" class="text-center text-base-content/50">No capabilities registered</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+
+			<!-- Recent Errors -->
+			<div class="card bg-base-100 shadow-sm" data-testid="healthz-errors">
+				<div class="card-body">
+					<h2 class="card-title text-base">Recent Errors</h2>
+					<div class="overflow-x-auto max-h-64 overflow-y-auto">
+						if len(data.Errors) == 0 {
+							<p class="text-base-content/50 text-sm">No recent errors</p>
+						} else {
+							<ul class="list-disc list-inside space-y-1">
+								for _, e := range data.Errors {
+									<li class="text-xs text-error">
+										<span class="text-base-content/50">{ e.Time.Format("15:04:05") }</span>
+										{" "}
+										{ e.Message }
+									</li>
+								}
+							</ul>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

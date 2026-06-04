@@ -4,6 +4,7 @@ package partials
 import (
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/bytedance/sonic"
 
@@ -114,4 +115,32 @@ func configFormID(item model.ConfigItem, isNew bool) string {
 // For edits, also returns the list endpoint so the row is restored with up-to-date data.
 func cancelURL(_ model.ConfigItem, _ bool) string {
 	return "/service/web/configs/list"
+}
+
+// formatDuration formats a duration for display in the health dashboard.
+func formatDuration(d time.Duration) string {
+	if d < time.Microsecond {
+		return fmt.Sprintf("%dns", d.Nanoseconds())
+	}
+	if d < time.Millisecond {
+		return fmt.Sprintf("%.2f\u00b5s", float64(d.Microseconds())+float64(d.Nanoseconds()%1000)/1000)
+	}
+	if d < time.Second {
+		return fmt.Sprintf("%.2fms", float64(d.Milliseconds())+float64(d.Microseconds()%1000)/1000)
+	}
+	return fmt.Sprintf("%.2fs", d.Seconds())
+}
+
+// formatBytes formats byte count for display.
+func formatBytes(b uint64) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := uint64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }
