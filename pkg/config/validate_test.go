@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func validConfig() Type {
@@ -81,7 +82,7 @@ func TestValidate_Required(t *testing.T) {
 			cfg := validConfig()
 			tt.mutate(&cfg)
 			err := cfg.Validate()
-			assert.Error(t, err)
+			require.Error(t, err)
 			if tt.wantErr != "" {
 				assert.Contains(t, err.Error(), tt.wantErr)
 			}
@@ -190,7 +191,7 @@ func TestValidate_Format(t *testing.T) {
 			if tt.noErr {
 				assert.NoError(t, err)
 			} else {
-				assert.Error(t, err)
+				require.Error(t, err)
 				if tt.wantErr != "" {
 					assert.Contains(t, err.Error(), tt.wantErr)
 				}
@@ -284,7 +285,7 @@ func TestValidate_Conditional(t *testing.T) {
 			if tt.noErr {
 				assert.NoError(t, err)
 			} else {
-				assert.Error(t, err)
+				require.Error(t, err)
 				if tt.wantErr != "" {
 					assert.Contains(t, err.Error(), tt.wantErr)
 				}
@@ -334,7 +335,7 @@ func TestValidate_Accumulated(t *testing.T) {
 			cfg := validConfig()
 			tt.mutate(&cfg)
 			err := cfg.Validate()
-			assert.Error(t, err)
+			require.Error(t, err)
 			errStr := err.Error()
 			for _, want := range tt.wantContains {
 				assert.Contains(t, errStr, want)
@@ -437,7 +438,7 @@ func TestReachabilityCheck_RedisUnreachable(t *testing.T) {
 			cfg := validConfig()
 			tt.mutate(&cfg)
 			err := cfg.ReachabilityCheck(t.Context())
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
 	}
@@ -495,7 +496,7 @@ func TestReachabilityCheck_PostgresUnreachable(t *testing.T) {
 			cfg := validConfig()
 			tt.mutate(&cfg)
 			err := cfg.ReachabilityCheck(t.Context())
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
 	}
