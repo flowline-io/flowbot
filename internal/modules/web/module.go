@@ -63,7 +63,7 @@ var loginLimiter *loginRateLimiter
 
 // SetLoginRateLimiterCache sets the cache backend for the login rate limiter.
 // Must be called after Init if BruteForce is enabled.
-func SetLoginRateLimiterCache(s rateLimitStore) {
+func SetLoginRateLimiterCache(s *cache.RedisStore) {
 	if config.Auth.BruteForce.Enabled {
 		lockoutTTL, err := time.ParseDuration(config.Auth.BruteForce.LockoutDuration)
 		if err != nil || lockoutTTL <= 0 {

@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/ability/kanban"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	provider "github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -36,7 +37,11 @@ type Adapter struct {
 func New() kanban.Service {
 	client, err := provider.GetClient()
 	if err != nil {
-		return &Adapter{client: nil}
+		flog.Warn("kanboard kanban adapter: %v", err)
+		return nil
+	}
+	if client == nil {
+		return nil
 	}
 	return NewWithClient(client)
 }

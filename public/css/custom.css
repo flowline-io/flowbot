@@ -1,3 +1,6 @@
+/* Alpine.js cloak to prevent flash before init */
+[x-cloak] { display: none !important; }
+
 /* Variable pill display in step card param previews */
 .var-pill {
   display: inline-block;

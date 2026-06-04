@@ -47,7 +47,7 @@ func HomelabPage(apps []homelab.App, scannedAt string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/js/homelab-registry.js\" defer></script> <div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-bold text-base-content\">Homelab Registry</h1></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-bold text-base-content\">Homelab Registry</h1></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

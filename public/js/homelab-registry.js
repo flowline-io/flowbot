@@ -1,3 +1,4 @@
+document.addEventListener('alpine:init', function () {
 Alpine.data('homelabRegistry', () => ({
   search: '',
   filterCapability: '',
@@ -12,3 +13,4 @@ Alpine.data('homelabRegistry', () => ({
     return searchMatch && capMatch;
   },
 }));
+});

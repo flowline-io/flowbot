@@ -72,13 +72,13 @@ func (a *testStoreAdapter) GetBots(_ context.Context) ([]*gen.Bot, error) {
 	return list, nil
 }
 
-func (*testStoreAdapter) Open(config.StoreType) error { return nil }
-func (*testStoreAdapter) Close() error                { return nil }
-func (*testStoreAdapter) IsOpen() bool                { return true }
-func (*testStoreAdapter) GetName() string             { return "test" }
-func (*testStoreAdapter) Stats() any                  { return nil }
+func (*testStoreAdapter) Open(config.StoreType) error                   { return nil }
+func (*testStoreAdapter) Close() error                                  { return nil }
+func (*testStoreAdapter) IsOpen() bool                                  { return true }
+func (*testStoreAdapter) GetName() string                               { return "test" }
+func (*testStoreAdapter) Stats() any                                    { return nil }
 func (*testStoreAdapter) Ping(_ context.Context) (time.Duration, error) { return 0, nil }
-func (*testStoreAdapter) GetDB() any                  { return nil }
+func (*testStoreAdapter) GetDB() any                                    { return nil }
 func (*testStoreAdapter) UserCreate(context.Context, *gen.User) error {
 	return nil
 }
@@ -312,7 +312,7 @@ func (*testStoreAdapter) CreateToken(_ context.Context, _ types.Uid, _ time.Time
 	return "", nil
 }
 func (*testStoreAdapter) ListTokens(_ context.Context) ([]model.TokenItem, error) { return nil, nil }
-func (*testStoreAdapter) RevokeToken(_ context.Context, _ string) error          { return nil }
+func (*testStoreAdapter) RevokeToken(_ context.Context, _ string) error           { return nil }
 
 func TestRegisterModules_CreatesNewBot(t *testing.T) {
 	tests := []struct {

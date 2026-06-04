@@ -158,7 +158,7 @@ func securityHeadersMiddleware(c fiber.Ctx) error {
 	c.Set(fiber.HeaderXFrameOptions, "DENY")
 	c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
 	if !strings.HasPrefix(c.Path(), "/swagger/") {
-		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; font-src 'self'")
+		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self'")
 	}
 	return c.Next()
 }

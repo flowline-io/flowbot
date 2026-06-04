@@ -1,3 +1,4 @@
+document.addEventListener('alpine:init', () => {
 Alpine.data('eventFilters', () => ({
   timeRange: 'custom',
   timeStart: '',
@@ -83,3 +84,5 @@ Alpine.data('eventFilters', () => ({
     this.searchTimer = setTimeout(() => this.submitFilter(), 300);
   },
 }));
+});
+

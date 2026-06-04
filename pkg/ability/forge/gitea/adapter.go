@@ -35,10 +35,15 @@ type Adapter struct {
 }
 
 // New creates an Adapter using the default provider client.
+// Returns nil when the provider is not configured or unavailable.
 func New() forge.Service {
 	client, err := provider.GetClient()
 	if err != nil {
 		flog.Error(fmt.Errorf("gitea forge adapter: %w", err))
+		return nil
+	}
+	if client == nil {
+		return nil
 	}
 	return NewWithClient(client)
 }

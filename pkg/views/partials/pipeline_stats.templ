@@ -60,26 +60,29 @@ templ PipelineStats(name string, stats *types.PipelineStats) {
 			<div class="lg:col-span-2 card bg-base-100 shadow-sm" data-testid="chart-success-rate">
 				<div class="card-body p-4">
 					<h3 class="card-title text-sm text-base-content/70">Success Rate Trend</h3>
-					<canvas id="chart-success-rate"
-						data-stats={ toJSON(stats) }
-						data-chart-type="line"
-						class="w-full h-64"></canvas>
+					<div class="relative w-full" style="height:256px">
+						<canvas id="chart-success-rate"
+							data-stats={ toJSON(stats) }
+							data-chart-type="line"></canvas>
+					</div>
 				</div>
 			</div>
 			<div class="card bg-base-100 shadow-sm" data-testid="chart-duration">
 				<div class="card-body p-4">
 					<h3 class="card-title text-sm text-base-content/70">Duration Distribution</h3>
-					<canvas id="chart-duration"
-						data-chart-type="bar"
-						class="w-full h-64"></canvas>
+					<div class="relative w-full" style="height:256px">
+						<canvas id="chart-duration"
+							data-chart-type="bar"></canvas>
+					</div>
 				</div>
 			</div>
 			<div class="card bg-base-100 shadow-sm" data-testid="chart-trigger">
 				<div class="card-body p-4">
 					<h3 class="card-title text-sm text-base-content/70">Trigger Sources</h3>
-					<canvas id="chart-trigger"
-						data-chart-type="doughnut"
-						class="w-full h-64"></canvas>
+					<div class="relative w-full" style="height:256px">
+						<canvas id="chart-trigger"
+							data-chart-type="doughnut"></canvas>
+					</div>
 				</div>
 			</div>
 		</div>

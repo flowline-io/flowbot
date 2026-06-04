@@ -1,7 +1,8 @@
 'use strict';
 
-document.addEventListener('alpine:init', function () {
-  Alpine.data('pipelineRunLive', function () {
+(function () {
+  function register() {
+    Alpine.data('pipelineRunLive', function () {
     var el = document.getElementById('initial-data');
     var initial = el
       ? JSON.parse(el.textContent)
@@ -133,4 +134,11 @@ document.addEventListener('alpine:init', function () {
       },
     };
   });
-});
+  }
+
+  if (window.Alpine) {
+    register();
+  } else {
+    document.addEventListener('alpine:init', register);
+  }
+})();

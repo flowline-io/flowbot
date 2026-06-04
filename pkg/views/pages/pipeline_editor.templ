@@ -177,9 +177,9 @@ templ PipelineEditorPage(name string) {
 
 				<div x-show="diffResult" class="mt-4" data-testid="diff-result">
 					<div class="text-xs font-medium mb-2">
-						<span class="badge badge-sm" x-text="'v' + compareLeft.version"></span>
+						<span class="badge badge-sm" x-text="'v' + compareLeft?.version"></span>
 						vs
-						<span class="badge badge-sm" x-text="'v' + compareRight.version"></span>
+						<span class="badge badge-sm" x-text="'v' + compareRight?.version"></span>
 					</div>
 					<pre class="text-xs font-mono bg-base-200 rounded-box p-3 overflow-x-auto max-h-96"><template x-for="chunk in diffResult"><span :class="chunk.added ? 'bg-success/20 text-success' : (chunk.removed ? 'bg-error/20 text-error' : '')" x-text="chunk.text"></span></template></pre>
 				</div>
@@ -192,8 +192,8 @@ templ PipelineEditorPage(name string) {
 					<button type="button" @click="selectedVersion = null"
 						class="btn btn-ghost btn-sm mb-3">Back to list</button>
 					<div class="flex items-center gap-2 mb-2">
-						<span class="badge" x-text="'v' + selectedVersion.version"></span>
-						<span class="text-xs text-base-content/30" x-text="relativeTime(selectedVersion.created_at)"></span>
+						<span class="badge" x-text="'v' + selectedVersion?.version"></span>
+						<span class="text-xs text-base-content/30" x-text="relativeTime(selectedVersion?.created_at)"></span>
 					</div>
 					<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
 					<pre x-show="!historyLoading && selectedVersionYaml"

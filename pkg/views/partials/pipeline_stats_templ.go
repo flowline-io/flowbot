@@ -116,20 +116,20 @@ func PipelineStats(name string, stats *types.PipelineStats) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-month\">month</button></div></div><!-- Charts --><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6\"><div class=\"lg:col-span-2 card bg-base-100 shadow-sm\" data-testid=\"chart-success-rate\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Success Rate Trend</h3><canvas id=\"chart-success-rate\" data-stats=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-month\">month</button></div></div><!-- Charts --><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6\"><div class=\"lg:col-span-2 card bg-base-100 shadow-sm\" data-testid=\"chart-success-rate\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Success Rate Trend</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-success-rate\" data-stats=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(toJSON(stats))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 64, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 65, Col: 33}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-chart-type=\"line\" class=\"w-full h-64\"></canvas></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-duration\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Duration Distribution</h3><canvas id=\"chart-duration\" data-chart-type=\"bar\" class=\"w-full h-64\"></canvas></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-trigger\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Trigger Sources</h3><canvas id=\"chart-trigger\" data-chart-type=\"doughnut\" class=\"w-full h-64\"></canvas></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-chart-type=\"line\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-duration\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Duration Distribution</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-duration\" data-chart-type=\"bar\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-trigger\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Trigger Sources</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-trigger\" data-chart-type=\"doughnut\"></canvas></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

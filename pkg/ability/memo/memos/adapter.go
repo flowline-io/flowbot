@@ -29,8 +29,12 @@ type Adapter struct {
 }
 
 // New creates an Adapter using the default provider client (reads config from YAML).
+// Returns nil when the provider is not configured.
 func New() memosvc.Service {
-	return NewWithClient(provider.GetClient())
+	if c := provider.GetClient(); c != nil {
+		return NewWithClient(c)
+	}
+	return nil
 }
 
 // NewWithClient creates an Adapter with a specific client, useful for testing.
