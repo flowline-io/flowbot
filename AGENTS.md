@@ -18,9 +18,11 @@ Homelab Data Hub & Capability Orchestration Center.
 | Authentication   | `pkg/auth/`         | AuthContext helpers                                   |
 | Notifications    | `pkg/notify/`       | Multi-channel notify                                  |
 | Core types       | `pkg/types/`        | Rulesets, protocol, KV                                |
-| API routes       | `internal/server/`  | Fiber v3 handlers                                     |
-| Entry points     | `cmd/`              | 3 binaries                                            |
+| Chat platforms   | `internal/platforms/` | See `AGENTS.md` there; reference `platforms/slack/`  |
+| API routes       | `internal/server/`  | Fiber v3 handlers, fx DI                              |
+| Entry points     | `cmd/`              | See `AGENTS.md` there                                 |
 | Utilities        | `pkg/utils/`        | Must have unit tests                                  |
+| Web UI           | `pkg/views/`        | templ templates, pages/partials/layout                |
 
 ## Key Patterns
 
@@ -82,7 +84,7 @@ go tool task ent              # Generate ent code from database
 
 ## Notes
 
-- Go 1.26+, PostgreSQL, Redis required
+- Go 1.26.3+, PostgreSQL, Redis required
 - Do not use emojis
 - Run lint and test after modifying code
 - Text in English: comments, docs, commit messages

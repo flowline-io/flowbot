@@ -10,12 +10,28 @@ types/
 ├── kv.go              # KV map with accessor methods (String, Int64, Map)
 ├── msg.go             # MsgPayload interface
 ├── errors.go          # Error types, NewError, constant sentinels (ErrNotFound, ...)
-├── context.go, event.go, task.go, workflow.go, agent.go
+├── context.go         # Context type with metadata fields
+├── event.go           # DataEvent type definitions
+├── task.go            # Task type definitions
+├── workflow.go        # Workflow type definitions
+├── agent.go           # Agent type definitions
+├── uid.go             # Unique ID generation
+├── filter.go          # Event filter types
+├── file.go            # File type definitions
+├── pipeline_stats.go  # Pipeline statistics types
 ├── protocol/          # Platform-agnostic types
 │   ├── action.go      # Request/Response, error codes (10xxx–60xxx)
-│   ├── message.go, event.go, user.go
-└── ruleset/           # Rule implementations
-    ├── command/ form/ webservice/
+│   ├── message.go     # Message type definition
+│   ├── event.go       # Event type definition
+│   ├── user.go        # User type definition
+│   ├── command.go     # Command type definition
+│   └── platform.go    # Driver, Adapter, Action interfaces
+├── ruleset/           # Rule implementations
+│   ├── command/       # Command rule types
+│   ├── form/          # Form rule types
+│   └── webservice/    # Webservice rule types
+├── audit/             # Audit trail types
+└── model/             # AI model type definitions
 ```
 
 ## Rules

@@ -6,40 +6,92 @@ Server-rendered HTML pages with HTMX + Alpine.js interactivity.
 
 ```text
 internal/modules/web/
-├── module.go               # moduleHandler, Register(), Init(), Webservice(), Rules()
-├── webservice.go           # General routes (home, login, configs CRUD), auth middleware
-├── pipeline_webservice.go  # Pipeline-specific routes (CRUD, editor, run history, test)
-├── view_webservice.go      # Shareable view page routes (create, view, delete)
-├── types.go                # View rendering types (viewTemplateFn, viewTemplates)
-├── ratelimit.go            # Login rate limiter
-├── module_test.go          # Unit tests
-└── test_helper_test.go     # E2E test helpers
+├── module.go                     # moduleHandler, Register(), Init(), Webservice(), Rules()
+├── webservice.go                 # General routes (home, login, configs CRUD), auth middleware
+├── pipeline_webservice.go        # Pipeline-specific routes (CRUD, editor, run history, test)
+├── view_webservice.go            # Shareable view page routes (create, view, delete)
+├── event_webservice.go           # Data events list and detail routes
+├── homelab_webservice.go         # Homelab registry browser routes
+├── hub_webservice.go             # Hub app management routes
+├── notification_webservice.go    # Notification list routes
+├── notify_settings_webservice.go # Notify channel/rule CRUD routes
+├── token_webservice.go           # API token management routes
+├── relations.go                  # Resource relations graph routes
+├── types.go                      # View rendering types (viewTemplateFn, viewTemplates)
+├── ratelimit.go                  # Login rate limiter
+├── module_test.go                # Unit tests
+├── test_helper_test.go           # E2E test helpers
+└── *_test.go                     # Co-located tests per webservice file
 
 pkg/views/
 ├── layout/
-│   └── base.templ          # Global HTML skeleton (htmx, alpinejs, js-yaml, daisyui)
+│   └── base.templ                # Global HTML skeleton (htmx, alpinejs, daisyui, tailwind, chart.js)
 ├── pages/
-│   ├── home.templ          # HomePage
-│   ├── login.templ         # LoginPage, LoginForm
-│   ├── configs.templ       # ConfigsPage
-│   ├── view.templ          # ViewPage (shareable content)
-│   ├── pipeline_list.templ     # PipelineListPage
-│   ├── pipeline_editor.templ   # PipelineEditorPage (SPA: Alpine.js)
-│   └── pipeline_runs.templ     # PipelineRunsPage
+│   ├── capabilities.templ        # Capability listing page
+│   ├── configs.templ             # ConfigsPage
+│   ├── events.templ              # Data events list page
+│   ├── healthz.templ             # Health status page
+│   ├── home.templ                # HomePage
+│   ├── homelab.templ             # Homelab registry page
+│   ├── homelab_detail.templ      # Homelab app detail page
+│   ├── hub_app_detail.templ      # Hub app detail page
+│   ├── hub_apps.templ            # Hub apps list page
+│   ├── login.templ               # LoginPage, LoginForm
+│   ├── notifications.templ       # Notifications page
+│   ├── notify_settings.templ     # Notify channels/rules settings page
+│   ├── pipeline_editor.templ     # PipelineEditorPage (SPA: Alpine.js)
+│   ├── pipeline_list.templ       # PipelineListPage
+│   ├── pipeline_run_live.templ   # Live pipeline run view
+│   ├── pipeline_runs.templ       # PipelineRunsPage
+│   ├── relations.templ           # Resource relations graph page
+│   ├── tokens.templ              # API tokens page
+│   └── view.templ                # ViewPage (shareable content)
 └── partials/
-    ├── helpers.go               # Shared Go helper functions
-    ├── config_form.templ        # ConfigForm
-    ├── config_row.templ         # ConfigRow
-    ├── config_table.templ       # ConfigTable
-    ├── pipeline_list.templ      # PipelineListTable
-    ├── pipeline_partials.templ  # TriggerCard, StepCard
-    ├── pipeline_runs.templ      # PipelineRunsTable, PipelineStepRunsDetail
-    ├── view_expired.templ       # Expired page placeholder
-    ├── view_form.templ          # Read-only form partial
-    ├── view_image.templ         # Image content partial
-    ├── view_markdown.templ      # Markdown content partial
-    ├── view_pipeline_run.templ  # Pipeline run content partial
-    └── view_text.templ          # Plain text content partial
+    ├── helpers.go                # Shared Go helper functions
+    ├── notify_settings_helpers.go
+    ├── token_helpers.go
+    ├── capability_card.templ     # Capability card component
+    ├── capability_grid.templ     # Capability grid layout
+    ├── config_form.templ         # ConfigForm
+    ├── config_row.templ          # ConfigRow
+    ├── config_table.templ        # ConfigTable
+    ├── confirm_modal.templ       # Global confirmation modal
+    ├── data_events_table.templ   # Data events list table
+    ├── empty_state.templ         # Empty state placeholder
+    ├── event_filters.templ       # Event timeline filter controls
+    ├── event_pagination.templ    # Event pagination controls
+    ├── event_payload.templ       # Event payload detail
+    ├── healthz_status.templ      # Health check status display
+    ├── homelab_card.templ        # Homelab app card
+    ├── homelab_grid.templ        # Homelab registry grid
+    ├── hub_apps_table.templ      # Hub apps table
+    ├── notifications_table.templ # Notifications table
+    ├── notify_channel_form.templ # Notify channel form
+    ├── notify_channel_row.templ  # Notify channel row
+    ├── notify_channels_table.templ # Notify channels table
+    ├── notify_rule_form.templ    # Notify rule form
+    ├── notify_rule_row.templ     # Notify rule row
+    ├── notify_rules_table.templ  # Notify rules table
+    ├── pipeline_list.templ       # PipelineListTable
+    ├── pipeline_partials.templ   # TriggerCard, StepCard
+    ├── pipeline_runs.templ       # PipelineRunsTable, PipelineStepRunsDetail
+    ├── pipeline_stats.templ      # Pipeline stats dashboard
+    ├── relation_detail.templ     # Relation details
+    ├── relation_edge.templ       # Relation edge component
+    ├── relation_node.templ       # Relation node component
+    ├── relation_search.templ     # Relation search input
+    ├── relation_tree.templ       # Relation tree view
+    ├── token_form.templ          # Token form
+    ├── token_row.templ           # Token row
+    ├── token_table.templ         # Token table
+    ├── view_expired.templ        # Expired page placeholder
+    ├── view_form.templ           # Read-only form partial
+    ├── view_image.templ          # Image content partial
+    ├── view_markdown.templ       # Markdown content partial
+    ├── view_pipeline_run.templ   # Pipeline run content partial
+    ├── view_text.templ           # Plain text content partial
+    ├── webhook_logs_table.templ  # Webhook log entries table
+    └── webhook_payload.templ     # Webhook payload detail
 ```
 
 ## Architecture
@@ -48,16 +100,41 @@ pkg/views/
 |-------|-----------|---------|
 | Templates | [templ](https://templ.guide) v0.3 | Server-side HTML rendering, type-safe Go templates |
 | Interactivity | [HTMX 2.x](https://htmx.org) | Partial page updates, form submissions, click-to-load |
-| SPA components | [Alpine.js 3.x](https://alpinejs.dev) | Pipeline editor (visual/code modes, undo/redo, drawer) |
-| CSS | [DaisyUI v5](https://daisyui.com) | Component CSS via CDN (built on Tailwind CSS) |
-| YAML handling | [js-yaml](https://github.com/nodeca/js-yaml) | YAML ↔ JSON conversion in pipeline editor |
-| Static embedding | `embed.FS` (project-root `webassets.go`) | CSS/JS served from binary (package `webassets`), no runtime filesystem dependency |
+| SPA components | [Alpine.js 3.x](https://alpinejs.dev) | Pipeline editor (visual/code modes, undo/redo, drawer), theme toggle |
+| CSS | [DaisyUI v5](https://daisyui.com) | Component CSS (built on Tailwind CSS v4) |
+| Charts | [Chart.js](https://www.chartjs.org) | Pipeline stats and data visualizations |
+| YAML handling | [js-yaml](https://github.com/nodeca/js-yaml) | YAML-to-JSON conversion in pipeline editor |
+| Diff viewing | [diff](https://github.com/kpdecker/jsdiff) | Pipeline definition diff display |
+| Static embedding | `embed.FS` (project-root `webassets.go`) | All CSS/JS/vendor served from binary (package `webassets`), no runtime filesystem dependency |
+
+## Frontend Dependencies
+
+All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and served via `/static/vendor/*` paths. No CDN references in production.
+
+| File | Purpose |
+|------|---------|
+| `public/vendor/daisyui.css` | DaisyUI v5 component styles |
+| `public/vendor/themes.css` | DaisyUI theme definitions |
+| `public/vendor/tailwind-browser.min.js` | Tailwind CSS v4 (browser runtime) |
+| `public/vendor/htmx.min.js` | HTMX 2.x |
+| `public/vendor/alpine.min.js` | Alpine.js 3.x |
+| `public/vendor/chart.js.min.js` | Chart.js |
+| `public/vendor/js-yaml.min.js` | YAML parser (pipeline editor) |
+| `public/vendor/diff.min.js` | Text diff library (pipeline diff) |
+| `public/css/custom.css` | Ad-hoc custom styles |
+| `public/js/app.js` | Application bootstrap |
+| `public/js/confirm.js` | Global confirmation dialog |
+| `public/js/pipeline-editor.js` | Pipeline editor (Alpine.js component) |
+| `public/js/pipeline-stats.js` | Pipeline stats charts |
+| `public/js/pipeline-run-live.js` | Live pipeline run viewer |
+| `public/js/event-filters.js` | Event timeline filter controls |
+| `public/js/homelab-registry.js` | Homelab registry interactions |
 
 ## Template Conventions
 
 - **Pages** (`pkg/views/pages/`): Full-page templates wrapping content in `@layout.Base(title)`. Package `pages`.
 - **Partials** (`pkg/views/partials/`): Fragment templates rendered standalone or as HTMX responses. Package `partials`. May contain shared Go helper functions.
-- **Layout** (`pkg/views/layout/`): Global HTML skeleton with `<nav>`, CDN script tags, CSS link. Package `layout`.
+- **Layout** (`pkg/views/layout/`): Global HTML skeleton with `<nav>`, local vendor script tags, CSS links. Package `layout`.
 - Pages import partials: `import "github.com/flowline-io/flowbot/pkg/views/partials"` and call `@partials.Xxx()`.
 - Do not put multi-line inline CSS; use Tailwind utility classes or DaisyUI component classes.
 - Test IDs use `data-testid="kebab-case"` on interactive elements.
@@ -89,7 +166,7 @@ pkg/views/
 - **Form errors**: Return error HTML fragment and set `HX-Retarget` + `HX-Reswap` headers to position error message before the form.
 - **Click-to-expand**: `hx-get="..." + hx-trigger="click" + hx-target="next tr..." + hx-swap="innerHTML show:top"`. Use inline `onclick` with `return false` to toggle collapse.
 - **Delete confirmation**: `hx-confirm="Are you sure?"` on button.
-- CDN: `https://unpkg.com/htmx.org@2.x.x/dist/htmx.min.js` loaded in `base.templ`.
+- HTMX loaded from local vendor: `/static/vendor/htmx.min.js`.
 
 ## Alpine.js Usage (Pipeline Editor)
 
@@ -97,26 +174,28 @@ pkg/views/
 - Mounted via `x-data="pipelineEditor()" x-init="init()"` in `pipeline_editor.templ`.
 - State is Alpine.js `x-data` only; no separate JavaScript framework.
 - Capabilities loaded at init via `GET /pipelines/capabilities`.
-- YAML ↔ visual synced via `onYamlChange()` (code → visual) and `toYaml()` (visual → code).
+- YAML-to-visual synced via `onYamlChange()` (code → visual) and `toYaml()` (visual → code).
 - Undo/redo stack in Alpine state, persisted to server via `PUT /pipelines/:name`.
 - Trigger cards and step cards are templ partials rendered with Alpine directives (`:class`, `@click`, `x-text`).
-- CDN: `https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js` loaded in `base.templ`.
+- Alpine.js loaded from local vendor: `/static/vendor/alpine.min.js`.
 
 ## CSS / DaisyUI
 
 - Framework: [DaisyUI v5](https://daisyui.com) (built on Tailwind CSS v4)
-- Delivery: CDN (`daisyui@5` + `@tailwindcss/browser@4` + `daisyui@5/themes.css`), no local build step
-- Theme: `data-theme="light"` on `<html>`, configurable via themes.css CDN
+- Delivery: Local vendor files in `public/vendor/`, embedded via `webassets.go`, served at `/static/vendor/*`
+- No CDN references; no local build step required
+- Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage)
 - Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.FS`
-- Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, etc.
+- Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, etc.
 - Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
 
 ## Static Assets
 
 - Directory: `public/` (embedded via `//go:embed all:public` in `webassets.go`).
-- JavaScript: `public/js/` — Alpine.js components (`pipeline-editor.js`), utility scripts (`app.js`).
+- JavaScript: `public/js/` — Alpine.js components (`pipeline-editor.js`), utility scripts (`app.js`, `confirm.js`), charts (`pipeline-stats.js`), page-specific interactivity (`event-filters.js`, `homelab-registry.js`, `pipeline-run-live.js`).
+- Vendor libraries: `public/vendor/` — third-party JS/CSS vendored locally (daisyui, tailwind, htmx, alpinejs, chart.js, js-yaml, diff).
 - Served via: `app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))`.
-- CDN scripts (htmx, alpinejs, js-yaml) loaded from external URLs in `base.templ`.
+- All script dependencies are local — no external CDN requests in production.
 
 ## Authentication
 
@@ -128,8 +207,8 @@ pkg/views/
 
 ## Store Access
 
-- Web handlers access store via helper `getPipelineDefStore()` or directly via `store.Database`.
-- Never import ent schema/types directly in templates — pass `*gen.Xxx` structs as template args.
+- Web handlers access store via the `store.Database` singleton.
+- Never import ent schema/types directly in templates — pass structs as template args.
 - Never write DB queries in handlers — all queries live in `internal/store/store.go`.
 
 ## Testing
@@ -151,3 +230,4 @@ pkg/views/
 - Never hardcode URLs in templates — use `templ.URL()` for dynamic paths.
 - Never call provider clients directly from web handlers — use `ability.Invoke`.
 - Never render error pages as full HTML for HTMX requests — return error fragments or set `HX-Retarget`.
+- Never reference CDN URLs for frontend dependencies — all deps are vendored in `public/vendor/`.
