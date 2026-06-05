@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	"github.com/flowline-io/flowbot/pkg/plugin/adapter"
 	"github.com/flowline-io/flowbot/pkg/plugin/grpc"
+	"github.com/flowline-io/flowbot/pkg/plugin/source"
 	"github.com/flowline-io/flowbot/pkg/plugin/wasm"
 	"github.com/flowline-io/flowbot/pkg/providers"
 )
@@ -55,10 +56,7 @@ func NewPluginManager(cfg *PluginConfig, log zerolog.Logger) *PluginManager {
 }
 
 // Init discovers and loads all plugins from configured sources.
-// Source discovery is deferred to pkg/plugin/source (Task 16);
-// for now this stub iterates the configured sources and loads
-// any plugins that are pre-discovered.
-func (m *PluginManager) Init(_ context.Context, _ map[string]json.RawMessage) error {
+func (m *PluginManager) Init(ctx context.Context, pluginConfigs map[string]json.RawMessage) error {
 	if m.config == nil || !m.config.Enabled {
 		m.logger.Info().Msg("plugin system disabled")
 		return nil
@@ -68,12 +66,35 @@ func (m *PluginManager) Init(_ context.Context, _ map[string]json.RawMessage) er
 		return nil
 	}
 
-	// TODO: When pkg/plugin/source is implemented (Task 16), call
-	// source.NewSource(srcCfg) and src.Discover(ctx) for each source config.
-	if len(m.config.Sources) > 0 {
-		m.logger.Info().Int("sources", len(m.config.Sources)).Msg("plugin sources configured; discovery deferred to source package")
-	}
+	for _, srcCfg := range m.config.Sources {
+		src, err := source.NewSource(srcCfg)
+		if err != nil {
+			m.logger.Error().Err(err).Str("type", srcCfg.Type).Msg("failed to create source")
+			continue
+		}
 
+		manifests, err := src.Discover(ctx)
+		if err != nil {
+			m.logger.Error().Err(err).Str("type", srcCfg.Type).Msg("discovery failed")
+			continue
+		}
+
+		for _, manifest := range manifests {
+			identity := deriveIdentity(srcCfg, manifest)
+			if _, exists := m.instances[identity]; exists {
+				m.logger.Warn().Str("identity", identity).Msg("duplicate plugin identity, skipping")
+				continue
+			}
+			cfg := pluginConfigs[identity]
+			if m.config.MaxPlugins > 0 && len(m.instances) >= m.config.MaxPlugins {
+				m.logger.Warn().Int("max", m.config.MaxPlugins).Msg("max plugins reached, stopping discovery")
+				return nil
+			}
+			if err := m.loadPlugin(ctx, identity, manifest, cfg); err != nil {
+				m.logger.Error().Err(err).Str("identity", identity).Msg("failed to load plugin")
+			}
+		}
+	}
 	return nil
 }
 

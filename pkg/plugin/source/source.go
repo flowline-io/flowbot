@@ -5,23 +5,14 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/plugin"
+	plugintypes "github.com/flowline-io/flowbot/pkg/plugin/types"
 )
 
-// SourceConfig matches the YAML config for a single source entry.
-type SourceConfig struct {
-	Type         string          `json:"type" yaml:"type"`
-	Path         string          `json:"path" yaml:"path"`
-	Registry     string          `json:"registry" yaml:"registry"`
-	Repos        []GitRepoConfig `json:"repos" yaml:"repos"`
-	PollInterval string          `json:"poll_interval" yaml:"poll_interval"`
-}
+// SourceConfig is an alias for plugintypes.SourceConfig.
+type SourceConfig = plugintypes.SourceConfig
 
-// GitRepoConfig is a git repository source.
-type GitRepoConfig struct {
-	URL          string `json:"url" yaml:"url"`
-	Ref          string `json:"ref" yaml:"ref"`
-	PollInterval string `json:"poll_interval" yaml:"poll_interval"`
-}
+// GitRepoConfig is an alias for plugintypes.GitRepoConfig.
+type GitRepoConfig = plugintypes.GitRepoConfig
 
 // Source discovers and provides plugin artifacts.
 type Source interface {

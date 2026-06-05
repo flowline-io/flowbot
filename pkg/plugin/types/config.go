@@ -9,9 +9,17 @@ import (
 
 // SourceConfig defines a plugin distribution source entry.
 type SourceConfig struct {
-	Type         string `json:"type" yaml:"type"`
-	Path         string `json:"path" yaml:"path"`
-	Registry     string `json:"registry" yaml:"registry"`
+	Type         string          `json:"type" yaml:"type"`
+	Path         string          `json:"path" yaml:"path"`
+	Registry     string          `json:"registry" yaml:"registry"`
+	Repos        []GitRepoConfig `json:"repos" yaml:"repos"`
+	PollInterval string          `json:"poll_interval" yaml:"poll_interval"`
+}
+
+// GitRepoConfig is a git repository source.
+type GitRepoConfig struct {
+	URL          string `json:"url" yaml:"url"`
+	Ref          string `json:"ref" yaml:"ref"`
 	PollInterval string `json:"poll_interval" yaml:"poll_interval"`
 }
 
