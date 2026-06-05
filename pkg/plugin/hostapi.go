@@ -1,3 +1,5 @@
+// Package plugin provides the plugin runner framework for extending flowbot
+// via external binaries communicating over gRPC.
 package plugin
 
 import (

@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package flowbot.plugin;
+
+option go_package = "flowbot.dev/pkg/plugin/grpc/proto;pb";
+
+import "google/protobuf/empty.proto";
+
+// PluginService is exposed by the plugin binary to flowbot.
+service PluginService {
+    rpc Init(InitRequest) returns (InitResponse);
+    rpc Bootstrap(google.protobuf.Empty) returns (google.protobuf.Empty);
+    rpc Command(CommandRequest) returns (CommandResponse);
+    rpc Form(FormRequest) returns (FormResponse);
+    rpc Rules(google.protobuf.Empty) returns (RulesResponse);
+    rpc Help(google.protobuf.Empty) returns (HelpResponse);
+    rpc IsReady(google.protobuf.Empty) returns (IsReadyResponse);
+    rpc AbilityCall(CallRequest) returns (CallResponse);
+    rpc WebhookConvert(WebhookConvertRequest) returns (CallResponse);
+    rpc OAuthCallback(OAuthCallbackRequest) returns (CallResponse);
+}
+
+// HostService is exposed by flowbot to the plugin binary (Host API).
+service HostService {
+    rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+    rpc Log(LogRequest) returns (google.protobuf.Empty);
+    rpc KVGet(KVGetRequest) returns (KVGetResponse);
+    rpc KVSet(KVSetRequest) returns (google.protobuf.Empty);
+    rpc KVDelete(KVDeleteRequest) returns (google.protobuf.Empty);
+    rpc HTTPRequest(HTTPCallRequest) returns (HTTPCallResponse);
+    rpc EmitEvent(EmitEventRequest) returns (google.protobuf.Empty);
+}
+
+message InitRequest {
+    string config = 1; // JSON-encoded config
+}
+
+message InitResponse {}
+
+message CommandRequest {
+    string context = 1;  // JSON-encoded types.Context
+    string content = 2;  // JSON-encoded content
+}
+
+message CommandResponse {
+    string payload = 1;  // JSON-encoded types.MsgPayload
+    string error = 2;
+}
+
+message FormRequest {
+    string context = 1;  // JSON-encoded types.Context
+    map<string, string> values = 2;
+}
+
+message FormResponse {
+    string payload = 1;
+    string error = 2;
+}
+
+message RulesResponse {
+    string rules = 1;  // JSON-encoded []any
+    string error = 2;
+}
+
+message HelpResponse {
+    string help = 1;   // JSON-encoded map[string][]string
+    string error = 2;
+}
+
+message IsReadyResponse {
+    bool ready = 1;
+}
+
+message CallRequest {
+    string operation = 1;
+    string params = 2; // JSON-encoded params
+}
+
+message CallResponse {
+    string result = 1; // JSON-encoded result
+    string error = 2;
+}
+
+message WebhookConvertRequest {
+    bytes payload = 1;
+}
+
+message OAuthCallbackRequest {
+    string state = 1;
+    string code = 2;
+}
+
+// Host API messages
+
+message GetConfigRequest {
+    string key = 1;
+}
+
+message GetConfigResponse {
+    string value = 1;
+    string error = 2;
+}
+
+message LogRequest {
+    string level = 1;
+    string message = 2;
+    map<string, string> fields = 3;
+}
+
+message KVGetRequest {
+    string key = 1;
+}
+
+message KVGetResponse {
+    bytes value = 1;
+    string error = 2;
+}
+
+message KVSetRequest {
+    string key = 1;
+    bytes value = 2;
+}
+
+message KVDeleteRequest {
+    string key = 1;
+}
+
+message HTTPCallRequest {
+    string method = 1;
+    string url = 2;
+    map<string, string> headers = 3;
+    bytes body = 4;
+}
+
+message HTTPCallResponse {
+    int32 status = 1;
+    map<string, string> headers = 2;
+    bytes body = 3;
+    string error = 4;
+}
+
+message EmitEventRequest {
+    string source = 1;
+    string event_type = 2;
+    string payload = 3; // JSON-encoded
+}
