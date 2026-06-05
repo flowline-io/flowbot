@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
 
+	plugintypes "github.com/flowline-io/flowbot/pkg/plugin/types"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/version"
 )
@@ -94,6 +95,9 @@ type Type struct {
 
 	// Ability invocation configuration
 	Ability AbilityConfig `json:"ability" yaml:"ability" mapstructure:"ability"`
+
+	// Plugin system configuration
+	Plugins *plugintypes.PluginConfig `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 }
 
 // Notify holds notification gateway configuration including templates and rules.
