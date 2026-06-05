@@ -29,6 +29,13 @@ func (r *Registry) Register(desc Descriptor) error {
 	return nil
 }
 
+// Unregister removes a capability descriptor from the hub registry.
+func (r *Registry) Unregister(capType CapabilityType) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.descriptors, capType)
+}
+
 func (r *Registry) Get(capability CapabilityType) (Descriptor, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

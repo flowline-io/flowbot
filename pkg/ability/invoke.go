@@ -162,6 +162,11 @@ func RegisterInvoker(capability hub.CapabilityType, operation string, invoker In
 	return DefaultRegistry.Register(capability, operation, invoker)
 }
 
+// UnregisterInvoker removes an invoker for a capability and operation.
+func UnregisterInvoker(capability hub.CapabilityType, operation string) {
+	DefaultRegistry.Unregister(capability, operation)
+}
+
 func (r *Registry) recordErrorMetrics(capability hub.CapabilityType, operation string, start time.Time, err error) {
 	r.mu.RLock()
 	mc := r.metrics
@@ -225,6 +230,18 @@ func (r *Registry) Register(capability hub.CapabilityType, operation string, inv
 	}
 	r.handlers[capability][operation] = invoker
 	return nil
+}
+
+// Unregister removes an invoker for a capability and operation.
+func (r *Registry) Unregister(capability hub.CapabilityType, operation string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if ops, ok := r.handlers[capability]; ok {
+		delete(ops, operation)
+		if len(ops) == 0 {
+			delete(r.handlers, capability)
+		}
+	}
 }
 
 func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, operation string, params map[string]any) (*InvokeResult, error) {

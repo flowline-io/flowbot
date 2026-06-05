@@ -58,6 +58,11 @@ func RegisterOAuthProvider(name string, factory OAuthProviderFactory) {
 	oauthRegistry[name] = factory
 }
 
+// UnregisterOAuthProvider removes an OAuth provider factory from the registry.
+func UnregisterOAuthProvider(name string) {
+	delete(oauthRegistry, name)
+}
+
 // GetOAuthProvider returns a new OAuthProvider instance for the named
 // provider. It returns an error if no factory is registered for the name.
 func GetOAuthProvider(name string) (OAuthProvider, error) {
