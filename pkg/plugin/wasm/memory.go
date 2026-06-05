@@ -41,7 +41,7 @@ func writeBytes(ctx context.Context, mod api.Module, data []byte) (uint32, uint3
 
 // readJSON reads a JSON response from wasm memory.
 // result is the raw i64 return value encoding (ptr << 32) | size.
-func readJSON(ctx context.Context, mod api.Module, result uint64, target any) error {
+func readJSON(_ context.Context, mod api.Module, result uint64, target any) error {
 	ptr, size := decodeResult(result)
 	if size == 0 {
 		return nil
