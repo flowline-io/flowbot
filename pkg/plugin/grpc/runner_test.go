@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/plugin"
 )
@@ -47,7 +48,7 @@ func TestNewGrpcRunner(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			runner, err := NewGrpcRunner(tt.manifest)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, runner)
 			assert.NotNil(t, runner.client)
 			assert.Equal(t, tt.manifest, runner.manifest)
@@ -60,7 +61,7 @@ func TestGrpcRunnerHealthUnstarted(t *testing.T) {
 
 	runner := &GrpcRunner{started: false}
 	_, err := runner.Call(context.Background(), "command", json.RawMessage(`{}`))
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not started")
 }
 
@@ -69,6 +70,6 @@ func TestGrpcRunnerUnknownFunction(t *testing.T) {
 
 	runner := &GrpcRunner{started: true}
 	_, err := runner.Call(context.Background(), "nonexistent", json.RawMessage(`{}`))
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown function")
 }

@@ -25,7 +25,7 @@ func TestLocalSourceDiscover(t *testing.T) {
 		},
 		{
 			name:      "nonexistent directory",
-			setup:     func(t *testing.T) string { return "/nonexistent/path" },
+			setup:     func(_ *testing.T) string { return "/nonexistent/path" },
 			wantCount: 0,
 		},
 		{
@@ -33,8 +33,8 @@ func TestLocalSourceDiscover(t *testing.T) {
 			setup: func(t *testing.T) string {
 				dir := t.TempDir()
 				pluginDir := filepath.Join(dir, "my-plugin")
-				os.MkdirAll(pluginDir, 0755)
-				os.WriteFile(filepath.Join(pluginDir, "plugin.yaml"), []byte("name: my-plugin\nversion: \"1.0\"\nruntime: grpc\ngrpc:\n  binary: ./server\n"), 0644)
+				_ = os.MkdirAll(pluginDir, 0755)
+				_ = os.WriteFile(filepath.Join(pluginDir, "plugin.yaml"), []byte("name: my-plugin\nversion: \"1.0\"\nruntime: grpc\ngrpc:\n  binary: ./server\n"), 0644)
 				return dir
 			},
 			wantCount: 1,

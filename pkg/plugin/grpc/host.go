@@ -1,3 +1,4 @@
+// Package grpc provides the gRPC-based plugin runtime implementation.
 package grpc
 
 import (

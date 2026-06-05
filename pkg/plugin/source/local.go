@@ -1,3 +1,4 @@
+// Package source provides plugin discovery from local filesystem directories.
 package source
 
 import (
@@ -20,7 +21,7 @@ func NewLocalSource(dir string) *LocalSource {
 }
 
 // Discover scans the directory for subdirectories with plugin.yaml.
-func (s *LocalSource) Discover(ctx context.Context) ([]*plugin.Manifest, error) {
+func (s *LocalSource) Discover(_ context.Context) ([]*plugin.Manifest, error) {
 	if s.dir == "" {
 		return nil, nil
 	}
@@ -52,7 +53,7 @@ func (s *LocalSource) Discover(ctx context.Context) ([]*plugin.Manifest, error) 
 }
 
 // Artifact returns the wasm binary or executable for a plugin.
-func (s *LocalSource) Artifact(ctx context.Context, name string) ([]byte, error) {
+func (s *LocalSource) Artifact(_ context.Context, name string) ([]byte, error) {
 	pluginDir := filepath.Join(s.dir, name)
 	entries, err := os.ReadDir(pluginDir)
 	if err != nil {
@@ -66,8 +67,8 @@ func (s *LocalSource) Artifact(ctx context.Context, name string) ([]byte, error)
 	return nil, fmt.Errorf("no plugin artifact found in %s", pluginDir)
 }
 
-func (s *LocalSource) Watch(ctx context.Context) (<-chan SourceEvent, error) {
+func (*LocalSource) Watch(_ context.Context) (<-chan SourceEvent, error) {
 	return nil, fmt.Errorf("watch not implemented for local source")
 }
 
-func (s *LocalSource) Close() error { return nil }
+func (*LocalSource) Close() error { return nil }

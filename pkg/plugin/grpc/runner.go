@@ -63,7 +63,7 @@ func (r *GrpcRunner) SetHostAPI(api plugin.HostAPI) {
 }
 
 // Load connects to the plugin process and retrieves its PluginInfo.
-func (r *GrpcRunner) Load(ctx context.Context, m *plugin.Manifest) (*plugin.PluginInfo, error) {
+func (r *GrpcRunner) Load(_ context.Context, m *plugin.Manifest) (*plugin.PluginInfo, error) {
 	rpcClient, err := r.client.Client()
 	if err != nil {
 		return nil, fmt.Errorf("grpc load: connect failed: %w", err)
@@ -137,91 +137,112 @@ func (r *GrpcRunner) Call(ctx context.Context, function string, params json.RawM
 
 	switch function {
 	case "command":
-		req := &pb.CommandRequest{}
-		if err := sonic.Unmarshal(params, req); err != nil {
-			return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
-		}
-		resp, err := r.svc.Command(ctx, req)
-		if err != nil {
-			return nil, fmt.Errorf("grpc command: %w", err)
-		}
-		if resp.Error != "" {
-			return nil, fmt.Errorf("grpc command: plugin error: %s", resp.Error)
-		}
-		return json.RawMessage(resp.Payload), nil
-
+		return r.callCommand(ctx, params)
 	case "form":
-		req := &pb.FormRequest{}
-		if err := sonic.Unmarshal(params, req); err != nil {
-			return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
-		}
-		resp, err := r.svc.Form(ctx, req)
-		if err != nil {
-			return nil, fmt.Errorf("grpc form: %w", err)
-		}
-		if resp.Error != "" {
-			return nil, fmt.Errorf("grpc form: plugin error: %s", resp.Error)
-		}
-		return json.RawMessage(resp.Payload), nil
-
+		return r.callForm(ctx, params)
 	case "rules":
-		resp, err := r.svc.Rules(ctx, &emptypb.Empty{})
-		if err != nil {
-			return nil, fmt.Errorf("grpc rules: %w", err)
-		}
-		if resp.Error != "" {
-			return nil, fmt.Errorf("grpc rules: plugin error: %s", resp.Error)
-		}
-		return json.RawMessage(resp.Rules), nil
-
+		return r.callRules(ctx)
 	case "help":
-		resp, err := r.svc.Help(ctx, &emptypb.Empty{})
-		if err != nil {
-			return nil, fmt.Errorf("grpc help: %w", err)
-		}
-		if resp.Error != "" {
-			return nil, fmt.Errorf("grpc help: plugin error: %s", resp.Error)
-		}
-		return json.RawMessage(resp.Help), nil
-
+		return r.callHelp(ctx)
 	case "bootstrap":
-		_, err := r.svc.Bootstrap(ctx, &emptypb.Empty{})
-		if err != nil {
-			return nil, fmt.Errorf("grpc bootstrap: %w", err)
-		}
-		return nil, nil
-
+		return r.callBootstrap(ctx)
 	case "ability_call":
-		req := &pb.CallRequest{}
-		if err := sonic.Unmarshal(params, req); err != nil {
-			return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
-		}
-		resp, err := r.svc.AbilityCall(ctx, req)
-		if err != nil {
-			return nil, fmt.Errorf("grpc ability_call: %w", err)
-		}
-		if resp.Error != "" {
-			return nil, fmt.Errorf("grpc ability_call: plugin error: %s", resp.Error)
-		}
-		return json.RawMessage(resp.Result), nil
-
+		return r.callAbility(ctx, params)
 	case "webhook_convert":
-		req := &pb.WebhookConvertRequest{}
-		if err := sonic.Unmarshal(params, req); err != nil {
-			return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
-		}
-		resp, err := r.svc.WebhookConvert(ctx, req)
-		if err != nil {
-			return nil, fmt.Errorf("grpc webhook_convert: %w", err)
-		}
-		if resp.Error != "" {
-			return nil, fmt.Errorf("grpc webhook_convert: plugin error: %s", resp.Error)
-		}
-		return json.RawMessage(resp.Result), nil
-
+		return r.callWebhookConvert(ctx, params)
 	default:
 		return nil, fmt.Errorf("grpc call: unknown function %q", function)
 	}
+}
+
+func (r *GrpcRunner) callCommand(ctx context.Context, params json.RawMessage) (json.RawMessage, error) {
+	req := &pb.CommandRequest{}
+	if err := sonic.Unmarshal(params, req); err != nil {
+		return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
+	}
+	resp, err := r.svc.Command(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("grpc command: %w", err)
+	}
+	if resp.Error != "" {
+		return nil, fmt.Errorf("grpc command: plugin error: %s", resp.Error)
+	}
+	return json.RawMessage(resp.Payload), nil
+}
+
+func (r *GrpcRunner) callForm(ctx context.Context, params json.RawMessage) (json.RawMessage, error) {
+	req := &pb.FormRequest{}
+	if err := sonic.Unmarshal(params, req); err != nil {
+		return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
+	}
+	resp, err := r.svc.Form(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("grpc form: %w", err)
+	}
+	if resp.Error != "" {
+		return nil, fmt.Errorf("grpc form: plugin error: %s", resp.Error)
+	}
+	return json.RawMessage(resp.Payload), nil
+}
+
+func (r *GrpcRunner) callRules(ctx context.Context) (json.RawMessage, error) {
+	resp, err := r.svc.Rules(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, fmt.Errorf("grpc rules: %w", err)
+	}
+	if resp.Error != "" {
+		return nil, fmt.Errorf("grpc rules: plugin error: %s", resp.Error)
+	}
+	return json.RawMessage(resp.Rules), nil
+}
+
+func (r *GrpcRunner) callHelp(ctx context.Context) (json.RawMessage, error) {
+	resp, err := r.svc.Help(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, fmt.Errorf("grpc help: %w", err)
+	}
+	if resp.Error != "" {
+		return nil, fmt.Errorf("grpc help: plugin error: %s", resp.Error)
+	}
+	return json.RawMessage(resp.Help), nil
+}
+
+func (r *GrpcRunner) callBootstrap(ctx context.Context) (json.RawMessage, error) {
+	_, err := r.svc.Bootstrap(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, fmt.Errorf("grpc bootstrap: %w", err)
+	}
+	return nil, nil
+}
+
+func (r *GrpcRunner) callAbility(ctx context.Context, params json.RawMessage) (json.RawMessage, error) {
+	req := &pb.CallRequest{}
+	if err := sonic.Unmarshal(params, req); err != nil {
+		return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
+	}
+	resp, err := r.svc.AbilityCall(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("grpc ability_call: %w", err)
+	}
+	if resp.Error != "" {
+		return nil, fmt.Errorf("grpc ability_call: plugin error: %s", resp.Error)
+	}
+	return json.RawMessage(resp.Result), nil
+}
+
+func (r *GrpcRunner) callWebhookConvert(ctx context.Context, params json.RawMessage) (json.RawMessage, error) {
+	req := &pb.WebhookConvertRequest{}
+	if err := sonic.Unmarshal(params, req); err != nil {
+		return nil, fmt.Errorf("grpc call: unmarshal params: %w", err)
+	}
+	resp, err := r.svc.WebhookConvert(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("grpc webhook_convert: %w", err)
+	}
+	if resp.Error != "" {
+		return nil, fmt.Errorf("grpc webhook_convert: plugin error: %s", resp.Error)
+	}
+	return json.RawMessage(resp.Result), nil
 }
 
 // Health checks the plugin's readiness.

@@ -27,18 +27,18 @@ type stubRunner struct {
 	callError  error
 }
 
-func (s *stubRunner) Load(_ context.Context, m *plugin.Manifest) (*plugin.PluginInfo, error) {
+func (*stubRunner) Load(_ context.Context, m *plugin.Manifest) (*plugin.PluginInfo, error) {
 	return &plugin.PluginInfo{Name: m.Name, Version: m.Version}, nil
 }
-func (s *stubRunner) Start(_ context.Context, _ json.RawMessage) error { return nil }
-func (s *stubRunner) Stop(_ context.Context) error                     { return nil }
+func (*stubRunner) Start(_ context.Context, _ json.RawMessage) error { return nil }
+func (*stubRunner) Stop(_ context.Context) error                     { return nil }
 func (s *stubRunner) Call(_ context.Context, _ string, _ json.RawMessage) (json.RawMessage, error) {
 	if s.callError != nil {
 		return nil, s.callError
 	}
 	return s.callResult, nil
 }
-func (s *stubRunner) Health(_ context.Context) (*plugin.HealthStatus, error) {
+func (*stubRunner) Health(_ context.Context) (*plugin.HealthStatus, error) {
 	return &plugin.HealthStatus{Ready: true}, nil
 }
 

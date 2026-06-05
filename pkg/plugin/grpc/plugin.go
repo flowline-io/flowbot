@@ -16,11 +16,11 @@ type GrpcPlugin struct {
 	goPlugin.NetRPCUnsupportedPlugin
 }
 
-func (p *GrpcPlugin) GRPCServer(broker *goPlugin.GRPCBroker, s *grpc.Server) error {
+func (*GrpcPlugin) GRPCServer(_ *goPlugin.GRPCBroker, _ *grpc.Server) error {
 	return nil
 }
 
-func (p *GrpcPlugin) GRPCClient(ctx context.Context, broker *goPlugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
+func (*GrpcPlugin) GRPCClient(_ context.Context, _ *goPlugin.GRPCBroker, c *grpc.ClientConn) (any, error) {
 	client := pb.NewPluginServiceClient(c)
 	return &client, nil
 }

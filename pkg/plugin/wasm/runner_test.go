@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/plugin"
 )
@@ -54,11 +55,11 @@ func TestNewWasmRunner(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			runner, err := NewWasmRunner(tt.manifest)
 			if tt.wantErr {
-				assert.Error(t, err)
+				require.Error(t, err)
 				assert.Nil(t, runner)
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.NotNil(t, runner)
 			assert.NotNil(t, runner.runtime)
 		})
@@ -163,7 +164,7 @@ func TestWasmRunnerCustomTimeout(t *testing.T) {
 					},
 				},
 			})
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, tt.wantTimeout, runner.timeout)
 		})
 	}
@@ -179,7 +180,7 @@ func TestWasmRunnerDefaultTimeout(t *testing.T) {
 			Module: "./testdata/empty.wasm",
 		},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 30*time.Second, runner.timeout)
 }
 
@@ -194,7 +195,7 @@ func TestWasmRunnerNilPermissions(t *testing.T) {
 			Permissions: nil,
 		},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 30*time.Second, runner.timeout)
 	assert.Equal(t, uint32(64*1024*1024), runner.memMax)
 }

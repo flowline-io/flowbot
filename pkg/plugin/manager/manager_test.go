@@ -6,6 +6,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/plugin"
 )
@@ -58,7 +59,7 @@ func TestUnloadNotFound(t *testing.T) {
 
 	mgr := NewPluginManager(DefaultPluginConfig(), zerolog.Nop())
 	err := mgr.UnloadPlugin(context.Background(), "nonexistent")
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
 
@@ -67,7 +68,7 @@ func TestReloadNotFound(t *testing.T) {
 
 	mgr := NewPluginManager(DefaultPluginConfig(), zerolog.Nop())
 	err := mgr.ReloadPlugin(context.Background(), "nonexistent", &plugin.Manifest{Name: "test"}, nil)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
 
