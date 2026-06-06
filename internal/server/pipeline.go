@@ -137,9 +137,6 @@ func initPipeline(
 	ac *metrics.AbilityCollector,
 	auditor audit.Auditor,
 ) error {
-	// Initialize logger before pipeline logic so flog messages are visible at startup.
-	_ = initializeLog()
-
 	if err := initEventSourceManager(lc); err != nil {
 		return fmt.Errorf("init event source manager: %w", err)
 	}

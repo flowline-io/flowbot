@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/profiling"
 	"github.com/flowline-io/flowbot/pkg/rdb"
@@ -18,6 +19,7 @@ import (
 )
 
 var Modules = fx.Options(
+	flog.FxModule,
 	metrics.Module(),
 	modules.Modules,
 	NotifyModules,

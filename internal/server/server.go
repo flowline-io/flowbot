@@ -21,12 +21,6 @@ func RunServer(lc fx.Lifecycle, app *fiber.App, _ store.Adapter, _ *cache.Cache,
 		OnStart: func(_ context.Context) error {
 			var err error
 
-			// init log
-			if err = initializeLog(); err != nil {
-				return err
-			}
-			flog.Info("initialize Log ok")
-
 			// init timezone
 			if err = initializeTimezone(); err != nil {
 				return err
