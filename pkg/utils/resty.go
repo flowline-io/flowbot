@@ -37,7 +37,7 @@ func HTTPTransport() *http.Transport {
 
 func DefaultRestyClient() *resty.Client {
 	c := resty.New()
-	c.SetDisableWarn(true)
+	c.SetLoggerWarnLevel(true)
 	c.SetTimeout(time.Minute)
 	c.SetTransport(httpTransport)
 	c.AddContentTypeEncoder("json", EncodeJSON)

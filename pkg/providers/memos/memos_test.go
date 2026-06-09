@@ -520,10 +520,3 @@ func TestListRawEvents_ContextCanceled(t *testing.T) {
 	_, _, err := c.ListRawEvents(ctx, "")
 	assert.Error(t, err)
 }
-
-// boolPtr returns a pointer to a bool value.
-//
-//go:fix inline
-func boolPtr(b bool) *bool {
-	return new(b)
-}
