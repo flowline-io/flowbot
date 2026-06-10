@@ -3,43 +3,29 @@ package llm
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
 )
 
-var (
-	agents         = make(map[string]config.Agent)
-	loadOnceAgents = sync.Once{}
-)
-
-func loadAgents() {
-	loadOnceAgents.Do(func() {
-		for _, item := range config.App.Agents {
-			agents[item.Name] = item
-		}
-	})
-}
-
 // AgentModelName returns the configured model for a named agent when enabled.
 func AgentModelName(name string) string {
-	loadAgents()
-	a, ok := agents[name]
-	if !ok || !a.Enabled {
-		return ""
+	for _, item := range config.App.Agents {
+		if item.Name == name && item.Enabled {
+			return item.Model
+		}
 	}
-	return a.Model
+	return ""
 }
 
 // AgentEnabled reports whether a named agent is configured with a model and enabled.
 func AgentEnabled(name string) bool {
-	loadAgents()
-	a, ok := agents[name]
-	if !ok || !a.Enabled {
-		return false
+	for _, item := range config.App.Agents {
+		if item.Name == name && item.Enabled && item.Model != "" {
+			return true
+		}
 	}
-	return a.Model != ""
+	return false
 }
 
 // LLMGenerate performs a single-shot completion using BaseTemplate and the given model.

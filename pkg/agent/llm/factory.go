@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
-	"sync"
+	"slices"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
@@ -54,18 +54,11 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 	}
 }
 
-var (
-	modelsByName   = make(map[string]config.Model)
-	loadOnceModels = sync.Once{}
-)
-
 func resolveModel(modelName string) config.Model {
-	loadOnceModels.Do(func() {
-		for i, item := range config.App.Models {
-			for _, name := range item.ModelNames {
-				modelsByName[name] = config.App.Models[i]
-			}
+	for _, item := range config.App.Models {
+		if slices.Contains(item.ModelNames, modelName) {
+			return item
 		}
-	})
-	return modelsByName[modelName]
+	}
+	return config.Model{}
 }
