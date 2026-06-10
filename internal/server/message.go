@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
@@ -81,7 +82,7 @@ func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e
 		session = s
 	}
 
-	payload, session = manageChatSession(ctx, chatKey, msg.AltMessage, session, payload)
+	payload, session = manageChatSession(ctx, chatKey, msg.AltMessage, session, payload, uid)
 
 	err = store.Database.CreateMessage(ctx.Context(), gen.Message{
 		Flag:          types.Id(),
@@ -99,6 +100,11 @@ func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e
 	}
 
 	payload = buildHelpMessage(msg.AltMessage, payload)
+
+	if session != "" && !chatagent.IsChatControlCommand(msg.AltMessage) {
+		go runChatAgent(eventCtx, caller, msg, uid, session, platformId, topic)
+		return
+	}
 
 	if session == "" {
 		payload = dispatchToModules(ctx, msg.AltMessage)

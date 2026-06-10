@@ -20,6 +20,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -123,6 +125,8 @@ func checkColumn(t, c string) error {
 			bot.Table:                       bot.ValidColumn,
 			capabilitybinding.Table:         capabilitybinding.ValidColumn,
 			channel.Table:                   channel.ValidColumn,
+			chatsession.Table:               chatsession.ValidColumn,
+			chatsessionentry.Table:          chatsessionentry.ValidColumn,
 			configdata.Table:                configdata.ValidColumn,
 			connection.Table:                connection.ValidColumn,
 			counter.Table:                   counter.ValidColumn,

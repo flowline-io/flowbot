@@ -28,6 +28,10 @@ type Tx struct {
 	CapabilityBinding *CapabilityBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
+	// ChatSession is the client for interacting with the ChatSession builders.
+	ChatSession *ChatSessionClient
+	// ChatSessionEntry is the client for interacting with the ChatSessionEntry builders.
+	ChatSessionEntry *ChatSessionEntryClient
 	// ConfigData is the client for interacting with the ConfigData builders.
 	ConfigData *ConfigDataClient
 	// Connection is the client for interacting with the Connection builders.
@@ -237,6 +241,8 @@ func (tx *Tx) init() {
 	tx.Bot = NewBotClient(tx.config)
 	tx.CapabilityBinding = NewCapabilityBindingClient(tx.config)
 	tx.Channel = NewChannelClient(tx.config)
+	tx.ChatSession = NewChatSessionClient(tx.config)
+	tx.ChatSessionEntry = NewChatSessionEntryClient(tx.config)
 	tx.ConfigData = NewConfigDataClient(tx.config)
 	tx.Connection = NewConnectionClient(tx.config)
 	tx.Counter = NewCounterClient(tx.config)

@@ -186,6 +186,18 @@ agents:
     enabled: true
     model: ""
 
+# Direct-message chat assistant agent
+chat_agent:
+  workspace: ""
+  shell_timeout: 60s
+  max_tool_output: 8192
+  # system_prompt: ""           # optional: replace default prompt entirely
+  # append_system_prompt: ""    # optional: extra instructions appended to prompt
+  # prompt_guidelines: []       # optional: extra guideline bullets
+  # context_files:              # optional: defaults to AGENTS.md and README.md under workspace
+  #   - AGENTS.md
+  #   - README.md
+
 # Flowbot instance configuration
 flowbot:
   # External URL of this Flowbot instance

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -12,13 +13,17 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
-func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, session string, payload types.MsgPayload) (types.MsgPayload, string) {
+func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, session string, payload types.MsgPayload, uid types.Uid) (types.MsgPayload, string) {
 	if strings.ToLower(msgAlt) == "chat" {
 		if session == "" {
+			session = types.Id()
 			payload = types.TextMsg{Text: "Chat started"}
-			err := cacheStore.Set(ctx.Context(), chatKey, types.Id(), cache.TTLSession)
+			err := cacheStore.Set(ctx.Context(), chatKey, session, cache.TTLSession)
 			if err != nil {
 				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
+			}
+			if err := chatagent.CreateSession(ctx.Context(), uid, session); err != nil {
+				flog.Error(fmt.Errorf("failed to create chat session: %w", err))
 			}
 		} else {
 			payload = types.TextMsg{Text: "Chat already started"}
@@ -26,6 +31,11 @@ func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, sess
 	}
 
 	if strings.ToLower(msgAlt) == "end" {
+		if session != "" {
+			if err := chatagent.CloseSession(ctx.Context(), session); err != nil {
+				flog.Error(fmt.Errorf("failed to close chat session: %w", err))
+			}
+		}
 		err := cacheStore.Del(ctx.Context(), chatKey)
 		if err != nil {
 			flog.Error(fmt.Errorf("failed to delete chat key: %w", err))

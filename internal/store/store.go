@@ -257,6 +257,14 @@ type Adapter interface {
 	GetMessagesBySession(ctx context.Context, session string) ([]*gen.Message, error)
 	CreateMessage(ctx context.Context, message gen.Message) error
 
+	CreateChatSession(ctx context.Context, session *gen.ChatSession) error
+	GetChatSession(ctx context.Context, flag string) (*gen.ChatSession, error)
+	UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error
+	CloseChatSession(ctx context.Context, flag string) error
+	CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
+	ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error)
+	GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error)
+
 	GetBot(ctx context.Context, id int64) (*gen.Bot, error)
 	GetBotByName(ctx context.Context, name string) (*gen.Bot, error)
 	CreateBot(ctx context.Context, bot *gen.Bot) (int64, error)

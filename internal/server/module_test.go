@@ -42,6 +42,11 @@ type testStoreAdapter struct {
 	updateCalls int
 }
 
+var (
+	testChatSessions       = make(map[string]*gen.ChatSession)
+	testChatSessionEntries = make(map[string][]*gen.ChatSessionEntry)
+)
+
 func newTestStoreAdapter() *testStoreAdapter {
 	return &testStoreAdapter{
 		bots: map[string]*gen.Bot{
@@ -157,6 +162,50 @@ func (*testStoreAdapter) GetMessagesBySession(context.Context, string) ([]*gen.M
 	return nil, nil
 }
 func (*testStoreAdapter) CreateMessage(context.Context, gen.Message) error { return nil }
+func (*testStoreAdapter) CreateChatSession(_ context.Context, session *gen.ChatSession) error {
+	testChatSessions[session.Flag] = session
+	return nil
+}
+func (*testStoreAdapter) GetChatSession(_ context.Context, flag string) (*gen.ChatSession, error) {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return sess, nil
+}
+func (*testStoreAdapter) UpdateChatSessionLeaf(_ context.Context, flag, leafID string) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.LeafID = leafID
+	return nil
+}
+func (*testStoreAdapter) CloseChatSession(_ context.Context, flag string) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.State = 2
+	return nil
+}
+func (*testStoreAdapter) CreateChatSessionEntry(_ context.Context, entry *gen.ChatSessionEntry) error {
+	testChatSessionEntries[entry.SessionID] = append(testChatSessionEntries[entry.SessionID], entry)
+	return nil
+}
+func (*testStoreAdapter) ListChatSessionEntries(_ context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
+	return append([]*gen.ChatSessionEntry(nil), testChatSessionEntries[sessionID]...), nil
+}
+func (*testStoreAdapter) GetChatSessionEntry(_ context.Context, flag string) (*gen.ChatSessionEntry, error) {
+	for _, rows := range testChatSessionEntries {
+		for _, row := range rows {
+			if row.Flag == flag {
+				return row, nil
+			}
+		}
+	}
+	return nil, types.ErrNotFound
+}
 func (*testStoreAdapter) GetBot(context.Context, int64) (*gen.Bot, error) {
 	return nil, nil
 }

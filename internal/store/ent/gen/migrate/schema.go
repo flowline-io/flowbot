@@ -160,6 +160,52 @@ var (
 			},
 		},
 	}
+	// ChatSessionsColumns holds the columns for the "chat_sessions" table.
+	ChatSessionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "leaf_id", Type: field.TypeString, Default: ""},
+		{Name: "state", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ChatSessionsTable holds the schema information for the "chat_sessions" table.
+	ChatSessionsTable = &schema.Table{
+		Name:       "chat_sessions",
+		Columns:    ChatSessionsColumns,
+		PrimaryKey: []*schema.Column{ChatSessionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chatsession_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ChatSessionsColumns[2]},
+			},
+		},
+	}
+	// ChatSessionEntriesColumns holds the columns for the "chat_session_entries" table.
+	ChatSessionEntriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "session_id", Type: field.TypeString},
+		{Name: "parent_id", Type: field.TypeString, Default: ""},
+		{Name: "entry_type", Type: field.TypeString},
+		{Name: "payload", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// ChatSessionEntriesTable holds the schema information for the "chat_session_entries" table.
+	ChatSessionEntriesTable = &schema.Table{
+		Name:       "chat_session_entries",
+		Columns:    ChatSessionEntriesColumns,
+		PrimaryKey: []*schema.Column{ChatSessionEntriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chatsessionentry_session_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ChatSessionEntriesColumns[2], ChatSessionEntriesColumns[6]},
+			},
+		},
+	}
 	// ConfigsColumns holds the columns for the "configs" table.
 	ConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1086,6 +1132,8 @@ var (
 		BotsTable,
 		CapabilityBindingsTable,
 		ChannelsTable,
+		ChatSessionsTable,
+		ChatSessionEntriesTable,
 		ConfigsTable,
 		ConnectionsTable,
 		CountersTable,
@@ -1148,6 +1196,12 @@ func init() {
 	}
 	ChannelsTable.Annotation = &entsql.Annotation{
 		Table: "channels",
+	}
+	ChatSessionsTable.Annotation = &entsql.Annotation{
+		Table: "chat_sessions",
+	}
+	ChatSessionEntriesTable.Annotation = &entsql.Annotation{
+		Table: "chat_session_entries",
 	}
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",

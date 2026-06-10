@@ -4,6 +4,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -19,6 +20,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/data"
@@ -626,6 +629,111 @@ func (a *adapter) CreateMessage(ctx context.Context, msg gen.Message) error {
 		return fmt.Errorf("postgres: create message: %w", err)
 	}
 	return nil
+}
+
+func (a *adapter) CreateChatSession(ctx context.Context, session *gen.ChatSession) error {
+	if session == nil {
+		return errors.New("postgres: nil chat session")
+	}
+	builder := a.client.ChatSession.Create().
+		SetFlag(session.Flag).
+		SetUID(session.UID).
+		SetLeafID(session.LeafID).
+		SetState(session.State)
+	if !session.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(session.CreatedAt)
+	}
+	if !session.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(session.UpdatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create chat session: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) GetChatSession(ctx context.Context, flag string) (*gen.ChatSession, error) {
+	row, err := a.client.ChatSession.Query().
+		Where(chatsession.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get chat session: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error {
+	_, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetLeafID(leafID).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session leaf: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) CloseChatSession(ctx context.Context, flag string) error {
+	_, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetState(int(schema.ChatSessionClosed)).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: close chat session: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error {
+	if entry == nil {
+		return errors.New("postgres: nil chat session entry")
+	}
+	builder := a.client.ChatSessionEntry.Create().
+		SetFlag(entry.Flag).
+		SetSessionID(entry.SessionID).
+		SetParentID(entry.ParentID).
+		SetEntryType(entry.EntryType)
+	if entry.Payload != nil {
+		builder = builder.SetPayload(entry.Payload)
+	}
+	if !entry.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(entry.CreatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create chat session entry: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
+	rows, err := a.client.ChatSessionEntry.Query().
+		Where(chatsessionentry.SessionIDEQ(sessionID)).
+		Order(gen.Asc(chatsessionentry.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list chat session entries: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error) {
+	row, err := a.client.ChatSessionEntry.Query().
+		Where(chatsessionentry.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get chat session entry: %w", err)
+	}
+	return row, nil
 }
 
 // ---------------------------------------------------------------------------

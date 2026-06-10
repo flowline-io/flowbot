@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -52,7 +53,7 @@ func TestManageChatSession(t *testing.T) {
 			name:        "chat starts a new session when session is empty",
 			msgAlt:      "chat",
 			session:     "",
-			wantSession: "",
+			wantSession: "new",
 			wantPayload: types.TextMsg{Text: "Chat started"},
 		},
 		{
@@ -80,16 +81,25 @@ func TestManageChatSession(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setupTestCacheStore(t)
+			origDB := store.Database
+			store.Database = &testStoreAdapter{}
+			t.Cleanup(func() { store.Database = origDB })
+
 			ctx := types.Context{}
+			ctx.SetContext(t.Context())
 			chatKey := cache.NewKey("chat", "user1", "topic1")
 
-			got, session := manageChatSession(ctx, chatKey, tt.msgAlt, tt.session, nil)
+			got, session := manageChatSession(ctx, chatKey, tt.msgAlt, tt.session, nil, types.Uid("uid-test"))
 			if tt.wantPayload == nil {
 				assert.Nil(t, got)
 			} else {
 				assert.Equal(t, tt.wantPayload, got)
 			}
-			assert.Equal(t, tt.wantSession, session)
+			if tt.wantSession == "new" {
+				assert.NotEmpty(t, session)
+			} else {
+				assert.Equal(t, tt.wantSession, session)
+			}
 		})
 	}
 }

@@ -13,6 +13,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -265,6 +267,56 @@ func init() {
 	channel.DefaultUpdatedAt = channelDescUpdatedAt.Default.(func() time.Time)
 	// channel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	channel.UpdateDefaultUpdatedAt = channelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	chatsessionFields := schema.ChatSession{}.Fields()
+	_ = chatsessionFields
+	// chatsessionDescFlag is the schema descriptor for flag field.
+	chatsessionDescFlag := chatsessionFields[1].Descriptor()
+	// chatsession.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	chatsession.FlagValidator = chatsessionDescFlag.Validators[0].(func(string) error)
+	// chatsessionDescUID is the schema descriptor for uid field.
+	chatsessionDescUID := chatsessionFields[2].Descriptor()
+	// chatsession.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	chatsession.UIDValidator = chatsessionDescUID.Validators[0].(func(string) error)
+	// chatsessionDescLeafID is the schema descriptor for leaf_id field.
+	chatsessionDescLeafID := chatsessionFields[3].Descriptor()
+	// chatsession.DefaultLeafID holds the default value on creation for the leaf_id field.
+	chatsession.DefaultLeafID = chatsessionDescLeafID.Default.(string)
+	// chatsessionDescState is the schema descriptor for state field.
+	chatsessionDescState := chatsessionFields[4].Descriptor()
+	// chatsession.DefaultState holds the default value on creation for the state field.
+	chatsession.DefaultState = chatsessionDescState.Default.(int)
+	// chatsessionDescCreatedAt is the schema descriptor for created_at field.
+	chatsessionDescCreatedAt := chatsessionFields[5].Descriptor()
+	// chatsession.DefaultCreatedAt holds the default value on creation for the created_at field.
+	chatsession.DefaultCreatedAt = chatsessionDescCreatedAt.Default.(func() time.Time)
+	// chatsessionDescUpdatedAt is the schema descriptor for updated_at field.
+	chatsessionDescUpdatedAt := chatsessionFields[6].Descriptor()
+	// chatsession.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	chatsession.DefaultUpdatedAt = chatsessionDescUpdatedAt.Default.(func() time.Time)
+	// chatsession.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	chatsession.UpdateDefaultUpdatedAt = chatsessionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	chatsessionentryFields := schema.ChatSessionEntry{}.Fields()
+	_ = chatsessionentryFields
+	// chatsessionentryDescFlag is the schema descriptor for flag field.
+	chatsessionentryDescFlag := chatsessionentryFields[1].Descriptor()
+	// chatsessionentry.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	chatsessionentry.FlagValidator = chatsessionentryDescFlag.Validators[0].(func(string) error)
+	// chatsessionentryDescSessionID is the schema descriptor for session_id field.
+	chatsessionentryDescSessionID := chatsessionentryFields[2].Descriptor()
+	// chatsessionentry.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
+	chatsessionentry.SessionIDValidator = chatsessionentryDescSessionID.Validators[0].(func(string) error)
+	// chatsessionentryDescParentID is the schema descriptor for parent_id field.
+	chatsessionentryDescParentID := chatsessionentryFields[3].Descriptor()
+	// chatsessionentry.DefaultParentID holds the default value on creation for the parent_id field.
+	chatsessionentry.DefaultParentID = chatsessionentryDescParentID.Default.(string)
+	// chatsessionentryDescEntryType is the schema descriptor for entry_type field.
+	chatsessionentryDescEntryType := chatsessionentryFields[4].Descriptor()
+	// chatsessionentry.EntryTypeValidator is a validator for the "entry_type" field. It is called by the builders before save.
+	chatsessionentry.EntryTypeValidator = chatsessionentryDescEntryType.Validators[0].(func(string) error)
+	// chatsessionentryDescCreatedAt is the schema descriptor for created_at field.
+	chatsessionentryDescCreatedAt := chatsessionentryFields[6].Descriptor()
+	// chatsessionentry.DefaultCreatedAt holds the default value on creation for the created_at field.
+	chatsessionentry.DefaultCreatedAt = chatsessionentryDescCreatedAt.Default.(func() time.Time)
 	configdataFields := schema.ConfigData{}.Fields()
 	_ = configdataFields
 	// configdataDescUID is the schema descriptor for uid field.

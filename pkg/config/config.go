@@ -77,6 +77,9 @@ type Type struct {
 	// Agents
 	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
 
+	// ChatAgent configures the direct-message chat assistant agent.
+	ChatAgent ChatAgentConfig `json:"chat_agent" yaml:"chat_agent" mapstructure:"chat_agent"`
+
 	// Homelab app registry and lifecycle configuration
 	Homelab Homelab `json:"homelab" yaml:"homelab" mapstructure:"homelab"`
 
@@ -544,6 +547,24 @@ type Agent struct {
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
 	// Use model
 	Model string `json:"model" yaml:"model" mapstructure:"model"`
+}
+
+// ChatAgentConfig configures the direct-message chat assistant agent runtime.
+type ChatAgentConfig struct {
+	// Workspace root for file and shell tools; empty uses process cwd.
+	Workspace string `json:"workspace" yaml:"workspace" mapstructure:"workspace"`
+	// ShellTimeout limits terminal and code execution duration.
+	ShellTimeout time.Duration `json:"shell_timeout" yaml:"shell_timeout" mapstructure:"shell_timeout"`
+	// MaxToolOutput truncates tool stdout beyond this size in bytes.
+	MaxToolOutput int `json:"max_tool_output" yaml:"max_tool_output" mapstructure:"max_tool_output"`
+	// SystemPrompt replaces the default system prompt when non-empty.
+	SystemPrompt string `json:"system_prompt" yaml:"system_prompt" mapstructure:"system_prompt"`
+	// AppendSystemPrompt is appended to the system prompt body.
+	AppendSystemPrompt string `json:"append_system_prompt" yaml:"append_system_prompt" mapstructure:"append_system_prompt"`
+	// PromptGuidelines adds extra guideline bullets to the default system prompt.
+	PromptGuidelines []string `json:"prompt_guidelines" yaml:"prompt_guidelines" mapstructure:"prompt_guidelines"`
+	// ContextFiles lists project instruction files relative to workspace; defaults to AGENTS.md and README.md.
+	ContextFiles []string `json:"context_files" yaml:"context_files" mapstructure:"context_files"`
 }
 
 type Model struct {

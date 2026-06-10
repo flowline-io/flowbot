@@ -30,6 +30,12 @@ type CapabilityBinding func(*sql.Selector)
 // Channel is the predicate function for channel builders.
 type Channel func(*sql.Selector)
 
+// ChatSession is the predicate function for chatsession builders.
+type ChatSession func(*sql.Selector)
+
+// ChatSessionEntry is the predicate function for chatsessionentry builders.
+type ChatSessionEntry func(*sql.Selector)
+
 // ConfigData is the predicate function for configdata builders.
 type ConfigData func(*sql.Selector)
 

@@ -105,6 +105,30 @@ func (f ChannelFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChannelMutation", m)
 }
 
+// The ChatSessionFunc type is an adapter to allow the use of ordinary
+// function as ChatSession mutator.
+type ChatSessionFunc func(context.Context, *gen.ChatSessionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatSessionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ChatSessionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChatSessionMutation", m)
+}
+
+// The ChatSessionEntryFunc type is an adapter to allow the use of ordinary
+// function as ChatSessionEntry mutator.
+type ChatSessionEntryFunc func(context.Context, *gen.ChatSessionEntryMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatSessionEntryFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ChatSessionEntryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChatSessionEntryMutation", m)
+}
+
 // The ConfigDataFunc type is an adapter to allow the use of ordinary
 // function as ConfigData mutator.
 type ConfigDataFunc func(context.Context, *gen.ConfigDataMutation) (gen.Value, error)

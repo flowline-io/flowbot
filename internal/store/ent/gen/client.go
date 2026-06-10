@@ -22,6 +22,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -80,6 +82,10 @@ type Client struct {
 	CapabilityBinding *CapabilityBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
+	// ChatSession is the client for interacting with the ChatSession builders.
+	ChatSession *ChatSessionClient
+	// ChatSessionEntry is the client for interacting with the ChatSessionEntry builders.
+	ChatSessionEntry *ChatSessionEntryClient
 	// ConfigData is the client for interacting with the ConfigData builders.
 	ConfigData *ConfigDataClient
 	// Connection is the client for interacting with the Connection builders.
@@ -169,6 +175,8 @@ func (c *Client) init() {
 	c.Bot = NewBotClient(c.config)
 	c.CapabilityBinding = NewCapabilityBindingClient(c.config)
 	c.Channel = NewChannelClient(c.config)
+	c.ChatSession = NewChatSessionClient(c.config)
+	c.ChatSessionEntry = NewChatSessionEntryClient(c.config)
 	c.ConfigData = NewConfigDataClient(c.config)
 	c.Connection = NewConnectionClient(c.config)
 	c.Counter = NewCounterClient(c.config)
@@ -304,6 +312,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Bot:                       NewBotClient(cfg),
 		CapabilityBinding:         NewCapabilityBindingClient(cfg),
 		Channel:                   NewChannelClient(cfg),
+		ChatSession:               NewChatSessionClient(cfg),
+		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
 		Connection:                NewConnectionClient(cfg),
 		Counter:                   NewCounterClient(cfg),
@@ -366,6 +376,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Bot:                       NewBotClient(cfg),
 		CapabilityBinding:         NewCapabilityBindingClient(cfg),
 		Channel:                   NewChannelClient(cfg),
+		ChatSession:               NewChatSessionClient(cfg),
+		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
 		Connection:                NewConnectionClient(cfg),
 		Counter:                   NewCounterClient(cfg),
@@ -431,12 +443,12 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
-		c.CapabilityBinding, c.Channel, c.ConfigData, c.Connection, c.Counter,
-		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
-		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.CapabilityBinding, c.Channel, c.ChatSession, c.ChatSessionEntry,
+		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
+		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
+		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
 		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
 		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
@@ -449,12 +461,12 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
-		c.CapabilityBinding, c.Channel, c.ConfigData, c.Connection, c.Counter,
-		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
-		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.CapabilityBinding, c.Channel, c.ChatSession, c.ChatSessionEntry,
+		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
+		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
+		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
 		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
 		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
@@ -481,6 +493,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CapabilityBinding.mutate(ctx, m)
 	case *ChannelMutation:
 		return c.Channel.mutate(ctx, m)
+	case *ChatSessionMutation:
+		return c.ChatSession.mutate(ctx, m)
+	case *ChatSessionEntryMutation:
+		return c.ChatSessionEntry.mutate(ctx, m)
 	case *ConfigDataMutation:
 		return c.ConfigData.mutate(ctx, m)
 	case *ConnectionMutation:
@@ -1617,6 +1633,272 @@ func (c *ChannelClient) mutate(ctx context.Context, m *ChannelMutation) (Value, 
 		return (&ChannelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Channel mutation op: %q", m.Op())
+	}
+}
+
+// ChatSessionClient is a client for the ChatSession schema.
+type ChatSessionClient struct {
+	config
+}
+
+// NewChatSessionClient returns a client for the ChatSession from the given config.
+func NewChatSessionClient(c config) *ChatSessionClient {
+	return &ChatSessionClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `chatsession.Hooks(f(g(h())))`.
+func (c *ChatSessionClient) Use(hooks ...Hook) {
+	c.hooks.ChatSession = append(c.hooks.ChatSession, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `chatsession.Intercept(f(g(h())))`.
+func (c *ChatSessionClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ChatSession = append(c.inters.ChatSession, interceptors...)
+}
+
+// Create returns a builder for creating a ChatSession entity.
+func (c *ChatSessionClient) Create() *ChatSessionCreate {
+	mutation := newChatSessionMutation(c.config, OpCreate)
+	return &ChatSessionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChatSession entities.
+func (c *ChatSessionClient) CreateBulk(builders ...*ChatSessionCreate) *ChatSessionCreateBulk {
+	return &ChatSessionCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChatSessionClient) MapCreateBulk(slice any, setFunc func(*ChatSessionCreate, int)) *ChatSessionCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChatSessionCreateBulk{err: fmt.Errorf("calling to ChatSessionClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChatSessionCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChatSessionCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChatSession.
+func (c *ChatSessionClient) Update() *ChatSessionUpdate {
+	mutation := newChatSessionMutation(c.config, OpUpdate)
+	return &ChatSessionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChatSessionClient) UpdateOne(_m *ChatSession) *ChatSessionUpdateOne {
+	mutation := newChatSessionMutation(c.config, OpUpdateOne, withChatSession(_m))
+	return &ChatSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChatSessionClient) UpdateOneID(id int64) *ChatSessionUpdateOne {
+	mutation := newChatSessionMutation(c.config, OpUpdateOne, withChatSessionID(id))
+	return &ChatSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChatSession.
+func (c *ChatSessionClient) Delete() *ChatSessionDelete {
+	mutation := newChatSessionMutation(c.config, OpDelete)
+	return &ChatSessionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChatSessionClient) DeleteOne(_m *ChatSession) *ChatSessionDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChatSessionClient) DeleteOneID(id int64) *ChatSessionDeleteOne {
+	builder := c.Delete().Where(chatsession.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChatSessionDeleteOne{builder}
+}
+
+// Query returns a query builder for ChatSession.
+func (c *ChatSessionClient) Query() *ChatSessionQuery {
+	return &ChatSessionQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChatSession},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ChatSession entity by its id.
+func (c *ChatSessionClient) Get(ctx context.Context, id int64) (*ChatSession, error) {
+	return c.Query().Where(chatsession.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChatSessionClient) GetX(ctx context.Context, id int64) *ChatSession {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChatSessionClient) Hooks() []Hook {
+	return c.hooks.ChatSession
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChatSessionClient) Interceptors() []Interceptor {
+	return c.inters.ChatSession
+}
+
+func (c *ChatSessionClient) mutate(ctx context.Context, m *ChatSessionMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChatSessionCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChatSessionUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChatSessionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChatSessionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ChatSession mutation op: %q", m.Op())
+	}
+}
+
+// ChatSessionEntryClient is a client for the ChatSessionEntry schema.
+type ChatSessionEntryClient struct {
+	config
+}
+
+// NewChatSessionEntryClient returns a client for the ChatSessionEntry from the given config.
+func NewChatSessionEntryClient(c config) *ChatSessionEntryClient {
+	return &ChatSessionEntryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `chatsessionentry.Hooks(f(g(h())))`.
+func (c *ChatSessionEntryClient) Use(hooks ...Hook) {
+	c.hooks.ChatSessionEntry = append(c.hooks.ChatSessionEntry, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `chatsessionentry.Intercept(f(g(h())))`.
+func (c *ChatSessionEntryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ChatSessionEntry = append(c.inters.ChatSessionEntry, interceptors...)
+}
+
+// Create returns a builder for creating a ChatSessionEntry entity.
+func (c *ChatSessionEntryClient) Create() *ChatSessionEntryCreate {
+	mutation := newChatSessionEntryMutation(c.config, OpCreate)
+	return &ChatSessionEntryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChatSessionEntry entities.
+func (c *ChatSessionEntryClient) CreateBulk(builders ...*ChatSessionEntryCreate) *ChatSessionEntryCreateBulk {
+	return &ChatSessionEntryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChatSessionEntryClient) MapCreateBulk(slice any, setFunc func(*ChatSessionEntryCreate, int)) *ChatSessionEntryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChatSessionEntryCreateBulk{err: fmt.Errorf("calling to ChatSessionEntryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChatSessionEntryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChatSessionEntryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChatSessionEntry.
+func (c *ChatSessionEntryClient) Update() *ChatSessionEntryUpdate {
+	mutation := newChatSessionEntryMutation(c.config, OpUpdate)
+	return &ChatSessionEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChatSessionEntryClient) UpdateOne(_m *ChatSessionEntry) *ChatSessionEntryUpdateOne {
+	mutation := newChatSessionEntryMutation(c.config, OpUpdateOne, withChatSessionEntry(_m))
+	return &ChatSessionEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChatSessionEntryClient) UpdateOneID(id int64) *ChatSessionEntryUpdateOne {
+	mutation := newChatSessionEntryMutation(c.config, OpUpdateOne, withChatSessionEntryID(id))
+	return &ChatSessionEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChatSessionEntry.
+func (c *ChatSessionEntryClient) Delete() *ChatSessionEntryDelete {
+	mutation := newChatSessionEntryMutation(c.config, OpDelete)
+	return &ChatSessionEntryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChatSessionEntryClient) DeleteOne(_m *ChatSessionEntry) *ChatSessionEntryDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChatSessionEntryClient) DeleteOneID(id int64) *ChatSessionEntryDeleteOne {
+	builder := c.Delete().Where(chatsessionentry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChatSessionEntryDeleteOne{builder}
+}
+
+// Query returns a query builder for ChatSessionEntry.
+func (c *ChatSessionEntryClient) Query() *ChatSessionEntryQuery {
+	return &ChatSessionEntryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChatSessionEntry},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ChatSessionEntry entity by its id.
+func (c *ChatSessionEntryClient) Get(ctx context.Context, id int64) (*ChatSessionEntry, error) {
+	return c.Query().Where(chatsessionentry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChatSessionEntryClient) GetX(ctx context.Context, id int64) *ChatSessionEntry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChatSessionEntryClient) Hooks() []Hook {
+	return c.hooks.ChatSessionEntry
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChatSessionEntryClient) Interceptors() []Interceptor {
+	return c.inters.ChatSessionEntry
+}
+
+func (c *ChatSessionEntryClient) mutate(ctx context.Context, m *ChatSessionEntryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChatSessionEntryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChatSessionEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChatSessionEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChatSessionEntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ChatSessionEntry mutation op: %q", m.Op())
 	}
 }
 
@@ -6279,9 +6561,9 @@ func (c *WorkflowStepRunClient) mutate(ctx context.Context, m *WorkflowStepRunMu
 type (
 	hooks struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		ChatSession, ChatSessionEntry, ConfigData, Connection, Counter, CounterRecord,
+		Data, DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
+		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
 		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
 		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
 		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
@@ -6289,9 +6571,9 @@ type (
 	}
 	inters struct {
 		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		ChatSession, ChatSessionEntry, ConfigData, Connection, Counter, CounterRecord,
+		Data, DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
+		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
 		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
 		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
 		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,

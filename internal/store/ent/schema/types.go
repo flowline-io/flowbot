@@ -420,6 +420,18 @@ func (j TopicState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
+type ChatSessionState int
+
+const (
+	ChatSessionStateUnknown ChatSessionState = iota
+	ChatSessionActive
+	ChatSessionClosed
+)
+
+func (j ChatSessionState) Value() (driver.Value, error) {
+	return int64(j), nil
+}
+
 type MessageState int
 
 const (
