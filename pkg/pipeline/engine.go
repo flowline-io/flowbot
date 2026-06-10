@@ -353,7 +353,9 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 		PipelineRunID:    runID,
 		PipelineName:     pipelineName,
 	}
-	_ = e.store.RecordResourceLink(ctx, link)
+	if err := e.store.RecordResourceLink(ctx, link); err != nil {
+		flog.Error(fmt.Errorf("record resource link pipeline %s: %w", pipelineName, err))
+	}
 }
 
 // formatStepError builds a descriptive error message from a step invoke failure.
@@ -425,7 +427,9 @@ func (e *Engine) updateStepRunRecord(ctx context.Context, stepRunID int64, statu
 	if result != nil {
 		resultJSON = convertToTypesKV(result)
 	}
-	_ = e.store.UpdateStepRun(ctx, stepRunID, status, resultJSON, errMsg, attempt)
+	if err := e.store.UpdateStepRun(ctx, stepRunID, status, resultJSON, errMsg, attempt); err != nil {
+		flog.Error(fmt.Errorf("update step run %d: %w", stepRunID, err))
+	}
 }
 
 func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, finalErr error) {
@@ -440,7 +444,9 @@ func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, 
 			errMsg = finalErr.Error()
 		}
 	}
-	_ = e.store.UpdateRunStatus(ctx, runID, status, errMsg)
+	if err := e.store.UpdateRunStatus(ctx, runID, status, errMsg); err != nil {
+		flog.Error(fmt.Errorf("update run %d status: %w", runID, err))
+	}
 }
 
 func (e *Engine) auditPipelineEvent(ctx context.Context, pipelineName, action, eventID, eventType string) {
@@ -490,7 +496,7 @@ func (e *Engine) saveCheckpointIfResumable(ctx context.Context, def Definition, 
 		StepIndex:   stepIndex,
 		StepResults: buildStepResults(rc),
 		Event:       event,
-		HeartbeatAt: time.Now(),
+		HeartbeatAt: e.clock.Now(),
 	}
 	if cpErr := e.store.SaveCheckpoint(ctx, runID, cp); cpErr != nil {
 		flog.Error(fmt.Errorf("save checkpoint pipeline %s step %d: %w", def.Name, stepIndex, cpErr))
@@ -560,7 +566,9 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		return fmt.Errorf("get run %d: %w", runID, err)
 	}
 
-	_ = e.store.UpdateRunStatus(ctx, runID, int(schema.PipelineStart), "")
+	if err := e.store.UpdateRunStatus(ctx, runID, int(schema.PipelineStart), ""); err != nil {
+		flog.Error(fmt.Errorf("update run %d status to started for resume: %w", runID, err))
+	}
 
 	if e.pipelineMetrics != nil {
 		e.pipelineMetrics.IncResume(run.PipelineName)
@@ -608,7 +616,7 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 			StepIndex:   i,
 			StepResults: buildStepResults(rc),
 			Event:       cp.Event,
-			HeartbeatAt: time.Now(),
+			HeartbeatAt: e.clock.Now(),
 		}); cpErr != nil {
 			flog.Error(fmt.Errorf("save checkpoint during resume run %d step %d: %w", runID, i, cpErr))
 		}

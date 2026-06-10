@@ -29,7 +29,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
@@ -122,6 +125,18 @@ var _ = SynchronizedBeforeSuite(
 		Redis = setupRedis(cfg.RedisAddr, procID)
 		RedisAddr = cfg.RedisAddr
 
+		// Initialize store.Database so that application code (e.g. chatagent) that
+		// depends on the global store adapter works correctly in tests.
+		pgConf := map[string]any{"dsn": PGDSN}
+		config.App.Store = config.StoreType{
+			UseAdapter: "postgres",
+			Adapters:   map[string]any{"postgres": pgConf},
+		}
+		postgres.Init()
+		store.Init()
+		Expect(store.Store.Open(config.App.Store)).To(Succeed())
+		Expect(store.Migrate()).To(Succeed())
+
 		App = setupTestApp()
 
 		// Register pipeline CRUD BDD routes before any test-specific
@@ -134,6 +149,9 @@ var _ = SynchronizedBeforeSuite(
 
 var _ = SynchronizedAfterSuite(
 	func() {
+		if store.Store != nil && store.Store.IsOpen() {
+			_ = store.Store.Close()
+		}
 		if EntClient != nil {
 			_ = EntClient.Close()
 		}
