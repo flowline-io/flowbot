@@ -1,7 +1,10 @@
 package chatagent
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
@@ -11,26 +14,44 @@ import (
 
 const agentName = "chat"
 
-// NewRegistry registers coding tools for the assistant.
+// NewRegistry registers assistant tools including DB-backed skills support.
 func NewRegistry(ws coding.Workspace) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
 	if err := coding.RegisterAll(registry, ws); err != nil {
 		return nil, err
 	}
-	registry.SetActive(coding.ActiveToolNames())
+	if err := registry.Register(ReadSkillTool{}); err != nil {
+		return nil, err
+	}
+	registry.SetActive(ActiveToolNames())
 	return registry, nil
 }
 
+// ActiveToolNames returns the default active tool names for the chat assistant.
+func ActiveToolNames() []string {
+	names := coding.ActiveToolNames()
+	return append(names, "read_skill")
+}
+
 // WorkspaceFromConfig resolves workspace settings from application config.
-func WorkspaceFromConfig() coding.Workspace {
+func WorkspaceFromConfig() (coding.Workspace, error) {
 	cfg := config.App.ChatAgent
-	root := cfg.Workspace
+	root := strings.TrimSpace(cfg.Workspace)
 	if root == "" {
-		cwd, err := os.Getwd()
-		if err == nil {
-			root = cwd
-		}
+		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace is required")
 	}
+	abs, err := filepath.Abs(root)
+	if err != nil {
+		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace: %w", err)
+	}
+	info, err := os.Stat(abs)
+	if err != nil {
+		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace: %w", err)
+	}
+	if !info.IsDir() {
+		return coding.Workspace{}, fmt.Errorf("chat_agent.workspace is not a directory")
+	}
+
 	timeout := cfg.ShellTimeout
 	if timeout <= 0 {
 		timeout = 60 * time.Second
@@ -40,8 +61,8 @@ func WorkspaceFromConfig() coding.Workspace {
 		maxOutput = 8192
 	}
 	return coding.Workspace{
-		Root:      root,
+		Root:      abs,
 		Timeout:   timeout,
 		MaxOutput: maxOutput,
-	}
+	}, nil
 }

@@ -551,12 +551,14 @@ type Agent struct {
 
 // ChatAgentConfig configures the direct-message chat assistant agent runtime.
 type ChatAgentConfig struct {
-	// Workspace root for file and shell tools; empty uses process cwd.
+	// Workspace root for file and shell tools; required when the chat agent is enabled.
 	Workspace string `json:"workspace" yaml:"workspace" mapstructure:"workspace"`
 	// ShellTimeout limits terminal and code execution duration.
 	ShellTimeout time.Duration `json:"shell_timeout" yaml:"shell_timeout" mapstructure:"shell_timeout"`
 	// MaxToolOutput truncates tool stdout beyond this size in bytes.
 	MaxToolOutput int `json:"max_tool_output" yaml:"max_tool_output" mapstructure:"max_tool_output"`
+	// MaxSteps limits agent Observe-Think-Act iterations per user turn.
+	MaxSteps int `json:"max_steps" yaml:"max_steps" mapstructure:"max_steps"`
 	// SystemPrompt replaces the default system prompt when non-empty.
 	SystemPrompt string `json:"system_prompt" yaml:"system_prompt" mapstructure:"system_prompt"`
 	// AppendSystemPrompt is appended to the system prompt body.

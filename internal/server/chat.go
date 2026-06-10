@@ -17,23 +17,32 @@ func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, sess
 	if strings.ToLower(msgAlt) == "chat" {
 		if session == "" {
 			session = types.Id()
-			payload = types.TextMsg{Text: "Chat started"}
-			err := cacheStore.Set(ctx.Context(), chatKey, session, cache.TTLSession)
-			if err != nil {
-				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
-			}
 			if err := chatagent.CreateSession(ctx.Context(), uid, session); err != nil {
 				flog.Error(fmt.Errorf("failed to create chat session: %w", err))
+				return types.TextMsg{Text: "Failed to start chat session."}, ""
 			}
+			if err := cacheStore.Set(ctx.Context(), chatKey, session, cache.TTLSession); err != nil {
+				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
+				if closeErr := chatagent.CloseSession(ctx.Context(), session); closeErr != nil {
+					flog.Error(fmt.Errorf("rollback chat session: %w", closeErr))
+				}
+				return types.TextMsg{Text: "Failed to start chat session."}, ""
+			}
+			payload = types.TextMsg{Text: "Chat started"}
+			flog.Info("[chat-agent] session started uid=%s session=%s", uid, session)
 		} else {
 			payload = types.TextMsg{Text: "Chat already started"}
+			flog.Debug("[chat-agent] session already active uid=%s session=%s", uid, session)
 		}
 	}
 
 	if strings.ToLower(msgAlt) == "end" {
+		closingSession := session
 		if session != "" {
 			if err := chatagent.CloseSession(ctx.Context(), session); err != nil {
 				flog.Error(fmt.Errorf("failed to close chat session: %w", err))
+			} else {
+				flog.Info("[chat-agent] session closed uid=%s session=%s", uid, closingSession)
 			}
 		}
 		err := cacheStore.Del(ctx.Context(), chatKey)

@@ -10,18 +10,24 @@ import (
 
 func TestChatAgentConfig(t *testing.T) {
 	tests := []struct {
-		name string
-		cfg  config.ChatAgentConfig
+		name      string
+		cfg       config.ChatAgentConfig
+		wantSteps int
 	}{
-		{name: "defaults", cfg: config.ChatAgentConfig{}},
-		{name: "custom workspace", cfg: config.ChatAgentConfig{Workspace: "/tmp/ws"}},
-		{name: "custom limits", cfg: config.ChatAgentConfig{ShellTimeout: 30 * time.Second, MaxToolOutput: 4096}},
+		{name: "defaults", cfg: config.ChatAgentConfig{}, wantSteps: 0},
+		{name: "custom workspace", cfg: config.ChatAgentConfig{Workspace: "/tmp/ws"}, wantSteps: 0},
+		{name: "custom limits", cfg: config.ChatAgentConfig{
+			ShellTimeout: 30 * time.Second, MaxToolOutput: 4096, MaxSteps: 15,
+		}, wantSteps: 15},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.NotNil(t, tt.cfg)
+			assert.Equal(t, tt.wantSteps, tt.cfg.MaxSteps)
+			if tt.cfg.Workspace != "" {
+				assert.NotEmpty(t, tt.cfg.Workspace)
+			}
 		})
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // DBStorage persists agent session trees in PostgreSQL.
@@ -39,10 +40,14 @@ func (s *DBStorage) Append(ctx context.Context, entry session.TreeEntry) error {
 		EntryType: string(entry.Type),
 		Payload:   payloadMap,
 	}
-	if err := store.Database.CreateChatSessionEntry(ctx, row); err != nil {
+	if err := store.Database.AppendChatSessionEntry(ctx, row); err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] append entry session=%s entry=%s type=%s: %w",
+			s.sessionID, entry.ID, entry.Type, err))
 		return err
 	}
-	return store.Database.UpdateChatSessionLeaf(ctx, s.sessionID, entry.ID)
+	flog.Debug("[chat-agent] appended entry session=%s entry=%s type=%s parent=%s",
+		s.sessionID, entry.ID, entry.Type, entry.ParentID)
+	return nil
 }
 
 // GetBranch returns the ordered path from root to the requested leaf.
@@ -77,7 +82,7 @@ func (s *DBStorage) GetBranch(ctx context.Context, leafID string) ([]session.Tre
 	for current.ParentID != "" {
 		parent, exists := byFlag[current.ParentID]
 		if !exists {
-			break
+			return nil, fmt.Errorf("chatagent storage: broken branch at %q", current.ParentID)
 		}
 		path = append([]*gen.ChatSessionEntry{parent}, path...)
 		current = parent

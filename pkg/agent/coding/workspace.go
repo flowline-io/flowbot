@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -37,26 +38,54 @@ func (w Workspace) ResolvePath(path string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("coding workspace: resolve path: %w", err)
 	}
-	if abs != root && !strings.HasPrefix(abs, root+string(filepath.Separator)) {
+	evaluated, err := filepath.EvalSymlinks(abs)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return "", fmt.Errorf("coding workspace: eval symlinks: %w", err)
+		}
+		evaluated = abs
+	}
+	if !isWithinRoot(root, evaluated) {
 		return "", fmt.Errorf("coding workspace: path %q escapes workspace", path)
 	}
-	return abs, nil
+	return evaluated, nil
 }
 
 func (w Workspace) absRoot() (string, error) {
-	root := w.Root
+	root := strings.TrimSpace(w.Root)
 	if root == "" {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return "", fmt.Errorf("coding workspace: getwd: %w", err)
-		}
-		root = cwd
+		return "", fmt.Errorf("coding workspace: root is required")
 	}
 	abs, err := filepath.Abs(root)
 	if err != nil {
 		return "", fmt.Errorf("coding workspace: abs root: %w", err)
 	}
-	return abs, nil
+	evaluated, err := filepath.EvalSymlinks(abs)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return "", fmt.Errorf("coding workspace: eval root symlinks: %w", err)
+		}
+		evaluated = abs
+	}
+	return evaluated, nil
+}
+
+func isWithinRoot(root, target string) bool {
+	if runtime.GOOS == "windows" {
+		root = strings.ToLower(filepath.Clean(root))
+		target = strings.ToLower(filepath.Clean(target))
+	} else {
+		root = filepath.Clean(root)
+		target = filepath.Clean(target)
+	}
+	if target == root {
+		return true
+	}
+	rel, err := filepath.Rel(root, target)
+	if err != nil {
+		return false
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
 }
 
 // TruncateOutput limits output size for model context safety.

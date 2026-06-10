@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
@@ -667,13 +668,16 @@ func (a *adapter) GetChatSession(ctx context.Context, flag string) (*gen.ChatSes
 }
 
 func (a *adapter) UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error {
-	_, err := a.client.ChatSession.Update().
+	n, err := a.client.ChatSession.Update().
 		Where(chatsession.FlagEQ(flag)).
 		SetLeafID(leafID).
 		SetUpdatedAt(time.Now()).
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: update chat session leaf: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
 	}
 	return nil
 }
@@ -712,6 +716,54 @@ func (a *adapter) CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSes
 	return nil
 }
 
+func (a *adapter) AppendChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error {
+	if entry == nil {
+		return errors.New("postgres: nil chat session entry")
+	}
+	tx, err := a.client.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("postgres: begin chat session tx: %w", err)
+	}
+	builder := tx.ChatSessionEntry.Create().
+		SetFlag(entry.Flag).
+		SetSessionID(entry.SessionID).
+		SetParentID(entry.ParentID).
+		SetEntryType(entry.EntryType)
+	if entry.Payload != nil {
+		builder = builder.SetPayload(entry.Payload)
+	}
+	if !entry.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(entry.CreatedAt)
+	}
+	if _, err := builder.Save(ctx); err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			return fmt.Errorf("postgres: create chat session entry: %w (rollback: %v)", err, rerr)
+		}
+		return fmt.Errorf("postgres: create chat session entry: %w", err)
+	}
+	n, err := tx.ChatSession.Update().
+		Where(chatsession.FlagEQ(entry.SessionID)).
+		SetLeafID(entry.Flag).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			return fmt.Errorf("postgres: update chat session leaf: %w (rollback: %v)", err, rerr)
+		}
+		return fmt.Errorf("postgres: update chat session leaf: %w", err)
+	}
+	if n == 0 {
+		if rerr := tx.Rollback(); rerr != nil {
+			return types.ErrNotFound
+		}
+		return types.ErrNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("postgres: commit chat session entry: %w", err)
+	}
+	return nil
+}
+
 func (a *adapter) ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
 	rows, err := a.client.ChatSessionEntry.Query().
 		Where(chatsessionentry.SessionIDEQ(sessionID)).
@@ -734,6 +786,78 @@ func (a *adapter) GetChatSessionEntry(ctx context.Context, flag string) (*gen.Ch
 		return nil, fmt.Errorf("postgres: get chat session entry: %w", err)
 	}
 	return row, nil
+}
+
+func (a *adapter) ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {
+	query := a.client.AgentSkill.Query()
+	if enabledOnly {
+		query = query.Where(agentskill.EnabledEQ(true))
+	}
+	rows, err := query.Order(gen.Asc(agentskill.FieldName)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent skills: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error) {
+	row, err := a.client.AgentSkill.Query().
+		Where(agentskill.NameEQ(name), agentskill.EnabledEQ(true)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent skill: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) CreateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error {
+	if skill == nil {
+		return errors.New("postgres: nil agent skill")
+	}
+	builder := a.client.AgentSkill.Create().
+		SetFlag(skill.Flag).
+		SetName(skill.Name).
+		SetDescription(skill.Description).
+		SetContent(skill.Content).
+		SetBaseDir(skill.BaseDir).
+		SetSource(skill.Source).
+		SetEnabled(skill.Enabled).
+		SetDisableModelInvocation(skill.DisableModelInvocation)
+	if !skill.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(skill.CreatedAt)
+	}
+	if !skill.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(skill.UpdatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create agent skill: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error {
+	if skill == nil {
+		return errors.New("postgres: nil agent skill")
+	}
+	_, err := a.client.AgentSkill.Update().
+		Where(agentskill.FlagEQ(skill.Flag)).
+		SetName(skill.Name).
+		SetDescription(skill.Description).
+		SetContent(skill.Content).
+		SetBaseDir(skill.BaseDir).
+		SetSource(skill.Source).
+		SetEnabled(skill.Enabled).
+		SetDisableModelInvocation(skill.DisableModelInvocation).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update agent skill: %w", err)
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------

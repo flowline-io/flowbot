@@ -2,7 +2,9 @@ package harness
 
 import (
 	"context"
+	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -149,6 +151,28 @@ func (h *Harness) Session() *session.Session {
 	return h.session
 }
 
+// WaitIdle blocks until the harness returns to idle after a Prompt run finishes persisting.
+func (h *Harness) WaitIdle(ctx context.Context) error {
+	ticker := time.NewTicker(5 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		if h.isIdle() {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
+func (h *Harness) isIdle() bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.phase == PhaseIdle
+}
+
 func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream) {
 	defer h.setPhase(PhaseIdle)
 
@@ -168,12 +192,15 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream) {
 			continue
 		}
 		entryID := uuid.NewString()
-		_ = h.session.Append(ctx, session.TreeEntry{
+		if err := h.session.Append(ctx, session.TreeEntry{
 			ID:       entryID,
 			ParentID: parentID,
 			Type:     session.EntryMessage,
 			Message:  message,
-		})
+		}); err != nil {
+			slog.Warn("harness: persist session entry", "err", err)
+			continue
+		}
 		parentID = entryID
 	}
 }

@@ -21,6 +21,18 @@ func (f AgentFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentMutation", m)
 }
 
+// The AgentSkillFunc type is an adapter to allow the use of ordinary
+// function as AgentSkill mutator.
+type AgentSkillFunc func(context.Context, *gen.AgentSkillMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentSkillFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentSkillMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentSkillMutation", m)
+}
+
 // The AppFunc type is an adapter to allow the use of ordinary
 // function as App mutator.
 type AppFunc func(context.Context, *gen.AppMutation) (gen.Value, error)

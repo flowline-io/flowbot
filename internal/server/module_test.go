@@ -45,6 +45,7 @@ type testStoreAdapter struct {
 var (
 	testChatSessions       = make(map[string]*gen.ChatSession)
 	testChatSessionEntries = make(map[string][]*gen.ChatSessionEntry)
+	testAgentSkills        = make(map[string]*gen.AgentSkill)
 )
 
 func newTestStoreAdapter() *testStoreAdapter {
@@ -193,6 +194,13 @@ func (*testStoreAdapter) CreateChatSessionEntry(_ context.Context, entry *gen.Ch
 	testChatSessionEntries[entry.SessionID] = append(testChatSessionEntries[entry.SessionID], entry)
 	return nil
 }
+func (*testStoreAdapter) AppendChatSessionEntry(_ context.Context, entry *gen.ChatSessionEntry) error {
+	testChatSessionEntries[entry.SessionID] = append(testChatSessionEntries[entry.SessionID], entry)
+	if sess, ok := testChatSessions[entry.SessionID]; ok {
+		sess.LeafID = entry.Flag
+	}
+	return nil
+}
 func (*testStoreAdapter) ListChatSessionEntries(_ context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
 	return append([]*gen.ChatSessionEntry(nil), testChatSessionEntries[sessionID]...), nil
 }
@@ -205,6 +213,31 @@ func (*testStoreAdapter) GetChatSessionEntry(_ context.Context, flag string) (*g
 		}
 	}
 	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) ListAgentSkills(_ context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {
+	rows := make([]*gen.AgentSkill, 0, len(testAgentSkills))
+	for _, skill := range testAgentSkills {
+		if enabledOnly && !skill.Enabled {
+			continue
+		}
+		rows = append(rows, skill)
+	}
+	return rows, nil
+}
+func (*testStoreAdapter) GetAgentSkillByName(_ context.Context, name string) (*gen.AgentSkill, error) {
+	skill, ok := testAgentSkills[name]
+	if !ok || !skill.Enabled {
+		return nil, types.ErrNotFound
+	}
+	return skill, nil
+}
+func (*testStoreAdapter) CreateAgentSkill(_ context.Context, skill *gen.AgentSkill) error {
+	testAgentSkills[skill.Name] = skill
+	return nil
+}
+func (*testStoreAdapter) UpdateAgentSkill(_ context.Context, skill *gen.AgentSkill) error {
+	testAgentSkills[skill.Name] = skill
+	return nil
 }
 func (*testStoreAdapter) GetBot(context.Context, int64) (*gen.Bot, error) {
 	return nil, nil

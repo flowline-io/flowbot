@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -69,6 +70,7 @@ const (
 
 	// Node types.
 	TypeAgent                     = "Agent"
+	TypeAgentSkill                = "AgentSkill"
 	TypeApp                       = "App"
 	TypeAuditLog                  = "AuditLog"
 	TypeAuthentication            = "Authentication"
@@ -859,6 +861,824 @@ func (m *AgentMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AgentMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Agent edge %s", name)
+}
+
+// AgentSkillMutation represents an operation that mutates the AgentSkill nodes in the graph.
+type AgentSkillMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *int64
+	flag                     *string
+	name                     *string
+	description              *string
+	content                  *string
+	base_dir                 *string
+	source                   *string
+	enabled                  *bool
+	disable_model_invocation *bool
+	created_at               *time.Time
+	updated_at               *time.Time
+	clearedFields            map[string]struct{}
+	done                     bool
+	oldValue                 func(context.Context) (*AgentSkill, error)
+	predicates               []predicate.AgentSkill
+}
+
+var _ ent.Mutation = (*AgentSkillMutation)(nil)
+
+// agentskillOption allows management of the mutation configuration using functional options.
+type agentskillOption func(*AgentSkillMutation)
+
+// newAgentSkillMutation creates new mutation for the AgentSkill entity.
+func newAgentSkillMutation(c config, op Op, opts ...agentskillOption) *AgentSkillMutation {
+	m := &AgentSkillMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAgentSkill,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAgentSkillID sets the ID field of the mutation.
+func withAgentSkillID(id int64) agentskillOption {
+	return func(m *AgentSkillMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AgentSkill
+		)
+		m.oldValue = func(ctx context.Context) (*AgentSkill, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AgentSkill.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAgentSkill sets the old AgentSkill of the mutation.
+func withAgentSkill(node *AgentSkill) agentskillOption {
+	return func(m *AgentSkillMutation) {
+		m.oldValue = func(context.Context) (*AgentSkill, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AgentSkillMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AgentSkillMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AgentSkill entities.
+func (m *AgentSkillMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AgentSkillMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AgentSkillMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AgentSkill.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *AgentSkillMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *AgentSkillMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *AgentSkillMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetName sets the "name" field.
+func (m *AgentSkillMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AgentSkillMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AgentSkillMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *AgentSkillMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *AgentSkillMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *AgentSkillMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetContent sets the "content" field.
+func (m *AgentSkillMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *AgentSkillMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *AgentSkillMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetBaseDir sets the "base_dir" field.
+func (m *AgentSkillMutation) SetBaseDir(s string) {
+	m.base_dir = &s
+}
+
+// BaseDir returns the value of the "base_dir" field in the mutation.
+func (m *AgentSkillMutation) BaseDir() (r string, exists bool) {
+	v := m.base_dir
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseDir returns the old "base_dir" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldBaseDir(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseDir is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseDir requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseDir: %w", err)
+	}
+	return oldValue.BaseDir, nil
+}
+
+// ResetBaseDir resets all changes to the "base_dir" field.
+func (m *AgentSkillMutation) ResetBaseDir() {
+	m.base_dir = nil
+}
+
+// SetSource sets the "source" field.
+func (m *AgentSkillMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *AgentSkillMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *AgentSkillMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetEnabled sets the "enabled" field.
+func (m *AgentSkillMutation) SetEnabled(b bool) {
+	m.enabled = &b
+}
+
+// Enabled returns the value of the "enabled" field in the mutation.
+func (m *AgentSkillMutation) Enabled() (r bool, exists bool) {
+	v := m.enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEnabled returns the old "enabled" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEnabled: %w", err)
+	}
+	return oldValue.Enabled, nil
+}
+
+// ResetEnabled resets all changes to the "enabled" field.
+func (m *AgentSkillMutation) ResetEnabled() {
+	m.enabled = nil
+}
+
+// SetDisableModelInvocation sets the "disable_model_invocation" field.
+func (m *AgentSkillMutation) SetDisableModelInvocation(b bool) {
+	m.disable_model_invocation = &b
+}
+
+// DisableModelInvocation returns the value of the "disable_model_invocation" field in the mutation.
+func (m *AgentSkillMutation) DisableModelInvocation() (r bool, exists bool) {
+	v := m.disable_model_invocation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDisableModelInvocation returns the old "disable_model_invocation" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldDisableModelInvocation(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDisableModelInvocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDisableModelInvocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDisableModelInvocation: %w", err)
+	}
+	return oldValue.DisableModelInvocation, nil
+}
+
+// ResetDisableModelInvocation resets all changes to the "disable_model_invocation" field.
+func (m *AgentSkillMutation) ResetDisableModelInvocation() {
+	m.disable_model_invocation = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AgentSkillMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AgentSkillMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AgentSkillMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AgentSkillMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AgentSkillMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AgentSkill entity.
+// If the AgentSkill object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSkillMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AgentSkillMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the AgentSkillMutation builder.
+func (m *AgentSkillMutation) Where(ps ...predicate.AgentSkill) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AgentSkillMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AgentSkillMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AgentSkill, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AgentSkillMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AgentSkillMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AgentSkill).
+func (m *AgentSkillMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AgentSkillMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.flag != nil {
+		fields = append(fields, agentskill.FieldFlag)
+	}
+	if m.name != nil {
+		fields = append(fields, agentskill.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, agentskill.FieldDescription)
+	}
+	if m.content != nil {
+		fields = append(fields, agentskill.FieldContent)
+	}
+	if m.base_dir != nil {
+		fields = append(fields, agentskill.FieldBaseDir)
+	}
+	if m.source != nil {
+		fields = append(fields, agentskill.FieldSource)
+	}
+	if m.enabled != nil {
+		fields = append(fields, agentskill.FieldEnabled)
+	}
+	if m.disable_model_invocation != nil {
+		fields = append(fields, agentskill.FieldDisableModelInvocation)
+	}
+	if m.created_at != nil {
+		fields = append(fields, agentskill.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, agentskill.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AgentSkillMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case agentskill.FieldFlag:
+		return m.Flag()
+	case agentskill.FieldName:
+		return m.Name()
+	case agentskill.FieldDescription:
+		return m.Description()
+	case agentskill.FieldContent:
+		return m.Content()
+	case agentskill.FieldBaseDir:
+		return m.BaseDir()
+	case agentskill.FieldSource:
+		return m.Source()
+	case agentskill.FieldEnabled:
+		return m.Enabled()
+	case agentskill.FieldDisableModelInvocation:
+		return m.DisableModelInvocation()
+	case agentskill.FieldCreatedAt:
+		return m.CreatedAt()
+	case agentskill.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AgentSkillMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case agentskill.FieldFlag:
+		return m.OldFlag(ctx)
+	case agentskill.FieldName:
+		return m.OldName(ctx)
+	case agentskill.FieldDescription:
+		return m.OldDescription(ctx)
+	case agentskill.FieldContent:
+		return m.OldContent(ctx)
+	case agentskill.FieldBaseDir:
+		return m.OldBaseDir(ctx)
+	case agentskill.FieldSource:
+		return m.OldSource(ctx)
+	case agentskill.FieldEnabled:
+		return m.OldEnabled(ctx)
+	case agentskill.FieldDisableModelInvocation:
+		return m.OldDisableModelInvocation(ctx)
+	case agentskill.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case agentskill.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AgentSkill field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentSkillMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case agentskill.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case agentskill.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case agentskill.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case agentskill.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case agentskill.FieldBaseDir:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseDir(v)
+		return nil
+	case agentskill.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case agentskill.FieldEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEnabled(v)
+		return nil
+	case agentskill.FieldDisableModelInvocation:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDisableModelInvocation(v)
+		return nil
+	case agentskill.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case agentskill.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSkill field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AgentSkillMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AgentSkillMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentSkillMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AgentSkill numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AgentSkillMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AgentSkillMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AgentSkillMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AgentSkill nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AgentSkillMutation) ResetField(name string) error {
+	switch name {
+	case agentskill.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case agentskill.FieldName:
+		m.ResetName()
+		return nil
+	case agentskill.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case agentskill.FieldContent:
+		m.ResetContent()
+		return nil
+	case agentskill.FieldBaseDir:
+		m.ResetBaseDir()
+		return nil
+	case agentskill.FieldSource:
+		m.ResetSource()
+		return nil
+	case agentskill.FieldEnabled:
+		m.ResetEnabled()
+		return nil
+	case agentskill.FieldDisableModelInvocation:
+		m.ResetDisableModelInvocation()
+		return nil
+	case agentskill.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case agentskill.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSkill field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AgentSkillMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AgentSkillMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AgentSkillMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AgentSkillMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AgentSkillMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AgentSkillMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AgentSkillMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AgentSkill unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AgentSkillMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AgentSkill edge %s", name)
 }
 
 // AppMutation represents an operation that mutates the App nodes in the graph.

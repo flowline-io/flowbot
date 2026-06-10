@@ -72,6 +72,22 @@ func TestBuildSystemPrompt(t *testing.T) {
 				"- Be concise in your responses",
 			},
 		},
+		{
+			name: "skills section rendered when read_skill active",
+			options: chatagent.BuildSystemPromptOptions{
+				CWD: root,
+				Skills: []chatagent.Skill{{
+					Name:        "homelab-bookmark",
+					Description: "Manage bookmarks",
+					Location:    "skill://homelab-bookmark",
+				}},
+			},
+			wantParts: []string{
+				"<available_skills>",
+				"homelab-bookmark",
+				"- read_skill:",
+			},
+		},
 	}
 
 	for _, tt := range tests {

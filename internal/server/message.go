@@ -2,16 +2,12 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
-	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -19,111 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
-
-// directIncomingMessage handles incoming message events for direct channels.
-//
-// It will register the user and channel if they don't already exist, then
-// dispatch the message to the appropriate handler based on the content.
-//
-// eventCtx carries trace context from the consuming Watermill router middleware.
-func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e protocol.Event) {
-	msg, ok := e.Data.(protocol.MessageEventData)
-	if !ok {
-		return
-	}
-
-	uid, err := registerPlatformUser(msg)
-	if err != nil {
-		flog.Error(err)
-		return
-	}
-
-	topic, err := registerPlatformChannel(msg)
-	if err != nil {
-		flog.Error(err)
-		return
-	}
-
-	ctx := types.Context{
-		Id:     e.Id,
-		AsUser: uid,
-	}
-	ctx.SetContext(eventCtx)
-	ctx.SetTimeout(10 * time.Minute)
-
-	findPlatform, err := store.Database.GetPlatformByName(ctx.Context(), msg.Self.Platform)
-	if err != nil {
-		flog.Error(err)
-		return
-	}
-	platformId := findPlatform.ID
-
-	findMessage, err := store.Database.GetMessageByPlatform(ctx.Context(), platformId, msg.MessageId)
-	if err != nil && !errors.Is(err, types.ErrNotFound) {
-		flog.Error(err)
-		return
-	}
-	if findMessage != nil {
-		flog.Info("message %s %s already exists", msg.Self.Platform, msg.MessageId)
-		return
-	}
-
-	module.Behavior(uid, module.MessageBotIncomingBehavior, 1)
-
-	var payload types.MsgPayload
-
-	chatKey := cache.NewKey("chat", "session", uid.String())
-	var session string
-	s, ok, err := cacheStore.Get(ctx.Context(), chatKey)
-	if err != nil {
-		flog.Error(err)
-	}
-	if ok {
-		session = s
-	}
-
-	payload, session = manageChatSession(ctx, chatKey, msg.AltMessage, session, payload, uid)
-
-	err = store.Database.CreateMessage(ctx.Context(), gen.Message{
-		Flag:          types.Id(),
-		PlatformID:    platformId,
-		PlatformMsgID: msg.MessageId,
-		Topic:         topic,
-		Role:          types.User,
-		Session:       session,
-		Content:       schema.JSON{"text": msg.AltMessage},
-		State:         int(schema.MessageCreated),
-	})
-	if err != nil {
-		flog.Error(err)
-		return
-	}
-
-	payload = buildHelpMessage(msg.AltMessage, payload)
-
-	if session != "" && !chatagent.IsChatControlCommand(msg.AltMessage) {
-		go runChatAgent(eventCtx, caller, msg, uid, session, platformId, topic)
-		return
-	}
-
-	if session == "" {
-		payload = dispatchToModules(ctx, msg.AltMessage)
-	}
-
-	if payload == nil {
-		return
-	}
-
-	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
-	resp := caller.Do(protocol.Request{
-		Action: protocol.SendMessageAction,
-		Params: types.KV{
-			"topic":   msg.TopicId,
-			"message": caller.Adapter.MessageConvert(payload),
-		},
-	})
-	flog.Info("[event] %+v  response: %+v", msg, resp)
-}
 
 // groupIncomingMessage processes incoming message events for group channels.
 //

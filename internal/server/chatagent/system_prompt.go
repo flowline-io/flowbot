@@ -1,14 +1,17 @@
 package chatagent
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const maxContextFileBytes = 32 * 1024
@@ -35,6 +38,8 @@ type BuildSystemPromptOptions struct {
 	CWD string
 	// ContextFiles are pre-loaded project instruction files.
 	ContextFiles []ContextFile
+	// Skills are agent skills injected into the prompt; nil loads from the database.
+	Skills []Skill
 }
 
 // DefaultToolSnippets returns one-line tool descriptions for the chat assistant.
@@ -45,6 +50,7 @@ func DefaultToolSnippets() map[string]string {
 		"write_file":   "Write or overwrite a text file in the workspace, creating parent dirs as needed",
 		"web_search":   "Search the web for documentation, APIs, or current facts",
 		"run_code":     "Execute a code snippet (go, python, javascript, shell) in the workspace",
+		"read_skill":   "Load full instructions for a named skill from the database",
 	}
 }
 
@@ -59,7 +65,7 @@ func BuildSystemPrompt(options BuildSystemPromptOptions) string {
 
 	tools := options.SelectedTools
 	if len(tools) == 0 {
-		tools = coding.ActiveToolNames()
+		tools = ActiveToolNames()
 	}
 	snippets := options.ToolSnippets
 	if snippets == nil {
@@ -76,8 +82,10 @@ func BuildSystemPrompt(options BuildSystemPromptOptions) string {
 		contextFiles = LoadDefaultContextFiles(cwd)
 	}
 
+	skills := options.Skills
+
 	if custom := strings.TrimSpace(options.CustomPrompt); custom != "" {
-		return finalizePrompt(custom+appendSection, contextFiles, date, cwd, language, tools)
+		return finalizePrompt(custom+appendSection, contextFiles, skills, date, cwd, language, tools)
 	}
 
 	toolsList := formatToolsList(tools, snippets)
@@ -93,7 +101,28 @@ In addition to the tools above, you may receive other custom tools depending on 
 Guidelines:
 %s`, toolsList, guidelines)
 
-	return finalizePrompt(body+appendSection, contextFiles, date, cwd, language, tools)
+	return finalizePrompt(body+appendSection, contextFiles, skills, date, cwd, language, tools)
+}
+
+// SystemPrompt builds the default chat assistant prompt from workspace, config, and DB skills.
+func SystemPrompt(ctx context.Context, ws coding.Workspace) string {
+	cfg := config.App.ChatAgent
+	skills, err := LoadSkillsFromStore(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load skills: %v", err)
+		skills = nil
+	}
+	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
+	flog.Debug("[chat-agent] system prompt workspace=%s skills=%d context_files=%d",
+		ws.Root, len(skills), len(contextFiles))
+	return BuildSystemPrompt(BuildSystemPromptOptions{
+		CustomPrompt:       cfg.SystemPrompt,
+		PromptGuidelines:   cfg.PromptGuidelines,
+		AppendSystemPrompt: cfg.AppendSystemPrompt,
+		CWD:                ws.Root,
+		ContextFiles:       contextFiles,
+		Skills:             skills,
+	})
 }
 
 // defaultPromptIntro returns the role and agent-harness explanation for the default prompt.
@@ -109,18 +138,6 @@ Harness behavior you should expect:
 - Prefer tools over guessing file contents, command output, or current external facts.
 - Make incremental changes when modifying files, verify with tools when practical, then summarize outcomes for the user.
 - The user controls the session with chat commands: "chat" starts a session, "end" closes it.`
-}
-
-// SystemPrompt builds the default chat assistant prompt from workspace and config.
-func SystemPrompt(ws coding.Workspace) string {
-	cfg := config.App.ChatAgent
-	return BuildSystemPrompt(BuildSystemPromptOptions{
-		CustomPrompt:       cfg.SystemPrompt,
-		PromptGuidelines:   cfg.PromptGuidelines,
-		AppendSystemPrompt: cfg.AppendSystemPrompt,
-		CWD:                ws.Root,
-		ContextFiles:       loadContextFiles(ws.Root, cfg.ContextFiles),
-	})
 }
 
 // LoadDefaultContextFiles discovers common project instruction files under cwd.
@@ -207,12 +224,7 @@ func formatGuidelines(tools, extra []string, language string) string {
 	}
 
 	has := func(name string) bool {
-		for _, tool := range tools {
-			if tool == name {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(tools, name)
 	}
 
 	if has("run_terminal") && !has("web_search") {
@@ -227,8 +239,8 @@ func formatGuidelines(tools, extra []string, language string) string {
 	if has("web_search") {
 		add("Use web_search for library docs or facts not present in the workspace")
 	}
-	if has("run_code") {
-		add("Use run_code for quick validation; use run_terminal for project build/test commands")
+	if has("read_skill") {
+		add("Use read_skill to load specialized instructions when a task matches an available skill")
 	}
 
 	for _, item := range extra {
@@ -250,33 +262,38 @@ func formatGuidelines(tools, extra []string, language string) string {
 func finalizePrompt(
 	body string,
 	contextFiles []ContextFile,
+	skills []Skill,
 	date, cwd, language string,
 	tools []string,
 ) string {
-	prompt := body
+	var prompt strings.Builder
+	writePrompt(&prompt, body)
 
 	if len(contextFiles) > 0 && hasTool(tools, "read_file") {
-		prompt += "\n\n<project_context>\n\nProject-specific instructions and guidelines:\n\n"
+		writePrompt(&prompt, "\n\n<project_context>\n\nProject-specific instructions and guidelines:\n\n")
 		for _, file := range contextFiles {
-			prompt += fmt.Sprintf("<project_instructions path=\"%s\">\n%s\n</project_instructions>\n\n", file.Path, file.Content)
+			writePrompt(&prompt, fmt.Sprintf("<project_instructions path=\"%s\">\n%s\n</project_instructions>\n\n", file.Path, file.Content))
 		}
-		prompt += "</project_context>\n"
+		writePrompt(&prompt, "</project_context>\n")
 	}
 
-	prompt += fmt.Sprintf("\nCurrent date: %s", date)
-	prompt += fmt.Sprintf("\nCurrent working directory: %s", cwd)
-	prompt += fmt.Sprintf("\nResponse language: %s", language)
+	if hasTool(tools, "read_skill") {
+		writePrompt(&prompt, FormatSkillsForPrompt(skills))
+	}
 
-	return prompt
+	writePrompt(&prompt, fmt.Sprintf("\nCurrent date: %s", date))
+	writePrompt(&prompt, fmt.Sprintf("\nCurrent working directory: %s", cwd))
+	writePrompt(&prompt, fmt.Sprintf("\nResponse language: %s", language))
+
+	return prompt.String()
+}
+
+func writePrompt(b *strings.Builder, text string) {
+	_, _ = b.WriteString(text)
 }
 
 func hasTool(tools []string, name string) bool {
-	for _, tool := range tools {
-		if tool == name {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(tools, name)
 }
 
 func normalizePromptPath(path string) string {

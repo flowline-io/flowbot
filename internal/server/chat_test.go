@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -83,7 +84,11 @@ func TestManageChatSession(t *testing.T) {
 			setupTestCacheStore(t)
 			origDB := store.Database
 			store.Database = &testStoreAdapter{}
-			t.Cleanup(func() { store.Database = origDB })
+			testChatSessions = map[string]*gen.ChatSession{}
+			t.Cleanup(func() {
+				store.Database = origDB
+				testChatSessions = map[string]*gen.ChatSession{}
+			})
 
 			ctx := types.Context{}
 			ctx.SetContext(t.Context())

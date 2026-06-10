@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +17,8 @@ import (
 )
 
 func TestChatAgentService_Run(t *testing.T) {
+	ws := t.TempDir()
+	config.App.ChatAgent.Workspace = ws
 	config.App.Agents = []config.Agent{
 		{Name: "chat", Enabled: true, Model: "fake-model"},
 	}
@@ -34,10 +37,15 @@ func TestChatAgentService_Run(t *testing.T) {
 	store.Database = &testStoreAdapter{}
 	testChatSessions = map[string]*gen.ChatSession{}
 	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
-	t.Cleanup(func() { store.Database = origDB })
+	t.Cleanup(func() {
+		store.Database = origDB
+		testChatSessions = map[string]*gen.ChatSession{}
+		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
+	})
 
 	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
-		Flag: "sess-1", UID: "u1", CreatedAt: time.Now(), UpdatedAt: time.Now(),
+		Flag: "sess-1", UID: "u1", State: int(schema.ChatSessionActive),
+		CreatedAt: time.Now(), UpdatedAt: time.Now(),
 	}))
 
 	tests := []struct {
@@ -65,4 +73,30 @@ func TestChatAgentService_Run(t *testing.T) {
 			assert.NotEmpty(t, result)
 		})
 	}
+}
+
+func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
+	config.App.ChatAgent.Workspace = ""
+	config.App.Agents = []config.Agent{
+		{Name: "chat", Enabled: true, Model: "fake-model"},
+	}
+	config.App.Models = []config.Model{
+		{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
+	}
+
+	origDB := store.Database
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-1": {Flag: "sess-1", State: int(schema.ChatSessionActive)},
+	}
+	t.Cleanup(func() {
+		store.Database = origDB
+		testChatSessions = map[string]*gen.ChatSession{}
+	})
+
+	_, err := chatagent.NewService().Run(context.Background(), chatagent.RunRequest{
+		SessionID: "sess-1",
+		Text:      "hello",
+	})
+	assert.Error(t, err)
 }

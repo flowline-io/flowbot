@@ -81,6 +81,9 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 	if err := os.WriteFile(resolved, []byte(code), 0o644); err != nil {
 		return toolError(id, t.Name(), fmt.Sprintf("write code file: %v", err)), nil
 	}
+	defer func() {
+		_ = os.Remove(resolved)
+	}()
 
 	cmdArgs, err := interpreterCommand(language, resolved)
 	if err != nil {

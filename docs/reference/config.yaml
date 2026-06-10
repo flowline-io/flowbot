@@ -188,9 +188,10 @@ agents:
 
 # Direct-message chat assistant agent
 chat_agent:
-  workspace: ""
+  workspace: "/var/lib/flowbot/chat-workspace"
   shell_timeout: 60s
   max_tool_output: 8192
+  max_steps: 30
   # system_prompt: ""           # optional: replace default prompt entirely
   # append_system_prompt: ""    # optional: extra instructions appended to prompt
   # prompt_guidelines: []       # optional: extra guideline bullets

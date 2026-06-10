@@ -4,6 +4,7 @@ package specs
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
@@ -36,6 +37,9 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 
 		ctx := context.Background()
 		sessionID := "bdd-session-1"
+		wsDir, err := os.MkdirTemp("", "chat-agent-bdd-*")
+		Expect(err).NotTo(HaveOccurred())
+		config.App.ChatAgent.Workspace = wsDir
 		Expect(chatagent.CreateSession(ctx, "uid-bdd", sessionID)).To(Succeed())
 
 		svc := chatagent.NewService()

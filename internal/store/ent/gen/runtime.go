@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -89,6 +90,50 @@ func init() {
 	agent.DefaultUpdatedAt = agentDescUpdatedAt.Default.(func() time.Time)
 	// agent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agent.UpdateDefaultUpdatedAt = agentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentskillFields := schema.AgentSkill{}.Fields()
+	_ = agentskillFields
+	// agentskillDescFlag is the schema descriptor for flag field.
+	agentskillDescFlag := agentskillFields[1].Descriptor()
+	// agentskill.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	agentskill.FlagValidator = agentskillDescFlag.Validators[0].(func(string) error)
+	// agentskillDescName is the schema descriptor for name field.
+	agentskillDescName := agentskillFields[2].Descriptor()
+	// agentskill.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentskill.NameValidator = agentskillDescName.Validators[0].(func(string) error)
+	// agentskillDescDescription is the schema descriptor for description field.
+	agentskillDescDescription := agentskillFields[3].Descriptor()
+	// agentskill.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	agentskill.DescriptionValidator = agentskillDescDescription.Validators[0].(func(string) error)
+	// agentskillDescContent is the schema descriptor for content field.
+	agentskillDescContent := agentskillFields[4].Descriptor()
+	// agentskill.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	agentskill.ContentValidator = agentskillDescContent.Validators[0].(func(string) error)
+	// agentskillDescBaseDir is the schema descriptor for base_dir field.
+	agentskillDescBaseDir := agentskillFields[5].Descriptor()
+	// agentskill.DefaultBaseDir holds the default value on creation for the base_dir field.
+	agentskill.DefaultBaseDir = agentskillDescBaseDir.Default.(string)
+	// agentskillDescSource is the schema descriptor for source field.
+	agentskillDescSource := agentskillFields[6].Descriptor()
+	// agentskill.DefaultSource holds the default value on creation for the source field.
+	agentskill.DefaultSource = agentskillDescSource.Default.(string)
+	// agentskillDescEnabled is the schema descriptor for enabled field.
+	agentskillDescEnabled := agentskillFields[7].Descriptor()
+	// agentskill.DefaultEnabled holds the default value on creation for the enabled field.
+	agentskill.DefaultEnabled = agentskillDescEnabled.Default.(bool)
+	// agentskillDescDisableModelInvocation is the schema descriptor for disable_model_invocation field.
+	agentskillDescDisableModelInvocation := agentskillFields[8].Descriptor()
+	// agentskill.DefaultDisableModelInvocation holds the default value on creation for the disable_model_invocation field.
+	agentskill.DefaultDisableModelInvocation = agentskillDescDisableModelInvocation.Default.(bool)
+	// agentskillDescCreatedAt is the schema descriptor for created_at field.
+	agentskillDescCreatedAt := agentskillFields[9].Descriptor()
+	// agentskill.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentskill.DefaultCreatedAt = agentskillDescCreatedAt.Default.(func() time.Time)
+	// agentskillDescUpdatedAt is the schema descriptor for updated_at field.
+	agentskillDescUpdatedAt := agentskillFields[10].Descriptor()
+	// agentskill.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentskill.DefaultUpdatedAt = agentskillDescUpdatedAt.Default.(func() time.Time)
+	// agentskill.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentskill.UpdateDefaultUpdatedAt = agentskillDescUpdatedAt.UpdateDefault.(func() time.Time)
 	appFields := schema.App{}.Fields()
 	_ = appFields
 	// appDescName is the schema descriptor for name field.

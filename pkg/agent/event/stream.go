@@ -14,9 +14,12 @@ type Result struct {
 // Stream multiplexes agent lifecycle events to subscribers and exposes the final result.
 type Stream struct {
 	events chan Event
-	done   chan resultPayload
 	subs   []Handler
 	mu     sync.Mutex
+
+	endOnce sync.Once
+	ended   chan struct{}
+	result  resultPayload
 }
 
 type resultPayload struct {
@@ -31,7 +34,7 @@ func NewStream(buffer int) *Stream {
 	}
 	return &Stream{
 		events: make(chan Event, buffer),
-		done:   make(chan resultPayload, 1),
+		ended:  make(chan struct{}),
 	}
 }
 
@@ -72,16 +75,20 @@ func (s *Stream) Push(ctx context.Context, ev Event) error {
 
 // End closes the stream with the final message list and optional error.
 func (s *Stream) End(messages []any, err error) {
-	s.done <- resultPayload{Messages: messages, Err: err}
-	close(s.events)
+	s.endOnce.Do(func() {
+		s.result = resultPayload{Messages: messages, Err: err}
+		close(s.events)
+		close(s.ended)
+	})
 }
 
 // Await blocks until the stream ends and returns the final result.
+// Multiple callers may Await the same stream; each receives an identical copy.
 func (s *Stream) Await(ctx context.Context) (Result, error) {
 	select {
 	case <-ctx.Done():
 		return Result{}, ctx.Err()
-	case payload := <-s.done:
-		return Result{Messages: payload.Messages, Err: payload.Err}, nil
+	case <-s.ended:
+		return Result{Messages: s.result.Messages, Err: s.result.Err}, nil
 	}
 }

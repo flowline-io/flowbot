@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -68,6 +69,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Agent is the client for interacting with the Agent builders.
 	Agent *AgentClient
+	// AgentSkill is the client for interacting with the AgentSkill builders.
+	AgentSkill *AgentSkillClient
 	// App is the client for interacting with the App builders.
 	App *AppClient
 	// AuditLog is the client for interacting with the AuditLog builders.
@@ -168,6 +171,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Agent = NewAgentClient(c.config)
+	c.AgentSkill = NewAgentSkillClient(c.config)
 	c.App = NewAppClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.Authentication = NewAuthenticationClient(c.config)
@@ -305,6 +309,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:                       ctx,
 		config:                    cfg,
 		Agent:                     NewAgentClient(cfg),
+		AgentSkill:                NewAgentSkillClient(cfg),
 		App:                       NewAppClient(cfg),
 		AuditLog:                  NewAuditLogClient(cfg),
 		Authentication:            NewAuthenticationClient(cfg),
@@ -369,6 +374,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:                       ctx,
 		config:                    cfg,
 		Agent:                     NewAgentClient(cfg),
+		AgentSkill:                NewAgentSkillClient(cfg),
 		App:                       NewAppClient(cfg),
 		AuditLog:                  NewAuditLogClient(cfg),
 		Authentication:            NewAuthenticationClient(cfg),
@@ -442,7 +448,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
+		c.Agent, c.AgentSkill, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ChatSession, c.ChatSessionEntry,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.Message,
@@ -460,7 +466,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Agent, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
+		c.Agent, c.AgentSkill, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ChatSession, c.ChatSessionEntry,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.Message,
@@ -479,6 +485,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AgentMutation:
 		return c.Agent.mutate(ctx, m)
+	case *AgentSkillMutation:
+		return c.AgentSkill.mutate(ctx, m)
 	case *AppMutation:
 		return c.App.mutate(ctx, m)
 	case *AuditLogMutation:
@@ -702,6 +710,139 @@ func (c *AgentClient) mutate(ctx context.Context, m *AgentMutation) (Value, erro
 		return (&AgentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Agent mutation op: %q", m.Op())
+	}
+}
+
+// AgentSkillClient is a client for the AgentSkill schema.
+type AgentSkillClient struct {
+	config
+}
+
+// NewAgentSkillClient returns a client for the AgentSkill from the given config.
+func NewAgentSkillClient(c config) *AgentSkillClient {
+	return &AgentSkillClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `agentskill.Hooks(f(g(h())))`.
+func (c *AgentSkillClient) Use(hooks ...Hook) {
+	c.hooks.AgentSkill = append(c.hooks.AgentSkill, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `agentskill.Intercept(f(g(h())))`.
+func (c *AgentSkillClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AgentSkill = append(c.inters.AgentSkill, interceptors...)
+}
+
+// Create returns a builder for creating a AgentSkill entity.
+func (c *AgentSkillClient) Create() *AgentSkillCreate {
+	mutation := newAgentSkillMutation(c.config, OpCreate)
+	return &AgentSkillCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AgentSkill entities.
+func (c *AgentSkillClient) CreateBulk(builders ...*AgentSkillCreate) *AgentSkillCreateBulk {
+	return &AgentSkillCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AgentSkillClient) MapCreateBulk(slice any, setFunc func(*AgentSkillCreate, int)) *AgentSkillCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AgentSkillCreateBulk{err: fmt.Errorf("calling to AgentSkillClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AgentSkillCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AgentSkillCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AgentSkill.
+func (c *AgentSkillClient) Update() *AgentSkillUpdate {
+	mutation := newAgentSkillMutation(c.config, OpUpdate)
+	return &AgentSkillUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AgentSkillClient) UpdateOne(_m *AgentSkill) *AgentSkillUpdateOne {
+	mutation := newAgentSkillMutation(c.config, OpUpdateOne, withAgentSkill(_m))
+	return &AgentSkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AgentSkillClient) UpdateOneID(id int64) *AgentSkillUpdateOne {
+	mutation := newAgentSkillMutation(c.config, OpUpdateOne, withAgentSkillID(id))
+	return &AgentSkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AgentSkill.
+func (c *AgentSkillClient) Delete() *AgentSkillDelete {
+	mutation := newAgentSkillMutation(c.config, OpDelete)
+	return &AgentSkillDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AgentSkillClient) DeleteOne(_m *AgentSkill) *AgentSkillDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AgentSkillClient) DeleteOneID(id int64) *AgentSkillDeleteOne {
+	builder := c.Delete().Where(agentskill.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AgentSkillDeleteOne{builder}
+}
+
+// Query returns a query builder for AgentSkill.
+func (c *AgentSkillClient) Query() *AgentSkillQuery {
+	return &AgentSkillQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAgentSkill},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AgentSkill entity by its id.
+func (c *AgentSkillClient) Get(ctx context.Context, id int64) (*AgentSkill, error) {
+	return c.Query().Where(agentskill.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AgentSkillClient) GetX(ctx context.Context, id int64) *AgentSkill {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AgentSkillClient) Hooks() []Hook {
+	return c.hooks.AgentSkill
+}
+
+// Interceptors returns the client interceptors.
+func (c *AgentSkillClient) Interceptors() []Interceptor {
+	return c.inters.AgentSkill
+}
+
+func (c *AgentSkillClient) mutate(ctx context.Context, m *AgentSkillMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AgentSkillCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AgentSkillUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AgentSkillUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AgentSkillDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown AgentSkill mutation op: %q", m.Op())
 	}
 }
 
@@ -6560,23 +6701,25 @@ func (c *WorkflowStepRunClient) mutate(ctx context.Context, m *WorkflowStepRunMu
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatSession, ChatSessionEntry, ConfigData, Connection, Counter, CounterRecord,
-		Data, DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
-		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
-		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
-		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
-		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
+		Agent, AgentSkill, App, AuditLog, Authentication, Behavior, Bot,
+		CapabilityBinding, Channel, ChatSession, ChatSessionEntry, ConfigData,
+		Connection, Counter, CounterRecord, Data, DataEvent, EventConsumption,
+		EventOutbox, Fileupload, Form, Instruct, Message, NotificationRecord,
+		NotifyChannel, NotifyRule, OAuth, Page, PageData, Parameter,
+		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
+		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
+		PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
 		WorkflowStepRun []ent.Hook
 	}
 	inters struct {
-		Agent, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatSession, ChatSessionEntry, ConfigData, Connection, Counter, CounterRecord,
-		Data, DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
-		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
-		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
-		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
-		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
+		Agent, AgentSkill, App, AuditLog, Authentication, Behavior, Bot,
+		CapabilityBinding, Channel, ChatSession, ChatSessionEntry, ConfigData,
+		Connection, Counter, CounterRecord, Data, DataEvent, EventConsumption,
+		EventOutbox, Fileupload, Form, Instruct, Message, NotificationRecord,
+		NotifyChannel, NotifyRule, OAuth, Page, PageData, Parameter,
+		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
+		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
+		PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
 		WorkflowStepRun []ent.Interceptor
 	}
 )

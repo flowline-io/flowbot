@@ -262,8 +262,14 @@ type Adapter interface {
 	UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error
 	CloseChatSession(ctx context.Context, flag string) error
 	CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
+	AppendChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
 	ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error)
 	GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error)
+
+	ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error)
+	GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error)
+	CreateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
+	UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 
 	GetBot(ctx context.Context, id int64) (*gen.Bot, error)
 	GetBotByName(ctx context.Context, name string) (*gen.Bot, error)

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/platforms"
@@ -20,21 +21,28 @@ func runChatAgent(
 	eventCtx context.Context,
 	caller *platforms.Caller,
 	msg protocol.MessageEventData,
-	_ types.Uid,
+	uid types.Uid,
 	sessionID string,
 	platformID int64,
 	topic string,
 ) {
+	start := time.Now()
+	flog.Info("[chat-agent] run start uid=%s session=%s platform=%s topic=%s text_len=%d",
+		uid, sessionID, msg.Self.Platform, topic, len(msg.AltMessage))
+
 	ctx, cancel := context.WithTimeout(eventCtx, chatagent.DefaultRunTimeout)
 	defer cancel()
+	chatagent.BindRunCancel(sessionID, cancel)
+	defer chatagent.UnbindRunCancel(sessionID)
 
 	reply, err := chatAgentService.Run(ctx, chatagent.RunRequest{
 		SessionID: sessionID,
 		Text:      msg.AltMessage,
 	})
 	if err != nil {
-		flog.Error(err)
-		sendChatReply(caller, msg, types.TextMsg{Text: "Chat agent error: " + err.Error()})
+		flog.Error(fmt.Errorf("[chat-agent] run failed uid=%s session=%s duration=%s: %w",
+			uid, sessionID, time.Since(start).Round(time.Millisecond), err))
+		sendChatReply(caller, msg, types.TextMsg{Text: "Chat agent is unavailable. Please try again later."})
 		return
 	}
 
@@ -52,9 +60,13 @@ func runChatAgent(
 		UpdatedAt:     now,
 	})
 	if err != nil {
-		flog.Error(err)
+		flog.Error(fmt.Errorf("[chat-agent] persist assistant message uid=%s session=%s: %w", uid, sessionID, err))
+		sendChatReply(caller, msg, types.TextMsg{Text: "Failed to save reply. Please try again."})
+		return
 	}
 
+	flog.Info("[chat-agent] run complete uid=%s session=%s reply_len=%d duration=%s",
+		uid, sessionID, len(reply), time.Since(start).Round(time.Millisecond))
 	sendChatReply(caller, msg, types.TextMsg{Text: reply})
 }
 
@@ -66,5 +78,5 @@ func sendChatReply(caller *platforms.Caller, msg protocol.MessageEventData, payl
 			"message": caller.Adapter.MessageConvert(payload),
 		},
 	})
-	flog.Info("[chat-agent] response: %+v", resp)
+	flog.Debug("[chat-agent] platform reply topic=%s resp=%+v", msg.TopicId, resp)
 }
