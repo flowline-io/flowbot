@@ -45,6 +45,7 @@ tests/
 │   ├── hub_spec_test.go                # Hub management
 │   ├── kanban_spec_test.go             # Kanban module
 │   ├── llm_spec_test.go                # LLM integration
+│   ├── agent_spec_test.go              # Agent engine (pkg/agent)
 │   ├── notify_spec_test.go             # Notify module
 │   ├── pipeline_spec_test.go           # Pipeline engine
 │   ├── provider_event_source_spec_test.go # Provider event source

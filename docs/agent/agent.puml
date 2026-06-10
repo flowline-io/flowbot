@@ -1,0 +1,98 @@
+@startuml Agent Engine
+' =============================================================================
+' Flowbot Agent Engine (pkg/agent)
+' Render: plantuml docs/agent/agent.puml
+' =============================================================================
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Flowbot — Agent Engine (pkg/agent)
+
+package "Callers (future)" as Callers #ECEFF1 {
+  [HTTP / SSE] as HTTP
+  [CLI / Jobs] as CLI
+}
+
+package "Harness\npkg/agent/harness" as Harness #E3F2FD {
+  [Lifecycle Hooks] as Hooks
+  [Session Writer] as SessWrite
+  [Tool Registry] as HReg
+}
+
+package "Agent\npkg/agent/agent.go" as AgentPkg #BBDEFB {
+  [Prompt / Continue] as Prompt
+  [Steer / FollowUp Queues] as Queues
+  [Subscribe Handlers] as Subs
+}
+
+package "Loop\npkg/agent/loop.go" as Loop #C5CAE9 {
+  [Observe-Think-Act] as OTA
+  [MaxSteps Guard] as Guard
+}
+
+package "Subpackages" as Sub #FFF9C4 {
+  [tool] as ToolPkg
+  [transform] as TransformPkg
+  [session] as SessionPkg
+  [model] as ModelPkg
+  [event] as EventPkg
+  [msg] as MsgPkg
+}
+
+package "LLM Adapter\npkg/agent/llm" as LLM #E8F5E9 {
+  [StreamAssistant] as Stream
+  [NewModel factory] as Factory
+}
+
+cloud "langchaingo\nllms.Model" as LangchainGo #DCEDC8
+
+database "session.Storage\n(JSONL / DB / memory)" as Storage #FFECB3
+
+Callers --> Harness
+Callers --> AgentPkg
+Harness --> AgentPkg
+Harness --> SessionPkg
+Harness --> HReg
+
+AgentPkg --> Loop
+AgentPkg --> Subs
+AgentPkg --> Queues
+AgentPkg --> Prompt
+
+Loop --> ToolPkg
+Loop --> TransformPkg
+Loop --> LLM
+Loop --> EventPkg
+Loop --> ModelPkg
+
+ToolPkg --> MsgPkg
+TransformPkg --> MsgPkg
+SessionPkg --> MsgPkg
+SessionPkg --> Storage
+
+Stream --> LangchainGo
+Factory --> LangchainGo
+
+Hooks ..> Loop : before_agent_start
+SessWrite ..> SessionPkg : append on save_point
+EventPkg ..> Subs : agent_start, turn_end, ...
+
+note right of Loop
+  <b>Loop cycle:</b>
+  1. TransformContext
+  2. ConvertToLLM
+  3. Stream assistant
+  4. Execute tools (parallel/seq)
+  5. PrepareNextTurn
+  Repeat until done or MaxSteps
+end note
+
+note bottom of LLM
+  <b>Not used:</b>
+  langchaingo agents.Executor or chains
+  pkg/llm for multi-turn loops
+end note
+
+@enduml

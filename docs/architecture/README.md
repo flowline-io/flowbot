@@ -11,6 +11,8 @@ PlantUML diagrams for Flowbot system architecture. Render with any PlantUML-comp
 | `dataflow.puml`     | Sequence Diagrams  | Key data flows: chat message, workflow, events, hub, notifications |
 | `deployment.puml`   | Deployment Diagram | Docker containers, CI/CD pipelines, external services              |
 
+Agent engine (`pkg/agent/`) has dedicated docs and diagrams under [docs/agent/](../agent/) (`architecture.md`, `agent.puml`).
+
 ## Rendering
 
 ```bash
@@ -29,7 +31,7 @@ plantuml docs/architecture/*.puml
 Layer 6 — External:        Users, Chat Platforms, Third-Party APIs
 Layer 5 — Platform:        Discord/Slack/Tailchat adapters
 Layer 4 — HTTP Gateway:    Fiber v3 server, REST API, auth middleware
-Layer 3 — Business Logic:  5 modules, workflow engine, pipeline engine, LLM
+Layer 3 — Business Logic:  modules, workflow engine, pipeline engine, LLM, agent engine
 Layer 2 — Capability:      ability.Invoke() abstraction over providers
 Layer 1 — Providers:       18 third-party service integrations
 Layer 0 — Infrastructure:  PostgreSQL, Redis, Docker executor

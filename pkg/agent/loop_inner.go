@@ -1,0 +1,168 @@
+package agent
+
+import (
+	"context"
+	"time"
+
+	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
+	"github.com/flowline-io/flowbot/pkg/agent/tool"
+)
+
+type innerLoopState struct {
+	ctx         context.Context
+	current     *Context
+	cfg         Config
+	deps        LoopDeps
+	emit        func(agentevent.Event) error
+	newMessages *[]AgentMessage
+	pending     *[]AgentMessage
+	steps       *int
+}
+
+func (s *innerLoopState) runTurn() (stopInner bool, err error) {
+	if len(*s.pending) > 0 {
+		for _, message := range *s.pending {
+			s.current.Messages = append(s.current.Messages, message)
+			*s.newMessages = append(*s.newMessages, message)
+			if err := emitMessage(s.emit, message); err != nil {
+				return false, err
+			}
+		}
+		*s.pending = nil
+	}
+
+	*s.steps++
+	if *s.steps > s.cfg.MaxSteps {
+		return false, ErrMaxSteps
+	}
+
+	if err := s.emit(agentevent.Event{Type: agentevent.TypeTurnStart}); err != nil {
+		return false, err
+	}
+
+	assistant, err := streamAssistant(s.ctx, s.current, s.cfg, s.deps)
+	if err != nil {
+		return false, err
+	}
+	assistant.Timestamp = time.Now().UTC()
+	s.current.Messages = append(s.current.Messages, assistant)
+	*s.newMessages = append(*s.newMessages, assistant)
+	if err := emitMessage(s.emit, assistant); err != nil {
+		return false, err
+	}
+
+	toolResults, terminate, hasToolCalls, err := s.executeTools(assistant)
+	if err != nil {
+		return false, err
+	}
+
+	if err := s.emit(agentevent.Event{Type: agentevent.TypeTurnEnd, Message: assistant, ToolResults: toolResults}); err != nil {
+		return false, err
+	}
+
+	if err := s.applyTurnHooks(assistant, toolResults); err != nil {
+		return false, err
+	}
+	if terminate {
+		return false, errStopAfterTurn
+	}
+
+	return s.continueAfterTurn(hasToolCalls)
+}
+
+func (s *innerLoopState) executeTools(assistant AssistantMessage) ([]ToolResultMessage, bool, bool, error) {
+	hasToolCalls := len(assistant.ToolCalls()) > 0
+	if !hasToolCalls {
+		return nil, false, false, nil
+	}
+
+	batch, err := tool.ExecuteBatch(s.ctx, tool.BatchRequest{
+		Assistant: assistant,
+		Context:   s.current,
+		Registry:  s.deps.Registry,
+		Mode:      s.cfg.ToolExecution,
+		Before:    s.cfg.BeforeToolCall,
+		After:     s.cfg.AfterToolCall,
+		Emit: func(_ context.Context, ev agentevent.Event) error {
+			return s.emit(ev)
+		},
+	})
+	if err != nil {
+		return nil, false, hasToolCalls, err
+	}
+
+	for i := range batch.Messages {
+		batch.Messages[i].Timestamp = time.Now().UTC()
+		s.current.Messages = append(s.current.Messages, batch.Messages[i])
+		*s.newMessages = append(*s.newMessages, batch.Messages[i])
+		if err := emitMessage(s.emit, batch.Messages[i]); err != nil {
+			return nil, batch.Terminate, hasToolCalls, err
+		}
+	}
+	return batch.Messages, batch.Terminate, hasToolCalls, nil
+}
+
+func (s *innerLoopState) applyTurnHooks(assistant AssistantMessage, toolResults []ToolResultMessage) error {
+	turnCtx := TurnContext{
+		Message:     assistant,
+		ToolResults: toolResults,
+		Context:     s.current,
+		NewMessages: append([]AgentMessage(nil), *s.newMessages...),
+	}
+	if s.cfg.PrepareNextTurn != nil {
+		update, err := s.cfg.PrepareNextTurn(turnCtx)
+		if err != nil {
+			return err
+		}
+		if update != nil {
+			if update.Context != nil {
+				s.current = update.Context
+			}
+			if update.ModelName != "" {
+				s.current.ModelName = update.ModelName
+				s.cfg.ModelName = update.ModelName
+			}
+		}
+	}
+	if s.cfg.ShouldStopAfterTurn != nil {
+		stop, err := s.cfg.ShouldStopAfterTurn(turnCtx)
+		if err != nil {
+			return err
+		}
+		if stop {
+			return errStopAfterTurn
+		}
+	}
+	return nil
+}
+
+type stopAfterTurnError struct{}
+
+func (stopAfterTurnError) Error() string { return "agent: stop after turn" }
+
+var errStopAfterTurn = stopAfterTurnError{}
+
+func (s *innerLoopState) continueAfterTurn(hasToolCalls bool) (bool, error) {
+	if !hasToolCalls {
+		if err := s.drainSteering(); err != nil {
+			return false, err
+		}
+		return len(*s.pending) == 0, nil
+	}
+	if err := s.drainSteering(); err != nil {
+		return false, err
+	}
+	return false, nil
+}
+
+func (s *innerLoopState) drainSteering() error {
+	if s.cfg.GetSteeringMessages == nil {
+		return nil
+	}
+	steering, err := s.cfg.GetSteeringMessages()
+	if err != nil {
+		return err
+	}
+	*s.pending = drainQueue(*s.pending, steering, s.cfg.SteeringMode)
+	return nil
+}

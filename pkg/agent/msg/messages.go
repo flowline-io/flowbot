@@ -1,0 +1,136 @@
+package msg
+
+import "strings"
+
+import "time"
+
+// MessageRole identifies the role of an agent message in the session tree.
+type MessageRole string
+
+const (
+	RoleUser              MessageRole = "user"
+	RoleAssistant         MessageRole = "assistant"
+	RoleToolResult        MessageRole = "toolResult"
+	RoleCustom            MessageRole = "custom"
+	RoleBranchSummary     MessageRole = "branchSummary"
+	RoleCompactionSummary MessageRole = "compactionSummary"
+)
+
+// AgentMessage is the domain message type used throughout the agent loop.
+type AgentMessage interface {
+	Role() MessageRole
+}
+
+// TextPart holds plain text content in a multi-part message.
+type TextPart struct {
+	Text string
+}
+
+// ImagePart holds image content for multimodal messages.
+type ImagePart struct {
+	MIMEType string
+	Data     []byte
+	URL      string
+}
+
+// ToolCallPart is a tool invocation requested by the assistant.
+type ToolCallPart struct {
+	ID        string
+	Name      string
+	Arguments string
+}
+
+// ContentPart is a union of message part types.
+type ContentPart interface {
+	isContentPart()
+}
+
+func (TextPart) isContentPart()     {}
+func (ImagePart) isContentPart()    {}
+func (ToolCallPart) isContentPart() {}
+
+// UserMessage is a user turn, optionally multimodal.
+type UserMessage struct {
+	Parts     []ContentPart
+	Timestamp time.Time
+}
+
+// Role returns RoleUser.
+func (UserMessage) Role() MessageRole { return RoleUser }
+
+// AssistantMessage is a model turn with optional text and tool calls.
+type AssistantMessage struct {
+	Parts      []ContentPart
+	Model      string
+	StopReason string
+	Timestamp  time.Time
+}
+
+// Role returns RoleAssistant.
+func (AssistantMessage) Role() MessageRole { return RoleAssistant }
+
+// ToolCalls extracts tool call parts from the assistant message.
+func (m AssistantMessage) ToolCalls() []ToolCallPart {
+	var calls []ToolCallPart
+	for _, part := range m.Parts {
+		if tc, ok := part.(ToolCallPart); ok {
+			calls = append(calls, tc)
+		}
+	}
+	return calls
+}
+
+// TextContent concatenates text parts for convenience.
+func (m AssistantMessage) TextContent() string {
+	var text strings.Builder
+	for _, part := range m.Parts {
+		if tp, ok := part.(TextPart); ok {
+			text.WriteString(tp.Text)
+		}
+	}
+	return text.String()
+}
+
+// ToolResultMessage carries the result of executing a tool call.
+type ToolResultMessage struct {
+	ToolCallID string
+	Name       string
+	Parts      []ContentPart
+	IsError    bool
+	Timestamp  time.Time
+}
+
+// Role returns RoleToolResult.
+func (ToolResultMessage) Role() MessageRole { return RoleToolResult }
+
+// CustomMessage is an application-specific message rendered before LLM calls.
+type CustomMessage struct {
+	CustomType         string
+	Parts              []ContentPart
+	DisplayOnly        bool
+	ExcludeFromContext bool
+	Timestamp          time.Time
+}
+
+// Role returns RoleCustom.
+func (CustomMessage) Role() MessageRole { return RoleCustom }
+
+// BranchSummaryMessage injects branch context after tree navigation.
+type BranchSummaryMessage struct {
+	Summary   string
+	FromID    string
+	Timestamp time.Time
+}
+
+// Role returns RoleBranchSummary.
+func (BranchSummaryMessage) Role() MessageRole { return RoleBranchSummary }
+
+// CompactionSummaryMessage injects compacted history context.
+type CompactionSummaryMessage struct {
+	Summary      string
+	TokensBefore int
+	Timestamp    time.Time
+}
+
+// Role returns RoleCompactionSummary.
+func (CompactionSummaryMessage) Role() MessageRole { return RoleCompactionSummary }

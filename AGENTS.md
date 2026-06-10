@@ -11,6 +11,7 @@ Homelab Data Hub & Capability Orchestration Center.
 | Database work    | `internal/store/`   | DAO pattern, all DB queries in store.go, migrations   |
 | New provider     | `pkg/providers/`    | See `AGENTS.md` there; reference `providers/example/` |
 | Capability layer | `pkg/ability/`      | reference `ability/example/`                          |
+| Agent engine     | `pkg/agent/`        | Observe-Think-Act loop, tools, session tree         |
 | Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines                                |
 | Workflow engine  | `pkg/workflow/`     | Workflow runtime                                      |
 | Hub management   | `pkg/hub/`          | App lifecycle                                         |
