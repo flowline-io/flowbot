@@ -582,14 +582,7 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		return fmt.Errorf("invalid checkpoint for run %d", runID)
 	}
 
-	// Find the pipeline definition matching this run's pipeline name.
-	var def *Definition
-	for i := range e.defs {
-		if e.defs[i].Resumable && e.defs[i].Name == run.PipelineName {
-			def = &e.defs[i]
-			break
-		}
-	}
+	def := e.findResumableDef(run.PipelineName)
 	if def == nil {
 		return fmt.Errorf("no resumable pipeline definition for %s (run %d)", run.PipelineName, runID)
 	}
@@ -608,8 +601,27 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 	e.emitRunStart(ctx, runID, def)
 
 	startTime := e.clock.Now()
-	failed := false
-	var finalErr error
+	failed, finalErr := e.runResumeSteps(ctx, rc, def, runID, cp)
+
+	e.finishRunRecord(ctx, runID, failed, finalErr)
+	e.emitRunComplete(ctx, runID, def, startTime, failed, finalErr)
+
+	return finalErr
+}
+
+// findResumableDef returns the first resumable pipeline definition matching the given name.
+func (e *Engine) findResumableDef(name string) *Definition {
+	for i := range e.defs {
+		if e.defs[i].Resumable && e.defs[i].Name == name {
+			return &e.defs[i]
+		}
+	}
+	return nil
+}
+
+// runResumeSteps executes pipeline steps from the checkpoint index, persisting
+// checkpoint state before each step. Returns whether the run failed and any error.
+func (e *Engine) runResumeSteps(ctx context.Context, rc *RenderContext, def *Definition, runID int64, cp *CheckpointData) (bool, error) {
 	for i := cp.StepIndex; i < len(def.Steps); i++ {
 		step := def.Steps[i]
 		if cpErr := e.store.SaveCheckpoint(ctx, runID, &CheckpointData{
@@ -622,16 +634,10 @@ func (e *Engine) ResumePipeline(ctx context.Context, runID int64) error {
 		}
 
 		if err := e.executeStep(ctx, rc, step, runID, def.Name, i, true); err != nil {
-			failed = true
-			finalErr = err
-			break
+			return true, err
 		}
 	}
-
-	e.finishRunRecord(ctx, runID, failed, finalErr)
-	e.emitRunComplete(ctx, runID, def, startTime, failed, finalErr)
-
-	return finalErr
+	return false, nil
 }
 
 // RegisterWebhooks returns a map of webhook path to pipeline Definition for
