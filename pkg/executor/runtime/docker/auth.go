@@ -1,5 +1,5 @@
 // Package docker implements the Docker execution runtime.
-package docker // import "https://github.com/cpuguy83/dockercfg"
+package docker
 
 import (
 	"encoding/base64"
@@ -210,7 +210,7 @@ func loadConfig(configFile string) (config, error) {
 
 // FromFile loads config from the specified path into cfg
 func fromFile(configPath string, cfg *config) error {
-	flog.Info("Loading docker config: %s", configPath)
+	flog.Debug("Loading docker config: %s", configPath)
 	f, err := os.Open(configPath)
 	if err != nil {
 		return err

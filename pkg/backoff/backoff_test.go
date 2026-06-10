@@ -242,7 +242,7 @@ func TestDo_Jitter(t *testing.T) {
 	}{
 		{name: "jitter_on", jitter: true},
 		{name: "jitter_off", jitter: false},
-		{name: "jitter_on_again", jitter: true},
+		{name: "jitter_with_zero_interval", jitter: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -274,15 +274,19 @@ func TestDo_Adaptive(t *testing.T) {
 	}{
 		{name: "adaptive_enabled"},
 		{name: "adaptive_disabled"},
-		{name: "adaptive_enabled_second_case"},
+		{name: "adaptive_with_custom_max_interval"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			maxInt := 50 * time.Millisecond
+			if tt.name == "adaptive_with_custom_max_interval" {
+				maxInt = 20 * time.Millisecond
+			}
 			cfg := Config{
 				MaxAttempts:     3,
 				InitialInterval: 10 * time.Millisecond,
-				MaxInterval:     50 * time.Millisecond,
+				MaxInterval:     maxInt,
 				Adaptive:        tt.name != "adaptive_disabled",
 			}
 			fn := func(_ context.Context) error { return errTest }
@@ -292,6 +296,59 @@ func TestDo_Adaptive(t *testing.T) {
 			}
 			if attempt != 3 {
 				t.Fatalf("got attempt=%d, want=3", attempt)
+			}
+		})
+	}
+}
+
+func TestDo_AdaptiveHalvesDelay(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		adaptive bool
+	}{
+		{name: "adaptive_halves_after_success", adaptive: true},
+		{name: "non_adaptive_uses_initial", adaptive: false},
+		{name: "adaptive_persists_across_calls", adaptive: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := Config{
+				MaxAttempts:     3,
+				InitialInterval: 20 * time.Millisecond,
+				MaxInterval:     200 * time.Millisecond,
+				Adaptive:        tt.adaptive,
+			}
+
+			// Call 1: fail once — stored delay = 20ms.
+			_, _ = Do(context.Background(), cfg, func(_ context.Context) error { return errTest })
+
+			// Call 2: succeed after one failure.
+			// Adaptive: starts at 20ms, retry doubles to 40ms, success halves to 20ms.
+			var calls atomic.Int32
+			_, _ = Do(context.Background(), cfg, func(_ context.Context) error {
+				if calls.Add(1) <= 1 {
+					return errTest
+				}
+				return nil
+			})
+
+			// Call 3: measure total sleep for 2 failures (2 sleeps).
+			start := time.Now()
+			_, _ = Do(context.Background(), cfg, func(_ context.Context) error { return errTest })
+			elapsed := time.Since(start)
+
+			if tt.adaptive {
+				// Expected: sleep 20ms + 40ms = 60ms.
+				if elapsed > 200*time.Millisecond {
+					t.Fatalf("adaptive: elapsed=%v, expected ~60ms", elapsed)
+				}
+			} else {
+				// Non-adaptive: sleep 20ms + 40ms = 60ms (same defaults).
+				if elapsed > 200*time.Millisecond {
+					t.Fatalf("non-adaptive: elapsed=%v, expected ~60ms", elapsed)
+				}
 			}
 		})
 	}

@@ -1,5 +1,5 @@
 // Package syncx provides synchronized concurrent-safe data structures.
-package syncx // import "https://github.com/runabol/tork"
+package syncx
 
 import "sync"
 
@@ -22,6 +22,18 @@ func (m *Map[K, V]) Get(key K) (value V, ok bool) {
 
 func (m *Map[K, V]) Set(key K, value V) {
 	m.m.Store(key, value)
+}
+
+// LoadOrStore returns the existing value for the key if present.
+// Otherwise, it stores and returns the given value.
+// The loaded result is true if the value was loaded, false if stored.
+func (m *Map[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool) {
+	v, ok := m.m.LoadOrStore(key, value)
+	if ok {
+		actual, loaded = v.(V)
+		return actual, true
+	}
+	return value, false
 }
 
 // LoadAndDelete atomically retrieves and removes the value for the given key.

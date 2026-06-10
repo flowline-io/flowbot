@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math/rand/v2"
 	"slices"
+	"sync"
 	"time"
 )
 
@@ -32,22 +33,29 @@ type Config struct {
 	MaxElapsedTime time.Duration
 	// OnRetry is called before each retry attempt (not on the first attempt). May be nil.
 	OnRetry func(attempt int, delay time.Duration, err error)
+
+	// adaptiveState persists adaptive delay across Do calls. Lazily initialized.
+	adaptiveState *adaptiveState
 }
 
 // Do executes fn, retrying on error according to cfg.
 // Returns the total number of attempts taken and the last error (nil on success).
+// When Adaptive is enabled, delay state persists across calls: the delay halves
+// after a successful call and doubles after each failed retry.
 func Do(ctx context.Context, cfg Config, fn func(ctx context.Context) error) (attempt int, err error) {
 	cfg.normalize()
-	delay := cfg.InitialInterval
 	start := time.Now()
+	delay := cfg.loadAdaptiveDelay()
 
 	for attempt = 1; attempt <= cfg.MaxAttempts; attempt++ {
 		err = fn(ctx)
 		if err == nil {
+			cfg.saveAdaptiveDelay(max(cfg.InitialInterval, delay/2))
 			return attempt, nil
 		}
 
 		if !shouldRetry(err, &cfg) || attempt >= cfg.MaxAttempts {
+			cfg.saveAdaptiveDelay(delay)
 			return attempt, err
 		}
 
@@ -61,16 +69,60 @@ func Do(ctx context.Context, cfg Config, fn func(ctx context.Context) error) (at
 			cfg.OnRetry(attempt, sleepDuration, err)
 		}
 
-		select {
-		case <-ctx.Done():
-			return attempt, ctx.Err()
-		case <-time.After(sleepDuration):
+		if ctxErr := sleepWithContext(ctx, sleepDuration); ctxErr != nil {
+			return attempt, ctxErr
 		}
 
 		delay = cfg.nextDelay(delay)
 	}
 
+	cfg.saveAdaptiveDelay(delay)
 	return attempt, err
+}
+
+// loadAdaptiveDelay returns the persisted delay from a prior Do call.
+// Falls back to InitialInterval when adaptive mode is off or no state exists.
+func (c *Config) loadAdaptiveDelay() time.Duration {
+	if !c.Adaptive || c.adaptiveState == nil {
+		return c.InitialInterval
+	}
+	c.adaptiveState.mu.Lock()
+	defer c.adaptiveState.mu.Unlock()
+	if c.adaptiveState.lastDelay > 0 {
+		return c.adaptiveState.lastDelay
+	}
+	return c.InitialInterval
+}
+
+// saveAdaptiveDelay persists the given delay for the next Do call when adaptive mode is on.
+func (c *Config) saveAdaptiveDelay(d time.Duration) {
+	if !c.Adaptive {
+		return
+	}
+	state := c.getAdaptive()
+	state.mu.Lock()
+	state.lastDelay = d
+	state.mu.Unlock()
+}
+
+// sleepWithContext blocks for d or until ctx is cancelled, whichever comes first.
+// Returns ctx.Err() on cancellation, nil after a full sleep.
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		// Drain the timer channel if Stop returns false.
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func (c *Config) normalize() {
@@ -95,11 +147,28 @@ func (c *Config) sleepDuration(delay time.Duration) time.Duration {
 	return delay
 }
 
+// nextDelay computes the delay for the next retry attempt.
+// In adaptive mode the delay doubles; otherwise it is scaled by Multiplier.
+// Both modes cap the result at MaxInterval.
 func (c *Config) nextDelay(current time.Duration) time.Duration {
 	if c.Adaptive {
 		return min(c.MaxInterval, current*2)
 	}
 	return min(c.MaxInterval, time.Duration(float64(current)*c.Multiplier))
+}
+
+// adaptiveState holds the persisted delay level for adaptive backoff across Do calls.
+type adaptiveState struct {
+	mu        sync.Mutex
+	lastDelay time.Duration
+}
+
+// getAdaptive lazily initializes and returns the adaptive state.
+func (c *Config) getAdaptive() *adaptiveState {
+	if c.adaptiveState == nil {
+		c.adaptiveState = &adaptiveState{}
+	}
+	return c.adaptiveState
 }
 
 // jitterDuration returns a random duration in [0, d).

@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -86,6 +87,9 @@ func TestNetListener(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			if tt.network == "unix" && runtime.GOOS == "windows" {
+				t.Skip("unix domain sockets are not supported on Windows")
+			}
 			listener, err := NetListener(tt.addr)
 
 			if tt.wantErr {

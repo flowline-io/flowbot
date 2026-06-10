@@ -1,10 +1,14 @@
 package rdb
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 )
@@ -163,4 +167,47 @@ func TestRedisOptions(t *testing.T) {
 			assert.Equal(t, tt.cfg.Password, opts.Password)
 		})
 	}
+}
+
+func TestShutdown(t *testing.T) {
+	t.Run("nil client does not panic", func(t *testing.T) {
+		prev := Client
+		Client = nil
+		t.Cleanup(func() { Client = prev })
+
+		require.NotPanics(t, func() {
+			Shutdown(context.Background())
+		})
+	})
+
+	t.Run("healthy client calls Close", func(t *testing.T) {
+		prev := Client
+		t.Cleanup(func() { Client = prev })
+
+		mr := miniredis.RunT(t)
+		Client = redis.NewClient(&redis.Options{Addr: mr.Addr()})
+
+		require.NotPanics(t, func() {
+			Shutdown(context.Background())
+		})
+		// After Shutdown, Ping should fail since Close was called.
+		_, err := Client.Ping(context.Background()).Result()
+		require.Error(t, err)
+	})
+
+	t.Run("unreachable client still calls Close", func(t *testing.T) {
+		prev := Client
+		t.Cleanup(func() { Client = prev })
+
+		mr := miniredis.RunT(t)
+		Client = redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		mr.Close() // make Redis unreachable
+
+		require.NotPanics(t, func() {
+			Shutdown(context.Background())
+		})
+		// Client.Close was called, so Ping should fail.
+		_, err := Client.Ping(context.Background()).Result()
+		require.Error(t, err)
+	})
 }

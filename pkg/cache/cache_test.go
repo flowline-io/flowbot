@@ -480,6 +480,88 @@ func TestCacheDelByPrefix(t *testing.T) {
 	}
 }
 
+func TestCacheDelCleansKeyIndex(t *testing.T) {
+	cache, err := NewCache(&config.Type{})
+	require.NoError(t, err)
+	require.NotNil(t, cache)
+	defer cache.Wait()
+
+	tests := []struct {
+		name     string
+		setup    func(c *Cache)
+		action   func(c *Cache)
+		prefix   string
+		wantKeys map[string]bool
+	}{
+		{
+			name: "Del cleans keyIndex entry",
+			setup: func(c *Cache) {
+				c.SetWithTTLCap("k1", []byte("v1"), 1, time.Hour, "cap1")
+				c.SetWithTTLCap("k2", []byte("v2"), 1, time.Hour, "cap1")
+			},
+			action: func(c *Cache) {
+				c.DelRaw("k1")
+				c.Wait()
+			},
+			prefix: "cap1",
+			wantKeys: map[string]bool{
+				"k1": false, // removed by DelRaw, not by DelByPrefix
+				"k2": false, // removed by DelByPrefix
+			},
+		},
+		{
+			name: "DelRaw cleans keyIndex entry",
+			setup: func(c *Cache) {
+				c.SetWithTTLCap("k1", []byte("v1"), 1, time.Hour, "cap1")
+				c.SetWithTTLCap("k2", []byte("v2"), 1, time.Hour, "cap1")
+			},
+			action: func(c *Cache) {
+				c.DelRaw("k1")
+				c.Wait()
+			},
+			prefix: "cap1",
+			wantKeys: map[string]bool{
+				"k1": false,
+				"k2": false,
+			},
+		},
+		{
+			name: "DelRaw cleans from all prefixes",
+			setup: func(c *Cache) {
+				c.SetWithTTLCap("shared", []byte("v"), 1, time.Hour, "capA")
+				c.SetWithTTLCap("shared", []byte("v"), 1, time.Hour, "capB")
+				c.SetWithTTLCap("other", []byte("v"), 1, time.Hour, "capB")
+			},
+			action: func(c *Cache) {
+				c.DelRaw("shared")
+				c.Wait()
+			},
+			prefix: "capB",
+			wantKeys: map[string]bool{
+				"shared": false, // removed by DelRaw
+				"other":  false, // removed by DelByPrefix
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup(cache)
+			cache.Wait()
+
+			tt.action(cache)
+
+			cache.DelByPrefix(tt.prefix)
+			cache.Wait()
+
+			for key, wantExist := range tt.wantKeys {
+				_, ok := cache.GetRaw(key)
+				require.Equal(t, wantExist, ok, "key %s existence mismatch", key)
+			}
+		})
+	}
+}
+
 func TestCacheGetBytes(t *testing.T) {
 	cache, err := NewCache(&config.Type{})
 	require.NoError(t, err)

@@ -11,8 +11,10 @@ import (
 	"io"
 	"math/big"
 	"os"
+	"sync"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/bytedance/sonic"
 	cliopts "github.com/docker/cli/opts"
@@ -36,6 +38,7 @@ type Runtime struct {
 	tasks      *syncx.Map[string, string]
 	cancels    *syncx.Map[string, context.CancelFunc]
 	images     *syncx.Map[string, bool]
+	pullMu     *syncx.Map[string, *sync.Mutex]
 	pullq      chan *pullRequest
 	pullerDone chan struct{}
 	mounter    runtime.Mounter
@@ -65,27 +68,40 @@ func WithMounter(mounter runtime.Mounter) Option {
 	}
 }
 
+// WithConfig sets the docker config file path for registry authentication.
 func WithConfig(config string) Option {
 	return func(rt *Runtime) {
 		rt.config = config
 	}
 }
 
-func NewRuntime(opts ...Option) (*Runtime, error) {
-	dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		return nil, err
+// WithClient sets a pre-existing Docker client, avoiding the creation of a
+// duplicate client when sharing one across components (e.g. VolumeMounter).
+func WithClient(c *client.Client) Option {
+	return func(rt *Runtime) {
+		rt.client = c
 	}
+}
+
+func NewRuntime(opts ...Option) (*Runtime, error) {
 	rt := &Runtime{
-		client:     dc,
 		tasks:      new(syncx.Map[string, string]),
 		cancels:    new(syncx.Map[string, context.CancelFunc]),
 		images:     new(syncx.Map[string, bool]),
+		pullMu:     new(syncx.Map[string, *sync.Mutex]),
 		pullq:      make(chan *pullRequest, 1),
 		pullerDone: make(chan struct{}),
 	}
 	for _, o := range opts {
 		o(rt)
+	}
+	// Create Docker client if not provided via WithClient.
+	if rt.client == nil {
+		dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		if err != nil {
+			return nil, err
+		}
+		rt.client = dc
 	}
 
 	// setup a default mounter
@@ -400,8 +416,12 @@ func (d *Runtime) readOutput(ctx context.Context, containerID string) (string, e
 			return "", err
 		}
 
-		const maxOutputSize = 10 * 1024 * 1024 // 10 MB
-		if _, err := io.CopyN(&buf, tr, maxOutputSize); err != nil && !errors.Is(err, io.EOF) {
+		const maxOutputSize = 10 * 1024 * 1024 // 10 MB total
+		remaining := maxOutputSize - int64(buf.Len())
+		if remaining <= 0 {
+			continue
+		}
+		if _, err := io.CopyN(&buf, tr, remaining); err != nil && !errors.Is(err, io.EOF) {
 			return "", err
 		}
 	}
@@ -445,7 +465,7 @@ func createArchive(t *types.Task) (string, error) {
 	// create an archive file
 	ar, err := os.CreateTemp("", "archive-*.tar")
 	if err != nil {
-		return "", fmt.Errorf("error creating tar file")
+		return "", fmt.Errorf("error creating tar file: %w", err)
 	}
 	defer func() {
 		if err := ar.Close(); err != nil {
@@ -557,11 +577,16 @@ func (r printableReader) Read(p []byte) (int, error) {
 		}
 	}
 	j := 0
-	for i := range n {
-		if unicode.IsPrint(rune(buf[i])) {
-			p[j] = buf[i]
-			j++
+	for i := 0; i < n; {
+		ru, size := utf8.DecodeRune(buf[i:n])
+		if ru == utf8.RuneError && size <= 1 {
+			i += size
+			continue
 		}
+		if unicode.IsPrint(ru) || ru == '\n' || ru == '\r' || ru == '\t' {
+			j += copy(p[j:], buf[i:i+size])
+		}
+		i += size
 	}
 	return j, err
 }
@@ -571,8 +596,15 @@ func (d *Runtime) imagePull(ctx context.Context, t *types.Task) error {
 	if ok {
 		return nil
 	}
-	// let's check if we have the image
-	// locally already
+	// Acquire per-image lock to deduplicate concurrent pulls of the same image.
+	mu, _ := d.pullMu.LoadOrStore(t.Image, &sync.Mutex{})
+	mu.Lock()
+	defer mu.Unlock()
+	// Double-check after acquiring the lock; another goroutine may have pulled it.
+	if _, ok := d.images.Get(t.Image); ok {
+		return nil
+	}
+	// Check if the image exists locally.
 	images, err := d.client.ImageList(
 		ctx,
 		image.ListOptions{All: true},
@@ -599,7 +631,11 @@ func (d *Runtime) imagePull(ctx context.Context, t *types.Task) error {
 		}
 	}
 	d.pullq <- pr
-	return <-pr.done
+	err = <-pr.done
+	if err == nil {
+		d.images.Set(t.Image, true)
+	}
+	return err
 }
 
 // puller is a goroutine that serializes all requests
@@ -657,5 +693,6 @@ func (d *Runtime) puller() {
 // and closing the Docker client connection.
 func (d *Runtime) Close() error {
 	close(d.pullq)
+	<-d.pullerDone
 	return d.client.Close()
 }

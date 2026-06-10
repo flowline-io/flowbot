@@ -1,8 +1,6 @@
 package ability
 
 import (
-	"strings"
-
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
@@ -221,19 +219,28 @@ const (
 	OpMemoHealth = "health"
 )
 
-var mutationVerbs = []string{
-	"create", "delete", "update", "move",
-	"archive", "attach", "detach", "complete",
-	"mark", "star", "unstar",
-	"send", "add",
+// mutationOps is the explicit set of operations that modify state.
+// Add new mutation operations here when introducing write operations.
+var mutationOps = map[string]bool{
+	// Generic CRUD mutations
+	"create": true, "delete": true, "update": true,
+	// Bookmark mutations
+	"archive": true, "attach_tags": true, "detach_tags": true,
+	// Kanban mutations
+	"move_task": true, "complete_task": true,
+	// Reader mutations
+	"create_feed":     true,
+	"mark_entry_read": true, "mark_entry_unread": true,
+	"star_entry": true, "unstar_entry": true,
+	// Notify mutations
+	"send": true,
+	// Archive mutations
+	"add": true,
+	// Finance mutations
+	"create_transaction": true,
 }
 
 // IsMutation reports whether the operation name indicates a write that modifies state.
 func IsMutation(op string) bool {
-	for _, v := range mutationVerbs {
-		if strings.Contains(op, v) {
-			return true
-		}
-	}
-	return false
+	return mutationOps[op]
 }

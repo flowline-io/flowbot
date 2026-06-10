@@ -72,7 +72,12 @@ func TestGetDefaultConfig(t *testing.T) {
 
 func TestSetDefaultsAppliesToNewInstances(t *testing.T) {
 	save := defaultManager.defaults
-	t.Cleanup(func() { defaultManager.defaults = save })
+	saveOpts := defaultManager.extraOpts
+	t.Cleanup(func() {
+		defaultManager.defaults = save
+		defaultManager.extraOpts = saveOpts
+		Reset()
+	})
 
 	tests := []struct {
 		name       string
@@ -85,6 +90,7 @@ func TestSetDefaultsAppliesToNewInstances(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			Reset()
 			SetDefaults(
 				WithMaxConcurrent(tt.concurrent),
 				WithMaxQueue(tt.queue),

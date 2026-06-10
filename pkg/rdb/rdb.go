@@ -78,6 +78,8 @@ func redisOptions(cfg config.Redis) *redis.Options {
 }
 
 // Shutdown gracefully closes the Redis client with a 5-second timeout.
+// Client.Close is always called to release the connection pool, even when
+// the ping fails (e.g. Redis is unreachable during shutdown).
 func Shutdown(ctx context.Context) {
 	if Client == nil {
 		flog.Warn("redis not initialized")
@@ -87,15 +89,13 @@ func Shutdown(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	_, err := Client.Ping(ctx).Result()
-	if err == nil {
-		err = Client.Close()
-		if err != nil {
-			flog.Error(fmt.Errorf("failed to close redis connection: %w", err))
-			return
-		}
-		flog.Info("redis stopped")
-	} else {
+	if _, err := Client.Ping(ctx).Result(); err != nil {
 		flog.Warn("redis connection already lost: %v", err)
 	}
+
+	if err := Client.Close(); err != nil {
+		flog.Error(fmt.Errorf("failed to close redis connection: %w", err))
+		return
+	}
+	flog.Info("redis stopped")
 }

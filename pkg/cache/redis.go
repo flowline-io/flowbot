@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // RedisStore wraps a Redis client to implement StringCache, IntCache, SetCache, and ListCache.
@@ -118,7 +120,9 @@ func (s *RedisStore) Add(ctx context.Context, key Key, ttl TTL, members ...strin
 		return 0, fmt.Errorf("redis sadd %s: %w", key.String(), err)
 	}
 	if ttl.Duration() > 0 {
-		_ = s.client.Expire(ctx, key.String(), ttl.Duration()).Err()
+		if err := s.client.Expire(ctx, key.String(), ttl.Duration()).Err(); err != nil {
+			return n, fmt.Errorf("redis expire after sadd %s: %w", key.String(), err)
+		}
 	}
 	return n, nil
 }
@@ -191,15 +195,22 @@ func (s *RedisStore) ExistsRaw(ctx context.Context, key string) (bool, error) {
 }
 
 // SetMetricsInt64 stores a named metric value. Convenience wrapper around SetInt64.
+// Errors are logged rather than returned since metrics are best-effort.
 func (s *RedisStore) SetMetricsInt64(key string, value int64) {
 	k := NewKey("metrics", "gauge", key)
-	_ = s.SetInt64(context.Background(), k, value, TTLMonth)
+	if err := s.SetInt64(context.Background(), k, value, TTLMonth); err != nil {
+		flog.Warn("failed to set metric %s: %v", key, err)
+	}
 }
 
 // GetMetricsInt64 retrieves a named metric value.
+// Errors are logged rather than returned since metrics are best-effort.
 func (s *RedisStore) GetMetricsInt64(key string) int64 {
 	k := NewKey("metrics", "gauge", key)
-	v, _ := s.GetInt64(context.Background(), k)
+	v, err := s.GetInt64(context.Background(), k)
+	if err != nil {
+		flog.Warn("failed to get metric %s: %v", key, err)
+	}
 	return v
 }
 

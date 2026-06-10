@@ -11,6 +11,7 @@ type StringCache interface {
 	Set(ctx context.Context, key Key, value string, ttl TTL) error
 	// SetNX sets the value only if the key does not already exist.
 	// Returns true if the value was set.
+	// Implementations should provide atomic check-and-set semantics.
 	SetNX(ctx context.Context, key Key, value string, ttl TTL) (bool, error)
 	// Del removes the key from the cache.
 	Del(ctx context.Context, key Key) error

@@ -34,11 +34,9 @@ func parseComposePSStatus(output string) AppStatus {
 	runningCount := 0
 	for _, entry := range entries {
 		switch strings.ToLower(entry.State) {
-		case "exited":
+		case "exited", "dead":
 			exitedCount++
 		case "running":
-			runningCount++
-		default:
 			runningCount++
 		}
 	}
@@ -55,11 +53,15 @@ func parseComposePSStatus(output string) AppStatus {
 	return AppStatusUnknown
 }
 
+// DockerComposeRuntime executes docker compose commands locally using the
+// Docker CLI against a configured Docker socket.
 type DockerComposeRuntime struct {
 	socketPath string
 	appsDir    string
 }
 
+// NewDockerComposeRuntime creates a DockerComposeRuntime that shells out to
+// docker compose using the configured socket path.
 func NewDockerComposeRuntime(config RuntimeConfig, appsDir string) *DockerComposeRuntime {
 	return &DockerComposeRuntime{
 		socketPath: config.DockerSocket,
@@ -76,7 +78,7 @@ func (r *DockerComposeRuntime) validatePath(app App) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "homelab resolve app path: %v", err)
 	}
-	if !strings.HasPrefix(absAppPath, absAppsDir) {
+	if !isInside(absAppsDir, absAppPath) {
 		return types.Errorf(types.ErrForbidden, "app path %s is outside apps_dir %s", app.Path, r.appsDir)
 	}
 	return nil

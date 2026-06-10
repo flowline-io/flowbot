@@ -130,7 +130,14 @@ func stringField(payload map[string]any, key string) (string, error) {
 
 // optionalStringField returns the string value for a key, or empty string if absent.
 func optionalStringField(payload map[string]any, key string) string {
-	value, _ := payload[key].(string)
+	raw, ok := payload[key]
+	if !ok {
+		return ""
+	}
+	value, ok := raw.(string)
+	if !ok {
+		return ""
+	}
 	return value
 }
 

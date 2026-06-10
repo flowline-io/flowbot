@@ -10,12 +10,11 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type testStore struct {
@@ -134,14 +133,7 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	t.Helper()
 
 	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
-	dbClient, err := gen.Open("sqlite3", "file:"+dbName+"?mode=memory&cache=shared&_fk=1")
-	if err != nil {
-		t.Fatalf("failed opening sqlite: %v", err)
-	}
-	if err := dbClient.Schema.Create(context.Background()); err != nil {
-		t.Fatalf("failed creating schema: %v", err)
-	}
-	t.Cleanup(func() { dbClient.Close() })
+	dbClient := sqlitetest.OpenClient(t, dbName)
 
 	ts := &testStore{dbClient: dbClient}
 	store.Database = ts

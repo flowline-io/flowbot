@@ -1,4 +1,4 @@
-package runtime // import "https://github.com/runabol/tork"
+package runtime
 
 import (
 	"context"

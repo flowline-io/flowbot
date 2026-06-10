@@ -22,10 +22,15 @@ type composeService struct {
 	Labels        any    `yaml:"labels"`
 }
 
+// ParseCompose parses a Docker Compose YAML document and returns the extracted
+// services, network names, aggregated port mappings, and merged labels.
 func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[string]string, error) {
 	var doc composeDocument
 	if err := yaml.Unmarshal(data, &doc); err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("parse compose: %w", err)
+	}
+	if len(doc.Services) == 0 && len(doc.Networks) == 0 {
+		return nil, nil, nil, nil, nil
 	}
 	serviceNames := make([]string, 0, len(doc.Services))
 	for name := range doc.Services {
@@ -34,7 +39,7 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 	slices.Sort(serviceNames)
 
 	services := make([]ComposeService, 0, len(doc.Services))
-	ports := make([]PortMapping, 0, len(doc.Services)*2)
+	var ports []PortMapping
 	labels := make(map[string]string)
 	for _, name := range serviceNames {
 		svc := doc.Services[name]
@@ -48,7 +53,7 @@ func ParseCompose(data []byte) ([]ComposeService, []string, []PortMapping, map[s
 		ports = append(ports, servicePorts...)
 		maps.Copy(labels, normalizeLabels(svc.Labels))
 	}
-	networks := make([]string, 0, len(doc.Networks))
+	var networks []string
 	for name := range doc.Networks {
 		networks = append(networks, name)
 	}
@@ -78,6 +83,9 @@ func parsePortMap(value map[string]any) PortMapping {
 }
 
 func parsePortString(value string) PortMapping {
+	if value == "" {
+		return PortMapping{}
+	}
 	protocol := "tcp"
 	if before, after, ok := strings.Cut(value, "/"); ok {
 		value = before

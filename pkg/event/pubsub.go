@@ -14,7 +14,6 @@ import (
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/fx"
@@ -22,7 +21,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/stats"
-	"github.com/flowline-io/flowbot/pkg/trace"
 )
 
 var logger = flog.WatermillLogger
@@ -57,25 +55,29 @@ var Publisher message.Publisher
 
 // NewPublisher creates a Watermill Redis Stream publisher using the shared Redis client.
 func NewPublisher(lc fx.Lifecycle, client *redis.Client) (message.Publisher, error) {
-	var err error
-	Publisher, err = redisstream.NewPublisher(
+	pub, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
 			Client:     client,
 			Marshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create redis publisher: %w", err)
+	}
+
+	Publisher = pub
 
 	lc.Append(fx.Hook{
 		OnStart: func(_ context.Context) error {
 			return nil
 		},
 		OnStop: func(_ context.Context) error {
-			return Publisher.Close()
+			return pub.Close()
 		},
 	})
 
-	return Publisher, err
+	return pub, nil
 }
 
 // NewRouter creates a Watermill message router with standard middleware.
@@ -128,32 +130,9 @@ func NewMessage(payload any) (*message.Message, error) {
 	return msg, nil
 }
 
-// PublishMessage publishes a message to the given topic with OpenTelemetry tracing.
+// PublishMessage publishes a message to the given topic using the global Publisher, with OpenTelemetry tracing.
 func PublishMessage(ctx context.Context, topic string, payload any) error {
-	msg, err := NewMessage(payload)
-	if err != nil {
-		return fmt.Errorf("failed to new message: %w", err)
-	}
-
-	_, publishSpan := trace.StartSpan(ctx, "event.publish "+topic,
-		attribute.String("messaging.destination", topic),
-		attribute.String("messaging.message.id", msg.UUID),
-	)
-	defer publishSpan.End()
-
-	carrier := propagation.MapCarrier{}
-	otel.GetTextMapPropagator().Inject(ctx, carrier)
-	for k, v := range carrier {
-		msg.Metadata.Set(k, v)
-	}
-	msg.Metadata.Set("x-otel-topic", topic)
-
-	err = Publisher.Publish(topic, msg)
-	if err != nil {
-		publishSpan.RecordError(err)
-		publishSpan.SetStatus(codes.Error, err.Error())
-	}
-	return err
+	return publishWith(ctx, Publisher, topic, payload)
 }
 
 // TraceConsumerMiddleware returns a Watermill middleware that extracts OTel trace context

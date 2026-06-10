@@ -2,6 +2,7 @@ package backoff
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
@@ -20,6 +21,8 @@ func Middleware(cfg Config, logger watermill.LoggerAdapter) message.HandlerMiddl
 			}
 
 			localCfg := cfg
+			// Share adaptive state across retries for the same middleware instance.
+			localCfg.adaptiveState = cfg.adaptiveState
 			origOnRetry := localCfg.OnRetry
 			localCfg.OnRetry = func(attempt int, delay time.Duration, err error) {
 				if logger != nil {
@@ -37,8 +40,12 @@ func Middleware(cfg Config, logger watermill.LoggerAdapter) message.HandlerMiddl
 				producedMessages, err = h(msg)
 				return err
 			})
-			_ = attempt
 			if finalErr != nil {
+				if logger != nil {
+					logger.Error(fmt.Sprintf("All %d retry attempts exhausted", attempt), finalErr, watermill.LogFields{
+						"final_attempt": attempt,
+					})
+				}
 				return nil, finalErr
 			}
 			return producedMessages, nil

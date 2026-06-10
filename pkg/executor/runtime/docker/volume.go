@@ -13,10 +13,12 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
+// VolumeMounter manages Docker volume lifecycle: creation on Mount, removal on Unmount.
 type VolumeMounter struct {
 	client *client.Client
 }
 
+// NewVolumeMounter creates a VolumeMounter with its own Docker client.
 func NewVolumeMounter() (*VolumeMounter, error) {
 	dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -25,6 +27,13 @@ func NewVolumeMounter() (*VolumeMounter, error) {
 	return &VolumeMounter{client: dc}, nil
 }
 
+// NewVolumeMounterWithClient creates a VolumeMounter using the provided Docker
+// client, allowing the client to be shared with the Runtime to reduce resource usage.
+func NewVolumeMounterWithClient(c *client.Client) *VolumeMounter {
+	return &VolumeMounter{client: c}
+}
+
+// Mount creates a new Docker volume and sets its generated name on mn.Source.
 func (m *VolumeMounter) Mount(ctx context.Context, mn *types.Mount) error {
 	name := utils.NewUUID()
 	mn.Source = name
@@ -36,6 +45,7 @@ func (m *VolumeMounter) Mount(ctx context.Context, mn *types.Mount) error {
 	return nil
 }
 
+// Unmount removes the Docker volume identified by mn.Source.
 func (m *VolumeMounter) Unmount(ctx context.Context, mn *types.Mount) error {
 	ls, err := m.client.VolumeList(ctx, volume.ListOptions{Filters: filters.NewArgs(filters.Arg("name", mn.Source))})
 	if err != nil {

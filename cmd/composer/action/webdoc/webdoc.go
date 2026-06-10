@@ -403,16 +403,17 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 // relPathToOut maps a source relative path to an output relative path.
 // README.md files become index.html preserving their directory context so
 // that relative links between pages resolve correctly on GitHub Pages.
+// Always uses forward slashes since the result is used in web URLs.
 func relPathToOut(relPath string) string {
 	dir := filepath.Dir(relPath)
 	name := filepath.Base(relPath)
 	stem := strings.TrimSuffix(name, ".md")
 
 	if stem == "README" {
-		return filepath.Join(dir, "index.html")
+		return filepath.ToSlash(filepath.Join(dir, "index.html"))
 	}
 
-	return filepath.Join(dir, stem+".html")
+	return filepath.ToSlash(filepath.Join(dir, stem+".html"))
 }
 
 // parseFrontMatter extracts YAML front matter delimited by --- and returns the

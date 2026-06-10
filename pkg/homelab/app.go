@@ -1,6 +1,8 @@
 // Package homelab provides homelab application scanning and registry.
 package homelab
 
+// App represents a discovered homelab application with its compose metadata,
+// runtime status, and any capabilities derived from labels or probing.
 type App struct {
 	Name        string            `json:"name"`
 	Path        string            `json:"path"`
@@ -15,6 +17,7 @@ type App struct {
 	Capabilities []AppCapability `json:"capabilities,omitzero"`
 }
 
+// ComposeService describes a single service entry within a Docker Compose file.
 type ComposeService struct {
 	Name      string        `json:"name"`
 	Image     string        `json:"image,omitzero"`
@@ -22,6 +25,7 @@ type ComposeService struct {
 	Ports     []PortMapping `json:"ports,omitzero"`
 }
 
+// PortMapping represents a single host-to-container port binding.
 type PortMapping struct {
 	Host      string `json:"host,omitzero"`
 	HostPort  string `json:"host_port,omitzero"`
@@ -29,6 +33,7 @@ type PortMapping struct {
 	Protocol  string `json:"protocol,omitzero"`
 }
 
+// AppStatus indicates the aggregate running state of an app's containers.
 type AppStatus string
 
 const (
@@ -38,6 +43,7 @@ const (
 	AppStatusPartial AppStatus = "partial"
 )
 
+// HealthStatus indicates the observed health of an app.
 type HealthStatus string
 
 const (
@@ -46,6 +52,8 @@ const (
 	HealthUnhealthy HealthStatus = "unhealthy"
 )
 
+// Config controls how the homelab scanner discovers applications and configures
+// the runtime and permission model.
 type Config struct {
 	Root        string
 	AppsDir     string
@@ -56,6 +64,7 @@ type Config struct {
 	Discovery   DiscoveryConfig
 }
 
+// RuntimeConfig selects the runtime mode and its connection parameters.
 type RuntimeConfig struct {
 	Mode         RuntimeMode
 	DockerSocket string
@@ -67,6 +76,7 @@ type RuntimeConfig struct {
 	SSHHostKey   string
 }
 
+// RuntimeMode selects which backend the homelab runtime uses.
 type RuntimeMode string
 
 const (
@@ -75,6 +85,7 @@ const (
 	RuntimeModeSSH          RuntimeMode = "ssh"
 )
 
+// Permissions defines which container lifecycle operations are allowed.
 type Permissions struct {
 	Status  bool
 	Logs    bool

@@ -12,14 +12,19 @@ import (
 
 var appNamePattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
+// Scanner discovers homelab applications by scanning a directory for
+// Docker Compose files and parsing their metadata.
 type Scanner struct {
 	config Config
 }
 
+// NewScanner creates a Scanner with normalised configuration defaults.
 func NewScanner(config Config) *Scanner {
 	return &Scanner{config: normalizeConfig(config)}
 }
 
+// Scan reads the configured apps directory and returns all discovered
+// applications that have valid compose files and pass the allowlist filter.
 func (s *Scanner) Scan() ([]App, error) {
 	appsDir, err := safeEval(s.config.AppsDir)
 	if err != nil {
@@ -30,7 +35,7 @@ func (s *Scanner) Scan() ([]App, error) {
 		return nil, fmt.Errorf("read apps dir: %w", err)
 	}
 	allowlist := allowlistSet(s.config.Allowlist)
-	apps := make([]App, 0, len(entries))
+	var apps []App
 	for _, entry := range entries {
 		if !entry.IsDir() && entry.Type()&os.ModeSymlink == 0 {
 			continue
@@ -139,17 +144,15 @@ func safeEval(path string) (string, error) {
 	return filepath.Clean(realPath), nil
 }
 
+// isInside reports whether path is equal to root or a descendant of root.
 func isInside(root string, path string) bool {
 	root = filepath.Clean(root)
 	path = filepath.Clean(path)
-	rel, err := filepath.Rel(root, path)
-	if err != nil {
-		return false
-	}
-	if rel == "." {
+	if root == path {
 		return true
 	}
-	if rel == "" || rel == ".." || filepath.IsAbs(rel) {
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
 		return false
 	}
 	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))

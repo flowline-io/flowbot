@@ -53,7 +53,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
 
-		homelab.RunRescan = func() error { return nil }
+		homelab.SetRunRescan(func() error { return nil })
 
 		homelab.DefaultRegistry.Replace([]homelab.App{
 			{
@@ -98,7 +98,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 	AfterEach(func() {
 		store.Database = origDB
 		homelab.DefaultRegistry.Replace(nil)
-		homelab.RunRescan = nil
+		homelab.SetRunRescan(nil)
 	})
 
 	Describe("GET /service/web/homelab", func() {

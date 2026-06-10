@@ -3,7 +3,6 @@ package bulkhead
 import (
 	"context"
 	"errors"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -211,7 +210,7 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 			name: "queue full triggers drop",
 			trigger: func(t *testing.T, _ *Bulkhead) {
 				var enters, leaves, drops int32
-				var dropReason string
+				var dropReason atomic.Value
 				localB := New("test",
 					WithMaxConcurrent(1),
 					WithMaxQueue(1),
@@ -220,7 +219,7 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 					WithOnLeave(func(_ string) { atomic.AddInt32(&leaves, 1) }),
 					WithOnDrop(func(_ string, reason string) {
 						atomic.AddInt32(&drops, 1)
-						dropReason = reason
+						dropReason.Store(reason)
 					}),
 				)
 
@@ -260,8 +259,8 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 				if atomic.LoadInt32(&drops) != 1 {
 					t.Errorf("drops: want 1, got %d", drops)
 				}
-				if dropReason != "queue_full" {
-					t.Errorf("drop reason: want queue_full, got %s", dropReason)
+				if v, ok := dropReason.Load().(string); !ok || v != "queue_full" {
+					t.Errorf("drop reason: want queue_full, got %v", dropReason.Load())
 				}
 			},
 			wantEnterCalls: 0,
@@ -273,7 +272,7 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var enters, leaves, drops int32
-			var dropReason string
+			var dropReason atomic.Value
 			b := New("test",
 				WithMaxConcurrent(1),
 				WithMaxQueue(1),
@@ -286,7 +285,7 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 				}),
 				WithOnDrop(func(_ string, reason string) {
 					atomic.AddInt32(&drops, 1)
-					dropReason = reason
+					dropReason.Store(reason)
 				}),
 			)
 			tt.trigger(t, b)
@@ -299,34 +298,47 @@ func TestBulkheadDoCallbacks(t *testing.T) {
 			if atomic.LoadInt32(&drops) != tt.wantDropCalls {
 				t.Errorf("drops: want %d, got %d", tt.wantDropCalls, drops)
 			}
-			if tt.wantDropCalls > 0 && dropReason != tt.wantDropReason {
-				t.Errorf("drop reason: want %s, got %s", tt.wantDropReason, dropReason)
+			if tt.wantDropCalls > 0 {
+				if v, ok := dropReason.Load().(string); !ok || v != tt.wantDropReason {
+					t.Errorf("drop reason: want %s, got %v", tt.wantDropReason, dropReason.Load())
+				}
 			}
 		})
 	}
 }
 
-func TestBulkheadDefaultSize(t *testing.T) {
-	n := runtime.GOMAXPROCS(0)
-	if n < 1 {
-		t.Fatal("GOMAXPROCS returned 0")
+func TestBulkheadNewDefaults(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "default_sem_cap_is_one"},
+		{name: "default_queue_cap_is_zero"},
+		{name: "default_timeout_is_thirty_seconds"},
 	}
-	expected := n * 4
-	b := New("test", WithMaxConcurrent(expected), WithMaxQueue(expected))
-	if cap(b.sem) != expected {
-		t.Errorf("sem cap: want %d, got %d", expected, cap(b.sem))
-	}
-	if cap(b.queue) != expected {
-		t.Errorf("queue cap: want %d, got %d", expected, cap(b.queue))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := New("default-" + tt.name)
+			if cap(b.sem) != 1 {
+				t.Errorf("sem cap: want 1, got %d", cap(b.sem))
+			}
+			if cap(b.queue) != 0 {
+				t.Errorf("queue cap: want 0, got %d", cap(b.queue))
+			}
+			if b.config.timeout != 30*time.Second {
+				t.Errorf("timeout: want 30s, got %v", b.config.timeout)
+			}
+		})
 	}
 }
 
-func TestBulkheadDoRace(_ *testing.T) {
+func TestBulkheadDoRace(t *testing.T) {
 	b := New("test", WithMaxConcurrent(4), WithMaxQueue(4), WithTimeout(5*time.Second))
 	var wg sync.WaitGroup
 	for range 50 {
 		wg.Go(func() {
-			_ = b.Do(context.Background(), func() error { return nil })
+			if err := b.Do(context.Background(), func() error { return nil }); err != nil {
+				t.Errorf("unexpected error in race test: %v", err)
+			}
 		})
 	}
 	wg.Wait()

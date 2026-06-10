@@ -6,6 +6,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+// Runtime defines the container lifecycle operations that can be performed
+// on a homelab application.
 type Runtime interface {
 	Status(ctx context.Context, app App) (AppStatus, error)
 	Logs(ctx context.Context, app App, tail int) ([]string, error)
@@ -16,16 +18,22 @@ type Runtime interface {
 	Update(ctx context.Context, app App) error
 }
 
+// DefaultRuntime is the process-wide runtime used when no explicit runtime
+// is provided. Defaults to NoopRuntime.
 var DefaultRuntime Runtime = NoopRuntime{}
 
+// NoopRuntime is a Runtime that returns not-implemented errors for all
+// mutating operations and preserves the existing status on reads.
 type NoopRuntime struct{}
 
+// NewRuntime selects the appropriate Runtime implementation based on the
+// configured mode.
 func NewRuntime(config RuntimeConfig, appsDir string) Runtime {
 	switch config.Mode {
 	case RuntimeModeDockerSocket:
 		return NewDockerComposeRuntime(config, appsDir)
 	case RuntimeModeSSH:
-		return NewSSHRuntime(config)
+		return NewSSHRuntime(config, appsDir)
 	default:
 		return NoopRuntime{}
 	}

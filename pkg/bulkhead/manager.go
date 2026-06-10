@@ -11,6 +11,7 @@ type manager struct {
 	mu        sync.Mutex
 	instances map[string]*Bulkhead
 	defaults  config
+	extraOpts []Option
 }
 
 var defaultManager = &manager{instances: make(map[string]*Bulkhead)}
@@ -33,15 +34,28 @@ func Get(name string) *Bulkhead {
 		return b
 	}
 
-	cfg := defaultManager.defaults
-	b := New(name,
-		WithMaxConcurrent(cfg.maxConcurrent),
-		WithMaxQueue(cfg.maxQueue),
-		WithTimeout(cfg.timeout),
-		WithOnEnter(cfg.onEnter),
-		WithOnLeave(cfg.onLeave),
-		WithOnDrop(cfg.onDrop),
-	)
+	opts := []Option{
+		WithMaxConcurrent(defaultManager.defaults.maxConcurrent),
+		WithMaxQueue(defaultManager.defaults.maxQueue),
+		WithTimeout(defaultManager.defaults.timeout),
+	}
+	if defaultManager.defaults.onEnter != nil {
+		opts = append(opts, WithOnEnter(defaultManager.defaults.onEnter))
+	}
+	if defaultManager.defaults.onLeave != nil {
+		opts = append(opts, WithOnLeave(defaultManager.defaults.onLeave))
+	}
+	if defaultManager.defaults.onDrop != nil {
+		opts = append(opts, WithOnDrop(defaultManager.defaults.onDrop))
+	}
+	if defaultManager.defaults.onQueueEnter != nil {
+		opts = append(opts, WithOnQueueEnter(defaultManager.defaults.onQueueEnter))
+	}
+	if defaultManager.defaults.onQueueLeave != nil {
+		opts = append(opts, WithOnQueueLeave(defaultManager.defaults.onQueueLeave))
+	}
+	opts = append(opts, defaultManager.extraOpts...)
+	b := New(name, opts...)
 	defaultManager.instances[name] = b
 	return b
 }
@@ -51,7 +65,17 @@ func Get(name string) *Bulkhead {
 func SetDefaults(opts ...Option) {
 	defaultManager.mu.Lock()
 	defer defaultManager.mu.Unlock()
+	defaultManager.extraOpts = append(defaultManager.extraOpts, opts...)
 	for _, o := range opts {
 		o(&defaultManager.defaults)
 	}
+}
+
+// Reset clears all cached Bulkhead instances and extra default options.
+// Intended for use in tests to isolate state between cases.
+func Reset() {
+	defaultManager.mu.Lock()
+	defer defaultManager.mu.Unlock()
+	defaultManager.instances = make(map[string]*Bulkhead)
+	defaultManager.extraOpts = nil
 }

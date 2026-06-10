@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
+// Bookmark represents a saved web bookmark with metadata and organisation flags.
 type Bookmark struct {
 	ID         string    `json:"id"`
 	URL        string    `json:"url"`
@@ -18,6 +19,7 @@ type Bookmark struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
+// ArchiveItem represents a saved web page or document in an archive store.
 type ArchiveItem struct {
 	ID        string    `json:"id"`
 	URL       string    `json:"url"`
@@ -26,6 +28,7 @@ type ArchiveItem struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// Feed represents an RSS/Atom feed subscription in a reader service.
 type Feed struct {
 	ID       int64  `json:"id"`
 	Title    string `json:"title"`
@@ -34,6 +37,7 @@ type Feed struct {
 	Category string `json:"category,omitzero"`
 }
 
+// Entry represents a single article or post within an RSS/Atom feed.
 type Entry struct {
 	ID          int64     `json:"id"`
 	Title       string    `json:"title"`
@@ -45,6 +49,7 @@ type Entry struct {
 	FeedTitle   string    `json:"feed_title,omitzero"`
 }
 
+// Task represents a work item on a kanban board.
 type Task struct {
 	ID          int      `json:"id"`
 	Title       string   `json:"title"`
@@ -55,6 +60,7 @@ type Task struct {
 	Reference   string   `json:"reference,omitzero"`
 }
 
+// Host represents a discovered homelab service instance.
 type Host struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`

@@ -485,7 +485,7 @@ services:
 			expectedLabels: map[string]string{"env": "prod", "tier": "backend"},
 		},
 		{
-			name: "conflicting label, last service wins",
+			name: "conflicting label, alphabetically last service wins",
 			data: []byte(`
 services:
   frontend:

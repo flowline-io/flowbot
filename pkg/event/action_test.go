@@ -87,14 +87,9 @@ func testPlatforms() []*gen.Platform {
 
 func TestSendToAll_EmptyPlatformUsers(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{}
-	Publisher = pub
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -107,21 +102,16 @@ func TestSendToAll_EmptyPlatformUsers(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	err := sendToAll(ctx, testPayload(), nil)
+	err := sendToAll(ctx, testPayload(), nil, pub)
 	require.NoError(t, err)
 	assert.Empty(t, pub.messages)
 }
 
 func TestSendToAll_EmptyPlatformUserSlice(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{}
-	Publisher = pub
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -134,21 +124,16 @@ func TestSendToAll_EmptyPlatformUserSlice(t *testing.T) {
 	store.Database = ms
 
 	ctx := types.Context{}
-	err := sendToAll(ctx, testPayload(), []*gen.PlatformUser{})
+	err := sendToAll(ctx, testPayload(), []*gen.PlatformUser{}, pub)
 	require.NoError(t, err)
 	assert.Empty(t, pub.messages)
 }
 
 func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{}
-	Publisher = pub
 
 	var capturedFlags []string
 	ms := &mockStore{
@@ -170,7 +155,7 @@ func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, pub)
 	require.NoError(t, err)
 
 	assert.Equal(t, []string{"user:slack:U1"}, capturedFlags)
@@ -188,14 +173,9 @@ func TestSendToAll_SinglePlatformUserWithChannels(t *testing.T) {
 
 func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{}
-	Publisher = pub
 
 	var capturedFlags []string
 	ms := &mockStore{
@@ -219,7 +199,7 @@ func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
 		{PlatformID: 2, Flag: "user:discord:D1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, pub)
 	require.NoError(t, err)
 
 	assert.Len(t, capturedFlags, 2)
@@ -239,14 +219,9 @@ func TestSendToAll_MultiplePlatformUsers(t *testing.T) {
 
 func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{}
-	Publisher = pub
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -266,7 +241,7 @@ func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
 		{PlatformID: 2, Flag: "user:discord:D1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, pub)
 	require.NoError(t, err)
 	// Only slack channels should be published, discord: no channel users
 	var platforms []string
@@ -281,14 +256,9 @@ func TestSendToAll_PlatformUserWithNoChannels(t *testing.T) {
 
 func TestSendToAll_MissingPlatformName(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{}
-	Publisher = pub
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -309,7 +279,7 @@ func TestSendToAll_MissingPlatformName(t *testing.T) {
 		{PlatformID: 999, Flag: "user:unknown:X1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, pub)
 	require.NoError(t, err)
 	// Platform 999 has no name, so only slack messages are published
 	assert.Len(t, pub.messages, 1)
@@ -317,11 +287,7 @@ func TestSendToAll_MissingPlatformName(t *testing.T) {
 
 func TestSendToAll_BatchQueryError(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -338,18 +304,14 @@ func TestSendToAll_BatchQueryError(t *testing.T) {
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, &mockPublisher{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get platform channel users")
 }
 
 func TestSendToAll_PlatformsQueryError(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -363,23 +325,18 @@ func TestSendToAll_PlatformsQueryError(t *testing.T) {
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, &mockPublisher{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get platforms")
 }
 
 func TestSendToAll_PublisherError(t *testing.T) {
 	origStore := store.Database
-	origPublisher := Publisher
-	defer func() {
-		store.Database = origStore
-		Publisher = origPublisher
-	}()
+	defer func() { store.Database = origStore }()
 
 	pub := &mockPublisher{
 		err: errors.New("publisher offline"),
 	}
-	Publisher = pub
 
 	ms := &mockStore{
 		platformsFn: func(_ context.Context) ([]*gen.Platform, error) {
@@ -398,7 +355,7 @@ func TestSendToAll_PublisherError(t *testing.T) {
 		{PlatformID: 1, Flag: "user:slack:U1"},
 	}
 
-	err := sendToAll(ctx, testPayload(), platformUsers)
+	err := sendToAll(ctx, testPayload(), platformUsers, pub)
 	require.Error(t, err)
 }
 

@@ -177,7 +177,8 @@ func (r *Registry) recordErrorMetrics(capability hub.CapabilityType, operation s
 	mc.IncInvokeTotal(string(capability), operation, "error")
 	mc.ObserveInvokeDuration(string(capability), operation, time.Since(start).Seconds())
 	code := "unknown"
-	if te, ok := err.(*types.Error); ok {
+	var te *types.Error
+	if errors.As(err, &te) {
 		code = te.Code
 	}
 	mc.IncInvokeError(string(capability), operation, code)

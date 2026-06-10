@@ -17,7 +17,7 @@ var commandRules = []command.Rule{
 		return module.FormMsg(ctx, exampleFormID)
 	}},
 	{Define: "event test", Help: `[example] event example`, Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
-		err := event.BotEventFire(ctx, types.ExampleBotEventID, types.KV{"k1": "v1"})
+		err := event.BotEventFire(ctx, types.ExampleBotEventID, types.KV{"k1": "v1"}, event.Publisher)
 		if err != nil {
 			return types.TextMsg{Text: err.Error()}
 		}

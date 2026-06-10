@@ -4,7 +4,7 @@ package executor
 import (
 	"context"
 	"fmt"
-	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -13,63 +13,79 @@ import (
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/docker"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/machine"
 	"github.com/flowline-io/flowbot/pkg/executor/runtime/shell"
-	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-type Mode string
-
+// engine state constants used with atomic operations.
 const (
-	StateIdle    = "IDLE"
-	StateRunning = "RUNNING"
+	stateIdle int32 = iota
+	stateRunning
+	stateClosed
 )
 
+// Engine manages the lifecycle of a task runtime, enforcing single-task
+// execution and providing state introspection.
 type Engine struct {
-	state       string
-	mu          sync.Mutex
+	state       atomic.Int32
 	mounters    map[string]*runtime.MultiMounter
 	runtime     runtime.Runtime
 	limits      Limits
 	runtimeType string
 }
 
+// Limits defines default resource constraints applied to tasks that do not
+// specify their own.
 type Limits struct {
 	DefaultCPUsLimit   string
 	DefaultMemoryLimit string
 }
 
+// New creates a new Engine for the given runtime type without initializing
+// the underlying runtime. The runtime is lazily initialized on the first Run.
 func New(runtimeType string) *Engine {
-	return &Engine{
-		state:       StateIdle,
+	e := &Engine{
 		mounters:    make(map[string]*runtime.MultiMounter),
 		runtimeType: runtimeType,
 	}
+	// stateIdle is zero value; atomic.Int32 starts at 0.
+	return e
 }
 
+// State returns the current engine state as a human-readable string.
 func (e *Engine) State() string {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	return e.state
+	switch e.state.Load() {
+	case stateRunning:
+		return "RUNNING"
+	case stateClosed:
+		return "CLOSED"
+	default:
+		return "IDLE"
+	}
 }
 
-// Close cleans up the engine's runtime resources.
+// Close cleans up the engine's runtime resources and marks the engine as closed.
+// It is safe to call Close multiple times; subsequent calls are no-ops.
 func (e *Engine) Close() error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
+	if !e.state.CompareAndSwap(stateIdle, stateClosed) &&
+		!e.state.CompareAndSwap(stateRunning, stateClosed) {
+		return nil // already closed
+	}
 	if e.runtime != nil {
-		return e.runtime.Close()
+		err := e.runtime.Close()
+		e.runtime = nil
+		return err
 	}
 	return nil
 }
 
+// Run executes the given task, enforcing that only one task runs at a time.
+// It returns an error if the engine is already running or has been closed.
 func (e *Engine) Run(ctx context.Context, t *types.Task) error {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	e.mustState(StateIdle)
-	e.state = StateRunning
-	err := e.runTask(ctx, t)
-	e.state = StateIdle
-	return err
+	if !e.state.CompareAndSwap(stateIdle, stateRunning) {
+		return fmt.Errorf("engine is not idle, current state: %s", e.State())
+	}
+	defer e.state.Store(stateIdle)
+	return e.runTask(ctx, t)
 }
 
 func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
@@ -80,13 +96,12 @@ func (e *Engine) runTask(ctx context.Context, t *types.Task) error {
 	return e.doRunTask(ctx, t)
 }
 
-func (e *Engine) mustState(state string) {
-	if e.state != state {
-		flog.Panic("engine is not %s", state)
-	}
-}
-
+// initRuntime lazily initializes the runtime on first call. Subsequent calls
+// return the already-initialized runtime without re-creating it.
 func (e *Engine) initRuntime() (runtime.Runtime, error) {
+	if e.runtime != nil {
+		return e.runtime, nil
+	}
 	e.limits = Limits{
 		DefaultCPUsLimit:   config.App.Executor.Limits.Cpus,
 		DefaultMemoryLimit: config.App.Executor.Limits.Memory,

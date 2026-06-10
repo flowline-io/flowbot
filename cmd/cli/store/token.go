@@ -15,11 +15,17 @@ const (
 	profileSep    = "."
 )
 
-// GetConfigDir returns the configuration directory path
+// GetConfigDir returns the configuration directory path.
+// It checks the HOME environment variable first to support test isolation,
+// then falls back to os.UserHomeDir() for platform-specific resolution.
 func GetConfigDir() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("get home directory: %w", err)
+	home := os.Getenv("HOME")
+	if home == "" {
+		var err error
+		home, err = os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("get home directory: %w", err)
+		}
 	}
 	cfgDir := filepath.Join(home, configDir, appConfig)
 	if err := os.MkdirAll(cfgDir, 0750); err != nil {

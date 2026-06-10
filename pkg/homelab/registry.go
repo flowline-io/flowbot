@@ -6,17 +6,46 @@ import (
 	"sync"
 )
 
+// Registry holds the current set of discovered homelab applications
+// and their associated permissions, protected by a read-write mutex.
 type Registry struct {
 	mu          sync.RWMutex
 	apps        map[string]App
 	permissions Permissions
 }
 
+// DefaultRegistry is the process-wide registry instance.
 var DefaultRegistry = NewRegistry()
 
+var (
+	rescanMu sync.RWMutex
+	rescanFn func() error
+)
+
+// SetRunRescan registers the function used to trigger a full homelab rescan.
+// Safe for concurrent use.
+func SetRunRescan(fn func() error) {
+	rescanMu.Lock()
+	defer rescanMu.Unlock()
+	rescanFn = fn
+}
+
+// LoadRunRescan returns the currently registered rescan function, or nil.
+func LoadRunRescan() func() error {
+	rescanMu.RLock()
+	defer rescanMu.RUnlock()
+	return rescanFn
+}
+
 // RunRescan triggers a full homelab scan + probe + registry update.
-// Set by internal/server during initialization to avoid import cycles.
-var RunRescan func() error
+// Returns nil if no rescan function has been registered.
+func RunRescan() error {
+	fn := LoadRunRescan()
+	if fn == nil {
+		return nil
+	}
+	return fn()
+}
 
 func NewRegistry() *Registry {
 	return &Registry{apps: make(map[string]App)}

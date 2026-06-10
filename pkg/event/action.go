@@ -2,17 +2,26 @@
 package event
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/bytedance/sonic"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/utils/sets"
 )
 
-func SendMessage(ctx types.Context, msg types.MsgPayload) error {
+// SendMessage delivers a message payload to the user's channels, scoped to a specific topic
+// when ctx.Topic is set, or broadcast to all channels the user is a member of.
+func SendMessage(ctx types.Context, msg types.MsgPayload, pub message.Publisher) error {
 	// payload
 	src, err := sonic.Marshal(msg)
 	if err != nil {
@@ -38,19 +47,19 @@ func SendMessage(ctx types.Context, msg types.MsgPayload) error {
 	}
 
 	if ctx.Topic != "" {
-		return sendToTopic(ctx, payload, platformSet)
+		return sendToTopic(ctx, payload, platformSet, pub)
 	}
 
-	return sendToAll(ctx, payload, platformUsers)
+	return sendToAll(ctx, payload, platformUsers, pub)
 }
 
-func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets.Int) error {
+func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets.Int, pub message.Publisher) error {
 	platformChannel, err := store.Database.GetPlatformChannelByFlag(ctx.Context(), ctx.Topic)
 	if err != nil {
 		return fmt.Errorf("failed to get platform channel: %w", err)
 	}
 	if !platformSet.Has(int(platformChannel.PlatformID)) {
-		return fmt.Errorf("topic %s not platform %d", ctx.Topic, platformChannel.PlatformID)
+		return fmt.Errorf("topic %s does not belong to any of the user's platforms (got platform %d)", ctx.Topic, platformChannel.PlatformID)
 	}
 	platform, err := store.Database.GetPlatform(ctx.Context(), platformChannel.PlatformID)
 	if err != nil {
@@ -61,14 +70,14 @@ func sendToTopic(ctx types.Context, payload types.EventPayload, platformSet sets
 		return fmt.Errorf("empty platform user %s topic %s", ctx.AsUser, ctx.Topic)
 	}
 
-	return PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
+	return publishWith(ctx.Context(), pub, types.MessageSendEvent, types.Message{
 		Platform: platform.Name,
 		Topic:    ctx.Topic,
 		Payload:  payload,
 	})
 }
 
-func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*gen.PlatformUser) error {
+func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*gen.PlatformUser, pub message.Publisher) error {
 	platforms, err := store.Database.GetPlatforms(ctx.Context())
 	if err != nil {
 		return fmt.Errorf("failed to get platforms: %w", err)
@@ -97,7 +106,7 @@ func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*g
 		}
 
 		for _, channelUser := range channelUserMap[item.Flag] {
-			err = PublishMessage(ctx.Context(), types.MessageSendEvent, types.Message{
+			err = publishWith(ctx.Context(), pub, types.MessageSendEvent, types.Message{
 				Platform: platformName[item.PlatformID],
 				Topic:    channelUser.ChannelFlag,
 				Payload:  payload,
@@ -111,11 +120,40 @@ func sendToAll(ctx types.Context, payload types.EventPayload, platformUsers []*g
 	return nil
 }
 
-func BotEventFire(ctx types.Context, eventName string, param types.KV) error {
-	return PublishMessage(ctx.Context(), types.BotRunEvent, types.BotEvent{
+// BotEventFire publishes a bot-run event to the event bus, triggering any subscribed pipeline handlers.
+func BotEventFire(ctx types.Context, eventName string, param types.KV, pub message.Publisher) error {
+	return publishWith(ctx.Context(), pub, types.BotRunEvent, types.BotEvent{
 		EventName: eventName,
 		Uid:       ctx.AsUser.String(),
 		Topic:     ctx.Topic,
 		Param:     param,
 	})
+}
+
+// publishWith publishes a message to the given topic using the provided publisher, with OpenTelemetry tracing.
+func publishWith(ctx context.Context, pub message.Publisher, topic string, payload any) error {
+	msg, err := NewMessage(payload)
+	if err != nil {
+		return fmt.Errorf("failed to new message: %w", err)
+	}
+
+	_, publishSpan := trace.StartSpan(ctx, "event.publish "+topic,
+		attribute.String("messaging.destination", topic),
+		attribute.String("messaging.message.id", msg.UUID),
+	)
+	defer publishSpan.End()
+
+	carrier := propagation.MapCarrier{}
+	otel.GetTextMapPropagator().Inject(ctx, carrier)
+	for k, v := range carrier {
+		msg.Metadata.Set(k, v)
+	}
+	msg.Metadata.Set("x-otel-topic", topic)
+
+	err = pub.Publish(topic, msg)
+	if err != nil {
+		publishSpan.RecordError(err)
+		publishSpan.SetStatus(codes.Error, err.Error())
+	}
+	return err
 }

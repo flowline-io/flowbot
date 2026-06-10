@@ -4,40 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
-	_ "github.com/flowline-io/flowbot/internal/store/ent/gen/runtime"
+	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
-// schemaMu serializes ent schema creation to avoid data races
-// in ent's internal migration code when tests run in parallel.
-var schemaMu sync.Mutex
-
 func getTestClient(t *testing.T) *gen.Client {
-	t.Helper()
-	client, err := gen.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-	if err != nil {
-		t.Fatalf("failed opening connection to sqlite: %v", err)
-	}
-	schemaMu.Lock()
-	err = client.Schema.Create(context.Background())
-	schemaMu.Unlock()
-	if err != nil {
-		t.Fatalf("failed creating schema resources: %v", err)
-	}
-	t.Cleanup(func() { client.Close() })
-	return client
+	return sqlitetest.OpenClient(t, "ent")
 }
 
 // ---------------------------------------------------------------------------

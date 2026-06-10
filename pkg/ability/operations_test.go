@@ -256,6 +256,12 @@ func TestIsMutation(t *testing.T) {
 		{"unstar_entry is mutation", "unstar_entry", true},
 		{"send is mutation", "send", true},
 		{"add is mutation", "add", true},
+		{"create_feed is mutation", "create_feed", true},
+		{"create_transaction is mutation", "create_transaction", true},
+		{"digest is read", "digest", false},
+		{"health is read", "health", false},
+		{"get_user is read", "get_user", false},
+		{"set_content is read", "set_content", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

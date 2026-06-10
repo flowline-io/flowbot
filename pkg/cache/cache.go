@@ -48,19 +48,31 @@ func NewCache(_ *config.Type) (*Cache, error) {
 }
 
 func (c *Cache) SetRaw(key string, value any, cost int64) bool {
-	return c.i.Set(key, value, cost)
+	ok := c.i.Set(key, value, cost)
+	if ok {
+		recordHit("ristretto")
+	}
+	return ok
 }
 
 func (c *Cache) SetWithTTL(key string, value any, cost int64, ttl time.Duration) bool {
 	return c.i.SetWithTTL(key, value, cost, ttl)
 }
 
+// GetRaw retrieves a raw value from the cache. Returns false if the key is not found.
 func (c *Cache) GetRaw(key string) (any, bool) {
-	return c.i.Get(key)
+	val, ok := c.i.Get(key)
+	if ok {
+		recordHit("ristretto")
+	} else {
+		recordMiss("ristretto")
+	}
+	return val, ok
 }
 
 func (c *Cache) DelRaw(key string) {
 	c.i.Del(key)
+	c.unregisterKeyAll(key)
 }
 
 func (c *Cache) Wait() {
@@ -72,12 +84,15 @@ func (c *Cache) Wait() {
 func (c *Cache) GetBytes(key string) ([]byte, bool) {
 	val, ok := c.i.Get(key)
 	if !ok {
+		recordMiss("ristretto")
 		return nil, false
 	}
 	b, ok := val.([]byte)
 	if !ok {
+		recordMiss("ristretto")
 		return nil, false
 	}
+	recordHit("ristretto")
 	return b, true
 }
 
@@ -108,6 +123,7 @@ func (c *Cache) DelByPrefix(capType string) {
 	}
 	m.Range(func(key, _ any) bool {
 		c.i.Del(key.(string))
+		recordEviction("ristretto")
 		return true
 	})
 }
@@ -120,6 +136,17 @@ func (c *Cache) registerKey(capType, key string) {
 		return
 	}
 	m.Store(key, struct{}{})
+}
+
+// unregisterKeyAll removes a key from all capability prefix indices.
+// Called on explicit deletion to keep the index consistent.
+func (c *Cache) unregisterKeyAll(key string) {
+	c.keyIndex.Range(func(_, value any) bool {
+		if m, ok := value.(*sync.Map); ok {
+			m.Delete(key)
+		}
+		return true
+	})
 }
 
 // Get retrieves a string value from the cache. Returns false if the key is not found.
@@ -144,6 +171,9 @@ func (c *Cache) Set(_ context.Context, key Key, value string, ttl TTL) error {
 }
 
 // SetNX stores a value only if the key does not already exist. Returns true if the value was set.
+// NOTE: This Ristretto implementation is not atomic. A concurrent goroutine may set the
+// same key between the existence check and the write. Use RedisStore.SetNX for
+// atomic semantics when Redis is available.
 func (c *Cache) SetNX(_ context.Context, key Key, value string, ttl TTL) (bool, error) {
 	_, exists := c.i.Get(key.String())
 	if exists {
@@ -153,10 +183,10 @@ func (c *Cache) SetNX(_ context.Context, key Key, value string, ttl TTL) (bool, 
 	return true, nil
 }
 
-// Del removes a key from the cache.
+// Del removes a key from the cache and cleans up the key index.
 func (c *Cache) Del(_ context.Context, key Key) error {
 	c.i.Del(key.String())
-	recordEviction("ristretto")
+	c.unregisterKeyAll(key.String())
 	return nil
 }
 

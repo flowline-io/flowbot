@@ -12,7 +12,10 @@ ability/
 ├── page.go                  # PageRequest, PageInfo, ListResult[T]
 ├── cursor.go                # Cursor encoding with per-adapter secrets
 ├── operations.go            # Operation constants + IsMutation() + Operations map
-├── eventsource.go           # WebhookConverter, PollingResource, PollResult, EventSourceManager, webhook handler, poll scheduling
+├── eventsource.go           # Interfaces (WebhookConverter, PollingResource), EventSourceManager, lifecycle, global accessor
+├── pollstate.go              # PollingState, Persistence, copyMap, flush loop
+├── polling.go                # Poll scheduler (cron), pollOnce, diffAndEmit, buildHashSet
+├── webhook_handler.go        # WebhookHandler HTTP handler, poolSubmit, header sanitization
 ├── pool.go                  # Adapter pool for health/availability
 ├── invoke_test.go           # Invoker unit tests
 ├── *_test.go                # Co-located tests (cursor, eventsource, operations, page, params, pool)

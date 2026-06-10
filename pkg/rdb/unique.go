@@ -1,4 +1,3 @@
-// Package rdb provides Redis-backed unique ID generation and bloom filter helpers.
 package rdb
 
 import (
@@ -12,11 +11,24 @@ import (
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
+// Bloom filter configuration for deduplication.
+const (
+	bloomErrorRate = 0.001
+	bloomCapacity  = 1_000_000
+	bloomKeyTTL    = 30 * 24 * time.Hour
+	bloomKeyPrefix = "cache:dedup:%s"
+)
+
+// BloomUnique filters a slice of items through a Redis bloom filter,
+// returning only the items that are newly added (i.e. unique).
+// The bloom filter is identified by id and expires after bloomKeyTTL.
 func BloomUnique(ctx context.Context, id string, latest []any) ([]any, error) {
 	result := make([]any, 0)
-	uniqueKey := fmt.Sprintf("cache:dedup:%s", id)
-	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
-	Client.Expire(ctx, uniqueKey, 30*24*time.Hour)
+	uniqueKey := fmt.Sprintf(bloomKeyPrefix, id)
+	Client.BFReserve(ctx, uniqueKey, bloomErrorRate, bloomCapacity)
+	if err := Client.Expire(ctx, uniqueKey, bloomKeyTTL).Err(); err != nil {
+		flog.Warn("failed to set bloom filter TTL for %s: %v", uniqueKey, err)
+	}
 
 	for i, item := range latest {
 		val, err := kvHash(item)
@@ -47,10 +59,15 @@ func kvHash(item any) (string, error) {
 	return utils.SHA256(utils.BytesToString(b)), nil
 }
 
+// BloomUniqueString checks whether a single string is unique using a Redis bloom
+// filter identified by id. Returns true if the string was newly added (unique),
+// false if it was already seen. The bloom filter expires after bloomKeyTTL.
 func BloomUniqueString(ctx context.Context, id, latest string) (bool, error) {
-	uniqueKey := fmt.Sprintf("cache:dedup:%s", id)
-	Client.BFReserve(ctx, uniqueKey, 0.001, 1000000)
-	Client.Expire(ctx, uniqueKey, 30*24*time.Hour)
+	uniqueKey := fmt.Sprintf(bloomKeyPrefix, id)
+	Client.BFReserve(ctx, uniqueKey, bloomErrorRate, bloomCapacity)
+	if err := Client.Expire(ctx, uniqueKey, bloomKeyTTL).Err(); err != nil {
+		flog.Warn("failed to set bloom filter TTL for %s: %v", uniqueKey, err)
+	}
 	b, err := Client.BFAdd(ctx, uniqueKey, latest).Result()
 	if err != nil {
 		return false, fmt.Errorf("failed to set unique key: %w", err)

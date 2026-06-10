@@ -1,4 +1,4 @@
-package docker // import "https://github.com/cpuguy83/dockercfg"
+package docker
 
 // Config represents the on disk format of the docker CLI's config file.
 type config struct {

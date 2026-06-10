@@ -235,6 +235,31 @@ func TestRedisStoreUtilityMethods(t *testing.T) {
 	})
 }
 
+// TestRedisStore_MetricsInt64 tests SetMetricsInt64 and GetMetricsInt64.
+func TestRedisStore_MetricsInt64(t *testing.T) {
+	mr := miniredis.RunT(t)
+	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+	store := NewRedisStore(client)
+
+	t.Run("set and get metric", func(t *testing.T) {
+		store.SetMetricsInt64("active_connections", 42)
+		v := store.GetMetricsInt64("active_connections")
+		require.Equal(t, int64(42), v)
+	})
+
+	t.Run("get missing metric returns 0", func(t *testing.T) {
+		v := store.GetMetricsInt64("nonexistent")
+		require.Equal(t, int64(0), v)
+	})
+
+	t.Run("overwrite metric", func(t *testing.T) {
+		store.SetMetricsInt64("requests", 100)
+		store.SetMetricsInt64("requests", 200)
+		v := store.GetMetricsInt64("requests")
+		require.Equal(t, int64(200), v)
+	})
+}
+
 // TestRedisStore_Ping tests the Ping method.
 func TestRedisStore_Ping(t *testing.T) {
 	t.Run("ping succeeds with healthy redis", func(t *testing.T) {

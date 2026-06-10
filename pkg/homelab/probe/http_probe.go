@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -42,6 +43,14 @@ type EndpointProbeResult struct {
 	Matches   []ProbeMatch
 }
 
+// baseResponse holds the captured base URL response data for reuse
+// in both auth detection and fingerprint matching.
+type baseResponse struct {
+	status  int
+	headers http.Header
+	body    []byte
+}
+
 // ProbeEndpoint attempts to discover API information from a given base URL.
 func (p *HTTPProbe) ProbeEndpoint(ctx context.Context, baseURL string) *EndpointProbeResult {
 	if baseURL == "" {
@@ -51,10 +60,11 @@ func (p *HTTPProbe) ProbeEndpoint(ctx context.Context, baseURL string) *Endpoint
 	baseURL = strings.TrimRight(baseURL, "/")
 	result := &EndpointProbeResult{BaseURL: baseURL}
 
-	// Probe the base URL without auth to detect auth mechanism.
-	authInfo := p.probeURL(ctx, baseURL)
-	if authInfo != nil {
-		result.Auth = authInfo
+	// Probe the base URL without auth to detect auth mechanism and capture
+	// response data for fingerprint matching.
+	br := p.fetchBase(ctx, baseURL)
+	if br != nil {
+		result.Auth = p.auth.Detect(makeSyntheticResponse(br))
 	}
 
 	// Discover health endpoint from common paths.
@@ -62,25 +72,26 @@ func (p *HTTPProbe) ProbeEndpoint(ctx context.Context, baseURL string) *Endpoint
 
 	// Check for OIDC well-known discovery endpoint.
 	if p.hasOIDCDiscovery(ctx, baseURL) {
-		if authInfo == nil || authInfo.Type == homelab.AuthNone {
+		if result.Auth == nil || result.Auth.Type == homelab.AuthNone {
 			result.Auth = &homelab.AuthInfo{
 				Type:   homelab.AuthOIDC,
 				Header: "Authorization",
 				Prefix: "Bearer",
 			}
 		}
-		authInfo = result.Auth
 	}
 
 	// Fingerprint matching for known services.
-	if authInfo != nil {
-		result.Matches = p.matchFingerprints(ctx, baseURL, authInfo)
+	if result.Auth != nil && br != nil {
+		result.Matches = p.matchFingerprints(ctx, baseURL, br, result.Auth)
 	}
 
 	return result
 }
 
-func (p *HTTPProbe) probeURL(ctx context.Context, rawURL string) *homelab.AuthInfo {
+// fetchBase retrieves the base URL response and captures headers and body
+// for use in both auth detection and fingerprint matching.
+func (p *HTTPProbe) fetchBase(ctx context.Context, rawURL string) *baseResponse {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, http.NoBody)
 	if err != nil {
 		return nil
@@ -93,7 +104,24 @@ func (p *HTTPProbe) probeURL(ctx context.Context, rawURL string) *homelab.AuthIn
 	}
 	defer resp.Body.Close()
 
-	return p.auth.Detect(resp)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // 1 MiB limit
+	if err != nil {
+		return nil
+	}
+	return &baseResponse{
+		status:  resp.StatusCode,
+		headers: resp.Header,
+		body:    body,
+	}
+}
+
+// makeSyntheticResponse builds a minimal http.Response for auth detection
+// from captured base response data.
+func makeSyntheticResponse(br *baseResponse) *http.Response {
+	return &http.Response{
+		StatusCode: br.status,
+		Header:     br.headers,
+	}
 }
 
 func (p *HTTPProbe) discoverHealth(ctx context.Context, baseURL string) string {
@@ -121,12 +149,25 @@ func (p *HTTPProbe) discoverHealth(ctx context.Context, baseURL string) string {
 	return ""
 }
 
-func (p *HTTPProbe) matchFingerprints(ctx context.Context, baseURL string, authInfo *homelab.AuthInfo) []ProbeMatch {
+func (p *HTTPProbe) matchFingerprints(ctx context.Context, baseURL string, br *baseResponse, authInfo *homelab.AuthInfo) []ProbeMatch {
 	var matches []ProbeMatch
 	for _, fp := range KnownServices {
 		score := 0.0
 		for _, pattern := range fp.Patterns {
-			if pattern.Field == "path" {
+			switch pattern.Field {
+			case "header":
+				if matchHeader(br.headers, pattern.Key, pattern.Value) {
+					score += 0.5
+				}
+			case "title":
+				if matchTitle(br.body, pattern.Value) {
+					score += 0.5
+				}
+			case "body_key":
+				if matchBodyKey(br.body, pattern.Key) {
+					score += 0.5
+				}
+			case "path":
 				if pattern.Key != "" {
 					targetURL, err := url.JoinPath(baseURL, pattern.Key)
 					if err != nil {
@@ -190,4 +231,41 @@ func (p *HTTPProbe) pathReachable(ctx context.Context, rawURL string) bool {
 	_, _ = io.Copy(io.Discard, resp.Body)
 	_ = resp.Body.Close()
 	return resp.StatusCode < 500
+}
+
+// titlePattern extracts the content of the HTML <title> tag.
+var titlePattern = regexp.MustCompile(`(?i)<title[^>]*>([^<]*)</title>`)
+
+// matchHeader checks if the response headers contain key with a value
+// matching the given pattern.
+func matchHeader(headers http.Header, key, pattern string) bool {
+	value := headers.Get(key)
+	if value == "" {
+		return false
+	}
+	if pattern == "" {
+		return true
+	}
+	return strings.Contains(value, pattern)
+}
+
+// matchTitle checks if the HTML body contains a <title> tag whose text
+// matches the given pattern.
+func matchTitle(body []byte, pattern string) bool {
+	if pattern == "" {
+		return false
+	}
+	m := titlePattern.FindSubmatch(body)
+	if m == nil {
+		return false
+	}
+	return strings.Contains(string(m[1]), pattern)
+}
+
+// matchBodyKey checks if the response body contains the given JSON key string.
+func matchBodyKey(body []byte, key string) bool {
+	if key == "" {
+		return false
+	}
+	return strings.Contains(string(body), `"`+key+`"`)
 }

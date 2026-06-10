@@ -355,7 +355,7 @@ func TestSSHRuntime_ConfigDefaults(t *testing.T) {
 				SSHUser:     tt.sshUser,
 				SSHPassword: "test",
 				SSHHostKey:  generateTestHostKey(t),
-			})
+			}, "")
 			assert.Equal(t, tt.sshHost, r.host)
 			assert.Equal(t, tt.wantPort, r.port)
 			assert.Equal(t, tt.sshUser, r.user)
@@ -401,7 +401,7 @@ func TestSSHRuntime_ClientConfigNoAuth(t *testing.T) {
 				SSHPort:    tt.sshPort,
 				SSHUser:    tt.sshUser,
 				SSHHostKey: generateTestHostKey(t),
-			})
+			}, "")
 			_, err := r.clientConfig()
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
@@ -455,7 +455,7 @@ func TestSSHRuntime_ClientConfigPasswordAuth(t *testing.T) {
 				SSHPassword: tt.password,
 				SSHKey:      key,
 				SSHHostKey:  hostKey,
-			})
+			}, "")
 			cfg, err := r.clientConfig()
 			if tt.wantErr {
 				require.Error(t, err)
@@ -490,7 +490,7 @@ func TestSSHRuntime_DefaultPort(t *testing.T) {
 				SSHPassword: "test",
 				SSHPort:     tt.sshPort,
 				SSHHostKey:  hostKey,
-			})
+			}, "")
 			assert.Equal(t, tt.wantPort, r.port)
 		})
 	}
@@ -539,7 +539,7 @@ func TestSSHRuntime_ContextCancellation(t *testing.T) {
 				SSHUser:     "root",
 				SSHPassword: "test",
 				SSHHostKey:  generateTestHostKey(t),
-			})
+			}, "")
 			app := App{Name: "test", Path: "/test"}
 
 			_, err := r.Status(ctx, app)
@@ -593,7 +593,7 @@ func TestSSHRuntime_ClientConfigNoHostKey(t *testing.T) {
 				SSHUser:     "root",
 				SSHPassword: tt.password,
 				SSHKey:      key,
-			})
+			}, "")
 			_, err := r.clientConfig()
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
@@ -633,7 +633,7 @@ func TestSSHRuntime_ClientConfigInvalidHostKey(t *testing.T) {
 				SSHUser:     "root",
 				SSHPassword: "test",
 				SSHHostKey:  tt.hostKey,
-			})
+			}, "")
 			_, err := r.clientConfig()
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), tt.wantErr)
@@ -680,7 +680,7 @@ func TestSSHRuntime_ClientConfigFixedHostKey(t *testing.T) {
 				SSHPassword: tt.password,
 				SSHKey:      key,
 				SSHHostKey:  hostKey,
-			})
+			}, "")
 			cfg, err := r.clientConfig()
 			require.NoError(t, err)
 			assert.NotNil(t, cfg.HostKeyCallback)

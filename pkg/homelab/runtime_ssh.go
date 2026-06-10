@@ -12,6 +12,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+// shellQuote wraps a string in single quotes for safe shell interpolation,
+// escaping any embedded single quotes.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'"
+}
+
+// SSHRuntime executes docker compose commands on a remote host over SSH.
 type SSHRuntime struct {
 	host     string
 	port     int
@@ -19,9 +26,11 @@ type SSHRuntime struct {
 	password string
 	key      string
 	hostKey  string
+	appsDir  string
 }
 
-func NewSSHRuntime(config RuntimeConfig) *SSHRuntime {
+// NewSSHRuntime creates an SSHRuntime that connects to the configured host.
+func NewSSHRuntime(config RuntimeConfig, appsDir string) *SSHRuntime {
 	port := config.SSHPort
 	if port == 0 {
 		port = 22
@@ -33,6 +42,7 @@ func NewSSHRuntime(config RuntimeConfig) *SSHRuntime {
 		password: config.SSHPassword,
 		key:      config.SSHKey,
 		hostKey:  config.SSHHostKey,
+		appsDir:  appsDir,
 	}
 }
 
@@ -106,10 +116,10 @@ func (r *SSHRuntime) runRemote(ctx context.Context, app App, args ...string) (st
 	if composeFile == "" {
 		composeFile = "docker-compose.yaml"
 	}
-	cmdArgs := append([]string{"compose", "-f", composeFile}, args...)
+	cmdArgs := append([]string{"compose", "-f", shellQuote(composeFile)}, args...)
 	cmdStr := "docker " + strings.Join(cmdArgs, " ")
 	if app.Path != "" {
-		cmdStr = "cd " + app.Path + " && " + cmdStr
+		cmdStr = "cd " + shellQuote(app.Path) + " && " + cmdStr
 	}
 
 	output, err := session.CombinedOutput(cmdStr)
@@ -119,9 +129,22 @@ func (r *SSHRuntime) runRemote(ctx context.Context, app App, args ...string) (st
 	return string(output), nil
 }
 
+func (r *SSHRuntime) validatePath(app App) error {
+	if r.appsDir == "" || app.Path == "" {
+		return nil
+	}
+	if !isInside(r.appsDir, app.Path) {
+		return types.Errorf(types.ErrForbidden, "app path %s is outside apps_dir %s", app.Path, r.appsDir)
+	}
+	return nil
+}
+
 func (r *SSHRuntime) Status(ctx context.Context, app App) (AppStatus, error) {
 	if err := ctx.Err(); err != nil {
 		return AppStatusUnknown, types.WrapError(types.ErrTimeout, "homelab status canceled", err)
+	}
+	if err := r.validatePath(app); err != nil {
+		return AppStatusUnknown, err
 	}
 
 	output, err := r.runRemote(ctx, app, "ps", "--format", "json")
@@ -136,6 +159,9 @@ func (r *SSHRuntime) Status(ctx context.Context, app App) (AppStatus, error) {
 func (r *SSHRuntime) Logs(ctx context.Context, app App, tail int) ([]string, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "homelab logs canceled", err)
+	}
+	if err := r.validatePath(app); err != nil {
+		return nil, err
 	}
 
 	output, err := r.runRemote(ctx, app, "logs", fmt.Sprintf("--tail=%d", tail))
@@ -154,6 +180,9 @@ func (r *SSHRuntime) Start(ctx context.Context, app App) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "homelab start canceled", err)
 	}
+	if err := r.validatePath(app); err != nil {
+		return err
+	}
 
 	_, err := r.runRemote(ctx, app, "up", "-d")
 	if err != nil {
@@ -165,6 +194,9 @@ func (r *SSHRuntime) Start(ctx context.Context, app App) error {
 func (r *SSHRuntime) Stop(ctx context.Context, app App) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "homelab stop canceled", err)
+	}
+	if err := r.validatePath(app); err != nil {
+		return err
 	}
 
 	_, err := r.runRemote(ctx, app, "down")
@@ -178,6 +210,9 @@ func (r *SSHRuntime) Restart(ctx context.Context, app App) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "homelab restart canceled", err)
 	}
+	if err := r.validatePath(app); err != nil {
+		return err
+	}
 
 	_, err := r.runRemote(ctx, app, "restart")
 	if err != nil {
@@ -190,6 +225,9 @@ func (r *SSHRuntime) Pull(ctx context.Context, app App) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "homelab pull canceled", err)
 	}
+	if err := r.validatePath(app); err != nil {
+		return err
+	}
 
 	_, err := r.runRemote(ctx, app, "pull")
 	if err != nil {
@@ -201,6 +239,9 @@ func (r *SSHRuntime) Pull(ctx context.Context, app App) error {
 func (r *SSHRuntime) Update(ctx context.Context, app App) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "homelab update canceled", err)
+	}
+	if err := r.validatePath(app); err != nil {
+		return err
 	}
 
 	if _, err := r.runRemote(ctx, app, "pull"); err != nil {
