@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/llm"
 )
 
 func init() {
@@ -14,6 +13,7 @@ func init() {
 		{Provider: "openai_compatible", ModelNames: []string{"local-model"}, ApiKey: "", BaseUrl: "http://localhost:11434/v1"},
 		{Provider: "gemini", ModelNames: []string{"gemini-3.1-pro"}, ApiKey: "test-gemini-key"},
 		{Provider: "anthropic", ModelNames: []string{"claude-opus-4.7"}, ApiKey: "test-anthropic-key"},
+		{Provider: "anthropic", ModelNames: []string{"claude-proxy"}, ApiKey: "test-anthropic-key", BaseUrl: "http://localhost:8080/v1"},
 		{Provider: "openai", ModelNames: []string{"gpt-5.5"}, ApiKey: "sk-test"},
 	}
 	config.App.Agents = []config.Agent{
@@ -25,8 +25,5 @@ func init() {
 }
 
 func TestMain(m *testing.M) {
-	llm.RegisterGemini()
-	llm.RegisterOpenAI()
-	llm.RegisterAnthropic()
 	os.Exit(m.Run())
 }

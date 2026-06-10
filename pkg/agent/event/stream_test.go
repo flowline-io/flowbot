@@ -38,7 +38,7 @@ func TestStream_PushAndEnd(t *testing.T) {
 			result, err := stream.Await(ctx)
 			require.NoError(t, err)
 			assert.True(t, called)
-			assert.Nil(t, result.Err)
+			assert.NoError(t, result.Err)
 		})
 	}
 }

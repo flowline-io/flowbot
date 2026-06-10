@@ -92,7 +92,7 @@ end note
 note bottom of LLM
   <b>Not used:</b>
   langchaingo agents.Executor or chains
-  pkg/llm for multi-turn loops
+  pkg/agent/llm only; no langchaingo agents/chains
 end note
 
 @enduml

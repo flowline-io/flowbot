@@ -3,10 +3,9 @@ package llm
 import (
 	"context"
 	"fmt"
-	"slices"
+	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/anthropic"
 	"github.com/tmc/langchaingo/llms/googleai"
@@ -21,7 +20,7 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 	}
 
 	switch cfg.Provider {
-	case llm.ProviderOpenAI, llm.ProviderOpenAICompatible:
+	case ProviderOpenAI, ProviderOpenAICompatible:
 		opts := []openai.Option{openai.WithToken(cfg.ApiKey), openai.WithModel(modelName)}
 		if cfg.BaseUrl != "" {
 			opts = append(opts, openai.WithBaseURL(cfg.BaseUrl))
@@ -31,16 +30,20 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 			return nil, "", fmt.Errorf("agent llm: openai model: %w", err)
 		}
 		return model, modelName, nil
-	case llm.ProviderAnthropic:
-		model, err := anthropic.New(
+	case ProviderAnthropic:
+		opts := []anthropic.Option{
 			anthropic.WithToken(cfg.ApiKey),
 			anthropic.WithModel(modelName),
-		)
+		}
+		if cfg.BaseUrl != "" {
+			opts = append(opts, anthropic.WithBaseURL(cfg.BaseUrl))
+		}
+		model, err := anthropic.New(opts...)
 		if err != nil {
 			return nil, "", fmt.Errorf("agent llm: anthropic model: %w", err)
 		}
 		return model, modelName, nil
-	case llm.ProviderGemini:
+	case ProviderGemini:
 		model, err := googleai.New(ctx, googleai.WithAPIKey(cfg.ApiKey), googleai.WithDefaultModel(modelName))
 		if err != nil {
 			return nil, "", fmt.Errorf("agent llm: gemini model: %w", err)
@@ -51,11 +54,18 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 	}
 }
 
+var (
+	modelsByName   = make(map[string]config.Model)
+	loadOnceModels = sync.Once{}
+)
+
 func resolveModel(modelName string) config.Model {
-	for _, item := range config.App.Models {
-		if slices.Contains(item.ModelNames, modelName) {
-			return item
+	loadOnceModels.Do(func() {
+		for i, item := range config.App.Models {
+			for _, name := range item.ModelNames {
+				modelsByName[name] = config.App.Models[i]
+			}
 		}
-	}
-	return config.Model{}
+	})
+	return modelsByName[modelName]
 }

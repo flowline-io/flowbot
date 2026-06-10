@@ -100,7 +100,7 @@ func textFromParts(parts []msg.ContentPart) string {
 	var text strings.Builder
 	for _, part := range parts {
 		if tp, ok := part.(msg.TextPart); ok {
-			text.WriteString(tp.Text)
+			_, _ = text.WriteString(tp.Text)
 		}
 	}
 	return text.String()

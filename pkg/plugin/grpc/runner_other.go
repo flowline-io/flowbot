@@ -4,4 +4,4 @@ package grpc
 
 import "os/exec"
 
-func setPdeathsig(cmd *exec.Cmd) {}
+func setPdeathsig(_ *exec.Cmd) {}

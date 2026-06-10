@@ -85,7 +85,7 @@ func (m AssistantMessage) TextContent() string {
 	var text strings.Builder
 	for _, part := range m.Parts {
 		if tp, ok := part.(TextPart); ok {
-			text.WriteString(tp.Text)
+			_, _ = text.WriteString(tp.Text)
 		}
 	}
 	return text.String()

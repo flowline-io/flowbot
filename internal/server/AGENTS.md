@@ -25,7 +25,6 @@ internal/server/
 ├── capability.go # Capability registration and health
 ├── event.go      # Event bus and handler wiring
 ├── homelab.go    # Homelab scanner lifecycle
-├── llm.go        # LLM provider integration
 ├── media.go      # Media file serving
 ├── message.go    # Message pipeline
 ├── func.go       # Function lifecycle hooks

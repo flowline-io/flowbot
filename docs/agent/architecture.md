@@ -9,11 +9,10 @@ Layer 3 — Business Logic
 ├── internal/modules/     # HTTP modules, cron, webhooks
 ├── pkg/workflow/       # DAG workflow runtime
 ├── pkg/pipeline/       # Event-driven pipelines
-├── pkg/llm/            # Single-shot LLM (providers, config agents)
-└── pkg/agent/          # Multi-turn agent loop (this document)
+└── pkg/agent/          # Agent loop and LLM (pkg/agent/llm)
 ```
 
-`pkg/agent` does **not** replace `pkg/llm`. Modules that need one-shot classification or summarization continue to use `pkg/llm`. Callers that need tool loops, branching sessions, or streaming lifecycle events use `pkg/agent`.
+Modules that need one-shot classification or summarization import `pkg/agent/llm`. Callers that need tool loops, branching sessions, or streaming lifecycle events use the full `pkg/agent` runtime.
 
 ## Three-Layer Design
 
@@ -236,10 +235,10 @@ flowchart LR
 
 1. **Loop is stateless** — test with `RunLoop` + `FakeModel` without `Agent` or `Harness`
 2. **Core does not touch the filesystem** — JSONL helpers only; callers provide `Storage`
-3. **Modules do not import `pkg/agent` yet** — core library only until explicitly wired to server
+3. **Modules import `pkg/agent/llm` only** — for single-shot LLM tasks; other `pkg/agent` packages stay core-only until wired to server
 4. **Serialization** — sonic for JSON/JSONL and tool argument parsing
 5. **Errors** — domain errors in `msg`: `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`, `ErrEmptyContext`, `ErrInvalidContinue`
-6. **Naming** — do not confuse with instruct agent protocol or `pkg/llm` config agents
+6. **Naming** — do not confuse with instruct agent protocol or YAML `config.agents` task entries
 
 ## Related Documentation
 

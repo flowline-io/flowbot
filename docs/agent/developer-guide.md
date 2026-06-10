@@ -181,7 +181,7 @@ Map flowbot YAML models to langchaingo:
 model, name, err := agentllm.NewModel(ctx, "gpt-4o") // model name from config.models
 ```
 
-Supported providers (via `pkg/llm` provider constants): OpenAI, OpenAI-compatible, Anthropic, Gemini.
+Supported providers (via `pkg/agent/llm` provider constants): OpenAI, OpenAI-compatible, Anthropic, Gemini.
 
 For tests, use `agentllm.NewFakeModel` with scripted `ResponseScript` entries (text and/or tool calls).
 

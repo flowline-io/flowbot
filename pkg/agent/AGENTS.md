@@ -72,8 +72,8 @@ router.ApplyToContext(agentCtx, afterToolExecution)
 ## Rules
 
 - **langchaingo scope**: only `llms.Model` in `pkg/agent/llm`; do not use langchaingo agents/chains
-- **Modules**: do not import `pkg/agent` from `internal/modules` until explicitly wired; this package is core-only
-- **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and `pkg/llm/agent.go` (config lookup)
+- **Modules**: import `pkg/agent/llm` only for single-shot LLM tasks; do not import other `pkg/agent` packages from `internal/modules` until explicitly wired
+- **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and YAML `config.agents` entries
 - **Serialization**: use `sonic` for JSON/JSONL
 - **Errors**: wrap with `%w`; return `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`
 - **Tests**: table-driven unit tests (>=3 cases) + BDD in `tests/specs/agent_spec_test.go`

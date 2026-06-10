@@ -8,9 +8,9 @@ import (
 	jsonrepair "github.com/RealAlexandreAI/json-repair"
 	"github.com/bytedance/sonic"
 
+	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/llm"
 	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
@@ -105,32 +105,19 @@ type tagsList struct {
 }
 
 func extractTags(ctx context.Context, _ string, title string) ([]string, error) {
-	content := title
-	if content == "" {
+	if title == "" {
 		return nil, nil
 	}
 
-	prompt := fmt.Sprintf(tagsPrompt, config.App.Flowbot.Language, content)
-	llmClient, err := llm.ChatModel(ctx, llm.AgentModelName(llm.AgentExtractTags))
-	if err != nil {
-		return nil, fmt.Errorf("%s module, chat model failed, %w", Name, err)
-	}
-
-	messages, err := llm.BaseTemplate().Format(ctx, map[string]any{
-		"content": prompt,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%s module, prompt format failed, %w", Name, err)
-	}
-
-	resp, err := llm.Generate(ctx, llmClient, messages)
+	prompt := fmt.Sprintf(tagsPrompt, config.App.Flowbot.Language, title)
+	response, err := agentllm.LLMGenerate(ctx, agentllm.AgentModelName(agentllm.AgentExtractTags), prompt)
 	if err != nil {
 		return nil, fmt.Errorf("%s module, llm generate failed, %w", Name, err)
 	}
 
-	flog.Info("[%s] extract bookmark, llm generate result %s", Name, resp.Content)
+	flog.Info("[%s] extract bookmark, llm generate result %s", Name, response)
 
-	jsonText, err := jsonrepair.RepairJSON(resp.Content)
+	jsonText, err := jsonrepair.RepairJSON(response)
 	if err != nil {
 		return nil, fmt.Errorf("%s module, json repair failed, %w", Name, err)
 	}
@@ -159,25 +146,13 @@ Tag list:
 
 func analyzeSimilarTags(ctx context.Context, tags []string) (map[string]string, error) {
 	prompt := fmt.Sprintf(similarTagsPrompt, config.App.Flowbot.Language, strings.Join(tags, "\n"))
-	llmClient, err := llm.ChatModel(ctx, llm.AgentModelName(llm.AgentSimilarTags))
-	if err != nil {
-		return nil, fmt.Errorf("%s module, chat model failed, %w", Name, err)
-	}
-
-	messages, err := llm.BaseTemplate().Format(ctx, map[string]any{
-		"content": prompt,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("%s module, prompt format failed, %w", Name, err)
-	}
-
-	resp, err := llm.Generate(ctx, llmClient, messages)
+	response, err := agentllm.LLMGenerate(ctx, agentllm.AgentModelName(agentllm.AgentSimilarTags), prompt)
 	if err != nil {
 		return nil, fmt.Errorf("%s module, llm generate failed, %w", Name, err)
 	}
 
 	result := make(map[string]string)
-	lines := strings.SplitSeq(resp.Content, "\n")
+	lines := strings.SplitSeq(response, "\n")
 	for line := range lines {
 		if line == "" {
 			continue

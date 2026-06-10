@@ -47,7 +47,7 @@ package "Layer 3 — Modules\ninternal/modules/ (20 modules)" as L3 #F3E5F5 {
   [Modules] as BotMods
   [Workflow Engine\npkg/workflow/] as WF
   [Pipeline Engine\npkg/pipeline/] as Pipeline
-  [LLM\npkg/llm/] as LLM
+  [LLM\npkg/agent/llm/] as LLM
   [Agent Engine\npkg/agent/] as AgentEng
 }
 

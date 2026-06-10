@@ -3,86 +3,66 @@
 package specs
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
+	"context"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/llm"
 )
 
-var _ = Describe("LLM Provider", Label("module", "llm", "smoke"), func() {
+var _ = Describe("Agent LLM", Label("module", "llm", "smoke"), func() {
 
-	BeforeEach(func() {
-		llm.RegisterOpenAI()
-		llm.RegisterGemini()
-		llm.RegisterAnthropic()
-	})
+	Describe("model factory", func() {
+		DescribeTable("creates model for configured providers",
+			func(providerType, modelName, apiKey, baseURL string) {
+				config.App.Models = []config.Model{{
+					Provider:   providerType,
+					ModelNames: []string{modelName},
+					ApiKey:     apiKey,
+					BaseUrl:    baseURL,
+				}}
 
-	Describe("provider factory", func() {
-		DescribeTable("creates correct provider type",
-			func(providerType, apiKey, baseURL string) {
-				p, err := llm.NewProvider(config.Model{
-					Provider: providerType,
-					ApiKey:   apiKey,
-					BaseUrl:  baseURL,
-				})
+				model, resolved, err := llm.NewModel(context.Background(), modelName)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(p.Name()).NotTo(BeEmpty())
+				Expect(model).NotTo(BeNil())
+				Expect(resolved).To(Equal(modelName))
 			},
-			Entry("openai", "openai", "sk-test", ""),
-			Entry("openai compatible", "openai_compatible", "sk-test", "http://localhost:8080"),
-			Entry("gemini", "gemini", "gk-test", ""),
-			Entry("anthropic", "anthropic", "ak-test", ""),
+			Entry("openai", "openai", "gpt-test", "sk-test", ""),
+			Entry("openai compatible", "openai_compatible", "local-model", "sk-test", "http://localhost:8080"),
+			Entry("gemini", "gemini", "gemini-test", "gk-test", ""),
+			Entry("anthropic", "anthropic", "claude-test", "ak-test", ""),
 		)
 
-		DescribeTable("rejects invalid provider types",
-			func(providerType string) {
-				_, err := llm.NewProvider(config.Model{
-					Provider: providerType,
-					ApiKey:   "test-key",
-				})
+		DescribeTable("rejects unknown models",
+			func(modelName string) {
+				config.App.Models = nil
+				_, _, err := llm.NewModel(context.Background(), modelName)
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError(llm.ErrUnknownProvider))
 			},
 			Entry("empty string", ""),
-			Entry("unknown value", "unknown_provider"),
-			Entry("misspelled", "open-ai"),
+			Entry("unknown value", "unknown-model"),
+			Entry("misspelled", "gpt-99"),
 		)
 	})
 
-	Describe("http error handling", func() {
-		DescribeTable("returns error for non-200 status codes",
-			func(providerType string, statusCode int) {
-				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					w.WriteHeader(statusCode)
-				}))
-				defer srv.Close()
+	Describe("agent config lookup", func() {
+		BeforeEach(func() {
+			config.App.Agents = []config.Agent{
+				{Name: llm.AgentExtractTags, Model: "gpt-test", Enabled: true},
+				{Name: llm.AgentSimilarTags, Model: "gpt-test", Enabled: false},
+			}
+		})
 
-				p, err := llm.NewProvider(config.Model{
-					Provider: providerType,
-					ApiKey:   "test-key",
-					BaseUrl:  srv.URL,
-				})
-				Expect(err).NotTo(HaveOccurred())
+		It("returns model for enabled agents", func() {
+			Expect(llm.AgentModelName(llm.AgentExtractTags)).To(Equal("gpt-test"))
+			Expect(llm.AgentEnabled(llm.AgentExtractTags)).To(BeTrue())
+		})
 
-				_, err = p.Generate(suiteCtx, &llm.GenerateRequest{
-					Model:    "test-model",
-					Messages: []*llm.Message{{Role: llm.UserRole, Content: "hi"}},
-				})
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("%d", statusCode)))
-			},
-			Entry("openai 401", "openai_compatible", http.StatusUnauthorized),
-			Entry("openai 429", "openai_compatible", http.StatusTooManyRequests),
-			Entry("openai 500", "openai_compatible", http.StatusInternalServerError),
-			Entry("gemini 400", "gemini", http.StatusBadRequest),
-			Entry("gemini 500", "gemini", http.StatusInternalServerError),
-			Entry("anthropic 401", "anthropic", http.StatusUnauthorized),
-			Entry("anthropic 429", "anthropic", http.StatusTooManyRequests),
-		)
+		It("returns empty for disabled agents", func() {
+			Expect(llm.AgentModelName(llm.AgentSimilarTags)).To(BeEmpty())
+			Expect(llm.AgentEnabled(llm.AgentSimilarTags)).To(BeFalse())
+		})
 	})
 })

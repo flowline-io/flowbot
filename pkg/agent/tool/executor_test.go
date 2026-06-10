@@ -20,7 +20,7 @@ type stubTool struct {
 	fail   bool
 }
 
-func (s *stubTool) Name() string { return s.name }
+func (s *stubTool) Name() string        { return s.name }
 func (s *stubTool) Description() string { return s.name }
 func (*stubTool) Parameters() map[string]any {
 	return map[string]any{"type": "object"}

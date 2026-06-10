@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/flowline-io/flowbot/pkg/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/llm"
 )
 
 func TestAgentModelName(t *testing.T) {

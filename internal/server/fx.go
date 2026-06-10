@@ -24,7 +24,6 @@ var Modules = fx.Options(
 	modules.Modules,
 	NotifyModules,
 	MediaModules,
-	LLMModules,
 	OAuthModules,
 	ReexecModules,
 	fx.Provide(

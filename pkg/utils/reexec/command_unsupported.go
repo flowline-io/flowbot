@@ -10,6 +10,6 @@ func Self() string {
 	return ""
 }
 
-func Command(args ...string) *exec.Cmd {
+func Command(_ ...string) *exec.Cmd {
 	return nil
 }

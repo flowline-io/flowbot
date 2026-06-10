@@ -1,5 +1,6 @@
 //go:build !freebsd && !darwin && !linux
 
+// Package shell runs subprocesses with optional uid/gid on supported platforms.
 package shell
 
 import (
