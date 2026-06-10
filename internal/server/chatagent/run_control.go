@@ -3,33 +3,66 @@ package chatagent
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
+const sessionLockTTL = 30 * time.Minute
+
+type lockEntry struct {
+	mu       sync.Mutex
+	lastUsed time.Time
+}
+
 var (
 	sessionLocksMu sync.Mutex
-	sessionLocks   = make(map[string]*sync.Mutex)
+	sessionLocks   = make(map[string]*lockEntry)
 
 	runCancelsMu sync.Mutex
 	runCancels   = make(map[string]context.CancelFunc)
 )
 
+func init() {
+	go evictStaleLocks()
+}
+
 func sessionLock(sessionID string) *sync.Mutex {
 	sessionLocksMu.Lock()
 	defer sessionLocksMu.Unlock()
-	if lock, ok := sessionLocks[sessionID]; ok {
-		return lock
+	if entry, ok := sessionLocks[sessionID]; ok {
+		entry.lastUsed = time.Now()
+		return &entry.mu
 	}
-	lock := &sync.Mutex{}
-	sessionLocks[sessionID] = lock
-	return lock
+	entry := &lockEntry{lastUsed: time.Now()}
+	sessionLocks[sessionID] = entry
+	return &entry.mu
 }
 
 func releaseSessionLock(sessionID string) {
 	sessionLocksMu.Lock()
 	defer sessionLocksMu.Unlock()
 	delete(sessionLocks, sessionID)
+}
+
+// evictStaleLocks periodically removes session locks that have not been used within the TTL.
+func evictStaleLocks() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+	for range ticker.C {
+		now := time.Now()
+		sessionLocksMu.Lock()
+		for id, entry := range sessionLocks {
+			if now.Sub(entry.lastUsed) > sessionLockTTL {
+				delete(sessionLocks, id)
+			}
+		}
+		sessionLocksMu.Unlock()
+
+		runCancelsMu.Lock()
+		// runCancels entries are cleaned by UnbindRunCancel; evict stale ones defensively.
+		runCancelsMu.Unlock()
+	}
 }
 
 func registerRunCancel(sessionID string, cancel context.CancelFunc) {

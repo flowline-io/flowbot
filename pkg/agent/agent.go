@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -79,6 +80,14 @@ func (a *Agent) State() *Context {
 	return cloneContext(a.state)
 }
 
+// ApplyState atomically mutates the agent's internal state using the provided function.
+// This avoids the clone-modify-discard pattern when the caller needs to update state in place.
+func (a *Agent) ApplyState(fn func(*Context)) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	fn(a.state)
+}
+
 // SetTools replaces the active tool registry contents.
 func (a *Agent) SetTools(registry *tool.Registry) {
 	a.mu.Lock()
@@ -145,6 +154,11 @@ func (a *Agent) run(parent context.Context, prompts []AgentMessage, continuing b
 
 	go func() {
 		defer cancel()
+		defer func() {
+			if r := recover(); r != nil {
+				stream.End(nil, fmt.Errorf("agent: panic: %v", r))
+			}
+		}()
 		defer func() {
 			a.mu.Lock()
 			a.cancel = nil

@@ -220,7 +220,9 @@ func emitMessage(emit func(agentevent.Event) error, message AgentMessage) error 
 }
 
 func drainQueue(existing, incoming []AgentMessage, mode QueueMode) []AgentMessage {
-	combined := append(existing, incoming...)
+	combined := make([]AgentMessage, 0, len(existing)+len(incoming))
+	combined = append(combined, existing...)
+	combined = append(combined, incoming...)
 	if mode == QueueOne && len(combined) > 1 {
 		return combined[:1]
 	}

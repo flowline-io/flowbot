@@ -52,9 +52,6 @@ func executeSequential(ctx context.Context, req BatchRequest, calls []msg.ToolCa
 			result.Terminate = true
 		}
 	}
-	if len(result.Messages) > 0 && allTerminate(result.Messages) {
-		result.Terminate = true
-	}
 	return result, nil
 }
 
@@ -97,9 +94,6 @@ func executeParallel(ctx context.Context, req BatchRequest, calls []msg.ToolCall
 		if item.terminate {
 			batch.Terminate = true
 		}
-	}
-	if len(batch.Messages) > 0 && allTerminate(batch.Messages) {
-		batch.Terminate = true
 	}
 	return batch, nil
 }
@@ -255,8 +249,4 @@ func errorResult(call msg.ToolCallPart, message string) msg.ToolResultMessage {
 		Parts:      []msg.ContentPart{msg.TextPart{Text: message}},
 		IsError:    true,
 	}
-}
-
-func allTerminate(_ []msg.ToolResultMessage) bool {
-	return false
 }

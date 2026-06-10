@@ -91,8 +91,8 @@ func StreamAssistant(
 	}
 
 	stopReason := "complete"
-	if ctx.Err() != nil {
-		stopReason = "aborted"
+	if choice.StopReason == "tool_calls" || len(choice.ToolCalls) > 0 {
+		stopReason = "tool_calls"
 	}
 
 	return AssistantResult{

@@ -43,13 +43,14 @@ func CreateSession(ctx context.Context, uid types.Uid, sessionID string) error {
 }
 
 // CloseSession marks a chat session as closed, cancels in-flight runs, and releases locks.
+// The ordering (cancel -> close DB -> release lock) ensures no new run can start on a closing session.
 func CloseSession(ctx context.Context, sessionID string) error {
 	cancelRun(sessionID)
-	releaseSessionLock(sessionID)
 	if err := store.Database.CloseChatSession(ctx, sessionID); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] close session session=%s: %w", sessionID, err))
 		return err
 	}
+	releaseSessionLock(sessionID)
 	flog.Debug("[chat-agent] session row closed session=%s", sessionID)
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -51,6 +50,7 @@ type Options struct {
 type Harness struct {
 	mu           sync.Mutex
 	phase        Phase
+	idleCh       chan struct{}
 	agent        *agent.Agent
 	session      *session.Session
 	registry     *tool.Registry
@@ -77,6 +77,7 @@ func New(opts Options) *Harness {
 		modelName:    opts.ModelName,
 		hooks:        make(map[string][]HookHandler),
 		phase:        PhaseIdle,
+		idleCh:       make(chan struct{}),
 	}
 }
 
@@ -124,12 +125,15 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 	}
 
 	if h.modelName != "" {
-		state := h.agent.State()
-		state.SystemPrompt = transform.MergeSystemPrompt(state.SystemPrompt, h.systemPrompt)
-		state.ModelName = h.modelName
-		if h.router != nil {
-			h.router.ApplyToContext(state, false)
-		}
+		h.mu.Lock()
+		h.agent.ApplyState(func(state *agent.Context) {
+			state.SystemPrompt = transform.MergeSystemPrompt(state.SystemPrompt, h.systemPrompt)
+			state.ModelName = h.modelName
+			if h.router != nil {
+				h.router.ApplyToContext(state, false)
+			}
+		})
+		h.mu.Unlock()
 	}
 
 	stream, err := h.agent.Prompt(ctx, prompts...)
@@ -153,16 +157,18 @@ func (h *Harness) Session() *session.Session {
 
 // WaitIdle blocks until the harness returns to idle after a Prompt run finishes persisting.
 func (h *Harness) WaitIdle(ctx context.Context) error {
-	ticker := time.NewTicker(5 * time.Millisecond)
-	defer ticker.Stop()
 	for {
-		if h.isIdle() {
+		h.mu.Lock()
+		if h.phase == PhaseIdle {
+			h.mu.Unlock()
 			return nil
 		}
+		ch := h.idleCh
+		h.mu.Unlock()
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-ticker.C:
+		case <-ch:
 		}
 	}
 }
@@ -180,7 +186,9 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream) {
 	if awaitErr != nil {
 		return
 	}
-	_ = h.runHook(ctx, "save_point", HookEvent{Type: "save_point"})
+	if err := h.runHook(ctx, "save_point", HookEvent{Type: "save_point"}); err != nil {
+		slog.Warn("harness: save_point hook", "err", err)
+	}
 	if result.Err != nil || h.session == nil {
 		return
 	}
@@ -216,8 +224,12 @@ func (h *Harness) requireIdle() error {
 
 func (h *Harness) setPhase(phase Phase) {
 	h.mu.Lock()
-	defer h.mu.Unlock()
 	h.phase = phase
+	if phase == PhaseIdle {
+		close(h.idleCh)
+		h.idleCh = make(chan struct{})
+	}
+	h.mu.Unlock()
 }
 
 func (h *Harness) runHook(ctx context.Context, eventType string, event HookEvent) error {

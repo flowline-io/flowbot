@@ -84,7 +84,19 @@ func messageToRaw(message msg.AgentMessage) map[string]any {
 	case msg.UserMessage:
 		return map[string]any{"role": "user", "text": textFromParts(m.Parts)}
 	case msg.AssistantMessage:
-		return map[string]any{"role": "assistant", "text": textFromParts(m.Parts), "model": m.Model}
+		raw := map[string]any{"role": "assistant", "text": textFromParts(m.Parts), "model": m.Model}
+		if calls := m.ToolCalls(); len(calls) > 0 {
+			serializedCalls := make([]map[string]any, 0, len(calls))
+			for _, tc := range calls {
+				serializedCalls = append(serializedCalls, map[string]any{
+					"id":        tc.ID,
+					"name":      tc.Name,
+					"arguments": tc.Arguments,
+				})
+			}
+			raw["tool_calls"] = serializedCalls
+		}
+		return raw
 	case msg.ToolResultMessage:
 		return map[string]any{
 			"role":         "toolResult",
@@ -114,6 +126,12 @@ func stringField(payload map[string]any, key string) (string, error) {
 		return "", fmt.Errorf("session jsonl: missing string field %q", key)
 	}
 	return value, nil
+}
+
+// optionalStringField returns the string value for a key, or empty string if absent.
+func optionalStringField(payload map[string]any, key string) string {
+	value, _ := payload[key].(string)
+	return value
 }
 
 func boolField(payload map[string]any, key string) (bool, error) {
@@ -147,11 +165,22 @@ func rawToMessage(raw any) (msg.AgentMessage, error) {
 	case "user":
 		return msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}}, nil
 	case "assistant":
-		modelName, err := stringField(payload, "model")
-		if err != nil {
-			return nil, err
+		modelName := optionalStringField(payload, "model")
+		parts := []msg.ContentPart{msg.TextPart{Text: text}}
+		if rawCalls, ok := payload["tool_calls"].([]any); ok {
+			for _, rawCall := range rawCalls {
+				callMap, ok := rawCall.(map[string]any)
+				if !ok {
+					continue
+				}
+				parts = append(parts, msg.ToolCallPart{
+					ID:        optionalStringField(callMap, "id"),
+					Name:      optionalStringField(callMap, "name"),
+					Arguments: optionalStringField(callMap, "arguments"),
+				})
+			}
 		}
-		return msg.AssistantMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}, Model: modelName}, nil
+		return msg.AssistantMessage{Parts: parts, Model: modelName}, nil
 	case "toolResult":
 		toolCallID, err := stringField(payload, "tool_call_id")
 		if err != nil {
@@ -161,10 +190,7 @@ func rawToMessage(raw any) (msg.AgentMessage, error) {
 		if err != nil {
 			return nil, err
 		}
-		isError, err := boolField(payload, "is_error")
-		if err != nil {
-			return nil, err
-		}
+		isError, _ := boolField(payload, "is_error")
 		return msg.ToolResultMessage{
 			ToolCallID: toolCallID,
 			Name:       name,
