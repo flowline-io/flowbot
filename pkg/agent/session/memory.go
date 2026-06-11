@@ -71,6 +71,13 @@ func (m *MemoryStorage) SetLeafID(_ context.Context, id string) error {
 	return nil
 }
 
+// ListEntries returns all stored entries in append order.
+func (m *MemoryStorage) ListEntries(_ context.Context) ([]TreeEntry, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return append([]TreeEntry(nil), m.entries...), nil
+}
+
 // Entries returns a snapshot of stored entries for assertions.
 func (m *MemoryStorage) Entries() []TreeEntry {
 	m.mu.RLock()

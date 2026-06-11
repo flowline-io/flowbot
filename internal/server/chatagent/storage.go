@@ -113,6 +113,23 @@ func (s *DBStorage) SetLeafID(ctx context.Context, id string) error {
 	return store.Database.UpdateChatSessionLeaf(ctx, s.sessionID, id)
 }
 
+// ListEntries returns all entries for the session in storage order.
+func (s *DBStorage) ListEntries(ctx context.Context) ([]session.TreeEntry, error) {
+	rows, err := store.Database.ListChatSessionEntries(ctx, s.sessionID)
+	if err != nil {
+		return nil, err
+	}
+	entries := make([]session.TreeEntry, 0, len(rows))
+	for _, row := range rows {
+		entry, err := rowToTreeEntry(row)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, entry)
+	}
+	return entries, nil
+}
+
 func rowToTreeEntry(row *gen.ChatSessionEntry) (session.TreeEntry, error) {
 	payload, err := sonic.Marshal(row.Payload)
 	if err != nil {

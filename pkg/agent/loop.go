@@ -209,7 +209,21 @@ func streamAssistant(ctx context.Context, current *Context, cfg Config, deps Loo
 		Parts:      parts,
 		Model:      result.ModelName,
 		StopReason: result.StopReason,
+		Usage:      usageToMsg(result.Usage),
 	}, nil
+}
+
+func usageToMsg(usage *agentllm.Usage) *Usage {
+	if usage == nil {
+		return nil
+	}
+	return &Usage{
+		PromptTokens:     usage.PromptTokens,
+		CompletionTokens: usage.CompletionTokens,
+		TotalTokens:      usage.TotalTokens,
+		CacheRead:        usage.CacheRead,
+		CacheWrite:       usage.CacheWrite,
+	}
 }
 
 func emitMessage(emit func(agentevent.Event) error, message AgentMessage) error {

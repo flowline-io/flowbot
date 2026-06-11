@@ -3,6 +3,7 @@ package ability
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/flc1125/go-cron/v4"
@@ -85,9 +86,7 @@ func (m *EventSourceManager) pollOnce(ctx context.Context, name string, entry *p
 	if result.NextCursor != "" {
 		entry.cursor = result.NextCursor
 	}
-	for k, v := range buildHashSet(result.Items, entry.resource.DiffKey, entry.resource.ContentHash) {
-		entry.knownHashes[k] = v
-	}
+	maps.Copy(entry.knownHashes, buildHashSet(result.Items, entry.resource.DiffKey, entry.resource.ContentHash))
 	entry.updatedAt = time.Now()
 	entry.mu.Unlock()
 

@@ -28,6 +28,16 @@ type AssistantResult struct {
 	ToolCalls  []llms.ToolCall
 	ModelName  string
 	StopReason string
+	Usage      *Usage
+}
+
+// Usage captures token consumption from an LLM response.
+type Usage struct {
+	PromptTokens     int
+	CompletionTokens int
+	TotalTokens      int
+	CacheRead        int
+	CacheWrite       int
 }
 
 // StreamAssistant performs a streaming LLM call and assembles the assistant result.
@@ -100,7 +110,50 @@ func StreamAssistant(
 		ToolCalls:  append([]llms.ToolCall(nil), choice.ToolCalls...),
 		ModelName:  opts.ModelName,
 		StopReason: stopReason,
+		Usage:      usageFromGenerationInfo(choice.GenerationInfo),
 	}, nil
+}
+
+func usageFromGenerationInfo(info map[string]any) *Usage {
+	if len(info) == 0 {
+		return nil
+	}
+	usage := &Usage{}
+	if v, ok := intFromInfo(info, "PromptTokens"); ok {
+		usage.PromptTokens = v
+	}
+	if v, ok := intFromInfo(info, "CompletionTokens"); ok {
+		usage.CompletionTokens = v
+	}
+	if v, ok := intFromInfo(info, "TotalTokens"); ok {
+		usage.TotalTokens = v
+	}
+	if usage.TotalTokens == 0 && (usage.PromptTokens > 0 || usage.CompletionTokens > 0) {
+		usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
+	}
+	if usage.PromptTokens == 0 && usage.CompletionTokens == 0 && usage.TotalTokens == 0 {
+		return nil
+	}
+	return usage
+}
+
+func intFromInfo(info map[string]any, key string) (int, bool) {
+	raw, ok := info[key]
+	if !ok {
+		return 0, false
+	}
+	switch v := raw.(type) {
+	case int:
+		return v, true
+	case int32:
+		return int(v), true
+	case int64:
+		return int(v), true
+	case float64:
+		return int(v), true
+	default:
+		return 0, false
+	}
 }
 
 // Complete performs a non-streaming completion for auxiliary tasks such as summarization.
@@ -110,11 +163,16 @@ func Complete(
 	systemPrompt string,
 	messages []llms.MessageContent,
 	modelName string,
+	maxTokens int,
 ) (string, error) {
 	if systemPrompt != "" {
 		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt)}, messages...)
 	}
-	resp, err := model.GenerateContent(ctx, messages, llms.WithModel(modelName))
+	opts := []llms.CallOption{llms.WithModel(modelName)}
+	if maxTokens > 0 {
+		opts = append(opts, llms.WithMaxTokens(maxTokens))
+	}
+	resp, err := model.GenerateContent(ctx, messages, opts...)
 	if err != nil {
 		return "", fmt.Errorf("agent llm: complete: %w", err)
 	}

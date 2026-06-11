@@ -15,6 +15,7 @@ type (
 	CustomMessage            = msg.CustomMessage
 	BranchSummaryMessage     = msg.BranchSummaryMessage
 	CompactionSummaryMessage = msg.CompactionSummaryMessage
+	Usage                    = msg.Usage
 	Context                  = msg.Context
 	ToolExecutionMode        = msg.ToolExecutionMode
 	QueueMode                = msg.QueueMode

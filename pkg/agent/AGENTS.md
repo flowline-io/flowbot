@@ -19,6 +19,7 @@ agent/
 ├── session/              # Session tree + Storage interface + JSONL helpers
 ├── model/                # Dual-model router
 ├── transform/            # convertToLLM + multimodal helpers
+├── ctxmgr/               # Context budget, compaction, branch summarization
 ├── harness/              # High-level orchestration with hooks
 └── example/echo/         # Reference echo tool
 ```
@@ -67,6 +68,19 @@ Use `model.Router` in `PrepareNextTurn` or harness configuration:
 ```go
 router := model.NewRouter("gpt-4o-mini", "gpt-4o")
 router.ApplyToContext(agentCtx, afterToolExecution)
+```
+
+### Context Management
+
+Use `ctxmgr.Manager` with the harness to compact long histories and summarize branches:
+
+```go
+ctxMgr := ctxmgr.New(ctxmgr.Options{
+    Model: llmModel, ModelName: "gpt-4o",
+    ContextWindow: config.ContextWindowForModel("gpt-4o"),
+    Settings: ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction),
+})
+h := harness.New(harness.Options{ContextManager: ctxMgr, Session: sess, ...})
 ```
 
 ## Rules

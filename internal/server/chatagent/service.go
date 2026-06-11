@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -105,9 +106,18 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 	systemPrompt := SystemPrompt(ctx, workspace)
 	agentCtx := session.ToAgentContext(session.BuildContext(branch), systemPrompt)
 	maxSteps := runMaxSteps()
+	contextWindow := config.ContextWindowForModel(resolvedName)
+	compactionSettings := ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction)
+	ctxManager := ctxmgr.New(ctxmgr.Options{
+		Model:         llmModel,
+		ModelName:     resolvedName,
+		ContextWindow: contextWindow,
+		Settings:      compactionSettings,
+		SystemPrompt:  systemPrompt,
+	})
 
-	flog.Debug("[chat-agent] harness prompt session=%s model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d",
-		req.SessionID, resolvedName, workspace.Root, len(branch), maxSteps, textLen)
+	flog.Debug("[chat-agent] harness prompt session=%s model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
+		req.SessionID, resolvedName, workspace.Root, len(branch), maxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
 	cfg := agent.DefaultConfig()
 	cfg.ModelName = resolvedName
@@ -120,9 +130,10 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 			Model:        llmModel,
 			Registry:     registry,
 		},
-		Session:      agentSession,
-		SystemPrompt: systemPrompt,
-		ModelName:    resolvedName,
+		Session:        agentSession,
+		SystemPrompt:   systemPrompt,
+		ModelName:      resolvedName,
+		ContextManager: ctxManager,
 	}), nil
 }
 
@@ -135,7 +146,7 @@ func runMaxSteps() int {
 }
 
 func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time) (string, error) {
-	stream, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
+	_, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
 	if err != nil {
 		if err == agent.ErrAborted {
 			flog.Info("[chat-agent] harness busy session=%s duration=%s", req.SessionID, time.Since(start).Round(time.Millisecond))
@@ -145,14 +156,11 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 		return "", err
 	}
 
-	result, err := stream.Await(ctx)
-	if err != nil {
+	if err := h.WaitIdle(ctx); err != nil {
 		return "", awaitRunError(req.SessionID, start, err)
 	}
-	if err := h.WaitIdle(ctx); err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] wait persist session=%s: %w", req.SessionID, err))
-		return "", err
-	}
+
+	result := h.LastRunResult()
 	if result.Err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] agent loop session=%s: %w", req.SessionID, result.Err))
 		return "", result.Err

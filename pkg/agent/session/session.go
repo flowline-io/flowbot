@@ -12,6 +12,16 @@ const (
 	branchSummarySuffix = "</summary>"
 )
 
+// CompactionResult carries data needed to append a compaction tree node.
+type CompactionResult struct {
+	EntryID          string
+	Summary          string
+	FirstKeptEntryID string
+	TokensBefore     int
+	ReadFiles        []string
+	ModifiedFiles    []string
+}
+
 // Session manages a branchable conversation tree backed by storage.
 type Session struct {
 	storage Storage
@@ -30,6 +40,43 @@ func (s *Session) Append(ctx context.Context, entry TreeEntry) error {
 	return s.storage.SetLeafID(ctx, entry.ID)
 }
 
+// AppendCompaction stores a compaction node and moves the leaf pointer to it.
+func (s *Session) AppendCompaction(ctx context.Context, result CompactionResult) error {
+	parentID, err := s.storage.GetLeafID(ctx)
+	if err != nil {
+		return fmt.Errorf("session: compaction parent: %w", err)
+	}
+	entryID := result.EntryID
+	if entryID == "" {
+		return fmt.Errorf("session: empty compaction entry id")
+	}
+	entry := TreeEntry{
+		ID:               entryID,
+		ParentID:         parentID,
+		Type:             EntryCompaction,
+		Summary:          result.Summary,
+		FirstKeptEntryID: result.FirstKeptEntryID,
+		TokensBefore:     result.TokensBefore,
+		ReadFiles:        append([]string(nil), result.ReadFiles...),
+		ModifiedFiles:    append([]string(nil), result.ModifiedFiles...),
+	}
+	return s.Append(ctx, entry)
+}
+
+// ListEntries returns all persisted session entries when supported by storage.
+func (s *Session) ListEntries(ctx context.Context) ([]TreeEntry, error) {
+	if lister, ok := s.storage.(interface {
+		ListEntries(context.Context) ([]TreeEntry, error)
+	}); ok {
+		entries, err := lister.ListEntries(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("session: list entries: %w", err)
+		}
+		return entries, nil
+	}
+	return s.GetBranch(ctx, "")
+}
+
 // GetBranch returns the path from root to the given leaf, inclusive.
 func (s *Session) GetBranch(ctx context.Context, leafID string) ([]TreeEntry, error) {
 	if leafID == "" {
@@ -37,6 +84,9 @@ func (s *Session) GetBranch(ctx context.Context, leafID string) ([]TreeEntry, er
 		leafID, err = s.storage.GetLeafID(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("session: get leaf: %w", err)
+		}
+		if leafID == "" {
+			return nil, nil
 		}
 	}
 	branch, err := s.storage.GetBranch(ctx, leafID)
@@ -46,30 +96,21 @@ func (s *Session) GetBranch(ctx context.Context, leafID string) ([]TreeEntry, er
 	return orderBranch(branch), nil
 }
 
-// BuildContext reconstructs loop context from a branch path.
+// BuildContext reconstructs loop context from a branch path with compaction boundaries.
 func BuildContext(path []TreeEntry) Context {
 	ctx := Context{}
+	if len(path) == 0 {
+		return ctx
+	}
+
+	compaction := applyPathMetadata(path, &ctx)
+	if compaction != nil {
+		appendCompactionContext(&ctx, path, compaction)
+		return ctx
+	}
+
 	for _, entry := range path {
-		switch entry.Type {
-		case EntryModelChange:
-			ctx.ModelName = entry.ModelName
-		case EntryActiveToolsChange:
-			ctx.ActiveTools = append([]string(nil), entry.ActiveToolNames...)
-		case EntryMessage:
-			if entry.Message != nil {
-				ctx.Messages = append(ctx.Messages, entry.Message)
-			}
-		case EntryBranchSummary:
-			ctx.Messages = append(ctx.Messages, msg.BranchSummaryMessage{
-				Summary: entry.Summary,
-				FromID:  entry.FromID,
-			})
-		case EntryCompaction:
-			ctx.Messages = append(ctx.Messages, msg.CompactionSummaryMessage{
-				Summary:      entry.Summary,
-				TokensBefore: entry.TokensBefore,
-			})
-		}
+		appendContextMessage(&ctx, entry)
 	}
 	return ctx
 }
@@ -80,9 +121,10 @@ func (s *Session) MoveTo(ctx context.Context, entryID, summary string) error {
 		return fmt.Errorf("session: empty entry id")
 	}
 	if summary != "" {
+		parentID := entryID
 		summaryEntry := TreeEntry{
 			ID:       entryID + "-summary",
-			ParentID: entryID,
+			ParentID: parentID,
 			Type:     EntryBranchSummary,
 			Summary:  summary,
 			FromID:   entryID,
@@ -102,6 +144,15 @@ func ToAgentContext(sessionCtx Context, systemPrompt string) *msg.Context {
 		Messages:     append([]msg.AgentMessage(nil), sessionCtx.Messages...),
 		ModelName:    sessionCtx.ModelName,
 	}
+}
+
+func indexOfEntry(entries []TreeEntry, id string) int {
+	for i, entry := range entries {
+		if entry.ID == id {
+			return i
+		}
+	}
+	return -1
 }
 
 func orderBranch(entries []TreeEntry) []TreeEntry {

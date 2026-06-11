@@ -567,6 +567,8 @@ type ChatAgentConfig struct {
 	PromptGuidelines []string `json:"prompt_guidelines" yaml:"prompt_guidelines" mapstructure:"prompt_guidelines"`
 	// ContextFiles lists project instruction files relative to workspace; defaults to AGENTS.md and README.md.
 	ContextFiles []string `json:"context_files" yaml:"context_files" mapstructure:"context_files"`
+	// Compaction configures automatic history compaction for long chat sessions.
+	Compaction CompactionConfig `json:"compaction" yaml:"compaction" mapstructure:"compaction"`
 }
 
 type Model struct {
@@ -578,6 +580,8 @@ type Model struct {
 	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
 	// Useful model names
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
+	// ContextWindows maps model names to their maximum input token budgets.
+	ContextWindows map[string]int `json:"context_windows" yaml:"context_windows" mapstructure:"context_windows"`
 }
 
 func Load(path ...string) error {

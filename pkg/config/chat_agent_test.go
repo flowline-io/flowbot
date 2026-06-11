@@ -18,6 +18,7 @@ func TestChatAgentConfig(t *testing.T) {
 		{name: "custom workspace", cfg: config.ChatAgentConfig{Workspace: "/tmp/ws"}, wantSteps: 0},
 		{name: "custom limits", cfg: config.ChatAgentConfig{
 			ShellTimeout: 30 * time.Second, MaxToolOutput: 4096, MaxSteps: 15,
+			Compaction: config.CompactionConfig{Enabled: true, ReserveTokens: 8192},
 		}, wantSteps: 15},
 	}
 

@@ -161,6 +161,9 @@ models:
     model_names:
       - "gpt-5.5-instant"
       - "gpt-5.5"
+    context_windows:
+      gpt-5.5-instant: 128000
+      gpt-5.5: 128000
 
 # Agent configuration
 agents:
@@ -192,6 +195,10 @@ chat_agent:
   shell_timeout: 60s
   max_tool_output: 8192
   max_steps: 30
+  compaction:
+    enabled: true
+    reserve_tokens: 16384
+    keep_recent_tokens: 20000
   # system_prompt: ""           # optional: replace default prompt entirely
   # append_system_prompt: ""    # optional: extra instructions appended to prompt
   # prompt_guidelines: []       # optional: extra guideline bullets

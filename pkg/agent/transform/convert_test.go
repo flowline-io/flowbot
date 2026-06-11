@@ -41,6 +41,18 @@ func TestDefaultConvertToLLM(t *testing.T) {
 			wantLen:  1,
 			wantRole: llms.ChatMessageTypeHuman,
 		},
+		{
+			name:     "branch summary",
+			messages: []agent.AgentMessage{agent.BranchSummaryMessage{Summary: "branch context"}},
+			wantLen:  1,
+			wantRole: llms.ChatMessageTypeHuman,
+		},
+		{
+			name:     "compaction summary",
+			messages: []agent.AgentMessage{agent.CompactionSummaryMessage{Summary: "compact context"}},
+			wantLen:  1,
+			wantRole: llms.ChatMessageTypeHuman,
+		},
 	}
 
 	for _, tt := range tests {

@@ -58,11 +58,21 @@ type UserMessage struct {
 // Role returns RoleUser.
 func (UserMessage) Role() MessageRole { return RoleUser }
 
+// Usage captures token consumption reported by the LLM provider.
+type Usage struct {
+	PromptTokens     int
+	CompletionTokens int
+	TotalTokens      int
+	CacheRead        int
+	CacheWrite       int
+}
+
 // AssistantMessage is a model turn with optional text and tool calls.
 type AssistantMessage struct {
 	Parts      []ContentPart
 	Model      string
 	StopReason string
+	Usage      *Usage
 	Timestamp  time.Time
 }
 

@@ -23,8 +23,9 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 			{Name: "chat", Enabled: true, Model: "fake-model"},
 		}
 		config.App.Models = []config.Model{
-			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
+			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}, ContextWindows: map[string]int{"fake-model": 128000}},
 		}
+		config.App.ChatAgent.Compaction = config.CompactionConfig{Enabled: false}
 
 		model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "hello from agent"})
 		orig := chatagent.NewModelForTest

@@ -28,6 +28,8 @@ type TreeEntry struct {
 	FromID           string           `json:"from_id,omitempty"`
 	FirstKeptEntryID string           `json:"first_kept_entry_id,omitempty"`
 	TokensBefore     int              `json:"tokens_before,omitempty"`
+	ReadFiles        []string         `json:"read_files,omitempty"`
+	ModifiedFiles    []string         `json:"modified_files,omitempty"`
 }
 
 // Context is the reconstructed runtime view of a branch path.

@@ -84,7 +84,16 @@ func messageToRaw(message msg.AgentMessage) map[string]any {
 	case msg.UserMessage:
 		return map[string]any{"role": "user", "text": textFromParts(m.Parts)}
 	case msg.AssistantMessage:
-		raw := map[string]any{"role": "assistant", "text": textFromParts(m.Parts), "model": m.Model}
+		raw := map[string]any{"role": "assistant", "text": textFromParts(m.Parts), "model": m.Model, "stop_reason": m.StopReason}
+		if m.Usage != nil {
+			raw["usage"] = map[string]any{
+				"prompt_tokens":     m.Usage.PromptTokens,
+				"completion_tokens": m.Usage.CompletionTokens,
+				"total_tokens":      m.Usage.TotalTokens,
+				"cache_read":          m.Usage.CacheRead,
+				"cache_write":         m.Usage.CacheWrite,
+			}
+		}
 		if calls := m.ToolCalls(); len(calls) > 0 {
 			serializedCalls := make([]map[string]any, 0, len(calls))
 			for _, tc := range calls {
@@ -149,62 +158,25 @@ func boolField(payload map[string]any, key string) (bool, error) {
 	return value, nil
 }
 
-func rawToMessage(raw any) (msg.AgentMessage, error) {
-	payload, ok := raw.(map[string]any)
-	if !ok {
-		data, err := sonic.Marshal(raw)
-		if err != nil {
-			return nil, err
-		}
-		if err := sonic.Unmarshal(data, &payload); err != nil {
-			return nil, err
-		}
+func usageFromRaw(raw map[string]any) *msg.Usage {
+	usage := &msg.Usage{}
+	if v, ok := raw["prompt_tokens"].(float64); ok {
+		usage.PromptTokens = int(v)
 	}
-	role, err := stringField(payload, "role")
-	if err != nil {
-		return nil, err
+	if v, ok := raw["completion_tokens"].(float64); ok {
+		usage.CompletionTokens = int(v)
 	}
-	text, err := stringField(payload, "text")
-	if err != nil {
-		return nil, err
+	if v, ok := raw["total_tokens"].(float64); ok {
+		usage.TotalTokens = int(v)
 	}
-	switch role {
-	case "user":
-		return msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}}, nil
-	case "assistant":
-		modelName := optionalStringField(payload, "model")
-		parts := []msg.ContentPart{msg.TextPart{Text: text}}
-		if rawCalls, ok := payload["tool_calls"].([]any); ok {
-			for _, rawCall := range rawCalls {
-				callMap, ok := rawCall.(map[string]any)
-				if !ok {
-					continue
-				}
-				parts = append(parts, msg.ToolCallPart{
-					ID:        optionalStringField(callMap, "id"),
-					Name:      optionalStringField(callMap, "name"),
-					Arguments: optionalStringField(callMap, "arguments"),
-				})
-			}
-		}
-		return msg.AssistantMessage{Parts: parts, Model: modelName}, nil
-	case "toolResult":
-		toolCallID, err := stringField(payload, "tool_call_id")
-		if err != nil {
-			return nil, err
-		}
-		name, err := stringField(payload, "name")
-		if err != nil {
-			return nil, err
-		}
-		isError, _ := boolField(payload, "is_error")
-		return msg.ToolResultMessage{
-			ToolCallID: toolCallID,
-			Name:       name,
-			Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
-			IsError:    isError,
-		}, nil
-	default:
-		return nil, fmt.Errorf("session jsonl: unknown message role %q", role)
+	if v, ok := raw["cache_read"].(float64); ok {
+		usage.CacheRead = int(v)
 	}
+	if v, ok := raw["cache_write"].(float64); ok {
+		usage.CacheWrite = int(v)
+	}
+	if usage.TotalTokens == 0 && usage.PromptTokens == 0 && usage.CompletionTokens == 0 {
+		return nil
+	}
+	return usage
 }

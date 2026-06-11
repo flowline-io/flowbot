@@ -145,6 +145,46 @@ Branch rollback:
 _ = sess.MoveTo(ctx, "previous-entry-id", "Summary of abandoned branch...")
 ```
 
+With `harness.Options.ContextManager` set, `Harness.MoveTo` generates branch summaries automatically when the summary argument is empty.
+
+## Context Management
+
+Wire compaction through the harness for production chat flows:
+
+```go
+ctxMgr := ctxmgr.New(ctxmgr.Options{
+    Model:         llmModel,
+    ModelName:     "gpt-4o",
+    ContextWindow: config.ContextWindowForModel("gpt-4o"),
+    Settings:      ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction),
+    SystemPrompt:  systemPrompt,
+})
+
+h := harness.New(harness.Options{
+    AgentOptions:   agent.Options{Model: llmModel, Registry: registry},
+    Session:        sess,
+    ContextManager: ctxMgr,
+    SystemPrompt:   systemPrompt,
+    ModelName:      "gpt-4o",
+})
+```
+
+Configure per-model context windows and compaction thresholds in `flowbot.yaml`:
+
+```yaml
+models:
+  - provider: openai
+    model_names: ["gpt-4o"]
+    context_windows:
+      gpt-4o: 128000
+
+chat_agent:
+  compaction:
+    enabled: true
+    reserve_tokens: 16384
+    keep_recent_tokens: 20000
+```
+
 JSONL export (caller writes bytes to disk or DB):
 
 ```go
@@ -234,4 +274,5 @@ Not implemented in the core library (planned for upper layers):
 - REST/SSE endpoints in `internal/server`
 - Wiring `config.agents` YAML to `agent.Config`
 - Pipeline/workflow steps that invoke `agent.RunLoop`
-- Compaction and skills (pi harness advanced features)
+- Compaction is implemented in `pkg/agent/ctxmgr` and wired through `harness.Options.ContextManager`
+- Skills (pi harness advanced features)

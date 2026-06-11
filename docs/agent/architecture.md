@@ -124,7 +124,7 @@ Sessions are **append-only trees**, not linear chat arrays. Each node has `ID`, 
 | `model_change` | Record model switch |
 | `active_tools_change` | Record tool allowlist |
 | `branch_summary` | Context after rollback to a branch |
-| `compaction` | Summarized history (entry type reserved; compaction logic not in core yet) |
+| `compaction` | Summarized history; rebuilt via `BuildContext` compaction boundaries |
 
 ```
 root ──► user msg ──► assistant ──► tool result ──► leaf
@@ -136,9 +136,31 @@ root ──► user msg ──► assistant ──► tool result ──► leaf
 - **`session.MemoryStorage`** — in-memory implementation for tests
 - **`session.SerializeSession` / `DeserializeSession`** — JSONL marshal helpers (sonic)
 
-`session.BuildContext(path)` reconstructs `[]msg.AgentMessage` and model/tool state from a branch path.
+`session.BuildContext(path)` reconstructs `[]msg.AgentMessage` and model/tool state from a branch path, honoring compaction boundaries via `first_kept_entry_id`.
 
-## Dual-Model Routing
+## Context Management
+
+Long-running sessions are kept within model limits by `pkg/agent/ctxmgr`:
+
+| Component | Role |
+| --------- | ---- |
+| `ctxmgr.Manager` | Threshold checks, compaction, branch summarization, agent state reload |
+| `ctxmgr.ShouldCompact` | Triggers when `tokens > contextWindow - reserveTokens` |
+| `ctxmgr.RunCompaction` | LLM summary of discarded history; persists `EntryCompaction` |
+| `ctxmgr.IsContextOverflowErr` | Detects provider overflow errors for one-shot retry |
+
+Harness integration (`harness.Options.ContextManager`):
+
+- **Before run**: `EnsureWithinBudget` compacts when over threshold
+- **After overflow**: compact + retry the prompt once
+- **MoveTo**: auto branch summarization when summary is empty
+
+Configuration:
+
+- Per-model `context_windows` in `flowbot.yaml` `models[]`
+- `chat_agent.compaction` for `enabled`, `reserve_tokens`, `keep_recent_tokens`
+
+Dual-Model Routing
 
 `model.Router` selects between a fast **chat** model and a capable **tool** model:
 

@@ -34,6 +34,18 @@ func TestSession_BuildContextAndMoveTo(t *testing.T) {
 			wantMessages: 2,
 		},
 		{
+			name: "compaction boundary",
+			setup: func(ctx context.Context, s *session.Session) error {
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "old", Type: session.EntryMessage, Message: agent.NewUserMessage("old")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "keep", ParentID: "old", Type: session.EntryMessage, Message: agent.NewUserMessage("kept")}))
+				return s.Append(ctx, session.TreeEntry{
+					ID: "compact", ParentID: "keep", Type: session.EntryCompaction,
+					Summary: "summary", FirstKeptEntryID: "keep", TokensBefore: 100,
+				})
+			},
+			wantMessages: 2,
+		},
+		{
 			name: "model change entry",
 			setup: func(ctx context.Context, s *session.Session) error {
 				return s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryModelChange, ModelName: "gpt"})

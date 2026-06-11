@@ -6,8 +6,10 @@ import (
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/transform"
@@ -35,15 +37,17 @@ type HookEvent struct {
 	SystemPrompt string
 	ModelName    string
 	ActiveTools  []string
+	ContextUsage *ctxmgr.ContextUsage
 }
 
 // Options configures a harness instance.
 type Options struct {
-	AgentOptions agent.Options
-	Session      *session.Session
-	Router       *model.Router
-	SystemPrompt string
-	ModelName    string
+	AgentOptions   agent.Options
+	Session        *session.Session
+	Router         *model.Router
+	SystemPrompt   string
+	ModelName      string
+	ContextManager *ctxmgr.Manager
 }
 
 // Harness orchestrates agent loop, session tree, tools, and lifecycle hooks.
@@ -51,12 +55,14 @@ type Harness struct {
 	mu           sync.Mutex
 	phase        Phase
 	idleCh       chan struct{}
+	lastResult   agentevent.Result
 	agent        *agent.Agent
 	session      *session.Session
 	registry     *tool.Registry
 	router       *model.Router
 	systemPrompt string
 	modelName    string
+	ctxMgr       *ctxmgr.Manager
 	hooks        map[string][]HookHandler
 }
 
@@ -75,6 +81,7 @@ func New(opts Options) *Harness {
 		router:       opts.Router,
 		systemPrompt: opts.SystemPrompt,
 		modelName:    opts.ModelName,
+		ctxMgr:       opts.ContextManager,
 		hooks:        make(map[string][]HookHandler),
 		phase:        PhaseIdle,
 		idleCh:       make(chan struct{}),
@@ -107,6 +114,17 @@ func (h *Harness) SetModel(llmModel llms.Model, modelName string) {
 	h.emitHook(context.Background(), HookEvent{Type: "model_update", ModelName: modelName})
 }
 
+// MoveTo switches the session leaf, auto-summarizing abandoned branches when configured.
+func (h *Harness) MoveTo(ctx context.Context, entryID, summary string) error {
+	if h.session == nil {
+		return agent.ErrAborted
+	}
+	if h.ctxMgr != nil {
+		return h.ctxMgr.MoveTo(ctx, h.session, entryID, summary)
+	}
+	return h.session.MoveTo(ctx, entryID, summary)
+}
+
 // Prompt starts an agent run with optional session persistence.
 func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*agentevent.Stream, error) {
 	if err := h.requireIdle(); err != nil {
@@ -120,6 +138,11 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 		SystemPrompt: h.systemPrompt,
 		ModelName:    h.modelName,
 	}); err != nil {
+		h.setPhase(PhaseIdle)
+		return nil, err
+	}
+
+	if err := h.prepareContext(ctx); err != nil {
 		h.setPhase(PhaseIdle)
 		return nil, err
 	}
@@ -141,7 +164,11 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 		h.setPhase(PhaseIdle)
 		return nil, err
 	}
-	go h.watchStream(ctx, stream)
+	go func() {
+		result := h.watchStream(ctx, stream, prompts, 0)
+		h.storeRunResult(result)
+		h.setPhase(PhaseIdle)
+	}()
 	return stream, nil
 }
 
@@ -153,6 +180,18 @@ func (h *Harness) Agent() *agent.Agent {
 // Session exposes the optional session manager.
 func (h *Harness) Session() *session.Session {
 	return h.session
+}
+
+// ContextManager exposes the optional context budget manager.
+func (h *Harness) ContextManager() *ctxmgr.Manager {
+	return h.ctxMgr
+}
+
+// LastRunResult returns the final outcome after Prompt completes, including overflow retries.
+func (h *Harness) LastRunResult() agentevent.Result {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.lastResult
 }
 
 // WaitIdle blocks until the harness returns to idle after a Prompt run finishes persisting.
@@ -173,19 +212,72 @@ func (h *Harness) WaitIdle(ctx context.Context) error {
 	}
 }
 
-func (h *Harness) isIdle() bool {
+func (h *Harness) storeRunResult(result agentevent.Result) {
 	h.mu.Lock()
-	defer h.mu.Unlock()
-	return h.phase == PhaseIdle
+	h.lastResult = result
+	h.mu.Unlock()
 }
 
-func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream) {
-	defer h.setPhase(PhaseIdle)
+func (h *Harness) prepareContext(ctx context.Context) error {
+	if h.ctxMgr == nil || h.session == nil {
+		return nil
+	}
+	if err := h.ctxMgr.EnsureWithinBudget(ctx, h.session, h.agent); err != nil {
+		return err
+	}
+	h.emitContextUsage(ctx)
+	return nil
+}
 
-	result, awaitErr := stream.Await(ctx)
-	if awaitErr != nil {
+func (h *Harness) emitContextUsage(ctx context.Context) {
+	if h.ctxMgr == nil || h.session == nil {
 		return
 	}
+	path, err := h.session.GetBranch(ctx, "")
+	if err != nil {
+		return
+	}
+	usage := h.ctxMgr.GetContextUsage(path)
+	_ = h.runHook(ctx, "context_usage", HookEvent{
+		Type:         "context_usage",
+		ContextUsage: &usage,
+	})
+}
+
+func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, prompts []agent.AgentMessage, retry int) agentevent.Result {
+	result, awaitErr := stream.Await(ctx)
+	if awaitErr != nil {
+		return agentevent.Result{Err: awaitErr}
+	}
+
+	if result.Err != nil && retry == 0 && h.shouldRetryOverflow(result) {
+		if err := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: true}); err != nil {
+			h.finishStream(ctx, result)
+			return result
+		}
+		h.emitHook(ctx, HookEvent{Type: "context_compacted"})
+		h.emitContextUsage(ctx)
+		retryStream, promptErr := h.agent.Prompt(ctx, prompts...)
+		if promptErr != nil {
+			h.finishStream(ctx, result)
+			return result
+		}
+		return h.watchStream(ctx, retryStream, prompts, retry+1)
+	}
+
+	h.finishStream(ctx, result)
+	return result
+}
+
+func (h *Harness) shouldRetryOverflow(result agentevent.Result) bool {
+	if h.ctxMgr == nil || h.session == nil || !h.ctxMgr.Settings().Enabled {
+		return false
+	}
+	messages := agentMessagesFromResult(result.Messages)
+	return ctxmgr.IsOverflowResult(result.Err, messages, h.ctxMgr.ContextWindow())
+}
+
+func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 	if err := h.runHook(ctx, "save_point", HookEvent{Type: "save_point"}); err != nil {
 		slog.Warn("harness: save_point hook", "err", err)
 	}
@@ -211,6 +303,17 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream) {
 		}
 		parentID = entryID
 	}
+}
+
+func agentMessagesFromResult(messages []any) []msg.AgentMessage {
+	result := make([]msg.AgentMessage, 0, len(messages))
+	for _, item := range messages {
+		message, ok := item.(agent.AgentMessage)
+		if ok {
+			result = append(result, message)
+		}
+	}
+	return result
 }
 
 func (h *Harness) requireIdle() error {
