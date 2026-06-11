@@ -154,7 +154,7 @@ func pathToRoot(byID map[string]session.TreeEntry, leafID string) []session.Tree
 
 func commonAncestor(oldPath, newPath []session.TreeEntry) string {
 	limit := min(len(newPath), len(oldPath))
-	for i := 0; i < limit; i++ {
+	for i := range limit {
 		if oldPath[i].ID != newPath[i].ID {
 			if i == 0 {
 				return ""

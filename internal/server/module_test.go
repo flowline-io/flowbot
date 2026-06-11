@@ -265,7 +265,7 @@ func (*testStoreAdapter) GetChannel(context.Context, int64) (*gen.Channel, error
 func (*testStoreAdapter) GetChannelByName(context.Context, string) (*gen.Channel, error) {
 	return nil, nil
 }
-func (a *testStoreAdapter) CreateChannel(_ context.Context, channel *gen.Channel) (int64, error) {
+func (*testStoreAdapter) CreateChannel(_ context.Context, channel *gen.Channel) (int64, error) {
 	channel.ID = 100
 	return channel.ID, nil
 }

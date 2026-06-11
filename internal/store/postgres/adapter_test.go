@@ -189,10 +189,10 @@ func TestRevokeToken(t *testing.T) {
 func TestCreatePlatformUser(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
-		item        *gen.PlatformUser
-		wantEmail   string
-		wantAvatar  string
+		name       string
+		item       *gen.PlatformUser
+		wantEmail  string
+		wantAvatar string
 	}{
 		{
 			name: "preserves provided profile fields",

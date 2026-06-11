@@ -6,22 +6,36 @@ Server-rendered HTML pages with HTMX + Alpine.js interactivity.
 
 ```text
 internal/modules/web/
-├── module.go                     # moduleHandler, Register(), Init(), Webservice(), Rules()
-├── webservice.go                 # General routes (home, login, configs CRUD), auth middleware
+├── module.go                     # moduleHandler, Register(), Init(), Webservice(), Rules(), E2E helpers
+├── rules.go                      # Aggregates all *WebserviceRules for route registration
+├── auth.go                       # AuthConfig, cookie auth middleware, login rate limiter wiring
+├── utils.go                      # Shared helpers (renderError, getUID)
+├── home_webservice.go            # Home page route
+├── login_webservice.go           # Login/logout routes and handlers
+├── config_webservice.go          # Configs CRUD routes and handlers
+├── healthz_webservice.go         # Health dashboard route and metrics collection
 ├── pipeline_webservice.go        # Pipeline-specific routes (CRUD, editor, run history, test)
 ├── view_webservice.go            # Shareable view page routes (create, view, delete)
+├── view_types.go                 # View rendering types (viewTemplateFn, viewTemplates)
 ├── event_webservice.go           # Data events list and detail routes
 ├── homelab_webservice.go         # Homelab registry browser routes
 ├── hub_webservice.go             # Hub app management routes
 ├── notification_webservice.go    # Notification list routes
 ├── notify_settings_webservice.go # Notify channel/rule CRUD routes
 ├── token_webservice.go           # API token management routes
-├── relations.go                  # Resource relations graph routes
-├── types.go                      # View rendering types (viewTemplateFn, viewTemplates)
+├── relations_webservice.go       # Resource relations graph routes
 ├── ratelimit.go                  # Login rate limiter
-├── module_test.go                # Unit tests
+├── module_test.go                # Module lifecycle unit tests
+├── auth_test.go                  # Auth middleware tests
+├── login_webservice_test.go      # Login/logout/rate limit tests
+├── config_webservice_test.go     # Configs CRUD tests
+├── healthz_webservice_test.go    # Health dashboard tests
+├── notify_settings_webservice_test.go # Notify settings validation and auth tests
+├── rules_test.go                 # Route group registration tests
 ├── test_helper_test.go           # E2E test helpers
 └── *_test.go                     # Co-located tests per webservice file
+
+> **Legacy layout:** Older docs may reference `webservice.go`. It was split into `home_webservice.go`, `login_webservice.go`, `config_webservice.go`, `healthz_webservice.go`, plus shared `auth.go` and `rules.go`. Register new routes in the matching `*_webservice.go` file and append its rule slice to `allWebserviceRules` in `rules.go`.
 
 pkg/views/
 ├── layout/

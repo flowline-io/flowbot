@@ -13,7 +13,7 @@ metrics, capability health checks, and recent error log summary.
 | Modify   | `pkg/flog/flog.go`                       | Add 50-entry ring buffer for ERROR logs   |
 | New      | `pkg/views/pages/healthz.templ`          | Full page wrapped in `@layout.Base`       |
 | New      | `pkg/views/partials/healthz_status.templ`| Auto-refresh partial with all metrics     |
-| Modify   | `internal/modules/web/webservice.go`     | Add `healthzPage` handler + route rule    |
+| Modify   | `internal/modules/web/healthz_webservice.go` | Add `healthzPage` handler + route rule    |
 | Modify   | `internal/modules/web/module.go`         | Register rule in `Webservice()`           |
 | Modify   | `pkg/views/layout/base.templ`            | Add "Health" nav link                     |
 

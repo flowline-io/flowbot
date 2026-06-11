@@ -16,15 +16,15 @@ import (
 
 type registrationStore struct {
 	testStoreAdapter
-	platform           *gen.Platform
-	platformUser       *gen.PlatformUser
-	user               *gen.User
-	createPlatform     *gen.PlatformUser
-	updatedPlatform    *gen.PlatformUser
-	platformUserErr    error
-	userCreateErr      error
-	createPlatformErr  error
-	updatePlatformErr  error
+	platform          *gen.Platform
+	platformUser      *gen.PlatformUser
+	user              *gen.User
+	createPlatform    *gen.PlatformUser
+	updatedPlatform   *gen.PlatformUser
+	platformUserErr   error
+	userCreateErr     error
+	createPlatformErr error
+	updatePlatformErr error
 }
 
 func (s *registrationStore) GetPlatformByName(_ context.Context, name string) (*gen.Platform, error) {
@@ -212,7 +212,7 @@ func TestRegisterPlatformUser(t *testing.T) {
 			if tt.wantErr {
 				require.Error(t, err)
 				if tt.wantErrText != "" {
-					assert.ErrorContains(t, err, tt.wantErrText)
+					require.ErrorContains(t, err, tt.wantErrText)
 				}
 				return
 			}
@@ -289,7 +289,7 @@ func (s *channelRegistrationStore) UpdatePlatformChannelChannelID(_ context.Cont
 	return nil
 }
 
-func (s *channelRegistrationStore) CreatePlatformChannelUser(context.Context, *gen.PlatformChannelUser) (int64, error) {
+func (*channelRegistrationStore) CreatePlatformChannelUser(context.Context, *gen.PlatformChannelUser) (int64, error) {
 	return 1, nil
 }
 

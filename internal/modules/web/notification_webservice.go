@@ -23,14 +23,6 @@ var notificationWebserviceRules = []webservice.Rule{
 	webservice.Post("/notifications/:id/retry", retryNotification, route.WithNotAuth()),
 }
 
-func getUID(ctx fiber.Ctx) string {
-	rc := route.GetRequestContext(ctx)
-	if rc == nil {
-		return ""
-	}
-	return rc.UID.String()
-}
-
 func notificationsPage(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err

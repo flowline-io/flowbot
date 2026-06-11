@@ -129,7 +129,7 @@ git commit -m "feat(web): add login page Templ template"
 
 **Files:**
 
-- Modify: `internal/modules/web/webservice.go`
+- Modify: `internal/modules/web/login_webservice.go` and `internal/modules/web/auth.go`
 
 - [ ] **Step 1: Add new imports**
 
@@ -339,7 +339,7 @@ Expected: no errors from web module files.
 - [ ] **Step 10: Commit**
 
 ```bash
-git add internal/modules/web/webservice.go
+git add internal/modules/web/login_webservice.go internal/modules/web/auth.go
 git commit -m "feat(web): add login/logout handlers, refactor auth for web routes"
 ```
 

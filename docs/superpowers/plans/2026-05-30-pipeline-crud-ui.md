@@ -32,7 +32,7 @@
 | `internal/modules/web/pipeline_templates/pipeline_partials.templ` | Create | Trigger cards, step cards, drawer, var picker              |
 | `public/js/pipeline-editor.js`                                    | Create | Alpine.js canvas component                                 |
 | `public/css/input.css`                                            | Modify | Variable pill display CSS                                  |
-| `internal/modules/web/webservice.go`                              | Modify | Add pipeline webservice rules                              |
+| `internal/modules/web/rules.go`                                   | Modify | Register pipeline webservice rules in `allWebserviceRules` |
 | `internal/modules/web/module.go`                                  | Modify | Add pipeline template/static serving, store injection      |
 | `pkg/views/layout/base.templ`                                     | Modify | Add Pipelines nav link                                     |
 | `tests/specs/pipeline_spec_test.go`                               | Modify | Fix test using removed UpsertDefinition                    |
@@ -2628,7 +2628,7 @@ git commit -m "feat: add variable pill display CSS"
 **Files:**
 
 - Modify: `pkg/views/layout/base.templ`
-- Modify: `internal/modules/web/webservice.go`
+- Modify: `internal/modules/web/rules.go` and `internal/modules/web/module.go`
 - Modify: `internal/modules/web/module.go`
 
 - [ ] **Step 1: Add Pipelines nav link**
@@ -2669,7 +2669,7 @@ With:
 
 - [ ] **Step 2: Add pipeline webservice rules**
 
-In `internal/modules/web/webservice.go`, append `pipelineWebserviceRules` to the `webserviceRules` slice:
+In `internal/modules/web/rules.go`, append `pipelineWebserviceRules` to `allWebserviceRules`:
 
 ```go
 var webserviceRules = []webservice.Rule{
@@ -2730,7 +2730,7 @@ func pipelineEditorPage(c fiber.Ctx) error {
 - [ ] **Step 4: Commit**
 
 ```bash
-git add pkg/views/layout/base.templ internal/modules/web/webservice.go internal/modules/web/pipeline_webservice.go internal/modules/web/module.go
+git add pkg/views/layout/base.templ internal/modules/web/rules.go internal/modules/web/pipeline_webservice.go internal/modules/web/module.go
 git commit -m "feat: wire pipelines nav, webservice rules, and module registration"
 ```
 

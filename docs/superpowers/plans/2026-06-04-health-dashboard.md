@@ -633,11 +633,11 @@ git commit -m "feat: add healthz status partial and page templates"
 ### Task 6: Add healthzPage handler in web module
 
 **Files:**
-- Modify: `internal/modules/web/webservice.go`
+- Modify: `internal/modules/web/healthz_webservice.go`
 
 - [ ] **Step 1: Write the handler function**
 
-Add to `internal/modules/web/webservice.go` (at end of file):
+Add to `internal/modules/web/healthz_webservice.go` (at end of file):
 
 ```go
 import (
@@ -762,7 +762,7 @@ Check existing imports in `webservice.go` to avoid duplicates. The file already 
 
 - [ ] **Step 2: Add route rule**
 
-In `internal/modules/web/webservice.go`, add to `webserviceRules`:
+In `internal/modules/web/healthz_webservice.go`, define `healthzWebserviceRules`; register it in `rules.go` (`allWebserviceRules`):
 
 ```go
 	webservice.Get("/healthz", healthzPage, route.WithNotAuth()),
@@ -778,7 +778,7 @@ Expected: pass
 - [ ] **Step 4: Commit**
 
 ```bash
-git add internal/modules/web/webservice.go
+git add internal/modules/web/healthz_webservice.go internal/modules/web/rules.go
 git commit -m "feat: add healthzPage handler and route for health dashboard"
 ```
 

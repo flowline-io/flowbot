@@ -194,7 +194,7 @@ Ginkgo spec for full login flow: visit configs → redirected to login → submi
 1. `internal/store/store.go` — add `ParameterSet` + `ParameterDelete`
 2. `internal/store/store_test.go` — unit tests for new store methods
 3. `internal/modules/web/module.go` — add `AuthConfig`, parse in `Init()`, pass to handlers
-4. `internal/modules/web/webservice.go` — add `loginPage`, `loginSubmit`, `logout` handlers; modify `requireAuth()`
+4. `internal/modules/web/login_webservice.go` — add `loginPage`, `loginSubmit`, `logout` handlers; `internal/modules/web/auth.go` — cookie auth middleware
 5. `pkg/views/pages/login.templ` — new Templ template
 6. `go tool task templ` — generate `login_templ.go`
 7. `internal/modules/web/module_test.go` — tests for handlers

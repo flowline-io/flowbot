@@ -28,7 +28,7 @@
 | Create | `pkg/views/partials/config_row.templ`   | Single config row (HTMX target)                              |
 | Create | `pkg/views/partials/config_form.templ`  | Inline create/edit form with validation errors               |
 | Create | `internal/modules/web/module.go`        | moduleHandler, Register(), Init(), Webservice()              |
-| Create | `internal/modules/web/webservice.go`    | HTTP handlers (page + 7 HTMX routes)                         |
+| Create | `internal/modules/web/home_webservice.go`, `config_webservice.go`, etc. | HTTP handlers (page + HTMX routes; see AGENTS.md Structure) |
 | Create | `internal/modules/web/module_test.go`   | TDD tests for handlers and module init                       |
 | Modify | `internal/modules/fx.go`                | Add `web.Register` to fx.Invoke                              |
 | Modify | `taskfile.yaml`                         | Add `templ`, `css`, `web` tasks                              |
@@ -828,7 +828,7 @@ func (moduleHandler) Rules() []any {
 
 - [ ] **Step 4: Create the placeholder webservice rules so module.go compiles**
 
-Create `internal/modules/web/webservice.go` with a minimal shell:
+Create `internal/modules/web/config_webservice.go` (and related `*_webservice.go` files) with a minimal shell:
 
 ```go
 package web
@@ -851,7 +851,7 @@ Expected: all 3 test functions pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add internal/modules/web/module.go internal/modules/web/webservice.go internal/modules/web/module_test.go
+git add internal/modules/web/module.go internal/modules/web/config_webservice.go internal/modules/web/module_test.go
 git commit -m "feat: add web module with Register, Init, and unit tests"
 ```
 
@@ -861,7 +861,7 @@ git commit -m "feat: add web module with Register, Init, and unit tests"
 
 **Files:**
 
-- Modify: `internal/modules/web/webservice.go`
+- Modify: `internal/modules/web/config_webservice.go` (and `rules.go` to register routes)
 - Modify: `internal/modules/web/module_test.go` (add handler tests)
 
 - [ ] **Step 1: Write handler tests in `module_test.go` (append after existing tests)**

@@ -1,0 +1,93 @@
+package web
+
+import (
+	"context"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+func TestAuthenticateWebRedirect(t *testing.T) {
+	tests := []struct {
+		name             string
+		cookieToken      string
+		paramGetFn       func(ctx context.Context, flag string) (gen.Parameter, error)
+		wantStatus       int
+		wantBodyContains string
+	}{
+		{
+			name:        "valid token allows access to configs",
+			cookieToken: "valid-token",
+			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				return gen.Parameter{
+					ID:        1,
+					Flag:      flag,
+					Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+					ExpiredAt: time.Now().Add(time.Hour),
+				}, nil
+			},
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "Configs",
+		},
+		{
+			name:             "no cookie redirects to login",
+			cookieToken:      "",
+			wantStatus:       http.StatusSeeOther,
+			wantBodyContains: "",
+		},
+		{
+			name:        "invalid token redirects to login",
+			cookieToken: "bad-token",
+			paramGetFn: func(_ context.Context, _ string) (gen.Parameter, error) {
+				return gen.Parameter{}, types.ErrNotFound
+			},
+			wantStatus:       http.StatusSeeOther,
+			wantBodyContains: "",
+		},
+		{
+			name:        "expired token redirects to login",
+			cookieToken: "expired-token",
+			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				return gen.Parameter{
+					ID:        2,
+					Flag:      flag,
+					Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+					ExpiredAt: time.Now().Add(-time.Hour),
+				}, nil
+			},
+			wantStatus:       http.StatusSeeOther,
+			wantBodyContains: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			if tt.paramGetFn != nil {
+				ts.paramGetFn = tt.paramGetFn
+			}
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", nil)
+			if tt.cookieToken != "" {
+				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
+			}
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if tt.wantStatus != resp.StatusCode {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if tt.wantBodyContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				if !strings.Contains(string(body), tt.wantBodyContains) {
+					t.Errorf("want body containing %q", tt.wantBodyContains)
+				}
+			}
+		})
+	}
+}
