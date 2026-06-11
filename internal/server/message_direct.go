@@ -159,7 +159,7 @@ func dispatchDirectMessage(
 		return
 	}
 
-	if sessionID == "" {
+	if sessionID == "" && payload == nil {
 		payload = dispatchToModules(dmCtx.ctx, msg.AltMessage)
 	}
 	if payload == nil {
