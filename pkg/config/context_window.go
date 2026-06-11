@@ -28,12 +28,18 @@ func (c CompactionConfig) WithDefaults() CompactionConfig {
 	return c
 }
 
-// ContextWindowForModel returns the configured context window for a model name.
-func ContextWindowForModel(modelName string) int {
-	for _, item := range App.Models {
+// ContextWindowForModels returns the configured context window for a model name
+// using the provided model definitions.
+func ContextWindowForModels(models []Model, modelName string) int {
+	for _, item := range models {
 		if window, ok := item.ContextWindows[modelName]; ok && window > 0 {
 			return window
 		}
 	}
 	return defaultContextWindow
+}
+
+// ContextWindowForModel returns the configured context window for a model name.
+func ContextWindowForModel(modelName string) int {
+	return ContextWindowForModels(App.Models, modelName)
 }

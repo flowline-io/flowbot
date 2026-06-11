@@ -44,10 +44,7 @@ func TestContextWindowForModel(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			orig := config.App.Models
-			config.App.Models = tt.models
-			t.Cleanup(func() { config.App.Models = orig })
-			assert.Equal(t, tt.want, config.ContextWindowForModel(tt.modelName))
+			assert.Equal(t, tt.want, config.ContextWindowForModels(tt.models, tt.modelName))
 		})
 	}
 }
