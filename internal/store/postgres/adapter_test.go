@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,7 +14,9 @@ import (
 )
 
 func getTestClient(t *testing.T) *gen.Client {
-	return sqlitetest.OpenClient(t, "postgres_adapter")
+	t.Helper()
+	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+	return sqlitetest.OpenClient(t, dbName)
 }
 
 func testAdapter(t *testing.T) *adapter {
