@@ -1,13 +1,11 @@
 package coding
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os/exec"
-	"runtime"
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 )
@@ -15,6 +13,7 @@ import (
 // RunTerminalTool executes shell commands inside the workspace.
 type RunTerminalTool struct {
 	Workspace Workspace
+	Env       env.ExecutionEnv
 }
 
 // Name returns the tool identifier.
@@ -49,9 +48,9 @@ func (t RunTerminalTool) Execute(ctx context.Context, id string, args map[string
 		_ = onUpdate("running command...")
 	}
 
-	root, err := t.Workspace.absRoot()
-	if err != nil {
-		return toolError(id, t.Name(), err.Error()), nil
+	rootResult := t.Workspace.absRoot()
+	if !rootResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatFileError(rootResult.ErrorValue())), nil
 	}
 
 	timeout := t.Workspace.Timeout
@@ -61,27 +60,28 @@ func (t RunTerminalTool) Execute(ctx context.Context, id string, args map[string
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.CommandContext(runCtx, "cmd", "/C", command)
-	} else {
-		cmd = exec.CommandContext(runCtx, "sh", "-c", command)
+	execResult := t.executionEnv().Exec(runCtx, env.ExecOptions{
+		Command: command,
+		Dir:     rootResult.Value(),
+		Timeout: runCtx,
+	})
+	if !execResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatExecutionError(execResult.ErrorValue())), nil
 	}
-	cmd.Dir = root
 
-	var buf bytes.Buffer
-	cmd.Stdout = &buf
-	cmd.Stderr = &buf
-
-	err = cmd.Run()
-	output := t.Workspace.TruncateOutput(buf.String())
-	if err != nil {
-		output = fmt.Sprintf("exit error: %v\n%s", err, output)
-	}
+	capture := execResult.Value()
+	output := t.Workspace.TruncateOutput(env.FormatExecOutput(capture, capture.ExitCode != 0, nil))
 	return msg.ToolResultMessage{
 		ToolCallID: id,
 		Name:       t.Name(),
-		Parts:      []msg.ContentPart{msg.TextPart{Text: strings.TrimSpace(output)}},
-		IsError:    err != nil,
+		Parts:      []msg.ContentPart{msg.TextPart{Text: output}},
+		IsError:    capture.ExitCode != 0,
 	}, nil
+}
+
+func (t RunTerminalTool) executionEnv() env.ExecutionEnv {
+	if t.Env != nil {
+		return t.Env
+	}
+	return env.Default()
 }

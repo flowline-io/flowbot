@@ -267,6 +267,24 @@ When adding features to `pkg/agent/`:
 5. Update [architecture.md](./architecture.md) and [pkg/agent/AGENTS.md](../../pkg/agent/AGENTS.md)
 6. Add table-driven tests (≥3 cases) and BDD coverage when behavior is user-visible
 
+## Error Handling (Result Pattern)
+
+Flowbot mirrors pi-agent's layered error model:
+
+1. **Low-level** (`pkg/agent/result`, `env`, `ctxmgr`, JSONL parse): return `result.Result[T,E]` with stable typed codes (`compaction`, `timeout`, `not_found`, …). Callers must branch on `IsOk()` — do not ignore failures.
+2. **Boundary** (`harness`, `session` public methods): adapt Result to Go `error` via `result.GetOrError` or `normalizeHarnessError`.
+3. **Tool layer**: expected runtime failures become `ToolResultMessage{IsError: true}`; `Execute` returns `(result, nil)`.
+4. **Loop layer**: LLM, hook, and transport failures abort the run; tool errors do not.
+
+```go
+compactResult := ctxmgr.RunCompaction(ctx, model, name, prep)
+if !compactResult.IsOk() {
+    return result.GetOrError(compactResult)
+}
+```
+
+Use `result.CodeOf(err)` or `errors.As` at HTTP/chat integration boundaries instead of string matching.
+
 ## Future Integration Points
 
 Not implemented in the core library (planned for upper layers):

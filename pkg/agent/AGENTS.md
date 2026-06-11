@@ -11,6 +11,8 @@ agent/
 ├── types.go              # AgentMessage, Context, hook types
 ├── config.go             # Config defaults
 ├── errors.go             # Domain errors
+├── result/               # Result[T,E] and typed agent errors
+├── env/                  # ExecutionEnv for FS/shell with Result
 ├── loop.go               # Stateless RunLoop / RunLoopContinue
 ├── agent.go              # Stateful Agent with queues and subscriptions
 ├── event/                # Lifecycle event stream
@@ -90,7 +92,19 @@ h := harness.New(harness.Options{ContextManager: ctxMgr, Session: sess, ...})
 - **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and YAML `config.agents` entries
 - **Serialization**: use `sonic` for JSON/JSONL
 - **Errors**: wrap with `%w`; return `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`
+- **Result pattern**: low-level capabilities (`env`, `ctxmgr`, JSONL parse) return `result.Result[T,E]` with typed error codes; harness/session public APIs adapt to Go `error` via `result.GetOrError`; tool failures stay inline as `ToolResultMessage.IsError`
 - **Tests**: table-driven unit tests (>=3 cases) + BDD in `tests/specs/agent_spec_test.go`
+
+## Error Handling
+
+| Layer | Pattern |
+| ----- | ------- |
+| `result`, `env`, `ctxmgr` internals | `result.Result[T,E]`; callers must check `IsOk()` |
+| `harness`, `session` public API | Go `error`; use `errors.As` / `result.CodeOf` at integration boundaries |
+| `tool.Execute` | Expected failures → `ToolResultMessage{IsError: true}`, `error` nil |
+| Agent loop | Fatal failures return `error`; tool errors do not abort the turn |
+
+Anti-patterns: returning bare `error` from compaction helpers; ignoring `!result.IsOk()`; using `panic` for expected failures.
 
 ## Testing
 

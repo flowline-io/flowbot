@@ -60,7 +60,11 @@ func executeParallel(ctx context.Context, req BatchRequest, calls []msg.ToolCall
 	for _, call := range calls {
 		item, err := prepareCall(ctx, req, call)
 		if err != nil {
-			return BatchResult{}, err
+			item = preparedCall{
+				call:    call,
+				blocked: true,
+				reason:  err.Error(),
+			}
 		}
 		prepared = append(prepared, item)
 	}
@@ -69,7 +73,6 @@ func executeParallel(ctx context.Context, req BatchRequest, calls []msg.ToolCall
 		index     int
 		result    msg.ToolResultMessage
 		terminate bool
-		err       error
 	}
 
 	results := make([]execResult, len(prepared))
@@ -79,17 +82,14 @@ func executeParallel(ctx context.Context, req BatchRequest, calls []msg.ToolCall
 	for i, item := range prepared {
 		go func(idx int, preparedItem preparedCall) {
 			defer wg.Done()
-			toolResult, terminate, err := runPrepared(ctx, req, preparedItem)
-			results[idx] = execResult{index: idx, result: toolResult, terminate: terminate, err: err}
+			toolResult, terminate, _ := runPrepared(ctx, req, preparedItem)
+			results[idx] = execResult{index: idx, result: toolResult, terminate: terminate}
 		}(i, item)
 	}
 	wg.Wait()
 
 	batch := BatchResult{}
 	for _, item := range results {
-		if item.err != nil {
-			return batch, item.err
-		}
 		batch.Messages = append(batch.Messages, item.result)
 		if item.terminate {
 			batch.Terminate = true
@@ -198,7 +198,7 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 			Context:   req.Context,
 		})
 		if afterErr != nil {
-			return msg.ToolResultMessage{}, false, afterErr
+			return errorResult(call, afterErr.Error()), false, nil
 		}
 		if after != nil {
 			if after.Parts != nil {

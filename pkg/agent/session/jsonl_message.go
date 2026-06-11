@@ -6,20 +6,25 @@ import (
 	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 )
 
-func payloadFromRaw(raw any) (map[string]any, error) {
+func payloadFromRaw(raw any) result.Result[map[string]any, result.ParseError] {
 	payload, ok := raw.(map[string]any)
 	if !ok {
 		data, err := sonic.Marshal(raw)
 		if err != nil {
-			return nil, err
+			return result.Err[map[string]any, result.ParseError](
+				result.NewParseError("invalid_payload", "marshal message payload", err),
+			)
 		}
 		if err := sonic.Unmarshal(data, &payload); err != nil {
-			return nil, err
+			return result.Err[map[string]any, result.ParseError](
+				result.NewParseError("invalid_payload", "unmarshal message payload", err),
+			)
 		}
 	}
-	return payload, nil
+	return result.Ok[map[string]any, result.ParseError](payload)
 }
 
 func assistantFromPayload(payload map[string]any, text string) msg.AgentMessage {
@@ -46,45 +51,75 @@ func assistantFromPayload(payload map[string]any, text string) msg.AgentMessage 
 	return assistant
 }
 
-func toolResultFromPayload(payload map[string]any, text string) (msg.AgentMessage, error) {
+func toolResultFromPayload(payload map[string]any, text string) result.Result[msg.AgentMessage, result.ParseError] {
 	toolCallID, err := stringField(payload, "tool_call_id")
 	if err != nil {
-		return nil, err
+		return result.Err[msg.AgentMessage, result.ParseError](parseFieldError("tool_call_id", err))
 	}
 	name, err := stringField(payload, "name")
 	if err != nil {
-		return nil, err
+		return result.Err[msg.AgentMessage, result.ParseError](parseFieldError("name", err))
 	}
-	isError, _ := boolField(payload, "is_error")
-	return msg.ToolResultMessage{
+	isError, err := optionalBoolField(payload, "is_error")
+	if err != nil {
+		return result.Err[msg.AgentMessage, result.ParseError](parseFieldError("is_error", err))
+	}
+	return result.Ok[msg.AgentMessage, result.ParseError](msg.ToolResultMessage{
 		ToolCallID: toolCallID,
 		Name:       name,
 		Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
 		IsError:    isError,
-	}, nil
+	})
 }
 
-func rawToMessage(raw any) (msg.AgentMessage, error) {
-	payload, err := payloadFromRaw(raw)
-	if err != nil {
-		return nil, err
+func parseMessage(raw any) result.Result[msg.AgentMessage, result.ParseError] {
+	payloadResult := payloadFromRaw(raw)
+	if !payloadResult.IsOk() {
+		return result.Err[msg.AgentMessage, result.ParseError](payloadResult.ErrorValue())
 	}
+	payload := payloadResult.Value()
 	role, err := stringField(payload, "role")
 	if err != nil {
-		return nil, err
+		return result.Err[msg.AgentMessage, result.ParseError](parseFieldError("role", err))
 	}
 	text, err := stringField(payload, "text")
 	if err != nil {
-		return nil, err
+		return result.Err[msg.AgentMessage, result.ParseError](parseFieldError("text", err))
 	}
 	switch role {
 	case "user":
-		return msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}}, nil
+		return result.Ok[msg.AgentMessage, result.ParseError](msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}})
 	case "assistant":
-		return assistantFromPayload(payload, text), nil
+		return result.Ok[msg.AgentMessage, result.ParseError](assistantFromPayload(payload, text))
 	case "toolResult":
-		return toolResultFromPayload(payload, text)
+		parsed := toolResultFromPayload(payload, text)
+		if !parsed.IsOk() {
+			return result.Err[msg.AgentMessage, result.ParseError](parsed.ErrorValue())
+		}
+		return parsed
 	default:
-		return nil, fmt.Errorf("session jsonl: unknown message role %q", role)
+		return result.Err[msg.AgentMessage, result.ParseError](
+			result.NewParseError("unknown_role", fmt.Sprintf("unknown message role %q", role), nil),
+		)
 	}
+}
+
+func rawToMessage(raw any) (msg.AgentMessage, error) {
+	return result.GetOrError(parseMessage(raw))
+}
+
+func parseFieldError(field string, err error) result.ParseError {
+	return result.NewParseError("invalid_field", fmt.Sprintf("field %q: %v", field, err), err)
+}
+
+func optionalBoolField(payload map[string]any, key string) (bool, error) {
+	raw, ok := payload[key]
+	if !ok {
+		return false, nil
+	}
+	value, ok := raw.(bool)
+	if !ok {
+		return false, fmt.Errorf("invalid bool field %q", key)
+	}
+	return value, nil
 }

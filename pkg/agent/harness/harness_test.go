@@ -32,8 +32,8 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 			wantSubstr: "recovered reply",
 		},
 		{
-			name:    "single success",
-			scripts: []agentllm.ResponseScript{{Content: "ok"}},
+			name:       "single success",
+			scripts:    []agentllm.ResponseScript{{Content: "ok"}},
 			wantSubstr: "ok",
 		},
 		{

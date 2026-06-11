@@ -90,8 +90,8 @@ func messageToRaw(message msg.AgentMessage) map[string]any {
 				"prompt_tokens":     m.Usage.PromptTokens,
 				"completion_tokens": m.Usage.CompletionTokens,
 				"total_tokens":      m.Usage.TotalTokens,
-				"cache_read":          m.Usage.CacheRead,
-				"cache_write":         m.Usage.CacheWrite,
+				"cache_read":        m.Usage.CacheRead,
+				"cache_write":       m.Usage.CacheWrite,
 			}
 		}
 		if calls := m.ToolCalls(); len(calls) > 0 {

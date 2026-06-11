@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 )
 
 // Workspace bounds file and shell operations to a single root directory.
@@ -20,14 +22,15 @@ type Workspace struct {
 }
 
 // ResolvePath maps a relative or absolute path into the workspace root.
-func (w Workspace) ResolvePath(path string) (string, error) {
+func (w Workspace) ResolvePath(path string) result.Result[string, result.FileError] {
 	if strings.TrimSpace(path) == "" {
-		return "", fmt.Errorf("coding workspace: empty path")
+		return result.Err[string, result.FileError](result.NewFileError("path_escape", "empty path", nil))
 	}
-	root, err := w.absRoot()
-	if err != nil {
-		return "", err
+	rootResult := w.absRoot()
+	if !rootResult.IsOk() {
+		return result.Err[string, result.FileError](rootResult.ErrorValue())
 	}
+	root := rootResult.Value()
 	clean := filepath.Clean(path)
 	if filepath.IsAbs(clean) {
 		clean = strings.TrimPrefix(clean, root)
@@ -36,38 +39,38 @@ func (w Workspace) ResolvePath(path string) (string, error) {
 	resolved := filepath.Join(root, clean)
 	abs, err := filepath.Abs(resolved)
 	if err != nil {
-		return "", fmt.Errorf("coding workspace: resolve path: %w", err)
+		return result.Err[string, result.FileError](result.NewFileError("path_escape", "resolve path", err))
 	}
 	evaluated, err := filepath.EvalSymlinks(abs)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return "", fmt.Errorf("coding workspace: eval symlinks: %w", err)
+			return result.Err[string, result.FileError](result.NewFileError("io_error", "eval symlinks", err))
 		}
 		evaluated = abs
 	}
 	if !isWithinRoot(root, evaluated) {
-		return "", fmt.Errorf("coding workspace: path %q escapes workspace", path)
+		return result.Err[string, result.FileError](result.NewFileError("path_escape", fmt.Sprintf("path %q escapes workspace", path), nil))
 	}
-	return evaluated, nil
+	return result.Ok[string, result.FileError](evaluated)
 }
 
-func (w Workspace) absRoot() (string, error) {
+func (w Workspace) absRoot() result.Result[string, result.FileError] {
 	root := strings.TrimSpace(w.Root)
 	if root == "" {
-		return "", fmt.Errorf("coding workspace: root is required")
+		return result.Err[string, result.FileError](result.NewFileError("path_escape", "root is required", nil))
 	}
 	abs, err := filepath.Abs(root)
 	if err != nil {
-		return "", fmt.Errorf("coding workspace: abs root: %w", err)
+		return result.Err[string, result.FileError](result.NewFileError("io_error", "abs root", err))
 	}
 	evaluated, err := filepath.EvalSymlinks(abs)
 	if err != nil {
 		if !os.IsNotExist(err) {
-			return "", fmt.Errorf("coding workspace: eval root symlinks: %w", err)
+			return result.Err[string, result.FileError](result.NewFileError("io_error", "eval root symlinks", err))
 		}
 		evaluated = abs
 	}
-	return evaluated, nil
+	return result.Ok[string, result.FileError](evaluated)
 }
 
 func isWithinRoot(root, target string) bool {

@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	_ "modernc.org/sqlite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	_ "modernc.org/sqlite"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	_ "github.com/flowline-io/flowbot/internal/store/ent/gen/runtime"

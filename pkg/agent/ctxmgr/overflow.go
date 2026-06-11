@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 )
 
 var overflowPatterns = []*regexp.Regexp{
@@ -35,16 +36,37 @@ var nonOverflowPatterns = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)too many requests`),
 }
 
+// ErrSummarizationFailed indicates compaction summarization could not complete.
+var ErrSummarizationFailed = result.NewCompactionError("summarization_failed", "summarization failed", nil)
+
+// ErrCompactionRequired indicates context still exceeds budget but no history could be compacted.
+var ErrCompactionRequired = result.NewCompactionError("nothing_to_compact", "compaction required but no removable history", nil)
+
+// ErrBranchSummaryAborted indicates branch summarization was cancelled.
+var ErrBranchSummaryAborted = result.NewBranchSummaryError("aborted", "branch summarization aborted", nil)
+
 // IsContextOverflowErr reports whether an LLM error indicates context window overflow.
 func IsContextOverflowErr(err error) bool {
 	if err == nil {
 		return false
+	}
+	var overflow result.OverflowError
+	if errors.As(err, &overflow) {
+		return true
 	}
 	errText := err.Error()
 	if matchesAny(nonOverflowPatterns, errText) {
 		return false
 	}
 	return matchesAny(overflowPatterns, errText)
+}
+
+// WrapOverflowError wraps an underlying error as a typed OverflowError when overflow is detected.
+func WrapOverflowError(err error) error {
+	if err == nil || !IsContextOverflowErr(err) {
+		return err
+	}
+	return result.NewOverflowError("context window exceeded", err)
 }
 
 // IsContextOverflowMessage reports whether an assistant message indicates overflow.
@@ -95,19 +117,6 @@ func IsOverflowResult(err error, messages []msg.AgentMessage, contextWindow int)
 		return IsContextOverflowMessage(assistant, contextWindow)
 	}
 	return false
-}
-
-// ErrSummarizationFailed indicates compaction summarization could not complete.
-var ErrSummarizationFailed = errors.New("ctxmgr: summarization failed")
-
-// ErrCompactionRequired indicates context still exceeds budget but no history could be compacted.
-var ErrCompactionRequired = errors.New("ctxmgr: compaction required but no removable history")
-
-func summarizationFailed(err error) error {
-	if err == nil {
-		return ErrSummarizationFailed
-	}
-	return errors.Join(ErrSummarizationFailed, err)
 }
 
 func normalizeSummary(text string) string {

@@ -3,8 +3,8 @@ package coding
 import (
 	"context"
 	"fmt"
-	"os"
 
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 )
@@ -12,6 +12,7 @@ import (
 // ReadFileTool reads file contents from the workspace.
 type ReadFileTool struct {
 	Workspace Workspace
+	Env       env.ExecutionEnv
 }
 
 // Name returns the tool identifier.
@@ -37,21 +38,28 @@ func (ReadFileTool) Parameters() map[string]any {
 }
 
 // Execute reads the requested file.
-func (t ReadFileTool) Execute(_ context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
+func (t ReadFileTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	path := fmt.Sprint(args["path"])
-	resolved, err := t.Workspace.ResolvePath(path)
-	if err != nil {
-		return toolError(id, t.Name(), err.Error()), nil
+	resolvedResult := t.Workspace.ResolvePath(path)
+	if !resolvedResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatFileError(resolvedResult.ErrorValue())), nil
 	}
 
-	data, err := os.ReadFile(resolved)
-	if err != nil {
-		return toolError(id, t.Name(), fmt.Sprintf("read file: %v", err)), nil
+	readResult := t.executionEnv().ReadFile(ctx, resolvedResult.Value())
+	if !readResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatFileError(readResult.ErrorValue())), nil
 	}
 
 	return msg.ToolResultMessage{
 		ToolCallID: id,
 		Name:       t.Name(),
-		Parts:      []msg.ContentPart{msg.TextPart{Text: t.Workspace.TruncateOutput(string(data))}},
+		Parts:      []msg.ContentPart{msg.TextPart{Text: t.Workspace.TruncateOutput(string(readResult.Value()))}},
 	}, nil
+}
+
+func (t ReadFileTool) executionEnv() env.ExecutionEnv {
+	if t.Env != nil {
+		return t.Env
+	}
+	return env.Default()
 }

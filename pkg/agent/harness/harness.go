@@ -2,7 +2,7 @@ package harness
 
 import (
 	"context"
-	"log/slog"
+	"errors"
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
@@ -10,9 +10,11 @@ import (
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/transform"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/google/uuid"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -117,12 +119,21 @@ func (h *Harness) SetModel(llmModel llms.Model, modelName string) {
 // MoveTo switches the session leaf, auto-summarizing abandoned branches when configured.
 func (h *Harness) MoveTo(ctx context.Context, entryID, summary string) error {
 	if h.session == nil {
-		return agent.ErrAborted
+		return normalizeHarnessError("busy", "session unavailable", agent.ErrAborted)
 	}
 	if h.ctxMgr != nil {
-		return h.ctxMgr.MoveTo(ctx, h.session, entryID, summary)
+		if err := h.ctxMgr.MoveTo(ctx, h.session, entryID, summary); err != nil {
+			if agentresult.IsCode(err, "aborted") {
+				return nil
+			}
+			return normalizeHarnessError("branch_summary", "branch navigation failed", err)
+		}
+		return nil
 	}
-	return h.session.MoveTo(ctx, entryID, summary)
+	if err := h.session.MoveTo(ctx, entryID, summary); err != nil {
+		return normalizeHarnessError("branch_summary", "branch navigation failed", err)
+	}
+	return nil
 }
 
 // Prompt starts an agent run with optional session persistence.
@@ -144,7 +155,7 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 
 	if err := h.prepareContext(ctx); err != nil {
 		h.setPhase(PhaseIdle)
-		return nil, err
+		return nil, wrapPromptError(err)
 	}
 
 	if h.modelName != "" {
@@ -235,6 +246,7 @@ func (h *Harness) emitContextUsage(ctx context.Context) {
 	}
 	path, err := h.session.GetBranch(ctx, "")
 	if err != nil {
+		flog.Warn("harness: context usage branch load code=%s: %v", agentresult.CodeOf(err), err)
 		return
 	}
 	usage := h.ctxMgr.GetContextUsage(path)
@@ -251,9 +263,9 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, pr
 	}
 
 	if result.Err != nil && retry == 0 && h.shouldRetryOverflow(result) {
-		if err := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: true}); err != nil {
+		if compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: true}); compactErr != nil {
 			h.finishStream(ctx, result)
-			return result
+			return agentevent.Result{Messages: result.Messages, Err: errors.Join(result.Err, compactErr)}
 		}
 		h.emitHook(ctx, HookEvent{Type: "context_compacted"})
 		h.emitContextUsage(ctx)
@@ -279,7 +291,7 @@ func (h *Harness) shouldRetryOverflow(result agentevent.Result) bool {
 
 func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 	if err := h.runHook(ctx, "save_point", HookEvent{Type: "save_point"}); err != nil {
-		slog.Warn("harness: save_point hook", "err", err)
+		flog.Warn("harness: save_point hook: %v", err)
 	}
 	if result.Err != nil || h.session == nil {
 		return
@@ -298,7 +310,7 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 			Type:     session.EntryMessage,
 			Message:  message,
 		}); err != nil {
-			slog.Warn("harness: persist session entry", "err", err)
+			flog.Warn("harness: persist session entry code=%s: %v", agentresult.CodeOf(err), err)
 			continue
 		}
 		parentID = entryID

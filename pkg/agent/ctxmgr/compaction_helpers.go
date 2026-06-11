@@ -1,9 +1,8 @@
 package ctxmgr
 
 import (
-	"fmt"
-
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 )
 
@@ -119,18 +118,20 @@ func buildCompactionPreparation(
 	opts PrepareOptions,
 	tokensBefore int,
 	settings Settings,
-) (*CompactionPreparation, error) {
+) result.Result[*CompactionPreparation, result.CompactionError] {
 	cutPoint := FindCutPoint(pathEntries, bounds.boundaryStart, bounds.boundaryEnd, bounds.keepRecent)
 	firstKept := pathEntries[cutPoint.FirstKeptEntryIndex]
 	if firstKept.ID == "" {
-		return nil, fmt.Errorf("ctxmgr: missing first kept entry id")
+		return result.Err[*CompactionPreparation, result.CompactionError](
+			result.NewCompactionError("invalid_session", "missing first kept entry id", nil),
+		)
 	}
 
 	messagesToSummarize, turnPrefix, firstKept := finalizeMessagesToSummarize(
 		pathEntries, bounds, cutPoint, firstKept, opts,
 	)
 	if len(messagesToSummarize) == 0 && len(turnPrefix) == 0 {
-		return nil, nil
+		return result.Ok[*CompactionPreparation, result.CompactionError](nil)
 	}
 
 	fileOps := ExtractFileOperations(messagesToSummarize, pathEntries, bounds.prevCompactionIndex)
@@ -140,7 +141,7 @@ func buildCompactionPreparation(
 		}
 	}
 
-	return &CompactionPreparation{
+	return result.Ok[*CompactionPreparation, result.CompactionError](&CompactionPreparation{
 		FirstKeptEntryID:    firstKept.ID,
 		MessagesToSummarize: messagesToSummarize,
 		TurnPrefixMessages:  turnPrefix,
@@ -149,5 +150,5 @@ func buildCompactionPreparation(
 		PreviousSummary:     bounds.previousSummary,
 		FileOps:             fileOps,
 		Settings:            settings,
-	}, nil
+	})
 }

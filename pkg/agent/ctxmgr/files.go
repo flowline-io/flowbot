@@ -12,7 +12,7 @@ import (
 
 // FileOperations tracks workspace file activity for compaction summaries.
 type FileOperations struct {
-	Read   map[string]struct{}
+	Read    map[string]struct{}
 	Written map[string]struct{}
 	Edited  map[string]struct{}
 }

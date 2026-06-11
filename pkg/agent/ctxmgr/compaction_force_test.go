@@ -7,8 +7,8 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
-	"github.com/flowline-io/flowbot/pkg/agent/session"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,8 +36,9 @@ func TestPrepareCompactionForceAfterCompactionLeaf(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			opts := ctxmgr.PrepareOptions{Force: tt.force, ExtraMessages: tt.extra}
-			got, err := ctxmgr.PrepareCompaction(base, ctxmgr.Settings{Enabled: true, KeepRecentTokens: 100000}, opts)
-			require.NoError(t, err)
+			gotResult := ctxmgr.PrepareCompaction(base, ctxmgr.Settings{Enabled: true, KeepRecentTokens: 100000}, opts)
+			require.True(t, gotResult.IsOk())
+			got := gotResult.Value()
 			if tt.wantNil {
 				assert.Nil(t, got)
 				return
@@ -67,7 +68,7 @@ func TestCompactAndReloadForceWithExtraMessages(t *testing.T) {
 	model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "## Goal\nUpdated"})
 	mgr := ctxmgr.New(ctxmgr.Options{
 		Model: model, ModelName: "fake", ContextWindow: 1000,
-		Settings: ctxmgr.Settings{Enabled: true, ReserveTokens: 100, KeepRecentTokens: 2},
+		Settings:     ctxmgr.Settings{Enabled: true, ReserveTokens: 100, KeepRecentTokens: 2},
 		SystemPrompt: "system",
 	})
 	ag := agent.NewAgent(agent.Options{

@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -148,7 +149,7 @@ func runMaxSteps() int {
 func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time) (string, error) {
 	_, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
 	if err != nil {
-		if err == agent.ErrAborted {
+		if errors.Is(err, agent.ErrAborted) || agentresult.IsCode(err, "busy") {
 			flog.Info("[chat-agent] harness busy session=%s duration=%s", req.SessionID, time.Since(start).Round(time.Millisecond))
 			return "Agent is busy, please try again shortly.", nil
 		}

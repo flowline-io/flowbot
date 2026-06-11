@@ -107,6 +107,36 @@ func TestExecuteBatch_Modes(t *testing.T) {
 	}
 }
 
+func TestExecuteBatch_ParallelAfterHookError(t *testing.T) {
+	t.Parallel()
+
+	reg := tool.NewRegistry()
+	require.NoError(t, reg.Register(&stubTool{name: "a", result: "ok"}))
+	require.NoError(t, reg.Register(&stubTool{name: "b", result: "ok"}))
+
+	assistant := agent.AssistantMessage{Parts: []agent.ContentPart{
+		agent.ToolCallPart{ID: "1", Name: "a", Arguments: `{}`},
+		agent.ToolCallPart{ID: "2", Name: "b", Arguments: `{}`},
+	}}
+
+	result, err := tool.ExecuteBatch(context.Background(), tool.BatchRequest{
+		Assistant: assistant,
+		Context:   &agent.Context{},
+		Registry:  reg,
+		Mode:      agent.ToolExecutionParallel,
+		After: func(ctx agent.AfterToolContext) (*agent.AfterToolResult, error) {
+			if ctx.ToolCall.Name == "a" {
+				return nil, assert.AnError
+			}
+			return nil, nil
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Messages, 2)
+	assert.True(t, result.Messages[0].IsError)
+	assert.False(t, result.Messages[1].IsError)
+}
+
 func TestExecuteBatch_MissingTool(t *testing.T) {
 	tests := []struct {
 		name string

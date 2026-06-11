@@ -5,7 +5,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestWorkspace_ResolvePath(t *testing.T) {
@@ -26,13 +25,13 @@ func TestWorkspace_ResolvePath(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ws := coding.Workspace{Root: root}
-			got, err := ws.ResolvePath(tt.path)
+			gotResult := ws.ResolvePath(tt.path)
 			if tt.wantErr {
-				assert.Error(t, err)
+				assert.False(t, gotResult.IsOk())
 				return
 			}
-			require.NoError(t, err)
-			assert.Contains(t, got, root)
+			assert.True(t, gotResult.IsOk())
+			assert.Contains(t, gotResult.Value(), root)
 		})
 	}
 }

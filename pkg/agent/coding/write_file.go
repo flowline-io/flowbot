@@ -3,9 +3,9 @@ package coding
 import (
 	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 )
@@ -13,6 +13,7 @@ import (
 // WriteFileTool writes or overwrites a file in the workspace.
 type WriteFileTool struct {
 	Workspace Workspace
+	Env       env.ExecutionEnv
 }
 
 // Name returns the tool identifier.
@@ -42,20 +43,22 @@ func (WriteFileTool) Parameters() map[string]any {
 }
 
 // Execute writes the requested file.
-func (t WriteFileTool) Execute(_ context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
+func (t WriteFileTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	path := fmt.Sprint(args["path"])
 	content := fmt.Sprint(args["content"])
 
-	resolved, err := t.Workspace.ResolvePath(path)
-	if err != nil {
-		return toolError(id, t.Name(), err.Error()), nil
+	resolvedResult := t.Workspace.ResolvePath(path)
+	if !resolvedResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatFileError(resolvedResult.ErrorValue())), nil
 	}
+	resolved := resolvedResult.Value()
+	execEnv := t.executionEnv()
 
-	if err := os.MkdirAll(filepath.Dir(resolved), 0o755); err != nil {
-		return toolError(id, t.Name(), fmt.Sprintf("mkdir: %v", err)), nil
+	if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(resolved), 0o755); !mkdirResult.IsOk() {
+		return toolError(id, t.Name(), fmt.Sprintf("mkdir: %s", env.FormatFileError(mkdirResult.ErrorValue()))), nil
 	}
-	if err := os.WriteFile(resolved, []byte(content), 0o644); err != nil {
-		return toolError(id, t.Name(), fmt.Sprintf("write file: %v", err)), nil
+	if writeResult := execEnv.WriteFile(ctx, resolved, []byte(content), 0o644); !writeResult.IsOk() {
+		return toolError(id, t.Name(), fmt.Sprintf("write file: %s", env.FormatFileError(writeResult.ErrorValue()))), nil
 	}
 
 	return msg.ToolResultMessage{
@@ -63,4 +66,11 @@ func (t WriteFileTool) Execute(_ context.Context, id string, args map[string]any
 		Name:       t.Name(),
 		Parts:      []msg.ContentPart{msg.TextPart{Text: fmt.Sprintf("wrote %d bytes to %s", len(content), path)}},
 	}, nil
+}
+
+func (t WriteFileTool) executionEnv() env.ExecutionEnv {
+	if t.Env != nil {
+		return t.Env
+	}
+	return env.Default()
 }

@@ -221,10 +221,13 @@ flowchart LR
 
   subgraph sub [Subpackages]
     msg[msg]
+    result[result]
+    env[env]
     event[event]
     tool[tool]
     transform[transform]
     session[session]
+    ctxmgr[ctxmgr]
     model[model]
     llm[llm]
   end
@@ -252,6 +255,40 @@ flowchart LR
 ```
 
 `msg` is the shared leaf package; no subpackage imports the root `agent` package.
+
+## Error Flow
+
+Expected failures during long-running agent execution use a discriminated Result model (aligned with pi-agent):
+
+```mermaid
+flowchart TD
+  subgraph lowLevel [Low level Result no panic]
+    Env["env.ExecutionEnv"]
+    CtxMgr["ctxmgr compaction"]
+    Parse["session JSONL parse"]
+  end
+
+  subgraph boundary [Boundary adapt to error]
+    HarnessAPI["harness public API"]
+    SessionAPI["session public API"]
+  end
+
+  subgraph loopLayer [Loop inline recovery]
+    ToolExec["tool.Execute IsError"]
+  end
+
+  Env --> HarnessAPI
+  CtxMgr --> HarnessAPI
+  Parse --> SessionAPI
+  ToolExec --> LoopContinue["continue turn"]
+```
+
+| Layer | Mechanism |
+| ----- | --------- |
+| `result`, `env`, `ctxmgr` | `result.Result[T,E]` with typed codes |
+| `harness`, `session` API | Go `error`; `HarnessError` at boundary |
+| Tools | `ToolResultMessage.IsError` |
+| Loop | Fatal `error` aborts run |
 
 ## Design Rules
 

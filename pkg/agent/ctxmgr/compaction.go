@@ -2,10 +2,11 @@ package ctxmgr
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
-	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/google/uuid"
 	"github.com/tmc/langchaingo/llms"
@@ -42,11 +43,11 @@ func ShouldCompact(contextTokens, contextWindow int, settings Settings) bool {
 }
 
 // PrepareCompaction computes which session entries will be summarized.
-func PrepareCompaction(pathEntries []session.TreeEntry, settings Settings, opts PrepareOptions) (*CompactionPreparation, error) {
+func PrepareCompaction(pathEntries []session.TreeEntry, settings Settings, opts PrepareOptions) result.Result[*CompactionPreparation, result.CompactionError] {
 	settings = settings.WithDefaults()
 	leafIsCompaction := len(pathEntries) > 0 && pathEntries[len(pathEntries)-1].Type == session.EntryCompaction
 	if leafIsCompaction && !opts.Force {
-		return nil, nil
+		return result.Ok[*CompactionPreparation, result.CompactionError](nil)
 	}
 
 	bounds := computeCompactionBounds(pathEntries, settings, leafIsCompaction, opts.Force)
@@ -54,12 +55,12 @@ func PrepareCompaction(pathEntries []session.TreeEntry, settings Settings, opts 
 	tokensBefore := EstimateContextTokens(append(messages, opts.ExtraMessages...)).Tokens
 
 	if bounds.boundaryEnd <= bounds.boundaryStart && len(opts.ExtraMessages) == 0 {
-		return nil, nil
+		return result.Ok[*CompactionPreparation, result.CompactionError](nil)
 	}
 	if bounds.boundaryEnd <= bounds.boundaryStart && len(opts.ExtraMessages) > 0 && leafIsCompaction {
-		return prepareExtraOnlyCompaction(
+		return result.Ok[*CompactionPreparation, result.CompactionError](prepareExtraOnlyCompaction(
 			pathEntries, opts, bounds.prevCompactionIndex, bounds.previousSummary, tokensBefore, settings,
-		), nil
+		))
 	}
 
 	return buildCompactionPreparation(pathEntries, bounds, opts, tokensBefore, settings)
@@ -88,49 +89,54 @@ func RunCompaction(
 	model llms.Model,
 	modelName string,
 	preparation *CompactionPreparation,
-) (*CompactionResult, error) {
+) result.Result[*CompactionResult, result.CompactionError] {
 	if preparation == nil {
-		return nil, fmt.Errorf("ctxmgr: nil compaction preparation")
+		return result.Err[*CompactionResult, result.CompactionError](
+			result.NewCompactionError("invalid_session", "nil compaction preparation", nil),
+		)
 	}
 
 	var summary string
-	var err error
 	if preparation.IsSplitTurn && len(preparation.TurnPrefixMessages) > 0 {
 		historySummary := "No prior history."
 		if len(preparation.MessagesToSummarize) > 0 {
-			historySummary, err = generateSummary(ctx, model, modelName, preparation.MessagesToSummarize, preparation.PreviousSummary, summarizationPrompt, preparation.Settings)
-			if err != nil {
-				return nil, err
+			historyResult := generateSummary(ctx, model, modelName, preparation.MessagesToSummarize, preparation.PreviousSummary, summarizationPrompt, preparation.Settings)
+			if !historyResult.IsOk() {
+				return result.Err[*CompactionResult, result.CompactionError](historyResult.ErrorValue())
 			}
+			historySummary = historyResult.Value()
 		}
-		turnPrefixSummary, err := generateSummary(ctx, model, modelName, preparation.TurnPrefixMessages, "", turnPrefixSummarizationPrompt, preparation.Settings)
-		if err != nil {
-			return nil, err
+		turnPrefixResult := generateSummary(ctx, model, modelName, preparation.TurnPrefixMessages, "", turnPrefixSummarizationPrompt, preparation.Settings)
+		if !turnPrefixResult.IsOk() {
+			return result.Err[*CompactionResult, result.CompactionError](turnPrefixResult.ErrorValue())
 		}
-		summary = historySummary + "\n\n## Turn Prefix Summary\n" + turnPrefixSummary
+		summary = historySummary + "\n\n## Turn Prefix Summary\n" + turnPrefixResult.Value()
 	} else if len(preparation.MessagesToSummarize) > 0 {
 		basePrompt := summarizationPrompt
 		if preparation.PreviousSummary != "" {
 			basePrompt = updateSummarizationPrompt
 		}
-		summary, err = generateSummary(ctx, model, modelName, preparation.MessagesToSummarize, preparation.PreviousSummary, basePrompt, preparation.Settings)
-		if err != nil {
-			return nil, err
+		summaryResult := generateSummary(ctx, model, modelName, preparation.MessagesToSummarize, preparation.PreviousSummary, basePrompt, preparation.Settings)
+		if !summaryResult.IsOk() {
+			return result.Err[*CompactionResult, result.CompactionError](summaryResult.ErrorValue())
 		}
+		summary = summaryResult.Value()
 	} else {
-		return nil, fmt.Errorf("ctxmgr: nothing to summarize")
+		return result.Err[*CompactionResult, result.CompactionError](
+			result.NewCompactionError("nothing_to_compact", "nothing to summarize", nil),
+		)
 	}
 
 	readFiles, modifiedFiles := ComputeFileLists(preparation.FileOps)
 	summary += FormatFileOperations(readFiles, modifiedFiles)
 
-	return &CompactionResult{
+	return result.Ok[*CompactionResult, result.CompactionError](&CompactionResult{
 		Summary:          normalizeSummary(summary),
 		FirstKeptEntryID: preparation.FirstKeptEntryID,
 		TokensBefore:     preparation.TokensBefore,
 		ReadFiles:        readFiles,
 		ModifiedFiles:    modifiedFiles,
-	}, nil
+	})
 }
 
 func generateSummary(
@@ -141,11 +147,18 @@ func generateSummary(
 	previousSummary string,
 	basePrompt string,
 	settings Settings,
-) (string, error) {
+) result.Result[string, result.CompactionError] {
 	settings = settings.WithDefaults()
 	promptText, err := buildSummarizationPrompt(messages, previousSummary, basePrompt)
 	if err != nil {
-		return "", err
+		return result.Err[string, result.CompactionError](
+			result.NewCompactionError("invalid_session", "build summarization prompt", err),
+		)
+	}
+	if errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return result.Err[string, result.CompactionError](
+			result.NewCompactionError("aborted", "summarization aborted", ctx.Err()),
+		)
 	}
 	maxTokens := settings.ReserveTokens * 4 / 5
 	if maxTokens <= 0 {
@@ -155,12 +168,21 @@ func generateSummary(
 		llms.TextParts(llms.ChatMessageTypeHuman, promptText),
 	}, modelName, maxTokens)
 	if err != nil {
-		return "", summarizationFailed(err)
+		if errors.Is(err, context.Canceled) || errors.Is(err, agentllm.ErrAborted) {
+			return result.Err[string, result.CompactionError](
+				result.NewCompactionError("aborted", "summarization aborted", err),
+			)
+		}
+		return result.Err[string, result.CompactionError](
+			result.NewCompactionError("summarization_failed", "summarization failed", err),
+		)
 	}
 	if normalizeSummary(content) == "" {
-		return "", ErrSummarizationFailed
+		return result.Err[string, result.CompactionError](
+			result.NewCompactionError("summarization_failed", "empty summarization response", nil),
+		)
 	}
-	return content, nil
+	return result.Ok[string, result.CompactionError](content)
 }
 
 func indexOfEntry(entries []session.TreeEntry, id string) int {

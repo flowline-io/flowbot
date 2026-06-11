@@ -2,9 +2,9 @@ package ctxmgr
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -16,10 +16,17 @@ type BranchSummaryResult struct {
 	ModifiedFiles []string
 }
 
+type branchEntriesResult struct {
+	Entries        []session.TreeEntry
+	CommonAncestor string
+}
+
 // CollectBranchEntries returns entries abandoned when moving from oldLeaf to newEntryID.
-func CollectBranchEntries(allEntries []session.TreeEntry, oldLeafID, newEntryID string) ([]session.TreeEntry, string, error) {
+func CollectBranchEntries(allEntries []session.TreeEntry, oldLeafID, newEntryID string) result.Result[branchEntriesResult, result.BranchSummaryError] {
 	if oldLeafID == "" || newEntryID == "" {
-		return nil, "", fmt.Errorf("ctxmgr: empty branch navigation id")
+		return result.Err[branchEntriesResult, result.BranchSummaryError](
+			result.NewBranchSummaryError("invalid_session", "empty branch navigation id", nil),
+		)
 	}
 	byID := make(map[string]session.TreeEntry, len(allEntries))
 	for _, entry := range allEntries {
@@ -37,7 +44,10 @@ func CollectBranchEntries(allEntries []session.TreeEntry, oldLeafID, newEntryID 
 		}
 		abandoned = append(abandoned, entry)
 	}
-	return abandoned, common, nil
+	return result.Ok[branchEntriesResult, result.BranchSummaryError](branchEntriesResult{
+		Entries:        abandoned,
+		CommonAncestor: common,
+	})
 }
 
 // PrepareBranchSummary selects messages to summarize within a token budget.
@@ -86,21 +96,40 @@ func RunBranchSummary(
 	messages []msg.AgentMessage,
 	fileOps FileOperations,
 	settings Settings,
-) (*BranchSummaryResult, error) {
+) result.Result[*BranchSummaryResult, result.BranchSummaryError] {
 	if len(messages) == 0 {
-		return &BranchSummaryResult{}, nil
+		return result.Ok[*BranchSummaryResult, result.BranchSummaryError](&BranchSummaryResult{})
 	}
-	summary, err := generateSummary(ctx, model, modelName, messages, "", summarizationPrompt, settings)
-	if err != nil {
-		return nil, err
+	summaryResult := generateBranchSummary(ctx, model, modelName, messages, settings)
+	if !summaryResult.IsOk() {
+		return result.Err[*BranchSummaryResult, result.BranchSummaryError](
+			result.NewBranchSummaryError(summaryResult.ErrorValue().Code(), summaryResult.ErrorValue().Message, summaryResult.ErrorValue().Cause),
+		)
 	}
 	readFiles, modifiedFiles := ComputeFileLists(fileOps)
-	summary += FormatFileOperations(readFiles, modifiedFiles)
-	return &BranchSummaryResult{
+	summary := summaryResult.Value() + FormatFileOperations(readFiles, modifiedFiles)
+	return result.Ok[*BranchSummaryResult, result.BranchSummaryError](&BranchSummaryResult{
 		Summary:       normalizeSummary(summary),
 		ReadFiles:     readFiles,
 		ModifiedFiles: modifiedFiles,
-	}, nil
+	})
+}
+
+func generateBranchSummary(
+	ctx context.Context,
+	model llms.Model,
+	modelName string,
+	messages []msg.AgentMessage,
+	settings Settings,
+) result.Result[string, result.BranchSummaryError] {
+	compactionResult := generateSummary(ctx, model, modelName, messages, "", summarizationPrompt, settings)
+	if !compactionResult.IsOk() {
+		compErr := compactionResult.ErrorValue()
+		return result.Err[string, result.BranchSummaryError](
+			result.NewBranchSummaryError(compErr.Code(), compErr.Message, compErr.Cause),
+		)
+	}
+	return result.Ok[string, result.BranchSummaryError](compactionResult.Value())
 }
 
 func pathToRoot(byID map[string]session.TreeEntry, leafID string) []session.TreeEntry {

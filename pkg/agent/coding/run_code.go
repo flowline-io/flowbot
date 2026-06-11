@@ -1,15 +1,13 @@
 package coding
 
 import (
-	"bytes"
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 )
@@ -19,6 +17,7 @@ const defaultShellTimeout = 60 * time.Second
 // RunCodeTool executes source code by writing a temporary file and invoking an interpreter.
 type RunCodeTool struct {
 	Workspace Workspace
+	Env       env.ExecutionEnv
 }
 
 // Name returns the tool identifier.
@@ -63,26 +62,29 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 		_ = onUpdate("executing code...")
 	}
 
-	root, err := t.Workspace.absRoot()
-	if err != nil {
-		return toolError(id, t.Name(), err.Error()), nil
+	rootResult := t.Workspace.absRoot()
+	if !rootResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatFileError(rootResult.ErrorValue())), nil
 	}
 
 	if filename == "" {
 		filename = defaultFilename(language)
 	}
-	resolved, err := t.Workspace.ResolvePath(filepath.Join(".flowbot-run", filename))
-	if err != nil {
-		return toolError(id, t.Name(), err.Error()), nil
+	resolvedResult := t.Workspace.ResolvePath(filepath.Join(".flowbot-run", filename))
+	if !resolvedResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatFileError(resolvedResult.ErrorValue())), nil
 	}
-	if err := os.MkdirAll(filepath.Dir(resolved), 0o755); err != nil {
-		return toolError(id, t.Name(), fmt.Sprintf("mkdir: %v", err)), nil
+	resolved := resolvedResult.Value()
+	execEnv := t.executionEnv()
+
+	if mkdirResult := execEnv.MkdirAll(ctx, filepath.Dir(resolved), 0o755); !mkdirResult.IsOk() {
+		return toolError(id, t.Name(), fmt.Sprintf("mkdir: %s", env.FormatFileError(mkdirResult.ErrorValue()))), nil
 	}
-	if err := os.WriteFile(resolved, []byte(code), 0o644); err != nil {
-		return toolError(id, t.Name(), fmt.Sprintf("write code file: %v", err)), nil
+	if writeResult := execEnv.WriteFile(ctx, resolved, []byte(code), 0o644); !writeResult.IsOk() {
+		return toolError(id, t.Name(), fmt.Sprintf("write code file: %s", env.FormatFileError(writeResult.ErrorValue()))), nil
 	}
 	defer func() {
-		_ = os.Remove(resolved)
+		_ = execEnv.Remove(context.Background(), resolved)
 	}()
 
 	cmdArgs, err := interpreterCommand(language, resolved)
@@ -97,24 +99,30 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(runCtx, cmdArgs[0], cmdArgs[1:]...)
-	cmd.Dir = root
-	var buf bytes.Buffer
-	cmd.Stdout = &buf
-	cmd.Stderr = &buf
-
-	runErr := cmd.Run()
-	output := t.Workspace.TruncateOutput(buf.String())
-	if runErr != nil {
-		output = fmt.Sprintf("exit error: %v\n%s", runErr, output)
+	execResult := execEnv.Exec(runCtx, env.ExecOptions{
+		Argv:    cmdArgs,
+		Dir:     rootResult.Value(),
+		Timeout: runCtx,
+	})
+	if !execResult.IsOk() {
+		return toolError(id, t.Name(), env.FormatExecutionError(execResult.ErrorValue())), nil
 	}
 
+	capture := execResult.Value()
+	output := t.Workspace.TruncateOutput(env.FormatExecOutput(capture, capture.ExitCode != 0, nil))
 	return msg.ToolResultMessage{
 		ToolCallID: id,
 		Name:       t.Name(),
-		Parts:      []msg.ContentPart{msg.TextPart{Text: strings.TrimSpace(output)}},
-		IsError:    runErr != nil,
+		Parts:      []msg.ContentPart{msg.TextPart{Text: output}},
+		IsError:    capture.ExitCode != 0,
 	}, nil
+}
+
+func (t RunCodeTool) executionEnv() env.ExecutionEnv {
+	if t.Env != nil {
+		return t.Env
+	}
+	return env.Default()
 }
 
 func defaultFilename(language string) string {

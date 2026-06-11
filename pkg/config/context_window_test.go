@@ -9,10 +9,10 @@ import (
 
 func TestCompactionConfigWithDefaults(t *testing.T) {
 	tests := []struct {
-		name              string
-		cfg               config.CompactionConfig
-		wantReserve       int
-		wantKeepRecent    int
+		name           string
+		cfg            config.CompactionConfig
+		wantReserve    int
+		wantKeepRecent int
 	}{
 		{name: "zero values", cfg: config.CompactionConfig{}, wantReserve: 16384, wantKeepRecent: 20000},
 		{name: "custom reserve", cfg: config.CompactionConfig{ReserveTokens: 8192}, wantReserve: 8192, wantKeepRecent: 20000},

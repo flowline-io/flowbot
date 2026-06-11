@@ -6,6 +6,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -130,19 +131,26 @@ func (m *Manager) MoveTo(ctx context.Context, sess *session.Session, targetEntry
 	if err != nil {
 		return err
 	}
-	abandoned, _, err := CollectBranchEntries(allEntries, oldLeafID, targetEntryID)
-	if err != nil {
-		return err
+	collected := CollectBranchEntries(allEntries, oldLeafID, targetEntryID)
+	if !collected.IsOk() {
+		_, adaptErr := result.GetOrError(collected)
+		return adaptErr
 	}
+	abandoned := collected.Value().Entries
 	messages, fileOps, _ := PrepareBranchSummary(abandoned, m.contextWindow, m.settings)
 	if len(messages) == 0 {
 		return sess.MoveTo(ctx, targetEntryID, "")
 	}
-	result, err := RunBranchSummary(ctx, m.model, m.modelName, messages, fileOps, m.settings)
-	if err != nil {
-		return fmt.Errorf("ctxmgr: branch summary: %w", err)
+	summaryResult := RunBranchSummary(ctx, m.model, m.modelName, messages, fileOps, m.settings)
+	if !summaryResult.IsOk() {
+		branchErr := summaryResult.ErrorValue()
+		if result.IsCode(branchErr, "aborted") {
+			return ErrBranchSummaryAborted
+		}
+		_, adaptErr := result.GetOrError(summaryResult)
+		return fmt.Errorf("ctxmgr: branch summary: %w", adaptErr)
 	}
-	return sess.MoveTo(ctx, targetEntryID, result.Summary)
+	return sess.MoveTo(ctx, targetEntryID, summaryResult.Value().Summary)
 }
 
 func (m *Manager) compactPath(
@@ -154,30 +162,34 @@ func (m *Manager) compactPath(
 	contextTokens int,
 ) error {
 	extra := agentExtraMessages(ag, path)
-	preparation, err := PrepareCompaction(path, m.settings, PrepareOptions{
+	preparationResult := PrepareCompaction(path, m.settings, PrepareOptions{
 		Force:         opts.Force,
 		ExtraMessages: extra,
 	})
-	if err != nil {
-		return err
+	if !preparationResult.IsOk() {
+		_, adaptErr := result.GetOrError(preparationResult)
+		return adaptErr
 	}
+	preparation := preparationResult.Value()
 	if preparation == nil {
 		if ShouldCompact(contextTokens, m.contextWindow, m.settings) || opts.Force {
 			return ErrCompactionRequired
 		}
 		return nil
 	}
-	result, err := RunCompaction(ctx, m.model, m.modelName, preparation)
-	if err != nil {
-		return err
+	compactResult := RunCompaction(ctx, m.model, m.modelName, preparation)
+	if !compactResult.IsOk() {
+		_, adaptErr := result.GetOrError(compactResult)
+		return adaptErr
 	}
+	compacted := compactResult.Value()
 	if err := sess.AppendCompaction(ctx, session.CompactionResult{
 		EntryID:          NewCompactionEntryID(),
-		Summary:          result.Summary,
-		FirstKeptEntryID: result.FirstKeptEntryID,
-		TokensBefore:     result.TokensBefore,
-		ReadFiles:        result.ReadFiles,
-		ModifiedFiles:    result.ModifiedFiles,
+		Summary:          compacted.Summary,
+		FirstKeptEntryID: compacted.FirstKeptEntryID,
+		TokensBefore:     compacted.TokensBefore,
+		ReadFiles:        compacted.ReadFiles,
+		ModifiedFiles:    compacted.ModifiedFiles,
 	}); err != nil {
 		return fmt.Errorf("ctxmgr: persist compaction: %w", err)
 	}

@@ -49,12 +49,12 @@ func TestPrepareCompaction(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		entries   []session.TreeEntry
-		force     bool
+		name       string
+		entries    []session.TreeEntry
+		force      bool
 		keepRecent int
-		wantNil   bool
-		wantFirst string
+		wantNil    bool
+		wantFirst  string
 	}{
 		{name: "normal path", entries: entries, keepRecent: 2, wantFirst: "3"},
 		{name: "already compacted leaf", entries: append(entries, session.TreeEntry{ID: "4", Type: session.EntryCompaction, Summary: "done", FirstKeptEntryID: "1"}), wantNil: true},
@@ -63,9 +63,9 @@ func TestPrepareCompaction(t *testing.T) {
 			entries: append(entries, session.TreeEntry{
 				ID: "4", Type: session.EntryCompaction, Summary: "done", FirstKeptEntryID: "2",
 			}),
-			force:     true,
+			force:      true,
 			keepRecent: 100000,
-			wantFirst: "3",
+			wantFirst:  "3",
 		},
 		{name: "single entry fits budget", entries: entries[:1], keepRecent: 100000, wantNil: true},
 	}
@@ -77,8 +77,9 @@ func TestPrepareCompaction(t *testing.T) {
 			if keepRecent == 0 {
 				keepRecent = 100000
 			}
-			got, err := ctxmgr.PrepareCompaction(tt.entries, ctxmgr.Settings{Enabled: true, KeepRecentTokens: keepRecent}, ctxmgr.PrepareOptions{Force: tt.force})
-			require.NoError(t, err)
+			gotResult := ctxmgr.PrepareCompaction(tt.entries, ctxmgr.Settings{Enabled: true, KeepRecentTokens: keepRecent}, ctxmgr.PrepareOptions{Force: tt.force})
+			require.True(t, gotResult.IsOk())
+			got := gotResult.Value()
 			if tt.wantNil {
 				assert.Nil(t, got)
 				return

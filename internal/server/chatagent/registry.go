@@ -17,7 +17,7 @@ const agentName = "chat"
 // NewRegistry registers assistant tools including DB-backed skills support.
 func NewRegistry(ws coding.Workspace) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
-	if err := coding.RegisterAll(registry, ws); err != nil {
+	if err := coding.RegisterAll(registry, ws, nil); err != nil {
 		return nil, err
 	}
 	if err := registry.Register(ReadSkillTool{}); err != nil {
