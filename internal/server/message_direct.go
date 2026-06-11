@@ -54,7 +54,7 @@ func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e
 	payload, sessionID := manageChatSession(dmCtx.ctx, chatKey, msg.AltMessage, sessionID, nil, dmCtx.uid)
 	refreshChatSessionCache(dmCtx.ctx, chatKey, sessionID)
 
-	if !persistDirectUserMessage(dmCtx, sessionID, msg) {
+	if sessionID != "" && !persistDirectUserMessage(dmCtx, sessionID, msg) {
 		return
 	}
 

@@ -31,33 +31,82 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 
 	if platformUser != nil && platformUser.ID > 0 {
 		user, err := store.Database.GetUserById(context.Background(), platformUser.UserID)
+		if err == nil {
+			return types.Uid(user.Flag), nil
+		}
+		if !errors.Is(err, types.ErrNotFound) {
+			return "", err
+		}
+		user, err = newUserRecord()
 		if err != nil {
+			return "", err
+		}
+		platformUser.UserID = user.ID
+		if err = store.Database.UpdatePlatformUser(context.Background(), platformUser); err != nil {
 			return "", err
 		}
 		return types.Uid(user.Flag), nil
 	}
-	user := &gen.User{
-		Flag:  types.Id(),
-		Name:  "user",
-		Tags:  "[]",
-		State: int(schema.UserActive),
-	}
-	err = store.Database.UserCreate(context.Background(), user)
+	user, err := newUserRecord()
 	if err != nil {
 		return "", err
 	}
 
+	email, avatarURL := platformUserProfileDefaults(data.Self.Platform, data.UserId)
 	_, err = store.Database.CreatePlatformUser(context.Background(), &gen.PlatformUser{
 		PlatformID: platform.ID,
 		UserID:     user.ID,
 		Flag:       data.UserId,
 		Name:       "user",
+		Email:      email,
+		AvatarURL:  avatarURL,
 		IsBot:      false,
 	})
 	if err != nil {
 		return "", err
 	}
 	return types.Uid(user.Flag), nil
+}
+
+// newUserRecord creates a flowbot user row for first-time platform registration.
+func newUserRecord() (*gen.User, error) {
+	user := &gen.User{
+		Flag:  types.Id(),
+		Name:  "user",
+		Tags:  "[]",
+		State: int(schema.UserActive),
+	}
+	if err := store.Database.UserCreate(context.Background(), user); err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+// newChannelForTopic creates a channel row for an inbound platform topic.
+func newChannelForTopic(data protocol.MessageEventData) (*gen.Channel, error) {
+	channel := &gen.Channel{
+		Flag:  types.Id(),
+		Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
+		State: int(schema.ChannelActive),
+	}
+	channelID, err := store.Database.CreateChannel(context.Background(), channel)
+	if err != nil {
+		return nil, err
+	}
+	channel.ID = channelID
+	return channel, nil
+}
+
+// platformUserProfileDefaults returns placeholder profile fields for platform users created
+// from inbound chat events that do not include email or avatar metadata.
+func platformUserProfileDefaults(platformName, flag string) (email, avatarURL string) {
+	if platformName == "" {
+		platformName = "unknown"
+	}
+	if flag == "" {
+		flag = "user"
+	}
+	return fmt.Sprintf("%s@%s.local", flag, platformName), "-"
 }
 
 // registerPlatformChannel registers a platform channel based on the provided message event data.
@@ -78,17 +127,22 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 
 	if platformChannel != nil && platformChannel.ID > 0 {
 		channel, err := store.Database.GetChannel(context.Background(), platformChannel.ChannelID)
+		if err == nil {
+			return channel.Flag, nil
+		}
+		if !errors.Is(err, types.ErrNotFound) {
+			return "", err
+		}
+		channel, err = newChannelForTopic(data)
 		if err != nil {
+			return "", err
+		}
+		if err = store.Database.UpdatePlatformChannelChannelID(context.Background(), platformChannel.ID, channel.ID); err != nil {
 			return "", err
 		}
 		return channel.Flag, nil
 	}
-	channel := &gen.Channel{
-		Flag:  types.Id(),
-		Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
-		State: int(schema.ChannelActive),
-	}
-	_, err = store.Database.CreateChannel(context.Background(), channel)
+	channel, err := newChannelForTopic(data)
 	if err != nil {
 		return "", err
 	}

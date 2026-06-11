@@ -249,6 +249,7 @@ type Adapter interface {
 	GetPlatformChannelsByPlatformIds(ctx context.Context, platformIds []int64) ([]*gen.PlatformChannel, error)
 	GetPlatformChannelsByChannelId(ctx context.Context, channelId int64) (*gen.PlatformChannel, error)
 	CreatePlatformChannel(ctx context.Context, item *gen.PlatformChannel) (int64, error)
+	UpdatePlatformChannelChannelID(ctx context.Context, platformChannelID, channelID int64) error
 	CreatePlatformChannelUser(ctx context.Context, item *gen.PlatformChannelUser) (int64, error)
 	GetPlatformChannelUsersByUserFlag(ctx context.Context, userFlag string) ([]*gen.PlatformChannelUser, error)
 	GetPlatformChannelUsersByUserFlags(ctx context.Context, userFlags []string) ([]*gen.PlatformChannelUser, error)

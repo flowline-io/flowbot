@@ -198,7 +198,7 @@ func (a *adapter) GetDB() any {
 // ---------------------------------------------------------------------------
 
 func (a *adapter) UserCreate(ctx context.Context, usr *gen.User) error {
-	_, err := a.client.User.Create().
+	u, err := a.client.User.Create().
 		SetFlag(usr.Flag).
 		SetName(usr.Name).
 		SetTags(usr.Tags).
@@ -209,6 +209,7 @@ func (a *adapter) UserCreate(ctx context.Context, usr *gen.User) error {
 	if err != nil {
 		return fmt.Errorf("postgres: create user: %w", err)
 	}
+	usr.ID = u.ID
 	return nil
 }
 
@@ -401,7 +402,25 @@ func (a *adapter) GetUserByFlag(ctx context.Context, flag string) (*gen.User, er
 // PlatformUser
 // ---------------------------------------------------------------------------
 
+// normalizePlatformUserProfile fills required profile fields when callers omit them.
+func normalizePlatformUserProfile(item *gen.PlatformUser) {
+	if item == nil {
+		return
+	}
+	if item.Email == "" {
+		flag := item.Flag
+		if flag == "" {
+			flag = "user"
+		}
+		item.Email = fmt.Sprintf("%s@unknown.local", flag)
+	}
+	if item.AvatarURL == "" {
+		item.AvatarURL = "-"
+	}
+}
+
 func (a *adapter) CreatePlatformUser(ctx context.Context, item *gen.PlatformUser) (int64, error) {
+	normalizePlatformUserProfile(item)
 	u, err := a.client.PlatformUser.Create().
 		SetPlatformID(item.PlatformID).
 		SetUserID(item.UserID).
@@ -512,6 +531,21 @@ func (a *adapter) CreatePlatformChannel(ctx context.Context, item *gen.PlatformC
 		return 0, fmt.Errorf("postgres: create platform channel: %w", err)
 	}
 	return u.ID, nil
+}
+
+func (a *adapter) UpdatePlatformChannelChannelID(ctx context.Context, platformChannelID, channelID int64) error {
+	n, err := a.client.PlatformChannel.Update().
+		Where(platformchannel.IDEQ(platformChannelID)).
+		SetChannelID(channelID).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update platform channel channel id: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
 }
 
 // ---------------------------------------------------------------------------
@@ -1804,6 +1838,7 @@ func (a *adapter) CreateChannel(ctx context.Context, channelModel *gen.Channel) 
 	if err != nil {
 		return 0, fmt.Errorf("postgres: createchannel: %w", err)
 	}
+	channelModel.ID = c.ID
 	return c.ID, nil
 }
 

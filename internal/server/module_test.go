@@ -85,7 +85,8 @@ func (*testStoreAdapter) GetName() string                               { return
 func (*testStoreAdapter) Stats() any                                    { return nil }
 func (*testStoreAdapter) Ping(_ context.Context) (time.Duration, error) { return 0, nil }
 func (*testStoreAdapter) GetDB() any                                    { return nil }
-func (*testStoreAdapter) UserCreate(context.Context, *gen.User) error {
+func (*testStoreAdapter) UserCreate(_ context.Context, user *gen.User) error {
+	user.ID = 100
 	return nil
 }
 func (*testStoreAdapter) UserGet(context.Context, types.Uid) (*gen.User, error) {
@@ -143,6 +144,9 @@ func (*testStoreAdapter) GetPlatformChannelsByChannelId(context.Context, int64) 
 }
 func (*testStoreAdapter) CreatePlatformChannel(context.Context, *gen.PlatformChannel) (int64, error) {
 	return 0, nil
+}
+func (*testStoreAdapter) UpdatePlatformChannelChannelID(context.Context, int64, int64) error {
+	return nil
 }
 func (*testStoreAdapter) CreatePlatformChannelUser(context.Context, *gen.PlatformChannelUser) (int64, error) {
 	return 0, nil
@@ -261,8 +265,9 @@ func (*testStoreAdapter) GetChannel(context.Context, int64) (*gen.Channel, error
 func (*testStoreAdapter) GetChannelByName(context.Context, string) (*gen.Channel, error) {
 	return nil, nil
 }
-func (*testStoreAdapter) CreateChannel(context.Context, *gen.Channel) (int64, error) {
-	return 0, nil
+func (a *testStoreAdapter) CreateChannel(_ context.Context, channel *gen.Channel) (int64, error) {
+	channel.ID = 100
+	return channel.ID, nil
 }
 func (*testStoreAdapter) UpdateChannel(context.Context, *gen.Channel) error { return nil }
 func (*testStoreAdapter) DeleteChannel(context.Context, string) error       { return nil }

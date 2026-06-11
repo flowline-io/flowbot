@@ -185,3 +185,67 @@ func TestRevokeToken(t *testing.T) {
 		})
 	}
 }
+
+func TestCreatePlatformUser(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		item        *gen.PlatformUser
+		wantEmail   string
+		wantAvatar  string
+	}{
+		{
+			name: "preserves provided profile fields",
+			item: &gen.PlatformUser{
+				PlatformID: 1,
+				UserID:     2,
+				Flag:       "U123",
+				Name:       "alice",
+				Email:      "alice@example.com",
+				AvatarURL:  "https://example.com/a.png",
+				IsBot:      false,
+			},
+			wantEmail:  "alice@example.com",
+			wantAvatar: "https://example.com/a.png",
+		},
+		{
+			name: "fills missing email and avatar placeholders",
+			item: &gen.PlatformUser{
+				PlatformID: 1,
+				UserID:     2,
+				Flag:       "U01DMQDTV5W",
+				Name:       "user",
+				IsBot:      false,
+			},
+			wantEmail:  "U01DMQDTV5W@unknown.local",
+			wantAvatar: "-",
+		},
+		{
+			name: "fills only missing avatar when email is present",
+			item: &gen.PlatformUser{
+				PlatformID: 1,
+				UserID:     2,
+				Flag:       "U999",
+				Name:       "user",
+				Email:      "user@slack.local",
+				IsBot:      false,
+			},
+			wantEmail:  "user@slack.local",
+			wantAvatar: "-",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := testAdapter(t)
+			id, err := a.CreatePlatformUser(context.Background(), tt.item)
+			require.NoError(t, err)
+			assert.Positive(t, id)
+
+			created, err := a.client.PlatformUser.Get(context.Background(), id)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantEmail, created.Email)
+			assert.Equal(t, tt.wantAvatar, created.AvatarURL)
+		})
+	}
+}
