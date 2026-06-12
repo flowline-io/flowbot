@@ -16,11 +16,6 @@ func AgentModelName(name string) string {
 		}
 		return config.ChatAgentChatModel()
 	}
-	for _, item := range config.App.Agents {
-		if item.Name == name && item.Enabled {
-			return item.Model
-		}
-	}
 	return ""
 }
 
@@ -28,11 +23,6 @@ func AgentModelName(name string) string {
 func AgentEnabled(name string) bool {
 	if name == "chat" {
 		return config.ChatAgentEnabled()
-	}
-	for _, item := range config.App.Agents {
-		if item.Name == name && item.Enabled && item.Model != "" {
-			return true
-		}
 	}
 	return false
 }

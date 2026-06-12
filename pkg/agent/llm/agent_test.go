@@ -15,27 +15,35 @@ func TestAgentModelName(t *testing.T) {
 	tests := []struct {
 		name      string
 		agentName string
+		chatAgent config.ChatAgentConfig
 		wantModel string
 	}{
 		{
-			name:      "agent exists and enabled",
-			agentName: "agent_active",
+			name:      "chat agent with chat_model",
+			agentName: "chat",
+			chatAgent: config.ChatAgentConfig{ChatModel: "gpt-5.5-instant"},
 			wantModel: "gpt-5.5-instant",
 		},
 		{
-			name:      "agent does not exist",
+			name:      "unknown agent name",
 			agentName: "nonexistent",
 			wantModel: "",
 		},
 		{
-			name:      "agent disabled",
-			agentName: "agent_disabled",
+			name:      "chat agent without chat_model",
+			agentName: "chat",
+			chatAgent: config.ChatAgentConfig{},
 			wantModel: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			chatAgent := config.App.ChatAgent
+			t.Cleanup(func() {
+				config.App.ChatAgent = chatAgent
+			})
+			config.App.ChatAgent = tt.chatAgent
 			got := llm.AgentModelName(tt.agentName)
 			assert.Equal(t, tt.wantModel, got)
 		})
@@ -48,45 +56,35 @@ func TestAgentEnabled(t *testing.T) {
 	tests := []struct {
 		name      string
 		agentName string
+		chatAgent config.ChatAgentConfig
 		want      bool
 	}{
 		{
-			name:      "agent active with model",
-			agentName: "agent_active",
-			want:      true,
-		},
-		{
-			name:      "agent disabled",
-			agentName: "agent_disabled",
-			want:      false,
-		},
-		{
-			name:      "agent enabled but no model",
-			agentName: "agent_nomodel",
-			want:      false,
-		},
-		{
-			name:      "chat enabled via chat_agent chat_model only",
+			name:      "chat enabled via chat_model",
 			agentName: "chat",
+			chatAgent: config.ChatAgentConfig{ChatModel: "gpt-5.5-instant"},
 			want:      true,
+		},
+		{
+			name:      "chat disabled without chat_model",
+			agentName: "chat",
+			chatAgent: config.ChatAgentConfig{},
+			want:      false,
+		},
+		{
+			name:      "unknown agent name",
+			agentName: "nonexistent",
+			want:      false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.agentName == "chat" {
-				agents := config.App.Agents
-				chatAgent := config.App.ChatAgent
-				t.Cleanup(func() {
-					config.App.Agents = agents
-					config.App.ChatAgent = chatAgent
-				})
-				config.App.Agents = []config.Agent{
-					{Name: "chat", Enabled: true, Model: ""},
-				}
-				config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-5.5-instant"}
-			} else {
-				t.Parallel()
-			}
+			t.Parallel()
+			chatAgent := config.App.ChatAgent
+			t.Cleanup(func() {
+				config.App.ChatAgent = chatAgent
+			})
+			config.App.ChatAgent = tt.chatAgent
 			got := llm.AgentEnabled(tt.agentName)
 			assert.Equal(t, tt.want, got)
 		})

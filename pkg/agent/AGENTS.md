@@ -104,7 +104,7 @@ Harness bridges from `loopBaseCfg` (snapshot at `New`) via `hooks.BridgeConfig(c
 
 - **langchaingo scope**: only `llms.Model` in `pkg/agent/llm`; do not use langchaingo agents/chains
 - **Modules**: import `pkg/agent/llm` only for single-shot LLM tasks; do not import other `pkg/agent` packages from `internal/modules` until explicitly wired
-- **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and YAML `config.agents` entries
+- **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and YAML `chat_agent` config
 - **Serialization**: use `sonic` for JSON/JSONL
 - **Errors**: wrap with `%w`; return `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`; hook cancel via `hooks.ErrRunCancelled`
 - **Hooks**: add mutable behavior with `hooks.On*` registrars on a per-run `Registry`

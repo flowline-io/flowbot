@@ -32,17 +32,12 @@ cfg.FollowUpMode = agent.QueueAll
 Configure in `flowbot.yaml`:
 
 ```yaml
-agents:
-  - name: "chat"
-    enabled: true
-    model: "gpt-4o-mini"
-
 chat_agent:
-  chat_model: "gpt-4o-mini"   # optional override; defaults to agents.chat.model
-  tool_model: "gpt-4o"        # enables dual routing when chat != tool
+  chat_model: "gpt-4o-mini"   # non-empty enables the chat agent
+  tool_model: "gpt-4o"        # enables dual-model routing when set
 ```
 
-When both models are set and differ, the loop uses the chat model for the first LLM call and switches to the tool model after tool execution. Both models must be registered under `models[]` and use the same provider (v1).
+When `tool_model` is set, the loop uses `chat_model` for the first LLM call and switches to `tool_model` after tool execution. Both models must be registered under `models[]` and use the same provider (v1).
 
 For programmatic harness use, pass `harness.Options.Router`; chat agent sets `cfg.ChatModel` / `cfg.ToolModel` directly instead.
 
@@ -395,7 +390,7 @@ Use `result.CodeOf(err)` or `errors.As` at HTTP/chat integration boundaries inst
 Not implemented in the core library (planned for upper layers):
 
 - REST/SSE endpoints in `internal/server`
-- Wiring `config.agents` YAML to `agent.Config`
+- Wiring `chat_agent` YAML to `agent.Config`
 - Pipeline/workflow steps that invoke `agent.RunLoop`
 - Compaction is implemented in `pkg/agent/ctxmgr` and wired through `harness.Options.ContextManager`
 - Provider payload hooks (`before_provider_request`) — reserved in `hooks/events.go`, not yet implemented

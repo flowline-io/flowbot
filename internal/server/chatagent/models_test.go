@@ -15,7 +15,6 @@ func TestAgentLoopConfig(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		agents        []config.Agent
 		chatAgent     config.ChatAgentConfig
 		models        []config.Model
 		wantDual      bool
@@ -26,8 +25,10 @@ func TestAgentLoopConfig(t *testing.T) {
 		wantErr       string
 	}{
 		{
-			name:          "single model from agent entry",
-			agents:        []config.Agent{{Name: "chat", Enabled: true, Model: "gpt-4o-mini"}},
+			name: "single model from chat_model",
+			chatAgent: config.ChatAgentConfig{
+				ChatModel: "gpt-4o-mini",
+			},
 			models:        openAIModels,
 			wantDual:      false,
 			wantChatModel: "gpt-4o-mini",
@@ -36,9 +37,6 @@ func TestAgentLoopConfig(t *testing.T) {
 		},
 		{
 			name: "dual model config without harness router",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
-			},
 			chatAgent: config.ChatAgentConfig{
 				ChatModel: "gpt-4o-mini",
 				ToolModel: "gpt-4o",
@@ -52,9 +50,6 @@ func TestAgentLoopConfig(t *testing.T) {
 		},
 		{
 			name: "invalid dual model config",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
-			},
 			chatAgent: config.ChatAgentConfig{
 				ChatModel: "gpt-4o-mini",
 				ToolModel: "missing",
@@ -67,7 +62,6 @@ func TestAgentLoopConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			config.App.Agents = tt.agents
 			config.App.ChatAgent = tt.chatAgent
 			config.App.Models = tt.models
 

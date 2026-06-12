@@ -245,16 +245,14 @@ func TestValidate_Conditional(t *testing.T) {
 			wantErr: "platform.tailchat.ApiURL",
 		},
 		{
-			name: "agent references unknown model",
+			name: "chat agent references unknown model",
 			mutate: func(c *Type) {
 				c.Models = []Model{
 					{Provider: "openai", ModelNames: []string{"gpt4"}, BaseUrl: "https://api.openai.com"},
 				}
-				c.Agents = []Agent{
-					{Name: "helper", Model: "nonexistent"},
-				}
+				c.ChatAgent = ChatAgentConfig{ChatModel: "nonexistent"}
 			},
-			wantErr: "not found in models",
+			wantErr: "chat_agent.chat_model",
 		},
 		{
 			name: "model missing provider",

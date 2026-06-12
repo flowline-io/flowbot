@@ -482,15 +482,19 @@ func TestModel(t *testing.T) {
 	})
 }
 
-func TestAgent(t *testing.T) {
+func TestChatAgentModelFields(t *testing.T) {
 	t.Parallel()
-	agent := Agent{Name: "assistant", Enabled: true, Model: "gpt-5.5-instant"}
+	chatAgent := ChatAgentConfig{
+		ChatModel: "gpt-5.5-instant",
+		ToolModel: "gpt-5.5",
+		Workspace: "/tmp/chat",
+	}
 
-	t.Run("agent fields", func(t *testing.T) {
+	t.Run("chat agent model fields", func(t *testing.T) {
 		t.Parallel()
-		assert.Equal(t, "assistant", agent.Name)
-		assert.True(t, agent.Enabled)
-		assert.Equal(t, "gpt-5.5-instant", agent.Model)
+		assert.Equal(t, "gpt-5.5-instant", chatAgent.ChatModel)
+		assert.Equal(t, "gpt-5.5", chatAgent.ToolModel)
+		assert.Equal(t, "/tmp/chat", chatAgent.Workspace)
 	})
 }
 
@@ -554,18 +558,18 @@ func TestModelAndAgentSlices(t *testing.T) {
 		assert.Equal(t, "anthropic", cfg.Models[1].Provider)
 	})
 
-	t.Run("agents slice", func(t *testing.T) {
+	t.Run("chat agent config", func(t *testing.T) {
 		t.Parallel()
 		cfg := Type{
-			Agents: []Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-5.5-instant"},
-				{Name: "react", Enabled: false, Model: "gpt-5.5"},
+			ChatAgent: ChatAgentConfig{
+				ChatModel: "gpt-5.5-instant",
+				ToolModel: "gpt-5.5",
+				Workspace: "/tmp/chat",
 			},
 		}
-		assert.Len(t, cfg.Agents, 2)
-		assert.Equal(t, "chat", cfg.Agents[0].Name)
-		assert.True(t, cfg.Agents[0].Enabled)
-		assert.False(t, cfg.Agents[1].Enabled)
+		assert.Equal(t, "gpt-5.5-instant", cfg.ChatAgent.ChatModel)
+		assert.Equal(t, "gpt-5.5", cfg.ChatAgent.ToolModel)
+		assert.Equal(t, "/tmp/chat", cfg.ChatAgent.Workspace)
 	})
 }
 

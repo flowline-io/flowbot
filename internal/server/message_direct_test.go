@@ -80,11 +80,11 @@ func (s *messageDirectStore) CreateMessage(_ context.Context, message gen.Messag
 
 func TestIsDuplicateDirectMessage(t *testing.T) {
 	tests := []struct {
-		name              string
-		messageID         string
-		wantDuplicate     bool
-		wantLookup        bool
-		getByPlatformErr  error
+		name             string
+		messageID        string
+		wantDuplicate    bool
+		wantLookup       bool
+		getByPlatformErr error
 	}{
 		{
 			name:          "empty message id skips lookup",

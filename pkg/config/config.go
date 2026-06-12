@@ -74,9 +74,6 @@ type Type struct {
 	// Models
 	Models []Model `json:"models" yaml:"models" mapstructure:"models"`
 
-	// Agents
-	Agents []Agent `json:"agents" yaml:"agents" mapstructure:"agents"`
-
 	// ChatAgent configures the direct-message chat assistant agent.
 	ChatAgent ChatAgentConfig `json:"chat_agent" yaml:"chat_agent" mapstructure:"chat_agent"`
 
@@ -540,15 +537,6 @@ type WebhookTrigger struct {
 	EventType string             `json:"event_type" yaml:"event_type" mapstructure:"event_type"`
 }
 
-type Agent struct {
-	// Agent Name
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
-	// Enabled
-	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	// Use model
-	Model string `json:"model" yaml:"model" mapstructure:"model"`
-}
-
 // ChatAgentConfig configures the direct-message chat assistant agent runtime.
 type ChatAgentConfig struct {
 	// Workspace root for file and shell tools; required when the chat agent is enabled.
@@ -571,9 +559,9 @@ type ChatAgentConfig struct {
 	ContextFiles []string `json:"context_files" yaml:"context_files" mapstructure:"context_files"`
 	// Compaction configures automatic history compaction for long chat sessions.
 	Compaction CompactionConfig `json:"compaction" yaml:"compaction" mapstructure:"compaction"`
-	// ChatModel overrides agents.chat.model for the cheap first-turn model when dual routing is enabled.
+	// ChatModel selects the chat agent model; non-empty enables the chat agent.
 	ChatModel string `json:"chat_model" yaml:"chat_model" mapstructure:"chat_model"`
-	// ToolModel selects the stronger model used after tool execution when dual routing is enabled.
+	// ToolModel enables dual-model routing when set; used after tool execution.
 	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
 }
 

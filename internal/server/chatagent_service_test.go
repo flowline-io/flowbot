@@ -19,9 +19,7 @@ import (
 func TestChatAgentService_Run(t *testing.T) {
 	ws := t.TempDir()
 	config.App.ChatAgent.Workspace = ws
-	config.App.Agents = []config.Agent{
-		{Name: "chat", Enabled: true, Model: "fake-model"},
-	}
+	config.App.ChatAgent.ChatModel = "fake-model"
 	config.App.Models = []config.Model{
 		{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 	}
@@ -77,9 +75,7 @@ func TestChatAgentService_Run(t *testing.T) {
 
 func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
 	config.App.ChatAgent.Workspace = ""
-	config.App.Agents = []config.Agent{
-		{Name: "chat", Enabled: true, Model: "fake-model"},
-	}
+	config.App.ChatAgent.ChatModel = "fake-model"
 	config.App.Models = []config.Model{
 		{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 	}

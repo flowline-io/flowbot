@@ -16,12 +16,6 @@ func init() {
 		{Provider: "anthropic", ModelNames: []string{"claude-proxy"}, ApiKey: "test-anthropic-key", BaseUrl: "http://localhost:8080/v1"},
 		{Provider: "openai", ModelNames: []string{"gpt-5.5"}, ApiKey: "sk-test"},
 	}
-	config.App.Agents = []config.Agent{
-		{Name: "agent_active", Model: "gpt-5.5-instant", Enabled: true},
-		{Name: "agent_disabled", Model: "gpt-5.5-instant", Enabled: false},
-		{Name: "agent_nomodel", Model: "", Enabled: true},
-		{Name: "agent_chat", Model: "gpt-5.5-instant", Enabled: true},
-	}
 }
 
 func TestMain(m *testing.M) {

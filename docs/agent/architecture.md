@@ -179,7 +179,7 @@ chat_agent:
   tool_model: "gpt-4o"
 ```
 
-`chat_model` defaults to `agents.chat.model` when omitted. Dual routing requires both models in `models[]` with the same provider (v1). Compaction continues to use the chat model. Runtime `Harness.SetModel()` does not participate in router save-points in v1.
+The chat agent is enabled when `chat_model` is non-empty. Dual routing is enabled when `tool_model` is set; both models must be registered in `models[]` with the same provider (v1). Compaction continues to use the chat model. Runtime `Harness.SetModel()` does not participate in router save-points in v1.
 
 Callers can override routing entirely via `Config.PrepareNextTurn`.
 
@@ -367,7 +367,7 @@ flowchart TD
 3. **Modules import `pkg/agent/llm` only** — for single-shot LLM tasks; other `pkg/agent` packages stay core-only until wired to server
 4. **Serialization** — sonic for JSON/JSONL and tool argument parsing
 5. **Errors** — domain errors in `msg`: `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`, `ErrEmptyContext`, `ErrInvalidContinue`; hook cancel via `hooks.ErrRunCancelled`
-6. **Naming** — do not confuse with instruct agent protocol or YAML `config.agents` task entries
+6. **Naming** — do not confuse with instruct agent protocol or YAML `chat_agent` config
 
 ## Related Documentation
 

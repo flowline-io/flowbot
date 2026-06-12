@@ -1,6 +1,6 @@
 package llm
 
-// Agent name constants identify YAML config.agents entries for single-shot LLM tasks.
+// Agent name constants identify logical agent roles for LLM helpers.
 const (
 	AgentChat              = "chat"
 	AgentBillClassify      = "bill_classify"

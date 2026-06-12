@@ -46,23 +46,4 @@ var _ = Describe("Agent LLM", Label("module", "llm", "smoke"), func() {
 			Entry("misspelled", "gpt-99"),
 		)
 	})
-
-	Describe("agent config lookup", func() {
-		BeforeEach(func() {
-			config.App.Agents = []config.Agent{
-				{Name: llm.AgentExtractTags, Model: "gpt-test", Enabled: true},
-				{Name: llm.AgentSimilarTags, Model: "gpt-test", Enabled: false},
-			}
-		})
-
-		It("returns model for enabled agents", func() {
-			Expect(llm.AgentModelName(llm.AgentExtractTags)).To(Equal("gpt-test"))
-			Expect(llm.AgentEnabled(llm.AgentExtractTags)).To(BeTrue())
-		})
-
-		It("returns empty for disabled agents", func() {
-			Expect(llm.AgentModelName(llm.AgentSimilarTags)).To(BeEmpty())
-			Expect(llm.AgentEnabled(llm.AgentSimilarTags)).To(BeFalse())
-		})
-	})
 })

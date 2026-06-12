@@ -22,9 +22,7 @@ import (
 
 var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 	It("persists session entries and returns assistant reply using fake model", func() {
-		config.App.Agents = []config.Agent{
-			{Name: "chat", Enabled: true, Model: "fake-model"},
-		}
+		config.App.ChatAgent.ChatModel = "fake-model"
 		config.App.Models = []config.Model{
 			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}, ContextWindows: map[string]int{"fake-model": 128000}},
 		}
@@ -64,9 +62,6 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 	})
 
 	It("routes to tool model after tool execution when dual models are configured", func() {
-		config.App.Agents = []config.Agent{
-			{Name: "chat", Enabled: true, Model: "chat-model"},
-		}
 		config.App.Models = []config.Model{
 			{
 				Provider:       agentllm.ProviderOpenAI,

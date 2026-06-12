@@ -165,30 +165,6 @@ models:
       gpt-5.5-instant: 128000
       gpt-5.5: 128000
 
-# Agent configuration
-agents:
-  - name: "chat"
-    enabled: true
-    model: ""
-  - name: "react"
-    enabled: true
-    model: ""
-  - name: "repo-review-comment"
-    enabled: true
-    model: ""
-  - name: "news-summary"
-    enabled: true
-    model: ""
-  - name: "bill-classify"
-    enabled: true
-    model: ""
-  - name: "extract-tags"
-    enabled: true
-    model: ""
-  - name: "similar-tags"
-    enabled: true
-    model: ""
-
 # Direct-message chat assistant agent
 chat_agent:
   workspace: "/var/lib/flowbot/chat-workspace"
@@ -196,8 +172,8 @@ chat_agent:
   shell_timeout: 60s
   max_tool_output: 8192
   max_steps: 30
-  # chat_model: "gpt-4o-mini"   # optional: cheap first-turn model; defaults to agents.chat.model
-  # tool_model: "gpt-4o"        # optional: stronger model after tool execution (same provider as chat_model)
+  # chat_model: "gpt-4o-mini"   # enables chat agent when set
+  # tool_model: "gpt-4o"        # enables dual-model routing when set (same provider as chat_model)
   compaction:
     enabled: true
     reserve_tokens: 16384

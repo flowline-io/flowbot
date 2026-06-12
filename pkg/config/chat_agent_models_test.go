@@ -22,7 +22,6 @@ func TestResolveChatAgentModels(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		agents    []config.Agent
 		chatAgent config.ChatAgentConfig
 		models    []config.Model
 		wantChat  string
@@ -31,17 +30,16 @@ func TestResolveChatAgentModels(t *testing.T) {
 		wantErr   string
 	}{
 		{
-			name:     "agent model only",
-			agents:   []config.Agent{{Name: "chat", Enabled: true, Model: "gpt-4o-mini"}},
+			name: "chat model only",
+			chatAgent: config.ChatAgentConfig{
+				ChatModel: "gpt-4o-mini",
+			},
 			models:   openAIModels,
 			wantChat: "gpt-4o-mini",
 			wantDual: false,
 		},
 		{
 			name: "dual models configured",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
-			},
 			chatAgent: config.ChatAgentConfig{
 				ChatModel: "gpt-4o-mini",
 				ToolModel: "gpt-4o",
@@ -53,19 +51,15 @@ func TestResolveChatAgentModels(t *testing.T) {
 		},
 		{
 			name: "empty tool model",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
+			chatAgent: config.ChatAgentConfig{
+				ChatModel: "gpt-4o-mini",
 			},
-			chatAgent: config.ChatAgentConfig{ToolModel: ""},
-			models:    openAIModels,
-			wantChat:  "gpt-4o-mini",
-			wantDual:  false,
+			models:   openAIModels,
+			wantChat: "gpt-4o-mini",
+			wantDual: false,
 		},
 		{
-			name: "same chat and tool model",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
-			},
+			name: "same chat and tool model still dual",
 			chatAgent: config.ChatAgentConfig{
 				ChatModel: "gpt-4o-mini",
 				ToolModel: "gpt-4o-mini",
@@ -73,27 +67,10 @@ func TestResolveChatAgentModels(t *testing.T) {
 			models:   openAIModels,
 			wantChat: "gpt-4o-mini",
 			wantTool: "gpt-4o-mini",
-			wantDual: false,
-		},
-		{
-			name: "chat model override",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o"},
-			},
-			chatAgent: config.ChatAgentConfig{
-				ChatModel: "gpt-4o-mini",
-				ToolModel: "gpt-4o",
-			},
-			models:   openAIModels,
-			wantChat: "gpt-4o-mini",
-			wantTool: "gpt-4o",
 			wantDual: true,
 		},
 		{
 			name: "unregistered tool model",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
-			},
 			chatAgent: config.ChatAgentConfig{
 				ChatModel: "gpt-4o-mini",
 				ToolModel: "missing-model",
@@ -103,9 +80,6 @@ func TestResolveChatAgentModels(t *testing.T) {
 		},
 		{
 			name: "cross provider rejected",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "gpt-4o-mini"},
-			},
 			chatAgent: config.ChatAgentConfig{
 				ChatModel: "gpt-4o-mini",
 				ToolModel: "claude-opus-4",
@@ -115,8 +89,8 @@ func TestResolveChatAgentModels(t *testing.T) {
 		},
 		{
 			name: "unregistered chat model in single mode",
-			agents: []config.Agent{
-				{Name: "chat", Enabled: true, Model: "missing-chat"},
+			chatAgent: config.ChatAgentConfig{
+				ChatModel: "missing-chat",
 			},
 			models:  openAIModels,
 			wantErr: `chat model "missing-chat" is not registered`,
@@ -126,7 +100,6 @@ func TestResolveChatAgentModels(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			config.App.Agents = tt.agents
 			config.App.ChatAgent = tt.chatAgent
 			config.App.Models = tt.models
 
@@ -172,36 +145,25 @@ func TestModelRegisteredAndProviderFor(t *testing.T) {
 func TestChatAgentChatModelAndEnabled(t *testing.T) {
 	tests := []struct {
 		name      string
-		agents    []config.Agent
 		chatAgent config.ChatAgentConfig
 		wantModel string
 		wantEn    bool
 	}{
 		{
-			name:      "chat_model override without agents model",
-			agents:    []config.Agent{{Name: "chat", Enabled: true, Model: ""}},
+			name:      "chat_model set enables agent",
 			chatAgent: config.ChatAgentConfig{ChatModel: "gpt-4o-mini"},
 			wantModel: "gpt-4o-mini",
 			wantEn:    true,
 		},
 		{
-			name:      "agents model when chat_model empty",
-			agents:    []config.Agent{{Name: "chat", Enabled: true, Model: "gpt-4o"}},
+			name:      "empty chat_model disables agent",
 			chatAgent: config.ChatAgentConfig{},
-			wantModel: "gpt-4o",
-			wantEn:    true,
-		},
-		{
-			name:      "disabled chat agent",
-			agents:    []config.Agent{{Name: "chat", Enabled: false, Model: "gpt-4o"}},
-			chatAgent: config.ChatAgentConfig{ChatModel: "gpt-4o-mini"},
-			wantModel: "gpt-4o-mini",
+			wantModel: "",
 			wantEn:    false,
 		},
 		{
-			name:      "enabled without any model",
-			agents:    []config.Agent{{Name: "chat", Enabled: true, Model: ""}},
-			chatAgent: config.ChatAgentConfig{},
+			name:      "workspace without chat_model stays disabled",
+			chatAgent: config.ChatAgentConfig{Workspace: "/tmp/ws"},
 			wantModel: "",
 			wantEn:    false,
 		},
@@ -210,7 +172,6 @@ func TestChatAgentChatModelAndEnabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			config.App.Agents = tt.agents
 			config.App.ChatAgent = tt.chatAgent
 			assert.Equal(t, tt.wantModel, config.ChatAgentChatModel())
 			assert.Equal(t, tt.wantEn, config.ChatAgentEnabled())

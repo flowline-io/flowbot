@@ -52,7 +52,7 @@ func (t *Type) Validate() error {
 
 	modelNames := make(map[string]bool)
 	errs, modelNames = t.validateModels(errs, modelNames)
-	errs = t.validateAgents(errs, modelNames)
+	errs = t.validateChatAgent(errs, modelNames)
 
 	if len(errs) > 0 {
 		return errs
@@ -176,14 +176,36 @@ func (t *Type) validateModels(errs ValidationErrors, modelNames map[string]bool)
 	return errs, modelNames
 }
 
-// validateAgents validates agent configurations against known model names.
-func (t *Type) validateAgents(errs ValidationErrors, modelNames map[string]bool) ValidationErrors {
-	for i, a := range t.Agents {
-		if a.Name == "" {
-			errs = append(errs, fmt.Errorf("agents[%d].name: must not be empty. Fix: set agents[%d].name in flowbot.yaml", i, i))
-		}
-		if a.Model != "" && len(modelNames) > 0 && !modelNames[a.Model] {
-			errs = append(errs, fmt.Errorf("agents[%d].model: %q not found in models. Fix: reference an existing model name in agents[%d].model in flowbot.yaml", i, a.Model, i))
+// validateChatAgent validates chat agent model configuration when chat_model is set.
+func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bool) ValidationErrors {
+	chat := t.ChatAgent.ChatModel
+	if chat == "" {
+		return errs
+	}
+	if len(modelNames) > 0 && !modelNames[chat] {
+		errs = append(errs, fmt.Errorf(
+			"chat_agent.chat_model: %q not found in models. Fix: reference an existing model name in chat_agent.chat_model in flowbot.yaml",
+			chat,
+		))
+	}
+	tool := t.ChatAgent.ToolModel
+	if tool == "" {
+		return errs
+	}
+	if len(modelNames) > 0 && !modelNames[tool] {
+		errs = append(errs, fmt.Errorf(
+			"chat_agent.tool_model: %q not found in models. Fix: reference an existing model name in chat_agent.tool_model in flowbot.yaml",
+			tool,
+		))
+	}
+	if len(modelNames) > 0 && modelNames[chat] && modelNames[tool] {
+		chatProvider := providerForModelInList(t.Models, chat)
+		toolProvider := providerForModelInList(t.Models, tool)
+		if chatProvider != toolProvider {
+			errs = append(errs, fmt.Errorf(
+				"chat_agent: chat_model %q (provider %q) and tool_model %q (provider %q) must use the same provider. Fix: align providers in flowbot.yaml",
+				chat, chatProvider, tool, toolProvider,
+			))
 		}
 	}
 	return errs
