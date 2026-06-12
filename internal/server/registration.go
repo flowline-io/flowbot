@@ -13,6 +13,19 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
+// resolvePlatformUserFlag returns the stable platform-scoped user identifier from inbound event data.
+// Some adapters omit user_id on edge-case events; fall back to self.user_id or a generated id so
+// required PlatformUser.flag validation does not fail on empty strings.
+func resolvePlatformUserFlag(data protocol.MessageEventData) string {
+	if data.UserId != "" {
+		return data.UserId
+	}
+	if data.Self.UserId != "" {
+		return data.Self.UserId
+	}
+	return types.Id()
+}
+
 // registerPlatformUser registers a platform user based on the provided message event data.
 // It checks if the platform user already exists by its flag, and if found, retrieves the existing user flag.
 // If the platform user does not exist, it creates a new user and platform user entry in the database.
@@ -24,7 +37,9 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 		return "", err
 	}
 
-	platformUser, err := store.Database.GetPlatformUserByFlag(context.Background(), data.UserId)
+	platformUserFlag := resolvePlatformUserFlag(data)
+
+	platformUser, err := store.Database.GetPlatformUserByFlag(context.Background(), platformUserFlag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
@@ -52,11 +67,11 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 		return "", err
 	}
 
-	email, avatarURL := platformUserProfileDefaults(data.Self.Platform, data.UserId)
+	email, avatarURL := platformUserProfileDefaults(data.Self.Platform, platformUserFlag)
 	_, err = store.Database.CreatePlatformUser(context.Background(), &gen.PlatformUser{
 		PlatformID: platform.ID,
 		UserID:     user.ID,
-		Flag:       data.UserId,
+		Flag:       platformUserFlag,
 		Name:       "user",
 		Email:      email,
 		AvatarURL:  avatarURL,
@@ -159,7 +174,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 	_, err = store.Database.CreatePlatformChannelUser(context.Background(), &gen.PlatformChannelUser{
 		PlatformID:  platform.ID,
 		ChannelFlag: data.TopicId,
-		UserFlag:    data.UserId,
+		UserFlag:    resolvePlatformUserFlag(data),
 	})
 	if err != nil {
 		return "", err

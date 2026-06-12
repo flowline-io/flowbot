@@ -65,6 +65,30 @@ func (*Adapter) EventConvert(data any) protocol.Event {
 	return result
 }
 
+// isActionableSlackMessage reports whether a Slack message event should be forwarded
+// to Flowbot handlers. Subtyped, bot, and incomplete events are ignored.
+func isActionableSlackMessage(messageEvent *slackevents.MessageEvent) bool {
+	if messageEvent == nil {
+		return false
+	}
+	if messageEvent.BotID != "" || messageEvent.SubType != "" {
+		return false
+	}
+	if messageEvent.User == "" {
+		return false
+	}
+	return slackMessageID(messageEvent) != ""
+}
+
+// slackMessageID returns the stable Slack message identifier used for deduplication.
+// ClientMsgID is preferred; ts is the fallback for API or integration messages.
+func slackMessageID(messageEvent *slackevents.MessageEvent) string {
+	if messageEvent.ClientMsgID != "" {
+		return messageEvent.ClientMsgID
+	}
+	return messageEvent.TimeStamp
+}
+
 func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 	var result protocol.Event
 
@@ -77,7 +101,7 @@ func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 		return result
 	}
 
-	if messageEvent.BotID != "" {
+	if !isActionableSlackMessage(messageEvent) {
 		return result
 	}
 
@@ -96,8 +120,9 @@ func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 	result.Data = protocol.MessageEventData{
 		Self: protocol.Self{
 			Platform: ID,
+			UserId:   messageEvent.User,
 		},
-		MessageId:  messageEvent.ClientMsgID,
+		MessageId:  slackMessageID(messageEvent),
 		AltMessage: messageEvent.Text,
 		UserId:     messageEvent.User,
 		TopicId:    messageEvent.Channel,

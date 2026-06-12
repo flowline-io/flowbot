@@ -80,6 +80,21 @@ func (a *Agent) State() *Context {
 	return cloneContext(a.state)
 }
 
+// Config returns a snapshot of the current loop configuration.
+func (a *Agent) Config() Config {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.cfg
+}
+
+// ApplyConfig atomically mutates loop configuration before the next Prompt or Continue.
+// Callers must preserve queue drains when replacing the whole struct.
+func (a *Agent) ApplyConfig(fn func(*Config)) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	fn(&a.cfg)
+}
+
 // ApplyState atomically mutates the agent's internal state using the provided function.
 // This avoids the clone-modify-discard pattern when the caller needs to update state in place.
 func (a *Agent) ApplyState(fn func(*Context)) {

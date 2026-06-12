@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
+	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
@@ -30,6 +31,8 @@ const (
 )
 
 // HookHandler handles harness-level lifecycle hooks.
+//
+// Deprecated: use pkg/agent/hooks typed registrars (OnBeforeAgentStart, Observe, etc.).
 type HookHandler func(context.Context, HookEvent) error
 
 // HookEvent is a harness lifecycle notification.
@@ -50,6 +53,7 @@ type Options struct {
 	SystemPrompt   string
 	ModelName      string
 	ContextManager *ctxmgr.Manager
+	Hooks          *hooks.Registry
 }
 
 // Harness orchestrates agent loop, session tree, tools, and lifecycle hooks.
@@ -65,7 +69,15 @@ type Harness struct {
 	systemPrompt string
 	modelName    string
 	ctxMgr       *ctxmgr.Manager
-	hooks        map[string][]HookHandler
+	hookRegistry *hooks.Registry
+	loopBaseCfg  agent.Config
+}
+
+var mutableHookEvents = map[string]struct{}{
+	hooks.EventBeforeAgentStart: {},
+	hooks.EventContext:          {},
+	hooks.EventToolCall:         {},
+	hooks.EventToolResult:       {},
 }
 
 // New creates a harness with optional session and router dependencies.
@@ -90,25 +102,50 @@ func New(opts Options) *Harness {
 		}
 	}
 
+	hookRegistry := opts.Hooks
+	if hookRegistry == nil {
+		hookRegistry = hooks.NewRegistry()
+	}
+
+	agentInstance := agent.NewAgent(opts.AgentOptions)
+
 	return &Harness{
-		agent:        agent.NewAgent(opts.AgentOptions),
+		agent:        agentInstance,
 		session:      opts.Session,
 		registry:     registry,
 		router:       opts.Router,
 		systemPrompt: opts.SystemPrompt,
 		modelName:    opts.ModelName,
 		ctxMgr:       opts.ContextManager,
-		hooks:        make(map[string][]HookHandler),
+		hookRegistry: hookRegistry,
+		loopBaseCfg:  agentInstance.Config(),
 		phase:        PhaseIdle,
 		idleCh:       make(chan struct{}),
 	}
 }
 
+// Hooks exposes the typed hook registry for this harness instance.
+func (h *Harness) Hooks() *hooks.Registry {
+	return h.hookRegistry
+}
+
 // On registers a harness hook handler for an event type.
+//
+// Deprecated: use Hooks() with hooks.OnBeforeAgentStart, hooks.Observe, or hooks.OnObservation.
 func (h *Harness) On(eventType string, handler HookHandler) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	h.hooks[eventType] = append(h.hooks[eventType], handler)
+	if _, mutable := mutableHookEvents[eventType]; mutable {
+		flog.Warn("harness: On(%q) is observe-only; use hooks typed registrars via Harness.Hooks()", eventType)
+	}
+	hooks.OnObservation(h.hookRegistry, eventType, func(ctx context.Context, event hooks.ObservationEvent) error {
+		return handler(ctx, HookEvent{
+			Type:         event.Type,
+			Messages:     event.Messages,
+			SystemPrompt: event.SystemPrompt,
+			ModelName:    event.ModelName,
+			ActiveTools:  event.ActiveTools,
+			ContextUsage: observationContextUsage(event.ContextUsage),
+		})
+	})
 }
 
 // RegisterTool adds a tool to the harness registry.
@@ -120,14 +157,14 @@ func (h *Harness) RegisterTool(t tool.Tool) error {
 func (h *Harness) SetActiveTools(names []string) {
 	h.registry.SetActive(names)
 	h.agent.SetActiveTools(names)
-	h.emitHook(context.Background(), HookEvent{Type: "tools_update", ActiveTools: names})
+	h.emitObservation(context.Background(), hooks.ObservationEvent{Type: hooks.EventToolsUpdate, ActiveTools: names})
 }
 
 // SetModel updates the active model name.
 func (h *Harness) SetModel(llmModel llms.Model, modelName string) {
 	h.agent.SetModel(llmModel)
 	h.modelName = modelName
-	h.emitHook(context.Background(), HookEvent{Type: "model_update", ModelName: modelName})
+	h.emitObservation(context.Background(), hooks.ObservationEvent{Type: hooks.EventModelUpdate, ModelName: modelName})
 }
 
 // MoveTo switches the session leaf, auto-summarizing abandoned branches when configured.
@@ -157,20 +194,43 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 	}
 	h.setPhase(PhaseBusy)
 
-	if err := h.runHook(ctx, "before_agent_start", HookEvent{
-		Type:         "before_agent_start",
+	prompts = append([]agent.AgentMessage(nil), prompts...)
+	startResult, err := h.hookRegistry.EmitBeforeAgentStart(ctx, hooks.BeforeAgentStartEvent{
 		Messages:     prompts,
 		SystemPrompt: h.systemPrompt,
 		ModelName:    h.modelName,
-	}); err != nil {
+	})
+	if err != nil {
 		h.setPhase(PhaseIdle)
 		return nil, err
+	}
+	if startResult != nil {
+		if startResult.Cancel {
+			h.setPhase(PhaseIdle)
+			return nil, hooks.ErrRunCancelled
+		}
+		if startResult.Messages != nil {
+			prompts = startResult.Messages
+		}
+		if startResult.SystemPrompt != nil {
+			h.systemPrompt = *startResult.SystemPrompt
+		}
 	}
 
 	if err := h.prepareContext(ctx); err != nil {
 		h.setPhase(PhaseIdle)
 		return nil, wrapPromptError(err)
 	}
+
+	routed := model.ApplyDefaultRouter(h.loopBaseCfg)
+	bridged := hooks.BridgeConfig(ctx, h.hookRegistry, routed)
+	h.agent.ApplyConfig(func(cfg *agent.Config) {
+		steering := cfg.GetSteeringMessages
+		followUp := cfg.GetFollowUpMessages
+		hooks.MergeHookFields(cfg, &bridged)
+		cfg.GetSteeringMessages = steering
+		cfg.GetFollowUpMessages = followUp
+	})
 
 	if h.modelName != "" {
 		h.mu.Lock()
@@ -264,9 +324,13 @@ func (h *Harness) emitContextUsage(ctx context.Context) {
 		return
 	}
 	usage := h.ctxMgr.GetContextUsage(path)
-	_ = h.runHook(ctx, "context_usage", HookEvent{
-		Type:         "context_usage",
-		ContextUsage: &usage,
+	h.emitObservation(ctx, hooks.ObservationEvent{
+		Type: hooks.EventContextUsage,
+		ContextUsage: &hooks.ContextUsageInfo{
+			Tokens:        usage.Tokens,
+			ContextWindow: usage.ContextWindow,
+			Percent:       usage.Percent,
+		},
 	})
 }
 
@@ -281,7 +345,7 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, pr
 			h.finishStream(ctx, result)
 			return agentevent.Result{Messages: result.Messages, Err: errors.Join(result.Err, compactErr)}
 		}
-		h.emitHook(ctx, HookEvent{Type: "context_compacted"})
+		h.emitObservation(ctx, hooks.ObservationEvent{Type: hooks.EventContextCompacted})
 		h.emitContextUsage(ctx)
 		retryStream, promptErr := h.agent.Prompt(ctx, prompts...)
 		if promptErr != nil {
@@ -304,9 +368,7 @@ func (h *Harness) shouldRetryOverflow(result agentevent.Result) bool {
 }
 
 func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
-	if err := h.runHook(ctx, "save_point", HookEvent{Type: "save_point"}); err != nil {
-		flog.Warn("harness: save_point hook: %v", err)
-	}
+	h.emitObservation(ctx, hooks.ObservationEvent{Type: hooks.EventSavePoint})
 	if result.Err != nil || h.session == nil {
 		return
 	}
@@ -361,20 +423,21 @@ func (h *Harness) setPhase(phase Phase) {
 	h.mu.Unlock()
 }
 
-func (h *Harness) runHook(ctx context.Context, eventType string, event HookEvent) error {
-	h.mu.Lock()
-	handlers := append([]HookHandler(nil), h.hooks[eventType]...)
-	h.mu.Unlock()
-	for _, handler := range handlers {
-		if err := handler(ctx, event); err != nil {
-			return err
-		}
-	}
-	return nil
+func (h *Harness) emitObservation(ctx context.Context, event hooks.ObservationEvent) {
+	h.hookRegistry.EmitObservation(ctx, event, func(format string, args ...any) {
+		flog.Warn(format, args...)
+	})
 }
 
-func (h *Harness) emitHook(ctx context.Context, event HookEvent) {
-	_ = h.runHook(ctx, event.Type, event)
+func observationContextUsage(usage *hooks.ContextUsageInfo) *ctxmgr.ContextUsage {
+	if usage == nil {
+		return nil
+	}
+	return &ctxmgr.ContextUsage{
+		Tokens:        usage.Tokens,
+		ContextWindow: usage.ContextWindow,
+		Percent:       usage.Percent,
+	}
 }
 
 func (h *Harness) currentLeafID(ctx context.Context) (string, error) {

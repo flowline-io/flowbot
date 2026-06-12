@@ -80,6 +80,48 @@ func (s *registrationStore) UpdatePlatformUser(_ context.Context, item *gen.Plat
 	return nil
 }
 
+func TestResolvePlatformUserFlag(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		data protocol.MessageEventData
+		want string
+	}{
+		{
+			name: "prefers top-level user id",
+			data: protocol.MessageEventData{
+				Self:   protocol.Self{UserId: "self-user"},
+				UserId: "event-user",
+			},
+			want: "event-user",
+		},
+		{
+			name: "falls back to self user id",
+			data: protocol.MessageEventData{
+				Self: protocol.Self{UserId: "self-user"},
+			},
+			want: "self-user",
+		},
+		{
+			name: "generates id when both user ids are missing",
+			data: protocol.MessageEventData{
+				Self: protocol.Self{Platform: "slack"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := resolvePlatformUserFlag(tt.data)
+			if tt.want != "" {
+				assert.Equal(t, tt.want, got)
+				return
+			}
+			assert.NotEmpty(t, got)
+		})
+	}
+}
+
 func TestPlatformUserProfileDefaults(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -201,6 +243,16 @@ func TestRegisterPlatformUser(t *testing.T) {
 			},
 			wantCreated: false,
 		},
+		{
+			name: "missing user id gets generated platform flag",
+			store: &registrationStore{
+				platform: &gen.Platform{ID: 7, Name: "slack"},
+			},
+			data: protocol.MessageEventData{
+				Self: protocol.Self{Platform: "slack"},
+			},
+			wantCreated: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -224,7 +276,10 @@ func TestRegisterPlatformUser(t *testing.T) {
 			}
 			if tt.wantCreated {
 				require.NotNil(t, tt.store.createPlatform)
-				assert.Equal(t, tt.wantEmail, tt.store.createPlatform.Email)
+				assert.NotEmpty(t, tt.store.createPlatform.Flag)
+				if tt.wantEmail != "" {
+					assert.Equal(t, tt.wantEmail, tt.store.createPlatform.Email)
+				}
 				assert.Equal(t, "-", tt.store.createPlatform.AvatarURL)
 				assert.Equal(t, int64(42), tt.store.createPlatform.UserID)
 			} else {

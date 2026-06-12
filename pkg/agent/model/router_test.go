@@ -57,6 +57,36 @@ func TestRouter_ApplyToContext(t *testing.T) {
 	}
 }
 
+func TestApplyDefaultRouter(t *testing.T) {
+	tests := []struct {
+		name      string
+		cfg       msg.Config
+		wantHook  bool
+		wantModel string
+	}{
+		{name: "injects router hook", cfg: msg.Config{ChatModel: "chat", ToolModel: "tool"}, wantHook: true, wantModel: "chat"},
+		{name: "skips when hook already set", cfg: msg.Config{ChatModel: "chat", ToolModel: "tool", PrepareNextTurn: func(msg.TurnContext) (*msg.TurnUpdate, error) {
+			return nil, nil
+		}}, wantHook: true},
+		{name: "skips without dual models", cfg: msg.Config{ChatModel: "chat"}, wantHook: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := model.ApplyDefaultRouter(tt.cfg)
+			if tt.wantHook {
+				require.NotNil(t, got.PrepareNextTurn)
+			} else {
+				assert.Nil(t, got.PrepareNextTurn)
+			}
+			if tt.wantModel != "" {
+				assert.Equal(t, tt.wantModel, got.ModelName)
+			}
+		})
+	}
+}
+
 func TestRouter_PrepareNextTurnHook(t *testing.T) {
 	tests := []struct {
 		name        string

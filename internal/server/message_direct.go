@@ -92,6 +92,9 @@ func buildDirectMessageContext(eventCtx context.Context, eventID string, msg pro
 }
 
 func isDuplicateDirectMessage(dmCtx directMessageContext) bool {
+	if dmCtx.msg.MessageId == "" {
+		return false
+	}
 	findMessage, err := store.Database.GetMessageByPlatform(dmCtx.ctx.Context(), dmCtx.platformID, dmCtx.msg.MessageId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		flog.Error(err)

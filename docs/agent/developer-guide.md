@@ -213,7 +213,7 @@ entries, _ := session.DeserializeSession(data)
 
 ## Harness
 
-Higher-level orchestration with hooks and automatic session append:
+Higher-level orchestration with session persistence and hook bridging:
 
 ```go
 h := harness.New(harness.Options{
@@ -222,15 +222,104 @@ h := harness.New(harness.Options{
     Router:       model.NewRouter("gpt-4o-mini", "gpt-4o"),
     SystemPrompt: "You are Flowbot.",
     ModelName:    "gpt-4o-mini",
-})
-
-h.On("before_agent_start", func(ctx context.Context, ev harness.HookEvent) error {
-    return nil
+    Hooks:        reg, // optional; see Typed Hooks below
 })
 
 _ = h.RegisterTool(echo.Tool{})
 stream, _ := h.Prompt(ctx, agent.NewUserMessage("echo test"))
 ```
+
+`Harness.WaitIdle(ctx)` blocks until the run finishes persisting session entries. `Harness.Hooks()` returns the registry for late registration (prefer registering before the first `Prompt`).
+
+## Typed Hooks (`pkg/agent/hooks`)
+
+Process-local extension points (aligned with pi-agent harness hooks). One `hooks.Registry` per harness run; register handlers before `Prompt`.
+
+```go
+import (
+    "context"
+
+    "github.com/flowline-io/flowbot/pkg/agent/hooks"
+)
+
+reg := hooks.NewRegistry()
+
+// Mutable: runs before loop; bridged outside loop Config
+hooks.OnBeforeAgentStart(reg, func(ctx context.Context, ev hooks.BeforeAgentStartEvent) (*hooks.BeforeAgentStartResult, error) {
+    prompt := ev.SystemPrompt + "\nExtra instructions."
+    return &hooks.BeforeAgentStartResult{SystemPrompt: &prompt}, nil
+})
+
+// Mutable: each LLM request; composed into Config.TransformContext
+hooks.OnContext(reg, func(ctx context.Context, ev hooks.ContextEvent) (*hooks.ContextResult, error) {
+    return &hooks.ContextResult{Messages: ev.Messages}, nil
+})
+
+// Mutable: tool gate; composed into Config.BeforeToolCall
+hooks.OnToolCall(reg, func(ctx context.Context, ev hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+    if ev.ToolCall.Name == "dangerous" {
+        return &hooks.ToolCallResult{Block: true, Reason: "not allowed"}, nil
+    }
+    return nil, nil
+})
+
+// Mutable: patch tool output; Terminate stops the inner loop
+hooks.OnToolResult(reg, func(ctx context.Context, ev hooks.ToolResultEvent) (*hooks.ToolResultResult, error) {
+    return nil, nil
+})
+
+// Read-only: harness lifecycle notifications
+hooks.Observe(reg, func(ctx context.Context, ev hooks.ObservationEvent) error {
+    // ev.Type: hooks.EventSavePoint, EventContextUsage, EventModelUpdate, ...
+    return nil
+})
+```
+
+Pass the registry into harness:
+
+```go
+h := harness.New(harness.Options{Hooks: reg, /* ... */})
+```
+
+### Registrar reference
+
+| Function | Event constant | Result type | Effect |
+| -------- | -------------- | ----------- | ------ |
+| `OnBeforeAgentStart` | `EventBeforeAgentStart` | `BeforeAgentStartResult` | Replace prompts; `Cancel` → `hooks.ErrRunCancelled` |
+| `OnContext` | `EventContext` | `ContextResult` | Replace message list before LLM |
+| `OnToolCall` | `EventToolCall` | `ToolCallResult` | `Block` skips tool execution |
+| `OnToolResult` | `EventToolResult` | `ToolResultResult` | Patch `Parts` / `IsError`; `Terminate` ends run |
+| `Observe` | (various) | — | No loop impact |
+| `OnObservation` | filter by type | — | Convenience wrapper over `Observe` |
+
+Handlers receive the same `context.Context` passed to `Harness.Prompt` (respects cancellation during bridged loop hooks).
+
+### Direct loop use (without harness)
+
+For tests or custom callers, bridge manually:
+
+```go
+routed := model.ApplyDefaultRouter(cfg)
+cfg = hooks.BridgeConfig(ctx, reg, routed)
+```
+
+Or set `Config.TransformContext` / `BeforeToolCall` / `AfterToolCall` directly on `agent.Config` without a registry.
+
+### Chat agent integration
+
+`internal/server/chatagent` wires observational hooks per session run:
+
+```go
+reg := hooks.NewRegistry()
+RegisterHooks(reg, ChatHookDeps{SessionID: req.SessionID})
+harness.New(harness.Options{Hooks: reg, /* ... */})
+```
+
+`RegisterHooks` logs `context_usage` and `save_point` at debug level. Add product hooks by extending `RegisterHooks` or registering on `reg` before `harness.New`.
+
+### Deprecated API
+
+`Harness.On(eventType, handler)` only observes events and logs a warning for mutable event names (`before_agent_start`, `context`, `tool_call`, `tool_result`). Do not use it to mutate prompts or block tools.
 
 ## LLM Provider Setup
 
@@ -284,7 +373,8 @@ When adding features to `pkg/agent/`:
 3. langchaingo stays inside `pkg/agent/llm/`
 4. Database or file I/O stays outside core — use interfaces (`session.Storage`)
 5. Update [architecture.md](./architecture.md) and [pkg/agent/AGENTS.md](../../pkg/agent/AGENTS.md)
-6. Add table-driven tests (≥3 cases) and BDD coverage when behavior is user-visible
+6. Product hooks: prefer `pkg/agent/hooks` registrars on a per-run `Registry`; avoid new `Harness.On(string)` usages
+7. Add table-driven tests (≥3 cases) and BDD coverage when behavior is user-visible
 
 ## Error Handling (Result Pattern)
 
@@ -312,4 +402,5 @@ Not implemented in the core library (planned for upper layers):
 - Wiring `config.agents` YAML to `agent.Config`
 - Pipeline/workflow steps that invoke `agent.RunLoop`
 - Compaction is implemented in `pkg/agent/ctxmgr` and wired through `harness.Options.ContextManager`
-- Skills (pi harness advanced features)
+- Provider payload hooks (`before_provider_request`) — reserved in `hooks/events.go`, not yet implemented
+- Session compact/tree hooks (`session_before_compact`) — second phase; requires ctxmgr callback wiring

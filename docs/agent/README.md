@@ -61,7 +61,9 @@ pkg/agent/
 ├── session/                                  # Session tree + JSONL helpers
 ├── model/                                    # Dual-model router
 ├── transform/                                # convertToLLM + multimodal
-├── harness/                                  # Hooks + session persistence
+├── hooks/                                    # Typed hook registry (on/observe/emit)
+├── harness/                                  # Orchestration; bridges hooks into loop
+├── ctxmgr/                                   # Context budget and compaction
 ├── example/echo/                             # Reference tool
 └── AGENTS.md                                 # Maintainer guide (in-repo)
 ```

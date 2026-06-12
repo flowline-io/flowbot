@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
+	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
@@ -127,6 +128,9 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 	flog.Debug("[chat-agent] harness prompt session=%s model=%s dual_model=%t chat_model=%s tool_model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
 		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
+	hookRegistry := hooks.NewRegistry()
+	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID})
+
 	return harness.New(harness.Options{
 		AgentOptions: agent.Options{
 			InitialState: agentCtx,
@@ -138,6 +142,7 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 		SystemPrompt:   systemPrompt,
 		ModelName:      chatModel,
 		ContextManager: ctxManager,
+		Hooks:          hookRegistry,
 	}), nil
 }
 

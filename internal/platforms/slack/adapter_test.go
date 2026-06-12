@@ -93,6 +93,65 @@ func TestAdapterEventConvertEventsAPI(t *testing.T) {
 			wantDetail: "",
 			wantUserId: "",
 		},
+		{
+			name: "message subtype is ignored",
+			data: socketmode.Event{
+				Type: socketmode.EventTypeEventsAPI,
+				Data: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
+					Type: "message",
+					Data: &slackevents.MessageEvent{
+						SubType:     "message_changed",
+						ChannelType: "im",
+						Channel:     "D01DMRLE0HW",
+					},
+				}},
+			},
+			wantDetail: "",
+			wantUserId: "",
+		},
+		{
+			name: "incomplete im message without user is ignored",
+			data: socketmode.Event{
+				Type: socketmode.EventTypeEventsAPI,
+				Data: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
+					Type: "message",
+					Data: &slackevents.MessageEvent{
+						ChannelType: "im",
+						Channel:     "D01DMRLE0HW",
+					},
+				}},
+			},
+			wantDetail: "",
+			wantUserId: "",
+		},
+		{
+			name: "im message without client_msg_id falls back to ts",
+			data: socketmode.Event{
+				Type: socketmode.EventTypeEventsAPI,
+				Data: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
+					Type: "message",
+					Data: &slackevents.MessageEvent{
+						ChannelType: "im",
+						Channel:     "D01DMRLE0HW",
+						User:        "U456",
+						Text:        "hello",
+						TimeStamp:   "1781250417.829078",
+					},
+				}},
+			},
+			wantDetail: protocol.MessageDirectEvent,
+			wantUserId: "U456",
+			decode: func(t *testing.T, evt protocol.Event) {
+				t.Helper()
+				data, ok := evt.Data.(protocol.MessageEventData)
+				if !ok {
+					t.Fatal("expected MessageEventData")
+				}
+				if data.MessageId != "1781250417.829078" {
+					t.Errorf("expected message id from ts, got %q", data.MessageId)
+				}
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -111,6 +170,9 @@ func TestAdapterEventConvertEventsAPI(t *testing.T) {
 				if data.Self.Platform != ID {
 					t.Errorf("expected platform %s, got %s", ID, data.Self.Platform)
 				}
+			}
+			if tt.decode != nil {
+				tt.decode(t, evt)
 			}
 		})
 	}

@@ -32,6 +32,19 @@ func (r *Router) ApplyToContext(ctx *msg.Context, afterToolExecution bool) {
 	ctx.ModelName = r.Select(afterToolExecution)
 }
 
+// ApplyDefaultRouter injects dual-model PrepareNextTurn when chat and tool models are set.
+func ApplyDefaultRouter(cfg msg.Config) msg.Config {
+	if cfg.PrepareNextTurn != nil || cfg.ChatModel == "" || cfg.ToolModel == "" {
+		return cfg
+	}
+	router := NewRouter(cfg.ChatModel, cfg.ToolModel)
+	cfg.PrepareNextTurn = router.PrepareNextTurnHook()
+	if cfg.ModelName == "" {
+		cfg.ModelName = cfg.ChatModel
+	}
+	return cfg
+}
+
 // PrepareNextTurnHook returns a turn-boundary hook that routes to chat or tool models.
 func (r *Router) PrepareNextTurnHook() msg.PrepareNextTurnFn {
 	return func(turn msg.TurnContext) (*msg.TurnUpdate, error) {

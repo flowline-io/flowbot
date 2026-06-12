@@ -21,7 +21,7 @@ type LoopDeps struct {
 // RunLoop starts a new agent loop from prompt messages.
 func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg Config, deps LoopDeps, stream *agentevent.Stream) ([]AgentMessage, error) {
 	cfg = cfg.WithDefaults()
-	cfg = applyDefaultRouter(cfg)
+	cfg = model.ApplyDefaultRouter(cfg)
 	if deps.Registry == nil {
 		deps.Registry = tool.NewRegistry()
 	}
@@ -59,7 +59,7 @@ func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg
 // RunLoopContinue resumes a loop from existing context without adding prompts.
 func RunLoopContinue(ctx context.Context, agentCtx *Context, cfg Config, deps LoopDeps, stream *agentevent.Stream) ([]AgentMessage, error) {
 	cfg = cfg.WithDefaults()
-	cfg = applyDefaultRouter(cfg)
+	cfg = model.ApplyDefaultRouter(cfg)
 	if agentCtx == nil || len(agentCtx.Messages) == 0 {
 		return nil, ErrEmptyContext
 	}
@@ -288,16 +288,4 @@ func turnModelName(cfg Config, current *Context) string {
 		return current.ModelName
 	}
 	return ""
-}
-
-func applyDefaultRouter(cfg Config) Config {
-	if cfg.PrepareNextTurn != nil || cfg.ChatModel == "" || cfg.ToolModel == "" {
-		return cfg
-	}
-	router := model.NewRouter(cfg.ChatModel, cfg.ToolModel)
-	cfg.PrepareNextTurn = router.PrepareNextTurnHook()
-	if cfg.ModelName == "" {
-		cfg.ModelName = cfg.ChatModel
-	}
-	return cfg
 }

@@ -22,6 +22,7 @@ agent/
 ├── model/                # Dual-model router
 ├── transform/            # convertToLLM + multimodal helpers
 ├── ctxmgr/               # Context budget, compaction, branch summarization
+├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
 ├── harness/              # High-level orchestration with hooks
 └── example/echo/         # Reference echo tool
 ```
@@ -85,13 +86,28 @@ ctxMgr := ctxmgr.New(ctxmgr.Options{
 h := harness.New(harness.Options{ContextManager: ctxMgr, Session: sess, ...})
 ```
 
+### Typed Hooks
+
+Register on a per-run `hooks.Registry` and pass `harness.Options.Hooks`:
+
+```go
+reg := hooks.NewRegistry()
+hooks.OnContext(reg, func(ctx context.Context, ev hooks.ContextEvent) (*hooks.ContextResult, error) {
+    return &hooks.ContextResult{Messages: ev.Messages}, nil
+})
+h := harness.New(harness.Options{Hooks: reg, AgentOptions: ...})
+```
+
+Harness bridges from `loopBaseCfg` (snapshot at `New`) via `hooks.BridgeConfig(ctx, reg, model.ApplyDefaultRouter(loopBaseCfg))` before each `Prompt`. Only `HasLoopHandlers()` triggers bridge; `Observe` does not. See [docs/agent/architecture.md](../../docs/agent/architecture.md#hooks-pkgagenthooks).
+
 ## Rules
 
 - **langchaingo scope**: only `llms.Model` in `pkg/agent/llm`; do not use langchaingo agents/chains
 - **Modules**: import `pkg/agent/llm` only for single-shot LLM tasks; do not import other `pkg/agent` packages from `internal/modules` until explicitly wired
 - **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and YAML `config.agents` entries
 - **Serialization**: use `sonic` for JSON/JSONL
-- **Errors**: wrap with `%w`; return `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`
+- **Errors**: wrap with `%w`; return `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`; hook cancel via `hooks.ErrRunCancelled`
+- **Hooks**: add mutable behavior with `hooks.On*` registrars; do not extend deprecated `Harness.On(string)`
 - **Result pattern**: low-level capabilities (`env`, `ctxmgr`, JSONL parse) return `result.Result[T,E]` with typed error codes; harness/session public APIs adapt to Go `error` via `result.GetOrError`; tool failures stay inline as `ToolResultMessage.IsError`
 - **Tests**: table-driven unit tests (>=3 cases) + BDD in `tests/specs/agent_spec_test.go`
 

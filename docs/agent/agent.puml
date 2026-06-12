@@ -16,9 +16,13 @@ package "Callers (future)" as Callers #ECEFF1 {
 }
 
 package "Harness\npkg/agent/harness" as Harness #E3F2FD {
-  [Lifecycle Hooks] as Hooks
   [Session Writer] as SessWrite
   [Tool Registry] as HReg
+  [Hook Bridge] as HBridge
+}
+
+package "Hooks\npkg/agent/hooks" as HooksPkg #E1F5FE {
+  [Registry on/observe/emit] as HookReg
 }
 
 package "Agent\npkg/agent/agent.go" as AgentPkg #BBDEFB {
@@ -55,6 +59,9 @@ Callers --> AgentPkg
 Harness --> AgentPkg
 Harness --> SessionPkg
 Harness --> HReg
+Harness --> HooksPkg
+HBridge --> HookReg
+HBridge ..> Loop : BridgeConfig → Config
 
 AgentPkg --> Loop
 AgentPkg --> Subs
@@ -75,8 +82,9 @@ SessionPkg --> Storage
 Stream --> LangchainGo
 Factory --> LangchainGo
 
-Hooks ..> Loop : before_agent_start
+HookReg ..> Loop : context / tool_call / tool_result
 SessWrite ..> SessionPkg : append on save_point
+HooksPkg ..> HookReg : Observe save_point, context_usage
 EventPkg ..> Subs : agent_start, turn_end, ...
 
 note right of Loop

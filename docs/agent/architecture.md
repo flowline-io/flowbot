@@ -39,7 +39,7 @@ The runtime separates concerns the same way pi-agent-core does:
 | ----- | -------------- |
 | **Loop** | Send context to LLM, parse tool calls, execute tools, append results, repeat until done |
 | **Agent** | Hold `Context`, steering/follow-up queues, `Subscribe()` handlers, cancellation |
-| **Harness** | Wire session `Storage`, register tools, emit save-point hooks, gate concurrent runs |
+| **Harness** | Wire session `Storage`, register tools, bridge `pkg/agent/hooks` into loop `Config`, gate concurrent runs |
 
 ## Observe-Think-Act Loop
 
@@ -160,7 +160,7 @@ Configuration:
 - Per-model `context_windows` in `flowbot.yaml` `models[]`
 - `chat_agent.compaction` for `enabled`, `reserve_tokens`, `keep_recent_tokens`
 
-Dual-Model Routing
+## Dual-Model Routing
 
 `model.Router` selects between a fast **chat** model and a capable **tool** model:
 
@@ -193,15 +193,74 @@ agent_start → turn_start → message_start/end
            → turn_end → agent_end
 ```
 
-`event.Stream` exposes a buffered channel plus `Subscribe()` handlers invoked sequentially (settlement semantics aligned with pi-agent-core).
+`event.Stream` exposes a buffered channel plus `Subscribe()` handlers invoked sequentially (settlement semantics aligned with pi-agent-core). Use `Agent.Subscribe()` for read-only progress UI; use typed hooks when you need to mutate loop behavior.
 
-Harness-level hooks (`pkg/agent/harness`):
+## Hooks (`pkg/agent/hooks`)
 
-| Hook | When |
-| ---- | ---- |
-| `before_agent_start` | Before loop starts; inject messages or system prompt |
-| `save_point` | After run completes successfully |
-| `model_update` / `tools_update` | Runtime config change |
+Typed extension points aligned with [pi-agent](https://github.com/earendil-works/pi-agent) harness hooks. Handlers register on a per-run `hooks.Registry`; the harness bridges loop-affecting hooks into `msg.Config` before each `Prompt`.
+
+```mermaid
+flowchart LR
+  subgraph product [Product layer e.g. chatagent]
+    Reg["hooks.NewRegistry()"]
+    Register["RegisterHooks / On*"]
+  end
+
+  subgraph harness [Harness Prompt]
+    Start["EmitBeforeAgentStart"]
+    Bridge["BridgeConfig(ctx, reg, routed)"]
+    Apply["Agent.ApplyConfig"]
+  end
+
+  subgraph loop [Loop]
+    TC[TransformContext]
+    BTC[BeforeToolCall]
+    ATC[AfterToolCall]
+  end
+
+  Register --> Reg
+  Reg --> Start
+  Start --> Bridge
+  Bridge --> Apply
+  Apply --> TC
+  Apply --> BTC
+  Apply --> ATC
+```
+
+### Bridge sequence (each `Harness.Prompt`)
+
+1. `EmitBeforeAgentStart` — may replace `messages` / `systemPrompt`; `Cancel` → `hooks.ErrRunCancelled`
+2. `prepareContext` — compaction when `ContextManager` is set
+3. `model.ApplyDefaultRouter(loopBaseCfg)` — dual-model `PrepareNextTurn` (idempotent; snapshot taken at harness `New`)
+4. `hooks.BridgeConfig(ctx, reg, routed)` — compose hook handlers onto loop callbacks (**only when `HasLoopHandlers()`**)
+5. `Agent.ApplyConfig` — merge hook fields; preserve steering/follow-up queue drains
+
+`Observe` handlers do **not** enter `BridgeConfig`; they receive harness notifications only (`save_point`, `context_usage`, etc.).
+
+### Event types and reducers
+
+| Constant | Registrar | When | Reducer |
+| -------- | --------- | ---- | ------- |
+| `before_agent_start` | `OnBeforeAgentStart` | Before loop starts | Chain `systemPrompt`; replace `messages`; `Cancel` aborts |
+| `context` | `OnContext` | Before each LLM call | Chain message list replacements |
+| `tool_call` | `OnToolCall` | Before tool execute | First `Block` wins |
+| `tool_result` | `OnToolResult` | After tool execute | Chain `Parts` / `IsError`; `Terminate` ends loop |
+| `save_point`, `context_usage`, `context_compacted`, `model_update`, `tools_update` | `Observe` / `OnObservation` | Harness lifecycle | Read-only; errors logged, run continues |
+
+Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain available for tests and direct `RunLoop` callers. Harness hook handlers are composed **after** any existing `Config` callbacks (`Chain*` in `hooks/compose.go`).
+
+### Errors
+
+| Error | When |
+| ----- | ---- |
+| `hooks.ErrRunCancelled` | `before_agent_start` returned `Cancel: true` |
+| `agent.ErrAborted` | Harness busy, user `Abort()`, or context cancelled mid-run |
+
+Legacy `Harness.On(string, HookHandler)` is **deprecated** (observe-only; warns on mutable event names). Prefer `Harness.Hooks()` with typed registrars.
+
+### Chat agent wiring
+
+`internal/server/chatagent` creates one `hooks.Registry` per run, calls `RegisterHooks` for observational logging (`context_usage`, `save_point`), and passes `harness.Options.Hooks`. See [Developer Guide — Typed Hooks](./developer-guide.md#typed-hooks-pkgagenthooks).
 
 ## LLM Layer
 
@@ -234,6 +293,7 @@ flowchart LR
     result[result]
     env[env]
     event[event]
+    hooks[hooks]
     tool[tool]
     transform[transform]
     session[session]
@@ -249,7 +309,9 @@ flowchart LR
 
   App --> Harness
   App --> Agent
+  Harness --> hooks
   Harness --> Agent
+  hooks --> msg
   Agent --> Loop
   Loop --> tool
   Loop --> transform
@@ -306,7 +368,7 @@ flowchart TD
 2. **Core does not touch the filesystem** — JSONL helpers only; callers provide `Storage`
 3. **Modules import `pkg/agent/llm` only** — for single-shot LLM tasks; other `pkg/agent` packages stay core-only until wired to server
 4. **Serialization** — sonic for JSON/JSONL and tool argument parsing
-5. **Errors** — domain errors in `msg`: `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`, `ErrEmptyContext`, `ErrInvalidContinue`
+5. **Errors** — domain errors in `msg`: `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`, `ErrEmptyContext`, `ErrInvalidContinue`; hook cancel via `hooks.ErrRunCancelled`
 6. **Naming** — do not confuse with instruct agent protocol or YAML `config.agents` task entries
 
 ## Related Documentation

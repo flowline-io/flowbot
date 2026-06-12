@@ -53,8 +53,21 @@ func resolveDirectModulePayload(sessionID, msgAlt string, payload types.MsgPaylo
 
 type messageDirectStore struct {
 	testStoreAdapter
-	createdMessage *gen.Message
-	createErr      error
+	createdMessage      *gen.Message
+	createErr           error
+	getByPlatformCalled bool
+	getByPlatformErr    error
+}
+
+func (s *messageDirectStore) GetMessageByPlatform(_ context.Context, _ int64, platformMsgID string) (*gen.Message, error) {
+	s.getByPlatformCalled = true
+	if s.getByPlatformErr != nil {
+		return nil, s.getByPlatformErr
+	}
+	if platformMsgID == "" {
+		return nil, types.ErrNotFound
+	}
+	return nil, types.ErrNotFound
 }
 
 func (s *messageDirectStore) CreateMessage(_ context.Context, message gen.Message) error {
@@ -63,6 +76,57 @@ func (s *messageDirectStore) CreateMessage(_ context.Context, message gen.Messag
 	}
 	s.createdMessage = &message
 	return nil
+}
+
+func TestIsDuplicateDirectMessage(t *testing.T) {
+	tests := []struct {
+		name              string
+		messageID         string
+		wantDuplicate     bool
+		wantLookup        bool
+		getByPlatformErr  error
+	}{
+		{
+			name:          "empty message id skips lookup",
+			messageID:     "",
+			wantDuplicate: false,
+			wantLookup:    false,
+		},
+		{
+			name:          "missing stored message is not duplicate",
+			messageID:     "msg-1",
+			wantDuplicate: false,
+			wantLookup:    true,
+		},
+		{
+			name:             "lookup error is treated as duplicate guard",
+			messageID:        "msg-1",
+			wantDuplicate:    true,
+			wantLookup:       true,
+			getByPlatformErr: assert.AnError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storeStub := &messageDirectStore{getByPlatformErr: tt.getByPlatformErr}
+			orig := store.Database
+			store.Database = storeStub
+			t.Cleanup(func() { store.Database = orig })
+
+			dmCtx := directMessageContext{
+				ctx:        types.Context{},
+				platformID: 7,
+				msg: protocol.MessageEventData{
+					MessageId: tt.messageID,
+				},
+			}
+			dmCtx.ctx.SetContext(t.Context())
+
+			got := isDuplicateDirectMessage(dmCtx)
+			assert.Equal(t, tt.wantDuplicate, got)
+			assert.Equal(t, tt.wantLookup, storeStub.getByPlatformCalled)
+		})
+	}
 }
 
 func TestPersistDirectUserMessage(t *testing.T) {
