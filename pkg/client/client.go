@@ -31,23 +31,25 @@ import (
 // Client is the main client for the Flowbot API.
 type Client struct {
 	baseURL           string
+	token             string
 	rc                *resty.Client
 	debugErrorHookSet bool
 
 	// Resource clients
-	Kanban   *KanbanClient
-	Bookmark *BookmarkClient
-	Reader   *ReaderClient
-	User     *UserClient
-	Search   *SearchClient
-	Dev      *DevClient
-	Server   *ServerClient
-	Hub      *HubClient
-	Pipeline *PipelineClient
-	Workflow *WorkflowClient
-	Forge    *ForgeClient
-	Github   *GithubClient
-	Memo     *MemoClient
+	Kanban    *KanbanClient
+	Bookmark  *BookmarkClient
+	Reader    *ReaderClient
+	User      *UserClient
+	Search    *SearchClient
+	Dev       *DevClient
+	Server    *ServerClient
+	Hub       *HubClient
+	Pipeline  *PipelineClient
+	Workflow  *WorkflowClient
+	Forge     *ForgeClient
+	Github    *GithubClient
+	Memo      *MemoClient
+	ChatAgent *ChatAgentClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -61,6 +63,7 @@ func NewClient(serverURL, token string) *Client {
 
 	c := &Client{
 		baseURL: serverURL,
+		token:   token,
 		rc:      rc,
 	}
 
@@ -78,8 +81,14 @@ func NewClient(serverURL, token string) *Client {
 	c.Forge = &ForgeClient{c: c}
 	c.Github = &GithubClient{c: c}
 	c.Memo = &MemoClient{c: c}
+	c.ChatAgent = &ChatAgentClient{c: c}
 
 	return c
+}
+
+// BaseURL returns the configured Flowbot server URL.
+func (c *Client) BaseURL() string {
+	return c.baseURL
 }
 
 // SetTimeout sets the request timeout for the client.

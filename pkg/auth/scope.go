@@ -40,6 +40,7 @@ const (
 	ScopePipelineRead         = "pipeline:read"
 	ScopePipelineRun          = "pipeline:run"
 	ScopeWorkflowRun          = "workflow:run"
+	ScopeChatAgentChat        = "chatagent:chat"
 )
 
 // AllScopes returns all scopes available for CLI token creation.
@@ -77,6 +78,7 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopePipelineRead, Description: "read pipelines"},
 		{Value: ScopePipelineRun, Description: "run pipelines"},
 		{Value: ScopeWorkflowRun, Description: "run workflows"},
+		{Value: ScopeChatAgentChat, Description: "chat with the chat agent"},
 	}
 }
 

@@ -1,0 +1,319 @@
+package server
+
+import (
+	"bufio"
+	"context"
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v3"
+
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/route"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+// RegisterChatAgentRoutes wires Chat Agent REST endpoints for the terminal client.
+func RegisterChatAgentRoutes(a *fiber.App) {
+	chatHTTP := newChatAgentHTTP()
+	a.Get("/chatagent/info", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.info)))
+	a.Post("/chatagent/sessions", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
+	a.Delete("/chatagent/sessions/:id", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
+	a.Get("/chatagent/sessions/:id/messages", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
+	a.Post("/chatagent/sessions/:id/messages", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sendMessage)))
+	a.Post("/chatagent/sessions/:id/confirm", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.confirm)))
+	a.Post("/chatagent/sessions/:id/cancel", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.cancelRun)))
+}
+
+type chatAgentHTTP struct {
+	service *chatagent.Service
+}
+
+func newChatAgentHTTP() *chatAgentHTTP {
+	return &chatAgentHTTP{service: chatagent.NewService()}
+}
+
+func (*chatAgentHTTP) info(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	info, err := chatagent.BuildAgentInfo(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(info)
+}
+
+func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	sessionID := types.Id()
+	if err := chatagent.CreateSession(c.Context(), rc.UID, sessionID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"session_id": sessionID})
+}
+
+func (h *chatAgentHTTP) closeSession(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	if err := chatagent.CloseSession(c.Context(), sessionID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	chatagent.ClearAPIRunState(sessionID, nil)
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (h *chatAgentHTTP) listMessages(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	messages, err := chatagent.ListSessionMessages(c.Context(), sessionID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"messages": messages})
+}
+
+type sendMessageBody struct {
+	Text string `json:"text"`
+}
+
+func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+
+	var body sendMessageBody
+	if err := sonic.Unmarshal(c.Body(), &body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+	}
+	if strings.TrimSpace(body.Text) == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "empty message"})
+	}
+	if _, ok := chatagent.GetAPIRunState(sessionID); ok {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": chatagent.ErrRunInFlight.Error()})
+	}
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+
+	return c.SendStreamWriter(func(w *bufio.Writer) {
+		publisher := chatagent.NewChannelPublisher(64)
+		gate := chatagent.NewConfirmGate(sessionID, publisher)
+		runState := chatagent.NewAPIRunState(publisher, gate)
+		if err := chatagent.TrySetAPIRunState(sessionID, runState); err != nil {
+			_ = writeChatAgentSSE(w, chatagent.StreamEvent{
+				Type:    chatagent.EventTypeError,
+				Message: err.Error(),
+			})
+			return
+		}
+		defer chatagent.ClearAPIRunState(sessionID, runState)
+
+		runCtx, cancel := context.WithTimeout(c.Context(), chatagent.RunTimeout())
+		defer cancel()
+		chatagent.BindRunCancel(sessionID, cancel)
+		defer chatagent.UnbindRunCancel(sessionID)
+
+		runDone := make(chan error, 1)
+		go func() {
+			runDone <- h.service.RunAPI(runCtx, chatagent.RunRequest{
+				SessionID: sessionID,
+				Text:      body.Text,
+			}, &chatagent.APIRunOptions{
+				Publisher: publisher,
+				Confirm:   gate,
+			})
+			publisher.Close()
+		}()
+
+		for {
+			select {
+			case ev, ok := <-publisher.Events():
+				if !ok {
+					return
+				}
+				if writeChatAgentSSE(w, ev) {
+					return
+				}
+			case err := <-runDone:
+				drainChatAgentSSE(w, publisher)
+				if err != nil {
+					if errors.Is(err, context.Canceled) {
+						_ = writeChatAgentSSE(w, chatagent.StreamEvent{
+							Type:    chatagent.EventTypeCanceled,
+							Message: "run canceled by user",
+						})
+						return
+					}
+					_ = writeChatAgentSSE(w, chatagent.StreamEvent{
+						Type:    chatagent.EventTypeError,
+						Message: err.Error(),
+					})
+				}
+				return
+			}
+		}
+	})
+}
+
+type confirmBody struct {
+	ID       string `json:"id"`
+	Approved bool   `json:"approved"`
+}
+
+func (h *chatAgentHTTP) confirm(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	var body confirmBody
+	if err := sonic.Unmarshal(c.Body(), &body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+	}
+	reason := chatagent.ConfirmReasonDenied
+	if body.Approved {
+		reason = chatagent.ConfirmReasonApproved
+	}
+	ok, err := chatagent.ResolveConfirm(sessionID, body.ID, body.Approved, reason)
+	if errors.Is(err, chatagent.ErrConfirmNotFound) {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	}
+	if errors.Is(err, chatagent.ErrConfirmResolved) {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+	}
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if !ok {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "confirm not applied"})
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (h *chatAgentHTTP) cancelRun(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	chatagent.CancelSessionRun(sessionID)
+	if state, ok := chatagent.GetAPIRunState(sessionID); ok {
+		if pub := state.Publisher(); pub != nil {
+			_ = pub.Publish(chatagent.StreamEvent{
+				Type:    chatagent.EventTypeCanceled,
+				Message: "run canceled by user",
+			})
+		}
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (*chatAgentHTTP) ensureSessionOwner(c fiber.Ctx, sessionID string) error {
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return types.ErrUnauthorized
+	}
+	if store.Database == nil {
+		return types.ErrUnavailable
+	}
+	sess, err := store.Database.GetChatSession(c.Context(), sessionID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return types.ErrNotFound
+		}
+		return err
+	}
+	if sess.UID != rc.UID.String() {
+		return types.ErrForbidden
+	}
+	if sess.State == int(schema.ChatSessionClosed) {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func requireChatAgentEnabled() error {
+	if !config.ChatAgentEnabled() {
+		return chatagent.ErrChatAgentDisabled
+	}
+	return nil
+}
+
+func chatAgentError(c fiber.Ctx, err error) error {
+	if errors.Is(err, chatagent.ErrChatAgentDisabled) {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": err.Error()})
+	}
+	if errors.Is(err, chatagent.ErrRunInFlight) {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+	}
+	if status, ok := domainErrorStatus(err); ok {
+		return c.Status(status).JSON(fiber.Map{"error": err.Error()})
+	}
+	flog.Warn("[chat-agent] http error: %v", err)
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+}
+
+func writeChatAgentSSE(w *bufio.Writer, event chatagent.StreamEvent) bool {
+	frame, err := chatagent.FormatSSEData(event)
+	if err != nil {
+		return true
+	}
+	if _, err := fmt.Fprint(w, frame); err != nil {
+		return true
+	}
+	if err := w.Flush(); err != nil {
+		return true
+	}
+	return event.Type == chatagent.EventTypeDone ||
+		event.Type == chatagent.EventTypeError ||
+		event.Type == chatagent.EventTypeCanceled
+}
+
+func drainChatAgentSSE(w *bufio.Writer, publisher *chatagent.ChannelPublisher) {
+	for {
+		select {
+		case ev, ok := <-publisher.Events():
+			if !ok {
+				return
+			}
+			if writeChatAgentSSE(w, ev) {
+				return
+			}
+		default:
+			return
+		}
+	}
+}

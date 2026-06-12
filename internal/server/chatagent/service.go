@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent"
+	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -22,6 +23,7 @@ import (
 type RunRequest struct {
 	SessionID string
 	Text      string
+	API       *APIRunOptions
 }
 
 // Service orchestrates chat assistant agent runs for direct chat sessions.
@@ -58,6 +60,17 @@ func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (strin
 	return executeRun(ctx, h, req, start, sink)
 }
 
+// RunAPI executes one agent turn for HTTP clients with SSE event publishing.
+func (s *Service) RunAPI(ctx context.Context, req RunRequest, opts *APIRunOptions) error {
+	if opts == nil || opts.Publisher == nil {
+		_, err := s.Run(ctx, req, nil)
+		return err
+	}
+	req.API = opts
+	_, err := s.Run(ctx, req, nil)
+	return err
+}
+
 func validateRunRequest(ctx context.Context, req RunRequest) error {
 	if !agentllm.AgentEnabled(agentName) {
 		flog.Warn("[chat-agent] run rejected: agent disabled or model not configured session=%s", req.SessionID)
@@ -77,28 +90,15 @@ func validateRunRequest(ctx context.Context, req RunRequest) error {
 func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
 	stream, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
 	if err != nil {
-		if errors.Is(err, agent.ErrAborted) || agentresult.IsCode(err, "busy") {
-			flog.Info("[chat-agent] harness busy session=%s duration=%s", req.SessionID, time.Since(start).Round(time.Millisecond))
-			return "Agent is busy, please try again shortly.", nil
-		}
-		flog.Error(fmt.Errorf("[chat-agent] harness prompt session=%s: %w", req.SessionID, err))
-		return "", err
+		return handlePromptError(req.SessionID, start, err)
 	}
 
-	var waitCoalescer func()
-	if sink != nil && stream != nil {
-		waitCoalescer = startStreamCoalescer(ctx, stream.Events(), sink, streamUpdateInterval)
-	}
-
+	waitCoalescer := startRunStreamCoalescer(ctx, req, stream, sink)
 	if err := h.WaitIdle(ctx); err != nil {
-		if waitCoalescer != nil {
-			waitCoalescer()
-		}
+		finishRunCoalescer(waitCoalescer)
 		return "", awaitRunError(req.SessionID, start, err)
 	}
-	if waitCoalescer != nil {
-		waitCoalescer()
-	}
+	finishRunCoalescer(waitCoalescer)
 
 	result := h.LastRunResult()
 	if result.Err != nil {
@@ -106,28 +106,71 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 		return "", result.Err
 	}
 
-	reply := extractAssistantReply(result.Messages)
-	if reply == "" {
-		flog.Warn("[chat-agent] empty assistant reply session=%s duration=%s messages=%d",
-			req.SessionID, time.Since(start).Round(time.Millisecond), len(result.Messages))
-		reply = "I could not produce a reply."
-	}
-
-	if sink != nil {
-		if err := sink.Flush(ctx, reply); err != nil {
-			flog.Warn("[chat-agent] stream flush session=%s: %v", req.SessionID, err)
-		}
-	}
+	reply := resolveAssistantReply(req.SessionID, start, result.Messages)
+	deliverRunResult(ctx, h, req, reply, sink, result.Messages)
 
 	flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",
 		req.SessionID, len(reply), time.Since(start).Round(time.Millisecond))
 	return reply, nil
 }
 
+func handlePromptError(sessionID string, start time.Time, err error) (string, error) {
+	if errors.Is(err, agent.ErrAborted) || agentresult.IsCode(err, "busy") {
+		flog.Info("[chat-agent] harness busy session=%s duration=%s", sessionID, time.Since(start).Round(time.Millisecond))
+		return "Agent is busy, please try again shortly.", nil
+	}
+	flog.Error(fmt.Errorf("[chat-agent] harness prompt session=%s: %w", sessionID, err))
+	return "", err
+}
+
+func startRunStreamCoalescer(ctx context.Context, req RunRequest, stream *agentevent.Stream, sink StreamSink) func() {
+	if req.API != nil && req.API.Publisher != nil && stream != nil {
+		return startAPIEventStream(ctx, stream.Events(), req.API.Publisher, apiStreamUpdateInterval)
+	}
+	if sink != nil && stream != nil {
+		return startStreamCoalescer(ctx, stream.Events(), sink, streamUpdateInterval)
+	}
+	return nil
+}
+
+func finishRunCoalescer(wait func()) {
+	if wait != nil {
+		wait()
+	}
+}
+
+func resolveAssistantReply(sessionID string, start time.Time, messages []any) string {
+	reply := extractAssistantReply(messages)
+	if reply != "" {
+		return reply
+	}
+	flog.Warn("[chat-agent] empty assistant reply session=%s duration=%s messages=%d",
+		sessionID, time.Since(start).Round(time.Millisecond), len(messages))
+	return "I could not produce a reply."
+}
+
+func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, reply string, sink StreamSink, messages []any) {
+	if req.API != nil && req.API.Publisher != nil {
+		contextWindow := 0
+		if cm := h.ContextManager(); cm != nil {
+			contextWindow = cm.ContextWindow()
+		}
+		publishFinalUsage(req.API.Publisher, messages, contextWindow)
+		_ = req.API.Publisher.Publish(StreamEvent{Type: EventTypeDone, Text: reply})
+		return
+	}
+	if sink == nil {
+		return
+	}
+	if err := sink.Flush(ctx, reply); err != nil {
+		flog.Warn("[chat-agent] stream flush session=%s: %v", req.SessionID, err)
+	}
+}
+
 func awaitRunError(sessionID string, start time.Time, err error) error {
 	if errors.Is(err, context.Canceled) {
 		flog.Info("[chat-agent] run cancelled session=%s duration=%s", sessionID, time.Since(start).Round(time.Millisecond))
-		return fmt.Errorf("chat session ended")
+		return err
 	}
 	flog.Error(fmt.Errorf("[chat-agent] stream await session=%s: %w", sessionID, err))
 	return err
@@ -166,6 +209,30 @@ func extractAssistantReply(messages []any) string {
 		}
 	}
 	return ""
+}
+
+func publishFinalUsage(publisher EventPublisher, messages []any, contextWindow int) {
+	var prompt, completion, total int
+	for _, raw := range messages {
+		message, ok := raw.(agent.AgentMessage)
+		if !ok {
+			continue
+		}
+		assistant, ok := message.(msg.AssistantMessage)
+		if !ok || assistant.Usage == nil {
+			continue
+		}
+		prompt += assistant.Usage.PromptTokens
+		completion += assistant.Usage.CompletionTokens
+		total += assistant.Usage.TotalTokens
+	}
+	if total > 0 {
+		percent := 0.0
+		if contextWindow > 0 {
+			percent = float64(total) / float64(contextWindow) * 100
+		}
+		PublishUsageEvent(publisher, prompt, completion, total, contextWindow, percent)
+	}
 }
 
 func textFromParts(parts []msg.ContentPart) string {

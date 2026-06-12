@@ -66,6 +66,8 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	a.Post("/form", ctl.postForm)
 	// agent
 	a.Post("/agent", ctl.agentData)
+	// chat agent (terminal client)
+	RegisterChatAgentRoutes(a)
 	// platform
 	a.All("/platform/:platform", ctl.platformCallback)
 }
