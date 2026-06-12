@@ -74,6 +74,128 @@ func TestSession_BuildContextAndMoveTo(t *testing.T) {
 	}
 }
 
+func TestSessionBranchCache(t *testing.T) {
+	tests := []struct {
+		name          string
+		setup         func(context.Context, *session.Session) error
+		wantGetCalls  int
+		wantBranchLen int
+	}{
+		{
+			name: "reuses branch without second storage load",
+			setup: func(ctx context.Context, s *session.Session) error {
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
+				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("b")})
+			},
+			wantGetCalls:  1,
+			wantBranchLen: 2,
+		},
+		{
+			name: "append invalidates branch cache",
+			setup: func(ctx context.Context, s *session.Session) error {
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
+				_, err := s.GetBranch(ctx, "")
+				require.NoError(t, err)
+				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("b")})
+			},
+			wantGetCalls:  2,
+			wantBranchLen: 2,
+		},
+		{
+			name: "move to invalidates branch cache",
+			setup: func(ctx context.Context, s *session.Session) error {
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
+				_, err := s.GetBranch(ctx, "")
+				require.NoError(t, err)
+				return s.MoveTo(ctx, "root", "summary")
+			},
+			wantGetCalls:  2,
+			wantBranchLen: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			store := &countingStorage{inner: session.NewMemoryStorage()}
+			s := session.New(store)
+			ctx := context.Background()
+			require.NoError(t, tt.setup(ctx, s))
+
+			branch, err := s.GetBranch(ctx, "")
+			require.NoError(t, err)
+			assert.Len(t, branch, tt.wantBranchLen)
+
+			_, err = s.GetBranch(ctx, "")
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantGetCalls, store.getBranchCalls)
+		})
+	}
+}
+
+type countingStorage struct {
+	inner          *session.MemoryStorage
+	getBranchCalls int
+}
+
+func (c *countingStorage) Append(ctx context.Context, entry session.TreeEntry) error {
+	return c.inner.Append(ctx, entry)
+}
+
+func (c *countingStorage) GetBranch(ctx context.Context, leafID string) ([]session.TreeEntry, error) {
+	c.getBranchCalls++
+	return c.inner.GetBranch(ctx, leafID)
+}
+
+func (c *countingStorage) GetLeafID(ctx context.Context) (string, error) {
+	return c.inner.GetLeafID(ctx)
+}
+
+func (c *countingStorage) SetLeafID(ctx context.Context, id string) error {
+	return c.inner.SetLeafID(ctx, id)
+}
+
+func TestSessionLeafID(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(context.Context, *session.Session) error
+		wantID  string
+		wantErr bool
+	}{
+		{
+			name: "returns current leaf without loading branch",
+			setup: func(ctx context.Context, s *session.Session) error {
+				return s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")})
+			},
+			wantID: "root",
+		},
+		{
+			name:   "empty session leaf",
+			setup:  func(context.Context, *session.Session) error { return nil },
+			wantID: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			store := &countingStorage{inner: session.NewMemoryStorage()}
+			s := session.New(store)
+			ctx := context.Background()
+			require.NoError(t, tt.setup(ctx, s))
+
+			got, err := s.LeafID(ctx)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantID, got)
+			assert.Zero(t, store.getBranchCalls)
+		})
+	}
+}
+
 func TestJSONL_SerializeDeserialize(t *testing.T) {
 	tests := []struct {
 		name    string

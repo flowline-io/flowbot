@@ -62,41 +62,7 @@ func (s *DBStorage) GetBranch(ctx context.Context, leafID string) ([]session.Tre
 			return nil, nil
 		}
 	}
-
-	rows, err := store.Database.ListChatSessionEntries(ctx, s.sessionID)
-	if err != nil {
-		return nil, err
-	}
-	byFlag := make(map[string]*gen.ChatSessionEntry, len(rows))
-	for _, row := range rows {
-		byFlag[row.Flag] = row
-	}
-
-	leaf, ok := byFlag[leafID]
-	if !ok {
-		return nil, fmt.Errorf("chatagent storage: leaf %q not found", leafID)
-	}
-
-	path := []*gen.ChatSessionEntry{leaf}
-	current := leaf
-	for current.ParentID != "" {
-		parent, exists := byFlag[current.ParentID]
-		if !exists {
-			return nil, fmt.Errorf("chatagent storage: broken branch at %q", current.ParentID)
-		}
-		path = append([]*gen.ChatSessionEntry{parent}, path...)
-		current = parent
-	}
-
-	entries := make([]session.TreeEntry, 0, len(path))
-	for _, row := range path {
-		entry, err := rowToTreeEntry(row)
-		if err != nil {
-			return nil, err
-		}
-		entries = append(entries, entry)
-	}
-	return entries, nil
+	return walkBranchFromLeaf(ctx, s.sessionID, leafID, store.Database.GetChatSessionEntryInSession)
 }
 
 // GetLeafID returns the current leaf pointer for the session.
@@ -128,6 +94,34 @@ func (s *DBStorage) ListEntries(ctx context.Context) ([]session.TreeEntry, error
 		entries = append(entries, entry)
 	}
 	return entries, nil
+}
+
+type sessionEntryGetter func(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error)
+
+func walkBranchFromLeaf(
+	ctx context.Context,
+	sessionID, leafID string,
+	getEntry sessionEntryGetter,
+) ([]session.TreeEntry, error) {
+	if leafID == "" {
+		return nil, nil
+	}
+
+	path := make([]session.TreeEntry, 0, 16)
+	currentID := leafID
+	for currentID != "" {
+		row, err := getEntry(ctx, sessionID, currentID)
+		if err != nil {
+			return nil, fmt.Errorf("chatagent storage: load entry %q: %w", currentID, err)
+		}
+		entry, err := rowToTreeEntry(row)
+		if err != nil {
+			return nil, err
+		}
+		path = append([]session.TreeEntry{entry}, path...)
+		currentID = row.ParentID
+	}
+	return path, nil
 }
 
 func rowToTreeEntry(row *gen.ChatSessionEntry) (session.TreeEntry, error) {

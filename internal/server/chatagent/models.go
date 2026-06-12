@@ -22,3 +22,11 @@ func agentLoopConfig() (cfg agent.Config, chatModel, toolModel string, dual bool
 	}
 	return cfg, chatModel, toolModel, dual, nil
 }
+
+func runMaxSteps() int {
+	maxSteps := config.App.ChatAgent.MaxSteps
+	if maxSteps <= 0 {
+		return 30
+	}
+	return maxSteps
+}

@@ -126,6 +126,13 @@ func (h *Harness) SetModel(llmModel llms.Model, modelName string) {
 	h.emitObservation(context.Background(), hooks.ObservationEvent{Type: hooks.EventModelUpdate, ModelName: modelName})
 }
 
+// SetSystemPrompt replaces the harness system prompt used on subsequent runs.
+func (h *Harness) SetSystemPrompt(systemPrompt string) {
+	h.mu.Lock()
+	h.systemPrompt = systemPrompt
+	h.mu.Unlock()
+}
+
 // MoveTo switches the session leaf, auto-summarizing abandoned branches when configured.
 func (h *Harness) MoveTo(ctx context.Context, entryID, summary string) error {
 	if h.session == nil {
@@ -392,13 +399,5 @@ func (h *Harness) currentLeafID(ctx context.Context) (string, error) {
 	if h.session == nil {
 		return "", nil
 	}
-	store := h.session
-	branch, err := store.GetBranch(ctx, "")
-	if err != nil {
-		return "", err
-	}
-	if len(branch) == 0 {
-		return "", nil
-	}
-	return branch[len(branch)-1].ID, nil
+	return h.session.LeafID(ctx)
 }

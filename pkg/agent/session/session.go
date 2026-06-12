@@ -25,6 +25,12 @@ type CompactionResult struct {
 // Session manages a branchable conversation tree backed by storage.
 type Session struct {
 	storage Storage
+	cache   *branchCache
+}
+
+type branchCache struct {
+	leafID string
+	branch []TreeEntry
 }
 
 // New creates a session backed by the given storage implementation.
@@ -32,8 +38,29 @@ func New(storage Storage) *Session {
 	return &Session{storage: storage}
 }
 
+func (s *Session) invalidateBranchCache() {
+	s.cache = nil
+}
+
+func cloneBranch(branch []TreeEntry) []TreeEntry {
+	if len(branch) == 0 {
+		return nil
+	}
+	return append([]TreeEntry(nil), branch...)
+}
+
+// LeafID returns the current leaf pointer without loading the full branch.
+func (s *Session) LeafID(ctx context.Context) (string, error) {
+	leafID, err := s.storage.GetLeafID(ctx)
+	if err != nil {
+		return "", fmt.Errorf("session: get leaf id: %w", err)
+	}
+	return leafID, nil
+}
+
 // Append stores a new tree entry and moves the leaf pointer to it.
 func (s *Session) Append(ctx context.Context, entry TreeEntry) error {
+	s.invalidateBranchCache()
 	if err := s.storage.Append(ctx, entry); err != nil {
 		return fmt.Errorf("session: append: %w", err)
 	}
@@ -79,21 +106,32 @@ func (s *Session) ListEntries(ctx context.Context) ([]TreeEntry, error) {
 
 // GetBranch returns the path from root to the given leaf, inclusive.
 func (s *Session) GetBranch(ctx context.Context, leafID string) ([]TreeEntry, error) {
-	if leafID == "" {
+	effectiveLeaf := leafID
+	if effectiveLeaf == "" {
 		var err error
-		leafID, err = s.storage.GetLeafID(ctx)
+		effectiveLeaf, err = s.storage.GetLeafID(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("session: get leaf: %w", err)
 		}
-		if leafID == "" {
+		if effectiveLeaf == "" {
+			s.invalidateBranchCache()
 			return nil, nil
 		}
 	}
-	branch, err := s.storage.GetBranch(ctx, leafID)
+	if s.cache != nil && s.cache.leafID == effectiveLeaf {
+		return cloneBranch(s.cache.branch), nil
+	}
+
+	branch, err := s.storage.GetBranch(ctx, effectiveLeaf)
 	if err != nil {
 		return nil, fmt.Errorf("session: get branch: %w", err)
 	}
-	return orderBranch(branch), nil
+	ordered := orderBranch(branch)
+	s.cache = &branchCache{
+		leafID: effectiveLeaf,
+		branch: cloneBranch(ordered),
+	}
+	return cloneBranch(ordered), nil
 }
 
 // BuildContext reconstructs loop context from a branch path with compaction boundaries.
@@ -120,6 +158,7 @@ func (s *Session) MoveTo(ctx context.Context, entryID, summary string) error {
 	if entryID == "" {
 		return fmt.Errorf("session: empty entry id")
 	}
+	s.invalidateBranchCache()
 	if summary != "" {
 		parentID := entryID
 		summaryEntry := TreeEntry{

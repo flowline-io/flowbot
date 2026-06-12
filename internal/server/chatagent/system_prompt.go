@@ -11,7 +11,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const maxContextFileBytes = 32 * 1024
@@ -106,23 +105,7 @@ Guidelines:
 
 // SystemPrompt builds the default chat assistant prompt from workspace, config, and DB skills.
 func SystemPrompt(ctx context.Context, ws coding.Workspace) string {
-	cfg := config.App.ChatAgent
-	skills, err := LoadSkillsFromStore(ctx)
-	if err != nil {
-		flog.Warn("[chat-agent] load skills: %v", err)
-		skills = nil
-	}
-	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
-	flog.Debug("[chat-agent] system prompt workspace=%s skills=%d context_files=%d",
-		ws.Root, len(skills), len(contextFiles))
-	return BuildSystemPrompt(BuildSystemPromptOptions{
-		CustomPrompt:       cfg.SystemPrompt,
-		PromptGuidelines:   cfg.PromptGuidelines,
-		AppendSystemPrompt: cfg.AppendSystemPrompt,
-		CWD:                ws.Root,
-		ContextFiles:       contextFiles,
-		Skills:             skills,
-	})
+	return CachedSystemPrompt(ctx, ws)
 }
 
 // defaultPromptIntro returns the role and agent-harness explanation for the default prompt.

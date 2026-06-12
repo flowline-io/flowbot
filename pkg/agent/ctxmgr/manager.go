@@ -52,6 +52,11 @@ func (m *Manager) Settings() Settings {
 	return m.settings
 }
 
+// UpdateSystemPrompt replaces the system prompt used for context usage estimates.
+func (m *Manager) UpdateSystemPrompt(systemPrompt string) {
+	m.systemPrompt = systemPrompt
+}
+
 // ContextWindow returns the configured model context window size.
 func (m *Manager) ContextWindow() int {
 	return m.contextWindow

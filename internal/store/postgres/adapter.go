@@ -822,6 +822,22 @@ func (a *adapter) GetChatSessionEntry(ctx context.Context, flag string) (*gen.Ch
 	return row, nil
 }
 
+func (a *adapter) GetChatSessionEntryInSession(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error) {
+	row, err := a.client.ChatSessionEntry.Query().
+		Where(
+			chatsessionentry.SessionIDEQ(sessionID),
+			chatsessionentry.FlagEQ(flag),
+		).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get chat session entry in session: %w", err)
+	}
+	return row, nil
+}
+
 func (a *adapter) ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {
 	query := a.client.AgentSkill.Query()
 	if enabledOnly {
@@ -832,6 +848,20 @@ func (a *adapter) ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen
 		return nil, fmt.Errorf("postgres: list agent skills: %w", err)
 	}
 	return rows, nil
+}
+
+func (a *adapter) GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
+	row, err := a.client.AgentSkill.Query().
+		Where(agentskill.EnabledEQ(true)).
+		Order(gen.Desc(agentskill.FieldUpdatedAt)).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return time.Time{}, nil
+		}
+		return time.Time{}, fmt.Errorf("postgres: agent skills max updated_at: %w", err)
+	}
+	return row.UpdatedAt, nil
 }
 
 func (a *adapter) GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error) {

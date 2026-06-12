@@ -266,8 +266,10 @@ type Adapter interface {
 	AppendChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
 	ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error)
 	GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error)
+	GetChatSessionEntryInSession(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error)
 
 	ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error)
+	GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error)
 	GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error)
 	CreateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 	UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error

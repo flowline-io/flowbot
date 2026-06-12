@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
@@ -11,6 +12,54 @@ import (
 	"github.com/tmc/langchaingo/llms/googleai"
 	"github.com/tmc/langchaingo/llms/openai"
 )
+
+type pooledModel struct {
+	model llms.Model
+	name  string
+}
+
+var modelPool sync.Map
+
+type modelCreatorFn func(ctx context.Context, modelName string) (llms.Model, string, error)
+
+var modelCreator modelCreatorFn = NewModel
+
+// SetModelCreatorForTest overrides model construction used by GetOrCreateModel.
+func SetModelCreatorForTest(fn modelCreatorFn) {
+	if fn == nil {
+		modelCreator = NewModel
+		return
+	}
+	modelCreator = fn
+}
+
+// ResetModelPoolForTest clears cached langchaingo models.
+func ResetModelPoolForTest() {
+	modelPool = sync.Map{}
+	modelCreator = NewModel
+}
+
+// GetOrCreateModel returns a cached langchaingo model for the given model name.
+func GetOrCreateModel(ctx context.Context, modelName string) (llms.Model, string, error) {
+	if cached, ok := modelPool.Load(modelName); ok {
+		if entry, ok := cached.(pooledModel); ok {
+			return entry.model, entry.name, nil
+		}
+		modelPool.Delete(modelName)
+	}
+	model, resolvedName, err := modelCreator(ctx, modelName)
+	if err != nil {
+		return nil, "", err
+	}
+	actual, loaded := modelPool.LoadOrStore(modelName, pooledModel{model: model, name: resolvedName})
+	if loaded {
+		if entry, ok := actual.(pooledModel); ok {
+			return entry.model, entry.name, nil
+		}
+		modelPool.Delete(modelName)
+	}
+	return model, resolvedName, nil
+}
 
 // NewModel creates a langchaingo model from flowbot model configuration.
 func NewModel(ctx context.Context, modelName string) (llms.Model, string, error) {

@@ -218,6 +218,14 @@ func (*testStoreAdapter) GetChatSessionEntry(_ context.Context, flag string) (*g
 	}
 	return nil, types.ErrNotFound
 }
+func (*testStoreAdapter) GetChatSessionEntryInSession(_ context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error) {
+	for _, row := range testChatSessionEntries[sessionID] {
+		if row.Flag == flag {
+			return row, nil
+		}
+	}
+	return nil, types.ErrNotFound
+}
 func (*testStoreAdapter) ListAgentSkills(_ context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {
 	rows := make([]*gen.AgentSkill, 0, len(testAgentSkills))
 	for _, skill := range testAgentSkills {
@@ -234,6 +242,18 @@ func (*testStoreAdapter) GetAgentSkillByName(_ context.Context, name string) (*g
 		return nil, types.ErrNotFound
 	}
 	return skill, nil
+}
+func (*testStoreAdapter) GetAgentSkillsMaxUpdatedAt(_ context.Context) (time.Time, error) {
+	var maxUpdated time.Time
+	for _, skill := range testAgentSkills {
+		if !skill.Enabled {
+			continue
+		}
+		if skill.UpdatedAt.After(maxUpdated) {
+			maxUpdated = skill.UpdatedAt
+		}
+	}
+	return maxUpdated, nil
 }
 func (*testStoreAdapter) CreateAgentSkill(_ context.Context, skill *gen.AgentSkill) error {
 	testAgentSkills[skill.Name] = skill

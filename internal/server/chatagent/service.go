@@ -10,14 +10,10 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
-	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
-	"github.com/flowline-io/flowbot/pkg/agent/session"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -54,7 +50,7 @@ func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (strin
 		return "", err
 	}
 
-	h, err := newRunHarness(ctx, req, textLen)
+	h, err := getOrCreateHarness(ctx, req, textLen)
 	if err != nil {
 		return "", err
 	}
@@ -76,82 +72,6 @@ func validateRunRequest(ctx context.Context, req RunRequest) error {
 		return err
 	}
 	return nil
-}
-
-func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
-	workspace, err := WorkspaceFromConfig()
-	if err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] workspace config session=%s: %w", req.SessionID, err))
-		return nil, err
-	}
-
-	cfg, chatModel, toolModel, dual, err := agentLoopConfig()
-	if err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] model config session=%s: %w", req.SessionID, err))
-		return nil, fmt.Errorf("chat agent models: %w", err)
-	}
-
-	llmModel, resolvedName, err := NewModelForTest(ctx, chatModel)
-	if err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] model init session=%s model=%s: %w", req.SessionID, chatModel, err))
-		return nil, fmt.Errorf("chat agent model: %w", err)
-	}
-
-	registry, err := NewRegistry(workspace)
-	if err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] tool registry session=%s: %w", req.SessionID, err))
-		return nil, err
-	}
-
-	agentSession := session.New(NewDBStorage(req.SessionID))
-	branch, err := agentSession.GetBranch(ctx, "")
-	if err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] load branch session=%s: %w", req.SessionID, err))
-		return nil, fmt.Errorf("load session branch: %w", err)
-	}
-
-	systemPrompt := SystemPrompt(ctx, workspace)
-	agentCtx := session.ToAgentContext(session.BuildContext(branch), systemPrompt)
-	contextWindow := config.ContextWindowForModel(resolvedName)
-	if dual {
-		contextWindow = config.MaxContextWindow(chatModel, toolModel)
-	}
-	compactionSettings := ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction)
-	ctxManager := ctxmgr.New(ctxmgr.Options{
-		Model:         llmModel,
-		ModelName:     resolvedName,
-		ContextWindow: contextWindow,
-		Settings:      compactionSettings,
-		SystemPrompt:  systemPrompt,
-	})
-
-	flog.Debug("[chat-agent] harness prompt session=%s model=%s dual_model=%t chat_model=%s tool_model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
-		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
-
-	hookRegistry := hooks.NewRegistry()
-	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID})
-
-	return harness.New(harness.Options{
-		AgentOptions: agent.Options{
-			InitialState: agentCtx,
-			Config:       cfg,
-			Model:        llmModel,
-			Registry:     registry,
-		},
-		Session:        agentSession,
-		SystemPrompt:   systemPrompt,
-		ModelName:      chatModel,
-		ContextManager: ctxManager,
-		Hooks:          hookRegistry,
-	}), nil
-}
-
-func runMaxSteps() int {
-	maxSteps := config.App.ChatAgent.MaxSteps
-	if maxSteps <= 0 {
-		return 30
-	}
-	return maxSteps
 }
 
 func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
@@ -259,4 +179,4 @@ func textFromParts(parts []msg.ContentPart) string {
 }
 
 // NewModelForTest overrides model creation in unit tests.
-var NewModelForTest = agentllm.NewModel
+var NewModelForTest = agentllm.GetOrCreateModel

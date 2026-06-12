@@ -1,0 +1,224 @@
+package chatagent
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
+	"github.com/flowline-io/flowbot/pkg/agent/harness"
+	"github.com/flowline-io/flowbot/pkg/agent/hooks"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
+)
+
+type pooledHarness struct {
+	harness    *harness.Harness
+	configHash string
+	promptVer  uint64
+	lastUsed   time.Time
+}
+
+var harnessPool sync.Map
+
+// EvictHarnessPool removes a cached harness for the given session.
+func EvictHarnessPool(sessionID string) {
+	harnessPool.Delete(sessionID)
+}
+
+// ResetHarnessPoolForTest clears all pooled harnesses.
+func ResetHarnessPoolForTest() {
+	harnessPool = sync.Map{}
+}
+
+func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
+	evictStaleHarnesses()
+
+	if raw, ok := harnessPool.Load(req.SessionID); ok {
+		entry, ok := raw.(*pooledHarness)
+		if !ok {
+			harnessPool.Delete(req.SessionID)
+		} else {
+			entry.lastUsed = time.Now()
+			if refreshed, err := refreshPooledHarness(ctx, req, entry, textLen); err != nil {
+				return nil, err
+			} else if refreshed != nil {
+				harnessPool.Store(req.SessionID, refreshed)
+				return refreshed.harness, nil
+			}
+			harnessPool.Store(req.SessionID, entry)
+			return entry.harness, nil
+		}
+	}
+
+	built, err := buildRunHarness(ctx, req, textLen)
+	if err != nil {
+		return nil, err
+	}
+	harnessPool.Store(req.SessionID, &pooledHarness{
+		harness:    built.harness,
+		configHash: built.configHash,
+		promptVer:  built.promptVer,
+		lastUsed:   time.Now(),
+	})
+	return built.harness, nil
+}
+
+type builtHarness struct {
+	harness    *harness.Harness
+	configHash string
+	promptVer  uint64
+}
+
+func refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarness, textLen int) (*pooledHarness, error) {
+	workspace, err := WorkspaceFromConfig()
+	if err != nil {
+		return nil, err
+	}
+	currentHash, err := harnessConfigHash(workspace)
+	if err != nil {
+		return nil, err
+	}
+	if currentHash != entry.configHash {
+		EvictHarnessPool(req.SessionID)
+		built, err := buildRunHarness(ctx, req, textLen)
+		if err != nil {
+			return nil, err
+		}
+		return &pooledHarness{
+			harness:    built.harness,
+			configHash: built.configHash,
+			promptVer:  built.promptVer,
+			lastUsed:   time.Now(),
+		}, nil
+	}
+
+	currentPromptVer := PromptCacheVersion()
+	if currentPromptVer != entry.promptVer {
+		systemPrompt := SystemPrompt(ctx, workspace)
+		entry.harness.SetSystemPrompt(systemPrompt)
+		if ctxMgr := entry.harness.ContextManager(); ctxMgr != nil {
+			ctxMgr.UpdateSystemPrompt(systemPrompt)
+		}
+		entry.promptVer = currentPromptVer
+	}
+	return nil, nil
+}
+
+func evictStaleHarnesses() {
+	now := time.Now()
+	harnessPool.Range(func(key, value any) bool {
+		entry, ok := value.(*pooledHarness)
+		if !ok {
+			harnessPool.Delete(key)
+			return true
+		}
+		if now.Sub(entry.lastUsed) > sessionLockTTL {
+			harnessPool.Delete(key)
+		}
+		return true
+	})
+}
+
+func harnessConfigHash(workspace coding.Workspace) (string, error) {
+	cfg, chatModel, toolModel, dual, err := agentLoopConfig()
+	if err != nil {
+		return "", err
+	}
+	compaction := config.App.ChatAgent.Compaction
+	parts := []string{
+		workspace.Root,
+		chatModel,
+		toolModel,
+		fmt.Sprintf("dual=%t", dual),
+		fmt.Sprintf("max_steps=%d", cfg.MaxSteps),
+		fmt.Sprintf("compaction=%t:%d:%d", compaction.Enabled, compaction.ReserveTokens, compaction.KeepRecentTokens),
+		promptConfigHash(workspace.Root),
+	}
+	sum := sha256.Sum256([]byte(strings.Join(parts, "\x1f")))
+	return hex.EncodeToString(sum[:]), nil
+}
+
+func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHarness, error) {
+	workspace, err := WorkspaceFromConfig()
+	if err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] workspace config session=%s: %w", req.SessionID, err))
+		return nil, err
+	}
+
+	cfg, chatModel, toolModel, dual, err := agentLoopConfig()
+	if err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] model config session=%s: %w", req.SessionID, err))
+		return nil, fmt.Errorf("chat agent models: %w", err)
+	}
+
+	llmModel, resolvedName, err := NewModelForTest(ctx, chatModel)
+	if err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] model init session=%s model=%s: %w", req.SessionID, chatModel, err))
+		return nil, fmt.Errorf("chat agent model: %w", err)
+	}
+
+	registry, err := NewRegistry(workspace)
+	if err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] tool registry session=%s: %w", req.SessionID, err))
+		return nil, err
+	}
+
+	agentSession := session.New(NewDBStorage(req.SessionID))
+	branch, err := agentSession.GetBranch(ctx, "")
+	if err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] load branch session=%s: %w", req.SessionID, err))
+		return nil, fmt.Errorf("load session branch: %w", err)
+	}
+
+	systemPrompt := SystemPrompt(ctx, workspace)
+	agentCtx := session.ToAgentContext(session.BuildContext(branch), systemPrompt)
+	contextWindow := config.ContextWindowForModel(resolvedName)
+	if dual {
+		contextWindow = config.MaxContextWindow(chatModel, toolModel)
+	}
+	compactionSettings := ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction)
+	ctxManager := ctxmgr.New(ctxmgr.Options{
+		Model:         llmModel,
+		ModelName:     resolvedName,
+		ContextWindow: contextWindow,
+		Settings:      compactionSettings,
+		SystemPrompt:  systemPrompt,
+	})
+
+	flog.Debug("[chat-agent] harness prompt session=%s model=%s dual_model=%t chat_model=%s tool_model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
+		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
+
+	hookRegistry := hooks.NewRegistry()
+	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID})
+
+	configHash, err := harnessConfigHash(workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	return &builtHarness{
+		harness: harness.New(harness.Options{
+			AgentOptions: agent.Options{
+				InitialState: agentCtx,
+				Config:       cfg,
+				Model:        llmModel,
+				Registry:     registry,
+			},
+			Session:        agentSession,
+			SystemPrompt:   systemPrompt,
+			ModelName:      chatModel,
+			ContextManager: ctxManager,
+			Hooks:          hookRegistry,
+		}),
+		configHash: configHash,
+		promptVer:  PromptCacheVersion(),
+	}, nil
+}

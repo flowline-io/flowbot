@@ -32,5 +32,5 @@ func TestDBStorageGetBranchBrokenChain(t *testing.T) {
 	storage := chatagent.NewDBStorage("s1")
 	_, err := storage.GetBranch(context.Background(), "leaf")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "broken branch")
+	assert.Contains(t, err.Error(), "load entry")
 }
