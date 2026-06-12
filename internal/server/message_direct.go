@@ -59,7 +59,7 @@ func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e
 	}
 
 	payload = buildHelpMessage(msg.AltMessage, payload)
-	dispatchDirectMessage(eventCtx, caller, dmCtx, msg, sessionID, payload)
+	dispatchDirectMessage(caller, dmCtx, msg, sessionID, payload)
 }
 
 func buildDirectMessageContext(eventCtx context.Context, eventID string, msg protocol.MessageEventData) (directMessageContext, error) {
@@ -145,7 +145,6 @@ func persistDirectUserMessage(dmCtx directMessageContext, sessionID string, msg 
 }
 
 func dispatchDirectMessage(
-	eventCtx context.Context,
 	caller *platforms.Caller,
 	dmCtx directMessageContext,
 	msg protocol.MessageEventData,
@@ -155,7 +154,7 @@ func dispatchDirectMessage(
 	if sessionID != "" && !chatagent.IsChatControlCommand(msg.AltMessage) {
 		flog.Info("[chat-agent] dispatch agent run uid=%s session=%s platform=%s msg_id=%s text_len=%d",
 			dmCtx.uid, sessionID, msg.Self.Platform, msg.MessageId, len(msg.AltMessage))
-		go runChatAgent(eventCtx, caller, msg, dmCtx.uid, sessionID, dmCtx.platformID, dmCtx.topic)
+		go runChatAgent(caller, msg, dmCtx.uid, sessionID, dmCtx.platformID, dmCtx.topic)
 		return
 	}
 

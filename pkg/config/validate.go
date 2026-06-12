@@ -137,12 +137,34 @@ func (t *Type) validateDurations(errs ValidationErrors) ValidationErrors {
 	return errs
 }
 
+// supportedModelProviders lists valid models[].provider values accepted by config validation.
+var supportedModelProviders = []string{
+	"openai",
+	"openai_compatible",
+	"gemini",
+	"anthropic",
+}
+
+func isSupportedModelProvider(provider string) bool {
+	for _, item := range supportedModelProviders {
+		if provider == item {
+			return true
+		}
+	}
+	return false
+}
+
 // validateModels validates model configurations and collects model names for
 // agent reference checks.
 func (t *Type) validateModels(errs ValidationErrors, modelNames map[string]bool) (ValidationErrors, map[string]bool) {
 	for i, m := range t.Models {
 		if m.Provider == "" {
 			errs = append(errs, fmt.Errorf("models[%d].provider: must not be empty. Fix: set models[%d].provider in flowbot.yaml", i, i))
+		} else if !isSupportedModelProvider(m.Provider) {
+			errs = append(errs, fmt.Errorf(
+				"models[%d].provider: unsupported value %q. Fix: set models[%d].provider to one of [openai, openai_compatible, gemini, anthropic] in flowbot.yaml",
+				i, m.Provider, i,
+			))
 		}
 		if m.BaseUrl != "" {
 			if !strings.HasPrefix(m.BaseUrl, "http://") && !strings.HasPrefix(m.BaseUrl, "https://") {

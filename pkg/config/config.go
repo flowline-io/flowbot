@@ -559,6 +559,8 @@ type ChatAgentConfig struct {
 	MaxToolOutput int `json:"max_tool_output" yaml:"max_tool_output" mapstructure:"max_tool_output"`
 	// MaxSteps limits agent Observe-Think-Act iterations per user turn.
 	MaxSteps int `json:"max_steps" yaml:"max_steps" mapstructure:"max_steps"`
+	// RunTimeout limits total duration for one assistant turn in direct chat.
+	RunTimeout time.Duration `json:"run_timeout" yaml:"run_timeout" mapstructure:"run_timeout"`
 	// SystemPrompt replaces the default system prompt when non-empty.
 	SystemPrompt string `json:"system_prompt" yaml:"system_prompt" mapstructure:"system_prompt"`
 	// AppendSystemPrompt is appended to the system prompt body.

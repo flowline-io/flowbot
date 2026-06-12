@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -18,7 +19,6 @@ import (
 var chatAgentService = chatagent.NewService()
 
 func runChatAgent(
-	eventCtx context.Context,
 	caller *platforms.Caller,
 	msg protocol.MessageEventData,
 	uid types.Uid,
@@ -27,10 +27,12 @@ func runChatAgent(
 	topic string,
 ) {
 	start := time.Now()
-	flog.Info("[chat-agent] run start uid=%s session=%s platform=%s topic=%s text_len=%d",
-		uid, sessionID, msg.Self.Platform, topic, len(msg.AltMessage))
+	runTimeout := chatagent.RunTimeout()
+	flog.Info("[chat-agent] run start uid=%s session=%s platform=%s topic=%s text_len=%d timeout=%s",
+		uid, sessionID, msg.Self.Platform, topic, len(msg.AltMessage), runTimeout)
 
-	ctx, cancel := context.WithTimeout(eventCtx, chatagent.DefaultRunTimeout)
+	// Detach from Watermill message context, which is canceled when the handler returns.
+	ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
 	defer cancel()
 	chatagent.BindRunCancel(sessionID, cancel)
 	defer chatagent.UnbindRunCancel(sessionID)
@@ -40,6 +42,12 @@ func runChatAgent(
 		Text:      msg.AltMessage,
 	})
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			flog.Warn("[chat-agent] run timed out uid=%s session=%s timeout=%s duration=%s",
+				uid, sessionID, runTimeout, time.Since(start).Round(time.Millisecond))
+			sendChatReply(caller, msg, types.TextMsg{Text: "Chat agent timed out. Please try again."})
+			return
+		}
 		flog.Error(fmt.Errorf("[chat-agent] run failed uid=%s session=%s duration=%s: %w",
 			uid, sessionID, time.Since(start).Round(time.Millisecond), err))
 		sendChatReply(caller, msg, types.TextMsg{Text: "Chat agent is unavailable. Please try again later."})

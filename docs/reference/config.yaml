@@ -155,7 +155,7 @@ search:
 
 # Model configuration
 models:
-  - provider: "openai" # openai, openai-compatible
+  - provider: "openai" # openai, openai_compatible, gemini, anthropic
     base_url: "https://api.openai.com/v1"
     api_key: ""
     model_names:
@@ -192,6 +192,7 @@ agents:
 # Direct-message chat assistant agent
 chat_agent:
   workspace: "/var/lib/flowbot/chat-workspace"
+  run_timeout: 10m
   shell_timeout: 60s
   max_tool_output: 8192
   max_steps: 30

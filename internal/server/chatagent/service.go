@@ -233,8 +233,5 @@ func textFromParts(parts []msg.ContentPart) string {
 	return b.String()
 }
 
-// DefaultRunTimeout is the maximum duration for one assistant turn.
-const DefaultRunTimeout = 10 * time.Minute
-
 // NewModelForTest overrides model creation in unit tests.
 var NewModelForTest = agentllm.NewModel
