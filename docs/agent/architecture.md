@@ -256,8 +256,6 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 | `hooks.ErrRunCancelled` | `before_agent_start` returned `Cancel: true` |
 | `agent.ErrAborted` | Harness busy, user `Abort()`, or context cancelled mid-run |
 
-Legacy `Harness.On(string, HookHandler)` is **deprecated** (observe-only; warns on mutable event names). Prefer `Harness.Hooks()` with typed registrars.
-
 ### Chat agent wiring
 
 `internal/server/chatagent` creates one `hooks.Registry` per run, calls `RegisterHooks` for observational logging (`context_usage`, `save_point`), and passes `harness.Options.Hooks`. See [Developer Guide — Typed Hooks](./developer-guide.md#typed-hooks-pkgagenthooks).

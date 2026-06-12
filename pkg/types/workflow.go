@@ -3,8 +3,6 @@ package types
 import (
 	"time"
 
-	"github.com/cenkalti/backoff"
-
 	flowbackoff "github.com/flowline-io/flowbot/pkg/backoff"
 )
 
@@ -25,57 +23,7 @@ const (
 	BackoffExponential = "exponential"
 )
 
-// RetryEnabled returns true if retries are configured with more than one attempt.
-// Deprecated: Use backoff.Config.MaxAttempts > 1 directly.
-func (r *RetryConfig) RetryEnabled() bool {
-	return r != nil && r.MaxAttempts > 1
-}
-
-// BuildBackOff constructs a backoff.BackOff from the retry configuration.
-// Returns a StopBackOff if the config is nil.
-// Deprecated: Use ToBackoffConfig() and backoff.Do() instead.
-func (r *RetryConfig) BuildBackOff() backoff.BackOff {
-	if r == nil {
-		return &backoff.StopBackOff{}
-	}
-	var bo backoff.BackOff
-	switch r.Backoff {
-	case BackoffFixed:
-		bo = backoff.NewConstantBackOff(r.Delay)
-	case BackoffLinear:
-		bo = backoff.NewExponentialBackOff()
-		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
-			ebo.InitialInterval = r.Delay
-			ebo.MaxInterval = r.MaxDelay
-			ebo.Multiplier = 1.0
-		}
-	case BackoffExponential, "":
-		bo = backoff.NewExponentialBackOff()
-		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
-			ebo.InitialInterval = r.Delay
-			ebo.MaxInterval = r.MaxDelay
-			ebo.Multiplier = 2.0
-		}
-	default:
-		bo = backoff.NewExponentialBackOff()
-		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
-			ebo.InitialInterval = r.Delay
-			ebo.MaxInterval = r.MaxDelay
-			ebo.Multiplier = 2.0
-		}
-	}
-	if r.Jitter {
-		if ebo, ok := bo.(*backoff.ExponentialBackOff); ok {
-			ebo.RandomizationFactor = 0.5
-		}
-	}
-	bo.Reset()
-	// WithMaxRetries takes the number of retries (after the initial attempt),
-	// so we subtract 1 from the total attempt count.
-	return backoff.WithMaxRetries(bo, uint64(r.MaxAttempts-1))
-}
-
-// ToBackoffConfig converts the legacy RetryConfig to the unified backoff.Config.
+// ToBackoffConfig converts RetryConfig to the unified backoff.Config.
 func (r *RetryConfig) ToBackoffConfig() flowbackoff.Config {
 	if r == nil {
 		return flowbackoff.Config{MaxAttempts: 0}

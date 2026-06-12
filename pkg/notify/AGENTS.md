@@ -11,7 +11,7 @@ Multi-channel notification gateway with rule evaluation, template rendering, and
       │ (hub/cmd)  │ Ops   │ (via ability)  │
       └─────┬──────┴───┬───┴──────┬────────┘
             │          │          │
-    notify.ChannelSend │  ability/notify/send.go
+            │   ability/notify/send.go
             │          │          │
             └──────────┼──────────┘
                        │

@@ -107,7 +107,7 @@ Harness bridges from `loopBaseCfg` (snapshot at `New`) via `hooks.BridgeConfig(c
 - **Naming**: distinct from `pkg/types/agent.go` (instruct protocol) and YAML `config.agents` entries
 - **Serialization**: use `sonic` for JSON/JSONL
 - **Errors**: wrap with `%w`; return `ErrMaxSteps`, `ErrAborted`, `ErrToolNotFound`; hook cancel via `hooks.ErrRunCancelled`
-- **Hooks**: add mutable behavior with `hooks.On*` registrars; do not extend deprecated `Harness.On(string)`
+- **Hooks**: add mutable behavior with `hooks.On*` registrars on a per-run `Registry`
 - **Result pattern**: low-level capabilities (`env`, `ctxmgr`, JSONL parse) return `result.Result[T,E]` with typed error codes; harness/session public APIs adapt to Go `error` via `result.GetOrError`; tool failures stay inline as `ToolResultMessage.IsError`
 - **Tests**: table-driven unit tests (>=3 cases) + BDD in `tests/specs/agent_spec_test.go`
 

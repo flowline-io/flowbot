@@ -2,7 +2,6 @@ package notify
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"maps"
 	"regexp"
@@ -114,21 +113,6 @@ func Send(text string, message Message) error {
 	}
 
 	return nil
-}
-
-// Deprecated: Use GatewaySend with a "notify.test" template for internal/debug notification sends.
-// ChannelSend bypasses the template engine and rule engine; kept for legacy support.
-func ChannelSend(ctx context.Context, uid types.Uid, name string, message Message) error {
-	kv, err := store.Database.ConfigGet(ctx, uid, "", fmt.Sprintf("notify:%s", name))
-	if err != nil {
-		return err
-	}
-	template, ok := kv.String("value")
-	if !ok {
-		return errors.New("[notify] template not found")
-	}
-
-	return Send(template, message)
 }
 
 // GatewaySend is the central notification gateway entry point.

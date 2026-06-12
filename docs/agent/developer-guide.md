@@ -317,10 +317,6 @@ harness.New(harness.Options{Hooks: reg, /* ... */})
 
 `RegisterHooks` logs `context_usage` and `save_point` at debug level. Add product hooks by extending `RegisterHooks` or registering on `reg` before `harness.New`.
 
-### Deprecated API
-
-`Harness.On(eventType, handler)` only observes events and logs a warning for mutable event names (`before_agent_start`, `context`, `tool_call`, `tool_result`). Do not use it to mutate prompts or block tools.
-
 ## LLM Provider Setup
 
 Map flowbot YAML models to langchaingo:
@@ -373,7 +369,7 @@ When adding features to `pkg/agent/`:
 3. langchaingo stays inside `pkg/agent/llm/`
 4. Database or file I/O stays outside core — use interfaces (`session.Storage`)
 5. Update [architecture.md](./architecture.md) and [pkg/agent/AGENTS.md](../../pkg/agent/AGENTS.md)
-6. Product hooks: prefer `pkg/agent/hooks` registrars on a per-run `Registry`; avoid new `Harness.On(string)` usages
+6. Product hooks: use `pkg/agent/hooks` registrars on a per-run `Registry`
 7. Add table-driven tests (≥3 cases) and BDD coverage when behavior is user-visible
 
 ## Error Handling (Result Pattern)

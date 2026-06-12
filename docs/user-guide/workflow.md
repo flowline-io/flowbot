@@ -170,7 +170,7 @@ The mapper's output is a JSON object where each key from `params` becomes a top-
 
 ## Retry Strategy
 
-See [Pipeline Retry](pipeline.md#retry-strategy) for the full `retry` field schema. The workflow engine uses the same `types.RetryConfig` and backoff logic via `BuildBackOff()`.
+See [Pipeline Retry](pipeline.md#retry-strategy) for the full `retry` field schema. The workflow engine uses the same `types.RetryConfig` converted via `ToBackoffConfig()` and executed with `backoff.Do()`.
 
 Key difference: the workflow engine retries ALL errors (no `retry_on` filtering), since workflow tasks don't typically return `types.Error`.
 
@@ -213,15 +213,13 @@ Tasks execute in the order listed in `pipeline`. If a task fails (after retries 
 ### Retry Loop
 
 ```go
-for attempt := 1; ; attempt++ {
-    err := r.Run(ctx, task)
-    if err == nil { return nil }
-    if !retryCfg.RetryEnabled() { return err }
-    nextDelay := bo.NextBackOff()
-    if nextDelay == Stop { return error }
-    // wait with context cancellation check
-    time.After(nextDelay)
+backoffCfg := retryCfg.ToBackoffConfig()
+backoffCfg.OnRetry = func(attempt int, delay time.Duration, err error) {
+    // log or persist attempt metadata
 }
+return backoff.Do(ctx, backoffCfg, func(ctx context.Context) error {
+    return r.Run(ctx, task)
+})
 ```
 
 ### Error Propagation

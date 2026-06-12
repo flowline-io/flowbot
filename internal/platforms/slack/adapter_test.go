@@ -283,7 +283,13 @@ func TestAdapterEventConvertEdgeCases(t *testing.T) {
 				Type: socketmode.EventTypeEventsAPI,
 				Data: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
 					Type: "message",
-					Data: &slackevents.MessageEvent{ChannelType: "im", Channel: "C999", User: "U333", Text: "hello"},
+					Data: &slackevents.MessageEvent{
+						ChannelType: "im",
+						Channel:     "C999",
+						User:        "U333",
+						Text:        "hello",
+						TimeStamp:   "1781250417.829078",
+					},
 				}},
 			},
 			want: protocol.MessageDirectEvent,

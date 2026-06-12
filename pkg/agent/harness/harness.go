@@ -30,21 +30,6 @@ const (
 	PhaseBusy Phase = "busy"
 )
 
-// HookHandler handles harness-level lifecycle hooks.
-//
-// Deprecated: use pkg/agent/hooks typed registrars (OnBeforeAgentStart, Observe, etc.).
-type HookHandler func(context.Context, HookEvent) error
-
-// HookEvent is a harness lifecycle notification.
-type HookEvent struct {
-	Type         string
-	Messages     []agent.AgentMessage
-	SystemPrompt string
-	ModelName    string
-	ActiveTools  []string
-	ContextUsage *ctxmgr.ContextUsage
-}
-
 // Options configures a harness instance.
 type Options struct {
 	AgentOptions   agent.Options
@@ -71,13 +56,6 @@ type Harness struct {
 	ctxMgr       *ctxmgr.Manager
 	hookRegistry *hooks.Registry
 	loopBaseCfg  agent.Config
-}
-
-var mutableHookEvents = map[string]struct{}{
-	hooks.EventBeforeAgentStart: {},
-	hooks.EventContext:          {},
-	hooks.EventToolCall:         {},
-	hooks.EventToolResult:       {},
 }
 
 // New creates a harness with optional session and router dependencies.
@@ -127,25 +105,6 @@ func New(opts Options) *Harness {
 // Hooks exposes the typed hook registry for this harness instance.
 func (h *Harness) Hooks() *hooks.Registry {
 	return h.hookRegistry
-}
-
-// On registers a harness hook handler for an event type.
-//
-// Deprecated: use Hooks() with hooks.OnBeforeAgentStart, hooks.Observe, or hooks.OnObservation.
-func (h *Harness) On(eventType string, handler HookHandler) {
-	if _, mutable := mutableHookEvents[eventType]; mutable {
-		flog.Warn("harness: On(%q) is observe-only; use hooks typed registrars via Harness.Hooks()", eventType)
-	}
-	hooks.OnObservation(h.hookRegistry, eventType, func(ctx context.Context, event hooks.ObservationEvent) error {
-		return handler(ctx, HookEvent{
-			Type:         event.Type,
-			Messages:     event.Messages,
-			SystemPrompt: event.SystemPrompt,
-			ModelName:    event.ModelName,
-			ActiveTools:  event.ActiveTools,
-			ContextUsage: observationContextUsage(event.ContextUsage),
-		})
-	})
 }
 
 // RegisterTool adds a tool to the harness registry.
@@ -427,17 +386,6 @@ func (h *Harness) emitObservation(ctx context.Context, event hooks.ObservationEv
 	h.hookRegistry.EmitObservation(ctx, event, func(format string, args ...any) {
 		flog.Warn(format, args...)
 	})
-}
-
-func observationContextUsage(usage *hooks.ContextUsageInfo) *ctxmgr.ContextUsage {
-	if usage == nil {
-		return nil
-	}
-	return &ctxmgr.ContextUsage{
-		Tokens:        usage.Tokens,
-		ContextWindow: usage.ContextWindow,
-		Percent:       usage.Percent,
-	}
 }
 
 func (h *Harness) currentLeafID(ctx context.Context) (string, error) {
