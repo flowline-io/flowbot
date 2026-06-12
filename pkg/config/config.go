@@ -571,6 +571,10 @@ type ChatAgentConfig struct {
 	ContextFiles []string `json:"context_files" yaml:"context_files" mapstructure:"context_files"`
 	// Compaction configures automatic history compaction for long chat sessions.
 	Compaction CompactionConfig `json:"compaction" yaml:"compaction" mapstructure:"compaction"`
+	// ChatModel overrides agents.chat.model for the cheap first-turn model when dual routing is enabled.
+	ChatModel string `json:"chat_model" yaml:"chat_model" mapstructure:"chat_model"`
+	// ToolModel selects the stronger model used after tool execution when dual routing is enabled.
+	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
 }
 
 type Model struct {

@@ -169,7 +169,17 @@ router := model.NewRouter("gpt-4o-mini", "gpt-4o")
 router.Select(afterToolExecution bool)
 ```
 
-When `Config.ChatModel` and `Config.ToolModel` are both set, the loop installs a default `PrepareNextTurn` hook that applies the router after each turn (tool execution flips to `ToolModel`).
+When `Config.ChatModel` and `Config.ToolModel` are both set and differ, the loop installs a default `PrepareNextTurn` hook that applies the router after each turn (tool execution flips to `ToolModel`).
+
+YAML configuration for the chat assistant:
+
+```yaml
+chat_agent:
+  chat_model: "gpt-4o-mini"
+  tool_model: "gpt-4o"
+```
+
+`chat_model` defaults to `agents.chat.model` when omitted. Dual routing requires both models in `models[]` with the same provider (v1). Compaction continues to use the chat model. Runtime `Harness.SetModel()` does not participate in router save-points in v1.
 
 Callers can override routing entirely via `Config.PrepareNextTurn`.
 

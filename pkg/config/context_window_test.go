@@ -48,3 +48,39 @@ func TestContextWindowForModel(t *testing.T) {
 		})
 	}
 }
+
+func TestMaxContextWindow(t *testing.T) {
+	tests := []struct {
+		name       string
+		models     []config.Model
+		modelNames []string
+		want       int
+	}{
+		{
+			name: "returns largest configured window",
+			models: []config.Model{
+				{ContextWindows: map[string]int{"gpt-4o-mini": 64000, "gpt-4o": 128000}},
+			},
+			modelNames: []string{"gpt-4o-mini", "gpt-4o"},
+			want:       128000,
+		},
+		{
+			name:       "falls back when names empty",
+			modelNames: nil,
+			want:       128000,
+		},
+		{
+			name:       "uses default for unknown models",
+			modelNames: []string{"missing-a", "missing-b"},
+			want:       128000,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			config.App.Models = tt.models
+			assert.Equal(t, tt.want, config.MaxContextWindow(tt.modelNames...))
+		})
+	}
+}

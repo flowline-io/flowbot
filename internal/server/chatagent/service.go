@@ -84,10 +84,15 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 		return nil, err
 	}
 
-	modelName := agentllm.AgentModelName(agentName)
-	llmModel, resolvedName, err := NewModelForTest(ctx, modelName)
+	cfg, chatModel, toolModel, dual, err := agentLoopConfig()
 	if err != nil {
-		flog.Error(fmt.Errorf("[chat-agent] model init session=%s model=%s: %w", req.SessionID, modelName, err))
+		flog.Error(fmt.Errorf("[chat-agent] model config session=%s: %w", req.SessionID, err))
+		return nil, fmt.Errorf("chat agent models: %w", err)
+	}
+
+	llmModel, resolvedName, err := NewModelForTest(ctx, chatModel)
+	if err != nil {
+		flog.Error(fmt.Errorf("[chat-agent] model init session=%s model=%s: %w", req.SessionID, chatModel, err))
 		return nil, fmt.Errorf("chat agent model: %w", err)
 	}
 
@@ -106,8 +111,10 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 
 	systemPrompt := SystemPrompt(ctx, workspace)
 	agentCtx := session.ToAgentContext(session.BuildContext(branch), systemPrompt)
-	maxSteps := runMaxSteps()
 	contextWindow := config.ContextWindowForModel(resolvedName)
+	if dual {
+		contextWindow = config.MaxContextWindow(chatModel, toolModel)
+	}
 	compactionSettings := ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction)
 	ctxManager := ctxmgr.New(ctxmgr.Options{
 		Model:         llmModel,
@@ -117,12 +124,8 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 		SystemPrompt:  systemPrompt,
 	})
 
-	flog.Debug("[chat-agent] harness prompt session=%s model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
-		req.SessionID, resolvedName, workspace.Root, len(branch), maxSteps, textLen, contextWindow, compactionSettings.Enabled)
-
-	cfg := agent.DefaultConfig()
-	cfg.ModelName = resolvedName
-	cfg.MaxSteps = maxSteps
+	flog.Debug("[chat-agent] harness prompt session=%s model=%s dual_model=%t chat_model=%s tool_model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
+		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
 	return harness.New(harness.Options{
 		AgentOptions: agent.Options{
@@ -133,7 +136,7 @@ func newRunHarness(ctx context.Context, req RunRequest, textLen int) (*harness.H
 		},
 		Session:        agentSession,
 		SystemPrompt:   systemPrompt,
-		ModelName:      resolvedName,
+		ModelName:      chatModel,
 		ContextManager: ctxManager,
 	}), nil
 }

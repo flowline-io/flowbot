@@ -43,3 +43,21 @@ func ContextWindowForModels(models []Model, modelName string) int {
 func ContextWindowForModel(modelName string) int {
 	return ContextWindowForModels(App.Models, modelName)
 }
+
+// MaxContextWindow returns the largest configured context window among the given model names.
+func MaxContextWindow(modelNames ...string) int {
+	maxWindow := 0
+	for _, name := range modelNames {
+		if name == "" {
+			continue
+		}
+		window := ContextWindowForModel(name)
+		if window > maxWindow {
+			maxWindow = window
+		}
+	}
+	if maxWindow == 0 {
+		return defaultContextWindow
+	}
+	return maxWindow
+}

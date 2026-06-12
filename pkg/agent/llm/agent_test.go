@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/config"
 )
 
 func TestAgentModelName(t *testing.T) {
@@ -64,10 +65,28 @@ func TestAgentEnabled(t *testing.T) {
 			agentName: "agent_nomodel",
 			want:      false,
 		},
+		{
+			name:      "chat enabled via chat_agent chat_model only",
+			agentName: "chat",
+			want:      true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			if tt.agentName == "chat" {
+				agents := config.App.Agents
+				chatAgent := config.App.ChatAgent
+				t.Cleanup(func() {
+					config.App.Agents = agents
+					config.App.ChatAgent = chatAgent
+				})
+				config.App.Agents = []config.Agent{
+					{Name: "chat", Enabled: true, Model: ""},
+				}
+				config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-5.5-instant"}
+			} else {
+				t.Parallel()
+			}
 			got := llm.AgentEnabled(tt.agentName)
 			assert.Equal(t, tt.want, got)
 		})

@@ -76,6 +76,20 @@ func New(opts Options) *Harness {
 	}
 	opts.AgentOptions.Registry = registry
 
+	if opts.Router != nil {
+		cfg := opts.AgentOptions.Config
+		if cfg.ChatModel == "" {
+			cfg.ChatModel = opts.Router.ChatModel
+		}
+		if cfg.ToolModel == "" {
+			cfg.ToolModel = opts.Router.ToolModel
+		}
+		opts.AgentOptions.Config = cfg
+		if opts.ModelName == "" {
+			opts.ModelName = opts.Router.ChatModel
+		}
+	}
+
 	return &Harness{
 		agent:        agent.NewAgent(opts.AgentOptions),
 		session:      opts.Session,

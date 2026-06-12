@@ -6,6 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRouter_Select(t *testing.T) {
@@ -32,11 +33,13 @@ func TestRouter_Select(t *testing.T) {
 
 func TestRouter_ApplyToContext(t *testing.T) {
 	tests := []struct {
-		name string
+		name               string
+		afterToolExecution bool
+		wantModel          string
 	}{
-		{name: "updates model on context"},
-		{name: "handles nil context"},
-		{name: "handles nil router"},
+		{name: "updates model on context", afterToolExecution: true, wantModel: "tool"},
+		{name: "uses chat model by default", afterToolExecution: false, wantModel: "chat"},
+		{name: "handles nil context safely", afterToolExecution: false, wantModel: ""},
 	}
 
 	for _, tt := range tests {
@@ -44,9 +47,41 @@ func TestRouter_ApplyToContext(t *testing.T) {
 			t.Parallel()
 			router := model.NewRouter("chat", "tool")
 			ctx := &msg.Context{}
-			router.ApplyToContext(ctx, true)
-			assert.Equal(t, "tool", ctx.ModelName)
-			router.ApplyToContext(nil, false)
+			if tt.name == "handles nil context safely" {
+				router.ApplyToContext(nil, false)
+				return
+			}
+			router.ApplyToContext(ctx, tt.afterToolExecution)
+			assert.Equal(t, tt.wantModel, ctx.ModelName)
+		})
+	}
+}
+
+func TestRouter_PrepareNextTurnHook(t *testing.T) {
+	tests := []struct {
+		name        string
+		toolResults int
+		wantModel   string
+	}{
+		{name: "routes to tool model after tools", toolResults: 1, wantModel: "tool-model"},
+		{name: "routes to chat model without tools", toolResults: 0, wantModel: "chat-model"},
+		{name: "routes to tool model with multiple results", toolResults: 2, wantModel: "tool-model"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			router := model.NewRouter("chat-model", "tool-model")
+			hook := router.PrepareNextTurnHook()
+			toolResults := make([]msg.ToolResultMessage, tt.toolResults)
+			update, err := hook(msg.TurnContext{
+				Context:     &msg.Context{ModelName: "chat-model"},
+				ToolResults: toolResults,
+			})
+			require.NoError(t, err)
+			require.NotNil(t, update)
+			assert.Equal(t, tt.wantModel, update.ModelName)
+			assert.Equal(t, tt.wantModel, update.Context.ModelName)
 		})
 	}
 }

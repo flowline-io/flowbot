@@ -27,6 +27,25 @@ cfg.FollowUpMode = agent.QueueAll
 | `BeforeToolCall` / `AfterToolCall` | Tool interception hooks |
 | `GetSteeringMessages` / `GetFollowUpMessages` | Set automatically on `Agent` via queues |
 
+### Dual-model routing (chat agent)
+
+Configure in `flowbot.yaml`:
+
+```yaml
+agents:
+  - name: "chat"
+    enabled: true
+    model: "gpt-4o-mini"
+
+chat_agent:
+  chat_model: "gpt-4o-mini"   # optional override; defaults to agents.chat.model
+  tool_model: "gpt-4o"        # enables dual routing when chat != tool
+```
+
+When both models are set and differ, the loop uses the chat model for the first LLM call and switches to the tool model after tool execution. Both models must be registered under `models[]` and use the same provider (v1).
+
+For programmatic harness use, pass `harness.Options.Router`; chat agent sets `cfg.ChatModel` / `cfg.ToolModel` directly instead.
+
 ## Stateless Loop
 
 Use when you manage context yourself and do not need queues or subscriptions:

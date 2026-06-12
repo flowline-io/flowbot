@@ -31,3 +31,21 @@ func (r *Router) ApplyToContext(ctx *msg.Context, afterToolExecution bool) {
 	}
 	ctx.ModelName = r.Select(afterToolExecution)
 }
+
+// PrepareNextTurnHook returns a turn-boundary hook that routes to chat or tool models.
+func (r *Router) PrepareNextTurnHook() msg.PrepareNextTurnFn {
+	return func(turn msg.TurnContext) (*msg.TurnUpdate, error) {
+		ctx := cloneContext(turn.Context)
+		r.ApplyToContext(ctx, len(turn.ToolResults) > 0)
+		return &msg.TurnUpdate{Context: ctx, ModelName: ctx.ModelName}, nil
+	}
+}
+
+func cloneContext(src *msg.Context) *msg.Context {
+	if src == nil {
+		return &msg.Context{}
+	}
+	clone := *src
+	clone.Messages = append([]msg.AgentMessage(nil), src.Messages...)
+	return &clone
+}

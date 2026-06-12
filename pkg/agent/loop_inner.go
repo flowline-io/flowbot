@@ -6,6 +6,7 @@ import (
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 type innerLoopState struct {
@@ -39,6 +40,8 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 	if err := s.emit(agentevent.Event{Type: agentevent.TypeTurnStart}); err != nil {
 		return false, err
 	}
+
+	flog.Debug("agent loop: turn start step=%d model=%s", *s.steps, turnModelName(s.cfg, s.current))
 
 	assistant, err := streamAssistant(s.ctx, s.current, s.cfg, s.deps, s.emit)
 	if err != nil {
@@ -116,8 +119,13 @@ func (s *innerLoopState) applyTurnHooks(assistant AssistantMessage, toolResults 
 				s.current = update.Context
 			}
 			if update.ModelName != "" {
+				prevModel := turnModelName(s.cfg, s.current)
 				s.current.ModelName = update.ModelName
 				s.cfg.ModelName = update.ModelName
+				if update.ModelName != prevModel {
+					flog.Debug("agent loop: model switch step=%d from=%s to=%s after_tools=%t",
+						*s.steps, prevModel, update.ModelName, len(toolResults) > 0)
+				}
 			}
 		}
 	}

@@ -10,6 +10,12 @@ import (
 
 // AgentModelName returns the configured model for a named agent when enabled.
 func AgentModelName(name string) string {
+	if name == "chat" {
+		if !config.ChatAgentEnabled() {
+			return ""
+		}
+		return config.ChatAgentChatModel()
+	}
 	for _, item := range config.App.Agents {
 		if item.Name == name && item.Enabled {
 			return item.Model
@@ -20,6 +26,9 @@ func AgentModelName(name string) string {
 
 // AgentEnabled reports whether a named agent is configured with a model and enabled.
 func AgentEnabled(name string) bool {
+	if name == "chat" {
+		return config.ChatAgentEnabled()
+	}
 	for _, item := range config.App.Agents {
 		if item.Name == name && item.Enabled && item.Model != "" {
 			return true

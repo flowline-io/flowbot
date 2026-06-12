@@ -6,10 +6,13 @@ import (
 	"context"
 	"os"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
 
@@ -58,5 +61,66 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		closed, err := store.Database.GetChatSession(ctx, sessionID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(closed.State).To(Equal(int(schema.ChatSessionClosed)))
+	})
+
+	It("routes to tool model after tool execution when dual models are configured", func() {
+		config.App.Agents = []config.Agent{
+			{Name: "chat", Enabled: true, Model: "chat-model"},
+		}
+		config.App.Models = []config.Model{
+			{
+				Provider:       agentllm.ProviderOpenAI,
+				ApiKey:         "test",
+				ModelNames:     []string{"chat-model", "tool-model"},
+				ContextWindows: map[string]int{"chat-model": 128000, "tool-model": 128000},
+			},
+		}
+		config.App.ChatAgent = config.ChatAgentConfig{
+			Compaction: config.CompactionConfig{Enabled: false},
+			ChatModel:  "chat-model",
+			ToolModel:  "tool-model",
+		}
+
+		fake := agentllm.NewFakeModel(
+			agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+				ID: "call-1", Type: "function",
+				FunctionCall: &llms.FunctionCall{Name: "read_skill", Arguments: `{"name":"missing-skill"}`},
+			}}},
+			agentllm.ResponseScript{Content: "done after tool"},
+		)
+		orig := chatagent.NewModelForTest
+		chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
+			return fake, "chat-model", nil
+		}
+		defer func() { chatagent.NewModelForTest = orig }()
+
+		ctx := context.Background()
+		sessionID := "bdd-dual-model"
+		wsDir, err := os.MkdirTemp("", "chat-agent-dual-*")
+		Expect(err).NotTo(HaveOccurred())
+		config.App.ChatAgent.Workspace = wsDir
+		Expect(chatagent.CreateSession(ctx, "uid-dual", sessionID)).To(Succeed())
+
+		svc := chatagent.NewService()
+		reply, err := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "use a skill"}, nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(reply).To(ContainSubstring("done after tool"))
+
+		entries, err := store.Database.ListChatSessionEntries(ctx, sessionID)
+		Expect(err).NotTo(HaveOccurred())
+		assistantModels := make([]string, 0)
+		for _, row := range entries {
+			payload, err := sonic.Marshal(row.Payload)
+			Expect(err).NotTo(HaveOccurred())
+			entry, err := session.UnmarshalEntry(payload)
+			Expect(err).NotTo(HaveOccurred())
+			assistant, ok := entry.Message.(msg.AssistantMessage)
+			if ok && assistant.Model != "" {
+				assistantModels = append(assistantModels, assistant.Model)
+			}
+		}
+		Expect(assistantModels).To(Equal([]string{"chat-model", "tool-model"}))
+
+		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
 	})
 })

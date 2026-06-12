@@ -175,10 +175,7 @@ func streamAssistant(
 		return AssistantMessage{}, fmt.Errorf("agent loop: convert to llm: %w", err)
 	}
 
-	modelName := cfg.ModelName
-	if modelName == "" {
-		modelName = current.ModelName
-	}
+	modelName := turnModelName(cfg, current)
 
 	activeTools := deps.Registry.ActiveTools()
 	llmTools := tool.BuildLLMTools(activeTools)
@@ -282,16 +279,23 @@ func toAgentMessages(messages []AgentMessage) []AgentMessage {
 	return append([]AgentMessage(nil), messages...)
 }
 
+// turnModelName returns the provider model name for the next LLM request.
+func turnModelName(cfg Config, current *Context) string {
+	if cfg.ModelName != "" {
+		return cfg.ModelName
+	}
+	if current != nil {
+		return current.ModelName
+	}
+	return ""
+}
+
 func applyDefaultRouter(cfg Config) Config {
 	if cfg.PrepareNextTurn != nil || cfg.ChatModel == "" || cfg.ToolModel == "" {
 		return cfg
 	}
 	router := model.NewRouter(cfg.ChatModel, cfg.ToolModel)
-	cfg.PrepareNextTurn = func(turn TurnContext) (*TurnUpdate, error) {
-		ctx := cloneContext(turn.Context)
-		router.ApplyToContext(ctx, len(turn.ToolResults) > 0)
-		return &TurnUpdate{Context: ctx, ModelName: ctx.ModelName}, nil
-	}
+	cfg.PrepareNextTurn = router.PrepareNextTurnHook()
 	if cfg.ModelName == "" {
 		cfg.ModelName = cfg.ChatModel
 	}
