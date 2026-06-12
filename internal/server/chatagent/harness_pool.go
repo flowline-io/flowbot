@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
@@ -23,7 +24,19 @@ type pooledHarness struct {
 	harness    *harness.Harness
 	configHash string
 	promptVer  uint64
-	lastUsed   time.Time
+	lastUsed   atomic.Int64
+}
+
+func (e *pooledHarness) touchLastUsed() {
+	e.lastUsed.Store(time.Now().UnixNano())
+}
+
+func (e *pooledHarness) staleAt(now time.Time, ttl time.Duration) bool {
+	last := e.lastUsed.Load()
+	if last == 0 {
+		return true
+	}
+	return now.Sub(time.Unix(0, last)) > ttl
 }
 
 var harnessPool sync.Map
@@ -46,7 +59,7 @@ func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harn
 		if !ok {
 			harnessPool.Delete(req.SessionID)
 		} else {
-			entry.lastUsed = time.Now()
+			entry.touchLastUsed()
 			if refreshed, err := refreshPooledHarness(ctx, req, entry, textLen); err != nil {
 				return nil, err
 			} else if refreshed != nil {
@@ -62,12 +75,13 @@ func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harn
 	if err != nil {
 		return nil, err
 	}
-	harnessPool.Store(req.SessionID, &pooledHarness{
+	created := &pooledHarness{
 		harness:    built.harness,
 		configHash: built.configHash,
 		promptVer:  built.promptVer,
-		lastUsed:   time.Now(),
-	})
+	}
+	created.touchLastUsed()
+	harnessPool.Store(req.SessionID, created)
 	return built.harness, nil
 }
 
@@ -92,12 +106,13 @@ func refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarn
 		if err != nil {
 			return nil, err
 		}
-		return &pooledHarness{
+		refreshed := &pooledHarness{
 			harness:    built.harness,
 			configHash: built.configHash,
 			promptVer:  built.promptVer,
-			lastUsed:   time.Now(),
-		}, nil
+		}
+		refreshed.touchLastUsed()
+		return refreshed, nil
 	}
 
 	currentPromptVer := PromptCacheVersion()
@@ -120,7 +135,7 @@ func evictStaleHarnesses() {
 			harnessPool.Delete(key)
 			return true
 		}
-		if now.Sub(entry.lastUsed) > sessionLockTTL {
+		if entry.staleAt(now, sessionLockTTL) {
 			harnessPool.Delete(key)
 		}
 		return true

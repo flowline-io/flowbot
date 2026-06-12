@@ -10,8 +10,6 @@ import (
 )
 
 func TestAgentModelName(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name      string
 		agentName string
@@ -38,7 +36,6 @@ func TestAgentModelName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			chatAgent := config.App.ChatAgent
 			t.Cleanup(func() {
 				config.App.ChatAgent = chatAgent
@@ -51,8 +48,6 @@ func TestAgentModelName(t *testing.T) {
 }
 
 func TestAgentEnabled(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name      string
 		agentName string
@@ -79,7 +74,6 @@ func TestAgentEnabled(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			chatAgent := config.App.ChatAgent
 			t.Cleanup(func() {
 				config.App.ChatAgent = chatAgent

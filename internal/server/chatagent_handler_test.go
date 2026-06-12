@@ -21,15 +21,17 @@ func TestRunChatAgentContextTimeout(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			const runTimeout = 20 * time.Millisecond
 			orig := config.App.ChatAgent
-			config.App.ChatAgent = config.ChatAgentConfig{RunTimeout: 20 * time.Millisecond}
+			config.App.ChatAgent = config.ChatAgentConfig{RunTimeout: runTimeout}
 			t.Cleanup(func() { config.App.ChatAgent = orig })
 
 			parent, parentCancel := context.WithCancel(context.Background())
 			parentCancel()
 			require.ErrorIs(t, parent.Err(), context.Canceled)
 
-			runTimeout := chatagent.RunTimeout()
+			assert.Equal(t, runTimeout, chatagent.RunTimeout())
+
 			ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
 			defer cancel()
 
@@ -38,7 +40,7 @@ func TestRunChatAgentContextTimeout(t *testing.T) {
 			require.True(t, ok)
 			assert.LessOrEqual(t, time.Until(deadline), runTimeout)
 
-			time.Sleep(runTimeout + 10*time.Millisecond)
+			time.Sleep(runTimeout + 50*time.Millisecond)
 			require.ErrorIs(t, ctx.Err(), context.DeadlineExceeded)
 		})
 	}

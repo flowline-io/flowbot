@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -28,8 +29,9 @@ type promptCacheEntry struct {
 }
 
 var (
-	promptCacheMu sync.RWMutex
-	promptCache   promptCacheEntry
+	promptCacheMu  sync.RWMutex
+	promptCache    promptCacheEntry
+	promptCacheVer atomic.Uint64
 )
 
 // ResetPromptCacheForTest clears the in-process system prompt cache.
@@ -37,16 +39,12 @@ func ResetPromptCacheForTest() {
 	promptCacheMu.Lock()
 	defer promptCacheMu.Unlock()
 	promptCache = promptCacheEntry{}
+	promptCacheVer.Store(0)
 }
 
 // PromptCacheVersion returns a monotonic version token for prompt cache invalidation.
 func PromptCacheVersion() uint64 {
-	promptCacheMu.RLock()
-	defer promptCacheMu.RUnlock()
-	if promptCache.loadedAt.IsZero() {
-		return 0
-	}
-	return uint64(promptCache.loadedAt.UnixNano())
+	return promptCacheVer.Load()
 }
 
 // CachedSystemPrompt returns the chat assistant system prompt, reusing a process cache when inputs are unchanged.
@@ -79,6 +77,7 @@ func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 		skillsMaxRev: skillsMaxRev,
 		fileMTimes:   fileMTimes,
 	}
+	promptCacheVer.Add(1)
 	promptCacheMu.Unlock()
 	return prompt
 }

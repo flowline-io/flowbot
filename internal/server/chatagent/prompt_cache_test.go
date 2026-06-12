@@ -85,8 +85,12 @@ func TestCachedSystemPromptCacheHit(t *testing.T) {
 			after := PromptCacheVersion()
 
 			if tt.wantMiss {
-				assert.NotEqual(t, before, after)
+				assert.Greater(t, after, before)
 				assert.NotEmpty(t, got)
+				promptCacheMu.RLock()
+				gotHash := promptCache.configHash
+				promptCacheMu.RUnlock()
+				assert.Equal(t, promptConfigHash(root), gotHash)
 				return
 			}
 			assert.Equal(t, tt.wantPrompt, got)
@@ -195,7 +199,9 @@ func TestEvictHarnessPool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ResetHarnessPoolForTest()
 			if tt.preload {
-				harnessPool.Store(tt.sessionID, &pooledHarness{lastUsed: time.Now()})
+				entry := &pooledHarness{}
+				entry.touchLastUsed()
+				harnessPool.Store(tt.sessionID, entry)
 			}
 			EvictHarnessPool(tt.evictID)
 			_, ok := harnessPool.Load(tt.sessionID)

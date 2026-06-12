@@ -99,7 +99,6 @@ func TestResolveChatAgentModels(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			config.App.ChatAgent = tt.chatAgent
 			config.App.Models = tt.models
 
@@ -131,7 +130,6 @@ func TestModelRegisteredAndProviderFor(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			config.App.Models = []config.Model{
 				{Provider: "openai", ModelNames: []string{"gpt-4o"}},
 				{Provider: "anthropic", ModelNames: []string{"claude"}},
@@ -171,7 +169,6 @@ func TestChatAgentChatModelAndEnabled(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			config.App.ChatAgent = tt.chatAgent
 			assert.Equal(t, tt.wantModel, config.ChatAgentChatModel())
 			assert.Equal(t, tt.wantEn, config.ChatAgentEnabled())

@@ -78,7 +78,6 @@ func TestMaxContextWindow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			config.App.Models = tt.models
 			assert.Equal(t, tt.want, config.MaxContextWindow(tt.modelNames...))
 		})

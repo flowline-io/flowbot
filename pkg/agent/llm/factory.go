@@ -18,14 +18,18 @@ type pooledModel struct {
 	name  string
 }
 
-var modelPool sync.Map
-
 type modelCreatorFn func(ctx context.Context, modelName string) (llms.Model, string, error)
 
-var modelCreator modelCreatorFn = NewModel
+var (
+	modelPool      sync.Map
+	modelCreatorMu sync.RWMutex
+	modelCreator   modelCreatorFn = NewModel
+)
 
 // SetModelCreatorForTest overrides model construction used by GetOrCreateModel.
 func SetModelCreatorForTest(fn modelCreatorFn) {
+	modelCreatorMu.Lock()
+	defer modelCreatorMu.Unlock()
 	if fn == nil {
 		modelCreator = NewModel
 		return
@@ -36,7 +40,9 @@ func SetModelCreatorForTest(fn modelCreatorFn) {
 // ResetModelPoolForTest clears cached langchaingo models.
 func ResetModelPoolForTest() {
 	modelPool = sync.Map{}
+	modelCreatorMu.Lock()
 	modelCreator = NewModel
+	modelCreatorMu.Unlock()
 }
 
 // GetOrCreateModel returns a cached langchaingo model for the given model name.
@@ -47,7 +53,10 @@ func GetOrCreateModel(ctx context.Context, modelName string) (llms.Model, string
 		}
 		modelPool.Delete(modelName)
 	}
-	model, resolvedName, err := modelCreator(ctx, modelName)
+	modelCreatorMu.RLock()
+	creator := modelCreator
+	modelCreatorMu.RUnlock()
+	model, resolvedName, err := creator(ctx, modelName)
 	if err != nil {
 		return nil, "", err
 	}
