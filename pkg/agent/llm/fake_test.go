@@ -81,6 +81,43 @@ func TestFakeModel_Streaming(t *testing.T) {
 	}
 }
 
+func TestFakeModel_MultiChunkStreaming(t *testing.T) {
+	tests := []struct {
+		name       string
+		chunks     []string
+		wantStream string
+		wantText   string
+	}{
+		{name: "three chunks", chunks: []string{"hel", "lo", " world"}, wantStream: "hello world", wantText: "hello world"},
+		{name: "single chunk slice", chunks: []string{"only"}, wantStream: "only", wantText: "only"},
+		{name: "content overrides join", chunks: []string{"a", "b"}, wantStream: "ab", wantText: "explicit"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			script := llm.ResponseScript{Chunks: tt.chunks}
+			if tt.name == "content overrides join" {
+				script.Content = "explicit"
+			}
+			model := llm.NewFakeModel(script)
+			var streamed string
+			resp, err := model.GenerateContent(context.Background(), nil, llms.WithStreamingFunc(func(_ context.Context, chunk []byte) error {
+				streamed += string(chunk)
+				return nil
+			}))
+			require.NoError(t, err)
+			require.NotEmpty(t, resp.Choices)
+			if tt.name == "content overrides join" {
+				assert.Equal(t, "ab", streamed)
+			} else {
+				assert.Equal(t, tt.wantStream, streamed)
+			}
+			assert.Equal(t, tt.wantText, resp.Choices[0].Content)
+		})
+	}
+}
+
 func TestFakeModel_ContextCancelled(t *testing.T) {
 	tests := []struct {
 		name string

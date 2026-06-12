@@ -42,7 +42,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(chatagent.CreateSession(ctx, "uid-bdd", sessionID)).To(Succeed())
 
 		svc := chatagent.NewService()
-		reply, err := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "hi"})
+		reply, err := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "hi"}, nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(reply).To(ContainSubstring("hello from agent"))
 

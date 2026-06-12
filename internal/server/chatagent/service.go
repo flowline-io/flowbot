@@ -36,7 +36,7 @@ func NewService() *Service {
 }
 
 // Run executes one agent turn and returns the assistant reply text.
-func (*Service) Run(ctx context.Context, req RunRequest) (string, error) {
+func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (string, error) {
 	start := time.Now()
 	textLen := len(strings.TrimSpace(req.Text))
 
@@ -58,7 +58,7 @@ func (*Service) Run(ctx context.Context, req RunRequest) (string, error) {
 		return "", err
 	}
 
-	return executeRun(ctx, h, req, start)
+	return executeRun(ctx, h, req, start, sink)
 }
 
 func validateRunRequest(ctx context.Context, req RunRequest) error {
@@ -146,8 +146,8 @@ func runMaxSteps() int {
 	return maxSteps
 }
 
-func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time) (string, error) {
-	_, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
+func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
+	stream, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
 	if err != nil {
 		if errors.Is(err, agent.ErrAborted) || agentresult.IsCode(err, "busy") {
 			flog.Info("[chat-agent] harness busy session=%s duration=%s", req.SessionID, time.Since(start).Round(time.Millisecond))
@@ -157,8 +157,19 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 		return "", err
 	}
 
+	var waitCoalescer func()
+	if sink != nil && stream != nil {
+		waitCoalescer = startStreamCoalescer(ctx, stream.Events(), sink, streamUpdateInterval)
+	}
+
 	if err := h.WaitIdle(ctx); err != nil {
+		if waitCoalescer != nil {
+			waitCoalescer()
+		}
 		return "", awaitRunError(req.SessionID, start, err)
+	}
+	if waitCoalescer != nil {
+		waitCoalescer()
 	}
 
 	result := h.LastRunResult()
@@ -171,7 +182,13 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	if reply == "" {
 		flog.Warn("[chat-agent] empty assistant reply session=%s duration=%s messages=%d",
 			req.SessionID, time.Since(start).Round(time.Millisecond), len(result.Messages))
-		return "I could not produce a reply.", nil
+		reply = "I could not produce a reply."
+	}
+
+	if sink != nil {
+		if err := sink.Flush(ctx, reply); err != nil {
+			flog.Warn("[chat-agent] stream flush session=%s: %v", req.SessionID, err)
+		}
 	}
 
 	flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",

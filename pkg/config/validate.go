@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -146,12 +147,7 @@ var supportedModelProviders = []string{
 }
 
 func isSupportedModelProvider(provider string) bool {
-	for _, item := range supportedModelProviders {
-		if provider == item {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(supportedModelProviders, provider)
 }
 
 // validateModels validates model configurations and collects model names for

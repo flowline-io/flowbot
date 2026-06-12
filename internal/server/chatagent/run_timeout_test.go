@@ -10,9 +10,9 @@ import (
 
 func TestRunTimeout(t *testing.T) {
 	tests := []struct {
-		name     string
-		cfg      config.ChatAgentConfig
-		want     time.Duration
+		name string
+		cfg  config.ChatAgentConfig
+		want time.Duration
 	}{
 		{name: "default when unset", cfg: config.ChatAgentConfig{}, want: DefaultRunTimeout},
 		{name: "default when zero", cfg: config.ChatAgentConfig{RunTimeout: 0}, want: DefaultRunTimeout},
@@ -20,7 +20,6 @@ func TestRunTimeout(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			orig := config.App.ChatAgent
 			config.App.ChatAgent = tt.cfg
 			t.Cleanup(func() { config.App.ChatAgent = orig })

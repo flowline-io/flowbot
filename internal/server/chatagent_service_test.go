@@ -64,7 +64,7 @@ func TestChatAgentService_Run(t *testing.T) {
 			result, err := svc.Run(context.Background(), chatagent.RunRequest{
 				SessionID: "sess-1",
 				Text:      tt.text,
-			})
+			}, nil)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -97,6 +97,6 @@ func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
 	_, err := chatagent.NewService().Run(context.Background(), chatagent.RunRequest{
 		SessionID: "sess-1",
 		Text:      "hello",
-	})
+	}, nil)
 	assert.Error(t, err)
 }

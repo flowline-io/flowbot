@@ -40,16 +40,13 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 		return false, err
 	}
 
-	assistant, err := streamAssistant(s.ctx, s.current, s.cfg, s.deps)
+	assistant, err := streamAssistant(s.ctx, s.current, s.cfg, s.deps, s.emit)
 	if err != nil {
 		return false, err
 	}
 	assistant.Timestamp = time.Now().UTC()
 	s.current.Messages = append(s.current.Messages, assistant)
 	*s.newMessages = append(*s.newMessages, assistant)
-	if err := emitMessage(s.emit, assistant); err != nil {
-		return false, err
-	}
 
 	toolResults, terminate, hasToolCalls, err := s.executeTools(assistant)
 	if err != nil {

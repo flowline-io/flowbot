@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/tmc/langchaingo/llms"
@@ -10,7 +11,9 @@ import (
 
 // ResponseScript describes one scripted model response for tests.
 type ResponseScript struct {
-	Content   string
+	Content string
+	// Chunks, when non-empty, are emitted one-by-one via StreamingFunc instead of Content as a single chunk.
+	Chunks    []string
 	ToolCalls []llms.ToolCall
 	Err       error
 }
@@ -73,7 +76,17 @@ func (f *FakeModel) GenerateContent(ctx context.Context, _ []llms.MessageContent
 		return nil, script.Err
 	}
 
-	if opts.StreamingFunc != nil && script.Content != "" {
+	content := script.Content
+	if len(script.Chunks) > 0 {
+		content = joinChunks(script.Chunks, script.Content)
+		if opts.StreamingFunc != nil {
+			for _, chunk := range script.Chunks {
+				if err := opts.StreamingFunc(ctx, []byte(chunk)); err != nil {
+					return nil, err
+				}
+			}
+		}
+	} else if opts.StreamingFunc != nil && script.Content != "" {
 		if err := opts.StreamingFunc(ctx, []byte(script.Content)); err != nil {
 			return nil, err
 		}
@@ -82,10 +95,17 @@ func (f *FakeModel) GenerateContent(ctx context.Context, _ []llms.MessageContent
 	return &llms.ContentResponse{
 		Choices: []*llms.ContentChoice{
 			{
-				Content:    script.Content,
+				Content:    content,
 				ToolCalls:  append([]llms.ToolCall(nil), script.ToolCalls...),
 				StopReason: "stop",
 			},
 		},
 	}, nil
+}
+
+func joinChunks(chunks []string, fallback string) string {
+	if fallback != "" {
+		return fallback
+	}
+	return strings.Join(chunks, "")
 }

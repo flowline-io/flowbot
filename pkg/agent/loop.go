@@ -154,7 +154,13 @@ func runLoopCore(
 	return nil
 }
 
-func streamAssistant(ctx context.Context, current *Context, cfg Config, deps LoopDeps) (AssistantMessage, error) {
+func streamAssistant(
+	ctx context.Context,
+	current *Context,
+	cfg Config,
+	deps LoopDeps,
+	emit func(agentevent.Event) error,
+) (AssistantMessage, error) {
 	messages := current.Messages
 	if cfg.TransformContext != nil {
 		transformed, err := cfg.TransformContext(messages)
@@ -177,11 +183,23 @@ func streamAssistant(ctx context.Context, current *Context, cfg Config, deps Loo
 	activeTools := deps.Registry.ActiveTools()
 	llmTools := tool.BuildLLMTools(activeTools)
 
+	if emit != nil {
+		if err := emit(agentevent.Event{Type: agentevent.TypeMessageStart, Message: AssistantMessage{}}); err != nil {
+			return AssistantMessage{}, err
+		}
+	}
+
 	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, agentllm.StreamOptions{
 		ModelName:   modelName,
 		Temperature: cfg.Temperature,
 		MaxTokens:   cfg.MaxTokens,
 		Tools:       llmTools,
+		OnTextDelta: func(delta string) error {
+			if emit == nil || delta == "" {
+				return nil
+			}
+			return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, TextDelta: delta})
+		},
 	})
 	if err != nil {
 		return AssistantMessage{}, err
@@ -205,12 +223,20 @@ func streamAssistant(ctx context.Context, current *Context, cfg Config, deps Loo
 		})
 	}
 
-	return AssistantMessage{
+	assistant := AssistantMessage{
 		Parts:      parts,
 		Model:      result.ModelName,
 		StopReason: result.StopReason,
 		Usage:      usageToMsg(result.Usage),
-	}, nil
+	}
+
+	if emit != nil {
+		if err := emit(agentevent.Event{Type: agentevent.TypeMessageEnd, Message: assistant}); err != nil {
+			return AssistantMessage{}, err
+		}
+	}
+
+	return assistant, nil
 }
 
 func usageToMsg(usage *agentllm.Usage) *Usage {
