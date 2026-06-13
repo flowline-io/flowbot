@@ -1,0 +1,48 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry) {
+	@layout.Base("Session " + session.Flag + " — Flowbot") {
+		<div class="mb-4">
+			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
+		</div>
+		<div class="card bg-base-100 shadow-sm mb-6">
+			<div class="card-body">
+				<h1 class="card-title text-2xl font-mono">{ session.Flag }</h1>
+				<div class="grid grid-cols-2 gap-2 text-sm text-base-content/70 mt-2">
+					<div>
+						<span class="text-base-content/50">UID:</span>
+						<span class="font-mono text-xs ml-1">{ session.UID }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">State:</span>
+						@partials.AgentSessionStateBadge(session.State)
+					</div>
+					<div>
+						<span class="text-base-content/50">Leaf ID:</span>
+						if session.LeafID != "" {
+							<code class="text-xs ml-1">{ session.LeafID }</code>
+						} else {
+							<span class="text-base-content/30 ml-1">-</span>
+						}
+					</div>
+					<div>
+						<span class="text-base-content/50">Created:</span>
+						<span class="ml-1">{ session.CreatedAt.Format("2006-01-02 15:04:05") }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">Updated:</span>
+						<span class="ml-1">{ session.UpdatedAt.Format("2006-01-02 15:04:05") }</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<h2 class="text-lg font-semibold mb-3">Entries</h2>
+		@partials.AgentSessionEntriesTable(entries)
+	}
+}

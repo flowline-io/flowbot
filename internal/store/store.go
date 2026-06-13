@@ -192,6 +192,12 @@ type ListNotifyRuleOptions struct {
 	Enabled *bool // nil = all, true = enabled only, false = disabled only
 }
 
+// ListChatSessionsOptions holds pagination for listing chat agent sessions.
+type ListChatSessionsOptions struct {
+	Limit  int    // max 100, default 20
+	Cursor string // opaque cursor: session ID value as string
+}
+
 type Adapter interface {
 	// General
 
@@ -260,6 +266,7 @@ type Adapter interface {
 
 	CreateChatSession(ctx context.Context, session *gen.ChatSession) error
 	GetChatSession(ctx context.Context, flag string) (*gen.ChatSession, error)
+	ListChatSessions(ctx context.Context, opts ListChatSessionsOptions) ([]*gen.ChatSession, string, error)
 	UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error
 	CloseChatSession(ctx context.Context, flag string) error
 	CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error

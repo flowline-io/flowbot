@@ -1,0 +1,32 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSessionEntryRow(entry model.AgentSessionEntry) {
+	<tr data-testid="agent-session-entry-row">
+		<td class="text-xs whitespace-nowrap">{ entry.CreatedAt.Format("15:04:05") }</td>
+		<td class="font-mono text-xs">{ entry.Flag }</td>
+		<td><span class="badge badge-ghost badge-xs">{ entry.EntryType }</span></td>
+		<td class="font-mono text-xs">
+			if entry.ParentID != "" {
+				{ entry.ParentID }
+			} else {
+				<span class="text-base-content/30">-</span>
+			}
+		</td>
+		<td class="text-xs align-top min-w-64 max-w-xl">
+			if entry.PayloadJSON != "" {
+				<details>
+					<summary class="cursor-pointer font-mono text-base-content/70 truncate max-w-md" title={ entryPayloadPreview(entry.PayloadJSON) }>
+						{ entryPayloadPreview(entry.PayloadJSON) }
+					</summary>
+					<pre class="bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48 mt-1 whitespace-pre-wrap">{ entry.PayloadJSON }</pre>
+				</details>
+			} else {
+				<span class="text-base-content/30">-</span>
+			}
+		</td>
+	</tr>
+}

@@ -1,0 +1,28 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSessionRow(item model.AgentSession) {
+	<tr class="hover">
+		<td>
+			<a href={ agentSessionDetailURL(item.Flag) }
+				class="link link-primary font-mono text-sm"
+				data-testid="agent-session-link">
+				{ item.Flag }
+			</a>
+		</td>
+		<td class="font-mono text-xs">{ item.UID }</td>
+		<td><span class={ agentSessionStateBadgeClass(item.State) }>{ item.State }</span></td>
+		<td class="font-mono text-xs max-w-32 truncate">
+			if item.LeafID != "" {
+				{ item.LeafID }
+			} else {
+				<span class="text-base-content/30">-</span>
+			}
+		</td>
+		<td class="text-xs whitespace-nowrap">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+		<td class="text-xs whitespace-nowrap">{ item.CreatedAt.Format("2006-01-02 15:04") }</td>
+	</tr>
+}

@@ -6,7 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -353,6 +355,81 @@ func TestUpdateAgentSkillNotFound(t *testing.T) {
 				Content:     "body",
 			})
 			require.ErrorIs(t, err, types.ErrNotFound)
+		})
+	}
+}
+
+func TestListChatSessions(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC().Truncate(time.Second)
+
+	tests := []struct {
+		name       string
+		seeds      func(*testing.T, *adapter)
+		opts       store.ListChatSessionsOptions
+		wantLen    int
+		wantCursor bool
+	}{
+		{
+			name:    "empty database returns empty slice",
+			seeds:   func(_ *testing.T, _ *adapter) {},
+			opts:    store.ListChatSessionsOptions{Limit: 10},
+			wantLen: 0,
+		},
+		{
+			name: "returns seeded sessions newest first",
+			seeds: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-old", UID: "user:a", State: int(schema.ChatSessionActive),
+					CreatedAt: now.Add(-2 * time.Hour), UpdatedAt: now.Add(-2 * time.Hour),
+				}))
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-new", UID: "user:b", State: int(schema.ChatSessionClosed),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+			},
+			opts:    store.ListChatSessionsOptions{Limit: 10},
+			wantLen: 2,
+		},
+		{
+			name: "cursor paginates remaining sessions",
+			seeds: func(t *testing.T, a *adapter) {
+				for i := range 3 {
+					flag := "sess-" + string(rune('a'+i))
+					require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+						Flag: flag, UID: "user:p", State: int(schema.ChatSessionActive),
+						CreatedAt: now.Add(time.Duration(i) * time.Minute),
+						UpdatedAt: now.Add(time.Duration(i) * time.Minute),
+					}))
+				}
+			},
+			opts:       store.ListChatSessionsOptions{Limit: 2},
+			wantLen:    2,
+			wantCursor: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := testAdapter(t)
+			tt.seeds(t, a)
+
+			got, cursor, err := a.ListChatSessions(context.Background(), tt.opts)
+			require.NoError(t, err)
+			assert.Len(t, got, tt.wantLen)
+			if tt.wantCursor {
+				assert.NotEmpty(t, cursor)
+				page2, cursor2, err := a.ListChatSessions(context.Background(), store.ListChatSessionsOptions{
+					Limit:  tt.opts.Limit,
+					Cursor: cursor,
+				})
+				require.NoError(t, err)
+				assert.NotEmpty(t, page2)
+				assert.Empty(t, cursor2)
+				return
+			}
+			assert.Empty(t, cursor)
 		})
 	}
 }

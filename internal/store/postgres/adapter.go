@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -699,6 +700,39 @@ func (a *adapter) GetChatSession(ctx context.Context, flag string) (*gen.ChatSes
 		return nil, fmt.Errorf("postgres: get chat session: %w", err)
 	}
 	return row, nil
+}
+
+func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessionsOptions) ([]*gen.ChatSession, string, error) {
+	if opts.Limit <= 0 || opts.Limit > 100 {
+		opts.Limit = 20
+	}
+
+	q := a.client.ChatSession.Query().
+		Order(
+			gen.Desc(chatsession.FieldUpdatedAt),
+			gen.Desc(chatsession.FieldID),
+		).
+		Limit(opts.Limit + 1)
+
+	if opts.Cursor != "" {
+		id, err := strconv.ParseInt(opts.Cursor, 10, 64)
+		if err == nil {
+			q = q.Where(chatsession.IDLT(id))
+		}
+	}
+
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, "", fmt.Errorf("postgres: list chat sessions: %w", err)
+	}
+
+	var nextCursor string
+	if len(rows) > opts.Limit {
+		nextCursor = strconv.FormatInt(rows[opts.Limit-1].ID, 10)
+		rows = rows[:opts.Limit]
+	}
+
+	return rows, nextCursor, nil
 }
 
 func (a *adapter) UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error {

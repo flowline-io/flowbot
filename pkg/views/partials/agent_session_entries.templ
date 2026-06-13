@@ -1,0 +1,33 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSessionEntriesTable(entries []model.AgentSessionEntry) {
+	<div class="card bg-base-100 shadow-sm" id="agent-session-entries-table" data-testid="agent-session-entries-table">
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="text-xs uppercase">Time</th>
+					<th class="text-xs uppercase">Entry ID</th>
+					<th class="text-xs uppercase">Type</th>
+					<th class="text-xs uppercase">Parent ID</th>
+					<th class="text-xs uppercase">Payload</th>
+				</tr>
+				</thead>
+				<tbody>
+				for _, entry := range entries {
+					@AgentSessionEntryRow(entry)
+				}
+				if len(entries) == 0 {
+					<tr>
+						<td colspan="5" class="text-center text-base-content/50 py-4">No entries in this session.</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

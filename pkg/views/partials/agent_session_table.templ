@@ -1,0 +1,43 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
+	<div class="card bg-base-100 shadow-sm" id="agent-sessions-table" data-testid="agent-sessions-table">
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="text-xs uppercase">Session ID</th>
+					<th class="text-xs uppercase">UID</th>
+					<th class="text-xs uppercase">State</th>
+					<th class="text-xs uppercase">Leaf ID</th>
+					<th class="text-xs uppercase">Updated</th>
+					<th class="text-xs uppercase">Created</th>
+				</tr>
+				</thead>
+				<tbody id="agent-sessions-rows">
+				for _, item := range items {
+					@AgentSessionRow(item)
+				}
+				if len(items) == 0 {
+					<tr id="agent-sessions-empty">
+						<td colspan="6" class="text-center text-base-content/50 py-4">No sessions found.</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+		if nextCursor != "" {
+			<div class="p-3 text-center" id="agent-sessions-load-more">
+				<button class="btn btn-sm btn-ghost"
+					hx-get={ templ.URL("/service/web/agent-sessions/list?cursor=" + nextCursor) }
+					hx-target="#agent-sessions-load-more"
+					hx-swap="outerHTML"
+					data-testid="agent-sessions-load-more">Load more</button>
+			</div>
+		}
+	</div>
+}
