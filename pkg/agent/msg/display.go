@@ -325,11 +325,11 @@ func isDisplayableToolArguments(args string) bool {
 
 func extractToolCallArgumentsValue(text string) string {
 	key := `"arguments"`
-	idx := strings.Index(text, key)
-	if idx < 0 {
+	_, after, ok := strings.Cut(text, key)
+	if !ok {
 		return ""
 	}
-	rest := strings.TrimSpace(text[idx+len(key):])
+	rest := strings.TrimSpace(after)
 	if strings.HasPrefix(rest, ":") {
 		rest = strings.TrimSpace(rest[1:])
 	}
@@ -531,7 +531,7 @@ func toolSummaryScore(text string) int {
 	if IsToolCallPayload(text) {
 		summary = SummarizeToolCallPayload(text)
 	}
-	if idx := strings.Index(summary, "("); idx >= 0 && strings.HasSuffix(summary, ")") {
+	if found := strings.Contains(summary, "("); found && strings.HasSuffix(summary, ")") {
 		return len(summary)
 	}
 	return len(summary)

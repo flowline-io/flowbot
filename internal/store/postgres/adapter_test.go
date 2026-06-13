@@ -249,3 +249,110 @@ func TestCreatePlatformUser(t *testing.T) {
 		})
 	}
 }
+
+func TestAgentSkillByFlagAndDelete(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		setup   func(context.Context, *adapter) string
+		action  func(context.Context, *adapter, string) error
+		wantErr error
+	}{
+		{
+			name: "get by flag returns stored skill",
+			setup: func(ctx context.Context, a *adapter) string {
+				require.NoError(t, a.CreateAgentSkill(ctx, &gen.AgentSkill{
+					Flag:        "homelab-bookmark",
+					Name:        "homelab-bookmark",
+					Description: "Bookmark skill",
+					Content:     "# Bookmark",
+					Source:      "global",
+					Enabled:     true,
+				}))
+				return "homelab-bookmark"
+			},
+			action: func(ctx context.Context, a *adapter, flag string) error {
+				row, err := a.GetAgentSkillByFlag(ctx, flag)
+				if err != nil {
+					return err
+				}
+				if row.Name != "homelab-bookmark" {
+					return types.Errorf(types.ErrInternal, "unexpected name %q", row.Name)
+				}
+				return nil
+			},
+		},
+		{
+			name: "get by flag returns not found",
+			setup: func(_ context.Context, _ *adapter) string {
+				return "missing"
+			},
+			action: func(ctx context.Context, a *adapter, flag string) error {
+				_, err := a.GetAgentSkillByFlag(ctx, flag)
+				return err
+			},
+			wantErr: types.ErrNotFound,
+		},
+		{
+			name: "delete removes skill",
+			setup: func(ctx context.Context, a *adapter) string {
+				require.NoError(t, a.CreateAgentSkill(ctx, &gen.AgentSkill{
+					Flag:        "to-delete",
+					Name:        "to-delete",
+					Description: "Delete me",
+					Content:     "body",
+					Enabled:     true,
+				}))
+				return "to-delete"
+			},
+			action: func(ctx context.Context, a *adapter, flag string) error {
+				if err := a.DeleteAgentSkill(ctx, flag); err != nil {
+					return err
+				}
+				_, err := a.GetAgentSkillByFlag(ctx, flag)
+				return err
+			},
+			wantErr: types.ErrNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := testAdapter(t)
+			ctx := context.Background()
+			flag := tt.setup(ctx, a)
+			err := tt.action(ctx, a, flag)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestUpdateAgentSkillNotFound(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "missing flag returns not found"},
+		{name: "update on empty database fails"},
+		{name: "update without prior create fails"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := testAdapter(t)
+			err := a.UpdateAgentSkill(context.Background(), &gen.AgentSkill{
+				Flag:        "missing",
+				Name:        "missing",
+				Description: "Missing",
+				Content:     "body",
+			})
+			require.ErrorIs(t, err, types.ErrNotFound)
+		})
+	}
+}

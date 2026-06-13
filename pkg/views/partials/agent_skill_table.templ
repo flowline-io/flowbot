@@ -1,0 +1,34 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentSkillTable(items []model.AgentSkill) {
+	<div class="card bg-base-100 shadow-sm">
+		<div id="agent-skills-table"
+			data-testid="agent-skills-table"
+			class="overflow-x-auto">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="text-xs uppercase">Flag</th>
+					<th class="text-xs uppercase">Name</th>
+					<th class="text-xs uppercase">Description</th>
+					<th class="text-xs uppercase">Enabled</th>
+					<th class="text-xs uppercase">Updated</th>
+					<th class="text-xs uppercase">Actions</th>
+				</tr>
+				</thead>
+				<tbody id="agent-skills-rows">
+				for _, item := range items {
+					@AgentSkillRow(item)
+				}
+				if len(items) == 0 {
+					<tr id="agent-skills-empty">
+						<td colspan="6" class="text-center text-base-content/50">No agent skills found.</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

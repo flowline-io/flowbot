@@ -271,8 +271,10 @@ type Adapter interface {
 	ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error)
 	GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error)
 	GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error)
+	GetAgentSkillByFlag(ctx context.Context, flag string) (*gen.AgentSkill, error)
 	CreateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 	UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
+	DeleteAgentSkill(ctx context.Context, flag string) error
 
 	GetBot(ctx context.Context, id int64) (*gen.Bot, error)
 	GetBotByName(ctx context.Context, name string) (*gen.Bot, error)

@@ -877,6 +877,19 @@ func (a *adapter) GetAgentSkillByName(ctx context.Context, name string) (*gen.Ag
 	return row, nil
 }
 
+func (a *adapter) GetAgentSkillByFlag(ctx context.Context, flag string) (*gen.AgentSkill, error) {
+	row, err := a.client.AgentSkill.Query().
+		Where(agentskill.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent skill by flag: %w", err)
+	}
+	return row, nil
+}
+
 func (a *adapter) CreateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error {
 	if skill == nil {
 		return errors.New("postgres: nil agent skill")
@@ -907,7 +920,7 @@ func (a *adapter) UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) e
 	if skill == nil {
 		return errors.New("postgres: nil agent skill")
 	}
-	_, err := a.client.AgentSkill.Update().
+	n, err := a.client.AgentSkill.Update().
 		Where(agentskill.FlagEQ(skill.Flag)).
 		SetName(skill.Name).
 		SetDescription(skill.Description).
@@ -920,6 +933,22 @@ func (a *adapter) UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) e
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: update agent skill: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteAgentSkill(ctx context.Context, flag string) error {
+	n, err := a.client.AgentSkill.Delete().
+		Where(agentskill.FlagEQ(flag)).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete agent skill: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
 	}
 	return nil
 }

@@ -8,7 +8,9 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func EventPayloadDetail(payloadJSON string) templ.Component {
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+func AgentSkillTable(items []model.AgentSkill) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -29,20 +31,23 @@ func EventPayloadDetail(payloadJSON string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<td colspan=\"5\" class=\"p-0\"><div class=\"p-3\"><details open><summary class=\"text-sm font-semibold cursor-pointer\">Payload</summary><pre class=\"bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96 mt-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\"><div id=\"agent-skills-table\" data-testid=\"agent-skills-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Flag</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Description</th><th class=\"text-xs uppercase\">Enabled</th><th class=\"text-xs uppercase\">Updated</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"agent-skills-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(payloadJSON)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/event_payload.templ`, Line: 8, Col: 102}
+		for _, item := range items {
+			templ_7745c5c3_Err = AgentSkillRow(item).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
+		if len(items) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"agent-skills-empty\"><td colspan=\"6\" class=\"text-center text-base-content/50\">No agent skills found.</td></tr>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</pre></details></div></td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</tbody></table></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

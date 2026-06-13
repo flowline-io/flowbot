@@ -1,0 +1,32 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentSkillsPage(items []model.AgentSkill) {
+	@layout.Base("Agent Skills — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Agent Skills</h1>
+			<div class="flex gap-2">
+				<button hx-get="/service/web/agent-skills/list"
+					hx-target="#agent-skills-table"
+					hx-swap="outerHTML"
+					data-testid="agent-skills-refresh"
+					class="btn btn-ghost btn-sm">
+					Refresh
+				</button>
+				<button hx-get="/service/web/agent-skills/new"
+					hx-target="#agent-skills-rows"
+					hx-swap="afterbegin"
+					data-testid="agent-skills-new"
+					class="btn btn-primary btn-sm">
+					New Skill
+				</button>
+			</div>
+		</div>
+		@partials.AgentSkillTable(items)
+	}
+}

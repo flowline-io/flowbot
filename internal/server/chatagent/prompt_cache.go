@@ -42,6 +42,14 @@ func ResetPromptCacheForTest() {
 	promptCacheVer.Store(0)
 }
 
+// InvalidatePromptCache clears the cached system prompt so the next request rebuilds it.
+func InvalidatePromptCache() {
+	promptCacheMu.Lock()
+	defer promptCacheMu.Unlock()
+	promptCache = promptCacheEntry{}
+	promptCacheVer.Add(1)
+}
+
 // PromptCacheVersion returns a monotonic version token for prompt cache invalidation.
 func PromptCacheVersion() uint64 {
 	return promptCacheVer.Load()

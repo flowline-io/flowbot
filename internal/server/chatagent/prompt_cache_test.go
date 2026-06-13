@@ -182,6 +182,41 @@ func TestContextFileMTimesEqual(t *testing.T) {
 	}
 }
 
+func TestInvalidatePromptCache(t *testing.T) {
+	tests := []struct {
+		name       string
+		preload    string
+		wantBumped bool
+	}{
+		{name: "clears cached prompt", preload: "cached prompt", wantBumped: true},
+		{name: "bumps version token", preload: "another prompt", wantBumped: true},
+		{name: "allows rebuild on next read", preload: "stale prompt", wantBumped: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ResetPromptCacheForTest()
+			promptCacheMu.Lock()
+			promptCache = promptCacheEntry{
+				prompt:   tt.preload,
+				loadedAt: time.Now().UTC(),
+			}
+			promptCacheMu.Unlock()
+
+			before := PromptCacheVersion()
+			InvalidatePromptCache()
+			after := PromptCacheVersion()
+
+			assert.Greater(t, after, before)
+			promptCacheMu.RLock()
+			got := promptCache
+			promptCacheMu.RUnlock()
+			assert.True(t, got.loadedAt.IsZero())
+			assert.Empty(t, got.prompt)
+		})
+	}
+}
+
 func TestEvictHarnessPool(t *testing.T) {
 	tests := []struct {
 		name      string

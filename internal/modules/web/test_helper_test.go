@@ -19,15 +19,20 @@ import (
 
 type testStore struct {
 	store.Adapter
-	configs     []model.ConfigItem
-	configErr   error
-	setConfigFn func(uid types.Uid, topic, key string, value types.KV) error
-	getConfigFn func(uid types.Uid, topic, key string) (types.KV, error)
-	delConfigFn func(uid types.Uid, topic, key string) error
-	paramGetFn  func(ctx context.Context, flag string) (gen.Parameter, error)
-	paramSetFn  func(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
-	paramDelFn  func(ctx context.Context, flag string) error
-	dbClient    *store.Client // in-memory SQLite client for view handler tests
+	configs            []model.ConfigItem
+	configErr          error
+	setConfigFn        func(uid types.Uid, topic, key string, value types.KV) error
+	getConfigFn        func(uid types.Uid, topic, key string) (types.KV, error)
+	delConfigFn        func(uid types.Uid, topic, key string) error
+	paramGetFn         func(ctx context.Context, flag string) (gen.Parameter, error)
+	paramSetFn         func(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error
+	paramDelFn         func(ctx context.Context, flag string) error
+	agentSkills        map[string]*gen.AgentSkill
+	agentSkillsErr     error
+	createAgentSkillFn func(skill *gen.AgentSkill) error
+	updateAgentSkillFn func(skill *gen.AgentSkill) error
+	deleteAgentSkillFn func(flag string) error
+	dbClient           *store.Client // in-memory SQLite client for view handler tests
 }
 
 func (s *testStore) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {

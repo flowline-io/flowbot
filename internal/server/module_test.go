@@ -263,6 +263,23 @@ func (*testStoreAdapter) UpdateAgentSkill(_ context.Context, skill *gen.AgentSki
 	testAgentSkills[skill.Name] = skill
 	return nil
 }
+func (*testStoreAdapter) GetAgentSkillByFlag(_ context.Context, flag string) (*gen.AgentSkill, error) {
+	for _, skill := range testAgentSkills {
+		if skill.Flag == flag || (skill.Flag == "" && skill.Name == flag) {
+			return skill, nil
+		}
+	}
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) DeleteAgentSkill(_ context.Context, flag string) error {
+	for name, skill := range testAgentSkills {
+		if skill.Flag == flag || (skill.Flag == "" && skill.Name == flag) {
+			delete(testAgentSkills, name)
+			return nil
+		}
+	}
+	return types.ErrNotFound
+}
 func (*testStoreAdapter) GetBot(context.Context, int64) (*gen.Bot, error) {
 	return nil, nil
 }

@@ -1,0 +1,35 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSkillRow(item model.AgentSkill) {
+	<tr id={ agentSkillRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="text-base-content font-mono text-sm">{ item.Flag }</td>
+		<td class="text-base-content font-medium">{ item.Name }</td>
+		<td class="text-base-content/70 max-w-xs truncate">{ agentSkillDescriptionPreview(item.Description) }</td>
+		<td>
+			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		</td>
+		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+		<td>
+			<div class="flex gap-1">
+				<button hx-get={ agentSkillEditURL(item) }
+					data-testid="agent-skill-edit"
+					class="btn btn-ghost btn-xs text-primary">
+					Edit
+				</button>
+				<button hx-delete={ agentSkillURL(item) }
+					data-confirm="Delete this skill?"
+					data-confirm-title="Delete Skill"
+					data-confirm-btn="Delete"
+					data-confirm-class="btn-error"
+					data-testid="agent-skill-delete"
+					class="btn btn-ghost btn-xs text-error">
+					Delete
+				</button>
+			</div>
+		</td>
+	</tr>
+}
