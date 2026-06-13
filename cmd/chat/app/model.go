@@ -80,6 +80,8 @@ type Model struct {
 	slashMatches []SlashCommand
 	slashPick    int
 
+	inputHist inputHistory
+
 	status StatusSnapshot
 
 	startedAt    time.Time
@@ -118,6 +120,7 @@ func NewModel(cl *client.Client, profile string) *Model {
 		phase:         PhaseIdle,
 		startedAt:     time.Now(),
 		hint:          defaultHint(),
+		inputHist:     inputHistory{index: -1},
 	}
 }
 

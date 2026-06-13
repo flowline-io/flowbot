@@ -76,6 +76,14 @@ func (m *Model) clearSlashSuggest() {
 	m.slashPick = 0
 }
 
+func (m *Model) slashPickDelta(delta int) {
+	if len(m.slashMatches) == 0 {
+		return
+	}
+	n := len(m.slashMatches)
+	m.slashPick = (m.slashPick + delta%n + n) % n
+}
+
 func (m *Model) applySlashCompletion() {
 	if len(m.slashMatches) == 0 || m.slashPick >= len(m.slashMatches) {
 		return
@@ -119,24 +127,27 @@ func (m *Model) acceptSlashSelection() (text string, run bool) {
 }
 
 func (m *Model) handleSlashSuggestKey(msg tea.KeyMsg) bool {
-	if !m.slashSuggestActive() {
+	if !m.slashSuggestActive() || m.inputHist.index != -1 {
 		return false
 	}
-	switch msg.Key().Code {
-	case tea.KeyTab:
+	switch msg.String() {
+	case "tab":
 		if msg.Key().Mod&tea.ModShift != 0 {
-			m.slashPick = (m.slashPick + len(m.slashMatches) - 1) % len(m.slashMatches)
+			m.slashPickDelta(-1)
 			return true
 		}
 		m.applySlashCompletion()
 		return true
-	case tea.KeyDown:
-		m.slashPick = (m.slashPick + 1) % len(m.slashMatches)
+	case "shift+tab":
+		m.slashPickDelta(-1)
 		return true
-	case tea.KeyUp:
-		m.slashPick = (m.slashPick + len(m.slashMatches) - 1) % len(m.slashMatches)
+	case "ctrl+n":
+		m.slashPickDelta(1)
 		return true
-	case tea.KeyEscape:
+	case "ctrl+p":
+		m.slashPickDelta(-1)
+		return true
+	case "esc", "escape":
 		m.clearSlashSuggest()
 		return true
 	default:
@@ -164,7 +175,7 @@ func (m *Model) renderSlashSuggestions() string {
 		writeBuilder(&b, m.styles.Hint.Render(fmt.Sprintf("  … %d more", len(m.slashMatches)-maxSlashSuggestLines)))
 		writeBuilder(&b, "\n")
 	}
-	writeBuilder(&b, m.styles.Hint.Render("  Tab/Enter accept · ↑↓ select · Esc dismiss"))
+	writeBuilder(&b, m.styles.Hint.Render("  Tab complete · Ctrl+N/P select · Enter run · Esc dismiss"))
 	writeBuilder(&b, "\n")
 	return b.String()
 }
@@ -182,6 +193,9 @@ func (m *Model) slashSuggestHeight() int {
 
 func (m *Model) updateInput(msg tea.Msg) tea.Cmd {
 	if key, ok := msg.(tea.KeyMsg); ok {
+		if m.handleInputHistoryKey(key) {
+			return nil
+		}
 		if m.handleSlashSuggestKey(key) {
 			return nil
 		}

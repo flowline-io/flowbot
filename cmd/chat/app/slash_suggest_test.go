@@ -131,26 +131,30 @@ func TestAcceptSlashSelection(t *testing.T) {
 	}
 }
 
+func slashSuggestKey(code rune, mod tea.KeyMod) tea.KeyPressMsg {
+	return tea.KeyPressMsg{Code: code, Mod: mod}
+}
+
 func TestHandleSlashSuggestKey(t *testing.T) {
 	tests := []struct {
 		name      string
 		start     string
-		key       rune
+		key       tea.KeyPressMsg
 		wantValue string
 		wantPick  int
 		wantMenu  bool
 	}{
-		{name: "tab completes first match", start: "/he", key: tea.KeyTab, wantValue: "/help", wantPick: 0, wantMenu: true},
-		{name: "down selects next", start: "/", key: tea.KeyDown, wantValue: "/", wantPick: 1, wantMenu: true},
-		{name: "up wraps selection", start: "/", key: tea.KeyUp, wantValue: "/", wantPick: len(slashCommands) - 1, wantMenu: true},
-		{name: "esc dismisses menu", start: "/", key: tea.KeyEscape, wantValue: "/", wantPick: 0, wantMenu: false},
+		{name: "tab completes first match", start: "/he", key: slashSuggestKey(tea.KeyTab, 0), wantValue: "/help", wantPick: 0, wantMenu: true},
+		{name: "ctrl n selects next", start: "/", key: slashSuggestKey('n', tea.ModCtrl), wantValue: "/", wantPick: 1, wantMenu: true},
+		{name: "ctrl p wraps selection", start: "/", key: slashSuggestKey('p', tea.ModCtrl), wantValue: "/", wantPick: len(slashCommands) - 1, wantMenu: true},
+		{name: "esc dismisses menu", start: "/", key: slashSuggestKey(tea.KeyEscape, 0), wantValue: "/", wantPick: 0, wantMenu: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewModel(nil, "default")
 			m.input.SetValue(tt.start)
 			m.syncSlashSuggest()
-			handled := m.handleSlashSuggestKey(tea.KeyPressMsg{Code: tt.key})
+			handled := m.handleSlashSuggestKey(tt.key)
 			assert.True(t, handled)
 			assert.Equal(t, tt.wantValue, m.input.Value())
 			assert.Equal(t, tt.wantPick, m.slashPick)
@@ -166,7 +170,7 @@ func TestRenderSlashSuggestions(t *testing.T) {
 		wantSub string
 	}{
 		{name: "shows help entry", value: "/he", wantSub: "/help"},
-		{name: "shows navigation hint", value: "/", wantSub: "Tab/Enter accept"},
+		{name: "shows navigation hint", value: "/", wantSub: "Tab complete"},
 		{name: "hidden without slash", value: "hello", wantSub: ""},
 	}
 	for _, tt := range tests {

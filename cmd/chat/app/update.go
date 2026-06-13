@@ -193,6 +193,7 @@ func (m *Model) handleKey(msg tea.KeyMsg) (*Model, tea.Cmd) {
 			if !run {
 				return m, nil
 			}
+			m.inputHist.push(text)
 			m.input.Reset()
 			m.clearSlashSuggest()
 			return m.handleUserInput(text)
@@ -201,6 +202,7 @@ func (m *Model) handleKey(msg tea.KeyMsg) (*Model, tea.Cmd) {
 		if text == "" {
 			return m, nil
 		}
+		m.inputHist.push(text)
 		m.input.Reset()
 		m.clearSlashSuggest()
 		return m.handleUserInput(text)
