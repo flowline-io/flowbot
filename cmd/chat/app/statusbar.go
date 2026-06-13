@@ -22,7 +22,7 @@ type StatusSnapshot struct {
 
 // RenderStatusBar formats the Hermes-style status line.
 func RenderStatusBar(snap StatusSnapshot, styles Styles) string {
-	icon := "⚕"
+	icon := "🤖"
 	if snap.Streaming {
 		frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 		icon = frames[snap.SpinnerFrame%len(frames)]
