@@ -10,7 +10,6 @@ require (
 	code.gitea.io/sdk/gitea v0.25.1
 	entgo.io/ent v0.14.6
 	github.com/Masterminds/sprig/v3 v3.3.0
-	github.com/RealAlexandreAI/json-repair v0.0.15
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
 	github.com/a-h/templ v0.3.1020
@@ -36,8 +35,6 @@ require (
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/jmoiron/sqlx v1.4.0
-	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.2.0
 	github.com/onsi/ginkgo/v2 v2.30.0
@@ -49,8 +46,6 @@ require (
 	github.com/redis/go-redis/extra/redisotel/v9 v9.20.1
 	github.com/redis/go-redis/v9 v9.20.1
 	github.com/rs/zerolog v1.35.1
-	github.com/russross/blackfriday/v2 v2.1.0
-	github.com/samber/lo v1.53.0
 	github.com/samber/oops v1.22.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/schollz/progressbar/v3 v3.19.0
@@ -67,6 +62,7 @@ require (
 	github.com/tidwall/gjson v1.19.0
 	github.com/tmc/langchaingo v0.1.14
 	github.com/valyala/fasthttp v1.71.0
+	github.com/yuin/goldmark v1.8.2
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.44.0
@@ -81,7 +77,6 @@ require (
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
-	gopkg.in/yaml.v3 v3.0.1
 	miniflux.app/v2 v2.3.1
 	modernc.org/sqlite v1.52.0
 	resty.dev/v3 v3.0.0-rc.1
@@ -486,8 +481,10 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/sajari/fuzzy v1.0.0 // indirect
+	github.com/samber/lo v1.53.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/sassoftware/relic v7.2.1+incompatible // indirect
 	github.com/scylladb/go-set v1.0.3-0.20200225121959-cc7b2070d91e // indirect
@@ -544,7 +541,6 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	github.com/yuin/goldmark v1.8.2 // indirect
 	github.com/yuin/goldmark-emoji v1.0.6 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
@@ -594,6 +590,7 @@ require (
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/gotestsum v1.13.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 	modernc.org/libc v1.72.3 // indirect

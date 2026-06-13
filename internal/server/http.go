@@ -17,12 +17,12 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/recover"
 	"github.com/gofiber/fiber/v3/middleware/requestid"
 	"github.com/rs/zerolog"
-	"github.com/samber/lo"
 	"github.com/samber/oops"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	tracepkg "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 var (
@@ -125,7 +125,7 @@ func newHTTPServer() *fiber.App {
 				"/",
 				"/service/user/metrics",
 			}
-			return lo.Contains(skipPaths, c.Path())
+			return utils.Contains(skipPaths, c.Path())
 		},
 	}))
 	// security headers

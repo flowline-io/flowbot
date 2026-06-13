@@ -5,13 +5,14 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/samber/lo"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
+
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // SpanKey is the key used to store the span in fiber.Ctx.Locals().
@@ -34,7 +35,7 @@ func FiberMiddleware() fiber.Handler {
 	tracer := otel.Tracer("fiber")
 
 	return func(c fiber.Ctx) error {
-		if lo.Contains(skippedPaths, c.Path()) {
+		if utils.Contains(skippedPaths, c.Path()) {
 			return c.Next()
 		}
 

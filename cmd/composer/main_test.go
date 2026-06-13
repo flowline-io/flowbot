@@ -46,7 +46,6 @@ func TestNewCommand(t *testing.T) {
 			require.Contains(t, subNames, "admin")
 			require.Contains(t, subNames, "webdoc")
 			require.Contains(t, subNames, "skills")
-			require.Contains(t, subNames, "doc")
 		})
 	}
 }
@@ -92,36 +91,6 @@ func TestSkillsCommand(t *testing.T) {
 			require.NotNil(t, outputFlag)
 			val, _ := skillsCmd.Flags().GetString("output")
 			require.Equal(t, "./docs/skills", val)
-		})
-	}
-}
-
-func TestDocCommand(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-	}{
-		{name: "doc command has correct flags"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			cmd := NewCommand()
-			docCmd := findSubcommand(cmd, "doc")
-			require.NotNil(t, docCmd)
-			require.Equal(t, "doc", docCmd.Use)
-			require.NotNil(t, docCmd.RunE)
-
-			configFlag := docCmd.Flags().Lookup("config")
-			require.NotNil(t, configFlag)
-			val, _ := docCmd.Flags().GetString("config")
-			require.Equal(t, "./flowbot.yaml", val)
-
-			dbFlag := docCmd.Flags().Lookup("database")
-			require.NotNil(t, dbFlag)
-			dbVal, _ := docCmd.Flags().GetString("database")
-			require.Equal(t, "flowbot", dbVal)
 		})
 	}
 }

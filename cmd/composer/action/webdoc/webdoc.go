@@ -12,10 +12,11 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday/v2"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // FrontMatter holds the parsed YAML front matter from a markdown file.
@@ -353,9 +354,10 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 
 	_, content := parseFrontMatter(input)
 
-	htmlBody := blackfriday.Run(content,
-		blackfriday.WithExtensions(blackfriday.CommonExtensions),
-	)
+	htmlBody, err := utils.MarkdownToHTML(content)
+	if err != nil {
+		return fmt.Errorf("rendering %s: %w", info.SourcePath, err)
+	}
 	htmlBody = bluemonday.UGCPolicy().SanitizeBytes(htmlBody)
 
 	htmlBody = mdLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1.html$2"`))

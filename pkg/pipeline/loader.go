@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/flc1125/go-cron/v4"
-	"gopkg.in/yaml.v3"
+	"github.com/goccy/go-yaml"
 
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"

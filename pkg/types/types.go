@@ -1,14 +1,8 @@
 package types
 
 import (
-	"github.com/lithammer/shortuuid/v4"
-
 	"github.com/flowline-io/flowbot/pkg/config"
 )
-
-func Id() string {
-	return shortuuid.New()
-}
 
 func AppUrl() string {
 	return config.App.Flowbot.URL

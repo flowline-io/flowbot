@@ -1,5 +1,15 @@
 package utils
 
+// Contains reports whether item is present in slice.
+func Contains[T comparable](slice []T, item T) bool {
+	for _, v := range slice {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}
+
 func SameStringSlice(x, y []string) bool {
 	if len(x) != len(y) {
 		return false

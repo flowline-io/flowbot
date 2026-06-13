@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/composer/action/admin"
-	"github.com/flowline-io/flowbot/cmd/composer/action/doc"
 	"github.com/flowline-io/flowbot/cmd/composer/action/skills"
 	"github.com/flowline-io/flowbot/cmd/composer/action/webdoc"
 	"github.com/flowline-io/flowbot/version"
@@ -46,15 +45,6 @@ func NewCommand() *cobra.Command {
 	}
 	skillsCmd.Flags().String("output", "./docs/skills", "output directory for SKILL.md files")
 	rootCmd.AddCommand(skillsCmd)
-
-	docCmd := &cobra.Command{
-		Use:   "doc",
-		Short: "database schema documentation",
-		RunE:  doc.SchemaAction,
-	}
-	docCmd.Flags().String("config", "./flowbot.yaml", "config of the database connection")
-	docCmd.Flags().String("database", "flowbot", "database name")
-	rootCmd.AddCommand(docCmd)
 
 	return rootCmd
 }

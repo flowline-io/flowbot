@@ -6,9 +6,9 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/microcosm-cc/bluemonday"
-	blackfriday "github.com/russross/blackfriday/v2"
 
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
@@ -34,7 +34,10 @@ func textView(data types.KV) templ.Component {
 // markdownView renders markdown content as sanitized HTML.
 func markdownView(data types.KV) templ.Component {
 	content, _ := data.String("content")
-	html := blackfriday.Run([]byte(content))
+	html, err := utils.MarkdownToHTML([]byte(content))
+	if err != nil {
+		html = nil
+	}
 	html = bluemonday.UGCPolicy().SanitizeBytes(html)
 	return partials.ViewMarkdownContent(templ.ComponentFunc(func(_ context.Context, w io.Writer) error {
 		_, err := w.Write(html)
