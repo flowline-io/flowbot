@@ -7,6 +7,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	agentmsg "github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
@@ -370,7 +371,7 @@ func (m *Model) pumpStream() tea.Cmd {
 func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 	switch ev.Type {
 	case "delta":
-		m.rawAssistant = ev.Text
+		m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
 		m.renderPending = true
 		m.renderDeadline = time.Now().Add(RenderDebounce(m.rawAssistant))
 	case "tool":
@@ -407,7 +408,7 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 		m.clearConfirm()
 	case "done":
 		if ev.Text != "" {
-			m.rawAssistant = ev.Text
+			m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
 		}
 		m.finalizeAssistant()
 		m.phase = PhaseIdle
@@ -431,9 +432,10 @@ func (m *Model) clearConfirm() {
 }
 
 func (m *Model) appendUser(text string) {
-	writeBuilder(&m.transcript, FormatSeparator(m.width, m.styles)+"\n")
+	if m.transcript.Len() > 0 {
+		writeBuilder(&m.transcript, FormatSeparator(m.width, m.styles)+"\n")
+	}
 	writeBuilder(&m.transcript, FormatHistoryLine("user", text, m.styles))
-	writeBuilder(&m.transcript, "\n")
 }
 
 func (m *Model) appendSystem(text string) {
@@ -452,17 +454,15 @@ func (m *Model) refreshStreamingAssistant() {
 		return
 	}
 	base := m.transcript.String()[:m.streamingBaseLen]
-	rendered := RenderMarkdown(m.rawAssistant, m.width-2)
+	rendered := FormatAssistantBlock(m.rawAssistant, m.width-2, m.styles)
 	m.transcript.Reset()
 	writeBuilder(&m.transcript, base)
 	writeBuilder(&m.transcript, rendered)
-	writeBuilder(&m.transcript, "\n")
 	writeBuilder(&m.transcript, m.streamOverlay.String())
 }
 
 func (m *Model) finalizeAssistant() {
 	m.refreshStreamingAssistant()
-	writeBuilder(&m.transcript, FormatSeparator(m.width, m.styles)+"\n")
 	m.rawAssistant = ""
 	m.streamOverlay.Reset()
 	m.messageCount++
@@ -538,18 +538,8 @@ func (m *Model) hydrateHistoryCmd() tea.Cmd {
 		if err != nil {
 			return initDoneMsg{err: err.Error()}
 		}
-		var b strings.Builder
-		for _, msg := range msgs {
-			writeBuilder(&b, FormatSeparator(width, styles)+"\n")
-			if msg.Role == "user" {
-				writeBuilder(&b, FormatHistoryLine("user", msg.Text, styles))
-			} else {
-				writeBuilder(&b, RenderMarkdown(msg.Text, width-2))
-			}
-			writeBuilder(&b, "\n")
-		}
 		return hydrateMsg{
-			content:         b.String(),
+			content:         FormatHistoryMessages(msgs, width, styles),
 			count:           len(msgs),
 			estimatedTokens: EstimateHistoryTokens(msgs),
 		}

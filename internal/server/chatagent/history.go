@@ -48,7 +48,7 @@ func historyFromMessage(message agent.AgentMessage) (HistoryMessage, bool) {
 		}
 		return HistoryMessage{Role: "user", Text: text, CreatedAt: m.Timestamp}, true
 	case msg.AssistantMessage:
-		text := strings.TrimSpace(textFromParts(m.Parts))
+		text := strings.TrimSpace(msg.AssistantDisplayText(m))
 		if text == "" {
 			return HistoryMessage{}, false
 		}

@@ -1,11 +1,166 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestFormatHistoryLineRoles(t *testing.T) {
+	styles := NewStyles()
+	tests := []struct {
+		name       string
+		role       string
+		text       string
+		wantSubstr []string
+	}{
+		{name: "user bullet", role: "user", text: "hello", wantSubstr: []string{"●", "hello"}},
+		{name: "assistant bullet", role: "assistant", text: "reply", wantSubstr: []string{"◆", "reply"}},
+		{name: "unknown role plain", role: "system", text: "note", wantSubstr: []string{"note"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripANSI(FormatHistoryLine(tt.role, tt.text, styles))
+			for _, want := range tt.wantSubstr {
+				assert.Contains(t, got, want)
+			}
+		})
+	}
+}
+
+func TestFormatAssistantBlock(t *testing.T) {
+	styles := NewStyles()
+	tests := []struct {
+		name       string
+		text       string
+		wantSubstr []string
+		wantOnce   string
+	}{
+		{
+			name:       "plain text marker",
+			text:       "hello",
+			wantSubstr: []string{"◆", "hello"},
+			wantOnce:   "◆",
+		},
+		{
+			name:       "multiline marker once",
+			text:       "line one\nline two",
+			wantSubstr: []string{"◆", "line one", "line two"},
+			wantOnce:   "◆",
+		},
+		{
+			name:       "markdown body",
+			text:       "# Title\nbody",
+			wantSubstr: []string{"◆", "Title", "body"},
+			wantOnce:   "◆",
+		},
+		{
+			name:       "tool payload summarized",
+			text:       `[{"id":"call_00","type":"function","function":{"name":"run_code","arguments":"{}"}}]`,
+			wantSubstr: []string{"◆", `run_code({})`},
+			wantOnce:   "◆",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripANSI(FormatAssistantBlock(tt.text, 80, styles))
+			if tt.wantSubstr == nil {
+				assert.Empty(t, got)
+				return
+			}
+			for _, want := range tt.wantSubstr {
+				assert.Contains(t, got, want)
+			}
+			if tt.wantOnce != "" {
+				assert.Equal(t, 1, strings.Count(got, tt.wantOnce))
+			}
+		})
+	}
+}
+
+func TestFormatHistoryMessages(t *testing.T) {
+	styles := NewStyles()
+	tests := []struct {
+		name        string
+		msgs        []client.ChatHistoryMessage
+		wantContain []string
+		wantNoGap   bool
+		wantTurnSep bool
+	}{
+		{
+			name: "user and agent without separator",
+			msgs: []client.ChatHistoryMessage{
+				{Role: "user", Text: "hello"},
+				{Role: "assistant", Text: "hi there"},
+			},
+			wantContain: []string{"● hello", "hi there"},
+			wantNoGap:   true,
+		},
+		{
+			name: "second turn keeps separator",
+			msgs: []client.ChatHistoryMessage{
+				{Role: "user", Text: "first"},
+				{Role: "assistant", Text: "reply one"},
+				{Role: "user", Text: "second"},
+				{Role: "assistant", Text: "reply two"},
+			},
+			wantContain: []string{"● first", "reply one", "● second", "reply two"},
+			wantTurnSep: true,
+		},
+		{
+			name: "assistant only has marker",
+			msgs: []client.ChatHistoryMessage{
+				{Role: "assistant", Text: "welcome"},
+			},
+			wantContain: []string{"welcome"},
+			wantNoGap:   true,
+		},
+		{
+			name: "tool payload summarized in history",
+			msgs: []client.ChatHistoryMessage{
+				{Role: "user", Text: "run"},
+				{Role: "assistant", Text: `[{"id":"call_00","type":"function","function":{"name":"run_code","arguments":"{}"}}]`},
+				{Role: "assistant", Text: "done"},
+			},
+			wantContain: []string{"● run", "run_code({})", "done"},
+		},
+		{
+			name: "coalesce consecutive tool snapshots",
+			msgs: []client.ChatHistoryMessage{
+				{Role: "user", Text: "weather"},
+				{Role: "assistant", Text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":""}}]`},
+				{Role: "assistant", Text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":""}}]`},
+				{Role: "assistant", Text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":"{\"query\":\"广州天气\"}"}}]`},
+			},
+			wantContain: []string{"web_search({\"query\":\"广州天气\"})"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripANSI(FormatHistoryMessages(tt.msgs, 80, styles))
+			for _, want := range tt.wantContain {
+				assert.Contains(t, got, want)
+			}
+			if tt.name == "coalesce consecutive tool snapshots" {
+				assert.Equal(t, 1, strings.Count(got, "◆"))
+			}
+			if tt.wantNoGap {
+				userIdx := strings.Index(got, "●")
+				agentIdx := strings.Index(got, "◆")
+				if userIdx >= 0 && agentIdx > userIdx {
+					between := got[userIdx:agentIdx]
+					assert.NotContains(t, between, "─")
+					assert.NotContains(t, between, "\n\n")
+				}
+			}
+			if tt.wantTurnSep {
+				assert.GreaterOrEqual(t, strings.Count(got, "─"), 1)
+			}
+		})
+	}
+}
 
 func TestEstimateHistoryTokens(t *testing.T) {
 	tests := []struct {

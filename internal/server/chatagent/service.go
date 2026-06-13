@@ -203,8 +203,8 @@ func extractAssistantReply(messages []any) string {
 		if !ok {
 			continue
 		}
-		text := textFromParts(assistant.Parts)
-		if strings.TrimSpace(text) != "" {
+		text := strings.TrimSpace(msg.AssistantDisplayText(assistant))
+		if text != "" {
 			return text
 		}
 	}
