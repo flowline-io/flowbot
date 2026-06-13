@@ -169,30 +169,19 @@ Wire compaction through the harness for production chat flows:
 ctxMgr := ctxmgr.New(ctxmgr.Options{
     Model:         llmModel,
     ModelName:     "gpt-4o",
-    ContextWindow: config.ContextWindowForModel("gpt-4o"),
+    ContextWindow: config.ChatAgentContextWindow(),
     Settings:      ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction),
     SystemPrompt:  systemPrompt,
 })
-
-h := harness.New(harness.Options{
-    AgentOptions:   agent.Options{Model: llmModel, Registry: registry},
-    Session:        sess,
-    ContextManager: ctxMgr,
-    SystemPrompt:   systemPrompt,
-    ModelName:      "gpt-4o",
-})
 ```
 
-Configure per-model context windows and compaction thresholds in `flowbot.yaml`:
+Register models in `flowbot.yaml` and add catalog entries in `pkg/agent/model/catalog.go` for accurate context limits. Unknown model names use the default 128000-token budget.
+
+Configure compaction thresholds in `flowbot.yaml`:
 
 ```yaml
-models:
-  - provider: openai
-    model_names: ["gpt-4o"]
-    context_windows:
-      gpt-4o: 128000
-
 chat_agent:
+  chat_model: "gpt-4o"
   compaction:
     enabled: true
     reserve_tokens: 16384

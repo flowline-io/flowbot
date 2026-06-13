@@ -66,6 +66,7 @@ type ChatContextSkill struct {
 // ChatContextUsage is the context budget snapshot from GET /chatagent/sessions/:id/context.
 type ChatContextUsage struct {
 	Model             string                `json:"model"`
+	ToolModel         string                `json:"tool_model,omitempty"`
 	ContextWindow     int                   `json:"context_window"`
 	TotalTokens       int                   `json:"total_tokens"`
 	TotalPercent      float64               `json:"total_percent"`

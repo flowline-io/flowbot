@@ -19,7 +19,7 @@ agent/
 ├── llm/                  # langchaingo adapter + fake model
 ├── tool/                 # Registry, schema, executor
 ├── session/              # Session tree + Storage interface + JSONL helpers
-├── model/                # Dual-model router
+├── model/                # Model catalog and dual-model router
 ├── transform/            # convertToLLM + multimodal helpers
 ├── ctxmgr/               # Context budget, compaction, branch summarization
 ├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
@@ -80,7 +80,7 @@ Use `ctxmgr.Manager` with the harness to compact long histories and summarize br
 ```go
 ctxMgr := ctxmgr.New(ctxmgr.Options{
     Model: llmModel, ModelName: "gpt-4o",
-    ContextWindow: config.ContextWindowForModel("gpt-4o"),
+    ContextWindow: config.ChatAgentContextWindow(),
     Settings: ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction),
 })
 h := harness.New(harness.Options{ContextManager: ctxMgr, Session: sess, ...})

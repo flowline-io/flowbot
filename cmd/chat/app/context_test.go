@@ -65,6 +65,20 @@ func TestRenderContextUsage(t *testing.T) {
 			},
 			wantSub: []string{"Context Usage", "test[128k]"},
 		},
+		{
+			name: "dual model label",
+			info: &client.ChatContextUsage{
+				Model:         "deepseek-v4-flash",
+				ToolModel:     "deepseek-v4-pro",
+				ContextWindow: 1_048_576,
+				TotalTokens:   1000,
+				TotalPercent:  0.1,
+				Categories: []client.ChatContextCategory{
+					{ID: "messages", Label: "Messages", Tokens: 1000, Percent: 0.1},
+				},
+			},
+			wantSub: []string{"deepseek-v4-flash+deepseek-v4-pro[1m]"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

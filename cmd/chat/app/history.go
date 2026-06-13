@@ -109,11 +109,8 @@ func EstimateHistoryTokens(msgs []client.ChatHistoryMessage) int {
 }
 
 func (m *Model) applyHistoryUsage(tokens int) {
-	window := m.status.ContextWindow
-	if window <= 0 {
-		window = 128000
-		m.status.ContextWindow = window
-	}
+	window := m.effectiveContextWindow()
+	m.status.ContextWindow = window
 	m.status.TotalTokens = tokens
 	m.status.ContextPercent = contextUsagePercent(tokens, window, 0)
 }

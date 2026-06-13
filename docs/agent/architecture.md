@@ -157,7 +157,8 @@ Harness integration (`harness.Options.ContextManager`):
 
 Configuration:
 
-- Per-model `context_windows` in `flowbot.yaml` `models[]`
+- Per-model context limits in the built-in catalog at `pkg/agent/model/catalog.go`
+- Unknown models fall back to `model.DefaultContextWindow` (128000)
 - `chat_agent.compaction` for `enabled`, `reserve_tokens`, `keep_recent_tokens`
 
 ## Dual-Model Routing

@@ -41,10 +41,9 @@ var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), f
 		}
 		config.App.Models = []config.Model{
 			{
-				Provider:       agentllm.ProviderOpenAI,
-				ApiKey:         "test",
-				ModelNames:     []string{"fake-model"},
-				ContextWindows: map[string]int{"fake-model": 128000},
+				Provider:   agentllm.ProviderOpenAI,
+				ApiKey:     "test",
+				ModelNames: []string{"fake-model"},
 			},
 		}
 

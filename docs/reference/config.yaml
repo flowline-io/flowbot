@@ -161,9 +161,6 @@ models:
     model_names:
       - "gpt-5.5-instant"
       - "gpt-5.5"
-    context_windows:
-      gpt-5.5-instant: 128000
-      gpt-5.5: 128000
 
 # Direct-message chat assistant agent
 chat_agent:

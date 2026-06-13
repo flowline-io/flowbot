@@ -574,8 +574,6 @@ type Model struct {
 	ApiKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
 	// Useful model names
 	ModelNames []string `json:"model_names" yaml:"model_names" mapstructure:"model_names"`
-	// ContextWindows maps model names to their maximum input token budgets.
-	ContextWindows map[string]int `json:"context_windows" yaml:"context_windows" mapstructure:"context_windows"`
 }
 
 func Load(path ...string) error {

@@ -53,13 +53,13 @@ func TestRenderStatusBarContextPercent(t *testing.T) {
 	}{
 		{
 			name:    "shows computed percent",
-			snap:    StatusSnapshot{Model: "deepseek-v4-flash", TotalTokens: 4016, ContextWindow: 128000},
-			wantSub: "3.1%",
+			snap:    StatusSnapshot{Model: "deepseek-v4-flash", TotalTokens: 4016, ContextWindow: 1_048_576},
+			wantSub: "0.4%",
 		},
 		{
 			name:    "shows small percent after resume",
-			snap:    StatusSnapshot{Model: "deepseek-v4-flash", TotalTokens: 238, ContextWindow: 128000},
-			wantSub: "0.2%",
+			snap:    StatusSnapshot{Model: "deepseek-v4-flash", TotalTokens: 238, ContextWindow: 1_048_576},
+			wantSub: "0.0%",
 		},
 		{
 			name:    "progress bar not empty",

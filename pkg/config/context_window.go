@@ -1,6 +1,10 @@
 package config
 
-const defaultContextWindow = 128000
+import (
+	"github.com/flowline-io/flowbot/pkg/agent/model"
+)
+
+const defaultContextWindow = model.DefaultContextWindow
 
 const (
 	defaultReserveTokens    = 16384
@@ -28,36 +32,28 @@ func (c CompactionConfig) WithDefaults() CompactionConfig {
 	return c
 }
 
-// ContextWindowForModels returns the configured context window for a model name
-// using the provided model definitions.
-func ContextWindowForModels(models []Model, modelName string) int {
-	for _, item := range models {
-		if window, ok := item.ContextWindows[modelName]; ok && window > 0 {
-			return window
-		}
-	}
-	return defaultContextWindow
+// ContextWindowForModels returns the catalog context window for modelName.
+//
+// Deprecated: models is ignored. Call ContextWindowForModel or ChatAgentContextWindow instead.
+func ContextWindowForModels(_ []Model, modelName string) int {
+	return model.ContextWindowFor(modelName)
 }
 
-// ContextWindowForModel returns the configured context window for a model name.
+// ContextWindowForModel returns the catalog context window for a model name.
 func ContextWindowForModel(modelName string) int {
-	return ContextWindowForModels(App.Models, modelName)
+	return model.ContextWindowFor(modelName)
 }
 
-// MaxContextWindow returns the largest configured context window among the given model names.
+// MaxContextWindow returns the largest catalog context window among the given model names.
 func MaxContextWindow(modelNames ...string) int {
-	maxWindow := 0
-	for _, name := range modelNames {
-		if name == "" {
-			continue
-		}
-		window := ContextWindowForModel(name)
-		if window > maxWindow {
-			maxWindow = window
-		}
+	return model.MaxContextWindow(modelNames...)
+}
+
+// ChatAgentContextWindow returns the effective input budget for the configured chat agent models.
+func ChatAgentContextWindow() int {
+	chat := ChatAgentChatModel()
+	if tool := App.ChatAgent.ToolModel; tool != "" {
+		return MaxContextWindow(chat, tool)
 	}
-	if maxWindow == 0 {
-		return defaultContextWindow
-	}
-	return maxWindow
+	return ContextWindowForModel(chat)
 }

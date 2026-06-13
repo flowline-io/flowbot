@@ -195,10 +195,7 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 
 	systemPrompt := SystemPrompt(ctx, workspace)
 	agentCtx := session.ToAgentContext(session.BuildContext(branch), systemPrompt)
-	contextWindow := config.ContextWindowForModel(resolvedName)
-	if dual {
-		contextWindow = config.MaxContextWindow(chatModel, toolModel)
-	}
+	contextWindow := config.ChatAgentContextWindow()
 	compactionSettings := ctxmgr.SettingsFromConfig(config.App.ChatAgent.Compaction)
 	ctxManager := ctxmgr.New(ctxmgr.Options{
 		Model:         llmModel,

@@ -24,7 +24,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 	It("persists session entries and returns assistant reply using fake model", func() {
 		config.App.ChatAgent.ChatModel = "fake-model"
 		config.App.Models = []config.Model{
-			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}, ContextWindows: map[string]int{"fake-model": 128000}},
+			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 		}
 		config.App.ChatAgent.Compaction = config.CompactionConfig{Enabled: false}
 
@@ -64,10 +64,9 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 	It("routes to tool model after tool execution when dual models are configured", func() {
 		config.App.Models = []config.Model{
 			{
-				Provider:       agentllm.ProviderOpenAI,
-				ApiKey:         "test",
-				ModelNames:     []string{"chat-model", "tool-model"},
-				ContextWindows: map[string]int{"chat-model": 128000, "tool-model": 128000},
+				Provider:   agentllm.ProviderOpenAI,
+				ApiKey:     "test",
+				ModelNames: []string{"chat-model", "tool-model"},
 			},
 		}
 		config.App.ChatAgent = config.ChatAgentConfig{

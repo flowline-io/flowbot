@@ -3,6 +3,7 @@ package config_test
 import (
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
@@ -32,19 +33,19 @@ func TestCompactionConfigWithDefaults(t *testing.T) {
 func TestContextWindowForModel(t *testing.T) {
 	tests := []struct {
 		name      string
-		models    []config.Model
 		modelName string
 		want      int
 	}{
-		{name: "configured model", models: []config.Model{{ContextWindows: map[string]int{"gpt-4o": 64000}}}, modelName: "gpt-4o", want: 64000},
-		{name: "unknown model fallback", models: nil, modelName: "unknown", want: 128000},
-		{name: "zero window skipped", models: []config.Model{{ContextWindows: map[string]int{"gpt-4o": 0}}}, modelName: "gpt-4o", want: 128000},
+		{name: "catalog model", modelName: "deepseek-v4-pro", want: 1_048_576},
+		{name: "unknown model fallback", modelName: "unknown", want: model.DefaultContextWindow},
+		{name: "empty name fallback", modelName: "", want: model.DefaultContextWindow},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.want, config.ContextWindowForModels(tt.models, tt.modelName))
+			assert.Equal(t, tt.want, config.ContextWindowForModels(nil, tt.modelName))
+			assert.Equal(t, tt.want, config.ContextWindowForModel(tt.modelName))
 		})
 	}
 }
@@ -52,34 +53,56 @@ func TestContextWindowForModel(t *testing.T) {
 func TestMaxContextWindow(t *testing.T) {
 	tests := []struct {
 		name       string
-		models     []config.Model
 		modelNames []string
 		want       int
 	}{
 		{
-			name: "returns largest configured window",
-			models: []config.Model{
-				{ContextWindows: map[string]int{"gpt-4o-mini": 64000, "gpt-4o": 128000}},
-			},
-			modelNames: []string{"gpt-4o-mini", "gpt-4o"},
-			want:       128000,
+			name:       "returns largest catalog window",
+			modelNames: []string{"fake-model", "deepseek-v4-pro"},
+			want:       1_048_576,
 		},
 		{
 			name:       "falls back when names empty",
 			modelNames: nil,
-			want:       128000,
+			want:       model.DefaultContextWindow,
 		},
 		{
 			name:       "uses default for unknown models",
 			modelNames: []string{"missing-a", "missing-b"},
-			want:       128000,
+			want:       model.DefaultContextWindow,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config.App.Models = tt.models
+			t.Parallel()
 			assert.Equal(t, tt.want, config.MaxContextWindow(tt.modelNames...))
+		})
+	}
+}
+
+func TestChatAgentContextWindow(t *testing.T) {
+	prev := config.App
+	t.Cleanup(func() { config.App = prev })
+
+	tests := []struct {
+		name      string
+		chatModel string
+		toolModel string
+		want      int
+	}{
+		{name: "single chat model", chatModel: "deepseek-v4-flash", want: 1_048_576},
+		{name: "dual model uses max", chatModel: "gpt-5.3-codex", toolModel: "deepseek-v4-pro", want: 1_048_576},
+		{name: "unknown chat model fallback", chatModel: "missing-model", want: model.DefaultContextWindow},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			config.App.ChatAgent = config.ChatAgentConfig{
+				ChatModel: tt.chatModel,
+				ToolModel: tt.toolModel,
+			}
+			assert.Equal(t, tt.want, config.ChatAgentContextWindow())
 		})
 	}
 }

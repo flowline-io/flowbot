@@ -26,7 +26,7 @@ func RenderContextUsage(info *client.ChatContextUsage, styles Styles) string {
 	writeBuilder(&b, " Context Usage\n")
 
 	usageBar := renderContextUsageBar(info.TotalPercent, contextBarWidth)
-	modelLabel := fmt.Sprintf("%s[%s]", info.Model, formatContextWindow(info.ContextWindow))
+	modelLabel := formatContextModelLabel(info.Model, info.ToolModel, info.ContextWindow)
 	writeBuilder(&b, fmt.Sprintf("     %s   %s\n", usageBar, modelLabel))
 
 	summary := fmt.Sprintf("%s/%s tokens (%s)",
@@ -170,4 +170,12 @@ func formatContextWindow(n int) string {
 	default:
 		return fmt.Sprintf("%d", n)
 	}
+}
+
+func formatContextModelLabel(model, toolModel string, window int) string {
+	label := model
+	if toolModel != "" && toolModel != model {
+		label = fmt.Sprintf("%s+%s", model, toolModel)
+	}
+	return fmt.Sprintf("%s[%s]", label, formatContextWindow(window))
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,13 +17,18 @@ func TestBuildContextUsageReport(t *testing.T) {
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
 
+	model.RegisterTestMetadata(t, model.Metadata{
+		ID:            "test-model",
+		Name:          "Test Model",
+		ContextLength: 100_000,
+	})
+
 	prev := config.App
 	t.Cleanup(func() { config.App = prev })
 
 	config.App = config.Type{
 		Models: []config.Model{{
-			ModelNames:     []string{"test-model"},
-			ContextWindows: map[string]int{"test-model": 100000},
+			ModelNames: []string{"test-model"},
 		}},
 		ChatAgent: config.ChatAgentConfig{
 			ChatModel: "test-model",
@@ -67,6 +73,7 @@ func TestBuildContextUsageReport(t *testing.T) {
 			wantMinTotal:   100,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			report, err := chatagent.BuildContextUsageReport(context.Background(), tt.sessionID)
@@ -94,6 +101,43 @@ func TestBuildContextUsageReport(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestBuildContextUsageReportDualModel(t *testing.T) {
+	root := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
+
+	model.RegisterTestMetadata(t, model.Metadata{
+		ID:            "test-chat",
+		Name:          "Test Chat",
+		ContextLength: 100_000,
+	})
+	model.RegisterTestMetadata(t, model.Metadata{
+		ID:            "test-tool",
+		Name:          "Test Tool",
+		ContextLength: 250_000,
+	})
+
+	prev := config.App
+	t.Cleanup(func() { config.App = prev })
+
+	config.App = config.Type{
+		ChatAgent: config.ChatAgentConfig{
+			ChatModel: "test-chat",
+			ToolModel: "test-tool",
+			Workspace: root,
+			Compaction: config.CompactionConfig{
+				Enabled:       true,
+				ReserveTokens: 10000,
+			},
+		},
+	}
+
+	report, err := chatagent.BuildContextUsageReport(context.Background(), "")
+	require.NoError(t, err)
+	assert.Equal(t, "test-chat", report.Model)
+	assert.Equal(t, "test-tool", report.ToolModel)
+	assert.Equal(t, 250_000, report.ContextWindow)
 }
 
 func TestEstimateTextTokens(t *testing.T) {

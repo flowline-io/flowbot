@@ -37,11 +37,15 @@ func TestApplyHistoryUsage(t *testing.T) {
 	}{
 		{name: "restores usage on resume", tokens: 4016, window: 128000, wantTokens: 4016, wantPct: 3.1375},
 		{name: "defaults window", tokens: 6400, window: 0, wantTokens: 6400, wantPct: 5},
+		{name: "catalog window on resume", tokens: 83, window: 0, wantTokens: 83, wantPct: 0.007919},
 		{name: "clears to zero", tokens: 0, window: 128000, wantTokens: 0, wantPct: 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewModel(nil, "default")
+			if tt.name == "catalog window on resume" {
+				m.info = &client.ChatAgentInfo{ChatModel: "deepseek-v4-flash"}
+			}
 			m.status.ContextWindow = tt.window
 			m.applyHistoryUsage(tt.tokens)
 			assert.Equal(t, tt.wantTokens, m.status.TotalTokens)

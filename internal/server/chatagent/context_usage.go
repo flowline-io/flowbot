@@ -33,6 +33,7 @@ type ContextSkillTokenInfo struct {
 // ContextUsageReport is the full context budget snapshot for a chat session.
 type ContextUsageReport struct {
 	Model             string                  `json:"model"`
+	ToolModel         string                  `json:"tool_model,omitempty"`
 	ContextWindow     int                     `json:"context_window"`
 	TotalTokens       int                     `json:"total_tokens"`
 	TotalPercent      float64                 `json:"total_percent"`
@@ -57,7 +58,8 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 	}
 
 	modelName := config.ChatAgentChatModel()
-	contextWindow := config.ContextWindowForModel(modelName)
+	toolModel := config.App.ChatAgent.ToolModel
+	contextWindow := config.ChatAgentContextWindow()
 	compaction := config.App.ChatAgent.Compaction.WithDefaults()
 
 	skills, err := LoadSkillsFromStore(ctx)
@@ -119,6 +121,7 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 
 	return ContextUsageReport{
 		Model:             modelName,
+		ToolModel:         toolModel,
 		ContextWindow:     contextWindow,
 		TotalTokens:       totalUsed,
 		TotalPercent:      totalPercent,

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"charm.land/lipgloss/v2"
+	"github.com/flowline-io/flowbot/pkg/agent/model"
 )
 
 // StatusSnapshot drives the fixed status bar.
@@ -30,7 +31,7 @@ func RenderStatusBar(snap StatusSnapshot, styles Styles) string {
 
 	window := snap.ContextWindow
 	if window <= 0 {
-		window = 128000
+		window = model.ContextWindowFor(snap.Model)
 	}
 	pct := contextUsagePercent(snap.TotalTokens, window, snap.ContextPercent)
 	bar := progressBar(pct, 10)
@@ -70,7 +71,7 @@ func formatContextPercent(pct float64) string {
 // contextUsagePercent derives display percent from token counts, falling back to server value.
 func contextUsagePercent(total, window int, reported float64) float64 {
 	if window <= 0 {
-		window = 128000
+		window = model.DefaultContextWindow
 	}
 	if total > 0 && window > 0 {
 		return float64(total) / float64(window) * 100

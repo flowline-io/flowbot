@@ -53,6 +53,7 @@ func (m *Model) updateInitDone(msg initDoneMsg) (*Model, tea.Cmd) {
 	if msg.info != nil {
 		m.info = msg.info
 		m.status.Model = msg.info.ChatModel
+		m.status.ContextWindow = ResolveContextWindowFromInfo(msg.info)
 	}
 	if msg.sessionID != "" {
 		m.sessionID = msg.sessionID
@@ -379,6 +380,8 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 		m.status.TotalTokens = ev.TotalTokens
 		if ev.ContextWindow > 0 {
 			m.status.ContextWindow = ev.ContextWindow
+		} else if m.status.ContextWindow <= 0 {
+			m.status.ContextWindow = m.effectiveContextWindow()
 		}
 		m.status.ContextPercent = contextUsagePercent(ev.TotalTokens, m.status.ContextWindow, ev.ContextPercent)
 	case "confirm":
@@ -505,6 +508,8 @@ func (m *Model) updateContextUsage(msg contextUsageMsg) (*Model, tea.Cmd) {
 		m.status.TotalTokens = msg.usage.TotalTokens
 		if msg.usage.ContextWindow > 0 {
 			m.status.ContextWindow = msg.usage.ContextWindow
+		} else {
+			m.status.ContextWindow = m.effectiveContextWindow()
 		}
 		m.status.ContextPercent = msg.usage.TotalPercent
 		if m.status.Model == "" && msg.usage.Model != "" {
