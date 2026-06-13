@@ -8,6 +8,7 @@ import (
 )
 
 const maxSplashSkills = 6
+const splashNoSkills = "(no skills enabled)"
 
 // RenderSplash builds the Hermes-style startup panel.
 func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost string, styles Styles) string {
@@ -42,8 +43,12 @@ func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost s
 	writeBuilder(&body, "Available Tools\n")
 	writeBuilder(&body, toolsLine+"\n\n")
 	writeBuilder(&body, "Available Skills\n")
-	for _, line := range skillLines {
-		writeBuilder(&body, line+"\n")
+	if len(skillLines) == 0 {
+		writeBuilder(&body, splashNoSkills+"\n")
+	} else {
+		for _, line := range skillLines {
+			writeBuilder(&body, line+"\n")
+		}
 	}
 	writeBuilder(&body, "\n")
 	writeBuilder(&body, fmt.Sprintf("%s · %s\n", info.ChatModel, info.Provider))

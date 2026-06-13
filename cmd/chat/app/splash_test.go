@@ -24,6 +24,34 @@ func TestDisplayVersion(t *testing.T) {
 	}
 }
 
+func TestRenderSplashSkills(t *testing.T) {
+	tests := []struct {
+		name    string
+		skills  []client.ChatSkillInfo
+		wantSub string
+		notWant string
+	}{
+		{name: "empty skills shows placeholder", skills: nil, wantSub: splashNoSkills},
+		{name: "one skill listed", skills: []client.ChatSkillInfo{{Name: "foo", Description: "bar"}}, wantSub: "foo: bar", notWant: splashNoSkills},
+		{name: "skill name only", skills: []client.ChatSkillInfo{{Name: "baz"}}, wantSub: "baz", notWant: splashNoSkills},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			info := &client.ChatAgentInfo{
+				Version:   "1.0.0",
+				ChatModel: "m",
+				Provider:  "p",
+				Skills:    tt.skills,
+			}
+			got := RenderSplash(80, info, "sess-1", "http://localhost:6060", NewStyles())
+			assert.Contains(t, got, tt.wantSub)
+			if tt.notWant != "" {
+				assert.NotContains(t, got, tt.notWant)
+			}
+		})
+	}
+}
+
 func TestRenderSplashVersionTitle(t *testing.T) {
 	tests := []struct {
 		name    string
