@@ -24,15 +24,15 @@ func WebService(app *fiber.App, group string, rs ...*Router) {
 	for _, router := range rs {
 		switch router.Method {
 		case "GET":
-			app.Get(path+router.Path, Authorize(router.AuthLevel, router.Function))
+			app.Get(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
 		case "POST":
-			app.Post(path+router.Path, Authorize(router.AuthLevel, router.Function))
+			app.Post(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
 		case "PUT":
-			app.Put(path+router.Path, Authorize(router.AuthLevel, router.Function))
+			app.Put(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
 		case "PATCH":
-			app.Patch(path+router.Path, Authorize(router.AuthLevel, router.Function))
+			app.Patch(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
 		case "DELETE":
-			app.Delete(path+router.Path, Authorize(router.AuthLevel, router.Function))
+			app.Delete(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
 		default:
 			continue
 		}
@@ -100,12 +100,17 @@ const (
 	accessTokenKey = "accessToken"
 )
 
-func Authorize(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
+func authorizeWithLevel(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if authLevel == NoAuth {
 			return handler(ctx)
 		}
+		return Authorize(handler)(ctx)
+	}
+}
 
+func Authorize(handler fiber.Handler) fiber.Handler {
+	return func(ctx fiber.Ctx) error {
 		accessToken, err := resolveAccessToken(ctx)
 		if err != nil {
 			return err

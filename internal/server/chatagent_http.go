@@ -23,13 +23,13 @@ import (
 // RegisterChatAgentRoutes wires Chat Agent REST endpoints for the terminal client.
 func RegisterChatAgentRoutes(a *fiber.App) {
 	chatHTTP := newChatAgentHTTP()
-	a.Get("/chatagent/info", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.info)))
-	a.Post("/chatagent/sessions", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
-	a.Delete("/chatagent/sessions/:id", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
-	a.Get("/chatagent/sessions/:id/messages", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
-	a.Post("/chatagent/sessions/:id/messages", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sendMessage)))
-	a.Post("/chatagent/sessions/:id/confirm", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.confirm)))
-	a.Post("/chatagent/sessions/:id/cancel", route.Authorize(0, route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.cancelRun)))
+	a.Get("/chatagent/info", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.info)))
+	a.Post("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
+	a.Delete("/chatagent/sessions/:id", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
+	a.Get("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
+	a.Post("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sendMessage)))
+	a.Post("/chatagent/sessions/:id/confirm", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.confirm)))
+	a.Post("/chatagent/sessions/:id/cancel", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.cancelRun)))
 }
 
 type chatAgentHTTP struct {

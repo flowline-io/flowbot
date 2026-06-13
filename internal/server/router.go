@@ -41,18 +41,18 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	}
 
 	// hub management plane
-	a.Get("/hub/apps", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApps)))
-	a.Get("/hub/apps/:name", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApp)))
-	a.Get("/hub/apps/:name/status", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStatus, ctl.hubAppStatus)))
-	a.Get("/hub/apps/:name/logs", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsLogs, ctl.hubAppLogs)))
-	a.Post("/hub/apps/:name/start", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStart, ctl.hubAppStart)))
-	a.Post("/hub/apps/:name/stop", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsStop, ctl.hubAppStop)))
-	a.Post("/hub/apps/:name/restart", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsRestart, ctl.hubAppRestart)))
-	a.Post("/hub/apps/:name/pull", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsPull, ctl.hubAppPull)))
-	a.Post("/hub/apps/:name/update", route.Authorize(0, route.RequireScope(auth.ScopeHubAppsUpdate, ctl.hubAppUpdate)))
-	a.Get("/hub/capabilities", route.Authorize(0, route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapabilities)))
-	a.Get("/hub/capabilities/:type", route.Authorize(0, route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapability)))
-	a.Get("/hub/health", route.Authorize(0, route.RequireScope(auth.ScopeHubHealthRead, ctl.hubHealth)))
+	a.Get("/hub/apps", route.Authorize(route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApps)))
+	a.Get("/hub/apps/:name", route.Authorize(route.RequireScope(auth.ScopeHubAppsRead, ctl.hubApp)))
+	a.Get("/hub/apps/:name/status", route.Authorize(route.RequireScope(auth.ScopeHubAppsStatus, ctl.hubAppStatus)))
+	a.Get("/hub/apps/:name/logs", route.Authorize(route.RequireScope(auth.ScopeHubAppsLogs, ctl.hubAppLogs)))
+	a.Post("/hub/apps/:name/start", route.Authorize(route.RequireScope(auth.ScopeHubAppsStart, ctl.hubAppStart)))
+	a.Post("/hub/apps/:name/stop", route.Authorize(route.RequireScope(auth.ScopeHubAppsStop, ctl.hubAppStop)))
+	a.Post("/hub/apps/:name/restart", route.Authorize(route.RequireScope(auth.ScopeHubAppsRestart, ctl.hubAppRestart)))
+	a.Post("/hub/apps/:name/pull", route.Authorize(route.RequireScope(auth.ScopeHubAppsPull, ctl.hubAppPull)))
+	a.Post("/hub/apps/:name/update", route.Authorize(route.RequireScope(auth.ScopeHubAppsUpdate, ctl.hubAppUpdate)))
+	a.Get("/hub/capabilities", route.Authorize(route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapabilities)))
+	a.Get("/hub/capabilities/:type", route.Authorize(route.RequireScope(auth.ScopeHubCapabilitiesRead, ctl.hubCapability)))
+	a.Get("/hub/health", route.Authorize(route.RequireScope(auth.ScopeHubHealthRead, ctl.hubHealth)))
 
 	// common
 	a.Get("/", func(_ fiber.Ctx) error { return nil })

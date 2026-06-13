@@ -104,7 +104,7 @@ func TestAuthorize_AuditTokenMissing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			SetAuditor(tt.auditor)
 			app := newTestApp()
-			app.Get("/test", Authorize(0, func(c fiber.Ctx) error {
+			app.Get("/test", Authorize(func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
 			hreq := httptest.NewRequest("GET", "/test", http.NoBody)
@@ -194,7 +194,7 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			SetAuditor(tt.auditor)
 			app := newTestApp()
-			app.Get("/noauth", Authorize(NoAuth, func(c fiber.Ctx) error {
+			app.Get("/noauth", authorizeWithLevel(NoAuth, func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
 			hreq := httptest.NewRequest("GET", "/noauth", http.NoBody)
