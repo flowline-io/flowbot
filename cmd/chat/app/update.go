@@ -33,6 +33,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateStreamDone(msg)
 	case tea.KeyMsg:
 		return m.handleKey(msg)
+	case tea.MouseWheelMsg:
+		return m.handleMouseWheel(msg)
 	default:
 		return m.updateDefault(msg)
 	}
