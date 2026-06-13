@@ -1,8 +1,11 @@
 package server
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
+	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -177,6 +180,47 @@ func (*testStoreAdapter) GetChatSession(_ context.Context, flag string) (*gen.Ch
 		return nil, types.ErrNotFound
 	}
 	return sess, nil
+}
+func (*testStoreAdapter) ListChatSessions(_ context.Context, opts store.ListChatSessionsOptions) ([]*gen.ChatSession, string, error) {
+	return listTestChatSessions(testChatSessions, opts)
+}
+
+func listTestChatSessions(sessions map[string]*gen.ChatSession, opts store.ListChatSessionsOptions) ([]*gen.ChatSession, string, error) {
+	limit := opts.Limit
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+
+	rows := make([]*gen.ChatSession, 0, len(sessions))
+	for _, sess := range sessions {
+		rows = append(rows, sess)
+	}
+	slices.SortFunc(rows, func(a, b *gen.ChatSession) int {
+		if c := b.UpdatedAt.Compare(a.UpdatedAt); c != 0 {
+			return c
+		}
+		return cmp.Compare(b.ID, a.ID)
+	})
+
+	if opts.Cursor != "" {
+		cursorID, err := strconv.ParseInt(opts.Cursor, 10, 64)
+		if err == nil {
+			filtered := rows[:0]
+			for _, sess := range rows {
+				if sess.ID < cursorID {
+					filtered = append(filtered, sess)
+				}
+			}
+			rows = filtered
+		}
+	}
+
+	var nextCursor string
+	if len(rows) > limit {
+		nextCursor = strconv.FormatInt(rows[limit-1].ID, 10)
+		rows = rows[:limit]
+	}
+	return rows, nextCursor, nil
 }
 func (*testStoreAdapter) UpdateChatSessionLeaf(_ context.Context, flag, leafID string) error {
 	sess, ok := testChatSessions[flag]
@@ -539,6 +583,79 @@ func TestRegisterModules_UpdatesExistingBotState(t *testing.T) {
 			assert.Equal(t, int(schema.BotActive), bot.State)
 			// Updated the existing-ready-bot AND deactivated stale-bot (both are UpdateBot calls)
 			assert.GreaterOrEqual(t, mock.updateCalls, 1)
+		})
+	}
+}
+
+func TestListTestChatSessions(t *testing.T) {
+	now := time.Now().UTC()
+
+	tests := []struct {
+		name       string
+		seeds      []*gen.ChatSession
+		opts       store.ListChatSessionsOptions
+		wantLen    int
+		wantCursor bool
+		wantFirst  int64
+	}{
+		{
+			name:    "empty store returns empty slice",
+			seeds:   nil,
+			opts:    store.ListChatSessionsOptions{Limit: 10},
+			wantLen: 0,
+		},
+		{
+			name: "returns newest sessions first",
+			seeds: []*gen.ChatSession{
+				{ID: 1, Flag: "old", UpdatedAt: now.Add(-time.Hour)},
+				{ID: 2, Flag: "new", UpdatedAt: now},
+			},
+			opts:      store.ListChatSessionsOptions{Limit: 10},
+			wantLen:   2,
+			wantFirst: 2,
+		},
+		{
+			name: "numeric cursor paginates by id",
+			seeds: []*gen.ChatSession{
+				{ID: 1, Flag: "a", UpdatedAt: now},
+				{ID: 2, Flag: "b", UpdatedAt: now.Add(time.Minute)},
+				{ID: 3, Flag: "c", UpdatedAt: now.Add(2 * time.Minute)},
+			},
+			opts:       store.ListChatSessionsOptions{Limit: 2},
+			wantLen:    2,
+			wantCursor: true,
+			wantFirst:  3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sessions := make(map[string]*gen.ChatSession, len(tt.seeds))
+			for _, sess := range tt.seeds {
+				sessions[sess.Flag] = sess
+			}
+
+			page, cursor, err := listTestChatSessions(sessions, tt.opts)
+			require.NoError(t, err)
+			assert.Len(t, page, tt.wantLen)
+			if tt.wantFirst != 0 {
+				require.NotEmpty(t, page)
+				assert.Equal(t, tt.wantFirst, page[0].ID)
+			}
+			if tt.wantCursor {
+				assert.NotEmpty(t, cursor)
+				_, err := strconv.ParseInt(cursor, 10, 64)
+				require.NoError(t, err)
+
+				page2, cursor2, err := listTestChatSessions(sessions, store.ListChatSessionsOptions{
+					Limit:  tt.opts.Limit,
+					Cursor: cursor,
+				})
+				require.NoError(t, err)
+				assert.NotEmpty(t, page2)
+				assert.NotEqual(t, page[0].Flag, page2[0].Flag)
+				assert.Empty(t, cursor2)
+			}
 		})
 	}
 }

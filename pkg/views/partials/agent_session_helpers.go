@@ -29,8 +29,8 @@ func agentSessionEntryPayloadURL(sessionID, entryID string) templ.SafeURL {
 	return templ.URL("/service/web/agent-sessions/" + sessionID + "/entries/" + entryID + "/payload")
 }
 
-// formatEntryPayload pretty-prints entry payload JSON for display.
-func formatEntryPayload(payload map[string]any) string {
+// FormatEntryPayload pretty-prints entry payload JSON for display.
+func FormatEntryPayload(payload map[string]any) string {
 	if len(payload) == 0 {
 		return ""
 	}
@@ -39,11 +39,6 @@ func formatEntryPayload(payload map[string]any) string {
 		return "{}"
 	}
 	return string(b)
-}
-
-// FormatEntryPayload pretty-prints entry payload JSON for display.
-func FormatEntryPayload(payload map[string]any) string {
-	return formatEntryPayload(payload)
 }
 
 // entryPayloadPreview returns a single-line preview for table cells.

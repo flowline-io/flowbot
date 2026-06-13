@@ -171,13 +171,11 @@ func (a *Agent) run(parent context.Context, prompts []AgentMessage, continuing b
 		defer cancel()
 		defer func() {
 			if r := recover(); r != nil {
+				a.mu.Lock()
+				a.cancel = nil
+				a.mu.Unlock()
 				stream.End(nil, fmt.Errorf("agent: panic: %v", r))
 			}
-		}()
-		defer func() {
-			a.mu.Lock()
-			a.cancel = nil
-			a.mu.Unlock()
 		}()
 
 		var (
@@ -194,6 +192,11 @@ func (a *Agent) run(parent context.Context, prompts []AgentMessage, continuing b
 			a.state.Messages = append(a.state.Messages, newMessages...)
 			a.mu.Unlock()
 		}
+		// Release the run lock before End so Prompt can start a follow-up turn as soon
+		// as Await unblocks; deferring this until goroutine exit races with harness WaitIdle.
+		a.mu.Lock()
+		a.cancel = nil
+		a.mu.Unlock()
 		stream.End(toInterfaceMessages(newMessages), err)
 	}()
 

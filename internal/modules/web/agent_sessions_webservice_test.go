@@ -1,10 +1,13 @@
 package web
 
 import (
+	"cmp"
 	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -21,29 +24,43 @@ func (s *testStore) ListChatSessions(_ context.Context, opts store.ListChatSessi
 	if s.chatSessionsErr != nil {
 		return nil, "", s.chatSessionsErr
 	}
+	page, cursor := listWebTestChatSessions(s.chatSessions, opts)
+	return page, cursor, nil
+}
+
+func listWebTestChatSessions(sessions []*gen.ChatSession, opts store.ListChatSessionsOptions) ([]*gen.ChatSession, string) {
 	limit := opts.Limit
 	if limit <= 0 || limit > 100 {
 		limit = 20
 	}
-	start := 0
+
+	rows := append([]*gen.ChatSession(nil), sessions...)
+	slices.SortFunc(rows, func(a, b *gen.ChatSession) int {
+		if c := b.UpdatedAt.Compare(a.UpdatedAt); c != 0 {
+			return c
+		}
+		return cmp.Compare(b.ID, a.ID)
+	})
+
 	if opts.Cursor != "" {
-		for i, sess := range s.chatSessions {
-			if sess.Flag == opts.Cursor || sess.ID == parseCursorID(opts.Cursor) {
-				start = i + 1
-				break
+		cursorID, err := strconv.ParseInt(opts.Cursor, 10, 64)
+		if err == nil {
+			filtered := rows[:0]
+			for _, sess := range rows {
+				if sess.ID < cursorID {
+					filtered = append(filtered, sess)
+				}
 			}
+			rows = filtered
 		}
 	}
-	end := start + limit
-	if end > len(s.chatSessions) {
-		end = len(s.chatSessions)
-	}
-	page := s.chatSessions[start:end]
+
 	var nextCursor string
-	if end < len(s.chatSessions) && len(page) > 0 {
-		nextCursor = page[len(page)-1].Flag
+	if len(rows) > limit {
+		nextCursor = strconv.FormatInt(rows[limit-1].ID, 10)
+		rows = rows[:limit]
 	}
-	return page, nextCursor, nil
+	return rows, nextCursor
 }
 
 func (s *testStore) GetChatSession(_ context.Context, flag string) (*gen.ChatSession, error) {
@@ -83,17 +100,6 @@ func (s *testStore) GetChatSessionEntryInSession(_ context.Context, sessionID, f
 		}
 	}
 	return nil, types.ErrNotFound
-}
-
-func parseCursorID(cursor string) int64 {
-	var id int64
-	for _, ch := range cursor {
-		if ch < '0' || ch > '9' {
-			return 0
-		}
-		id = id*10 + int64(ch-'0')
-	}
-	return id
 }
 
 func TestChatSessionStateLabel(t *testing.T) {
@@ -307,6 +313,74 @@ func TestAgentSessionEntryPayloadAuthenticated(t *testing.T) {
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			body, _ := io.ReadAll(resp.Body)
 			assert.Contains(t, string(body), tt.wantBody)
+		})
+	}
+}
+
+func TestListWebTestChatSessions(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+
+	tests := []struct {
+		name       string
+		sessions   []*gen.ChatSession
+		opts       store.ListChatSessionsOptions
+		wantLen    int
+		wantCursor bool
+		wantFirst  int64
+	}{
+		{
+			name:     "empty slice returns empty page",
+			sessions: nil,
+			opts:     store.ListChatSessionsOptions{Limit: 10},
+			wantLen:  0,
+		},
+		{
+			name: "orders by updated_at desc then id desc",
+			sessions: []*gen.ChatSession{
+				{ID: 1, Flag: "old", UpdatedAt: now.Add(-time.Hour)},
+				{ID: 2, Flag: "new", UpdatedAt: now},
+			},
+			opts:      store.ListChatSessionsOptions{Limit: 10},
+			wantLen:   2,
+			wantFirst: 2,
+		},
+		{
+			name: "cursor uses numeric session id",
+			sessions: []*gen.ChatSession{
+				{ID: 10, Flag: "a", UpdatedAt: now},
+				{ID: 20, Flag: "b", UpdatedAt: now.Add(time.Minute)},
+				{ID: 30, Flag: "c", UpdatedAt: now.Add(2 * time.Minute)},
+			},
+			opts:       store.ListChatSessionsOptions{Limit: 2},
+			wantLen:    2,
+			wantCursor: true,
+			wantFirst:  30,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			page, cursor := listWebTestChatSessions(tt.sessions, tt.opts)
+			assert.Len(t, page, tt.wantLen)
+			if tt.wantFirst != 0 {
+				require.NotEmpty(t, page)
+				assert.Equal(t, tt.wantFirst, page[0].ID)
+			}
+			if tt.wantCursor {
+				assert.NotEmpty(t, cursor)
+				_, err := strconv.ParseInt(cursor, 10, 64)
+				require.NoError(t, err)
+
+				page2, cursor2 := listWebTestChatSessions(tt.sessions, store.ListChatSessionsOptions{
+					Limit:  tt.opts.Limit,
+					Cursor: cursor,
+				})
+				require.NotEmpty(t, page2)
+				assert.NotEqual(t, page[0].ID, page2[0].ID)
+				assert.Empty(t, cursor2)
+			}
 		})
 	}
 }
