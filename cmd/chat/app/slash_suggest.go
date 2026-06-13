@@ -21,6 +21,7 @@ var slashCommands = []SlashCommand{
 	{name: "new", desc: "Create a new session"},
 	{name: "end", desc: "Close current session"},
 	{name: "status", desc: "Show session info"},
+	{name: "context", desc: "Show context usage breakdown"},
 	{name: "resume", desc: "Reload saved session history"},
 	{name: "auth", desc: "Show auth configuration", args: "status"},
 	{name: "file", desc: "Attach local file to next message", args: "<path>"},
@@ -149,7 +150,7 @@ func (m *Model) renderSlashSuggestions() string {
 	}
 	var b strings.Builder
 	limit := min(len(m.slashMatches), maxSlashSuggestLines)
-	for i := 0; i < limit; i++ {
+	for i := range limit {
 		cmd := m.slashMatches[i]
 		label := fmt.Sprintf("/%-8s %s", cmd.name, cmd.desc)
 		if i == m.slashPick {

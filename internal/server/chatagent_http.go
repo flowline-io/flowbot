@@ -27,6 +27,7 @@ func RegisterChatAgentRoutes(a *fiber.App) {
 	a.Post("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
 	a.Delete("/chatagent/sessions/:id", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
 	a.Get("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
+	a.Get("/chatagent/sessions/:id/context", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.contextUsage)))
 	a.Post("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sendMessage)))
 	a.Post("/chatagent/sessions/:id/confirm", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.confirm)))
 	a.Post("/chatagent/sessions/:id/cancel", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.cancelRun)))
@@ -94,6 +95,21 @@ func (h *chatAgentHTTP) listMessages(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"messages": messages})
+}
+
+func (h *chatAgentHTTP) contextUsage(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	report, err := chatagent.BuildContextUsageReport(c.Context(), sessionID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(report)
 }
 
 type sendMessageBody struct {

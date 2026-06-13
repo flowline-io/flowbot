@@ -49,6 +49,31 @@ type ChatSkillInfo struct {
 	Description string `json:"description"`
 }
 
+// ChatContextCategory is one row in the context usage breakdown.
+type ChatContextCategory struct {
+	ID      string  `json:"id"`
+	Label   string  `json:"label"`
+	Tokens  int     `json:"tokens"`
+	Percent float64 `json:"percent"`
+}
+
+// ChatContextSkill reports estimated prompt tokens for one skill entry.
+type ChatContextSkill struct {
+	Name   string `json:"name"`
+	Tokens int    `json:"tokens"`
+}
+
+// ChatContextUsage is the context budget snapshot from GET /chatagent/sessions/:id/context.
+type ChatContextUsage struct {
+	Model             string                `json:"model"`
+	ContextWindow     int                   `json:"context_window"`
+	TotalTokens       int                   `json:"total_tokens"`
+	TotalPercent      float64               `json:"total_percent"`
+	CompactionEnabled bool                  `json:"compaction_enabled"`
+	Categories        []ChatContextCategory `json:"categories"`
+	Skills            []ChatContextSkill    `json:"skills"`
+}
+
 // ChatHistoryMessage is one persisted chat turn.
 type ChatHistoryMessage struct {
 	Role      string    `json:"role"`
@@ -114,6 +139,15 @@ func (cc *ChatAgentClient) ListMessages(ctx context.Context, sessionID string) (
 		return nil, err
 	}
 	return resp.Messages, nil
+}
+
+// ContextUsage returns the estimated context budget breakdown for a session.
+func (cc *ChatAgentClient) ContextUsage(ctx context.Context, sessionID string) (*ChatContextUsage, error) {
+	var usage ChatContextUsage
+	if err := cc.chatGet(ctx, "/chatagent/sessions/"+sessionID+"/context", &usage); err != nil {
+		return nil, err
+	}
+	return &usage, nil
 }
 
 // Confirm responds to a pending tool confirmation.

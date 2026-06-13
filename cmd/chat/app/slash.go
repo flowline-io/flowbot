@@ -100,6 +100,7 @@ func SlashHelp() string {
   /new              Create a new session
   /end              Close current session
   /status           Show session info
+  /context          Show context usage breakdown
   /resume           Reload saved session history
   /auth status      Show auth configuration
   /file <path>      Attach local file to next message

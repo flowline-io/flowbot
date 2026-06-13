@@ -23,6 +23,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateSessionNew(msg)
 	case sessionEndMsg:
 		return m.updateSessionEnd(msg)
+	case contextUsageMsg:
+		return m.updateContextUsage(msg)
 	case tickMsg:
 		return m.updateTick(msg)
 	case streamEventMsg:
@@ -242,6 +244,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 	case "status":
 		m.appendSystem(SessionStatusText(m.sessionID, m.messageCount))
 		return m, m.focusInputCmd()
+	case "context":
+		return m, m.contextUsageCmd()
 	case "resume":
 		m.transcript.Reset()
 		m.streamOverlay.Reset()
@@ -467,6 +471,47 @@ type hydrateMsg struct {
 	content         string
 	count           int
 	estimatedTokens int
+}
+
+type contextUsageMsg struct {
+	usage *client.ChatContextUsage
+	err   string
+}
+
+func (m *Model) contextUsageCmd() tea.Cmd {
+	sessionID := m.sessionID
+	cl := m.client
+	return func() tea.Msg {
+		if sessionID == "" {
+			return contextUsageMsg{err: "No active session"}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		usage, err := cl.ChatAgent.ContextUsage(ctx, sessionID)
+		if err != nil {
+			return contextUsageMsg{err: err.Error()}
+		}
+		return contextUsageMsg{usage: usage}
+	}
+}
+
+func (m *Model) updateContextUsage(msg contextUsageMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.hint = msg.err
+		return m, m.focusInputCmd()
+	}
+	m.appendSystem(RenderContextUsage(msg.usage, m.styles))
+	if msg.usage != nil {
+		m.status.TotalTokens = msg.usage.TotalTokens
+		if msg.usage.ContextWindow > 0 {
+			m.status.ContextWindow = msg.usage.ContextWindow
+		}
+		m.status.ContextPercent = msg.usage.TotalPercent
+		if m.status.Model == "" && msg.usage.Model != "" {
+			m.status.Model = msg.usage.Model
+		}
+	}
+	return m, m.focusInputCmd()
 }
 
 func (m *Model) hydrateHistoryCmd() tea.Cmd {
