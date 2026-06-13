@@ -2,6 +2,7 @@ package agent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -40,7 +41,17 @@ func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg
 		if stream == nil {
 			return nil
 		}
-		return stream.Push(ctx, ev)
+		if err := ctx.Err(); err != nil {
+			return ErrAborted
+		}
+		if err := stream.Push(ctx, ev); err != nil {
+			return abortLoopError(err)
+		}
+		return nil
+	}
+
+	if ctx.Err() != nil {
+		return newMessages, ErrAborted
 	}
 
 	if err := emit(agentevent.Event{Type: agentevent.TypeAgentStart}); err != nil {
@@ -83,7 +94,16 @@ func RunLoopContinue(ctx context.Context, agentCtx *Context, cfg Config, deps Lo
 		if stream == nil {
 			return nil
 		}
-		return stream.Push(ctx, ev)
+		if err := ctx.Err(); err != nil {
+			return ErrAborted
+		}
+		if err := stream.Push(ctx, ev); err != nil {
+			return abortLoopError(err)
+		}
+		return nil
+	}
+	if ctx.Err() != nil {
+		return nil, ErrAborted
 	}
 	if err := emit(agentevent.Event{Type: agentevent.TypeAgentStart}); err != nil {
 		return nil, err
@@ -165,6 +185,9 @@ func streamAssistant(
 	if cfg.TransformContext != nil {
 		transformed, err := cfg.TransformContext(messages)
 		if err != nil {
+			if abortErr := abortLoopError(err); abortErr != err {
+				return AssistantMessage{}, abortErr
+			}
 			return AssistantMessage{}, fmt.Errorf("agent loop: transform context: %w", err)
 		}
 		messages = transformed
@@ -277,6 +300,13 @@ func cloneContext(src *Context) *Context {
 
 func toAgentMessages(messages []AgentMessage) []AgentMessage {
 	return append([]AgentMessage(nil), messages...)
+}
+
+func abortLoopError(err error) error {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return ErrAborted
+	}
+	return err
 }
 
 // turnModelName returns the provider model name for the next LLM request.

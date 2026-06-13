@@ -224,7 +224,6 @@ func TestHarnessToolResultTerminateStopsLoop(t *testing.T) {
 }
 
 func TestHarnessBridgeRespectsCancelledContext(t *testing.T) {
-	t.Parallel()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -246,5 +245,5 @@ func TestHarnessBridgeRespectsCancelledContext(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, h.WaitIdle(context.Background()))
 	require.Error(t, h.LastRunResult().Err)
-	assert.ErrorIs(t, h.LastRunResult().Err, context.Canceled)
+	assert.ErrorIs(t, h.LastRunResult().Err, agent.ErrAborted)
 }

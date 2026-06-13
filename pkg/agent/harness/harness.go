@@ -301,7 +301,9 @@ func (h *Harness) emitContextUsage(ctx context.Context) {
 }
 
 func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, prompts []agent.AgentMessage, retry int) agentevent.Result {
-	result, awaitErr := stream.Await(ctx)
+	// Await with a detached context so a cancelled run ctx cannot race ahead of the
+	// agent loop and overwrite the loop's terminal error (for example ErrAborted).
+	result, awaitErr := stream.Await(context.Background())
 	if awaitErr != nil {
 		return agentevent.Result{Err: awaitErr}
 	}

@@ -97,7 +97,7 @@ func TestChatAgentContextWindow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// Subtests mutate global config.App; do not run in parallel.
 			config.App.ChatAgent = config.ChatAgentConfig{
 				ChatModel: tt.chatModel,
 				ToolModel: tt.toolModel,
