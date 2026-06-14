@@ -32,7 +32,6 @@ func main() {
 	}
 	root.PersistentFlags().String("profile", "", "Configuration profile name (e.g. dev)")
 	root.PersistentFlags().String("server-url", "", "Flowbot server URL")
-	root.PersistentFlags().BoolP("debug", "d", false, "Enable debug mode")
 
 	if err := root.Execute(); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)

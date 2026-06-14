@@ -100,9 +100,11 @@ func TestSetDebug(t *testing.T) {
 		t.Parallel()
 		c := NewClient("http://localhost", "token")
 		assert.False(t, c.debugErrorHookSet)
+		assert.False(t, c.DebugEnabled())
 
 		c.SetDebug(true)
 		assert.True(t, c.debugErrorHookSet)
+		assert.True(t, c.DebugEnabled())
 	})
 
 	t.Run("disable debug does not toggle flag", func(t *testing.T) {
@@ -111,6 +113,7 @@ func TestSetDebug(t *testing.T) {
 
 		c.SetDebug(false)
 		assert.False(t, c.debugErrorHookSet)
+		assert.False(t, c.DebugEnabled())
 	})
 
 	t.Run("double enable only sets once", func(t *testing.T) {

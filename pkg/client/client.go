@@ -96,6 +96,11 @@ func (c *Client) SetTimeout(timeout time.Duration) {
 	c.rc.SetTimeout(timeout)
 }
 
+// DebugEnabled reports whether verbose HTTP request/response logging is active.
+func (c *Client) DebugEnabled() bool {
+	return c.rc.IsDebug()
+}
+
 // SetDebug enables or disables debug mode for the underlying HTTP client.
 // Debug mode prints full HTTP request and response details to stderr.
 // An OnError hook is also registered to print request info on connection failures.

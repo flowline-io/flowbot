@@ -38,22 +38,6 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 		return nil, fmt.Errorf("not logged in (use 'flowbot-cli login' first)")
 	}
 
-	cl := client.NewClient(serverURL, token)
-
-	debug, _ := cmd.Flags().GetBool("debug")
-	if !debug {
-		debugEnv := os.Getenv("FLOWBOT_DEBUG")
-		if debugEnv == "true" || debugEnv == "1" {
-			debug = true
-		}
-	}
-	if !debug {
-		stored, _ := store.LoadDebug(profile)
-		debug = stored
-	}
-	if debug {
-		cl.SetDebug(true)
-	}
-
-	return cl, nil
+	// The chat client runs a full-screen TUI; HTTP debug logs on stderr corrupt the layout.
+	return client.NewClient(serverURL, token), nil
 }
