@@ -82,8 +82,6 @@ require (
 	resty.dev/v3 v3.0.0-rc.1
 )
 
-require google.golang.org/genai v1.57.0 // indirect
-
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	ariga.io/atlas v1.2.0 // indirect
@@ -582,6 +580,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.276.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
+	google.golang.org/genai v1.54.0 // indirect
 	google.golang.org/genproto v0.0.0-20260319201613-d00831a3d3e7 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260526163538-3dc84a4a5aaa // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
@@ -609,7 +608,6 @@ tool (
 	github.com/a-h/templ/cmd/templ
 	github.com/air-verse/air
 	github.com/boyter/scc/v3
-
 	github.com/go-task/task/v3/cmd/task
 	github.com/goreleaser/goreleaser/v2
 	github.com/mgechev/revive
