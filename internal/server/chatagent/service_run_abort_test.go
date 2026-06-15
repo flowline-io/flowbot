@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -11,7 +12,79 @@ import (
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tmc/langchaingo/llms"
 )
+
+// stallModel blocks the first GenerateContent call until the test releases it, so
+// callers can cancel a run while the harness is still busy without racing completion.
+type stallModel struct {
+	mu           sync.Mutex
+	invoked      chan struct{}
+	waitCanceled chan struct{}
+	release      chan struct{}
+	released     bool
+}
+
+func newStallModel() *stallModel {
+	return &stallModel{
+		invoked:      make(chan struct{}),
+		waitCanceled: make(chan struct{}),
+		release:      make(chan struct{}),
+	}
+}
+
+func (m *stallModel) markCanceledWait() {
+	close(m.waitCanceled)
+}
+
+func (m *stallModel) unblock() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.released {
+		return
+	}
+	m.released = true
+	close(m.release)
+}
+
+func (m *stallModel) signalInvoked() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	select {
+	case <-m.invoked:
+	default:
+		close(m.invoked)
+	}
+}
+
+func (m *stallModel) Call(ctx context.Context, prompt string, options ...llms.CallOption) (string, error) {
+	resp, err := m.GenerateContent(ctx, []llms.MessageContent{llms.TextParts(llms.ChatMessageTypeHuman, prompt)}, options...)
+	if err != nil {
+		return "", err
+	}
+	if resp == nil || len(resp.Choices) == 0 {
+		return "", errors.New("stall model: empty response")
+	}
+	return resp.Choices[0].Content, nil
+}
+
+func (m *stallModel) GenerateContent(ctx context.Context, _ []llms.MessageContent, _ ...llms.CallOption) (*llms.ContentResponse, error) {
+	m.signalInvoked()
+
+	<-m.waitCanceled
+	select {
+	case <-m.release:
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+		return &llms.ContentResponse{
+			Choices: []*llms.ContentChoice{{Content: "ok", StopReason: "stop"}},
+		}, nil
+	case <-ctx.Done():
+		<-m.release
+		return nil, ctx.Err()
+	}
+}
 
 func TestIsRunInterrupted(t *testing.T) {
 	tests := []struct {
@@ -35,31 +108,37 @@ func TestIsRunInterrupted(t *testing.T) {
 
 func TestReleaseHarnessAfterRunAbort(t *testing.T) {
 	tests := []struct {
-		name    string
-		scripts []agentllm.ResponseScript
+		name      string
+		sessionID string
 	}{
-		{name: "single response", scripts: []agentllm.ResponseScript{{Content: "ok"}}},
-		{name: "multi response", scripts: []agentllm.ResponseScript{{Content: "a"}, {Content: "b"}}},
-		{name: "empty tail response", scripts: []agentllm.ResponseScript{{Content: "done"}}},
+		{name: "single abort drain", sessionID: "sess-abort-1"},
+		{name: "multi abort drain", sessionID: "sess-abort-2"},
+		{name: "follow-up prompt", sessionID: "sess-abort-3"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctx, cancel := context.WithCancel(context.Background())
-			fakeModel := agentllm.NewFakeModel(tt.scripts...)
+			stall := newStallModel()
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{Model: fakeModel},
+				AgentOptions: agent.Options{Model: stall},
 				ModelName:    "fake",
 			})
 
 			_, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
 			require.NoError(t, err)
+			<-stall.invoked
+
+			idleErr := make(chan error, 1)
+			go func() { idleErr <- h.WaitIdle(ctx) }()
+			stall.markCanceledWait()
 			cancel()
 
-			require.ErrorIs(t, h.WaitIdle(ctx), context.Canceled)
+			require.ErrorIs(t, <-idleErr, context.Canceled)
 
-			releaseHarnessAfterRunAbort(h, "sess-test")
+			stall.unblock()
+			releaseHarnessAfterRunAbort(h, tt.sessionID)
 			require.NoError(t, h.WaitIdle(context.Background()))
 
 			_, err = h.Prompt(context.Background(), agent.NewUserMessage("follow-up"))
