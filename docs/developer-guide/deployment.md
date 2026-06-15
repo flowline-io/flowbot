@@ -28,22 +28,22 @@ docker build -f deployments/Dockerfile -t flowbot .
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 ```
 
-### 3. Systemd Service (Desktop Agent)
+### 3. Systemd Service
 
-The desktop agent is embedded in the main server. For headless setups, use the systemd service:
+For headless Linux deployments, run the main server under systemd:
 
 1. Copy binary and service file:
 
 ```bash
 sudo cp bin/flowbot /opt/app/
 sudo chmod +x /opt/app/flowbot
-sudo cp docs/deployment/flowbot.service /etc/systemd/system/
+sudo cp docs/developer-guide/flowbot.service /etc/systemd/system/
 ```
 
-2. Create environment file:
+2. Place your runtime configuration and edit it for your environment:
 
 ```bash
-sudo cp docs/config/agent.yaml /opt/app/agent.yaml
+sudo cp docs/reference/config.yaml /opt/app/flowbot.yaml
 ```
 
 3. Enable and start:

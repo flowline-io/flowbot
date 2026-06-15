@@ -17,6 +17,7 @@ Operations and development documentation for Flowbot.
 go tool task build           # Main server
 go tool task build:composer  # Composer CLI
 go tool task build:cli       # Admin CLI
+go tool task build:chat      # Chat Agent terminal client
 go tool task build:all       # All binaries
 go tool task air             # Live reload
 ```
@@ -25,14 +26,17 @@ go tool task air             # Live reload
 
 ```bash
 go tool task swagger   # Generate Swagger/OpenAPI docs
-go tool task doc       # Generate database schema docs
+go tool task skills    # Generate SKILL.md files for CLI capabilities
+go tool task webdoc    # Generate website docs from markdown sources
+go tool task ent       # Generate ent code from database schema
+go tool task templ     # Generate Go code from Templ templates
 ```
 
 ### Code Quality
 
 ```bash
-go tool task lint      # revive + actionlint
-go tool task format    # go fmt + prettier
+go tool task lint      # revive + actionlint + testifylint + oxlint
+go tool task format    # go fmt + oxfmt
 go tool task tidy      # go mod tidy
 ```
 
@@ -50,7 +54,7 @@ go tool task check     # all security & quality
 ```bash
 go tool task test            # All unit tests
 go tool task test:short      # Short mode (skip integration)
-go tool task test:utils      # pkg/utils only
+go tool task test:specs      # BDD acceptance tests (requires Docker)
 go tool task test:coverage   # Coverage report
 ```
 

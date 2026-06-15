@@ -63,14 +63,13 @@ X-AccessToken: <your-token>
 
 ### Main API Modules
 
-| Module     | Description                                                  |
-| ---------- | ------------------------------------------------------------ |
-| `hub`      | Hub management - app lifecycle, capabilities, health         |
-| `notify`   | Multi-channel notification management (Slack, Pushover, ...) |
-| `server`   | Server management (stacktrace, uploads)                      |
-| `workflow` | Workflow management                                          |
+| Module   | Description                                                                       |
+| -------- | --------------------------------------------------------------------------------- |
+| `hub`    | Hub management - app lifecycle, capabilities, health (mounted under `/hub/*`)     |
+| `web`    | Web UI and admin pages - agent sessions, agent skills, dashboards (mounted under `/`, `/agent-sessions/*`, `/agent-skills/*`) |
+| `example`| Reference module demonstrating the module framework                               |
 
-Additionally, modules like bookmark, kanban, reader are defined as abilities in the capability layer and mounted dynamically.
+Business capabilities (notify, bookmark, kanban, reader, memo, note, forge, github) are implemented as abilities in `pkg/ability/` and mounted dynamically via each module's webservice rules.
 
 ### Server Routes
 

@@ -64,15 +64,16 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 
 ### Entry Points
 
-| Binary       | Path            | Description                                   |
-| ------------ | --------------- | --------------------------------------------- |
-| Server       | `cmd/main.go`   | HTTP server (Fiber v3 + fx DI)                |
-| Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline admin |
-| Composer CLI | `cmd/composer/` | Code generation, schema docs, DAO generation  |
+| Binary       | Path            | Description                                            |
+| ------------ | --------------- | ------------------------------------------------------ |
+| Server       | `cmd/main.go`   | HTTP server (Fiber v3 + fx DI)                         |
+| Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline admin          |
+| Composer CLI | `cmd/composer/` | Admin actions, website docs, and SKILL.md generation   |
+| Chat Agent   | `cmd/chat/`     | Terminal Chat Agent client                             |
 
-### Modules (5)
+### Modules (3)
 
-hub, notify, server, workflow
+example, hub, web
 
 ### Providers (18)
 
@@ -84,7 +85,7 @@ Slack, Pushover, ntfy, Message Pusher (with rules/ throttling/aggregation and te
 
 ### Shared Packages (31)
 
-ability, auth, backoff, bulkhead, cache, client, config, event, executor, flog, homelab (with probe/ sub-package), hub, llm, media, metrics, module, notify, page, parser, pipeline, profiling, providers, rdb, route, stats, trace, types, utils, validate, workflow
+ability, agent, auth, backoff, bulkhead, cache, client, config, event, executor, flog, homelab (with probe/ sub-package), hub, media, metrics, module, notify, parser, pipeline, plugin, profiling, providers, rdb, route, stats, trace, types, utils, validate, views, workflow
 
 ### CI/CD (`.github/workflows/`)
 

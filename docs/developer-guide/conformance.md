@@ -6,7 +6,7 @@ Source: `pkg/ability/conformance/`
 
 ## Overview
 
-Each capability (bookmark, archive, reader, kanban) defines a `Service` interface in `pkg/ability/<capability>/interface.go`. Provider adapters implement this interface, translating provider-specific types into ability domain types. The conformance suite verifies every adapter correctly implements:
+Each capability (bookmark, reader, kanban, note, memo, forge, github, example) defines a `Service` interface in `pkg/ability/<capability>/interface.go`. Provider adapters implement this interface, translating provider-specific types into ability domain types. The conformance suite verifies every adapter correctly implements:
 
 - Pagination structure (`ListResult[T]`, `PageInfo`, opaque cursors)
 - Error wrapping (Flowbot sentinel errors via `types.WrapError` / `types.Errorf`)
@@ -20,10 +20,14 @@ Each capability (bookmark, archive, reader, kanban) defines a `Service` interfac
 pkg/ability/conformance/
 ├── conformance.go          # Shared types, context helpers, error assertion helpers
 ├── pagination.go           # Pagination-specific assertions (cursor round-trip, PageInfo structure)
-├── bookmark.go             # RunBookmarkConformance — 33 subtests across 9 operations
-├── archive.go              # RunArchiveConformance — 7 subtests across 3 operations
-├── reader.go               # RunReaderConformance — 20 subtests across 7 operations
-├── kanban.go               # RunKanbanConformance — 27 subtests across 9 operations
+├── example.go              # RunExampleConformance — reference capability runner
+├── bookmark.go             # RunBookmarkConformance — list/get/create/delete/archive/search/tag ops
+├── reader.go               # RunReaderConformance — feeds/entries/read-unread/star ops
+├── kanban.go               # RunKanbanConformance — list/get/create/update/delete/move/complete/column ops
+├── note.go                 # RunNoteConformance — list/get/create/update/delete/content/search ops
+├── memo.go                 # RunMemoConformance — list/get/create/update/delete ops
+├── forge.go                # RunForgeConformance — user/repo/issue/commit/file ops
+├── github.go               # RunGithubConformance — user/repo/issue/commit/file/notification/release ops
 ├── conformance_test.go     # Self-tests for the conformance framework
 └── pagination_test.go      # Self-tests for pagination helpers
 ```
@@ -210,15 +214,18 @@ The conformance package exports reusable assertion helpers:
 
 ## Coverage Matrix
 
-| Adapter    | Capability | Conformance Tests | Adapter-Specific Tests | Total   |
-| ---------- | ---------- | ----------------- | ---------------------- | ------- |
-| karakeep   | bookmark   | 33                | 2                      | 35      |
-| archivebox | archive    | 7                 | 1                      | 8       |
-| miniflux   | reader     | 20                | 6                      | 26      |
-| kanboard   | kanban     | 27                | 7                      | 34      |
-| **Total**  |            | **87**            | **16**                 | **103** |
+| Adapter    | Capability | Conformance Runner                    |
+| ---------- | ---------- | ------------------------------------- |
+| karakeep   | bookmark   | `RunBookmarkConformance`              |
+| example    | example    | `RunExampleConformance`               |
+| gitea      | forge      | `RunForgeConformance`                 |
+| github     | github     | `RunGithubConformance`                |
+| kanboard   | kanban     | `RunKanbanConformance`                |
+| memos      | memo       | `RunMemoConformance`                  |
+| trilium    | note       | `RunNoteConformance`                  |
+| miniflux   | reader     | `RunReaderConformance`                |
 
-Plus 12 self-tests for the conformance framework itself.
+Each adapter package also includes adapter-specific unit tests (`adapter_test.go`) for type conversion and edge cases, plus self-tests for the conformance framework in `conformance_test.go` and `pagination_test.go`.
 
 ## Extending the Suite
 

@@ -218,24 +218,29 @@ The dashboard is organized into 5 rows.
 
 ## Metrics Reference
 
-All 21 custom metrics, each producing a `_counter` and `_gauge` suffix variant:
+All 19 custom metric names, each producing a `_counter` and `_gauge` suffix variant. Metrics are defined in `pkg/stats/stats.go`; only the ones marked "wired" below are actually updated at runtime — the rest are defined but not yet emitted.
 
-| Base Name                | Labels       | Updated By                             | Type    |
-| ------------------------ | ------------ | -------------------------------------- | ------- |
-| `module_total`           | —            | `internal/server/module.go`            | Gauge   |
-| `module_run_total`       | `ruleset`    | `internal/server/router.go`, `func.go` | Counter |
-| `event_total`            | —            | `pkg/event/pubsub.go`                  | Counter |
-| `bookmark_total`         | —            | `internal/modules/bookmark/cron.go`    | Gauge   |
-| `torrent_download_total` | —            | `internal/modules/torrent/cron.go`     | Gauge   |
-| `torrent_status_total`   | `status`     | `internal/modules/torrent/cron.go`     | Gauge   |
-| `gitea_issue_total`      | `status`     | `internal/modules/gitea/cron.go`       | Gauge   |
-| `kanban_event_total`     | `event_name` | `internal/modules/kanban/webhook.go`   | Counter |
-| `kanban_task_total`      | —            | `internal/modules/kanban/cron.go`      | Gauge   |
-| `reader_total`           | —            | `internal/modules/reader/cron.go`      | Gauge   |
-| `reader_unread_total`    | —            | `internal/modules/reader/cron.go`      | Gauge   |
-| `monitor_up_total`       | —            | `internal/modules/server/cron.go`      | Gauge   |
-| `monitor_down_total`     | —            | `internal/modules/server/cron.go`      | Gauge   |
-| `docker_container_total` | —            | `internal/modules/server/cron.go`      | Gauge   |
+| Base Name                | Labels       | Status | Updated By                  |
+| ------------------------ | ------------ | ------ | --------------------------- |
+| `module_total`           | —            | Wired  | `internal/server/module.go` |
+| `module_run_total`       | `ruleset`    | Wired  | `internal/server/` router/func |
+| `event_total`            | —            | Wired  | `pkg/event/pubsub.go`       |
+| `bot_total`              | —            | Wired  | `internal/server/module.go` |
+| `bot_run_total`          | —            | Wired  | `internal/server/`          |
+| `bookmark_total`         | —            | Defined (unwired) | — |
+| `torrent_download_total` | —            | Defined (unwired) | — |
+| `torrent_status_total`   | `status`     | Defined (unwired) | — |
+| `gitea_issue_total`      | `status`     | Defined (unwired) | — |
+| `kanban_event_total`     | `event_name` | Defined (unwired) | — |
+| `kanban_task_total`      | —            | Defined (unwired) | — |
+| `reader_total`           | —            | Defined (unwired) | — |
+| `reader_unread_total`    | —            | Defined (unwired) | — |
+| `monitor_up_total`       | —            | Defined (unwired) | — |
+| `monitor_down_total`     | —            | Defined (unwired) | — |
+| `docker_container_total` | —            | Defined (unwired) | — |
+| `queue_processed_tasks_total` | —       | Defined (unwired) | — |
+| `queue_failed_tasks_total` | —          | Defined (unwired) | — |
+| `queue_in_progress_tasks` | —           | Defined (unwired) | — |
 
 **PushGateway labels:** `job` (default `flowbot`), `instance` (hostid), `hostname`.
 

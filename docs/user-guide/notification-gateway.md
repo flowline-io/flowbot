@@ -6,7 +6,7 @@ Source: `pkg/notify/`, `pkg/notify/template/`, `pkg/notify/rules/`, `pkg/ability
 
 ## Overview
 
-Homelab monitoring produces high-frequency events: disk alerts, download completions, RSS updates, agent status changes. Passively forwarding every event to Slack, Telegram, or ntfy causes notification fatigue -- users mute channels and miss critical alerts.
+Homelab monitoring produces high-frequency events: disk alerts, download completions, RSS updates, agent status changes. Passively forwarding every event to Slack, Pushover, or ntfy causes notification fatigue -- users mute channels and miss critical alerts.
 
 The Notification Gateway inserts a processing layer between event producers and notification providers to:
 
@@ -299,7 +299,7 @@ Buffers individual events into a Redis List and flushes them as a single digest 
   action: aggregate
   match:
     event: "download.completed"
-    channel: "telegram"
+    channel: "ntfy"
   priority: 40
   params:
     window: "15m"
@@ -394,7 +394,7 @@ template: slack://tokenA/tokenB/tokenC
 
 ### Full Configuration Reference
 
-See [config/notify.yaml](../config/notify.yaml) for a complete template and rule configuration example.
+See [reference/notify.yaml](../reference/notify.yaml) for a complete template and rule configuration example.
 
 ## Predefined Templates
 
@@ -474,25 +474,17 @@ err := notify.GatewaySend(ctx.Context(), uid, "agent.status",
 
 ## Integration Points
 
-### Call Sites Migrated from event.SendMessage
+### GatewaySend Entry Point
 
-The following 13 code locations formerly used `event.SendMessage()` and now route through `notify.GatewaySend()`:
+`notify.GatewaySend()` is the single entry point into the gateway. It is invoked by the `notify` capability's `send` operation (`pkg/ability/notify/send.go`), which is reachable from every ruleset that can dispatch a capability:
 
-| Module            | File            | Template ID           |
-| ----------------- | --------------- | --------------------- |
-| bookmark          | `event.go:26`   | `bookmark.archived`   |
-| bookmark          | `event.go:46`   | `bookmark.created`    |
-| bookmark          | `event.go:66`   | `archive.item.added`  |
-| kanban            | `event.go:45`   | `kanban.task.created` |
-| reader            | `cron.go:116`   | `reader.news.summary` |
-| server            | `cron.go:165`   | `server.offline`      |
-| finance           | `webhook.go:76` | `finance.transaction` |
-| github            | `utils.go:33`   | `github.deployment`   |
-| server (internal) | `func.go:328`   | `agent.status`        |
-| server (internal) | `func.go:418`   | `agent.status`        |
-| server (internal) | `func.go:447`   | `agent.status`        |
-| server (internal) | `func.go:457`   | `agent.status`        |
-| cron ruleset      | `cron.go:209`   | `cron.output`         |
+| Call Site      | Mechanism                                                  |
+| -------------- | ---------------------------------------------------------- |
+| Pipeline steps | `capability: notify`, `operation: send`                    |
+| Cron ruleset   | `ability.Invoke(ctx, "notify", "send", ...)`               |
+| Webhook ruleset| `ability.Invoke(ctx, "notify", "send", ...)`               |
+| Agent actions  | `ability.Invoke(ctx, "notify", "send", ...)`               |
+| Form ruleset   | `ability.Invoke(ctx, "notify", "send", ...)`               |
 
 Interactive chat messages (command responses, form interactions) continue to use `event.SendMessage()` directly.
 

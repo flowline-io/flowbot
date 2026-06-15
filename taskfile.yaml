@@ -175,11 +175,6 @@ tasks:
       - go tool swag init -g cmd/main.go -o ./docs/api
       - go tool swag fmt -g cmd/main.go
 
-  doc:
-    desc: Generate database schema documentation
-    cmds:
-      - go run ./cmd/composer doc
-
   skills:
     desc: Generate SKILLS.md to cmd/cli
     cmds:

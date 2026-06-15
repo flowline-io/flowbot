@@ -86,7 +86,7 @@ This ensures the skill always matches the actual CLI interface.
 ```bash
 # Generate all SKILL.md files to docs/skills/
 go tool task build:composer
-./flowbot-composer skills --output ./docs/skills
+./bin/composer skills --output ./docs/skills
 ```
 
 When you add a new CLI command tree (kanban, bookmark, reader, etc.), register
