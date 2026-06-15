@@ -46,6 +46,19 @@ func EvictHarnessPool(sessionID string) {
 	harnessPool.Delete(sessionID)
 }
 
+// AbortSessionHarness cooperatively cancels the agent loop for a pooled session harness.
+func AbortSessionHarness(sessionID string) {
+	raw, ok := harnessPool.Load(sessionID)
+	if !ok {
+		return
+	}
+	entry, ok := raw.(*pooledHarness)
+	if !ok || entry.harness == nil {
+		return
+	}
+	entry.harness.Agent().Abort()
+}
+
 // ResetHarnessPoolForTest clears all pooled harnesses.
 func ResetHarnessPoolForTest() {
 	harnessPool = sync.Map{}

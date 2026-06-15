@@ -96,6 +96,9 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	waitCoalescer := startRunStreamCoalescer(ctx, req, stream, sink)
 	if err := h.WaitIdle(ctx); err != nil {
 		finishRunCoalescer(waitCoalescer)
+		if isRunInterrupted(err) {
+			releaseHarnessAfterRunAbort(h, req.SessionID)
+		}
 		return "", awaitRunError(req.SessionID, start, err)
 	}
 	finishRunCoalescer(waitCoalescer)
@@ -174,6 +177,26 @@ func awaitRunError(sessionID string, start time.Time, err error) error {
 	}
 	flog.Error(fmt.Errorf("[chat-agent] stream await session=%s: %w", sessionID, err))
 	return err
+}
+
+func isRunInterrupted(err error) bool {
+	return errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+}
+
+// releaseHarnessAfterRunAbort stops an in-flight loop and waits for the pooled harness to
+// return idle before the session lock is released. Without this, a follow-up Prompt can
+// observe PhaseBusy when cancellation only unblocked WaitIdle via ctx.Done().
+func releaseHarnessAfterRunAbort(h *harness.Harness, sessionID string) {
+	if h == nil {
+		return
+	}
+	h.Agent().Abort()
+	drainCtx, cancel := context.WithTimeout(context.Background(), harnessDrainTimeout)
+	defer cancel()
+	if err := h.WaitIdle(drainCtx); err != nil {
+		flog.Warn("[chat-agent] harness drain after abort session=%s: %v; evicting pool entry", sessionID, err)
+		EvictHarnessPool(sessionID)
+	}
 }
 
 func ensureSessionActive(ctx context.Context, sessionID string) error {

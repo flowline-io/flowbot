@@ -77,6 +77,7 @@ func GetAPIRunState(sessionID string) (*APIRunState, bool) {
 
 // CancelSessionRun aborts the in-flight agent run for a session.
 func CancelSessionRun(sessionID string) {
+	AbortSessionHarness(sessionID)
 	cancelRun(sessionID)
 }
 
