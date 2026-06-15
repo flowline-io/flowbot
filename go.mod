@@ -79,7 +79,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	miniflux.app/v2 v2.3.1
 	modernc.org/sqlite v1.52.0
-	resty.dev/v3 v3.0.0-rc.1
+	resty.dev/v3 v3.0.0-rc.2
 )
 
 require (
