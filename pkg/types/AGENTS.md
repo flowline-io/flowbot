@@ -16,7 +16,9 @@ types/
 ├── workflow.go        # Workflow type definitions
 ├── agent.go           # Agent type definitions
 ├── uid.go             # Unique ID generation
+├── id.go              # Compact ID encoding/decoding
 ├── filter.go          # Event filter types
+├── filter_cache.go    # In-memory filter cache for source/event type dropdowns
 ├── file.go            # File type definitions
 ├── pipeline_stats.go  # Pipeline statistics types
 ├── protocol/          # Platform-agnostic types

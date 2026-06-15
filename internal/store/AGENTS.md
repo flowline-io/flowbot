@@ -8,10 +8,15 @@ Database storage using Ent with PostgreSQL. All database query/store types are d
 store/
 ├── store.go       # Adapter, connection management, all store types and DB queries
 ├── store_test.go  # Store unit tests
+├── store_stats_test.go # Store statistics tests
 ├── ent/           # Ent schema definitions and generated code
 │   ├── schema/    # Ent schema definitions (tables) + domain types (types.go)
 │   └── gen/       # Ent generated code
-└── postgres/      # PostgreSQL adapter
+├── postgres/      # PostgreSQL adapter
+│   ├── adapter.go # Ent client adapter
+│   └── pool.go    # Connection pool with Prometheus metrics
+└── sqlitetest/    # In-memory SQLite test helper
+    └── sqlitetest.go
 ```
 
 ## Rules

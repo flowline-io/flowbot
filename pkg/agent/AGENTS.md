@@ -8,13 +8,15 @@ Full documentation: [docs/agent/](../../docs/agent/README.md) (architecture, dev
 
 ```
 agent/
-├── types.go              # AgentMessage, Context, hook types
-├── config.go             # Config defaults
-├── errors.go             # Domain errors
+├── types.go              # Type aliases to msg package (AgentMessage, Context, etc.)
+├── config.go             # Config defaults, NewUserMessage(), error constants
+├── doc.go                # Package documentation
+├── loop.go               # Stateless RunLoop / RunLoopContinue
+├── loop_inner.go         # Inner loop state and single-turn execution
+├── agent.go              # Stateful Agent with queues and subscriptions
+├── msg/                  # Core message/context/error types (canonical definitions)
 ├── result/               # Result[T,E] and typed agent errors
 ├── env/                  # ExecutionEnv for FS/shell with Result
-├── loop.go               # Stateless RunLoop / RunLoopContinue
-├── agent.go              # Stateful Agent with queues and subscriptions
 ├── event/                # Lifecycle event stream
 ├── llm/                  # langchaingo adapter + fake model
 ├── tool/                 # Registry, schema, executor
@@ -24,6 +26,7 @@ agent/
 ├── ctxmgr/               # Context budget, compaction, branch summarization
 ├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
 ├── harness/              # High-level orchestration with hooks
+├── coding/               # Code execution tools (run_code, read/write_file, web_search, terminal, workspace)
 └── example/echo/         # Reference echo tool
 ```
 

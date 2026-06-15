@@ -23,6 +23,8 @@ internal/modules/web/
 ├── notification_webservice.go    # Notification list routes
 ├── notify_settings_webservice.go # Notify channel/rule CRUD routes
 ├── token_webservice.go           # API token management routes
+├── agent_sessions_webservice.go # Agent sessions routes (list, detail, run history)
+├── agent_skills_webservice.go   # Agent skills routes (list, enable/disable)
 ├── relations_webservice.go       # Resource relations graph routes
 ├── ratelimit.go                  # Login rate limiter
 ├── module_test.go                # Module lifecycle unit tests
@@ -32,6 +34,8 @@ internal/modules/web/
 ├── healthz_webservice_test.go    # Health dashboard tests
 ├── notify_settings_webservice_test.go # Notify settings validation and auth tests
 ├── rules_test.go                 # Route group registration tests
+├── agent_sessions_webservice_test.go # Agent sessions tests
+├── agent_skills_webservice_test.go   # Agent skills tests
 ├── test_helper_test.go           # E2E test helpers
 └── *_test.go                     # Co-located tests per webservice file
 
@@ -52,6 +56,9 @@ pkg/views/
 │   ├── hub_apps.templ            # Hub apps list page
 │   ├── login.templ               # LoginPage, LoginForm
 │   ├── notifications.templ       # Notifications page
+│   ├── agent_sessions.templ      # Agent sessions list page
+│   ├── agent_session_detail.templ # Agent session detail page
+│   ├── agent_skills.templ        # Agent skills page
 │   ├── notify_settings.templ     # Notify channels/rules settings page
 │   ├── pipeline_editor.templ     # PipelineEditorPage (SPA: Alpine.js)
 │   ├── pipeline_list.templ       # PipelineListPage
@@ -64,6 +71,8 @@ pkg/views/
     ├── helpers.go                # Shared Go helper functions
     ├── notify_settings_helpers.go
     ├── token_helpers.go
+    ├── agent_session_helpers.go
+    ├── agent_skill_helpers.go
     ├── capability_card.templ     # Capability card component
     ├── capability_grid.templ     # Capability grid layout
     ├── config_form.templ         # ConfigForm
@@ -80,6 +89,15 @@ pkg/views/
     ├── homelab_grid.templ        # Homelab registry grid
     ├── hub_apps_table.templ      # Hub apps table
     ├── notifications_table.templ # Notifications table
+    ├── agent_session_entries.templ    # Agent session entries list
+    ├── agent_session_entry_payload.templ # Agent session entry payload detail
+    ├── agent_session_entry_row.templ   # Agent session entry row
+    ├── agent_session_row.templ         # Agent session row
+    ├── agent_session_state_badge.templ # Agent session state badge
+    ├── agent_session_table.templ       # Agent sessions table
+    ├── agent_skill_form.templ          # Agent skill form
+    ├── agent_skill_row.templ           # Agent skill row
+    ├── agent_skill_table.templ         # Agent skills table
     ├── notify_channel_form.templ # Notify channel form
     ├── notify_channel_row.templ  # Notify channel row
     ├── notify_channels_table.templ # Notify channels table

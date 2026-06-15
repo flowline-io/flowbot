@@ -15,7 +15,7 @@ internal/server/
 ├── database.go   # Store adapter, database migration
 ├── platform.go   # Platform driver lifecycle management
 ├── module.go     # Module registration lifecycle
-├── provider.go   # Provider client wiring
+├── providers.go   # Provider client wiring
 ├── notify.go     # Notify provider registration
 ├── chat.go       # Chat message routing
 ├── pipeline.go   # Pipeline orchestration handlers
@@ -27,10 +27,14 @@ internal/server/
 ├── homelab.go    # Homelab scanner lifecycle
 ├── media.go      # Media file serving
 ├── message.go    # Message pipeline
+├── message_direct.go # Direct message handling
+├── chatagent_handler.go # Chat agent handler entry point
+├── chatagent_http.go    # Chat agent HTTP routes
 ├── func.go       # Function lifecycle hooks
 ├── globals.go    # Global state/singletons
 ├── reexec.go     # Self-reexec for upgrades
 ├── registration.go # Platform/ability registration
+├── chatagent/     # Chat agent service (run, session, skill, sink, prompt cache, stream coalescer, context usage)
 ├── swagger.go    # OpenAPI/Swagger docs
 ├── page_data.go  # Page data serving
 └── *_test.go     # Co-located tests
@@ -66,7 +70,7 @@ fx.New(
 - Management routes: `/hub/*` (hub lifecycle, health checks)
 - Static assets: `/static/*` (embedded `webassets.FS`)
 - Platform callbacks: `/platform/{platform}` (Slack, Discord, Tailchat webhooks)
-- Swagger docs: `/reference`
+- Swagger docs: `/swagger/*`
 
 ## Testing
 
