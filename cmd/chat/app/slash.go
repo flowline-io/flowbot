@@ -102,6 +102,7 @@ func SlashHelp() string {
   /status           Show session info
   /context          Show context usage breakdown
   /resume           Reload saved session history
+  /export [path]    Export current session to JSON
   /auth status      Show auth configuration
   /file <path>      Attach local file to next message
   /clear            Clear view (keep session)

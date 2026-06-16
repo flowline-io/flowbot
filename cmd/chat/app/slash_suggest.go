@@ -23,6 +23,7 @@ var slashCommands = []SlashCommand{
 	{name: "status", desc: "Show session info"},
 	{name: "context", desc: "Show context usage breakdown"},
 	{name: "resume", desc: "Reload saved session history"},
+	{name: "export", desc: "Export current session to JSON", args: "<path>"},
 	{name: "auth", desc: "Show auth configuration", args: "status"},
 	{name: "file", desc: "Attach local file to next message", args: "<path>"},
 	{name: "clear", desc: "Clear view (keep session)"},

@@ -110,3 +110,59 @@ func TestSendMessageSSEHonorsContext(t *testing.T) {
 		})
 	}
 }
+
+func TestExportSession(t *testing.T) {
+	tests := []struct {
+		name       string
+		sessionID  string
+		status     int
+		body       string
+		wantErr    bool
+		wantCount  int
+		wantSessID string
+	}{
+		{
+			name:       "returns full export",
+			sessionID:  "sess-1",
+			status:     http.StatusOK,
+			body:       `{"session_id":"sess-1","entry_count":2,"entries":[{"id":"e1"},{"id":"e2"}]}`,
+			wantCount:  2,
+			wantSessID: "sess-1",
+		},
+		{
+			name:      "server error",
+			sessionID: "sess-1",
+			status:    http.StatusInternalServerError,
+			body:      `{"error":"boom"}`,
+			wantErr:   true,
+		},
+		{
+			name:       "empty session",
+			sessionID:  "sess-2",
+			status:     http.StatusOK,
+			body:       `{"session_id":"sess-2","entry_count":0,"entries":[]}`,
+			wantCount:  0,
+			wantSessID: "sess-2",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/chatagent/sessions/"+tt.sessionID+"/export", r.URL.Path)
+				w.WriteHeader(tt.status)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			t.Cleanup(srv.Close)
+
+			cl := NewClient(srv.URL, "token")
+			export, err := cl.ChatAgent.ExportSession(context.Background(), tt.sessionID)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantSessID, export.SessionID)
+			assert.Equal(t, tt.wantCount, export.EntryCount)
+		})
+	}
+}

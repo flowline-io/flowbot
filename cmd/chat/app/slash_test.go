@@ -18,6 +18,8 @@ func TestParseSlashCommand(t *testing.T) {
 		{name: "file path", line: "/file ./main.go", wantCmd: "file", wantArg: "./main.go", wantOK: true},
 		{name: "not slash", line: "hello", wantOK: false},
 		{name: "status", line: "/status", wantCmd: "status", wantOK: true},
+		{name: "export", line: "/export", wantCmd: "export", wantOK: true},
+		{name: "export path", line: "/export ./out/chat", wantCmd: "export", wantArg: "./out/chat", wantOK: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

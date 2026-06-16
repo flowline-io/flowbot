@@ -26,6 +26,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateSessionEnd(msg)
 	case contextUsageMsg:
 		return m.updateContextUsage(msg)
+	case sessionExportMsg:
+		return m.updateSessionExport(msg)
 	case tickMsg:
 		return m.updateTick(msg)
 	case streamEventMsg:
@@ -257,6 +259,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		m.streamOverlay.Reset()
 		m.messageCount = 0
 		return m, m.hydrateHistoryCmd()
+	case "export":
+		return m, m.sessionExportCmd(args)
 	case "auth":
 		return m.handleSlashAuth(args)
 	default:
@@ -500,6 +504,45 @@ func (m *Model) contextUsageCmd() tea.Cmd {
 		}
 		return contextUsageMsg{usage: usage}
 	}
+}
+
+type sessionExportMsg struct {
+	path  string
+	count int
+	err   string
+}
+
+func (m *Model) sessionExportCmd(args string) tea.Cmd {
+	sessionID := m.sessionID
+	cl := m.client
+	return func() tea.Msg {
+		if sessionID == "" {
+			return sessionExportMsg{err: "No active session"}
+		}
+		path, err := ResolveExportPath(args, sessionID)
+		if err != nil {
+			return sessionExportMsg{err: err.Error()}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		export, err := cl.ChatAgent.ExportSession(ctx, sessionID)
+		if err != nil {
+			return sessionExportMsg{err: err.Error()}
+		}
+		if err := WriteSessionExport(path, export); err != nil {
+			return sessionExportMsg{err: err.Error()}
+		}
+		return sessionExportMsg{path: path, count: export.EntryCount}
+	}
+}
+
+func (m *Model) updateSessionExport(msg sessionExportMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.hint = msg.err
+		return m, m.focusInputCmd()
+	}
+	m.appendSystem(FormatExportSuccess(msg.path, msg.count))
+	return m, m.focusInputCmd()
 }
 
 func (m *Model) updateContextUsage(msg contextUsageMsg) (*Model, tea.Cmd) {

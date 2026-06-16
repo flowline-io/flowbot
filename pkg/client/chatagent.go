@@ -82,6 +82,19 @@ type ChatHistoryMessage struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// ChatSessionExport is the full session snapshot from GET /chatagent/sessions/:id/export.
+type ChatSessionExport struct {
+	SessionID  string           `json:"session_id"`
+	UID        string           `json:"uid"`
+	LeafID     string           `json:"leaf_id"`
+	State      string           `json:"state"`
+	CreatedAt  time.Time        `json:"created_at"`
+	UpdatedAt  time.Time        `json:"updated_at"`
+	ExportedAt time.Time        `json:"exported_at"`
+	EntryCount int              `json:"entry_count"`
+	Entries    []map[string]any `json:"entries"`
+}
+
 // ChatStreamEvent is one SSE payload from POST /chatagent/sessions/:id/messages.
 type ChatStreamEvent struct {
 	Type string `json:"type"`
@@ -140,6 +153,15 @@ func (cc *ChatAgentClient) ListMessages(ctx context.Context, sessionID string) (
 		return nil, err
 	}
 	return resp.Messages, nil
+}
+
+// ExportSession returns the full persisted session tree from the server.
+func (cc *ChatAgentClient) ExportSession(ctx context.Context, sessionID string) (*ChatSessionExport, error) {
+	var export ChatSessionExport
+	if err := cc.chatGet(ctx, "/chatagent/sessions/"+sessionID+"/export", &export); err != nil {
+		return nil, err
+	}
+	return &export, nil
 }
 
 // ContextUsage returns the estimated context budget breakdown for a session.
