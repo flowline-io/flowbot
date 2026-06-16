@@ -90,6 +90,11 @@ type Model struct {
 
 	errMsg   string
 	quitting bool
+
+	selActive   bool
+	selDragging bool
+	selAnchor   textPos
+	selFocus    textPos
 }
 
 // NewModel constructs the chat TUI model.

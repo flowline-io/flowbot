@@ -9,7 +9,7 @@ import (
 func (m *Model) View() tea.View {
 	v := tea.NewView(m.render())
 	v.AltScreen = true
-	v.MouseMode = tea.MouseModeCellMotion
+	v.MouseMode = tea.MouseModeAllMotion
 	return v
 }
 
@@ -33,7 +33,7 @@ func (m *Model) render() string {
 	canvas := lipgloss.NewCanvas(m.width, m.height)
 	comp := lipgloss.NewCompositor(
 		lipgloss.NewLayer(header).Y(0),
-		lipgloss.NewLayer(m.viewport.View()).Y(headerH),
+		lipgloss.NewLayer(m.renderTranscript()).Y(headerH),
 		lipgloss.NewLayer(footer).Y(footerY),
 	)
 	return canvas.Compose(comp).Render()

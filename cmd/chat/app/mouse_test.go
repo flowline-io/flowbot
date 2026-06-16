@@ -105,7 +105,7 @@ func TestHandleMouseWheelIgnoresFooter(t *testing.T) {
 	}
 }
 
-func TestViewEnablesMouseCellMotion(t *testing.T) {
+func TestViewEnablesMouseAllMotion(t *testing.T) {
 	tests := []struct {
 		name   string
 		width  int
@@ -121,7 +121,7 @@ func TestViewEnablesMouseCellMotion(t *testing.T) {
 			m.width = tt.width
 			m.height = tt.height
 			view := m.View()
-			assert.Equal(t, tea.MouseModeCellMotion, view.MouseMode)
+			assert.Equal(t, tea.MouseModeAllMotion, view.MouseMode)
 		})
 	}
 }
