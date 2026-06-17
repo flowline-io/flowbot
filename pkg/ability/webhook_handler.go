@@ -30,12 +30,12 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 		body := c.Body()
 
 		headers := make(map[string]string)
-		c.Request().Header.VisitAll(func(key, value []byte) {
+		for key, value := range c.Request().Header.All() {
 			headers[http.CanonicalHeaderKey(string(key))] = string(value)
-		})
-		c.Request().URI().QueryArgs().VisitAll(func(key, value []byte) {
+		}
+		for key, value := range c.Request().URI().QueryArgs().All() {
 			headers[http.CanonicalHeaderKey("X-Query-"+string(key))] = string(value)
-		})
+		}
 
 		if err := converter.VerifySignature(headers, body); err != nil {
 			flog.Warn("event_source: webhook %s signature failed: %v", path, err)

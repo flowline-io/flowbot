@@ -255,7 +255,7 @@ func finalizePrompt(
 	if len(contextFiles) > 0 && hasTool(tools, "read_file") {
 		writePrompt(&prompt, "\n\n<project_context>\n\nProject-specific instructions and guidelines:\n\n")
 		for _, file := range contextFiles {
-			writePrompt(&prompt, fmt.Sprintf("<project_instructions path=\"%s\">\n%s\n</project_instructions>\n\n", file.Path, file.Content))
+			writePrompt(&prompt, fmt.Sprintf("<project_instructions path=%q>\n%s\n</project_instructions>\n\n", file.Path, file.Content))
 		}
 		writePrompt(&prompt, "</project_context>\n")
 	}

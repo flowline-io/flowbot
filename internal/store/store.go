@@ -1925,7 +1925,7 @@ func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value 
 		limit = 20
 	}
 
-	tagJSON := fmt.Sprintf(`{"%s":"%s"}`, key, value)
+	tagJSON := fmt.Sprintf(`{%q:%q}`, key, value)
 	q := s.client.DataEvent.Query().
 		Where(func(selector *sql.Selector) {
 			selector.Where(sql.ExprP("tags @> $1", tagJSON))

@@ -37,21 +37,21 @@ var sensitiveHeaders = map[string]struct{}{
 // headers removed. The wcfg auth header names are also excluded.
 func sanitizeWebhookHeaders(c fiber.Ctx, wcfg *pipeline.WebhookConfig) map[string]string {
 	headers := make(map[string]string)
-	c.Request().Header.VisitAll(func(key, value []byte) {
+	for key, value := range c.Request().Header.All() {
 		canonical := http.CanonicalHeaderKey(string(key))
 		if _, sensitive := sensitiveHeaders[strings.ToLower(canonical)]; sensitive {
-			return
+			continue
 		}
 		if wcfg != nil {
 			if wcfg.Auth.TokenHeader != "" && strings.EqualFold(canonical, wcfg.Auth.TokenHeader) {
-				return
+				continue
 			}
 			if wcfg.Auth.HMACHeader != "" && strings.EqualFold(canonical, wcfg.Auth.HMACHeader) {
-				return
+				continue
 			}
 		}
 		headers[canonical] = string(value)
-	})
+	}
 	return headers
 }
 

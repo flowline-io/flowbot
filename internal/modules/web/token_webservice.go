@@ -140,7 +140,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="tokens-empty" hx-swap-oob="delete"></tr>`))
 	alert := fmt.Sprintf(
-		`<div data-testid="token-created-alert" hx-swap-oob="innerHTML:#token-alert-container" class="alert alert-success"><span><strong>Token created:</strong> <code class="font-mono text-xs">%s</code></span><button class="btn btn-ghost btn-xs" data-testid="token-copy-btn" data-token="%s" onclick="navigator.clipboard.writeText(this.dataset.token);this.textContent='Copied!'">Copy</button></div>`,
+		`<div data-testid="token-created-alert" hx-swap-oob="innerHTML:#token-alert-container" class="alert alert-success"><span><strong>Token created:</strong> <code class="font-mono text-xs">%s</code></span><button class="btn btn-ghost btn-xs" data-testid="token-copy-btn" data-token=%q onclick="navigator.clipboard.writeText(this.dataset.token);this.textContent='Copied!'">Copy</button></div>`,
 		token, token,
 	)
 	ctx.Response().BodyWriter().Write([]byte(alert))

@@ -258,7 +258,7 @@ func registerPipelineHandler(
 	engine *pipeline.Engine,
 	ec *metrics.EventCollector,
 ) {
-	router.AddNoPublisherHandler(
+	router.AddConsumerHandler(
 		"onPipelineDataEvent",
 		DataEventTopic,
 		subscriber,

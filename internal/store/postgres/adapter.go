@@ -240,9 +240,7 @@ func (a *adapter) UserGetAll(ctx context.Context, ids ...types.Uid) ([]*gen.User
 		return nil, fmt.Errorf("postgres: get all users: %w", err)
 	}
 	result := make([]*gen.User, len(users))
-	for i, u := range users {
-		result[i] = u
-	}
+	copy(result, users)
 	return result, nil
 }
 
@@ -445,9 +443,7 @@ func (a *adapter) GetPlatformUsersByUserId(ctx context.Context, userId int64) ([
 		return nil, fmt.Errorf("postgres: get platform users by user id: %w", err)
 	}
 	result := make([]*gen.PlatformUser, len(users))
-	for i, u := range users {
-		result[i] = u
-	}
+	copy(result, users)
 	return result, nil
 }
 
@@ -503,9 +499,7 @@ func (a *adapter) GetPlatformChannelsByPlatformIds(ctx context.Context, platform
 		return nil, fmt.Errorf("postgres: get platform channels by platform ids: %w", err)
 	}
 	result := make([]*gen.PlatformChannel, len(channels))
-	for i, c := range channels {
-		result[i] = c
-	}
+	copy(result, channels)
 	return result, nil
 }
 
@@ -575,9 +569,7 @@ func (a *adapter) GetPlatformChannelUsersByUserFlag(ctx context.Context, userFla
 		return nil, fmt.Errorf("postgres: get platform channel users by user flag: %w", err)
 	}
 	result := make([]*gen.PlatformChannelUser, len(users))
-	for i, u := range users {
-		result[i] = u
-	}
+	copy(result, users)
 	return result, nil
 }
 
@@ -593,9 +585,7 @@ func (a *adapter) GetPlatformChannelUsersByUserFlags(ctx context.Context, userFl
 		return nil, fmt.Errorf("postgres: get platform channel users by user flags: %w", err)
 	}
 	result := make([]*gen.PlatformChannelUser, len(users))
-	for i, u := range users {
-		result[i] = u
-	}
+	copy(result, users)
 	return result, nil
 }
 
@@ -637,9 +627,7 @@ func (a *adapter) GetMessagesBySession(ctx context.Context, session string) ([]*
 		return nil, fmt.Errorf("postgres: get messages by session: %w", err)
 	}
 	result := make([]*gen.Message, len(messages))
-	for i, m := range messages {
-		result[i] = m
-	}
+	copy(result, messages)
 	return result, nil
 }
 
@@ -1838,9 +1826,7 @@ func (a *adapter) GetBots(ctx context.Context) ([]*gen.Bot, error) {
 		return nil, fmt.Errorf("postgres: getbots: %w", err)
 	}
 	result := make([]*gen.Bot, len(bots))
-	for i, b := range bots {
-		result[i] = b
-	}
+	copy(result, bots)
 	return result, nil
 }
 
@@ -1876,9 +1862,7 @@ func (a *adapter) GetPlatforms(ctx context.Context) ([]*gen.Platform, error) {
 		return nil, fmt.Errorf("postgres: getplatforms: %w", err)
 	}
 	result := make([]*gen.Platform, len(platforms))
-	for i, p := range platforms {
-		result[i] = p
-	}
+	copy(result, platforms)
 	return result, nil
 }
 
@@ -1965,9 +1949,7 @@ func (a *adapter) GetChannels(ctx context.Context) ([]*gen.Channel, error) {
 		return nil, fmt.Errorf("postgres: getchannels: %w", err)
 	}
 	result := make([]*gen.Channel, len(channels))
-	for i, c := range channels {
-		result[i] = c
-	}
+	copy(result, channels)
 	return result, nil
 }
 
@@ -1981,9 +1963,7 @@ func (a *adapter) GetAgents(ctx context.Context) ([]*gen.Agent, error) {
 		return nil, fmt.Errorf("postgres: getagents: %w", err)
 	}
 	result := make([]*gen.Agent, len(agents))
-	for i, ag := range agents {
-		result[i] = ag
-	}
+	copy(result, agents)
 	return result, nil
 }
 
