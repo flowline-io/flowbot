@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
@@ -24,6 +25,13 @@ type RunRequest struct {
 	SessionID string
 	Text      string
 	API       *APIRunOptions
+}
+
+// ManualCompactionResult reports the outcome of a user-triggered compaction run.
+type ManualCompactionResult struct {
+	Compacted    bool
+	TokensBefore int
+	TokensAfter  int
 }
 
 // Service orchestrates chat assistant agent runs for direct chat sessions.
@@ -69,6 +77,57 @@ func (s *Service) RunAPI(ctx context.Context, req RunRequest, opts *APIRunOption
 	req.API = opts
 	_, err := s.Run(ctx, req, nil)
 	return err
+}
+
+// CompactSession force-compacts the current session branch without sending a user turn.
+func (*Service) CompactSession(ctx context.Context, sessionID string) (*ManualCompactionResult, error) {
+	if !agentllm.AgentEnabled(agentName) {
+		return nil, fmt.Errorf("chat agent is disabled or model is not configured")
+	}
+	if err := ensureSessionActive(ctx, sessionID); err != nil {
+		return nil, err
+	}
+
+	lock := sessionLock(sessionID)
+	lock.Lock()
+	defer lock.Unlock()
+
+	if err := ensureSessionActive(ctx, sessionID); err != nil {
+		return nil, err
+	}
+
+	h, err := getOrCreateHarness(ctx, RunRequest{SessionID: sessionID}, 0)
+	if err != nil {
+		return nil, err
+	}
+	if h == nil || h.ContextManager() == nil || h.Session() == nil {
+		return nil, fmt.Errorf("chat agent context manager unavailable")
+	}
+
+	branch, err := h.Session().GetBranch(ctx, "")
+	if err != nil {
+		return nil, fmt.Errorf("load session branch: %w", err)
+	}
+	before := h.ContextManager().GetContextUsage(branch).Tokens
+
+	err = h.ContextManager().CompactAndReload(ctx, h.Session(), h.Agent(), ctxmgr.CompactOpts{Force: true})
+	if err != nil {
+		if agentresult.IsCode(err, "nothing_to_compact") {
+			return &ManualCompactionResult{Compacted: false, TokensBefore: before, TokensAfter: before}, nil
+		}
+		return nil, err
+	}
+
+	branch, err = h.Session().GetBranch(ctx, "")
+	if err != nil {
+		return nil, fmt.Errorf("reload compacted branch: %w", err)
+	}
+	after := h.ContextManager().GetContextUsage(branch).Tokens
+	return &ManualCompactionResult{
+		Compacted:    true,
+		TokensBefore: before,
+		TokensAfter:  after,
+	}, nil
 }
 
 func validateRunRequest(ctx context.Context, req RunRequest) error {

@@ -26,6 +26,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateSessionEnd(msg)
 	case contextUsageMsg:
 		return m.updateContextUsage(msg)
+	case sessionCompactMsg:
+		return m.updateSessionCompact(msg)
 	case sessionExportMsg:
 		return m.updateSessionExport(msg)
 	case tickMsg:
@@ -268,6 +270,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		return m, m.focusInputCmd()
 	case "context":
 		return m, m.contextUsageCmd()
+	case "compact":
+		return m, m.sessionCompactCmd()
 	case "resume":
 		m.transcript.Reset()
 		m.streamOverlay.Reset()
@@ -466,11 +470,9 @@ func (m *Model) refreshStreamingAssistant() {
 		return
 	}
 	transcript := m.transcript.String()
-	baseLen := m.streamingBaseLen
-	if baseLen > len(transcript) {
+	baseLen := min(m.streamingBaseLen,
 		// Transcript may shrink mid-stream (e.g. /clear); clamp to avoid slice panic.
-		baseLen = len(transcript)
-	}
+		len(transcript))
 	base := transcript[:baseLen]
 	rendered := FormatAssistantBlock(m.rawAssistant, m.width-2, &m.styles)
 	m.transcript.Reset()
@@ -517,6 +519,28 @@ func (m *Model) contextUsageCmd() tea.Cmd {
 			return contextUsageMsg{err: err.Error()}
 		}
 		return contextUsageMsg{usage: usage}
+	}
+}
+
+func (m *Model) sessionCompactCmd() tea.Cmd {
+	sessionID := m.sessionID
+	cl := m.client
+	m.hint = "Compacting..."
+	return func() tea.Msg {
+		if sessionID == "" {
+			return sessionCompactMsg{err: "No active session"}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), chatCompactionTimeout)
+		defer cancel()
+		result, err := cl.ChatAgent.Compact(ctx, sessionID)
+		if err != nil {
+			return sessionCompactMsg{err: err.Error()}
+		}
+		return sessionCompactMsg{
+			compacted:    result.Compacted,
+			tokensBefore: result.TokensBefore,
+			tokensAfter:  result.TokensAfter,
+		}
 	}
 }
 
@@ -578,6 +602,22 @@ func (m *Model) updateContextUsage(msg contextUsageMsg) (*Model, tea.Cmd) {
 		}
 	}
 	return m, m.focusInputCmd()
+}
+
+func (m *Model) updateSessionCompact(msg sessionCompactMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.hint = msg.err
+		return m, m.focusInputCmd()
+	}
+	if !msg.compacted {
+		m.appendSystem("No older history could be compacted")
+		return m, m.focusInputCmd()
+	}
+	m.hint = formatCompactionSuccess(msg.tokensBefore, msg.tokensAfter)
+	m.transcript.Reset()
+	m.streamOverlay.Reset()
+	m.messageCount = 0
+	return m, tea.Batch(m.hydrateHistoryCmd(), m.focusInputCmd())
 }
 
 func (m *Model) hydrateHistoryCmd() tea.Cmd {

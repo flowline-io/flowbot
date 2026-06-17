@@ -100,9 +100,6 @@ func TestBookmark_GetTitle(t *testing.T) {
 	}
 }
 
-//go:fix inline
-func strptr(s string) *string { return new(s) }
-
 func TestBookmark_GetSummary(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

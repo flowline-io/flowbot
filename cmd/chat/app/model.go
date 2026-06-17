@@ -36,7 +36,18 @@ type sessionEndMsg struct {
 	warn string
 }
 
+// sessionCompactMsg reports the result of an async /compact command.
+type sessionCompactMsg struct {
+	compacted    bool
+	tokensBefore int
+	tokensAfter  int
+	err          string
+}
+
 const chatRequestTimeout = 30 * time.Second
+
+// chatCompactionTimeout allows LLM summarization to finish; longer than routine API calls.
+const chatCompactionTimeout = 3 * time.Minute
 
 // Model is the bubbletea model for flowbot-chat.
 type Model struct {

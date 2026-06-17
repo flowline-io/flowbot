@@ -26,7 +26,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		config.App.Models = []config.Model{
 			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 		}
-		config.App.ChatAgent.Compaction = config.CompactionConfig{Enabled: false}
+		config.App.ChatAgent.Compaction = config.CompactionConfig{Auto: new(false)}
 
 		model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "hello from agent"})
 		orig := chatagent.NewModelForTest
@@ -70,7 +70,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 			},
 		}
 		config.App.ChatAgent = config.ChatAgentConfig{
-			Compaction: config.CompactionConfig{Enabled: false},
+			Compaction: config.CompactionConfig{Auto: new(false)},
 			ChatModel:  "chat-model",
 			ToolModel:  "tool-model",
 		}

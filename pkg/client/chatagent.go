@@ -75,6 +75,13 @@ type ChatContextUsage struct {
 	Skills            []ChatContextSkill    `json:"skills"`
 }
 
+// ChatCompactionResult is the outcome of POST /chatagent/sessions/:id/compact.
+type ChatCompactionResult struct {
+	Compacted    bool `json:"compacted"`
+	TokensBefore int  `json:"tokens_before"`
+	TokensAfter  int  `json:"tokens_after"`
+}
+
 // ChatHistoryMessage is one persisted chat turn.
 type ChatHistoryMessage struct {
 	Role      string    `json:"role"`
@@ -171,6 +178,15 @@ func (cc *ChatAgentClient) ContextUsage(ctx context.Context, sessionID string) (
 		return nil, err
 	}
 	return &usage, nil
+}
+
+// Compact triggers manual compaction for the current session branch.
+func (cc *ChatAgentClient) Compact(ctx context.Context, sessionID string) (*ChatCompactionResult, error) {
+	var result ChatCompactionResult
+	if err := cc.chatPost(ctx, "/chatagent/sessions/"+sessionID+"/compact", map[string]any{}, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // Confirm responds to a pending tool confirmation.

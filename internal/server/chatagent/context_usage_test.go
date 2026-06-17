@@ -34,7 +34,7 @@ func TestBuildContextUsageReport(t *testing.T) {
 			ChatModel: "test-model",
 			Workspace: root,
 			Compaction: config.CompactionConfig{
-				Enabled:       true,
+				Enabled:       new(true),
 				ReserveTokens: 10000,
 			},
 		},
@@ -127,7 +127,7 @@ func TestBuildContextUsageReportDualModel(t *testing.T) {
 			ToolModel: "test-tool",
 			Workspace: root,
 			Compaction: config.CompactionConfig{
-				Enabled:       true,
+				Enabled:       new(true),
 				ReserveTokens: 10000,
 			},
 		},

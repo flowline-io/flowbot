@@ -12,20 +12,32 @@ func TestCompactionConfigWithDefaults(t *testing.T) {
 	tests := []struct {
 		name           string
 		cfg            config.CompactionConfig
+		wantAuto       bool
+		wantPrune      bool
 		wantReserve    int
 		wantKeepRecent int
 	}{
-		{name: "zero values", cfg: config.CompactionConfig{}, wantReserve: 16384, wantKeepRecent: 20000},
-		{name: "custom reserve", cfg: config.CompactionConfig{ReserveTokens: 8192}, wantReserve: 8192, wantKeepRecent: 20000},
-		{name: "custom keep recent", cfg: config.CompactionConfig{KeepRecentTokens: 10000}, wantReserve: 16384, wantKeepRecent: 10000},
+		{name: "zero values", cfg: config.CompactionConfig{}, wantAuto: true, wantPrune: true, wantReserve: 10000, wantKeepRecent: 20000},
+		{name: "legacy enabled and reserve", cfg: config.CompactionConfig{Enabled: new(false), ReserveTokens: 8192}, wantAuto: false, wantPrune: true, wantReserve: 8192, wantKeepRecent: 20000},
+		{name: "explicit new fields", cfg: config.CompactionConfig{Auto: new(true), Prune: new(false), Reserved: 12000, KeepRecentTokens: 10000}, wantAuto: true, wantPrune: false, wantReserve: 12000, wantKeepRecent: 10000},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := tt.cfg.WithDefaults()
-			assert.Equal(t, tt.wantReserve, got.ReserveTokens)
+			if assert.NotNil(t, got.Auto) {
+				assert.Equal(t, tt.wantAuto, *got.Auto)
+			}
+			if assert.NotNil(t, got.Prune) {
+				assert.Equal(t, tt.wantPrune, *got.Prune)
+			}
+			assert.Equal(t, tt.wantReserve, got.Reserved)
 			assert.Equal(t, tt.wantKeepRecent, got.KeepRecentTokens)
+			assert.Equal(t, tt.wantAuto, tt.cfg.AutoEnabled())
+			assert.Equal(t, tt.wantPrune, tt.cfg.PruneEnabled())
+			assert.Equal(t, tt.wantReserve, tt.cfg.ReservedTokens())
+			assert.Equal(t, tt.wantKeepRecent, tt.cfg.KeepRecentBudget())
 		})
 	}
 }

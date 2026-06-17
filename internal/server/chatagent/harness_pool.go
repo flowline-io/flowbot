@@ -167,7 +167,12 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 		toolModel,
 		fmt.Sprintf("dual=%t", dual),
 		fmt.Sprintf("max_steps=%d", cfg.MaxSteps),
-		fmt.Sprintf("compaction=%t:%d:%d", compaction.Enabled, compaction.ReserveTokens, compaction.KeepRecentTokens),
+		fmt.Sprintf("compaction=%t:%t:%d:%d",
+			compaction.AutoEnabled(),
+			compaction.PruneEnabled(),
+			compaction.ReservedTokens(),
+			compaction.KeepRecentBudget(),
+		),
 		promptConfigHash(workspace.Root),
 	}
 	sum := sha256.Sum256([]byte(strings.Join(parts, "\x1f")))

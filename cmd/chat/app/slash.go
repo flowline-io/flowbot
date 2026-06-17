@@ -94,6 +94,13 @@ func estimateTokens(chars int) int {
 	return chars / 4
 }
 
+func formatCompactionSuccess(before, after int) string {
+	if before <= 0 || after <= 0 {
+		return "Context compacted"
+	}
+	return fmt.Sprintf("Context compacted: %s -> %s tokens", formatContextTokenCount(before), formatContextTokenCount(after))
+}
+
 // SlashHelp returns the /help text.
 func SlashHelp() string {
 	return strings.TrimSpace(`Commands:
@@ -101,6 +108,7 @@ func SlashHelp() string {
   /end              Close current session
   /status           Show session info
   /context          Show context usage breakdown
+  /compact          Compress long session history
   /resume           Reload saved session history
   /export [path]    Export current session to JSON
   /auth status      Show auth configuration

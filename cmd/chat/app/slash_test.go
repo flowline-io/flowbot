@@ -15,6 +15,7 @@ func TestParseSlashCommand(t *testing.T) {
 		wantOK  bool
 	}{
 		{name: "help", line: "/help", wantCmd: "help", wantOK: true},
+		{name: "compact", line: "/compact", wantCmd: "compact", wantOK: true},
 		{name: "file path", line: "/file ./main.go", wantCmd: "file", wantArg: "./main.go", wantOK: true},
 		{name: "not slash", line: "hello", wantOK: false},
 		{name: "status", line: "/status", wantCmd: "status", wantOK: true},
@@ -59,4 +60,22 @@ func TestFormatFileWarning(t *testing.T) {
 
 func TestEstimateTokens(t *testing.T) {
 	assert.Equal(t, 250, estimateTokens(1000))
+}
+
+func TestFormatCompactionSuccess(t *testing.T) {
+	tests := []struct {
+		name   string
+		before int
+		after  int
+		want   string
+	}{
+		{name: "formats reduction", before: 42000, after: 12000, want: "Context compacted: 42.0k -> 12.0k tokens"},
+		{name: "falls back when before missing", before: 0, after: 12000, want: "Context compacted"},
+		{name: "falls back when after missing", before: 12000, after: 0, want: "Context compacted"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, formatCompactionSuccess(tt.before, tt.after))
+		})
+	}
 }

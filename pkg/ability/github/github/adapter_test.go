@@ -606,15 +606,3 @@ func testRelease(id int64, tagName string) *provider.RepositoryRelease {
 		Body:    new("release body"),
 	}
 }
-
-//go:fix inline
-func strPtr(s string) *string { return new(s) }
-
-//go:fix inline
-func intPtr(i int) *int { return new(i) }
-
-//go:fix inline
-func int64Ptr(i int64) *int64 { return new(i) }
-
-//go:fix inline
-func boolPtr(b bool) *bool { return new(b) }

@@ -90,8 +90,8 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 
 	totalUsed := systemPromptTokens + systemToolsTokens + skillsTokens + messageTokens
 	autocompactTokens := 0
-	if compaction.Enabled {
-		autocompactTokens = compaction.ReserveTokens
+	if compaction.AutoEnabled() {
+		autocompactTokens = compaction.ReservedTokens()
 	}
 
 	freeTokens := max(contextWindow-totalUsed-autocompactTokens, 0)
@@ -110,7 +110,7 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 		{ID: "messages", Label: "Messages", Tokens: messageTokens, Percent: percentOf(messageTokens)},
 		{ID: "free_space", Label: "Free space", Tokens: freeTokens, Percent: percentOf(freeTokens)},
 	}
-	if compaction.Enabled {
+	if compaction.AutoEnabled() {
 		categories = append(categories, ContextCategoryInfo{
 			ID: "autocompact_buffer", Label: "Autocompact buffer", Tokens: autocompactTokens, Percent: percentOf(autocompactTokens),
 		})
@@ -125,7 +125,7 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 		ContextWindow:     contextWindow,
 		TotalTokens:       totalUsed,
 		TotalPercent:      totalPercent,
-		CompactionEnabled: compaction.Enabled,
+		CompactionEnabled: compaction.AutoEnabled(),
 		Categories:        categories,
 		Skills:            skillUsages,
 	}, nil

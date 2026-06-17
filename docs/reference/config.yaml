@@ -172,9 +172,11 @@ chat_agent:
   # chat_model: "gpt-4o-mini"   # enables chat agent when set
   # tool_model: "gpt-4o"        # enables dual-model routing when set (same provider as chat_model)
   compaction:
-    enabled: true
-    reserve_tokens: 16384
+    auto: true
+    prune: true
+    reserved: 10000
     keep_recent_tokens: 20000
+    # Legacy keys (still supported): enabled, reserve_tokens
   # system_prompt: ""           # optional: replace default prompt entirely
   # append_system_prompt: ""    # optional: extra instructions appended to prompt
   # prompt_guidelines: []       # optional: extra guideline bullets

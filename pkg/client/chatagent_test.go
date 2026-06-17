@@ -166,3 +166,65 @@ func TestExportSession(t *testing.T) {
 		})
 	}
 }
+
+func TestCompactSession(t *testing.T) {
+	tests := []struct {
+		name          string
+		sessionID     string
+		status        int
+		body          string
+		wantErr       bool
+		wantCompacted bool
+		wantBefore    int
+		wantAfter     int
+	}{
+		{
+			name:          "returns compaction stats",
+			sessionID:     "sess-1",
+			status:        http.StatusOK,
+			body:          `{"compacted":true,"tokens_before":42000,"tokens_after":12000}`,
+			wantCompacted: true,
+			wantBefore:    42000,
+			wantAfter:     12000,
+		},
+		{
+			name:      "server error",
+			sessionID: "sess-2",
+			status:    http.StatusConflict,
+			body:      `{"error":"boom"}`,
+			wantErr:   true,
+		},
+		{
+			name:          "nothing to compact",
+			sessionID:     "sess-3",
+			status:        http.StatusOK,
+			body:          `{"compacted":false,"tokens_before":8000,"tokens_after":8000}`,
+			wantCompacted: false,
+			wantBefore:    8000,
+			wantAfter:     8000,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				assert.Equal(t, "/chatagent/sessions/"+tt.sessionID+"/compact", r.URL.Path)
+				w.WriteHeader(tt.status)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			t.Cleanup(srv.Close)
+
+			cl := NewClient(srv.URL, "token")
+			result, err := cl.ChatAgent.Compact(context.Background(), tt.sessionID)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantCompacted, result.Compacted)
+			assert.Equal(t, tt.wantBefore, result.TokensBefore)
+			assert.Equal(t, tt.wantAfter, result.TokensAfter)
+		})
+	}
+}

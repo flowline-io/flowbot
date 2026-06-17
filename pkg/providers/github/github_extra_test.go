@@ -354,6 +354,3 @@ func TestGithub_CreateCard(t *testing.T) {
 		assert.Equal(t, "My card", *card.Note)
 	})
 }
-
-//go:fix inline
-func strPtr(s string) *string { return new(s) }

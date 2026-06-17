@@ -37,7 +37,7 @@ var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), f
 		config.App.ChatAgent = config.ChatAgentConfig{
 			ChatModel:  "fake-model",
 			Workspace:  wsDir,
-			Compaction: config.CompactionConfig{Enabled: false},
+			Compaction: config.CompactionConfig{Auto: new(false)},
 		}
 		config.App.Models = []config.Model{
 			{

@@ -173,7 +173,7 @@ func TestListResultEmpty(t *testing.T) {
 		lr       ListResult[string]
 	}{
 		{"empty list result has nil items and page", true, true, ListResult[string]{}},
-		{"list result with items but nil page preserves nil page", false, true, ListResult[string]{Items: []*string{ptr("x")}}},
+		{"list result with items but nil page preserves nil page", false, true, ListResult[string]{Items: []*string{new("x")}}},
 		{"list result with page but nil items preserves nil items", true, false, ListResult[string]{Page: &PageInfo{Limit: 5}}},
 	}
 	for _, tt := range tests {
@@ -199,8 +199,8 @@ func TestListResultWithItems(t *testing.T) {
 		name  string
 		items []*string
 	}{
-		{"list result with items preserves values", []*string{ptr("a"), ptr("b"), ptr("c")}},
-		{"single item list result preserves value", []*string{ptr("only")}},
+		{"list result with items preserves values", []*string{new("a"), new("b"), new("c")}},
+		{"single item list result preserves value", []*string{new("only")}},
 		{"empty slice items returns non-nil but empty items", []*string{}},
 	}
 	for _, tt := range tests {
@@ -226,13 +226,13 @@ func TestListResultWithPage(t *testing.T) {
 		items []*string
 		page  *PageInfo
 	}{
-		{"list result with page preserves page fields", []*string{ptr("x")}, &PageInfo{
-			Limit: 10, HasMore: true, NextCursor: "next", Total: ptr(int64(50)),
+		{"list result with page preserves page fields", []*string{new("x")}, &PageInfo{
+			Limit: 10, HasMore: true, NextCursor: "next", Total: new(int64(50)),
 		}},
 		{"list result with page but no items preserves page", nil, &PageInfo{
 			Limit: 5, HasMore: true, NextCursor: "nxt",
 		}},
-		{"list result with page has_more=false preserves fields", []*string{ptr("a"), ptr("b")}, &PageInfo{
+		{"list result with page has_more=false preserves fields", []*string{new("a"), new("b")}, &PageInfo{
 			Limit: 20, HasMore: false, PrevCursor: "prev",
 		}},
 	}
@@ -285,9 +285,4 @@ func TestListResultGenericWithBookmark(t *testing.T) {
 			}
 		})
 	}
-}
-
-//go:fix inline
-func ptr[T any](v T) *T {
-	return new(v)
 }

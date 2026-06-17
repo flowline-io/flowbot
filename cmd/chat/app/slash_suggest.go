@@ -22,6 +22,7 @@ var slashCommands = []SlashCommand{
 	{name: "end", desc: "Close current session"},
 	{name: "status", desc: "Show session info"},
 	{name: "context", desc: "Show context usage breakdown"},
+	{name: "compact", desc: "Compress long session history"},
 	{name: "resume", desc: "Reload saved session history"},
 	{name: "export", desc: "Export current session to JSON", args: "<path>"},
 	{name: "auth", desc: "Show auth configuration", args: "status"},
