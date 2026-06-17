@@ -3,6 +3,7 @@ package example
 import (
 	"encoding/json"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -163,7 +164,7 @@ func TestWebserviceEndpoints(t *testing.T) {
 			ruleSets := append(webserviceRules, webhookRules...)
 			module.Webservice(app, Name, webservice.Ruleset(ruleSets))
 
-			req := httptest.NewRequest(tt.method, tt.path, nil)
+			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)

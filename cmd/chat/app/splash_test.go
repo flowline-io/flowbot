@@ -43,7 +43,8 @@ func TestRenderSplashSkills(t *testing.T) {
 				Provider:  "p",
 				Skills:    tt.skills,
 			}
-			got := RenderSplash(80, info, "sess-1", "http://localhost:6060", NewStyles())
+			styles := NewStyles()
+			got := RenderSplash(80, info, "sess-1", "http://localhost:6060", &styles)
 			assert.Contains(t, got, tt.wantSub)
 			if tt.notWant != "" {
 				assert.NotContains(t, got, tt.notWant)
@@ -65,7 +66,8 @@ func TestRenderSplashVersionTitle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			info := &client.ChatAgentInfo{Version: tt.version, ChatModel: "m", Provider: "p"}
-			got := RenderSplash(80, info, "sess-1", "http://localhost:6060", NewStyles())
+			styles := NewStyles()
+			got := RenderSplash(80, info, "sess-1", "http://localhost:6060", &styles)
 			assert.Contains(t, got, tt.wantSub)
 			assert.NotContains(t, got, "vv")
 		})

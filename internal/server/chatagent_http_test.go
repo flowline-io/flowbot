@@ -2,6 +2,7 @@ package server
 
 import (
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -28,7 +29,7 @@ func TestChatAgentHTTPDisabled(t *testing.T) {
 	app := fiber.New()
 	app.Get("/chatagent/info", newChatAgentHTTP().info)
 
-	req := httptest.NewRequest("GET", "/chatagent/info", nil)
+	req := httptest.NewRequest("GET", "/chatagent/info", http.NoBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusServiceUnavailable, resp.StatusCode)
@@ -56,7 +57,7 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 		return h.createSession(c)
 	})
 
-	req := httptest.NewRequest("POST", "/chatagent/sessions", nil)
+	req := httptest.NewRequest("POST", "/chatagent/sessions", http.NoBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusCreated, resp.StatusCode)
@@ -92,7 +93,7 @@ func TestChatAgentHTTPListMessages(t *testing.T) {
 		return h.listMessages(c)
 	})
 
-	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-1/messages", nil)
+	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-1/messages", http.NoBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)

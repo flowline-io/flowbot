@@ -64,7 +64,7 @@ func TestListPipelineVersions(t *testing.T) {
 				tt.seed(t, context.Background(), ps, client)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+tt.pipeline+"/versions", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+tt.pipeline+"/versions", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -135,7 +135,7 @@ func TestGetPipelineVersion(t *testing.T) {
 				tt.seed(t, context.Background(), ps, client)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+tt.pipeline+"/versions/"+tt.version, nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+tt.pipeline+"/versions/"+tt.version, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()

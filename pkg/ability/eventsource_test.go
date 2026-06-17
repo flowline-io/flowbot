@@ -739,7 +739,7 @@ func TestWebhookHandler_NotFound(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest("POST", tt.path, nil)
+			req := httptest.NewRequest("POST", tt.path, http.NoBody)
 			resp, _ := app.Test(req)
 			if resp.StatusCode != tt.want {
 				t.Errorf("status = %d, want %d", resp.StatusCode, tt.want)

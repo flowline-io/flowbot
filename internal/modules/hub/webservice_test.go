@@ -2,6 +2,7 @@ package hub
 
 import (
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -49,7 +50,7 @@ func TestQueryByTag_Validation(t *testing.T) {
 			})
 			app.Get("/resource-chain", queryByTag)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/resource-chain?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/resource-chain?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -143,7 +144,7 @@ func TestForgeGetRepo_Validation(t *testing.T) {
 			})
 			app.Get("/repo", forgeGetRepo)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/repo?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/repo?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -167,7 +168,7 @@ func TestForgeGetIssue_Validation(t *testing.T) {
 			})
 			app.Get("/issue", forgeGetIssue)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/issue?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/issue?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -191,7 +192,7 @@ func TestForgeGetCommitDiff_Validation(t *testing.T) {
 			})
 			app.Get("/commit-diff", forgeGetCommitDiff)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/commit-diff?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/commit-diff?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -215,7 +216,7 @@ func TestForgeGetFileContent_Validation(t *testing.T) {
 			})
 			app.Get("/file-content", forgeGetFileContent)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/file-content?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/file-content?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -239,7 +240,7 @@ func TestGithubGetRepo_Validation(t *testing.T) {
 			})
 			app.Get("/repo", githubGetRepo)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/repo?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/repo?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -263,7 +264,7 @@ func TestGithubGetIssue_Validation(t *testing.T) {
 			})
 			app.Get("/issue", githubGetIssue)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/issue?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/issue?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -287,7 +288,7 @@ func TestGithubGetCommitDiff_Validation(t *testing.T) {
 			})
 			app.Get("/commit-diff", githubGetCommitDiff)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/commit-diff?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/commit-diff?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -311,7 +312,7 @@ func TestGithubGetFileContent_Validation(t *testing.T) {
 			})
 			app.Get("/file-content", githubGetFileContent)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/file-content?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/file-content?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -335,7 +336,7 @@ func TestGithubListReleases_Validation(t *testing.T) {
 			})
 			app.Get("/releases", githubListReleases)
 			defer app.Shutdown()
-			req := httptest.NewRequest(fiber.MethodGet, "/releases?"+tt.queryStr, nil)
+			req := httptest.NewRequest(fiber.MethodGet, "/releases?"+tt.queryStr, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
@@ -371,7 +372,7 @@ func TestGetRelations_Validation(t *testing.T) {
 				qEntity = "_"
 			}
 			url := "/x/id/relations?app=" + qApp + "&entity_id=" + qEntity
-			req := httptest.NewRequest(fiber.MethodGet, url, nil)
+			req := httptest.NewRequest(fiber.MethodGet, url, http.NoBody)
 			resp, _ := app.Test(req)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})

@@ -8,7 +8,7 @@ import (
 
 func renderError(ctx fiber.Ctx, msg string) error {
 	ctx.Type("html")
-	_, err := ctx.Write([]byte(`<div class="text-red-500 text-sm py-2">` + msg + `</div>`))
+	_, err := ctx.WriteString(`<div class="text-red-500 text-sm py-2">` + msg + `</div>`)
 	return err
 }
 

@@ -53,7 +53,7 @@ func TestViewPage_Render(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			url := "/service/web/view/" + tt.token
-			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -71,7 +71,7 @@ func TestViewPage_Unauthenticated(t *testing.T) {
 	app, _, _ := setupTestAppWithDB(t)
 	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
-	req := httptest.NewRequest(http.MethodGet, "/service/web/view/any-token", nil)
+	req := httptest.NewRequest(http.MethodGet, "/service/web/view/any-token", http.NoBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
@@ -90,7 +90,7 @@ func TestViewPage_ExpiredPage(t *testing.T) {
 	err := pageStore.CreatePageData(context.Background(), token, "text", "Expired", types.KV{"content": "stale"}, "user", &oneHourAgo)
 	require.NoError(t, err)
 
-	req := httptest.NewRequest(http.MethodGet, "/service/web/view/"+token, nil)
+	req := httptest.NewRequest(http.MethodGet, "/service/web/view/"+token, http.NoBody)
 	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
 	resp, err := app.Test(req)
 	require.NoError(t, err)
@@ -186,7 +186,7 @@ func TestDeleteView(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			url := "/service/web/view/" + tt.token
-			req := httptest.NewRequest(http.MethodDelete, url, nil)
+			req := httptest.NewRequest(http.MethodDelete, url, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
 			resp, err := app.Test(req)
 			require.NoError(t, err)

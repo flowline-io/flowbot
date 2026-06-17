@@ -82,7 +82,7 @@ func TestRenderContextUsage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := RenderContextUsage(tt.info, styles)
+			got := RenderContextUsage(tt.info, &styles)
 			for _, sub := range tt.wantSub {
 				assert.Contains(t, got, sub)
 			}

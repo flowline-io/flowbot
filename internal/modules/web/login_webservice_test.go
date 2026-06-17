@@ -58,7 +58,7 @@ func TestLoginPage(t *testing.T) {
 			if tt.paramGetFn != nil {
 				ts.paramGetFn = tt.paramGetFn
 			}
-			req := httptest.NewRequest(http.MethodGet, "/service/web/login", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
 			if tt.cookieToken != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
 			}
@@ -300,7 +300,7 @@ func TestLogout(t *testing.T) {
 				return nil
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodPost, "/service/web/logout", nil)
+			req := httptest.NewRequest(http.MethodPost, "/service/web/logout", http.NoBody)
 			if tt.cookieToken != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
 			}

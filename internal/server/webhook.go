@@ -43,10 +43,10 @@ func sanitizeWebhookHeaders(c fiber.Ctx, wcfg *pipeline.WebhookConfig) map[strin
 			return
 		}
 		if wcfg != nil {
-			if wcfg.Auth.TokenHeader != "" && strings.ToLower(canonical) == strings.ToLower(wcfg.Auth.TokenHeader) {
+			if wcfg.Auth.TokenHeader != "" && strings.EqualFold(canonical, wcfg.Auth.TokenHeader) {
 				return
 			}
-			if wcfg.Auth.HMACHeader != "" && strings.ToLower(canonical) == strings.ToLower(wcfg.Auth.HMACHeader) {
+			if wcfg.Auth.HMACHeader != "" && strings.EqualFold(canonical, wcfg.Auth.HMACHeader) {
 				return
 			}
 		}

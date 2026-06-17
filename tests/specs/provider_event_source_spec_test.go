@@ -6,6 +6,7 @@ package specs
 import (
 	"context"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"time"
@@ -37,7 +38,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 			mgr := ability.NewEventSourceManager(nil, nil, nil)
 			app.Post("/webhook/provider/*", mgr.WebhookHandler())
 
-			req := httptest.NewRequest("POST", "/webhook/provider/unknown/hooks", nil)
+			req := httptest.NewRequest("POST", "/webhook/provider/unknown/hooks", http.NoBody)
 			resp, _ := app.Test(req)
 			Expect(resp.StatusCode).To(Equal(fiber.StatusNotFound))
 		})

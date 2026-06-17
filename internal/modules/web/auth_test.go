@@ -73,7 +73,7 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 				ts.paramGetFn = tt.paramGetFn
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", http.NoBody)
 			if tt.cookieToken != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
 			}

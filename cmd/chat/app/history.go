@@ -67,7 +67,7 @@ func ClearSessionID(profile string) error {
 }
 
 // FormatHistoryLine renders one transcript line for the viewport.
-func FormatHistoryLine(role, text string, styles Styles) string {
+func FormatHistoryLine(role, text string, styles *Styles) string {
 	switch role {
 	case "user":
 		return styles.UserMsg.Render("● "+text) + "\n"
@@ -79,7 +79,7 @@ func FormatHistoryLine(role, text string, styles Styles) string {
 }
 
 // FormatAssistantBlock renders agent markdown with a left marker on the first line.
-func FormatAssistantBlock(text string, width int, styles Styles) string {
+func FormatAssistantBlock(text string, width int, styles *Styles) string {
 	text = agentmsg.SanitizeAssistantDisplayText(text)
 	if strings.TrimSpace(text) == "" {
 		return ""
@@ -109,7 +109,7 @@ func firstNonEmptyLine(lines []string) int {
 }
 
 // FormatHistoryMessages renders persisted messages with separators only between turns.
-func FormatHistoryMessages(msgs []client.ChatHistoryMessage, width int, styles Styles) string {
+func FormatHistoryMessages(msgs []client.ChatHistoryMessage, width int, styles *Styles) string {
 	msgs = coalesceHistoryAssistantMessages(msgs)
 	var b strings.Builder
 	for _, message := range msgs {
@@ -167,12 +167,12 @@ func isHistoryToolSnapshot(text string) bool {
 }
 
 // FormatSystemLine renders a neutral system/status line in the transcript.
-func FormatSystemLine(text string, styles Styles) string {
+func FormatSystemLine(text string, styles *Styles) string {
 	return styles.Hint.Render(text) + "\n"
 }
 
 // FormatSeparator returns a horizontal rule between conversation turns.
-func FormatSeparator(width int, styles Styles) string {
+func FormatSeparator(width int, styles *Styles) string {
 	if width < 20 {
 		width = 40
 	}

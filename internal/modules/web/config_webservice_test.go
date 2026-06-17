@@ -34,7 +34,7 @@ func TestConfigsPage(t *testing.T) {
 				ts.configErr = tt.storeErr
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -66,7 +66,7 @@ func TestListConfigs(t *testing.T) {
 			app, ts := setupTestApp()
 			ts.configs = tt.storeConfigs
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/list", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -124,7 +124,7 @@ func TestDeleteConfig(t *testing.T) {
 				ts.delConfigFn = func(_ types.Uid, _ string, _ string) error { return tt.delErr }
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodDelete, "/service/web/configs/u1/t1/k1", nil)
+			req := httptest.NewRequest(http.MethodDelete, "/service/web/configs/u1/t1/k1", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -157,7 +157,7 @@ func TestGetConfig(t *testing.T) {
 			app, ts := setupTestApp()
 			ts.getConfigFn = tt.getFn
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/u1/t1/k1", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/u1/t1/k1", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -199,7 +199,7 @@ func TestNewConfigFormIncludesCleanup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/new", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/new", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()

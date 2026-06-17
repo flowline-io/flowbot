@@ -437,13 +437,13 @@ func (m *Model) clearConfirm() {
 
 func (m *Model) appendUser(text string) {
 	if m.transcript.Len() > 0 {
-		writeBuilder(&m.transcript, FormatSeparator(m.width, m.styles)+"\n")
+		writeBuilder(&m.transcript, FormatSeparator(m.width, &m.styles)+"\n")
 	}
-	writeBuilder(&m.transcript, FormatHistoryLine("user", text, m.styles))
+	writeBuilder(&m.transcript, FormatHistoryLine("user", text, &m.styles))
 }
 
 func (m *Model) appendSystem(text string) {
-	line := FormatSystemLine(text, m.styles)
+	line := FormatSystemLine(text, &m.styles)
 	if m.phase == PhaseStreaming || m.phase == PhaseConfirming {
 		writeBuilder(&m.streamOverlay, line)
 		return
@@ -458,7 +458,7 @@ func (m *Model) refreshStreamingAssistant() {
 		return
 	}
 	base := m.transcript.String()[:m.streamingBaseLen]
-	rendered := FormatAssistantBlock(m.rawAssistant, m.width-2, m.styles)
+	rendered := FormatAssistantBlock(m.rawAssistant, m.width-2, &m.styles)
 	m.transcript.Reset()
 	writeBuilder(&m.transcript, base)
 	writeBuilder(&m.transcript, rendered)
@@ -550,7 +550,7 @@ func (m *Model) updateContextUsage(msg contextUsageMsg) (*Model, tea.Cmd) {
 		m.hint = msg.err
 		return m, m.focusInputCmd()
 	}
-	m.appendSystem(RenderContextUsage(msg.usage, m.styles))
+	m.appendSystem(RenderContextUsage(msg.usage, &m.styles))
 	if msg.usage != nil {
 		m.status.TotalTokens = msg.usage.TotalTokens
 		if msg.usage.ContextWindow > 0 {
@@ -582,7 +582,7 @@ func (m *Model) hydrateHistoryCmd() tea.Cmd {
 			return initDoneMsg{err: err.Error()}
 		}
 		return hydrateMsg{
-			content:         FormatHistoryMessages(msgs, width, styles),
+			content:         FormatHistoryMessages(msgs, width, &styles),
 			count:           len(msgs),
 			estimatedTokens: EstimateHistoryTokens(msgs),
 		}

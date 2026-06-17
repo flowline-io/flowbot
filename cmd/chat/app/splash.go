@@ -11,7 +11,7 @@ const maxSplashSkills = 6
 const splashNoSkills = "(no skills enabled)"
 
 // RenderSplash builds the Hermes-style startup panel.
-func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost string, styles Styles) string {
+func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost string, styles *Styles) string {
 	if info == nil {
 		return ""
 	}

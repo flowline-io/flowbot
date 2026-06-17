@@ -42,7 +42,7 @@ func TestHealthzPage(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
-			req := httptest.NewRequest(http.MethodGet, "/service/web/healthz", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/healthz", http.NoBody)
 			if tt.hxRequest != "" {
 				req.Header.Set("HX-Request", tt.hxRequest)
 			}

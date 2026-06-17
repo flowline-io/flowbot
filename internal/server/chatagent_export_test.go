@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -128,7 +129,7 @@ func TestChatAgentHTTPExportSession(t *testing.T) {
 		return h.exportSession(c)
 	})
 
-	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-1/export", nil)
+	req := httptest.NewRequest("GET", "/chatagent/sessions/sess-1/export", http.NoBody)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusOK, resp.StatusCode)

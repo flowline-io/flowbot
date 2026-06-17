@@ -86,7 +86,7 @@ func (t WebSearchTool) Execute(ctx context.Context, id string, args map[string]a
 	q.Set("no_html", "1")
 	endpoint.RawQuery = q.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), http.NoBody)
 	if err != nil {
 		return toolError(id, t.Name(), err.Error()), nil
 	}

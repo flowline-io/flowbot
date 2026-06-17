@@ -82,7 +82,7 @@ func TestNotifySettingsPageUnauthenticated(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
-			req := httptest.NewRequest(http.MethodGet, "/service/web/notify-settings", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/notify-settings", http.NoBody)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)

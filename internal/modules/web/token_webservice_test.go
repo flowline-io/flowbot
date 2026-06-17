@@ -48,7 +48,7 @@ func TestDecodeTokenParam(t *testing.T) {
 				got, gotErr = decodeTokenParam(ctx)
 				return nil
 			})
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.url, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()

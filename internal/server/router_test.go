@@ -91,7 +91,7 @@ func TestRootEndpoint(t *testing.T) {
 			app := newTestApp()
 			app.Get("/", func(_ fiber.Ctx) error { return nil })
 
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -113,7 +113,7 @@ func TestHealthcheckLiveness(t *testing.T) {
 			app := newTestApp()
 			app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 
-			req := httptest.NewRequest(http.MethodGet, healthcheck.LivenessEndpoint, nil)
+			req := httptest.NewRequest(http.MethodGet, healthcheck.LivenessEndpoint, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -135,7 +135,7 @@ func TestHealthcheckReadiness(t *testing.T) {
 			app := newTestApp()
 			app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 
-			req := httptest.NewRequest(http.MethodGet, healthcheck.ReadinessEndpoint, nil)
+			req := httptest.NewRequest(http.MethodGet, healthcheck.ReadinessEndpoint, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -157,7 +157,7 @@ func TestHealthcheckStartup(t *testing.T) {
 			app := newTestApp()
 			app.Get(healthcheck.StartupEndpoint, healthcheck.New())
 
-			req := httptest.NewRequest(http.MethodGet, healthcheck.StartupEndpoint, nil)
+			req := httptest.NewRequest(http.MethodGet, healthcheck.StartupEndpoint, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -185,7 +185,7 @@ func TestErrorHandler_OopsError_BadRequest(t *testing.T) {
 				return protocol.ErrBadParam.New("test bad param")
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/err", nil)
+			req := httptest.NewRequest(http.MethodGet, "/err", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -213,7 +213,7 @@ func TestErrorHandler_OopsError_Unauthorized(t *testing.T) {
 				return protocol.ErrNotAuthorized.New("not allowed")
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/unauth", nil)
+			req := httptest.NewRequest(http.MethodGet, "/unauth", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
@@ -240,7 +240,7 @@ func TestErrorHandler_GenericError(t *testing.T) {
 				return errors.New("something went wrong") //nolint:err113
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/generic", nil)
+			req := httptest.NewRequest(http.MethodGet, "/generic", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -264,7 +264,7 @@ func TestErrorHandler_NoError(t *testing.T) {
 				return c.JSON(protocol.NewSuccessResponse("hello"))
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/ok", nil)
+			req := httptest.NewRequest(http.MethodGet, "/ok", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -294,7 +294,7 @@ func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 			ctl := &Controller{}
 			app.All("/platform/:platform", ctl.platformCallback)
 
-			req := httptest.NewRequest(http.MethodPost, "/platform/unknown_platform", nil)
+			req := httptest.NewRequest(http.MethodPost, "/platform/unknown_platform", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -354,7 +354,7 @@ func TestOAuth_NoStore(t *testing.T) {
 			ctl := &Controller{}
 			app.All("/oauth/:provider/:flag", ctl.storeOAuth)
 
-			req := httptest.NewRequest(http.MethodGet, "/oauth/github/test-flag", nil)
+			req := httptest.NewRequest(http.MethodGet, "/oauth/github/test-flag", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			// Without database → panics (recovered → 400 via error handler)
@@ -528,7 +528,7 @@ func TestPlatform_MethodRouting(t *testing.T) {
 			ctl := &Controller{}
 			app.All("/platform/:platform", ctl.platformCallback)
 
-			req := httptest.NewRequest(tt.method, "/platform/unknown", nil)
+			req := httptest.NewRequest(tt.method, "/platform/unknown", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -555,7 +555,7 @@ func TestUnregisteredRoute_Returns404(t *testing.T) {
 			app := fiber.New()
 			app.Get("/", func(_ fiber.Ctx) error { return nil })
 
-			req := httptest.NewRequest(http.MethodGet, "/nonexistent", nil)
+			req := httptest.NewRequest(http.MethodGet, "/nonexistent", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -583,7 +583,7 @@ func TestJSONResponseContentType(t *testing.T) {
 				return c.JSON(protocol.NewSuccessResponse("test"))
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/json", nil)
+			req := httptest.NewRequest(http.MethodGet, "/json", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)

@@ -135,7 +135,7 @@ func TestAgentSessionsPageUnauthenticated(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -182,7 +182,7 @@ func TestAgentSessionsListAuthenticated(t *testing.T) {
 			ts := &testStore{chatSessions: tt.sessions}
 			app := setupAuthenticatedApp(t, ts)
 
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -246,7 +246,7 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 			}
 			app := setupAuthenticatedApp(t, ts)
 
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -304,7 +304,7 @@ func TestAgentSessionEntryPayloadAuthenticated(t *testing.T) {
 			ts := &testStore{chatSessionEntries: tt.entries}
 			app := setupAuthenticatedApp(t, ts)
 
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
 			resp, err := app.Test(req)
 			require.NoError(t, err)

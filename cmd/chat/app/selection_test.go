@@ -119,7 +119,7 @@ func TestHandleMouseReleaseCopiesSelection(t *testing.T) {
 		{
 			name: "release after drag copies text",
 			setup: func(m *Model) int {
-				writeBuilder(&m.transcript, FormatHistoryLine("user", "copy me", m.styles))
+				writeBuilder(&m.transcript, FormatHistoryLine("user", "copy me", &m.styles))
 				m.syncViewport()
 				top, _ := m.transcriptRegionBounds()
 				m.selActive = true
@@ -235,7 +235,7 @@ func TestRenderTranscriptSelectionHighlight(t *testing.T) {
 		{
 			name: "highlights styled user line",
 			setup: func(m *Model) {
-				writeBuilder(&m.transcript, FormatHistoryLine("user", "hello", m.styles))
+				writeBuilder(&m.transcript, FormatHistoryLine("user", "hello", &m.styles))
 				m.selActive = true
 				m.selAnchor = textPos{line: 0, col: 0}
 				m.selFocus = textPos{line: 0, col: 4}

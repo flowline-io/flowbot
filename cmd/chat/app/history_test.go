@@ -22,7 +22,7 @@ func TestFormatHistoryLineRoles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := stripANSI(FormatHistoryLine(tt.role, tt.text, styles))
+			got := stripANSI(FormatHistoryLine(tt.role, tt.text, &styles))
 			for _, want := range tt.wantSubstr {
 				assert.Contains(t, got, want)
 			}
@@ -65,7 +65,7 @@ func TestFormatAssistantBlock(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := stripANSI(FormatAssistantBlock(tt.text, 80, styles))
+			got := stripANSI(FormatAssistantBlock(tt.text, 80, &styles))
 			if tt.wantSubstr == nil {
 				assert.Empty(t, got)
 				return
@@ -139,7 +139,7 @@ func TestFormatHistoryMessages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := stripANSI(FormatHistoryMessages(tt.msgs, 80, styles))
+			got := stripANSI(FormatHistoryMessages(tt.msgs, 80, &styles))
 			for _, want := range tt.wantContain {
 				assert.Contains(t, got, want)
 			}

@@ -167,7 +167,7 @@ func TestAgentSkillsPageUnauthenticated(t *testing.T) {
 			if tt.name == "create redirects to login" {
 				method = http.MethodPost
 			}
-			req := httptest.NewRequest(method, tt.path, nil)
+			req := httptest.NewRequest(method, tt.path, http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -430,7 +430,7 @@ func TestAgentSkillDeleteAuthenticated(t *testing.T) {
 			}
 			app := setupAuthenticatedApp(t, ts)
 
-			req := httptest.NewRequest(http.MethodDelete, "/service/web/agent-skills/"+tt.flag, nil)
+			req := httptest.NewRequest(http.MethodDelete, "/service/web/agent-skills/"+tt.flag, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
 			resp, err := app.Test(req)
 			require.NoError(t, err)

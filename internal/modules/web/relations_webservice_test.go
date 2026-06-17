@@ -40,7 +40,7 @@ func TestRelationsPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/relations", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/relations", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -126,7 +126,7 @@ func TestRelationsTree(t *testing.T) {
 			if tt.nodeParam != "" {
 				url += "?node=" + tt.nodeParam
 			}
-			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestRelationsSearch(t *testing.T) {
 				app, _ = setupTestApp()
 			}
 			url := "/service/web/relations/search?q=" + tt.query
-			req := httptest.NewRequest(http.MethodGet, url, nil)
+			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -247,7 +247,7 @@ func TestRelationsDetail(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/relations/detail?"+tt.query, nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/relations/detail?"+tt.query, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, err := app.Test(req)
 			require.NoError(t, err)

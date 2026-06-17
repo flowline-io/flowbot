@@ -38,7 +38,7 @@ func TestHubApps_EmptyRegistry(t *testing.T) {
 			homelab.DefaultRegistry.Replace(nil)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/apps", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/apps", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -64,7 +64,7 @@ func TestHubApps_WithApps(t *testing.T) {
 			homelab.DefaultRegistry.Replace(apps)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/apps", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/apps", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -86,7 +86,7 @@ func TestHubApp_NotFound(t *testing.T) {
 			homelab.DefaultRegistry.Replace(nil)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/apps/nonexistent", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/apps/nonexistent", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -108,7 +108,7 @@ func TestHubApp_Found(t *testing.T) {
 			homelab.DefaultRegistry.Replace(apps)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/apps/myapp", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/apps/myapp", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -130,7 +130,7 @@ func TestHubAppStatus_NotFound(t *testing.T) {
 			homelab.DefaultRegistry.Replace(nil)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/apps/nonexistent/status", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/apps/nonexistent/status", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -149,7 +149,7 @@ func TestHubAppLogs_NotFound(t *testing.T) {
 			homelab.DefaultRegistry.Replace(nil)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/apps/nonexistent/logs", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/apps/nonexistent/logs", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -167,7 +167,7 @@ func TestHubCapabilities_EmptyRegistry(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -188,7 +188,7 @@ func TestHubCapability_NotFound(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/unknown", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/unknown", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -212,7 +212,7 @@ func TestHubCapability_Found(t *testing.T) {
 			_ = hub.Default.Register(desc)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/bookmark", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/bookmark", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -238,7 +238,7 @@ func TestHubCapability_TypeParamCaseSensitive(t *testing.T) {
 			_ = hub.Default.Register(desc)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/BOOKMARK", nil)
+			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/BOOKMARK", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)

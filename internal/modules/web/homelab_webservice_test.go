@@ -25,7 +25,7 @@ func TestHomelabRegistryPage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab", nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -54,7 +54,7 @@ func TestHomelabRegistryDetailPageNotFound(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab/"+tt.appName, nil)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab/"+tt.appName, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -79,7 +79,7 @@ func TestHomelabRegistryUnauthenticated(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(tt.method, tt.path, nil)
+			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated pages render with valid token" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			}
@@ -134,7 +134,7 @@ func TestHomelabRegistryRescan(t *testing.T) {
 
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-			req := httptest.NewRequest(http.MethodPost, "/service/web/homelab/rescan", nil)
+			req := httptest.NewRequest(http.MethodPost, "/service/web/homelab/rescan", http.NoBody)
 			if tt.withAuth {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			}

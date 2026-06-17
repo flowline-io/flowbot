@@ -40,13 +40,13 @@ func (m *Model) renderTopSection() string {
 
 	var b strings.Builder
 	if m.splashVisible && m.info != nil {
-		writeBuilder(&b, RenderBanner(m.width, m.styles))
+		writeBuilder(&b, RenderBanner(m.width, &m.styles))
 		writeBuilder(&b, "\n\n")
 		host := m.serverHost
 		if host == "" && m.client != nil {
 			host = m.client.BaseURL()
 		}
-		writeBuilder(&b, RenderSplash(m.width, m.info, m.sessionID, host, m.styles))
+		writeBuilder(&b, RenderSplash(m.width, m.info, m.sessionID, host, &m.styles))
 		writeBuilder(&b, "\n\n")
 		if m.welcomeShown {
 			writeBuilder(&b, "Welcome to Flowbot Agent! Type your message or /help for commands.\n")
@@ -56,7 +56,7 @@ func (m *Model) renderTopSection() string {
 		writeBuilder(&b, m.styles.BannerTitle.Render(compactBanner))
 		writeBuilder(&b, "\n\n")
 	} else {
-		writeBuilder(&b, RenderBanner(m.width, m.styles))
+		writeBuilder(&b, RenderBanner(m.width, &m.styles))
 		writeBuilder(&b, "\n\n")
 	}
 	return b.String()
@@ -65,11 +65,11 @@ func (m *Model) renderTopSection() string {
 // renderFooter returns the fixed bottom chrome and input row.
 func (m *Model) renderFooter() string {
 	var b strings.Builder
-	writeBuilder(&b, FormatSeparator(m.width, m.styles))
+	writeBuilder(&b, FormatSeparator(m.width, &m.styles))
 	writeBuilder(&b, "\n")
-	writeBuilder(&b, RenderStatusBar(m.status, m.styles))
+	writeBuilder(&b, RenderStatusBar(m.status, &m.styles))
 	writeBuilder(&b, "\n")
-	writeBuilder(&b, FormatSeparator(m.width, m.styles))
+	writeBuilder(&b, FormatSeparator(m.width, &m.styles))
 	writeBuilder(&b, "\n")
 
 	if m.hint != "" {

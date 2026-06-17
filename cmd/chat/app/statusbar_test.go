@@ -74,7 +74,8 @@ func TestRenderStatusBarContextPercent(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := RenderStatusBar(tt.snap, NewStyles())
+			styles := NewStyles()
+			got := RenderStatusBar(tt.snap, &styles)
 			assert.Contains(t, got, tt.wantSub)
 			if tt.name == "zero tokens stays empty bar" {
 				assert.NotContains(t, got, "█")

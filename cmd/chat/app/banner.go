@@ -8,7 +8,7 @@ import (
 const compactBanner = "Flowbot Agent"
 
 // RenderBanner returns the top ASCII banner, compact when width is narrow.
-func RenderBanner(width int, styles Styles) string {
+func RenderBanner(width int, styles *Styles) string {
 	if width < 60 {
 		return styles.BannerTitle.Render(compactBanner)
 	}

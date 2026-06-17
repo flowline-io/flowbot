@@ -96,7 +96,7 @@ func TestNewHTTPServer_ErrorHandler_DomainErrors(t *testing.T) {
 
 			app.Get("/test", func(_ fiber.Ctx) error { return tt.err })
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
@@ -130,7 +130,7 @@ func TestNewHTTPServer_ErrorHandler_ProtocolErrors(t *testing.T) {
 
 			app.Get("/test", func(_ fiber.Ctx) error { return tt.err })
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
@@ -171,7 +171,7 @@ func TestNewHTTPServer_ErrorHandler_FiberErrors(t *testing.T) {
 				return tt.err
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
@@ -196,7 +196,7 @@ func TestNewHTTPServer_ErrorHandler_UnknownError(t *testing.T) {
 				return errors.New("some unhandled error")
 			})
 
-			req := httptest.NewRequest(http.MethodGet, "/test", nil)
+			req := httptest.NewRequest(http.MethodGet, "/test", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)

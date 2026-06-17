@@ -17,7 +17,7 @@ const (
 )
 
 // RenderContextUsage formats the /context panel from a server usage report.
-func RenderContextUsage(info *client.ChatContextUsage, styles Styles) string {
+func RenderContextUsage(info *client.ChatContextUsage, styles *Styles) string {
 	if info == nil {
 		return styles.Hint.Render("Context usage unavailable")
 	}
