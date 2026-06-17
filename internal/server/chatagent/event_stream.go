@@ -11,6 +11,12 @@ import (
 
 const apiStreamUpdateInterval = 150 * time.Millisecond
 
+// apiStreamTracker tracks subagent inner-tool progress for one API SSE connection.
+type apiStreamTracker struct {
+	coalescer    *streamCoalescer
+	subagentTool string
+}
+
 // startAPIEventStream consumes agent lifecycle events and publishes Chat Agent SSE payloads.
 func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, publisher EventPublisher, interval time.Duration) func() {
 	done := make(chan struct{})
@@ -24,7 +30,7 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 
 	go func() {
 		defer close(done)
-		coalescer := newStreamCoalescer()
+		tracker := &apiStreamTracker{coalescer: newStreamCoalescer()}
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
@@ -34,12 +40,12 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 				return
 			case ev, ok := <-events:
 				if !ok {
-					publishAPIEvent(ctx, publisher, coalescer)
+					publishAPIEvent(ctx, publisher, tracker.coalescer)
 					return
 				}
-				handleAPIStreamEvent(publisher, coalescer, ev)
+				handleAPIStreamEvent(publisher, tracker, ev)
 			case <-ticker.C:
-				publishAPIEvent(ctx, publisher, coalescer)
+				publishAPIEvent(ctx, publisher, tracker.coalescer)
 			}
 		}
 	}()
@@ -47,25 +53,36 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 	return func() { <-done }
 }
 
-func handleAPIStreamEvent(publisher EventPublisher, coalescer *streamCoalescer, ev agentevent.Event) {
+func handleAPIStreamEvent(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
 	switch ev.Type {
 	case agentevent.TypeMessageStart:
 		if _, ok := ev.Message.(msg.AssistantMessage); ok {
-			coalescer.reset()
+			tracker.coalescer.reset()
+			tracker.subagentTool = ""
 		}
 	case agentevent.TypeMessageUpdate:
-		coalescer.appendDelta(ev.TextDelta)
+		tracker.coalescer.appendDelta(ev.TextDelta)
 	case agentevent.TypeToolExecutionStart:
 		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok {
-			coalescer.setToolStatus(toolStatusText(call))
+			tracker.coalescer.setToolStatus(toolStatusText(call))
+			if call.Name == taskToolName {
+				tracker.subagentTool = ""
+				_ = publisher.Publish(taskToolStreamEvent(call, "running", ""))
+				return
+			}
+			tracker.subagentTool = ""
 			_ = publisher.Publish(StreamEvent{
 				Type:   EventTypeTool,
-				Name:   toolDisplayName(call),
+				Name:   call.Name,
 				Status: "running",
 			})
 		}
 	case agentevent.TypeToolExecutionUpdate:
 		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok && ev.Update != "" {
+			if call.Name == taskToolName {
+				publishSubagentToolUpdate(publisher, tracker, ev.Update)
+				return
+			}
 			_ = publisher.Publish(StreamEvent{
 				Type:   EventTypeTool,
 				Name:   toolDisplayName(call),
@@ -73,6 +90,31 @@ func handleAPIStreamEvent(publisher EventPublisher, coalescer *streamCoalescer, 
 				Stdout: ev.Update,
 			})
 		}
+	}
+}
+
+func publishSubagentToolUpdate(publisher EventPublisher, tracker *apiStreamTracker, update string) {
+	subagent, tool, detail, ok := parseSubagentProgress(update)
+	if !ok {
+		_ = publisher.Publish(StreamEvent{
+			Type:   EventTypeTool,
+			Name:   taskToolName,
+			Status: "running",
+			Stdout: update,
+		})
+		return
+	}
+	if tool != "" {
+		tracker.subagentTool = tool
+	}
+	activeTool := tracker.subagentTool
+	tracker.coalescer.setToolStatus(subagentToolStatusText(subagent, activeTool, detail))
+	if detail != "" {
+		_ = publisher.Publish(subagentInnerToolStreamEvent(subagent, activeTool, "running", detail))
+		return
+	}
+	if activeTool != "" {
+		_ = publisher.Publish(subagentInnerToolStreamEvent(subagent, activeTool, "running", ""))
 	}
 }
 

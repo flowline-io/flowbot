@@ -24,10 +24,11 @@ type StreamEvent struct {
 	Text string `json:"text,omitempty"`
 
 	// tool
-	Name   string `json:"name,omitempty"`
-	Status string `json:"status,omitempty"`
-	Stdout string `json:"stdout,omitempty"`
-	Stderr string `json:"stderr,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Subagent string `json:"subagent,omitempty"`
+	Status   string `json:"status,omitempty"`
+	Stdout   string `json:"stdout,omitempty"`
+	Stderr   string `json:"stderr,omitempty"`
 
 	// usage
 	PromptTokens     int     `json:"prompt_tokens,omitempty"`

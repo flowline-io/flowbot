@@ -414,10 +414,9 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 		m.renderPending = true
 		m.renderDeadline = time.Now().Add(RenderDebounce(m.rawAssistant))
 	case "tool":
-		line := fmt.Sprintf("Running tool: %s...", ev.Name)
+		line := formatToolEventLine(ev)
 		if ev.Stdout != "" {
-			m.toolPreview = ev.Name + ": " + ev.Stdout
-			line = m.toolPreview
+			m.toolPreview = line
 		}
 		m.appendSystem(line)
 	case "usage":

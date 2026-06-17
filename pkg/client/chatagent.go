@@ -122,12 +122,13 @@ type ChatSessionExport struct {
 type ChatStreamEvent struct {
 	Type string `json:"type"`
 
-	Text    string `json:"text,omitempty"`
-	Name    string `json:"name,omitempty"`
-	Status  string `json:"status,omitempty"`
-	Stdout  string `json:"stdout,omitempty"`
-	Stderr  string `json:"stderr,omitempty"`
-	Message string `json:"message,omitempty"`
+	Text     string `json:"text,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Subagent string `json:"subagent,omitempty"`
+	Status   string `json:"status,omitempty"`
+	Stdout   string `json:"stdout,omitempty"`
+	Stderr   string `json:"stderr,omitempty"`
+	Message  string `json:"message,omitempty"`
 
 	PromptTokens     int     `json:"prompt_tokens,omitempty"`
 	CompletionTokens int     `json:"completion_tokens,omitempty"`

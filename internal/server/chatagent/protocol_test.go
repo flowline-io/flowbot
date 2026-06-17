@@ -29,6 +29,17 @@ func TestMarshalStreamEvent(t *testing.T) {
 			wantSub: `"stdout":"fetching"`,
 		},
 		{
+			name: "subagent inner tool event",
+			event: StreamEvent{
+				Type:     EventTypeTool,
+				Name:     "web_search",
+				Subagent: "general-purpose",
+				Status:   "running",
+				Stdout:   "searching...",
+			},
+			wantSub: `"subagent":"general-purpose"`,
+		},
+		{
 			name: "confirm resolved timeout",
 			event: StreamEvent{
 				Type:     EventTypeConfirmResolved,
