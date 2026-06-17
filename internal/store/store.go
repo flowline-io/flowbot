@@ -196,6 +196,8 @@ type ListNotifyRuleOptions struct {
 type ListChatSessionsOptions struct {
 	Limit  int    // max 100, default 20
 	Cursor string // opaque cursor: session ID value as string
+	UID    string // when set, only sessions owned by this user are returned
+	State  *int   // when set, only sessions in this state are returned
 }
 
 type Adapter interface {

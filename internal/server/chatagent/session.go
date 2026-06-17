@@ -13,6 +13,41 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+// SessionSummary is a lightweight view of one chat session for list APIs.
+type SessionSummary struct {
+	SessionID string    `json:"session_id"`
+	State     string    `json:"state"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// ListUserActiveSessions returns active sessions owned by uid, newest first.
+func ListUserActiveSessions(ctx context.Context, uid types.Uid, limit int, cursor string) ([]SessionSummary, string, error) {
+	if store.Database == nil {
+		return nil, "", types.ErrUnavailable
+	}
+	active := int(schema.ChatSessionActive)
+	rows, nextCursor, err := store.Database.ListChatSessions(ctx, store.ListChatSessionsOptions{
+		UID:    uid.String(),
+		State:  &active,
+		Limit:  limit,
+		Cursor: cursor,
+	})
+	if err != nil {
+		return nil, "", err
+	}
+	out := make([]SessionSummary, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, SessionSummary{
+			SessionID: row.Flag,
+			State:     sessionStateLabel(row.State),
+			CreatedAt: row.CreatedAt,
+			UpdatedAt: row.UpdatedAt,
+		})
+	}
+	return out, nextCursor, nil
+}
+
 // IsChatControlCommand reports whether the message is a chat session control command.
 func IsChatControlCommand(text string) bool {
 	switch strings.ToLower(strings.TrimSpace(text)) {

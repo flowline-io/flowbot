@@ -155,6 +155,46 @@ var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), f
 		}
 		Expect(sawCanceled).To(BeTrue())
 	})
+
+	It("lists active sessions for the authenticated user", func() {
+		var firstID string
+		for range 2 {
+			createReq := chatAgentRequest(http.MethodPost, "/chatagent/sessions", token, nil)
+			createResp, err := App.Test(createReq)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(createResp.StatusCode).To(Equal(http.StatusCreated))
+
+			var created struct {
+				SessionID string `json:"session_id"`
+			}
+			Expect(sonic.Unmarshal(ReadBody(createResp), &created)).To(Succeed())
+			Expect(created.SessionID).NotTo(BeEmpty())
+			if firstID == "" {
+				firstID = created.SessionID
+			}
+		}
+
+		listReq := chatAgentRequest(http.MethodGet, "/chatagent/sessions", token, nil)
+		listResp, err := App.Test(listReq)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(listResp.StatusCode).To(Equal(http.StatusOK))
+
+		var listed struct {
+			Sessions []struct {
+				SessionID string `json:"session_id"`
+				State     string `json:"state"`
+			} `json:"sessions"`
+		}
+		Expect(sonic.Unmarshal(ReadBody(listResp), &listed)).To(Succeed())
+		Expect(listed.Sessions).To(HaveLen(2))
+
+		ids := make([]string, 0, len(listed.Sessions))
+		for _, sess := range listed.Sessions {
+			ids = append(ids, sess.SessionID)
+			Expect(sess.State).To(Equal("active"))
+		}
+		Expect(ids).To(ContainElement(firstID))
+	})
 })
 
 // stallModel blocks GenerateContent until the run context is canceled.

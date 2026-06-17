@@ -407,6 +407,39 @@ func TestListChatSessions(t *testing.T) {
 			wantLen:    2,
 			wantCursor: true,
 		},
+		{
+			name: "uid filter returns only matching owner",
+			seeds: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-a", UID: "user:alice", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-b", UID: "user:bob", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+			},
+			opts:    store.ListChatSessionsOptions{Limit: 10, UID: "user:alice"},
+			wantLen: 1,
+		},
+		{
+			name: "state filter returns only active sessions",
+			seeds: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-active", UID: "user:s", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-closed", UID: "user:s", State: int(schema.ChatSessionClosed),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+			},
+			opts: func() store.ListChatSessionsOptions {
+				active := int(schema.ChatSessionActive)
+				return store.ListChatSessionsOptions{Limit: 10, State: &active}
+			}(),
+			wantLen: 1,
+		},
 	}
 
 	for _, tt := range tests {

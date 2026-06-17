@@ -7,6 +7,7 @@ const (
 	PhaseIdle RunPhase = iota
 	PhaseStreaming
 	PhaseConfirming
+	PhaseSessionPick
 )
 
 // HandleCtrlC applies Hermes-style Ctrl+C semantics for the current phase.
@@ -16,6 +17,8 @@ func HandleCtrlC(phase RunPhase) (next RunPhase, action CtrlCAction) {
 		return PhaseIdle, CtrlCCancelRun
 	case PhaseConfirming:
 		return PhaseIdle, CtrlCDenyConfirm
+	case PhaseSessionPick:
+		return PhaseIdle, CtrlCCancelSessionPick
 	default:
 		return PhaseIdle, CtrlCQuit
 	}
@@ -28,6 +31,7 @@ const (
 	CtrlCNone CtrlCAction = iota
 	CtrlCCancelRun
 	CtrlCDenyConfirm
+	CtrlCCancelSessionPick
 	CtrlCQuit
 )
 

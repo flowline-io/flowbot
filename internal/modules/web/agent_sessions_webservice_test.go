@@ -35,6 +35,17 @@ func listWebTestChatSessions(sessions []*gen.ChatSession, opts store.ListChatSes
 	}
 
 	rows := append([]*gen.ChatSession(nil), sessions...)
+	filtered := rows[:0]
+	for _, sess := range rows {
+		if opts.UID != "" && sess.UID != opts.UID {
+			continue
+		}
+		if opts.State != nil && sess.State != *opts.State {
+			continue
+		}
+		filtered = append(filtered, sess)
+	}
+	rows = filtered
 	slices.SortFunc(rows, func(a, b *gen.ChatSession) int {
 		if c := b.UpdatedAt.Compare(a.UpdatedAt); c != 0 {
 			return c

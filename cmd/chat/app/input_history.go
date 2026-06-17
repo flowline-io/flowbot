@@ -70,7 +70,7 @@ func (h *inputHistory) navigateDown() (string, bool) {
 }
 
 func (m *Model) handleInputHistoryKey(msg tea.KeyMsg) bool {
-	if m.phase == PhaseStreaming || m.phase == PhaseConfirming {
+	if m.phase == PhaseStreaming || m.phase == PhaseConfirming || m.phase == PhaseSessionPick {
 		return false
 	}
 	switch msg.Key().Code {

@@ -708,6 +708,12 @@ func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessi
 			q = q.Where(chatsession.IDLT(id))
 		}
 	}
+	if opts.UID != "" {
+		q = q.Where(chatsession.UIDEQ(opts.UID))
+	}
+	if opts.State != nil {
+		q = q.Where(chatsession.StateEQ(*opts.State))
+	}
 
 	rows, err := q.All(ctx)
 	if err != nil {

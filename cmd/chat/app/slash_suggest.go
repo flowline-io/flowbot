@@ -24,6 +24,7 @@ var slashCommands = []SlashCommand{
 	{name: "context", desc: "Show context usage breakdown"},
 	{name: "compact", desc: "Compress long session history"},
 	{name: "resume", desc: "Reload saved session history"},
+	{name: "sessions", desc: "Browse and switch sessions"},
 	{name: "export", desc: "Export current session to JSON", args: "<path>"},
 	{name: "auth", desc: "Show auth configuration", args: "status"},
 	{name: "file", desc: "Attach local file to next message", args: "<path>"},
@@ -52,7 +53,7 @@ func slashCompleteActive(line string) bool {
 }
 
 func (m *Model) slashSuggestActive() bool {
-	return len(m.slashMatches) > 0 && m.phase != PhaseStreaming && m.phase != PhaseConfirming
+	return len(m.slashMatches) > 0 && m.phase != PhaseStreaming && m.phase != PhaseConfirming && m.phase != PhaseSessionPick
 }
 
 func (m *Model) syncSlashSuggest() {

@@ -16,6 +16,7 @@ func TestHandleCtrlC(t *testing.T) {
 		{name: "idle quits", phase: PhaseIdle, wantAction: CtrlCQuit, wantPhase: PhaseIdle},
 		{name: "streaming cancels", phase: PhaseStreaming, wantAction: CtrlCCancelRun, wantPhase: PhaseIdle},
 		{name: "confirming denies", phase: PhaseConfirming, wantAction: CtrlCDenyConfirm, wantPhase: PhaseIdle},
+		{name: "session pick cancels", phase: PhaseSessionPick, wantAction: CtrlCCancelSessionPick, wantPhase: PhaseIdle},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

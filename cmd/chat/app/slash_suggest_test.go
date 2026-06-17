@@ -14,9 +14,9 @@ func TestMatchSlashCommands(t *testing.T) {
 		prefix    string
 		wantNames []string
 	}{
-		{name: "empty prefix lists all", prefix: "", wantNames: []string{"help", "new", "end", "status", "context", "compact", "resume", "export", "auth", "file", "clear", "quit"}},
+		{name: "empty prefix lists all", prefix: "", wantNames: []string{"help", "new", "end", "status", "context", "compact", "resume", "sessions", "export", "auth", "file", "clear", "quit"}},
 		{name: "help prefix", prefix: "he", wantNames: []string{"help"}},
-		{name: "shared prefix", prefix: "s", wantNames: []string{"status"}},
+		{name: "shared prefix", prefix: "s", wantNames: []string{"status", "sessions"}},
 		{name: "compact prefix", prefix: "co", wantNames: []string{"context", "compact"}},
 	}
 	for _, tt := range tests {
@@ -119,7 +119,7 @@ func TestAcceptSlashSelection(t *testing.T) {
 		wantRun   bool
 	}{
 		{name: "enter fills selected command", start: "/", pick: 1, wantValue: "/new", wantRun: true},
-		{name: "enter fills file placeholder", start: "/", pick: 9, wantValue: "/file ", wantRun: false},
+		{name: "enter fills file placeholder", start: "/", pick: 10, wantValue: "/file ", wantRun: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

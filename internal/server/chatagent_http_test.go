@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
@@ -190,4 +192,125 @@ func TestChatAgentHTTPRunInFlight(t *testing.T) {
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, fiber.StatusConflict, resp.StatusCode)
+}
+
+func TestChatAgentHTTPListSessions(t *testing.T) {
+	now := time.Now().UTC()
+	origDB := store.Database
+	origCfg := config.App.ChatAgent
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-a": {Flag: "sess-a", UID: "user-1", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		"sess-b": {Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		"sess-c": {Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now},
+	}
+	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App.ChatAgent = origCfg
+		testChatSessions = map[string]*gen.ChatSession{}
+	})
+
+	h := newChatAgentHTTP()
+
+	tests := []struct {
+		name       string
+		uid        types.Uid
+		query      string
+		wantStatus int
+		wantLen    int
+	}{
+		{
+			name:       "returns active sessions for authenticated user",
+			uid:        types.Uid("user-1"),
+			wantStatus: fiber.StatusOK,
+			wantLen:    1,
+		},
+		{
+			name:       "unauthorized without uid",
+			uid:        types.Uid(""),
+			wantStatus: fiber.StatusUnauthorized,
+		},
+		{
+			name:       "invalid limit returns bad request",
+			uid:        types.Uid("user-1"),
+			query:      "?limit=bad",
+			wantStatus: fiber.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := fiber.New()
+			app.Get("/chatagent/sessions", func(c fiber.Ctx) error {
+				c.Locals("route:ctx", &route.RequestContext{
+					UID:    tt.uid,
+					Scopes: []string{auth.ScopeChatAgentChat},
+				})
+				return h.listSessions(c)
+			})
+
+			req := httptest.NewRequest("GET", "/chatagent/sessions"+tt.query, http.NoBody)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantLen == 0 {
+				return
+			}
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			var parsed struct {
+				Sessions []map[string]any `json:"sessions"`
+			}
+			require.NoError(t, sonic.Unmarshal(body, &parsed))
+			assert.Len(t, parsed.Sessions, tt.wantLen)
+		})
+	}
+}
+
+func TestListUserActiveSessions(t *testing.T) {
+	now := time.Now().UTC()
+	origDB := store.Database
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-a": {Flag: "sess-a", UID: "user-1", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		"sess-b": {Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		"sess-c": {Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now},
+	}
+	t.Cleanup(func() {
+		store.Database = origDB
+		testChatSessions = map[string]*gen.ChatSession{}
+	})
+
+	tests := []struct {
+		name    string
+		uid     types.Uid
+		setupDB bool
+		wantLen int
+		wantErr bool
+	}{
+		{name: "returns active sessions for uid", uid: types.Uid("user-1"), setupDB: true, wantLen: 1},
+		{name: "empty result for other uid", uid: types.Uid("user-9"), setupDB: true, wantLen: 0},
+		{name: "unavailable store returns error", uid: types.Uid("user-1"), setupDB: false, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setupDB {
+				store.Database = &testStoreAdapter{}
+			} else {
+				store.Database = nil
+			}
+			got, _, err := chatagent.ListUserActiveSessions(context.Background(), tt.uid, 20, "")
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Len(t, got, tt.wantLen)
+			if tt.wantLen > 0 {
+				assert.Equal(t, "sess-a", got[0].SessionID)
+				assert.Equal(t, "active", got[0].State)
+			}
+		})
+	}
 }

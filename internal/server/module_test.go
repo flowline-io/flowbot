@@ -193,6 +193,12 @@ func listTestChatSessions(sessions map[string]*gen.ChatSession, opts store.ListC
 
 	rows := make([]*gen.ChatSession, 0, len(sessions))
 	for _, sess := range sessions {
+		if opts.UID != "" && sess.UID != opts.UID {
+			continue
+		}
+		if opts.State != nil && sess.State != *opts.State {
+			continue
+		}
 		rows = append(rows, sess)
 	}
 	slices.SortFunc(rows, func(a, b *gen.ChatSession) int {

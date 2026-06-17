@@ -89,6 +89,14 @@ type ChatHistoryMessage struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+// ChatSessionSummary is one row from GET /chatagent/sessions.
+type ChatSessionSummary struct {
+	SessionID string    `json:"session_id"`
+	State     string    `json:"state"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 // ChatSessionExport is the full session snapshot from GET /chatagent/sessions/:id/export.
 type ChatSessionExport struct {
 	SessionID  string           `json:"session_id"`
@@ -149,6 +157,27 @@ func (cc *ChatAgentClient) CreateSession(ctx context.Context) (string, error) {
 // CloseSession ends a chat session.
 func (cc *ChatAgentClient) CloseSession(ctx context.Context, sessionID string) error {
 	return cc.chatDelete(ctx, "/chatagent/sessions/"+sessionID)
+}
+
+// ListSessions returns active sessions owned by the authenticated user.
+func (cc *ChatAgentClient) ListSessions(ctx context.Context, cursor string, limit int) ([]ChatSessionSummary, string, error) {
+	path := "/chatagent/sessions"
+	sep := "?"
+	if limit > 0 {
+		path += fmt.Sprintf("%slimit=%d", sep, limit)
+		sep = "&"
+	}
+	if cursor != "" {
+		path += sep + "cursor=" + cursor
+	}
+	var resp struct {
+		Sessions []ChatSessionSummary `json:"sessions"`
+		Cursor   string               `json:"cursor"`
+	}
+	if err := cc.chatGet(ctx, path, &resp); err != nil {
+		return nil, "", err
+	}
+	return resp.Sessions, resp.Cursor, nil
 }
 
 // ListMessages returns persisted session messages.

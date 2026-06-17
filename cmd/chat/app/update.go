@@ -13,6 +13,10 @@ import (
 
 // Update handles bubbletea messages.
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if next, cmd, ok := m.updateSessionCommandMsg(msg); ok {
+		return next, cmd
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		return m.updateWindowSize(msg)
@@ -20,16 +24,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateInitDone(msg)
 	case hydrateMsg:
 		return m.updateHydrate(msg)
-	case sessionNewMsg:
-		return m.updateSessionNew(msg)
-	case sessionEndMsg:
-		return m.updateSessionEnd(msg)
 	case contextUsageMsg:
 		return m.updateContextUsage(msg)
-	case sessionCompactMsg:
-		return m.updateSessionCompact(msg)
-	case sessionExportMsg:
-		return m.updateSessionExport(msg)
 	case tickMsg:
 		return m.updateTick(msg)
 	case streamEventMsg:
@@ -42,6 +38,28 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.handleMouse(msg)
 	default:
 		return m.updateDefault(msg)
+	}
+}
+
+func (m *Model) updateSessionCommandMsg(msg tea.Msg) (*Model, tea.Cmd, bool) {
+	switch msg := msg.(type) {
+	case sessionNewMsg:
+		next, cmd := m.updateSessionNew(msg)
+		return next, cmd, true
+	case sessionEndMsg:
+		next, cmd := m.updateSessionEnd(msg)
+		return next, cmd, true
+	case sessionCompactMsg:
+		next, cmd := m.updateSessionCompact(msg)
+		return next, cmd, true
+	case sessionsListMsg:
+		next, cmd := m.updateSessionsList(msg)
+		return next, cmd, true
+	case sessionExportMsg:
+		next, cmd := m.updateSessionExport(msg)
+		return next, cmd, true
+	default:
+		return m, nil, false
 	}
 }
 
@@ -167,6 +185,11 @@ type streamEventMsg struct {
 }
 
 func (m *Model) handleKey(msg tea.KeyMsg) (*Model, tea.Cmd) {
+	if m.phase == PhaseSessionPick {
+		if handled, cmd := m.handleSessionPickKey(msg); handled {
+			return m, cmd
+		}
+	}
 	if m.phase == PhaseConfirming {
 		if handled, cmd := m.handleConfirmKey(msg); handled {
 			return m, cmd
@@ -175,38 +198,9 @@ func (m *Model) handleKey(msg tea.KeyMsg) (*Model, tea.Cmd) {
 
 	switch msg.String() {
 	case "ctrl+c":
-		_, action := HandleCtrlC(m.phase)
-		switch action {
-		case CtrlCQuit:
-			m.quitting = true
-			if m.streamCancel != nil {
-				m.streamCancel()
-			}
-			return m, tea.Quit
-		case CtrlCCancelRun:
-			if m.streamCancel != nil {
-				m.streamCancel()
-			}
-			m.phase = PhaseIdle
-			m.hint = runControlHint(
-				m.client.ChatAgent.Cancel(context.Background(), m.sessionID),
-				"Canceled — ready for input",
-				"Cancel failed — server may still be running",
-			)
-			return m, nil
-		case CtrlCDenyConfirm:
-			id := m.pendingConfirmID
-			m.clearConfirm()
-			m.phase = PhaseIdle
-			m.hint = runControlHint(
-				m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, false),
-				"Canceled — ready for input",
-				"Confirm failed — server may still be waiting",
-			)
-			return m, nil
-		}
+		return m.handleCtrlCKey()
 	case "enter":
-		if m.phase == PhaseStreaming {
+		if m.phase == PhaseStreaming || m.phase == PhaseSessionPick {
 			return m, nil
 		}
 		if m.slashSuggestActive() {
@@ -244,6 +238,9 @@ func (m *Model) handleUserInput(text string) (*Model, tea.Cmd) {
 }
 
 func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
+	if next, cmdFn, ok := m.handleSlashSession(cmd, args); ok {
+		return next, cmdFn
+	}
 	switch cmd {
 	case "help":
 		m.appendSystem(SlashHelp())
@@ -261,28 +258,50 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		return m, nil
 	case "file":
 		return m.handleSlashFile(args)
-	case "new":
-		return m, m.sessionNewCmd()
-	case "end":
-		return m, m.sessionEndCmd()
-	case "status":
-		m.appendSystem(SessionStatusText(m.sessionID, m.messageCount))
-		return m, m.focusInputCmd()
-	case "context":
-		return m, m.contextUsageCmd()
-	case "compact":
-		return m, m.sessionCompactCmd()
-	case "resume":
-		m.transcript.Reset()
-		m.streamOverlay.Reset()
-		m.messageCount = 0
-		return m, m.hydrateHistoryCmd()
-	case "export":
-		return m, m.sessionExportCmd(args)
 	case "auth":
 		return m.handleSlashAuth(args)
 	default:
 		m.hint = "Unknown command; try /help"
+		return m, nil
+	}
+}
+
+func (m *Model) handleCtrlCKey() (*Model, tea.Cmd) {
+	_, action := HandleCtrlC(m.phase)
+	switch action {
+	case CtrlCQuit:
+		m.quitting = true
+		if m.streamCancel != nil {
+			m.streamCancel()
+		}
+		return m, tea.Quit
+	case CtrlCCancelRun:
+		if m.streamCancel != nil {
+			m.streamCancel()
+		}
+		m.phase = PhaseIdle
+		m.hint = runControlHint(
+			m.client.ChatAgent.Cancel(context.Background(), m.sessionID),
+			"Canceled — ready for input",
+			"Cancel failed — server may still be running",
+		)
+		return m, nil
+	case CtrlCDenyConfirm:
+		id := m.pendingConfirmID
+		m.clearConfirm()
+		m.phase = PhaseIdle
+		m.hint = runControlHint(
+			m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, false),
+			"Canceled — ready for input",
+			"Confirm failed — server may still be waiting",
+		)
+		return m, nil
+	case CtrlCCancelSessionPick:
+		m.clearSessionPick()
+		m.phase = PhaseIdle
+		m.hint = defaultHint()
+		return m, m.focusInputCmd()
+	default:
 		return m, nil
 	}
 }

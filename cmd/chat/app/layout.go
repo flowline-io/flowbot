@@ -27,6 +27,9 @@ func (m *Model) footerHeight() int {
 	if m.phase == PhaseConfirming {
 		h += m.confirmFooterHeight()
 	}
+	if m.phase == PhaseSessionPick {
+		h += m.sessionPickerFooterHeight()
+	}
 	h += m.slashSuggestHeight()
 	h++ // input row
 	return h
@@ -79,6 +82,11 @@ func (m *Model) renderFooter() string {
 
 	if m.phase == PhaseConfirming {
 		writeBuilder(&b, m.renderConfirmPrompt())
+		writeBuilder(&b, "\n")
+	}
+
+	if m.phase == PhaseSessionPick {
+		writeBuilder(&b, m.renderSessionPicker())
 		writeBuilder(&b, "\n")
 	}
 

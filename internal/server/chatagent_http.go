@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/bytedance/sonic"
@@ -24,6 +25,7 @@ import (
 func RegisterChatAgentRoutes(a *fiber.App) {
 	chatHTTP := newChatAgentHTTP()
 	a.Get("/chatagent/info", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.info)))
+	a.Get("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listSessions)))
 	a.Post("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
 	a.Delete("/chatagent/sessions/:id", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
 	a.Get("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
@@ -67,6 +69,32 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"session_id": sessionID})
+}
+
+func (*chatAgentHTTP) listSessions(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	limit := 20
+	if raw := strings.TrimSpace(c.Query("limit")); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed <= 0 {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid limit"})
+		}
+		limit = parsed
+	}
+	sessions, nextCursor, err := chatagent.ListUserActiveSessions(c.Context(), rc.UID, limit, c.Query("cursor"))
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(fiber.Map{
+		"sessions": sessions,
+		"cursor":   nextCursor,
+	})
 }
 
 func (h *chatAgentHTTP) closeSession(c fiber.Ctx) error {

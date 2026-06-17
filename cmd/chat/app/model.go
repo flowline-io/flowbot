@@ -92,6 +92,9 @@ type Model struct {
 	slashMatches []SlashCommand
 	slashPick    int
 
+	sessionList []client.ChatSessionSummary
+	sessionPick int
+
 	inputHist inputHistory
 
 	status StatusSnapshot

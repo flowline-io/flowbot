@@ -2,7 +2,9 @@ package app
 
 import (
 	"testing"
+	"time"
 
+	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,11 +13,13 @@ func TestFooterHeight(t *testing.T) {
 		name        string
 		hint        string
 		confirm     bool
+		sessionPick bool
 		wantAtLeast int
 	}{
 		{name: "idle defaults", wantAtLeast: 4},
 		{name: "with hint line", hint: "/help", wantAtLeast: 5},
 		{name: "confirming adds rows", hint: "approve", confirm: true, wantAtLeast: 7},
+		{name: "session picker adds rows", sessionPick: true, wantAtLeast: 8},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -23,6 +27,13 @@ func TestFooterHeight(t *testing.T) {
 			m.hint = tt.hint
 			if tt.confirm {
 				m.phase = PhaseConfirming
+			}
+			if tt.sessionPick {
+				m.phase = PhaseSessionPick
+				m.sessionList = []client.ChatSessionSummary{
+					{SessionID: "sess-a", UpdatedAt: time.Now()},
+					{SessionID: "sess-b", UpdatedAt: time.Now()},
+				}
 			}
 			assert.GreaterOrEqual(t, m.footerHeight(), tt.wantAtLeast)
 		})

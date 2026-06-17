@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -163,6 +164,68 @@ func TestExportSession(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantSessID, export.SessionID)
 			assert.Equal(t, tt.wantCount, export.EntryCount)
+		})
+	}
+}
+
+func TestListSessions(t *testing.T) {
+	tests := []struct {
+		name       string
+		cursor     string
+		limit      int
+		status     int
+		body       string
+		wantErr    bool
+		wantLen    int
+		wantCursor string
+	}{
+		{
+			name:    "returns session summaries",
+			limit:   20,
+			status:  http.StatusOK,
+			body:    `{"sessions":[{"session_id":"sess-1","state":"active","created_at":"2026-01-01T00:00:00Z","updated_at":"2026-01-02T00:00:00Z"}],"cursor":""}`,
+			wantLen: 1,
+		},
+		{
+			name:    "empty list",
+			limit:   10,
+			status:  http.StatusOK,
+			body:    `{"sessions":[],"cursor":""}`,
+			wantLen: 0,
+		},
+		{
+			name:    "server error",
+			limit:   10,
+			status:  http.StatusInternalServerError,
+			body:    `{"error":"boom"}`,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/chatagent/sessions", r.URL.Path)
+				if tt.limit > 0 {
+					assert.Equal(t, fmt.Sprintf("%d", tt.limit), r.URL.Query().Get("limit"))
+				}
+				w.WriteHeader(tt.status)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			t.Cleanup(srv.Close)
+
+			cl := NewClient(srv.URL, "token")
+			sessions, cursor, err := cl.ChatAgent.ListSessions(context.Background(), tt.cursor, tt.limit)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Len(t, sessions, tt.wantLen)
+			assert.Equal(t, tt.wantCursor, cursor)
+			if tt.wantLen > 0 {
+				assert.Equal(t, "sess-1", sessions[0].SessionID)
+				assert.Equal(t, "active", sessions[0].State)
+			}
 		})
 	}
 }
