@@ -1053,10 +1053,11 @@ func (a *adapter) CreateAgentSubagent(ctx context.Context, subagent *gen.AgentSu
 	if !subagent.UpdatedAt.IsZero() {
 		builder = builder.SetUpdatedAt(subagent.UpdatedAt)
 	}
-	_, err := builder.Save(ctx)
+	row, err := builder.Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: create agent subagent: %w", err)
 	}
+	subagent.ID = row.ID
 	return nil
 }
 

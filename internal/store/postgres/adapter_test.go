@@ -359,6 +359,53 @@ func TestUpdateAgentSkillNotFound(t *testing.T) {
 	}
 }
 
+func TestCreateAgentSubagentSetsID(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		row  *gen.AgentSubagent
+	}{
+		{
+			name: "enabled subagent gets generated id",
+			row: &gen.AgentSubagent{
+				Flag: "subagent-a", Name: "subagent-a",
+				Description: "desc", SystemPrompt: "prompt",
+				Tools: []string{"read_file"}, Source: "test", Enabled: true,
+			},
+		},
+		{
+			name: "disabled subagent gets generated id",
+			row: &gen.AgentSubagent{
+				Flag: "subagent-b", Name: "subagent-b",
+				Description: "desc", SystemPrompt: "prompt",
+				Source: "test", Enabled: false,
+			},
+		},
+		{
+			name: "subagent with model gets generated id",
+			row: &gen.AgentSubagent{
+				Flag: "subagent-c", Name: "subagent-c",
+				Description: "desc", SystemPrompt: "prompt",
+				Model: "gpt-4o", Source: "global", Enabled: true,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := testAdapter(t)
+			ctx := context.Background()
+			require.NoError(t, a.CreateAgentSubagent(ctx, tt.row))
+			assert.Positive(t, tt.row.ID)
+
+			got, err := a.GetAgentSubagentByFlag(ctx, tt.row.Flag)
+			require.NoError(t, err)
+			assert.Equal(t, tt.row.ID, got.ID)
+		})
+	}
+}
+
 func TestListChatSessions(t *testing.T) {
 	t.Parallel()
 	now := time.Now().UTC().Truncate(time.Second)
