@@ -30,7 +30,12 @@ func (m *Map[K, V]) Set(key K, value V) {
 func (m *Map[K, V]) LoadOrStore(key K, value V) (actual V, loaded bool) {
 	v, ok := m.m.LoadOrStore(key, value)
 	if ok {
-		actual, loaded = v.(V)
+		var typeOK bool
+		actual, typeOK = v.(V)
+		if !typeOK {
+			var zero V
+			return zero, false
+		}
 		return actual, true
 	}
 	return value, false

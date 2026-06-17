@@ -45,7 +45,7 @@ func (c *pipelineStepCallback) OnRunStart(_ context.Context, runID int64, pipeli
 		StepIndex: -1, Status: "start", TotalSteps: totalSteps,
 	}
 	c.publish(runID, evt)
-	c.publishExpire(runID, pipeline.StreamTTLFailsafe)
+	go c.publishExpire(runID, pipeline.StreamTTLFailsafe)
 }
 
 func (c *pipelineStepCallback) OnStepStart(_ context.Context, runID int64, pipelineName string,
@@ -89,18 +89,16 @@ func (c *pipelineStepCallback) OnRunComplete(_ context.Context, runID int64, pip
 		StepIndex: -1, Status: status, ElapsedMs: elapsedMs, Error: errMsg,
 	}
 	c.publish(runID, evt)
-	c.publishExpire(runID, pipeline.StreamTTLDrain)
+	go c.publishExpire(runID, pipeline.StreamTTLDrain)
 }
 
-// publishExpire sets a TTL on the stream asynchronously.
+// publishExpire sets a TTL on the stream. Call with go to avoid blocking the pipeline engine.
 func (c *pipelineStepCallback) publishExpire(runID int64, ttl time.Duration) {
-	go func() {
-		expCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if err := c.rdb.Expire(expCtx, pipeline.StreamName(runID), ttl).Err(); err != nil {
-			flog.Warn("pipeline live: Expire stream failed run=%d: %v", runID, err)
-		}
-	}()
+	expCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := c.rdb.Expire(expCtx, pipeline.StreamName(runID), ttl).Err(); err != nil {
+		flog.Warn("pipeline live: Expire stream failed run=%d: %v", runID, err)
+	}
 }
 
 // publish sends a progress event to the per-run Redis Stream asynchronously

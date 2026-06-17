@@ -32,10 +32,7 @@ func (m *Model) transcriptContentPos(termX, termY int) (line, col int, ok bool) 
 
 	lines := strings.Split(content, "\n")
 	line = m.viewport.YOffset() + viewRow
-	col = termX + m.viewport.XOffset()
-	if col < 0 {
-		col = 0
-	}
+	col = max(termX+m.viewport.XOffset(), 0)
 
 	if line >= len(lines) {
 		line = len(lines) - 1
