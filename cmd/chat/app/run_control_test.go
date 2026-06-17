@@ -92,7 +92,7 @@ func TestSubmitConfirmChoiceReportsAPIError(t *testing.T) {
 			m.pendingConfirmID = "confirm-1"
 			m.phase = PhaseConfirming
 
-			cmd := m.submitConfirmChoice(true)
+			cmd := m.submitConfirmChoice(confirmChoice{approved: true, mode: client.ConfirmModeOnce})
 			require.NotNil(t, cmd)
 			assert.Contains(t, m.hint, tt.wantSub)
 			assert.Equal(t, PhaseStreaming, m.phase)

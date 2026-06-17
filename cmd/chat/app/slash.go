@@ -111,6 +111,7 @@ func SlashHelp() string {
   /compact          Compress long session history
   /resume           Reload saved session history
   /sessions         Browse and switch sessions
+  /permission       View or edit tool permissions
   /export [path]    Export current session to JSON
   /auth status      Show auth configuration
   /file <path>      Attach local file to next message

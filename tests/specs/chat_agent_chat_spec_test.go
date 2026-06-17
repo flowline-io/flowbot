@@ -195,6 +195,38 @@ var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), f
 		}
 		Expect(ids).To(ContainElement(firstID))
 	})
+
+	It("returns default permissions for the authenticated user", func() {
+		getReq := chatAgentRequest(http.MethodGet, "/chatagent/permissions", token, nil)
+		getResp, err := App.Test(getReq)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(getResp.StatusCode).To(Equal(http.StatusOK))
+
+		var view struct {
+			Effective map[string]any `json:"effective"`
+		}
+		Expect(sonic.Unmarshal(ReadBody(getResp), &view)).To(Succeed())
+		Expect(view.Effective).To(HaveKey("bash"))
+	})
+
+	It("saves user permission overrides", func() {
+		body := []byte(`{"bash":{"*":"deny"}}`)
+		putReq := chatAgentRequest(http.MethodPut, "/chatagent/permissions", token, body)
+		putResp, err := App.Test(putReq)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(putResp.StatusCode).To(Equal(http.StatusOK))
+
+		getReq := chatAgentRequest(http.MethodGet, "/chatagent/permissions", token, nil)
+		getResp, err := App.Test(getReq)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(getResp.StatusCode).To(Equal(http.StatusOK))
+
+		var view struct {
+			User map[string]any `json:"user"`
+		}
+		Expect(sonic.Unmarshal(ReadBody(getResp), &view)).To(Succeed())
+		Expect(view.User).To(HaveKey("bash"))
+	})
 })
 
 // stallModel blocks GenerateContent until the run context is canceled.

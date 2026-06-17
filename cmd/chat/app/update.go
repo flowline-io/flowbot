@@ -30,6 +30,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateTick(msg)
 	case streamEventMsg:
 		return m.updateStreamEvent(msg)
+	case permissionMsg:
+		return m.applyPermissionMsg(msg)
 	case streamDoneMsg:
 		return m.updateStreamDone(msg)
 	case tea.KeyMsg:
@@ -258,6 +260,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		return m, nil
 	case "file":
 		return m.handleSlashFile(args)
+	case "permission":
+		return m.handleSlashPermission(args)
 	case "auth":
 		return m.handleSlashAuth(args)
 	default:
@@ -291,7 +295,7 @@ func (m *Model) handleCtrlCKey() (*Model, tea.Cmd) {
 		m.clearConfirm()
 		m.phase = PhaseIdle
 		m.hint = runControlHint(
-			m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, false),
+			m.client.ChatAgent.ConfirmWithMode(context.Background(), m.sessionID, id, false, client.ConfirmModeReject, ""),
 			"Canceled — ready for input",
 			"Confirm failed — server may still be waiting",
 		)
@@ -429,7 +433,11 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 		m.pendingConfirmID = ev.ID
 		m.confirmTool = ev.Tool
 		m.confirmSummary = ev.Summary
-		m.confirmPick = confirmChoiceApprove
+		m.confirmPermission = ev.Permission
+		m.confirmPattern = ev.Pattern
+		m.confirmSuggestedPattern = ev.SuggestedPattern
+		m.confirmSuggestAlways = ev.SuggestAlways
+		m.confirmPick = 0
 		m.hint = ""
 	case "confirm_resolved":
 		m.clearConfirm()
@@ -463,7 +471,11 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 
 func (m *Model) clearConfirm() {
 	m.pendingConfirmID, m.confirmTool, m.confirmSummary = ClearConfirmState()
-	m.confirmPick = confirmChoiceApprove
+	m.confirmPermission = ""
+	m.confirmPattern = ""
+	m.confirmSuggestedPattern = ""
+	m.confirmSuggestAlways = false
+	m.confirmPick = 0
 }
 
 func (m *Model) appendUser(text string) {

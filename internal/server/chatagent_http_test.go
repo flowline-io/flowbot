@@ -268,6 +268,51 @@ func TestChatAgentHTTPListSessions(t *testing.T) {
 	}
 }
 
+func TestChatAgentHTTPGetPermissionsSessionOwner(t *testing.T) {
+	origDB := store.Database
+	origCfg := config.App.ChatAgent
+	store.Database = &testStoreAdapter{}
+	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-mine":  {Flag: "sess-mine", UID: "user-1", State: int(schema.ChatSessionActive)},
+		"sess-other": {Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
+	}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App.ChatAgent = origCfg
+		testChatSessions = map[string]*gen.ChatSession{}
+		chatagent.ResetPermissionSessionsForTest()
+	})
+
+	h := newChatAgentHTTP()
+	app := fiber.New()
+	app.Get("/chatagent/permissions", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.getPermissions(c)
+	})
+
+	tests := []struct {
+		name       string
+		query      string
+		wantStatus int
+	}{
+		{name: "own session grants", query: "?session_id=sess-mine", wantStatus: fiber.StatusOK},
+		{name: "foreign session forbidden", query: "?session_id=sess-other", wantStatus: fiber.StatusForbidden},
+		{name: "no session id ok", query: "", wantStatus: fiber.StatusOK},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/chatagent/permissions"+tt.query, http.NoBody)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
 func TestListUserActiveSessions(t *testing.T) {
 	now := time.Now().UTC()
 	origDB := store.Database

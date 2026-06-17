@@ -80,10 +80,14 @@ type Model struct {
 
 	streamCh chan tea.Msg
 
-	pendingConfirmID string
-	confirmTool      string
-	confirmSummary   string
-	confirmPick      int
+	pendingConfirmID        string
+	confirmTool             string
+	confirmSummary          string
+	confirmPermission       string
+	confirmPattern          string
+	confirmSuggestedPattern string
+	confirmSuggestAlways    bool
+	confirmPick             int
 
 	pendingFile *FileAttachment
 	hint        string

@@ -3,10 +3,12 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
+	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/google/uuid"
 )
 
@@ -21,13 +23,24 @@ const (
 	ConfirmReasonTimeout  ConfirmReason = "timeout"
 )
 
+// ConfirmMode is how the user resolved an approval prompt.
+type ConfirmMode string
+
+const (
+	ConfirmModeOnce   ConfirmMode = "once"
+	ConfirmModeAlways ConfirmMode = "always"
+	ConfirmModeReject ConfirmMode = "reject"
+)
+
 // ConfirmResponse is the user's answer to a pending tool confirmation.
 type ConfirmResponse struct {
 	Approved bool
 	Reason   ConfirmReason
+	Mode     ConfirmMode
+	Pattern  string
 }
 
-// ConfirmGate blocks dangerous tool execution until the client approves or denies.
+// ConfirmGate blocks tool execution until the client approves or denies.
 type ConfirmGate struct {
 	mu        sync.Mutex
 	id        string
@@ -39,7 +52,7 @@ type ConfirmGate struct {
 	timeout   time.Duration
 }
 
-// NewConfirmGate creates a gate that publishes confirm events to the active SSE stream.
+// NewConfirmGate creates a gate that publishes confirm events to session subscribers.
 func NewConfirmGate(sessionID string, publisher EventPublisher) *ConfirmGate {
 	return &ConfirmGate{
 		id:        uuid.NewString(),
@@ -57,17 +70,20 @@ func (g *ConfirmGate) ID() string {
 }
 
 // Wait publishes a confirm event and blocks until the client responds or times out.
-func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent) (bool, error) {
+func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent, eval permission.Result) (ConfirmResponse, error) {
 	confirmID := g.beginWait()
 	summary := formatConfirmSummary(event)
-	if g.publisher != nil {
-		_ = g.publisher.Publish(StreamEvent{
-			Type:    EventTypeConfirm,
-			ID:      confirmID,
-			Tool:    event.ToolCall.Name,
-			Summary: summary,
-		})
+	payload := StreamEvent{
+		Type:             EventTypeConfirm,
+		ID:               confirmID,
+		Tool:             event.ToolCall.Name,
+		Summary:          summary,
+		Permission:       eval.PermissionKey,
+		Pattern:          eval.Pattern,
+		SuggestedPattern: eval.SuggestedPattern,
+		SuggestAlways:    eval.SuggestAlways,
 	}
+	_ = g.emit(payload)
 
 	timer := time.NewTimer(g.timeout)
 	defer timer.Stop()
@@ -75,20 +91,22 @@ func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent) (bool
 	select {
 	case resp := <-g.ch:
 		g.publishResolved(confirmID, resp)
-		return resp.Approved, nil
+		return resp, nil
 	case <-timer.C:
-		g.publishResolved(confirmID, ConfirmResponse{Approved: false, Reason: ConfirmReasonTimeout})
-		return false, nil
+		resp := ConfirmResponse{Approved: false, Reason: ConfirmReasonTimeout, Mode: ConfirmModeReject}
+		g.publishResolved(confirmID, resp)
+		return resp, nil
 	case <-ctx.Done():
-		g.publishResolved(confirmID, ConfirmResponse{Approved: false, Reason: ConfirmReasonDenied})
-		return false, ctx.Err()
+		resp := ConfirmResponse{Approved: false, Reason: ConfirmReasonDenied, Mode: ConfirmModeReject}
+		g.publishResolved(confirmID, resp)
+		return resp, ctx.Err()
 	case <-g.done:
-		g.publishResolved(confirmID, ConfirmResponse{Approved: false, Reason: ConfirmReasonDenied})
-		return false, fmt.Errorf("confirmation cancelled")
+		resp := ConfirmResponse{Approved: false, Reason: ConfirmReasonDenied, Mode: ConfirmModeReject}
+		g.publishResolved(confirmID, resp)
+		return resp, fmt.Errorf("confirmation cancelled")
 	}
 }
 
-// beginWait prepares the gate for one confirmation request and returns its ID.
 func (g *ConfirmGate) beginWait() string {
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -101,7 +119,7 @@ func (g *ConfirmGate) beginWait() string {
 }
 
 // Resolve applies the client decision. Returns false when the gate is already resolved.
-func (g *ConfirmGate) Resolve(approved bool, reason ConfirmReason) bool {
+func (g *ConfirmGate) Resolve(resp ConfirmResponse) bool {
 	g.mu.Lock()
 	if g.resolved {
 		g.mu.Unlock()
@@ -109,7 +127,7 @@ func (g *ConfirmGate) Resolve(approved bool, reason ConfirmReason) bool {
 	}
 	g.mu.Unlock()
 	select {
-	case g.ch <- ConfirmResponse{Approved: approved, Reason: reason}:
+	case g.ch <- resp:
 		return true
 	default:
 		return false
@@ -136,9 +154,6 @@ func (g *ConfirmGate) publishResolved(confirmID string, resp ConfirmResponse) {
 	g.resolved = true
 	g.mu.Unlock()
 
-	if g.publisher == nil {
-		return
-	}
 	reason := string(resp.Reason)
 	if reason == "" {
 		if resp.Approved {
@@ -147,38 +162,66 @@ func (g *ConfirmGate) publishResolved(confirmID string, resp ConfirmResponse) {
 			reason = string(ConfirmReasonDenied)
 		}
 	}
-	_ = g.publisher.Publish(StreamEvent{
+	event := StreamEvent{
 		Type:     EventTypeConfirmResolved,
 		ID:       confirmID,
 		Approved: resp.Approved,
 		Reason:   reason,
-	})
+		Mode:     string(resp.Mode),
+	}
+	_ = g.emit(event)
+}
+
+func (g *ConfirmGate) emit(event StreamEvent) error {
+	if g.publisher != nil {
+		return g.publisher.Publish(event)
+	}
+	GetSessionEventHub(g.sessionID).publish(event)
+	return nil
+}
+
+// alwaysGrantPattern resolves the pattern stored for ConfirmModeAlways.
+// It rejects client patterns that differ from the server suggestion.
+func alwaysGrantPattern(eval permission.Result, clientPattern string) (string, bool) {
+	if !eval.SuggestAlways || eval.SuggestedPattern == "" {
+		return "", false
+	}
+	pattern := strings.TrimSpace(clientPattern)
+	if pattern == "" {
+		return eval.SuggestedPattern, true
+	}
+	if pattern != eval.SuggestedPattern {
+		return "", false
+	}
+	return eval.SuggestedPattern, true
 }
 
 func formatConfirmSummary(event hooks.ToolCallEvent) string {
 	switch event.ToolCall.Name {
-	case "run_terminal":
+	case permission.ToolRunTerminal:
 		if cmd, ok := event.Args["command"]; ok {
 			return fmt.Sprintf("command: %v", cmd)
 		}
-	case "write_file":
+	case permission.ToolWriteFile:
 		if path, ok := event.Args["path"]; ok {
 			return fmt.Sprintf("write file: %v", path)
 		}
-	case "run_code":
+	case permission.ToolRunCode:
 		if lang, ok := event.Args["language"]; ok {
 			return fmt.Sprintf("run %v code", lang)
 		}
+	case permission.ToolReadFile:
+		if path, ok := event.Args["path"]; ok {
+			return fmt.Sprintf("read file: %v", path)
+		}
+	case permission.ToolWebSearch:
+		if query, ok := event.Args["query"]; ok {
+			return fmt.Sprintf("search: %v", query)
+		}
+	case permission.ToolReadSkill:
+		if name, ok := event.Args["name"]; ok {
+			return fmt.Sprintf("skill: %v", name)
+		}
 	}
 	return event.ToolCall.Name
-}
-
-// toolNeedsConfirm reports whether a tool requires explicit user approval in the Chat UI.
-func toolNeedsConfirm(name string) bool {
-	switch name {
-	case "run_terminal", "write_file", "run_code":
-		return true
-	default:
-		return false
-	}
 }

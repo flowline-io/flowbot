@@ -20,6 +20,7 @@ var allWebserviceRules = [][]webservice.Rule{
 	notifySettingsWebserviceRules,
 	agentSkillsWebserviceRules,
 	agentSessionsWebserviceRules,
+	chatAgentPermissionsWebserviceRules,
 	homelabWebserviceRules,
 	tokenWebserviceRules,
 }

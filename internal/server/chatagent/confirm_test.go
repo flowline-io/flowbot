@@ -7,9 +7,18 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func testEvalResult() permission.Result {
+	return permission.Result{
+		Action:        permission.ActionAsk,
+		PermissionKey: "bash",
+		Pattern:       "ls",
+	}
+}
 
 func TestConfirmGateResolve(t *testing.T) {
 	tests := []struct {
@@ -28,28 +37,29 @@ func TestConfirmGateResolve(t *testing.T) {
 			gate := NewConfirmGate("sess-1", pub)
 			gate.timeout = 2 * time.Second
 
-			done := make(chan struct {
-				approved bool
-				err      error
-			}, 1)
+			done := make(chan ConfirmResponse, 1)
 			go func() {
-				approved, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
-					ToolCall: msg.ToolCallPart{Name: "run_terminal"},
+				resp, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
+					ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
 					Args:     map[string]any{"command": "ls"},
-				})
-				done <- struct {
-					approved bool
-					err      error
-				}{approved: approved, err: err}
+				}, testEvalResult())
+				if err != nil {
+					done <- ConfirmResponse{}
+					return
+				}
+				done <- resp
 			}()
 
 			waitConfirmEvent(t, pub)
 
-			require.True(t, gate.Resolve(tt.approved, tt.reason))
+			mode := ConfirmModeReject
+			if tt.approved {
+				mode = ConfirmModeOnce
+			}
+			require.True(t, gate.Resolve(ConfirmResponse{Approved: tt.approved, Reason: tt.reason, Mode: mode}))
 			waitResult := <-done
-			require.NoError(t, waitResult.err)
-			assert.Equal(t, tt.approved, waitResult.approved)
-			assert.False(t, gate.Resolve(tt.approved, tt.reason))
+			assert.Equal(t, tt.approved, waitResult.Approved)
+			assert.False(t, gate.Resolve(ConfirmResponse{Approved: tt.approved, Reason: tt.reason, Mode: mode}))
 
 			waitResolvedEvent(t, pub, tt.approved, string(tt.reason))
 		})
@@ -61,25 +71,22 @@ func TestConfirmGateTimeout(t *testing.T) {
 	gate := NewConfirmGate("sess-1", pub)
 	gate.timeout = 20 * time.Millisecond
 
-	done := make(chan struct {
-		approved bool
-		err      error
-	}, 1)
+	done := make(chan ConfirmResponse, 1)
 	go func() {
-		approved, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
-			ToolCall: msg.ToolCallPart{Name: "write_file"},
+		resp, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolWriteFile},
 			Args:     map[string]any{"path": "a.txt"},
-		})
-		done <- struct {
-			approved bool
-			err      error
-		}{approved: approved, err: err}
+		}, permission.Result{Action: permission.ActionAsk, PermissionKey: "edit", Pattern: "a.txt"})
+		if err != nil {
+			done <- ConfirmResponse{}
+			return
+		}
+		done <- resp
 	}()
 
 	waitConfirmEvent(t, pub)
 	waitResult := <-done
-	require.NoError(t, waitResult.err)
-	assert.False(t, waitResult.approved)
+	assert.False(t, waitResult.Approved)
 	waitResolvedEvent(t, pub, false, string(ConfirmReasonTimeout))
 }
 
@@ -88,51 +95,37 @@ func TestConfirmGateMultipleTools(t *testing.T) {
 	gate := NewConfirmGate("sess-1", pub)
 	gate.timeout = 2 * time.Second
 
-	done1 := make(chan struct {
-		approved bool
-		err      error
-	}, 1)
+	done1 := make(chan ConfirmResponse, 1)
 	go func() {
-		approved, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
-			ToolCall: msg.ToolCallPart{Name: "run_terminal"},
+		resp, _ := gate.Wait(context.Background(), hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
 			Args:     map[string]any{"command": "ls"},
-		})
-		done1 <- struct {
-			approved bool
-			err      error
-		}{approved: approved, err: err}
+		}, testEvalResult())
+		done1 <- resp
 	}()
 
 	waitConfirmEvent(t, pub)
 	id1 := gate.ID()
-	require.True(t, gate.Resolve(true, ConfirmReasonApproved))
+	require.True(t, gate.Resolve(ConfirmResponse{Approved: true, Reason: ConfirmReasonApproved, Mode: ConfirmModeOnce}))
 	waitResult1 := <-done1
-	require.NoError(t, waitResult1.err)
-	assert.True(t, waitResult1.approved)
+	assert.True(t, waitResult1.Approved)
 	waitResolvedEvent(t, pub, true, string(ConfirmReasonApproved))
 
-	done2 := make(chan struct {
-		approved bool
-		err      error
-	}, 1)
+	done2 := make(chan ConfirmResponse, 1)
 	go func() {
-		approved, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
-			ToolCall: msg.ToolCallPart{Name: "write_file"},
+		resp, _ := gate.Wait(context.Background(), hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolWriteFile},
 			Args:     map[string]any{"path": "a.txt"},
-		})
-		done2 <- struct {
-			approved bool
-			err      error
-		}{approved: approved, err: err}
+		}, permission.Result{Action: permission.ActionAsk, PermissionKey: "edit", Pattern: "a.txt"})
+		done2 <- resp
 	}()
 
 	waitConfirmEvent(t, pub)
 	id2 := gate.ID()
 	assert.NotEqual(t, id1, id2)
-	require.True(t, gate.Resolve(true, ConfirmReasonApproved))
+	require.True(t, gate.Resolve(ConfirmResponse{Approved: true, Reason: ConfirmReasonApproved, Mode: ConfirmModeOnce}))
 	waitResult2 := <-done2
-	require.NoError(t, waitResult2.err)
-	assert.True(t, waitResult2.approved)
+	assert.True(t, waitResult2.Approved)
 	waitResolvedEvent(t, pub, true, string(ConfirmReasonApproved))
 }
 
@@ -143,12 +136,50 @@ func TestResolveConfirmAPI(t *testing.T) {
 	require.NoError(t, TrySetAPIRunState("sess-2", state))
 	t.Cleanup(func() { ClearAPIRunState("sess-2", nil) })
 
-	ok, err := ResolveConfirm("sess-2", gate.ID(), true, ConfirmReasonApproved)
+	ok, err := ResolveConfirm("sess-2", gate.ID(), true, ConfirmModeOnce, "", ConfirmReasonApproved)
 	require.NoError(t, err)
 	assert.True(t, ok)
 
-	_, err = ResolveConfirm("sess-2", gate.ID(), true, ConfirmReasonApproved)
+	_, err = ResolveConfirm("sess-2", gate.ID(), true, ConfirmModeOnce, "", ConfirmReasonApproved)
 	assert.ErrorIs(t, err, ErrConfirmResolved)
+}
+
+func TestAlwaysGrantPattern(t *testing.T) {
+	tests := []struct {
+		name          string
+		eval          permission.Result
+		clientPattern string
+		wantPattern   string
+		wantOK        bool
+	}{
+		{
+			name:        "uses suggested when client empty",
+			eval:        permission.Result{SuggestAlways: true, SuggestedPattern: "git status*"},
+			wantPattern: "git status*",
+			wantOK:      true,
+		},
+		{
+			name:          "rejects broader client pattern",
+			eval:          permission.Result{SuggestAlways: true, SuggestedPattern: "git status*"},
+			clientPattern: "git *",
+			wantOK:        false,
+		},
+		{
+			name:          "rejects when always not suggested",
+			eval:          permission.Result{SuggestAlways: false, SuggestedPattern: "git status*"},
+			clientPattern: "git status*",
+			wantOK:        false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pattern, ok := alwaysGrantPattern(tt.eval, tt.clientPattern)
+			assert.Equal(t, tt.wantOK, ok)
+			if tt.wantOK {
+				assert.Equal(t, tt.wantPattern, pattern)
+			}
+		})
+	}
 }
 
 func waitConfirmEvent(t *testing.T, pub *ChannelPublisher) {

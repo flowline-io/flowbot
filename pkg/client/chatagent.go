@@ -127,12 +127,34 @@ type ChatStreamEvent struct {
 	ContextPercent   float64 `json:"context_percent,omitempty"`
 	ContextWindow    int     `json:"context_window,omitempty"`
 
-	ID       string `json:"id,omitempty"`
-	Tool     string `json:"tool,omitempty"`
-	Summary  string `json:"summary,omitempty"`
-	Approved bool   `json:"approved,omitempty"`
-	Reason   string `json:"reason,omitempty"`
+	ID               string `json:"id,omitempty"`
+	Tool             string `json:"tool,omitempty"`
+	Summary          string `json:"summary,omitempty"`
+	Permission       string `json:"permission,omitempty"`
+	Pattern          string `json:"pattern,omitempty"`
+	SuggestedPattern string `json:"suggested_pattern,omitempty"`
+	SuggestAlways    bool   `json:"suggest_always,omitempty"`
+	Approved         bool   `json:"approved,omitempty"`
+	Reason           string `json:"reason,omitempty"`
+	Mode             string `json:"mode,omitempty"`
 }
+
+// ChatPermissionsView is the permission configuration payload.
+type ChatPermissionsView struct {
+	Defaults      map[string]any      `json:"defaults"`
+	User          map[string]any      `json:"user"`
+	Effective     map[string]any      `json:"effective"`
+	SessionGrants map[string][]string `json:"session_grants,omitempty"`
+}
+
+// ConfirmMode selects how the user resolved a tool approval prompt.
+type ConfirmMode string
+
+const (
+	ConfirmModeOnce   ConfirmMode = "once"
+	ConfirmModeAlways ConfirmMode = "always"
+	ConfirmModeReject ConfirmMode = "reject"
+)
 
 // Info returns Chat Agent splash metadata.
 func (cc *ChatAgentClient) Info(ctx context.Context) (*ChatAgentInfo, error) {
@@ -156,7 +178,7 @@ func (cc *ChatAgentClient) CreateSession(ctx context.Context) (string, error) {
 
 // CloseSession ends a chat session.
 func (cc *ChatAgentClient) CloseSession(ctx context.Context, sessionID string) error {
-	return cc.chatDelete(ctx, "/chatagent/sessions/"+sessionID)
+	return cc.chatDelete(ctx, "/chatagent/sessions/"+sessionID, nil)
 }
 
 // ListSessions returns active sessions owned by the authenticated user.
@@ -220,10 +242,60 @@ func (cc *ChatAgentClient) Compact(ctx context.Context, sessionID string) (*Chat
 
 // Confirm responds to a pending tool confirmation.
 func (cc *ChatAgentClient) Confirm(ctx context.Context, sessionID, confirmID string, approved bool) error {
+	return cc.ConfirmWithMode(ctx, sessionID, confirmID, approved, "", "")
+}
+
+// ConfirmWithMode responds to a pending tool confirmation with optional always pattern.
+func (cc *ChatAgentClient) ConfirmWithMode(ctx context.Context, sessionID, confirmID string, approved bool, mode ConfirmMode, pattern string) error {
+	if mode == "" {
+		if approved {
+			mode = ConfirmModeOnce
+		} else {
+			mode = ConfirmModeReject
+		}
+	}
 	return cc.chatPost(ctx, "/chatagent/sessions/"+sessionID+"/confirm", map[string]any{
 		"id":       confirmID,
 		"approved": approved,
+		"mode":     string(mode),
+		"pattern":  pattern,
 	}, nil)
+}
+
+// GetPermissions returns the user's permission configuration.
+func (cc *ChatAgentClient) GetPermissions(ctx context.Context, sessionID string) (*ChatPermissionsView, error) {
+	path := "/chatagent/permissions"
+	if sessionID != "" {
+		path += "?session_id=" + sessionID
+	}
+	var view ChatPermissionsView
+	if err := cc.chatGet(ctx, path, &view); err != nil {
+		return nil, err
+	}
+	return &view, nil
+}
+
+// PutPermissions saves the user's permission configuration JSON object.
+func (cc *ChatAgentClient) PutPermissions(ctx context.Context, rules map[string]any) (*ChatPermissionsView, error) {
+	var view ChatPermissionsView
+	if err := cc.chatPut(ctx, "/chatagent/permissions", rules, &view); err != nil {
+		return nil, err
+	}
+	return &view, nil
+}
+
+// DeletePermissions removes user permission overrides.
+func (cc *ChatAgentClient) DeletePermissions(ctx context.Context) (*ChatPermissionsView, error) {
+	var view ChatPermissionsView
+	if err := cc.chatDelete(ctx, "/chatagent/permissions", &view); err != nil {
+		return nil, err
+	}
+	return &view, nil
+}
+
+// ClearPermissionGrants clears session-scoped always-allow patterns.
+func (cc *ChatAgentClient) ClearPermissionGrants(ctx context.Context, sessionID string) error {
+	return cc.chatDelete(ctx, "/chatagent/sessions/"+sessionID+"/permission-grants", nil)
 }
 
 // Cancel aborts the in-flight run for a session.
@@ -247,12 +319,20 @@ func (cc *ChatAgentClient) chatPost(ctx context.Context, path string, body, resu
 	return parseChatResponse(resp.StatusCode(), resp.Bytes(), result)
 }
 
-func (cc *ChatAgentClient) chatDelete(ctx context.Context, path string) error {
+func (cc *ChatAgentClient) chatPut(ctx context.Context, path string, body, result any) error {
+	resp, err := cc.c.rc.R().SetContext(ctx).SetBody(body).Put(path)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	return parseChatResponse(resp.StatusCode(), resp.Bytes(), result)
+}
+
+func (cc *ChatAgentClient) chatDelete(ctx context.Context, path string, result any) error {
 	resp, err := cc.c.rc.R().SetContext(ctx).Delete(path)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}
-	return parseChatResponse(resp.StatusCode(), resp.Bytes(), nil)
+	return parseChatResponse(resp.StatusCode(), resp.Bytes(), result)
 }
 
 func parseChatResponse(status int, body []byte, result any) error {

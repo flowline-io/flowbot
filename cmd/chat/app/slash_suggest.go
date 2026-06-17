@@ -25,6 +25,7 @@ var slashCommands = []SlashCommand{
 	{name: "compact", desc: "Compress long session history"},
 	{name: "resume", desc: "Reload saved session history"},
 	{name: "sessions", desc: "Browse and switch sessions"},
+	{name: "permission", desc: "View or edit tool permissions", args: "show|set|reset|grants"},
 	{name: "export", desc: "Export current session to JSON", args: "<path>"},
 	{name: "auth", desc: "Show auth configuration", args: "status"},
 	{name: "file", desc: "Attach local file to next message", args: "<path>"},

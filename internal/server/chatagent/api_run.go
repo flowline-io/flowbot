@@ -82,7 +82,7 @@ func CancelSessionRun(sessionID string) {
 }
 
 // ResolveConfirm applies a client confirmation for the active gate on a session.
-func ResolveConfirm(sessionID, confirmID string, approved bool, reason ConfirmReason) (bool, error) {
+func ResolveConfirm(sessionID, confirmID string, approved bool, mode ConfirmMode, pattern string, reason ConfirmReason) (bool, error) {
 	raw, ok := sessionConfirmGates.Load(sessionID)
 	if !ok {
 		return false, ErrConfirmNotFound
@@ -91,7 +91,15 @@ func ResolveConfirm(sessionID, confirmID string, approved bool, reason ConfirmRe
 	if !ok || gate.ID() != confirmID {
 		return false, ErrConfirmNotFound
 	}
-	if !gate.Resolve(approved, reason) {
+	if mode == "" {
+		if approved {
+			mode = ConfirmModeOnce
+		} else {
+			mode = ConfirmModeReject
+		}
+	}
+	resp := ConfirmResponse{Approved: approved, Reason: reason, Mode: mode, Pattern: pattern}
+	if !gate.Resolve(resp) {
 		return false, ErrConfirmResolved
 	}
 	return true, nil

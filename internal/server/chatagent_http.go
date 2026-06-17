@@ -35,6 +35,11 @@ func RegisterChatAgentRoutes(a *fiber.App) {
 	a.Post("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sendMessage)))
 	a.Post("/chatagent/sessions/:id/confirm", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.confirm)))
 	a.Post("/chatagent/sessions/:id/cancel", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.cancelRun)))
+	a.Get("/chatagent/permissions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.getPermissions)))
+	a.Put("/chatagent/permissions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.putPermissions)))
+	a.Delete("/chatagent/permissions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.deletePermissions)))
+	a.Get("/chatagent/sessions/:id/events", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sessionEvents)))
+	a.Delete("/chatagent/sessions/:id/permission-grants", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.clearPermissionGrants)))
 }
 
 type chatAgentHTTP struct {
@@ -205,8 +210,12 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 	c.Set("Connection", "keep-alive")
 
 	return c.SendStreamWriter(func(w *bufio.Writer) {
-		publisher := chatagent.NewChannelPublisher(64)
-		gate := chatagent.NewConfirmGate(sessionID, publisher)
+		hub := chatagent.GetSessionEventHub(sessionID)
+		subID := "run"
+		publisher := hub.Subscribe(subID, 64)
+		defer hub.Unsubscribe(subID)
+
+		gate := chatagent.NewConfirmGate(sessionID, nil)
 		runState := chatagent.NewAPIRunState(publisher, gate)
 		if err := chatagent.TrySetAPIRunState(sessionID, runState); err != nil {
 			_ = writeChatAgentSSE(w, chatagent.StreamEvent{
@@ -267,6 +276,8 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 type confirmBody struct {
 	ID       string `json:"id"`
 	Approved bool   `json:"approved"`
+	Mode     string `json:"mode"`
+	Pattern  string `json:"pattern"`
 }
 
 func (h *chatAgentHTTP) confirm(c fiber.Ctx) error {
@@ -285,7 +296,15 @@ func (h *chatAgentHTTP) confirm(c fiber.Ctx) error {
 	if body.Approved {
 		reason = chatagent.ConfirmReasonApproved
 	}
-	ok, err := chatagent.ResolveConfirm(sessionID, body.ID, body.Approved, reason)
+	mode := chatagent.ConfirmMode(body.Mode)
+	if mode == "" {
+		if body.Approved {
+			mode = chatagent.ConfirmModeOnce
+		} else {
+			mode = chatagent.ConfirmModeReject
+		}
+	}
+	ok, err := chatagent.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
 	if errors.Is(err, chatagent.ErrConfirmNotFound) {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -396,4 +415,116 @@ func drainChatAgentSSE(w *bufio.Writer, publisher *chatagent.ChannelPublisher) {
 			return
 		}
 	}
+}
+
+func (h *chatAgentHTTP) getPermissions(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	sessionID := strings.TrimSpace(c.Query("session_id"))
+	if sessionID != "" {
+		if err := h.ensureSessionOwner(c, sessionID); err != nil {
+			return chatAgentError(c, err)
+		}
+	}
+	view, err := chatagent.BuildPermissionsView(c.Context(), rc.UID, sessionID)
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(view)
+}
+
+func (*chatAgentHTTP) putPermissions(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	cfg, err := chatagent.ParsePermissionsBody(c.Body())
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	if err := chatagent.SaveUserPermissions(c.Context(), rc.UID, cfg); err != nil {
+		return chatAgentError(c, err)
+	}
+	view, err := chatagent.BuildPermissionsView(c.Context(), rc.UID, "")
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(view)
+}
+
+func (*chatAgentHTTP) deletePermissions(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
+	}
+	if err := chatagent.DeleteUserPermissions(c.Context(), rc.UID); err != nil {
+		return chatAgentError(c, err)
+	}
+	view, err := chatagent.BuildPermissionsView(c.Context(), rc.UID, "")
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(view)
+}
+
+func (h *chatAgentHTTP) clearPermissionGrants(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	chatagent.ClearSessionPermissionGrants(sessionID)
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+
+	return c.SendStreamWriter(func(w *bufio.Writer) {
+		hub := chatagent.GetSessionEventHub(sessionID)
+		subID := fmt.Sprintf("observer-%p", w)
+		publisher := hub.Subscribe(subID, 32)
+		defer hub.Unsubscribe(subID)
+
+		ctx := c.Context()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case ev, ok := <-publisher.Events():
+				if !ok {
+					return
+				}
+				switch ev.Type {
+				case chatagent.EventTypeConfirm, chatagent.EventTypeConfirmResolved, chatagent.EventTypeCanceled:
+					if writeChatAgentSSE(w, ev) {
+						return
+					}
+				}
+			}
+		}
+	})
 }

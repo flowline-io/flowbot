@@ -230,6 +230,56 @@ func TestListSessions(t *testing.T) {
 	}
 }
 
+func TestPutPermissions(t *testing.T) {
+	tests := []struct {
+		name       string
+		status     int
+		body       string
+		wantErr    bool
+		wantMethod string
+	}{
+		{
+			name:       "uses put method",
+			status:     http.StatusOK,
+			body:       `{"effective":{"bash":"ask"},"defaults":{},"user":{}}`,
+			wantMethod: http.MethodPut,
+		},
+		{
+			name:       "server error",
+			status:     http.StatusBadRequest,
+			body:       `{"error":"invalid"}`,
+			wantErr:    true,
+			wantMethod: http.MethodPut,
+		},
+		{
+			name:       "empty rules still put",
+			status:     http.StatusOK,
+			body:       `{"effective":{},"defaults":{},"user":{}}`,
+			wantMethod: http.MethodPut,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, tt.wantMethod, r.Method)
+				assert.Equal(t, "/chatagent/permissions", r.URL.Path)
+				w.WriteHeader(tt.status)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			t.Cleanup(srv.Close)
+
+			cl := NewClient(srv.URL, "token")
+			view, err := cl.ChatAgent.PutPermissions(context.Background(), map[string]any{"bash": "ask"})
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, view)
+		})
+	}
+}
+
 func TestCompactSession(t *testing.T) {
 	tests := []struct {
 		name          string

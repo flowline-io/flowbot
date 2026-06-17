@@ -37,12 +37,17 @@ type StreamEvent struct {
 	ContextWindow    int     `json:"context_window,omitempty"`
 
 	// confirm / confirm_resolved
-	ID       string `json:"id,omitempty"`
-	Tool     string `json:"tool,omitempty"`
-	Summary  string `json:"summary,omitempty"`
-	Approved bool   `json:"approved,omitempty"`
-	Reason   string `json:"reason,omitempty"`
-	Message  string `json:"message,omitempty"`
+	ID               string `json:"id,omitempty"`
+	Tool             string `json:"tool,omitempty"`
+	Summary          string `json:"summary,omitempty"`
+	Permission       string `json:"permission,omitempty"`
+	Pattern          string `json:"pattern,omitempty"`
+	SuggestedPattern string `json:"suggested_pattern,omitempty"`
+	SuggestAlways    bool   `json:"suggest_always,omitempty"`
+	Approved         bool   `json:"approved,omitempty"`
+	Reason           string `json:"reason,omitempty"`
+	Mode             string `json:"mode,omitempty"`
+	Message          string `json:"message,omitempty"`
 }
 
 // EventPublisher delivers stream events to an active HTTP SSE connection.

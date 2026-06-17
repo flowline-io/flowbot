@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type pooledHarness struct {
@@ -227,7 +228,11 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
 	hookRegistry := hooks.NewRegistry()
-	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID})
+	uid, uidErr := SessionOwnerUID(ctx, req.SessionID)
+	if uidErr != nil {
+		uid = types.Uid("")
+	}
+	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID, UID: uid})
 
 	configHash, err := harnessConfigHash(workspace)
 	if err != nil {

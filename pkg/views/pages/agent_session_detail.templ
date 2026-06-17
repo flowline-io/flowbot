@@ -11,6 +11,19 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		<div class="mb-4">
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
 		</div>
+		<div id="chatagent-approval-panel" class="card bg-base-100 shadow-sm mb-6 hidden" data-session-id={ session.Flag } data-testid="chatagent-approval-panel">
+			<div class="card-body">
+				<h2 class="card-title text-lg">Pending Tool Approval</h2>
+				<p class="text-sm" id="chatagent-approval-summary"></p>
+				<p class="text-xs text-base-content/60" id="chatagent-approval-meta"></p>
+				<div class="flex gap-2 mt-2" id="chatagent-approval-actions">
+					<button type="button" class="btn btn-primary btn-sm" data-mode="once" data-testid="chatagent-approve-once">Approve once</button>
+					<button type="button" class="btn btn-secondary btn-sm hidden" data-mode="always" data-testid="chatagent-approve-always">Always allow</button>
+					<button type="button" class="btn btn-ghost btn-sm" data-mode="reject" data-testid="chatagent-approve-deny">Deny</button>
+				</div>
+				<p class="text-xs text-base-content/50 mt-2 hidden" id="chatagent-approval-resolved"></p>
+			</div>
+		</div>
 		<div class="card bg-base-100 shadow-sm mb-6">
 			<div class="card-body">
 				<h1 class="card-title text-2xl font-mono">{ session.Flag }</h1>
@@ -44,5 +57,6 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		</div>
 		<h2 class="text-lg font-semibold mb-3">Entries</h2>
 		@partials.AgentSessionEntriesTable(entries)
+		<script src="/static/js/chatagent-session.js" defer></script>
 	}
 }
