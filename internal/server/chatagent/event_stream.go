@@ -2,6 +2,7 @@ package chatagent
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -56,10 +57,10 @@ func handleAPIStreamEvent(publisher EventPublisher, coalescer *streamCoalescer, 
 		coalescer.appendDelta(ev.TextDelta)
 	case agentevent.TypeToolExecutionStart:
 		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok {
-			coalescer.setToolStatus(call.Name)
+			coalescer.setToolStatus(toolStatusText(call))
 			_ = publisher.Publish(StreamEvent{
 				Type:   EventTypeTool,
-				Name:   call.Name,
+				Name:   toolDisplayName(call),
 				Status: "running",
 			})
 		}
@@ -67,12 +68,23 @@ func handleAPIStreamEvent(publisher EventPublisher, coalescer *streamCoalescer, 
 		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok && ev.Update != "" {
 			_ = publisher.Publish(StreamEvent{
 				Type:   EventTypeTool,
-				Name:   call.Name,
+				Name:   toolDisplayName(call),
 				Status: "running",
 				Stdout: ev.Update,
 			})
 		}
 	}
+}
+
+// toolDisplayName returns the client-facing tool name, annotating the task tool
+// with the delegated subagent so CLI and web clients can show the delegation target.
+func toolDisplayName(call msg.ToolCallPart) string {
+	if call.Name == taskToolName {
+		if name := subagentTypeFromArgs(call.Arguments); name != "" {
+			return fmt.Sprintf("%s (%s)", taskToolName, name)
+		}
+	}
+	return call.Name
 }
 
 func publishAPIEvent(ctx context.Context, publisher EventPublisher, coalescer *streamCoalescer) {

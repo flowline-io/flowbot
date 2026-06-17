@@ -199,7 +199,11 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		return nil, fmt.Errorf("chat agent model: %w", err)
 	}
 
-	registry, err := NewRegistry(workspace)
+	uid, uidErr := SessionOwnerUID(ctx, req.SessionID)
+	if uidErr != nil {
+		uid = types.Uid("")
+	}
+	registry, err := NewRegistry(workspace, &TaskToolDeps{SessionID: req.SessionID, UID: uid})
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] tool registry session=%s: %w", req.SessionID, err))
 		return nil, err
@@ -228,10 +232,6 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
 	hookRegistry := hooks.NewRegistry()
-	uid, uidErr := SessionOwnerUID(ctx, req.SessionID)
-	if uidErr != nil {
-		uid = types.Uid("")
-	}
 	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID, UID: uid})
 
 	configHash, err := harnessConfigHash(workspace)

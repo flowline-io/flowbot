@@ -1,0 +1,35 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentSubagentTable(items []model.AgentSubagent) {
+	<div class="card bg-base-100 shadow-sm">
+		<div id="agent-subagents-table"
+			data-testid="agent-subagents-table"
+			class="overflow-x-auto">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="text-xs uppercase">Flag</th>
+					<th class="text-xs uppercase">Name</th>
+					<th class="text-xs uppercase">Description</th>
+					<th class="text-xs uppercase">Model</th>
+					<th class="text-xs uppercase">Enabled</th>
+					<th class="text-xs uppercase">Updated</th>
+					<th class="text-xs uppercase">Actions</th>
+				</tr>
+				</thead>
+				<tbody id="agent-subagents-rows">
+				for _, item := range items {
+					@AgentSubagentRow(item)
+				}
+				if len(items) == 0 {
+					<tr id="agent-subagents-empty">
+						<td colspan="7" class="text-center text-base-content/50">No agent subagents found.</td>
+					</tr>
+				}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

@@ -3,15 +3,19 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/bytedance/sonic"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const toolStatusTemplate = "Running tool: %s..."
+
+const subagentStatusTemplate = "Delegating to subagent: %s..."
 
 // streamUpdateInterval throttles in-progress Slack chat.update calls.
 const streamUpdateInterval = time.Second
@@ -51,13 +55,13 @@ func (c *streamCoalescer) appendDelta(delta string) {
 }
 
 // setToolStatus replaces the visible snapshot while tools execute.
-func (c *streamCoalescer) setToolStatus(toolName string) {
-	if toolName == "" {
+func (c *streamCoalescer) setToolStatus(status string) {
+	if status == "" {
 		return
 	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.statusText = fmt.Sprintf(toolStatusTemplate, toolName)
+	c.statusText = status
 	c.dirty = true
 }
 
@@ -123,9 +127,37 @@ func handleStreamEvent(coalescer *streamCoalescer, ev agentevent.Event) {
 		coalescer.appendDelta(ev.TextDelta)
 	case agentevent.TypeToolExecutionStart:
 		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok {
-			coalescer.setToolStatus(call.Name)
+			coalescer.setToolStatus(toolStatusText(call))
 		}
 	}
+}
+
+// toolStatusText renders the in-progress status line for a tool call, naming the
+// target subagent when the task delegation tool is invoked.
+func toolStatusText(call msg.ToolCallPart) string {
+	if call.Name == "" {
+		return ""
+	}
+	if call.Name == taskToolName {
+		if name := subagentTypeFromArgs(call.Arguments); name != "" {
+			return fmt.Sprintf(subagentStatusTemplate, name)
+		}
+	}
+	return fmt.Sprintf(toolStatusTemplate, call.Name)
+}
+
+func subagentTypeFromArgs(arguments string) string {
+	arguments = strings.TrimSpace(arguments)
+	if arguments == "" {
+		return ""
+	}
+	var parsed struct {
+		SubagentType string `json:"subagent_type"`
+	}
+	if err := sonic.UnmarshalString(arguments, &parsed); err != nil {
+		return ""
+	}
+	return strings.TrimSpace(parsed.SubagentType)
 }
 
 func publishSnapshot(ctx context.Context, coalescer *streamCoalescer, sink StreamSink) {

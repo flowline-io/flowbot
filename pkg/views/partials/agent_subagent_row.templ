@@ -1,0 +1,36 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSubagentRow(item model.AgentSubagent) {
+	<tr id={ agentSubagentRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="text-base-content font-mono text-sm">{ item.Flag }</td>
+		<td class="text-base-content font-medium">{ item.Name }</td>
+		<td class="text-base-content/70 max-w-xs truncate">{ agentSubagentDescriptionPreview(item.Description) }</td>
+		<td class="text-base-content/70 font-mono text-sm">{ agentSubagentModelLabel(item.Model) }</td>
+		<td>
+			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		</td>
+		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+		<td>
+			<div class="flex gap-1">
+				<button hx-get={ agentSubagentEditURL(item) }
+					data-testid="agent-subagent-edit"
+					class="btn btn-ghost btn-xs text-primary">
+					Edit
+				</button>
+				<button hx-delete={ agentSubagentURL(item) }
+					data-confirm="Delete this subagent?"
+					data-confirm-title="Delete Subagent"
+					data-confirm-btn="Delete"
+					data-confirm-class="btn-error"
+					data-testid="agent-subagent-delete"
+					class="btn btn-ghost btn-xs text-error">
+					Delete
+				</button>
+			</div>
+		</td>
+	</tr>
+}

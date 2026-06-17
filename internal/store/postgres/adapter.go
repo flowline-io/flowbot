@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
@@ -974,6 +975,121 @@ func (a *adapter) DeleteAgentSkill(ctx context.Context, flag string) error {
 		Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: delete agent skill: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) ListAgentSubagents(ctx context.Context, enabledOnly bool) ([]*gen.AgentSubagent, error) {
+	query := a.client.AgentSubagent.Query()
+	if enabledOnly {
+		query = query.Where(agentsubagent.EnabledEQ(true))
+	}
+	rows, err := query.Order(gen.Asc(agentsubagent.FieldName)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent subagents: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) GetAgentSubagentsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
+	row, err := a.client.AgentSubagent.Query().
+		Where(agentsubagent.EnabledEQ(true)).
+		Order(gen.Desc(agentsubagent.FieldUpdatedAt)).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return time.Time{}, nil
+		}
+		return time.Time{}, fmt.Errorf("postgres: agent subagents max updated_at: %w", err)
+	}
+	return row.UpdatedAt, nil
+}
+
+func (a *adapter) GetAgentSubagentByName(ctx context.Context, name string) (*gen.AgentSubagent, error) {
+	row, err := a.client.AgentSubagent.Query().
+		Where(agentsubagent.NameEQ(name), agentsubagent.EnabledEQ(true)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent subagent: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) GetAgentSubagentByFlag(ctx context.Context, flag string) (*gen.AgentSubagent, error) {
+	row, err := a.client.AgentSubagent.Query().
+		Where(agentsubagent.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent subagent by flag: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) CreateAgentSubagent(ctx context.Context, subagent *gen.AgentSubagent) error {
+	if subagent == nil {
+		return errors.New("postgres: nil agent subagent")
+	}
+	builder := a.client.AgentSubagent.Create().
+		SetFlag(subagent.Flag).
+		SetName(subagent.Name).
+		SetDescription(subagent.Description).
+		SetSystemPrompt(subagent.SystemPrompt).
+		SetTools(subagent.Tools).
+		SetModel(subagent.Model).
+		SetSource(subagent.Source).
+		SetEnabled(subagent.Enabled)
+	if !subagent.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(subagent.CreatedAt)
+	}
+	if !subagent.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(subagent.UpdatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create agent subagent: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) UpdateAgentSubagent(ctx context.Context, subagent *gen.AgentSubagent) error {
+	if subagent == nil {
+		return errors.New("postgres: nil agent subagent")
+	}
+	n, err := a.client.AgentSubagent.Update().
+		Where(agentsubagent.FlagEQ(subagent.Flag)).
+		SetName(subagent.Name).
+		SetDescription(subagent.Description).
+		SetSystemPrompt(subagent.SystemPrompt).
+		SetTools(subagent.Tools).
+		SetModel(subagent.Model).
+		SetSource(subagent.Source).
+		SetEnabled(subagent.Enabled).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update agent subagent: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteAgentSubagent(ctx context.Context, flag string) error {
+	n, err := a.client.AgentSubagent.Delete().
+		Where(agentsubagent.FlagEQ(flag)).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete agent subagent: %w", err)
 	}
 	if n == 0 {
 		return types.ErrNotFound

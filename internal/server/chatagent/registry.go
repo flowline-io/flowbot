@@ -15,13 +15,19 @@ import (
 const agentName = "chat"
 
 // NewRegistry registers assistant tools including DB-backed skills support.
-func NewRegistry(ws coding.Workspace) (*tool.Registry, error) {
+// When taskDeps is non-nil, the subagent delegation task tool is registered and activated.
+func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
 	if err := coding.RegisterAll(registry, ws, nil); err != nil {
 		return nil, err
 	}
 	if err := registry.Register(ReadSkillTool{}); err != nil {
 		return nil, err
+	}
+	if taskDeps != nil {
+		if err := registry.Register(NewTaskTool(ws, *taskDeps)); err != nil {
+			return nil, err
+		}
 	}
 	registry.SetActive(ActiveToolNames())
 	return registry, nil
@@ -30,7 +36,7 @@ func NewRegistry(ws coding.Workspace) (*tool.Registry, error) {
 // ActiveToolNames returns the default active tool names for the chat assistant.
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
-	return append(names, "read_skill")
+	return append(names, "read_skill", taskToolName)
 }
 
 // WorkspaceFromConfig resolves workspace settings from application config.

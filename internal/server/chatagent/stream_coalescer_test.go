@@ -61,6 +61,17 @@ func TestStreamCoalescer_handleEvents(t *testing.T) {
 			wantText:  "Running tool: echo...",
 			wantDirty: true,
 		},
+		{
+			name: "task tool shows subagent name",
+			events: []agentevent.Event{
+				{Type: agentevent.TypeToolExecutionStart, ToolCall: msg.ToolCallPart{
+					Name:      "task",
+					Arguments: `{"subagent_type":"code-reviewer","prompt":"review"}`,
+				}},
+			},
+			wantText:  "Delegating to subagent: code-reviewer...",
+			wantDirty: true,
+		},
 	}
 
 	for _, tt := range tests {

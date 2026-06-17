@@ -59,6 +59,38 @@ var (
 			},
 		},
 	}
+	// AgentSubagentsColumns holds the columns for the "agent_subagents" table.
+	AgentSubagentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "system_prompt", Type: field.TypeString, Size: 2147483647},
+		{Name: "tools", Type: field.TypeJSON, Nullable: true},
+		{Name: "model", Type: field.TypeString, Default: ""},
+		{Name: "source", Type: field.TypeString, Default: "global"},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AgentSubagentsTable holds the schema information for the "agent_subagents" table.
+	AgentSubagentsTable = &schema.Table{
+		Name:       "agent_subagents",
+		Columns:    AgentSubagentsColumns,
+		PrimaryKey: []*schema.Column{AgentSubagentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentsubagent_name",
+				Unique:  true,
+				Columns: []*schema.Column{AgentSubagentsColumns[2]},
+			},
+			{
+				Name:    "agentsubagent_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSubagentsColumns[8]},
+			},
+		},
+	}
 	// AppsColumns holds the columns for the "apps" table.
 	AppsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1158,6 +1190,7 @@ var (
 	Tables = []*schema.Table{
 		AgentsTable,
 		AgentSkillsTable,
+		AgentSubagentsTable,
 		AppsTable,
 		AuditLogsTable,
 		AuthenticationsTable,
@@ -1211,6 +1244,9 @@ func init() {
 	}
 	AgentSkillsTable.Annotation = &entsql.Annotation{
 		Table: "agent_skills",
+	}
+	AgentSubagentsTable.Annotation = &entsql.Annotation{
+		Table: "agent_subagents",
 	}
 	AppsTable.Annotation = &entsql.Annotation{
 		Table: "apps",

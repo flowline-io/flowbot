@@ -285,6 +285,14 @@ type Adapter interface {
 	UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 	DeleteAgentSkill(ctx context.Context, flag string) error
 
+	ListAgentSubagents(ctx context.Context, enabledOnly bool) ([]*gen.AgentSubagent, error)
+	GetAgentSubagentsMaxUpdatedAt(ctx context.Context) (time.Time, error)
+	GetAgentSubagentByName(ctx context.Context, name string) (*gen.AgentSubagent, error)
+	GetAgentSubagentByFlag(ctx context.Context, flag string) (*gen.AgentSubagent, error)
+	CreateAgentSubagent(ctx context.Context, subagent *gen.AgentSubagent) error
+	UpdateAgentSubagent(ctx context.Context, subagent *gen.AgentSubagent) error
+	DeleteAgentSubagent(ctx context.Context, flag string) error
+
 	GetBot(ctx context.Context, id int64) (*gen.Bot, error)
 	GetBotByName(ctx context.Context, name string) (*gen.Bot, error)
 	CreateBot(ctx context.Context, bot *gen.Bot) (int64, error)

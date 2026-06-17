@@ -21,11 +21,12 @@ import (
 const promptCacheTTL = 60 * time.Second
 
 type promptCacheEntry struct {
-	prompt       string
-	loadedAt     time.Time
-	configHash   string
-	skillsMaxRev time.Time
-	fileMTimes   map[string]time.Time
+	prompt          string
+	loadedAt        time.Time
+	configHash      string
+	skillsMaxRev    time.Time
+	subagentsMaxRev time.Time
+	fileMTimes      map[string]time.Time
 }
 
 var (
@@ -63,6 +64,10 @@ func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 	if err != nil {
 		flog.Warn("[chat-agent] load skills revision: %v", err)
 	}
+	subagentsMaxRev, err := loadSubagentsMaxUpdatedAt(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load subagents revision: %v", err)
+	}
 
 	promptCacheMu.RLock()
 	cached := promptCache
@@ -72,6 +77,7 @@ func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 		time.Since(cached.loadedAt) < promptCacheTTL &&
 		cached.configHash == configHash &&
 		cached.skillsMaxRev.Equal(skillsMaxRev) &&
+		cached.subagentsMaxRev.Equal(subagentsMaxRev) &&
 		contextFileMTimesEqual(cached.fileMTimes, fileMTimes) {
 		return cached.prompt
 	}
@@ -79,11 +85,12 @@ func CachedSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 	prompt := buildSystemPromptUncached(ctx, ws)
 	promptCacheMu.Lock()
 	promptCache = promptCacheEntry{
-		prompt:       prompt,
-		loadedAt:     time.Now().UTC(),
-		configHash:   configHash,
-		skillsMaxRev: skillsMaxRev,
-		fileMTimes:   fileMTimes,
+		prompt:          prompt,
+		loadedAt:        time.Now().UTC(),
+		configHash:      configHash,
+		skillsMaxRev:    skillsMaxRev,
+		subagentsMaxRev: subagentsMaxRev,
+		fileMTimes:      fileMTimes,
 	}
 	promptCacheVer.Add(1)
 	promptCacheMu.Unlock()
@@ -97,9 +104,14 @@ func buildSystemPromptUncached(ctx context.Context, ws coding.Workspace) string 
 		flog.Warn("[chat-agent] load skills: %v", err)
 		skills = nil
 	}
+	subagents, err := LoadSubagentsFromStore(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load subagents: %v", err)
+		subagents = nil
+	}
 	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
-	flog.Debug("[chat-agent] system prompt workspace=%s skills=%d context_files=%d",
-		ws.Root, len(skills), len(contextFiles))
+	flog.Debug("[chat-agent] system prompt workspace=%s skills=%d subagents=%d context_files=%d",
+		ws.Root, len(skills), len(subagents), len(contextFiles))
 	return BuildSystemPrompt(BuildSystemPromptOptions{
 		CustomPrompt:       cfg.SystemPrompt,
 		PromptGuidelines:   cfg.PromptGuidelines,
@@ -107,6 +119,7 @@ func buildSystemPromptUncached(ctx context.Context, ws coding.Workspace) string 
 		CWD:                ws.Root,
 		ContextFiles:       contextFiles,
 		Skills:             skills,
+		Subagents:          subagents,
 	})
 }
 
@@ -172,6 +185,17 @@ func loadSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
 	rev, err := store.Database.GetAgentSkillsMaxUpdatedAt(ctx)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("skills max updated_at: %w", err)
+	}
+	return rev.UTC(), nil
+}
+
+func loadSubagentsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
+	if store.Database == nil {
+		return time.Time{}, nil
+	}
+	rev, err := store.Database.GetAgentSubagentsMaxUpdatedAt(ctx)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("subagents max updated_at: %w", err)
 	}
 	return rev.UTC(), nil
 }

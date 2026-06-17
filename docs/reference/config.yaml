@@ -183,6 +183,9 @@ chat_agent:
   # context_files:              # optional: defaults to AGENTS.md and README.md under workspace
   #   - AGENTS.md
   #   - README.md
+  # subagent_max_depth: 1        # optional: cap nested task-tool delegation (default 1)
+  # subagent_default_model: ""   # optional: model for subagents without an explicit model (default chat_model)
+  # subagent_max_steps: 0        # optional: Observe-Think-Act limit per subagent run (default max_steps)
 
 # Flowbot instance configuration
 flowbot:

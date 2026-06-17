@@ -563,6 +563,12 @@ type ChatAgentConfig struct {
 	ChatModel string `json:"chat_model" yaml:"chat_model" mapstructure:"chat_model"`
 	// ToolModel enables dual-model routing when set; used after tool execution.
 	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
+	// SubagentMaxDepth caps nested task-tool delegation; defaults to 1 (no nested subagents).
+	SubagentMaxDepth int `json:"subagent_max_depth" yaml:"subagent_max_depth" mapstructure:"subagent_max_depth"`
+	// SubagentDefaultModel overrides the model used by subagents without an explicit model; defaults to ChatModel.
+	SubagentDefaultModel string `json:"subagent_default_model" yaml:"subagent_default_model" mapstructure:"subagent_default_model"`
+	// SubagentMaxSteps limits Observe-Think-Act iterations within one subagent run; defaults to MaxSteps.
+	SubagentMaxSteps int `json:"subagent_max_steps" yaml:"subagent_max_steps" mapstructure:"subagent_max_steps"`
 }
 
 type Model struct {

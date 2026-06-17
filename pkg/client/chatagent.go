@@ -26,15 +26,17 @@ type ChatAgentClient struct {
 
 // ChatAgentInfo is splash metadata from GET /chatagent/info.
 type ChatAgentInfo struct {
-	Version    string          `json:"version"`
-	ChatModel  string          `json:"chat_model"`
-	ToolModel  string          `json:"tool_model"`
-	Provider   string          `json:"provider"`
-	Workspace  string          `json:"workspace"`
-	Tools      []ChatToolInfo  `json:"tools"`
-	Skills     []ChatSkillInfo `json:"skills"`
-	ToolCount  int             `json:"tool_count"`
-	SkillCount int             `json:"skill_count"`
+	Version       string             `json:"version"`
+	ChatModel     string             `json:"chat_model"`
+	ToolModel     string             `json:"tool_model"`
+	Provider      string             `json:"provider"`
+	Workspace     string             `json:"workspace"`
+	Tools         []ChatToolInfo     `json:"tools"`
+	Skills        []ChatSkillInfo    `json:"skills"`
+	Subagents     []ChatSubagentInfo `json:"subagents"`
+	ToolCount     int                `json:"tool_count"`
+	SkillCount    int                `json:"skill_count"`
+	SubagentCount int                `json:"subagent_count"`
 }
 
 // ChatToolInfo describes one active tool.
@@ -45,6 +47,12 @@ type ChatToolInfo struct {
 
 // ChatSkillInfo describes one enabled skill.
 type ChatSkillInfo struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// ChatSubagentInfo describes one enabled subagent.
+type ChatSubagentInfo struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }

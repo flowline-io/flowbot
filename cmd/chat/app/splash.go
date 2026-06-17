@@ -10,6 +10,9 @@ import (
 const maxSplashSkills = 6
 const splashNoSkills = "(no skills enabled)"
 
+const maxSplashSubagents = 6
+const splashNoSubagents = "(no subagents enabled)"
+
 // minToolsTruncateWidth is the minimum terminal width for tools-line ellipsis slicing.
 const minToolsTruncateWidth = 23
 
@@ -57,12 +60,41 @@ func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost s
 		}
 	}
 	writeBuilder(&body, "\n")
+	writeBuilder(&body, "Available Subagents\n")
+	subagentLines := splashSubagentLines(width, info)
+	if len(subagentLines) == 0 {
+		writeBuilder(&body, splashNoSubagents+"\n")
+	} else {
+		for _, line := range subagentLines {
+			writeBuilder(&body, line+"\n")
+		}
+	}
+	writeBuilder(&body, "\n")
 	writeBuilder(&body, fmt.Sprintf("%s · %s\n", info.ChatModel, info.Provider))
 	writeBuilder(&body, fmt.Sprintf("Workspace: %s\n", info.Workspace))
 	writeBuilder(&body, fmt.Sprintf("Session: %s\n\n", sessionID))
-	writeBuilder(&body, fmt.Sprintf("%d tools · %d skills · /help", info.ToolCount, info.SkillCount))
+	writeBuilder(&body, fmt.Sprintf("%d tools · %d skills · %d subagents · /help", info.ToolCount, info.SkillCount, info.SubagentCount))
 
 	return styles.SplashBox.Width(width - 2).Render(body.String())
+}
+
+func splashSubagentLines(width int, info *client.ChatAgentInfo) []string {
+	var lines []string
+	for i, sub := range info.Subagents {
+		if i >= maxSplashSubagents {
+			lines = append(lines, fmt.Sprintf("(and %d more subagents...)", info.SubagentCount-maxSplashSubagents))
+			break
+		}
+		line := sub.Name
+		if sub.Description != "" {
+			line += ": " + sub.Description
+		}
+		if width >= minSkillTruncateWidth && len(line) > width-8 {
+			line = line[:width-11] + "..."
+		}
+		lines = append(lines, line)
+	}
+	return lines
 }
 
 func toolNames(tools []client.ChatToolInfo) []string {

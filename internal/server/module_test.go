@@ -330,6 +330,27 @@ func (*testStoreAdapter) DeleteAgentSkill(_ context.Context, flag string) error 
 	}
 	return types.ErrNotFound
 }
+func (*testStoreAdapter) ListAgentSubagents(_ context.Context, _ bool) ([]*gen.AgentSubagent, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) GetAgentSubagentsMaxUpdatedAt(_ context.Context) (time.Time, error) {
+	return time.Time{}, nil
+}
+func (*testStoreAdapter) GetAgentSubagentByName(_ context.Context, _ string) (*gen.AgentSubagent, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) GetAgentSubagentByFlag(_ context.Context, _ string) (*gen.AgentSubagent, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) CreateAgentSubagent(_ context.Context, _ *gen.AgentSubagent) error {
+	return nil
+}
+func (*testStoreAdapter) UpdateAgentSubagent(_ context.Context, _ *gen.AgentSubagent) error {
+	return nil
+}
+func (*testStoreAdapter) DeleteAgentSubagent(_ context.Context, _ string) error {
+	return types.ErrNotFound
+}
 func (*testStoreAdapter) GetBot(context.Context, int64) (*gen.Bot, error) {
 	return nil, nil
 }

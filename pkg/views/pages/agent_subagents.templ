@@ -1,0 +1,32 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentSubagentsPage(items []model.AgentSubagent) {
+	@layout.Base("Agent Subagents — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Agent Subagents</h1>
+			<div class="flex gap-2">
+				<button hx-get="/service/web/agent-subagents/list"
+					hx-target="#agent-subagents-table"
+					hx-swap="outerHTML"
+					data-testid="agent-subagents-refresh"
+					class="btn btn-ghost btn-sm">
+					Refresh
+				</button>
+				<button hx-get="/service/web/agent-subagents/new"
+					hx-target="#agent-subagents-rows"
+					hx-swap="afterbegin"
+					data-testid="agent-subagents-new"
+					class="btn btn-primary btn-sm">
+					New Subagent
+				</button>
+			</div>
+		</div>
+		@partials.AgentSubagentTable(items)
+	}
+}

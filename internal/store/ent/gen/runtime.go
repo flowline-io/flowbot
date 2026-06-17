@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -134,6 +135,46 @@ func init() {
 	agentskill.DefaultUpdatedAt = agentskillDescUpdatedAt.Default.(func() time.Time)
 	// agentskill.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agentskill.UpdateDefaultUpdatedAt = agentskillDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentsubagentFields := schema.AgentSubagent{}.Fields()
+	_ = agentsubagentFields
+	// agentsubagentDescFlag is the schema descriptor for flag field.
+	agentsubagentDescFlag := agentsubagentFields[1].Descriptor()
+	// agentsubagent.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	agentsubagent.FlagValidator = agentsubagentDescFlag.Validators[0].(func(string) error)
+	// agentsubagentDescName is the schema descriptor for name field.
+	agentsubagentDescName := agentsubagentFields[2].Descriptor()
+	// agentsubagent.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	agentsubagent.NameValidator = agentsubagentDescName.Validators[0].(func(string) error)
+	// agentsubagentDescDescription is the schema descriptor for description field.
+	agentsubagentDescDescription := agentsubagentFields[3].Descriptor()
+	// agentsubagent.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	agentsubagent.DescriptionValidator = agentsubagentDescDescription.Validators[0].(func(string) error)
+	// agentsubagentDescSystemPrompt is the schema descriptor for system_prompt field.
+	agentsubagentDescSystemPrompt := agentsubagentFields[4].Descriptor()
+	// agentsubagent.SystemPromptValidator is a validator for the "system_prompt" field. It is called by the builders before save.
+	agentsubagent.SystemPromptValidator = agentsubagentDescSystemPrompt.Validators[0].(func(string) error)
+	// agentsubagentDescModel is the schema descriptor for model field.
+	agentsubagentDescModel := agentsubagentFields[6].Descriptor()
+	// agentsubagent.DefaultModel holds the default value on creation for the model field.
+	agentsubagent.DefaultModel = agentsubagentDescModel.Default.(string)
+	// agentsubagentDescSource is the schema descriptor for source field.
+	agentsubagentDescSource := agentsubagentFields[7].Descriptor()
+	// agentsubagent.DefaultSource holds the default value on creation for the source field.
+	agentsubagent.DefaultSource = agentsubagentDescSource.Default.(string)
+	// agentsubagentDescEnabled is the schema descriptor for enabled field.
+	agentsubagentDescEnabled := agentsubagentFields[8].Descriptor()
+	// agentsubagent.DefaultEnabled holds the default value on creation for the enabled field.
+	agentsubagent.DefaultEnabled = agentsubagentDescEnabled.Default.(bool)
+	// agentsubagentDescCreatedAt is the schema descriptor for created_at field.
+	agentsubagentDescCreatedAt := agentsubagentFields[9].Descriptor()
+	// agentsubagent.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentsubagent.DefaultCreatedAt = agentsubagentDescCreatedAt.Default.(func() time.Time)
+	// agentsubagentDescUpdatedAt is the schema descriptor for updated_at field.
+	agentsubagentDescUpdatedAt := agentsubagentFields[10].Descriptor()
+	// agentsubagent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentsubagent.DefaultUpdatedAt = agentsubagentDescUpdatedAt.Default.(func() time.Time)
+	// agentsubagent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentsubagent.UpdateDefaultUpdatedAt = agentsubagentDescUpdatedAt.UpdateDefault.(func() time.Time)
 	appFields := schema.App{}.Fields()
 	_ = appFields
 	// appDescName is the schema descriptor for name field.

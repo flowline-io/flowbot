@@ -40,6 +40,14 @@ func RegisterChatAgentRoutes(a *fiber.App) {
 	a.Delete("/chatagent/permissions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.deletePermissions)))
 	a.Get("/chatagent/sessions/:id/events", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sessionEvents)))
 	a.Delete("/chatagent/sessions/:id/permission-grants", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.clearPermissionGrants)))
+
+	if config.ChatAgentEnabled() {
+		go func() {
+			if err := chatagent.SeedDefaultSubagents(context.Background()); err != nil {
+				flog.Warn("[chat-agent] seed default subagents: %v", err)
+			}
+		}()
+	}
 }
 
 type chatAgentHTTP struct {

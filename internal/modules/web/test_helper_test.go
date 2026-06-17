@@ -32,6 +32,11 @@ type testStore struct {
 	createAgentSkillFn    func(skill *gen.AgentSkill) error
 	updateAgentSkillFn    func(skill *gen.AgentSkill) error
 	deleteAgentSkillFn    func(flag string) error
+	agentSubagents        map[string]*gen.AgentSubagent
+	agentSubagentsErr     error
+	createAgentSubagentFn func(subagent *gen.AgentSubagent) error
+	updateAgentSubagentFn func(subagent *gen.AgentSubagent) error
+	deleteAgentSubagentFn func(flag string) error
 	chatSessions          []*gen.ChatSession
 	chatSessionsByFlag    map[string]*gen.ChatSession
 	chatSessionEntries    map[string][]*gen.ChatSessionEntry

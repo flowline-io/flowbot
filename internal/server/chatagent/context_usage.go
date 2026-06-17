@@ -132,7 +132,7 @@ func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsag
 }
 
 func estimateActiveToolTokens(workspace coding.Workspace) (int, error) {
-	registry, err := NewRegistry(workspace)
+	registry, err := NewRegistry(workspace, nil)
 	if err != nil {
 		return 0, err
 	}

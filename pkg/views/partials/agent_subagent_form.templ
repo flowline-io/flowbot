@@ -1,0 +1,111 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentSubagentForm(item model.AgentSubagent, isNew bool, errors map[string]string) {
+	<tr id={ agentSubagentFormID(item, isNew) }>
+		<td colspan="7" class="bg-base-200/50">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+				<div>
+					<label class="label"><span class="label-text">Flag</span></label>
+					<input type="text" name="flag" value={ item.Flag }
+						data-testid="agent-subagent-flag"
+						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "flag") }
+						placeholder="code-reviewer"
+						if !isNew {
+							readonly="readonly"
+						}
+					/>
+					<div class="text-error text-xs">{ errors["flag"] }</div>
+				</div>
+				<div>
+					<label class="label"><span class="label-text">Name</span></label>
+					<input type="text" name="name" value={ item.Name }
+						data-testid="agent-subagent-name"
+						class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
+						placeholder="code-reviewer"
+					/>
+					<p class="text-xs text-base-content/50 mt-1">Referenced as subagent_type by the task tool and shown in the agent prompt.</p>
+					<div class="text-error text-xs">{ errors["name"] }</div>
+				</div>
+				<div class="md:col-span-2">
+					<label class="label"><span class="label-text">Description</span></label>
+					<input type="text" name="description" value={ item.Description }
+						data-testid="agent-subagent-description"
+						class={ "input input-bordered input-sm w-full " + fieldError(errors, "description") }
+						placeholder="When the primary agent should delegate to this subagent"
+					/>
+					<div class="text-error text-xs">{ errors["description"] }</div>
+				</div>
+				<div>
+					<label class="label"><span class="label-text">Model</span></label>
+					<input type="text" name="model" value={ item.Model }
+						data-testid="agent-subagent-model"
+						class="input input-bordered input-sm w-full font-mono"
+						placeholder="Optional model override (defaults to chat model)"
+					/>
+				</div>
+				<div>
+					<label class="label"><span class="label-text">Tools</span></label>
+					<input type="text" name="tools" value={ agentSubagentToolsValue(item.Tools) }
+						data-testid="agent-subagent-tools"
+						class="input input-bordered input-sm w-full font-mono"
+						placeholder="Comma-separated allowlist; empty inherits defaults"
+					/>
+					<p class="text-xs text-base-content/50 mt-1">e.g. read_file, run_terminal, web_search</p>
+				</div>
+				<div class="md:col-span-2">
+					<label class="label"><span class="label-text">System Prompt</span></label>
+					<textarea name="system_prompt" rows="12"
+						data-testid="agent-subagent-system-prompt"
+						class={ "textarea textarea-bordered w-full font-mono text-sm " + fieldError(errors, "system_prompt") }
+						placeholder="Instructions defining the subagent persona and task focus">{ item.SystemPrompt }</textarea>
+					<div class="text-error text-xs">{ errors["system_prompt"] }</div>
+				</div>
+				<div>
+					<label class="label"><span class="label-text">Source</span></label>
+					<input type="text" name="source" value={ item.Source }
+						data-testid="agent-subagent-source"
+						class="input input-bordered input-sm w-full"
+						placeholder="global"
+					/>
+				</div>
+				<div class="flex flex-col gap-2">
+					<label class="label cursor-pointer justify-start gap-2">
+						<input type="checkbox" name="enabled" value="true"
+							data-testid="agent-subagent-enabled"
+							class="checkbox checkbox-sm"
+							if item.Enabled || isNew {
+								checked
+							}
+						/>
+						<span class="label-text">Enabled</span>
+					</label>
+				</div>
+				<div class="flex items-end gap-2 md:col-span-2">
+					<button type="button"
+						if isNew {
+							hx-post="/service/web/agent-subagents"
+						} else {
+							hx-put={ agentSubagentURL(item) }
+						}
+						hx-target="closest tr"
+						hx-swap="outerHTML"
+						hx-include="closest tr"
+						data-testid="agent-subagent-save"
+						class="btn btn-primary btn-sm">
+						Save
+					</button>
+					<button type="button"
+						hx-get={ agentSubagentCancelURL() }
+						hx-target="#agent-subagents-table"
+						hx-swap="outerHTML"
+						data-testid="agent-subagent-cancel"
+						class="btn btn-ghost btn-sm">
+						Cancel
+					</button>
+				</div>
+			</div>
+		</td>
+	</tr>
+}

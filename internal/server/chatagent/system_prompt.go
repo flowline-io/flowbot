@@ -39,6 +39,8 @@ type BuildSystemPromptOptions struct {
 	ContextFiles []ContextFile
 	// Skills are agent skills injected into the prompt; nil loads from the database.
 	Skills []Skill
+	// Subagents are delegation targets injected into the prompt for the task tool.
+	Subagents []Subagent
 }
 
 // DefaultToolSnippets returns one-line tool descriptions for the chat assistant.
@@ -50,6 +52,7 @@ func DefaultToolSnippets() map[string]string {
 		"web_search":   "Search the web for documentation, APIs, or current facts",
 		"run_code":     "Execute a code snippet (go, python, javascript, shell) in the workspace",
 		"read_skill":   "Load full instructions for a named skill from the database",
+		"task":         "Delegate a self-contained task to a specialized subagent that runs in isolation",
 	}
 }
 
@@ -82,9 +85,10 @@ func BuildSystemPrompt(options BuildSystemPromptOptions) string {
 	}
 
 	skills := options.Skills
+	subagents := options.Subagents
 
 	if custom := strings.TrimSpace(options.CustomPrompt); custom != "" {
-		return finalizePrompt(custom+appendSection, contextFiles, skills, date, cwd, language, tools)
+		return finalizePrompt(custom+appendSection, contextFiles, skills, subagents, date, cwd, language, tools)
 	}
 
 	toolsList := formatToolsList(tools, snippets)
@@ -100,7 +104,7 @@ In addition to the tools above, you may receive other custom tools depending on 
 Guidelines:
 %s`, toolsList, guidelines)
 
-	return finalizePrompt(body+appendSection, contextFiles, skills, date, cwd, language, tools)
+	return finalizePrompt(body+appendSection, contextFiles, skills, subagents, date, cwd, language, tools)
 }
 
 // SystemPrompt builds the default chat assistant prompt from workspace, config, and DB skills.
@@ -225,6 +229,9 @@ func formatGuidelines(tools, extra []string, language string) string {
 	if has("read_skill") {
 		add("Use read_skill to load specialized instructions when a task matches an available skill")
 	}
+	if has("task") {
+		add("Use the task tool to delegate a self-contained task to a matching subagent from available_subagents")
+	}
 
 	for _, item := range extra {
 		add(item)
@@ -246,6 +253,7 @@ func finalizePrompt(
 	body string,
 	contextFiles []ContextFile,
 	skills []Skill,
+	subagents []Subagent,
 	date, cwd, language string,
 	tools []string,
 ) string {
@@ -262,6 +270,10 @@ func finalizePrompt(
 
 	if hasTool(tools, "read_skill") {
 		writePrompt(&prompt, FormatSkillsForPrompt(skills))
+	}
+
+	if hasTool(tools, taskToolName) {
+		writePrompt(&prompt, FormatSubagentsForPrompt(subagents))
 	}
 
 	writePrompt(&prompt, fmt.Sprintf("\nCurrent date: %s", date))
