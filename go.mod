@@ -45,7 +45,7 @@ require (
 	github.com/panjf2000/ants/v2 v2.12.1
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/client_model v0.6.2
-	github.com/prometheus/common v0.68.1
+	github.com/prometheus/common v0.69.0
 	github.com/redis/go-redis/extra/redisotel/v9 v9.20.1
 	github.com/redis/go-redis/v9 v9.20.1
 	github.com/rs/zerolog v1.35.1
