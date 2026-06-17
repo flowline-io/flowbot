@@ -10,6 +10,12 @@ import (
 const maxSplashSkills = 6
 const splashNoSkills = "(no skills enabled)"
 
+// minToolsTruncateWidth is the minimum terminal width for tools-line ellipsis slicing.
+const minToolsTruncateWidth = 23
+
+// minSkillTruncateWidth is the minimum terminal width for skill-line ellipsis slicing.
+const minSkillTruncateWidth = 11
+
 // RenderSplash builds the Hermes-style startup panel.
 func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost string, styles *Styles) string {
 	if info == nil {
@@ -17,7 +23,7 @@ func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost s
 	}
 	title := fmt.Sprintf("Flowbot Agent %s · %s", displayVersion(info.Version), serverHost)
 	toolsLine := strings.Join(toolNames(info.Tools), ", ")
-	if len(toolsLine) > width-20 {
+	if width >= minToolsTruncateWidth && len(toolsLine) > width-20 {
 		toolsLine = toolsLine[:width-23] + "..."
 	}
 
@@ -31,7 +37,7 @@ func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost s
 		if skill.Description != "" {
 			line += ": " + skill.Description
 		}
-		if len(line) > width-8 {
+		if width >= minSkillTruncateWidth && len(line) > width-8 {
 			line = line[:width-11] + "..."
 		}
 		skillLines = append(skillLines, line)

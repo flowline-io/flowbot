@@ -62,7 +62,9 @@ func (m *Model) updateInitDone(msg initDoneMsg) (*Model, tea.Cmd) {
 	}
 	if msg.sessionID != "" {
 		m.sessionID = msg.sessionID
-		_ = SaveSessionID(m.profile, msg.sessionID)
+		if hint := sessionCacheHint(SaveSessionID(m.profile, msg.sessionID)); hint != "" {
+			m.hint = hint
+		}
 	}
 	m.serverHost = m.client.BaseURL()
 	if m.sessionID != "" {
@@ -88,7 +90,9 @@ func (m *Model) updateSessionNew(msg sessionNewMsg) (*Model, tea.Cmd) {
 		return m, m.focusInputCmd()
 	}
 	m.sessionID = msg.id
-	_ = SaveSessionID(m.profile, msg.id)
+	if hint := sessionCacheHint(SaveSessionID(m.profile, msg.id)); hint != "" {
+		m.hint = hint
+	}
 	m.transcript.Reset()
 	m.messageCount = 0
 	m.resetSessionUsage()
@@ -102,7 +106,11 @@ func (m *Model) updateSessionEnd(msg sessionEndMsg) (*Model, tea.Cmd) {
 		m.hint = msg.err
 	} else {
 		m.sessionID = ""
-		m.hint = "Session ended"
+		if msg.warn != "" {
+			m.hint = msg.warn
+		} else {
+			m.hint = "Session ended"
+		}
 	}
 	return m, m.focusInputCmd()
 }
@@ -177,16 +185,22 @@ func (m *Model) handleKey(msg tea.KeyMsg) (*Model, tea.Cmd) {
 			if m.streamCancel != nil {
 				m.streamCancel()
 			}
-			_ = m.client.ChatAgent.Cancel(context.Background(), m.sessionID)
 			m.phase = PhaseIdle
-			m.hint = "Canceled — ready for input"
+			m.hint = runControlHint(
+				m.client.ChatAgent.Cancel(context.Background(), m.sessionID),
+				"Canceled — ready for input",
+				"Cancel failed — server may still be running",
+			)
 			return m, nil
 		case CtrlCDenyConfirm:
 			id := m.pendingConfirmID
 			m.clearConfirm()
 			m.phase = PhaseIdle
-			_ = m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, false)
-			m.hint = "Canceled — ready for input"
+			m.hint = runControlHint(
+				m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, false),
+				"Canceled — ready for input",
+				"Confirm failed — server may still be waiting",
+			)
 			return m, nil
 		}
 	case "enter":
@@ -329,20 +343,14 @@ func (m *Model) startStream(text string) (*Model, tea.Cmd) {
 					}
 				}
 			}
+			// Delta events are best-effort: drop when the pump channel is full.
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case ch <- msg:
-				return nil
 			default:
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				case ch <- msg:
-				default:
-				}
-				return nil
 			}
+			return nil
 		})
 		done := streamDoneMsg{err: err}
 		for {
@@ -457,7 +465,13 @@ func (m *Model) refreshStreamingAssistant() {
 	if m.rawAssistant == "" {
 		return
 	}
-	base := m.transcript.String()[:m.streamingBaseLen]
+	transcript := m.transcript.String()
+	baseLen := m.streamingBaseLen
+	if baseLen > len(transcript) {
+		// Transcript may shrink mid-stream (e.g. /clear); clamp to avoid slice panic.
+		baseLen = len(transcript)
+	}
+	base := transcript[:baseLen]
 	rendered := FormatAssistantBlock(m.rawAssistant, m.width-2, &m.styles)
 	m.transcript.Reset()
 	writeBuilder(&m.transcript, base)
@@ -615,7 +629,9 @@ func (m *Model) sessionEndCmd() tea.Cmd {
 		if err := cl.ChatAgent.CloseSession(ctx, sessionID); err != nil {
 			return sessionEndMsg{err: err.Error()}
 		}
-		_ = ClearSessionID(profile)
+		if hint := sessionCacheHint(ClearSessionID(profile)); hint != "" {
+			return sessionEndMsg{warn: hint}
+		}
 		return sessionEndMsg{}
 	}
 }

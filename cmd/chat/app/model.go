@@ -32,7 +32,8 @@ type sessionNewMsg struct {
 
 // sessionEndMsg reports the result of an async /end command.
 type sessionEndMsg struct {
-	err string
+	err  string
+	warn string
 }
 
 const chatRequestTimeout = 30 * time.Second
@@ -146,14 +147,9 @@ func (m *Model) initCmd() tea.Cmd {
 		if err != nil {
 			return initDoneMsg{err: err.Error()}
 		}
-		sessionID, _ := LoadSessionID(m.profile)
-		if sessionID == "" {
-			id, err := m.client.ChatAgent.CreateSession(ctx)
-			if err != nil {
-				return initDoneMsg{err: err.Error()}
-			}
-			sessionID = id
-			_ = SaveSessionID(m.profile, sessionID)
+		sessionID, err := resumeSessionID(ctx, m.client, m.profile)
+		if err != nil {
+			return initDoneMsg{err: err.Error()}
 		}
 		return initDoneMsg{info: info, sessionID: sessionID}
 	}

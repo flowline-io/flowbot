@@ -73,8 +73,11 @@ func (m *Model) submitConfirmChoice(approved bool) tea.Cmd {
 	id := m.pendingConfirmID
 	m.clearConfirm()
 	m.phase = PhaseStreaming
-	m.hint = "Ctrl+C cancel run"
-	_ = m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, approved)
+	m.hint = runControlHint(
+		m.client.ChatAgent.Confirm(context.Background(), m.sessionID, id, approved),
+		"Ctrl+C cancel run",
+		"Confirm failed — server may still be waiting",
+	)
 	return m.focusInputCmd()
 }
 

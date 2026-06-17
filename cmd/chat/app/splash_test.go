@@ -1,6 +1,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/client"
@@ -49,6 +50,35 @@ func TestRenderSplashSkills(t *testing.T) {
 			if tt.notWant != "" {
 				assert.NotContains(t, got, tt.notWant)
 			}
+		})
+	}
+}
+
+func TestRenderSplashNarrowWidth(t *testing.T) {
+	longTools := strings.Repeat("tool", 20)
+	longDesc := strings.Repeat("x", 40)
+	tests := []struct {
+		name  string
+		width int
+	}{
+		{name: "very narrow terminal", width: 5},
+		{name: "below tools truncate threshold", width: 22},
+		{name: "below skill truncate threshold", width: 10},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			info := &client.ChatAgentInfo{
+				Version:   "1.0.0",
+				ChatModel: "m",
+				Provider:  "p",
+				Tools:     []client.ChatToolInfo{{Name: longTools}},
+				Skills:    []client.ChatSkillInfo{{Name: "skill", Description: longDesc}},
+			}
+			styles := NewStyles()
+			assert.NotPanics(t, func() {
+				got := RenderSplash(tt.width, info, "sess-1", "localhost", &styles)
+				assert.NotEmpty(t, got)
+			})
 		})
 	}
 }

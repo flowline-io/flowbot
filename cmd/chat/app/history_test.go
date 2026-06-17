@@ -1,11 +1,15 @@
 package app
 
 import (
+	"context"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFormatHistoryLineRoles(t *testing.T) {
@@ -205,6 +209,91 @@ func TestApplyHistoryUsage(t *testing.T) {
 			m.applyHistoryUsage(tt.tokens)
 			assert.Equal(t, tt.wantTokens, m.status.TotalTokens)
 			assert.InDelta(t, tt.wantPct, m.status.ContextPercent, 0.0001)
+		})
+	}
+}
+
+func TestResumeSessionID(t *testing.T) {
+	tests := []struct {
+		name        string
+		savedID     string
+		listStatus  int
+		createID    string
+		wantID      string
+		wantSaved   string
+		wantErr     bool
+		wantCreated bool
+	}{
+		{
+			name:        "no saved session creates new",
+			createID:    "sess-new",
+			wantID:      "sess-new",
+			wantSaved:   "sess-new",
+			wantCreated: true,
+		},
+		{
+			name:       "valid saved session is reused",
+			savedID:    "sess-live",
+			listStatus: http.StatusOK,
+			wantID:     "sess-live",
+			wantSaved:  "sess-live",
+		},
+		{
+			name:        "stale saved session is replaced",
+			savedID:     "sess-gone",
+			listStatus:  http.StatusNotFound,
+			createID:    "sess-fresh",
+			wantID:      "sess-fresh",
+			wantSaved:   "sess-fresh",
+			wantCreated: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+
+			if tt.savedID != "" {
+				require.NoError(t, SaveSessionID("default", tt.savedID))
+			}
+
+			created := false
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch {
+				case r.Method == http.MethodGet && strings.Contains(r.URL.Path, "/messages"):
+					if tt.listStatus == 0 {
+						http.NotFound(w, r)
+						return
+					}
+					w.WriteHeader(tt.listStatus)
+					if tt.listStatus == http.StatusOK {
+						_, _ = w.Write([]byte(`{"messages":[]}`))
+					} else {
+						_, _ = w.Write([]byte(`{"error":"not found"}`))
+					}
+				case r.Method == http.MethodPost && strings.HasSuffix(r.URL.Path, "/sessions"):
+					created = true
+					w.WriteHeader(http.StatusCreated)
+					_, _ = w.Write([]byte(`{"session_id":"` + tt.createID + `"}`))
+				default:
+					http.NotFound(w, r)
+				}
+			}))
+			t.Cleanup(srv.Close)
+
+			cl := client.NewClient(srv.URL, "token")
+			got, err := resumeSessionID(context.Background(), cl, "default")
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantID, got)
+			assert.Equal(t, tt.wantCreated, created)
+
+			saved, err := LoadSessionID("default")
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantSaved, saved)
 		})
 	}
 }

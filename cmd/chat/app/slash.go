@@ -82,7 +82,7 @@ func WrapUserMessage(att *FileAttachment, text string) string {
 		return text
 	}
 	var b strings.Builder
-	_, _ = fmt.Fprintf(&b, "<file path=%q>\n%s\n</file>\n\n", att.Path, att.Content)
+	writeBuilder(&b, fmt.Sprintf("<file path=%q>\n%s\n</file>\n\n", att.Path, att.Content))
 	writeBuilder(&b, text)
 	return b.String()
 }

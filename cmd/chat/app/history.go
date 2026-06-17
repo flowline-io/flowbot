@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,6 +50,14 @@ func LoadSessionID(profile string) (string, error) {
 	return string(data), nil
 }
 
+// sessionCacheHint returns a status-line warning when local session persistence fails.
+func sessionCacheHint(err error) string {
+	if err == nil {
+		return ""
+	}
+	return fmt.Sprintf("Warning: could not persist session locally: %v", err)
+}
+
 // ClearSessionID removes the persisted session id.
 func ClearSessionID(profile string) error {
 	cfgDir, err := store.GetConfigDir()
@@ -64,6 +73,33 @@ func ClearSessionID(profile string) error {
 		return err
 	}
 	return nil
+}
+
+// resumeSessionID loads a persisted session id, validates it with the server,
+// and creates a fresh session when the saved one no longer exists.
+func resumeSessionID(ctx context.Context, cl *client.Client, profile string) (string, error) {
+	sessionID, _ := LoadSessionID(profile)
+	if sessionID != "" {
+		if _, err := cl.ChatAgent.ListMessages(ctx, sessionID); err != nil {
+			if client.IsNotFound(err) {
+				_ = ClearSessionID(profile)
+				sessionID = ""
+			} else {
+				return "", err
+			}
+		}
+	}
+	if sessionID == "" {
+		id, err := cl.ChatAgent.CreateSession(ctx)
+		if err != nil {
+			return "", err
+		}
+		sessionID = id
+		if err := SaveSessionID(profile, sessionID); err != nil {
+			return "", fmt.Errorf("save session id: %w", err)
+		}
+	}
+	return sessionID, nil
 }
 
 // FormatHistoryLine renders one transcript line for the viewport.

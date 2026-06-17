@@ -9,11 +9,12 @@ import (
 
 func TestRefreshStreamingAssistantPreservesOverlay(t *testing.T) {
 	tests := []struct {
-		name       string
-		base       string
-		assistant  string
-		overlay    string
-		wantSubstr []string
+		name             string
+		base             string
+		streamingBaseLen int
+		assistant        string
+		overlay          string
+		wantSubstr       []string
 	}{
 		{
 			name:       "keeps tool status after refresh",
@@ -36,12 +37,24 @@ func TestRefreshStreamingAssistantPreservesOverlay(t *testing.T) {
 			overlay:    "",
 			wantSubstr: []string{"Done"},
 		},
+		{
+			name:             "stale base length after transcript shrink",
+			base:             "",
+			streamingBaseLen: 100,
+			assistant:        "Recovered",
+			overlay:          "Running...\n",
+			wantSubstr:       []string{"Recovered", "Running"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			baseLen := tt.streamingBaseLen
+			if baseLen == 0 {
+				baseLen = len(tt.base)
+			}
 			m := &Model{
 				phase:            PhaseStreaming,
-				streamingBaseLen: len(tt.base),
+				streamingBaseLen: baseLen,
 				rawAssistant:     tt.assistant,
 				width:            80,
 				styles:           NewStyles(),
