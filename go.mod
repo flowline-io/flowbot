@@ -37,7 +37,7 @@ require (
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
 	github.com/jackc/pgx/v5 v5.10.0
-	github.com/mattn/go-shellwords v1.0.12
+	github.com/mattn/go-shellwords v1.0.13
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v7 v7.2.0
 	github.com/onsi/ginkgo/v2 v2.31.0
