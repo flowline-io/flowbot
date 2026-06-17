@@ -24,11 +24,12 @@ var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), f
 	var (
 		ctx   context.Context
 		token string
-		uid   = types.Uid("chat-api-bdd-user")
+		uid   types.Uid
 	)
 
 	BeforeEach(func() {
 		ctx = context.Background()
+		uid = types.Uid("chat-api-bdd-user-" + types.Id())
 		mountChatAgentRoutes(App)
 
 		wsDir, err := os.MkdirTemp("", "chat-agent-chat-bdd-*")
