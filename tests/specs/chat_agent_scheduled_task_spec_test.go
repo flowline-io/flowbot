@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/tmc/langchaingo/llms"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -21,12 +22,6 @@ import (
 
 var _ = Describe("Chat Agent Scheduled Tasks", Label("module", "chat-agent", "scheduled-tasks"), func() {
 	It("executes a one-shot task in an isolated session and marks it completed", func() {
-		config.App.ChatAgent.ChatModel = "fake-model"
-		config.App.Models = []config.Model{
-			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
-		}
-		config.App.ChatAgent.Compaction = config.CompactionConfig{Auto: new(false)}
-
 		model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "scheduled reply"})
 		orig := chatagent.NewModelForTest
 		chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
@@ -37,11 +32,19 @@ var _ = Describe("Chat Agent Scheduled Tasks", Label("module", "chat-agent", "sc
 		ctx := context.Background()
 		wsDir, err := os.MkdirTemp("", "chat-agent-sched-*")
 		Expect(err).NotTo(HaveOccurred())
-		config.App.ChatAgent.Workspace = wsDir
+		config.App.ChatAgent = config.ChatAgentConfig{
+			ChatModel:  "fake-model",
+			Workspace:  wsDir,
+			Compaction: config.CompactionConfig{Auto: new(false)},
+		}
+		config.App.Models = []config.Model{
+			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
+		}
 
+		taskFlag := "bdd-task-once-" + types.Id()
 		runAt := time.Now().UTC().Add(-time.Minute)
 		task := &gen.ChatScheduledTask{
-			Flag:            "bdd-task-once",
+			Flag:            taskFlag,
 			UID:             "uid-sched",
 			Name:            "once job",
 			ScheduleKind:    string(schema.ChatScheduledTaskKindOnce),

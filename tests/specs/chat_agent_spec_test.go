@@ -29,6 +29,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 		}
 		config.App.ChatAgent.Compaction = config.CompactionConfig{Auto: new(false)}
+		config.App.ChatAgent.ToolModel = ""
 
 		model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "hello from agent"})
 		orig := chatagent.NewModelForTest
@@ -126,6 +127,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 		}
 		config.App.ChatAgent.Compaction = config.CompactionConfig{Auto: new(false)}
+		config.App.ChatAgent.ToolModel = ""
 
 		target := "plan-mode-target.txt"
 		writeArgs := `{"path":"` + target + `","content":"updated"}`
