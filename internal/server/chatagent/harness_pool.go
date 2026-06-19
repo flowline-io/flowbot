@@ -231,7 +231,7 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 	if uidErr != nil {
 		uid = types.Uid("")
 	}
-	registry, err := NewRegistry(workspace, &TaskToolDeps{SessionID: req.SessionID, UID: uid})
+	registry, err := NewRegistry(workspace, &TaskToolDeps{SessionID: req.SessionID, UID: uid}, &ScheduleToolDeps{SessionID: req.SessionID, UID: uid})
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] tool registry session=%s: %w", req.SessionID, err))
 		return nil, err

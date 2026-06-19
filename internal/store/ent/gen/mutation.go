@@ -21,6 +21,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
@@ -80,6 +82,8 @@ const (
 	TypeBot                       = "Bot"
 	TypeCapabilityBinding         = "CapabilityBinding"
 	TypeChannel                   = "Channel"
+	TypeChatScheduledTask         = "ChatScheduledTask"
+	TypeChatScheduledTaskRun      = "ChatScheduledTaskRun"
 	TypeChatSession               = "ChatSession"
 	TypeChatSessionEntry          = "ChatSessionEntry"
 	TypeConfigData                = "ConfigData"
@@ -7131,6 +7135,1851 @@ func (m *ChannelMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ChannelMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Channel edge %s", name)
+}
+
+// ChatScheduledTaskMutation represents an operation that mutates the ChatScheduledTask nodes in the graph.
+type ChatScheduledTaskMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int64
+	flag              *string
+	uid               *string
+	name              *string
+	schedule_kind     *string
+	cron              *string
+	run_at            *time.Time
+	prompt            *string
+	delivery          *map[string]interface{}
+	source_session_id *string
+	state             *string
+	last_run_at       *time.Time
+	next_run_at       *time.Time
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	done              bool
+	oldValue          func(context.Context) (*ChatScheduledTask, error)
+	predicates        []predicate.ChatScheduledTask
+}
+
+var _ ent.Mutation = (*ChatScheduledTaskMutation)(nil)
+
+// chatscheduledtaskOption allows management of the mutation configuration using functional options.
+type chatscheduledtaskOption func(*ChatScheduledTaskMutation)
+
+// newChatScheduledTaskMutation creates new mutation for the ChatScheduledTask entity.
+func newChatScheduledTaskMutation(c config, op Op, opts ...chatscheduledtaskOption) *ChatScheduledTaskMutation {
+	m := &ChatScheduledTaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeChatScheduledTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withChatScheduledTaskID sets the ID field of the mutation.
+func withChatScheduledTaskID(id int64) chatscheduledtaskOption {
+	return func(m *ChatScheduledTaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ChatScheduledTask
+		)
+		m.oldValue = func(ctx context.Context) (*ChatScheduledTask, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ChatScheduledTask.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withChatScheduledTask sets the old ChatScheduledTask of the mutation.
+func withChatScheduledTask(node *ChatScheduledTask) chatscheduledtaskOption {
+	return func(m *ChatScheduledTaskMutation) {
+		m.oldValue = func(context.Context) (*ChatScheduledTask, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ChatScheduledTaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ChatScheduledTaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ChatScheduledTask entities.
+func (m *ChatScheduledTaskMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ChatScheduledTaskMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ChatScheduledTaskMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ChatScheduledTask.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *ChatScheduledTaskMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *ChatScheduledTaskMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *ChatScheduledTaskMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *ChatScheduledTaskMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *ChatScheduledTaskMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *ChatScheduledTaskMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetName sets the "name" field.
+func (m *ChatScheduledTaskMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ChatScheduledTaskMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ChatScheduledTaskMutation) ResetName() {
+	m.name = nil
+}
+
+// SetScheduleKind sets the "schedule_kind" field.
+func (m *ChatScheduledTaskMutation) SetScheduleKind(s string) {
+	m.schedule_kind = &s
+}
+
+// ScheduleKind returns the value of the "schedule_kind" field in the mutation.
+func (m *ChatScheduledTaskMutation) ScheduleKind() (r string, exists bool) {
+	v := m.schedule_kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduleKind returns the old "schedule_kind" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldScheduleKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScheduleKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScheduleKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduleKind: %w", err)
+	}
+	return oldValue.ScheduleKind, nil
+}
+
+// ResetScheduleKind resets all changes to the "schedule_kind" field.
+func (m *ChatScheduledTaskMutation) ResetScheduleKind() {
+	m.schedule_kind = nil
+}
+
+// SetCron sets the "cron" field.
+func (m *ChatScheduledTaskMutation) SetCron(s string) {
+	m.cron = &s
+}
+
+// Cron returns the value of the "cron" field in the mutation.
+func (m *ChatScheduledTaskMutation) Cron() (r string, exists bool) {
+	v := m.cron
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCron returns the old "cron" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldCron(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCron is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCron requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCron: %w", err)
+	}
+	return oldValue.Cron, nil
+}
+
+// ResetCron resets all changes to the "cron" field.
+func (m *ChatScheduledTaskMutation) ResetCron() {
+	m.cron = nil
+}
+
+// SetRunAt sets the "run_at" field.
+func (m *ChatScheduledTaskMutation) SetRunAt(t time.Time) {
+	m.run_at = &t
+}
+
+// RunAt returns the value of the "run_at" field in the mutation.
+func (m *ChatScheduledTaskMutation) RunAt() (r time.Time, exists bool) {
+	v := m.run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunAt returns the old "run_at" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldRunAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunAt: %w", err)
+	}
+	return oldValue.RunAt, nil
+}
+
+// ClearRunAt clears the value of the "run_at" field.
+func (m *ChatScheduledTaskMutation) ClearRunAt() {
+	m.run_at = nil
+	m.clearedFields[chatscheduledtask.FieldRunAt] = struct{}{}
+}
+
+// RunAtCleared returns if the "run_at" field was cleared in this mutation.
+func (m *ChatScheduledTaskMutation) RunAtCleared() bool {
+	_, ok := m.clearedFields[chatscheduledtask.FieldRunAt]
+	return ok
+}
+
+// ResetRunAt resets all changes to the "run_at" field.
+func (m *ChatScheduledTaskMutation) ResetRunAt() {
+	m.run_at = nil
+	delete(m.clearedFields, chatscheduledtask.FieldRunAt)
+}
+
+// SetPrompt sets the "prompt" field.
+func (m *ChatScheduledTaskMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *ChatScheduledTaskMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *ChatScheduledTaskMutation) ResetPrompt() {
+	m.prompt = nil
+}
+
+// SetDelivery sets the "delivery" field.
+func (m *ChatScheduledTaskMutation) SetDelivery(value map[string]interface{}) {
+	m.delivery = &value
+}
+
+// Delivery returns the value of the "delivery" field in the mutation.
+func (m *ChatScheduledTaskMutation) Delivery() (r map[string]interface{}, exists bool) {
+	v := m.delivery
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDelivery returns the old "delivery" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldDelivery(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDelivery is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDelivery requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDelivery: %w", err)
+	}
+	return oldValue.Delivery, nil
+}
+
+// ClearDelivery clears the value of the "delivery" field.
+func (m *ChatScheduledTaskMutation) ClearDelivery() {
+	m.delivery = nil
+	m.clearedFields[chatscheduledtask.FieldDelivery] = struct{}{}
+}
+
+// DeliveryCleared returns if the "delivery" field was cleared in this mutation.
+func (m *ChatScheduledTaskMutation) DeliveryCleared() bool {
+	_, ok := m.clearedFields[chatscheduledtask.FieldDelivery]
+	return ok
+}
+
+// ResetDelivery resets all changes to the "delivery" field.
+func (m *ChatScheduledTaskMutation) ResetDelivery() {
+	m.delivery = nil
+	delete(m.clearedFields, chatscheduledtask.FieldDelivery)
+}
+
+// SetSourceSessionID sets the "source_session_id" field.
+func (m *ChatScheduledTaskMutation) SetSourceSessionID(s string) {
+	m.source_session_id = &s
+}
+
+// SourceSessionID returns the value of the "source_session_id" field in the mutation.
+func (m *ChatScheduledTaskMutation) SourceSessionID() (r string, exists bool) {
+	v := m.source_session_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceSessionID returns the old "source_session_id" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldSourceSessionID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceSessionID: %w", err)
+	}
+	return oldValue.SourceSessionID, nil
+}
+
+// ResetSourceSessionID resets all changes to the "source_session_id" field.
+func (m *ChatScheduledTaskMutation) ResetSourceSessionID() {
+	m.source_session_id = nil
+}
+
+// SetState sets the "state" field.
+func (m *ChatScheduledTaskMutation) SetState(s string) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *ChatScheduledTaskMutation) State() (r string, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldState(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *ChatScheduledTaskMutation) ResetState() {
+	m.state = nil
+}
+
+// SetLastRunAt sets the "last_run_at" field.
+func (m *ChatScheduledTaskMutation) SetLastRunAt(t time.Time) {
+	m.last_run_at = &t
+}
+
+// LastRunAt returns the value of the "last_run_at" field in the mutation.
+func (m *ChatScheduledTaskMutation) LastRunAt() (r time.Time, exists bool) {
+	v := m.last_run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastRunAt returns the old "last_run_at" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldLastRunAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastRunAt: %w", err)
+	}
+	return oldValue.LastRunAt, nil
+}
+
+// ClearLastRunAt clears the value of the "last_run_at" field.
+func (m *ChatScheduledTaskMutation) ClearLastRunAt() {
+	m.last_run_at = nil
+	m.clearedFields[chatscheduledtask.FieldLastRunAt] = struct{}{}
+}
+
+// LastRunAtCleared returns if the "last_run_at" field was cleared in this mutation.
+func (m *ChatScheduledTaskMutation) LastRunAtCleared() bool {
+	_, ok := m.clearedFields[chatscheduledtask.FieldLastRunAt]
+	return ok
+}
+
+// ResetLastRunAt resets all changes to the "last_run_at" field.
+func (m *ChatScheduledTaskMutation) ResetLastRunAt() {
+	m.last_run_at = nil
+	delete(m.clearedFields, chatscheduledtask.FieldLastRunAt)
+}
+
+// SetNextRunAt sets the "next_run_at" field.
+func (m *ChatScheduledTaskMutation) SetNextRunAt(t time.Time) {
+	m.next_run_at = &t
+}
+
+// NextRunAt returns the value of the "next_run_at" field in the mutation.
+func (m *ChatScheduledTaskMutation) NextRunAt() (r time.Time, exists bool) {
+	v := m.next_run_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNextRunAt returns the old "next_run_at" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldNextRunAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNextRunAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNextRunAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNextRunAt: %w", err)
+	}
+	return oldValue.NextRunAt, nil
+}
+
+// ClearNextRunAt clears the value of the "next_run_at" field.
+func (m *ChatScheduledTaskMutation) ClearNextRunAt() {
+	m.next_run_at = nil
+	m.clearedFields[chatscheduledtask.FieldNextRunAt] = struct{}{}
+}
+
+// NextRunAtCleared returns if the "next_run_at" field was cleared in this mutation.
+func (m *ChatScheduledTaskMutation) NextRunAtCleared() bool {
+	_, ok := m.clearedFields[chatscheduledtask.FieldNextRunAt]
+	return ok
+}
+
+// ResetNextRunAt resets all changes to the "next_run_at" field.
+func (m *ChatScheduledTaskMutation) ResetNextRunAt() {
+	m.next_run_at = nil
+	delete(m.clearedFields, chatscheduledtask.FieldNextRunAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ChatScheduledTaskMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ChatScheduledTaskMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ChatScheduledTaskMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ChatScheduledTaskMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ChatScheduledTaskMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ChatScheduledTask entity.
+// If the ChatScheduledTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ChatScheduledTaskMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the ChatScheduledTaskMutation builder.
+func (m *ChatScheduledTaskMutation) Where(ps ...predicate.ChatScheduledTask) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ChatScheduledTaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ChatScheduledTaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ChatScheduledTask, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ChatScheduledTaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ChatScheduledTaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ChatScheduledTask).
+func (m *ChatScheduledTaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ChatScheduledTaskMutation) Fields() []string {
+	fields := make([]string, 0, 14)
+	if m.flag != nil {
+		fields = append(fields, chatscheduledtask.FieldFlag)
+	}
+	if m.uid != nil {
+		fields = append(fields, chatscheduledtask.FieldUID)
+	}
+	if m.name != nil {
+		fields = append(fields, chatscheduledtask.FieldName)
+	}
+	if m.schedule_kind != nil {
+		fields = append(fields, chatscheduledtask.FieldScheduleKind)
+	}
+	if m.cron != nil {
+		fields = append(fields, chatscheduledtask.FieldCron)
+	}
+	if m.run_at != nil {
+		fields = append(fields, chatscheduledtask.FieldRunAt)
+	}
+	if m.prompt != nil {
+		fields = append(fields, chatscheduledtask.FieldPrompt)
+	}
+	if m.delivery != nil {
+		fields = append(fields, chatscheduledtask.FieldDelivery)
+	}
+	if m.source_session_id != nil {
+		fields = append(fields, chatscheduledtask.FieldSourceSessionID)
+	}
+	if m.state != nil {
+		fields = append(fields, chatscheduledtask.FieldState)
+	}
+	if m.last_run_at != nil {
+		fields = append(fields, chatscheduledtask.FieldLastRunAt)
+	}
+	if m.next_run_at != nil {
+		fields = append(fields, chatscheduledtask.FieldNextRunAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, chatscheduledtask.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, chatscheduledtask.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ChatScheduledTaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case chatscheduledtask.FieldFlag:
+		return m.Flag()
+	case chatscheduledtask.FieldUID:
+		return m.UID()
+	case chatscheduledtask.FieldName:
+		return m.Name()
+	case chatscheduledtask.FieldScheduleKind:
+		return m.ScheduleKind()
+	case chatscheduledtask.FieldCron:
+		return m.Cron()
+	case chatscheduledtask.FieldRunAt:
+		return m.RunAt()
+	case chatscheduledtask.FieldPrompt:
+		return m.Prompt()
+	case chatscheduledtask.FieldDelivery:
+		return m.Delivery()
+	case chatscheduledtask.FieldSourceSessionID:
+		return m.SourceSessionID()
+	case chatscheduledtask.FieldState:
+		return m.State()
+	case chatscheduledtask.FieldLastRunAt:
+		return m.LastRunAt()
+	case chatscheduledtask.FieldNextRunAt:
+		return m.NextRunAt()
+	case chatscheduledtask.FieldCreatedAt:
+		return m.CreatedAt()
+	case chatscheduledtask.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ChatScheduledTaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case chatscheduledtask.FieldFlag:
+		return m.OldFlag(ctx)
+	case chatscheduledtask.FieldUID:
+		return m.OldUID(ctx)
+	case chatscheduledtask.FieldName:
+		return m.OldName(ctx)
+	case chatscheduledtask.FieldScheduleKind:
+		return m.OldScheduleKind(ctx)
+	case chatscheduledtask.FieldCron:
+		return m.OldCron(ctx)
+	case chatscheduledtask.FieldRunAt:
+		return m.OldRunAt(ctx)
+	case chatscheduledtask.FieldPrompt:
+		return m.OldPrompt(ctx)
+	case chatscheduledtask.FieldDelivery:
+		return m.OldDelivery(ctx)
+	case chatscheduledtask.FieldSourceSessionID:
+		return m.OldSourceSessionID(ctx)
+	case chatscheduledtask.FieldState:
+		return m.OldState(ctx)
+	case chatscheduledtask.FieldLastRunAt:
+		return m.OldLastRunAt(ctx)
+	case chatscheduledtask.FieldNextRunAt:
+		return m.OldNextRunAt(ctx)
+	case chatscheduledtask.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case chatscheduledtask.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ChatScheduledTask field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChatScheduledTaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case chatscheduledtask.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case chatscheduledtask.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case chatscheduledtask.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case chatscheduledtask.FieldScheduleKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduleKind(v)
+		return nil
+	case chatscheduledtask.FieldCron:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCron(v)
+		return nil
+	case chatscheduledtask.FieldRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunAt(v)
+		return nil
+	case chatscheduledtask.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
+	case chatscheduledtask.FieldDelivery:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDelivery(v)
+		return nil
+	case chatscheduledtask.FieldSourceSessionID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceSessionID(v)
+		return nil
+	case chatscheduledtask.FieldState:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case chatscheduledtask.FieldLastRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastRunAt(v)
+		return nil
+	case chatscheduledtask.FieldNextRunAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNextRunAt(v)
+		return nil
+	case chatscheduledtask.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case chatscheduledtask.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ChatScheduledTask field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ChatScheduledTaskMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ChatScheduledTaskMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChatScheduledTaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ChatScheduledTask numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ChatScheduledTaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(chatscheduledtask.FieldRunAt) {
+		fields = append(fields, chatscheduledtask.FieldRunAt)
+	}
+	if m.FieldCleared(chatscheduledtask.FieldDelivery) {
+		fields = append(fields, chatscheduledtask.FieldDelivery)
+	}
+	if m.FieldCleared(chatscheduledtask.FieldLastRunAt) {
+		fields = append(fields, chatscheduledtask.FieldLastRunAt)
+	}
+	if m.FieldCleared(chatscheduledtask.FieldNextRunAt) {
+		fields = append(fields, chatscheduledtask.FieldNextRunAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ChatScheduledTaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ChatScheduledTaskMutation) ClearField(name string) error {
+	switch name {
+	case chatscheduledtask.FieldRunAt:
+		m.ClearRunAt()
+		return nil
+	case chatscheduledtask.FieldDelivery:
+		m.ClearDelivery()
+		return nil
+	case chatscheduledtask.FieldLastRunAt:
+		m.ClearLastRunAt()
+		return nil
+	case chatscheduledtask.FieldNextRunAt:
+		m.ClearNextRunAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ChatScheduledTask nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ChatScheduledTaskMutation) ResetField(name string) error {
+	switch name {
+	case chatscheduledtask.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case chatscheduledtask.FieldUID:
+		m.ResetUID()
+		return nil
+	case chatscheduledtask.FieldName:
+		m.ResetName()
+		return nil
+	case chatscheduledtask.FieldScheduleKind:
+		m.ResetScheduleKind()
+		return nil
+	case chatscheduledtask.FieldCron:
+		m.ResetCron()
+		return nil
+	case chatscheduledtask.FieldRunAt:
+		m.ResetRunAt()
+		return nil
+	case chatscheduledtask.FieldPrompt:
+		m.ResetPrompt()
+		return nil
+	case chatscheduledtask.FieldDelivery:
+		m.ResetDelivery()
+		return nil
+	case chatscheduledtask.FieldSourceSessionID:
+		m.ResetSourceSessionID()
+		return nil
+	case chatscheduledtask.FieldState:
+		m.ResetState()
+		return nil
+	case chatscheduledtask.FieldLastRunAt:
+		m.ResetLastRunAt()
+		return nil
+	case chatscheduledtask.FieldNextRunAt:
+		m.ResetNextRunAt()
+		return nil
+	case chatscheduledtask.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case chatscheduledtask.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ChatScheduledTask field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ChatScheduledTaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ChatScheduledTaskMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ChatScheduledTaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ChatScheduledTaskMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ChatScheduledTaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ChatScheduledTaskMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ChatScheduledTaskMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ChatScheduledTask unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ChatScheduledTaskMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ChatScheduledTask edge %s", name)
+}
+
+// ChatScheduledTaskRunMutation represents an operation that mutates the ChatScheduledTaskRun nodes in the graph.
+type ChatScheduledTaskRunMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int64
+	flag           *string
+	task_id        *string
+	run_session_id *string
+	state          *string
+	reply          *string
+	error          *string
+	started_at     *time.Time
+	finished_at    *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*ChatScheduledTaskRun, error)
+	predicates     []predicate.ChatScheduledTaskRun
+}
+
+var _ ent.Mutation = (*ChatScheduledTaskRunMutation)(nil)
+
+// chatscheduledtaskrunOption allows management of the mutation configuration using functional options.
+type chatscheduledtaskrunOption func(*ChatScheduledTaskRunMutation)
+
+// newChatScheduledTaskRunMutation creates new mutation for the ChatScheduledTaskRun entity.
+func newChatScheduledTaskRunMutation(c config, op Op, opts ...chatscheduledtaskrunOption) *ChatScheduledTaskRunMutation {
+	m := &ChatScheduledTaskRunMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeChatScheduledTaskRun,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withChatScheduledTaskRunID sets the ID field of the mutation.
+func withChatScheduledTaskRunID(id int64) chatscheduledtaskrunOption {
+	return func(m *ChatScheduledTaskRunMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ChatScheduledTaskRun
+		)
+		m.oldValue = func(ctx context.Context) (*ChatScheduledTaskRun, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ChatScheduledTaskRun.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withChatScheduledTaskRun sets the old ChatScheduledTaskRun of the mutation.
+func withChatScheduledTaskRun(node *ChatScheduledTaskRun) chatscheduledtaskrunOption {
+	return func(m *ChatScheduledTaskRunMutation) {
+		m.oldValue = func(context.Context) (*ChatScheduledTaskRun, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ChatScheduledTaskRunMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ChatScheduledTaskRunMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ChatScheduledTaskRun entities.
+func (m *ChatScheduledTaskRunMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ChatScheduledTaskRunMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ChatScheduledTaskRunMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ChatScheduledTaskRun.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *ChatScheduledTaskRunMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *ChatScheduledTaskRunMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetTaskID sets the "task_id" field.
+func (m *ChatScheduledTaskRunMutation) SetTaskID(s string) {
+	m.task_id = &s
+}
+
+// TaskID returns the value of the "task_id" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) TaskID() (r string, exists bool) {
+	v := m.task_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskID returns the old "task_id" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldTaskID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskID: %w", err)
+	}
+	return oldValue.TaskID, nil
+}
+
+// ResetTaskID resets all changes to the "task_id" field.
+func (m *ChatScheduledTaskRunMutation) ResetTaskID() {
+	m.task_id = nil
+}
+
+// SetRunSessionID sets the "run_session_id" field.
+func (m *ChatScheduledTaskRunMutation) SetRunSessionID(s string) {
+	m.run_session_id = &s
+}
+
+// RunSessionID returns the value of the "run_session_id" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) RunSessionID() (r string, exists bool) {
+	v := m.run_session_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRunSessionID returns the old "run_session_id" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldRunSessionID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRunSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRunSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRunSessionID: %w", err)
+	}
+	return oldValue.RunSessionID, nil
+}
+
+// ResetRunSessionID resets all changes to the "run_session_id" field.
+func (m *ChatScheduledTaskRunMutation) ResetRunSessionID() {
+	m.run_session_id = nil
+}
+
+// SetState sets the "state" field.
+func (m *ChatScheduledTaskRunMutation) SetState(s string) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) State() (r string, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldState(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *ChatScheduledTaskRunMutation) ResetState() {
+	m.state = nil
+}
+
+// SetReply sets the "reply" field.
+func (m *ChatScheduledTaskRunMutation) SetReply(s string) {
+	m.reply = &s
+}
+
+// Reply returns the value of the "reply" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) Reply() (r string, exists bool) {
+	v := m.reply
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReply returns the old "reply" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldReply(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReply is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReply requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReply: %w", err)
+	}
+	return oldValue.Reply, nil
+}
+
+// ResetReply resets all changes to the "reply" field.
+func (m *ChatScheduledTaskRunMutation) ResetReply() {
+	m.reply = nil
+}
+
+// SetError sets the "error" field.
+func (m *ChatScheduledTaskRunMutation) SetError(s string) {
+	m.error = &s
+}
+
+// Error returns the value of the "error" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) Error() (r string, exists bool) {
+	v := m.error
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldError returns the old "error" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldError(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldError is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldError requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldError: %w", err)
+	}
+	return oldValue.Error, nil
+}
+
+// ResetError resets all changes to the "error" field.
+func (m *ChatScheduledTaskRunMutation) ResetError() {
+	m.error = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *ChatScheduledTaskRunMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldStartedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *ChatScheduledTaskRunMutation) ResetStartedAt() {
+	m.started_at = nil
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (m *ChatScheduledTaskRunMutation) SetFinishedAt(t time.Time) {
+	m.finished_at = &t
+}
+
+// FinishedAt returns the value of the "finished_at" field in the mutation.
+func (m *ChatScheduledTaskRunMutation) FinishedAt() (r time.Time, exists bool) {
+	v := m.finished_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinishedAt returns the old "finished_at" field's value of the ChatScheduledTaskRun entity.
+// If the ChatScheduledTaskRun object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatScheduledTaskRunMutation) OldFinishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinishedAt: %w", err)
+	}
+	return oldValue.FinishedAt, nil
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (m *ChatScheduledTaskRunMutation) ClearFinishedAt() {
+	m.finished_at = nil
+	m.clearedFields[chatscheduledtaskrun.FieldFinishedAt] = struct{}{}
+}
+
+// FinishedAtCleared returns if the "finished_at" field was cleared in this mutation.
+func (m *ChatScheduledTaskRunMutation) FinishedAtCleared() bool {
+	_, ok := m.clearedFields[chatscheduledtaskrun.FieldFinishedAt]
+	return ok
+}
+
+// ResetFinishedAt resets all changes to the "finished_at" field.
+func (m *ChatScheduledTaskRunMutation) ResetFinishedAt() {
+	m.finished_at = nil
+	delete(m.clearedFields, chatscheduledtaskrun.FieldFinishedAt)
+}
+
+// Where appends a list predicates to the ChatScheduledTaskRunMutation builder.
+func (m *ChatScheduledTaskRunMutation) Where(ps ...predicate.ChatScheduledTaskRun) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ChatScheduledTaskRunMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ChatScheduledTaskRunMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ChatScheduledTaskRun, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ChatScheduledTaskRunMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ChatScheduledTaskRunMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ChatScheduledTaskRun).
+func (m *ChatScheduledTaskRunMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ChatScheduledTaskRunMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.flag != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldFlag)
+	}
+	if m.task_id != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldTaskID)
+	}
+	if m.run_session_id != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldRunSessionID)
+	}
+	if m.state != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldState)
+	}
+	if m.reply != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldReply)
+	}
+	if m.error != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldError)
+	}
+	if m.started_at != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldStartedAt)
+	}
+	if m.finished_at != nil {
+		fields = append(fields, chatscheduledtaskrun.FieldFinishedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ChatScheduledTaskRunMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case chatscheduledtaskrun.FieldFlag:
+		return m.Flag()
+	case chatscheduledtaskrun.FieldTaskID:
+		return m.TaskID()
+	case chatscheduledtaskrun.FieldRunSessionID:
+		return m.RunSessionID()
+	case chatscheduledtaskrun.FieldState:
+		return m.State()
+	case chatscheduledtaskrun.FieldReply:
+		return m.Reply()
+	case chatscheduledtaskrun.FieldError:
+		return m.Error()
+	case chatscheduledtaskrun.FieldStartedAt:
+		return m.StartedAt()
+	case chatscheduledtaskrun.FieldFinishedAt:
+		return m.FinishedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ChatScheduledTaskRunMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case chatscheduledtaskrun.FieldFlag:
+		return m.OldFlag(ctx)
+	case chatscheduledtaskrun.FieldTaskID:
+		return m.OldTaskID(ctx)
+	case chatscheduledtaskrun.FieldRunSessionID:
+		return m.OldRunSessionID(ctx)
+	case chatscheduledtaskrun.FieldState:
+		return m.OldState(ctx)
+	case chatscheduledtaskrun.FieldReply:
+		return m.OldReply(ctx)
+	case chatscheduledtaskrun.FieldError:
+		return m.OldError(ctx)
+	case chatscheduledtaskrun.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case chatscheduledtaskrun.FieldFinishedAt:
+		return m.OldFinishedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ChatScheduledTaskRun field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChatScheduledTaskRunMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case chatscheduledtaskrun.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case chatscheduledtaskrun.FieldTaskID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskID(v)
+		return nil
+	case chatscheduledtaskrun.FieldRunSessionID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRunSessionID(v)
+		return nil
+	case chatscheduledtaskrun.FieldState:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case chatscheduledtaskrun.FieldReply:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReply(v)
+		return nil
+	case chatscheduledtaskrun.FieldError:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetError(v)
+		return nil
+	case chatscheduledtaskrun.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case chatscheduledtaskrun.FieldFinishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinishedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ChatScheduledTaskRun field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ChatScheduledTaskRunMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ChatScheduledTaskRunMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ChatScheduledTaskRunMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ChatScheduledTaskRun numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ChatScheduledTaskRunMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(chatscheduledtaskrun.FieldFinishedAt) {
+		fields = append(fields, chatscheduledtaskrun.FieldFinishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ChatScheduledTaskRunMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ChatScheduledTaskRunMutation) ClearField(name string) error {
+	switch name {
+	case chatscheduledtaskrun.FieldFinishedAt:
+		m.ClearFinishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ChatScheduledTaskRun nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ChatScheduledTaskRunMutation) ResetField(name string) error {
+	switch name {
+	case chatscheduledtaskrun.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case chatscheduledtaskrun.FieldTaskID:
+		m.ResetTaskID()
+		return nil
+	case chatscheduledtaskrun.FieldRunSessionID:
+		m.ResetRunSessionID()
+		return nil
+	case chatscheduledtaskrun.FieldState:
+		m.ResetState()
+		return nil
+	case chatscheduledtaskrun.FieldReply:
+		m.ResetReply()
+		return nil
+	case chatscheduledtaskrun.FieldError:
+		m.ResetError()
+		return nil
+	case chatscheduledtaskrun.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case chatscheduledtaskrun.FieldFinishedAt:
+		m.ResetFinishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ChatScheduledTaskRun field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ChatScheduledTaskRunMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ChatScheduledTaskRunMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ChatScheduledTaskRunMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ChatScheduledTaskRunMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ChatScheduledTaskRunMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ChatScheduledTaskRunMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ChatScheduledTaskRunMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ChatScheduledTaskRun unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ChatScheduledTaskRunMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ChatScheduledTaskRun edge %s", name)
 }
 
 // ChatSessionMutation represents an operation that mutates the ChatSession nodes in the graph.

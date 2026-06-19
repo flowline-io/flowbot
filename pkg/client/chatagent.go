@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -327,6 +328,113 @@ func (cc *ChatAgentClient) SetSessionMode(ctx context.Context, sessionID, mode s
 	return cc.chatPut(ctx, "/chatagent/sessions/"+sessionID+"/mode", map[string]string{"mode": mode}, &resp)
 }
 
+// ChatScheduledTask is one scheduled task row from the Chat Agent API.
+type ChatScheduledTask struct {
+	TaskID          string     `json:"task_id"`
+	Name            string     `json:"name"`
+	ScheduleKind    string     `json:"schedule_kind"`
+	Cron            string     `json:"cron,omitempty"`
+	RunAt           *time.Time `json:"run_at,omitempty"`
+	Prompt          string     `json:"prompt"`
+	State           string     `json:"state"`
+	SourceSessionID string     `json:"source_session_id,omitempty"`
+	LastRunAt       *time.Time `json:"last_run_at,omitempty"`
+	NextRunAt       *time.Time `json:"next_run_at,omitempty"`
+	CreatedAt       time.Time  `json:"created_at"`
+	UpdatedAt       time.Time  `json:"updated_at"`
+}
+
+// ChatScheduledTaskRun is one execution record for a scheduled task.
+type ChatScheduledTaskRun struct {
+	RunID        string     `json:"run_id"`
+	TaskID       string     `json:"task_id"`
+	RunSessionID string     `json:"run_session_id"`
+	State        string     `json:"state"`
+	Reply        string     `json:"reply,omitempty"`
+	Error        string     `json:"error,omitempty"`
+	StartedAt    time.Time  `json:"started_at"`
+	FinishedAt   *time.Time `json:"finished_at,omitempty"`
+}
+
+// ChatUpdateScheduledTaskRequest carries PATCH fields for a scheduled task.
+type ChatUpdateScheduledTaskRequest struct {
+	Name   *string `json:"name,omitempty"`
+	Prompt *string `json:"prompt,omitempty"`
+	Cron   *string `json:"cron,omitempty"`
+	RunAt  *string `json:"run_at,omitempty"`
+	State  *string `json:"state,omitempty"`
+}
+
+// ChatCreateScheduledTaskRequest carries POST fields for a scheduled task.
+type ChatCreateScheduledTaskRequest struct {
+	Name   string `json:"name"`
+	Prompt string `json:"prompt"`
+	Cron   string `json:"cron,omitempty"`
+	RunAt  string `json:"run_at,omitempty"`
+}
+
+// ListScheduledTasks returns active and paused scheduled tasks for the user.
+func (cc *ChatAgentClient) ListScheduledTasks(ctx context.Context) ([]ChatScheduledTask, error) {
+	var resp struct {
+		Tasks []ChatScheduledTask `json:"tasks"`
+	}
+	if err := cc.chatGet(ctx, "/chatagent/scheduled-tasks", &resp); err != nil {
+		return nil, err
+	}
+	return resp.Tasks, nil
+}
+
+// GetScheduledTask returns one scheduled task by id.
+func (cc *ChatAgentClient) GetScheduledTask(ctx context.Context, taskID string) (*ChatScheduledTask, error) {
+	var task ChatScheduledTask
+	if err := cc.chatGet(ctx, "/chatagent/scheduled-tasks/"+taskID, &task); err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+// CreateScheduledTask creates a scheduled task.
+func (cc *ChatAgentClient) CreateScheduledTask(ctx context.Context, req ChatCreateScheduledTaskRequest, sourceSessionID string) (*ChatScheduledTask, error) {
+	path := "/chatagent/scheduled-tasks"
+	if strings.TrimSpace(sourceSessionID) != "" {
+		path += "?source_session_id=" + url.QueryEscape(sourceSessionID)
+	}
+	var task ChatScheduledTask
+	if err := cc.chatPost(ctx, path, req, &task); err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+// UpdateScheduledTask patches one scheduled task.
+func (cc *ChatAgentClient) UpdateScheduledTask(ctx context.Context, taskID string, req ChatUpdateScheduledTaskRequest) (*ChatScheduledTask, error) {
+	var task ChatScheduledTask
+	if err := cc.chatPatch(ctx, "/chatagent/scheduled-tasks/"+taskID, req, &task); err != nil {
+		return nil, err
+	}
+	return &task, nil
+}
+
+// CancelScheduledTask cancels one scheduled task.
+func (cc *ChatAgentClient) CancelScheduledTask(ctx context.Context, taskID string) error {
+	return cc.chatDelete(ctx, "/chatagent/scheduled-tasks/"+taskID, nil)
+}
+
+// ListScheduledTaskRuns returns recent runs for one scheduled task.
+func (cc *ChatAgentClient) ListScheduledTaskRuns(ctx context.Context, taskID string, limit int) ([]ChatScheduledTaskRun, error) {
+	path := "/chatagent/scheduled-tasks/" + taskID + "/runs"
+	if limit > 0 {
+		path += fmt.Sprintf("?limit=%d", limit)
+	}
+	var resp struct {
+		Runs []ChatScheduledTaskRun `json:"runs"`
+	}
+	if err := cc.chatGet(ctx, path, &resp); err != nil {
+		return nil, err
+	}
+	return resp.Runs, nil
+}
+
 // Cancel aborts the in-flight run for a session.
 func (cc *ChatAgentClient) Cancel(ctx context.Context, sessionID string) error {
 	return cc.chatPost(ctx, "/chatagent/sessions/"+sessionID+"/cancel", map[string]any{}, nil)
@@ -350,6 +458,14 @@ func (cc *ChatAgentClient) chatPost(ctx context.Context, path string, body, resu
 
 func (cc *ChatAgentClient) chatPut(ctx context.Context, path string, body, result any) error {
 	resp, err := cc.c.rc.R().SetContext(ctx).SetBody(body).Put(path)
+	if err != nil {
+		return fmt.Errorf("request failed: %w", err)
+	}
+	return parseChatResponse(resp.StatusCode(), resp.Bytes(), result)
+}
+
+func (cc *ChatAgentClient) chatPatch(ctx context.Context, path string, body, result any) error {
+	resp, err := cc.c.rc.R().SetContext(ctx).SetBody(body).Patch(path)
 	if err != nil {
 		return fmt.Errorf("request failed: %w", err)
 	}

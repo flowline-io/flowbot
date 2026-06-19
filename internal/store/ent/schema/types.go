@@ -446,6 +446,58 @@ func (j ChatSessionMode) Value() (driver.Value, error) {
 	return string(j), nil
 }
 
+// ChatScheduledTaskKind distinguishes recurring cron jobs from one-shot runs.
+type ChatScheduledTaskKind string
+
+const (
+	// ChatScheduledTaskKindCron runs on a cron expression.
+	ChatScheduledTaskKindCron ChatScheduledTaskKind = "cron"
+	// ChatScheduledTaskKindOnce runs once at run_at.
+	ChatScheduledTaskKindOnce ChatScheduledTaskKind = "once"
+)
+
+func (j ChatScheduledTaskKind) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
+// ChatScheduledTaskState tracks lifecycle of a scheduled task definition.
+type ChatScheduledTaskState string
+
+const (
+	// ChatScheduledTaskStateActive is eligible for scheduling.
+	ChatScheduledTaskStateActive ChatScheduledTaskState = "active"
+	// ChatScheduledTaskStatePaused is retained but not scheduled.
+	ChatScheduledTaskStatePaused ChatScheduledTaskState = "paused"
+	// ChatScheduledTaskStateCancelled was explicitly cancelled by the user.
+	ChatScheduledTaskStateCancelled ChatScheduledTaskState = "cancelled"
+	// ChatScheduledTaskStateCompleted finished a one-shot run successfully.
+	ChatScheduledTaskStateCompleted ChatScheduledTaskState = "completed"
+	// ChatScheduledTaskStateFailed finished a one-shot run with an error.
+	ChatScheduledTaskStateFailed ChatScheduledTaskState = "failed"
+	// ChatScheduledTaskStateMissed was not executed within the grace window after run_at.
+	ChatScheduledTaskStateMissed ChatScheduledTaskState = "missed"
+)
+
+func (j ChatScheduledTaskState) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
+// ChatScheduledTaskRunState tracks one execution attempt.
+type ChatScheduledTaskRunState string
+
+const (
+	// ChatScheduledTaskRunStateRunning is in progress.
+	ChatScheduledTaskRunStateRunning ChatScheduledTaskRunState = "running"
+	// ChatScheduledTaskRunStateCompleted finished successfully.
+	ChatScheduledTaskRunStateCompleted ChatScheduledTaskRunState = "completed"
+	// ChatScheduledTaskRunStateFailed finished with an error.
+	ChatScheduledTaskRunStateFailed ChatScheduledTaskRunState = "failed"
+)
+
+func (j ChatScheduledTaskRunState) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
 type MessageState int
 
 const (

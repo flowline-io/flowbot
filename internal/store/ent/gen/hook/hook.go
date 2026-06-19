@@ -129,6 +129,30 @@ func (f ChannelFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChannelMutation", m)
 }
 
+// The ChatScheduledTaskFunc type is an adapter to allow the use of ordinary
+// function as ChatScheduledTask mutator.
+type ChatScheduledTaskFunc func(context.Context, *gen.ChatScheduledTaskMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatScheduledTaskFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ChatScheduledTaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChatScheduledTaskMutation", m)
+}
+
+// The ChatScheduledTaskRunFunc type is an adapter to allow the use of ordinary
+// function as ChatScheduledTaskRun mutator.
+type ChatScheduledTaskRunFunc func(context.Context, *gen.ChatScheduledTaskRunMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ChatScheduledTaskRunFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ChatScheduledTaskRunMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChatScheduledTaskRunMutation", m)
+}
+
 // The ChatSessionFunc type is an adapter to allow the use of ordinary
 // function as ChatSession mutator.
 type ChatSessionFunc func(context.Context, *gen.ChatSessionMutation) (gen.Value, error)

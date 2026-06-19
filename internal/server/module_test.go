@@ -285,6 +285,36 @@ func (*testStoreAdapter) GetChatSessionEntryInSession(_ context.Context, session
 	}
 	return nil, types.ErrNotFound
 }
+func (*testStoreAdapter) CreateChatScheduledTask(context.Context, *gen.ChatScheduledTask) error {
+	return nil
+}
+func (*testStoreAdapter) DeleteChatScheduledTask(context.Context, string) error {
+	return nil
+}
+func (*testStoreAdapter) GetChatScheduledTask(context.Context, string) (*gen.ChatScheduledTask, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) GetChatScheduledTaskForUID(context.Context, string, string) (*gen.ChatScheduledTask, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) ListChatScheduledTasks(context.Context, store.ListChatScheduledTasksOptions) ([]*gen.ChatScheduledTask, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) UpdateChatScheduledTask(context.Context, string, store.UpdateChatScheduledTaskParams) error {
+	return nil
+}
+func (*testStoreAdapter) CreateChatScheduledTaskRun(context.Context, *gen.ChatScheduledTaskRun) error {
+	return nil
+}
+func (*testStoreAdapter) UpdateChatScheduledTaskRun(context.Context, string, store.UpdateChatScheduledTaskRunParams) error {
+	return nil
+}
+func (*testStoreAdapter) FailStaleChatScheduledTaskRuns(context.Context) error {
+	return nil
+}
+func (*testStoreAdapter) ListChatScheduledTaskRuns(context.Context, string, int) ([]*gen.ChatScheduledTaskRun, error) {
+	return nil, nil
+}
 func (*testStoreAdapter) ListAgentSkills(_ context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {
 	rows := make([]*gen.AgentSkill, 0, len(testAgentSkills))
 	for _, skill := range testAgentSkills {

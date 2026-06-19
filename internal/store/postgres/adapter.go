@@ -23,6 +23,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
@@ -880,6 +882,222 @@ func (a *adapter) GetChatSessionEntryInSession(ctx context.Context, sessionID, f
 		return nil, fmt.Errorf("postgres: get chat session entry in session: %w", err)
 	}
 	return row, nil
+}
+
+func (a *adapter) CreateChatScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) error {
+	if task == nil {
+		return errors.New("postgres: nil chat scheduled task")
+	}
+	builder := a.client.ChatScheduledTask.Create().
+		SetFlag(task.Flag).
+		SetUID(task.UID).
+		SetName(task.Name).
+		SetScheduleKind(task.ScheduleKind).
+		SetCron(task.Cron).
+		SetPrompt(task.Prompt).
+		SetSourceSessionID(task.SourceSessionID).
+		SetState(task.State)
+	if task.RunAt != nil {
+		builder = builder.SetRunAt(*task.RunAt)
+	}
+	if task.Delivery != nil {
+		builder = builder.SetDelivery(task.Delivery)
+	}
+	if task.LastRunAt != nil {
+		builder = builder.SetLastRunAt(*task.LastRunAt)
+	}
+	if task.NextRunAt != nil {
+		builder = builder.SetNextRunAt(*task.NextRunAt)
+	}
+	if !task.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(task.CreatedAt)
+	}
+	if !task.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(task.UpdatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create chat scheduled task: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) DeleteChatScheduledTask(ctx context.Context, flag string) error {
+	n, err := a.client.ChatScheduledTask.Delete().
+		Where(chatscheduledtask.FlagEQ(flag)).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete chat scheduled task: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) GetChatScheduledTask(ctx context.Context, flag string) (*gen.ChatScheduledTask, error) {
+	row, err := a.client.ChatScheduledTask.Query().
+		Where(chatscheduledtask.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get chat scheduled task: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) GetChatScheduledTaskForUID(ctx context.Context, flag, uid string) (*gen.ChatScheduledTask, error) {
+	row, err := a.client.ChatScheduledTask.Query().
+		Where(
+			chatscheduledtask.FlagEQ(flag),
+			chatscheduledtask.UIDEQ(uid),
+		).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get chat scheduled task for uid: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) ListChatScheduledTasks(ctx context.Context, opts store.ListChatScheduledTasksOptions) ([]*gen.ChatScheduledTask, error) {
+	q := a.client.ChatScheduledTask.Query().
+		Order(
+			gen.Desc(chatscheduledtask.FieldUpdatedAt),
+			gen.Desc(chatscheduledtask.FieldID),
+		)
+	if opts.UID != "" {
+		q = q.Where(chatscheduledtask.UIDEQ(opts.UID))
+	}
+	if len(opts.States) > 0 {
+		q = q.Where(chatscheduledtask.StateIn(opts.States...))
+	}
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list chat scheduled tasks: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) UpdateChatScheduledTask(ctx context.Context, flag string, params store.UpdateChatScheduledTaskParams) error {
+	builder := a.client.ChatScheduledTask.Update().
+		Where(chatscheduledtask.FlagEQ(flag)).
+		SetUpdatedAt(time.Now())
+	if params.Name != nil {
+		builder = builder.SetName(*params.Name)
+	}
+	if params.Cron != nil {
+		builder = builder.SetCron(*params.Cron)
+	}
+	if params.RunAt != nil {
+		builder = builder.SetRunAt(*params.RunAt)
+	}
+	if params.Prompt != nil {
+		builder = builder.SetPrompt(*params.Prompt)
+	}
+	if params.State != nil {
+		builder = builder.SetState(*params.State)
+	}
+	if params.LastRunAt != nil {
+		builder = builder.SetLastRunAt(*params.LastRunAt)
+	}
+	if params.NextRunAt != nil {
+		builder = builder.SetNextRunAt(*params.NextRunAt)
+	}
+	n, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat scheduled task: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) CreateChatScheduledTaskRun(ctx context.Context, run *gen.ChatScheduledTaskRun) error {
+	if run == nil {
+		return errors.New("postgres: nil chat scheduled task run")
+	}
+	builder := a.client.ChatScheduledTaskRun.Create().
+		SetFlag(run.Flag).
+		SetTaskID(run.TaskID).
+		SetRunSessionID(run.RunSessionID).
+		SetState(run.State).
+		SetReply(run.Reply).
+		SetError(run.Error)
+	if !run.StartedAt.IsZero() {
+		builder = builder.SetStartedAt(run.StartedAt)
+	}
+	if run.FinishedAt != nil {
+		builder = builder.SetFinishedAt(*run.FinishedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create chat scheduled task run: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) UpdateChatScheduledTaskRun(ctx context.Context, flag string, params store.UpdateChatScheduledTaskRunParams) error {
+	builder := a.client.ChatScheduledTaskRun.Update().
+		Where(chatscheduledtaskrun.FlagEQ(flag))
+	if params.State != nil {
+		builder = builder.SetState(*params.State)
+	}
+	if params.Reply != nil {
+		builder = builder.SetReply(*params.Reply)
+	}
+	if params.Error != nil {
+		builder = builder.SetError(*params.Error)
+	}
+	if params.FinishedAt != nil {
+		builder = builder.SetFinishedAt(*params.FinishedAt)
+	}
+	n, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat scheduled task run: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) FailStaleChatScheduledTaskRuns(ctx context.Context) error {
+	now := time.Now().UTC()
+	msg := "interrupted by server restart"
+	_, err := a.client.ChatScheduledTaskRun.Update().
+		Where(chatscheduledtaskrun.StateEQ(string(schema.ChatScheduledTaskRunStateRunning))).
+		SetState(string(schema.ChatScheduledTaskRunStateFailed)).
+		SetError(msg).
+		SetFinishedAt(now).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: fail stale chat scheduled task runs: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) ListChatScheduledTaskRuns(ctx context.Context, taskID string, limit int) ([]*gen.ChatScheduledTaskRun, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 20
+	}
+	rows, err := a.client.ChatScheduledTaskRun.Query().
+		Where(chatscheduledtaskrun.TaskIDEQ(taskID)).
+		Order(
+			gen.Desc(chatscheduledtaskrun.FieldStartedAt),
+			gen.Desc(chatscheduledtaskrun.FieldID),
+		).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list chat scheduled task runs: %w", err)
+	}
+	return rows, nil
 }
 
 func (a *adapter) ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {

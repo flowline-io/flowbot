@@ -36,6 +36,12 @@ type CapabilityBinding func(*sql.Selector)
 // Channel is the predicate function for channel builders.
 type Channel func(*sql.Selector)
 
+// ChatScheduledTask is the predicate function for chatscheduledtask builders.
+type ChatScheduledTask func(*sql.Selector)
+
+// ChatScheduledTaskRun is the predicate function for chatscheduledtaskrun builders.
+type ChatScheduledTaskRun func(*sql.Selector)
+
 // ChatSession is the predicate function for chatsession builders.
 type ChatSession func(*sql.Selector)
 

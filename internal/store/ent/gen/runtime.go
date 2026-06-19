@@ -15,6 +15,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
@@ -353,6 +355,80 @@ func init() {
 	channel.DefaultUpdatedAt = channelDescUpdatedAt.Default.(func() time.Time)
 	// channel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	channel.UpdateDefaultUpdatedAt = channelDescUpdatedAt.UpdateDefault.(func() time.Time)
+	chatscheduledtaskFields := schema.ChatScheduledTask{}.Fields()
+	_ = chatscheduledtaskFields
+	// chatscheduledtaskDescFlag is the schema descriptor for flag field.
+	chatscheduledtaskDescFlag := chatscheduledtaskFields[1].Descriptor()
+	// chatscheduledtask.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	chatscheduledtask.FlagValidator = chatscheduledtaskDescFlag.Validators[0].(func(string) error)
+	// chatscheduledtaskDescUID is the schema descriptor for uid field.
+	chatscheduledtaskDescUID := chatscheduledtaskFields[2].Descriptor()
+	// chatscheduledtask.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	chatscheduledtask.UIDValidator = chatscheduledtaskDescUID.Validators[0].(func(string) error)
+	// chatscheduledtaskDescName is the schema descriptor for name field.
+	chatscheduledtaskDescName := chatscheduledtaskFields[3].Descriptor()
+	// chatscheduledtask.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	chatscheduledtask.NameValidator = chatscheduledtaskDescName.Validators[0].(func(string) error)
+	// chatscheduledtaskDescScheduleKind is the schema descriptor for schedule_kind field.
+	chatscheduledtaskDescScheduleKind := chatscheduledtaskFields[4].Descriptor()
+	// chatscheduledtask.ScheduleKindValidator is a validator for the "schedule_kind" field. It is called by the builders before save.
+	chatscheduledtask.ScheduleKindValidator = chatscheduledtaskDescScheduleKind.Validators[0].(func(string) error)
+	// chatscheduledtaskDescCron is the schema descriptor for cron field.
+	chatscheduledtaskDescCron := chatscheduledtaskFields[5].Descriptor()
+	// chatscheduledtask.DefaultCron holds the default value on creation for the cron field.
+	chatscheduledtask.DefaultCron = chatscheduledtaskDescCron.Default.(string)
+	// chatscheduledtaskDescPrompt is the schema descriptor for prompt field.
+	chatscheduledtaskDescPrompt := chatscheduledtaskFields[7].Descriptor()
+	// chatscheduledtask.PromptValidator is a validator for the "prompt" field. It is called by the builders before save.
+	chatscheduledtask.PromptValidator = chatscheduledtaskDescPrompt.Validators[0].(func(string) error)
+	// chatscheduledtaskDescSourceSessionID is the schema descriptor for source_session_id field.
+	chatscheduledtaskDescSourceSessionID := chatscheduledtaskFields[9].Descriptor()
+	// chatscheduledtask.DefaultSourceSessionID holds the default value on creation for the source_session_id field.
+	chatscheduledtask.DefaultSourceSessionID = chatscheduledtaskDescSourceSessionID.Default.(string)
+	// chatscheduledtaskDescState is the schema descriptor for state field.
+	chatscheduledtaskDescState := chatscheduledtaskFields[10].Descriptor()
+	// chatscheduledtask.DefaultState holds the default value on creation for the state field.
+	chatscheduledtask.DefaultState = chatscheduledtaskDescState.Default.(string)
+	// chatscheduledtaskDescCreatedAt is the schema descriptor for created_at field.
+	chatscheduledtaskDescCreatedAt := chatscheduledtaskFields[13].Descriptor()
+	// chatscheduledtask.DefaultCreatedAt holds the default value on creation for the created_at field.
+	chatscheduledtask.DefaultCreatedAt = chatscheduledtaskDescCreatedAt.Default.(func() time.Time)
+	// chatscheduledtaskDescUpdatedAt is the schema descriptor for updated_at field.
+	chatscheduledtaskDescUpdatedAt := chatscheduledtaskFields[14].Descriptor()
+	// chatscheduledtask.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	chatscheduledtask.DefaultUpdatedAt = chatscheduledtaskDescUpdatedAt.Default.(func() time.Time)
+	// chatscheduledtask.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	chatscheduledtask.UpdateDefaultUpdatedAt = chatscheduledtaskDescUpdatedAt.UpdateDefault.(func() time.Time)
+	chatscheduledtaskrunFields := schema.ChatScheduledTaskRun{}.Fields()
+	_ = chatscheduledtaskrunFields
+	// chatscheduledtaskrunDescFlag is the schema descriptor for flag field.
+	chatscheduledtaskrunDescFlag := chatscheduledtaskrunFields[1].Descriptor()
+	// chatscheduledtaskrun.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	chatscheduledtaskrun.FlagValidator = chatscheduledtaskrunDescFlag.Validators[0].(func(string) error)
+	// chatscheduledtaskrunDescTaskID is the schema descriptor for task_id field.
+	chatscheduledtaskrunDescTaskID := chatscheduledtaskrunFields[2].Descriptor()
+	// chatscheduledtaskrun.TaskIDValidator is a validator for the "task_id" field. It is called by the builders before save.
+	chatscheduledtaskrun.TaskIDValidator = chatscheduledtaskrunDescTaskID.Validators[0].(func(string) error)
+	// chatscheduledtaskrunDescRunSessionID is the schema descriptor for run_session_id field.
+	chatscheduledtaskrunDescRunSessionID := chatscheduledtaskrunFields[3].Descriptor()
+	// chatscheduledtaskrun.RunSessionIDValidator is a validator for the "run_session_id" field. It is called by the builders before save.
+	chatscheduledtaskrun.RunSessionIDValidator = chatscheduledtaskrunDescRunSessionID.Validators[0].(func(string) error)
+	// chatscheduledtaskrunDescState is the schema descriptor for state field.
+	chatscheduledtaskrunDescState := chatscheduledtaskrunFields[4].Descriptor()
+	// chatscheduledtaskrun.DefaultState holds the default value on creation for the state field.
+	chatscheduledtaskrun.DefaultState = chatscheduledtaskrunDescState.Default.(string)
+	// chatscheduledtaskrunDescReply is the schema descriptor for reply field.
+	chatscheduledtaskrunDescReply := chatscheduledtaskrunFields[5].Descriptor()
+	// chatscheduledtaskrun.DefaultReply holds the default value on creation for the reply field.
+	chatscheduledtaskrun.DefaultReply = chatscheduledtaskrunDescReply.Default.(string)
+	// chatscheduledtaskrunDescError is the schema descriptor for error field.
+	chatscheduledtaskrunDescError := chatscheduledtaskrunFields[6].Descriptor()
+	// chatscheduledtaskrun.DefaultError holds the default value on creation for the error field.
+	chatscheduledtaskrun.DefaultError = chatscheduledtaskrunDescError.Default.(string)
+	// chatscheduledtaskrunDescStartedAt is the schema descriptor for started_at field.
+	chatscheduledtaskrunDescStartedAt := chatscheduledtaskrunFields[7].Descriptor()
+	// chatscheduledtaskrun.DefaultStartedAt holds the default value on creation for the started_at field.
+	chatscheduledtaskrun.DefaultStartedAt = chatscheduledtaskrunDescStartedAt.Default.(func() time.Time)
 	chatsessionFields := schema.ChatSession{}.Fields()
 	_ = chatsessionFields
 	// chatsessionDescFlag is the schema descriptor for flag field.

@@ -19,6 +19,7 @@ func TestIsReadOnlyTool(t *testing.T) {
 		{name: "read_file allowed", tool: "read_file", want: true},
 		{name: "web_search allowed", tool: "web_search", want: true},
 		{name: "read_skill allowed", tool: "read_skill", want: true},
+		{name: "list_scheduled_tasks allowed", tool: "list_scheduled_tasks", want: true},
 		{name: "task blocked in plan mode", tool: "task", want: false},
 		{name: "write_file blocked", tool: "write_file", want: false},
 		{name: "run_terminal blocked", tool: "run_terminal", want: false},
@@ -38,7 +39,7 @@ func TestReadOnlyToolNames(t *testing.T) {
 	}{
 		{
 			name: "contains read-only set",
-			want: []string{"read_file", "web_search", "read_skill"},
+			want: []string{"read_file", "web_search", "read_skill", "list_scheduled_tasks"},
 		},
 	}
 	for _, tt := range tests {

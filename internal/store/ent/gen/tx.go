@@ -32,6 +32,10 @@ type Tx struct {
 	CapabilityBinding *CapabilityBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
+	// ChatScheduledTask is the client for interacting with the ChatScheduledTask builders.
+	ChatScheduledTask *ChatScheduledTaskClient
+	// ChatScheduledTaskRun is the client for interacting with the ChatScheduledTaskRun builders.
+	ChatScheduledTaskRun *ChatScheduledTaskRunClient
 	// ChatSession is the client for interacting with the ChatSession builders.
 	ChatSession *ChatSessionClient
 	// ChatSessionEntry is the client for interacting with the ChatSessionEntry builders.
@@ -247,6 +251,8 @@ func (tx *Tx) init() {
 	tx.Bot = NewBotClient(tx.config)
 	tx.CapabilityBinding = NewCapabilityBindingClient(tx.config)
 	tx.Channel = NewChannelClient(tx.config)
+	tx.ChatScheduledTask = NewChatScheduledTaskClient(tx.config)
+	tx.ChatScheduledTaskRun = NewChatScheduledTaskRunClient(tx.config)
 	tx.ChatSession = NewChatSessionClient(tx.config)
 	tx.ChatSessionEntry = NewChatSessionEntryClient(tx.config)
 	tx.ConfigData = NewConfigDataClient(tx.config)

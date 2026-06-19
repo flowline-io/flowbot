@@ -200,6 +200,31 @@ type ListChatSessionsOptions struct {
 	State  *int   // when set, only sessions in this state are returned
 }
 
+// ListChatScheduledTasksOptions filters scheduled task queries.
+type ListChatScheduledTasksOptions struct {
+	UID    string
+	States []string
+}
+
+// UpdateChatScheduledTaskParams carries partial updates for a scheduled task row.
+type UpdateChatScheduledTaskParams struct {
+	Name      *string
+	Cron      *string
+	RunAt     *time.Time
+	Prompt    *string
+	State     *string
+	LastRunAt *time.Time
+	NextRunAt *time.Time
+}
+
+// UpdateChatScheduledTaskRunParams carries partial updates for one run row.
+type UpdateChatScheduledTaskRunParams struct {
+	State      *string
+	Reply      *string
+	Error      *string
+	FinishedAt *time.Time
+}
+
 type Adapter interface {
 	// General
 
@@ -277,6 +302,17 @@ type Adapter interface {
 	ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error)
 	GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error)
 	GetChatSessionEntryInSession(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error)
+
+	CreateChatScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) error
+	DeleteChatScheduledTask(ctx context.Context, flag string) error
+	GetChatScheduledTask(ctx context.Context, flag string) (*gen.ChatScheduledTask, error)
+	GetChatScheduledTaskForUID(ctx context.Context, flag, uid string) (*gen.ChatScheduledTask, error)
+	ListChatScheduledTasks(ctx context.Context, opts ListChatScheduledTasksOptions) ([]*gen.ChatScheduledTask, error)
+	UpdateChatScheduledTask(ctx context.Context, flag string, params UpdateChatScheduledTaskParams) error
+	CreateChatScheduledTaskRun(ctx context.Context, run *gen.ChatScheduledTaskRun) error
+	UpdateChatScheduledTaskRun(ctx context.Context, flag string, params UpdateChatScheduledTaskRunParams) error
+	FailStaleChatScheduledTaskRuns(ctx context.Context) error
+	ListChatScheduledTaskRuns(ctx context.Context, taskID string, limit int) ([]*gen.ChatScheduledTaskRun, error)
 
 	ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error)
 	GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error)

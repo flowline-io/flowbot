@@ -92,7 +92,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 		return taskToolError(id, fmt.Sprintf("subagent model: %v", err)), nil
 	}
 
-	childRegistry, err := NewRegistry(t.workspace, nil)
+	childRegistry, err := NewRegistry(t.workspace, nil, nil)
 	if err != nil {
 		return taskToolError(id, fmt.Sprintf("subagent registry: %v", err)), nil
 	}

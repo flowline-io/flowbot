@@ -48,13 +48,17 @@ type BuildSystemPromptOptions struct {
 // DefaultToolSnippets returns one-line tool descriptions for the chat assistant.
 func DefaultToolSnippets() map[string]string {
 	return map[string]string{
-		"run_terminal": "Run shell commands inside the workspace (ls, git, build, test, etc.)",
-		"read_file":    "Read a text file from the workspace by relative path",
-		"write_file":   "Write or overwrite a text file in the workspace, creating parent dirs as needed",
-		"web_search":   "Search the web for documentation, APIs, or current facts",
-		"run_code":     "Execute a code snippet (go, python, javascript, shell) in the workspace",
-		"read_skill":   "Load full instructions for a named skill from the database",
-		"task":         "Delegate a self-contained task to a specialized subagent that runs in isolation",
+		"run_terminal":         "Run shell commands inside the workspace (ls, git, build, test, etc.)",
+		"read_file":            "Read a text file from the workspace by relative path",
+		"write_file":           "Write or overwrite a text file in the workspace, creating parent dirs as needed",
+		"web_search":           "Search the web for documentation, APIs, or current facts",
+		"run_code":             "Execute a code snippet (go, python, javascript, shell) in the workspace",
+		"read_skill":           "Load full instructions for a named skill from the database",
+		"task":                 "Delegate a self-contained task to a specialized subagent that runs in isolation",
+		scheduleToolName:       "Create a cron or one-shot scheduled agent task with name, prompt, and cron or run_at",
+		updateScheduleToolName: "Update an existing scheduled task's cron, run_at, prompt, name, or state (active|paused)",
+		listScheduleToolName:   "List active and paused scheduled tasks for the current user",
+		cancelScheduleToolName: "Cancel a scheduled task by task_id",
 	}
 }
 
@@ -238,6 +242,14 @@ func formatGuidelines(tools, extra []string, language string) string {
 	}
 	if has("task") {
 		add("Use the task tool to delegate a self-contained task to a matching subagent from available_subagents")
+	}
+	if has(scheduleToolName) {
+		add("Use schedule_task for recurring (cron) or one-shot (run_at ISO8601 UTC) agent jobs; confirm the schedule with the user first")
+		add("Scheduled tasks run in a separate session with the saved prompt; they do not continue the current conversation")
+	}
+	if has(updateScheduleToolName) {
+		add("Use list_scheduled_tasks to find task_id before update_scheduled_task or cancel_scheduled_task")
+		add("Use update_scheduled_task state=paused or state=active to pause and resume recurring or one-shot tasks")
 	}
 
 	for _, item := range extra {

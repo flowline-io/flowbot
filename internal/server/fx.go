@@ -47,6 +47,7 @@ var Modules = fx.Options(
 		handleRoutes,
 		handleEvents,
 		initPipeline,
+		initChatAgentScheduler,
 		handleModules,
 		handlePlatform,
 		RunServer,

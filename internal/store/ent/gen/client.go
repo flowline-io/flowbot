@@ -24,6 +24,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/capabilitybinding"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
@@ -88,6 +90,10 @@ type Client struct {
 	CapabilityBinding *CapabilityBindingClient
 	// Channel is the client for interacting with the Channel builders.
 	Channel *ChannelClient
+	// ChatScheduledTask is the client for interacting with the ChatScheduledTask builders.
+	ChatScheduledTask *ChatScheduledTaskClient
+	// ChatScheduledTaskRun is the client for interacting with the ChatScheduledTaskRun builders.
+	ChatScheduledTaskRun *ChatScheduledTaskRunClient
 	// ChatSession is the client for interacting with the ChatSession builders.
 	ChatSession *ChatSessionClient
 	// ChatSessionEntry is the client for interacting with the ChatSessionEntry builders.
@@ -183,6 +189,8 @@ func (c *Client) init() {
 	c.Bot = NewBotClient(c.config)
 	c.CapabilityBinding = NewCapabilityBindingClient(c.config)
 	c.Channel = NewChannelClient(c.config)
+	c.ChatScheduledTask = NewChatScheduledTaskClient(c.config)
+	c.ChatScheduledTaskRun = NewChatScheduledTaskRunClient(c.config)
 	c.ChatSession = NewChatSessionClient(c.config)
 	c.ChatSessionEntry = NewChatSessionEntryClient(c.config)
 	c.ConfigData = NewConfigDataClient(c.config)
@@ -322,6 +330,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Bot:                       NewBotClient(cfg),
 		CapabilityBinding:         NewCapabilityBindingClient(cfg),
 		Channel:                   NewChannelClient(cfg),
+		ChatScheduledTask:         NewChatScheduledTaskClient(cfg),
+		ChatScheduledTaskRun:      NewChatScheduledTaskRunClient(cfg),
 		ChatSession:               NewChatSessionClient(cfg),
 		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
@@ -388,6 +398,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Bot:                       NewBotClient(cfg),
 		CapabilityBinding:         NewCapabilityBindingClient(cfg),
 		Channel:                   NewChannelClient(cfg),
+		ChatScheduledTask:         NewChatScheduledTaskClient(cfg),
+		ChatScheduledTaskRun:      NewChatScheduledTaskRunClient(cfg),
 		ChatSession:               NewChatSessionClient(cfg),
 		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
@@ -455,15 +467,15 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.AgentSkill, c.AgentSubagent, c.App, c.AuditLog, c.Authentication,
-		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatSession,
-		c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter, c.CounterRecord,
-		c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form,
-		c.Instruct, c.Message, c.NotificationRecord, c.NotifyChannel, c.NotifyRule,
-		c.OAuth, c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
-		c.WorkflowStepRun,
+		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
+		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.ConfigData,
+		c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
+		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
+		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Use(hooks...)
 	}
@@ -474,15 +486,15 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.AgentSkill, c.AgentSubagent, c.App, c.AuditLog, c.Authentication,
-		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatSession,
-		c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter, c.CounterRecord,
-		c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form,
-		c.Instruct, c.Message, c.NotificationRecord, c.NotifyChannel, c.NotifyRule,
-		c.OAuth, c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
-		c.WorkflowStepRun,
+		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
+		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.ConfigData,
+		c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
+		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
+		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -511,6 +523,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CapabilityBinding.mutate(ctx, m)
 	case *ChannelMutation:
 		return c.Channel.mutate(ctx, m)
+	case *ChatScheduledTaskMutation:
+		return c.ChatScheduledTask.mutate(ctx, m)
+	case *ChatScheduledTaskRunMutation:
+		return c.ChatScheduledTaskRun.mutate(ctx, m)
 	case *ChatSessionMutation:
 		return c.ChatSession.mutate(ctx, m)
 	case *ChatSessionEntryMutation:
@@ -1917,6 +1933,272 @@ func (c *ChannelClient) mutate(ctx context.Context, m *ChannelMutation) (Value, 
 		return (&ChannelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown Channel mutation op: %q", m.Op())
+	}
+}
+
+// ChatScheduledTaskClient is a client for the ChatScheduledTask schema.
+type ChatScheduledTaskClient struct {
+	config
+}
+
+// NewChatScheduledTaskClient returns a client for the ChatScheduledTask from the given config.
+func NewChatScheduledTaskClient(c config) *ChatScheduledTaskClient {
+	return &ChatScheduledTaskClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `chatscheduledtask.Hooks(f(g(h())))`.
+func (c *ChatScheduledTaskClient) Use(hooks ...Hook) {
+	c.hooks.ChatScheduledTask = append(c.hooks.ChatScheduledTask, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `chatscheduledtask.Intercept(f(g(h())))`.
+func (c *ChatScheduledTaskClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ChatScheduledTask = append(c.inters.ChatScheduledTask, interceptors...)
+}
+
+// Create returns a builder for creating a ChatScheduledTask entity.
+func (c *ChatScheduledTaskClient) Create() *ChatScheduledTaskCreate {
+	mutation := newChatScheduledTaskMutation(c.config, OpCreate)
+	return &ChatScheduledTaskCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChatScheduledTask entities.
+func (c *ChatScheduledTaskClient) CreateBulk(builders ...*ChatScheduledTaskCreate) *ChatScheduledTaskCreateBulk {
+	return &ChatScheduledTaskCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChatScheduledTaskClient) MapCreateBulk(slice any, setFunc func(*ChatScheduledTaskCreate, int)) *ChatScheduledTaskCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChatScheduledTaskCreateBulk{err: fmt.Errorf("calling to ChatScheduledTaskClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChatScheduledTaskCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChatScheduledTaskCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChatScheduledTask.
+func (c *ChatScheduledTaskClient) Update() *ChatScheduledTaskUpdate {
+	mutation := newChatScheduledTaskMutation(c.config, OpUpdate)
+	return &ChatScheduledTaskUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChatScheduledTaskClient) UpdateOne(_m *ChatScheduledTask) *ChatScheduledTaskUpdateOne {
+	mutation := newChatScheduledTaskMutation(c.config, OpUpdateOne, withChatScheduledTask(_m))
+	return &ChatScheduledTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChatScheduledTaskClient) UpdateOneID(id int64) *ChatScheduledTaskUpdateOne {
+	mutation := newChatScheduledTaskMutation(c.config, OpUpdateOne, withChatScheduledTaskID(id))
+	return &ChatScheduledTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChatScheduledTask.
+func (c *ChatScheduledTaskClient) Delete() *ChatScheduledTaskDelete {
+	mutation := newChatScheduledTaskMutation(c.config, OpDelete)
+	return &ChatScheduledTaskDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChatScheduledTaskClient) DeleteOne(_m *ChatScheduledTask) *ChatScheduledTaskDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChatScheduledTaskClient) DeleteOneID(id int64) *ChatScheduledTaskDeleteOne {
+	builder := c.Delete().Where(chatscheduledtask.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChatScheduledTaskDeleteOne{builder}
+}
+
+// Query returns a query builder for ChatScheduledTask.
+func (c *ChatScheduledTaskClient) Query() *ChatScheduledTaskQuery {
+	return &ChatScheduledTaskQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChatScheduledTask},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ChatScheduledTask entity by its id.
+func (c *ChatScheduledTaskClient) Get(ctx context.Context, id int64) (*ChatScheduledTask, error) {
+	return c.Query().Where(chatscheduledtask.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChatScheduledTaskClient) GetX(ctx context.Context, id int64) *ChatScheduledTask {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChatScheduledTaskClient) Hooks() []Hook {
+	return c.hooks.ChatScheduledTask
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChatScheduledTaskClient) Interceptors() []Interceptor {
+	return c.inters.ChatScheduledTask
+}
+
+func (c *ChatScheduledTaskClient) mutate(ctx context.Context, m *ChatScheduledTaskMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChatScheduledTaskCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChatScheduledTaskUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChatScheduledTaskUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChatScheduledTaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ChatScheduledTask mutation op: %q", m.Op())
+	}
+}
+
+// ChatScheduledTaskRunClient is a client for the ChatScheduledTaskRun schema.
+type ChatScheduledTaskRunClient struct {
+	config
+}
+
+// NewChatScheduledTaskRunClient returns a client for the ChatScheduledTaskRun from the given config.
+func NewChatScheduledTaskRunClient(c config) *ChatScheduledTaskRunClient {
+	return &ChatScheduledTaskRunClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `chatscheduledtaskrun.Hooks(f(g(h())))`.
+func (c *ChatScheduledTaskRunClient) Use(hooks ...Hook) {
+	c.hooks.ChatScheduledTaskRun = append(c.hooks.ChatScheduledTaskRun, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `chatscheduledtaskrun.Intercept(f(g(h())))`.
+func (c *ChatScheduledTaskRunClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ChatScheduledTaskRun = append(c.inters.ChatScheduledTaskRun, interceptors...)
+}
+
+// Create returns a builder for creating a ChatScheduledTaskRun entity.
+func (c *ChatScheduledTaskRunClient) Create() *ChatScheduledTaskRunCreate {
+	mutation := newChatScheduledTaskRunMutation(c.config, OpCreate)
+	return &ChatScheduledTaskRunCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ChatScheduledTaskRun entities.
+func (c *ChatScheduledTaskRunClient) CreateBulk(builders ...*ChatScheduledTaskRunCreate) *ChatScheduledTaskRunCreateBulk {
+	return &ChatScheduledTaskRunCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ChatScheduledTaskRunClient) MapCreateBulk(slice any, setFunc func(*ChatScheduledTaskRunCreate, int)) *ChatScheduledTaskRunCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ChatScheduledTaskRunCreateBulk{err: fmt.Errorf("calling to ChatScheduledTaskRunClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ChatScheduledTaskRunCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ChatScheduledTaskRunCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ChatScheduledTaskRun.
+func (c *ChatScheduledTaskRunClient) Update() *ChatScheduledTaskRunUpdate {
+	mutation := newChatScheduledTaskRunMutation(c.config, OpUpdate)
+	return &ChatScheduledTaskRunUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ChatScheduledTaskRunClient) UpdateOne(_m *ChatScheduledTaskRun) *ChatScheduledTaskRunUpdateOne {
+	mutation := newChatScheduledTaskRunMutation(c.config, OpUpdateOne, withChatScheduledTaskRun(_m))
+	return &ChatScheduledTaskRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ChatScheduledTaskRunClient) UpdateOneID(id int64) *ChatScheduledTaskRunUpdateOne {
+	mutation := newChatScheduledTaskRunMutation(c.config, OpUpdateOne, withChatScheduledTaskRunID(id))
+	return &ChatScheduledTaskRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ChatScheduledTaskRun.
+func (c *ChatScheduledTaskRunClient) Delete() *ChatScheduledTaskRunDelete {
+	mutation := newChatScheduledTaskRunMutation(c.config, OpDelete)
+	return &ChatScheduledTaskRunDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ChatScheduledTaskRunClient) DeleteOne(_m *ChatScheduledTaskRun) *ChatScheduledTaskRunDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ChatScheduledTaskRunClient) DeleteOneID(id int64) *ChatScheduledTaskRunDeleteOne {
+	builder := c.Delete().Where(chatscheduledtaskrun.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ChatScheduledTaskRunDeleteOne{builder}
+}
+
+// Query returns a query builder for ChatScheduledTaskRun.
+func (c *ChatScheduledTaskRunClient) Query() *ChatScheduledTaskRunQuery {
+	return &ChatScheduledTaskRunQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeChatScheduledTaskRun},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ChatScheduledTaskRun entity by its id.
+func (c *ChatScheduledTaskRunClient) Get(ctx context.Context, id int64) (*ChatScheduledTaskRun, error) {
+	return c.Query().Where(chatscheduledtaskrun.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ChatScheduledTaskRunClient) GetX(ctx context.Context, id int64) *ChatScheduledTaskRun {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ChatScheduledTaskRunClient) Hooks() []Hook {
+	return c.hooks.ChatScheduledTaskRun
+}
+
+// Interceptors returns the client interceptors.
+func (c *ChatScheduledTaskRunClient) Interceptors() []Interceptor {
+	return c.inters.ChatScheduledTaskRun
+}
+
+func (c *ChatScheduledTaskRunClient) mutate(ctx context.Context, m *ChatScheduledTaskRunMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ChatScheduledTaskRunCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ChatScheduledTaskRunUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ChatScheduledTaskRunUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ChatScheduledTaskRunDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown ChatScheduledTaskRun mutation op: %q", m.Op())
 	}
 }
 
@@ -6845,24 +7127,24 @@ func (c *WorkflowStepRunClient) mutate(ctx context.Context, m *WorkflowStepRunMu
 type (
 	hooks struct {
 		Agent, AgentSkill, AgentSubagent, App, AuditLog, Authentication, Behavior, Bot,
-		CapabilityBinding, Channel, ChatSession, ChatSessionEntry, ConfigData,
-		Connection, Counter, CounterRecord, Data, DataEvent, EventConsumption,
-		EventOutbox, Fileupload, Form, Instruct, Message, NotificationRecord,
-		NotifyChannel, NotifyRule, OAuth, Page, PageData, Parameter,
-		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
+		CapabilityBinding, Channel, ChatScheduledTask, ChatScheduledTaskRun,
+		ChatSession, ChatSessionEntry, ConfigData, Connection, Counter, CounterRecord,
+		Data, DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
+		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
+		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
 		WorkflowStepRun []ent.Hook
 	}
 	inters struct {
 		Agent, AgentSkill, AgentSubagent, App, AuditLog, Authentication, Behavior, Bot,
-		CapabilityBinding, Channel, ChatSession, ChatSessionEntry, ConfigData,
-		Connection, Counter, CounterRecord, Data, DataEvent, EventConsumption,
-		EventOutbox, Fileupload, Form, Instruct, Message, NotificationRecord,
-		NotifyChannel, NotifyRule, OAuth, Page, PageData, Parameter,
-		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
-		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
-		PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
+		CapabilityBinding, Channel, ChatScheduledTask, ChatScheduledTaskRun,
+		ChatSession, ChatSessionEntry, ConfigData, Connection, Counter, CounterRecord,
+		Data, DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
+		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
+		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
+		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
 		WorkflowStepRun []ent.Interceptor
 	}
 )

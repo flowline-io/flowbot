@@ -224,6 +224,77 @@ var (
 			},
 		},
 	}
+	// ChatScheduledTasksColumns holds the columns for the "chat_scheduled_tasks" table.
+	ChatScheduledTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString},
+		{Name: "schedule_kind", Type: field.TypeString},
+		{Name: "cron", Type: field.TypeString, Default: ""},
+		{Name: "run_at", Type: field.TypeTime, Nullable: true},
+		{Name: "prompt", Type: field.TypeString, Size: 2147483647},
+		{Name: "delivery", Type: field.TypeJSON, Nullable: true},
+		{Name: "source_session_id", Type: field.TypeString, Default: ""},
+		{Name: "state", Type: field.TypeString, Default: "active"},
+		{Name: "last_run_at", Type: field.TypeTime, Nullable: true},
+		{Name: "next_run_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ChatScheduledTasksTable holds the schema information for the "chat_scheduled_tasks" table.
+	ChatScheduledTasksTable = &schema.Table{
+		Name:       "chat_scheduled_tasks",
+		Columns:    ChatScheduledTasksColumns,
+		PrimaryKey: []*schema.Column{ChatScheduledTasksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chatscheduledtask_uid",
+				Unique:  false,
+				Columns: []*schema.Column{ChatScheduledTasksColumns[2]},
+			},
+			{
+				Name:    "chatscheduledtask_state",
+				Unique:  false,
+				Columns: []*schema.Column{ChatScheduledTasksColumns[10]},
+			},
+			{
+				Name:    "chatscheduledtask_schedule_kind_state",
+				Unique:  false,
+				Columns: []*schema.Column{ChatScheduledTasksColumns[4], ChatScheduledTasksColumns[10]},
+			},
+		},
+	}
+	// ChatScheduledTaskRunsColumns holds the columns for the "chat_scheduled_task_runs" table.
+	ChatScheduledTaskRunsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "task_id", Type: field.TypeString},
+		{Name: "run_session_id", Type: field.TypeString},
+		{Name: "state", Type: field.TypeString, Default: "running"},
+		{Name: "reply", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "finished_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ChatScheduledTaskRunsTable holds the schema information for the "chat_scheduled_task_runs" table.
+	ChatScheduledTaskRunsTable = &schema.Table{
+		Name:       "chat_scheduled_task_runs",
+		Columns:    ChatScheduledTaskRunsColumns,
+		PrimaryKey: []*schema.Column{ChatScheduledTaskRunsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "chatscheduledtaskrun_task_id",
+				Unique:  false,
+				Columns: []*schema.Column{ChatScheduledTaskRunsColumns[2]},
+			},
+			{
+				Name:    "chatscheduledtaskrun_task_id_started_at",
+				Unique:  false,
+				Columns: []*schema.Column{ChatScheduledTaskRunsColumns[2], ChatScheduledTaskRunsColumns[7]},
+			},
+		},
+	}
 	// ChatSessionsColumns holds the columns for the "chat_sessions" table.
 	ChatSessionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1199,6 +1270,8 @@ var (
 		BotsTable,
 		CapabilityBindingsTable,
 		ChannelsTable,
+		ChatScheduledTasksTable,
+		ChatScheduledTaskRunsTable,
 		ChatSessionsTable,
 		ChatSessionEntriesTable,
 		ConfigsTable,
@@ -1269,6 +1342,12 @@ func init() {
 	}
 	ChannelsTable.Annotation = &entsql.Annotation{
 		Table: "channels",
+	}
+	ChatScheduledTasksTable.Annotation = &entsql.Annotation{
+		Table: "chat_scheduled_tasks",
+	}
+	ChatScheduledTaskRunsTable.Annotation = &entsql.Annotation{
+		Table: "chat_scheduled_task_runs",
 	}
 	ChatSessionsTable.Annotation = &entsql.Annotation{
 		Table: "chat_sessions",

@@ -21,7 +21,7 @@ const (
 // IsReadOnlyTool reports whether name is allowed in plan mode.
 func IsReadOnlyTool(name string) bool {
 	switch name {
-	case "read_file", "web_search", "read_skill":
+	case "read_file", "web_search", "read_skill", listScheduleToolName:
 		return true
 	default:
 		return false
@@ -30,7 +30,7 @@ func IsReadOnlyTool(name string) bool {
 
 // ReadOnlyToolNames returns the active tool set for plan mode.
 func ReadOnlyToolNames() []string {
-	return []string{"read_file", "web_search", "read_skill"}
+	return []string{"read_file", "web_search", "read_skill", listScheduleToolName}
 }
 
 // ValidSessionMode reports whether mode is a supported session mode value.

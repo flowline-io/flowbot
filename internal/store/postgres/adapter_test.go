@@ -2,14 +2,12 @@ package postgres
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,8 +15,7 @@ import (
 
 func getTestClient(t *testing.T) *gen.Client {
 	t.Helper()
-	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
-	return sqlitetest.OpenClient(t, dbName)
+	return newSQLiteTestClient(t)
 }
 
 func testAdapter(t *testing.T) *adapter {
@@ -510,6 +507,137 @@ func TestListChatSessions(t *testing.T) {
 				return
 			}
 			assert.Empty(t, cursor)
+		})
+	}
+}
+
+func TestChatScheduledTaskStore(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	now := time.Now().UTC().Truncate(time.Second)
+	runAt := now.Add(2 * time.Hour)
+
+	tests := []struct {
+		name string
+		run  func(*testing.T, *adapter)
+	}{
+		{
+			name: "create list and update task",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+					Flag:         "task-1",
+					UID:          "user:alice",
+					Name:         "daily",
+					ScheduleKind: string(schema.ChatScheduledTaskKindCron),
+					Cron:         "0 9 * * *",
+					Prompt:       "check logs",
+					State:        string(schema.ChatScheduledTaskStateActive),
+					CreatedAt:    now,
+					UpdatedAt:    now,
+				}))
+				rows, err := a.ListChatScheduledTasks(ctx, store.ListChatScheduledTasksOptions{UID: "user:alice"})
+				require.NoError(t, err)
+				require.Len(t, rows, 1)
+
+				prompt := "updated prompt"
+				require.NoError(t, a.UpdateChatScheduledTask(ctx, "task-1", store.UpdateChatScheduledTaskParams{Prompt: &prompt}))
+				got, err := a.GetChatScheduledTaskForUID(ctx, "task-1", "user:alice")
+				require.NoError(t, err)
+				assert.Equal(t, prompt, got.Prompt)
+			},
+		},
+		{
+			name: "create once task run record",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+					Flag:         "task-once",
+					UID:          "user:bob",
+					Name:         "reminder",
+					ScheduleKind: string(schema.ChatScheduledTaskKindOnce),
+					Prompt:       "submit report",
+					RunAt:        &runAt,
+					State:        string(schema.ChatScheduledTaskStateActive),
+				}))
+				require.NoError(t, a.CreateChatScheduledTaskRun(ctx, &gen.ChatScheduledTaskRun{
+					Flag:         "run-1",
+					TaskID:       "task-once",
+					RunSessionID: "sess-run",
+					State:        string(schema.ChatScheduledTaskRunStateCompleted),
+					Reply:        "done",
+					StartedAt:    now,
+				}))
+				runs, err := a.ListChatScheduledTaskRuns(ctx, "task-once", 10)
+				require.NoError(t, err)
+				require.Len(t, runs, 1)
+				assert.Equal(t, "done", runs[0].Reply)
+			},
+		},
+		{
+			name: "delete task",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+					Flag:         "task-delete",
+					UID:          "user:alice",
+					Name:         "temp",
+					ScheduleKind: string(schema.ChatScheduledTaskKindCron),
+					Cron:         "0 7 * * *",
+					Prompt:       "temp",
+					State:        string(schema.ChatScheduledTaskStateActive),
+				}))
+				require.NoError(t, a.DeleteChatScheduledTask(ctx, "task-delete"))
+				_, err := a.GetChatScheduledTask(ctx, "task-delete")
+				require.ErrorIs(t, err, types.ErrNotFound)
+			},
+		},
+		{
+			name: "fail stale running task runs",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+					Flag:         "task-stale",
+					UID:          "user:alice",
+					Name:         "stale",
+					ScheduleKind: string(schema.ChatScheduledTaskKindCron),
+					Cron:         "0 6 * * *",
+					Prompt:       "stale",
+					State:        string(schema.ChatScheduledTaskStateActive),
+				}))
+				require.NoError(t, a.CreateChatScheduledTaskRun(ctx, &gen.ChatScheduledTaskRun{
+					Flag:         "run-stale",
+					TaskID:       "task-stale",
+					RunSessionID: "sess-stale",
+					State:        string(schema.ChatScheduledTaskRunStateRunning),
+					StartedAt:    now,
+				}))
+				require.NoError(t, a.FailStaleChatScheduledTaskRuns(ctx))
+				runs, err := a.ListChatScheduledTaskRuns(ctx, "task-stale", 5)
+				require.NoError(t, err)
+				require.Len(t, runs, 1)
+				assert.Equal(t, string(schema.ChatScheduledTaskRunStateFailed), runs[0].State)
+				assert.NotEmpty(t, runs[0].Error)
+			},
+		},
+		{
+			name: "uid scoped get returns not found for other user",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+					Flag:         "task-private",
+					UID:          "user:owner",
+					Name:         "private",
+					ScheduleKind: string(schema.ChatScheduledTaskKindCron),
+					Cron:         "0 8 * * *",
+					Prompt:       "secret",
+					State:        string(schema.ChatScheduledTaskStateActive),
+				}))
+				_, err := a.GetChatScheduledTaskForUID(ctx, "task-private", "user:other")
+				require.ErrorIs(t, err, types.ErrNotFound)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.run(t, testAdapter(t))
 		})
 	}
 }

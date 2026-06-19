@@ -177,5 +177,9 @@ func planModeToolBlock(deps ChatHookDeps, toolName string) *hooks.ToolCallResult
 	if mode != ModePlan || IsReadOnlyTool(toolName) {
 		return nil
 	}
-	return &hooks.ToolCallResult{Block: true, Reason: "plan mode: read-only"}
+	reason := "plan mode: read-only"
+	if IsScheduleWriteTool(toolName) {
+		reason = "plan mode: schedule write tools are disabled"
+	}
+	return &hooks.ToolCallResult{Block: true, Reason: reason}
 }
