@@ -54,13 +54,17 @@ var _ = Describe("Health", Label("health", "smoke"), func() {
 			Expect(pgC).NotTo(BeNil(), "PostgreSQL container should be running")
 			Expect(redisC).NotTo(BeNil(), "Redis container should be running")
 
-			state, err := pgC.State(suiteCtx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(state.Running).To(BeTrue(), "PostgreSQL container should be in running state")
+			Eventually(func(g Gomega) {
+				state, err := pgC.State(suiteCtx)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(state.Running).To(BeTrue(), "PostgreSQL container should be in running state")
+			}, "30s", "500ms").Should(Succeed())
 
-			state, err = redisC.State(suiteCtx)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(state.Running).To(BeTrue(), "Redis container should be in running state")
+			Eventually(func(g Gomega) {
+				state, err := redisC.State(suiteCtx)
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(state.Running).To(BeTrue(), "Redis container should be in running state")
+			}, "30s", "500ms").Should(Succeed())
 		})
 	})
 

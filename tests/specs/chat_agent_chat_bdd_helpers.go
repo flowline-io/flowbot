@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -22,9 +23,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// mountChatAgentRoutes registers Chat Agent HTTP routes on the shared test app.
+var chatAgentRoutesOnce sync.Once
+
+// mountChatAgentRoutes registers Chat Agent HTTP routes on the shared test app once per process.
 func mountChatAgentRoutes(app *fiber.App) {
-	server.RegisterChatAgentRoutes(app)
+	chatAgentRoutesOnce.Do(func() {
+		server.RegisterChatAgentRoutes(app)
+	})
 }
 
 // createChatAgentAccessToken stores a scoped access token for Chat Agent BDD tests.

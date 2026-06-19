@@ -149,7 +149,7 @@ tasks:
   test:specs:ci:
     desc: Run BDD tests for CI with retry and JUnit output
     cmds:
-      - go tool ginkgo --procs=4 --flake-attempts=2 --junit-report=specs-report.xml --tags integration ./tests/specs/...
+      - go tool ginkgo --procs=4 --flake-attempts=2 --output-dir=. --poll-progress-after=30s --junit-report=specs-report.xml --tags integration ./tests/specs/...
 
   test:specs:serial:
     desc: Run BDD tests serially for debugging

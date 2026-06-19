@@ -116,6 +116,9 @@ var _ = SynchronizedBeforeSuite(
 		var cfg configBundle
 		Expect(sonic.Unmarshal(data, &cfg)).To(Succeed())
 
+		// Process 1 initializes flog in suite setup; other parallel nodes need it too.
+		flog.Init(flog.Config{Level: "info"})
+
 		procID := GinkgoParallelProcess()
 		dbName := fmt.Sprintf("flowbot_test_%d", procID)
 		PGDSN = createPerProcessDatabase(cfg.BaseDSN, dbName)
@@ -187,15 +190,25 @@ func ensureSSLMode(dsn string) string {
 // createPerProcessDatabase connects to the base DSN, drops any pre-existing database,
 // creates a fresh per-process database, and returns a new DSN pointing to it.
 func createPerProcessDatabase(baseDSN, dbName string) string {
-	adminDB, err := sql.Open("pgx", baseDSN)
-	Expect(err).NotTo(HaveOccurred())
-	defer adminDB.Close()
+	Eventually(func(g Gomega) {
+		adminDB, err := sql.Open("pgx", baseDSN)
+		g.Expect(err).NotTo(HaveOccurred())
+		defer adminDB.Close()
 
-	_, err = adminDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
-	Expect(err).NotTo(HaveOccurred())
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		g.Expect(adminDB.PingContext(ctx)).To(Succeed())
 
-	_, err = adminDB.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName))
-	Expect(err).NotTo(HaveOccurred())
+		// Drop lingering connections so parallel setup/retries do not fail on DROP DATABASE.
+		_, _ = adminDB.ExecContext(ctx, fmt.Sprintf(
+			"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '%s' AND pid <> pg_backend_pid()",
+			dbName,
+		))
+		_, err = adminDB.ExecContext(ctx, fmt.Sprintf("DROP DATABASE IF EXISTS %s", dbName))
+		g.Expect(err).NotTo(HaveOccurred())
+		_, err = adminDB.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE %s", dbName))
+		g.Expect(err).NotTo(HaveOccurred())
+	}, "30s", "500ms").Should(Succeed())
 
 	u, err := url.Parse(baseDSN)
 	Expect(err).NotTo(HaveOccurred())
