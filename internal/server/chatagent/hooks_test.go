@@ -7,7 +7,33 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestPlanModeToolBlockUsesLiveSessionMode(t *testing.T) {
+	tests := []struct {
+		name      string
+		sessionID string
+		tool      string
+		wantBlock bool
+	}{
+		{name: "missing session allows write_file", sessionID: "missing-session", tool: "write_file", wantBlock: false},
+		{name: "missing session allows read_file", sessionID: "missing-session", tool: "read_file", wantBlock: false},
+		{name: "missing session blocks run_terminal when plan", sessionID: "missing-session", tool: "run_terminal", wantBlock: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			block := planModeToolBlock(context.Background(), tt.sessionID, tt.tool)
+			if tt.wantBlock {
+				require.NotNil(t, block)
+				assert.True(t, block.Block)
+			} else {
+				require.Nil(t, block)
+			}
+		})
+	}
+}
 
 func TestRegisterHooksObservesEvents(t *testing.T) {
 	tests := []struct {

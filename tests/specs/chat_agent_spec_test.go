@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/tmc/langchaingo/llms"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -37,7 +38,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		defer func() { chatagent.NewModelForTest = orig }()
 
 		ctx := context.Background()
-		sessionID := "bdd-session-1"
+		sessionID := "bdd-session-1-" + types.Id()
 		wsDir, err := os.MkdirTemp("", "chat-agent-bdd-*")
 		Expect(err).NotTo(HaveOccurred())
 		config.App.ChatAgent.Workspace = wsDir
@@ -90,7 +91,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		defer func() { chatagent.NewModelForTest = orig }()
 
 		ctx := context.Background()
-		sessionID := "bdd-dual-model"
+		sessionID := "bdd-dual-model-" + types.Id()
 		wsDir, err := os.MkdirTemp("", "chat-agent-dual-*")
 		Expect(err).NotTo(HaveOccurred())
 		config.App.ChatAgent.Workspace = wsDir
@@ -148,7 +149,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		defer func() { chatagent.NewModelForTest = orig }()
 
 		ctx := context.Background()
-		sessionID := "bdd-plan-mode"
+		sessionID := "bdd-plan-mode-" + types.Id()
 		wsDir, err := os.MkdirTemp("", "chat-agent-plan-*")
 		Expect(err).NotTo(HaveOccurred())
 		config.App.ChatAgent.Workspace = wsDir

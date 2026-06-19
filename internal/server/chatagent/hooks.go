@@ -88,7 +88,7 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 		workspaceRoot := config.App.ChatAgent.Workspace
 		externalPath := detectExternalPath(event, workspaceRoot)
 
-		if block := planModeToolBlock(deps, event.ToolCall.Name); block != nil {
+		if block := planModeToolBlock(ctx, deps.SessionID, event.ToolCall.Name); block != nil {
 			return block, nil
 		}
 
@@ -169,11 +169,8 @@ func detectExternalPath(event hooks.ToolCallEvent, workspaceRoot string) bool {
 	return false
 }
 
-func planModeToolBlock(deps ChatHookDeps, toolName string) *hooks.ToolCallResult {
-	mode := deps.SessionMode
-	if mode == "" {
-		mode = ModeNormal
-	}
+func planModeToolBlock(ctx context.Context, sessionID, toolName string) *hooks.ToolCallResult {
+	mode := LoadSessionMode(ctx, sessionID)
 	if mode != ModePlan || IsReadOnlyTool(toolName) {
 		return nil
 	}
