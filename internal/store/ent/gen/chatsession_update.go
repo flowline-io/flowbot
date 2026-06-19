@@ -91,6 +91,20 @@ func (_u *ChatSessionUpdate) AddState(v int) *ChatSessionUpdate {
 	return _u
 }
 
+// SetMode sets the "mode" field.
+func (_u *ChatSessionUpdate) SetMode(v string) *ChatSessionUpdate {
+	_u.mutation.SetMode(v)
+	return _u
+}
+
+// SetNillableMode sets the "mode" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillableMode(v *string) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetMode(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *ChatSessionUpdate) SetUpdatedAt(v time.Time) *ChatSessionUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -180,6 +194,9 @@ func (_u *ChatSessionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.AddedState(); ok {
 		_spec.AddField(chatsession.FieldState, field.TypeInt, value)
 	}
+	if value, ok := _u.mutation.Mode(); ok {
+		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(chatsession.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -263,6 +280,20 @@ func (_u *ChatSessionUpdateOne) SetNillableState(v *int) *ChatSessionUpdateOne {
 // AddState adds value to the "state" field.
 func (_u *ChatSessionUpdateOne) AddState(v int) *ChatSessionUpdateOne {
 	_u.mutation.AddState(v)
+	return _u
+}
+
+// SetMode sets the "mode" field.
+func (_u *ChatSessionUpdateOne) SetMode(v string) *ChatSessionUpdateOne {
+	_u.mutation.SetMode(v)
+	return _u
+}
+
+// SetNillableMode sets the "mode" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillableMode(v *string) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetMode(*v)
+	}
 	return _u
 }
 
@@ -384,6 +415,9 @@ func (_u *ChatSessionUpdateOne) sqlSave(ctx context.Context) (_node *ChatSession
 	}
 	if value, ok := _u.mutation.AddedState(); ok {
 		_spec.AddField(chatsession.FieldState, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.Mode(); ok {
+		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(chatsession.FieldUpdatedAt, field.TypeTime, value)

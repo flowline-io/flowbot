@@ -24,6 +24,9 @@ func FormatSessionRow(summary client.ChatSessionSummary, currentID string, selec
 	if summary.SessionID == currentID {
 		label += " · current"
 	}
+	if summary.Mode == sessionModePlan {
+		label += " · plan"
+	}
 	label += " · " + formatSessionUpdatedAt(summary.UpdatedAt)
 
 	prefix := "  "
@@ -105,7 +108,7 @@ func (m *Model) handleSessionPickKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	case tea.KeyEscape:
 		m.clearSessionPick()
 		m.phase = PhaseIdle
-		m.hint = defaultHint()
+		m.resetInputHint()
 		return true, m.focusInputCmd()
 	}
 	return false, nil
@@ -116,18 +119,24 @@ func (m *Model) clearSessionPick() {
 	m.sessionPick = 0
 }
 
-func (m *Model) applySessionSwitch(id string) {
+func (m *Model) applySessionSwitch(id, mode string) {
 	m.sessionID = id
-	if hint := sessionCacheHint(SaveSessionID(m.profile, id)); hint != "" {
-		m.hint = hint
-	} else {
-		m.hint = "Switched session"
-	}
 	m.transcript.Reset()
 	m.streamOverlay.Reset()
 	m.messageCount = 0
 	m.resetSessionUsage()
 	m.splashVisible = false
+	if mode != "" {
+		m.finalizeSessionMode(mode)
+		return
+	}
+	m.applySessionModeDisplay("normal")
+	if hint := sessionCacheHint(SaveSessionID(m.profile, id)); hint != "" {
+		m.hint = hint
+	} else {
+		m.hint = "Switched session"
+	}
+	m.syncLayout()
 	m.syncViewport()
 }
 
@@ -137,15 +146,28 @@ func (m *Model) submitSessionPick() tea.Cmd {
 		m.phase = PhaseIdle
 		return m.focusInputCmd()
 	}
-	selected := m.sessionList[m.sessionPick].SessionID
+	selected := m.sessionList[m.sessionPick]
 	m.clearSessionPick()
 	m.phase = PhaseIdle
-	if selected == m.sessionID {
-		m.hint = defaultHint()
+	if selected.SessionID == m.sessionID {
+		m.resetInputHint()
 		return m.focusInputCmd()
 	}
-	m.applySessionSwitch(selected)
-	return tea.Batch(m.hydrateHistoryCmd(), m.focusInputCmd())
+	m.applySessionSwitch(selected.SessionID, selected.Mode)
+	return tea.Batch(m.loadSessionModeCmd(selected.SessionID), m.hydrateHistoryCmd(), m.focusInputCmd())
+}
+
+func (m *Model) loadSessionModeCmd(sessionID string) tea.Cmd {
+	cl := m.client
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		mode, err := cl.ChatAgent.GetSessionMode(ctx, sessionID)
+		if err != nil {
+			return sessionModeLoadMsg{sessionID: sessionID, err: err.Error()}
+		}
+		return sessionModeLoadMsg{sessionID: sessionID, mode: mode}
+	}
 }
 
 func sessionPickerInitialPick(sessions []client.ChatSessionSummary, currentID string) int {
@@ -201,7 +223,7 @@ func (m *Model) handleSlashSession(cmd, args string) (*Model, tea.Cmd, bool) {
 	case "end":
 		return m, m.sessionEndCmd(), true
 	case "status":
-		m.appendSystem(SessionStatusText(m.sessionID, m.messageCount))
+		m.appendSystem(SessionStatusText(m.sessionID, m.messageCount, m.mode))
 		return m, m.focusInputCmd(), true
 	case "context":
 		return m, m.contextUsageCmd(), true

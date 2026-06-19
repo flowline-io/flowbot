@@ -12,6 +12,7 @@ import (
 // StatusSnapshot drives the fixed status bar.
 type StatusSnapshot struct {
 	Model          string
+	PlanMode       bool
 	TotalTokens    int
 	ContextWindow  int
 	ContextPercent float64
@@ -44,9 +45,18 @@ func RenderStatusBar(snap StatusSnapshot, styles *Styles) string {
 	}
 
 	barStyled := lipgloss.NewStyle().Foreground(color).Render(bar)
+	modelLabel := snap.Model
+	if snap.PlanMode {
+		planBadge := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#1a1a1a")).
+			Background(colorConfirm).
+			Bold(true).
+			Render(" PLAN ")
+		modelLabel += planBadge
+	}
 	line := fmt.Sprintf(" %s %s │ %d/%s │ %s %s │ %s │ ⏱ %s",
 		icon,
-		snap.Model,
+		modelLabel,
 		snap.TotalTokens,
 		formatTokenWindow(window),
 		barStyled,

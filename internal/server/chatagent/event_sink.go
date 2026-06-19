@@ -41,7 +41,7 @@ func (p *ChannelPublisher) Publish(event StreamEvent) error {
 func isCriticalStreamEvent(eventType string) bool {
 	switch eventType {
 	case EventTypeConfirm, EventTypeConfirmResolved, EventTypeCanceled,
-		EventTypeDone, EventTypeError, EventTypeUsage:
+		EventTypeDone, EventTypeError, EventTypeUsage, EventTypeModeChange:
 		return true
 	default:
 		return false

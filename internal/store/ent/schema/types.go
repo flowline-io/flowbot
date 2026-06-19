@@ -432,6 +432,20 @@ func (j ChatSessionState) Value() (driver.Value, error) {
 	return int64(j), nil
 }
 
+// ChatSessionMode selects whether the chat agent may mutate the workspace.
+type ChatSessionMode string
+
+const (
+	// ChatSessionModeNormal allows full tool access per user permissions.
+	ChatSessionModeNormal ChatSessionMode = "normal"
+	// ChatSessionModePlan restricts the agent to read-only research tools.
+	ChatSessionModePlan ChatSessionMode = "plan"
+)
+
+func (j ChatSessionMode) Value() (driver.Value, error) {
+	return string(j), nil
+}
+
 type MessageState int
 
 const (

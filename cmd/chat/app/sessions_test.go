@@ -21,15 +21,27 @@ func TestFormatSessionRow(t *testing.T) {
 		name     string
 		current  string
 		selected bool
+		summary  client.ChatSessionSummary
 		wantSub  string
 	}{
 		{name: "selected row uses marker", current: "", selected: true, wantSub: "▸ abcdefghijklmnop"},
 		{name: "current session label", current: "abcdefghijklmnop", selected: false, wantSub: "current"},
 		{name: "plain row shows full id", current: "other-session", selected: false, wantSub: "abcdefghijklmnop"},
+		{
+			name:     "plan session shows plan label",
+			current:  "",
+			selected: false,
+			summary:  client.ChatSessionSummary{SessionID: "sess-plan", Mode: sessionModePlan, UpdatedAt: now},
+			wantSub:  " · plan",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := FormatSessionRow(summary, tt.current, tt.selected, &styles)
+			row := tt.summary
+			if row.SessionID == "" {
+				row = summary
+			}
+			got := FormatSessionRow(row, tt.current, tt.selected, &styles)
 			assert.Contains(t, got, tt.wantSub)
 		})
 	}
@@ -113,15 +125,41 @@ func TestHandleSessionPickKey(t *testing.T) {
 
 func TestSubmitSessionPick(t *testing.T) {
 	tests := []struct {
-		name       string
-		current    string
-		pick       int
-		wantID     string
-		wantSwitch bool
+		name         string
+		current      string
+		pick         int
+		wantID       string
+		wantSwitch   bool
+		wantPlanMode bool
+		sessions     []client.ChatSessionSummary
 	}{
-		{name: "same session does not switch", current: "sess-b", pick: 1, wantID: "sess-b", wantSwitch: false},
-		{name: "different session switches", current: "sess-a", pick: 2, wantID: "sess-c", wantSwitch: true},
-		{name: "first session switches from current third", current: "sess-c", pick: 0, wantID: "sess-a", wantSwitch: true},
+		{name: "same session does not switch", current: "sess-b", pick: 1, wantID: "sess-b", wantSwitch: false, wantPlanMode: false},
+		{
+			name:         "switch clears plan when target session is normal",
+			current:      "sess-a",
+			pick:         2,
+			wantID:       "sess-c",
+			wantSwitch:   true,
+			wantPlanMode: false,
+			sessions: []client.ChatSessionSummary{
+				{SessionID: "sess-a", Mode: sessionModePlan},
+				{SessionID: "sess-b"},
+				{SessionID: "sess-c", Mode: "normal"},
+			},
+		},
+		{
+			name:         "switch shows plan when target session is plan",
+			current:      "sess-a",
+			pick:         1,
+			wantID:       "sess-b",
+			wantSwitch:   true,
+			wantPlanMode: true,
+			sessions: []client.ChatSessionSummary{
+				{SessionID: "sess-a", Mode: "normal"},
+				{SessionID: "sess-b", Mode: sessionModePlan},
+				{SessionID: "sess-c"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -131,19 +169,89 @@ func TestSubmitSessionPick(t *testing.T) {
 			m := NewModel(nil, "default")
 			m.phase = PhaseSessionPick
 			m.sessionID = tt.current
-			m.sessionList = []client.ChatSessionSummary{
-				{SessionID: "sess-a"},
-				{SessionID: "sess-b"},
-				{SessionID: "sess-c"},
+			if tt.name == "switch clears plan when target session is normal" {
+				m.applySessionModeDisplay(sessionModePlan)
 			}
+			sessions := tt.sessions
+			if len(sessions) == 0 {
+				sessions = []client.ChatSessionSummary{
+					{SessionID: "sess-a"},
+					{SessionID: "sess-b"},
+					{SessionID: "sess-c"},
+				}
+			}
+			m.sessionList = sessions
 			m.sessionPick = tt.pick
 
 			_ = m.submitSessionPick()
 			assert.Equal(t, PhaseIdle, m.phase)
 			assert.Equal(t, tt.wantID, m.sessionID)
-			if tt.wantSwitch {
+			assert.Equal(t, tt.wantPlanMode, m.status.PlanMode)
+			if tt.wantSwitch && tt.sessions == nil {
 				assert.Equal(t, "Switched session", m.hint)
 			}
+		})
+	}
+}
+
+func TestUpdateSessionModeLoad(t *testing.T) {
+	tests := []struct {
+		name         string
+		currentID    string
+		currentMode  string
+		msg          sessionModeLoadMsg
+		wantPlanMode bool
+		wantHintSub  string
+		wantStale    bool
+	}{
+		{
+			name:         "loads normal mode after switch from plan session",
+			currentID:    "sess-b",
+			currentMode:  sessionModePlan,
+			msg:          sessionModeLoadMsg{sessionID: "sess-b", mode: "normal"},
+			wantPlanMode: false,
+			wantHintSub:  "/help",
+		},
+		{
+			name:         "loads plan mode for switched session",
+			currentID:    "sess-c",
+			currentMode:  "normal",
+			msg:          sessionModeLoadMsg{sessionID: "sess-c", mode: sessionModePlan},
+			wantPlanMode: true,
+			wantHintSub:  "Plan mode",
+		},
+		{
+			name:         "ignores stale mode response",
+			currentID:    "sess-b",
+			currentMode:  sessionModePlan,
+			msg:          sessionModeLoadMsg{sessionID: "sess-a", mode: "normal"},
+			wantPlanMode: true,
+			wantStale:    true,
+		},
+		{
+			name:         "load error clears stale plan badge",
+			currentID:    "sess-b",
+			currentMode:  sessionModePlan,
+			msg:          sessionModeLoadMsg{sessionID: "sess-b", err: "network error"},
+			wantPlanMode: false,
+			wantHintSub:  "network error",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := NewModel(nil, "default")
+			m.width = 80
+			m.height = 24
+			m.sessionID = tt.currentID
+			m.applySessionModeDisplay(tt.currentMode)
+
+			updated, _ := m.updateSessionModeLoad(tt.msg)
+			if tt.wantStale {
+				assert.True(t, updated.status.PlanMode)
+				return
+			}
+			assert.Equal(t, tt.wantPlanMode, updated.status.PlanMode)
+			assert.Contains(t, updated.hint, tt.wantHintSub)
 		})
 	}
 }

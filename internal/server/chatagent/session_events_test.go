@@ -16,6 +16,7 @@ func TestSessionEventHubPublishReleasesLock(t *testing.T) {
 		{name: "confirm while subscriber blocked", eventType: EventTypeConfirm},
 		{name: "done while subscriber blocked", eventType: EventTypeDone},
 		{name: "usage while subscriber blocked", eventType: EventTypeUsage},
+		{name: "mode_change while subscriber blocked", eventType: EventTypeModeChange},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

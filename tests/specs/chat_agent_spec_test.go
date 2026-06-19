@@ -5,6 +5,7 @@ package specs
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
@@ -114,6 +115,61 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 			}
 		}
 		Expect(assistantModels).To(Equal([]string{"chat-model", "tool-model"}))
+
+		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
+	})
+
+	It("blocks write_file in plan mode and allows it after returning to normal", func() {
+		config.App.ChatAgent.ChatModel = "fake-model"
+		config.App.Models = []config.Model{
+			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
+		}
+		config.App.ChatAgent.Compaction = config.CompactionConfig{Auto: new(false)}
+
+		target := "plan-mode-target.txt"
+		writeArgs := `{"path":"` + target + `","content":"updated"}`
+
+		model := agentllm.NewFakeModel(
+			agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+				ID: "call-plan", Type: "function",
+				FunctionCall: &llms.FunctionCall{Name: "write_file", Arguments: writeArgs},
+			}}},
+			agentllm.ResponseScript{Content: "Here is the plan without making changes."},
+			agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+				ID: "call-run", Type: "function",
+				FunctionCall: &llms.FunctionCall{Name: "write_file", Arguments: writeArgs},
+			}}},
+			agentllm.ResponseScript{Content: "File updated."},
+		)
+		orig := chatagent.NewModelForTest
+		chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
+			return model, "fake-model", nil
+		}
+		defer func() { chatagent.NewModelForTest = orig }()
+
+		ctx := context.Background()
+		sessionID := "bdd-plan-mode"
+		wsDir, err := os.MkdirTemp("", "chat-agent-plan-*")
+		Expect(err).NotTo(HaveOccurred())
+		config.App.ChatAgent.Workspace = wsDir
+		Expect(chatagent.CreateSession(ctx, "uid-plan", sessionID)).To(Succeed())
+		Expect(chatagent.SetSessionMode(ctx, sessionID, chatagent.ModePlan)).To(Succeed())
+
+		svc := chatagent.NewService()
+		reply, err := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "edit plan-mode-target.txt"}, nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(reply).To(ContainSubstring("plan"))
+
+		_, statErr := os.Stat(filepath.Join(wsDir, target))
+		Expect(os.IsNotExist(statErr)).To(BeTrue())
+
+		Expect(chatagent.SetSessionMode(ctx, sessionID, chatagent.ModeNormal)).To(Succeed())
+		reply, err = svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "now edit plan-mode-target.txt"}, nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(reply).To(ContainSubstring("updated"))
+
+		_, statErr = os.Stat(filepath.Join(wsDir, target))
+		Expect(statErr).NotTo(HaveOccurred())
 
 		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
 	})

@@ -107,7 +107,11 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	cfg.MaxSteps = subagentMaxSteps()
 
 	hookRegistry := hooks.NewRegistry()
-	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: t.deps.SessionID, UID: t.deps.UID})
+	RegisterHooks(hookRegistry, ChatHookDeps{
+		SessionID:   t.deps.SessionID,
+		UID:         t.deps.UID,
+		SessionMode: LoadSessionMode(ctx, t.deps.SessionID),
+	})
 	cfg = hooks.BridgeConfig(ctx, hookRegistry, cfg)
 
 	result, runErr := subagent.Run(ctx, def, subagent.Deps{

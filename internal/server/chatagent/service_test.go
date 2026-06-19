@@ -110,6 +110,8 @@ func TestIsChatControlCommand(t *testing.T) {
 		{name: "chat command", text: "chat", want: true},
 		{name: "end command", text: "END", want: true},
 		{name: "help command", text: "help", want: true},
+		{name: "plan command", text: "plan", want: true},
+		{name: "proceed command", text: "PROCEED", want: true},
 		{name: "normal message", text: "write a function", want: false},
 	}
 

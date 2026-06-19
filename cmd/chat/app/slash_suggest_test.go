@@ -14,7 +14,7 @@ func TestMatchSlashCommands(t *testing.T) {
 		prefix    string
 		wantNames []string
 	}{
-		{name: "empty prefix lists all", prefix: "", wantNames: []string{"help", "new", "end", "status", "context", "compact", "resume", "sessions", "permission", "export", "auth", "file", "clear", "quit"}},
+		{name: "empty prefix lists all", prefix: "", wantNames: []string{"help", "new", "end", "status", "context", "compact", "resume", "sessions", "permission", "export", "auth", "file", "plan", "clear", "quit"}},
 		{name: "help prefix", prefix: "he", wantNames: []string{"help"}},
 		{name: "shared prefix", prefix: "s", wantNames: []string{"status", "sessions"}},
 		{name: "compact prefix", prefix: "co", wantNames: []string{"context", "compact"}},

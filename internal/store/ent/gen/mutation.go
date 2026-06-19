@@ -7144,6 +7144,7 @@ type ChatSessionMutation struct {
 	leaf_id       *string
 	state         *int
 	addstate      *int
+	mode          *string
 	created_at    *time.Time
 	updated_at    *time.Time
 	clearedFields map[string]struct{}
@@ -7420,6 +7421,42 @@ func (m *ChatSessionMutation) ResetState() {
 	m.addstate = nil
 }
 
+// SetMode sets the "mode" field.
+func (m *ChatSessionMutation) SetMode(s string) {
+	m.mode = &s
+}
+
+// Mode returns the value of the "mode" field in the mutation.
+func (m *ChatSessionMutation) Mode() (r string, exists bool) {
+	v := m.mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMode returns the old "mode" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMode: %w", err)
+	}
+	return oldValue.Mode, nil
+}
+
+// ResetMode resets all changes to the "mode" field.
+func (m *ChatSessionMutation) ResetMode() {
+	m.mode = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *ChatSessionMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -7526,7 +7563,7 @@ func (m *ChatSessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ChatSessionMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.flag != nil {
 		fields = append(fields, chatsession.FieldFlag)
 	}
@@ -7538,6 +7575,9 @@ func (m *ChatSessionMutation) Fields() []string {
 	}
 	if m.state != nil {
 		fields = append(fields, chatsession.FieldState)
+	}
+	if m.mode != nil {
+		fields = append(fields, chatsession.FieldMode)
 	}
 	if m.created_at != nil {
 		fields = append(fields, chatsession.FieldCreatedAt)
@@ -7561,6 +7601,8 @@ func (m *ChatSessionMutation) Field(name string) (ent.Value, bool) {
 		return m.LeafID()
 	case chatsession.FieldState:
 		return m.State()
+	case chatsession.FieldMode:
+		return m.Mode()
 	case chatsession.FieldCreatedAt:
 		return m.CreatedAt()
 	case chatsession.FieldUpdatedAt:
@@ -7582,6 +7624,8 @@ func (m *ChatSessionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldLeafID(ctx)
 	case chatsession.FieldState:
 		return m.OldState(ctx)
+	case chatsession.FieldMode:
+		return m.OldMode(ctx)
 	case chatsession.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case chatsession.FieldUpdatedAt:
@@ -7622,6 +7666,13 @@ func (m *ChatSessionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetState(v)
+		return nil
+	case chatsession.FieldMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMode(v)
 		return nil
 	case chatsession.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -7712,6 +7763,9 @@ func (m *ChatSessionMutation) ResetField(name string) error {
 		return nil
 	case chatsession.FieldState:
 		m.ResetState()
+		return nil
+	case chatsession.FieldMode:
+		m.ResetMode()
 		return nil
 	case chatsession.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -88,6 +88,38 @@ func TestBuildSystemPrompt(t *testing.T) {
 				"- read_skill:",
 			},
 		},
+		{
+			name: "plan mode prompt shows read-only tools and guidelines",
+			options: chatagent.BuildSystemPromptOptions{
+				CWD:           root,
+				Mode:          chatagent.ModePlan,
+				SelectedTools: chatagent.ReadOnlyToolNames(),
+			},
+			wantParts: []string{
+				"Plan mode:",
+				"Do not modify files",
+				"- read_file:",
+				"- web_search:",
+			},
+			wantAbsent: []string{
+				"- write_file:",
+				"- run_terminal:",
+				"- run_code:",
+			},
+		},
+		{
+			name: "normal mode prompt unchanged with write tools",
+			options: chatagent.BuildSystemPromptOptions{
+				CWD: root,
+			},
+			wantParts: []string{
+				"- write_file:",
+				"- run_terminal:",
+			},
+			wantAbsent: []string{
+				"Plan mode:",
+			},
+		},
 	}
 
 	for _, tt := range tests {

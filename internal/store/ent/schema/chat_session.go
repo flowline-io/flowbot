@@ -22,6 +22,7 @@ func (ChatSession) Fields() []ent.Field {
 		field.String("uid").NotEmpty(),
 		field.String("leaf_id").Default(""),
 		field.Int("state").Default(0),
+		field.String("mode").Default(string(ChatSessionModeNormal)),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

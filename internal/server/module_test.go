@@ -236,6 +236,15 @@ func (*testStoreAdapter) UpdateChatSessionLeaf(_ context.Context, flag, leafID s
 	sess.LeafID = leafID
 	return nil
 }
+
+func (*testStoreAdapter) UpdateChatSessionMode(_ context.Context, flag, mode string) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.Mode = mode
+	return nil
+}
 func (*testStoreAdapter) CloseChatSession(_ context.Context, flag string) error {
 	sess, ok := testChatSessions[flag]
 	if !ok {

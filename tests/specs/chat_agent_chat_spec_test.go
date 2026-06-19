@@ -210,23 +210,40 @@ var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), f
 		Expect(view.Effective).To(HaveKey("bash"))
 	})
 
-	It("saves user permission overrides", func() {
-		body := []byte(`{"bash":{"*":"deny"}}`)
-		putReq := chatAgentRequest(http.MethodPut, "/chatagent/permissions", token, body)
-		putResp, err := App.Test(putReq)
+	It("gets and updates session mode over HTTP", func() {
+		createReq := chatAgentRequest(http.MethodPost, "/chatagent/sessions", token, nil)
+		createResp, err := App.Test(createReq)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(putResp.StatusCode).To(Equal(http.StatusOK))
+		Expect(createResp.StatusCode).To(Equal(http.StatusCreated))
 
-		getReq := chatAgentRequest(http.MethodGet, "/chatagent/permissions", token, nil)
+		var created struct {
+			SessionID string `json:"session_id"`
+		}
+		Expect(sonic.Unmarshal(ReadBody(createResp), &created)).To(Succeed())
+
+		getReq := chatAgentRequest(http.MethodGet, "/chatagent/sessions/"+created.SessionID+"/mode", token, nil)
 		getResp, err := App.Test(getReq)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(getResp.StatusCode).To(Equal(http.StatusOK))
 
-		var view struct {
-			User map[string]any `json:"user"`
+		var current struct {
+			Mode string `json:"mode"`
 		}
-		Expect(sonic.Unmarshal(ReadBody(getResp), &view)).To(Succeed())
-		Expect(view.User).To(HaveKey("bash"))
+		Expect(sonic.Unmarshal(ReadBody(getResp), &current)).To(Succeed())
+		Expect(current.Mode).To(Equal(chatagent.ModeNormal))
+
+		putBody, err := sonic.Marshal(map[string]string{"mode": chatagent.ModePlan})
+		Expect(err).NotTo(HaveOccurred())
+		putReq := chatAgentRequest(http.MethodPut, "/chatagent/sessions/"+created.SessionID+"/mode", token, putBody)
+		putResp, err := App.Test(putReq)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(putResp.StatusCode).To(Equal(http.StatusOK))
+
+		var updated struct {
+			Mode string `json:"mode"`
+		}
+		Expect(sonic.Unmarshal(ReadBody(putResp), &updated)).To(Succeed())
+		Expect(updated.Mode).To(Equal(chatagent.ModePlan))
 	})
 })
 

@@ -17,6 +17,7 @@ import (
 type SessionSummary struct {
 	SessionID string    `json:"session_id"`
 	State     string    `json:"state"`
+	Mode      string    `json:"mode"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -38,9 +39,14 @@ func ListUserActiveSessions(ctx context.Context, uid types.Uid, limit int, curso
 	}
 	out := make([]SessionSummary, 0, len(rows))
 	for _, row := range rows {
+		mode := strings.TrimSpace(row.Mode)
+		if !ValidSessionMode(mode) {
+			mode = ModeNormal
+		}
 		out = append(out, SessionSummary{
 			SessionID: row.Flag,
 			State:     sessionStateLabel(row.State),
+			Mode:      mode,
 			CreatedAt: row.CreatedAt,
 			UpdatedAt: row.UpdatedAt,
 		})
@@ -51,7 +57,7 @@ func ListUserActiveSessions(ctx context.Context, uid types.Uid, limit int, curso
 // IsChatControlCommand reports whether the message is a chat session control command.
 func IsChatControlCommand(text string) bool {
 	switch strings.ToLower(strings.TrimSpace(text)) {
-	case "chat", "end", "help":
+	case "chat", "end", "help", "plan", "proceed":
 		return true
 	default:
 		return false

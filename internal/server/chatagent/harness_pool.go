@@ -68,6 +68,7 @@ func ResetHarnessPoolForTest() {
 func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
 	evictStaleHarnesses()
 
+	var h *harness.Harness
 	if raw, ok := harnessPool.Load(req.SessionID); ok {
 		entry, ok := raw.(*pooledHarness)
 		if !ok {
@@ -78,25 +79,52 @@ func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harn
 				return nil, err
 			} else if refreshed != nil {
 				harnessPool.Store(req.SessionID, refreshed)
-				return refreshed.harness, nil
+				h = refreshed.harness
+			} else {
+				harnessPool.Store(req.SessionID, entry)
+				h = entry.harness
 			}
-			harnessPool.Store(req.SessionID, entry)
-			return entry.harness, nil
 		}
 	}
 
-	built, err := buildRunHarness(ctx, req, textLen)
-	if err != nil {
+	if h == nil {
+		built, err := buildRunHarness(ctx, req, textLen)
+		if err != nil {
+			return nil, err
+		}
+		created := &pooledHarness{
+			harness:    built.harness,
+			configHash: built.configHash,
+			promptVer:  built.promptVer,
+		}
+		created.touchLastUsed()
+		harnessPool.Store(req.SessionID, created)
+		h = built.harness
+	}
+
+	if err := applySessionMode(ctx, h, req.SessionID); err != nil {
 		return nil, err
 	}
-	created := &pooledHarness{
-		harness:    built.harness,
-		configHash: built.configHash,
-		promptVer:  built.promptVer,
+	return h, nil
+}
+
+func applySessionMode(ctx context.Context, h *harness.Harness, sessionID string) error {
+	mode := LoadSessionMode(ctx, sessionID)
+	if mode == ModePlan {
+		h.SetActiveTools(ReadOnlyToolNames())
+	} else {
+		h.SetActiveTools(ActiveToolNames())
 	}
-	created.touchLastUsed()
-	harnessPool.Store(req.SessionID, created)
-	return built.harness, nil
+	workspace, err := WorkspaceFromConfig()
+	if err != nil {
+		return err
+	}
+	systemPrompt := SessionSystemPrompt(ctx, workspace, mode)
+	h.SetSystemPrompt(systemPrompt)
+	if ctxMgr := h.ContextManager(); ctxMgr != nil {
+		ctxMgr.UpdateSystemPrompt(systemPrompt)
+	}
+	return nil
 }
 
 type builtHarness struct {
@@ -232,7 +260,11 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
 	hookRegistry := hooks.NewRegistry()
-	RegisterHooks(hookRegistry, ChatHookDeps{SessionID: req.SessionID, UID: uid})
+	RegisterHooks(hookRegistry, ChatHookDeps{
+		SessionID:   req.SessionID,
+		UID:         uid,
+		SessionMode: LoadSessionMode(ctx, req.SessionID),
+	})
 
 	configHash, err := harnessConfigHash(workspace)
 	if err != nil {

@@ -67,6 +67,11 @@ func TestRenderStatusBarContextPercent(t *testing.T) {
 			wantSub: "█",
 		},
 		{
+			name:    "plan mode chip shown",
+			snap:    StatusSnapshot{Model: "gpt-test", PlanMode: true, TotalTokens: 100, ContextWindow: 128000},
+			wantSub: " PLAN ",
+		},
+		{
 			name:    "zero tokens stays empty bar",
 			snap:    StatusSnapshot{Model: "test", TotalTokens: 0, ContextWindow: 128000},
 			wantSub: "0%",

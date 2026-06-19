@@ -29,6 +29,7 @@ var slashCommands = []SlashCommand{
 	{name: "export", desc: "Export current session to JSON", args: "<path>"},
 	{name: "auth", desc: "Show auth configuration", args: "status"},
 	{name: "file", desc: "Attach local file to next message", args: "<path>"},
+	{name: "plan", desc: "Toggle plan mode (read-only research)"},
 	{name: "clear", desc: "Clear view (keep session)"},
 	{name: "quit", desc: "Exit flowbot-chat"},
 }

@@ -123,6 +123,37 @@ func buildSystemPromptUncached(ctx context.Context, ws coding.Workspace) string 
 	})
 }
 
+// SessionSystemPrompt builds the system prompt for one session mode.
+func SessionSystemPrompt(ctx context.Context, ws coding.Workspace, mode string) string {
+	if mode != ModePlan {
+		return CachedSystemPrompt(ctx, ws)
+	}
+	cfg := config.App.ChatAgent
+	skills, err := LoadSkillsFromStore(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load skills: %v", err)
+		skills = nil
+	}
+	subagents, err := LoadSubagentsFromStore(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load subagents: %v", err)
+		subagents = nil
+	}
+	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
+	guidelines := append(append([]string(nil), cfg.PromptGuidelines...), planModeGuidelines()...)
+	return BuildSystemPrompt(BuildSystemPromptOptions{
+		CustomPrompt:       cfg.SystemPrompt,
+		PromptGuidelines:   guidelines,
+		AppendSystemPrompt: cfg.AppendSystemPrompt,
+		CWD:                ws.Root,
+		ContextFiles:       contextFiles,
+		Skills:             skills,
+		Subagents:          subagents,
+		SelectedTools:      ReadOnlyToolNames(),
+		Mode:               ModePlan,
+	})
+}
+
 func promptConfigHash(workspaceRoot string) string {
 	cfg := config.App.ChatAgent
 	language := config.App.Flowbot.Language

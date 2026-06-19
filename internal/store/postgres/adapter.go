@@ -745,6 +745,21 @@ func (a *adapter) UpdateChatSessionLeaf(ctx context.Context, flag, leafID string
 	return nil
 }
 
+func (a *adapter) UpdateChatSessionMode(ctx context.Context, flag, mode string) error {
+	n, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetMode(mode).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session mode: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
 func (a *adapter) CloseChatSession(ctx context.Context, flag string) error {
 	_, err := a.client.ChatSession.Update().
 		Where(chatsession.FlagEQ(flag)).

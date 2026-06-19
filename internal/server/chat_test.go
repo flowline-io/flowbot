@@ -9,8 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -72,6 +74,20 @@ func TestManageChatSession(t *testing.T) {
 			wantPayload: types.TextMsg{Text: "Chat ended"},
 		},
 		{
+			name:        "plan enables plan mode for active session",
+			msgAlt:      "plan",
+			session:     "active-session",
+			wantSession: "active-session",
+			wantPayload: types.TextMsg{Text: "Plan mode on. The agent will research and propose a plan without making changes."},
+		},
+		{
+			name:        "proceed disables plan mode for active session",
+			msgAlt:      "proceed",
+			session:     "active-session",
+			wantSession: "active-session",
+			wantPayload: types.TextMsg{Text: "Plan mode off. The agent can now make changes. Re-send your request to execute."},
+		},
+		{
 			name:        "unknown command returns unchanged payload and session",
 			msgAlt:      "hello",
 			session:     "active",
@@ -85,6 +101,18 @@ func TestManageChatSession(t *testing.T) {
 			origDB := store.Database
 			store.Database = &testStoreAdapter{}
 			testChatSessions = map[string]*gen.ChatSession{}
+			if tt.session != "" {
+				mode := chatagent.ModeNormal
+				if tt.msgAlt == "proceed" {
+					mode = chatagent.ModePlan
+				}
+				testChatSessions[tt.session] = &gen.ChatSession{
+					Flag:  tt.session,
+					UID:   "uid-test",
+					State: int(schema.ChatSessionActive),
+					Mode:  mode,
+				}
+			}
 			t.Cleanup(func() {
 				store.Database = origDB
 				testChatSessions = map[string]*gen.ChatSession{}
@@ -104,6 +132,16 @@ func TestManageChatSession(t *testing.T) {
 				assert.NotEmpty(t, session)
 			} else {
 				assert.Equal(t, tt.wantSession, session)
+			}
+			if tt.msgAlt == "plan" && tt.session != "" {
+				sess, ok := testChatSessions[tt.session]
+				require.True(t, ok)
+				assert.Equal(t, chatagent.ModePlan, sess.Mode)
+			}
+			if tt.msgAlt == "proceed" && tt.session != "" {
+				sess, ok := testChatSessions[tt.session]
+				require.True(t, ok)
+				assert.Equal(t, chatagent.ModeNormal, sess.Mode)
 			}
 		})
 	}

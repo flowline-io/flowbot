@@ -21,6 +21,9 @@ func (m *Model) syncLayout() {
 
 func (m *Model) footerHeight() int {
 	h := 3 // separators + status bar
+	if m.status.PlanMode {
+		h++
+	}
 	if m.hint != "" {
 		h++
 	}
@@ -72,6 +75,10 @@ func (m *Model) renderFooter() string {
 	writeBuilder(&b, "\n")
 	writeBuilder(&b, RenderStatusBar(m.status, &m.styles))
 	writeBuilder(&b, "\n")
+	if m.status.PlanMode {
+		writeBuilder(&b, m.styles.Warning.Render("● Plan mode — read-only (research & plan). /plan to exit."))
+		writeBuilder(&b, "\n")
+	}
 	writeBuilder(&b, FormatSeparator(m.width, &m.styles))
 	writeBuilder(&b, "\n")
 

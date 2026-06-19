@@ -41,6 +41,8 @@ type BuildSystemPromptOptions struct {
 	Skills []Skill
 	// Subagents are delegation targets injected into the prompt for the task tool.
 	Subagents []Subagent
+	// Mode selects plan vs normal prompt behavior; empty means normal.
+	Mode string
 }
 
 // DefaultToolSnippets returns one-line tool descriptions for the chat assistant.
@@ -94,7 +96,12 @@ func BuildSystemPrompt(options BuildSystemPromptOptions) string {
 	toolsList := formatToolsList(tools, snippets)
 	guidelines := formatGuidelines(tools, options.PromptGuidelines, language)
 
-	body := defaultPromptIntro() + fmt.Sprintf(`
+	planSection := ""
+	if options.Mode == ModePlan {
+		planSection = planModePromptSection()
+	}
+
+	body := defaultPromptIntro() + planSection + fmt.Sprintf(`
 
 Available tools:
 %s
@@ -247,6 +254,22 @@ func formatGuidelines(tools, extra []string, language string) string {
 		lines[i] = "- " + item
 	}
 	return strings.Join(lines, "\n")
+}
+
+func planModePromptSection() string {
+	return `
+
+Plan mode:
+You are in plan mode. Research thoroughly using read-only tools, then present a clear actionable plan.
+Do not modify files, run shell commands, or execute code. Describe proposed changes step-by-step so the user can approve execution after exiting plan mode.`
+}
+
+func planModeGuidelines() []string {
+	return []string{
+		"Plan mode is active: research and analyze thoroughly, then present a clear actionable plan",
+		"Do not modify files, run shell commands, or execute code in plan mode",
+		"Describe proposed changes step-by-step so the user can approve execution after exiting plan mode",
+	}
 }
 
 func finalizePrompt(

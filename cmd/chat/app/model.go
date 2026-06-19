@@ -21,6 +21,20 @@ type tickMsg time.Time
 type initDoneMsg struct {
 	info      *client.ChatAgentInfo
 	sessionID string
+	mode      string
+	err       string
+}
+
+// sessionModeMsg reports the result of a /plan toggle.
+type sessionModeMsg struct {
+	mode string
+	err  string
+}
+
+// sessionModeLoadMsg reports the mode fetched after switching sessions.
+type sessionModeLoadMsg struct {
+	sessionID string
+	mode      string
 	err       string
 }
 
@@ -60,6 +74,7 @@ type Model struct {
 
 	info       *client.ChatAgentInfo
 	sessionID  string
+	mode       string
 	serverHost string
 
 	viewport viewport.Model
@@ -148,8 +163,42 @@ func NewModel(cl *client.Client, profile string) *Model {
 	}
 }
 
+const sessionModePlan = "plan"
+
 func defaultHint() string {
+	return inputHintFor("")
+}
+
+// inputHintFor returns the input-area hint for the given session mode.
+func inputHintFor(mode string) string {
+	if mode == sessionModePlan {
+		return "Plan mode (read-only) · /plan to exit · /help"
+	}
 	return "/help · /new · /file · Ctrl+C quit"
+}
+
+// applySessionModeDisplay syncs plan-mode indicators across status bar and hint line.
+func (m *Model) applySessionModeDisplay(mode string) {
+	if mode == "" {
+		mode = "normal"
+	}
+	m.mode = mode
+	m.status.PlanMode = mode == sessionModePlan
+	m.hint = inputHintFor(mode)
+}
+
+func (m *Model) resetInputHint() {
+	m.hint = inputHintFor(m.mode)
+}
+
+// finalizeSessionMode applies server mode to UI chrome and respects session cache hints.
+func (m *Model) finalizeSessionMode(mode string) {
+	m.applySessionModeDisplay(mode)
+	if hint := sessionCacheHint(SaveSessionID(m.profile, m.sessionID)); hint != "" {
+		m.hint = hint
+	}
+	m.syncLayout()
+	m.syncViewport()
 }
 
 // Init loads agent info and resumes any saved session.
@@ -169,7 +218,14 @@ func (m *Model) initCmd() tea.Cmd {
 		if err != nil {
 			return initDoneMsg{err: err.Error()}
 		}
-		return initDoneMsg{info: info, sessionID: sessionID}
+		var mode string
+		if sessionID != "" {
+			mode, err = m.client.ChatAgent.GetSessionMode(ctx, sessionID)
+			if err != nil {
+				return initDoneMsg{err: err.Error()}
+			}
+		}
+		return initDoneMsg{info: info, sessionID: sessionID, mode: mode}
 	}
 }
 

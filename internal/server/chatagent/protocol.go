@@ -11,6 +11,7 @@ const (
 	EventTypeUsage           = "usage"
 	EventTypeConfirm         = "confirm"
 	EventTypeConfirmResolved = "confirm_resolved"
+	EventTypeModeChange      = "mode_change"
 	EventTypeCanceled        = "canceled"
 	EventTypeDone            = "done"
 	EventTypeError           = "error"

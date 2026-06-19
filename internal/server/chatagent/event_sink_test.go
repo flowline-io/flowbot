@@ -17,6 +17,7 @@ func TestChannelPublisherPublish(t *testing.T) {
 		{name: "drops delta when full", eventType: EventTypeDelta, critical: false},
 		{name: "blocks confirm when full", eventType: EventTypeConfirm, critical: true},
 		{name: "blocks done when full", eventType: EventTypeDone, critical: true},
+		{name: "blocks mode_change when full", eventType: EventTypeModeChange, critical: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

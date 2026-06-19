@@ -39,6 +39,8 @@ func RegisterChatAgentRoutes(a *fiber.App) {
 	a.Put("/chatagent/permissions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.putPermissions)))
 	a.Delete("/chatagent/permissions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.deletePermissions)))
 	a.Get("/chatagent/sessions/:id/events", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.sessionEvents)))
+	a.Get("/chatagent/sessions/:id/mode", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.getSessionMode)))
+	a.Put("/chatagent/sessions/:id/mode", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.putSessionMode)))
 	a.Delete("/chatagent/sessions/:id/permission-grants", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.clearPermissionGrants)))
 
 	if config.ChatAgentEnabled() {
@@ -425,6 +427,43 @@ func drainChatAgentSSE(w *bufio.Writer, publisher *chatagent.ChannelPublisher) {
 	}
 }
 
+func (h *chatAgentHTTP) getSessionMode(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(fiber.Map{"mode": chatagent.LoadSessionMode(c.Context(), sessionID)})
+}
+
+type sessionModeBody struct {
+	Mode string `json:"mode"`
+}
+
+func (h *chatAgentHTTP) putSessionMode(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	var body sessionModeBody
+	if err := sonic.Unmarshal(c.Body(), &body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+	}
+	mode := strings.TrimSpace(body.Mode)
+	if !chatagent.ValidSessionMode(mode) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid mode"})
+	}
+	if err := chatagent.SetSessionModeAndNotify(c.Context(), sessionID, mode); err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(fiber.Map{"mode": mode})
+}
+
 func (h *chatAgentHTTP) getPermissions(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
@@ -527,7 +566,7 @@ func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
 					return
 				}
 				switch ev.Type {
-				case chatagent.EventTypeConfirm, chatagent.EventTypeConfirmResolved, chatagent.EventTypeCanceled:
+				case chatagent.EventTypeConfirm, chatagent.EventTypeConfirmResolved, chatagent.EventTypeCanceled, chatagent.EventTypeModeChange:
 					if writeChatAgentSSE(w, ev) {
 						return
 					}

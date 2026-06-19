@@ -231,6 +231,7 @@ var (
 		{Name: "uid", Type: field.TypeString},
 		{Name: "leaf_id", Type: field.TypeString, Default: ""},
 		{Name: "state", Type: field.TypeInt, Default: 0},
+		{Name: "mode", Type: field.TypeString, Default: "normal"},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

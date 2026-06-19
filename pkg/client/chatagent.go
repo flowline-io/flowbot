@@ -101,6 +101,7 @@ type ChatHistoryMessage struct {
 type ChatSessionSummary struct {
 	SessionID string    `json:"session_id"`
 	State     string    `json:"state"`
+	Mode      string    `json:"mode"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -305,6 +306,25 @@ func (cc *ChatAgentClient) DeletePermissions(ctx context.Context) (*ChatPermissi
 // ClearPermissionGrants clears session-scoped always-allow patterns.
 func (cc *ChatAgentClient) ClearPermissionGrants(ctx context.Context, sessionID string) error {
 	return cc.chatDelete(ctx, "/chatagent/sessions/"+sessionID+"/permission-grants", nil)
+}
+
+// GetSessionMode returns the persisted mode for one chat session.
+func (cc *ChatAgentClient) GetSessionMode(ctx context.Context, sessionID string) (string, error) {
+	var resp struct {
+		Mode string `json:"mode"`
+	}
+	if err := cc.chatGet(ctx, "/chatagent/sessions/"+sessionID+"/mode", &resp); err != nil {
+		return "", err
+	}
+	return resp.Mode, nil
+}
+
+// SetSessionMode toggles plan vs normal mode for one chat session.
+func (cc *ChatAgentClient) SetSessionMode(ctx context.Context, sessionID, mode string) error {
+	var resp struct {
+		Mode string `json:"mode"`
+	}
+	return cc.chatPut(ctx, "/chatagent/sessions/"+sessionID+"/mode", map[string]string{"mode": mode}, &resp)
 }
 
 // Cancel aborts the in-flight run for a session.

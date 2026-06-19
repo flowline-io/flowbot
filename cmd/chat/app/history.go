@@ -225,8 +225,14 @@ func repeatRune(r rune, n int) string {
 }
 
 // SessionStatusText formats /status output.
-func SessionStatusText(sessionID string, messageCount int) string {
-	return fmt.Sprintf("Session: %s · messages: %d", sessionID, messageCount)
+func SessionStatusText(sessionID string, messageCount int, mode string) string {
+	line := fmt.Sprintf("Session: %s · messages: %d", sessionID, messageCount)
+	if mode == sessionModePlan {
+		line += " · mode: plan (read-only)"
+	} else {
+		line += " · mode: normal"
+	}
+	return line
 }
 
 // EstimateHistoryTokens approximates context usage from persisted message text.

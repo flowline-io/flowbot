@@ -95,6 +95,11 @@ func (p hubPublisher) Publish(event StreamEvent) error {
 	return nil
 }
 
+// PublishSessionEvent delivers one event to all SSE subscribers for a session.
+func PublishSessionEvent(sessionID string, event StreamEvent) {
+	GetSessionEventHub(sessionID).publish(event)
+}
+
 // ResetSessionEventHubsForTest clears all session event hubs.
 func ResetSessionEventHubsForTest() {
 	sessionEventHubs = sync.Map{}

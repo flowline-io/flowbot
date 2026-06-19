@@ -54,6 +54,12 @@ func (m *Model) updateSessionCommandMsg(msg tea.Msg) (*Model, tea.Cmd, bool) {
 	case sessionCompactMsg:
 		next, cmd := m.updateSessionCompact(msg)
 		return next, cmd, true
+	case sessionModeMsg:
+		next, cmd := m.updateSessionMode(msg)
+		return next, cmd, true
+	case sessionModeLoadMsg:
+		next, cmd := m.updateSessionModeLoad(msg)
+		return next, cmd, true
 	case sessionsListMsg:
 		next, cmd := m.updateSessionsList(msg)
 		return next, cmd, true
@@ -84,9 +90,7 @@ func (m *Model) updateInitDone(msg initDoneMsg) (*Model, tea.Cmd) {
 	}
 	if msg.sessionID != "" {
 		m.sessionID = msg.sessionID
-		if hint := sessionCacheHint(SaveSessionID(m.profile, msg.sessionID)); hint != "" {
-			m.hint = hint
-		}
+		m.finalizeSessionMode(msg.mode)
 	}
 	m.serverHost = m.client.BaseURL()
 	if m.sessionID != "" {
@@ -112,6 +116,7 @@ func (m *Model) updateSessionNew(msg sessionNewMsg) (*Model, tea.Cmd) {
 		return m, m.focusInputCmd()
 	}
 	m.sessionID = msg.id
+	m.applySessionModeDisplay("normal")
 	if hint := sessionCacheHint(SaveSessionID(m.profile, msg.id)); hint != "" {
 		m.hint = hint
 	}
@@ -128,6 +133,7 @@ func (m *Model) updateSessionEnd(msg sessionEndMsg) (*Model, tea.Cmd) {
 		m.hint = msg.err
 	} else {
 		m.sessionID = ""
+		m.applySessionModeDisplay("")
 		if msg.warn != "" {
 			m.hint = msg.warn
 		} else {
@@ -162,7 +168,7 @@ func (m *Model) updateStreamEvent(msg streamEventMsg) (*Model, tea.Cmd) {
 func (m *Model) updateStreamDone(msg streamDoneMsg) (*Model, tea.Cmd) {
 	m.phase = PhaseIdle
 	m.status.Streaming = false
-	m.hint = defaultHint()
+	m.resetInputHint()
 	if msg.err != nil && !m.quitting {
 		m.appendSystem(fmt.Sprintf("Error: %v", msg.err))
 	}
@@ -235,7 +241,7 @@ func (m *Model) handleUserInput(text string) (*Model, tea.Cmd) {
 	m.appendUser(text)
 	payload := WrapUserMessage(m.pendingFile, text)
 	m.pendingFile = nil
-	m.hint = defaultHint()
+	m.resetInputHint()
 	return m.startStream(payload)
 }
 
@@ -264,6 +270,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		return m.handleSlashPermission(args)
 	case "auth":
 		return m.handleSlashAuth(args)
+	case "plan":
+		return m.handleSlashPlan()
 	default:
 		m.hint = "Unknown command; try /help"
 		return m, nil
@@ -303,7 +311,7 @@ func (m *Model) handleCtrlCKey() (*Model, tea.Cmd) {
 	case CtrlCCancelSessionPick:
 		m.clearSessionPick()
 		m.phase = PhaseIdle
-		m.hint = defaultHint()
+		m.resetInputHint()
 		return m, m.focusInputCmd()
 	default:
 		return m, nil
@@ -331,6 +339,61 @@ func (m *Model) handleSlashAuth(args string) (*Model, tea.Cmd) {
 	} else {
 		m.appendSystem("Use 'flowbot-cli login' to configure auth")
 	}
+	return m, m.focusInputCmd()
+}
+
+func (m *Model) handleSlashPlan() (*Model, tea.Cmd) {
+	if m.sessionID == "" {
+		m.hint = "No active session"
+		return m, nil
+	}
+	return m, m.sessionModeToggleCmd()
+}
+
+func (m *Model) sessionModeToggleCmd() tea.Cmd {
+	sessionID := m.sessionID
+	current := m.mode
+	cl := m.client
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		next := sessionModePlan
+		if current == sessionModePlan {
+			next = "normal"
+		}
+		if err := cl.ChatAgent.SetSessionMode(ctx, sessionID, next); err != nil {
+			return sessionModeMsg{err: err.Error()}
+		}
+		return sessionModeMsg{mode: next}
+	}
+}
+
+func (m *Model) updateSessionMode(msg sessionModeMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.hint = msg.err
+		return m, m.focusInputCmd()
+	}
+	m.finalizeSessionMode(msg.mode)
+	if msg.mode == sessionModePlan {
+		m.appendSystem("Plan mode on. The agent will research and propose a plan without making changes.")
+	} else {
+		m.appendSystem("Plan mode off. The agent can now make changes.")
+	}
+	return m, m.focusInputCmd()
+}
+
+func (m *Model) updateSessionModeLoad(msg sessionModeLoadMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.applySessionModeDisplay("normal")
+		m.hint = msg.err
+		m.syncLayout()
+		m.syncViewport()
+		return m, m.focusInputCmd()
+	}
+	if msg.sessionID != m.sessionID {
+		return m, nil
+	}
+	m.finalizeSessionMode(msg.mode)
 	return m, m.focusInputCmd()
 }
 
@@ -408,11 +471,43 @@ func (m *Model) pumpStream() tea.Cmd {
 }
 
 func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
+	m.applyLifecycleStreamEvent(ev)
+	m.applyProgressStreamEvent(ev)
+	m.applyControlStreamEvent(ev)
+	m.syncViewport()
+	var cmd tea.Cmd
+	if m.renderPending {
+		cmd = renderTickCmd(RenderDebounce(m.rawAssistant))
+	}
+	return m, cmd
+}
+
+func (m *Model) applyLifecycleStreamEvent(ev client.ChatStreamEvent) {
 	switch ev.Type {
 	case "delta":
 		m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
 		m.renderPending = true
 		m.renderDeadline = time.Now().Add(RenderDebounce(m.rawAssistant))
+	case "canceled":
+		m.phase = PhaseIdle
+		m.hint = "Canceled — ready for input"
+		m.clearConfirm()
+	case "done":
+		if ev.Text != "" {
+			m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
+		}
+		m.finalizeAssistant()
+		m.phase = PhaseIdle
+		m.resetInputHint()
+	case "error":
+		m.appendSystem("Error: " + ev.Message)
+		m.phase = PhaseIdle
+		m.resetInputHint()
+	}
+}
+
+func (m *Model) applyProgressStreamEvent(ev client.ChatStreamEvent) {
+	switch ev.Type {
 	case "tool":
 		line := formatToolEventLine(ev)
 		if ev.Stdout != "" {
@@ -427,6 +522,11 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 			m.status.ContextWindow = m.effectiveContextWindow()
 		}
 		m.status.ContextPercent = contextUsagePercent(ev.TotalTokens, m.status.ContextWindow, ev.ContextPercent)
+	}
+}
+
+func (m *Model) applyControlStreamEvent(ev client.ChatStreamEvent) {
+	switch ev.Type {
 	case "confirm":
 		m.phase = PhaseConfirming
 		m.pendingConfirmID = ev.ID
@@ -444,28 +544,11 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 			m.phase = PhaseStreaming
 			m.hint = "Ctrl+C cancel run"
 		}
-	case "canceled":
-		m.phase = PhaseIdle
-		m.hint = "Canceled — ready for input"
-		m.clearConfirm()
-	case "done":
-		if ev.Text != "" {
-			m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
+	case "mode_change":
+		if ev.Mode != "" {
+			m.finalizeSessionMode(ev.Mode)
 		}
-		m.finalizeAssistant()
-		m.phase = PhaseIdle
-		m.hint = defaultHint()
-	case "error":
-		m.appendSystem("Error: " + ev.Message)
-		m.phase = PhaseIdle
-		m.hint = defaultHint()
 	}
-	m.syncViewport()
-	var cmd tea.Cmd
-	if m.renderPending {
-		cmd = renderTickCmd(RenderDebounce(m.rawAssistant))
-	}
-	return m, cmd
 }
 
 func (m *Model) clearConfirm() {
