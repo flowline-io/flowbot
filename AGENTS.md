@@ -2,28 +2,18 @@
 
 Homelab Data Hub & Capability Orchestration Center.
 
-## Dir Reference
+## Coding guidelines 
 
-| Task             | Location            | Notes                                                 |
-| ---------------- | ------------------- | ----------------------------------------------------- |
-| Add new module   | `internal/modules/` | See `AGENTS.md` there; reference `modules/example/`   |
-| Module framework | `pkg/module/`       | Handler interface                                     |
-| Database work    | `internal/store/`   | DAO pattern, all DB queries in store.go, migrations   |
-| New provider     | `pkg/providers/`    | See `AGENTS.md` there; reference `providers/example/` |
-| Capability layer | `pkg/ability/`      | reference `ability/example/`                          |
-| Agent engine     | `pkg/agent/`        | Observe-Think-Act loop, tools, session tree         |
-| Pipeline engine  | `pkg/pipeline/`     | Event-driven pipelines                                |
-| Workflow engine  | `pkg/workflow/`     | Workflow runtime                                      |
-| Hub management   | `pkg/hub/`          | App lifecycle                                         |
-| Homelab registry | `pkg/homelab/`      | App scanning                                          |
-| Authentication   | `pkg/auth/`         | AuthContext helpers                                   |
-| Notifications    | `pkg/notify/`       | Multi-channel notify                                  |
-| Core types       | `pkg/types/`        | Rulesets, protocol, KV                                |
-| Chat platforms   | `internal/platforms/` | See `AGENTS.md` there; reference `platforms/slack/`  |
-| API routes       | `internal/server/`  | Fiber v3 handlers, fx DI                              |
-| Entry points     | `cmd/`              | See `AGENTS.md` there                                 |
-| Utilities        | `pkg/utils/`        | Must have unit tests                                  |
-| Web UI           | `pkg/views/`        | templ templates, pages/partials/layout                |
+* Prioritize code correctness and clarity. Speed and efficiency are secondary priorities unless otherwise specified.
+* Prefer implementing functionality in existing files unless it is a new logical component. Avoid creating many small files.
+* Do not write organizational or comments that summarize the code. Comments should only be written in order to explain "why" the code is written in some way in the case there is a reason that is tricky / non-obvious.
+* Go 1.26.3+, PostgreSQL, Redis required
+* Do not use emojis
+* Run lint and test after modifying code
+* Text in English: comments, docs, commit messages
+* Code must have TDD + BDD tests
+* In functions, variables, structs, interfaces, etc., must be commented using godoc.
+* NEVER git commit unless asked.
 
 ## Key Patterns
 
@@ -83,13 +73,3 @@ go tool task ent              # Generate ent code from database
 - Build: `taskfile.yaml`
 - Lint: `revive.toml`
 - CI: `.github/workflows/build.yml`
-
-## Notes
-
-- Go 1.26.3+, PostgreSQL, Redis required
-- Do not use emojis
-- Run lint and test after modifying code
-- Text in English: comments, docs, commit messages
-- Code must have TDD + BDD tests
-- In functions, variables, structs, interfaces, etc., must be commented using godoc. These comments should explain "what" and "why," without repeating "how.", and should be kept synchronized with the code.
-- NEVER git commit unless asked.
