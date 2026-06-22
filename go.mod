@@ -60,7 +60,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/swag v1.16.6
 	github.com/testcontainers/testcontainers-go v0.43.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.43.0
 	github.com/tetratelabs/wazero v1.12.0
 	github.com/tidwall/gjson v1.19.0
 	github.com/tmc/langchaingo v0.1.14
