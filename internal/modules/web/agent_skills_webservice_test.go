@@ -93,6 +93,87 @@ func (s *testStore) DeleteAgentSkill(_ context.Context, flag string) error {
 		return types.ErrNotFound
 	}
 	delete(s.agentSkills, flag)
+	if s.agentSkillFiles != nil {
+		delete(s.agentSkillFiles, flag)
+	}
+	return nil
+}
+
+func (s *testStore) ListAgentSkillFiles(_ context.Context, skillFlag string) ([]*gen.AgentSkillFile, error) {
+	if s.agentSkillFiles == nil {
+		return nil, nil
+	}
+	files := s.agentSkillFiles[skillFlag]
+	rows := make([]*gen.AgentSkillFile, 0, len(files))
+	for _, file := range files {
+		rows = append(rows, file)
+	}
+	return rows, nil
+}
+
+func (s *testStore) GetAgentSkillFile(_ context.Context, skillFlag, path string) (*gen.AgentSkillFile, error) {
+	if s.agentSkillFiles == nil {
+		return nil, types.ErrNotFound
+	}
+	files := s.agentSkillFiles[skillFlag]
+	if files == nil {
+		return nil, types.ErrNotFound
+	}
+	file, ok := files[path]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return file, nil
+}
+
+func (s *testStore) CreateAgentSkillFile(_ context.Context, file *gen.AgentSkillFile) error {
+	if s.agentSkillFiles == nil {
+		s.agentSkillFiles = make(map[string]map[string]*gen.AgentSkillFile)
+	}
+	if s.agentSkillFiles[file.SkillFlag] == nil {
+		s.agentSkillFiles[file.SkillFlag] = make(map[string]*gen.AgentSkillFile)
+	}
+	if _, exists := s.agentSkillFiles[file.SkillFlag][file.Path]; exists {
+		return types.Errorf(types.ErrInvalidArgument, "agent_skill_files_skill_flag_path_key")
+	}
+	s.agentSkillFiles[file.SkillFlag][file.Path] = file
+	return nil
+}
+
+func (s *testStore) UpdateAgentSkillFile(_ context.Context, file *gen.AgentSkillFile) error {
+	if s.agentSkillFiles == nil {
+		return types.ErrNotFound
+	}
+	files := s.agentSkillFiles[file.SkillFlag]
+	if files == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := files[file.Path]; !ok {
+		return types.ErrNotFound
+	}
+	files[file.Path] = file
+	return nil
+}
+
+func (s *testStore) DeleteAgentSkillFile(_ context.Context, skillFlag, path string) error {
+	if s.agentSkillFiles == nil {
+		return types.ErrNotFound
+	}
+	files := s.agentSkillFiles[skillFlag]
+	if files == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := files[path]; !ok {
+		return types.ErrNotFound
+	}
+	delete(files, path)
+	return nil
+}
+
+func (s *testStore) DeleteAgentSkillFilesByFlag(_ context.Context, skillFlag string) error {
+	if s.agentSkillFiles != nil {
+		delete(s.agentSkillFiles, skillFlag)
+	}
 	return nil
 }
 
@@ -472,4 +553,135 @@ func buildFormBody(values map[string]string) string {
 		form.Set(key, value)
 	}
 	return form.Encode()
+}
+
+func TestValidateAgentSkillFileForm(t *testing.T) {
+	tests := []struct {
+		name    string
+		item    model.AgentSkillFile
+		isNew   bool
+		wantKey string
+	}{
+		{name: "empty path rejected on create", item: model.AgentSkillFile{Content: "body"}, isNew: true, wantKey: "path"},
+		{name: "invalid path rejected", item: model.AgentSkillFile{Path: "../bad.md", Content: "body"}, isNew: true, wantKey: "path"},
+		{name: "empty content rejected", item: model.AgentSkillFile{Path: "reference.md"}, isNew: true, wantKey: "content"},
+		{name: "valid update passes without path validation", item: model.AgentSkillFile{Path: "reference.md", Content: "body"}, isNew: false, wantKey: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			errs := validateAgentSkillFileForm(tt.item, tt.isNew)
+			if tt.wantKey == "" {
+				require.Empty(t, errs)
+				return
+			}
+			require.Contains(t, errs, tt.wantKey)
+		})
+	}
+}
+
+func TestAgentSkillFileCreateAuthenticated(t *testing.T) {
+	tests := []struct {
+		name       string
+		form       map[string]string
+		wantStatus int
+		wantPath   string
+	}{
+		{
+			name:       "creates file",
+			form:       map[string]string{"path": "reference.md", "content": "reference body"},
+			wantStatus: http.StatusOK,
+			wantPath:   "reference.md",
+		},
+		{
+			name:       "rejects empty content",
+			form:       map[string]string{"path": "reference.md", "content": "  "},
+			wantStatus: http.StatusUnprocessableEntity,
+		},
+		{
+			name:       "rejects invalid path",
+			form:       map[string]string{"path": "../bad.md", "content": "body"},
+			wantStatus: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := &testStore{
+				agentSkills: map[string]*gen.AgentSkill{
+					"demo-skill": {
+						Flag:        "demo-skill",
+						Name:        "demo-skill",
+						Description: "Demo",
+						Content:     "body",
+						Enabled:     true,
+					},
+				},
+				agentSkillFiles: map[string]map[string]*gen.AgentSkillFile{},
+			}
+			app := setupAuthenticatedApp(t, ts)
+			chatagent.ResetPromptCacheForTest()
+			before := chatagent.PromptCacheVersion()
+
+			body := buildFormBody(tt.form)
+			req := httptest.NewRequest(http.MethodPost, "/service/web/agent-skills/demo-skill/files", strings.NewReader(body))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("Cookie", "accessToken=test-token")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantPath != "" {
+				file, ok := ts.agentSkillFiles["demo-skill"][tt.wantPath]
+				require.True(t, ok)
+				assert.Equal(t, "reference body", file.Content)
+				assert.Greater(t, chatagent.PromptCacheVersion(), before)
+			}
+		})
+	}
+}
+
+func TestAgentSkillFileDeleteAuthenticated(t *testing.T) {
+	tests := []struct {
+		name       string
+		path       string
+		wantStatus int
+		wantGone   bool
+	}{
+		{name: "deletes existing file", path: "reference.md", wantStatus: http.StatusOK, wantGone: true},
+		{name: "returns not found for missing file", path: "missing.md", wantStatus: http.StatusNotFound},
+		{name: "rejects empty path", path: "", wantStatus: http.StatusUnprocessableEntity},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := &testStore{
+				agentSkills: map[string]*gen.AgentSkill{
+					"demo-skill": {
+						Flag: "demo-skill", Name: "demo-skill", Description: "Demo", Content: "body", Enabled: true,
+					},
+				},
+				agentSkillFiles: map[string]map[string]*gen.AgentSkillFile{
+					"demo-skill": {
+						"reference.md": {SkillFlag: "demo-skill", Path: "reference.md", Content: "body"},
+					},
+				},
+			}
+			app := setupAuthenticatedApp(t, ts)
+
+			target := "/service/web/agent-skills/demo-skill/files?path=" + url.QueryEscape(tt.path)
+			req := httptest.NewRequest(http.MethodDelete, target, http.NoBody)
+			req.Header.Set("Cookie", "accessToken=test-token")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantGone {
+				_, ok := ts.agentSkillFiles["demo-skill"]["reference.md"]
+				assert.False(t, ok)
+			}
+		})
+	}
 }

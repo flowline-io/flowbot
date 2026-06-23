@@ -18,7 +18,7 @@ func (ReadSkillTool) Name() string { return "read_skill" }
 
 // Description explains the tool to the model.
 func (ReadSkillTool) Description() string {
-	return "Loads the full instructions for a named agent skill from the database"
+	return "Loads skill instructions from the database by name; optional path loads an auxiliary file from the skill directory"
 }
 
 // Parameters returns the JSON schema for tool arguments.
@@ -29,6 +29,10 @@ func (ReadSkillTool) Parameters() map[string]any {
 			"name": map[string]any{
 				"type":        "string",
 				"description": "Skill name from available_skills",
+			},
+			"path": map[string]any{
+				"type":        "string",
+				"description": "Optional relative path to an auxiliary skill file",
 			},
 		},
 		"required": []string{"name"},
@@ -45,16 +49,29 @@ func (ReadSkillTool) Execute(ctx context.Context, id string, args map[string]any
 		name = after
 	}
 
-	content, err := GetSkillContent(ctx, name)
+	filePath := strings.TrimSpace(fmt.Sprint(args["path"]))
+	var (
+		content SkillContent
+		err     error
+	)
+	if filePath != "" && filePath != "<nil>" {
+		content, err = GetSkillFile(ctx, name, filePath)
+	} else {
+		content, err = GetSkillContent(ctx, name)
+	}
 	if err != nil {
-		flog.Warn("[chat-agent] read_skill failed name=%s: %v", name, err)
+		flog.Warn("[chat-agent] read_skill failed name=%s path=%s: %v", name, filePath, err)
 		return skillToolError(id, fmt.Sprintf("read skill %q: %v", name, err)), nil
 	}
-	flog.Debug("[chat-agent] read_skill ok name=%s content_len=%d", name, len(content.Content))
+	flog.Debug("[chat-agent] read_skill ok name=%s path=%s content_len=%d", name, filePath, len(content.Content))
 
-	text := content.Content
-	if content.BaseDir != "" {
-		text = fmt.Sprintf("Skill base directory: %s\n\n%s", content.BaseDir, content.Content)
+	text := formatSkillContentText(content)
+	if filePath != "" && filePath != "<nil>" {
+		if content.BaseDir != "" {
+			text = fmt.Sprintf("Skill base directory: %s\nPath: %s\n\n%s", content.BaseDir, filePath, content.Content)
+		} else {
+			text = fmt.Sprintf("Path: %s\n\n%s", filePath, content.Content)
+		}
 	}
 
 	return msg.ToolResultMessage{

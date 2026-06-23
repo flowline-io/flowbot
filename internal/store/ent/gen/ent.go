@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
@@ -123,6 +124,7 @@ func checkColumn(t, c string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			agent.Table:                     agent.ValidColumn,
 			agentskill.Table:                agentskill.ValidColumn,
+			agentskillfile.Table:            agentskillfile.ValidColumn,
 			agentsubagent.Table:             agentsubagent.ValidColumn,
 			app.Table:                       app.ValidColumn,
 			auditlog.Table:                  auditlog.ValidColumn,

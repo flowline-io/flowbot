@@ -106,6 +106,14 @@ templ AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string
 						Cancel
 					</button>
 				</div>
+				if !isNew {
+					<div id={ agentSkillFilesContainerID(item) }
+						class="md:col-span-2"
+						hx-get={ agentSkillFilesListURL(item) }
+						hx-trigger="load"
+						hx-swap="innerHTML">
+					</div>
+				}
 			</div>
 		</td>
 	</tr>

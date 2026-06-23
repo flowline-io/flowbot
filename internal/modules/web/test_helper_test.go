@@ -29,6 +29,7 @@ type testStore struct {
 	paramDelFn            func(ctx context.Context, flag string) error
 	agentSkills           map[string]*gen.AgentSkill
 	agentSkillsErr        error
+	agentSkillFiles       map[string]map[string]*gen.AgentSkillFile
 	createAgentSkillFn    func(skill *gen.AgentSkill) error
 	updateAgentSkillFn    func(skill *gen.AgentSkill) error
 	deleteAgentSkillFn    func(flag string) error

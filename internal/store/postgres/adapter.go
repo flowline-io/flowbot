@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
@@ -1113,17 +1114,31 @@ func (a *adapter) ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen
 }
 
 func (a *adapter) GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
+	var maxUpdated time.Time
 	row, err := a.client.AgentSkill.Query().
 		Where(agentskill.EnabledEQ(true)).
 		Order(gen.Desc(agentskill.FieldUpdatedAt)).
 		First(ctx)
 	if err != nil {
-		if gen.IsNotFound(err) {
-			return time.Time{}, nil
+		if !gen.IsNotFound(err) {
+			return time.Time{}, fmt.Errorf("postgres: agent skills max updated_at: %w", err)
 		}
-		return time.Time{}, fmt.Errorf("postgres: agent skills max updated_at: %w", err)
+	} else {
+		maxUpdated = row.UpdatedAt
 	}
-	return row.UpdatedAt, nil
+	fileRow, err := a.client.AgentSkillFile.Query().
+		Order(gen.Desc(agentskillfile.FieldUpdatedAt)).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return maxUpdated, nil
+		}
+		return time.Time{}, fmt.Errorf("postgres: agent skill files max updated_at: %w", err)
+	}
+	if fileRow.UpdatedAt.After(maxUpdated) {
+		maxUpdated = fileRow.UpdatedAt
+	}
+	return maxUpdated, nil
 }
 
 func (a *adapter) GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error) {
@@ -1203,14 +1218,130 @@ func (a *adapter) UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) e
 }
 
 func (a *adapter) DeleteAgentSkill(ctx context.Context, flag string) error {
-	n, err := a.client.AgentSkill.Delete().
+	tx, err := a.client.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("postgres: begin delete agent skill tx: %w", err)
+	}
+	if _, err := tx.AgentSkillFile.Delete().
+		Where(agentskillfile.SkillFlagEQ(flag)).
+		Exec(ctx); err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			return fmt.Errorf("postgres: delete agent skill files: %w (rollback: %v)", err, rerr)
+		}
+		return fmt.Errorf("postgres: delete agent skill files: %w", err)
+	}
+	n, err := tx.AgentSkill.Delete().
 		Where(agentskill.FlagEQ(flag)).
 		Exec(ctx)
 	if err != nil {
+		if rerr := tx.Rollback(); rerr != nil {
+			return fmt.Errorf("postgres: delete agent skill: %w (rollback: %v)", err, rerr)
+		}
 		return fmt.Errorf("postgres: delete agent skill: %w", err)
 	}
 	if n == 0 {
+		if rerr := tx.Rollback(); rerr != nil {
+			return types.ErrNotFound
+		}
 		return types.ErrNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("postgres: commit delete agent skill: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) ListAgentSkillFiles(ctx context.Context, skillFlag string) ([]*gen.AgentSkillFile, error) {
+	rows, err := a.client.AgentSkillFile.Query().
+		Where(agentskillfile.SkillFlagEQ(skillFlag)).
+		Order(gen.Asc(agentskillfile.FieldPath)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent skill files: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) GetAgentSkillFile(ctx context.Context, skillFlag, path string) (*gen.AgentSkillFile, error) {
+	row, err := a.client.AgentSkillFile.Query().
+		Where(
+			agentskillfile.SkillFlagEQ(skillFlag),
+			agentskillfile.PathEQ(path),
+		).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent skill file: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) CreateAgentSkillFile(ctx context.Context, file *gen.AgentSkillFile) error {
+	if file == nil {
+		return errors.New("postgres: nil agent skill file")
+	}
+	builder := a.client.AgentSkillFile.Create().
+		SetSkillFlag(file.SkillFlag).
+		SetPath(file.Path).
+		SetContent(file.Content)
+	if !file.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(file.CreatedAt)
+	}
+	if !file.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(file.UpdatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create agent skill file: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) UpdateAgentSkillFile(ctx context.Context, file *gen.AgentSkillFile) error {
+	if file == nil {
+		return errors.New("postgres: nil agent skill file")
+	}
+	n, err := a.client.AgentSkillFile.Update().
+		Where(
+			agentskillfile.SkillFlagEQ(file.SkillFlag),
+			agentskillfile.PathEQ(file.Path),
+		).
+		SetContent(file.Content).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update agent skill file: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteAgentSkillFile(ctx context.Context, skillFlag, path string) error {
+	n, err := a.client.AgentSkillFile.Delete().
+		Where(
+			agentskillfile.SkillFlagEQ(skillFlag),
+			agentskillfile.PathEQ(path),
+		).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete agent skill file: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteAgentSkillFilesByFlag(ctx context.Context, skillFlag string) error {
+	_, err := a.client.AgentSkillFile.Delete().
+		Where(agentskillfile.SkillFlagEQ(skillFlag)).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete agent skill files by flag: %w", err)
 	}
 	return nil
 }

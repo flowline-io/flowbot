@@ -29,6 +29,20 @@ func TestFormatSkillsForPrompt(t *testing.T) {
 			},
 		},
 		{
+			name: "renders skill files",
+			skills: []chatagent.Skill{{
+				Name:        "homelab-bookmark",
+				Description: "Manage bookmarks via Flowbot CLI",
+				Location:    "skill://homelab-bookmark",
+				Files:       []string{"reference.md", "scripts/run.sh"},
+			}},
+			wantParts: []string{
+				"<files>",
+				"<file>reference.md</file>",
+				"<file>scripts/run.sh</file>",
+			},
+		},
+		{
 			name: "skips disabled model invocation skills",
 			skills: []chatagent.Skill{{
 				Name:                   "hidden",

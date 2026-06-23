@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
@@ -137,6 +138,30 @@ func init() {
 	agentskill.DefaultUpdatedAt = agentskillDescUpdatedAt.Default.(func() time.Time)
 	// agentskill.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agentskill.UpdateDefaultUpdatedAt = agentskillDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentskillfileFields := schema.AgentSkillFile{}.Fields()
+	_ = agentskillfileFields
+	// agentskillfileDescSkillFlag is the schema descriptor for skill_flag field.
+	agentskillfileDescSkillFlag := agentskillfileFields[1].Descriptor()
+	// agentskillfile.SkillFlagValidator is a validator for the "skill_flag" field. It is called by the builders before save.
+	agentskillfile.SkillFlagValidator = agentskillfileDescSkillFlag.Validators[0].(func(string) error)
+	// agentskillfileDescPath is the schema descriptor for path field.
+	agentskillfileDescPath := agentskillfileFields[2].Descriptor()
+	// agentskillfile.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	agentskillfile.PathValidator = agentskillfileDescPath.Validators[0].(func(string) error)
+	// agentskillfileDescContent is the schema descriptor for content field.
+	agentskillfileDescContent := agentskillfileFields[3].Descriptor()
+	// agentskillfile.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	agentskillfile.ContentValidator = agentskillfileDescContent.Validators[0].(func(string) error)
+	// agentskillfileDescCreatedAt is the schema descriptor for created_at field.
+	agentskillfileDescCreatedAt := agentskillfileFields[4].Descriptor()
+	// agentskillfile.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentskillfile.DefaultCreatedAt = agentskillfileDescCreatedAt.Default.(func() time.Time)
+	// agentskillfileDescUpdatedAt is the schema descriptor for updated_at field.
+	agentskillfileDescUpdatedAt := agentskillfileFields[5].Descriptor()
+	// agentskillfile.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentskillfile.DefaultUpdatedAt = agentskillfileDescUpdatedAt.Default.(func() time.Time)
+	// agentskillfile.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentskillfile.UpdateDefaultUpdatedAt = agentskillfileDescUpdatedAt.UpdateDefault.(func() time.Time)
 	agentsubagentFields := schema.AgentSubagent{}.Fields()
 	_ = agentsubagentFields
 	// agentsubagentDescFlag is the schema descriptor for flag field.

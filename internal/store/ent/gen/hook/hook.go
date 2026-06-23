@@ -33,6 +33,18 @@ func (f AgentSkillFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentSkillMutation", m)
 }
 
+// The AgentSkillFileFunc type is an adapter to allow the use of ordinary
+// function as AgentSkillFile mutator.
+type AgentSkillFileFunc func(context.Context, *gen.AgentSkillFileMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentSkillFileFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentSkillFileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentSkillFileMutation", m)
+}
+
 // The AgentSubagentFunc type is an adapter to allow the use of ordinary
 // function as AgentSubagent mutator.
 type AgentSubagentFunc func(context.Context, *gen.AgentSubagentMutation) (gen.Value, error)

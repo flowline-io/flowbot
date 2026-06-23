@@ -49,6 +49,7 @@ var (
 	testChatSessions       = make(map[string]*gen.ChatSession)
 	testChatSessionEntries = make(map[string][]*gen.ChatSessionEntry)
 	testAgentSkills        = make(map[string]*gen.AgentSkill)
+	testAgentSkillFiles    = make(map[string]map[string]*gen.AgentSkillFile)
 )
 
 func newTestStoreAdapter() *testStoreAdapter {
@@ -342,6 +343,13 @@ func (*testStoreAdapter) GetAgentSkillsMaxUpdatedAt(_ context.Context) (time.Tim
 			maxUpdated = skill.UpdatedAt
 		}
 	}
+	for _, files := range testAgentSkillFiles {
+		for _, file := range files {
+			if file.UpdatedAt.After(maxUpdated) {
+				maxUpdated = file.UpdatedAt
+			}
+		}
+	}
 	return maxUpdated, nil
 }
 func (*testStoreAdapter) CreateAgentSkill(_ context.Context, skill *gen.AgentSkill) error {
@@ -364,10 +372,69 @@ func (*testStoreAdapter) DeleteAgentSkill(_ context.Context, flag string) error 
 	for name, skill := range testAgentSkills {
 		if skill.Flag == flag || (skill.Flag == "" && skill.Name == flag) {
 			delete(testAgentSkills, name)
+			delete(testAgentSkillFiles, flag)
+			if skill.Flag != "" && skill.Flag != flag {
+				delete(testAgentSkillFiles, skill.Flag)
+			}
 			return nil
 		}
 	}
 	return types.ErrNotFound
+}
+func (*testStoreAdapter) ListAgentSkillFiles(_ context.Context, skillFlag string) ([]*gen.AgentSkillFile, error) {
+	files := testAgentSkillFiles[skillFlag]
+	rows := make([]*gen.AgentSkillFile, 0, len(files))
+	for _, file := range files {
+		rows = append(rows, file)
+	}
+	return rows, nil
+}
+func (*testStoreAdapter) GetAgentSkillFile(_ context.Context, skillFlag, path string) (*gen.AgentSkillFile, error) {
+	files := testAgentSkillFiles[skillFlag]
+	if files == nil {
+		return nil, types.ErrNotFound
+	}
+	file, ok := files[path]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return file, nil
+}
+func (*testStoreAdapter) CreateAgentSkillFile(_ context.Context, file *gen.AgentSkillFile) error {
+	if testAgentSkillFiles[file.SkillFlag] == nil {
+		testAgentSkillFiles[file.SkillFlag] = make(map[string]*gen.AgentSkillFile)
+	}
+	if _, exists := testAgentSkillFiles[file.SkillFlag][file.Path]; exists {
+		return types.Errorf(types.ErrInvalidArgument, "agent_skill_files_skill_flag_path_key")
+	}
+	testAgentSkillFiles[file.SkillFlag][file.Path] = file
+	return nil
+}
+func (*testStoreAdapter) UpdateAgentSkillFile(_ context.Context, file *gen.AgentSkillFile) error {
+	files := testAgentSkillFiles[file.SkillFlag]
+	if files == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := files[file.Path]; !ok {
+		return types.ErrNotFound
+	}
+	files[file.Path] = file
+	return nil
+}
+func (*testStoreAdapter) DeleteAgentSkillFile(_ context.Context, skillFlag, path string) error {
+	files := testAgentSkillFiles[skillFlag]
+	if files == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := files[path]; !ok {
+		return types.ErrNotFound
+	}
+	delete(files, path)
+	return nil
+}
+func (*testStoreAdapter) DeleteAgentSkillFilesByFlag(_ context.Context, skillFlag string) error {
+	delete(testAgentSkillFiles, skillFlag)
+	return nil
 }
 func (*testStoreAdapter) ListAgentSubagents(_ context.Context, _ bool) ([]*gen.AgentSubagent, error) {
 	return nil, nil

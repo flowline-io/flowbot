@@ -322,6 +322,13 @@ type Adapter interface {
 	UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 	DeleteAgentSkill(ctx context.Context, flag string) error
 
+	ListAgentSkillFiles(ctx context.Context, skillFlag string) ([]*gen.AgentSkillFile, error)
+	GetAgentSkillFile(ctx context.Context, skillFlag, path string) (*gen.AgentSkillFile, error)
+	CreateAgentSkillFile(ctx context.Context, file *gen.AgentSkillFile) error
+	UpdateAgentSkillFile(ctx context.Context, file *gen.AgentSkillFile) error
+	DeleteAgentSkillFile(ctx context.Context, skillFlag, path string) error
+	DeleteAgentSkillFilesByFlag(ctx context.Context, skillFlag string) error
+
 	ListAgentSubagents(ctx context.Context, enabledOnly bool) ([]*gen.AgentSubagent, error)
 	GetAgentSubagentsMaxUpdatedAt(ctx context.Context) (time.Time, error)
 	GetAgentSubagentByName(ctx context.Context, name string) (*gen.AgentSubagent, error)

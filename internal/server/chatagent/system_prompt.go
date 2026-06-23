@@ -53,7 +53,7 @@ func DefaultToolSnippets() map[string]string {
 		"write_file":           "Write or overwrite a text file in the workspace, creating parent dirs as needed",
 		"web_search":           "Search the web for documentation, APIs, or current facts",
 		"run_code":             "Execute a code snippet (go, python, javascript, shell) in the workspace",
-		"read_skill":           "Load full instructions for a named skill from the database",
+		"read_skill":           "Load full skill instructions or an auxiliary file via optional path",
 		"task":                 "Delegate a self-contained task to a specialized subagent that runs in isolation",
 		scheduleToolName:       "Create a cron or one-shot scheduled agent task with name, prompt, and cron or run_at",
 		updateScheduleToolName: "Update an existing scheduled task's cron, run_at, prompt, name, or state (active|paused)",

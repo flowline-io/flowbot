@@ -331,6 +331,113 @@ func TestAgentSkillByFlagAndDelete(t *testing.T) {
 	}
 }
 
+func TestAgentSkillFileCRUD(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		setup   func(context.Context, *adapter) string
+		action  func(context.Context, *adapter, string) error
+		wantErr error
+	}{
+		{
+			name: "create list and get file",
+			setup: func(ctx context.Context, a *adapter) string {
+				require.NoError(t, a.CreateAgentSkill(ctx, &gen.AgentSkill{
+					Flag:        "demo-skill",
+					Name:        "demo-skill",
+					Description: "Demo",
+					Content:     "body",
+					Enabled:     true,
+				}))
+				return "demo-skill"
+			},
+			action: func(ctx context.Context, a *adapter, flag string) error {
+				require.NoError(t, a.CreateAgentSkillFile(ctx, &gen.AgentSkillFile{
+					SkillFlag: flag,
+					Path:      "reference.md",
+					Content:   "reference body",
+				}))
+				rows, err := a.ListAgentSkillFiles(ctx, flag)
+				if err != nil {
+					return err
+				}
+				if len(rows) != 1 {
+					return types.Errorf(types.ErrInternal, "expected 1 file, got %d", len(rows))
+				}
+				row, err := a.GetAgentSkillFile(ctx, flag, "reference.md")
+				if err != nil {
+					return err
+				}
+				if row.Content != "reference body" {
+					return types.Errorf(types.ErrInternal, "unexpected content %q", row.Content)
+				}
+				return nil
+			},
+		},
+		{
+			name: "duplicate path rejected",
+			setup: func(ctx context.Context, a *adapter) string {
+				require.NoError(t, a.CreateAgentSkill(ctx, &gen.AgentSkill{
+					Flag: "dup-skill", Name: "dup-skill", Description: "d", Content: "c", Enabled: true,
+				}))
+				require.NoError(t, a.CreateAgentSkillFile(ctx, &gen.AgentSkillFile{
+					SkillFlag: "dup-skill", Path: "a.md", Content: "a",
+				}))
+				return "dup-skill"
+			},
+			action: func(ctx context.Context, a *adapter, flag string) error {
+				return a.CreateAgentSkillFile(ctx, &gen.AgentSkillFile{
+					SkillFlag: flag, Path: "a.md", Content: "duplicate",
+				})
+			},
+		},
+		{
+			name: "delete skill cascades files",
+			setup: func(ctx context.Context, a *adapter) string {
+				require.NoError(t, a.CreateAgentSkill(ctx, &gen.AgentSkill{
+					Flag: "cascade-skill", Name: "cascade-skill", Description: "d", Content: "c", Enabled: true,
+				}))
+				require.NoError(t, a.CreateAgentSkillFile(ctx, &gen.AgentSkillFile{
+					SkillFlag: "cascade-skill", Path: "notes.md", Content: "notes",
+				}))
+				return "cascade-skill"
+			},
+			action: func(ctx context.Context, a *adapter, flag string) error {
+				if err := a.DeleteAgentSkill(ctx, flag); err != nil {
+					return err
+				}
+				rows, err := a.ListAgentSkillFiles(ctx, flag)
+				if err != nil {
+					return err
+				}
+				if len(rows) != 0 {
+					return types.Errorf(types.ErrInternal, "expected 0 files after cascade delete")
+				}
+				return nil
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := testAdapter(t)
+			ctx := context.Background()
+			flag := tt.setup(ctx, a)
+			err := tt.action(ctx, a, flag)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			if tt.name == "duplicate path rejected" {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestUpdateAgentSkillNotFound(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

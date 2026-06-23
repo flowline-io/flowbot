@@ -1,0 +1,34 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentSkillFileRow(skill model.AgentSkill, file model.AgentSkillFile) {
+	<div id={ agentSkillFileRowID(skill, file) } class="flex items-center justify-between gap-2 rounded border border-base-300 px-3 py-2">
+		<div class="min-w-0">
+			<div class="font-mono text-sm truncate">{ file.Path }</div>
+			<div class="text-xs text-base-content/50">{ file.UpdatedAt.Format("2006-01-02 15:04") }</div>
+		</div>
+		<div class="flex gap-1 shrink-0">
+			<button type="button"
+				hx-get={ agentSkillFileEditURL(skill, file) }
+				hx-target={ "#" + agentSkillFilesContainerID(skill) }
+				hx-swap="innerHTML"
+				data-testid="agent-skill-file-edit"
+				class="btn btn-ghost btn-xs text-primary">
+				Edit
+			</button>
+			<button type="button"
+				hx-delete={ agentSkillFileDeleteURL(skill, file) }
+				hx-target={ "#" + agentSkillFilesContainerID(skill) }
+				hx-swap="innerHTML"
+				data-confirm="Delete this file?"
+				data-confirm-title="Delete Skill File"
+				data-confirm-btn="Delete"
+				data-confirm-class="btn-error"
+				data-testid="agent-skill-file-delete"
+				class="btn btn-ghost btn-xs text-error">
+				Delete
+			</button>
+		</div>
+	</div>
+}

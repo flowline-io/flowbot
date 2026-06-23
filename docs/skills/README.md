@@ -7,7 +7,9 @@ flags, workflows, and troubleshooting tips.
 
 Skills follow the SKILL.md convention. The AI assistant loads the skill's
 frontmatter (name + description) at startup, and only pulls the full SKILL.md
-body when the user's request matches the description.
+body when the user's request matches the description. Additional files in the
+skill directory (for example `reference.md` or `scripts/run.sh`) can be loaded
+via `read_skill` with the `path` argument.
 
 ## Available Skills
 

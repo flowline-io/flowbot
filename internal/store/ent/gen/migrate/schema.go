@@ -59,6 +59,33 @@ var (
 			},
 		},
 	}
+	// AgentSkillFilesColumns holds the columns for the "agent_skill_files" table.
+	AgentSkillFilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "skill_flag", Type: field.TypeString},
+		{Name: "path", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AgentSkillFilesTable holds the schema information for the "agent_skill_files" table.
+	AgentSkillFilesTable = &schema.Table{
+		Name:       "agent_skill_files",
+		Columns:    AgentSkillFilesColumns,
+		PrimaryKey: []*schema.Column{AgentSkillFilesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentskillfile_skill_flag_path",
+				Unique:  true,
+				Columns: []*schema.Column{AgentSkillFilesColumns[1], AgentSkillFilesColumns[2]},
+			},
+			{
+				Name:    "agentskillfile_skill_flag",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSkillFilesColumns[1]},
+			},
+		},
+	}
 	// AgentSubagentsColumns holds the columns for the "agent_subagents" table.
 	AgentSubagentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1262,6 +1289,7 @@ var (
 	Tables = []*schema.Table{
 		AgentsTable,
 		AgentSkillsTable,
+		AgentSkillFilesTable,
 		AgentSubagentsTable,
 		AppsTable,
 		AuditLogsTable,
@@ -1318,6 +1346,9 @@ func init() {
 	}
 	AgentSkillsTable.Annotation = &entsql.Annotation{
 		Table: "agent_skills",
+	}
+	AgentSkillFilesTable.Annotation = &entsql.Annotation{
+		Table: "agent_skill_files",
 	}
 	AgentSubagentsTable.Annotation = &entsql.Annotation{
 		Table: "agent_subagents",
