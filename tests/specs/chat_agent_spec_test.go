@@ -23,6 +23,20 @@ import (
 )
 
 var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
+	var restoreSessionTitleLLM func()
+
+	BeforeEach(func() {
+		restoreSessionTitleLLM = chatagent.DisableSessionTitleLLMForTest()
+	})
+
+	AfterEach(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
+		if restoreSessionTitleLLM != nil {
+			restoreSessionTitleLLM()
+			restoreSessionTitleLLM = nil
+		}
+	})
+
 	It("persists session entries and returns assistant reply using fake model", func() {
 		config.App.ChatAgent.ChatModel = "fake-model"
 		config.App.Models = []config.Model{

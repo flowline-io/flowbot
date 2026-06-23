@@ -22,12 +22,22 @@ import (
 
 var _ = Describe("Chat Agent Chat API", Label("module", "chat-agent", "chat"), func() {
 	var (
-		ctx   context.Context
-		token string
-		uid   types.Uid
+		ctx                   context.Context
+		token                 string
+		uid                   types.Uid
+		restoreSessionTitleLLM func()
 	)
 
+	AfterEach(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
+		if restoreSessionTitleLLM != nil {
+			restoreSessionTitleLLM()
+			restoreSessionTitleLLM = nil
+		}
+	})
+
 	BeforeEach(func() {
+		restoreSessionTitleLLM = chatagent.DisableSessionTitleLLMForTest()
 		ctx = context.Background()
 		uid = types.Uid("chat-api-bdd-user-" + types.Id())
 		mountChatAgentRoutes(App)

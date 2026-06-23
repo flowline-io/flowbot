@@ -27,7 +27,10 @@ type sessionTitleModelFunc func(context.Context, string) (llms.Model, string, er
 type sessionTitleLLMFunc func(context.Context, string, string, string, sessionTitleModelFunc) (string, error)
 
 var (
-	sessionTitleGenWG sync.WaitGroup
+	sessionTitleGenWG    sync.WaitGroup
+	sessionTitleInflight sync.Map
+	sessionTitleWriteMu  sync.Map
+	sessionTitleLLMMu    sync.RWMutex
 
 	// sessionTitleModel resolves the model for async title generation.
 	// It is separate from NewModelForTest so harness test doubles are not consumed by title jobs.
@@ -40,6 +43,23 @@ var (
 // WaitForSessionTitleGenerationForTest blocks until all in-flight async title generations finish.
 func WaitForSessionTitleGenerationForTest() {
 	sessionTitleGenWG.Wait()
+}
+
+// ResetSessionTitleGenerationForTest clears per-session title generation tracking.
+func ResetSessionTitleGenerationForTest() {
+	sessionTitleInflight = sync.Map{}
+	sessionTitleWriteMu = sync.Map{}
+}
+
+func lockSessionTitleWrite(sessionID string) func() {
+	raw, _ := sessionTitleWriteMu.LoadOrStore(sessionID, &sync.Mutex{})
+	mu, ok := raw.(*sync.Mutex)
+	if !ok {
+		mu = &sync.Mutex{}
+		sessionTitleWriteMu.Store(sessionID, mu)
+	}
+	mu.Lock()
+	return mu.Unlock
 }
 
 // maybeGenerateSessionTitle starts an async LLM title generation when the session has no title yet.
@@ -55,18 +75,42 @@ func maybeGenerateSessionTitle(sessionID, userText, reply string) {
 	if strings.TrimSpace(sess.Title) != "" {
 		return
 	}
+	if _, loaded := sessionTitleInflight.LoadOrStore(sessionID, struct{}{}); loaded {
+		return
+	}
 	_, chatModel, _, _, err := agentLoopConfig()
 	if err != nil {
+		sessionTitleInflight.Delete(sessionID)
 		flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
 		return
 	}
+	sessionTitleLLMMu.RLock()
 	llmGen := generateSessionTitleLLM
 	modelResolver := sessionTitleModel
+	sessionTitleLLMMu.RUnlock()
 	sessionTitleGenWG.Add(1)
 	go func() {
 		defer sessionTitleGenWG.Done()
+		defer sessionTitleInflight.Delete(sessionID)
 		generateSessionTitleAsync(sessionID, userText, reply, chatModel, modelResolver, llmGen)
 	}()
+}
+
+// DisableSessionTitleLLMForTest skips outbound title LLM calls until restore runs.
+func DisableSessionTitleLLMForTest() (restore func()) {
+	sessionTitleLLMMu.Lock()
+	orig := generateSessionTitleLLM
+	generateSessionTitleLLM = skipSessionTitleLLM
+	sessionTitleLLMMu.Unlock()
+	return func() {
+		sessionTitleLLMMu.Lock()
+		generateSessionTitleLLM = orig
+		sessionTitleLLMMu.Unlock()
+	}
+}
+
+func skipSessionTitleLLM(context.Context, string, string, string, sessionTitleModelFunc) (string, error) {
+	return "", fmt.Errorf("session title llm skipped for test")
 }
 
 func generateSessionTitleAsync(
@@ -86,6 +130,9 @@ func generateSessionTitleAsync(
 	if title == "" {
 		title = fallbackSessionTitle(userText)
 	}
+
+	unlock := lockSessionTitleWrite(sessionID)
+	defer unlock()
 
 	if store.Database == nil {
 		flog.Warn("[chat-agent] title write skipped session=%s: database unavailable", sessionID)

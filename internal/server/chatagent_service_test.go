@@ -18,6 +18,7 @@ import (
 )
 
 func TestChatAgentService_Run(t *testing.T) {
+	t.Cleanup(chatagent.DisableSessionTitleLLMForTest())
 	ws := t.TempDir()
 	config.App.ChatAgent.Workspace = ws
 	config.App.ChatAgent.ChatModel = "fake-model"
@@ -32,6 +33,7 @@ func TestChatAgentService_Run(t *testing.T) {
 	}
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
+		chatagent.ResetSessionTitleGenerationForTest()
 		chatagent.NewModelForTest = origNewModel
 	})
 
@@ -41,6 +43,7 @@ func TestChatAgentService_Run(t *testing.T) {
 	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
+		chatagent.ResetSessionTitleGenerationForTest()
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
@@ -74,11 +77,13 @@ func TestChatAgentService_Run(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.NotEmpty(t, result)
+			chatagent.WaitForSessionTitleGenerationForTest()
 		})
 	}
 }
 
 func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
+	t.Cleanup(chatagent.DisableSessionTitleLLMForTest())
 	config.App.ChatAgent.Workspace = ""
 	config.App.ChatAgent.ChatModel = "fake-model"
 	config.App.Models = []config.Model{
@@ -104,6 +109,7 @@ func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
 }
 
 func TestChatAgentService_CompactSession(t *testing.T) {
+	t.Cleanup(chatagent.DisableSessionTitleLLMForTest())
 	ws := t.TempDir()
 	config.App.ChatAgent = config.ChatAgentConfig{
 		Workspace: ws,
@@ -125,6 +131,7 @@ func TestChatAgentService_CompactSession(t *testing.T) {
 	}
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
+		chatagent.ResetSessionTitleGenerationForTest()
 		chatagent.NewModelForTest = origNewModel
 	})
 
@@ -134,6 +141,7 @@ func TestChatAgentService_CompactSession(t *testing.T) {
 	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
+		chatagent.ResetSessionTitleGenerationForTest()
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
@@ -151,6 +159,7 @@ func TestChatAgentService_CompactSession(t *testing.T) {
 		Text:      strings.Repeat("word ", 5000),
 	}, nil)
 	require.NoError(t, err)
+	chatagent.WaitForSessionTitleGenerationForTest()
 
 	tests := []struct {
 		name          string

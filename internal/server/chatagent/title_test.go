@@ -83,6 +83,89 @@ func TestWaitForSessionTitleGenerationForTest(t *testing.T) {
 	}
 }
 
+func TestSessionTitleInflightDedupes(t *testing.T) {
+	tests := []struct {
+		name      string
+		sessions  []string
+		wantCalls int32
+	}{
+		{name: "same session deduped", sessions: []string{"sess-a", "sess-a", "sess-a"}, wantCalls: 1},
+		{name: "different sessions run", sessions: []string{"sess-b", "sess-c"}, wantCalls: 2},
+		{name: "mixed overlap", sessions: []string{"sess-d", "sess-d", "sess-e"}, wantCalls: 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ResetSessionTitleGenerationForTest()
+			var calls atomic.Int32
+			sessionTitleGenWG.Add(len(tt.sessions))
+			for _, sessionID := range tt.sessions {
+				go func(id string) {
+					defer sessionTitleGenWG.Done()
+					if _, loaded := sessionTitleInflight.LoadOrStore(id, struct{}{}); loaded {
+						return
+					}
+					defer sessionTitleInflight.Delete(id)
+					time.Sleep(20 * time.Millisecond)
+					calls.Add(1)
+				}(sessionID)
+			}
+			WaitForSessionTitleGenerationForTest()
+			assert.Equal(t, tt.wantCalls, calls.Load())
+		})
+	}
+}
+
+func TestDisableSessionTitleLLMForTest(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "disable uses fallback path",
+			run: func(t *testing.T) {
+				restore := DisableSessionTitleLLMForTest()
+				t.Cleanup(restore)
+				title, err := generateSessionTitleLLM(context.Background(), "hello", "world", "fake-model", sessionTitleModel)
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "skipped for test")
+				assert.Empty(t, title)
+			},
+		},
+		{
+			name: "restore re-enables llm generator",
+			run: func(t *testing.T) {
+				restore := DisableSessionTitleLLMForTest()
+				restore()
+				_, err := generateSessionTitleLLM(context.Background(), "hello", "world", "fake-model", func(context.Context, string) (llms.Model, string, error) {
+					return nil, "", assert.AnError
+				})
+				require.Error(t, err)
+				assert.NotContains(t, err.Error(), "skipped for test")
+			},
+		},
+		{
+			name: "nested disable restore",
+			run: func(t *testing.T) {
+				outer := DisableSessionTitleLLMForTest()
+				inner := DisableSessionTitleLLMForTest()
+				inner()
+				_, err := generateSessionTitleLLM(context.Background(), "hello", "world", "fake-model", sessionTitleModel)
+				assert.Contains(t, err.Error(), "skipped for test")
+				outer()
+				_, err = generateSessionTitleLLM(context.Background(), "hello", "world", "fake-model", func(context.Context, string) (llms.Model, string, error) {
+					return nil, "", assert.AnError
+				})
+				assert.NotContains(t, err.Error(), "skipped for test")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.run(t)
+		})
+	}
+}
+
 func TestSessionTitleModelSeparateFromHarnessFake(t *testing.T) {
 	tests := []struct {
 		name string

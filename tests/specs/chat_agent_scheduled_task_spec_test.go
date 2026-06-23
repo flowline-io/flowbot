@@ -21,6 +21,20 @@ import (
 )
 
 var _ = Describe("Chat Agent Scheduled Tasks", Label("module", "chat-agent", "scheduled-tasks"), func() {
+	var restoreSessionTitleLLM func()
+
+	BeforeEach(func() {
+		restoreSessionTitleLLM = chatagent.DisableSessionTitleLLMForTest()
+	})
+
+	AfterEach(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
+		if restoreSessionTitleLLM != nil {
+			restoreSessionTitleLLM()
+			restoreSessionTitleLLM = nil
+		}
+	})
+
 	It("executes a one-shot task in an isolated session and marks it completed", func() {
 		model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "scheduled reply"})
 		orig := chatagent.NewModelForTest
