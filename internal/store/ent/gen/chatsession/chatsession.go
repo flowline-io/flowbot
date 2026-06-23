@@ -23,6 +23,8 @@ const (
 	FieldState = "state"
 	// FieldMode holds the string denoting the mode field in the database.
 	FieldMode = "mode"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -39,6 +41,7 @@ var Columns = []string{
 	FieldLeafID,
 	FieldState,
 	FieldMode,
+	FieldTitle,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -64,6 +67,8 @@ var (
 	DefaultState int
 	// DefaultMode holds the default value on creation for the "mode" field.
 	DefaultMode string
+	// DefaultTitle holds the default value on creation for the "title" field.
+	DefaultTitle string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -103,6 +108,11 @@ func ByState(opts ...sql.OrderTermOption) OrderOption {
 // ByMode orders the results by the mode field.
 func ByMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMode, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

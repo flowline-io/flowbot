@@ -76,6 +76,20 @@ func (_c *ChatSessionCreate) SetNillableMode(v *string) *ChatSessionCreate {
 	return _c
 }
 
+// SetTitle sets the "title" field.
+func (_c *ChatSessionCreate) SetTitle(v string) *ChatSessionCreate {
+	_c.mutation.SetTitle(v)
+	return _c
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillableTitle(v *string) *ChatSessionCreate {
+	if v != nil {
+		_c.SetTitle(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *ChatSessionCreate) SetCreatedAt(v time.Time) *ChatSessionCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -157,6 +171,10 @@ func (_c *ChatSessionCreate) defaults() {
 		v := chatsession.DefaultMode
 		_c.mutation.SetMode(v)
 	}
+	if _, ok := _c.mutation.Title(); !ok {
+		v := chatsession.DefaultTitle
+		_c.mutation.SetTitle(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := chatsession.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -193,6 +211,9 @@ func (_c *ChatSessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Mode(); !ok {
 		return &ValidationError{Name: "mode", err: errors.New(`gen: missing required field "ChatSession.mode"`)}
+	}
+	if _, ok := _c.mutation.Title(); !ok {
+		return &ValidationError{Name: "title", err: errors.New(`gen: missing required field "ChatSession.title"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "ChatSession.created_at"`)}
@@ -252,6 +273,10 @@ func (_c *ChatSessionCreate) createSpec() (*ChatSession, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Mode(); ok {
 		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
 		_node.Mode = value
+	}
+	if value, ok := _c.mutation.Title(); ok {
+		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
+		_node.Title = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(chatsession.FieldCreatedAt, field.TypeTime, value)
@@ -376,6 +401,18 @@ func (u *ChatSessionUpsert) SetMode(v string) *ChatSessionUpsert {
 // UpdateMode sets the "mode" field to the value that was provided on create.
 func (u *ChatSessionUpsert) UpdateMode() *ChatSessionUpsert {
 	u.SetExcluded(chatsession.FieldMode)
+	return u
+}
+
+// SetTitle sets the "title" field.
+func (u *ChatSessionUpsert) SetTitle(v string) *ChatSessionUpsert {
+	u.Set(chatsession.FieldTitle, v)
+	return u
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdateTitle() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldTitle)
 	return u
 }
 
@@ -516,6 +553,20 @@ func (u *ChatSessionUpsertOne) SetMode(v string) *ChatSessionUpsertOne {
 func (u *ChatSessionUpsertOne) UpdateMode() *ChatSessionUpsertOne {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateMode()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *ChatSessionUpsertOne) SetTitle(v string) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdateTitle() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateTitle()
 	})
 }
 
@@ -824,6 +875,20 @@ func (u *ChatSessionUpsertBulk) SetMode(v string) *ChatSessionUpsertBulk {
 func (u *ChatSessionUpsertBulk) UpdateMode() *ChatSessionUpsertBulk {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateMode()
+	})
+}
+
+// SetTitle sets the "title" field.
+func (u *ChatSessionUpsertBulk) SetTitle(v string) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetTitle(v)
+	})
+}
+
+// UpdateTitle sets the "title" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdateTitle() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateTitle()
 	})
 }
 

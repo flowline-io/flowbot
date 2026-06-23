@@ -525,12 +525,16 @@ func init() {
 	chatsessionDescMode := chatsessionFields[5].Descriptor()
 	// chatsession.DefaultMode holds the default value on creation for the mode field.
 	chatsession.DefaultMode = chatsessionDescMode.Default.(string)
+	// chatsessionDescTitle is the schema descriptor for title field.
+	chatsessionDescTitle := chatsessionFields[6].Descriptor()
+	// chatsession.DefaultTitle holds the default value on creation for the title field.
+	chatsession.DefaultTitle = chatsessionDescTitle.Default.(string)
 	// chatsessionDescCreatedAt is the schema descriptor for created_at field.
-	chatsessionDescCreatedAt := chatsessionFields[6].Descriptor()
+	chatsessionDescCreatedAt := chatsessionFields[7].Descriptor()
 	// chatsession.DefaultCreatedAt holds the default value on creation for the created_at field.
 	chatsession.DefaultCreatedAt = chatsessionDescCreatedAt.Default.(func() time.Time)
 	// chatsessionDescUpdatedAt is the schema descriptor for updated_at field.
-	chatsessionDescUpdatedAt := chatsessionFields[7].Descriptor()
+	chatsessionDescUpdatedAt := chatsessionFields[8].Descriptor()
 	// chatsession.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	chatsession.DefaultUpdatedAt = chatsessionDescUpdatedAt.Default.(func() time.Time)
 	// chatsession.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

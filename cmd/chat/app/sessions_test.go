@@ -34,6 +34,13 @@ func TestFormatSessionRow(t *testing.T) {
 			summary:  client.ChatSessionSummary{SessionID: "sess-plan", Mode: sessionModePlan, UpdatedAt: now},
 			wantSub:  " · plan",
 		},
+		{
+			name:     "title shown as primary label",
+			current:  "",
+			selected: false,
+			summary:  client.ChatSessionSummary{SessionID: "sess-title", Title: "Redis setup", UpdatedAt: now},
+			wantSub:  "Redis setup",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

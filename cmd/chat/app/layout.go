@@ -48,9 +48,16 @@ func (m *Model) renderTopSection() string {
 	}
 
 	var b strings.Builder
+	if m.info != nil {
+		writeBuilder(&b, renderCompactHeader(m.width, m.sessionTitle, &m.styles))
+		writeBuilder(&b, "\n")
+	}
+
 	if m.splashVisible && m.info != nil {
-		writeBuilder(&b, RenderBanner(m.width, &m.styles))
-		writeBuilder(&b, "\n\n")
+		if strings.TrimSpace(m.sessionTitle) == "" {
+			writeBuilder(&b, RenderBanner(m.width, &m.styles))
+			writeBuilder(&b, "\n\n")
+		}
 		host := m.serverHost
 		if host == "" && m.client != nil {
 			host = m.client.BaseURL()
@@ -61,10 +68,7 @@ func (m *Model) renderTopSection() string {
 			writeBuilder(&b, m.styles.Hint.Render("Welcome to Flowbot Agent! Type your message or /help for commands.")+"\n")
 			writeBuilder(&b, m.styles.Hint.Render("Tip: Use /file <path> to attach local file content to your next message.")+"\n\n")
 		}
-	} else if m.transcript.Len() > 0 {
-		writeBuilder(&b, renderCompactHeader(m.width, &m.styles))
-		writeBuilder(&b, "\n")
-	} else {
+	} else if m.info == nil {
 		writeBuilder(&b, RenderBanner(m.width, &m.styles))
 		writeBuilder(&b, "\n\n")
 	}
@@ -122,9 +126,51 @@ func (m *Model) renderInputRow() string {
 }
 
 // renderCompactHeader returns a single-line title rule when the transcript is active.
-func renderCompactHeader(width int, styles *Styles) string {
-	title := styles.BannerTitle.Render(compactBanner)
-	ruleWidth := max(width-lipgloss.Width(title)-1, 0)
+func renderCompactHeader(width int, sessionTitle string, styles *Styles) string {
+	left := styles.BannerTitle.Render(compactBanner)
+	leftW := lipgloss.Width(left)
+
+	sessionTitle = strings.TrimSpace(sessionTitle)
+	right := ""
+	rightW := 0
+	if sessionTitle != "" {
+		right = styles.Hint.Render(sessionTitle)
+		rightW = lipgloss.Width(right)
+		const minRule = 1
+		available := width - leftW - minRule - 2
+		if available <= 0 {
+			right = ""
+			rightW = 0
+		} else if rightW > available {
+			right = truncateStyledRunes(sessionTitle, available, styles.Hint)
+			rightW = lipgloss.Width(right)
+		}
+	}
+
+	spacing := 1
+	if rightW > 0 {
+		spacing = 2
+	}
+	ruleWidth := max(width-leftW-rightW-spacing, 0)
 	rule := styles.Rule.Render(strings.Repeat("─", ruleWidth))
-	return title + " " + rule
+
+	if rightW == 0 {
+		return left + " " + rule
+	}
+	return left + " " + rule + " " + right
+}
+
+func truncateStyledRunes(text string, maxWidth int, style lipgloss.Style) string {
+	if maxWidth <= 0 {
+		return ""
+	}
+	runes := []rune(text)
+	for len(runes) > 0 {
+		candidate := style.Render(string(runes) + "…")
+		if lipgloss.Width(candidate) <= maxWidth {
+			return candidate
+		}
+		runes = runes[:len(runes)-1]
+	}
+	return ""
 }

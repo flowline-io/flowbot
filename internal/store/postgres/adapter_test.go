@@ -618,6 +618,43 @@ func TestListChatSessions(t *testing.T) {
 	}
 }
 
+func TestUpdateChatSessionTitle(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	a := testAdapter(t)
+
+	require.NoError(t, a.CreateChatSession(ctx, &gen.ChatSession{
+		Flag: "sess-title", UID: "user:t", State: int(schema.ChatSessionActive),
+	}))
+
+	tests := []struct {
+		name    string
+		title   string
+		wantErr error
+	}{
+		{name: "sets title", title: "Deploy flowbot"},
+		{name: "updates title", title: "Redis configuration"},
+		{name: "missing session", title: "ghost", wantErr: types.ErrNotFound},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			flag := "sess-title"
+			if tt.wantErr != nil {
+				flag = "missing-session"
+			}
+			err := a.UpdateChatSessionTitle(ctx, flag, tt.title)
+			if tt.wantErr != nil {
+				assert.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			got, err := a.GetChatSession(ctx, "sess-title")
+			require.NoError(t, err)
+			assert.Equal(t, tt.title, got.Title)
+		})
+	}
+}
+
 func TestChatScheduledTaskStore(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()

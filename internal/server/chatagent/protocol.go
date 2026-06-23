@@ -23,7 +23,8 @@ type StreamEvent struct {
 	Type string `json:"type"`
 
 	// delta / done / thinking
-	Text string `json:"text,omitempty"`
+	Text  string `json:"text,omitempty"`
+	Title string `json:"title,omitempty"`
 
 	// tool
 	Name     string `json:"name,omitempty"`

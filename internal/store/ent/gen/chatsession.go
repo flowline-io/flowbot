@@ -27,6 +27,8 @@ type ChatSession struct {
 	State int `json:"state,omitempty"`
 	// Mode holds the value of the "mode" field.
 	Mode string `json:"mode,omitempty"`
+	// Title holds the value of the "title" field.
+	Title string `json:"title,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -41,7 +43,7 @@ func (*ChatSession) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case chatsession.FieldID, chatsession.FieldState:
 			values[i] = new(sql.NullInt64)
-		case chatsession.FieldFlag, chatsession.FieldUID, chatsession.FieldLeafID, chatsession.FieldMode:
+		case chatsession.FieldFlag, chatsession.FieldUID, chatsession.FieldLeafID, chatsession.FieldMode, chatsession.FieldTitle:
 			values[i] = new(sql.NullString)
 		case chatsession.FieldCreatedAt, chatsession.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -95,6 +97,12 @@ func (_m *ChatSession) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field mode", values[i])
 			} else if value.Valid {
 				_m.Mode = value.String
+			}
+		case chatsession.FieldTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[i])
+			} else if value.Valid {
+				_m.Title = value.String
 			}
 		case chatsession.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -158,6 +166,9 @@ func (_m *ChatSession) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("mode=")
 	builder.WriteString(_m.Mode)
+	builder.WriteString(", ")
+	builder.WriteString("title=")
+	builder.WriteString(_m.Title)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

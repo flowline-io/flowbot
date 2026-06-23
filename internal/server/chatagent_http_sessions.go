@@ -142,7 +142,10 @@ func (h *chatAgentHTTP) getSessionMode(c fiber.Ctx) error {
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
-	return c.JSON(fiber.Map{"mode": chatagent.LoadSessionMode(c.Context(), sessionID)})
+	return c.JSON(fiber.Map{
+		"mode":  chatagent.LoadSessionMode(c.Context(), sessionID),
+		"title": chatagent.LoadSessionTitle(c.Context(), sessionID),
+	})
 }
 
 type sessionModeBody struct {

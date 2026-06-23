@@ -318,7 +318,7 @@ func TestListUserActiveSessions(t *testing.T) {
 	origDB := store.Database
 	store.Database = &testStoreAdapter{}
 	testChatSessions = map[string]*gen.ChatSession{
-		"sess-a": {Flag: "sess-a", UID: "user-1", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		"sess-a": {Flag: "sess-a", UID: "user-1", Title: "Redis setup", State: int(schema.ChatSessionActive), UpdatedAt: now},
 		"sess-b": {Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now},
 		"sess-c": {Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now},
 	}
@@ -354,6 +354,7 @@ func TestListUserActiveSessions(t *testing.T) {
 			assert.Len(t, got, tt.wantLen)
 			if tt.wantLen > 0 {
 				assert.Equal(t, "sess-a", got[0].SessionID)
+				assert.Equal(t, "Redis setup", got[0].Title)
 				assert.Equal(t, "active", got[0].State)
 			}
 		})

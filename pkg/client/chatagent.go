@@ -101,6 +101,7 @@ type ChatHistoryMessage struct {
 // ChatSessionSummary is one row from GET /chatagent/sessions.
 type ChatSessionSummary struct {
 	SessionID string    `json:"session_id"`
+	Title     string    `json:"title"`
 	State     string    `json:"state"`
 	Mode      string    `json:"mode"`
 	CreatedAt time.Time `json:"created_at"`
@@ -125,6 +126,7 @@ type ChatStreamEvent struct {
 	Type string `json:"type"`
 
 	Text     string `json:"text,omitempty"`
+	Title    string `json:"title,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Subagent string `json:"subagent,omitempty"`
 	Status   string `json:"status,omitempty"`
@@ -309,15 +311,19 @@ func (cc *ChatAgentClient) ClearPermissionGrants(ctx context.Context, sessionID 
 	return cc.chatDelete(ctx, "/chatagent/sessions/"+sessionID+"/permission-grants", nil)
 }
 
-// GetSessionMode returns the persisted mode for one chat session.
-func (cc *ChatAgentClient) GetSessionMode(ctx context.Context, sessionID string) (string, error) {
-	var resp struct {
-		Mode string `json:"mode"`
-	}
+// GetSessionMode returns the persisted mode and title for one chat session.
+func (cc *ChatAgentClient) GetSessionMode(ctx context.Context, sessionID string) (ChatSessionMode, error) {
+	var resp ChatSessionMode
 	if err := cc.chatGet(ctx, "/chatagent/sessions/"+sessionID+"/mode", &resp); err != nil {
-		return "", err
+		return ChatSessionMode{}, err
 	}
-	return resp.Mode, nil
+	return resp, nil
+}
+
+// ChatSessionMode is the mode and title snapshot from GET /chatagent/sessions/:id/mode.
+type ChatSessionMode struct {
+	Mode  string `json:"mode"`
+	Title string `json:"title"`
 }
 
 // SetSessionMode toggles plan vs normal mode for one chat session.

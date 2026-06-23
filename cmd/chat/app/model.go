@@ -16,10 +16,11 @@ type streamDoneMsg struct{ err error }
 type tickMsg time.Time
 
 type initDoneMsg struct {
-	info      *client.ChatAgentInfo
-	sessionID string
-	mode      string
-	err       string
+	info         *client.ChatAgentInfo
+	sessionID    string
+	sessionTitle string
+	mode         string
+	err          string
 }
 
 // sessionModeMsg reports the result of a /plan toggle.
@@ -30,9 +31,10 @@ type sessionModeMsg struct {
 
 // sessionModeLoadMsg reports the mode fetched after switching sessions.
 type sessionModeLoadMsg struct {
-	sessionID string
-	mode      string
-	err       string
+	sessionID    string
+	mode         string
+	sessionTitle string
+	err          string
 }
 
 // sessionNewMsg reports the result of an async /new command.
@@ -69,10 +71,11 @@ type Model struct {
 	width  int
 	height int
 
-	info       *client.ChatAgentInfo
-	sessionID  string
-	mode       string
-	serverHost string
+	info         *client.ChatAgentInfo
+	sessionID    string
+	sessionTitle string
+	mode         string
+	serverHost   string
 
 	viewport viewport.Model
 	input    textarea.Model
@@ -198,13 +201,16 @@ func (m *Model) initCmd() tea.Cmd {
 			return initDoneMsg{err: err.Error()}
 		}
 		var mode string
+		var sessionTitle string
 		if sessionID != "" {
-			mode, err = m.client.ChatAgent.GetSessionMode(ctx, sessionID)
+			sessionInfo, err := m.client.ChatAgent.GetSessionMode(ctx, sessionID)
 			if err != nil {
 				return initDoneMsg{err: err.Error()}
 			}
+			mode = sessionInfo.Mode
+			sessionTitle = sessionInfo.Title
 		}
-		return initDoneMsg{info: info, sessionID: sessionID, mode: mode}
+		return initDoneMsg{info: info, sessionID: sessionID, sessionTitle: sessionTitle, mode: mode}
 	}
 }
 

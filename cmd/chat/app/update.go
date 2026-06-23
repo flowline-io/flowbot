@@ -62,6 +62,12 @@ func (m *Model) updateSessionCommandMsg(msg tea.Msg) (*Model, tea.Cmd, bool) {
 	case sessionModeLoadMsg:
 		next, cmd := m.updateSessionModeLoad(msg)
 		return next, cmd, true
+	case sessionTitleMsg:
+		next, cmd := m.updateSessionTitle(msg)
+		return next, cmd, true
+	case sessionTitleRefreshTickMsg:
+		next, cmd := m.updateSessionTitleRefreshTick(msg)
+		return next, cmd, true
 	case sessionsListMsg:
 		next, cmd := m.updateSessionsList(msg)
 		return next, cmd, true
@@ -92,11 +98,16 @@ func (m *Model) updateInitDone(msg initDoneMsg) (*Model, tea.Cmd) {
 	}
 	if msg.sessionID != "" {
 		m.sessionID = msg.sessionID
+		m.sessionTitle = msg.sessionTitle
 		m.finalizeSessionMode(msg.mode)
 	}
 	m.serverHost = m.client.BaseURL()
 	if m.sessionID != "" {
-		return m, tea.Batch(m.hydrateHistoryCmd(), m.focusInputCmd())
+		cmds := []tea.Cmd{m.hydrateHistoryCmd(), m.focusInputCmd()}
+		if strings.TrimSpace(msg.sessionTitle) == "" {
+			cmds = append(cmds, m.loadSessionTitleCmd())
+		}
+		return m, tea.Batch(cmds...)
 	}
 	return m, m.focusInputCmd()
 }
@@ -110,6 +121,9 @@ func (m *Model) updateHydrate(msg hydrateMsg) (*Model, tea.Cmd) {
 		writeBuilder(&m.transcript, msg.content)
 		m.splashVisible = false
 	}
+	if strings.TrimSpace(msg.sessionTitle) != "" {
+		m.sessionTitle = msg.sessionTitle
+	}
 	m.messageCount = msg.count
 	m.applyHistoryUsage(msg.estimatedTokens)
 	m.syncViewport()
@@ -122,6 +136,7 @@ func (m *Model) updateSessionNew(msg sessionNewMsg) (*Model, tea.Cmd) {
 		return m, m.focusInputCmd()
 	}
 	m.sessionID = msg.id
+	m.sessionTitle = ""
 	m.applySessionModeDisplay("normal")
 	if hint := sessionCacheHint(SaveSessionID(m.profile, msg.id)); hint != "" {
 		m.hint = hint
@@ -139,6 +154,7 @@ func (m *Model) updateSessionEnd(msg sessionEndMsg) (*Model, tea.Cmd) {
 		m.hint = msg.err
 	} else {
 		m.sessionID = ""
+		m.sessionTitle = ""
 		m.applySessionModeDisplay("")
 		if msg.warn != "" {
 			m.hint = msg.warn
@@ -184,7 +200,11 @@ func (m *Model) updateStreamDone(msg streamDoneMsg) (*Model, tea.Cmd) {
 	m.stream.ch = nil
 	m.stream.cancel = nil
 	m.syncViewport()
-	return m, m.focusInputCmd()
+	cmds := []tea.Cmd{m.focusInputCmd()}
+	if m.sessionTitle == "" && m.sessionID != "" {
+		cmds = append(cmds, scheduleSessionTitleRefreshCmd())
+	}
+	return m, tea.Batch(cmds...)
 }
 
 func (m *Model) updateDefault(msg tea.Msg) (*Model, tea.Cmd) {
@@ -389,6 +409,9 @@ func (m *Model) updateSessionModeLoad(msg sessionModeLoadMsg) (*Model, tea.Cmd) 
 	if msg.sessionID != m.sessionID {
 		return m, nil
 	}
+	if msg.sessionTitle != "" {
+		m.sessionTitle = msg.sessionTitle
+	}
 	m.finalizeSessionMode(msg.mode)
 	return m, m.focusInputCmd()
 }
@@ -499,6 +522,9 @@ func (m *Model) applyLifecycleStreamEvent(ev client.ChatStreamEvent) {
 	case "done":
 		if ev.Text != "" {
 			m.stream.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
+		}
+		if ev.Title != "" {
+			m.sessionTitle = ev.Title
 		}
 		m.finalizeAssistant()
 		m.phase = PhaseIdle
@@ -634,7 +660,54 @@ type hydrateMsg struct {
 	content         string
 	count           int
 	estimatedTokens int
+	sessionTitle    string
 	err             string
+}
+
+type sessionTitleMsg struct {
+	title string
+	err   string
+}
+
+type sessionTitleRefreshTickMsg struct{}
+
+func scheduleSessionTitleRefreshCmd() tea.Cmd {
+	return tea.Tick(3*time.Second, func(_ time.Time) tea.Msg {
+		return sessionTitleRefreshTickMsg{}
+	})
+}
+
+func (m *Model) updateSessionTitleRefreshTick(_ sessionTitleRefreshTickMsg) (*Model, tea.Cmd) {
+	if m.sessionTitle != "" || m.sessionID == "" {
+		return m, nil
+	}
+	return m, m.loadSessionTitleCmd()
+}
+
+func (m *Model) updateSessionTitle(msg sessionTitleMsg) (*Model, tea.Cmd) {
+	if msg.err != "" || msg.title == "" {
+		return m, nil
+	}
+	m.sessionTitle = msg.title
+	m.syncViewport()
+	return m, nil
+}
+
+func (m *Model) loadSessionTitleCmd() tea.Cmd {
+	sessionID := m.sessionID
+	cl := m.client
+	return func() tea.Msg {
+		if sessionID == "" {
+			return sessionTitleMsg{}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		info, err := cl.ChatAgent.GetSessionMode(ctx, sessionID)
+		if err != nil {
+			return sessionTitleMsg{err: err.Error()}
+		}
+		return sessionTitleMsg{title: info.Title}
+	}
 }
 
 type contextUsageMsg struct {
@@ -772,10 +845,15 @@ func (m *Model) hydrateHistoryCmd() tea.Cmd {
 		if err != nil {
 			return hydrateMsg{err: err.Error()}
 		}
+		sessionTitle := ""
+		if info, infoErr := cl.ChatAgent.GetSessionMode(ctx, sessionID); infoErr == nil {
+			sessionTitle = info.Title
+		}
 		return hydrateMsg{
 			content:         FormatHistoryMessages(msgs, width, &styles),
 			count:           len(msgs),
 			estimatedTokens: EstimateHistoryTokens(msgs),
+			sessionTitle:    sessionTitle,
 		}
 	}
 }

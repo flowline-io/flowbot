@@ -21,6 +21,9 @@ type sessionsListMsg struct {
 // FormatSessionRow renders one session entry for the picker.
 func FormatSessionRow(summary client.ChatSessionSummary, currentID string, selected bool, styles *Styles) string {
 	label := summary.SessionID
+	if strings.TrimSpace(summary.Title) != "" {
+		label = summary.Title
+	}
 	if summary.SessionID == currentID {
 		label += " · current"
 	}
@@ -114,8 +117,9 @@ func (m *Model) handleSessionPickKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	return false, nil
 }
 
-func (m *Model) applySessionSwitch(id, mode string) {
+func (m *Model) applySessionSwitch(id, mode, title string) {
 	m.sessionID = id
+	m.sessionTitle = title
 	m.transcript.Reset()
 	m.stream.overlay.Reset()
 	m.messageCount = 0
@@ -148,7 +152,7 @@ func (m *Model) submitSessionPick() tea.Cmd {
 		m.resetInputHint()
 		return m.focusInputCmd()
 	}
-	m.applySessionSwitch(selected.SessionID, selected.Mode)
+	m.applySessionSwitch(selected.SessionID, selected.Mode, selected.Title)
 	return tea.Batch(m.loadSessionModeCmd(selected.SessionID), m.hydrateHistoryCmd(), m.focusInputCmd())
 }
 
@@ -157,11 +161,11 @@ func (m *Model) loadSessionModeCmd(sessionID string) tea.Cmd {
 	return func() tea.Msg {
 		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
 		defer cancel()
-		mode, err := cl.ChatAgent.GetSessionMode(ctx, sessionID)
+		sessionInfo, err := cl.ChatAgent.GetSessionMode(ctx, sessionID)
 		if err != nil {
 			return sessionModeLoadMsg{sessionID: sessionID, err: err.Error()}
 		}
-		return sessionModeLoadMsg{sessionID: sessionID, mode: mode}
+		return sessionModeLoadMsg{sessionID: sessionID, mode: sessionInfo.Mode, sessionTitle: sessionInfo.Title}
 	}
 }
 

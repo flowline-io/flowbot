@@ -16,6 +16,7 @@ import (
 // SessionSummary is a lightweight view of one chat session for list APIs.
 type SessionSummary struct {
 	SessionID string    `json:"session_id"`
+	Title     string    `json:"title"`
 	State     string    `json:"state"`
 	Mode      string    `json:"mode"`
 	CreatedAt time.Time `json:"created_at"`
@@ -45,6 +46,7 @@ func ListUserActiveSessions(ctx context.Context, uid types.Uid, limit int, curso
 		}
 		out = append(out, SessionSummary{
 			SessionID: row.Flag,
+			Title:     row.Title,
 			State:     sessionStateLabel(row.State),
 			Mode:      mode,
 			CreatedAt: row.CreatedAt,

@@ -296,6 +296,7 @@ type Adapter interface {
 	ListChatSessions(ctx context.Context, opts ListChatSessionsOptions) ([]*gen.ChatSession, string, error)
 	UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error
 	UpdateChatSessionMode(ctx context.Context, flag, mode string) error
+	UpdateChatSessionTitle(ctx context.Context, flag, title string) error
 	CloseChatSession(ctx context.Context, flag string) error
 	CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
 	AppendChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error

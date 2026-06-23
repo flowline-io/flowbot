@@ -170,6 +170,7 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 
 	reply := resolveAssistantReply(req.SessionID, start, result.Messages)
 	deliverRunResult(ctx, h, req, reply, sink, result.Messages)
+	maybeGenerateSessionTitle(req.SessionID, req.Text, reply)
 
 	flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",
 		req.SessionID, len(reply), time.Since(start).Round(time.Millisecond))
@@ -218,7 +219,8 @@ func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, r
 			contextWindow = cm.ContextWindow()
 		}
 		publishFinalUsage(req.API.Publisher, messages, contextWindow)
-		_ = req.API.Publisher.Publish(StreamEvent{Type: EventTypeDone, Text: reply})
+		title := LoadSessionTitle(ctx, req.SessionID)
+		_ = req.API.Publisher.Publish(StreamEvent{Type: EventTypeDone, Text: reply, Title: title})
 		return
 	}
 	if sink == nil {

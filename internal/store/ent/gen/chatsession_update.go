@@ -105,6 +105,20 @@ func (_u *ChatSessionUpdate) SetNillableMode(v *string) *ChatSessionUpdate {
 	return _u
 }
 
+// SetTitle sets the "title" field.
+func (_u *ChatSessionUpdate) SetTitle(v string) *ChatSessionUpdate {
+	_u.mutation.SetTitle(v)
+	return _u
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillableTitle(v *string) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetTitle(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *ChatSessionUpdate) SetUpdatedAt(v time.Time) *ChatSessionUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -196,6 +210,9 @@ func (_u *ChatSessionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Mode(); ok {
 		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Title(); ok {
+		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(chatsession.FieldUpdatedAt, field.TypeTime, value)
@@ -293,6 +310,20 @@ func (_u *ChatSessionUpdateOne) SetMode(v string) *ChatSessionUpdateOne {
 func (_u *ChatSessionUpdateOne) SetNillableMode(v *string) *ChatSessionUpdateOne {
 	if v != nil {
 		_u.SetMode(*v)
+	}
+	return _u
+}
+
+// SetTitle sets the "title" field.
+func (_u *ChatSessionUpdateOne) SetTitle(v string) *ChatSessionUpdateOne {
+	_u.mutation.SetTitle(v)
+	return _u
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillableTitle(v *string) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetTitle(*v)
 	}
 	return _u
 }
@@ -418,6 +449,9 @@ func (_u *ChatSessionUpdateOne) sqlSave(ctx context.Context) (_node *ChatSession
 	}
 	if value, ok := _u.mutation.Mode(); ok {
 		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Title(); ok {
+		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(chatsession.FieldUpdatedAt, field.TypeTime, value)
