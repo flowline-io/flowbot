@@ -18,15 +18,16 @@ const (
 
 // Event is a structured lifecycle notification for UI and harness consumers.
 type Event struct {
-	Type        Type
-	Message     any
-	ToolCall    any
-	ToolResult  any
-	ToolResults any
-	Messages    any
-	TextDelta   string
-	Update      string
-	Err         error
+	Type           Type
+	Message        any
+	ToolCall       any
+	ToolResult     any
+	ToolResults    any
+	Messages       any
+	TextDelta      string
+	ReasoningDelta string
+	Update         string
+	Err            error
 }
 
 // Handler processes agent lifecycle events sequentially.

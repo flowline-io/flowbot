@@ -34,6 +34,44 @@ func TestFormatHistoryLineRoles(t *testing.T) {
 	}
 }
 
+func TestFormatThinkingBlock(t *testing.T) {
+	styles := NewStyles()
+	tests := []struct {
+		name       string
+		text       string
+		wantSubstr []string
+		wantEmpty  bool
+	}{
+		{
+			name:       "renders thinking marker",
+			text:       "planning steps",
+			wantSubstr: []string{"Thinking", "planning steps"},
+		},
+		{
+			name:       "trims whitespace",
+			text:       "  spaced  ",
+			wantSubstr: []string{"Thinking", "spaced"},
+		},
+		{
+			name:      "empty text",
+			text:      "   ",
+			wantEmpty: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripANSI(FormatThinkingBlock(tt.text, 80, &styles))
+			if tt.wantEmpty {
+				assert.Empty(t, got)
+				return
+			}
+			for _, want := range tt.wantSubstr {
+				assert.Contains(t, got, want)
+			}
+		})
+	}
+}
+
 func TestFormatAssistantBlock(t *testing.T) {
 	styles := NewStyles()
 	tests := []struct {

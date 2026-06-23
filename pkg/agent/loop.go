@@ -209,18 +209,18 @@ func streamAssistant(
 		}
 	}
 
-	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, agentllm.StreamOptions{
+	streamOpts := agentllm.StreamOptions{
 		ModelName:   modelName,
 		Temperature: cfg.Temperature,
 		MaxTokens:   cfg.MaxTokens,
 		Tools:       llmTools,
-		OnTextDelta: func(delta string) error {
-			if emit == nil || delta == "" {
-				return nil
-			}
-			return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, TextDelta: delta})
-		},
-	})
+		OnTextDelta: messageTextDeltaHandler(emit),
+	}
+	if agentllm.SupportsReasoningStream(modelName) {
+		streamOpts.OnReasoningDelta = messageReasoningDeltaHandler(emit)
+	}
+
+	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, streamOpts)
 	if err != nil {
 		return AssistantMessage{}, err
 	}
@@ -257,6 +257,24 @@ func streamAssistant(
 	}
 
 	return assistant, nil
+}
+
+func messageTextDeltaHandler(emit func(agentevent.Event) error) func(string) error {
+	return func(delta string) error {
+		if emit == nil || delta == "" {
+			return nil
+		}
+		return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, TextDelta: delta})
+	}
+}
+
+func messageReasoningDeltaHandler(emit func(agentevent.Event) error) func(string) error {
+	return func(delta string) error {
+		if emit == nil || delta == "" {
+			return nil
+		}
+		return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, ReasoningDelta: delta})
+	}
 }
 
 func usageToMsg(usage *agentllm.Usage) *Usage {

@@ -15,6 +15,7 @@ type streamRunState struct {
 	ctx              context.Context
 	ch               chan tea.Msg
 	overlay          strings.Builder
+	rawThinking      string
 	rawAssistant     string
 	streamingBaseLen int
 	renderPending    bool

@@ -400,6 +400,7 @@ func (m *Model) startStream(text string) (*Model, tea.Cmd) {
 	}
 	m.phase = PhaseStreaming
 	m.turnStarted = time.Now()
+	m.stream.rawThinking = ""
 	m.stream.rawAssistant = ""
 	m.stream.streamingBaseLen = m.transcript.Len()
 	m.stream.overlay.Reset()
@@ -419,7 +420,7 @@ func (m *Model) startStream(text string) (*Model, tea.Cmd) {
 	go func() {
 		err := cl.ChatAgent.SendMessageSSE(ctx, sessionID, text, func(ev client.ChatStreamEvent) error {
 			msg := streamEventMsg{event: ev}
-			if ev.Type != "delta" {
+			if ev.Type != "delta" && ev.Type != "thinking" {
 				for {
 					select {
 					case <-ctx.Done():
@@ -473,20 +474,27 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 	m.syncViewport()
 	var cmd tea.Cmd
 	if m.stream.renderPending {
-		cmd = renderTickCmd(RenderDebounce(m.stream.rawAssistant))
+		cmd = renderTickCmd(RenderDebounce(m.stream.rawThinking + m.stream.rawAssistant))
 	}
 	return m, cmd
 }
 
 func (m *Model) applyLifecycleStreamEvent(ev client.ChatStreamEvent) {
 	switch ev.Type {
+	case "thinking":
+		m.stream.rawThinking = strings.TrimSpace(ev.Text)
+		m.stream.renderPending = true
+		m.stream.renderDeadline = time.Now().Add(RenderDebounce(m.stream.rawThinking + m.stream.rawAssistant))
 	case "delta":
 		m.stream.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
 		m.stream.renderPending = true
-		m.stream.renderDeadline = time.Now().Add(RenderDebounce(m.stream.rawAssistant))
+		m.stream.renderDeadline = time.Now().Add(RenderDebounce(m.stream.rawThinking + m.stream.rawAssistant))
 	case "canceled":
 		m.phase = PhaseIdle
 		m.hint = "Canceled — ready for input"
+		m.stream.rawThinking = ""
+		m.stream.rawAssistant = ""
+		m.resetStreamingTranscript()
 		m.clearConfirm()
 	case "done":
 		if ev.Text != "" {
@@ -497,6 +505,9 @@ func (m *Model) applyLifecycleStreamEvent(ev client.ChatStreamEvent) {
 		m.resetInputHint()
 	case "error":
 		m.appendSystem("Error: " + ev.Message)
+		m.stream.rawThinking = ""
+		m.stream.rawAssistant = ""
+		m.resetStreamingTranscript()
 		m.phase = PhaseIdle
 		m.resetInputHint()
 	}
@@ -566,7 +577,7 @@ func (m *Model) appendSystem(text string) {
 }
 
 func (m *Model) refreshStreamingAssistant() {
-	if m.stream.rawAssistant == "" {
+	if m.stream.rawAssistant == "" && m.stream.rawThinking == "" {
 		return
 	}
 	transcript := m.transcript.String()
@@ -574,18 +585,32 @@ func (m *Model) refreshStreamingAssistant() {
 		// Transcript may shrink mid-stream (e.g. /clear); clamp to avoid slice panic.
 		len(transcript))
 	base := transcript[:baseLen]
-	rendered := FormatAssistantBlock(m.stream.rawAssistant, m.width-2, &m.styles)
 	m.transcript.Reset()
 	writeBuilder(&m.transcript, base)
-	writeBuilder(&m.transcript, rendered)
+	if block := FormatThinkingBlock(m.stream.rawThinking, m.width-2, &m.styles); block != "" {
+		writeBuilder(&m.transcript, block)
+	}
+	if m.stream.rawAssistant != "" {
+		rendered := FormatAssistantBlock(m.stream.rawAssistant, m.width-2, &m.styles)
+		writeBuilder(&m.transcript, rendered)
+	}
 	writeBuilder(&m.transcript, m.stream.overlay.String())
 }
 
 func (m *Model) finalizeAssistant() {
+	m.stream.rawThinking = ""
 	m.refreshStreamingAssistant()
 	m.stream.rawAssistant = ""
 	m.stream.overlay.Reset()
 	m.messageCount++
+}
+
+func (m *Model) resetStreamingTranscript() {
+	transcript := m.transcript.String()
+	baseLen := min(m.stream.streamingBaseLen, len(transcript))
+	m.transcript.Reset()
+	writeBuilder(&m.transcript, transcript[:baseLen])
+	writeBuilder(&m.transcript, m.stream.overlay.String())
 }
 
 func (m *Model) syncViewport() {

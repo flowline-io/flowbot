@@ -13,8 +13,9 @@ const apiStreamUpdateInterval = 150 * time.Millisecond
 
 // apiStreamTracker tracks subagent inner-tool progress for one API SSE connection.
 type apiStreamTracker struct {
-	coalescer    *streamCoalescer
-	subagentTool string
+	coalescer          *streamCoalescer
+	reasoningCoalescer *streamCoalescer
+	subagentTool       string
 }
 
 // startAPIEventStream consumes agent lifecycle events and publishes Chat Agent SSE payloads.
@@ -30,7 +31,10 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 
 	go func() {
 		defer close(done)
-		tracker := &apiStreamTracker{coalescer: newStreamCoalescer()}
+		tracker := &apiStreamTracker{
+			coalescer:          newStreamCoalescer(),
+			reasoningCoalescer: newStreamCoalescer(),
+		}
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
 
@@ -41,11 +45,13 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 			case ev, ok := <-events:
 				if !ok {
 					publishAPIEvent(ctx, publisher, tracker.coalescer)
+					publishAPIReasoningEvent(ctx, publisher, tracker.reasoningCoalescer)
 					return
 				}
 				handleAPIStreamEvent(publisher, tracker, ev)
 			case <-ticker.C:
 				publishAPIEvent(ctx, publisher, tracker.coalescer)
+				publishAPIReasoningEvent(ctx, publisher, tracker.reasoningCoalescer)
 			}
 		}
 	}()
@@ -58,10 +64,16 @@ func handleAPIStreamEvent(publisher EventPublisher, tracker *apiStreamTracker, e
 	case agentevent.TypeMessageStart:
 		if _, ok := ev.Message.(msg.AssistantMessage); ok {
 			tracker.coalescer.reset()
+			tracker.reasoningCoalescer.reset()
 			tracker.subagentTool = ""
 		}
 	case agentevent.TypeMessageUpdate:
-		tracker.coalescer.appendDelta(ev.TextDelta)
+		if ev.ReasoningDelta != "" {
+			tracker.reasoningCoalescer.appendDelta(ev.ReasoningDelta)
+		}
+		if ev.TextDelta != "" {
+			tracker.coalescer.appendDelta(ev.TextDelta)
+		}
 	case agentevent.TypeToolExecutionStart:
 		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok {
 			tracker.coalescer.setToolStatus(toolStatusText(call))
@@ -138,6 +150,18 @@ func publishAPIEvent(ctx context.Context, publisher EventPublisher, coalescer *s
 		return
 	}
 	_ = publisher.Publish(StreamEvent{Type: EventTypeDelta, Text: text})
+	coalescer.markClean()
+}
+
+func publishAPIReasoningEvent(ctx context.Context, publisher EventPublisher, coalescer *streamCoalescer) {
+	if ctx.Err() != nil {
+		return
+	}
+	text, dirty := coalescer.snapshot()
+	if !dirty || text == "" {
+		return
+	}
+	_ = publisher.Publish(StreamEvent{Type: EventTypeThinking, Text: text})
 	coalescer.markClean()
 }
 

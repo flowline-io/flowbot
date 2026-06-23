@@ -114,6 +114,20 @@ func FormatHistoryLine(role, text string, styles *Styles) string {
 	}
 }
 
+// FormatThinkingBlock renders provider reasoning above the assistant reply.
+func FormatThinkingBlock(text string, width int, styles *Styles) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	marker := styles.Thinking.Render("◇ Thinking")
+	body := RenderMarkdown(text, width)
+	if body == "" {
+		return marker + "\n"
+	}
+	return marker + "\n" + styles.Thinking.Render(strings.TrimRight(body, "\n")) + "\n"
+}
+
 // FormatAssistantBlock renders agent markdown with a left marker on the first line.
 func FormatAssistantBlock(text string, width int, styles *Styles) string {
 	text = agentmsg.SanitizeAssistantDisplayText(text)

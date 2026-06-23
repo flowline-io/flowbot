@@ -13,9 +13,11 @@ import (
 type ResponseScript struct {
 	Content string
 	// Chunks, when non-empty, are emitted one-by-one via StreamingFunc instead of Content as a single chunk.
-	Chunks    []string
-	ToolCalls []llms.ToolCall
-	Err       error
+	Chunks []string
+	// ReasoningChunks are emitted via StreamingReasoningFunc when configured.
+	ReasoningChunks []string
+	ToolCalls       []llms.ToolCall
+	Err             error
 }
 
 // FakeModel implements llms.Model with a queue of scripted responses.
@@ -79,17 +81,10 @@ func (f *FakeModel) GenerateContent(ctx context.Context, _ []llms.MessageContent
 	content := script.Content
 	if len(script.Chunks) > 0 {
 		content = joinChunks(script.Chunks, script.Content)
-		if opts.StreamingFunc != nil {
-			for _, chunk := range script.Chunks {
-				if err := opts.StreamingFunc(ctx, []byte(chunk)); err != nil {
-					return nil, err
-				}
-			}
-		}
-	} else if opts.StreamingFunc != nil && script.Content != "" {
-		if err := opts.StreamingFunc(ctx, []byte(script.Content)); err != nil {
-			return nil, err
-		}
+	}
+
+	if err := emitFakeStreaming(ctx, opts, script); err != nil {
+		return nil, err
 	}
 
 	return &llms.ContentResponse{
@@ -108,4 +103,52 @@ func joinChunks(chunks []string, fallback string) string {
 		return fallback
 	}
 	return strings.Join(chunks, "")
+}
+
+func emitFakeStreaming(ctx context.Context, opts llms.CallOptions, script ResponseScript) error {
+	if opts.StreamingReasoningFunc != nil {
+		return emitReasoningStreaming(ctx, opts.StreamingReasoningFunc, script)
+	}
+	if opts.StreamingFunc != nil {
+		return emitTextStreaming(ctx, opts.StreamingFunc, script)
+	}
+	return nil
+}
+
+func emitReasoningStreaming(
+	ctx context.Context,
+	stream func(context.Context, []byte, []byte) error,
+	script ResponseScript,
+) error {
+	for _, chunk := range script.ReasoningChunks {
+		if err := stream(ctx, []byte(chunk), nil); err != nil {
+			return err
+		}
+	}
+	chunks := script.Chunks
+	if len(chunks) == 0 && script.Content != "" {
+		return stream(ctx, nil, []byte(script.Content))
+	}
+	for _, chunk := range chunks {
+		if err := stream(ctx, nil, []byte(chunk)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func emitTextStreaming(ctx context.Context, stream func(context.Context, []byte) error, script ResponseScript) error {
+	chunks := script.Chunks
+	if len(chunks) == 0 {
+		if script.Content == "" {
+			return nil
+		}
+		return stream(ctx, []byte(script.Content))
+	}
+	for _, chunk := range chunks {
+		if err := stream(ctx, []byte(chunk)); err != nil {
+			return err
+		}
+	}
+	return nil
 }

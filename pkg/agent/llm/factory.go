@@ -14,8 +14,9 @@ import (
 )
 
 type pooledModel struct {
-	model llms.Model
-	name  string
+	model    llms.Model
+	name     string
+	provider string
 }
 
 type modelCreatorFn func(ctx context.Context, modelName string) (llms.Model, string, error)
@@ -60,7 +61,8 @@ func GetOrCreateModel(ctx context.Context, modelName string) (llms.Model, string
 	if err != nil {
 		return nil, "", err
 	}
-	actual, loaded := modelPool.LoadOrStore(modelName, pooledModel{model: model, name: resolvedName})
+	provider := resolveModel(modelName).Provider
+	actual, loaded := modelPool.LoadOrStore(modelName, pooledModel{model: model, name: resolvedName, provider: provider})
 	if loaded {
 		if entry, ok := actual.(pooledModel); ok {
 			return entry.model, entry.name, nil
@@ -71,6 +73,8 @@ func GetOrCreateModel(ctx context.Context, modelName string) (llms.Model, string
 }
 
 // NewModel creates a langchaingo model from flowbot model configuration.
+// Provider reasoning is enabled per request in StreamAssistant via ReasoningCallOptions
+// because langchaingo exposes extended thinking through GenerateContent call options.
 func NewModel(ctx context.Context, modelName string) (llms.Model, string, error) {
 	cfg := resolveModel(modelName)
 	if cfg.Provider == "" {
@@ -82,6 +86,9 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 		opts := []openai.Option{openai.WithToken(cfg.ApiKey), openai.WithModel(modelName)}
 		if cfg.BaseUrl != "" {
 			opts = append(opts, openai.WithBaseURL(cfg.BaseUrl))
+		}
+		if isDeepSeekV4ReasoningModel(modelName) {
+			opts = append(opts, openai.WithHTTPClient(deepSeekThinkingHTTPClient()))
 		}
 		model, err := openai.New(opts...)
 		if err != nil {
@@ -110,6 +117,16 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 	default:
 		return nil, "", fmt.Errorf("agent llm: unsupported provider %q", cfg.Provider)
 	}
+}
+
+// ProviderForModel returns the configured provider name for a model.
+func ProviderForModel(modelName string) string {
+	if cached, ok := modelPool.Load(modelName); ok {
+		if entry, ok := cached.(pooledModel); ok && entry.provider != "" {
+			return entry.provider
+		}
+	}
+	return resolveModel(modelName).Provider
 }
 
 func resolveModel(modelName string) config.Model {

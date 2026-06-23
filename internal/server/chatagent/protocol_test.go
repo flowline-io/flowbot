@@ -14,6 +14,11 @@ func TestMarshalStreamEvent(t *testing.T) {
 		wantSub string
 	}{
 		{
+			name:    "thinking event",
+			event:   StreamEvent{Type: EventTypeThinking, Text: "planning"},
+			wantSub: `"type":"thinking"`,
+		},
+		{
 			name:    "delta event",
 			event:   StreamEvent{Type: EventTypeDelta, Text: "hello"},
 			wantSub: `"type":"delta"`,

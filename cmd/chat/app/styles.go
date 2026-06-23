@@ -28,6 +28,7 @@ type Styles struct {
 	Rule        lipgloss.Style
 	UserMsg     lipgloss.Style
 	Assistant   lipgloss.Style
+	Thinking    lipgloss.Style
 	Hint        lipgloss.Style
 	Warning     lipgloss.Style
 	ConfirmBox  lipgloss.Style
@@ -47,6 +48,7 @@ func NewStyles() Styles {
 		Rule:        lipgloss.NewStyle().Foreground(colorMuted),
 		UserMsg:     lipgloss.NewStyle().Foreground(colorUser).Bold(true),
 		Assistant:   lipgloss.NewStyle().Foreground(colorAssistant),
+		Thinking:    lipgloss.NewStyle().Foreground(colorMuted).Italic(true),
 		Hint:        lipgloss.NewStyle().Foreground(colorMuted).Italic(true),
 		Warning:     lipgloss.NewStyle().Foreground(colorWarning).Bold(true),
 		ConfirmBox:  lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(colorConfirm).Padding(0, 1),

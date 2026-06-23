@@ -7,6 +7,7 @@ import (
 // Stream event type constants for Chat Agent SSE clients.
 const (
 	EventTypeDelta           = "delta"
+	EventTypeThinking        = "thinking"
 	EventTypeTool            = "tool"
 	EventTypeUsage           = "usage"
 	EventTypeConfirm         = "confirm"
@@ -21,7 +22,7 @@ const (
 type StreamEvent struct {
 	Type string `json:"type"`
 
-	// delta / done
+	// delta / done / thinking
 	Text string `json:"text,omitempty"`
 
 	// tool

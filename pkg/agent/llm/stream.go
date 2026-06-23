@@ -15,11 +15,12 @@ var ErrAborted = errors.New("agent llm: aborted")
 
 // StreamOptions configures a streaming assistant request.
 type StreamOptions struct {
-	ModelName   string
-	Temperature float64
-	MaxTokens   int
-	Tools       []llms.Tool
-	OnTextDelta func(delta string) error
+	ModelName        string
+	Temperature      float64
+	MaxTokens        int
+	Tools            []llms.Tool
+	OnTextDelta      func(delta string) error
+	OnReasoningDelta func(delta string) error
 }
 
 // AssistantResult is the normalized output of a streaming assistant request.
@@ -65,19 +66,7 @@ func StreamAssistant(
 
 	var textBuilder strings.Builder
 	var textMu sync.Mutex
-
-	if opts.OnTextDelta != nil {
-		callOpts = append(callOpts, llms.WithStreamingFunc(func(streamCtx context.Context, chunk []byte) error {
-			if streamCtx.Err() != nil {
-				return streamCtx.Err()
-			}
-			delta := string(chunk)
-			textMu.Lock()
-			_, _ = textBuilder.WriteString(delta)
-			textMu.Unlock()
-			return opts.OnTextDelta(delta)
-		}))
-	}
+	callOpts = append(callOpts, buildAssistantStreamOptions(opts, &textBuilder, &textMu)...)
 
 	if systemPrompt != "" {
 		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt)}, messages...)
@@ -112,6 +101,42 @@ func StreamAssistant(
 		StopReason: stopReason,
 		Usage:      usageFromGenerationInfo(choice.GenerationInfo),
 	}, nil
+}
+
+func buildAssistantStreamOptions(opts StreamOptions, textBuilder *strings.Builder, textMu *sync.Mutex) []llms.CallOption {
+	streamText := func(streamCtx context.Context, chunk []byte) error {
+		if streamCtx.Err() != nil {
+			return streamCtx.Err()
+		}
+		if len(chunk) == 0 || opts.OnTextDelta == nil {
+			return nil
+		}
+		delta := string(chunk)
+		textMu.Lock()
+		_, _ = textBuilder.WriteString(delta)
+		textMu.Unlock()
+		return opts.OnTextDelta(delta)
+	}
+
+	if opts.OnReasoningDelta != nil {
+		out := ReasoningCallOptions(opts.ModelName, opts.MaxTokens)
+		out = append(out, llms.WithStreamingReasoningFunc(func(streamCtx context.Context, reasoningChunk, chunk []byte) error {
+			if streamCtx.Err() != nil {
+				return streamCtx.Err()
+			}
+			if len(reasoningChunk) > 0 {
+				if err := opts.OnReasoningDelta(string(reasoningChunk)); err != nil {
+					return err
+				}
+			}
+			return streamText(streamCtx, chunk)
+		}))
+		return out
+	}
+	if opts.OnTextDelta == nil {
+		return nil
+	}
+	return []llms.CallOption{llms.WithStreamingFunc(streamText)}
 }
 
 func usageFromGenerationInfo(info map[string]any) *Usage {
