@@ -39,6 +39,22 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	return registry, nil
 }
 
+// NewSubagentRegistry registers coding tools and an optional allowlisted read_skill tool for subagent runs.
+func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Registry, error) {
+	registry := tool.NewRegistry()
+	if err := coding.RegisterAll(registry, ws, nil); err != nil {
+		return nil, err
+	}
+	skillTool := ReadSkillTool{}
+	if len(skillAllowlist) > 0 {
+		skillTool = NewReadSkillTool(skillAllowlist)
+	}
+	if err := registry.Register(skillTool); err != nil {
+		return nil, err
+	}
+	return registry, nil
+}
+
 // ActiveToolNames returns the default active tool names for the chat assistant.
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()

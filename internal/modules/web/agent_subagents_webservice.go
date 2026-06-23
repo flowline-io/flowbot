@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,6 +33,8 @@ var agentSubagentsWebserviceRules = []webservice.Rule{
 	webservice.Get("/agent-subagents/:flag/edit", agentSubagentEditForm, route.WithNotAuth()),
 	webservice.Put("/agent-subagents/:flag", agentSubagentUpdate, route.WithNotAuth()),
 	webservice.Delete("/agent-subagents/:flag", agentSubagentDelete, route.WithNotAuth()),
+	webservice.Get("/agent-subagents/tasks", agentSubagentTasksTable, route.WithNotAuth()),
+	webservice.Get("/agent-subagents/tasks/:id", agentSubagentTaskDetail, route.WithNotAuth()),
 }
 
 func agentSubagentsPage(ctx fiber.Ctx) error {
@@ -65,8 +68,12 @@ func agentSubagentNewForm(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-subagent-form-new" hx-swap-oob="delete"></tr><tr id="agent-subagents-empty" hx-swap-oob="delete"></tr>`))
-	return partials.AgentSubagentForm(model.AgentSubagent{Source: "global", Enabled: true}, true, nil).
-		Render(ctx.Context(), ctx.Response().BodyWriter())
+	params, err := buildAgentSubagentFormParams(ctx.Context(), model.AgentSubagent{Source: "global", Enabled: true}, true, nil)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		return renderError(ctx, "Failed to load subagent form options")
+	}
+	return partials.AgentSubagentForm(params).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSubagentCreate(ctx fiber.Ctx) error {
@@ -79,7 +86,11 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentSubagentForm(input, true, errs).Render(reqCtx, ctx.Response().BodyWriter())
+		params, buildErr := buildAgentSubagentFormParams(reqCtx, input, true, errs)
+		if buildErr != nil {
+			return renderError(ctx, "Failed to load subagent form options")
+		}
+		return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	now := time.Now().UTC()
 	row := &gen.AgentSubagent{
@@ -88,6 +99,7 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		Description:  input.Description,
 		SystemPrompt: input.SystemPrompt,
 		Tools:        input.Tools,
+		Skills:       input.Skills,
 		Model:        input.Model,
 		Source:       defaultAgentSubagentSource(input.Source),
 		Enabled:      input.Enabled,
@@ -98,7 +110,11 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentSubagentUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentSubagentForm(input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
+			params, buildErr := buildAgentSubagentFormParams(reqCtx, input, true, fieldErrs)
+			if buildErr != nil {
+				return renderError(ctx, "Failed to load subagent form options")
+			}
+			return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to create agent subagent")
@@ -128,7 +144,12 @@ func agentSubagentEditForm(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load agent subagent")
 	}
 	ctx.Type("html")
-	return partials.AgentSubagentForm(item, false, nil).Render(reqCtx, ctx.Response().BodyWriter())
+	params, err := buildAgentSubagentFormParams(reqCtx, item, false, nil)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		return renderError(ctx, "Failed to load subagent form options")
+	}
+	return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 }
 
 func agentSubagentUpdate(ctx fiber.Ctx) error {
@@ -155,7 +176,11 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		ctx.Status(http.StatusUnprocessableEntity)
 		ctx.Type("html")
-		return partials.AgentSubagentForm(input, false, errs).Render(reqCtx, ctx.Response().BodyWriter())
+		params, buildErr := buildAgentSubagentFormParams(reqCtx, input, false, errs)
+		if buildErr != nil {
+			return renderError(ctx, "Failed to load subagent form options")
+		}
+		return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 	}
 	row := &gen.AgentSubagent{
 		Flag:         flag,
@@ -163,6 +188,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		Description:  input.Description,
 		SystemPrompt: input.SystemPrompt,
 		Tools:        input.Tools,
+		Skills:       input.Skills,
 		Model:        input.Model,
 		Source:       defaultAgentSubagentSource(input.Source),
 		Enabled:      input.Enabled,
@@ -172,7 +198,11 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		if fieldErrs := mapAgentSubagentUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
-			return partials.AgentSubagentForm(input, false, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
+			params, buildErr := buildAgentSubagentFormParams(reqCtx, input, false, fieldErrs)
+			if buildErr != nil {
+				return renderError(ctx, "Failed to load subagent form options")
+			}
+			return partials.AgentSubagentForm(params).Render(reqCtx, ctx.Response().BodyWriter())
 		}
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to update agent subagent")
@@ -213,6 +243,53 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 	return ctx.SendString("")
 }
 
+func agentSubagentTasksTable(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	items, err := listAgentSubagentTaskModels(ctx.Context(), "", 100)
+	if err != nil {
+		ctx.Status(http.StatusInternalServerError)
+		return renderError(ctx, "Failed to load subagent tasks")
+	}
+	ctx.Type("html")
+	return partials.AgentSubagentTaskTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func agentSubagentTaskDetail(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	id, err := decodeAgentSubagentTaskID(ctx)
+	if err != nil {
+		return err
+	}
+	reqCtx := ctx.Context()
+	item, err := loadAgentSubagentTaskModel(reqCtx, id)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			ctx.Status(http.StatusNotFound)
+			return renderError(ctx, "Subagent task not found")
+		}
+		ctx.Status(http.StatusInternalServerError)
+		return renderError(ctx, "Failed to load subagent task")
+	}
+	ctx.Type("html")
+	return partials.AgentSubagentTaskDetail(item).Render(reqCtx, ctx.Response().BodyWriter())
+}
+
+func decodeAgentSubagentTaskID(ctx fiber.Ctx) (int64, error) {
+	raw := strings.TrimSpace(ctx.Params("id"))
+	if raw == "" {
+		return 0, types.Errorf(types.ErrInvalidArgument, "invalid subagent task id")
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		return 0, types.Errorf(types.ErrInvalidArgument, "invalid subagent task id")
+	}
+	return id, nil
+}
+
 func decodeAgentSubagentFlag(ctx fiber.Ctx) (string, error) {
 	flag, err := url.PathUnescape(ctx.Params("flag"))
 	if err != nil || strings.TrimSpace(flag) == "" {
@@ -222,26 +299,25 @@ func decodeAgentSubagentFlag(ctx fiber.Ctx) (string, error) {
 }
 
 func parseAgentSubagentForm(ctx fiber.Ctx) model.AgentSubagent {
+	args := ctx.RequestCtx().PostArgs()
 	return model.AgentSubagent{
 		Flag:         strings.TrimSpace(ctx.FormValue("flag")),
 		Name:         strings.TrimSpace(ctx.FormValue("name")),
 		Description:  strings.TrimSpace(ctx.FormValue("description")),
 		SystemPrompt: ctx.FormValue("system_prompt"),
-		Tools:        parseAgentSubagentTools(ctx.FormValue("tools")),
+		Tools:        parseAgentSubagentMultiValues(args.PeekMulti("tools")),
+		Skills:       parseAgentSubagentMultiValues(args.PeekMulti("skills")),
 		Model:        strings.TrimSpace(ctx.FormValue("model")),
 		Source:       strings.TrimSpace(ctx.FormValue("source")),
 		Enabled:      ctx.FormValue("enabled") == "true",
 	}
 }
 
-func parseAgentSubagentTools(raw string) []string {
-	fields := strings.FieldsFunc(raw, func(r rune) bool {
-		return r == ',' || r == '\n' || r == ' ' || r == '\t'
-	})
-	tools := make([]string, 0, len(fields))
-	seen := make(map[string]struct{}, len(fields))
-	for _, field := range fields {
-		name := strings.TrimSpace(field)
+func parseAgentSubagentMultiValues(values [][]byte) []string {
+	items := make([]string, 0, len(values))
+	seen := make(map[string]struct{}, len(values))
+	for _, raw := range values {
+		name := strings.TrimSpace(string(raw))
 		if name == "" {
 			continue
 		}
@@ -249,9 +325,41 @@ func parseAgentSubagentTools(raw string) []string {
 			continue
 		}
 		seen[name] = struct{}{}
-		tools = append(tools, name)
+		items = append(items, name)
 	}
-	return tools
+	return items
+}
+
+func buildAgentSubagentFormParams(ctx context.Context, item model.AgentSubagent, isNew bool, errs map[string]string) (model.AgentSubagentFormParams, error) {
+	skills, err := listAgentSubagentSkillOptions(ctx)
+	if err != nil {
+		return model.AgentSubagentFormParams{}, err
+	}
+	return model.AgentSubagentFormParams{
+		Item:            item,
+		IsNew:           isNew,
+		Errors:          errs,
+		AvailableTools:  chatagent.SelectableSubagentTools(),
+		AvailableSkills: skills,
+	}, nil
+}
+
+func listAgentSubagentSkillOptions(ctx context.Context) ([]model.AgentSubagentSkillOption, error) {
+	rows, err := store.Database.ListAgentSkills(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+	options := make([]model.AgentSubagentSkillOption, 0, len(rows))
+	for _, row := range rows {
+		if row.DisableModelInvocation {
+			continue
+		}
+		options = append(options, model.AgentSubagentSkillOption{
+			Name:        row.Name,
+			Description: row.Description,
+		})
+	}
+	return options, nil
 }
 
 func validateAgentSubagentForm(item model.AgentSubagent, isNew bool) map[string]string {
@@ -326,6 +434,7 @@ func agentSubagentFromRow(row *gen.AgentSubagent) model.AgentSubagent {
 		Description:  row.Description,
 		SystemPrompt: row.SystemPrompt,
 		Tools:        append([]string(nil), row.Tools...),
+		Skills:       append([]string(nil), row.Skills...),
 		Model:        row.Model,
 		Source:       row.Source,
 		Enabled:      row.Enabled,
@@ -339,4 +448,42 @@ func agentSubagentFromInput(item model.AgentSubagent, createdAt, updatedAt time.
 	item.CreatedAt = createdAt
 	item.UpdatedAt = updatedAt
 	return item
+}
+
+func listAgentSubagentTaskModels(ctx context.Context, sessionID string, limit int) ([]model.AgentSubagentTask, error) {
+	rows, err := store.Database.ListAgentSubagentTasks(ctx, sessionID, limit)
+	if err != nil {
+		return nil, err
+	}
+	items := make([]model.AgentSubagentTask, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, agentSubagentTaskFromRow(row))
+	}
+	return items, nil
+}
+
+func loadAgentSubagentTaskModel(ctx context.Context, id int64) (model.AgentSubagentTask, error) {
+	row, err := store.Database.GetAgentSubagentTask(ctx, id)
+	if err != nil {
+		return model.AgentSubagentTask{}, err
+	}
+	return agentSubagentTaskFromRow(row), nil
+}
+
+func agentSubagentTaskFromRow(row *gen.AgentSubagentTask) model.AgentSubagentTask {
+	return model.AgentSubagentTask{
+		ID:           row.ID,
+		SessionID:    row.SessionID,
+		SubagentName: row.SubagentName,
+		Description:  row.Description,
+		Prompt:       row.Prompt,
+		Status:       row.Status,
+		Result:       row.Result,
+		ErrorText:    row.ErrorText,
+		Depth:        row.Depth,
+		StartedAt:    row.StartedAt,
+		FinishedAt:   row.FinishedAt,
+		CreatedAt:    row.CreatedAt,
+		UpdatedAt:    row.UpdatedAt,
+	}
 }

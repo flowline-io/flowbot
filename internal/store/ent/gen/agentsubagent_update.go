@@ -103,6 +103,24 @@ func (_u *AgentSubagentUpdate) ClearTools() *AgentSubagentUpdate {
 	return _u
 }
 
+// SetSkills sets the "skills" field.
+func (_u *AgentSubagentUpdate) SetSkills(v []string) *AgentSubagentUpdate {
+	_u.mutation.SetSkills(v)
+	return _u
+}
+
+// AppendSkills appends value to the "skills" field.
+func (_u *AgentSubagentUpdate) AppendSkills(v []string) *AgentSubagentUpdate {
+	_u.mutation.AppendSkills(v)
+	return _u
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (_u *AgentSubagentUpdate) ClearSkills() *AgentSubagentUpdate {
+	_u.mutation.ClearSkills()
+	return _u
+}
+
 // SetModel sets the "model" field.
 func (_u *AgentSubagentUpdate) SetModel(v string) *AgentSubagentUpdate {
 	_u.mutation.SetModel(v)
@@ -252,6 +270,17 @@ func (_u *AgentSubagentUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if _u.mutation.ToolsCleared() {
 		_spec.ClearField(agentsubagent.FieldTools, field.TypeJSON)
 	}
+	if value, ok := _u.mutation.Skills(); ok {
+		_spec.SetField(agentsubagent.FieldSkills, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSkills(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentsubagent.FieldSkills, value)
+		})
+	}
+	if _u.mutation.SkillsCleared() {
+		_spec.ClearField(agentsubagent.FieldSkills, field.TypeJSON)
+	}
 	if value, ok := _u.mutation.Model(); ok {
 		_spec.SetField(agentsubagent.FieldModel, field.TypeString, value)
 	}
@@ -355,6 +384,24 @@ func (_u *AgentSubagentUpdateOne) AppendTools(v []string) *AgentSubagentUpdateOn
 // ClearTools clears the value of the "tools" field.
 func (_u *AgentSubagentUpdateOne) ClearTools() *AgentSubagentUpdateOne {
 	_u.mutation.ClearTools()
+	return _u
+}
+
+// SetSkills sets the "skills" field.
+func (_u *AgentSubagentUpdateOne) SetSkills(v []string) *AgentSubagentUpdateOne {
+	_u.mutation.SetSkills(v)
+	return _u
+}
+
+// AppendSkills appends value to the "skills" field.
+func (_u *AgentSubagentUpdateOne) AppendSkills(v []string) *AgentSubagentUpdateOne {
+	_u.mutation.AppendSkills(v)
+	return _u
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (_u *AgentSubagentUpdateOne) ClearSkills() *AgentSubagentUpdateOne {
+	_u.mutation.ClearSkills()
 	return _u
 }
 
@@ -536,6 +583,17 @@ func (_u *AgentSubagentUpdateOne) sqlSave(ctx context.Context) (_node *AgentSuba
 	}
 	if _u.mutation.ToolsCleared() {
 		_spec.ClearField(agentsubagent.FieldTools, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.Skills(); ok {
+		_spec.SetField(agentsubagent.FieldSkills, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedSkills(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, agentsubagent.FieldSkills, value)
+		})
+	}
+	if _u.mutation.SkillsCleared() {
+		_spec.ClearField(agentsubagent.FieldSkills, field.TypeJSON)
 	}
 	if value, ok := _u.mutation.Model(); ok {
 		_spec.SetField(agentsubagent.FieldModel, field.TypeString, value)

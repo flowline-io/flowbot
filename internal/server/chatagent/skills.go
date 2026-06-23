@@ -187,6 +187,32 @@ func FormatSkillsForPrompt(skills []Skill) string {
 	return strings.Join(lines, "\n")
 }
 
+// FilterSkillsByNames returns enabled skills whose names appear in allowlist.
+// An empty allowlist returns no skills.
+func FilterSkillsByNames(skills []Skill, allowlist []string) []Skill {
+	if len(allowlist) == 0 {
+		return nil
+	}
+	allowed := make(map[string]struct{}, len(allowlist))
+	for _, name := range allowlist {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		allowed[name] = struct{}{}
+	}
+	if len(allowed) == 0 {
+		return nil
+	}
+	filtered := make([]Skill, 0, len(allowlist))
+	for _, skill := range skills {
+		if _, ok := allowed[skill.Name]; ok {
+			filtered = append(filtered, skill)
+		}
+	}
+	return filtered
+}
+
 func escapeXML(value string) string {
 	return html.EscapeString(value)
 }

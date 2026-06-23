@@ -28,6 +28,8 @@ type AgentSubagent struct {
 	SystemPrompt string `json:"system_prompt,omitempty"`
 	// Tools holds the value of the "tools" field.
 	Tools []string `json:"tools,omitempty"`
+	// Skills holds the value of the "skills" field.
+	Skills []string `json:"skills,omitempty"`
 	// Model holds the value of the "model" field.
 	Model string `json:"model,omitempty"`
 	// Source holds the value of the "source" field.
@@ -46,7 +48,7 @@ func (*AgentSubagent) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case agentsubagent.FieldTools:
+		case agentsubagent.FieldTools, agentsubagent.FieldSkills:
 			values[i] = new([]byte)
 		case agentsubagent.FieldEnabled:
 			values[i] = new(sql.NullBool)
@@ -107,6 +109,14 @@ func (_m *AgentSubagent) assignValues(columns []string, values []any) error {
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &_m.Tools); err != nil {
 					return fmt.Errorf("unmarshal field tools: %w", err)
+				}
+			}
+		case agentsubagent.FieldSkills:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field skills", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Skills); err != nil {
+					return fmt.Errorf("unmarshal field skills: %w", err)
 				}
 			}
 		case agentsubagent.FieldModel:
@@ -189,6 +199,9 @@ func (_m *AgentSubagent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("tools=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Tools))
+	builder.WriteString(", ")
+	builder.WriteString("skills=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Skills))
 	builder.WriteString(", ")
 	builder.WriteString("model=")
 	builder.WriteString(_m.Model)

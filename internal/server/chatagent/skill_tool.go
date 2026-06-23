@@ -11,7 +11,15 @@ import (
 )
 
 // ReadSkillTool loads skill instructions from the database by name.
-type ReadSkillTool struct{}
+type ReadSkillTool struct {
+	// allowed restricts skill names when non-empty (subagent allowlist).
+	allowed []string
+}
+
+// NewReadSkillTool creates a read_skill tool optionally restricted to allowed skill names.
+func NewReadSkillTool(allowed []string) ReadSkillTool {
+	return ReadSkillTool{allowed: append([]string(nil), allowed...)}
+}
 
 // Name returns the tool identifier.
 func (ReadSkillTool) Name() string { return "read_skill" }
@@ -40,13 +48,16 @@ func (ReadSkillTool) Parameters() map[string]any {
 }
 
 // Execute returns the stored skill content.
-func (ReadSkillTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
+func (t ReadSkillTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	name := strings.TrimSpace(fmt.Sprint(args["name"]))
 	if name == "" {
 		return skillToolError(id, "skill name is required"), nil
 	}
 	if after, ok := strings.CutPrefix(name, skillLocationPrefix); ok {
 		name = after
+	}
+	if !t.isSkillAllowed(name) {
+		return skillToolError(id, fmt.Sprintf("skill %q is not available to this agent", name)), nil
 	}
 
 	filePath := strings.TrimSpace(fmt.Sprint(args["path"]))
@@ -79,6 +90,18 @@ func (ReadSkillTool) Execute(ctx context.Context, id string, args map[string]any
 		Name:       "read_skill",
 		Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
 	}, nil
+}
+
+func (t ReadSkillTool) isSkillAllowed(name string) bool {
+	if len(t.allowed) == 0 {
+		return true
+	}
+	for _, allowed := range t.allowed {
+		if allowed == name {
+			return true
+		}
+	}
+	return false
 }
 
 func skillToolError(id, text string) msg.ToolResultMessage {

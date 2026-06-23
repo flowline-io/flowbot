@@ -72,6 +72,7 @@ func (TaskTool) Parameters() map[string]any {
 // Execute resolves the subagent definition, runs it in isolation, and returns the final result.
 func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, onUpdate tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	subagentType := stringArg(args, "subagent_type")
+	description := stringArg(args, "description")
 	prompt := stringArg(args, "prompt")
 	if subagentType == "" {
 		return taskToolError(id, "subagent_type is required"), nil
@@ -80,28 +81,42 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 		return taskToolError(id, "prompt is required"), nil
 	}
 
-	def, err := GetSubagentDefinition(ctx, subagentType)
+	def, err := subagentDefinitionFromStore(ctx, subagentType)
 	if err != nil {
 		flog.Warn("[chat-agent] task subagent lookup failed type=%s: %v", subagentType, err)
 		return taskToolError(id, fmt.Sprintf("unknown subagent %q: %v", subagentType, err)), nil
 	}
 
+	systemPrompt, err := buildSubagentSystemPrompt(ctx, def)
+	if err != nil {
+		flog.Warn("[chat-agent] task subagent skills type=%s: %v", subagentType, err)
+		return taskToolError(id, fmt.Sprintf("subagent skills: %v", err)), nil
+	}
+
+	taskRecord, err := beginSubagentTask(ctx, t.deps.SessionID, subagentType, description, prompt, t.deps.Depth+1)
+	if err != nil {
+		flog.Warn("[chat-agent] task subagent record type=%s: %v", subagentType, err)
+	}
+
 	model, err := t.resolveModel(ctx, def.Model)
 	if err != nil {
 		flog.Warn("[chat-agent] task subagent model type=%s: %v", subagentType, err)
+		failSubagentTask(ctx, taskRecord, fmt.Sprintf("subagent model: %v", err))
 		return taskToolError(id, fmt.Sprintf("subagent model: %v", err)), nil
 	}
 
-	childRegistry, err := NewRegistry(t.workspace, nil, nil)
+	childRegistry, err := NewSubagentRegistry(t.workspace, def.Skills)
 	if err != nil {
+		failSubagentTask(ctx, taskRecord, fmt.Sprintf("subagent registry: %v", err))
 		return taskToolError(id, fmt.Sprintf("subagent registry: %v", err)), nil
 	}
-	if len(def.Tools) > 0 {
-		childRegistry.SetActive(def.Tools)
+	if active := activeSubagentTools(def.Tools, def.Skills); len(active) > 0 {
+		childRegistry.SetActive(active)
 	}
 
 	cfg, _, _, _, err := agentLoopConfig()
 	if err != nil {
+		failSubagentTask(ctx, taskRecord, fmt.Sprintf("subagent config: %v", err))
 		return taskToolError(id, fmt.Sprintf("subagent config: %v", err)), nil
 	}
 	cfg.MaxSteps = subagentMaxSteps()
@@ -114,7 +129,15 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	})
 	cfg = hooks.BridgeConfig(ctx, hookRegistry, cfg)
 
-	result, runErr := subagent.Run(ctx, def, subagent.Deps{
+	runDef := subagent.Definition{
+		Name:         def.Name,
+		Description:  def.Description,
+		SystemPrompt: systemPrompt,
+		Tools:        def.Tools,
+		Skills:       def.Skills,
+		Model:        def.Model,
+	}
+	result, runErr := subagent.Run(ctx, runDef, subagent.Deps{
 		Model:    model,
 		Registry: childRegistry,
 		Config:   cfg,
@@ -128,6 +151,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	})
 	if runErr != nil {
 		flog.Warn("[chat-agent] task subagent run type=%s: %v", subagentType, runErr)
+		failSubagentTask(ctx, taskRecord, runErr.Error())
 		return taskToolError(id, fmt.Sprintf("subagent %q failed: %v", subagentType, runErr)), nil
 	}
 
@@ -135,6 +159,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	if text == "" {
 		text = fmt.Sprintf("subagent %q completed with no output", subagentType)
 	}
+	completeSubagentTask(ctx, taskRecord, text)
 	return msg.ToolResultMessage{
 		ToolCallID: id,
 		Name:       taskToolName,

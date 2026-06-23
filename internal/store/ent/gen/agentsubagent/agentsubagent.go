@@ -23,6 +23,8 @@ const (
 	FieldSystemPrompt = "system_prompt"
 	// FieldTools holds the string denoting the tools field in the database.
 	FieldTools = "tools"
+	// FieldSkills holds the string denoting the skills field in the database.
+	FieldSkills = "skills"
 	// FieldModel holds the string denoting the model field in the database.
 	FieldModel = "model"
 	// FieldSource holds the string denoting the source field in the database.
@@ -45,6 +47,7 @@ var Columns = []string{
 	FieldDescription,
 	FieldSystemPrompt,
 	FieldTools,
+	FieldSkills,
 	FieldModel,
 	FieldSource,
 	FieldEnabled,

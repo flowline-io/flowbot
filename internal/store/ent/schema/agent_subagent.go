@@ -24,6 +24,7 @@ func (AgentSubagent) Fields() []ent.Field {
 		field.String("description").NotEmpty(),
 		field.Text("system_prompt").NotEmpty(),
 		field.JSON("tools", []string{}).Optional(),
+		field.JSON("skills", []string{}).Optional(),
 		field.String("model").Default(""),
 		field.String("source").Default("global"),
 		field.Bool("enabled").Default(true),

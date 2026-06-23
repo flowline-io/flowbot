@@ -32,6 +32,8 @@ type Definition struct {
 	SystemPrompt string
 	// Tools restricts which registered tools the subagent may call.
 	Tools []string
+	// Skills restricts which agent skills are injected into the subagent prompt and read_skill allowlist.
+	Skills []string
 	// Model optionally overrides the model used for the subagent loop.
 	Model string
 }

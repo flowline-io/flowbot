@@ -21,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
@@ -1408,6 +1409,7 @@ func (a *adapter) CreateAgentSubagent(ctx context.Context, subagent *gen.AgentSu
 		SetDescription(subagent.Description).
 		SetSystemPrompt(subagent.SystemPrompt).
 		SetTools(subagent.Tools).
+		SetSkills(subagent.Skills).
 		SetModel(subagent.Model).
 		SetSource(subagent.Source).
 		SetEnabled(subagent.Enabled)
@@ -1435,6 +1437,7 @@ func (a *adapter) UpdateAgentSubagent(ctx context.Context, subagent *gen.AgentSu
 		SetDescription(subagent.Description).
 		SetSystemPrompt(subagent.SystemPrompt).
 		SetTools(subagent.Tools).
+		SetSkills(subagent.Skills).
 		SetModel(subagent.Model).
 		SetSource(subagent.Source).
 		SetEnabled(subagent.Enabled).
@@ -1460,6 +1463,90 @@ func (a *adapter) DeleteAgentSubagent(ctx context.Context, flag string) error {
 		return types.ErrNotFound
 	}
 	return nil
+}
+
+func (a *adapter) CreateAgentSubagentTask(ctx context.Context, task *gen.AgentSubagentTask) error {
+	if task == nil {
+		return errors.New("postgres: nil agent subagent task")
+	}
+	builder := a.client.AgentSubagentTask.Create().
+		SetSessionID(task.SessionID).
+		SetSubagentName(task.SubagentName).
+		SetDescription(task.Description).
+		SetPrompt(task.Prompt).
+		SetStatus(task.Status).
+		SetResult(task.Result).
+		SetErrorText(task.ErrorText).
+		SetDepth(task.Depth)
+	if !task.StartedAt.IsZero() {
+		builder = builder.SetStartedAt(task.StartedAt)
+	}
+	if !task.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(task.CreatedAt)
+	}
+	if !task.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(task.UpdatedAt)
+	}
+	if task.FinishedAt != nil {
+		builder = builder.SetFinishedAt(*task.FinishedAt)
+	}
+	row, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create agent subagent task: %w", err)
+	}
+	task.ID = row.ID
+	return nil
+}
+
+func (a *adapter) UpdateAgentSubagentTask(ctx context.Context, task *gen.AgentSubagentTask) error {
+	if task == nil {
+		return errors.New("postgres: nil agent subagent task")
+	}
+	if task.ID == 0 {
+		return errors.New("postgres: agent subagent task id is required")
+	}
+	builder := a.client.AgentSubagentTask.UpdateOneID(task.ID).
+		SetStatus(task.Status).
+		SetResult(task.Result).
+		SetErrorText(task.ErrorText).
+		SetUpdatedAt(time.Now())
+	if task.FinishedAt != nil {
+		builder = builder.SetFinishedAt(*task.FinishedAt)
+	}
+	if _, err := builder.Save(ctx); err != nil {
+		if gen.IsNotFound(err) {
+			return types.ErrNotFound
+		}
+		return fmt.Errorf("postgres: update agent subagent task: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) ListAgentSubagentTasks(ctx context.Context, sessionID string, limit int) ([]*gen.AgentSubagentTask, error) {
+	query := a.client.AgentSubagentTask.Query().
+		Order(gen.Desc(agentsubagenttask.FieldCreatedAt))
+	if sessionID != "" {
+		query = query.Where(agentsubagenttask.SessionIDEQ(sessionID))
+	}
+	if limit > 0 {
+		query = query.Limit(limit)
+	}
+	rows, err := query.All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent subagent tasks: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) GetAgentSubagentTask(ctx context.Context, id int64) (*gen.AgentSubagentTask, error) {
+	row, err := a.client.AgentSubagentTask.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent subagent task: %w", err)
+	}
+	return row, nil
 }
 
 // ---------------------------------------------------------------------------

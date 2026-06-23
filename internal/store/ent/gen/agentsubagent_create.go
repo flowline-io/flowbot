@@ -52,6 +52,12 @@ func (_c *AgentSubagentCreate) SetTools(v []string) *AgentSubagentCreate {
 	return _c
 }
 
+// SetSkills sets the "skills" field.
+func (_c *AgentSubagentCreate) SetSkills(v []string) *AgentSubagentCreate {
+	_c.mutation.SetSkills(v)
+	return _c
+}
+
 // SetModel sets the "model" field.
 func (_c *AgentSubagentCreate) SetModel(v string) *AgentSubagentCreate {
 	_c.mutation.SetModel(v)
@@ -287,6 +293,10 @@ func (_c *AgentSubagentCreate) createSpec() (*AgentSubagent, *sqlgraph.CreateSpe
 		_spec.SetField(agentsubagent.FieldTools, field.TypeJSON, value)
 		_node.Tools = value
 	}
+	if value, ok := _c.mutation.Skills(); ok {
+		_spec.SetField(agentsubagent.FieldSkills, field.TypeJSON, value)
+		_node.Skills = value
+	}
 	if value, ok := _c.mutation.Model(); ok {
 		_spec.SetField(agentsubagent.FieldModel, field.TypeString, value)
 		_node.Model = value
@@ -422,6 +432,24 @@ func (u *AgentSubagentUpsert) UpdateTools() *AgentSubagentUpsert {
 // ClearTools clears the value of the "tools" field.
 func (u *AgentSubagentUpsert) ClearTools() *AgentSubagentUpsert {
 	u.SetNull(agentsubagent.FieldTools)
+	return u
+}
+
+// SetSkills sets the "skills" field.
+func (u *AgentSubagentUpsert) SetSkills(v []string) *AgentSubagentUpsert {
+	u.Set(agentsubagent.FieldSkills, v)
+	return u
+}
+
+// UpdateSkills sets the "skills" field to the value that was provided on create.
+func (u *AgentSubagentUpsert) UpdateSkills() *AgentSubagentUpsert {
+	u.SetExcluded(agentsubagent.FieldSkills)
+	return u
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (u *AgentSubagentUpsert) ClearSkills() *AgentSubagentUpsert {
+	u.SetNull(agentsubagent.FieldSkills)
 	return u
 }
 
@@ -598,6 +626,27 @@ func (u *AgentSubagentUpsertOne) UpdateTools() *AgentSubagentUpsertOne {
 func (u *AgentSubagentUpsertOne) ClearTools() *AgentSubagentUpsertOne {
 	return u.Update(func(s *AgentSubagentUpsert) {
 		s.ClearTools()
+	})
+}
+
+// SetSkills sets the "skills" field.
+func (u *AgentSubagentUpsertOne) SetSkills(v []string) *AgentSubagentUpsertOne {
+	return u.Update(func(s *AgentSubagentUpsert) {
+		s.SetSkills(v)
+	})
+}
+
+// UpdateSkills sets the "skills" field to the value that was provided on create.
+func (u *AgentSubagentUpsertOne) UpdateSkills() *AgentSubagentUpsertOne {
+	return u.Update(func(s *AgentSubagentUpsert) {
+		s.UpdateSkills()
+	})
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (u *AgentSubagentUpsertOne) ClearSkills() *AgentSubagentUpsertOne {
+	return u.Update(func(s *AgentSubagentUpsert) {
+		s.ClearSkills()
 	})
 }
 
@@ -948,6 +997,27 @@ func (u *AgentSubagentUpsertBulk) UpdateTools() *AgentSubagentUpsertBulk {
 func (u *AgentSubagentUpsertBulk) ClearTools() *AgentSubagentUpsertBulk {
 	return u.Update(func(s *AgentSubagentUpsert) {
 		s.ClearTools()
+	})
+}
+
+// SetSkills sets the "skills" field.
+func (u *AgentSubagentUpsertBulk) SetSkills(v []string) *AgentSubagentUpsertBulk {
+	return u.Update(func(s *AgentSubagentUpsert) {
+		s.SetSkills(v)
+	})
+}
+
+// UpdateSkills sets the "skills" field to the value that was provided on create.
+func (u *AgentSubagentUpsertBulk) UpdateSkills() *AgentSubagentUpsertBulk {
+	return u.Update(func(s *AgentSubagentUpsert) {
+		s.UpdateSkills()
+	})
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (u *AgentSubagentUpsertBulk) ClearSkills() *AgentSubagentUpsertBulk {
+	return u.Update(func(s *AgentSubagentUpsert) {
+		s.ClearSkills()
 	})
 }
 

@@ -5,6 +5,7 @@ package specs
 
 import (
 	"context"
+	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -80,12 +81,14 @@ var _ = Describe("AgentSubagent Store", Label("database", "chatagent", "integrat
 
 		s.Description = "Updated description"
 		s.Model = "gpt-4o"
+		s.Skills = []string{"code-review"}
 		Expect(store.Database.UpdateAgentSubagent(ctx, s)).To(Succeed())
 
 		got, err := store.Database.GetAgentSubagentByFlag(ctx, s.Flag)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(got.Description).To(Equal("Updated description"))
 		Expect(got.Model).To(Equal("gpt-4o"))
+		Expect(got.Skills).To(ConsistOf("code-review"))
 	})
 
 	It("deletes a subagent and reports not found afterwards", func() {
@@ -109,5 +112,61 @@ var _ = Describe("AgentSubagent Store", Label("database", "chatagent", "integrat
 		after, err := store.Database.GetAgentSubagentsMaxUpdatedAt(ctx)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(after.Before(before)).To(BeFalse())
+	})
+})
+
+var _ = Describe("AgentSubagentTask Store", Label("database", "chatagent", "integration"), func() {
+	ctx := context.Background()
+
+	newTask := func() *gen.AgentSubagentTask {
+		return &gen.AgentSubagentTask{
+			SessionID:    "session-" + types.Id(),
+			SubagentName: "explore",
+			Description:  "Find implementation",
+			Prompt:       "Locate where subagents are defined",
+			Status:       "running",
+			Depth:        1,
+		}
+	}
+
+	It("creates and retrieves a subagent task", func() {
+		task := newTask()
+		Expect(store.Database.CreateAgentSubagentTask(ctx, task)).To(Succeed())
+		Expect(task.ID).NotTo(BeZero())
+
+		got, err := store.Database.GetAgentSubagentTask(ctx, task.ID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(got.SubagentName).To(Equal("explore"))
+		Expect(got.Status).To(Equal("running"))
+	})
+
+	It("updates task status and result", func() {
+		task := newTask()
+		Expect(store.Database.CreateAgentSubagentTask(ctx, task)).To(Succeed())
+
+		now := time.Now().UTC()
+		task.Status = "completed"
+		task.Result = "Found subagents in internal/server/chatagent"
+		task.FinishedAt = &now
+		Expect(store.Database.UpdateAgentSubagentTask(ctx, task)).To(Succeed())
+
+		got, err := store.Database.GetAgentSubagentTask(ctx, task.ID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(got.Status).To(Equal("completed"))
+		Expect(got.Result).To(ContainSubstring("subagents"))
+		Expect(got.FinishedAt).NotTo(BeNil())
+	})
+
+	It("lists tasks filtered by session", func() {
+		task := newTask()
+		Expect(store.Database.CreateAgentSubagentTask(ctx, task)).To(Succeed())
+
+		rows, err := store.Database.ListAgentSubagentTasks(ctx, task.SessionID, 10)
+		Expect(err).NotTo(HaveOccurred())
+		ids := make([]int64, 0, len(rows))
+		for _, row := range rows {
+			ids = append(ids, row.ID)
+		}
+		Expect(ids).To(ContainElement(task.ID))
 	})
 })

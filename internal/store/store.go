@@ -337,6 +337,11 @@ type Adapter interface {
 	UpdateAgentSubagent(ctx context.Context, subagent *gen.AgentSubagent) error
 	DeleteAgentSubagent(ctx context.Context, flag string) error
 
+	CreateAgentSubagentTask(ctx context.Context, task *gen.AgentSubagentTask) error
+	UpdateAgentSubagentTask(ctx context.Context, task *gen.AgentSubagentTask) error
+	ListAgentSubagentTasks(ctx context.Context, sessionID string, limit int) ([]*gen.AgentSubagentTask, error)
+	GetAgentSubagentTask(ctx context.Context, id int64) (*gen.AgentSubagentTask, error)
+
 	GetBot(ctx context.Context, id int64) (*gen.Bot, error)
 	GetBotByName(ctx context.Context, name string) (*gen.Bot, error)
 	CreateBot(ctx context.Context, bot *gen.Bot) (int64, error)

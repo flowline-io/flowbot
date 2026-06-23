@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -49,6 +50,77 @@ func agentSubagentModelLabel(modelName string) string {
 	return modelName
 }
 
-func agentSubagentToolsValue(tools []string) string {
-	return strings.Join(tools, ", ")
+func agentSubagentOptionSelected(selected []string, value string) bool {
+	for _, item := range selected {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
+func agentSubagentTaskRowID(item model.AgentSubagentTask) string {
+	return fmt.Sprintf("agent-subagent-task-%d", item.ID)
+}
+
+func agentSubagentTaskDetailID(item model.AgentSubagentTask) string {
+	return fmt.Sprintf("agent-subagent-task-detail-%d", item.ID)
+}
+
+func agentSubagentTaskDetailURL(item model.AgentSubagentTask) string {
+	return fmt.Sprintf("/service/web/agent-subagents/tasks/%d", item.ID)
+}
+
+func agentSubagentTasksListURL() string {
+	return "/service/web/agent-subagents/tasks"
+}
+
+func agentSubagentTaskDescriptionPreview(description string) string {
+	if strings.TrimSpace(description) == "" {
+		return "(no description)"
+	}
+	if len(description) <= 60 {
+		return description
+	}
+	return description[:57] + "..."
+}
+
+func agentSubagentTaskStatusLabel(status string) string {
+	switch strings.TrimSpace(status) {
+	case "running":
+		return "Running"
+	case "completed":
+		return "Completed"
+	case "failed":
+		return "Failed"
+	default:
+		return status
+	}
+}
+
+func agentSubagentTaskStatusBadgeClass(status string) string {
+	switch strings.TrimSpace(status) {
+	case "running":
+		return "badge badge-warning badge-sm"
+	case "completed":
+		return "badge badge-success badge-sm"
+	case "failed":
+		return "badge badge-error badge-sm"
+	default:
+		return "badge badge-ghost badge-sm"
+	}
+}
+
+func agentSubagentTaskDuration(item model.AgentSubagentTask) string {
+	if item.FinishedAt == nil {
+		return "—"
+	}
+	d := item.FinishedAt.Sub(item.StartedAt)
+	if d < 0 {
+		return "—"
+	}
+	if d < time.Second {
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	}
+	return d.Round(time.Second).String()
 }

@@ -1,0 +1,72 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentSubagentTaskRow(item model.AgentSubagentTask) {
+	<tr id={ agentSubagentTaskRowID(item) } class="hover">
+		<td class="text-base-content/70 font-mono text-sm">{ item.ID }</td>
+		<td class="text-base-content font-medium">{ item.SubagentName }</td>
+		<td class="text-base-content/70 max-w-xs truncate">{ agentSubagentTaskDescriptionPreview(item.Description) }</td>
+		<td class="text-base-content/50 font-mono text-xs max-w-[8rem] truncate">{ item.SessionID }</td>
+		<td>
+			<span class={ agentSubagentTaskStatusBadgeClass(item.Status) }>{ agentSubagentTaskStatusLabel(item.Status) }</span>
+		</td>
+		<td class="text-base-content/50">{ item.StartedAt.Format("2006-01-02 15:04") }</td>
+		<td class="text-base-content/50">{ agentSubagentTaskDuration(item) }</td>
+		<td>
+			<button hx-get={ agentSubagentTaskDetailURL(item) }
+				hx-target={ "#" + agentSubagentTaskDetailID(item) }
+				hx-swap="innerHTML"
+				data-testid="agent-subagent-task-detail"
+				class="btn btn-ghost btn-xs text-primary">
+				Details
+			</button>
+		</td>
+	</tr>
+	<tr id={ agentSubagentTaskDetailID(item) }></tr>
+}
+
+templ AgentSubagentTaskDetail(item model.AgentSubagentTask) {
+	<td colspan="8" class="bg-base-200/50">
+		<div class="p-4 space-y-4">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Subagent</div>
+					<div class="font-medium">{ item.SubagentName }</div>
+				</div>
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Status</div>
+					<span class={ agentSubagentTaskStatusBadgeClass(item.Status) }>{ agentSubagentTaskStatusLabel(item.Status) }</span>
+				</div>
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Session</div>
+					<div class="font-mono text-xs break-all">{ item.SessionID }</div>
+				</div>
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Depth</div>
+					<div>{ item.Depth }</div>
+				</div>
+			</div>
+			<div>
+				<div class="text-xs uppercase text-base-content/50 mb-1">Description</div>
+				<div class="text-sm">{ item.Description }</div>
+			</div>
+			<div>
+				<div class="text-xs uppercase text-base-content/50 mb-1">Prompt</div>
+				<pre class="textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">{ item.Prompt }</pre>
+			</div>
+			if item.Result != "" {
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Result</div>
+					<pre class="textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto">{ item.Result }</pre>
+				</div>
+			}
+			if item.ErrorText != "" {
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Error</div>
+					<pre class="textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap text-error max-h-48 overflow-y-auto">{ item.ErrorText }</pre>
+				</div>
+			}
+		</div>
+	</td>
+}

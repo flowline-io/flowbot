@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -77,6 +78,7 @@ const (
 	TypeAgentSkill                = "AgentSkill"
 	TypeAgentSkillFile            = "AgentSkillFile"
 	TypeAgentSubagent             = "AgentSubagent"
+	TypeAgentSubagentTask         = "AgentSubagentTask"
 	TypeApp                       = "App"
 	TypeAuditLog                  = "AuditLog"
 	TypeAuthentication            = "Authentication"
@@ -2249,6 +2251,8 @@ type AgentSubagentMutation struct {
 	system_prompt *string
 	tools         *[]string
 	appendtools   []string
+	skills        *[]string
+	appendskills  []string
 	model         *string
 	source        *string
 	enabled       *bool
@@ -2573,6 +2577,71 @@ func (m *AgentSubagentMutation) ResetTools() {
 	delete(m.clearedFields, agentsubagent.FieldTools)
 }
 
+// SetSkills sets the "skills" field.
+func (m *AgentSubagentMutation) SetSkills(s []string) {
+	m.skills = &s
+	m.appendskills = nil
+}
+
+// Skills returns the value of the "skills" field in the mutation.
+func (m *AgentSubagentMutation) Skills() (r []string, exists bool) {
+	v := m.skills
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkills returns the old "skills" field's value of the AgentSubagent entity.
+// If the AgentSubagent object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentMutation) OldSkills(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSkills is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSkills requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkills: %w", err)
+	}
+	return oldValue.Skills, nil
+}
+
+// AppendSkills adds s to the "skills" field.
+func (m *AgentSubagentMutation) AppendSkills(s []string) {
+	m.appendskills = append(m.appendskills, s...)
+}
+
+// AppendedSkills returns the list of values that were appended to the "skills" field in this mutation.
+func (m *AgentSubagentMutation) AppendedSkills() ([]string, bool) {
+	if len(m.appendskills) == 0 {
+		return nil, false
+	}
+	return m.appendskills, true
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (m *AgentSubagentMutation) ClearSkills() {
+	m.skills = nil
+	m.appendskills = nil
+	m.clearedFields[agentsubagent.FieldSkills] = struct{}{}
+}
+
+// SkillsCleared returns if the "skills" field was cleared in this mutation.
+func (m *AgentSubagentMutation) SkillsCleared() bool {
+	_, ok := m.clearedFields[agentsubagent.FieldSkills]
+	return ok
+}
+
+// ResetSkills resets all changes to the "skills" field.
+func (m *AgentSubagentMutation) ResetSkills() {
+	m.skills = nil
+	m.appendskills = nil
+	delete(m.clearedFields, agentsubagent.FieldSkills)
+}
+
 // SetModel sets the "model" field.
 func (m *AgentSubagentMutation) SetModel(s string) {
 	m.model = &s
@@ -2787,7 +2856,7 @@ func (m *AgentSubagentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AgentSubagentMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.flag != nil {
 		fields = append(fields, agentsubagent.FieldFlag)
 	}
@@ -2802,6 +2871,9 @@ func (m *AgentSubagentMutation) Fields() []string {
 	}
 	if m.tools != nil {
 		fields = append(fields, agentsubagent.FieldTools)
+	}
+	if m.skills != nil {
+		fields = append(fields, agentsubagent.FieldSkills)
 	}
 	if m.model != nil {
 		fields = append(fields, agentsubagent.FieldModel)
@@ -2836,6 +2908,8 @@ func (m *AgentSubagentMutation) Field(name string) (ent.Value, bool) {
 		return m.SystemPrompt()
 	case agentsubagent.FieldTools:
 		return m.Tools()
+	case agentsubagent.FieldSkills:
+		return m.Skills()
 	case agentsubagent.FieldModel:
 		return m.Model()
 	case agentsubagent.FieldSource:
@@ -2865,6 +2939,8 @@ func (m *AgentSubagentMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldSystemPrompt(ctx)
 	case agentsubagent.FieldTools:
 		return m.OldTools(ctx)
+	case agentsubagent.FieldSkills:
+		return m.OldSkills(ctx)
 	case agentsubagent.FieldModel:
 		return m.OldModel(ctx)
 	case agentsubagent.FieldSource:
@@ -2918,6 +2994,13 @@ func (m *AgentSubagentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTools(v)
+		return nil
+	case agentsubagent.FieldSkills:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkills(v)
 		return nil
 	case agentsubagent.FieldModel:
 		v, ok := value.(string)
@@ -2987,6 +3070,9 @@ func (m *AgentSubagentMutation) ClearedFields() []string {
 	if m.FieldCleared(agentsubagent.FieldTools) {
 		fields = append(fields, agentsubagent.FieldTools)
 	}
+	if m.FieldCleared(agentsubagent.FieldSkills) {
+		fields = append(fields, agentsubagent.FieldSkills)
+	}
 	return fields
 }
 
@@ -3003,6 +3089,9 @@ func (m *AgentSubagentMutation) ClearField(name string) error {
 	switch name {
 	case agentsubagent.FieldTools:
 		m.ClearTools()
+		return nil
+	case agentsubagent.FieldSkills:
+		m.ClearSkills()
 		return nil
 	}
 	return fmt.Errorf("unknown AgentSubagent nullable field %s", name)
@@ -3026,6 +3115,9 @@ func (m *AgentSubagentMutation) ResetField(name string) error {
 		return nil
 	case agentsubagent.FieldTools:
 		m.ResetTools()
+		return nil
+	case agentsubagent.FieldSkills:
+		m.ResetSkills()
 		return nil
 	case agentsubagent.FieldModel:
 		m.ResetModel()
@@ -3092,6 +3184,990 @@ func (m *AgentSubagentMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AgentSubagentMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown AgentSubagent edge %s", name)
+}
+
+// AgentSubagentTaskMutation represents an operation that mutates the AgentSubagentTask nodes in the graph.
+type AgentSubagentTaskMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	session_id    *string
+	subagent_name *string
+	description   *string
+	prompt        *string
+	status        *string
+	result        *string
+	error_text    *string
+	depth         *int
+	adddepth      *int
+	started_at    *time.Time
+	finished_at   *time.Time
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*AgentSubagentTask, error)
+	predicates    []predicate.AgentSubagentTask
+}
+
+var _ ent.Mutation = (*AgentSubagentTaskMutation)(nil)
+
+// agentsubagenttaskOption allows management of the mutation configuration using functional options.
+type agentsubagenttaskOption func(*AgentSubagentTaskMutation)
+
+// newAgentSubagentTaskMutation creates new mutation for the AgentSubagentTask entity.
+func newAgentSubagentTaskMutation(c config, op Op, opts ...agentsubagenttaskOption) *AgentSubagentTaskMutation {
+	m := &AgentSubagentTaskMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAgentSubagentTask,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAgentSubagentTaskID sets the ID field of the mutation.
+func withAgentSubagentTaskID(id int64) agentsubagenttaskOption {
+	return func(m *AgentSubagentTaskMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AgentSubagentTask
+		)
+		m.oldValue = func(ctx context.Context) (*AgentSubagentTask, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AgentSubagentTask.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAgentSubagentTask sets the old AgentSubagentTask of the mutation.
+func withAgentSubagentTask(node *AgentSubagentTask) agentsubagenttaskOption {
+	return func(m *AgentSubagentTaskMutation) {
+		m.oldValue = func(context.Context) (*AgentSubagentTask, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AgentSubagentTaskMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AgentSubagentTaskMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AgentSubagentTask entities.
+func (m *AgentSubagentTaskMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AgentSubagentTaskMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AgentSubagentTaskMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AgentSubagentTask.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetSessionID sets the "session_id" field.
+func (m *AgentSubagentTaskMutation) SetSessionID(s string) {
+	m.session_id = &s
+}
+
+// SessionID returns the value of the "session_id" field in the mutation.
+func (m *AgentSubagentTaskMutation) SessionID() (r string, exists bool) {
+	v := m.session_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSessionID returns the old "session_id" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldSessionID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSessionID: %w", err)
+	}
+	return oldValue.SessionID, nil
+}
+
+// ResetSessionID resets all changes to the "session_id" field.
+func (m *AgentSubagentTaskMutation) ResetSessionID() {
+	m.session_id = nil
+}
+
+// SetSubagentName sets the "subagent_name" field.
+func (m *AgentSubagentTaskMutation) SetSubagentName(s string) {
+	m.subagent_name = &s
+}
+
+// SubagentName returns the value of the "subagent_name" field in the mutation.
+func (m *AgentSubagentTaskMutation) SubagentName() (r string, exists bool) {
+	v := m.subagent_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubagentName returns the old "subagent_name" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldSubagentName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubagentName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubagentName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubagentName: %w", err)
+	}
+	return oldValue.SubagentName, nil
+}
+
+// ResetSubagentName resets all changes to the "subagent_name" field.
+func (m *AgentSubagentTaskMutation) ResetSubagentName() {
+	m.subagent_name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *AgentSubagentTaskMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *AgentSubagentTaskMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *AgentSubagentTaskMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetPrompt sets the "prompt" field.
+func (m *AgentSubagentTaskMutation) SetPrompt(s string) {
+	m.prompt = &s
+}
+
+// Prompt returns the value of the "prompt" field in the mutation.
+func (m *AgentSubagentTaskMutation) Prompt() (r string, exists bool) {
+	v := m.prompt
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrompt returns the old "prompt" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldPrompt(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrompt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrompt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrompt: %w", err)
+	}
+	return oldValue.Prompt, nil
+}
+
+// ResetPrompt resets all changes to the "prompt" field.
+func (m *AgentSubagentTaskMutation) ResetPrompt() {
+	m.prompt = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *AgentSubagentTaskMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AgentSubagentTaskMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AgentSubagentTaskMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetResult sets the "result" field.
+func (m *AgentSubagentTaskMutation) SetResult(s string) {
+	m.result = &s
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *AgentSubagentTaskMutation) Result() (r string, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldResult(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *AgentSubagentTaskMutation) ResetResult() {
+	m.result = nil
+}
+
+// SetErrorText sets the "error_text" field.
+func (m *AgentSubagentTaskMutation) SetErrorText(s string) {
+	m.error_text = &s
+}
+
+// ErrorText returns the value of the "error_text" field in the mutation.
+func (m *AgentSubagentTaskMutation) ErrorText() (r string, exists bool) {
+	v := m.error_text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorText returns the old "error_text" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldErrorText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorText: %w", err)
+	}
+	return oldValue.ErrorText, nil
+}
+
+// ResetErrorText resets all changes to the "error_text" field.
+func (m *AgentSubagentTaskMutation) ResetErrorText() {
+	m.error_text = nil
+}
+
+// SetDepth sets the "depth" field.
+func (m *AgentSubagentTaskMutation) SetDepth(i int) {
+	m.depth = &i
+	m.adddepth = nil
+}
+
+// Depth returns the value of the "depth" field in the mutation.
+func (m *AgentSubagentTaskMutation) Depth() (r int, exists bool) {
+	v := m.depth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepth returns the old "depth" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldDepth(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepth is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepth requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepth: %w", err)
+	}
+	return oldValue.Depth, nil
+}
+
+// AddDepth adds i to the "depth" field.
+func (m *AgentSubagentTaskMutation) AddDepth(i int) {
+	if m.adddepth != nil {
+		*m.adddepth += i
+	} else {
+		m.adddepth = &i
+	}
+}
+
+// AddedDepth returns the value that was added to the "depth" field in this mutation.
+func (m *AgentSubagentTaskMutation) AddedDepth() (r int, exists bool) {
+	v := m.adddepth
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDepth resets all changes to the "depth" field.
+func (m *AgentSubagentTaskMutation) ResetDepth() {
+	m.depth = nil
+	m.adddepth = nil
+}
+
+// SetStartedAt sets the "started_at" field.
+func (m *AgentSubagentTaskMutation) SetStartedAt(t time.Time) {
+	m.started_at = &t
+}
+
+// StartedAt returns the value of the "started_at" field in the mutation.
+func (m *AgentSubagentTaskMutation) StartedAt() (r time.Time, exists bool) {
+	v := m.started_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartedAt returns the old "started_at" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldStartedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartedAt: %w", err)
+	}
+	return oldValue.StartedAt, nil
+}
+
+// ResetStartedAt resets all changes to the "started_at" field.
+func (m *AgentSubagentTaskMutation) ResetStartedAt() {
+	m.started_at = nil
+}
+
+// SetFinishedAt sets the "finished_at" field.
+func (m *AgentSubagentTaskMutation) SetFinishedAt(t time.Time) {
+	m.finished_at = &t
+}
+
+// FinishedAt returns the value of the "finished_at" field in the mutation.
+func (m *AgentSubagentTaskMutation) FinishedAt() (r time.Time, exists bool) {
+	v := m.finished_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinishedAt returns the old "finished_at" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldFinishedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinishedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinishedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinishedAt: %w", err)
+	}
+	return oldValue.FinishedAt, nil
+}
+
+// ClearFinishedAt clears the value of the "finished_at" field.
+func (m *AgentSubagentTaskMutation) ClearFinishedAt() {
+	m.finished_at = nil
+	m.clearedFields[agentsubagenttask.FieldFinishedAt] = struct{}{}
+}
+
+// FinishedAtCleared returns if the "finished_at" field was cleared in this mutation.
+func (m *AgentSubagentTaskMutation) FinishedAtCleared() bool {
+	_, ok := m.clearedFields[agentsubagenttask.FieldFinishedAt]
+	return ok
+}
+
+// ResetFinishedAt resets all changes to the "finished_at" field.
+func (m *AgentSubagentTaskMutation) ResetFinishedAt() {
+	m.finished_at = nil
+	delete(m.clearedFields, agentsubagenttask.FieldFinishedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *AgentSubagentTaskMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *AgentSubagentTaskMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *AgentSubagentTaskMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *AgentSubagentTaskMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *AgentSubagentTaskMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the AgentSubagentTask entity.
+// If the AgentSubagentTask object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AgentSubagentTaskMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *AgentSubagentTaskMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the AgentSubagentTaskMutation builder.
+func (m *AgentSubagentTaskMutation) Where(ps ...predicate.AgentSubagentTask) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AgentSubagentTaskMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AgentSubagentTaskMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AgentSubagentTask, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AgentSubagentTaskMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AgentSubagentTaskMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AgentSubagentTask).
+func (m *AgentSubagentTaskMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AgentSubagentTaskMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.session_id != nil {
+		fields = append(fields, agentsubagenttask.FieldSessionID)
+	}
+	if m.subagent_name != nil {
+		fields = append(fields, agentsubagenttask.FieldSubagentName)
+	}
+	if m.description != nil {
+		fields = append(fields, agentsubagenttask.FieldDescription)
+	}
+	if m.prompt != nil {
+		fields = append(fields, agentsubagenttask.FieldPrompt)
+	}
+	if m.status != nil {
+		fields = append(fields, agentsubagenttask.FieldStatus)
+	}
+	if m.result != nil {
+		fields = append(fields, agentsubagenttask.FieldResult)
+	}
+	if m.error_text != nil {
+		fields = append(fields, agentsubagenttask.FieldErrorText)
+	}
+	if m.depth != nil {
+		fields = append(fields, agentsubagenttask.FieldDepth)
+	}
+	if m.started_at != nil {
+		fields = append(fields, agentsubagenttask.FieldStartedAt)
+	}
+	if m.finished_at != nil {
+		fields = append(fields, agentsubagenttask.FieldFinishedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, agentsubagenttask.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, agentsubagenttask.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AgentSubagentTaskMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case agentsubagenttask.FieldSessionID:
+		return m.SessionID()
+	case agentsubagenttask.FieldSubagentName:
+		return m.SubagentName()
+	case agentsubagenttask.FieldDescription:
+		return m.Description()
+	case agentsubagenttask.FieldPrompt:
+		return m.Prompt()
+	case agentsubagenttask.FieldStatus:
+		return m.Status()
+	case agentsubagenttask.FieldResult:
+		return m.Result()
+	case agentsubagenttask.FieldErrorText:
+		return m.ErrorText()
+	case agentsubagenttask.FieldDepth:
+		return m.Depth()
+	case agentsubagenttask.FieldStartedAt:
+		return m.StartedAt()
+	case agentsubagenttask.FieldFinishedAt:
+		return m.FinishedAt()
+	case agentsubagenttask.FieldCreatedAt:
+		return m.CreatedAt()
+	case agentsubagenttask.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AgentSubagentTaskMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case agentsubagenttask.FieldSessionID:
+		return m.OldSessionID(ctx)
+	case agentsubagenttask.FieldSubagentName:
+		return m.OldSubagentName(ctx)
+	case agentsubagenttask.FieldDescription:
+		return m.OldDescription(ctx)
+	case agentsubagenttask.FieldPrompt:
+		return m.OldPrompt(ctx)
+	case agentsubagenttask.FieldStatus:
+		return m.OldStatus(ctx)
+	case agentsubagenttask.FieldResult:
+		return m.OldResult(ctx)
+	case agentsubagenttask.FieldErrorText:
+		return m.OldErrorText(ctx)
+	case agentsubagenttask.FieldDepth:
+		return m.OldDepth(ctx)
+	case agentsubagenttask.FieldStartedAt:
+		return m.OldStartedAt(ctx)
+	case agentsubagenttask.FieldFinishedAt:
+		return m.OldFinishedAt(ctx)
+	case agentsubagenttask.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case agentsubagenttask.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown AgentSubagentTask field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentSubagentTaskMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case agentsubagenttask.FieldSessionID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSessionID(v)
+		return nil
+	case agentsubagenttask.FieldSubagentName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubagentName(v)
+		return nil
+	case agentsubagenttask.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case agentsubagenttask.FieldPrompt:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrompt(v)
+		return nil
+	case agentsubagenttask.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case agentsubagenttask.FieldResult:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case agentsubagenttask.FieldErrorText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorText(v)
+		return nil
+	case agentsubagenttask.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepth(v)
+		return nil
+	case agentsubagenttask.FieldStartedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartedAt(v)
+		return nil
+	case agentsubagenttask.FieldFinishedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinishedAt(v)
+		return nil
+	case agentsubagenttask.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case agentsubagenttask.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSubagentTask field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AgentSubagentTaskMutation) AddedFields() []string {
+	var fields []string
+	if m.adddepth != nil {
+		fields = append(fields, agentsubagenttask.FieldDepth)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AgentSubagentTaskMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case agentsubagenttask.FieldDepth:
+		return m.AddedDepth()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AgentSubagentTaskMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case agentsubagenttask.FieldDepth:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDepth(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSubagentTask numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AgentSubagentTaskMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(agentsubagenttask.FieldFinishedAt) {
+		fields = append(fields, agentsubagenttask.FieldFinishedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AgentSubagentTaskMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AgentSubagentTaskMutation) ClearField(name string) error {
+	switch name {
+	case agentsubagenttask.FieldFinishedAt:
+		m.ClearFinishedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSubagentTask nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AgentSubagentTaskMutation) ResetField(name string) error {
+	switch name {
+	case agentsubagenttask.FieldSessionID:
+		m.ResetSessionID()
+		return nil
+	case agentsubagenttask.FieldSubagentName:
+		m.ResetSubagentName()
+		return nil
+	case agentsubagenttask.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case agentsubagenttask.FieldPrompt:
+		m.ResetPrompt()
+		return nil
+	case agentsubagenttask.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case agentsubagenttask.FieldResult:
+		m.ResetResult()
+		return nil
+	case agentsubagenttask.FieldErrorText:
+		m.ResetErrorText()
+		return nil
+	case agentsubagenttask.FieldDepth:
+		m.ResetDepth()
+		return nil
+	case agentsubagenttask.FieldStartedAt:
+		m.ResetStartedAt()
+		return nil
+	case agentsubagenttask.FieldFinishedAt:
+		m.ResetFinishedAt()
+		return nil
+	case agentsubagenttask.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case agentsubagenttask.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown AgentSubagentTask field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AgentSubagentTaskMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AgentSubagentTaskMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AgentSubagentTaskMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AgentSubagentTaskMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AgentSubagentTaskMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AgentSubagentTaskMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AgentSubagentTaskMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AgentSubagentTask unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AgentSubagentTaskMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AgentSubagentTask edge %s", name)
 }
 
 // AppMutation represents an operation that mutates the App nodes in the graph.

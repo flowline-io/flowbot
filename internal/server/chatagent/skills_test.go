@@ -70,3 +70,36 @@ func TestFormatSkillsForPrompt(t *testing.T) {
 		})
 	}
 }
+
+func TestFilterSkillsByNames(t *testing.T) {
+	all := []chatagent.Skill{
+		{Name: "alpha", Description: "Alpha skill"},
+		{Name: "beta", Description: "Beta skill"},
+		{Name: "gamma", Description: "Gamma skill"},
+	}
+
+	tests := []struct {
+		name      string
+		allowlist []string
+		wantNames []string
+	}{
+		{name: "filters matching skills", allowlist: []string{"alpha", "gamma"}, wantNames: []string{"alpha", "gamma"}},
+		{name: "empty allowlist returns none", allowlist: nil, wantNames: nil},
+		{name: "unknown names ignored", allowlist: []string{"missing"}, wantNames: []string{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := chatagent.FilterSkillsByNames(all, tt.allowlist)
+			if tt.wantNames == nil {
+				assert.Nil(t, got)
+				return
+			}
+			names := make([]string, 0, len(got))
+			for _, skill := range got {
+				names = append(names, skill.Name)
+			}
+			assert.ElementsMatch(t, tt.wantNames, names)
+		})
+	}
+}

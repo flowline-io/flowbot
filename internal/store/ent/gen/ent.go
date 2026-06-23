@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -126,6 +127,7 @@ func checkColumn(t, c string) error {
 			agentskill.Table:                agentskill.ValidColumn,
 			agentskillfile.Table:            agentskillfile.ValidColumn,
 			agentsubagent.Table:             agentsubagent.ValidColumn,
+			agentsubagenttask.Table:         agentsubagenttask.ValidColumn,
 			app.Table:                       app.ValidColumn,
 			auditlog.Table:                  auditlog.ValidColumn,
 			authentication.Table:            authentication.ValidColumn,

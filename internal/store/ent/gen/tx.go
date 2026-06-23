@@ -20,6 +20,8 @@ type Tx struct {
 	AgentSkillFile *AgentSkillFileClient
 	// AgentSubagent is the client for interacting with the AgentSubagent builders.
 	AgentSubagent *AgentSubagentClient
+	// AgentSubagentTask is the client for interacting with the AgentSubagentTask builders.
+	AgentSubagentTask *AgentSubagentTaskClient
 	// App is the client for interacting with the App builders.
 	App *AppClient
 	// AuditLog is the client for interacting with the AuditLog builders.
@@ -247,6 +249,7 @@ func (tx *Tx) init() {
 	tx.AgentSkill = NewAgentSkillClient(tx.config)
 	tx.AgentSkillFile = NewAgentSkillFileClient(tx.config)
 	tx.AgentSubagent = NewAgentSubagentClient(tx.config)
+	tx.AgentSubagentTask = NewAgentSubagentTaskClient(tx.config)
 	tx.App = NewAppClient(tx.config)
 	tx.AuditLog = NewAuditLogClient(tx.config)
 	tx.Authentication = NewAuthenticationClient(tx.config)

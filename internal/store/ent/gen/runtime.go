@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -181,27 +182,75 @@ func init() {
 	// agentsubagent.SystemPromptValidator is a validator for the "system_prompt" field. It is called by the builders before save.
 	agentsubagent.SystemPromptValidator = agentsubagentDescSystemPrompt.Validators[0].(func(string) error)
 	// agentsubagentDescModel is the schema descriptor for model field.
-	agentsubagentDescModel := agentsubagentFields[6].Descriptor()
+	agentsubagentDescModel := agentsubagentFields[7].Descriptor()
 	// agentsubagent.DefaultModel holds the default value on creation for the model field.
 	agentsubagent.DefaultModel = agentsubagentDescModel.Default.(string)
 	// agentsubagentDescSource is the schema descriptor for source field.
-	agentsubagentDescSource := agentsubagentFields[7].Descriptor()
+	agentsubagentDescSource := agentsubagentFields[8].Descriptor()
 	// agentsubagent.DefaultSource holds the default value on creation for the source field.
 	agentsubagent.DefaultSource = agentsubagentDescSource.Default.(string)
 	// agentsubagentDescEnabled is the schema descriptor for enabled field.
-	agentsubagentDescEnabled := agentsubagentFields[8].Descriptor()
+	agentsubagentDescEnabled := agentsubagentFields[9].Descriptor()
 	// agentsubagent.DefaultEnabled holds the default value on creation for the enabled field.
 	agentsubagent.DefaultEnabled = agentsubagentDescEnabled.Default.(bool)
 	// agentsubagentDescCreatedAt is the schema descriptor for created_at field.
-	agentsubagentDescCreatedAt := agentsubagentFields[9].Descriptor()
+	agentsubagentDescCreatedAt := agentsubagentFields[10].Descriptor()
 	// agentsubagent.DefaultCreatedAt holds the default value on creation for the created_at field.
 	agentsubagent.DefaultCreatedAt = agentsubagentDescCreatedAt.Default.(func() time.Time)
 	// agentsubagentDescUpdatedAt is the schema descriptor for updated_at field.
-	agentsubagentDescUpdatedAt := agentsubagentFields[10].Descriptor()
+	agentsubagentDescUpdatedAt := agentsubagentFields[11].Descriptor()
 	// agentsubagent.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	agentsubagent.DefaultUpdatedAt = agentsubagentDescUpdatedAt.Default.(func() time.Time)
 	// agentsubagent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agentsubagent.UpdateDefaultUpdatedAt = agentsubagentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentsubagenttaskFields := schema.AgentSubagentTask{}.Fields()
+	_ = agentsubagenttaskFields
+	// agentsubagenttaskDescSessionID is the schema descriptor for session_id field.
+	agentsubagenttaskDescSessionID := agentsubagenttaskFields[1].Descriptor()
+	// agentsubagenttask.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
+	agentsubagenttask.SessionIDValidator = agentsubagenttaskDescSessionID.Validators[0].(func(string) error)
+	// agentsubagenttaskDescSubagentName is the schema descriptor for subagent_name field.
+	agentsubagenttaskDescSubagentName := agentsubagenttaskFields[2].Descriptor()
+	// agentsubagenttask.SubagentNameValidator is a validator for the "subagent_name" field. It is called by the builders before save.
+	agentsubagenttask.SubagentNameValidator = agentsubagenttaskDescSubagentName.Validators[0].(func(string) error)
+	// agentsubagenttaskDescDescription is the schema descriptor for description field.
+	agentsubagenttaskDescDescription := agentsubagenttaskFields[3].Descriptor()
+	// agentsubagenttask.DefaultDescription holds the default value on creation for the description field.
+	agentsubagenttask.DefaultDescription = agentsubagenttaskDescDescription.Default.(string)
+	// agentsubagenttaskDescPrompt is the schema descriptor for prompt field.
+	agentsubagenttaskDescPrompt := agentsubagenttaskFields[4].Descriptor()
+	// agentsubagenttask.PromptValidator is a validator for the "prompt" field. It is called by the builders before save.
+	agentsubagenttask.PromptValidator = agentsubagenttaskDescPrompt.Validators[0].(func(string) error)
+	// agentsubagenttaskDescStatus is the schema descriptor for status field.
+	agentsubagenttaskDescStatus := agentsubagenttaskFields[5].Descriptor()
+	// agentsubagenttask.DefaultStatus holds the default value on creation for the status field.
+	agentsubagenttask.DefaultStatus = agentsubagenttaskDescStatus.Default.(string)
+	// agentsubagenttaskDescResult is the schema descriptor for result field.
+	agentsubagenttaskDescResult := agentsubagenttaskFields[6].Descriptor()
+	// agentsubagenttask.DefaultResult holds the default value on creation for the result field.
+	agentsubagenttask.DefaultResult = agentsubagenttaskDescResult.Default.(string)
+	// agentsubagenttaskDescErrorText is the schema descriptor for error_text field.
+	agentsubagenttaskDescErrorText := agentsubagenttaskFields[7].Descriptor()
+	// agentsubagenttask.DefaultErrorText holds the default value on creation for the error_text field.
+	agentsubagenttask.DefaultErrorText = agentsubagenttaskDescErrorText.Default.(string)
+	// agentsubagenttaskDescDepth is the schema descriptor for depth field.
+	agentsubagenttaskDescDepth := agentsubagenttaskFields[8].Descriptor()
+	// agentsubagenttask.DefaultDepth holds the default value on creation for the depth field.
+	agentsubagenttask.DefaultDepth = agentsubagenttaskDescDepth.Default.(int)
+	// agentsubagenttaskDescStartedAt is the schema descriptor for started_at field.
+	agentsubagenttaskDescStartedAt := agentsubagenttaskFields[9].Descriptor()
+	// agentsubagenttask.DefaultStartedAt holds the default value on creation for the started_at field.
+	agentsubagenttask.DefaultStartedAt = agentsubagenttaskDescStartedAt.Default.(func() time.Time)
+	// agentsubagenttaskDescCreatedAt is the schema descriptor for created_at field.
+	agentsubagenttaskDescCreatedAt := agentsubagenttaskFields[11].Descriptor()
+	// agentsubagenttask.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentsubagenttask.DefaultCreatedAt = agentsubagenttaskDescCreatedAt.Default.(func() time.Time)
+	// agentsubagenttaskDescUpdatedAt is the schema descriptor for updated_at field.
+	agentsubagenttaskDescUpdatedAt := agentsubagenttaskFields[12].Descriptor()
+	// agentsubagenttask.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentsubagenttask.DefaultUpdatedAt = agentsubagenttaskDescUpdatedAt.Default.(func() time.Time)
+	// agentsubagenttask.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentsubagenttask.UpdateDefaultUpdatedAt = agentsubagenttaskDescUpdatedAt.UpdateDefault.(func() time.Time)
 	appFields := schema.App{}.Fields()
 	_ = appFields
 	// appDescName is the schema descriptor for name field.

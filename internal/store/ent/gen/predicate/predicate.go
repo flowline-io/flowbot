@@ -18,6 +18,9 @@ type AgentSkillFile func(*sql.Selector)
 // AgentSubagent is the predicate function for agentsubagent builders.
 type AgentSubagent func(*sql.Selector)
 
+// AgentSubagentTask is the predicate function for agentsubagenttask builders.
+type AgentSubagentTask func(*sql.Selector)
+
 // App is the predicate function for app builders.
 type App func(*sql.Selector)
 

@@ -369,6 +369,16 @@ func ToolsNotNil() predicate.AgentSubagent {
 	return predicate.AgentSubagent(sql.FieldNotNull(FieldTools))
 }
 
+// SkillsIsNil applies the IsNil predicate on the "skills" field.
+func SkillsIsNil() predicate.AgentSubagent {
+	return predicate.AgentSubagent(sql.FieldIsNull(FieldSkills))
+}
+
+// SkillsNotNil applies the NotNil predicate on the "skills" field.
+func SkillsNotNil() predicate.AgentSubagent {
+	return predicate.AgentSubagent(sql.FieldNotNull(FieldSkills))
+}
+
 // ModelEQ applies the EQ predicate on the "model" field.
 func ModelEQ(v string) predicate.AgentSubagent {
 	return predicate.AgentSubagent(sql.FieldEQ(FieldModel, v))

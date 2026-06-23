@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -93,6 +94,63 @@ func (s *testStore) DeleteAgentSubagent(_ context.Context, flag string) error {
 	return nil
 }
 
+func (s *testStore) CreateAgentSubagentTask(_ context.Context, task *gen.AgentSubagentTask) error {
+	if s.createAgentSubagentTaskFn != nil {
+		return s.createAgentSubagentTaskFn(task)
+	}
+	if s.agentSubagentTasks == nil {
+		s.agentSubagentTasks = make(map[int64]*gen.AgentSubagentTask)
+	}
+	if task.ID == 0 {
+		task.ID = int64(len(s.agentSubagentTasks) + 1)
+	}
+	s.agentSubagentTasks[task.ID] = task
+	return nil
+}
+
+func (s *testStore) UpdateAgentSubagentTask(_ context.Context, task *gen.AgentSubagentTask) error {
+	if s.updateAgentSubagentTaskFn != nil {
+		return s.updateAgentSubagentTaskFn(task)
+	}
+	if s.agentSubagentTasks == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.agentSubagentTasks[task.ID]; !ok {
+		return types.ErrNotFound
+	}
+	task.UpdatedAt = time.Now().UTC()
+	s.agentSubagentTasks[task.ID] = task
+	return nil
+}
+
+func (s *testStore) ListAgentSubagentTasks(_ context.Context, sessionID string, limit int) ([]*gen.AgentSubagentTask, error) {
+	if s.agentSubagentTasksErr != nil {
+		return nil, s.agentSubagentTasksErr
+	}
+	rows := make([]*gen.AgentSubagentTask, 0, len(s.agentSubagentTasks))
+	for _, task := range s.agentSubagentTasks {
+		if sessionID != "" && task.SessionID != sessionID {
+			continue
+		}
+		rows = append(rows, task)
+	}
+	if limit > 0 && len(rows) > limit {
+		rows = rows[:limit]
+	}
+	return rows, nil
+}
+
+func (s *testStore) GetAgentSubagentTask(_ context.Context, id int64) (*gen.AgentSubagentTask, error) {
+	if s.agentSubagentTasks == nil {
+		return nil, types.ErrNotFound
+	}
+	task, ok := s.agentSubagentTasks[id]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return task, nil
+}
+
 func TestValidateAgentSubagentForm(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -121,21 +179,104 @@ func TestValidateAgentSubagentForm(t *testing.T) {
 	}
 }
 
-func TestParseAgentSubagentTools(t *testing.T) {
+func TestParseAgentSubagentMultiValues(t *testing.T) {
 	tests := []struct {
 		name string
-		raw  string
+		raw  [][]byte
 		want []string
 	}{
-		{name: "comma separated", raw: "read_file, run_terminal", want: []string{"read_file", "run_terminal"}},
-		{name: "deduplicates and trims", raw: "read_file,  read_file\nweb_search", want: []string{"read_file", "web_search"}},
-		{name: "empty yields empty", raw: "   ", want: []string{}},
+		{name: "multiple values", raw: [][]byte{[]byte("read_file"), []byte("run_terminal")}, want: []string{"read_file", "run_terminal"}},
+		{name: "deduplicates and trims", raw: [][]byte{[]byte("read_file"), []byte(" read_file "), []byte("web_search")}, want: []string{"read_file", "web_search"}},
+		{name: "empty yields empty", raw: [][]byte{}, want: []string{}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parseAgentSubagentTools(tt.raw)
+			got := parseAgentSubagentMultiValues(tt.raw)
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestParseAgentSubagentSkills(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  [][]byte
+		want []string
+	}{
+		{name: "multiple skills", raw: [][]byte{[]byte("demo-skill"), []byte("other-skill")}, want: []string{"demo-skill", "other-skill"}},
+		{name: "deduplicates", raw: [][]byte{[]byte("demo-skill"), []byte("demo-skill")}, want: []string{"demo-skill"}},
+		{name: "empty yields empty", raw: [][]byte{}, want: []string{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := parseAgentSubagentMultiValues(tt.raw)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestAgentSubagentTasksTableAuthenticated(t *testing.T) {
+	tests := []struct {
+		name       string
+		tasks      map[int64]*gen.AgentSubagentTask
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name: "renders task table",
+			tasks: map[int64]*gen.AgentSubagentTask{
+				1: {
+					ID:           1,
+					SessionID:    "session-1",
+					SubagentName: "explore",
+					Description:  "Find auth code",
+					Prompt:       "Locate authentication middleware",
+					Status:       "completed",
+					StartedAt:    time.Now().UTC(),
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   "explore",
+		},
+		{
+			name:       "renders empty state",
+			tasks:      map[int64]*gen.AgentSubagentTask{},
+			wantStatus: http.StatusOK,
+			wantBody:   "No delegated tasks found",
+		},
+		{
+			name: "renders failed status badge",
+			tasks: map[int64]*gen.AgentSubagentTask{
+				2: {
+					ID:           2,
+					SubagentName: "general",
+					Description:  "Retry task",
+					Status:       "failed",
+					ErrorText:    "model unavailable",
+					StartedAt:    time.Now().UTC(),
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   "Failed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := &testStore{agentSubagentTasks: tt.tasks}
+			app := setupAuthenticatedApp(t, ts)
+
+			req := httptest.NewRequest(http.MethodGet, "/service/web/agent-subagents/tasks", http.NoBody)
+			req.Header.Set("Cookie", "accessToken=test-token")
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			respBody, _ := io.ReadAll(resp.Body)
+			assert.Contains(t, string(respBody), tt.wantBody)
 		})
 	}
 }
@@ -144,6 +285,8 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 	tests := []struct {
 		name        string
 		form        map[string]string
+		tools       []string
+		skills      []string
 		wantStatus  int
 		wantBody    string
 		wantEnabled bool
@@ -156,9 +299,10 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 				"name":          "code-reviewer",
 				"description":   "Reviews code",
 				"system_prompt": "You review code.",
-				"tools":         "read_file, run_terminal",
 				"enabled":       "true",
 			},
+			tools:       []string{"read_file", "run_terminal"},
+			skills:      []string{"code-review", "lint-rules"},
 			wantStatus:  http.StatusOK,
 			wantBody:    "code-reviewer",
 			wantEnabled: true,
@@ -203,7 +347,7 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 			}
 			app := setupAuthenticatedApp(t, ts)
 
-			body := buildFormBody(tt.form)
+			body := buildSubagentFormBody(tt.form, tt.tools, tt.skills)
 			req := httptest.NewRequest(http.MethodPost, "/service/web/agent-subagents", strings.NewReader(body))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Cookie", "accessToken=test-token")
@@ -219,9 +363,24 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 				require.NotNil(t, subagent)
 				assert.Equal(t, tt.wantEnabled, subagent.Enabled)
 				assert.Equal(t, []string{"read_file", "run_terminal"}, subagent.Tools)
+				assert.Equal(t, []string{"code-review", "lint-rules"}, subagent.Skills)
 			}
 		})
 	}
+}
+
+func buildSubagentFormBody(values map[string]string, tools, skills []string) string {
+	form := url.Values{}
+	for key, value := range values {
+		form.Set(key, value)
+	}
+	for _, tool := range tools {
+		form.Add("tools", tool)
+	}
+	for _, skill := range skills {
+		form.Add("skills", skill)
+	}
+	return form.Encode()
 }
 
 func TestAgentSubagentDeleteAuthenticated(t *testing.T) {

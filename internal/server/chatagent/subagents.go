@@ -8,6 +8,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/subagent"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
@@ -19,6 +20,7 @@ type Subagent struct {
 	Description  string
 	SystemPrompt string
 	Tools        []string
+	Skills       []string
 	Model        string
 }
 
@@ -53,6 +55,7 @@ func GetSubagentDefinition(ctx context.Context, name string) (subagent.Definitio
 		Description:  row.Description,
 		SystemPrompt: row.SystemPrompt,
 		Tools:        append([]string(nil), row.Tools...),
+		Skills:       append([]string(nil), row.Skills...),
 		Model:        row.Model,
 	}, nil
 }
@@ -64,6 +67,7 @@ func subagentFromRow(row *gen.AgentSubagent) Subagent {
 		Description:  row.Description,
 		SystemPrompt: row.SystemPrompt,
 		Tools:        append([]string(nil), row.Tools...),
+		Skills:       append([]string(nil), row.Skills...),
 		Model:        row.Model,
 	}
 }
@@ -166,4 +170,9 @@ func FormatSubagentsForPrompt(subagents []Subagent) string {
 	}
 	lines = append(lines, "</available_subagents>")
 	return strings.Join(lines, "\n")
+}
+
+// SelectableSubagentTools returns tool names available for subagent allowlist configuration.
+func SelectableSubagentTools() []string {
+	return coding.ActiveToolNames()
 }

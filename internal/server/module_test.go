@@ -457,6 +457,18 @@ func (*testStoreAdapter) UpdateAgentSubagent(_ context.Context, _ *gen.AgentSuba
 func (*testStoreAdapter) DeleteAgentSubagent(_ context.Context, _ string) error {
 	return types.ErrNotFound
 }
+func (*testStoreAdapter) CreateAgentSubagentTask(_ context.Context, _ *gen.AgentSubagentTask) error {
+	return nil
+}
+func (*testStoreAdapter) UpdateAgentSubagentTask(_ context.Context, _ *gen.AgentSubagentTask) error {
+	return nil
+}
+func (*testStoreAdapter) ListAgentSubagentTasks(_ context.Context, _ string, _ int) ([]*gen.AgentSubagentTask, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) GetAgentSubagentTask(_ context.Context, _ int64) (*gen.AgentSubagentTask, error) {
+	return nil, types.ErrNotFound
+}
 func (*testStoreAdapter) GetBot(context.Context, int64) (*gen.Bot, error) {
 	return nil, nil
 }
