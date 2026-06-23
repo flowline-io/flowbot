@@ -35,7 +35,7 @@ func (RunCodeTool) Parameters() map[string]any {
 		"properties": map[string]any{
 			"language": map[string]any{
 				"type":        "string",
-				"description": "Language identifier: go, python, javascript, shell",
+				"description": "Language identifier: python, shell",
 			},
 			"code": map[string]any{
 				"type":        "string",
@@ -43,7 +43,7 @@ func (RunCodeTool) Parameters() map[string]any {
 			},
 			"filename": map[string]any{
 				"type":        "string",
-				"description": "Optional filename hint such as main.go or script.py",
+				"description": "Optional filename hint such as script.py, script.sh",
 			},
 		},
 		"required": []string{"language", "code"},
@@ -127,12 +127,8 @@ func (t RunCodeTool) executionEnv() env.ExecutionEnv {
 
 func defaultFilename(language string) string {
 	switch language {
-	case "go", "golang":
-		return "main.go"
 	case "python", "py":
 		return "script.py"
-	case "javascript", "js", "node":
-		return "script.js"
 	case "shell", "sh", "bash":
 		return "script.sh"
 	default:
@@ -142,12 +138,8 @@ func defaultFilename(language string) string {
 
 func interpreterCommand(language, filePath string) ([]string, error) {
 	switch language {
-	case "go", "golang":
-		return []string{"go", "run", filePath}, nil
 	case "python", "py":
 		return []string{"python", filePath}, nil
-	case "javascript", "js", "node":
-		return []string{"node", filePath}, nil
 	case "shell", "sh", "bash":
 		return []string{"sh", filePath}, nil
 	default:

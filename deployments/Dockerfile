@@ -11,7 +11,14 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o composer -ldflags "-X gith
 
 FROM alpine:latest
 
-RUN apk add --no-cache bash curl tzdata
+RUN apk add --no-cache \
+        bash curl wget tzdata ca-certificates \
+        python3 py3-pip \
+        git jq ripgrep \
+        grep sed gawk findutils coreutils \
+        openssh-client \
+    && ln -sf /usr/bin/python3 /usr/local/bin/python \
+    && update-ca-certificates
 
 WORKDIR /opt/app
 
