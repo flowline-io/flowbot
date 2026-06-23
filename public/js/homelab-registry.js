@@ -4,10 +4,11 @@ document.addEventListener('alpine:init', function () {
     filterCapability: '',
 
     appMatches(el) {
-      const name = el.getAttribute('data-app-name') || '';
+      const appName = el.getAttribute('data-app-name') || '';
       const caps = el.getAttribute('data-app-caps') || '';
       const searchMatch =
-        !this.search || name.toLowerCase().includes(this.search.toLowerCase());
+        !this.search ||
+        appName.toLowerCase().includes(this.search.toLowerCase());
       const capMatch =
         !this.filterCapability ||
         caps.split(',').includes(this.filterCapability);

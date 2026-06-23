@@ -46,18 +46,18 @@
 
       init() {
         const el = this.$el;
-        const name = el.dataset.pipelineName || '';
-        this.name = name;
-        if (name) this.loadPipeline(name);
+        const pipelineName = el.dataset.pipelineName || '';
+        this.name = pipelineName;
+        if (pipelineName) this.loadPipeline(pipelineName);
         this.fetchCapabilities();
         this.pushUndo();
         this.loadVersions();
       },
 
-      async loadPipeline(name) {
+      async loadPipeline(pipelineName) {
         this.loading = true;
         try {
-          const resp = await fetch(`/service/web/pipelines/${name}/yaml`);
+          const resp = await fetch(`/service/web/pipelines/${pipelineName}/yaml`);
           const data = await resp.json();
           this.version = data.version;
           this.status = data.status;
