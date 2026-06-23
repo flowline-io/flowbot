@@ -131,6 +131,7 @@ func mapAgentSession(row *gen.ChatSession) model.AgentSession {
 	}
 	return model.AgentSession{
 		Flag:      row.Flag,
+		Title:     row.Title,
 		UID:       row.UID,
 		LeafID:    row.LeafID,
 		State:     chatSessionStateLabel(row.State),

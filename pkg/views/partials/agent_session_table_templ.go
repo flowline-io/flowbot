@@ -33,7 +33,7 @@ func AgentSessionTable(items []model.AgentSession, nextCursor string) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"agent-sessions-table\" data-testid=\"agent-sessions-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Session ID</th><th class=\"text-xs uppercase\">UID</th><th class=\"text-xs uppercase\">State</th><th class=\"text-xs uppercase\">Leaf ID</th><th class=\"text-xs uppercase\">Updated</th><th class=\"text-xs uppercase\">Created</th></tr></thead> <tbody id=\"agent-sessions-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"agent-sessions-table\" data-testid=\"agent-sessions-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Title</th><th class=\"text-xs uppercase\">Session ID</th><th class=\"text-xs uppercase\">UID</th><th class=\"text-xs uppercase\">State</th><th class=\"text-xs uppercase\">Leaf ID</th><th class=\"text-xs uppercase\">Updated</th><th class=\"text-xs uppercase\">Created</th></tr></thead> <tbody id=\"agent-sessions-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -44,7 +44,7 @@ func AgentSessionTable(items []model.AgentSession, nextCursor string) templ.Comp
 			}
 		}
 		if len(items) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"agent-sessions-empty\"><td colspan=\"6\" class=\"text-center text-base-content/50 py-4\">No sessions found.</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"agent-sessions-empty\"><td colspan=\"7\" class=\"text-center text-base-content/50 py-4\">No sessions found.</td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -61,7 +61,7 @@ func AgentSessionTable(items []model.AgentSession, nextCursor string) templ.Comp
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/agent-sessions/list?cursor=" + nextCursor))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_session_table.templ`, Line: 36, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_session_table.templ`, Line: 37, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 			if templ_7745c5c3_Err != nil {

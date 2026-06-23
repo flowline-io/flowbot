@@ -5,6 +5,7 @@ import "time"
 // AgentSession represents a chat agent session for UI display and transport.
 type AgentSession struct {
 	Flag      string    `json:"flag"`
+	Title     string    `json:"title"`
 	UID       string    `json:"uid"`
 	LeafID    string    `json:"leaf_id"`
 	State     string    `json:"state"`

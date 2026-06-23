@@ -7,7 +7,7 @@ import (
 )
 
 templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry) {
-	@layout.Base("Session " + session.Flag + " — Flowbot") {
+	@layout.Base(partials.AgentSessionPageTitle(session)) {
 		<div class="mb-4">
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
 		</div>
@@ -26,8 +26,19 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		</div>
 		<div class="card bg-base-100 shadow-sm mb-6">
 			<div class="card-body">
-				<h1 class="card-title text-2xl font-mono">{ session.Flag }</h1>
+				if session.Title != "" {
+					<h1 class="card-title text-2xl">{ session.Title }</h1>
+					<p class="font-mono text-sm text-base-content/60">{ session.Flag }</p>
+				} else {
+					<h1 class="card-title text-2xl font-mono">{ session.Flag }</h1>
+				}
 				<div class="grid grid-cols-2 gap-2 text-sm text-base-content/70 mt-2">
+					if session.Title != "" {
+						<div>
+							<span class="text-base-content/50">Session ID:</span>
+							<code class="text-xs ml-1">{ session.Flag }</code>
+						</div>
+					}
 					<div>
 						<span class="text-base-content/50">UID:</span>
 						<span class="font-mono text-xs ml-1">{ session.UID }</span>

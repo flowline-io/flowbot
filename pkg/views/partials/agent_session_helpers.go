@@ -5,6 +5,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/bytedance/sonic"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // agentSessionStateBadgeClass returns DaisyUI badge classes for a display state label.
@@ -22,6 +24,14 @@ func agentSessionStateBadgeClass(state string) string {
 // agentSessionDetailURL builds the detail page URL for a session flag.
 func agentSessionDetailURL(flag string) templ.SafeURL {
 	return templ.URL("/service/web/agent-sessions/" + flag)
+}
+
+// AgentSessionPageTitle returns the browser title for a session detail page.
+func AgentSessionPageTitle(session model.AgentSession) string {
+	if strings.TrimSpace(session.Title) != "" {
+		return session.Title + " — Flowbot"
+	}
+	return "Session " + session.Flag + " — Flowbot"
 }
 
 // agentSessionEntryPayloadURL builds the HTMX payload partial URL for an entry.

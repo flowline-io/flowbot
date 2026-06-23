@@ -176,9 +176,9 @@ func TestAgentSessionsListAuthenticated(t *testing.T) {
 			name: "table partial renders session row",
 			path: "/service/web/agent-sessions/list",
 			sessions: []*gen.ChatSession{
-				{Flag: "sess-table", UID: "user:b", State: int(schema.ChatSessionClosed), UpdatedAt: now, CreatedAt: now},
+				{Flag: "sess-table", Title: "Redis setup", UID: "user:b", State: int(schema.ChatSessionClosed), UpdatedAt: now, CreatedAt: now},
 			},
-			wantBody: "sess-table",
+			wantBody: "Redis setup",
 		},
 		{
 			name:     "empty list shows placeholder",
@@ -217,10 +217,10 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 		wantBody   string
 	}{
 		{
-			name: "detail renders session and entries",
+			name: "detail renders session title and entries",
 			path: "/service/web/agent-sessions/sess-detail",
 			sessions: map[string]*gen.ChatSession{
-				"sess-detail": {Flag: "sess-detail", UID: "user:x", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+				"sess-detail": {Flag: "sess-detail", Title: "Deploy flowbot", UID: "user:x", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
 			},
 			entries: map[string][]*gen.ChatSessionEntry{
 				"sess-detail": {
@@ -228,7 +228,7 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 				},
 			},
 			wantStatus: http.StatusOK,
-			wantBody:   "user",
+			wantBody:   "Deploy flowbot",
 		},
 		{
 			name:       "missing session returns not found",

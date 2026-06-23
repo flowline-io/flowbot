@@ -10,6 +10,7 @@ templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 			<table class="table">
 				<thead>
 				<tr>
+					<th class="text-xs uppercase">Title</th>
 					<th class="text-xs uppercase">Session ID</th>
 					<th class="text-xs uppercase">UID</th>
 					<th class="text-xs uppercase">State</th>
@@ -24,7 +25,7 @@ templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 				}
 				if len(items) == 0 {
 					<tr id="agent-sessions-empty">
-						<td colspan="6" class="text-center text-base-content/50 py-4">No sessions found.</td>
+						<td colspan="7" class="text-center text-base-content/50 py-4">No sessions found.</td>
 					</tr>
 				}
 				</tbody>
