@@ -57,7 +57,9 @@
       async loadPipeline(pipelineName) {
         this.loading = true;
         try {
-          const resp = await fetch(`/service/web/pipelines/${pipelineName}/yaml`);
+          const resp = await fetch(
+            `/service/web/pipelines/${pipelineName}/yaml`,
+          );
           const data = await resp.json();
           this.version = data.version;
           this.status = data.status;

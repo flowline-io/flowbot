@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/tmc/langchaingo/llms"
@@ -21,8 +22,25 @@ const (
 
 const sessionTitleSystemPrompt = `You generate short chat session titles. Output a single concise title (3-8 words) summarizing the conversation topic. No quotes, no trailing punctuation, one line only.`
 
-// generateSessionTitleLLM is overridden in unit tests.
-var generateSessionTitleLLM = generateSessionTitleWithLLM
+type sessionTitleModelFunc func(context.Context, string) (llms.Model, string, error)
+
+type sessionTitleLLMFunc func(context.Context, string, string, string, sessionTitleModelFunc) (string, error)
+
+var (
+	sessionTitleGenWG sync.WaitGroup
+
+	// sessionTitleModel resolves the model for async title generation.
+	// It is separate from NewModelForTest so harness test doubles are not consumed by title jobs.
+	sessionTitleModel sessionTitleModelFunc = agentllm.GetOrCreateModel
+
+	// generateSessionTitleLLM is overridden in unit tests.
+	generateSessionTitleLLM sessionTitleLLMFunc = generateSessionTitleWithLLM
+)
+
+// WaitForSessionTitleGenerationForTest blocks until all in-flight async title generations finish.
+func WaitForSessionTitleGenerationForTest() {
+	sessionTitleGenWG.Wait()
+}
 
 // maybeGenerateSessionTitle starts an async LLM title generation when the session has no title yet.
 func maybeGenerateSessionTitle(sessionID, userText, reply string) {
@@ -37,14 +55,29 @@ func maybeGenerateSessionTitle(sessionID, userText, reply string) {
 	if strings.TrimSpace(sess.Title) != "" {
 		return
 	}
-	go generateSessionTitleAsync(sessionID, userText, reply)
+	_, chatModel, _, _, err := agentLoopConfig()
+	if err != nil {
+		flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
+		return
+	}
+	llmGen := generateSessionTitleLLM
+	modelResolver := sessionTitleModel
+	sessionTitleGenWG.Add(1)
+	go func() {
+		defer sessionTitleGenWG.Done()
+		generateSessionTitleAsync(sessionID, userText, reply, chatModel, modelResolver, llmGen)
+	}()
 }
 
-func generateSessionTitleAsync(sessionID, userText, reply string) {
+func generateSessionTitleAsync(
+	sessionID, userText, reply, chatModel string,
+	modelResolver sessionTitleModelFunc,
+	llmGen sessionTitleLLMFunc,
+) {
 	ctx, cancel := context.WithTimeout(context.Background(), sessionTitleGenTimeout)
 	defer cancel()
 
-	title, err := generateSessionTitleLLM(ctx, userText, reply)
+	title, err := llmGen(ctx, userText, reply, chatModel, modelResolver)
 	if err != nil {
 		flog.Warn("[chat-agent] title generation failed session=%s: %v", sessionID, err)
 		title = fallbackSessionTitle(userText)
@@ -54,6 +87,10 @@ func generateSessionTitleAsync(sessionID, userText, reply string) {
 		title = fallbackSessionTitle(userText)
 	}
 
+	if store.Database == nil {
+		flog.Warn("[chat-agent] title write skipped session=%s: database unavailable", sessionID)
+		return
+	}
 	sess, err := store.Database.GetChatSession(ctx, sessionID)
 	if err != nil {
 		flog.Warn("[chat-agent] title write skipped session=%s: %v", sessionID, err)
@@ -69,12 +106,12 @@ func generateSessionTitleAsync(sessionID, userText, reply string) {
 	flog.Debug("[chat-agent] session title set session=%s title=%q", sessionID, title)
 }
 
-func generateSessionTitleWithLLM(ctx context.Context, userText, reply string) (string, error) {
-	_, chatModel, _, _, err := agentLoopConfig()
-	if err != nil {
-		return "", err
-	}
-	model, resolvedName, err := NewModelForTest(ctx, chatModel)
+func generateSessionTitleWithLLM(
+	ctx context.Context,
+	userText, reply, chatModel string,
+	modelResolver sessionTitleModelFunc,
+) (string, error) {
+	model, resolvedName, err := modelResolver(ctx, chatModel)
 	if err != nil {
 		return "", fmt.Errorf("chat agent model: %w", err)
 	}

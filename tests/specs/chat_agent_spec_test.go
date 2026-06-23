@@ -148,10 +148,15 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
 			return model, "fake-model", nil
 		}
-		defer func() { chatagent.NewModelForTest = orig }()
 
 		ctx := context.Background()
 		sessionID := "bdd-plan-mode-" + types.Id()
+		defer func() {
+			chatagent.WaitForSessionTitleGenerationForTest()
+			chatagent.EvictHarnessPool(sessionID)
+			chatagent.NewModelForTest = orig
+		}()
+
 		wsDir, err := os.MkdirTemp("", "chat-agent-plan-*")
 		Expect(err).NotTo(HaveOccurred())
 		config.App.ChatAgent.Workspace = wsDir
@@ -166,6 +171,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		_, statErr := os.Stat(filepath.Join(wsDir, target))
 		Expect(os.IsNotExist(statErr)).To(BeTrue())
 
+		chatagent.WaitForSessionTitleGenerationForTest()
 		Expect(chatagent.SetSessionMode(ctx, sessionID, chatagent.ModeNormal)).To(Succeed())
 		reply, err = svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "now edit plan-mode-target.txt"}, nil)
 		Expect(err).NotTo(HaveOccurred())

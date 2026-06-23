@@ -30,13 +30,17 @@ func TestChatAgentService_Run(t *testing.T) {
 	chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
 		return model, "fake-model", nil
 	}
-	t.Cleanup(func() { chatagent.NewModelForTest = origNewModel })
+	t.Cleanup(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
+		chatagent.NewModelForTest = origNewModel
+	})
 
 	origDB := store.Database
 	store.Database = &testStoreAdapter{}
 	testChatSessions = map[string]*gen.ChatSession{}
 	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	t.Cleanup(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
@@ -87,6 +91,7 @@ func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
 		"sess-1": {Flag: "sess-1", State: int(schema.ChatSessionActive)},
 	}
 	t.Cleanup(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
@@ -118,13 +123,17 @@ func TestChatAgentService_CompactSession(t *testing.T) {
 	chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
 		return model, "fake-model", nil
 	}
-	t.Cleanup(func() { chatagent.NewModelForTest = origNewModel })
+	t.Cleanup(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
+		chatagent.NewModelForTest = origNewModel
+	})
 
 	origDB := store.Database
 	store.Database = &testStoreAdapter{}
 	testChatSessions = map[string]*gen.ChatSession{}
 	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	t.Cleanup(func() {
+		chatagent.WaitForSessionTitleGenerationForTest()
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
