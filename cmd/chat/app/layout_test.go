@@ -30,7 +30,7 @@ func TestFooterHeight(t *testing.T) {
 			}
 			if tt.sessionPick {
 				m.phase = PhaseSessionPick
-				m.sessionList = []client.ChatSessionSummary{
+				m.picker.list = []client.ChatSessionSummary{
 					{SessionID: "sess-a", UpdatedAt: time.Now()},
 					{SessionID: "sess-b", UpdatedAt: time.Now()},
 				}

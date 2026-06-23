@@ -53,14 +53,16 @@ func TestRefreshStreamingAssistantPreservesOverlay(t *testing.T) {
 				baseLen = len(tt.base)
 			}
 			m := &Model{
-				phase:            PhaseStreaming,
-				streamingBaseLen: baseLen,
-				rawAssistant:     tt.assistant,
-				width:            80,
-				styles:           NewStyles(),
+				phase: PhaseStreaming,
+				stream: streamRunState{
+					streamingBaseLen: baseLen,
+					rawAssistant:     tt.assistant,
+				},
+				width:  80,
+				styles: NewStyles(),
 			}
 			m.transcript.WriteString(tt.base)
-			m.streamOverlay.WriteString(tt.overlay)
+			m.stream.overlay.WriteString(tt.overlay)
 
 			m.refreshStreamingAssistant()
 			out := stripANSI(m.transcript.String())
@@ -133,9 +135,9 @@ func TestHandleStreamEventDeltaSnapshot(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &Model{rawAssistant: tt.existing}
+			m := &Model{stream: streamRunState{rawAssistant: tt.existing}}
 			updated, _ := m.handleStreamEvent(client.ChatStreamEvent{Type: "delta", Text: tt.incoming})
-			assert.Equal(t, tt.want, updated.rawAssistant)
+			assert.Equal(t, tt.want, updated.stream.rawAssistant)
 		})
 	}
 }

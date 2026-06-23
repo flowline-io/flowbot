@@ -54,19 +54,19 @@ func formatSessionUpdatedAt(updatedAt time.Time) string {
 }
 
 func (m *Model) renderSessionPicker() string {
-	if m.phase != PhaseSessionPick || len(m.sessionList) == 0 {
+	if m.phase != PhaseSessionPick || len(m.picker.list) == 0 {
 		return ""
 	}
 	var body strings.Builder
 	writeBuilder(&body, "Sessions")
 	writeBuilder(&body, "\n")
-	limit := min(len(m.sessionList), maxSessionPickerLines)
+	limit := min(len(m.picker.list), maxSessionPickerLines)
 	for i := range limit {
-		writeBuilder(&body, FormatSessionRow(m.sessionList[i], m.sessionID, i == m.sessionPick, &m.styles))
+		writeBuilder(&body, FormatSessionRow(m.picker.list[i], m.sessionID, i == m.picker.pick, &m.styles))
 		writeBuilder(&body, "\n")
 	}
-	if len(m.sessionList) > maxSessionPickerLines {
-		writeBuilder(&body, m.styles.Hint.Render(fmt.Sprintf("  … and %d more", len(m.sessionList)-maxSessionPickerLines)))
+	if len(m.picker.list) > maxSessionPickerLines {
+		writeBuilder(&body, m.styles.Hint.Render(fmt.Sprintf("  … and %d more", len(m.picker.list)-maxSessionPickerLines)))
 		writeBuilder(&body, "\n")
 	}
 	writeBuilder(&body, m.styles.Hint.Render("  ↑↓ select · Enter switch · Esc cancel · Ctrl+C cancel"))
@@ -78,7 +78,7 @@ func (m *Model) sessionPickerFooterHeight() int {
 		return 0
 	}
 	lines := 2
-	visible := len(m.sessionList)
+	visible := len(m.picker.list)
 	if visible > maxSessionPickerLines {
 		visible = maxSessionPickerLines + 1
 	}
@@ -92,16 +92,16 @@ func (m *Model) handleSessionPickKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	}
 	switch msg.Key().Code {
 	case tea.KeyUp:
-		if len(m.sessionList) == 0 {
+		if len(m.picker.list) == 0 {
 			return true, nil
 		}
-		m.sessionPick = (m.sessionPick + len(m.sessionList) - 1) % len(m.sessionList)
+		m.picker.pick = (m.picker.pick + len(m.picker.list) - 1) % len(m.picker.list)
 		return true, nil
 	case tea.KeyDown:
-		if len(m.sessionList) == 0 {
+		if len(m.picker.list) == 0 {
 			return true, nil
 		}
-		m.sessionPick = (m.sessionPick + 1) % len(m.sessionList)
+		m.picker.pick = (m.picker.pick + 1) % len(m.picker.list)
 		return true, nil
 	case tea.KeyEnter, tea.KeyTab:
 		return true, m.submitSessionPick()
@@ -114,15 +114,10 @@ func (m *Model) handleSessionPickKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	return false, nil
 }
 
-func (m *Model) clearSessionPick() {
-	m.sessionList = nil
-	m.sessionPick = 0
-}
-
 func (m *Model) applySessionSwitch(id, mode string) {
 	m.sessionID = id
 	m.transcript.Reset()
-	m.streamOverlay.Reset()
+	m.stream.overlay.Reset()
 	m.messageCount = 0
 	m.resetSessionUsage()
 	m.splashVisible = false
@@ -141,12 +136,12 @@ func (m *Model) applySessionSwitch(id, mode string) {
 }
 
 func (m *Model) submitSessionPick() tea.Cmd {
-	if len(m.sessionList) == 0 || m.sessionPick < 0 || m.sessionPick >= len(m.sessionList) {
+	if len(m.picker.list) == 0 || m.picker.pick < 0 || m.picker.pick >= len(m.picker.list) {
 		m.clearSessionPick()
 		m.phase = PhaseIdle
 		return m.focusInputCmd()
 	}
-	selected := m.sessionList[m.sessionPick]
+	selected := m.picker.list[m.picker.pick]
 	m.clearSessionPick()
 	m.phase = PhaseIdle
 	if selected.SessionID == m.sessionID {
@@ -188,8 +183,8 @@ func (m *Model) updateSessionsList(msg sessionsListMsg) (*Model, tea.Cmd) {
 		m.appendSystem("No sessions found")
 		return m, m.focusInputCmd()
 	}
-	m.sessionList = msg.sessions
-	m.sessionPick = sessionPickerInitialPick(msg.sessions, m.sessionID)
+	m.picker.list = msg.sessions
+	m.picker.pick = sessionPickerInitialPick(msg.sessions, m.sessionID)
 	m.phase = PhaseSessionPick
 	m.hint = "Select a session to switch"
 	return m, m.focusInputCmd()
@@ -231,7 +226,7 @@ func (m *Model) handleSlashSession(cmd, args string) (*Model, tea.Cmd, bool) {
 		return m, m.sessionCompactCmd(), true
 	case "resume":
 		m.transcript.Reset()
-		m.streamOverlay.Reset()
+		m.stream.overlay.Reset()
 		m.messageCount = 0
 		return m, m.hydrateHistoryCmd(), true
 	case "sessions":

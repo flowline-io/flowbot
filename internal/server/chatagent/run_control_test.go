@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -66,6 +67,59 @@ func TestReleaseSessionLock(t *testing.T) {
 				b := sessionLock("sess-lock-2")
 				assert.Same(t, a, b)
 				releaseSessionLock("sess-lock-2")
+			}
+		})
+	}
+}
+
+func TestEvictStaleRunCancel(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "stale run cancel entry is removed"},
+		{name: "fresh run cancel entry is kept"},
+		{name: "evict unknown session is safe"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			switch tt.name {
+			case "stale run cancel entry is removed":
+				ctx, cancel := context.WithCancel(context.Background())
+				runCancelsMu.Lock()
+				runCancels["stale-cancel"] = &runCancelEntry{
+					cancel:   cancel,
+					lastUsed: time.Now().Add(-sessionLockTTL - time.Minute),
+				}
+				runCancelsMu.Unlock()
+				t.Cleanup(func() {
+					unregisterRunCancel("stale-cancel")
+					cancel()
+				})
+
+				runCancelsMu.Lock()
+				now := time.Now()
+				for id, entry := range runCancels {
+					if now.Sub(entry.lastUsed) > sessionLockTTL {
+						delete(runCancels, id)
+					}
+				}
+				_, ok := runCancels["stale-cancel"]
+				runCancelsMu.Unlock()
+				assert.False(t, ok)
+				require.NoError(t, ctx.Err())
+			case "fresh run cancel entry is kept":
+				ctx, cancel := context.WithCancel(context.Background())
+				registerRunCancel("fresh-cancel", cancel)
+				t.Cleanup(func() { unregisterRunCancel("fresh-cancel") })
+
+				runCancelsMu.Lock()
+				_, ok := runCancels["fresh-cancel"]
+				runCancelsMu.Unlock()
+				assert.True(t, ok)
+				require.NoError(t, ctx.Err())
+			case "evict unknown session is safe":
+				assert.NotPanics(t, func() { unregisterRunCancel("never-bound") })
 			}
 		})
 	}

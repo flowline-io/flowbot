@@ -46,12 +46,12 @@ func TestHandleConfirmKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewModel(nil, "default")
 			m.phase = PhaseConfirming
-			m.confirmPick = tt.start
-			m.confirmSuggestAlways = tt.always
-			m.pendingConfirmID = "confirm-1"
+			m.confirm.pick = tt.start
+			m.confirm.suggestAlways = tt.always
+			m.confirm.id = "confirm-1"
 			ok, _ := m.handleConfirmKey(tea.KeyPressMsg{Code: tt.key})
 			assert.Equal(t, tt.wantOK, ok)
-			assert.Equal(t, tt.wantPick, m.confirmPick)
+			assert.Equal(t, tt.wantPick, m.confirm.pick)
 		})
 	}
 }
@@ -71,10 +71,10 @@ func TestRenderConfirmPrompt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewModel(nil, "default")
 			m.phase = PhaseConfirming
-			m.confirmTool = "run_terminal"
-			m.confirmSummary = "command: ls -all"
-			m.confirmSuggestAlways = tt.always
-			m.confirmPick = tt.pick
+			m.confirm.tool = "run_terminal"
+			m.confirm.summary = "command: ls -all"
+			m.confirm.suggestAlways = tt.always
+			m.confirm.pick = tt.pick
 			got := m.renderConfirmPrompt()
 			assert.Contains(t, got, tt.wantSub)
 			assert.Contains(t, got, "run_terminal")
@@ -117,10 +117,11 @@ func TestSubmitConfirmChoiceUsesMode(t *testing.T) {
 	m := NewModel(client.NewClient(srv.URL, "token"), "default")
 	m.sessionID = "sess-1"
 	m.phase = PhaseConfirming
-	m.pendingConfirmID = "c1"
-	m.confirmSuggestedPattern = "git status*"
-	m.confirmSuggestAlways = true
+	m.confirm.id = "c1"
+	m.confirm.suggestedPattern = "git status*"
+	m.confirm.suggestAlways = true
 	cmd := m.submitConfirmChoice(confirmChoice{approved: true, mode: client.ConfirmModeAlways})
 	assert.NotNil(t, cmd)
 	assert.Equal(t, PhaseStreaming, m.phase)
+	assert.Equal(t, "Confirming...", m.hint)
 }

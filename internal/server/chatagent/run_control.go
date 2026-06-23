@@ -15,12 +15,17 @@ type lockEntry struct {
 	lastUsed time.Time
 }
 
+type runCancelEntry struct {
+	cancel   context.CancelFunc
+	lastUsed time.Time
+}
+
 var (
 	sessionLocksMu sync.Mutex
 	sessionLocks   = make(map[string]*lockEntry)
 
 	runCancelsMu sync.Mutex
-	runCancels   = make(map[string]context.CancelFunc)
+	runCancels   = make(map[string]*runCancelEntry)
 )
 
 func init() {
@@ -45,7 +50,7 @@ func releaseSessionLock(sessionID string) {
 	delete(sessionLocks, sessionID)
 }
 
-// evictStaleLocks periodically removes session locks that have not been used within the TTL.
+// evictStaleLocks periodically removes session locks and run cancels unused within the TTL.
 func evictStaleLocks() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
@@ -60,7 +65,11 @@ func evictStaleLocks() {
 		sessionLocksMu.Unlock()
 
 		runCancelsMu.Lock()
-		// runCancels entries are cleaned by UnbindRunCancel; evict stale ones defensively.
+		for id, entry := range runCancels {
+			if now.Sub(entry.lastUsed) > sessionLockTTL {
+				delete(runCancels, id)
+			}
+		}
 		runCancelsMu.Unlock()
 	}
 }
@@ -69,9 +78,9 @@ func registerRunCancel(sessionID string, cancel context.CancelFunc) {
 	runCancelsMu.Lock()
 	defer runCancelsMu.Unlock()
 	if prev, ok := runCancels[sessionID]; ok {
-		prev()
+		prev.cancel()
 	}
-	runCancels[sessionID] = cancel
+	runCancels[sessionID] = &runCancelEntry{cancel: cancel, lastUsed: time.Now()}
 }
 
 func unregisterRunCancel(sessionID string) {
@@ -92,10 +101,13 @@ func UnbindRunCancel(sessionID string) {
 
 func cancelRun(sessionID string) {
 	runCancelsMu.Lock()
-	cancel, ok := runCancels[sessionID]
+	entry, ok := runCancels[sessionID]
+	if ok {
+		entry.lastUsed = time.Now()
+	}
 	runCancelsMu.Unlock()
 	if ok {
 		flog.Info("[chat-agent] cancelled in-flight run session=%s", sessionID)
-		cancel()
+		entry.cancel()
 	}
 }

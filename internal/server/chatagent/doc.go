@@ -1,2 +1,6 @@
-// Package chatagent wires the chat assistant agent into direct message handling.
+// Package chatagent orchestrates the Flowbot chat assistant: session lifecycle,
+// harness pooling, SSE streaming, tool confirmations, permissions, and scheduled tasks.
+//
+// HTTP routes are registered in internal/server (chatagent_http*.go); this package
+// holds the service layer consumed by REST handlers and platform chat sinks.
 package chatagent

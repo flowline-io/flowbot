@@ -89,13 +89,18 @@ func TestSubmitConfirmChoiceReportsAPIError(t *testing.T) {
 			cl := client.NewClient(srv.URL, "token")
 			m := NewModel(cl, "default")
 			m.sessionID = "sess-1"
-			m.pendingConfirmID = "confirm-1"
+			m.confirm.id = "confirm-1"
 			m.phase = PhaseConfirming
 
 			cmd := m.submitConfirmChoice(confirmChoice{approved: true, mode: client.ConfirmModeOnce})
 			require.NotNil(t, cmd)
+			msg := cmd()
+			rc, ok := msg.(runControlMsg)
+			require.True(t, ok)
+			_, focus := m.updateRunControl(rc)
 			assert.Contains(t, m.hint, tt.wantSub)
 			assert.Equal(t, PhaseStreaming, m.phase)
+			assert.NotNil(t, focus)
 		})
 	}
 }

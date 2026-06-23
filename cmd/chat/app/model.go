@@ -11,9 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
-// streamMsg delivers one SSE event into the bubbletea event loop.
-type streamMsg client.ChatStreamEvent
-
 type streamDoneMsg struct{ err error }
 
 type tickMsg time.Time
@@ -81,28 +78,13 @@ type Model struct {
 	input    textarea.Model
 
 	transcript    strings.Builder
-	streamOverlay strings.Builder
 	splashVisible bool
 	welcomeShown  bool
 
-	phase            RunPhase
-	streamCancel     context.CancelFunc
-	streamCtx        context.Context
-	rawAssistant     string
-	streamingBaseLen int
-	renderPending    bool
-	renderDeadline   time.Time
-
-	streamCh chan tea.Msg
-
-	pendingConfirmID        string
-	confirmTool             string
-	confirmSummary          string
-	confirmPermission       string
-	confirmPattern          string
-	confirmSuggestedPattern string
-	confirmSuggestAlways    bool
-	confirmPick             int
+	phase   RunPhase
+	stream  streamRunState
+	confirm confirmUIState
+	picker  sessionPickerUIState
 
 	pendingFile *FileAttachment
 	hint        string
@@ -110,9 +92,6 @@ type Model struct {
 
 	slashMatches []SlashCommand
 	slashPick    int
-
-	sessionList []client.ChatSessionSummary
-	sessionPick int
 
 	inputHist inputHistory
 

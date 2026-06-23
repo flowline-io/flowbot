@@ -32,6 +32,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateStreamEvent(msg)
 	case permissionMsg:
 		return m.applyPermissionMsg(msg)
+	case runControlMsg:
+		return m.updateRunControl(msg)
 	case streamDoneMsg:
 		return m.updateStreamDone(msg)
 	case tea.KeyMsg:
@@ -100,6 +102,10 @@ func (m *Model) updateInitDone(msg initDoneMsg) (*Model, tea.Cmd) {
 }
 
 func (m *Model) updateHydrate(msg hydrateMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.hint = msg.err
+		return m, m.focusInputCmd()
+	}
 	if msg.content != "" {
 		writeBuilder(&m.transcript, msg.content)
 		m.splashVisible = false
@@ -152,9 +158,9 @@ func (m *Model) updateTick(msg tickMsg) (*Model, tea.Cmd) {
 	} else {
 		m.status.Streaming = false
 	}
-	if m.renderPending && time.Now().After(m.renderDeadline) {
+	if m.stream.renderPending && time.Now().After(m.stream.renderDeadline) {
 		m.refreshStreamingAssistant()
-		m.renderPending = false
+		m.stream.renderPending = false
 	}
 	inputCmd := m.updateInput(msg)
 	return m, tea.Batch(tickCmd(), inputCmd)
@@ -172,11 +178,11 @@ func (m *Model) updateStreamDone(msg streamDoneMsg) (*Model, tea.Cmd) {
 	if msg.err != nil && !m.quitting {
 		m.appendSystem(fmt.Sprintf("Error: %v", msg.err))
 	}
-	if m.rawAssistant != "" {
+	if m.stream.rawAssistant != "" {
 		m.finalizeAssistant()
 	}
-	m.streamCh = nil
-	m.streamCancel = nil
+	m.stream.ch = nil
+	m.stream.cancel = nil
 	m.syncViewport()
 	return m, m.focusInputCmd()
 }
@@ -255,8 +261,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		return m, m.focusInputCmd()
 	case "quit":
 		m.quitting = true
-		if m.streamCancel != nil {
-			m.streamCancel()
+		if m.stream.cancel != nil {
+			m.stream.cancel()
 		}
 		return m, tea.Quit
 	case "clear":
@@ -283,31 +289,21 @@ func (m *Model) handleCtrlCKey() (*Model, tea.Cmd) {
 	switch action {
 	case CtrlCQuit:
 		m.quitting = true
-		if m.streamCancel != nil {
-			m.streamCancel()
+		if m.stream.cancel != nil {
+			m.stream.cancel()
 		}
 		return m, tea.Quit
 	case CtrlCCancelRun:
-		if m.streamCancel != nil {
-			m.streamCancel()
+		if m.stream.cancel != nil {
+			m.stream.cancel()
 		}
 		m.phase = PhaseIdle
-		m.hint = runControlHint(
-			m.client.ChatAgent.Cancel(context.Background(), m.sessionID),
-			"Canceled — ready for input",
-			"Cancel failed — server may still be running",
-		)
-		return m, nil
+		return m, m.cancelRunCmd()
 	case CtrlCDenyConfirm:
-		id := m.pendingConfirmID
+		id := m.confirm.id
 		m.clearConfirm()
 		m.phase = PhaseIdle
-		m.hint = runControlHint(
-			m.client.ChatAgent.ConfirmWithMode(context.Background(), m.sessionID, id, false, client.ConfirmModeReject, ""),
-			"Canceled — ready for input",
-			"Confirm failed — server may still be waiting",
-		)
-		return m, nil
+		return m, m.denyConfirmCmd(id)
 	case CtrlCCancelSessionPick:
 		m.clearSessionPick()
 		m.phase = PhaseIdle
@@ -404,22 +400,22 @@ func (m *Model) startStream(text string) (*Model, tea.Cmd) {
 	}
 	m.phase = PhaseStreaming
 	m.turnStarted = time.Now()
-	m.rawAssistant = ""
-	m.streamingBaseLen = m.transcript.Len()
-	m.streamOverlay.Reset()
+	m.stream.rawAssistant = ""
+	m.stream.streamingBaseLen = m.transcript.Len()
+	m.stream.overlay.Reset()
 	m.hint = "Ctrl+C cancel run"
 	m.splashVisible = false
 	m.appendSystem("Initializing agent...")
 	m.syncViewport()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	m.streamCtx = ctx
-	m.streamCancel = cancel
-	m.streamCh = make(chan tea.Msg, 64)
+	m.stream.ctx = ctx
+	m.stream.cancel = cancel
+	m.stream.ch = make(chan tea.Msg, 64)
 
 	cl := m.client
 	sessionID := m.sessionID
-	ch := m.streamCh
+	ch := m.stream.ch
 	go func() {
 		err := cl.ChatAgent.SendMessageSSE(ctx, sessionID, text, func(ev client.ChatStreamEvent) error {
 			msg := streamEventMsg{event: ev}
@@ -457,10 +453,10 @@ func (m *Model) startStream(text string) (*Model, tea.Cmd) {
 }
 
 func (m *Model) pumpStream() tea.Cmd {
-	if m.streamCh == nil {
+	if m.stream.ch == nil {
 		return nil
 	}
-	ch := m.streamCh
+	ch := m.stream.ch
 	return func() tea.Msg {
 		msg, ok := <-ch
 		if !ok {
@@ -476,8 +472,8 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 	m.applyControlStreamEvent(ev)
 	m.syncViewport()
 	var cmd tea.Cmd
-	if m.renderPending {
-		cmd = renderTickCmd(RenderDebounce(m.rawAssistant))
+	if m.stream.renderPending {
+		cmd = renderTickCmd(RenderDebounce(m.stream.rawAssistant))
 	}
 	return m, cmd
 }
@@ -485,16 +481,16 @@ func (m *Model) handleStreamEvent(ev client.ChatStreamEvent) (*Model, tea.Cmd) {
 func (m *Model) applyLifecycleStreamEvent(ev client.ChatStreamEvent) {
 	switch ev.Type {
 	case "delta":
-		m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
-		m.renderPending = true
-		m.renderDeadline = time.Now().Add(RenderDebounce(m.rawAssistant))
+		m.stream.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
+		m.stream.renderPending = true
+		m.stream.renderDeadline = time.Now().Add(RenderDebounce(m.stream.rawAssistant))
 	case "canceled":
 		m.phase = PhaseIdle
 		m.hint = "Canceled — ready for input"
 		m.clearConfirm()
 	case "done":
 		if ev.Text != "" {
-			m.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
+			m.stream.rawAssistant = agentmsg.SanitizeAssistantDisplayText(ev.Text)
 		}
 		m.finalizeAssistant()
 		m.phase = PhaseIdle
@@ -529,14 +525,14 @@ func (m *Model) applyControlStreamEvent(ev client.ChatStreamEvent) {
 	switch ev.Type {
 	case "confirm":
 		m.phase = PhaseConfirming
-		m.pendingConfirmID = ev.ID
-		m.confirmTool = ev.Tool
-		m.confirmSummary = ev.Summary
-		m.confirmPermission = ev.Permission
-		m.confirmPattern = ev.Pattern
-		m.confirmSuggestedPattern = ev.SuggestedPattern
-		m.confirmSuggestAlways = ev.SuggestAlways
-		m.confirmPick = 0
+		m.confirm.id = ev.ID
+		m.confirm.tool = ev.Tool
+		m.confirm.summary = ev.Summary
+		m.confirm.permission = ev.Permission
+		m.confirm.pattern = ev.Pattern
+		m.confirm.suggestedPattern = ev.SuggestedPattern
+		m.confirm.suggestAlways = ev.SuggestAlways
+		m.confirm.pick = 0
 		m.hint = ""
 	case "confirm_resolved":
 		m.clearConfirm()
@@ -551,15 +547,6 @@ func (m *Model) applyControlStreamEvent(ev client.ChatStreamEvent) {
 	}
 }
 
-func (m *Model) clearConfirm() {
-	m.pendingConfirmID, m.confirmTool, m.confirmSummary = ClearConfirmState()
-	m.confirmPermission = ""
-	m.confirmPattern = ""
-	m.confirmSuggestedPattern = ""
-	m.confirmSuggestAlways = false
-	m.confirmPick = 0
-}
-
 func (m *Model) appendUser(text string) {
 	if m.transcript.Len() > 0 {
 		writeBuilder(&m.transcript, FormatSeparator(m.width, &m.styles)+"\n")
@@ -570,7 +557,7 @@ func (m *Model) appendUser(text string) {
 func (m *Model) appendSystem(text string) {
 	line := FormatSystemLine(text, &m.styles)
 	if m.phase == PhaseStreaming || m.phase == PhaseConfirming {
-		writeBuilder(&m.streamOverlay, line)
+		writeBuilder(&m.stream.overlay, line)
 		return
 	}
 	writeBuilder(&m.transcript, line)
@@ -579,25 +566,25 @@ func (m *Model) appendSystem(text string) {
 }
 
 func (m *Model) refreshStreamingAssistant() {
-	if m.rawAssistant == "" {
+	if m.stream.rawAssistant == "" {
 		return
 	}
 	transcript := m.transcript.String()
-	baseLen := min(m.streamingBaseLen,
+	baseLen := min(m.stream.streamingBaseLen,
 		// Transcript may shrink mid-stream (e.g. /clear); clamp to avoid slice panic.
 		len(transcript))
 	base := transcript[:baseLen]
-	rendered := FormatAssistantBlock(m.rawAssistant, m.width-2, &m.styles)
+	rendered := FormatAssistantBlock(m.stream.rawAssistant, m.width-2, &m.styles)
 	m.transcript.Reset()
 	writeBuilder(&m.transcript, base)
 	writeBuilder(&m.transcript, rendered)
-	writeBuilder(&m.transcript, m.streamOverlay.String())
+	writeBuilder(&m.transcript, m.stream.overlay.String())
 }
 
 func (m *Model) finalizeAssistant() {
 	m.refreshStreamingAssistant()
-	m.rawAssistant = ""
-	m.streamOverlay.Reset()
+	m.stream.rawAssistant = ""
+	m.stream.overlay.Reset()
 	m.messageCount++
 }
 
@@ -611,6 +598,7 @@ type hydrateMsg struct {
 	content         string
 	count           int
 	estimatedTokens int
+	err             string
 }
 
 type contextUsageMsg struct {
@@ -728,7 +716,7 @@ func (m *Model) updateSessionCompact(msg sessionCompactMsg) (*Model, tea.Cmd) {
 	}
 	m.hint = formatCompactionSuccess(msg.tokensBefore, msg.tokensAfter)
 	m.transcript.Reset()
-	m.streamOverlay.Reset()
+	m.stream.overlay.Reset()
 	m.messageCount = 0
 	return m, tea.Batch(m.hydrateHistoryCmd(), m.focusInputCmd())
 }
@@ -746,7 +734,7 @@ func (m *Model) hydrateHistoryCmd() tea.Cmd {
 		defer cancel()
 		msgs, err := cl.ChatAgent.ListMessages(ctx, sessionID)
 		if err != nil {
-			return initDoneMsg{err: err.Error()}
+			return hydrateMsg{err: err.Error()}
 		}
 		return hydrateMsg{
 			content:         FormatHistoryMessages(msgs, width, &styles),

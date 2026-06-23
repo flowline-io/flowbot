@@ -20,7 +20,7 @@ func (m *Model) activeConfirmChoices() []confirmChoice {
 	choices := []confirmChoice{
 		{label: "Approve once", mode: client.ConfirmModeOnce, approved: true},
 	}
-	if m.confirmSuggestAlways {
+	if m.confirm.suggestAlways {
 		choices = append(choices, confirmChoice{label: "Always allow", mode: client.ConfirmModeAlways, approved: true})
 	}
 	choices = append(choices, confirmChoice{label: "Deny", mode: client.ConfirmModeReject, approved: false})
@@ -32,26 +32,26 @@ func (m *Model) renderConfirmPrompt() string {
 		return ""
 	}
 	var body strings.Builder
-	writeBuilder(&body, "Confirm tool "+m.confirmTool)
+	writeBuilder(&body, "Confirm tool "+m.confirm.tool)
 	writeBuilder(&body, "\n")
-	writeBuilder(&body, m.confirmSummary)
-	if m.confirmPermission != "" {
+	writeBuilder(&body, m.confirm.summary)
+	if m.confirm.permission != "" {
 		writeBuilder(&body, "\n")
-		writeBuilder(&body, fmt.Sprintf("permission: %s", m.confirmPermission))
+		writeBuilder(&body, fmt.Sprintf("permission: %s", m.confirm.permission))
 	}
-	if m.confirmPattern != "" {
+	if m.confirm.pattern != "" {
 		writeBuilder(&body, "\n")
-		writeBuilder(&body, fmt.Sprintf("pattern: %s", m.confirmPattern))
+		writeBuilder(&body, fmt.Sprintf("pattern: %s", m.confirm.pattern))
 	}
-	if m.confirmSuggestAlways && m.confirmSuggestedPattern != "" {
+	if m.confirm.suggestAlways && m.confirm.suggestedPattern != "" {
 		writeBuilder(&body, "\n")
-		writeBuilder(&body, fmt.Sprintf("always: %s", m.confirmSuggestedPattern))
+		writeBuilder(&body, fmt.Sprintf("always: %s", m.confirm.suggestedPattern))
 	}
 	writeBuilder(&body, "\n")
 	choices := m.activeConfirmChoices()
 	for i, choice := range choices {
 		line := "  " + choice.label
-		if i == m.confirmPick {
+		if i == m.confirm.pick {
 			writeBuilder(&body, m.styles.InputPrompt.Render("▸ "+choice.label))
 		} else {
 			writeBuilder(&body, m.styles.Hint.Render(line))
@@ -77,16 +77,16 @@ func (m *Model) handleConfirmKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	choices := m.activeConfirmChoices()
 	switch msg.Key().Code {
 	case tea.KeyUp:
-		m.confirmPick = (m.confirmPick + len(choices) - 1) % len(choices)
+		m.confirm.pick = (m.confirm.pick + len(choices) - 1) % len(choices)
 		return true, nil
 	case tea.KeyDown:
-		m.confirmPick = (m.confirmPick + 1) % len(choices)
+		m.confirm.pick = (m.confirm.pick + 1) % len(choices)
 		return true, nil
 	case tea.KeyEnter, tea.KeyTab:
-		if m.confirmPick < 0 || m.confirmPick >= len(choices) {
+		if m.confirm.pick < 0 || m.confirm.pick >= len(choices) {
 			return true, nil
 		}
-		return true, m.submitConfirmChoice(choices[m.confirmPick])
+		return true, m.submitConfirmChoice(choices[m.confirm.pick])
 	case tea.KeyEscape:
 		return true, m.submitConfirmChoice(confirmChoice{mode: client.ConfirmModeReject, approved: false})
 	}
@@ -100,19 +100,15 @@ func (m *Model) handleConfirmKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 }
 
 func (m *Model) submitConfirmChoice(choice confirmChoice) tea.Cmd {
-	id := m.pendingConfirmID
+	id := m.confirm.id
 	pattern := ""
 	if choice.mode == client.ConfirmModeAlways {
-		pattern = m.confirmSuggestedPattern
+		pattern = m.confirm.suggestedPattern
 	}
 	m.clearConfirm()
 	m.phase = PhaseStreaming
-	m.hint = runControlHint(
-		m.client.ChatAgent.ConfirmWithMode(context.Background(), m.sessionID, id, choice.approved, choice.mode, pattern),
-		"Ctrl+C cancel run",
-		"Confirm failed — server may still be waiting",
-	)
-	return m.focusInputCmd()
+	m.hint = "Confirming..."
+	return m.submitConfirmChoiceCmd(id, pattern, choice)
 }
 
 func confirmChoiceLabel(pick int, choices []confirmChoice) string {

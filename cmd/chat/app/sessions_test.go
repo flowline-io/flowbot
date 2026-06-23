@@ -104,21 +104,21 @@ func TestHandleSessionPickKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := NewModel(nil, "default")
 			m.phase = PhaseSessionPick
-			m.sessionList = []client.ChatSessionSummary{
+			m.picker.list = []client.ChatSessionSummary{
 				{SessionID: "sess-a"},
 				{SessionID: "sess-b"},
 				{SessionID: "sess-c"},
 			}
-			m.sessionPick = tt.start
+			m.picker.pick = tt.start
 
 			handled, _ := m.handleSessionPickKey(tt.key)
 			assert.True(t, handled)
 			if tt.wantIdle {
 				assert.Equal(t, PhaseIdle, m.phase)
-				assert.Nil(t, m.sessionList)
+				assert.Nil(t, m.picker.list)
 				return
 			}
-			assert.Equal(t, tt.wantPick, m.sessionPick)
+			assert.Equal(t, tt.wantPick, m.picker.pick)
 		})
 	}
 }
@@ -180,8 +180,8 @@ func TestSubmitSessionPick(t *testing.T) {
 					{SessionID: "sess-c"},
 				}
 			}
-			m.sessionList = sessions
-			m.sessionPick = tt.pick
+			m.picker.list = sessions
+			m.picker.pick = tt.pick
 
 			_ = m.submitSessionPick()
 			assert.Equal(t, PhaseIdle, m.phase)

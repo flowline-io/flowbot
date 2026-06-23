@@ -98,7 +98,7 @@ func TestHandleStreamEventSubagentTool(t *testing.T) {
 			for _, ev := range tt.events {
 				m, _ = m.handleStreamEvent(ev)
 			}
-			out := stripANSI(m.streamOverlay.String())
+			out := stripANSI(m.stream.overlay.String())
 			for _, want := range tt.wantSubstr {
 				assert.Contains(t, out, want)
 			}
