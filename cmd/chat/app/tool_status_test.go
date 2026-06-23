@@ -16,27 +16,27 @@ func TestFormatToolEventLine(t *testing.T) {
 		{
 			name: "top-level tool start",
 			ev:   client.ChatStreamEvent{Name: "run_terminal"},
-			want: "Running tool: run_terminal...",
+			want: "⚙ Running tool: run_terminal...",
 		},
 		{
 			name: "top-level tool update",
 			ev:   client.ChatStreamEvent{Name: "run_terminal", Stdout: "fetching"},
-			want: "run_terminal: fetching",
+			want: "✓ run_terminal: fetching",
 		},
 		{
 			name: "task delegation start",
 			ev:   client.ChatStreamEvent{Name: "task", Subagent: "general-purpose"},
-			want: "Delegating to subagent: general-purpose...",
+			want: "⤷ Delegating to subagent: general-purpose...",
 		},
 		{
 			name: "legacy task delegation name",
 			ev:   client.ChatStreamEvent{Name: "task (general-purpose)"},
-			want: "Delegating to subagent: general-purpose...",
+			want: "⤷ Delegating to subagent: general-purpose...",
 		},
 		{
 			name: "subagent inner tool start",
 			ev:   client.ChatStreamEvent{Name: "web_search", Subagent: "general-purpose"},
-			want: "  ↳ Running tool: web_search...",
+			want: "  ↳ ⚙ Running tool: web_search...",
 		},
 		{
 			name: "subagent inner tool update",
@@ -45,7 +45,7 @@ func TestFormatToolEventLine(t *testing.T) {
 				Subagent: "general-purpose",
 				Stdout:   "searching...",
 			},
-			want: "  ↳ web_search: searching...",
+			want: "  ↳ ✓ web_search: searching...",
 		},
 	}
 	for _, tt := range tests {

@@ -58,7 +58,7 @@ func (m *Model) renderSessionPicker() string {
 		return ""
 	}
 	var body strings.Builder
-	writeBuilder(&body, "Sessions")
+	writeBuilder(&body, m.styles.SectionTitle.Render("Sessions"))
 	writeBuilder(&body, "\n")
 	limit := min(len(m.picker.list), maxSessionPickerLines)
 	for i := range limit {

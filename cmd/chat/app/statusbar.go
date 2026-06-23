@@ -22,7 +22,7 @@ type StatusSnapshot struct {
 	SpinnerFrame   int
 }
 
-// RenderStatusBar formats the Hermes-style status line.
+// RenderStatusBar formats the segmented status line.
 func RenderStatusBar(snap StatusSnapshot, styles *Styles) string {
 	icon := "🤖"
 	if snap.Streaming {
@@ -36,33 +36,41 @@ func RenderStatusBar(snap StatusSnapshot, styles *Styles) string {
 	}
 	pct := contextUsagePercent(snap.TotalTokens, window, snap.ContextPercent)
 	bar := progressBar(pct, 10)
-	color := colorStatusOK
+	barColor := colorOK
 	switch {
 	case pct >= 85:
-		color = colorStatusCrit
+		barColor = colorCrit
 	case pct >= 60:
-		color = colorStatusWarn
+		barColor = colorWarn
 	}
 
-	barStyled := lipgloss.NewStyle().Foreground(color).Render(bar)
-	modelLabel := snap.Model
+	barStyled := lipgloss.NewStyle().Foreground(barColor).Render(bar)
+	modelLabel := styles.SegLabel.Render(snap.Model)
 	if snap.PlanMode {
 		planBadge := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#1a1a1a")).
-			Background(colorConfirm).
+			Foreground(lipgloss.Color("#1a1a2e")).
+			Background(colorAccent).
 			Bold(true).
 			Render(" PLAN ")
 		modelLabel += planBadge
 	}
-	line := fmt.Sprintf(" %s %s │ %d/%s │ %s %s │ %s │ ⏱ %s",
+
+	tokens := styles.SegValue.Render(fmt.Sprintf("%d/%s", snap.TotalTokens, formatTokenWindow(window)))
+	pctLabel := styles.SegValue.Render(formatContextPercent(pct))
+	elapsed := styles.SegValue.Render(formatDuration(snap.Elapsed))
+	turnElapsed := styles.SegValue.Render(formatDuration(snap.TurnElapsed))
+	div := styles.SegDivider.Render(" │ ")
+
+	line := fmt.Sprintf(" %s %s%s%s %s %s%s⏱ %s / %s",
 		icon,
 		modelLabel,
-		snap.TotalTokens,
-		formatTokenWindow(window),
+		div,
+		tokens,
 		barStyled,
-		formatContextPercent(pct),
-		formatDuration(snap.Elapsed),
-		formatDuration(snap.TurnElapsed),
+		pctLabel,
+		div,
+		elapsed,
+		turnElapsed,
 	)
 	return styles.Status.Render(line)
 }

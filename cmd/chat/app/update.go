@@ -520,7 +520,7 @@ func (m *Model) applyProgressStreamEvent(ev client.ChatStreamEvent) {
 		if ev.Stdout != "" {
 			m.toolPreview = line
 		}
-		m.appendSystem(line)
+		m.appendToolLine(ev)
 	case "usage":
 		m.status.TotalTokens = ev.TotalTokens
 		if ev.ContextWindow > 0 {
@@ -576,6 +576,17 @@ func (m *Model) appendSystem(text string) {
 	m.syncViewport()
 }
 
+func (m *Model) appendToolLine(ev client.ChatStreamEvent) {
+	line := FormatToolLine(ev, &m.styles)
+	if m.phase == PhaseStreaming || m.phase == PhaseConfirming {
+		writeBuilder(&m.stream.overlay, line)
+		return
+	}
+	writeBuilder(&m.transcript, line)
+	m.splashVisible = false
+	m.syncViewport()
+}
+
 func (m *Model) refreshStreamingAssistant() {
 	if m.stream.rawAssistant == "" && m.stream.rawThinking == "" {
 		return
@@ -587,11 +598,11 @@ func (m *Model) refreshStreamingAssistant() {
 	base := transcript[:baseLen]
 	m.transcript.Reset()
 	writeBuilder(&m.transcript, base)
-	if block := FormatThinkingBlock(m.stream.rawThinking, m.width-2, &m.styles); block != "" {
+	if block := FormatThinkingBlock(m.stream.rawThinking, max(m.width-4, 20), &m.styles); block != "" {
 		writeBuilder(&m.transcript, block)
 	}
 	if m.stream.rawAssistant != "" {
-		rendered := FormatAssistantBlock(m.stream.rawAssistant, m.width-2, &m.styles)
+		rendered := FormatAssistantBlock(m.stream.rawAssistant, max(m.width-4, 20), &m.styles)
 		writeBuilder(&m.transcript, rendered)
 	}
 	writeBuilder(&m.transcript, m.stream.overlay.String())

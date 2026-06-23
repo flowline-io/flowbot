@@ -49,9 +49,11 @@ func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost s
 	body := strings.Builder{}
 	writeBuilder(&body, styles.BannerDim.Render(title))
 	writeBuilder(&body, "\n\n")
-	writeBuilder(&body, "Available Tools\n")
+	writeBuilder(&body, styles.SectionTitle.Render("Available Tools"))
+	writeBuilder(&body, "\n")
 	writeBuilder(&body, toolsLine+"\n\n")
-	writeBuilder(&body, "Available Skills\n")
+	writeBuilder(&body, styles.SectionTitle.Render("Available Skills"))
+	writeBuilder(&body, "\n")
 	if len(skillLines) == 0 {
 		writeBuilder(&body, splashNoSkills+"\n")
 	} else {
@@ -60,7 +62,8 @@ func RenderSplash(width int, info *client.ChatAgentInfo, sessionID, serverHost s
 		}
 	}
 	writeBuilder(&body, "\n")
-	writeBuilder(&body, "Available Subagents\n")
+	writeBuilder(&body, styles.SectionTitle.Render("Available Subagents"))
+	writeBuilder(&body, "\n")
 	subagentLines := splashSubagentLines(width, info)
 	if len(subagentLines) == 0 {
 		writeBuilder(&body, splashNoSubagents+"\n")

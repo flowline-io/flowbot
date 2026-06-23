@@ -32,7 +32,7 @@ func (m *Model) renderConfirmPrompt() string {
 		return ""
 	}
 	var body strings.Builder
-	writeBuilder(&body, "Confirm tool "+m.confirm.tool)
+	writeBuilder(&body, m.styles.SectionTitle.Render("Confirm tool "+m.confirm.tool))
 	writeBuilder(&body, "\n")
 	writeBuilder(&body, m.confirm.summary)
 	if m.confirm.permission != "" {

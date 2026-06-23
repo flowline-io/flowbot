@@ -12,7 +12,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
-const assistantMarker = "◆ "
+const (
+	assistantMarker = "◆ "
+)
 
 const chatSessionFile = "chat_session"
 
@@ -106,9 +108,10 @@ func resumeSessionID(ctx context.Context, cl *client.Client, profile string) (st
 func FormatHistoryLine(role, text string, styles *Styles) string {
 	switch role {
 	case "user":
-		return styles.UserMsg.Render("● "+text) + "\n"
+		content := styles.UserMsg.Render("● ") + styles.UserMsg.Render(text)
+		return styles.UserPanel.Render(content) + "\n"
 	case "assistant":
-		return styles.Assistant.Bold(true).Render(assistantMarker+text) + "\n"
+		return styles.AssistantBar.Render(assistantMarker+text) + "\n"
 	default:
 		return styles.Assistant.Render(text) + "\n"
 	}
@@ -123,9 +126,10 @@ func FormatThinkingBlock(text string, width int, styles *Styles) string {
 	marker := styles.Thinking.Render("◇ Thinking")
 	body := RenderMarkdown(text, width)
 	if body == "" {
-		return marker + "\n"
+		return styles.ThinkingPanel.Render(marker) + "\n"
 	}
-	return marker + "\n" + styles.Thinking.Render(strings.TrimRight(body, "\n")) + "\n"
+	block := marker + "\n" + styles.Thinking.Render(strings.TrimRight(body, "\n"))
+	return styles.ThinkingPanel.Render(block) + "\n"
 }
 
 // FormatAssistantBlock renders agent markdown with a left marker on the first line.
@@ -134,19 +138,37 @@ func FormatAssistantBlock(text string, width int, styles *Styles) string {
 	if strings.TrimSpace(text) == "" {
 		return ""
 	}
-	marker := styles.Assistant.Bold(true).Render(assistantMarker)
+	marker := styles.AssistantBar.Render(assistantMarker)
 	body := RenderMarkdown(text, width)
 	if body == "" {
-		return marker + "\n"
+		return styles.AssistantPanel.Render(marker) + "\n"
 	}
 	lines := strings.Split(strings.TrimRight(body, "\n"), "\n")
 	idx := firstNonEmptyLine(lines)
 	if idx < 0 {
-		return marker + "\n"
+		return styles.AssistantPanel.Render(marker) + "\n"
 	}
 	lines = lines[idx:]
 	lines[0] = marker + lines[0]
-	return strings.Join(lines, "\n") + "\n"
+	lines = indentAssistantContinuation(lines)
+	block := strings.Join(lines, "\n")
+	return styles.AssistantPanel.Render(block) + "\n"
+}
+
+func indentAssistantContinuation(lines []string) []string {
+	if len(lines) <= 1 {
+		return lines
+	}
+	out := make([]string, len(lines))
+	out[0] = lines[0]
+	for i := 1; i < len(lines); i++ {
+		if strings.TrimSpace(stripANSI(lines[i])) == "" {
+			out[i] = lines[i]
+			continue
+		}
+		out[i] = "  " + lines[i]
+	}
+	return out
 }
 
 func firstNonEmptyLine(lines []string) int {
@@ -168,7 +190,7 @@ func FormatHistoryMessages(msgs []client.ChatHistoryMessage, width int, styles *
 				writeBuilder(&b, FormatSeparator(width, styles)+"\n")
 			}
 			writeBuilder(&b, FormatHistoryLine("user", message.Text, styles))
-		} else if block := FormatAssistantBlock(message.Text, width-2, styles); block != "" {
+		} else if block := FormatAssistantBlock(message.Text, max(width-4, 20), styles); block != "" {
 			writeBuilder(&b, block)
 		}
 	}
@@ -218,7 +240,7 @@ func isHistoryToolSnapshot(text string) bool {
 
 // FormatSystemLine renders a neutral system/status line in the transcript.
 func FormatSystemLine(text string, styles *Styles) string {
-	return styles.Hint.Render(text) + "\n"
+	return styles.System.Render("· "+text) + "\n"
 }
 
 // FormatSeparator returns a horizontal rule between conversation turns.

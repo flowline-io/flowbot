@@ -8,6 +8,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestRenderCompactHeader(t *testing.T) {
+	tests := []struct {
+		name    string
+		width   int
+		wantSub []string
+	}{
+		{name: "includes title and rule", width: 80, wantSub: []string{"Flowbot Agent", "─"}},
+		{name: "narrow width", width: 30, wantSub: []string{"Flowbot Agent"}},
+		{name: "minimum width", width: 14, wantSub: []string{"Flowbot Agent"}},
+	}
+	styles := NewStyles()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripANSI(renderCompactHeader(tt.width, &styles))
+			for _, want := range tt.wantSub {
+				assert.Contains(t, got, want)
+			}
+		})
+	}
+}
+
 func TestFooterHeight(t *testing.T) {
 	tests := []struct {
 		name        string

@@ -12,6 +12,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestFormatSystemLine(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want string
+	}{
+		{name: "prefixes bullet", text: "Initializing agent...", want: "· Initializing agent..."},
+		{name: "plain status", text: "Session ended", want: "· Session ended"},
+		{name: "error hint", text: "Permission error: denied", want: "· Permission error: denied"},
+	}
+	styles := NewStyles()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := stripANSI(FormatSystemLine(tt.text, &styles))
+			assert.Equal(t, tt.want, strings.TrimSpace(got))
+		})
+	}
+}
+
+func TestIndentAssistantContinuation(t *testing.T) {
+	tests := []struct {
+		name  string
+		lines []string
+		want  []string
+	}{
+		{name: "single line unchanged", lines: []string{"◆ hello"}, want: []string{"◆ hello"}},
+		{name: "indents continuation", lines: []string{"◆ line one", "line two"}, want: []string{"◆ line one", "  line two"}},
+		{name: "skips blank lines", lines: []string{"◆ a", "", "b"}, want: []string{"◆ a", "", "  b"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, indentAssistantContinuation(tt.lines))
+		})
+	}
+}
+
 func TestFormatHistoryLineRoles(t *testing.T) {
 	styles := NewStyles()
 	tests := []struct {

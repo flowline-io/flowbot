@@ -87,7 +87,7 @@ func glamourRendererForWidth(width int) (*glamour.TermRenderer, error) {
 		return glamourRenderer, nil
 	}
 	r, err := glamour.NewTermRenderer(
-		glamour.WithStylePath("dark"),
+		glamour.WithStylePath("tokyo-night"),
 		glamour.WithWordWrap(width),
 	)
 	if err != nil {
