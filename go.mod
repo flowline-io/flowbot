@@ -21,7 +21,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.11.7
 	github.com/creachadair/jrpc2 v1.3.5
 	github.com/dgraph-io/ristretto/v2 v2.4.0
-	github.com/docker/cli v29.6.0+incompatible
+	github.com/docker/cli v29.6.1+incompatible
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/flc1125/go-cron/v4 v4.10.0
