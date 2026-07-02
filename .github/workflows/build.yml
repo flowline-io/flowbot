@@ -9,12 +9,20 @@ on:
       - 'cmd/composer/**'
       - 'docs/**'
       - 'tests/**'
+      - 'AGENTS.md'
+      - '**/AGENTS.md'
+      - 'README.md'
+      - '**/README.md'
   pull_request:
     paths-ignore:
       - 'cmd/cli/**'
       - 'cmd/composer/**'
       - 'docs/**'
       - 'tests/**'
+      - 'AGENTS.md'
+      - '**/AGENTS.md'
+      - 'README.md'
+      - '**/README.md'
 
 permissions:
   contents: read

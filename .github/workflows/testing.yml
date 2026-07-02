@@ -6,9 +6,17 @@ on:
       - '*'
     paths-ignore:
       - 'docs/**'
+      - 'AGENTS.md'
+      - '**/AGENTS.md'
+      - 'README.md'
+      - '**/README.md'
   pull_request:
     paths-ignore:
       - 'docs/**'
+      - 'AGENTS.md'
+      - '**/AGENTS.md'
+      - 'README.md'
+      - '**/README.md'
 
 permissions:
   contents: read
