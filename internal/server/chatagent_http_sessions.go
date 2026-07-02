@@ -187,16 +187,20 @@ func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
 
+	// Resolve the request context before streaming. The SendStreamWriter
+	// callback runs in a separate goroutine after this handler returns, when
+	// Fiber has released and reused the fiber.Ctx; calling c.Context() from
+	// inside the callback races with that release.
+	reqCtx := c.Context()
 	return c.SendStreamWriter(func(w *bufio.Writer) {
 		hub := chatagent.GetSessionEventHub(sessionID)
 		subID := fmt.Sprintf("observer-%p", w)
 		publisher := hub.Subscribe(subID, 32)
 		defer hub.Unsubscribe(subID)
 
-		ctx := c.Context()
 		for {
 			select {
-			case <-ctx.Done():
+			case <-reqCtx.Done():
 				return
 			case ev, ok := <-publisher.Events():
 				if !ok {
