@@ -89,7 +89,7 @@ Ent auto-migrates on server startup, so no manual migration step is needed.
 
 ### Config (`flowbot.yaml`, gitignored, already present at repo root)
 Non-obvious validation gotchas (see `pkg/config/validate.go`) when deriving config from `docs/reference/config.yaml`:
-- `redis.password` must be NON-empty (validator `required_if`), so Redis is run with `--requirepass flowbot`.
+- `redis.password` must be NON-empty (validator `required,min=1`), so Redis is run with `--requirepass flowbot`.
 - `platform.{slack,discord,tailchat,telegram}.enabled` are `true` in the reference file but their tokens are empty, which fails `required_if=Enabled true`; set them to `false` unless you supply real tokens.
 - `metrics.enabled` set to `false` (no VictoriaMetrics running); harmless to leave on but produces push errors.
 - `store_config` DSN points at `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
