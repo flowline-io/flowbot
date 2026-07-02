@@ -40,6 +40,14 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
 
+	// Capture the base context before streaming. SendStreamWriter runs its
+	// callback in a separate goroutine after this handler returns, at which
+	// point Fiber releases and reuses the fiber.Ctx. Touching c (e.g.
+	// c.Context()) from inside the callback races with that release, so the
+	// parent context must be resolved here. The deferred cancel below still
+	// terminates the run when the stream ends (e.g. client disconnect).
+	baseCtx := c.Context()
+
 	return c.SendStreamWriter(func(w *bufio.Writer) {
 		hub := chatagent.GetSessionEventHub(sessionID)
 		subID := "run"
@@ -57,7 +65,7 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 		}
 		defer chatagent.ClearAPIRunState(sessionID, runState)
 
-		runCtx, cancel := context.WithTimeout(c.Context(), chatagent.RunTimeout())
+		runCtx, cancel := context.WithTimeout(baseCtx, chatagent.RunTimeout())
 		defer cancel()
 		chatagent.BindRunCancel(sessionID, cancel)
 		defer chatagent.UnbindRunCancel(sessionID)
