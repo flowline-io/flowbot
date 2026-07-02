@@ -73,3 +73,29 @@ go tool task ent              # Generate ent code from database
 - Build: `taskfile.yaml`
 - Lint: `revive.toml`
 - CI: `.github/workflows/build.yml`
+
+## Cursor Cloud specific instructions
+
+Single Go product (server on port `:6060`) plus CLI helpers under `cmd/`. Requires PostgreSQL + Redis. The update script only runs `go mod download`; everything below must be done per session because it is not part of the update script.
+
+### Start services each session (systemd is unavailable)
+```bash
+sudo pg_ctlcluster 16 main start          # PostgreSQL 16 (data + role/db persist in snapshot)
+sudo redis-server --daemonize yes --save "" --requirepass flowbot   # password MUST match flowbot.yaml
+```
+DB role/database are `flowbot`/`flowbot` (password `flowbot`, superuser). Recreate only if missing:
+`sudo -u postgres psql -c "CREATE ROLE flowbot LOGIN PASSWORD 'flowbot' SUPERUSER;" -c "CREATE DATABASE flowbot OWNER flowbot;"`.
+Ent auto-migrates on server startup, so no manual migration step is needed.
+
+### Config (`flowbot.yaml`, gitignored, already present at repo root)
+Non-obvious validation gotchas (see `pkg/config/validate.go`) when deriving config from `docs/reference/config.yaml`:
+- `redis.password` must be NON-empty (validator `required_if`), so Redis is run with `--requirepass flowbot`.
+- `platform.{slack,discord,tailchat,telegram}.enabled` are `true` in the reference file but their tokens are empty, which fails `required_if=Enabled true`; set them to `false` unless you supply real tokens.
+- `metrics.enabled` set to `false` (no VictoriaMetrics running); harmless to leave on but produces push errors.
+- `store_config` DSN points at `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
+
+### Run / build / lint / test
+- Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (default creds `admin`/`admin` from `modules.web.auth`).
+- Lint (`go tool task lint`) includes a JS step (`oxlint ./public`); `oxlint` is installed globally via npm. If missing, run `npm install -g oxlint` (npm prefix must point inside the nvm node dir, e.g. `npm config set prefix "$HOME/.nvm/versions/node/v22.22.2"`, and that bin dir must be on PATH).
+- Unit tests (`go tool task test`) pass without Docker and use the running Redis.
+- `go tool task test:specs` (BDD) needs Docker/testcontainers, which is NOT installed here; install Docker first if you must run them.
