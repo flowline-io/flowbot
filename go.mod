@@ -51,7 +51,7 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/samber/oops v1.22.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
-	github.com/schollz/progressbar/v3 v3.19.0
+	github.com/schollz/progressbar/v3 v3.19.1
 	github.com/shirou/gopsutil/v4 v4.26.6
 	github.com/slack-go/slack v0.27.0
 	github.com/spf13/cobra v1.10.2
