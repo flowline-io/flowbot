@@ -29,7 +29,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gofiber/contrib/v3/swaggo v1.0.8
-	github.com/gofiber/contrib/v3/zerolog v1.1.0
+	github.com/gofiber/contrib/v3/zerolog v1.1.1
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/google/uuid v1.6.0
 	github.com/grafana/pyroscope-go v1.3.1
