@@ -1,0 +1,48 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentSessionPlansCard(sessionID string, plans []model.AgentPlan) {
+	if len(plans) > 0 {
+		<div class="card bg-base-100 shadow-sm mb-6" data-testid="agent-session-plans">
+			<div class="card-body">
+				<h2 class="card-title text-lg">Plans</h2>
+				<ul class="space-y-2">
+					for _, plan := range plans {
+						<li>
+							<button
+								type="button"
+								class="btn btn-ghost btn-sm justify-start font-normal"
+								data-testid={ "agent-plan-link-" + plan.PlanID }
+								data-resource-uri={ plan.URI }
+								hx-get={ agentResourcePreviewURL(sessionID, plan.URI) }
+								hx-target={ "#agent-resource-preview-" + plan.PlanID }
+								hx-swap="innerHTML"
+							>
+								<span class="font-mono text-xs">{ plan.URI }</span>
+								<span class="ml-2">{ plan.Title }</span>
+							</button>
+							<div id={ "agent-resource-preview-" + plan.PlanID } class="mt-2"></div>
+						</li>
+					}
+				</ul>
+			</div>
+		</div>
+	}
+}
+
+templ AgentResourcePreview(title, bodyHTML string, truncated bool) {
+	<div class="card bg-base-200 shadow-inner" data-testid="agent-resource-preview">
+		<div class="card-body prose prose-sm max-w-none">
+			<h3 class="text-base font-semibold">{ title }</h3>
+			if truncated {
+				<p class="text-warning text-sm">Content truncated for preview.</p>
+			}
+			<div>
+				@templ.Raw(bodyHTML)
+			</div>
+		</div>
+	</div>
+}

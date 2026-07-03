@@ -257,7 +257,7 @@ func formatGuidelines(tools, extra []string, language string) string {
 	}
 
 	add("Be concise in your responses")
-	add("Show file paths clearly when working with files")
+	add("Show file paths clearly when working with files; reference workspace files as file://relative/path in markdown links")
 	add("Never access paths outside the workspace sandbox")
 	add(fmt.Sprintf("Answer in %s unless the user requests another language", language))
 
@@ -273,7 +273,8 @@ func planModePromptSection() string {
 
 Plan mode:
 You are in plan mode. Research thoroughly using read-only tools, then present a clear actionable plan.
-Do not modify files, run shell commands, or execute code. Describe proposed changes step-by-step so the user can approve execution after exiting plan mode.`
+Do not modify files, run shell commands, or execute code. Describe proposed changes step-by-step so the user can approve execution after exiting plan mode.
+Your plan will be saved automatically; the server appends a plan:// link the user can open with /open.`
 }
 
 func planModeGuidelines() []string {

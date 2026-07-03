@@ -50,6 +50,7 @@ var (
 	testChatSessionEntries = make(map[string][]*gen.ChatSessionEntry)
 	testAgentSkills        = make(map[string]*gen.AgentSkill)
 	testAgentSkillFiles    = make(map[string]map[string]*gen.AgentSkillFile)
+	testAgentPlans         = make(map[string]*gen.AgentPlan)
 )
 
 func newTestStoreAdapter() *testStoreAdapter {
@@ -324,6 +325,43 @@ func (*testStoreAdapter) FailStaleChatScheduledTaskRuns(context.Context) error {
 }
 func (*testStoreAdapter) ListChatScheduledTaskRuns(context.Context, string, int) ([]*gen.ChatScheduledTaskRun, error) {
 	return nil, nil
+}
+func (*testStoreAdapter) CreateAgentPlan(_ context.Context, plan *gen.AgentPlan) error {
+	testAgentPlans[plan.Flag] = plan
+	return nil
+}
+func (*testStoreAdapter) GetAgentPlan(_ context.Context, flag string) (*gen.AgentPlan, error) {
+	plan, ok := testAgentPlans[flag]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return plan, nil
+}
+func (*testStoreAdapter) GetAgentPlanInSession(_ context.Context, sessionID, flag string) (*gen.AgentPlan, error) {
+	plan, ok := testAgentPlans[flag]
+	if !ok || plan.SessionID != sessionID {
+		return nil, types.ErrNotFound
+	}
+	return plan, nil
+}
+func (*testStoreAdapter) ListAgentPlansBySession(_ context.Context, sessionID string) ([]*gen.AgentPlan, error) {
+	rows := make([]*gen.AgentPlan, 0)
+	for _, plan := range testAgentPlans {
+		if plan.SessionID == sessionID {
+			rows = append(rows, plan)
+		}
+	}
+	sortAgentPlansByCreatedAtDesc(rows)
+	return rows, nil
+}
+func sortAgentPlansByCreatedAtDesc(rows []*gen.AgentPlan) {
+	for i := 0; i < len(rows); i++ {
+		for j := i + 1; j < len(rows); j++ {
+			if rows[j].CreatedAt.After(rows[i].CreatedAt) {
+				rows[i], rows[j] = rows[j], rows[i]
+			}
+		}
+	}
 }
 func (*testStoreAdapter) ListAgentSkills(_ context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {
 	rows := make([]*gen.AgentSkill, 0, len(testAgentSkills))

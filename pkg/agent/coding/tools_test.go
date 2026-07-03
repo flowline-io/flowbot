@@ -34,6 +34,7 @@ func TestReadFileTool_Execute(t *testing.T) {
 		wantError bool
 	}{
 		{name: "reads existing file", path: "hello.txt", wantText: "hello world"},
+		{name: "strips file uri prefix", path: "file://hello.txt", wantText: "hello world"},
 		{name: "missing file", path: "missing.txt", wantError: true},
 		{name: "traversal blocked", path: "../secret.txt", wantError: true},
 	}

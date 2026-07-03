@@ -52,6 +52,16 @@ type StreamEvent struct {
 	Reason           string `json:"reason,omitempty"`
 	Mode             string `json:"mode,omitempty"`
 	Message          string `json:"message,omitempty"`
+
+	// done
+	Resources []ResourceRef `json:"resources,omitempty"`
+}
+
+// ResourceRef identifies one loadable resource emitted with a done event.
+type ResourceRef struct {
+	URI   string `json:"uri"`
+	Kind  string `json:"kind"`
+	Title string `json:"title"`
 }
 
 // EventPublisher delivers stream events to an active HTTP SSE connection.

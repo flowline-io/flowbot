@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentplan"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
@@ -1112,6 +1113,66 @@ func (a *adapter) ListChatScheduledTaskRuns(ctx context.Context, taskID string, 
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("postgres: list chat scheduled task runs: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) CreateAgentPlan(ctx context.Context, plan *gen.AgentPlan) error {
+	if plan == nil {
+		return errors.New("postgres: nil agent plan")
+	}
+	builder := a.client.AgentPlan.Create().
+		SetFlag(plan.Flag).
+		SetSessionID(plan.SessionID).
+		SetTitle(plan.Title).
+		SetContent(plan.Content).
+		SetSourceEntryID(plan.SourceEntryID)
+	if !plan.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(plan.CreatedAt)
+	}
+	if !plan.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(plan.UpdatedAt)
+	}
+	_, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create agent plan: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) GetAgentPlan(ctx context.Context, flag string) (*gen.AgentPlan, error) {
+	row, err := a.client.AgentPlan.Query().
+		Where(agentplan.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent plan: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) GetAgentPlanInSession(ctx context.Context, sessionID, flag string) (*gen.AgentPlan, error) {
+	row, err := a.client.AgentPlan.Query().
+		Where(agentplan.FlagEQ(flag), agentplan.SessionIDEQ(sessionID)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent plan in session: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) ListAgentPlansBySession(ctx context.Context, sessionID string) ([]*gen.AgentPlan, error) {
+	rows, err := a.client.AgentPlan.Query().
+		Where(agentplan.SessionIDEQ(sessionID)).
+		Order(gen.Desc(agentplan.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent plans: %w", err)
 	}
 	return rows, nil
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry) {
+templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan) {
 	@layout.Base(partials.AgentSessionPageTitle(session)) {
 		<div class="mb-4">
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
@@ -66,6 +66,7 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 				</div>
 			</div>
 		</div>
+		@partials.AgentSessionPlansCard(session.Flag, plans)
 		<h2 class="text-lg font-semibold mb-3">Entries</h2>
 		@partials.AgentSessionEntriesTable(entries)
 		<script src="/static/js/chatagent-session.js" defer></script>

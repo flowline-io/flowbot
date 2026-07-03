@@ -150,6 +150,33 @@ type ChatStreamEvent struct {
 	Approved         bool   `json:"approved,omitempty"`
 	Reason           string `json:"reason,omitempty"`
 	Mode             string `json:"mode,omitempty"`
+
+	Resources []ChatResourceRef `json:"resources,omitempty"`
+}
+
+// ChatResourceRef identifies one loadable resource from a done event.
+type ChatResourceRef struct {
+	URI   string `json:"uri"`
+	Kind  string `json:"kind"`
+	Title string `json:"title"`
+}
+
+// ChatResource is the resolved body of a resource URI.
+type ChatResource struct {
+	URI         string `json:"uri"`
+	Kind        string `json:"kind"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	ContentType string `json:"content_type"`
+	Truncated   bool   `json:"truncated"`
+}
+
+// ChatPlanSummary is one plan row from GET /chatagent/sessions/:id/plans.
+type ChatPlanSummary struct {
+	PlanID    string    `json:"plan_id"`
+	URI       string    `json:"uri"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // ChatPermissionsView is the permission configuration payload.
@@ -224,6 +251,27 @@ func (cc *ChatAgentClient) ListMessages(ctx context.Context, sessionID string) (
 		return nil, err
 	}
 	return resp.Messages, nil
+}
+
+// GetResource resolves one plan:// or file:// URI for a session.
+func (cc *ChatAgentClient) GetResource(ctx context.Context, sessionID, uri string) (ChatResource, error) {
+	path := "/chatagent/resources?session_id=" + url.QueryEscape(sessionID) + "&uri=" + url.QueryEscape(uri)
+	var resource ChatResource
+	if err := cc.chatGet(ctx, path, &resource); err != nil {
+		return ChatResource{}, err
+	}
+	return resource, nil
+}
+
+// ListSessionPlans returns persisted plan documents for one session.
+func (cc *ChatAgentClient) ListSessionPlans(ctx context.Context, sessionID string) ([]ChatPlanSummary, error) {
+	var resp struct {
+		Plans []ChatPlanSummary `json:"plans"`
+	}
+	if err := cc.chatGet(ctx, "/chatagent/sessions/"+sessionID+"/plans", &resp); err != nil {
+		return nil, err
+	}
+	return resp.Plans, nil
 }
 
 // ExportSession returns the full persisted session tree from the server.

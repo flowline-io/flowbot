@@ -3,6 +3,7 @@ package coding
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -39,7 +40,10 @@ func (ReadFileTool) Parameters() map[string]any {
 
 // Execute reads the requested file.
 func (t ReadFileTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
-	path := fmt.Sprint(args["path"])
+	path := strings.TrimSpace(fmt.Sprint(args["path"]))
+	if after, ok := strings.CutPrefix(path, "file://"); ok {
+		path = after
+	}
 	resolvedResult := t.Workspace.ResolvePath(path)
 	if !resolvedResult.IsOk() {
 		return toolError(id, t.Name(), env.FormatFileError(resolvedResult.ErrorValue())), nil

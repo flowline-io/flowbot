@@ -315,6 +315,11 @@ type Adapter interface {
 	FailStaleChatScheduledTaskRuns(ctx context.Context) error
 	ListChatScheduledTaskRuns(ctx context.Context, taskID string, limit int) ([]*gen.ChatScheduledTaskRun, error)
 
+	CreateAgentPlan(ctx context.Context, plan *gen.AgentPlan) error
+	GetAgentPlan(ctx context.Context, flag string) (*gen.AgentPlan, error)
+	GetAgentPlanInSession(ctx context.Context, sessionID, flag string) (*gen.AgentPlan, error)
+	ListAgentPlansBySession(ctx context.Context, sessionID string) ([]*gen.AgentPlan, error)
+
 	ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error)
 	GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error)
 	GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error)

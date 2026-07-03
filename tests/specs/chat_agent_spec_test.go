@@ -196,4 +196,52 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 
 		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
 	})
+
+	It("persists plan resources and resolves plan:// and file:// links", func() {
+		config.App.ChatAgent.ChatModel = "fake-model"
+		config.App.Models = []config.Model{
+			{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
+		}
+		config.App.ChatAgent.Compaction = config.CompactionConfig{Auto: new(false)}
+		config.App.ChatAgent.ToolModel = ""
+
+		model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "# Resource Plan\nStep one"})
+		orig := chatagent.NewModelForTest
+		chatagent.NewModelForTest = func(_ context.Context, _ string) (llms.Model, string, error) {
+			return model, "fake-model", nil
+		}
+		defer func() { chatagent.NewModelForTest = orig }()
+
+		ctx := context.Background()
+		sessionID := "bdd-resource-" + types.Id()
+		wsDir, err := os.MkdirTemp("", "chat-agent-resource-*")
+		Expect(err).NotTo(HaveOccurred())
+		config.App.ChatAgent.Workspace = wsDir
+		notePath := filepath.Join(wsDir, "note.txt")
+		Expect(os.WriteFile(notePath, []byte("file body"), 0o644)).To(Succeed())
+		Expect(chatagent.CreateSession(ctx, "uid-resource", sessionID)).To(Succeed())
+		Expect(chatagent.SetSessionMode(ctx, sessionID, chatagent.ModePlan)).To(Succeed())
+
+		svc := chatagent.NewService()
+		reply, err := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "draft plan"}, nil)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(reply).To(ContainSubstring("plan://"))
+
+		plans, err := chatagent.ListPlanSummaries(ctx, sessionID)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(plans).NotTo(BeEmpty())
+
+		planContent, err := chatagent.ResolveResource(ctx, sessionID, plans[0].URI)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(planContent.Content).To(ContainSubstring("Resource Plan"))
+
+		fileContent, err := chatagent.ResolveResource(ctx, sessionID, "file://note.txt")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(fileContent.Content).To(Equal("file body"))
+
+		_, err = chatagent.ResolveResource(ctx, sessionID, "file://../outside.txt")
+		Expect(err).To(HaveOccurred())
+
+		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
+	})
 })

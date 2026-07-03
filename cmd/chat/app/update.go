@@ -74,6 +74,12 @@ func (m *Model) updateSessionCommandMsg(msg tea.Msg) (*Model, tea.Cmd, bool) {
 	case sessionExportMsg:
 		next, cmd := m.updateSessionExport(msg)
 		return next, cmd, true
+	case sessionPlansMsg:
+		next, cmd := m.updateSessionPlans(msg)
+		return next, cmd, true
+	case resourceOpenMsg:
+		next, cmd := m.updateResourceOpen(msg)
+		return next, cmd, true
 	default:
 		return m, nil, false
 	}
@@ -103,7 +109,7 @@ func (m *Model) updateInitDone(msg initDoneMsg) (*Model, tea.Cmd) {
 	}
 	m.serverHost = m.client.BaseURL()
 	if m.sessionID != "" {
-		cmds := []tea.Cmd{m.hydrateHistoryCmd(), m.focusInputCmd()}
+		cmds := []tea.Cmd{m.hydrateHistoryCmd(), m.loadSessionPlansCmd(), m.focusInputCmd()}
 		if strings.TrimSpace(msg.sessionTitle) == "" {
 			cmds = append(cmds, m.loadSessionTitleCmd())
 		}
@@ -126,6 +132,29 @@ func (m *Model) updateHydrate(msg hydrateMsg) (*Model, tea.Cmd) {
 	}
 	m.messageCount = msg.count
 	m.applyHistoryUsage(msg.estimatedTokens)
+	m.syncViewport()
+	return m, nil
+}
+
+func (m *Model) updateSessionPlans(msg sessionPlansMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		return m, nil
+	}
+	m.pendingResources = mergeResourceRefs(m.pendingResources, msg.resources)
+	if hint := formatResourcesHint(m.pendingResources); hint != "" {
+		m.hint = hint
+	}
+	m.syncLayout()
+	return m, nil
+}
+
+func (m *Model) updateResourceOpen(msg resourceOpenMsg) (*Model, tea.Cmd) {
+	if msg.err != "" {
+		m.hint = msg.err
+		return m, m.focusInputCmd()
+	}
+	m.openResourceOverlay(msg.resource)
+	m.syncLayout()
 	m.syncViewport()
 	return m, nil
 }
@@ -233,6 +262,13 @@ func (m *Model) handleKey(msg tea.KeyMsg) (*Model, tea.Cmd) {
 	switch msg.String() {
 	case "ctrl+c":
 		return m.handleCtrlCKey()
+	case "esc":
+		if m.resourceOverlay != nil {
+			m.closeResourceOverlay()
+			m.syncLayout()
+			m.syncViewport()
+			return m, m.focusInputCmd()
+		}
 	case "enter":
 		if m.phase == PhaseStreaming || m.phase == PhaseSessionPick {
 			return m, nil
@@ -298,6 +334,8 @@ func (m *Model) handleSlash(cmd, args string) (*Model, tea.Cmd) {
 		return m.handleSlashAuth(args)
 	case "plan":
 		return m.handleSlashPlan()
+	case "open":
+		return m.handleSlashOpen(args)
 	default:
 		m.hint = "Unknown command; try /help"
 		return m, nil
@@ -364,6 +402,50 @@ func (m *Model) handleSlashPlan() (*Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, m.sessionModeToggleCmd()
+}
+
+func (m *Model) handleSlashOpen(args string) (*Model, tea.Cmd) {
+	uri := strings.TrimSpace(args)
+	if uri == "" {
+		m.hint = "Usage: /open <uri> (plan://id or file://path)"
+		return m, nil
+	}
+	if m.sessionID == "" {
+		m.hint = "No active session"
+		return m, nil
+	}
+	return m, m.openResourceCmd(uri)
+}
+
+func (m *Model) openResourceCmd(uri string) tea.Cmd {
+	sessionID := m.sessionID
+	cl := m.client
+	return func() tea.Msg {
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		resource, err := cl.ChatAgent.GetResource(ctx, sessionID, uri)
+		if err != nil {
+			return resourceOpenMsg{err: err.Error()}
+		}
+		return resourceOpenMsg{resource: resource}
+	}
+}
+
+func (m *Model) loadSessionPlansCmd() tea.Cmd {
+	sessionID := m.sessionID
+	cl := m.client
+	return func() tea.Msg {
+		if sessionID == "" {
+			return sessionPlansMsg{}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), chatRequestTimeout)
+		defer cancel()
+		plans, err := cl.ChatAgent.ListSessionPlans(ctx, sessionID)
+		if err != nil {
+			return sessionPlansMsg{err: err.Error()}
+		}
+		return sessionPlansMsg{resources: planSummariesToRefs(plans)}
+	}
 }
 
 func (m *Model) sessionModeToggleCmd() tea.Cmd {
@@ -525,6 +607,12 @@ func (m *Model) applyLifecycleStreamEvent(ev client.ChatStreamEvent) {
 		}
 		if ev.Title != "" {
 			m.sessionTitle = ev.Title
+		}
+		if len(ev.Resources) > 0 {
+			m.pendingResources = mergeResourceRefs(m.pendingResources, ev.Resources)
+			if hint := formatResourcesHint(m.pendingResources); hint != "" {
+				m.hint = hint
+			}
 		}
 		m.finalizeAssistant()
 		m.phase = PhaseIdle

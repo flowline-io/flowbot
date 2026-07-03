@@ -23,6 +23,18 @@ type initDoneMsg struct {
 	err          string
 }
 
+// sessionPlansMsg reports plan resources loaded for the active session.
+type sessionPlansMsg struct {
+	resources []client.ChatResourceRef
+	err       string
+}
+
+// resourceOpenMsg reports the result of /open.
+type resourceOpenMsg struct {
+	resource client.ChatResource
+	err      string
+}
+
 // sessionModeMsg reports the result of a /plan toggle.
 type sessionModeMsg struct {
 	mode string
@@ -95,6 +107,9 @@ type Model struct {
 
 	slashMatches []SlashCommand
 	slashPick    int
+
+	pendingResources []client.ChatResourceRef
+	resourceOverlay  *ResourceOverlay
 
 	inputHist inputHistory
 

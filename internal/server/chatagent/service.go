@@ -169,7 +169,12 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	}
 
 	reply := resolveAssistantReply(req.SessionID, start, result.Messages)
-	deliverRunResult(ctx, h, req, reply, sink, result.Messages)
+	var resources []ResourceRef
+	if planID, title, ok := maybePersistPlan(ctx, req.SessionID, reply); ok {
+		reply = AppendPlanLinkFooter(reply, planID, title)
+		resources = []ResourceRef{FormatPlanResourceRef(planID, title)}
+	}
+	deliverRunResult(ctx, h, req, reply, sink, result.Messages, resources)
 	maybeGenerateSessionTitle(req.SessionID, req.Text, reply)
 
 	flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",
@@ -212,7 +217,7 @@ func resolveAssistantReply(sessionID string, start time.Time, messages []any) st
 	return "I could not produce a reply."
 }
 
-func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, reply string, sink StreamSink, messages []any) {
+func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, reply string, sink StreamSink, messages []any, resources []ResourceRef) {
 	if req.API != nil && req.API.Publisher != nil {
 		contextWindow := 0
 		if cm := h.ContextManager(); cm != nil {
@@ -220,7 +225,7 @@ func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, r
 		}
 		publishFinalUsage(req.API.Publisher, messages, contextWindow)
 		title := LoadSessionTitle(ctx, req.SessionID)
-		_ = req.API.Publisher.Publish(StreamEvent{Type: EventTypeDone, Text: reply, Title: title})
+		_ = req.API.Publisher.Publish(StreamEvent{Type: EventTypeDone, Text: reply, Title: title, Resources: resources})
 		return
 	}
 	if sink == nil {

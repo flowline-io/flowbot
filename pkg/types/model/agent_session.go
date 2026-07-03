@@ -22,3 +22,11 @@ type AgentSessionEntry struct {
 	PayloadJSON string    `json:"payload_json"`
 	CreatedAt   time.Time `json:"created_at"`
 }
+
+// AgentPlan represents a persisted plan document for UI display.
+type AgentPlan struct {
+	PlanID    string    `json:"plan_id"`
+	URI       string    `json:"uri"`
+	Title     string    `json:"title"`
+	CreatedAt time.Time `json:"created_at"`
+}

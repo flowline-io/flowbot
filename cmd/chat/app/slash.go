@@ -115,6 +115,7 @@ func SlashHelp() string {
   /export [path]    Export current session to JSON
   /auth status      Show auth configuration
   /file <path>      Attach local file to next message
+  /open <uri>       Open plan:// or file:// resource
   /plan             Toggle plan mode (read-only research)
   /clear            Clear view (keep session)
   /help             Show this help

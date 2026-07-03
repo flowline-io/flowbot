@@ -23,6 +23,9 @@ func (m *Model) render() string {
 	if m.height <= 0 {
 		return "Loading...\n"
 	}
+	if m.resourceOverlay != nil {
+		return m.renderResourceOverlay()
+	}
 
 	header := m.renderTopSection()
 	footer := m.renderFooter()

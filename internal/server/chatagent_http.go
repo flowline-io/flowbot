@@ -26,6 +26,8 @@ func RegisterChatAgentRoutes(a *fiber.App) {
 	a.Post("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
 	a.Delete("/chatagent/sessions/:id", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.closeSession)))
 	a.Get("/chatagent/sessions/:id/messages", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listMessages)))
+	a.Get("/chatagent/sessions/:id/plans", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listSessionPlans)))
+	a.Get("/chatagent/resources", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.getResource)))
 	a.Get("/chatagent/sessions/:id/export", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.exportSession)))
 	a.Get("/chatagent/sessions/:id/context", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.contextUsage)))
 	a.Post("/chatagent/sessions/:id/compact", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.compactSession)))

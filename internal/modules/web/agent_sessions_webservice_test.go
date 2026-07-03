@@ -113,6 +113,52 @@ func (s *testStore) GetChatSessionEntryInSession(_ context.Context, sessionID, f
 	return nil, types.ErrNotFound
 }
 
+func (s *testStore) CreateAgentPlan(_ context.Context, plan *gen.AgentPlan) error {
+	if s.agentPlans == nil {
+		s.agentPlans = map[string]*gen.AgentPlan{}
+	}
+	s.agentPlans[plan.Flag] = plan
+	return nil
+}
+
+func (s *testStore) GetAgentPlan(_ context.Context, flag string) (*gen.AgentPlan, error) {
+	if s.agentPlans == nil {
+		return nil, types.ErrNotFound
+	}
+	plan, ok := s.agentPlans[flag]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return plan, nil
+}
+
+func (s *testStore) GetAgentPlanInSession(_ context.Context, sessionID, flag string) (*gen.AgentPlan, error) {
+	if s.agentPlans == nil {
+		return nil, types.ErrNotFound
+	}
+	plan, ok := s.agentPlans[flag]
+	if !ok || plan.SessionID != sessionID {
+		return nil, types.ErrNotFound
+	}
+	return plan, nil
+}
+
+func (s *testStore) ListAgentPlansBySession(_ context.Context, sessionID string) ([]*gen.AgentPlan, error) {
+	if s.agentPlansErr != nil {
+		return nil, s.agentPlansErr
+	}
+	if s.agentPlans == nil {
+		return nil, nil
+	}
+	rows := make([]*gen.AgentPlan, 0)
+	for _, plan := range s.agentPlans {
+		if plan.SessionID == sessionID {
+			rows = append(rows, plan)
+		}
+	}
+	return rows, nil
+}
+
 func TestChatSessionStateLabel(t *testing.T) {
 	tests := []struct {
 		name  string

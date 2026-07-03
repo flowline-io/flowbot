@@ -153,7 +153,7 @@ func (m *Model) submitSessionPick() tea.Cmd {
 		return m.focusInputCmd()
 	}
 	m.applySessionSwitch(selected.SessionID, selected.Mode, selected.Title)
-	return tea.Batch(m.loadSessionModeCmd(selected.SessionID), m.hydrateHistoryCmd(), m.focusInputCmd())
+	return tea.Batch(m.loadSessionModeCmd(selected.SessionID), m.hydrateHistoryCmd(), m.loadSessionPlansCmd(), m.focusInputCmd())
 }
 
 func (m *Model) loadSessionModeCmd(sessionID string) tea.Cmd {
@@ -232,7 +232,7 @@ func (m *Model) handleSlashSession(cmd, args string) (*Model, tea.Cmd, bool) {
 		m.transcript.Reset()
 		m.stream.overlay.Reset()
 		m.messageCount = 0
-		return m, m.hydrateHistoryCmd(), true
+		return m, tea.Batch(m.hydrateHistoryCmd(), m.loadSessionPlansCmd()), true
 	case "sessions":
 		next, cmd := m.handleSlashSessions()
 		return next, cmd, true

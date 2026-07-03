@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"net/url"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -37,6 +38,11 @@ func AgentSessionPageTitle(session model.AgentSession) string {
 // agentSessionEntryPayloadURL builds the HTMX payload partial URL for an entry.
 func agentSessionEntryPayloadURL(sessionID, entryID string) templ.SafeURL {
 	return templ.URL("/service/web/agent-sessions/" + sessionID + "/entries/" + entryID + "/payload")
+}
+
+// agentResourcePreviewURL builds the HTMX preview URL for a resource URI.
+func agentResourcePreviewURL(sessionID, resourceURI string) templ.SafeURL {
+	return templ.URL("/service/web/agent-sessions/" + sessionID + "/resources?uri=" + url.QueryEscape(resourceURI))
 }
 
 // FormatEntryPayload pretty-prints entry payload JSON for display.

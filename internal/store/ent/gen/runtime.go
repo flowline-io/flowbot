@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentplan"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
@@ -95,6 +96,38 @@ func init() {
 	agent.DefaultUpdatedAt = agentDescUpdatedAt.Default.(func() time.Time)
 	// agent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agent.UpdateDefaultUpdatedAt = agentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentplanFields := schema.AgentPlan{}.Fields()
+	_ = agentplanFields
+	// agentplanDescFlag is the schema descriptor for flag field.
+	agentplanDescFlag := agentplanFields[1].Descriptor()
+	// agentplan.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	agentplan.FlagValidator = agentplanDescFlag.Validators[0].(func(string) error)
+	// agentplanDescSessionID is the schema descriptor for session_id field.
+	agentplanDescSessionID := agentplanFields[2].Descriptor()
+	// agentplan.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
+	agentplan.SessionIDValidator = agentplanDescSessionID.Validators[0].(func(string) error)
+	// agentplanDescTitle is the schema descriptor for title field.
+	agentplanDescTitle := agentplanFields[3].Descriptor()
+	// agentplan.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	agentplan.TitleValidator = agentplanDescTitle.Validators[0].(func(string) error)
+	// agentplanDescContent is the schema descriptor for content field.
+	agentplanDescContent := agentplanFields[4].Descriptor()
+	// agentplan.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	agentplan.ContentValidator = agentplanDescContent.Validators[0].(func(string) error)
+	// agentplanDescSourceEntryID is the schema descriptor for source_entry_id field.
+	agentplanDescSourceEntryID := agentplanFields[5].Descriptor()
+	// agentplan.DefaultSourceEntryID holds the default value on creation for the source_entry_id field.
+	agentplan.DefaultSourceEntryID = agentplanDescSourceEntryID.Default.(string)
+	// agentplanDescCreatedAt is the schema descriptor for created_at field.
+	agentplanDescCreatedAt := agentplanFields[6].Descriptor()
+	// agentplan.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentplan.DefaultCreatedAt = agentplanDescCreatedAt.Default.(func() time.Time)
+	// agentplanDescUpdatedAt is the schema descriptor for updated_at field.
+	agentplanDescUpdatedAt := agentplanFields[7].Descriptor()
+	// agentplan.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentplan.DefaultUpdatedAt = agentplanDescUpdatedAt.Default.(func() time.Time)
+	// agentplan.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentplan.UpdateDefaultUpdatedAt = agentplanDescUpdatedAt.UpdateDefault.(func() time.Time)
 	agentskillFields := schema.AgentSkill{}.Fields()
 	_ = agentskillFields
 	// agentskillDescFlag is the schema descriptor for flag field.

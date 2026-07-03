@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
@@ -17,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -25,6 +27,7 @@ var agentSessionsWebserviceRules = []webservice.Rule{
 	webservice.Get("/agent-sessions", agentSessionsPage, route.WithNotAuth()),
 	webservice.Get("/agent-sessions/list", agentSessionsTable, route.WithNotAuth()),
 	webservice.Get("/agent-sessions/:id", agentSessionDetailPage, route.WithNotAuth()),
+	webservice.Get("/agent-sessions/:id/resources", agentSessionResourcePreview, route.WithNotAuth()),
 	webservice.Get("/agent-sessions/:id/entries/:entryID/payload", agentSessionEntryPayload, route.WithNotAuth()),
 	webservice.Get("/agent-sessions/:id/events", agentSessionEvents, route.WithNotAuth()),
 	webservice.Post("/agent-sessions/:id/confirm", agentSessionConfirm, route.WithNotAuth()),
@@ -78,11 +81,66 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list chat session entries: %v", err)
 	}
 
+	plans, err := chatagent.ListPlanSummaries(ctx.Context(), sessionID)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list agent plans: %v", err)
+	}
+
 	ctx.Type("html")
 	return pages.AgentSessionDetailPage(
 		mapAgentSession(row),
 		mapAgentSessionEntries(entries),
+		mapAgentPlans(plans),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func agentSessionResourcePreview(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	sessionID := ctx.Params("id")
+	uri := ctx.Query("uri")
+	if sessionID == "" || uri == "" {
+		ctx.Type("html")
+		return partials.EmptyState("Invalid session or resource URI").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	if _, err := store.Database.GetChatSession(ctx.Context(), sessionID); err != nil {
+		ctx.Type("html")
+		return partials.EmptyState("Session not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	content, err := chatagent.ResolveResource(ctx.Context(), sessionID, uri)
+	if err != nil {
+		ctx.Type("html")
+		return partials.EmptyState("Resource not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	bodyHTML := content.Content
+	if content.ContentType == "text/markdown" {
+		if html, mdErr := utils.MarkdownToHTML([]byte(content.Content)); mdErr == nil {
+			bodyHTML = string(html)
+		}
+	} else {
+		bodyHTML = "<pre class=\"whitespace-pre-wrap font-mono text-sm\">" + htmlEscape(content.Content) + "</pre>"
+	}
+	ctx.Type("html")
+	return partials.AgentResourcePreview(content.Title, bodyHTML, content.Truncated).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func mapAgentPlans(plans []chatagent.PlanSummary) []model.AgentPlan {
+	out := make([]model.AgentPlan, 0, len(plans))
+	for _, plan := range plans {
+		out = append(out, model.AgentPlan{
+			PlanID:    plan.PlanID,
+			URI:       plan.URI,
+			Title:     plan.Title,
+			CreatedAt: plan.CreatedAt,
+		})
+	}
+	return out
+}
+
+func htmlEscape(s string) string {
+	replacer := strings.NewReplacer("&", "&amp;", "<", "&lt;", ">", "&gt;")
+	return replacer.Replace(s)
 }
 
 func agentSessionEntryPayload(ctx fiber.Ctx) error {

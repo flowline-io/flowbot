@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Agent is the client for interacting with the Agent builders.
 	Agent *AgentClient
+	// AgentPlan is the client for interacting with the AgentPlan builders.
+	AgentPlan *AgentPlanClient
 	// AgentSkill is the client for interacting with the AgentSkill builders.
 	AgentSkill *AgentSkillClient
 	// AgentSkillFile is the client for interacting with the AgentSkillFile builders.
@@ -246,6 +248,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Agent = NewAgentClient(tx.config)
+	tx.AgentPlan = NewAgentPlanClient(tx.config)
 	tx.AgentSkill = NewAgentSkillClient(tx.config)
 	tx.AgentSkillFile = NewAgentSkillFileClient(tx.config)
 	tx.AgentSubagent = NewAgentSubagentClient(tx.config)
