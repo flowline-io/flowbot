@@ -3,6 +3,8 @@ package tool
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -84,11 +86,19 @@ func (r *Registry) ActiveTools() []Tool {
 		for _, t := range r.tools {
 			tools = append(tools, t)
 		}
+		slices.SortFunc(tools, func(a, b Tool) int {
+			return strings.Compare(a.Name(), b.Name())
+		})
 		return tools
 	}
 
-	tools := make([]Tool, 0, len(r.active))
+	names := make([]string, 0, len(r.active))
 	for name := range r.active {
+		names = append(names, name)
+	}
+	slices.Sort(names)
+	tools := make([]Tool, 0, len(names))
+	for _, name := range names {
 		if t, ok := r.tools[name]; ok {
 			tools = append(tools, t)
 		}

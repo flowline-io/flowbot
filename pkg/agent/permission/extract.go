@@ -10,12 +10,17 @@ import (
 
 // Tool names used by the chat agent coding toolkit.
 const (
-	ToolRunTerminal = "run_terminal"
-	ToolReadFile    = "read_file"
-	ToolWriteFile   = "write_file"
-	ToolWebSearch   = "web_search"
-	ToolRunCode     = "run_code"
-	ToolReadSkill   = "read_skill"
+	ToolRunTerminal         = "run_terminal"
+	ToolReadFile            = "read_file"
+	ToolWriteFile           = "write_file"
+	ToolWebSearch           = "web_search"
+	ToolRunCode             = "run_code"
+	ToolReadSkill           = "read_skill"
+	ToolTask                = "task"
+	ToolScheduleTask        = "schedule_task"
+	ToolUpdateScheduledTask = "update_scheduled_task"
+	ToolListScheduledTasks  = "list_scheduled_tasks"
+	ToolCancelScheduledTask = "cancel_scheduled_task"
 )
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
@@ -31,6 +36,12 @@ func PermissionKeyForTool(tool string) string {
 		return "websearch"
 	case ToolReadSkill:
 		return "skill"
+	case ToolTask:
+		return KeyDelegate
+	case ToolScheduleTask, ToolUpdateScheduledTask, ToolCancelScheduledTask:
+		return KeySchedule
+	case ToolListScheduledTasks:
+		return KeyScheduleRead
 	default:
 		return KeyWildcard
 	}
@@ -78,6 +89,14 @@ func ExtractInputs(req Request) ExtractedInputs {
 		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["query"]))
 	case ToolReadSkill:
 		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["name"]))
+	case ToolTask:
+		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["subagent_type"]))
+	case ToolScheduleTask:
+		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["name"]))
+	case ToolUpdateScheduledTask, ToolCancelScheduledTask:
+		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["task_id"]))
+	case ToolListScheduledTasks:
+		out.Primary = "*"
 	default:
 		out.Primary = req.Tool
 	}

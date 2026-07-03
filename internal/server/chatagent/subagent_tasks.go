@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -125,10 +126,8 @@ func activeSubagentTools(tools, skills []string) []string {
 }
 
 func appendUniqueTool(tools []string, name string) []string {
-	for _, existing := range tools {
-		if existing == name {
-			return tools
-		}
+	if slices.Contains(tools, name) {
+		return tools
 	}
 	return append(tools, name)
 }

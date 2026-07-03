@@ -355,7 +355,7 @@ func (*testStoreAdapter) ListAgentPlansBySession(_ context.Context, sessionID st
 	return rows, nil
 }
 func sortAgentPlansByCreatedAtDesc(rows []*gen.AgentPlan) {
-	for i := 0; i < len(rows); i++ {
+	for i := range rows {
 		for j := i + 1; j < len(rows); j++ {
 			if rows[j].CreatedAt.After(rows[i].CreatedAt) {
 				rows[i], rows[j] = rows[j], rows[i]

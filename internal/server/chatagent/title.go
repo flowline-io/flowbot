@@ -88,12 +88,10 @@ func maybeGenerateSessionTitle(sessionID, userText, reply string) {
 	llmGen := generateSessionTitleLLM
 	modelResolver := sessionTitleModel
 	sessionTitleLLMMu.RUnlock()
-	sessionTitleGenWG.Add(1)
-	go func() {
-		defer sessionTitleGenWG.Done()
+	sessionTitleGenWG.Go(func() {
 		defer sessionTitleInflight.Delete(sessionID)
 		generateSessionTitleAsync(sessionID, userText, reply, chatModel, modelResolver, llmGen)
-	}()
+	})
 }
 
 // DisableSessionTitleLLMForTest skips outbound title LLM calls until restore runs.

@@ -43,7 +43,7 @@ func maybePersistPlan(ctx context.Context, sessionID, reply string) (planID stri
 
 // derivePlanTitle extracts a short title from plan markdown text.
 func derivePlanTitle(reply string) string {
-	for _, line := range strings.Split(reply, "\n") {
+	for line := range strings.SplitSeq(reply, "\n") {
 		line = strings.TrimSpace(line)
 		line = strings.TrimLeft(line, "#")
 		line = strings.TrimSpace(line)

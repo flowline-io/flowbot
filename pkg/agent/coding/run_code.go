@@ -25,7 +25,7 @@ func (RunCodeTool) Name() string { return "run_code" }
 
 // Description explains the tool to the model.
 func (RunCodeTool) Description() string {
-	return "Executes source code in the workspace using a language-specific interpreter"
+	return "Executes Python or shell code in the workspace using a language-specific interpreter"
 }
 
 // Parameters returns the JSON schema for tool arguments.
@@ -35,7 +35,7 @@ func (RunCodeTool) Parameters() map[string]any {
 		"properties": map[string]any{
 			"language": map[string]any{
 				"type":        "string",
-				"description": "Language identifier: python, shell",
+				"description": "Language identifier: python or shell (aliases: py, sh, bash)",
 			},
 			"code": map[string]any{
 				"type":        "string",

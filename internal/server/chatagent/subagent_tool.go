@@ -94,8 +94,10 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	}
 
 	taskRecord, err := beginSubagentTask(ctx, t.deps.SessionID, subagentType, description, prompt, t.deps.Depth+1)
+	auditNote := ""
 	if err != nil {
 		flog.Warn("[chat-agent] task subagent record type=%s: %v", subagentType, err)
+		auditNote = "\n\n[note: subagent task record could not be saved]"
 	}
 
 	model, err := t.resolveModel(ctx, def.Model)
@@ -159,6 +161,9 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	if text == "" {
 		text = fmt.Sprintf("subagent %q completed with no output", subagentType)
 	}
+	if auditNote != "" {
+		text += auditNote
+	}
 	completeSubagentTask(ctx, taskRecord, text)
 	return msg.ToolResultMessage{
 		ToolCallID: id,
@@ -187,11 +192,12 @@ func stringArg(args map[string]any, key string) string {
 	if !ok || value == nil {
 		return ""
 	}
-	str, ok := value.(string)
-	if !ok {
-		return ""
+	switch v := value.(type) {
+	case string:
+		return strings.TrimSpace(v)
+	default:
+		return strings.TrimSpace(fmt.Sprint(v))
 	}
-	return strings.TrimSpace(str)
 }
 
 func taskToolError(id, text string) msg.ToolResultMessage {

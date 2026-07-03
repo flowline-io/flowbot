@@ -90,11 +90,11 @@ var defaultSubagents = []*gen.AgentSubagent{
 		Flag:        "explore",
 		Name:        "explore",
 		Description: "Fast read-only subagent for codebase navigation, locating implementations, and understanding complex logic",
-		SystemPrompt: "You are an explore subagent operating in read-only mode. Use read_file and run_terminal to " +
+		SystemPrompt: "You are an explore subagent operating in read-only mode. Use read_file and web_search to " +
 			"navigate the codebase, locate where features are implemented, and explain how complex logic works. " +
-			"Never modify files, write to disk, or run commands that change system state. Return a concise, " +
-			"self-contained summary with file paths and relevant excerpts.",
-		Tools:   []string{"read_file", "run_terminal"},
+			"Never modify files or access write-capable tools. Return a concise, self-contained summary with " +
+			"file paths and relevant excerpts.",
+		Tools:   []string{"read_file", "web_search"},
 		Source:  "builtin",
 		Enabled: true,
 	},

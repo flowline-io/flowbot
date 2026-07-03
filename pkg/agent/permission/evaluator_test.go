@@ -78,3 +78,43 @@ func TestEvaluatorChainStricter(t *testing.T) {
 	got := eval.Evaluate(req, permission.NewSessionState())
 	assert.Equal(t, permission.ActionAsk, got.Action)
 }
+
+func TestEvaluatorDelegateAndSchedule(t *testing.T) {
+	eval := permission.NewEvaluator(permission.DefaultConfig())
+	tests := []struct {
+		name string
+		tool string
+		args map[string]any
+		want permission.Action
+		key  string
+	}{
+		{
+			name: "task defaults ask",
+			tool: permission.ToolTask,
+			args: map[string]any{"subagent_type": "explore"},
+			want: permission.ActionAsk,
+			key:  permission.KeyDelegate,
+		},
+		{
+			name: "schedule create defaults ask",
+			tool: permission.ToolScheduleTask,
+			args: map[string]any{"name": "daily report"},
+			want: permission.ActionAsk,
+			key:  permission.KeySchedule,
+		},
+		{
+			name: "schedule list defaults allow",
+			tool: permission.ToolListScheduledTasks,
+			args: map[string]any{},
+			want: permission.ActionAllow,
+			key:  permission.KeyScheduleRead,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := eval.Evaluate(permission.Request{Tool: tt.tool, Args: tt.args}, permission.NewSessionState())
+			assert.Equal(t, tt.want, got.Action)
+			assert.Equal(t, tt.key, got.PermissionKey)
+		})
+	}
+}

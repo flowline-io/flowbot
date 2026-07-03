@@ -44,7 +44,10 @@ func (WriteFileTool) Parameters() map[string]any {
 
 // Execute writes the requested file.
 func (t WriteFileTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
-	path := fmt.Sprint(args["path"])
+	path := normalizeWorkspacePath(fmt.Sprint(args["path"]))
+	if path == "" {
+		return toolError(id, t.Name(), "path is required"), nil
+	}
 	content := fmt.Sprint(args["content"])
 
 	resolvedResult := t.Workspace.ResolvePath(path)

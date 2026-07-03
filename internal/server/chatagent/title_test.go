@@ -31,13 +31,11 @@ func TestWaitForSessionTitleGenerationForTest(t *testing.T) {
 					generateSessionTitleLLM = origLLM
 					WaitForSessionTitleGenerationForTest()
 				})
-				sessionTitleGenWG.Add(1)
-				go func() {
-					defer sessionTitleGenWG.Done()
+				sessionTitleGenWG.Go(func() {
 					generateSessionTitleAsync("sess", "hello", "hi", "fake", func(context.Context, string) (llms.Model, string, error) {
 						return nil, "fake", nil
 					}, generateSessionTitleLLM)
-				}()
+				})
 				require.Eventually(t, started.Load, time.Second, 10*time.Millisecond)
 				WaitForSessionTitleGenerationForTest()
 				return nil
@@ -63,13 +61,11 @@ func TestWaitForSessionTitleGenerationForTest(t *testing.T) {
 					WaitForSessionTitleGenerationForTest()
 				})
 				for range 3 {
-					sessionTitleGenWG.Add(1)
-					go func() {
-						defer sessionTitleGenWG.Done()
+					sessionTitleGenWG.Go(func() {
 						generateSessionTitleAsync("sess", "hello", "hi", "fake", func(context.Context, string) (llms.Model, string, error) {
 							return nil, "fake", nil
 						}, generateSessionTitleLLM)
-					}()
+					})
 				}
 				WaitForSessionTitleGenerationForTest()
 				return nil
@@ -209,11 +205,9 @@ func TestSessionTitleModelSeparateFromHarnessFake(t *testing.T) {
 					generateSessionTitleLLM = origLLM
 					WaitForSessionTitleGenerationForTest()
 				})
-				sessionTitleGenWG.Add(1)
-				go func() {
-					defer sessionTitleGenWG.Done()
+				sessionTitleGenWG.Go(func() {
 					generateSessionTitleAsync("sess", "hello", "world", "fake-model", resolver, generateSessionTitleLLM)
-				}()
+				})
 				WaitForSessionTitleGenerationForTest()
 				assert.Equal(t, 1, titleFake.Calls())
 			},
@@ -229,11 +223,9 @@ func TestSessionTitleModelSeparateFromHarnessFake(t *testing.T) {
 					generateSessionTitleLLM = origLLM
 					WaitForSessionTitleGenerationForTest()
 				})
-				sessionTitleGenWG.Add(1)
-				go func() {
-					defer sessionTitleGenWG.Done()
+				sessionTitleGenWG.Go(func() {
 					generateSessionTitleAsync("sess", "edit target file", "plan reply", "fake-model", sessionTitleModel, generateSessionTitleLLM)
-				}()
+				})
 				WaitForSessionTitleGenerationForTest()
 			},
 		},

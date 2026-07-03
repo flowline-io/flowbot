@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -96,12 +97,7 @@ func (t ReadSkillTool) isSkillAllowed(name string) bool {
 	if len(t.allowed) == 0 {
 		return true
 	}
-	for _, allowed := range t.allowed {
-		if allowed == name {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(t.allowed, name)
 }
 
 func skillToolError(id, text string) msg.ToolResultMessage {

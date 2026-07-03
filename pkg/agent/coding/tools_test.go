@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
@@ -26,28 +27,33 @@ func TestReadFileTool_Execute(t *testing.T) {
 	root := t.TempDir()
 	filePath := filepath.Join(root, "hello.txt")
 	require.NoError(t, os.WriteFile(filePath, []byte("hello world"), 0o644))
+	multiPath := filepath.Join(root, "lines.txt")
+	require.NoError(t, os.WriteFile(multiPath, []byte("line1\nline2\nline3\nline4\n"), 0o644))
 
 	tests := []struct {
 		name      string
 		path      string
+		args      map[string]any
 		wantText  string
 		wantError bool
 	}{
-		{name: "reads existing file", path: "hello.txt", wantText: "hello world"},
-		{name: "strips file uri prefix", path: "file://hello.txt", wantText: "hello world"},
-		{name: "missing file", path: "missing.txt", wantError: true},
-		{name: "traversal blocked", path: "../secret.txt", wantError: true},
+		{name: "reads existing file", path: "hello.txt", args: map[string]any{"path": "hello.txt"}, wantText: "hello world"},
+		{name: "strips file uri prefix", path: "hello.txt", args: map[string]any{"path": "file://hello.txt"}, wantText: "hello world"},
+		{name: "missing file", path: "missing.txt", args: map[string]any{"path": "missing.txt"}, wantError: true},
+		{name: "traversal blocked", path: "../secret.txt", args: map[string]any{"path": "../secret.txt"}, wantError: true},
+		{name: "offset and limit", path: "lines.txt", args: map[string]any{"path": "lines.txt", "offset": 2, "limit": 2}, wantText: "line2\nline3"},
+		{name: "offset beyond file", path: "lines.txt", args: map[string]any{"path": "lines.txt", "offset": 10}, wantText: ""},
 	}
 
 	tool := coding.ReadFileTool{Workspace: coding.Workspace{Root: root}}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result, err := tool.Execute(context.Background(), "id-1", map[string]any{"path": tt.path}, nil)
+			result, err := tool.Execute(context.Background(), "id-1", tt.args, nil)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantError, result.IsError)
 			if !tt.wantError {
-				assert.Contains(t, textFromResult(t, result), tt.wantText)
+				assert.Equal(t, tt.wantText, textFromResult(t, result))
 			}
 		})
 	}
@@ -64,6 +70,7 @@ func TestWriteFileTool_Execute(t *testing.T) {
 		wantError bool
 	}{
 		{name: "writes file", path: "nested/out.txt", content: "data"},
+		{name: "strips file uri prefix", path: "file://nested/prefixed.txt", content: "data"},
 		{name: "traversal blocked", path: "../bad.txt", content: "x", wantError: true},
 		{name: "empty path", path: "", content: "x", wantError: true},
 	}
@@ -77,7 +84,11 @@ func TestWriteFileTool_Execute(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantError, result.IsError)
 			if !tt.wantError {
-				_, statErr := os.Stat(filepath.Join(root, tt.path))
+				checkPath := tt.path
+				if after, ok := strings.CutPrefix(checkPath, "file://"); ok {
+					checkPath = after
+				}
+				_, statErr := os.Stat(filepath.Join(root, checkPath))
 				assert.NoError(t, statErr)
 			}
 		})

@@ -3,6 +3,7 @@ package partials
 import (
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -51,12 +52,7 @@ func agentSubagentModelLabel(modelName string) string {
 }
 
 func agentSubagentOptionSelected(selected []string, value string) bool {
-	for _, item := range selected {
-		if item == value {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(selected, value)
 }
 
 func agentSubagentTaskRowID(item model.AgentSubagentTask) string {

@@ -30,7 +30,7 @@ func (WebSearchTool) Name() string { return "web_search" }
 
 // Description explains the tool to the model.
 func (WebSearchTool) Description() string {
-	return "Searches the web for a query and returns a concise summary with related topics"
+	return "Looks up concise facts via DuckDuckGo Instant Answers; may return no results for niche or technical queries"
 }
 
 // Parameters returns the JSON schema for tool arguments.
