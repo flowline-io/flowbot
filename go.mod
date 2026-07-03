@@ -6,7 +6,7 @@ require (
 	charm.land/bubbles/v2 v2.1.0
 	charm.land/bubbletea/v2 v2.0.7
 	charm.land/glamour/v2 v2.0.1
-	charm.land/lipgloss/v2 v2.0.4
+	charm.land/lipgloss/v2 v2.0.5
 	code.gitea.io/sdk/gitea v0.25.1
 	entgo.io/ent v0.14.6
 	github.com/Masterminds/sprig/v3 v3.3.0
