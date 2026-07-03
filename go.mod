@@ -32,7 +32,7 @@ require (
 	github.com/gofiber/contrib/v3/zerolog v1.1.1
 	github.com/gofiber/fiber/v3 v3.4.0
 	github.com/google/uuid v1.6.0
-	github.com/grafana/pyroscope-go v1.3.1
+	github.com/grafana/pyroscope-go v1.4.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.8.0
 	github.com/hekmon/transmissionrpc/v3 v3.0.0
