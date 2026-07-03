@@ -163,7 +163,9 @@ func TestValidateAgentSubagentForm(t *testing.T) {
 		{name: "empty name rejected", item: model.AgentSubagent{Flag: "demo", Description: "d", SystemPrompt: "p"}, isNew: true, wantKey: "name"},
 		{name: "empty description rejected", item: model.AgentSubagent{Flag: "demo", Name: "demo", SystemPrompt: "p"}, isNew: true, wantKey: "description"},
 		{name: "empty system prompt rejected", item: model.AgentSubagent{Flag: "demo", Name: "demo", Description: "d"}, isNew: true, wantKey: "system_prompt"},
-		{name: "valid update passes without flag", item: model.AgentSubagent{Name: "demo", Description: "d", SystemPrompt: "body"}, isNew: false, wantKey: ""},
+		{name: "empty tools rejected", item: model.AgentSubagent{Flag: "demo", Name: "demo", Description: "d", SystemPrompt: "p"}, isNew: true, wantKey: "tools"},
+		{name: "invalid tool rejected", item: model.AgentSubagent{Flag: "demo", Name: "demo", Description: "d", SystemPrompt: "p", Tools: []string{"evil_tool"}}, isNew: true, wantKey: "tools"},
+		{name: "valid update passes without flag", item: model.AgentSubagent{Name: "demo", Description: "d", SystemPrompt: "body", Tools: []string{"read_file"}}, isNew: false, wantKey: ""},
 	}
 
 	for _, tt := range tests {
@@ -327,6 +329,7 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 				"description":   "Existing",
 				"system_prompt": "p",
 			},
+			tools:      []string{"read_file"},
 			wantStatus: http.StatusUnprocessableEntity,
 			wantBody:   "Flag already exists",
 		},
@@ -439,13 +442,13 @@ func TestAgentSubagentCreateInvalidatesPromptCache(t *testing.T) {
 			ts := &testStore{agentSubagents: map[string]*gen.AgentSubagent{}}
 			app := setupAuthenticatedApp(t, ts)
 
-			body := buildFormBody(map[string]string{
+			body := buildSubagentFormBody(map[string]string{
 				"flag":          "cache-subagent",
 				"name":          "cache-subagent",
 				"description":   "Cache test",
 				"system_prompt": "p",
 				"enabled":       "true",
-			})
+			}, []string{"read_file"}, nil)
 			req := httptest.NewRequest(http.MethodPost, "/service/web/agent-subagents", strings.NewReader(body))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Cookie", "accessToken=test-token")

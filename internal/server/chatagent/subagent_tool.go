@@ -26,6 +26,8 @@ type TaskToolDeps struct {
 	UID types.Uid
 	// Depth is the delegation depth of the caller (0 for the primary agent).
 	Depth int
+	// Kind is the parent run kind propagated to subagent permission hooks.
+	Kind RunKind
 }
 
 // TaskTool delegates a self-contained task to an isolated subagent loop.
@@ -128,6 +130,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 		SessionID:   t.deps.SessionID,
 		UID:         t.deps.UID,
 		SessionMode: LoadSessionMode(ctx, t.deps.SessionID),
+		Kind:        t.deps.Kind,
 	})
 	cfg = hooks.BridgeConfig(ctx, hookRegistry, cfg)
 

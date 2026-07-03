@@ -115,10 +115,10 @@ func subagentDefinitionFromStore(ctx context.Context, name string) (subagentDefi
 
 // activeSubagentTools returns the tool allowlist for a subagent registry, ensuring read_skill is active when skills are configured.
 func activeSubagentTools(tools, skills []string) []string {
-	if len(tools) == 0 && len(skills) == 0 {
-		return nil
-	}
 	active := append([]string(nil), tools...)
+	if len(active) == 0 && len(skills) == 0 {
+		active = []string{"read_file", "web_search"}
+	}
 	if len(skills) > 0 {
 		active = appendUniqueTool(active, "read_skill")
 	}

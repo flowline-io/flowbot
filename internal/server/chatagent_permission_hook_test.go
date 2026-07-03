@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestChatAgentPermissionHookAskWithoutGateAllows(t *testing.T) {
+func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
 	origDB := store.Database
 	origCfg := config.App.ChatAgent
 	store.Database = &testStoreAdapter{}
@@ -31,12 +31,19 @@ func TestChatAgentPermissionHookAskWithoutGateAllows(t *testing.T) {
 	})
 
 	tests := []struct {
-		name    string
-		tool    string
-		args    map[string]any
-		wantBlk bool
+		name       string
+		tool       string
+		args       map[string]any
+		wantBlk    bool
+		wantReason string
 	}{
-		{name: "bash ask without gate allows", tool: permission.ToolRunTerminal, args: map[string]any{"command": "ls"}, wantBlk: false},
+		{
+			name:       "bash ask without gate blocks",
+			tool:       permission.ToolRunTerminal,
+			args:       map[string]any{"command": "ls"},
+			wantBlk:    true,
+			wantReason: chatagent.ReasonConfirmRequiredPlatform,
+		},
 		{name: "read env denied", tool: permission.ToolReadFile, args: map[string]any{"path": "secrets.env"}, wantBlk: true},
 		{name: "skill allow", tool: permission.ToolReadSkill, args: map[string]any{"name": "demo"}, wantBlk: false},
 	}
@@ -55,6 +62,9 @@ func TestChatAgentPermissionHookAskWithoutGateAllows(t *testing.T) {
 			if tt.wantBlk {
 				require.NotNil(t, result)
 				assert.True(t, result.Block)
+				if tt.wantReason != "" {
+					assert.Contains(t, result.Reason, tt.wantReason)
+				}
 				return
 			}
 			if result != nil {

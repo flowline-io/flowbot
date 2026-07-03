@@ -110,10 +110,34 @@ func extractPathsFromCommand(command, workspaceRoot string) []string {
 	if strings.TrimSpace(command) == "" {
 		return nil
 	}
-	segment := command
-	if hasShellChain(command) {
-		segment = strings.TrimSpace(splitFirstChain(command))
+	var paths []string
+	for _, segment := range splitChainSegments(command) {
+		paths = append(paths, extractPathsFromSegment(segment, workspaceRoot)...)
 	}
+	return paths
+}
+
+func splitChainSegments(command string) []string {
+	if !hasShellChain(command) {
+		return []string{strings.TrimSpace(command)}
+	}
+	seps := []string{"|", "&&", "||", ";"}
+	segments := []string{command}
+	for _, sep := range seps {
+		var next []string
+		for _, part := range segments {
+			for piece := range strings.SplitSeq(part, sep) {
+				if trimmed := strings.TrimSpace(piece); trimmed != "" {
+					next = append(next, trimmed)
+				}
+			}
+		}
+		segments = next
+	}
+	return segments
+}
+
+func extractPathsFromSegment(segment, workspaceRoot string) []string {
 	words, err := shellwords.Parse(segment)
 	if err != nil {
 		return nil

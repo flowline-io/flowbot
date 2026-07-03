@@ -90,7 +90,7 @@ func CreateSession(ctx context.Context, uid types.Uid, sessionID string) error {
 func CloseSession(ctx context.Context, sessionID string) error {
 	cancelRun(sessionID)
 	EvictHarnessPool(sessionID)
-	permissionSessions.ClearPermissionSession(sessionID)
+	permissionSessions.ClearPermissionSession(ctx, sessionID)
 	clearSessionEventHub(sessionID)
 	if err := store.Database.CloseChatSession(ctx, sessionID); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] close session session=%s: %w", sessionID, err))

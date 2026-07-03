@@ -15,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -120,6 +121,7 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to create agent subagent")
 	}
 	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent subagent created uid=%s flag=%s name=%s", getUID(ctx), row.Flag, row.Name)
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-subagents-empty" hx-swap-oob="delete"></tr>`))
 	return partials.AgentSubagentRow(agentSubagentFromInput(input, now, now)).Render(reqCtx, ctx.Response().BodyWriter())
@@ -208,6 +210,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to update agent subagent")
 	}
 	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent subagent updated uid=%s flag=%s name=%s", getUID(ctx), flag, input.Name)
 	updated, err := loadAgentSubagentModel(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
@@ -235,6 +238,7 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to delete agent subagent")
 	}
 	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent subagent deleted uid=%s flag=%s", getUID(ctx), flag)
 	items, err := store.Database.ListAgentSubagents(reqCtx, false)
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
@@ -381,6 +385,20 @@ func validateAgentSubagentForm(item model.AgentSubagent, isNew bool) map[string]
 	}
 	if strings.TrimSpace(item.SystemPrompt) == "" {
 		errs["system_prompt"] = "System prompt is required"
+	}
+	if len(item.Tools) == 0 {
+		errs["tools"] = "At least one tool is required"
+	} else {
+		allowed := make(map[string]struct{}, len(chatagent.SelectableSubagentTools()))
+		for _, name := range chatagent.SelectableSubagentTools() {
+			allowed[name] = struct{}{}
+		}
+		for _, toolName := range item.Tools {
+			if _, ok := allowed[toolName]; !ok {
+				errs["tools"] = "Tool " + toolName + " is not allowed"
+				break
+			}
+		}
 	}
 	return errs
 }

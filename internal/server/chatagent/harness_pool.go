@@ -231,7 +231,15 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 	if uidErr != nil {
 		uid = types.Uid("")
 	}
-	registry, err := NewRegistry(workspace, &TaskToolDeps{SessionID: req.SessionID, UID: uid}, &ScheduleToolDeps{SessionID: req.SessionID, UID: uid})
+	kind := req.Kind
+	if kind == "" {
+		kind = RunKindInteractive
+	}
+	registry, err := NewRegistry(workspace, &TaskToolDeps{
+		SessionID: req.SessionID,
+		UID:       uid,
+		Kind:      kind,
+	}, &ScheduleToolDeps{SessionID: req.SessionID, UID: uid})
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] tool registry session=%s: %w", req.SessionID, err))
 		return nil, err
@@ -264,6 +272,7 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		SessionID:   req.SessionID,
 		UID:         uid,
 		SessionMode: LoadSessionMode(ctx, req.SessionID),
+		Kind:        kind,
 	})
 
 	configHash, err := harnessConfigHash(workspace)

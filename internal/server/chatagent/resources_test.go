@@ -6,7 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -40,11 +45,23 @@ func TestParseResourceURI(t *testing.T) {
 
 func TestResolveFileResource(t *testing.T) {
 	origCfg := config.App.ChatAgent
+	origDB := store.Database
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "note.txt"), []byte("hello file"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(root, "secrets.env"), []byte("SECRET=1"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "bad.bin"), []byte{0xff, 0xfe, 0x00}, 0o600))
 	config.App.ChatAgent = config.ChatAgentConfig{Workspace: root, ChatModel: "gpt-test"}
-	t.Cleanup(func() { config.App.ChatAgent = origCfg })
+	store.Database = postgres.NewSQLiteTestAdapter(t)
+	sessionID := types.Id()
+	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+		Flag:  sessionID,
+		UID:   "user-1",
+		State: int(schema.ChatSessionActive),
+	}))
+	t.Cleanup(func() {
+		config.App.ChatAgent = origCfg
+		store.Database = origDB
+	})
 
 	tests := []struct {
 		name    string
@@ -53,12 +70,13 @@ func TestResolveFileResource(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "reads text file", uri: "file://note.txt", want: "hello file"},
+		{name: "rejects env file", uri: "file://secrets.env", wantErr: true},
 		{name: "rejects binary", uri: "file://bad.bin", wantErr: true},
 		{name: "rejects escape", uri: "file://../outside.txt", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ResolveResource(context.Background(), "sess-1", tt.uri)
+			got, err := ResolveResource(context.Background(), sessionID, tt.uri)
 			if tt.wantErr {
 				require.Error(t, err)
 				return

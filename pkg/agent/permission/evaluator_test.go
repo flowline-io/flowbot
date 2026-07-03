@@ -79,6 +79,29 @@ func TestEvaluatorChainStricter(t *testing.T) {
 	assert.Equal(t, permission.ActionAsk, got.Action)
 }
 
+func TestEvaluatorChainExternalPathInLaterSegment(t *testing.T) {
+	cfg := permission.Config{
+		permission.KeyExternalDirectory: {Default: permission.ActionDeny},
+		"bash":                          {Default: permission.ActionAllow},
+	}
+	eval := permission.NewEvaluator(cfg)
+	root := t.TempDir()
+	req := permission.Request{
+		Tool:          permission.ToolRunTerminal,
+		Args:          map[string]any{"command": "git status && cat /etc/passwd"},
+		WorkspaceRoot: root,
+	}
+	got := eval.Evaluate(req, permission.NewSessionState())
+	assert.Equal(t, permission.ActionDeny, got.Action)
+	assert.Equal(t, permission.KeyExternalDirectory, got.PermissionKey)
+}
+
+func TestEvaluatorUnknownToolDefaultsAsk(t *testing.T) {
+	eval := permission.NewEvaluator(permission.DefaultConfig())
+	got := eval.Evaluate(permission.Request{Tool: "unknown_tool"}, permission.NewSessionState())
+	assert.Equal(t, permission.ActionAsk, got.Action)
+}
+
 func TestEvaluatorDelegateAndSchedule(t *testing.T) {
 	eval := permission.NewEvaluator(permission.DefaultConfig())
 	tests := []struct {

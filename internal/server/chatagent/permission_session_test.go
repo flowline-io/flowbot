@@ -1,10 +1,16 @@
 package chatagent
 
 import (
+	"context"
 	"testing"
 
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEffectiveConfigUsesDefaults(t *testing.T) {
@@ -41,9 +47,38 @@ func TestPermissionSessionManagerPersists(t *testing.T) {
 	mgr := &PermissionSessionManager{}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := mgr.GetPermissionSession(tt.sessionID)
-			b := mgr.GetPermissionSession(tt.sessionID)
+			a := mgr.GetPermissionSession(context.Background(), tt.sessionID)
+			b := mgr.GetPermissionSession(context.Background(), tt.sessionID)
 			assert.Equal(t, a, b)
 		})
 	}
+}
+
+func TestSessionGrantsPersistAndClear(t *testing.T) {
+	origDB := store.Database
+	store.Database = postgres.NewSQLiteTestAdapter(t)
+	sessionID := "sess-grants"
+	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+		Flag:  sessionID,
+		UID:   "user-1",
+		State: int(schema.ChatSessionActive),
+	}))
+	t.Cleanup(func() {
+		store.Database = origDB
+		ResetPermissionSessionsForTest()
+	})
+
+	ctx := context.Background()
+	state := permissionSessions.GetPermissionSession(ctx, sessionID)
+	require.NoError(t, state.AddGrant("bash", "git status*"))
+	PersistSessionGrants(ctx, sessionID, state)
+
+	ResetPermissionSessionsForTest()
+	reloaded := permissionSessions.GetPermissionSession(ctx, sessionID)
+	assert.True(t, reloaded.MatchesGrant("bash", "git status"))
+
+	require.NoError(t, CloseSession(ctx, sessionID))
+	ResetPermissionSessionsForTest()
+	afterClose := permissionSessions.GetPermissionSession(ctx, sessionID)
+	assert.False(t, afterClose.MatchesGrant("bash", "git status"))
 }

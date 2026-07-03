@@ -12,11 +12,16 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+// ReasonConfirmRequiredPlatform is returned when ActionAsk cannot be resolved without a ConfirmGate.
+const ReasonConfirmRequiredPlatform = "This action requires approval in the terminal client. " +
+	"Use cmd/chat or configure permissions via PUT /chatagent/permissions."
+
 // ChatHookDeps carries per-run metadata for chat agent hook handlers.
 type ChatHookDeps struct {
 	SessionID   string
 	UID         types.Uid
 	SessionMode string
+	Kind        RunKind
 }
 
 // RegisterHooks wires observational and API hooks for one chat agent harness run.
@@ -83,8 +88,11 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 		if err != nil {
 			return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
 		}
+		if deps.Kind == RunKindScheduled {
+			cfg = permission.Merge(cfg, permission.ScheduledRunOverlay())
+		}
 		evaluator := permission.NewEvaluator(cfg)
-		sessionState := permissionSessions.GetPermissionSession(deps.SessionID)
+		sessionState := permissionSessions.GetPermissionSession(ctx, deps.SessionID)
 		workspaceRoot := config.App.ChatAgent.Workspace
 		externalPath := detectExternalPath(event, workspaceRoot)
 
@@ -131,9 +139,9 @@ func handlePermissionAsk(
 ) (*hooks.ToolCallResult, error) {
 	raw, ok := sessionConfirmGates.Load(sessionID)
 	if !ok {
-		flog.Debug("[chat-agent] ask allowed without confirm gate session=%s tool=%s",
+		flog.Debug("[chat-agent] ask blocked without confirm gate session=%s tool=%s",
 			sessionID, event.ToolCall.Name)
-		return nil, nil
+		return &hooks.ToolCallResult{Block: true, Reason: ReasonConfirmRequiredPlatform}, nil
 	}
 	gate, ok := raw.(*ConfirmGate)
 	if !ok {
@@ -152,6 +160,8 @@ func handlePermissionAsk(
 			flog.Warn("[chat-agent] always grant rejected session=%s key=%s", sessionID, result.PermissionKey)
 		} else if err := sessionState.AddGrant(result.PermissionKey, pattern); err != nil {
 			flog.Warn("[chat-agent] always grant rejected session=%s: %v", sessionID, err)
+		} else {
+			PersistSessionGrants(ctx, sessionID, sessionState)
 		}
 	}
 	return nil, nil

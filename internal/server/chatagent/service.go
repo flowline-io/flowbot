@@ -20,11 +20,22 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+// RunKind distinguishes interactive runs from autonomous scheduled task runs.
+type RunKind string
+
+const (
+	// RunKindInteractive is the default chat agent run initiated by a user message.
+	RunKindInteractive RunKind = "interactive"
+	// RunKindScheduled is an autonomous run triggered by a scheduled task.
+	RunKindScheduled RunKind = "scheduled"
+)
+
 // RunRequest carries one user turn for the chat assistant.
 type RunRequest struct {
 	SessionID string
 	Text      string
 	API       *APIRunOptions
+	Kind      RunKind
 }
 
 // ManualCompactionResult reports the outcome of a user-triggered compaction run.

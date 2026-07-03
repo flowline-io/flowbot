@@ -10,7 +10,10 @@ import (
 	"unicode/utf8"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
+	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -67,7 +70,7 @@ func ResolveResource(ctx context.Context, sessionID, uri string) (ResourceConten
 	case "plan":
 		return resolvePlanResource(ctx, sessionID, uri, ref)
 	case "file":
-		return resolveFileResource(uri, ref)
+		return resolveFileResource(ctx, sessionID, uri, ref)
 	default:
 		return ResourceContent{}, types.Errorf(types.ErrInvalidArgument, "unsupported resource scheme: %q", scheme)
 	}
@@ -90,7 +93,10 @@ func resolvePlanResource(ctx context.Context, sessionID, uri, planID string) (Re
 	}, nil
 }
 
-func resolveFileResource(uri, relPath string) (ResourceContent, error) {
+func resolveFileResource(ctx context.Context, sessionID, uri, relPath string) (ResourceContent, error) {
+	if err := checkFileReadPermission(ctx, sessionID, relPath); err != nil {
+		return ResourceContent{}, err
+	}
 	ws, err := WorkspaceFromConfig()
 	if err != nil {
 		return ResourceContent{}, err
@@ -125,6 +131,34 @@ func resolveFileResource(uri, relPath string) (ResourceContent, error) {
 		ContentType: contentType,
 		Truncated:   truncated,
 	}, nil
+}
+
+func checkFileReadPermission(ctx context.Context, sessionID, relPath string) error {
+	uid, err := SessionOwnerUID(ctx, sessionID)
+	if err != nil {
+		return err
+	}
+	cfg, err := LoadUserPermissions(ctx, uid)
+	if err != nil {
+		return err
+	}
+	workspaceRoot := config.App.ChatAgent.Workspace
+	ws := coding.Workspace{Root: workspaceRoot}
+	externalPath := !ws.ResolvePath(relPath).IsOk()
+	evaluator := permission.NewEvaluator(cfg)
+	sessionState := permissionSessions.GetPermissionSession(ctx, sessionID)
+	result := evaluator.Evaluate(permission.Request{
+		Tool:          permission.ToolReadFile,
+		Args:          map[string]any{"path": relPath},
+		WorkspaceRoot: workspaceRoot,
+		ExternalPath:  externalPath,
+	}, sessionState)
+	switch result.Action {
+	case permission.ActionAllow:
+		return nil
+	default:
+		return types.ErrForbidden
+	}
 }
 
 // ExtractResourceURIs returns plan:// and file:// URIs referenced in markdown links.

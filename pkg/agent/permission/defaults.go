@@ -21,7 +21,7 @@ const KeyScheduleRead = "schedule_read"
 // DefaultConfig returns OpenCode-style baseline rules used when the user has no overrides.
 func DefaultConfig() Config {
 	return Config{
-		KeyWildcard: {Default: ActionAllow},
+		KeyWildcard: {Default: ActionAsk},
 		"read": {
 			Patterns: []PatternRule{
 				{Pattern: "*", Action: ActionAllow},

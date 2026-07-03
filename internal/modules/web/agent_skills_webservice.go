@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -23,6 +24,9 @@ import (
 )
 
 var agentSkillSlugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
+
+const maxAgentSkillContentBytes = 65536
+
 var agentSkillFilePathPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/-]*[a-z0-9]$|^[a-z0-9]$`)
 
 var agentSkillsWebserviceRules = []webservice.Rule{
@@ -111,6 +115,7 @@ func agentSkillCreate(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to create agent skill")
 	}
 	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent skill created uid=%s flag=%s name=%s", getUID(ctx), row.Flag, row.Name)
 	ctx.Type("html")
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-skills-empty" hx-swap-oob="delete"></tr>`))
 	return partials.AgentSkillRow(agentSkillFromInput(input, now, now)).Render(reqCtx, ctx.Response().BodyWriter())
@@ -185,6 +190,7 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to update agent skill")
 	}
 	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent skill updated uid=%s flag=%s name=%s", getUID(ctx), flag, input.Name)
 	updated, err := loadAgentSkillModel(reqCtx, flag)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
@@ -212,6 +218,7 @@ func agentSkillDelete(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to delete agent skill")
 	}
 	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent skill deleted uid=%s flag=%s", getUID(ctx), flag)
 	items, err := store.Database.ListAgentSkills(reqCtx, false)
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
@@ -260,6 +267,8 @@ func validateAgentSkillForm(item model.AgentSkill, isNew bool) map[string]string
 	}
 	if strings.TrimSpace(item.Content) == "" {
 		errs["content"] = "Content is required"
+	} else if len(item.Content) > maxAgentSkillContentBytes {
+		errs["content"] = "Content exceeds maximum size"
 	}
 	return errs
 }
@@ -595,6 +604,8 @@ func validateAgentSkillFileForm(item model.AgentSkillFile, isNew bool) map[strin
 	}
 	if strings.TrimSpace(item.Content) == "" {
 		errs["content"] = "Content is required"
+	} else if len(item.Content) > maxAgentSkillContentBytes {
+		errs["content"] = "Content exceeds maximum size"
 	}
 	return errs
 }

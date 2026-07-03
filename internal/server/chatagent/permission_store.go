@@ -73,6 +73,9 @@ func loadUserPermissionConfig(ctx context.Context, uid types.Uid) (permission.Co
 
 // SaveUserPermissions persists one user's permission overrides.
 func SaveUserPermissions(ctx context.Context, uid types.Uid, cfg permission.Config) error {
+	if err := permission.ValidateUserConfig(cfg); err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "%v", err)
+	}
 	if store.Database == nil {
 		return types.ErrUnavailable
 	}

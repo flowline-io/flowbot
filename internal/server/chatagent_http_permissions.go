@@ -78,6 +78,6 @@ func (h *chatAgentHTTP) clearPermissionGrants(c fiber.Ctx) error {
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
-	chatagent.ClearSessionPermissionGrants(sessionID)
+	chatagent.ClearSessionPermissionGrants(c.Context(), sessionID)
 	return c.SendStatus(fiber.StatusNoContent)
 }

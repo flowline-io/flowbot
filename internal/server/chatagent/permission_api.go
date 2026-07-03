@@ -27,17 +27,26 @@ func BuildPermissionsView(ctx context.Context, uid types.Uid, sessionID string) 
 		Effective: permission.EffectiveConfig(user),
 	}
 	if sessionID != "" {
-		view.SessionGrants = permissionSessions.GetPermissionSession(sessionID).Grants()
+		view.SessionGrants = permissionSessions.GetPermissionSession(ctx, sessionID).Grants()
 	}
 	return view, nil
 }
 
 // ClearSessionPermissionGrants resets always grants and doom-loop counters for one session.
-func ClearSessionPermissionGrants(sessionID string) {
-	permissionSessions.GetPermissionSession(sessionID).Clear()
+func ClearSessionPermissionGrants(ctx context.Context, sessionID string) {
+	state := permissionSessions.GetPermissionSession(ctx, sessionID)
+	state.Clear()
+	PersistSessionGrants(ctx, sessionID, state)
 }
 
 // ParsePermissionsBody unmarshals a PUT /chatagent/permissions request body.
 func ParsePermissionsBody(raw []byte) (permission.Config, error) {
-	return permission.ParseConfig(raw)
+	cfg, err := permission.ParseConfig(raw)
+	if err != nil {
+		return nil, err
+	}
+	if err := permission.ValidateUserConfig(cfg); err != nil {
+		return nil, types.Errorf(types.ErrInvalidArgument, "%v", err)
+	}
+	return cfg, nil
 }

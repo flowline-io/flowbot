@@ -10,10 +10,10 @@ func TestActiveSubagentTools(t *testing.T) {
 		want   []string
 	}{
 		{
-			name:   "empty returns nil",
+			name:   "empty returns read-only default",
 			tools:  nil,
 			skills: nil,
-			want:   nil,
+			want:   []string{"read_file", "web_search"},
 		},
 		{
 			name:   "tools only",

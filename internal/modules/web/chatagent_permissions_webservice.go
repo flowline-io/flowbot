@@ -63,6 +63,10 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 		return renderError(ctx, "Invalid permission JSON")
 	}
 	if err := chatagent.SaveUserPermissions(ctx.Context(), uid, cfg); err != nil {
+		if errors.Is(err, types.ErrInvalidArgument) {
+			ctx.Status(http.StatusBadRequest)
+			return renderError(ctx, err.Error())
+		}
 		return types.Errorf(types.ErrInternal, "save permissions: %v", err)
 	}
 	ctx.Redirect().To("/service/web/chatagent-permissions")

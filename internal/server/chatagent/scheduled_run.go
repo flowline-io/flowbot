@@ -75,6 +75,7 @@ func runScheduledTaskPrompt(ctx context.Context, runSessionID string, task *gen.
 	return scheduledRunService.Run(runCtx, RunRequest{
 		SessionID: runSessionID,
 		Text:      task.Prompt,
+		Kind:      RunKindScheduled,
 	}, nil)
 }
 

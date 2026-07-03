@@ -83,6 +83,7 @@ var defaultSubagents = []*gen.AgentSubagent{
 			"tools, including reading and modifying project files when needed. Work in isolation, make reasonable " +
 			"assumptions, and return a concise, self-contained summary of what you found or did. Do not ask " +
 			"follow-up questions.",
+		Tools:   []string{"read_file", "write_file", "web_search", "run_terminal", "run_code"},
 		Source:  "builtin",
 		Enabled: true,
 	},

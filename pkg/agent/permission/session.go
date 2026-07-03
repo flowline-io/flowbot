@@ -12,6 +12,8 @@ import (
 
 const doomLoopThreshold = 3
 
+const maxGrantsPerKey = 32
+
 // SessionState holds per-session grants and doom-loop counters across runs.
 type SessionState struct {
 	mu         sync.Mutex
@@ -34,6 +36,9 @@ func (s *SessionState) AddGrant(key, pattern string) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if len(s.always[key]) >= maxGrantsPerKey {
+		return fmt.Errorf("too many grants for key %q", key)
+	}
 	s.always[key] = append(s.always[key], pattern)
 	return nil
 }
@@ -49,6 +54,16 @@ func (s *SessionState) Grants() map[string][]string {
 		out[key] = cp
 	}
 	return out
+}
+
+// RestoreGrants replaces always-allow patterns from persisted storage.
+func (s *SessionState) RestoreGrants(grants map[string][]string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.always = make(map[string][]string, len(grants))
+	for key, patterns := range grants {
+		s.always[key] = append([]string(nil), patterns...)
+	}
 }
 
 // Clear removes all session grants and doom-loop counters.
