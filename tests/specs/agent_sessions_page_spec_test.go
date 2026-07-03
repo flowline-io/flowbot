@@ -97,6 +97,10 @@ func (a *agentSessionsWebAdapter) ListChatSessionEntries(ctx context.Context, se
 		All(ctx)
 }
 
+func (a *agentSessionsWebAdapter) ListAgentPlansBySession(_ context.Context, _ string) ([]*gen.AgentPlan, error) {
+	return nil, nil
+}
+
 func (a *agentSessionsWebAdapter) GetChatSessionEntryInSession(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error) {
 	row, err := a.ent.ChatSessionEntry.Query().
 		Where(
