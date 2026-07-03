@@ -187,9 +187,34 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 
 		chatagent.WaitForSessionTitleGenerationForTest()
 		Expect(chatagent.SetSessionMode(ctx, sessionID, chatagent.ModeNormal)).To(Succeed())
-		reply, err = svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "now edit plan-mode-target.txt"}, nil)
+
+		// write_file requires approval by default; register a confirm gate and
+		// approve the pending request so the run can proceed, mirroring how an
+		// interactive client (cmd/chat or the HTTP SSE endpoint) resolves asks.
+		pub := chatagent.NewChannelPublisher(4)
+		gate := chatagent.NewConfirmGate(sessionID, pub)
+		runState := chatagent.NewAPIRunState(pub, gate)
+		Expect(chatagent.TrySetAPIRunState(sessionID, runState)).To(Succeed())
+		defer chatagent.ClearAPIRunState(sessionID, runState)
+
+		type runResult struct {
+			reply string
+			err   error
+		}
+		done := make(chan runResult, 1)
+		go func() {
+			r, runErr := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "now edit plan-mode-target.txt"}, nil)
+			done <- runResult{reply: r, err: runErr}
+		}()
+
+		Eventually(pub.Events(), "5s").Should(Receive(HaveField("Type", chatagent.EventTypeConfirm)))
+		_, err = chatagent.ResolveConfirm(sessionID, gate.ID(), true, chatagent.ConfirmModeOnce, "", chatagent.ConfirmReasonApproved)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(reply).To(ContainSubstring("updated"))
+
+		var result runResult
+		Eventually(done, "5s").Should(Receive(&result))
+		Expect(result.err).NotTo(HaveOccurred())
+		Expect(result.reply).To(ContainSubstring("updated"))
 
 		_, statErr = os.Stat(filepath.Join(wsDir, target))
 		Expect(statErr).NotTo(HaveOccurred())
