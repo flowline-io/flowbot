@@ -78,6 +78,101 @@ func (s *messageDirectStore) CreateMessage(_ context.Context, message gen.Messag
 	return nil
 }
 
+func TestBuildDirectMessageContextSetsTopicAndPlatform(t *testing.T) {
+	tests := []struct {
+		name          string
+		data          protocol.MessageEventData
+		wantTopic     string
+		wantPlatform  string
+	}{
+		{
+			name: "sets topic and platform on module context",
+			data: protocol.MessageEventData{
+				Self:       protocol.Self{Platform: "slack", UserId: "U01DMQDTV5W"},
+				UserId:     "U01DMQDTV5W",
+				TopicId:    "D06EN8RGU6S",
+				TopicType:  "im",
+				MessageId:  "msg-1",
+				AltMessage: "hub health",
+			},
+			wantTopic:    "existing-channel",
+			wantPlatform: "slack",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storeStub := &directMessageContextStore{
+				platform: &gen.Platform{ID: 7, Name: "slack"},
+				platformUser: &gen.PlatformUser{
+					ID:     11,
+					UserID: 42,
+					Flag:   "U01DMQDTV5W",
+				},
+				user: &gen.User{ID: 42, Flag: "user-flag"},
+				platformChannel: &gen.PlatformChannel{
+					ID:        12,
+					ChannelID: 88,
+					Flag:      "D06EN8RGU6S",
+				},
+				channel: &gen.Channel{ID: 88, Flag: "existing-channel"},
+			}
+			orig := store.Database
+			store.Database = storeStub
+			t.Cleanup(func() { store.Database = orig })
+
+			dmCtx, err := buildDirectMessageContext(t.Context(), "evt-1", tt.data)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantTopic, dmCtx.topic)
+			assert.Equal(t, tt.wantTopic, dmCtx.ctx.Topic)
+			assert.Equal(t, tt.wantPlatform, dmCtx.ctx.Platform)
+		})
+	}
+}
+
+type directMessageContextStore struct {
+	testStoreAdapter
+	platform        *gen.Platform
+	platformUser    *gen.PlatformUser
+	user            *gen.User
+	platformChannel *gen.PlatformChannel
+	channel         *gen.Channel
+}
+
+func (s *directMessageContextStore) GetPlatformByName(_ context.Context, name string) (*gen.Platform, error) {
+	if s.platform == nil || s.platform.Name != name {
+		return nil, types.ErrNotFound
+	}
+	return s.platform, nil
+}
+
+func (s *directMessageContextStore) GetPlatformUserByFlag(_ context.Context, flag string) (*gen.PlatformUser, error) {
+	if s.platformUser == nil || s.platformUser.Flag != flag {
+		return nil, types.ErrNotFound
+	}
+	return s.platformUser, nil
+}
+
+func (s *directMessageContextStore) GetUserById(_ context.Context, id int64) (*gen.User, error) {
+	if s.user == nil || s.user.ID != id {
+		return nil, types.ErrNotFound
+	}
+	return s.user, nil
+}
+
+func (s *directMessageContextStore) GetPlatformChannelByFlag(_ context.Context, flag string) (*gen.PlatformChannel, error) {
+	if s.platformChannel == nil || s.platformChannel.Flag != flag {
+		return nil, types.ErrNotFound
+	}
+	return s.platformChannel, nil
+}
+
+func (s *directMessageContextStore) GetChannel(_ context.Context, id int64) (*gen.Channel, error) {
+	if s.channel == nil || s.channel.ID != id {
+		return nil, types.ErrNotFound
+	}
+	return s.channel, nil
+}
+
 func TestIsDuplicateDirectMessage(t *testing.T) {
 	tests := []struct {
 		name             string

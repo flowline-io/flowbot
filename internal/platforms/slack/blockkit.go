@@ -258,6 +258,35 @@ type ActionCardDef struct {
 	Footer      string
 }
 
+const actionCardMaxBlockLen = 2900
+
+// descriptionBlocks renders action-card body text in fenced code blocks so YAML
+// and other structured content is not parsed as Slack mrkdwn.
+func descriptionBlocks(description string) []slack.Block {
+	if description == "" {
+		return nil
+	}
+
+	lines := strings.Split(description, "\n")
+	var blocks []slack.Block
+	var chunk []string
+	chunkLen := 0
+	for _, line := range lines {
+		extra := len(line) + 1
+		if chunkLen+extra > actionCardMaxBlockLen && len(chunk) > 0 {
+			blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
+			chunk = nil
+			chunkLen = 0
+		}
+		chunk = append(chunk, line)
+		chunkLen += extra
+	}
+	if len(chunk) > 0 {
+		blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
+	}
+	return blocks
+}
+
 // buildActionCard builds an action card from the definition.
 func buildActionCard(card ActionCardDef) []slack.Block {
 	var blocks []slack.Block
@@ -265,9 +294,7 @@ func buildActionCard(card ActionCardDef) []slack.Block {
 	if card.Title != "" {
 		blocks = append(blocks, header(card.Title))
 	}
-	if card.Description != "" {
-		blocks = append(blocks, section(card.Description))
-	}
+	blocks = append(blocks, descriptionBlocks(card.Description)...)
 	if card.ImageURL != "" {
 		blocks = append(blocks, imageBlock(card.ImageURL, card.Title, card.Title))
 	}

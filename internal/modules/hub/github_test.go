@@ -6,10 +6,25 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	providergithub "github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
+
+func TestGithubOAuthUsesGithubProvider(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "github oauth provider id is github not hub module name"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, "github", providergithub.ID)
+			assert.NotEqual(t, Name, providergithub.ID)
+		})
+	}
+}
 
 func TestGithubCommandRules_Metadata(t *testing.T) {
 	t.Parallel()

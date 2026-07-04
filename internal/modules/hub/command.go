@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/providers"
+	providergithub "github.com/flowline-io/flowbot/pkg/providers/github"
 	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
@@ -187,7 +188,7 @@ var commandRules = []command.Rule{
 		Define: "github oauth",
 		Help:   `OAuth`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
-			oauth, err := providers.GetOrRefreshToken(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
+			oauth, err := providers.GetOrRefreshToken(ctx.Context(), ctx.AsUser, ctx.Topic, providergithub.ID)
 			if err != nil && !errors.Is(err, types.ErrNotFound) {
 				flog.Error(err)
 			}
@@ -204,7 +205,7 @@ var commandRules = []command.Rule{
 				return nil
 			}
 
-			p, err := providers.GetOAuthProvider(Name)
+			p, err := providers.GetOAuthProvider(providergithub.ID)
 			if err != nil {
 				flog.Error(err)
 				return nil
@@ -242,7 +243,7 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			text, _ := tokens[1].Value.String()
 
-			oauth, err := providers.GetOrRefreshToken(ctx.Context(), ctx.AsUser, ctx.Topic, Name)
+			oauth, err := providers.GetOrRefreshToken(ctx.Context(), ctx.AsUser, ctx.Topic, providergithub.ID)
 			if err != nil {
 				return nil
 			}

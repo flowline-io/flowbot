@@ -73,7 +73,12 @@ func buildDirectMessageContext(eventCtx context.Context, eventID string, msg pro
 		return directMessageContext{}, err
 	}
 
-	ctx := types.Context{Id: eventID, AsUser: uid}
+	ctx := types.Context{
+		Id:       eventID,
+		AsUser:   uid,
+		Topic:    topic,
+		Platform: msg.Self.Platform,
+	}
 	ctx.SetContext(eventCtx)
 	ctx.SetTimeout(10 * time.Minute)
 

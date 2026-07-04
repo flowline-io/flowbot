@@ -694,3 +694,50 @@ func TestTableLinesToBlocks(t *testing.T) {
 		})
 	}
 }
+
+func TestDescriptionBlocks(t *testing.T) {
+	tests := []struct {
+		name        string
+		description string
+		wantBlocks  int
+		wantContain string
+	}{
+		{
+			name:        "empty description",
+			description: "",
+			wantBlocks:  0,
+		},
+		{
+			name:        "yaml with underscores is fenced",
+			description: "status: healthy\napp_statuses:\n  - name: flowbot\n    health: healthy",
+			wantBlocks:  1,
+			wantContain: "app_statuses",
+		},
+		{
+			name:        "long description is split",
+			description: strings.Repeat("line\n", 650),
+			wantBlocks:  2,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			blocks := descriptionBlocks(tt.description)
+			if len(blocks) != tt.wantBlocks {
+				t.Fatalf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
+			}
+			if tt.wantContain == "" || len(blocks) == 0 {
+				return
+			}
+			sec, ok := blocks[0].(*slack.SectionBlock)
+			if !ok {
+				t.Fatalf("expected section block, got %T", blocks[0])
+			}
+			if !strings.Contains(sec.Text.Text, tt.wantContain) {
+				t.Fatalf("expected section to contain %q, got %q", tt.wantContain, sec.Text.Text)
+			}
+			if !strings.Contains(sec.Text.Text, "```") {
+				t.Fatalf("expected fenced code block, got %q", sec.Text.Text)
+			}
+		})
+	}
+}
