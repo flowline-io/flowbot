@@ -26,6 +26,9 @@ COPY --from=builder /opt/app/flowbot .
 COPY --from=builder /opt/app/composer /usr/local/bin/composer
 COPY --from=builder /opt/app/public ./public
 
+RUN mkdir -p /opt/app/chat-workspace
+RUN chown -R 1000:1000 /opt/app/chat-workspace
+RUN chmod -R 775 /opt/app/chat-workspace
 RUN chmod +x flowbot
 
 ARG VERSION=dev
