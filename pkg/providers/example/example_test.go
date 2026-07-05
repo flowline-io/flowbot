@@ -402,12 +402,16 @@ func TestGetWithDelay(t *testing.T) {
 func TestListRawEvents(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name    string
-		cursor  string
-		wantErr bool
+		name         string
+		cursor       string
+		wantPage     string
+		wantNext     string
+		wantItemLen  int
+		wantErr      bool
 	}{
-		{name: "list with no cursor", cursor: ""},
-		{name: "list with cursor pagination", cursor: "1"},
+		{name: "first page without cursor", cursor: "", wantPage: "1", wantNext: "2", wantItemLen: 1},
+		{name: "explicit page one", cursor: "1", wantPage: "1", wantNext: "2", wantItemLen: 1},
+		{name: "second page", cursor: "2", wantPage: "2", wantNext: "3", wantItemLen: 1},
 		{name: "connection error", cursor: "", wantErr: true},
 	}
 	for _, tt := range tests {
@@ -419,9 +423,8 @@ func TestListRawEvents(t *testing.T) {
 			} else {
 				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					assert.Equal(t, "/posts", r.URL.Path)
-					if tt.cursor != "" {
-						assert.Equal(t, tt.cursor, r.URL.Query().Get("_page"))
-					}
+					assert.Equal(t, tt.wantPage, r.URL.Query().Get("_page"))
+					assert.Equal(t, "1", r.URL.Query().Get("_limit"))
 					w.Header().Set("Content-Type", "application/json")
 					_, _ = w.Write([]byte(`[{"userId":1,"id":1,"title":"hello","body":"world"}]`))
 				}))
@@ -435,12 +438,8 @@ func TestListRawEvents(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.NotEmpty(t, items)
-			if tt.cursor == "1" {
-				assert.Equal(t, "2", next)
-			} else {
-				assert.Empty(t, next)
-			}
+			assert.Len(t, items, tt.wantItemLen)
+			assert.Equal(t, tt.wantNext, next)
 		})
 	}
 }

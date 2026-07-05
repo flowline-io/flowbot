@@ -43,9 +43,12 @@ func (*ExamplePoller) ResourceName() string {
 	return "example/events"
 }
 
+// examplePollInterval limits demo polling to one batch per day.
+const examplePollInterval = 24 * time.Hour
+
 // DefaultInterval returns the recommended polling interval.
 func (*ExamplePoller) DefaultInterval() time.Duration {
-	return 60 * time.Second
+	return examplePollInterval
 }
 
 // DiffKey returns the unique identifier for an item, used for change detection.

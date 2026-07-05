@@ -135,24 +135,27 @@ func (e *Example) GetWithDelay(ctx context.Context, seconds int) (*Response, err
 	return resp, nil
 }
 
-// ListRawEvents fetches jsonplaceholder posts as a list for polling demonstration.
-// The cursor is used as a page number for pagination.
+// ListRawEvents fetches one jsonplaceholder post per call for polling demonstration.
+// The cursor is a 1-based page number; each poll advances by one post per day.
 func (e *Example) ListRawEvents(ctx context.Context, cursor string) ([]map[string]any, string, error) {
-	var raw []map[string]any
-	req := e.c.R().SetContext(ctx).SetResult(&raw)
+	page := 1
 	if cursor != "" {
-		req.SetQueryParam("_page", cursor)
+		p, parseErr := strconv.Atoi(cursor)
+		if parseErr == nil && p > 0 {
+			page = p
+		}
 	}
-	_, err := req.Get("/posts")
+	var raw []map[string]any
+	_, err := e.c.R().SetContext(ctx).SetResult(&raw).
+		SetQueryParam("_page", strconv.Itoa(page)).
+		SetQueryParam("_limit", "1").
+		Get("/posts")
 	if err != nil {
 		return nil, "", fmt.Errorf("example list raw: %w", err)
 	}
 	nextCursor := ""
-	if len(raw) > 0 && cursor != "" {
-		page, parseErr := strconv.Atoi(cursor)
-		if parseErr == nil {
-			nextCursor = strconv.Itoa(page + 1)
-		}
+	if len(raw) > 0 {
+		nextCursor = strconv.Itoa(page + 1)
 	}
 	return raw, nextCursor, nil
 }

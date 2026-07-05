@@ -46,7 +46,7 @@ func TestExamplePoller_ResourceName(t *testing.T) {
 func TestExamplePoller_DefaultInterval(t *testing.T) {
 	t.Parallel()
 	p := NewPollerWithService(&fakePollerService{})
-	assert.Equal(t, 60*time.Second, p.DefaultInterval())
+	assert.Equal(t, 24*time.Hour, p.DefaultInterval())
 }
 
 func TestExamplePoller_CursorField(t *testing.T) {

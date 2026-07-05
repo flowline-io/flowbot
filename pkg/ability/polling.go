@@ -27,6 +27,8 @@ func (m *EventSourceManager) startPolling(_ context.Context) error {
 			storedEntry := m.stateStore.Get(name)
 			if storedEntry.Cursor != "" {
 				entry.cursor = storedEntry.Cursor
+			}
+			if len(storedEntry.KnownHashes) > 0 {
 				entry.knownHashes = storedEntry.KnownHashes
 			}
 		}
