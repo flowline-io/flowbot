@@ -13,6 +13,25 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers"
 )
 
+// unreachableAddr is a loopback address on a different IP than httptest.NewServer's 127.0.0.1.
+// Using a separate IP prevents the kernel from reassigning a closed server's port to another
+// parallel test server, which would cause the subsequent request to land on the wrong handler.
+const unreachableAddr = "http://127.0.0.2:1"
+
+// testServerURL returns an httptest server URL or unreachableAddr for connection-error cases.
+func testServerURL(t *testing.T, handler http.HandlerFunc, connErr bool) string {
+	t.Helper()
+	if connErr {
+		return unreachableAddr
+	}
+	if handler == nil {
+		handler = func(_ http.ResponseWriter, _ *http.Request) {}
+	}
+	srv := httptest.NewServer(handler)
+	t.Cleanup(srv.Close)
+	return srv.URL
+}
+
 func TestGetClient_Defaults(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -94,7 +113,7 @@ func TestGetAppInfo(t *testing.T) {
 		name     string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name: "successful app info",
@@ -108,7 +127,7 @@ func TestGetAppInfo(t *testing.T) {
 		{
 			name:     "connection error",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name: "server error response",
@@ -123,17 +142,7 @@ func TestGetAppInfo(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.GetAppInfo(context.Background())
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -153,7 +162,7 @@ func TestCreateNote(t *testing.T) {
 		req      CreateNoteDef
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name: "successful create note",
@@ -176,7 +185,7 @@ func TestCreateNote(t *testing.T) {
 			name:     "connection error",
 			req:      CreateNoteDef{ParentNoteID: "root", Title: "Test", Type: "text", Content: "content"},
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name: "server error on create",
@@ -197,17 +206,7 @@ func TestCreateNote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.CreateNote(context.Background(), tt.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -228,7 +227,7 @@ func TestGetNote(t *testing.T) {
 		noteID   string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:   "successful get note",
@@ -244,7 +243,7 @@ func TestGetNote(t *testing.T) {
 			name:     "connection error",
 			noteID:   "note123",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name:   "not found",
@@ -260,17 +259,7 @@ func TestGetNote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.GetNote(context.Background(), tt.noteID)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -291,7 +280,7 @@ func TestPatchNote(t *testing.T) {
 		req      PatchNoteRequest
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:   "successful patch title",
@@ -309,7 +298,7 @@ func TestPatchNote(t *testing.T) {
 			noteID:   "note123",
 			req:      PatchNoteRequest{Title: "Test"},
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name:   "patch with bad request",
@@ -326,17 +315,7 @@ func TestPatchNote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.PatchNote(context.Background(), tt.noteID, tt.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -355,7 +334,7 @@ func TestDeleteNote(t *testing.T) {
 		noteID   string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:   "successful delete",
@@ -370,7 +349,7 @@ func TestDeleteNote(t *testing.T) {
 			name:     "connection error",
 			noteID:   "note123",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name:   "not found on delete",
@@ -386,17 +365,7 @@ func TestDeleteNote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			err := c.DeleteNote(context.Background(), tt.noteID)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -414,7 +383,7 @@ func TestSearchNotes(t *testing.T) {
 		params   SearchParams
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:   "successful search",
@@ -432,7 +401,7 @@ func TestSearchNotes(t *testing.T) {
 			name:     "connection error",
 			params:   SearchParams{Search: "*"},
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name: "search with all params",
@@ -466,17 +435,7 @@ func TestSearchNotes(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.SearchNotes(context.Background(), tt.params)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -495,7 +454,7 @@ func TestGetNoteContent(t *testing.T) {
 		noteID   string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:   "successful get content",
@@ -511,7 +470,7 @@ func TestGetNoteContent(t *testing.T) {
 			name:     "connection error",
 			noteID:   "note123",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name:   "not found",
@@ -527,17 +486,7 @@ func TestGetNoteContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			content, err := c.GetNoteContent(context.Background(), tt.noteID)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -557,7 +506,7 @@ func TestUpdateNoteContent(t *testing.T) {
 		content  string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:    "successful update content",
@@ -574,7 +523,7 @@ func TestUpdateNoteContent(t *testing.T) {
 			noteID:   "note123",
 			content:  "test",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name:    "server error",
@@ -591,17 +540,7 @@ func TestUpdateNoteContent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			err := c.UpdateNoteContent(context.Background(), tt.noteID, tt.content)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -619,7 +558,7 @@ func TestLogin(t *testing.T) {
 		password string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name:     "successful login",
@@ -638,7 +577,7 @@ func TestLogin(t *testing.T) {
 			name:     "connection error",
 			password: "test",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name:     "wrong password",
@@ -654,17 +593,7 @@ func TestLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			token, err := c.Login(context.Background(), tt.password)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -682,7 +611,7 @@ func TestLogout(t *testing.T) {
 		name     string
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name: "successful logout",
@@ -695,7 +624,7 @@ func TestLogout(t *testing.T) {
 		{
 			name:     "connection error",
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name: "server error on logout",
@@ -710,17 +639,7 @@ func TestLogout(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			err := c.Logout(context.Background())
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -738,7 +657,7 @@ func TestCreateBranch(t *testing.T) {
 		req      BranchRequest
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name: "successful create branch",
@@ -759,7 +678,7 @@ func TestCreateBranch(t *testing.T) {
 			name:     "connection error",
 			req:      BranchRequest{NoteID: "n1", ParentNoteID: "p1"},
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name: "branch already exists returns 200",
@@ -774,17 +693,7 @@ func TestCreateBranch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.CreateBranch(context.Background(), tt.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -803,7 +712,7 @@ func TestCreateAttribute(t *testing.T) {
 		req      CreateAttribute
 		handler  http.HandlerFunc
 		wantErr  bool
-		closeSrv bool
+		connErr  bool
 	}{
 		{
 			name: "successful create label",
@@ -825,7 +734,7 @@ func TestCreateAttribute(t *testing.T) {
 			name:     "connection error",
 			req:      CreateAttribute{NoteID: "n1", Type: "label", Name: "test"},
 			wantErr:  true,
-			closeSrv: true,
+			connErr:  true,
 		},
 		{
 			name: "create relation",
@@ -845,17 +754,7 @@ func TestCreateAttribute(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			handler := tt.handler
-			if handler == nil {
-				handler = func(_ http.ResponseWriter, _ *http.Request) {}
-			}
-			srv := httptest.NewServer(handler)
-			c := NewTrilium(srv.URL, "test-token")
-			if tt.closeSrv {
-				srv.Close()
-			} else {
-				defer srv.Close()
-			}
+			c := NewTrilium(testServerURL(t, tt.handler, tt.connErr), "test-token")
 			resp, err := c.CreateAttribute(context.Background(), tt.req)
 			if tt.wantErr {
 				assert.Error(t, err)
