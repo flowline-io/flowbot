@@ -125,24 +125,19 @@ func (r *Runtime) doRun(ctx context.Context, t *types.Task) error {
 
 	go readProcessOutput(stdout)
 
-	errChan := make(chan error)
-	doneChan := make(chan any)
+	waitDone := make(chan error, 1)
 	go func() {
-		if err := cmd.Wait(); err != nil {
-			errChan <- err
-			return
-		}
-		close(doneChan)
+		waitDone <- cmd.Wait()
 	}()
 	select {
-	case err := <-errChan:
-		return fmt.Errorf("error executing command, %w", err)
-	case <-ctx.Done():
-		if err := cmd.Process.Kill(); err != nil {
-			return fmt.Errorf("error canceling command, %w", err)
+	case err := <-waitDone:
+		if err != nil {
+			return fmt.Errorf("error executing command, %w", err)
 		}
+	case <-ctx.Done():
+		_ = cmd.Process.Kill()
+		<-waitDone
 		return ctx.Err()
-	case <-doneChan:
 	}
 
 	output, err := os.ReadFile(fmt.Sprintf("%s/stdout", workdir))
@@ -217,7 +212,15 @@ func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
 	)
 
-	if err := os.WriteFile(fmt.Sprintf("%s/entrypoint", workdir), []byte(t.Run), 0555); err != nil {
+	entrypointPath := fmt.Sprintf("%s/entrypoint", workdir)
+	tmpPath := entrypointPath + ".tmp"
+	if err := os.WriteFile(tmpPath, []byte(t.Run), 0700); err != nil {
+		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
+	}
+	if err := os.Rename(tmpPath, entrypointPath); err != nil {
+		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
+	}
+	if err := os.Chmod(entrypointPath, 0555); err != nil {
 		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
 	}
 

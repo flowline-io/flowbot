@@ -48,7 +48,7 @@ for entry in $(env); do
     export "$key"="$value"
   fi
 done
-exec bash -c "$@"
+exec bash -c "$(cat "$2")"
 `
 
 	if len(cmdArgs) >= 3 && cmdArgs[0] == "bash" && cmdArgs[1] == "-c" {
