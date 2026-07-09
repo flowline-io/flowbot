@@ -1979,8 +1979,8 @@ mvdan.cc/sh/v3 v3.12.1-0.20260124232039-e74afc18e65b h1:PUPnLxbDzRO9kg/03l7TZk7+
 mvdan.cc/sh/v3 v3.12.1-0.20260124232039-e74afc18e65b/go.mod h1:mencVHx2sy9XZG5wJbCA9nRUOE3zvMtoRXOmXMxH7sc=
 pgregory.net/rapid v1.2.0 h1:keKAYRcjm+e1F0oAuU5F5+YPAWcyxNNRK2wud503Gnk=
 pgregory.net/rapid v1.2.0/go.mod h1:PY5XlDGj0+V1FCq0o192FdRhpKHGTRIWBgqjDBTrq04=
-resty.dev/v3 v3.0.0-rc.2 h1:NE6RqPkUd27eQ5dFSb5tfyT3s6XX9ZySp9qZ7Nw1bn0=
-resty.dev/v3 v3.0.0-rc.2/go.mod h1:NTOerrC/4T7/FE6tXIZGIysXXBdgNqwMZuKtxpea9NM=
+resty.dev/v3 v3.0.0-rc.3 h1:k24LZ03Cb4Ue5e6O/Pfxu5TQRBBYGES6wm2wceia+Io=
+resty.dev/v3 v3.0.0-rc.3/go.mod h1:NTOerrC/4T7/FE6tXIZGIysXXBdgNqwMZuKtxpea9NM=
 rsc.io/binaryregexp v0.2.0/go.mod h1:qTv7/COck+e2FymRvadv62gMdZztPaShugOCi3I+8D8=
 rsc.io/qr v0.2.0 h1:6vBLea5/NRMVTz8V66gipeLycZMl/+UlFmk8DvqQ6WY=
 rsc.io/qr v0.2.0/go.mod h1:IF+uZjkb9fqyeF/4tlBoynqmQxUoPfWEKh921coOuXs=
