@@ -28,6 +28,8 @@ docker build -f deployments/Dockerfile -t flowbot .
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 ```
 
+For the Cloud Agent ephemeral sandbox image (`flowbot-agent-sandbox`), see [Agent Sandbox](../agent/agent-sandbox.md).
+
 ### 3. Systemd Service
 
 For headless Linux deployments, run the main server under systemd:
@@ -72,6 +74,7 @@ GitHub Actions workflows (`.github/workflows/`):
 | `testing.yml`   | Run all tests      |
 | `build_cli.yml` | Build CLI tools    |
 | `docker.yml`    | Build Docker image |
+| `docker-agent-sandbox.yml` | Build agent sandbox image (`sandbox-v*` tags) |
 | `release.yml`   | Release pipeline   |
 
 ## Health Checks

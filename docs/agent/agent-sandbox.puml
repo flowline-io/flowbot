@@ -1,0 +1,53 @@
+@startuml Agent Sandbox
+' =============================================================================
+' Flowbot Agent Sandbox Image (flowbot-agent-sandbox)
+' Render: plantuml docs/agent/agent-sandbox.puml
+' =============================================================================
+
+skinparam componentStyle rectangle
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+
+title Flowbot — Agent Sandbox Image (Cloud Agent ephemeral container)
+
+package "CI" as CI #E3F2FD {
+  [git tag sandbox-v*] as Tag
+  [docker-agent-sandbox.yml] as Workflow
+}
+
+cloud "GHCR" as GHCR #E8F5E9 {
+  [flowbot-agent-sandbox:base] as BaseImg
+  [flowbot-agent-sandbox:playwright] as PWImg
+}
+
+package "Cloud Agent Orchestrator" as Orch #FFF9C4 {
+  [Spawn ephemeral container] as Spawn
+  [Mount /workspace] as Mount
+  [Inject command] as Cmd
+}
+
+package "Agent run" as Run #F3E5F5 {
+  [git clone / build / test] as Tasks
+}
+
+Tag --> Workflow
+Workflow --> BaseImg
+Workflow --> PWImg
+Orch --> BaseImg : pull pinned tag
+Orch --> PWImg : optional browser tasks
+Spawn --> Mount
+Mount --> Cmd
+Cmd --> Tasks
+
+note right of BaseImg
+  Pre-installed:
+  git, Go, Node, Python,
+  ripgrep, jq, build tools
+end note
+
+note right of PWImg
+  base + Chromium
+  (Playwright)
+end note
+
+@enduml

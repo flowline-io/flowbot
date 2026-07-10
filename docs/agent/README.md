@@ -17,6 +17,7 @@ This package is distinct from:
 | -------- | ----------- |
 | [Architecture](./architecture.md) | Layering, data flows, package map, design rules |
 | [Developer Guide](./developer-guide.md) | API usage, tools, sessions, hooks, testing |
+| [Agent Sandbox](./agent-sandbox.md) | Cloud Agent ephemeral Docker image (`flowbot-agent-sandbox`) |
 | [Diagram](./agent.puml) | PlantUML component diagram (render with PlantUML) |
 
 ## Quick Start

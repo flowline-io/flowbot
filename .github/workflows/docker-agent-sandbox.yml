@@ -1,0 +1,136 @@
+name: Docker Agent Sandbox
+
+on:
+  push:
+    tags:
+      - sandbox-v*
+  workflow_dispatch:
+    inputs:
+      tag_suffix:
+        description: 'Optional tag suffix (e.g. dev-abc1234)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: base
+            meta_tags: |
+              type=match,pattern=sandbox-v(\d+\.\d+\.\d+),group=1
+              type=match,pattern=sandbox-v(\d+\.\d+)\.\d+,group=1
+              type=raw,value=latest,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/sandbox-v') }}
+              type=ref,event=tag
+              type=raw,value=dev-${{ github.sha }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix == '' }}
+          - target: playwright
+            meta_tags: |
+              type=match,pattern=sandbox-v(\d+\.\d+\.\d+),group=1,prefix=playwright-
+              type=match,pattern=sandbox-v(\d+\.\d+)\.\d+,group=1,prefix=playwright-
+              type=raw,value=playwright,enable=${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/sandbox-v') }}
+              type=ref,event=tag,prefix=playwright-
+              type=raw,value=playwright-dev-${{ github.sha }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix == '' }}
+
+    steps:
+      - name: Checkout server repo
+        uses: actions/checkout@v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Generate docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/flowline-io/flowbot-agent-sandbox
+          tags: |
+            ${{ matrix.meta_tags }}
+            type=raw,value=${{ inputs.tag_suffix }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix != '' && matrix.target == 'base' }}
+            type=raw,value=playwright-${{ inputs.tag_suffix }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.tag_suffix != '' && matrix.target == 'playwright' }}
+
+      - name: Set build date
+        id: date
+        run: echo "date=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+
+      - name: Set image version
+        id: version
+        run: |
+          ref_name="${{ github.ref_name }}"
+          tag_suffix="${{ inputs.tag_suffix }}"
+          if [[ "${{ github.ref_type }}" == "tag" ]] && [[ "$ref_name" == sandbox-v* ]]; then
+            echo "value=$ref_name" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$tag_suffix" ]]; then
+            echo "value=$tag_suffix" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=dev-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push agent sandbox
+        uses: docker/build-push-action@v7
+        with:
+          context: deployments/agent-sandbox
+          file: deployments/agent-sandbox/Dockerfile
+          target: ${{ matrix.target }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ steps.version.outputs.value }}
+            BUILD_DATE=${{ steps.date.outputs.date }}
+            VCS_REF=${{ github.sha }}
+          cache-from: type=gha,scope=agent-sandbox-${{ matrix.target }}
+          cache-to: type=gha,mode=max,scope=agent-sandbox-${{ matrix.target }}
+          annotations: ${{ steps.meta.outputs.annotations }}
+
+      - name: Resolve smoke test tag
+        id: smoketag
+        run: |
+          ref_name="${{ github.ref_name }}"
+          tag_suffix="${{ inputs.tag_suffix }}"
+          target="${{ matrix.target }}"
+          if [[ "${{ github.ref_type }}" == "tag" ]] && [[ "$ref_name" == sandbox-v* ]]; then
+            version="${ref_name#sandbox-v}"
+            if [[ "$target" == "playwright" ]]; then
+              echo "value=playwright-${version}" >> "$GITHUB_OUTPUT"
+            else
+              echo "value=${version}" >> "$GITHUB_OUTPUT"
+            fi
+          elif [[ -n "$tag_suffix" ]]; then
+            if [[ "$target" == "playwright" ]]; then
+              echo "value=playwright-${tag_suffix}" >> "$GITHUB_OUTPUT"
+            else
+              echo "value=${tag_suffix}" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            if [[ "$target" == "playwright" ]]; then
+              echo "value=playwright-dev-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            else
+              echo "value=dev-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Smoke test image
+        run: |
+          IMAGE="ghcr.io/flowline-io/flowbot-agent-sandbox:${{ steps.smoketag.outputs.value }}"
+          docker pull "$IMAGE"
+          docker run --rm "$IMAGE" bash -lc \
+            'git --version && go version && node --version && python3 --version'
+          if [[ "${{ matrix.target }}" == "playwright" ]]; then
+            docker run --rm "$IMAGE" bash -lc 'npx playwright --version'
+          fi
