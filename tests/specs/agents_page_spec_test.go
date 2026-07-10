@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -100,6 +101,13 @@ func (a *agentsWebAdapter) CreateChatSession(ctx context.Context, session *gen.C
 		SetUpdatedAt(session.UpdatedAt).
 		Save(ctx)
 	return err
+}
+
+func (a *agentsWebAdapter) ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
+	return a.ent.ChatSessionEntry.Query().
+		Where(chatsessionentry.SessionIDEQ(sessionID)).
+		Order(gen.Asc(chatsessionentry.FieldCreatedAt)).
+		All(ctx)
 }
 
 var _ = Describe("Agents UI", Label("module", "web"), func() {
