@@ -1,0 +1,34 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentScheduledTaskRow(item model.AgentScheduledTask) {
+	<tr class="hover">
+		<td class="max-w-xs">
+			<a href={ AgentScheduledTaskDetailURL(item.TaskID) }
+				class="link link-primary font-medium"
+				data-testid="agent-scheduled-task-name-link">
+				if item.Name != "" {
+					{ item.Name }
+				} else {
+					{ item.TaskID }
+				}
+			</a>
+		</td>
+		<td>
+			<a href={ AgentScheduledTaskDetailURL(item.TaskID) }
+				class="link link-hover font-mono text-sm"
+				data-testid="agent-scheduled-task-link">
+				{ item.TaskID }
+			</a>
+		</td>
+		<td>{ AgentScheduledTaskKindLabel(item.ScheduleKind) }</td>
+		<td class="font-mono text-xs">{ AgentScheduledTaskScheduleSummary(item) }</td>
+		<td><span class={ AgentScheduledTaskStateBadgeClass(item.State) }>{ item.State }</span></td>
+		<td class="text-xs whitespace-nowrap">{ AgentScheduledTaskTimeOrDash(item.NextRunAt) }</td>
+		<td class="text-xs whitespace-nowrap">{ AgentScheduledTaskTimeOrDash(item.LastRunAt) }</td>
+		<td class="text-xs whitespace-nowrap">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+	</tr>
+}

@@ -1,0 +1,70 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.AgentScheduledTaskRun) {
+	@layout.Base(partials.AgentScheduledTaskPageTitle(task)) {
+		<div class="mb-4">
+			<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>
+		</div>
+		<div class="card bg-base-100 shadow-sm mb-6">
+			<div class="card-body">
+				<h1 class="card-title text-2xl">
+					if task.Name != "" {
+						{ task.Name }
+					} else {
+						{ task.TaskID }
+					}
+				</h1>
+				<p class="font-mono text-sm text-base-content/60">{ task.TaskID }</p>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-base-content/70 mt-2">
+					<div>
+						<span class="text-base-content/50">State:</span>
+						<span class={ partials.AgentScheduledTaskStateBadgeClass(task.State) }>{ task.State }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">Kind:</span>
+						<span class="ml-1">{ partials.AgentScheduledTaskKindLabel(task.ScheduleKind) }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">Schedule:</span>
+						<code class="text-xs ml-1">{ partials.AgentScheduledTaskScheduleSummary(task) }</code>
+					</div>
+					<div>
+						<span class="text-base-content/50">Source Session:</span>
+						if task.SourceSessionID != "" {
+							<a href={ "/service/web/agent-sessions/" + task.SourceSessionID } class="link link-hover font-mono text-xs ml-1">{ task.SourceSessionID }</a>
+						} else {
+							<span class="text-base-content/30 ml-1">-</span>
+						}
+					</div>
+					<div>
+						<span class="text-base-content/50">Next Run:</span>
+						<span class="ml-1">{ partials.AgentScheduledTaskTimeOrDash(task.NextRunAt) }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">Last Run:</span>
+						<span class="ml-1">{ partials.AgentScheduledTaskTimeOrDash(task.LastRunAt) }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">Created:</span>
+						<span class="ml-1">{ task.CreatedAt.Format("2006-01-02 15:04:05") }</span>
+					</div>
+					<div>
+						<span class="text-base-content/50">Updated:</span>
+						<span class="ml-1">{ task.UpdatedAt.Format("2006-01-02 15:04:05") }</span>
+					</div>
+				</div>
+				<div class="mt-4">
+					<div class="text-sm font-semibold mb-2">Prompt</div>
+					<pre class="bg-base-200 rounded-box p-4 whitespace-pre-wrap text-sm" data-testid="agent-scheduled-task-prompt">{ task.Prompt }</pre>
+				</div>
+			</div>
+		</div>
+		@partials.AgentScheduledTaskRunsTable(runs)
+	}
+}

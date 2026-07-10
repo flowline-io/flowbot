@@ -1,0 +1,36 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentScheduledTaskTable(items []model.AgentScheduledTask) {
+	<div class="card bg-base-100 shadow-sm" id="agent-scheduled-tasks-table" data-testid="agent-scheduled-tasks-table">
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr>
+						<th class="text-xs uppercase">Name</th>
+						<th class="text-xs uppercase">Task ID</th>
+						<th class="text-xs uppercase">Kind</th>
+						<th class="text-xs uppercase">Schedule</th>
+						<th class="text-xs uppercase">State</th>
+						<th class="text-xs uppercase">Next Run</th>
+						<th class="text-xs uppercase">Last Run</th>
+						<th class="text-xs uppercase">Updated</th>
+					</tr>
+				</thead>
+				<tbody id="agent-scheduled-tasks-rows">
+					for _, item := range items {
+						@AgentScheduledTaskRow(item)
+					}
+					if len(items) == 0 {
+						<tr id="agent-scheduled-tasks-empty">
+							<td colspan="8" class="text-center text-base-content/50 py-4">No scheduled tasks found.</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

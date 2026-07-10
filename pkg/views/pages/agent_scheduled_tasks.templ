@@ -1,0 +1,23 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentScheduledTasksPage(items []model.AgentScheduledTask) {
+	@layout.Base("Scheduled Tasks — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content">Scheduled Tasks</h1>
+			<button hx-get="/service/web/agent-scheduled-tasks/list"
+				hx-target="#agent-scheduled-tasks-table"
+				hx-swap="outerHTML"
+				data-testid="agent-scheduled-tasks-refresh"
+				class="btn btn-ghost btn-sm">
+				Refresh
+			</button>
+		</div>
+		@partials.AgentScheduledTaskTable(items)
+	}
+}

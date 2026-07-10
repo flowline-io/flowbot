@@ -47,6 +47,11 @@ type testStore struct {
 	chatSessionEntries        map[string][]*gen.ChatSessionEntry
 	chatSessionsErr           error
 	chatSessionEntriesErr     error
+	chatScheduledTasks        []*gen.ChatScheduledTask
+	chatScheduledTasksByFlag  map[string]*gen.ChatScheduledTask
+	chatScheduledTaskRuns     map[string][]*gen.ChatScheduledTaskRun
+	chatScheduledTasksErr     error
+	chatScheduledTaskRunsErr  error
 	agentPlans                map[string]*gen.AgentPlan
 	agentPlansErr             error
 	dbClient                  *store.Client // in-memory SQLite client for view handler tests

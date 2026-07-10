@@ -1,0 +1,64 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentScheduledTaskRunsTable(items []model.AgentScheduledTaskRun) {
+	<div class="card bg-base-100 shadow-sm" data-testid="agent-scheduled-task-runs-table">
+		<div class="card-body">
+			<h2 class="card-title text-lg">Recent Runs</h2>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr>
+							<th class="text-xs uppercase">Run ID</th>
+							<th class="text-xs uppercase">State</th>
+							<th class="text-xs uppercase">Run Session</th>
+							<th class="text-xs uppercase">Started</th>
+							<th class="text-xs uppercase">Finished</th>
+							<th class="text-xs uppercase">Reply</th>
+							<th class="text-xs uppercase">Error</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, item := range items {
+							<tr class="hover">
+								<td class="font-mono text-xs">{ item.RunID }</td>
+								<td><span class={ AgentScheduledTaskRunStateBadgeClass(item.State) }>{ item.State }</span></td>
+								<td class="font-mono text-xs">
+									if item.RunSessionID != "" {
+										<a href={ agentSessionDetailURL(item.RunSessionID) } class="link link-hover">{ item.RunSessionID }</a>
+									} else {
+										<span class="text-base-content/30">-</span>
+									}
+								</td>
+								<td class="text-xs whitespace-nowrap">{ item.StartedAt.Format("2006-01-02 15:04:05") }</td>
+								<td class="text-xs whitespace-nowrap">{ AgentScheduledTaskTimeOrDash(item.FinishedAt) }</td>
+								<td class="max-w-sm text-xs">
+									if item.Reply != "" {
+										<span title={ item.Reply }>{ AgentScheduledTaskTextPreview(item.Reply, 120) }</span>
+									} else {
+										<span class="text-base-content/30">-</span>
+									}
+								</td>
+								<td class="max-w-sm text-xs">
+									if item.Error != "" {
+										<span title={ item.Error } class="text-error">{ AgentScheduledTaskTextPreview(item.Error, 120) }</span>
+									} else {
+										<span class="text-base-content/30">-</span>
+									}
+								</td>
+							</tr>
+						}
+						if len(items) == 0 {
+							<tr>
+								<td colspan="7" class="text-center text-base-content/50 py-4">No runs found.</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+}
