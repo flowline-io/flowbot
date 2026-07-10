@@ -190,7 +190,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 
 		// write_file requires approval by default; register a confirm gate and
 		// approve the pending request so the run can proceed, mirroring how an
-		// interactive client (cmd/chat or the HTTP SSE endpoint) resolves asks.
+		// Web UI or the HTTP SSE endpoint resolves asks.
 		pub := chatagent.NewChannelPublisher(4)
 		gate := chatagent.NewConfirmGate(sessionID, pub)
 		runState := chatagent.NewAPIRunState(pub, gate)

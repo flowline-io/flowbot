@@ -50,7 +50,7 @@ func EstimateTextTokens(text string) int {
 	return ctxmgr.EstimateTokens(msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}})
 }
 
-// BuildContextUsageReport assembles a context budget breakdown for the terminal client.
+// BuildContextUsageReport assembles a context budget breakdown for Chat Agent clients.
 func BuildContextUsageReport(ctx context.Context, sessionID string) (ContextUsageReport, error) {
 	workspace, err := WorkspaceFromConfig()
 	if err != nil {

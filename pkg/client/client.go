@@ -36,20 +36,19 @@ type Client struct {
 	debugErrorHookSet bool
 
 	// Resource clients
-	Kanban    *KanbanClient
-	Bookmark  *BookmarkClient
-	Reader    *ReaderClient
-	User      *UserClient
-	Search    *SearchClient
-	Dev       *DevClient
-	Server    *ServerClient
-	Hub       *HubClient
-	Pipeline  *PipelineClient
-	Workflow  *WorkflowClient
-	Forge     *ForgeClient
-	Github    *GithubClient
-	Memo      *MemoClient
-	ChatAgent *ChatAgentClient
+	Kanban   *KanbanClient
+	Bookmark *BookmarkClient
+	Reader   *ReaderClient
+	User     *UserClient
+	Search   *SearchClient
+	Dev      *DevClient
+	Server   *ServerClient
+	Hub      *HubClient
+	Pipeline *PipelineClient
+	Workflow *WorkflowClient
+	Forge    *ForgeClient
+	Github   *GithubClient
+	Memo     *MemoClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -81,7 +80,6 @@ func NewClient(serverURL, token string) *Client {
 	c.Forge = &ForgeClient{c: c}
 	c.Github = &GithubClient{c: c}
 	c.Memo = &MemoClient{c: c}
-	c.ChatAgent = &ChatAgentClient{c: c}
 
 	return c
 }

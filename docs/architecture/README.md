@@ -69,7 +69,6 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 | Server       | `cmd/main.go`   | HTTP server (Fiber v3 + fx DI)                         |
 | Admin CLI    | `cmd/cli/`      | User/token management, config, pipeline admin          |
 | Composer CLI | `cmd/composer/` | Admin actions, website docs, and SKILL.md generation   |
-| Chat Agent   | `cmd/chat/`     | Terminal Chat Agent client                             |
 
 ### Modules (3)
 

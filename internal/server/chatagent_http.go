@@ -17,7 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// RegisterChatAgentRoutes wires Chat Agent REST endpoints for the terminal client.
+// RegisterChatAgentRoutes wires Chat Agent REST endpoints for HTTP clients.
 func RegisterChatAgentRoutes(a *fiber.App) {
 	chatHTTP := newChatAgentHTTP()
 	a.Get("/chatagent/info", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.info)))

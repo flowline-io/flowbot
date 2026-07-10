@@ -45,10 +45,7 @@ func chatAgentRelativeTimeSince(t, now time.Time) string {
 	if t.IsZero() {
 		return ""
 	}
-	elapsed := now.Sub(t)
-	if elapsed < 0 {
-		elapsed = 0
-	}
+	elapsed := max(now.Sub(t), 0)
 	switch {
 	case elapsed < time.Minute:
 		return "now"

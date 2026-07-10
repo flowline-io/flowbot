@@ -48,21 +48,6 @@ builds:
       - -s -w -X github.com/flowline-io/flowbot/version.Buildtags={{.Version}}
       - -s -w -X github.com/flowline-io/flowbot/version.Buildstamp={{.Date}}
 
-  - id: flowbot-chat
-    main: ./cmd/chat
-    binary: flowbot-chat
-    env:
-      - CGO_ENABLED=0
-    goos:
-      - linux
-      - windows
-      - darwin
-    goarch:
-      - amd64
-    ldflags:
-      - -s -w -X github.com/flowline-io/flowbot/version.Buildtags={{.Version}}
-      - -s -w -X github.com/flowline-io/flowbot/version.Buildstamp={{.Date}}
-
 archives:
   - formats: ["binary"]
     # this name template makes the OS and Arch compatible with the results of `uname`.

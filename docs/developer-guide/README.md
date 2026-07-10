@@ -17,7 +17,6 @@ Operations and development documentation for Flowbot.
 go tool task build           # Main server
 go tool task build:composer  # Composer CLI
 go tool task build:cli       # Admin CLI
-go tool task build:chat      # Chat Agent terminal client
 go tool task build:all       # All binaries
 go tool task air             # Live reload
 ```

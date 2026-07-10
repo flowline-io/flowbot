@@ -13,8 +13,8 @@ import (
 )
 
 // ReasonConfirmRequiredPlatform is returned when ActionAsk cannot be resolved without a ConfirmGate.
-const ReasonConfirmRequiredPlatform = "This action requires approval in the terminal client. " +
-	"Use cmd/chat or configure permissions via PUT /chatagent/permissions."
+const ReasonConfirmRequiredPlatform = "This action requires approval. " +
+	"Use the Web UI or configure permissions via PUT /chatagent/permissions."
 
 // ChatHookDeps carries per-run metadata for chat agent hook handlers.
 type ChatHookDeps struct {

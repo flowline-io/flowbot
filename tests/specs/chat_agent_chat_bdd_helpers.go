@@ -15,9 +15,9 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/server"
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
-	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/flowline-io/flowbot/pkg/types"
 
 	. "github.com/onsi/gomega"
@@ -53,9 +53,9 @@ func chatAgentRequest(method, path, token string, body []byte) *http.Request {
 	return req
 }
 
-func parseSSEBody(body []byte) []client.ChatStreamEvent {
+func parseSSEBody(body []byte) []chatagent.StreamEvent {
 	reader := bufio.NewReader(strings.NewReader(string(body)))
-	var events []client.ChatStreamEvent
+	var events []chatagent.StreamEvent
 	var dataLines []string
 
 	flush := func() {
@@ -67,7 +67,7 @@ func parseSSEBody(body []byte) []client.ChatStreamEvent {
 		if payload == "" {
 			return
 		}
-		var event client.ChatStreamEvent
+		var event chatagent.StreamEvent
 		Expect(sonic.UnmarshalString(payload, &event)).To(Succeed())
 		events = append(events, event)
 	}
