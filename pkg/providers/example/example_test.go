@@ -402,12 +402,12 @@ func TestGetWithDelay(t *testing.T) {
 func TestListRawEvents(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name         string
-		cursor       string
-		wantPage     string
-		wantNext     string
-		wantItemLen  int
-		wantErr      bool
+		name        string
+		cursor      string
+		wantPage    string
+		wantNext    string
+		wantItemLen int
+		wantErr     bool
 	}{
 		{name: "first page without cursor", cursor: "", wantPage: "1", wantNext: "2", wantItemLen: 1},
 		{name: "explicit page one", cursor: "1", wantPage: "1", wantNext: "2", wantItemLen: 1},

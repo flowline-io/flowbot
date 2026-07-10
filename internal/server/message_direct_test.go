@@ -80,10 +80,10 @@ func (s *messageDirectStore) CreateMessage(_ context.Context, message gen.Messag
 
 func TestBuildDirectMessageContextSetsTopicAndPlatform(t *testing.T) {
 	tests := []struct {
-		name          string
-		data          protocol.MessageEventData
-		wantTopic     string
-		wantPlatform  string
+		name         string
+		data         protocol.MessageEventData
+		wantTopic    string
+		wantPlatform string
 	}{
 		{
 			name: "sets topic and platform on module context",

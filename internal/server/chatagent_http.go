@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -122,33 +121,5 @@ func chatAgentError(c fiber.Ctx, err error) error {
 }
 
 func writeChatAgentSSE(w *bufio.Writer, event chatagent.StreamEvent) bool {
-	frame, err := chatagent.FormatSSEData(event)
-	if err != nil {
-		return true
-	}
-	if _, err := fmt.Fprint(w, frame); err != nil {
-		return true
-	}
-	if err := w.Flush(); err != nil {
-		return true
-	}
-	return event.Type == chatagent.EventTypeDone ||
-		event.Type == chatagent.EventTypeError ||
-		event.Type == chatagent.EventTypeCanceled
-}
-
-func drainChatAgentSSE(w *bufio.Writer, publisher *chatagent.ChannelPublisher) {
-	for {
-		select {
-		case ev, ok := <-publisher.Events():
-			if !ok {
-				return
-			}
-			if writeChatAgentSSE(w, ev) {
-				return
-			}
-		default:
-			return
-		}
-	}
+	return (&chatagent.BufioSSEWriter{W: w}).WriteEvent(event)
 }

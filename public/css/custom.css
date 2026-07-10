@@ -1,3 +1,125 @@
+/* Chat agent full-height layout: single scroll in messages pane only */
+body:has(.chatagent-page) > main {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  height: calc(100dvh - 4rem);
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0.75rem 1rem 0;
+  overflow: hidden;
+}
+
+.chatagent-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chatagent-page .chatagent-thread {
+  min-height: 0;
+  flex: 1;
+}
+
+.chatagent-page #chatagent-messages {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.chatagent-page .chatagent-input-bar {
+  box-shadow: 0 -4px 12px oklch(0 0 0 / 0.04);
+}
+
+/* Thinking block */
+.chatagent-page .chatagent-thinking {
+  display: block;
+  max-width: 92%;
+  margin-top: 0.25rem;
+  margin-bottom: 0.75rem;
+  overflow: visible;
+}
+
+.chatagent-page .chatagent-thinking-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.25rem;
+  margin-bottom: 0.25rem;
+  list-style: none;
+}
+
+.chatagent-page .chatagent-thinking-summary::before {
+  content: '▸';
+  display: inline-block;
+  font-size: 0.65rem;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.chatagent-page .chatagent-thinking[open] .chatagent-thinking-summary::before {
+  transform: rotate(90deg);
+}
+
+.chatagent-page .chatagent-thinking-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chatagent-page .chatagent-thinking[open] .chatagent-thinking-summary {
+  margin-bottom: 0.5rem;
+}
+
+.chatagent-page .chatagent-thinking-body {
+  background-color: var(--color-base-100, #ffffff);
+  color: color-mix(in oklch, var(--color-base-content, #24292f) 82%, transparent);
+  border: 1px solid var(--color-base-300, #d0d7de);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  max-width: 100%;
+  overflow: visible;
+  max-height: none;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body {
+  white-space: normal;
+  --md-fg-default: color-mix(in oklch, var(--color-base-content, #24292f) 86%, transparent);
+  --md-fg-muted: color-mix(in oklch, var(--color-base-content, #57606a) 62%, transparent);
+  --md-canvas-default: var(--color-base-100, #ffffff);
+  --md-canvas-subtle: var(--color-base-200, #f6f8fa);
+  font-size: 0.8125rem;
+}
+
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body p,
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body ul,
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body ol,
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body pre,
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body .chatagent-md-table-wrap {
+  margin-bottom: 0.65rem;
+}
+
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body h1,
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body h2,
+.chatagent-page .chatagent-thinking-body.chatagent-markdown.markdown-body h3 {
+  margin-top: 0.75rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.95em;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Assistant message bubble: solid surface on chat background */
+.chatagent-page [data-testid='chatagent-message-assistant'] [data-testid='chatagent-message-body'] {
+  background-color: var(--color-base-100, #ffffff);
+  color: var(--color-base-content, inherit);
+}
+
 /* Alpine.js cloak to prevent flash before init */
 [x-cloak] {
   display: none !important;

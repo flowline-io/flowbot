@@ -100,6 +100,19 @@ func (s *testStore) ParameterDelete(ctx context.Context, flag string) error {
 	}
 	return nil
 }
+func (s *testStore) CreateChatSession(_ context.Context, session *gen.ChatSession) error {
+	if s.chatSessionsByFlag == nil {
+		s.chatSessionsByFlag = map[string]*gen.ChatSession{}
+	}
+	row := *session
+	if row.ID == 0 {
+		row.ID = int64(len(s.chatSessionsByFlag) + 1)
+	}
+	s.chatSessionsByFlag[row.Flag] = &row
+	s.chatSessions = append(s.chatSessions, &row)
+	return nil
+}
+
 func (*testStore) Open(_ pkgconfig.StoreType) error { return nil }
 func (*testStore) Close() error                     { return nil }
 func (*testStore) IsOpen() bool                     { return false }

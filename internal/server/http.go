@@ -46,6 +46,11 @@ func newHTTPServer() *fiber.App {
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  30 * time.Second,
 		WriteTimeout: 90 * time.Second,
+		// Params/headers share fasthttp buffers unless Immutable is set. SSE
+		// handlers keep those strings alive after the request ctx is recycled
+		// (e.g. concurrent /agents/render-markdown calls), which otherwise
+		// corrupts session IDs mid-run.
+		Immutable: true,
 
 		// validator
 		StructValidator: &structValidator{validate: validator.New()},

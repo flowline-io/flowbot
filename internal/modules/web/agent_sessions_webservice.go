@@ -1,9 +1,7 @@
 package web
 
 import (
-	"bufio"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -238,7 +236,7 @@ func agentSessionConfirm(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	sessionID := ctx.Params("id")
+	sessionID := strings.Clone(ctx.Params("id"))
 	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(http.StatusNotFound).SendString("session not found")
@@ -289,7 +287,7 @@ func agentSessionEvents(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	sessionID := ctx.Params("id")
+	sessionID := strings.Clone(ctx.Params("id"))
 	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(http.StatusNotFound).SendString("session not found")
@@ -299,44 +297,5 @@ func agentSessionEvents(ctx fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "events: %v", err)
 	}
-
-	ctx.Set("Content-Type", "text/event-stream")
-	ctx.Set("Cache-Control", "no-cache")
-	ctx.Set("Connection", "keep-alive")
-
-	// Resolve the request context before streaming. The SendStreamWriter
-	// callback runs in a separate goroutine after this handler returns, when
-	// Fiber has released and reused the fiber.Ctx; calling ctx.Context() from
-	// inside the callback races with that release.
-	reqCtx := ctx.Context()
-	return ctx.SendStreamWriter(func(w *bufio.Writer) {
-		hub := chatagent.GetSessionEventHub(sessionID)
-		subID := fmt.Sprintf("web-%p", w)
-		publisher := hub.Subscribe(subID, 32)
-		defer hub.Unsubscribe(subID)
-
-		for {
-			select {
-			case <-reqCtx.Done():
-				return
-			case ev, ok := <-publisher.Events():
-				if !ok {
-					return
-				}
-				switch ev.Type {
-				case chatagent.EventTypeConfirm, chatagent.EventTypeConfirmResolved, chatagent.EventTypeCanceled:
-					frame, err := chatagent.FormatSSEData(ev)
-					if err != nil {
-						return
-					}
-					if _, err := fmt.Fprint(w, frame); err != nil {
-						return
-					}
-					if err := w.Flush(); err != nil {
-						return
-					}
-				}
-			}
-		}
-	})
+	return streamWebSessionEvents(ctx, sessionID)
 }

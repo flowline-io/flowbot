@@ -1,0 +1,25 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ ChatAgentToolMessage(msg model.AgentChatMessage) {
+	<div class="chat chat-start" data-role="tool" data-testid="chatagent-message-tool">
+		<div class="chat-bubble bg-base-200 border border-base-300 max-w-[92%] text-sm">
+			<div class="flex items-center gap-2 flex-wrap">
+				<span class="badge badge-sm badge-outline font-mono">{ msg.ToolName }</span>
+				if msg.ToolStatus != "" {
+					<span class="text-xs text-base-content/60">{ msg.ToolStatus }</span>
+				}
+			</div>
+			if msg.ToolStdout != "" {
+				<pre class="mt-2 text-xs whitespace-pre-wrap overflow-x-auto max-h-56 bg-base-300/40 rounded p-2 font-mono" data-testid="chatagent-tool-stdout">{ msg.ToolStdout }</pre>
+			}
+			if msg.ToolStderr != "" {
+				<pre class="mt-2 text-xs whitespace-pre-wrap overflow-x-auto max-h-32 bg-error/10 text-error rounded p-2 font-mono" data-testid="chatagent-tool-stderr">{ msg.ToolStderr }</pre>
+			}
+			if msg.Text != "" && msg.ToolStdout == "" && msg.ToolStderr == "" {
+				<p class="mt-1 text-xs text-base-content/70 font-mono">{ msg.Text }</p>
+			}
+		</div>
+	</div>
+}

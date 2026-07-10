@@ -110,10 +110,10 @@ func TestNewTrilium(t *testing.T) {
 func TestGetAppInfo(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name: "successful app info",
@@ -125,9 +125,9 @@ func TestGetAppInfo(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name: "server error response",
@@ -158,11 +158,11 @@ func TestGetAppInfo(t *testing.T) {
 func TestCreateNote(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		req      CreateNoteDef
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		req     CreateNoteDef
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name: "successful create note",
@@ -182,10 +182,10 @@ func TestCreateNote(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			req:      CreateNoteDef{ParentNoteID: "root", Title: "Test", Type: "text", Content: "content"},
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			req:     CreateNoteDef{ParentNoteID: "root", Title: "Test", Type: "text", Content: "content"},
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name: "server error on create",
@@ -223,11 +223,11 @@ func TestCreateNote(t *testing.T) {
 func TestGetNote(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		noteID   string
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		noteID  string
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name:   "successful get note",
@@ -240,10 +240,10 @@ func TestGetNote(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			noteID:   "note123",
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			noteID:  "note123",
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name:   "not found",
@@ -275,12 +275,12 @@ func TestGetNote(t *testing.T) {
 func TestPatchNote(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		noteID   string
-		req      PatchNoteRequest
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		noteID  string
+		req     PatchNoteRequest
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name:   "successful patch title",
@@ -294,11 +294,11 @@ func TestPatchNote(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			noteID:   "note123",
-			req:      PatchNoteRequest{Title: "Test"},
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			noteID:  "note123",
+			req:     PatchNoteRequest{Title: "Test"},
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name:   "patch with bad request",
@@ -330,11 +330,11 @@ func TestPatchNote(t *testing.T) {
 func TestDeleteNote(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		noteID   string
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		noteID  string
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name:   "successful delete",
@@ -346,10 +346,10 @@ func TestDeleteNote(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			noteID:   "note123",
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			noteID:  "note123",
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name:   "not found on delete",
@@ -379,11 +379,11 @@ func TestDeleteNote(t *testing.T) {
 func TestSearchNotes(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		params   SearchParams
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		params  SearchParams
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name:   "successful search",
@@ -398,10 +398,10 @@ func TestSearchNotes(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			params:   SearchParams{Search: "*"},
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			params:  SearchParams{Search: "*"},
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name: "search with all params",
@@ -450,11 +450,11 @@ func TestSearchNotes(t *testing.T) {
 func TestGetNoteContent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		noteID   string
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		noteID  string
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name:   "successful get content",
@@ -467,10 +467,10 @@ func TestGetNoteContent(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			noteID:   "note123",
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			noteID:  "note123",
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name:   "not found",
@@ -501,12 +501,12 @@ func TestGetNoteContent(t *testing.T) {
 func TestUpdateNoteContent(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		noteID   string
-		content  string
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		noteID  string
+		content string
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name:    "successful update content",
@@ -519,11 +519,11 @@ func TestUpdateNoteContent(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			noteID:   "note123",
-			content:  "test",
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			noteID:  "note123",
+			content: "test",
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name:    "server error",
@@ -608,10 +608,10 @@ func TestLogin(t *testing.T) {
 func TestLogout(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name: "successful logout",
@@ -622,9 +622,9 @@ func TestLogout(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name: "server error on logout",
@@ -653,11 +653,11 @@ func TestLogout(t *testing.T) {
 func TestCreateBranch(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		req      BranchRequest
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		req     BranchRequest
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name: "successful create branch",
@@ -675,10 +675,10 @@ func TestCreateBranch(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			req:      BranchRequest{NoteID: "n1", ParentNoteID: "p1"},
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			req:     BranchRequest{NoteID: "n1", ParentNoteID: "p1"},
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name: "branch already exists returns 200",
@@ -708,11 +708,11 @@ func TestCreateBranch(t *testing.T) {
 func TestCreateAttribute(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		req      CreateAttribute
-		handler  http.HandlerFunc
-		wantErr  bool
-		connErr  bool
+		name    string
+		req     CreateAttribute
+		handler http.HandlerFunc
+		wantErr bool
+		connErr bool
 	}{
 		{
 			name: "successful create label",
@@ -731,10 +731,10 @@ func TestCreateAttribute(t *testing.T) {
 			},
 		},
 		{
-			name:     "connection error",
-			req:      CreateAttribute{NoteID: "n1", Type: "label", Name: "test"},
-			wantErr:  true,
-			connErr:  true,
+			name:    "connection error",
+			req:     CreateAttribute{NoteID: "n1", Type: "label", Name: "test"},
+			wantErr: true,
+			connErr: true,
 		},
 		{
 			name: "create relation",

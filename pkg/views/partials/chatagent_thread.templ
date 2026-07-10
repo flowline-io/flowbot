@@ -1,0 +1,50 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessage, endpoints ChatAgentEndpoints) {
+	<div
+		class="chatagent-thread flex flex-col flex-1 min-h-0"
+		data-chatagent-root="thread"
+		data-session-id={ session.Flag }
+		data-messages-url={ endpoints.MessagesURL }
+		data-cancel-url={ endpoints.CancelURL }
+		data-confirm-url={ endpoints.ConfirmURL }
+		data-events-url={ endpoints.EventsURL }
+		data-render-markdown-url={ endpoints.RenderMarkdownURL }
+		data-testid="chatagent-thread">
+		<div class="flex items-center justify-between mb-5 gap-2 shrink-0 px-1">
+			<div>
+				if session.Title != "" {
+					<h1 class="text-2xl font-bold text-base-content">{ session.Title }</h1>
+					<p class="font-mono text-sm text-base-content/60">{ session.Flag }</p>
+				} else {
+					<h1 class="text-2xl font-bold font-mono text-base-content">{ session.Flag }</h1>
+				}
+			</div>
+			<div class="flex gap-2">
+				<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">Back to Agents</a>
+				if endpoints.InspectURL != "" {
+					<a href={ templ.URL(endpoints.InspectURL) } class="btn btn-ghost btn-sm" data-testid="chatagent-inspect">Inspect entries</a>
+				}
+			</div>
+		</div>
+		<div id="chatagent-messages" class="flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4" data-testid="chatagent-messages">
+			for _, msg := range messages {
+				@ChatAgentMessage(msg, false)
+			}
+		</div>
+		<div class="chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4" data-testid="chatagent-input-bar">
+			<div class="flex items-end gap-2">
+				<textarea
+					id="chatagent-followup-input"
+					class="textarea textarea-bordered flex-1 min-h-12 max-h-40 resize-y leading-normal"
+					placeholder="Add follow-up... (Enter to send, Shift+Enter for newline)"
+					rows="2"
+					data-testid="chatagent-followup-input"></textarea>
+				<button type="button" id="chatagent-cancel-run" class="btn btn-ghost btn-sm hidden shrink-0" data-testid="chatagent-cancel-run">Cancel</button>
+			</div>
+			<p class="text-xs text-error hidden mt-2" id="chatagent-thread-error" data-testid="chatagent-thread-error"></p>
+		</div>
+	</div>
+}

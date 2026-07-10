@@ -178,7 +178,7 @@ func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
 	}
-	sessionID := c.Params("id")
+	sessionID := strings.Clone(c.Params("id"))
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}

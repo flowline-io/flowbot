@@ -2,7 +2,6 @@ package server
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"strings"
 
@@ -20,7 +19,9 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
 	}
-	sessionID := c.Params("id")
+	// Clone before SendStreamWriter: Fiber recycles fasthttp buffers after the
+	// handler returns; concurrent requests can overwrite Params("id") in place.
+	sessionID := strings.Clone(c.Params("id"))
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
@@ -29,7 +30,8 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 	if err := sonic.Unmarshal(c.Body(), &body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 	}
-	if strings.TrimSpace(body.Text) == "" {
+	text := strings.Clone(strings.TrimSpace(body.Text))
+	if text == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "empty message"})
 	}
 	if _, ok := chatagent.GetAPIRunState(sessionID); ok {
@@ -49,66 +51,8 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 	baseCtx := c.Context()
 
 	return c.SendStreamWriter(func(w *bufio.Writer) {
-		hub := chatagent.GetSessionEventHub(sessionID)
-		subID := "run"
-		publisher := hub.Subscribe(subID, 64)
-		defer hub.Unsubscribe(subID)
-
-		gate := chatagent.NewConfirmGate(sessionID, nil)
-		runState := chatagent.NewAPIRunState(publisher, gate)
-		if err := chatagent.TrySetAPIRunState(sessionID, runState); err != nil {
-			_ = writeChatAgentSSE(w, chatagent.StreamEvent{
-				Type:    chatagent.EventTypeError,
-				Message: err.Error(),
-			})
-			return
-		}
-		defer chatagent.ClearAPIRunState(sessionID, runState)
-
-		runCtx, cancel := context.WithTimeout(baseCtx, chatagent.RunTimeout())
-		defer cancel()
-		chatagent.BindRunCancel(sessionID, cancel)
-		defer chatagent.UnbindRunCancel(sessionID)
-
-		runDone := make(chan error, 1)
-		go func() {
-			runDone <- h.service.RunAPI(runCtx, chatagent.RunRequest{
-				SessionID: sessionID,
-				Text:      body.Text,
-			}, &chatagent.APIRunOptions{
-				Publisher: publisher,
-				Confirm:   gate,
-			})
-			publisher.Close()
-		}()
-
-		for {
-			select {
-			case ev, ok := <-publisher.Events():
-				if !ok {
-					return
-				}
-				if writeChatAgentSSE(w, ev) {
-					return
-				}
-			case err := <-runDone:
-				drainChatAgentSSE(w, publisher)
-				if err != nil {
-					if errors.Is(err, context.Canceled) {
-						_ = writeChatAgentSSE(w, chatagent.StreamEvent{
-							Type:    chatagent.EventTypeCanceled,
-							Message: "run canceled by user",
-						})
-						return
-					}
-					_ = writeChatAgentSSE(w, chatagent.StreamEvent{
-						Type:    chatagent.EventTypeError,
-						Message: err.Error(),
-					})
-				}
-				return
-			}
-		}
+		sse := &chatagent.BufioSSEWriter{W: w}
+		chatagent.StreamAPIRun(baseCtx, h.service, sessionID, text, sse)
 	})
 }
 
@@ -123,7 +67,7 @@ func (h *chatAgentHTTP) confirm(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
 	}
-	sessionID := c.Params("id")
+	sessionID := strings.Clone(c.Params("id"))
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
@@ -163,7 +107,7 @@ func (h *chatAgentHTTP) cancelRun(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
 	}
-	sessionID := c.Params("id")
+	sessionID := strings.Clone(c.Params("id"))
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}

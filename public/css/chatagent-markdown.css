@@ -1,0 +1,331 @@
+/*
+ * Chat agent markdown — scoped GitHub-style markdown-body rules.
+ * Reference: github-markdown-css (MIT), adapted for daisyUI chat bubbles.
+ */
+.chat-bubble.chatagent-markdown.markdown-body {
+  --md-fg-default: var(--color-base-content, #24292f);
+  --md-fg-muted: color-mix(in oklch, var(--color-base-content, #57606a) 68%, transparent);
+  --md-fg-subtle: color-mix(in oklch, var(--color-base-content, #6e7781) 52%, transparent);
+  --md-canvas-default: var(--color-base-100, #ffffff);
+  --md-canvas-subtle: var(--color-base-200, #f6f8fa);
+  --md-border-default: var(--color-base-300, #d0d7de);
+  --md-border-muted: var(--color-base-300, #d0d7de);
+  --md-neutral-muted: var(--color-base-200, #f6f8fa);
+  --md-accent-fg: var(--color-primary, #0969da);
+  --md-attention-subtle: color-mix(in oklch, var(--color-warning, #fff8c5) 35%, transparent);
+
+  box-sizing: border-box;
+  color: var(--md-fg-default);
+  background-color: var(--md-canvas-default) !important;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  font-size: 0.875rem;
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body > :first-child {
+  margin-top: 0 !important;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body > :last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Headings */
+.chat-bubble.chatagent-markdown.markdown-body h1,
+.chat-bubble.chatagent-markdown.markdown-body h2,
+.chat-bubble.chatagent-markdown.markdown-body h3,
+.chat-bubble.chatagent-markdown.markdown-body h4,
+.chat-bubble.chatagent-markdown.markdown-body h5,
+.chat-bubble.chatagent-markdown.markdown-body h6 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--md-fg-default);
+}
+
+.chat-bubble.chatagent-markdown.markdown-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--md-border-muted);
+}
+
+.chat-bubble.chatagent-markdown.markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.25em;
+  border-bottom: 1px solid var(--md-border-muted);
+}
+
+.chat-bubble.chatagent-markdown.markdown-body h3 {
+  font-size: 1.125em;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body h4 {
+  font-size: 1em;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body h5 {
+  font-size: 0.875em;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body h6 {
+  font-size: 0.85em;
+  color: var(--md-fg-muted);
+}
+
+/* Block spacing (GitHub: 16px) */
+.chat-bubble.chatagent-markdown.markdown-body p,
+.chat-bubble.chatagent-markdown.markdown-body blockquote,
+.chat-bubble.chatagent-markdown.markdown-body ul,
+.chat-bubble.chatagent-markdown.markdown-body ol,
+.chat-bubble.chatagent-markdown.markdown-body dl,
+.chat-bubble.chatagent-markdown.markdown-body .chatagent-md-table-wrap,
+.chat-bubble.chatagent-markdown.markdown-body pre,
+.chat-bubble.chatagent-markdown.markdown-body details {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body p {
+  margin-bottom: 0.625rem;
+}
+
+/* Links */
+.chat-bubble.chatagent-markdown.markdown-body a {
+  color: var(--md-accent-fg);
+  text-decoration: none;
+  background-color: transparent;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+/* Lists */
+.chat-bubble.chatagent-markdown.markdown-body ul,
+.chat-bubble.chatagent-markdown.markdown-body ol {
+  padding-left: 2em;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body ul {
+  list-style-type: disc;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body ol {
+  list-style-type: decimal;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body ul ul,
+.chat-bubble.chatagent-markdown.markdown-body ul ol,
+.chat-bubble.chatagent-markdown.markdown-body ol ol,
+.chat-bubble.chatagent-markdown.markdown-body ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body li + li {
+  margin-top: 0.25em;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body li > p {
+  margin-top: 1rem;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body li > p:first-child {
+  margin-top: 0;
+}
+
+/* Blockquote */
+.chat-bubble.chatagent-markdown.markdown-body blockquote {
+  margin: 0 0 1rem;
+  padding: 0 1em;
+  color: var(--md-fg-muted);
+  border-left: 0.25em solid var(--md-border-default);
+  background: transparent;
+  border-radius: 0;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body blockquote > :first-child {
+  margin-top: 0;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* Inline code */
+.chat-bubble.chatagent-markdown.markdown-body code,
+.chat-bubble.chatagent-markdown.markdown-body tt {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+  font-size: 85%;
+  color: var(--md-fg-default);
+  background-color: var(--md-neutral-muted);
+  border: 1px solid var(--md-border-default);
+  border-radius: 6px;
+}
+
+/* Fenced code blocks */
+.chat-bubble.chatagent-markdown.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  overflow: auto;
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+  font-size: 85%;
+  line-height: 1.45;
+  word-wrap: normal;
+  color: var(--md-fg-default);
+  background-color: var(--md-canvas-subtle);
+  border: 1px solid var(--md-border-default);
+  border-radius: 6px;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body pre code,
+.chat-bubble.chatagent-markdown.markdown-body pre tt {
+  display: inline;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  line-height: inherit;
+  word-wrap: normal;
+  white-space: pre;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  font-size: 100%;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body :not(pre) > code {
+  white-space: break-spaces;
+}
+
+/* Tables */
+.chat-bubble.chatagent-markdown.markdown-body .chatagent-md-table-wrap {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  background-color: var(--md-canvas-default);
+  border: 1px solid var(--md-border-default);
+  border-radius: 6px;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body table th,
+.chat-bubble.chatagent-markdown.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid var(--md-border-default) !important;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body table th {
+  font-weight: 600;
+  background-color: var(--md-canvas-subtle);
+}
+
+.chat-bubble.chatagent-markdown.markdown-body table tr {
+  background-color: var(--md-canvas-default);
+  border-top: 1px solid var(--md-border-muted);
+}
+
+.chat-bubble.chatagent-markdown.markdown-body table tr:nth-child(2n) {
+  background-color: var(--md-canvas-subtle);
+}
+
+.chat-bubble.chatagent-markdown.markdown-body table img {
+  background-color: transparent;
+}
+
+/* Horizontal rule */
+.chat-bubble.chatagent-markdown.markdown-body hr {
+  box-sizing: content-box;
+  height: 0.25em;
+  padding: 0;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  background-color: var(--md-border-default);
+  border: 0;
+}
+
+/* Emphasis */
+.chat-bubble.chatagent-markdown.markdown-body strong,
+.chat-bubble.chatagent-markdown.markdown-body b {
+  font-weight: 600;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body em {
+  font-style: italic;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body del {
+  text-decoration: line-through;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body mark {
+  background-color: var(--md-attention-subtle);
+  color: inherit;
+}
+
+/* Media */
+.chat-bubble.chatagent-markdown.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  box-sizing: content-box;
+  background-color: transparent;
+  border-radius: 6px;
+}
+
+/* Task lists */
+.chat-bubble.chatagent-markdown.markdown-body input[type='checkbox'] {
+  margin: 0 0.35em 0.25em 0;
+  vertical-align: middle;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body .task-list-item {
+  list-style-type: none;
+}
+
+.chat-bubble.chatagent-markdown.markdown-body .task-list-item input {
+  margin: 0 0.2em 0.25em -1.4em;
+  vertical-align: middle;
+}
+
+/* Keyboard */
+.chat-bubble.chatagent-markdown.markdown-body kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font:
+    11px ui-monospace,
+    SFMono-Regular,
+    'SF Mono',
+    Menlo,
+    Consolas,
+    'Liberation Mono',
+    monospace;
+  line-height: 10px;
+  color: var(--md-fg-default);
+  vertical-align: middle;
+  background-color: var(--md-canvas-subtle);
+  border: solid 1px var(--md-neutral-muted);
+  border-bottom-color: var(--md-neutral-muted);
+  border-radius: 6px;
+  box-shadow: inset 0 -1px 0 var(--md-neutral-muted);
+}

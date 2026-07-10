@@ -1,0 +1,98 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabled bool) {
+	<div
+		class="card bg-base-100 shadow-sm mb-6"
+		data-chatagent-root="composer"
+		data-create-url={ endpoints.CreateURL }
+		data-detail-url-template={ endpoints.DetailURLTemplate }
+		data-testid="chatagent-composer">
+		<div class="card-body gap-3">
+			if disabled {
+				<div class="alert alert-warning text-sm" data-testid="chatagent-disabled">Chat agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml.</div>
+			}
+			<textarea
+				id="chatagent-composer-input"
+				class="textarea textarea-bordered w-full min-h-28"
+				placeholder={ placeholder }
+				disabled?={ disabled }
+				data-testid="chatagent-composer-input"></textarea>
+			<div class="flex justify-end">
+				<button
+					type="button"
+					id="chatagent-composer-start"
+					class="btn btn-primary"
+					disabled?={ disabled }
+					data-testid="chatagent-composer-start">Start</button>
+			</div>
+			<p class="text-xs text-error hidden" id="chatagent-composer-error" data-testid="chatagent-composer-error"></p>
+		</div>
+	</div>
+}
+
+templ ChatAgentSessionRow(item model.AgentSession, detailURL string) {
+	<tr data-testid={ "chatagent-session-row-" + item.Flag }>
+		<td>
+			<a href={ templ.URL(detailURL) } class="link link-hover font-medium" data-testid="chatagent-session-link">
+				if item.Title != "" {
+					{ item.Title }
+				} else {
+					<span class="font-mono text-sm">{ item.Flag }</span>
+				}
+			</a>
+		</td>
+		<td>
+			@AgentSessionStateBadge(item.State)
+		</td>
+		<td class="text-sm text-base-content/70">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+	</tr>
+}
+
+templ ChatAgentSessionList(items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
+	<div class="card bg-base-100 shadow-sm" id="chatagent-session-list" data-testid="chatagent-session-list">
+		<div class="card-body">
+			<div class="flex items-center justify-between mb-2">
+				<h2 class="text-lg font-semibold">Your sessions</h2>
+				<button
+					hx-get={ templ.URL(endpoints.ListURL) }
+					hx-target="#chatagent-session-list"
+					hx-swap="outerHTML"
+					class="btn btn-ghost btn-sm"
+					data-testid="chatagent-sessions-refresh">Refresh</button>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+					<tr>
+						<th class="text-xs uppercase">Title</th>
+						<th class="text-xs uppercase">State</th>
+						<th class="text-xs uppercase">Updated</th>
+					</tr>
+					</thead>
+					<tbody id="chatagent-session-rows">
+					for _, item := range items {
+						@ChatAgentSessionRow(item, ChatAgentDetailURL(endpoints.DetailURLTemplate, item.Flag))
+					}
+					if len(items) == 0 {
+						<tr id="chatagent-sessions-empty">
+							<td colspan="3" class="text-center text-base-content/50 py-4">No sessions yet. Start one above.</td>
+						</tr>
+					}
+					</tbody>
+				</table>
+			</div>
+			if nextCursor != "" {
+				<div class="pt-3 text-center" id="chatagent-sessions-load-more">
+					<button
+						class="btn btn-sm btn-ghost"
+						hx-get={ templ.URL(endpoints.ListURL + "?cursor=" + nextCursor) }
+						hx-target="#chatagent-session-list"
+						hx-swap="outerHTML"
+						data-testid="chatagent-sessions-load-more">Load more</button>
+				</div>
+			}
+		</div>
+	</div>
+}

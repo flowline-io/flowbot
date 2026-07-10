@@ -252,6 +252,7 @@ func setupTestApp() *fiber.App {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 		BodyLimit:    20 * 1024 * 1024,
+		Immutable:    true,
 		ErrorHandler: func(c fiber.Ctx, err error) error {
 			var fiberErr *fiber.Error
 			if errors.As(err, &fiberErr) {

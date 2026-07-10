@@ -1,0 +1,47 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
+	if msg.Kind == "tool" || msg.Role == "tool" {
+		@ChatAgentToolMessage(msg)
+	} else if msg.Kind == "thinking" {
+		<details class="chatagent-thinking opacity-90" data-role="thinking" data-testid="chatagent-message-thinking">
+			<summary class="chatagent-thinking-summary cursor-pointer text-xs text-base-content/50 select-none">Thinking</summary>
+			if msg.HTML != "" {
+				<div class="chatagent-thinking-body chatagent-markdown markdown-body mt-2" data-testid="chatagent-message-body">
+					@templ.Raw(msg.HTML)
+				</div>
+			} else {
+				<div class="chatagent-thinking-body mt-2" data-testid="chatagent-message-body">{ msg.Text }</div>
+			}
+		</details>
+	} else {
+		<div
+			class={ chatAgentMessageClass(msg.Role, streaming) }
+			data-role={ msg.Role }
+			data-testid={ "chatagent-message-" + msg.Role }>
+			if msg.Role == "assistant" && msg.HTML != "" && !streaming {
+				<div class="chat-bubble bg-base-100 border border-base-300 chatagent-markdown markdown-body text-sm max-w-[92%]" data-testid="chatagent-message-body">
+					@templ.Raw(msg.HTML)
+				</div>
+			} else {
+				<div class="chat-bubble bg-base-100 border border-base-300 whitespace-pre-wrap text-sm max-w-[92%]" data-testid="chatagent-message-body">{ msg.Text }</div>
+			}
+		</div>
+	}
+}
+
+func chatAgentMessageClass(role string, streaming bool) string {
+	base := "chat "
+	switch role {
+	case "user":
+		base += "chat-end "
+	default:
+		base += "chat-start "
+	}
+	if streaming {
+		base += "opacity-80"
+	}
+	return base
+}
