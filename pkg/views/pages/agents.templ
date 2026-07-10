@@ -8,13 +8,12 @@ import (
 
 templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) {
 	@layout.Base("Agents — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">Agents</h1>
+		<div class="agents-home">
+			@partials.ChatAgentComposer(endpoints, "Ask Flowbot to build, fix bugs, explore", !chatEnabled)
+			if chatEnabled {
+				@partials.ChatAgentSessionList(items, nextCursor, endpoints)
+			}
 		</div>
-		@partials.ChatAgentComposer(endpoints, "Ask Flowbot to build, fix bugs, explore", !chatEnabled)
-		if chatEnabled {
-			@partials.ChatAgentSessionList(items, nextCursor, endpoints)
-		}
 		<script src="/static/js/chatagent-chat.js" defer></script>
 	}
 }

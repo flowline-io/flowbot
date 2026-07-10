@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -22,6 +23,67 @@ const (
 // ChatAgentDetailURL builds a session detail URL from a template containing "{id}".
 func ChatAgentDetailURL(template, sessionID string) string {
 	return strings.ReplaceAll(template, "{id}", sessionID)
+}
+
+// ChatAgentSessionTitle returns the display title for a session list row.
+func ChatAgentSessionTitle(item model.AgentSession) string {
+	if title := strings.TrimSpace(item.Title); title != "" {
+		return title
+	}
+	if item.Flag != "" {
+		return item.Flag
+	}
+	return "Untitled session"
+}
+
+// FormatChatAgentRelativeTime returns a compact relative timestamp (e.g. "2h", "6d").
+func FormatChatAgentRelativeTime(t time.Time) string {
+	return chatAgentRelativeTimeSince(t, time.Now())
+}
+
+func chatAgentRelativeTimeSince(t, now time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	elapsed := now.Sub(t)
+	if elapsed < 0 {
+		elapsed = 0
+	}
+	switch {
+	case elapsed < time.Minute:
+		return "now"
+	case elapsed < time.Hour:
+		return fmt.Sprintf("%dm", int(elapsed.Minutes()))
+	case elapsed < 24*time.Hour:
+		return fmt.Sprintf("%dh", int(elapsed.Hours()))
+	case elapsed < 7*24*time.Hour:
+		return fmt.Sprintf("%dd", int(elapsed.Hours()/24))
+	case elapsed < 30*24*time.Hour:
+		return fmt.Sprintf("%dw", int(elapsed.Hours()/(24*7)))
+	default:
+		return t.Format("Jan 2")
+	}
+}
+
+// chatAgentSessionThumbClass returns thumbnail frame classes for a session state.
+func chatAgentSessionThumbClass(state string) string {
+	base := "agents-session-thumb"
+	if state == "Active" {
+		return base + " agents-session-thumb-active"
+	}
+	return base
+}
+
+// chatAgentSessionBadgeClass returns pill badge classes for the session thumbnail.
+func chatAgentSessionBadgeClass(state string) string {
+	switch state {
+	case "Active":
+		return "agents-session-badge agents-session-badge-active"
+	case "Closed":
+		return "agents-session-badge agents-session-badge-closed"
+	default:
+		return "agents-session-badge agents-session-badge-unknown"
+	}
 }
 
 // ChatAgentPendingPromptKey returns the sessionStorage key for a pending first prompt.

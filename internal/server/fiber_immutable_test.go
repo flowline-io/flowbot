@@ -11,9 +11,9 @@ import (
 
 func TestCloneProtectsSessionIDFromBufferReuse(t *testing.T) {
 	tests := []struct {
-		name      string
-		sessionID string
-		overwrite string
+		name        string
+		sessionID   string
+		overwrite   string
 		wantCorrupt string
 	}{
 		{

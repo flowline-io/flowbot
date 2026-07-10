@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestChatAgentDetailURL(t *testing.T) {
@@ -53,6 +55,60 @@ func TestChatAgentPendingPromptKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, ChatAgentPendingPromptKey(tt.sessionID))
+		})
+	}
+}
+
+func TestChatAgentSessionTitle(t *testing.T) {
+	tests := []struct {
+		name string
+		item model.AgentSession
+		want string
+	}{
+		{name: "uses title when set", item: model.AgentSession{Title: "CI fix", Flag: "sess-1"}, want: "CI fix"},
+		{name: "falls back to flag", item: model.AgentSession{Flag: "sess-2"}, want: "sess-2"},
+		{name: "untitled when empty", item: model.AgentSession{}, want: "Untitled session"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, ChatAgentSessionTitle(tt.item))
+		})
+	}
+}
+
+func TestFormatChatAgentRelativeTime(t *testing.T) {
+	now := time.Date(2026, 7, 10, 12, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name string
+		at   time.Time
+		want string
+	}{
+		{name: "zero time", at: time.Time{}, want: ""},
+		{name: "minutes ago", at: now.Add(-12 * time.Minute), want: "12m"},
+		{name: "hours ago", at: now.Add(-5 * time.Hour), want: "5h"},
+		{name: "days ago", at: now.Add(-6 * 24 * time.Hour), want: "6d"},
+		{name: "weeks ago", at: now.Add(-14 * 24 * time.Hour), want: "2w"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, chatAgentRelativeTimeSince(tt.at, now))
+		})
+	}
+}
+
+func TestChatAgentSessionBadgeClass(t *testing.T) {
+	tests := []struct {
+		name  string
+		state string
+		want  string
+	}{
+		{name: "active", state: "Active", want: "agents-session-badge-active"},
+		{name: "closed", state: "Closed", want: "agents-session-badge-closed"},
+		{name: "unknown", state: "Unknown", want: "agents-session-badge-unknown"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Contains(t, chatAgentSessionBadgeClass(tt.state), tt.want)
 		})
 	}
 }
