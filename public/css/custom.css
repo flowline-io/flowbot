@@ -1,3 +1,8 @@
+/* Prevent horizontal overflow from wide navbar content on small screens */
+body {
+  overflow-x: hidden;
+}
+
 /* Chat agent full-height layout: single scroll in messages pane only */
 body:has(.chatagent-page) > main {
   display: flex;

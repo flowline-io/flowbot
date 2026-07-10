@@ -26,47 +26,77 @@ templ Base(title string) {
 		<script src="/static/vendor/alpine.min.js" defer></script>
 	</head>
 	<body class="bg-base-200 min-h-screen">
-		<nav class="navbar bg-base-100 shadow-sm">
-			<div class="navbar-start">
-				<a href="/service/web/home" class="btn btn-ghost text-xl normal-case">Flowbot</a>
+		<nav class="navbar bg-base-100 shadow-sm px-2 sm:px-4">
+			<div class="navbar-start min-w-0 gap-0">
+				<div class="dropdown lg:hidden">
+					<div tabindex="0" role="button" data-testid="nav-mobile-menu" class="btn btn-ghost btn-square" aria-label="Open navigation menu">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+					</div>
+					<ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box z-[100] mt-3 w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 shadow-lg border border-base-300">
+						<li class="menu-title">Automation</li>
+						<li><a href="/service/web/pipelines">Pipelines</a></li>
+						<li><a href="/service/web/events">Events</a></li>
+						<li><a href="/service/web/relations">Relations</a></li>
+						<li class="menu-title">Agent</li>
+						<li><a href="/service/web/agents">Agents</a></li>
+						<li><a href="/service/web/agent-skills">Skills</a></li>
+						<li><a href="/service/web/agent-subagents">Subagents</a></li>
+						<li><a href="/service/web/agent-scheduled-tasks">Scheduled Tasks</a></li>
+						<li><a href="/service/web/agent-sessions">Sessions (inspect)</a></li>
+						<li><a href="/service/web/chatagent-permissions">Permissions</a></li>
+						<li class="menu-title">Data</li>
+						<li><a href="/service/web/notifications">Notifications</a></li>
+						<li><a href="/service/web/notify-settings">Notify Settings</a></li>
+						<li><a href="/service/web/configs">Configs</a></li>
+						<li class="menu-title">Admin</li>
+						<li><a href="/service/web/hub">Apps</a></li>
+						<li><a href="/service/web/homelab">Registry</a></li>
+						<li><a href="/service/web/tokens">Tokens</a></li>
+						<li><a href="/service/web/capabilities">Capabilities</a></li>
+						<li><a href="/service/web/healthz">Health</a></li>
+					</ul>
+				</div>
+				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate">Flowbot</a>
 			</div>
-			<div class="navbar-end flex items-center gap-1">
-				<div class="dropdown dropdown-hover">
-					<div tabindex="0" role="button" data-testid="nav-group-automation" class="btn btn-ghost btn-sm">Automation</div>
-					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
-						<li><a href="/service/web/pipelines" data-testid="nav-pipelines">Pipelines</a></li>
-						<li><a href="/service/web/events" data-testid="nav-events">Events</a></li>
-						<li><a href="/service/web/relations" data-testid="nav-relations">Relations</a></li>
-					</ul>
-				</div>
-				<div class="dropdown dropdown-hover">
-					<div tabindex="0" role="button" data-testid="nav-group-agent" class="btn btn-ghost btn-sm">Agent</div>
-					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44 z-50">
-						<li><a href="/service/web/agents" data-testid="nav-agents">Agents</a></li>
-						<li><a href="/service/web/agent-skills" data-testid="nav-agent-skills">Skills</a></li>
-						<li><a href="/service/web/agent-subagents" data-testid="nav-agent-subagents">Subagents</a></li>
-						<li><a href="/service/web/agent-scheduled-tasks" data-testid="nav-agent-scheduled-tasks">Scheduled Tasks</a></li>
-						<li><a href="/service/web/agent-sessions" data-testid="nav-agent-sessions">Sessions (inspect)</a></li>
-						<li><a href="/service/web/chatagent-permissions" data-testid="nav-chatagent-permissions">Permissions</a></li>
-					</ul>
-				</div>
-				<div class="dropdown dropdown-hover">
-					<div tabindex="0" role="button" data-testid="nav-group-data" class="btn btn-ghost btn-sm">Data</div>
-					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
-						<li><a href="/service/web/notifications" data-testid="nav-notifications">Notifications</a></li>
-						<li><a href="/service/web/notify-settings" data-testid="nav-notify-settings">Notify Settings</a></li>
-						<li><a href="/service/web/configs" data-testid="nav-configs">Configs</a></li>
-					</ul>
-				</div>
-				<div class="dropdown dropdown-hover">
-					<div tabindex="0" role="button" data-testid="nav-group-admin" class="btn btn-ghost btn-sm">Admin</div>
-					<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
-						<li><a href="/service/web/hub" data-testid="nav-hub">Apps</a></li>
-						<li><a href="/service/web/homelab" data-testid="nav-homelab">Registry</a></li>
-						<li><a href="/service/web/tokens" data-testid="nav-tokens">Tokens</a></li>
-						<li><a href="/service/web/capabilities" data-testid="nav-capabilities">Capabilities</a></li>
-						<li><a href="/service/web/healthz" data-testid="nav-healthz">Health</a></li>
-					</ul>
+			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
+				<div class="hidden lg:flex items-center gap-1">
+					<div class="dropdown dropdown-hover">
+						<div tabindex="0" role="button" data-testid="nav-group-automation" class="btn btn-ghost btn-sm">Automation</div>
+						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+							<li><a href="/service/web/pipelines" data-testid="nav-pipelines">Pipelines</a></li>
+							<li><a href="/service/web/events" data-testid="nav-events">Events</a></li>
+							<li><a href="/service/web/relations" data-testid="nav-relations">Relations</a></li>
+						</ul>
+					</div>
+					<div class="dropdown dropdown-hover">
+						<div tabindex="0" role="button" data-testid="nav-group-agent" class="btn btn-ghost btn-sm">Agent</div>
+						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44 z-50">
+							<li><a href="/service/web/agents" data-testid="nav-agents">Agents</a></li>
+							<li><a href="/service/web/agent-skills" data-testid="nav-agent-skills">Skills</a></li>
+							<li><a href="/service/web/agent-subagents" data-testid="nav-agent-subagents">Subagents</a></li>
+							<li><a href="/service/web/agent-scheduled-tasks" data-testid="nav-agent-scheduled-tasks">Scheduled Tasks</a></li>
+							<li><a href="/service/web/agent-sessions" data-testid="nav-agent-sessions">Sessions (inspect)</a></li>
+							<li><a href="/service/web/chatagent-permissions" data-testid="nav-chatagent-permissions">Permissions</a></li>
+						</ul>
+					</div>
+					<div class="dropdown dropdown-hover">
+						<div tabindex="0" role="button" data-testid="nav-group-data" class="btn btn-ghost btn-sm">Data</div>
+						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+							<li><a href="/service/web/notifications" data-testid="nav-notifications">Notifications</a></li>
+							<li><a href="/service/web/notify-settings" data-testid="nav-notify-settings">Notify Settings</a></li>
+							<li><a href="/service/web/configs" data-testid="nav-configs">Configs</a></li>
+						</ul>
+					</div>
+					<div class="dropdown dropdown-hover">
+						<div tabindex="0" role="button" data-testid="nav-group-admin" class="btn btn-ghost btn-sm">Admin</div>
+						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+							<li><a href="/service/web/hub" data-testid="nav-hub">Apps</a></li>
+							<li><a href="/service/web/homelab" data-testid="nav-homelab">Registry</a></li>
+							<li><a href="/service/web/tokens" data-testid="nav-tokens">Tokens</a></li>
+							<li><a href="/service/web/capabilities" data-testid="nav-capabilities">Capabilities</a></li>
+							<li><a href="/service/web/healthz" data-testid="nav-healthz">Health</a></li>
+						</ul>
+					</div>
 				</div>
 				<div x-data="{
 					theme: 'light',
@@ -100,8 +130,9 @@ templ Base(title string) {
 						</ul>
 					</div>
 				</div>
-				<button hx-post="/service/web/logout" data-testid="nav-logout" class="btn btn-ghost btn-sm text-error">
-					Logout
+				<button hx-post="/service/web/logout" data-testid="nav-logout" class="btn btn-ghost btn-sm btn-square lg:btn-wide text-error" aria-label="Logout">
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 lg:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+					<span class="hidden lg:inline">Logout</span>
 				</button>
 			</div>
 		</nav>
