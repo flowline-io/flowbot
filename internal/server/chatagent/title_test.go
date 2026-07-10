@@ -2,11 +2,17 @@ package chatagent
 
 import (
 	"context"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/llms"
@@ -91,20 +97,57 @@ func TestSessionTitleInflightDedupes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			origDB := store.Database
+			store.Database = postgres.NewSQLiteTestAdapter(t)
+			origChatAgent := config.App.ChatAgent
+			origModels := config.App.Models
+			config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-4o-mini"}
+			config.App.Models = []config.Model{{Provider: "openai", ModelNames: []string{"gpt-4o-mini"}}}
+
+			seen := make(map[string]struct{}, len(tt.sessions))
+			for _, sessionID := range tt.sessions {
+				if _, ok := seen[sessionID]; ok {
+					continue
+				}
+				seen[sessionID] = struct{}{}
+				require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag:  sessionID,
+					UID:   "user-1",
+					State: int(schema.ChatSessionActive),
+				}))
+			}
+
 			ResetSessionTitleGenerationForTest()
 			var calls atomic.Int32
-			sessionTitleGenWG.Add(len(tt.sessions))
-			for _, sessionID := range tt.sessions {
-				go func(id string) {
-					defer sessionTitleGenWG.Done()
-					if _, loaded := sessionTitleInflight.LoadOrStore(id, struct{}{}); loaded {
-						return
-					}
-					defer sessionTitleInflight.Delete(id)
-					time.Sleep(20 * time.Millisecond)
-					calls.Add(1)
-				}(sessionID)
+			releaseCh := make(chan struct{})
+			var releaseOnce sync.Once
+			unblock := func() { releaseOnce.Do(func() { close(releaseCh) }) }
+			origLLM := generateSessionTitleLLM
+			sessionTitleLLMMu.Lock()
+			generateSessionTitleLLM = func(_ context.Context, _, _, _ string, _ sessionTitleModelFunc) (string, error) {
+				calls.Add(1)
+				<-releaseCh
+				return "Generated title", nil
 			}
+			sessionTitleLLMMu.Unlock()
+			t.Cleanup(func() {
+				unblock()
+				sessionTitleLLMMu.Lock()
+				generateSessionTitleLLM = origLLM
+				sessionTitleLLMMu.Unlock()
+				WaitForSessionTitleGenerationForTest()
+				store.Database = origDB
+				config.App.ChatAgent = origChatAgent
+				config.App.Models = origModels
+			})
+
+			for _, sessionID := range tt.sessions {
+				go maybeGenerateSessionTitle(sessionID, "hello", "world")
+			}
+			require.Eventually(t, func() bool {
+				return calls.Load() >= tt.wantCalls
+			}, time.Second, 10*time.Millisecond)
+			unblock()
 			WaitForSessionTitleGenerationForTest()
 			assert.Equal(t, tt.wantCalls, calls.Load())
 		})
