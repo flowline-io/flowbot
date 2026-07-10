@@ -39,6 +39,241 @@ body:has(.chatagent-page) > main {
   box-shadow: 0 -4px 12px oklch(0 0 0 / 0.04);
 }
 
+.chatagent-page .chatagent-input-stack {
+  position: relative;
+}
+
+.chatagent-page .chatagent-input-wrap {
+  position: relative;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--radius-box, 0.5rem);
+  background-color: var(--color-base-100, #ffffff);
+}
+
+.chatagent-page .chatagent-followup-textarea {
+  display: block;
+  min-height: 3rem;
+  max-height: 10rem;
+  width: 100%;
+  padding: 0.75rem 2.75rem 0.75rem 0.75rem;
+  border: none;
+  outline: none;
+  resize: vertical;
+  background: transparent;
+  color: inherit;
+  line-height: 1.5;
+}
+
+.chatagent-page .chatagent-followup-textarea:focus {
+  outline: none;
+}
+
+.chatagent-page .chatagent-input-wrap:focus-within {
+  border-color: var(--color-primary, #4f46e5);
+  box-shadow: 0 0 0 1px var(--color-primary, #4f46e5);
+}
+
+.chatagent-page .chatagent-context-ring-wrap {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chatagent-page .chatagent-context-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  border-radius: 999px;
+  background: oklch(from var(--color-base-100, #fff) l c h / 0.92);
+  box-shadow: 0 0 0 1px oklch(0 0 0 / 0.08);
+  cursor: pointer;
+  line-height: 0;
+  pointer-events: auto;
+}
+
+.chatagent-page .chatagent-context-ring-track {
+  stroke: #6b7280;
+}
+
+.chatagent-page .chatagent-context-ring-progress {
+  stroke: #4338ca;
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.chatagent-page .chatagent-context-ring:hover {
+  box-shadow: 0 0 0 1px oklch(0 0 0 / 0.12);
+}
+
+.chatagent-page .chatagent-context-ring:hover .chatagent-context-ring-track {
+  stroke: #4b5563;
+}
+
+.chatagent-page .chatagent-context-ring:hover .chatagent-context-ring-progress {
+  stroke: #3730a3;
+}
+
+.chatagent-page .chatagent-context-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: min(360px, calc(100vw - 2rem));
+  max-height: min(360px, 50vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #1a1a1a;
+  color: #e5e7eb;
+  box-shadow: 0 8px 32px oklch(0 0 0 / 0.45);
+  z-index: 30;
+}
+
+@media (max-width: 640px) {
+  .chatagent-page .chatagent-context-popover {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: min(280px, 42vh);
+    margin-bottom: 4px;
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .chatagent-page .chatagent-context-popover-header {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .chatagent-page .chatagent-context-summary {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+}
+
+.chatagent-page .chatagent-context-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.chatagent-page .chatagent-context-popover-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.chatagent-page .chatagent-context-popover-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatagent-page .chatagent-context-view-report {
+  font-size: 0.75rem;
+  color: #d1d5db;
+  text-decoration: none;
+}
+
+.chatagent-page .chatagent-context-view-report:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.chatagent-page .chatagent-context-close {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chatagent-page .chatagent-context-close:hover {
+  color: #f3f4f6;
+}
+
+.chatagent-page .chatagent-context-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.chatagent-page .chatagent-context-bar {
+  display: flex;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  background: #1f2937;
+}
+
+.chatagent-page .chatagent-context-bar-segment {
+  flex-shrink: 0;
+  min-width: 1px;
+  height: 100%;
+}
+
+.chatagent-page .chatagent-context-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chatagent-page .chatagent-context-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8125rem;
+}
+
+.chatagent-page .chatagent-context-legend-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #d1d5db;
+}
+
+.chatagent-page .chatagent-context-swatch {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.chatagent-page .chatagent-context-legend-tokens {
+  flex-shrink: 0;
+  color: #9ca3af;
+  font-variant-numeric: tabular-nums;
+}
+
+.chatagent-page .chatagent-context-skill-row {
+  padding-left: 16px;
+  font-size: 0.75rem;
+}
+
+.chatagent-page .chatagent-context-skill-row .chatagent-context-legend-label {
+  color: #9ca3af;
+}
+
+.chatagent-page .chatagent-context-error {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: #f87171;
+}
+
 /* Thinking block */
 .chatagent-page .chatagent-thinking {
   display: block;

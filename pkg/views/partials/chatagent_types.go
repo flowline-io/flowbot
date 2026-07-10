@@ -11,4 +11,5 @@ type ChatAgentEndpoints struct {
 	EventsURL         string
 	InspectURL        string
 	RenderMarkdownURL string
+	ContextURL        string
 }

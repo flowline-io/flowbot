@@ -12,6 +12,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		data-confirm-url={ endpoints.ConfirmURL }
 		data-events-url={ endpoints.EventsURL }
 		data-render-markdown-url={ endpoints.RenderMarkdownURL }
+		data-context-url={ endpoints.ContextURL }
 		data-testid="chatagent-thread">
 		<div class="flex items-center justify-between mb-5 gap-2 shrink-0 px-1">
 			<div>
@@ -35,14 +36,20 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			}
 		</div>
 		<div class="chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4" data-testid="chatagent-input-bar">
-			<div class="flex items-end gap-2">
-				<textarea
-					id="chatagent-followup-input"
-					class="textarea textarea-bordered flex-1 min-h-12 max-h-40 resize-y leading-normal"
-					placeholder="Add follow-up... (Enter to send, Shift+Enter for newline)"
-					rows="2"
-					data-testid="chatagent-followup-input"></textarea>
-				<button type="button" id="chatagent-cancel-run" class="btn btn-ghost btn-sm hidden shrink-0" data-testid="chatagent-cancel-run">Cancel</button>
+			<div class="chatagent-input-stack">
+				@ChatAgentContextPopover(endpoints)
+				<div class="flex items-end gap-2">
+					<div class="chatagent-input-wrap flex-1 min-w-0">
+						<textarea
+							id="chatagent-followup-input"
+							class="chatagent-followup-textarea w-full min-h-12 max-h-40 resize-y leading-normal"
+							placeholder="Add follow-up... (Enter to send, Shift+Enter for newline)"
+							rows="2"
+							data-testid="chatagent-followup-input"></textarea>
+						@ChatAgentContextRing()
+					</div>
+					<button type="button" id="chatagent-cancel-run" class="btn btn-ghost btn-sm hidden shrink-0" data-testid="chatagent-cancel-run">Cancel</button>
+				</div>
 			</div>
 			<p class="text-xs text-error hidden mt-2" id="chatagent-thread-error" data-testid="chatagent-thread-error"></p>
 		</div>

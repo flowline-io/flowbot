@@ -2,9 +2,12 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/agent/model"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 )
 
@@ -150,6 +154,96 @@ func TestAgentsCreateSession(t *testing.T) {
 	}
 }
 
+func withChatAgentContextConfig(t *testing.T) {
+	t.Helper()
+	root := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
+	model.RegisterTestMetadata(t, model.Metadata{
+		ID:            "test-model",
+		Name:          "Test Model",
+		ContextLength: 100_000,
+	})
+	pkgconfig.App.ChatAgent.Workspace = root
+}
+
+func TestAgentChatContext(t *testing.T) {
+	now := time.Now().UTC()
+	tests := []struct {
+		name       string
+		path       string
+		auth       bool
+		sessions   map[string]*gen.ChatSession
+		wantStatus int
+		wantBody   string
+		checkJSON  func(t *testing.T, body []byte)
+	}{
+		{
+			name:       "unauthenticated redirects to login",
+			path:       "/service/web/agents/sess-owned/context",
+			auth:       false,
+			wantStatus: http.StatusSeeOther,
+		},
+		{
+			name: "non-owner forbidden",
+			path: "/service/web/agents/sess-other/context",
+			auth: true,
+			sessions: map[string]*gen.ChatSession{
+				"sess-other": {Flag: "sess-other", UID: "someone-else", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusForbidden,
+			wantBody:   "forbidden",
+		},
+		{
+			name: "owner receives context breakdown json",
+			path: "/service/web/agents/sess-owned/context",
+			auth: true,
+			sessions: map[string]*gen.ChatSession{
+				"sess-owned": {Flag: "sess-owned", Title: "Owned", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			checkJSON: func(t *testing.T, body []byte) {
+				t.Helper()
+				var report chatagent.ContextUsageReport
+				require.NoError(t, json.Unmarshal(body, &report))
+				assert.Equal(t, "test-model", report.Model)
+				assert.Equal(t, 100_000, report.ContextWindow)
+				gotIDs := make([]string, 0, len(report.Categories))
+				for _, cat := range report.Categories {
+					gotIDs = append(gotIDs, cat.ID)
+				}
+				assert.Contains(t, gotIDs, "system_prompt")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withChatAgentEnabled(t, func() {
+				withChatAgentContextConfig(t)
+				ts := &testStore{chatSessionsByFlag: tt.sessions}
+				app := setupAuthenticatedApp(t, ts)
+
+				req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
+				if tt.auth {
+					req.Header.Set("Cookie", "accessToken=test-token")
+				}
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.wantStatus, resp.StatusCode)
+				body, _ := io.ReadAll(resp.Body)
+				if tt.wantBody != "" {
+					assert.Contains(t, string(body), tt.wantBody)
+				}
+				if tt.checkJSON != nil {
+					tt.checkJSON(t, body)
+				}
+			})
+		})
+	}
+}
+
 func TestAgentChatPageOwner(t *testing.T) {
 	now := time.Now().UTC()
 	tests := []struct {
@@ -167,6 +261,15 @@ func TestAgentChatPageOwner(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 			wantBody:   "chatagent-thread",
+		},
+		{
+			name: "owner page includes context ring",
+			path: "/service/web/agents/sess-owned",
+			sessions: map[string]*gen.ChatSession{
+				"sess-owned": {Flag: "sess-owned", Title: "Owned", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   "chatagent-context-ring",
 		},
 		{
 			name: "non-owner forbidden",

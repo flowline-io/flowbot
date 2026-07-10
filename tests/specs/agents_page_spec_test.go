@@ -203,6 +203,26 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 			detailBody := ReadBody(detailResp)
 			Expect(string(detailBody)).To(ContainSubstring("chatagent-thread"))
 			Expect(string(detailBody)).To(ContainSubstring(newID))
+			Expect(string(detailBody)).To(ContainSubstring("chatagent-context-ring"))
+			Expect(string(detailBody)).To(ContainSubstring("Show context usage"))
+			Expect(string(detailBody)).To(ContainSubstring("data-context-url=\"/service/web/agents/" + newID + "/context\""))
+		})
+	})
+
+	Describe("GET /service/web/agents/:id/context", func() {
+		It("returns context usage breakdown json", func() {
+			req := MakeRequest(http.MethodGet, fmt.Sprintf("/service/web/agents/%s/context", sessionID), nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agents-token"})
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			defer resp.Body.Close()
+
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			var report map[string]any
+			Expect(json.Unmarshal(ReadBody(resp), &report)).To(Succeed())
+			Expect(report).To(HaveKey("categories"))
+			Expect(report).To(HaveKey("context_window"))
+			Expect(report).To(HaveKey("model"))
 		})
 	})
 })

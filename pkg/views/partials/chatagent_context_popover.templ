@@ -1,0 +1,52 @@
+package partials
+
+templ ChatAgentContextRing() {
+	<div class="chatagent-context-ring-wrap">
+		<button
+			type="button"
+			class="chatagent-context-ring"
+			title="Show context usage"
+			aria-label="Show context usage"
+			data-testid="chatagent-context-ring">
+			<svg class="chatagent-context-ring-svg" viewBox="0 0 28 28" width="26" height="26" aria-hidden="true">
+				<circle class="chatagent-context-ring-track" cx="14" cy="14" r="10" fill="none" stroke-width="3.5"></circle>
+				<circle
+					class="chatagent-context-ring-progress"
+					cx="14"
+					cy="14"
+					r="10"
+					fill="none"
+					stroke-width="3.5"
+					stroke-linecap="round"
+					transform="rotate(-90 14 14)"
+					stroke-dasharray="62.832"
+					stroke-dashoffset="62.832"></circle>
+			</svg>
+		</button>
+	</div>
+}
+
+templ ChatAgentContextPopover(endpoints ChatAgentEndpoints) {
+	<div
+		class="chatagent-context-popover hidden"
+		data-testid="chatagent-context-popover"
+		role="dialog"
+		aria-label="Context usage breakdown">
+		<div class="chatagent-context-popover-header">
+			<span class="chatagent-context-popover-title">Context Usage</span>
+			<div class="chatagent-context-popover-actions">
+				if endpoints.InspectURL != "" {
+					<a href={ templ.URL(endpoints.InspectURL) } class="chatagent-context-view-report" data-testid="chatagent-context-view-report">View Report</a>
+				}
+				<button type="button" class="chatagent-context-close" aria-label="Close context usage" data-testid="chatagent-context-close">&times;</button>
+			</div>
+		</div>
+		<div class="chatagent-context-summary">
+			<span id="chatagent-context-percent" data-testid="chatagent-context-percent">0% Full</span>
+			<span id="chatagent-context-tokens" data-testid="chatagent-context-tokens">~0 / 0 Tokens</span>
+		</div>
+		<div id="chatagent-context-bar" class="chatagent-context-bar" data-testid="chatagent-context-bar"></div>
+		<div id="chatagent-context-legend" class="chatagent-context-legend" data-testid="chatagent-context-legend"></div>
+		<p class="chatagent-context-error hidden" id="chatagent-context-error" data-testid="chatagent-context-error"></p>
+	</div>
+}

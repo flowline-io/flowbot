@@ -35,6 +35,10 @@ func (s *testStore) ListAgentSkills(_ context.Context, enabledOnly bool) ([]*gen
 	return rows, nil
 }
 
+func (*testStore) GetAgentSkillsMaxUpdatedAt(_ context.Context) (time.Time, error) {
+	return time.Time{}, nil
+}
+
 func (s *testStore) GetAgentSkillByFlag(_ context.Context, flag string) (*gen.AgentSkill, error) {
 	skill, ok := s.agentSkills[flag]
 	if !ok {

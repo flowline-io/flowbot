@@ -32,6 +32,7 @@ var (
 		webservice.Post("/agents/:id/cancel", agentChatCancel, route.WithNotAuth()),
 		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
 		webservice.Get("/agents/:id/events", agentChatEvents, route.WithNotAuth()),
+		webservice.Get("/agents/:id/context", agentChatContext, route.WithNotAuth()),
 	}
 
 	webChatAgentService = chatagent.NewService()
@@ -56,6 +57,7 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 		EventsURL:         prefix + "/events",
 		InspectURL:        "/service/web/agent-sessions/" + sessionID,
 		RenderMarkdownURL: "/service/web/agents/render-markdown",
+		ContextURL:        prefix + "/context",
 	}
 }
 
@@ -306,6 +308,30 @@ func agentRenderMarkdown(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "empty text"})
 	}
 	return ctx.JSON(fiber.Map{"html": partials.RenderChatAgentMarkdownHTML(body.Text)})
+}
+
+func agentChatContext(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "context usage: %v", err)
+	}
+	report, err := chatagent.BuildContextUsageReport(ctx.Context(), sessionID)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(report)
 }
 
 func agentChatEvents(ctx fiber.Ctx) error {

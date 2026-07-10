@@ -33,6 +33,10 @@ func (s *testStore) ListAgentSubagents(_ context.Context, enabledOnly bool) ([]*
 	return rows, nil
 }
 
+func (*testStore) GetAgentSubagentsMaxUpdatedAt(_ context.Context) (time.Time, error) {
+	return time.Time{}, nil
+}
+
 func (s *testStore) GetAgentSubagentByFlag(_ context.Context, flag string) (*gen.AgentSubagent, error) {
 	subagent, ok := s.agentSubagents[flag]
 	if !ok {
