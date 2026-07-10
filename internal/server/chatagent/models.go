@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
+	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
@@ -16,6 +17,11 @@ func agentLoopConfig() (cfg agent.Config, chatModel, toolModel string, dual bool
 	cfg = agent.DefaultConfig()
 	cfg.ModelName = chatModel
 	cfg.MaxSteps = runMaxSteps()
+	retry := agentllm.RetryConfigFromChatAgent(config.App.ChatAgent.LLMRetry)
+	cfg.LLMRetryMaxAttempts = retry.MaxAttempts
+	cfg.LLMRetryInitialInterval = retry.InitialInterval
+	cfg.LLMRetryMaxInterval = retry.MaxInterval
+	cfg.LLMRetryMultiplier = retry.Multiplier
 	if dual {
 		cfg.ChatModel = chatModel
 		cfg.ToolModel = toolModel

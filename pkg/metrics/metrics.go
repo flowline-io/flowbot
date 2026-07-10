@@ -14,6 +14,7 @@ func Module() fx.Option {
 			NewWorkflowCollector,
 			NewEventCollector,
 			NewAbilityCollector,
+			NewAgentCollector,
 		),
 	)
 }

@@ -46,7 +46,7 @@ func (WriteFileTool) Parameters() map[string]any {
 func (t WriteFileTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	path := normalizeWorkspacePath(fmt.Sprint(args["path"]))
 	if path == "" {
-		return toolError(id, t.Name(), "path is required"), nil
+		return tool.ErrorResult(id, t.Name(), "invalid_args", "path is required", "provide a relative path inside the workspace"), nil
 	}
 	content := fmt.Sprint(args["content"])
 

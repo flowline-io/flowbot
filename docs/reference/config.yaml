@@ -186,6 +186,25 @@ chat_agent:
   # subagent_max_depth: 1        # optional: cap nested task-tool delegation (default 1)
   # subagent_default_model: ""   # optional: model for subagents without an explicit model (default chat_model)
   # subagent_max_steps: 0        # optional: Observe-Think-Act limit per subagent run (default max_steps)
+  llm_retry:
+    max_attempts: 3
+    initial_interval: 1s
+    # max_interval: 30s
+    # multiplier: 2.0
+  sensors:
+    lint_on_write: false         # observation-only lint log after write_file of *.go
+  ability_tools: []              # each entry requires readonly: true
+  # ability_tools:
+  #   - name: memo_list
+  #     description: List memos
+  #     capability: memo
+  #     operation: list
+  #     readonly: true
+  sandbox:
+    enabled: false
+    image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest
+    # network: none
+    # memory: 512m
 
 # Flowbot instance configuration
 flowbot:

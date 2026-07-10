@@ -44,6 +44,7 @@ var Modules = fx.Options(
 	fx.Invoke(
 		setServerCacheStore,
 		setRouteAuditor,
+		setAgentMetricsCollector,
 		handleRoutes,
 		handleEvents,
 		initPipeline,
@@ -58,6 +59,11 @@ var Modules = fx.Options(
 
 func setServerCacheStore(store *cache.RedisStore) {
 	SetCacheStore(store)
+}
+
+// setAgentMetricsCollector installs the process-wide agent harness metrics collector.
+func setAgentMetricsCollector(ac *metrics.AgentCollector) {
+	metrics.SetDefaultAgentCollector(ac)
 }
 
 // newAuditor creates an audit.Auditor from the global store database.

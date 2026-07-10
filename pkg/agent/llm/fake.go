@@ -18,6 +18,8 @@ type ResponseScript struct {
 	ReasoningChunks []string
 	ToolCalls       []llms.ToolCall
 	Err             error
+	// ErrAfterStream is returned after streaming deltas have been delivered.
+	ErrAfterStream error
 }
 
 // FakeModel implements llms.Model with a queue of scripted responses.
@@ -85,6 +87,9 @@ func (f *FakeModel) GenerateContent(ctx context.Context, _ []llms.MessageContent
 
 	if err := emitFakeStreaming(ctx, opts, script); err != nil {
 		return nil, err
+	}
+	if script.ErrAfterStream != nil {
+		return nil, script.ErrAfterStream
 	}
 
 	return &llms.ContentResponse{

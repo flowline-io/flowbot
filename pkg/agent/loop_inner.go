@@ -7,6 +7,8 @@ import (
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/metrics"
+	"github.com/flowline-io/flowbot/pkg/trace"
 )
 
 type innerLoopState struct {
@@ -21,11 +23,17 @@ type innerLoopState struct {
 }
 
 func (s *innerLoopState) runTurn() (stopInner bool, err error) {
+	turnStart := time.Now()
+	ctx, span := trace.StartSpan(s.ctx, "agent.turn")
+	defer span.End()
+	s.ctx = ctx
+
 	if len(*s.pending) > 0 {
 		for _, message := range *s.pending {
 			s.current.Messages = append(s.current.Messages, message)
 			*s.newMessages = append(*s.newMessages, message)
 			if err := emitMessage(s.emit, message); err != nil {
+				metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 				return false, err
 			}
 		}
@@ -34,10 +42,12 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 
 	*s.steps++
 	if *s.steps > s.cfg.MaxSteps {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 		return false, ErrMaxSteps
 	}
 
 	if err := s.emit(agentevent.Event{Type: agentevent.TypeTurnStart}); err != nil {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 		return false, err
 	}
 
@@ -45,6 +55,8 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 
 	assistant, err := streamAssistant(s.ctx, s.current, s.cfg, s.deps, s.emit)
 	if err != nil {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
+		trace.RecordError(s.ctx, err)
 		return false, err
 	}
 	assistant.Timestamp = time.Now().UTC()
@@ -53,21 +65,31 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 
 	toolResults, terminate, hasToolCalls, err := s.executeTools(assistant)
 	if err != nil {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 		return false, err
 	}
 
 	if err := s.emit(agentevent.Event{Type: agentevent.TypeTurnEnd, Message: assistant, ToolResults: toolResults}); err != nil {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 		return false, err
 	}
 
 	if err := s.applyTurnHooks(assistant, toolResults); err != nil {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 		return false, err
 	}
 	if terminate {
+		metrics.Agent().ObserveTurnDuration("ok", time.Since(turnStart).Seconds())
 		return false, errStopAfterTurn
 	}
 
-	return s.continueAfterTurn(hasToolCalls)
+	stopInner, contErr := s.continueAfterTurn(hasToolCalls)
+	if contErr != nil {
+		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
+		return stopInner, contErr
+	}
+	metrics.Agent().ObserveTurnDuration("ok", time.Since(turnStart).Seconds())
+	return stopInner, nil
 }
 
 func (s *innerLoopState) executeTools(assistant AssistantMessage) ([]ToolResultMessage, bool, bool, error) {

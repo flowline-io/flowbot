@@ -15,22 +15,36 @@ agent/
 ├── loop_inner.go         # Inner loop state and single-turn execution
 ├── agent.go              # Stateful Agent with queues and subscriptions
 ├── msg/                  # Core message/context/error types (canonical definitions)
-├── result/               # Result[T,E] and typed agent errors
+├── result/               # Result[T,E], typed errors, overflow helpers
 ├── env/                  # ExecutionEnv for FS/shell with Result
 ├── event/                # Lifecycle event stream
-├── llm/                  # langchaingo adapter + fake model
-├── tool/                 # Registry, schema, executor
+├── llm/                  # langchaingo adapter, retry, fake model
+├── tool/                 # Registry, schema, executor, ValidateArgs, FormatToolError
 ├── session/              # Session tree + Storage interface + JSONL helpers
 ├── model/                # Model catalog and dual-model router
 ├── transform/            # convertToLLM + multimodal helpers
 ├── ctxmgr/               # Context budget, compaction, branch summarization
 ├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
-├── harness/              # High-level orchestration with hooks
+├── harness/              # High-level orchestration with hooks + overflow degrade
 ├── coding/               # Code execution tools (run_code, read/write_file, web_search, terminal, workspace)
+├── sandbox/              # Opt-in Docker ExecutionEnv for shell/code
+├── eval/                 # FakeModel harness eval scenarios
 └── example/echo/         # Reference echo tool
 ```
 
 ## Key Patterns
+
+### LLM retry
+
+`StreamAssistant` / `Complete` use `pkg/backoff`. Retries apply only before any streaming delta is delivered (`ErrStreamStarted` otherwise). Configure via `chat_agent.llm_retry` → `Config.LLMRetryMaxAttempts`.
+
+### Metrics
+
+Use `metrics.Agent()` (no-op until `SetDefaultAgentCollector`). Labels must stay low-cardinality (`status`, `model`, `tool`, `error_code`, `level`) — never `session_id`.
+
+### Tool errors
+
+Expected failures return `ToolResultMessage{IsError: true}` with `tool.FormatToolError(code, message, hint)`. Schema validation runs in `prepareCall` via `ValidateArgs`.
 
 ### Agent Loop
 
@@ -129,7 +143,8 @@ Anti-patterns: returning bare `error` from compaction helpers; ignoring `!result
 
 ```bash
 go test ./pkg/agent/...
-go tool task test:specs   # includes agent_spec_test.go
+go test ./pkg/agent/eval/...   # FakeModel harness eval suite
+go tool task test:specs        # includes agent_spec_test.go
 ```
 
 Reference implementation: `pkg/agent/example/echo/`.

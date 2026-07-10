@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/bytedance/sonic"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/metrics"
+	"github.com/flowline-io/flowbot/pkg/trace"
 )
 
 // BatchRequest describes one tool execution batch from an assistant turn.
@@ -120,6 +123,16 @@ func prepareCall(_ context.Context, req BatchRequest, call msg.ToolCallPart) (pr
 		}, nil
 	}
 
+	if err := ValidateArgs(t.Parameters(), args); err != nil {
+		return preparedCall{
+			call:    call,
+			args:    args,
+			tool:    t,
+			blocked: true,
+			reason:  err.Error(),
+		}, nil
+	}
+
 	if req.Before != nil {
 		before, err := req.Before(msg.BeforeToolContext{
 			Assistant: req.Assistant,
@@ -159,19 +172,25 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 		if reason == "" {
 			reason = "tool call blocked"
 		}
+		metrics.Agent().IncToolTotal(call.Name, "blocked")
 		return blockedResult(call, reason), false, nil
 	}
 
 	t, ok := req.Registry.Get(call.Name)
 	if !ok {
-		return errorResult(call, fmt.Sprintf("%s: %q", msg.ErrToolNotFound.Error(), call.Name)), false, nil
+		metrics.Agent().IncToolTotal(call.Name, "not_found")
+		return toolFailureResult(call, fmt.Sprintf("%s: %q", msg.ErrToolNotFound.Error(), call.Name)), false, nil
 	}
 	prepared.tool = t
+
+	ctx, span := trace.StartSpan(ctx, "agent.tool."+call.Name)
+	defer span.End()
 
 	if req.Emit != nil {
 		_ = req.Emit(ctx, agentevent.Event{Type: agentevent.TypeToolExecutionStart, ToolCall: call})
 	}
 
+	start := time.Now()
 	toolResult, err := t.Execute(ctx, call.ID, prepared.args, func(update string) error {
 		if req.Emit == nil {
 			return nil
@@ -182,8 +201,15 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 			Update:   update,
 		})
 	})
+	metrics.Agent().ObserveToolDuration(call.Name, time.Since(start).Seconds())
 	if err != nil {
-		toolResult = errorResult(call, err.Error())
+		toolResult = toolFailureResult(call, err.Error())
+		metrics.Agent().IncToolTotal(call.Name, "error")
+		trace.RecordError(ctx, err)
+	} else if toolResult.IsError {
+		metrics.Agent().IncToolTotal(call.Name, "error")
+	} else {
+		metrics.Agent().IncToolTotal(call.Name, "ok")
 	}
 	toolResult.ToolCallID = call.ID
 	toolResult.Name = call.Name
@@ -198,7 +224,7 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 			Context:   req.Context,
 		})
 		if afterErr != nil {
-			return errorResult(call, afterErr.Error()), false, nil
+			return toolFailureResult(call, afterErr.Error()), false, nil
 		}
 		if after != nil {
 			if after.Parts != nil {
@@ -242,11 +268,6 @@ func blockedResult(call msg.ToolCallPart, reason string) msg.ToolResultMessage {
 	}
 }
 
-func errorResult(call msg.ToolCallPart, message string) msg.ToolResultMessage {
-	return msg.ToolResultMessage{
-		ToolCallID: call.ID,
-		Name:       call.Name,
-		Parts:      []msg.ContentPart{msg.TextPart{Text: message}},
-		IsError:    true,
-	}
+func toolFailureResult(call msg.ToolCallPart, message string) msg.ToolResultMessage {
+	return ErrorResult(call.ID, call.Name, "tool_error", message, "")
 }

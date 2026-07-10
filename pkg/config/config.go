@@ -569,6 +569,58 @@ type ChatAgentConfig struct {
 	SubagentDefaultModel string `json:"subagent_default_model" yaml:"subagent_default_model" mapstructure:"subagent_default_model"`
 	// SubagentMaxSteps limits Observe-Think-Act iterations within one subagent run; defaults to MaxSteps.
 	SubagentMaxSteps int `json:"subagent_max_steps" yaml:"subagent_max_steps" mapstructure:"subagent_max_steps"`
+	// LLMRetry configures transient LLM call retries for the chat agent.
+	LLMRetry LLMRetryConfig `json:"llm_retry" yaml:"llm_retry" mapstructure:"llm_retry"`
+	// Sensors configures post-tool computational sensors.
+	Sensors ChatAgentSensorsConfig `json:"sensors" yaml:"sensors" mapstructure:"sensors"`
+	// AbilityTools registers readonly ability operations as agent tools.
+	AbilityTools []AbilityToolConfig `json:"ability_tools" yaml:"ability_tools" mapstructure:"ability_tools"`
+	// Sandbox configures optional Docker isolation for shell and code tools.
+	Sandbox ChatAgentSandboxConfig `json:"sandbox" yaml:"sandbox" mapstructure:"sandbox"`
+}
+
+// LLMRetryConfig configures transient LLM call retries.
+type LLMRetryConfig struct {
+	// MaxAttempts is the total number of execution attempts. Zero uses package defaults (3).
+	MaxAttempts int `json:"max_attempts" yaml:"max_attempts" mapstructure:"max_attempts"`
+	// InitialInterval is the delay before the first retry. Zero uses 1s.
+	InitialInterval time.Duration `json:"initial_interval" yaml:"initial_interval" mapstructure:"initial_interval"`
+	// MaxInterval caps the delay between retries. Zero uses 30s.
+	MaxInterval time.Duration `json:"max_interval" yaml:"max_interval" mapstructure:"max_interval"`
+	// Multiplier controls delay growth. Zero uses 2.0.
+	Multiplier float64 `json:"multiplier" yaml:"multiplier" mapstructure:"multiplier"`
+}
+
+// ChatAgentSensorsConfig configures post-tool sensors for the chat agent.
+type ChatAgentSensorsConfig struct {
+	// LintOnWrite enables observation-only lint logging after writing Go files.
+	LintOnWrite bool `json:"lint_on_write" yaml:"lint_on_write" mapstructure:"lint_on_write"`
+}
+
+// AbilityToolConfig exposes a readonly ability operation as an agent tool.
+type AbilityToolConfig struct {
+	// Name is the tool name exposed to the model.
+	Name string `json:"name" yaml:"name" mapstructure:"name"`
+	// Description is shown to the model.
+	Description string `json:"description" yaml:"description" mapstructure:"description"`
+	// Capability is the ability capability name.
+	Capability string `json:"capability" yaml:"capability" mapstructure:"capability"`
+	// Operation is the ability operation name.
+	Operation string `json:"operation" yaml:"operation" mapstructure:"operation"`
+	// Readonly must be true; non-readonly tools are rejected at startup.
+	Readonly bool `json:"readonly" yaml:"readonly" mapstructure:"readonly"`
+}
+
+// ChatAgentSandboxConfig configures Docker isolation for shell and code tools.
+type ChatAgentSandboxConfig struct {
+	// Enabled turns on Docker sandbox execution when true.
+	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Image is the sandbox container image.
+	Image string `json:"image" yaml:"image" mapstructure:"image"`
+	// Network is the Docker network mode (empty uses default bridge isolation).
+	Network string `json:"network" yaml:"network" mapstructure:"network"`
+	// Memory limits container memory (e.g. "512m"); empty uses Docker defaults.
+	Memory string `json:"memory" yaml:"memory" mapstructure:"memory"`
 }
 
 type Model struct {

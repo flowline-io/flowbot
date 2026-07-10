@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -31,6 +32,9 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 	}
 
 	registerPermissionHook(reg, deps)
+	registerPathSensors(reg)
+	registerLintSensor(reg)
+	registerProgressHooks(reg)
 
 	hooks.Observe(reg, func(_ context.Context, event hooks.ObservationEvent) error {
 		switch event.Type {
@@ -106,6 +110,10 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 			WorkspaceRoot: workspaceRoot,
 			ExternalPath:  externalPath,
 		}, sessionState)
+
+		if result.DoomLoopTriggered {
+			metrics.Agent().IncDoomLoop(event.ToolCall.Name)
+		}
 
 		return evaluatePermissionResult(ctx, deps.SessionID, event, result, sessionState)
 	})

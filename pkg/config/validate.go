@@ -180,7 +180,7 @@ func (t *Type) validateModels(errs ValidationErrors, modelNames map[string]bool)
 func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bool) ValidationErrors {
 	chat := t.ChatAgent.ChatModel
 	if chat == "" {
-		return errs
+		return t.validateChatAgentExtras(errs)
 	}
 	if len(modelNames) > 0 && !modelNames[chat] {
 		errs = append(errs, fmt.Errorf(
@@ -189,22 +189,53 @@ func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bo
 		))
 	}
 	tool := t.ChatAgent.ToolModel
-	if tool == "" {
-		return errs
-	}
-	if len(modelNames) > 0 && !modelNames[tool] {
-		errs = append(errs, fmt.Errorf(
-			"chat_agent.tool_model: %q not found in models. Fix: reference an existing model name in chat_agent.tool_model in flowbot.yaml",
-			tool,
-		))
-	}
-	if len(modelNames) > 0 && modelNames[chat] && modelNames[tool] {
-		chatProvider := providerForModelInList(t.Models, chat)
-		toolProvider := providerForModelInList(t.Models, tool)
-		if chatProvider != toolProvider {
+	if tool != "" {
+		if len(modelNames) > 0 && !modelNames[tool] {
 			errs = append(errs, fmt.Errorf(
-				"chat_agent: chat_model %q (provider %q) and tool_model %q (provider %q) must use the same provider. Fix: align providers in flowbot.yaml",
-				chat, chatProvider, tool, toolProvider,
+				"chat_agent.tool_model: %q not found in models. Fix: reference an existing model name in chat_agent.tool_model in flowbot.yaml",
+				tool,
+			))
+		}
+		if len(modelNames) > 0 && modelNames[chat] && modelNames[tool] {
+			chatProvider := providerForModelInList(t.Models, chat)
+			toolProvider := providerForModelInList(t.Models, tool)
+			if chatProvider != toolProvider {
+				errs = append(errs, fmt.Errorf(
+					"chat_agent: chat_model %q (provider %q) and tool_model %q (provider %q) must use the same provider. Fix: align providers in flowbot.yaml",
+					chat, chatProvider, tool, toolProvider,
+				))
+			}
+		}
+	}
+	return t.validateChatAgentExtras(errs)
+}
+
+func (t *Type) validateChatAgentExtras(errs ValidationErrors) ValidationErrors {
+	for i, entry := range t.ChatAgent.AbilityTools {
+		name := strings.TrimSpace(entry.Name)
+		if name == "" {
+			errs = append(errs, fmt.Errorf(
+				"chat_agent.ability_tools[%d]: name is required. Fix: set name for each ability_tools entry in flowbot.yaml",
+				i,
+			))
+			name = fmt.Sprintf("#%d", i)
+		}
+		if strings.TrimSpace(entry.Capability) == "" {
+			errs = append(errs, fmt.Errorf(
+				"chat_agent.ability_tools[%s]: capability is required. Fix: set capability in flowbot.yaml",
+				name,
+			))
+		}
+		if strings.TrimSpace(entry.Operation) == "" {
+			errs = append(errs, fmt.Errorf(
+				"chat_agent.ability_tools[%s]: operation is required. Fix: set operation in flowbot.yaml",
+				name,
+			))
+		}
+		if !entry.Readonly {
+			errs = append(errs, fmt.Errorf(
+				"chat_agent.ability_tools[%s]: readonly must be true. Fix: set readonly: true (only readonly ability tools are supported)",
+				name,
 			))
 		}
 	}

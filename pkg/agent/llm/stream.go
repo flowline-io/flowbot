@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/flowline-io/flowbot/pkg/backoff"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -21,6 +23,8 @@ type StreamOptions struct {
 	Tools            []llms.Tool
 	OnTextDelta      func(delta string) error
 	OnReasoningDelta func(delta string) error
+	// Retry overrides the default transient retry policy when non-zero MaxAttempts is set.
+	Retry RetryConfig
 }
 
 // AssistantResult is the normalized output of a streaming assistant request.
@@ -42,6 +46,7 @@ type Usage struct {
 }
 
 // StreamAssistant performs a streaming LLM call and assembles the assistant result.
+// Transient failures are retried only before any streaming delta is delivered.
 func StreamAssistant(
 	ctx context.Context,
 	model llms.Model,
@@ -53,6 +58,70 @@ func StreamAssistant(
 		return AssistantResult{}, ErrAborted
 	}
 
+	if systemPrompt != "" {
+		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt)}, messages...)
+	}
+
+	var result AssistantResult
+	retryCfg := opts.Retry
+	if retryCfg.MaxAttempts <= 0 {
+		retryCfg = DefaultRetryConfig()
+	}
+	_, err := backoff.Do(ctx, retryCfg.toBackoff(), func(attemptCtx context.Context) error {
+		out, callErr := streamAssistantOnce(attemptCtx, model, messages, opts)
+		if callErr != nil {
+			return callErr
+		}
+		result = out
+		return nil
+	})
+	if err != nil {
+		if errors.Is(err, ErrAborted) || ctx.Err() != nil {
+			return AssistantResult{}, ErrAborted
+		}
+		return AssistantResult{}, err
+	}
+	return result, nil
+}
+
+func streamAssistantOnce(
+	ctx context.Context,
+	model llms.Model,
+	messages []llms.MessageContent,
+	opts StreamOptions,
+) (AssistantResult, error) {
+	callOpts := buildGenerateCallOptions(opts)
+	var textBuilder strings.Builder
+	var textMu sync.Mutex
+	tracker := &streamStartTracker{}
+	wrapped := wrapStreamCallbacks(opts, tracker)
+	callOpts = append(callOpts, buildAssistantStreamOptions(wrapped, &textBuilder, &textMu)...)
+
+	resp, err := model.GenerateContent(ctx, messages, callOpts...)
+	if err != nil {
+		return mapGenerateError(ctx, err, tracker.hasStarted())
+	}
+	return assembleAssistantResult(opts.ModelName, resp, &textBuilder)
+}
+
+type streamStartTracker struct {
+	mu      sync.Mutex
+	started bool
+}
+
+func (t *streamStartTracker) mark() {
+	t.mu.Lock()
+	t.started = true
+	t.mu.Unlock()
+}
+
+func (t *streamStartTracker) hasStarted() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.started
+}
+
+func buildGenerateCallOptions(opts StreamOptions) []llms.CallOption {
 	callOpts := []llms.CallOption{
 		llms.WithModel(opts.ModelName),
 		llms.WithTools(opts.Tools),
@@ -63,41 +132,60 @@ func StreamAssistant(
 	if opts.MaxTokens > 0 {
 		callOpts = append(callOpts, llms.WithMaxTokens(opts.MaxTokens))
 	}
+	return callOpts
+}
 
-	var textBuilder strings.Builder
-	var textMu sync.Mutex
-	callOpts = append(callOpts, buildAssistantStreamOptions(opts, &textBuilder, &textMu)...)
-
-	if systemPrompt != "" {
-		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt)}, messages...)
-	}
-
-	resp, err := model.GenerateContent(ctx, messages, callOpts...)
-	if err != nil {
-		if ctx.Err() != nil {
-			return AssistantResult{}, ErrAborted
+func wrapStreamCallbacks(opts StreamOptions, tracker *streamStartTracker) StreamOptions {
+	wrapped := opts
+	if opts.OnTextDelta != nil {
+		inner := opts.OnTextDelta
+		wrapped.OnTextDelta = func(delta string) error {
+			if delta != "" {
+				tracker.mark()
+			}
+			return inner(delta)
 		}
-		return AssistantResult{}, fmt.Errorf("agent llm: generate content: %w", err)
 	}
+	if opts.OnReasoningDelta != nil {
+		inner := opts.OnReasoningDelta
+		wrapped.OnReasoningDelta = func(delta string) error {
+			if delta != "" {
+				tracker.mark()
+			}
+			return inner(delta)
+		}
+	}
+	return wrapped
+}
+
+func mapGenerateError(ctx context.Context, err error, streamStarted bool) (AssistantResult, error) {
+	if ctx.Err() != nil {
+		return AssistantResult{}, ErrAborted
+	}
+	wrappedErr := fmt.Errorf("agent llm: generate content: %w", err)
+	if streamStarted {
+		return AssistantResult{}, streamStartedError{cause: wrappedErr}
+	}
+	return AssistantResult{}, wrappedErr
+}
+
+func assembleAssistantResult(modelName string, resp *llms.ContentResponse, textBuilder *strings.Builder) (AssistantResult, error) {
 	if resp == nil || len(resp.Choices) == 0 {
 		return AssistantResult{}, fmt.Errorf("agent llm: empty response")
 	}
-
 	choice := resp.Choices[0]
 	content := choice.Content
 	if content == "" && textBuilder.Len() > 0 {
 		content = textBuilder.String()
 	}
-
 	stopReason := "complete"
 	if choice.StopReason == "tool_calls" || len(choice.ToolCalls) > 0 {
 		stopReason = "tool_calls"
 	}
-
 	return AssistantResult{
 		Content:    content,
 		ToolCalls:  append([]llms.ToolCall(nil), choice.ToolCalls...),
-		ModelName:  opts.ModelName,
+		ModelName:  modelName,
 		StopReason: stopReason,
 		Usage:      usageFromGenerationInfo(choice.GenerationInfo),
 	}, nil
@@ -182,6 +270,7 @@ func intFromInfo(info map[string]any, key string) (int, bool) {
 }
 
 // Complete performs a non-streaming completion for auxiliary tasks such as summarization.
+// Retry policy follows chat_agent.llm_retry when configured.
 func Complete(
 	ctx context.Context,
 	model llms.Model,
@@ -190,19 +279,46 @@ func Complete(
 	modelName string,
 	maxTokens int,
 ) (string, error) {
+	return CompleteWithRetry(ctx, model, systemPrompt, messages, modelName, maxTokens, RetryConfigFromChatAgent(config.App.ChatAgent.LLMRetry))
+}
+
+// CompleteWithRetry performs a non-streaming completion with an explicit retry policy.
+func CompleteWithRetry(
+	ctx context.Context,
+	model llms.Model,
+	systemPrompt string,
+	messages []llms.MessageContent,
+	modelName string,
+	maxTokens int,
+	retryCfg RetryConfig,
+) (string, error) {
 	if systemPrompt != "" {
 		messages = append([]llms.MessageContent{llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt)}, messages...)
 	}
-	opts := []llms.CallOption{llms.WithModel(modelName)}
-	if maxTokens > 0 {
-		opts = append(opts, llms.WithMaxTokens(maxTokens))
-	}
-	resp, err := model.GenerateContent(ctx, messages, opts...)
+	var content string
+	_, err := backoff.Do(ctx, retryCfg.toBackoff(), func(attemptCtx context.Context) error {
+		opts := []llms.CallOption{llms.WithModel(modelName)}
+		if maxTokens > 0 {
+			opts = append(opts, llms.WithMaxTokens(maxTokens))
+		}
+		resp, callErr := model.GenerateContent(attemptCtx, messages, opts...)
+		if callErr != nil {
+			if attemptCtx.Err() != nil {
+				return ErrAborted
+			}
+			return fmt.Errorf("agent llm: complete: %w", callErr)
+		}
+		if resp == nil || len(resp.Choices) == 0 {
+			return fmt.Errorf("agent llm: empty completion")
+		}
+		content = resp.Choices[0].Content
+		return nil
+	})
 	if err != nil {
-		return "", fmt.Errorf("agent llm: complete: %w", err)
+		if errors.Is(err, ErrAborted) || ctx.Err() != nil {
+			return "", ErrAborted
+		}
+		return "", err
 	}
-	if resp == nil || len(resp.Choices) == 0 {
-		return "", fmt.Errorf("agent llm: empty completion")
-	}
-	return resp.Choices[0].Content, nil
+	return content, nil
 }

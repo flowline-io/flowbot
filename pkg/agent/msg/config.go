@@ -1,5 +1,7 @@
 package msg
 
+import "time"
+
 const defaultMaxSteps = 50
 
 // Config holds runtime options for an agent loop invocation.
@@ -21,6 +23,14 @@ type Config struct {
 	GetFollowUpMessages GetMessagesFn
 	SteeringMode        QueueMode
 	FollowUpMode        QueueMode
+	// LLMRetryMaxAttempts overrides default LLM retries when > 0.
+	LLMRetryMaxAttempts int
+	// LLMRetryInitialInterval overrides the first retry delay when > 0.
+	LLMRetryInitialInterval time.Duration
+	// LLMRetryMaxInterval caps the delay between retries when > 0.
+	LLMRetryMaxInterval time.Duration
+	// LLMRetryMultiplier controls delay growth when > 0.
+	LLMRetryMultiplier float64
 }
 
 // WithDefaults fills zero values with package defaults.

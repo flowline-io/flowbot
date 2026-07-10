@@ -102,19 +102,24 @@ func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harn
 		h = built.harness
 	}
 
-	if err := applySessionMode(ctx, h, req.SessionID); err != nil {
+	if err := applySessionMode(ctx, h, req); err != nil {
 		return nil, err
 	}
 	return h, nil
 }
 
-func applySessionMode(ctx context.Context, h *harness.Harness, sessionID string) error {
-	mode := LoadSessionMode(ctx, sessionID)
-	if mode == ModePlan {
-		h.SetActiveTools(ReadOnlyToolNames())
-	} else {
-		h.SetActiveTools(ActiveToolNames())
+func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) error {
+	mode := LoadSessionMode(ctx, req.SessionID)
+	kind := req.Kind
+	if kind == "" {
+		kind = RunKindInteractive
 	}
+	h.SetActiveTools(ApplyToolScope(ToolScopeInput{
+		Mode:      mode,
+		Kind:      kind,
+		UserText:  req.Text,
+		AllActive: ActiveToolNames(),
+	}))
 	workspace, err := WorkspaceFromConfig()
 	if err != nil {
 		return err
@@ -190,6 +195,16 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 		return "", err
 	}
 	compaction := config.App.ChatAgent.Compaction
+	sandbox := config.App.ChatAgent.Sandbox
+	abilityParts := make([]string, 0, len(config.App.ChatAgent.AbilityTools))
+	for _, entry := range config.App.ChatAgent.AbilityTools {
+		abilityParts = append(abilityParts, fmt.Sprintf("%s:%s:%s:%t",
+			strings.TrimSpace(entry.Name),
+			strings.TrimSpace(entry.Capability),
+			strings.TrimSpace(entry.Operation),
+			entry.Readonly,
+		))
+	}
 	parts := []string{
 		workspace.Root,
 		chatModel,
@@ -202,6 +217,13 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 			compaction.ReservedTokens(),
 			compaction.KeepRecentBudget(),
 		),
+		fmt.Sprintf("sandbox=%t:%s:%s:%s",
+			sandbox.Enabled,
+			strings.TrimSpace(sandbox.Image),
+			strings.TrimSpace(sandbox.Network),
+			strings.TrimSpace(sandbox.Memory),
+		),
+		"ability=" + strings.Join(abilityParts, ","),
 		promptConfigHash(workspace.Root),
 	}
 	sum := sha256.Sum256([]byte(strings.Join(parts, "\x1f")))

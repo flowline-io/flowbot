@@ -42,7 +42,7 @@ func (RunTerminalTool) Parameters() map[string]any {
 func (t RunTerminalTool) Execute(ctx context.Context, id string, args map[string]any, onUpdate tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	command := strings.TrimSpace(fmt.Sprint(args["command"]))
 	if command == "" {
-		return toolError(id, t.Name(), "command is required"), nil
+		return tool.ErrorResult(id, t.Name(), "invalid_args", "command is required", "provide a non-empty shell command"), nil
 	}
 	if onUpdate != nil {
 		_ = onUpdate("running command...")

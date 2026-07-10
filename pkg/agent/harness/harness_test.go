@@ -46,6 +46,8 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
 				{Content: "## Goal\nCompact summary"},
 				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
+				{Content: "## Goal\nForce compact summary"},
+				{Err: fmt.Errorf("Your input exceeds the context window of this model")},
 			},
 			wantErr: true,
 		},

@@ -3,6 +3,7 @@ package harness
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
@@ -16,6 +17,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/transform"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/metrics"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/google/uuid"
 	"github.com/tmc/langchaingo/llms"
 )
@@ -168,11 +171,13 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 	})
 	if err != nil {
 		h.setPhase(PhaseIdle)
+		metrics.Agent().IncRunTotal("error")
 		return nil, err
 	}
 	if startResult != nil {
 		if startResult.Cancel {
 			h.setPhase(PhaseIdle)
+			metrics.Agent().IncRunTotal("cancelled")
 			return nil, hooks.ErrRunCancelled
 		}
 		if startResult.Messages != nil {
@@ -185,6 +190,7 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 
 	if err := h.prepareContext(ctx); err != nil {
 		h.setPhase(PhaseIdle)
+		metrics.Agent().IncRunTotal("error")
 		return nil, wrapPromptError(err)
 	}
 
@@ -213,10 +219,23 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 	stream, err := h.agent.Prompt(ctx, prompts...)
 	if err != nil {
 		h.setPhase(PhaseIdle)
+		metrics.Agent().IncRunTotal("error")
 		return nil, err
 	}
 	go func() {
-		result := h.watchStream(ctx, stream, prompts, 0)
+		runCtx, span := trace.StartSpan(ctx, "agent.run")
+		defer span.End()
+		result := h.watchStream(runCtx, stream, prompts, 0)
+		switch {
+		case result.Err == nil:
+			metrics.Agent().IncRunTotal("ok")
+		case errors.Is(result.Err, agent.ErrAborted), errors.Is(result.Err, context.Canceled):
+			metrics.Agent().IncRunTotal("cancelled")
+			trace.RecordError(runCtx, result.Err)
+		default:
+			metrics.Agent().IncRunTotal("error")
+			trace.RecordError(runCtx, result.Err)
+		}
 		h.storeRunResult(result)
 		h.setPhase(PhaseIdle)
 	}()
@@ -273,9 +292,14 @@ func (h *Harness) prepareContext(ctx context.Context) error {
 	if h.ctxMgr == nil || h.session == nil {
 		return nil
 	}
+	ctx, span := trace.StartSpan(ctx, "agent.compact")
+	defer span.End()
 	if err := h.ctxMgr.EnsureWithinBudget(ctx, h.session, h.agent); err != nil {
+		metrics.Agent().IncCompact("error")
+		trace.RecordError(ctx, err)
 		return err
 	}
+	metrics.Agent().IncCompact("ok")
 	h.emitContextUsage(ctx)
 	return nil
 }
@@ -300,7 +324,7 @@ func (h *Harness) emitContextUsage(ctx context.Context) {
 	})
 }
 
-func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, prompts []agent.AgentMessage, retry int) agentevent.Result {
+func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, prompts []agent.AgentMessage, level int) agentevent.Result {
 	// Await with a detached context so a cancelled run ctx cannot race ahead of the
 	// agent loop and overwrite the loop's terminal error (for example ErrAborted).
 	result, awaitErr := stream.Await(context.Background())
@@ -308,11 +332,25 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, pr
 		return agentevent.Result{Err: awaitErr}
 	}
 
-	if result.Err != nil && retry == 0 && h.shouldRetryOverflow(result) {
-		if compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: true}); compactErr != nil {
+	if result.Err != nil && h.shouldRetryOverflow(result) {
+		nextLevel := level + 1
+		force := nextLevel >= 2
+		if nextLevel > 2 {
+			h.finishStream(ctx, result)
+			return result
+		}
+		metrics.Agent().IncOverflowRetry(fmt.Sprintf("%d", nextLevel))
+		ctx, span := trace.StartSpan(ctx, "agent.compact")
+		compactErr := h.ctxMgr.CompactAndReload(ctx, h.session, h.agent, ctxmgr.CompactOpts{Force: force})
+		if compactErr != nil {
+			metrics.Agent().IncCompact("error")
+			trace.RecordError(ctx, compactErr)
+			span.End()
 			h.finishStream(ctx, result)
 			return agentevent.Result{Messages: result.Messages, Err: errors.Join(result.Err, compactErr)}
 		}
+		metrics.Agent().IncCompact("ok")
+		span.End()
 		h.emitObservation(ctx, hooks.ObservationEvent{Type: hooks.EventContextCompacted})
 		h.emitContextUsage(ctx)
 		retryStream, promptErr := h.agent.Prompt(ctx, prompts...)
@@ -320,7 +358,7 @@ func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, pr
 			h.finishStream(ctx, result)
 			return result
 		}
-		return h.watchStream(ctx, retryStream, prompts, retry+1)
+		return h.watchStream(ctx, retryStream, prompts, nextLevel)
 	}
 
 	h.finishStream(ctx, result)

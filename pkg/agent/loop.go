@@ -4,13 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
+	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/transform"
+	"github.com/flowline-io/flowbot/pkg/metrics"
+	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/tmc/langchaingo/llms"
+	"go.opentelemetry.io/otel/attribute"
 )
 
 // LoopDeps holds runtime dependencies for the agent loop.
@@ -181,6 +186,9 @@ func streamAssistant(
 	deps LoopDeps,
 	emit func(agentevent.Event) error,
 ) (AssistantMessage, error) {
+	ctx, span := trace.StartSpan(ctx, "agent.llm.stream")
+	defer span.End()
+
 	messages := current.Messages
 	if cfg.TransformContext != nil {
 		transformed, err := cfg.TransformContext(messages)
@@ -199,6 +207,7 @@ func streamAssistant(
 	}
 
 	modelName := turnModelName(cfg, current)
+	trace.SetSpanAttributes(ctx, attribute.String("model", modelName))
 
 	activeTools := deps.Registry.ActiveTools()
 	llmTools := tool.BuildLLMTools(activeTools)
@@ -209,21 +218,33 @@ func streamAssistant(
 		}
 	}
 
+	retry := llmRetryFromConfig(cfg)
+	retry.OnRetry = func(_ int, _ time.Duration, _ error) {
+		metrics.Agent().IncLLMRetry(modelName)
+	}
+
 	streamOpts := agentllm.StreamOptions{
 		ModelName:   modelName,
 		Temperature: cfg.Temperature,
 		MaxTokens:   cfg.MaxTokens,
 		Tools:       llmTools,
 		OnTextDelta: messageTextDeltaHandler(emit),
+		Retry:       retry,
 	}
 	if agentllm.SupportsReasoningStream(modelName) {
 		streamOpts.OnReasoningDelta = messageReasoningDeltaHandler(emit)
 	}
 
+	start := time.Now()
 	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, streamOpts)
+	metrics.Agent().ObserveLLMDuration(modelName, time.Since(start).Seconds())
 	if err != nil {
+		err = agentresult.WrapOverflowError(err)
+		metrics.Agent().IncLLMRequest(modelName, "error")
+		trace.RecordError(ctx, err)
 		return AssistantMessage{}, err
 	}
+	metrics.Agent().IncLLMRequest(modelName, "ok")
 
 	parts := make([]ContentPart, 0, 1+len(result.ToolCalls))
 	if result.Content != "" {
@@ -266,6 +287,23 @@ func messageTextDeltaHandler(emit func(agentevent.Event) error) func(string) err
 		}
 		return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, TextDelta: delta})
 	}
+}
+
+func llmRetryFromConfig(cfg Config) agentllm.RetryConfig {
+	retry := agentllm.DefaultRetryConfig()
+	if cfg.LLMRetryMaxAttempts > 0 {
+		retry.MaxAttempts = cfg.LLMRetryMaxAttempts
+	}
+	if cfg.LLMRetryInitialInterval > 0 {
+		retry.InitialInterval = cfg.LLMRetryInitialInterval
+	}
+	if cfg.LLMRetryMaxInterval > 0 {
+		retry.MaxInterval = cfg.LLMRetryMaxInterval
+	}
+	if cfg.LLMRetryMultiplier > 0 {
+		retry.Multiplier = cfg.LLMRetryMultiplier
+	}
+	return retry
 }
 
 func messageReasoningDeltaHandler(emit func(agentevent.Event) error) func(string) error {

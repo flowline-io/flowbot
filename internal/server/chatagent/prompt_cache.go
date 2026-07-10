@@ -160,6 +160,10 @@ func promptConfigHash(workspaceRoot string) string {
 	if language == "" {
 		language = "English"
 	}
+	abilityParts := make([]string, 0, len(cfg.AbilityTools))
+	for _, entry := range cfg.AbilityTools {
+		abilityParts = append(abilityParts, strings.TrimSpace(entry.Name))
+	}
 	parts := []string{
 		workspaceRoot,
 		cfg.SystemPrompt,
@@ -167,6 +171,7 @@ func promptConfigHash(workspaceRoot string) string {
 		strings.Join(cfg.PromptGuidelines, "\n"),
 		strings.Join(cfg.ContextFiles, "\n"),
 		language,
+		"ability=" + strings.Join(abilityParts, ","),
 	}
 	sum := sha256.Sum256([]byte(strings.Join(parts, "\x1f")))
 	return hex.EncodeToString(sum[:])

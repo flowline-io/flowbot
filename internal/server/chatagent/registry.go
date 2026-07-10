@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/env"
+	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
@@ -19,7 +21,7 @@ const agentName = "chat"
 // When scheduleDeps is non-nil, scheduled task tools are registered and activated.
 func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
-	if err := coding.RegisterAll(registry, ws, nil); err != nil {
+	if err := coding.RegisterAll(registry, ws, executionEnvForWorkspace(ws)); err != nil {
 		return nil, err
 	}
 	if err := registry.Register(ReadSkillTool{}); err != nil {
@@ -35,6 +37,9 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 			return nil, err
 		}
 	}
+	if _, err := RegisterAbilityTools(registry, config.App.ChatAgent.AbilityTools, nil); err != nil {
+		return nil, err
+	}
 	registry.SetActive(ActiveToolNames())
 	return registry, nil
 }
@@ -42,7 +47,7 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 // NewSubagentRegistry registers coding tools and an optional allowlisted read_skill tool for subagent runs.
 func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
-	if err := coding.RegisterAll(registry, ws, nil); err != nil {
+	if err := coding.RegisterAll(registry, ws, executionEnvForWorkspace(ws)); err != nil {
 		return nil, err
 	}
 	skillTool := ReadSkillTool{}
@@ -55,11 +60,27 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 	return registry, nil
 }
 
-// ActiveToolNames returns the default active tool names for the chat assistant.
+// ActiveToolNames returns the default active tool names for the chat assistant,
+// including configured readonly ability tools.
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, "read_skill", taskToolName)
-	return append(names, scheduleToolNames()...)
+	names = append(names, scheduleToolNames()...)
+	return append(names, AbilityToolNames()...)
+}
+
+// AbilityToolNames returns configured ability tool names.
+func AbilityToolNames() []string {
+	entries := config.App.ChatAgent.AbilityTools
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		name := strings.TrimSpace(entry.Name)
+		if name == "" {
+			continue
+		}
+		names = append(names, name)
+	}
+	return names
 }
 
 // WorkspaceFromConfig resolves workspace settings from application config.
@@ -94,4 +115,12 @@ func WorkspaceFromConfig() (coding.Workspace, error) {
 		Timeout:   timeout,
 		MaxOutput: maxOutput,
 	}, nil
+}
+
+func executionEnvForWorkspace(ws coding.Workspace) env.ExecutionEnv {
+	cfg := config.App.ChatAgent.Sandbox
+	if !cfg.Enabled {
+		return nil
+	}
+	return sandbox.New(sandbox.ConfigFromChatAgent(cfg, ws.Root), env.Default(), nil)
 }

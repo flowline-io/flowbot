@@ -378,9 +378,13 @@ Use `result.CodeOf(err)` or `errors.As` at HTTP/chat integration boundaries inst
 
 Not implemented in the core library (planned for upper layers):
 
-- REST/SSE endpoints in `internal/server`
-- Wiring `chat_agent` YAML to `agent.Config`
 - Pipeline/workflow steps that invoke `agent.RunLoop`
-- Compaction is implemented in `pkg/agent/ctxmgr` and wired through `harness.Options.ContextManager`
 - Provider payload hooks (`before_provider_request`) — reserved in `hooks/events.go`, not yet implemented
 - Session compact/tree hooks (`session_before_compact`) — second phase; requires ctxmgr callback wiring
+
+Already wired in product layers:
+
+- REST/SSE chat agent in `internal/server` (`/chatagent/*`)
+- `chat_agent` YAML → `agent.Config` (models, retry, sensors, ability_tools, sandbox)
+- Compaction via `pkg/agent/ctxmgr` and `harness.Options.ContextManager`
+- LLM retry, agent metrics/OTel, path sensors, progress artifact, ability tools, opt-in sandbox

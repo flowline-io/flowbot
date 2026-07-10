@@ -147,12 +147,12 @@ Long-running sessions are kept within model limits by `pkg/agent/ctxmgr`:
 | `ctxmgr.Manager` | Threshold checks, compaction, branch summarization, agent state reload |
 | `ctxmgr.ShouldCompact` | Triggers when `tokens > contextWindow - reserveTokens` |
 | `ctxmgr.RunCompaction` | LLM summary of discarded history; persists `EntryCompaction` |
-| `ctxmgr.IsContextOverflowErr` | Detects provider overflow errors for one-shot retry |
+| `ctxmgr.IsContextOverflowErr` | Detects provider overflow errors for multi-level compact retry |
 
 Harness integration (`harness.Options.ContextManager`):
 
 - **Before run**: `EnsureWithinBudget` compacts when over threshold
-- **After overflow**: compact + retry the prompt once
+- **After overflow**: L1 `CompactAndReload(Force:false)` → L2 `Force:true` → fail
 - **MoveTo**: auto branch summarization when summary is empty
 
 Configuration:
@@ -259,7 +259,23 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 
 ### Chat agent wiring
 
-`internal/server/chatagent` creates one `hooks.Registry` per run, calls `RegisterHooks` for observational logging (`context_usage`, `save_point`), and passes `harness.Options.Hooks`. See [Developer Guide — Typed Hooks](./developer-guide.md#typed-hooks-pkgagenthooks).
+`internal/server/chatagent` creates one `hooks.Registry` per run, calls `RegisterHooks` (permission, path sensors, progress injection, optional lint observation), and passes `harness.Options.Hooks`. See [Developer Guide — Typed Hooks](./developer-guide.md#typed-hooks-pkgagenthooks).
+
+## Reliability and Observability
+
+| Concern | Implementation |
+| ------- | -------------- |
+| LLM transient retry | `pkg/agent/llm` + `pkg/backoff`; retries only before any stream delta is delivered |
+| Overflow degrade | Harness `watchStream`: L1 `CompactAndReload(Force:false)` → L2 `Force:true` → fail; `result.WrapOverflowError` |
+| Tool arg validation | `tool.ValidateArgs` (required + top-level types) before execute |
+| Actionable tool errors | `tool.FormatToolError` / `tool.ErrorResult` |
+| Path sensors | `OnToolResult` workspace path re-check in chatagent |
+| Metrics | `pkg/metrics.AgentCollector` (low-cardinality labels); OTel spans `agent.run` / `agent.llm.stream` / `agent.tool.*` / `agent.compact` |
+| Progress artifact | `{workspace}/.flowbot/progress.md` injected via `OnContext` (≤500 tokens) |
+| Dynamic tools | `ApplyToolScope` — plan readonly; normal excludes schedule unless intent/RunKind |
+| Ability tools | Readonly `ability.Invoke` adapters from `chat_agent.ability_tools` |
+| Sandbox | Opt-in Docker `pkg/agent/sandbox` for `run_terminal` / `run_code` |
+| Eval | `pkg/agent/eval` FakeModel suite (`go test ./pkg/agent/eval/...`) |
 
 ## LLM Layer
 
@@ -268,7 +284,8 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 | File | Role |
 | ---- | ---- |
 | `factory.go` | Map `config.Model` → OpenAI / Anthropic / Gemini langchaingo clients |
-| `stream.go` | `StreamAssistant()` — streaming + tool call assembly |
+| `stream.go` | `StreamAssistant()` — streaming + tool call assembly + pre-stream retry |
+| `retry.go` | `IsRetryableLLMError`, `RetryConfig` |
 | `fake.go` | Scriptable `llms.Model` for unit tests and BDD |
 
 **Not used:** langchaingo `agents.Executor`, chains, or memory modules.

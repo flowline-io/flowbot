@@ -56,7 +56,7 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 	code := fmt.Sprint(args["code"])
 	filename := strings.TrimSpace(fmt.Sprint(args["filename"]))
 	if language == "" || strings.TrimSpace(code) == "" {
-		return toolError(id, t.Name(), "language and code are required"), nil
+		return tool.ErrorResult(id, t.Name(), "invalid_args", "language and code are required", "provide language (python|shell) and non-empty code"), nil
 	}
 	if onUpdate != nil {
 		_ = onUpdate("executing code...")
@@ -148,10 +148,5 @@ func interpreterCommand(language, filePath string) ([]string, error) {
 }
 
 func toolError(id, name, text string) msg.ToolResultMessage {
-	return msg.ToolResultMessage{
-		ToolCallID: id,
-		Name:       name,
-		Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
-		IsError:    true,
-	}
+	return tool.ErrorResult(id, name, "tool_error", text, "fix the arguments or path and retry within the workspace")
 }
