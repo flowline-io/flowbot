@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
+	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -103,8 +104,40 @@ func TestExecuteBatch_Modes(t *testing.T) {
 			})
 			require.NoError(t, err)
 			assert.Len(t, result.Messages, tt.toolCount)
+			for _, message := range result.Messages {
+				assert.Positive(t, message.DurationMs)
+			}
 		})
 	}
+}
+
+func TestExecuteBatch_RecordsDuration(t *testing.T) {
+	t.Parallel()
+
+	reg := tool.NewRegistry()
+	require.NoError(t, reg.Register(&stubTool{name: "echo", result: "ok", delay: 25 * time.Millisecond}))
+
+	assistant := agent.AssistantMessage{Parts: []agent.ContentPart{
+		agent.ToolCallPart{ID: "1", Name: "echo", Arguments: `{}`},
+	}}
+
+	var endEvents []agentevent.Event
+	result, err := tool.ExecuteBatch(context.Background(), tool.BatchRequest{
+		Assistant: assistant,
+		Context:   &agent.Context{},
+		Registry:  reg,
+		Emit: func(_ context.Context, ev agentevent.Event) error {
+			if ev.Type == agentevent.TypeToolExecutionEnd {
+				endEvents = append(endEvents, ev)
+			}
+			return nil
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Messages, 1)
+	assert.Positive(t, result.Messages[0].DurationMs)
+	require.Len(t, endEvents, 1)
+	assert.Equal(t, result.Messages[0].DurationMs, endEvents[0].DurationMs)
 }
 
 func TestExecuteBatch_ParallelAfterHookError(t *testing.T) {

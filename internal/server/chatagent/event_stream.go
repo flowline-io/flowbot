@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -16,6 +17,7 @@ type apiStreamTracker struct {
 	coalescer          *streamCoalescer
 	reasoningCoalescer *streamCoalescer
 	subagentTool       string
+	reasoningStarted   bool
 }
 
 // startAPIEventStream consumes agent lifecycle events and publishes Chat Agent SSE payloads.
@@ -62,47 +64,137 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 func handleAPIStreamEvent(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
 	switch ev.Type {
 	case agentevent.TypeMessageStart:
-		if _, ok := ev.Message.(msg.AssistantMessage); ok {
-			tracker.coalescer.reset()
-			tracker.reasoningCoalescer.reset()
-			tracker.subagentTool = ""
-		}
+		handleAPIMessageStart(tracker, ev)
 	case agentevent.TypeMessageUpdate:
-		if ev.ReasoningDelta != "" {
-			tracker.reasoningCoalescer.appendDelta(ev.ReasoningDelta)
-		}
-		if ev.TextDelta != "" {
-			tracker.coalescer.appendDelta(ev.TextDelta)
-		}
+		handleAPIMessageUpdate(tracker, ev)
+	case agentevent.TypeMessageEnd:
+		publishAPIMessageEnd(publisher, tracker, ev)
 	case agentevent.TypeToolExecutionStart:
-		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok {
-			tracker.coalescer.setToolStatus(toolStatusText(call))
-			if call.Name == taskToolName {
-				tracker.subagentTool = ""
-				_ = publisher.Publish(taskToolStreamEvent(call, "running", ""))
-				return
-			}
-			tracker.subagentTool = ""
-			_ = publisher.Publish(StreamEvent{
-				Type:   EventTypeTool,
-				Name:   call.Name,
-				Status: "running",
-			})
-		}
+		publishAPIToolStart(publisher, tracker, ev)
 	case agentevent.TypeToolExecutionUpdate:
-		if call, ok := ev.ToolCall.(msg.ToolCallPart); ok && ev.Update != "" {
-			if call.Name == taskToolName {
-				publishSubagentToolUpdate(publisher, tracker, ev.Update)
-				return
-			}
-			_ = publisher.Publish(StreamEvent{
-				Type:   EventTypeTool,
-				Name:   toolDisplayName(call),
-				Status: "running",
-				Stdout: ev.Update,
-			})
+		publishAPIToolUpdate(publisher, tracker, ev)
+	case agentevent.TypeToolExecutionEnd:
+		publishAPIToolEnd(publisher, tracker, ev)
+	case agentevent.TypeTurnEnd:
+		publishAPITurnEnd(publisher, ev)
+	}
+}
+
+func handleAPIMessageStart(tracker *apiStreamTracker, ev agentevent.Event) {
+	if _, ok := ev.Message.(msg.AssistantMessage); !ok {
+		return
+	}
+	tracker.coalescer.reset()
+	tracker.reasoningCoalescer.reset()
+	tracker.subagentTool = ""
+	tracker.reasoningStarted = false
+}
+
+func handleAPIMessageUpdate(tracker *apiStreamTracker, ev agentevent.Event) {
+	if ev.ReasoningDelta != "" {
+		tracker.reasoningStarted = true
+		tracker.reasoningCoalescer.appendDelta(ev.ReasoningDelta)
+	}
+	if ev.TextDelta != "" {
+		tracker.coalescer.appendDelta(ev.TextDelta)
+	}
+}
+
+func publishAPIMessageEnd(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
+	assistant, ok := ev.Message.(msg.AssistantMessage)
+	if !ok || !tracker.reasoningStarted {
+		return
+	}
+	_ = publisher.Publish(StreamEvent{
+		Type:       EventTypeThinking,
+		Status:     "completed",
+		DurationMs: assistant.ThinkingDurationMs,
+	})
+	tracker.reasoningStarted = false
+}
+
+func publishAPIToolStart(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
+	call, ok := ev.ToolCall.(msg.ToolCallPart)
+	if !ok {
+		return
+	}
+	tracker.coalescer.setToolStatus(toolStatusText(call))
+	if call.Name == taskToolName {
+		tracker.subagentTool = ""
+		_ = publisher.Publish(taskToolStreamEvent(call, "running", "", 0))
+		return
+	}
+	tracker.subagentTool = ""
+	_ = publisher.Publish(StreamEvent{
+		Type:   EventTypeTool,
+		Name:   call.Name,
+		Status: "running",
+	})
+}
+
+func publishAPIToolUpdate(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
+	call, ok := ev.ToolCall.(msg.ToolCallPart)
+	if !ok || ev.Update == "" {
+		return
+	}
+	if call.Name == taskToolName {
+		publishSubagentToolUpdate(publisher, tracker, ev.Update)
+		return
+	}
+	_ = publisher.Publish(StreamEvent{
+		Type:   EventTypeTool,
+		Name:   toolDisplayName(call),
+		Status: "running",
+		Stdout: ev.Update,
+	})
+}
+
+func publishAPIToolEnd(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
+	call, ok := ev.ToolCall.(msg.ToolCallPart)
+	if !ok {
+		return
+	}
+	result, ok := ev.ToolResult.(msg.ToolResultMessage)
+	if !ok {
+		return
+	}
+	status := "completed"
+	if result.IsError {
+		status = "error"
+	}
+	stdout := apiToolResultText(result)
+
+	if call.Name == taskToolName {
+		tracker.subagentTool = ""
+		_ = publisher.Publish(taskToolStreamEvent(call, status, stdout, ev.DurationMs))
+		return
+	}
+
+	_ = publisher.Publish(StreamEvent{
+		Type:       EventTypeTool,
+		Name:       toolDisplayName(call),
+		Status:     status,
+		Stdout:     stdout,
+		DurationMs: ev.DurationMs,
+	})
+}
+
+func publishAPITurnEnd(publisher EventPublisher, ev agentevent.Event) {
+	_ = publisher.Publish(StreamEvent{
+		Type:       EventTypeTurn,
+		DurationMs: ev.DurationMs,
+		Step:       ev.Step,
+	})
+}
+
+func apiToolResultText(result msg.ToolResultMessage) string {
+	var text strings.Builder
+	for _, part := range result.Parts {
+		if tp, ok := part.(msg.TextPart); ok {
+			_, _ = text.WriteString(tp.Text)
 		}
 	}
+	return text.String()
 }
 
 func publishSubagentToolUpdate(publisher EventPublisher, tracker *apiStreamTracker, update string) {
@@ -122,11 +214,11 @@ func publishSubagentToolUpdate(publisher EventPublisher, tracker *apiStreamTrack
 	activeTool := tracker.subagentTool
 	tracker.coalescer.setToolStatus(subagentToolStatusText(subagent, activeTool, detail))
 	if detail != "" {
-		_ = publisher.Publish(subagentInnerToolStreamEvent(subagent, activeTool, "running", detail))
+		_ = publisher.Publish(subagentInnerToolStreamEvent(subagent, activeTool, "running", detail, 0))
 		return
 	}
 	if activeTool != "" {
-		_ = publisher.Publish(subagentInnerToolStreamEvent(subagent, activeTool, "running", ""))
+		_ = publisher.Publish(subagentInnerToolStreamEvent(subagent, activeTool, "running", "", 0))
 	}
 }
 

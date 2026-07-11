@@ -493,16 +493,22 @@ func TestMapChatMessages(t *testing.T) {
 		in   []chatagent.HistoryMessage
 		want int
 	}{
-		{name: "maps user message", in: []chatagent.HistoryMessage{{Role: "user", Text: "hi"}}, want: 1},
-		{name: "maps assistant html", in: []chatagent.HistoryMessage{{Role: "assistant", Text: "**bold**"}}, want: 1},
+		{name: "maps user message", in: []chatagent.HistoryMessage{{Role: "user", Kind: "user", Text: "hi"}}, want: 1},
+		{name: "maps assistant html", in: []chatagent.HistoryMessage{{Role: "assistant", Kind: "assistant", Text: "**bold**"}}, want: 1},
+		{name: "persisted tool row", in: []chatagent.HistoryMessage{{Kind: "tool", Role: "tool", ToolName: "echo", ToolStatus: "completed", DurationMs: 50, Text: "ok"}}, want: 1},
+		{name: "legacy assistant splits tool payload", in: []chatagent.HistoryMessage{{Role: "assistant", Text: "run_terminal({\"cmd\":\"ls\"})"}}, want: 1},
 		{name: "empty input", in: nil, want: 0},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			out := mapChatMessages(tt.in)
 			assert.Len(t, out, tt.want)
-			if tt.want > 0 && tt.in[0].Role == "assistant" {
+			if tt.want > 0 && tt.in[0].Role == "assistant" && tt.in[0].Kind != "tool" && tt.name != "legacy assistant splits tool payload" {
 				assert.NotEmpty(t, out[0].HTML)
+			}
+			if tt.name == "persisted tool row" {
+				assert.Equal(t, int64(50), out[0].DurationMs)
+				assert.Equal(t, "echo", out[0].ToolName)
 			}
 		})
 	}

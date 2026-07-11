@@ -48,6 +48,10 @@ func assistantFromPayload(payload map[string]any, text string) msg.AgentMessage 
 	if rawUsage, ok := payload["usage"].(map[string]any); ok {
 		assistant.Usage = usageFromRaw(rawUsage)
 	}
+	assistant.TurnDurationMs = optionalIntField(payload, "turn_duration_ms")
+	assistant.ThinkingDurationMs = optionalIntField(payload, "thinking_duration_ms")
+	assistant.ThinkingText = optionalStringField(payload, "thinking_text")
+	assistant.RunDurationMs = optionalIntField(payload, "run_duration_ms")
 	return assistant
 }
 
@@ -69,6 +73,7 @@ func toolResultFromPayload(payload map[string]any, text string) result.Result[ms
 		Name:       name,
 		Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
 		IsError:    isError,
+		DurationMs: optionalIntField(payload, "duration_ms"),
 	})
 }
 

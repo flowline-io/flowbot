@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
@@ -50,6 +52,7 @@ type Harness struct {
 	phase        Phase
 	idleCh       chan struct{}
 	lastResult   agentevent.Result
+	runStartedAt time.Time
 	agent        *agent.Agent
 	session      *session.Session
 	registry     *tool.Registry
@@ -154,6 +157,13 @@ func (h *Harness) MoveTo(ctx context.Context, entryID, summary string) error {
 		return normalizeHarnessError("branch_summary", "branch navigation failed", err)
 	}
 	return nil
+}
+
+// SetRunStartedAt records the wall-clock start of the current run for RunDurationMs persistence.
+func (h *Harness) SetRunStartedAt(start time.Time) {
+	h.mu.Lock()
+	h.runStartedAt = start
+	h.mu.Unlock()
 }
 
 // Prompt starts an agent run with optional session persistence.
@@ -379,8 +389,15 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 		return
 	}
 
+	h.mu.Lock()
+	runStart := h.runStartedAt
+	h.runStartedAt = time.Time{}
+	h.mu.Unlock()
+
+	messages := applyRunDuration(result.Messages, runStart)
+
 	parentID, _ := h.currentLeafID(ctx)
-	for _, item := range result.Messages {
+	for _, item := range messages {
 		message, ok := item.(agent.AgentMessage)
 		if !ok {
 			continue
@@ -397,6 +414,48 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 		}
 		parentID = entryID
 	}
+}
+
+// applyRunDuration sets RunDurationMs on the final displayable assistant message in a run batch.
+func applyRunDuration(messages []any, runStart time.Time) []any {
+	if runStart.IsZero() || len(messages) == 0 {
+		return messages
+	}
+	runMs := time.Since(runStart).Milliseconds()
+	if runMs <= 0 {
+		return messages
+	}
+
+	targetIdx := -1
+	fallbackIdx := -1
+	for i := len(messages) - 1; i >= 0; i-- {
+		assistant, ok := messages[i].(msg.AssistantMessage)
+		if !ok {
+			continue
+		}
+		if fallbackIdx < 0 {
+			fallbackIdx = i
+		}
+		if strings.TrimSpace(msg.AssistantDisplayText(assistant)) != "" {
+			targetIdx = i
+			break
+		}
+	}
+	if targetIdx < 0 {
+		targetIdx = fallbackIdx
+	}
+	if targetIdx < 0 {
+		return messages
+	}
+
+	out := append([]any(nil), messages...)
+	assistant, ok := out[targetIdx].(msg.AssistantMessage)
+	if !ok {
+		return messages
+	}
+	assistant.RunDurationMs = runMs
+	out[targetIdx] = assistant
+	return out
 }
 
 func agentMessagesFromResult(messages []any) []msg.AgentMessage {

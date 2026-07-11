@@ -60,6 +60,7 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 		return false, err
 	}
 	assistant.Timestamp = time.Now().UTC()
+	assistantIdx := len(s.current.Messages)
 	s.current.Messages = append(s.current.Messages, assistant)
 	*s.newMessages = append(*s.newMessages, assistant)
 
@@ -69,7 +70,21 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 		return false, err
 	}
 
-	if err := s.emit(agentevent.Event{Type: agentevent.TypeTurnEnd, Message: assistant, ToolResults: toolResults}); err != nil {
+	turnDurationMs := time.Since(turnStart).Milliseconds()
+	assistant.TurnDurationMs = turnDurationMs
+	s.current.Messages[assistantIdx] = assistant
+	newAssistantIdx := len(*s.newMessages) - len(toolResults) - 1
+	if newAssistantIdx >= 0 && newAssistantIdx < len(*s.newMessages) {
+		(*s.newMessages)[newAssistantIdx] = assistant
+	}
+
+	if err := s.emit(agentevent.Event{
+		Type:        agentevent.TypeTurnEnd,
+		Message:     assistant,
+		ToolResults: toolResults,
+		DurationMs:  turnDurationMs,
+		Step:        *s.steps,
+	}); err != nil {
 		metrics.Agent().ObserveTurnDuration("error", time.Since(turnStart).Seconds())
 		return false, err
 	}

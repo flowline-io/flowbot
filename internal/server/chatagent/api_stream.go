@@ -99,10 +99,18 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 			if w.WriteEvent(ev) {
 				return
 			}
-		case err := <-runDone:
-			DrainPublisherSSE(w, publisher)
-			if err != nil {
-				if errors.Is(err, context.Canceled) {
+		case runErr := <-runDone:
+			for {
+				ev, ok := <-publisher.Events()
+				if !ok {
+					break
+				}
+				if w.WriteEvent(ev) {
+					return
+				}
+			}
+			if runErr != nil {
+				if errors.Is(runErr, context.Canceled) {
 					_ = w.WriteEvent(StreamEvent{
 						Type:    EventTypeCanceled,
 						Message: "run canceled by user",
@@ -111,7 +119,7 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 				}
 				_ = w.WriteEvent(StreamEvent{
 					Type:    EventTypeError,
-					Message: err.Error(),
+					Message: runErr.Error(),
 				})
 			}
 			return

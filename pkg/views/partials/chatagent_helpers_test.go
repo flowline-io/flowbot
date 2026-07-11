@@ -236,6 +236,27 @@ func TestParseToolSummaryLine(t *testing.T) {
 	}
 }
 
+func TestFormatChatAgentDuration(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		ms   int64
+		want string
+	}{
+		{name: "zero", ms: 0, want: ""},
+		{name: "milliseconds", ms: 250, want: "250ms"},
+		{name: "seconds", ms: 2300, want: "2.3s"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, ChatAgentDurationLabel(tt.ms))
+		})
+	}
+}
+
 func TestClassifyHistoryMessage(t *testing.T) {
 	tests := []struct {
 		name      string

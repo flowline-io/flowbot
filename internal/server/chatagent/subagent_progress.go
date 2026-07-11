@@ -44,28 +44,30 @@ func subagentToolStatusText(subagent, tool, detail string) string {
 }
 
 // taskToolStreamEvent builds a tool SSE payload for the task delegation tool.
-func taskToolStreamEvent(call msg.ToolCallPart, status, stdout string) StreamEvent {
+func taskToolStreamEvent(call msg.ToolCallPart, status, stdout string, durationMs int64) StreamEvent {
 	subagent := subagentTypeFromArgs(call.Arguments)
 	name := call.Name
 	if subagent != "" {
 		name = taskToolName
 	}
 	return StreamEvent{
-		Type:     EventTypeTool,
-		Name:     name,
-		Subagent: subagent,
-		Status:   status,
-		Stdout:   stdout,
+		Type:       EventTypeTool,
+		Name:       name,
+		Subagent:   subagent,
+		Status:     status,
+		Stdout:     stdout,
+		DurationMs: durationMs,
 	}
 }
 
 // subagentInnerToolStreamEvent builds a tool SSE payload for a subagent's inner tool.
-func subagentInnerToolStreamEvent(subagent, tool, status, stdout string) StreamEvent {
+func subagentInnerToolStreamEvent(subagent, tool, status, stdout string, durationMs int64) StreamEvent {
 	return StreamEvent{
-		Type:     EventTypeTool,
-		Name:     tool,
-		Subagent: subagent,
-		Status:   status,
-		Stdout:   stdout,
+		Type:       EventTypeTool,
+		Name:       tool,
+		Subagent:   subagent,
+		Status:     status,
+		Stdout:     stdout,
+		DurationMs: durationMs,
 	}
 }

@@ -27,7 +27,11 @@ type Event struct {
 	TextDelta      string
 	ReasoningDelta string
 	Update         string
-	Err            error
+	// DurationMs is elapsed milliseconds for completed phases (turn, tool, thinking).
+	DurationMs int64
+	// Step is the 1-based agent turn index when Type is TypeTurnEnd.
+	Step int
+	Err  error
 }
 
 // Handler processes agent lifecycle events sequentially.

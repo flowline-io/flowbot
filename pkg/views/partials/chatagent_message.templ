@@ -7,7 +7,12 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 		@ChatAgentToolMessage(msg)
 	} else if msg.Kind == "thinking" {
 		<details class="chatagent-thinking opacity-90" data-role="thinking" data-testid="chatagent-message-thinking">
-			<summary class="chatagent-thinking-summary cursor-pointer text-xs text-base-content/50 select-none">Thinking</summary>
+			<summary class="chatagent-thinking-summary cursor-pointer text-xs text-base-content/50 select-none">
+				Thinking
+				if msg.ThinkingDurationMs > 0 {
+					<span class="chatagent-duration text-base-content/40" data-testid="chatagent-duration">· { ChatAgentDurationLabel(msg.ThinkingDurationMs) }</span>
+				}
+			</summary>
 			if msg.HTML != "" {
 				<div class="chatagent-thinking-body chatagent-markdown markdown-body mt-2" data-testid="chatagent-message-body">
 					@templ.Raw(msg.HTML)
@@ -24,9 +29,37 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 			if msg.Role == "assistant" && msg.HTML != "" && !streaming {
 				<div class="chat-bubble bg-base-100 border border-base-300 chatagent-markdown markdown-body text-sm max-w-[92%]" data-testid="chatagent-message-body">
 					@templ.Raw(msg.HTML)
+					if msg.TurnDurationMs > 0 || msg.RunDurationMs > 0 {
+						<div class="mt-2 pt-2 border-t border-base-300/60 text-xs text-base-content/50 chatagent-duration" data-testid="chatagent-message-duration">
+							if msg.TurnDurationMs > 0 {
+								<span>Turn { ChatAgentDurationLabel(msg.TurnDurationMs) }</span>
+							}
+							if msg.TurnDurationMs > 0 && msg.RunDurationMs > 0 {
+								<span> · </span>
+							}
+							if msg.RunDurationMs > 0 {
+								<span>Total { ChatAgentDurationLabel(msg.RunDurationMs) }</span>
+							}
+						</div>
+					}
 				</div>
 			} else {
-				<div class="chat-bubble bg-base-100 border border-base-300 whitespace-pre-wrap text-sm max-w-[92%]" data-testid="chatagent-message-body">{ msg.Text }</div>
+				<div class="chat-bubble bg-base-100 border border-base-300 whitespace-pre-wrap text-sm max-w-[92%]" data-testid="chatagent-message-body">
+					{ msg.Text }
+					if msg.TurnDurationMs > 0 || msg.RunDurationMs > 0 {
+						<div class="mt-2 pt-2 border-t border-base-300/60 text-xs text-base-content/50 chatagent-duration" data-testid="chatagent-message-duration">
+							if msg.TurnDurationMs > 0 {
+								<span>Turn { ChatAgentDurationLabel(msg.TurnDurationMs) }</span>
+							}
+							if msg.TurnDurationMs > 0 && msg.RunDurationMs > 0 {
+								<span> · </span>
+							}
+							if msg.RunDurationMs > 0 {
+								<span>Total { ChatAgentDurationLabel(msg.RunDurationMs) }</span>
+							}
+						</div>
+					}
+				</div>
 			}
 		</div>
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -190,25 +191,10 @@ func streamAssistant(
 	ctx, span := trace.StartSpan(ctx, "agent.llm.stream")
 	defer span.End()
 
-	messages := current.Messages
-	if cfg.TransformContext != nil {
-		transformed, err := cfg.TransformContext(messages)
-		if err != nil {
-			if abortErr := abortLoopError(err); abortErr != err {
-				return AssistantMessage{}, abortErr
-			}
-			return AssistantMessage{}, fmt.Errorf("agent loop: transform context: %w", err)
-		}
-		messages = transformed
-	}
-
-	llmMessages, err := cfg.ConvertToLLM(messages)
+	llmMessages, modelName, err := prepareLLMStreamInput(ctx, current, cfg)
 	if err != nil {
-		return AssistantMessage{}, fmt.Errorf("agent loop: convert to llm: %w", err)
+		return AssistantMessage{}, err
 	}
-
-	modelName := turnModelName(cfg, current)
-	trace.SetSpanAttributes(ctx, attribute.String("model", modelName))
 
 	activeTools := deps.Registry.ActiveTools()
 	llmTools := tool.BuildLLMTools(activeTools)
@@ -219,6 +205,51 @@ func streamAssistant(
 		}
 	}
 
+	var capture reasoningCapture
+	streamOpts := buildStreamOptions(cfg, modelName, llmTools, emit, &capture)
+
+	start := time.Now()
+	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, streamOpts)
+	metrics.Agent().ObserveLLMDuration(modelName, time.Since(start).Seconds())
+	if err != nil {
+		err = agentresult.WrapOverflowError(err)
+		metrics.Agent().IncLLMRequest(modelName, "error")
+		trace.RecordError(ctx, err)
+		return AssistantMessage{}, err
+	}
+	metrics.Agent().IncLLMRequest(modelName, "ok")
+
+	assistant := assistantFromStreamResult(result, capture)
+	if err := emitAssistantEnd(emit, assistant); err != nil {
+		return AssistantMessage{}, err
+	}
+	return assistant, nil
+}
+
+func prepareLLMStreamInput(ctx context.Context, current *Context, cfg Config) ([]llms.MessageContent, string, error) {
+	messages := current.Messages
+	if cfg.TransformContext != nil {
+		transformed, err := cfg.TransformContext(messages)
+		if err != nil {
+			if abortErr := abortLoopError(err); abortErr != err {
+				return nil, "", abortErr
+			}
+			return nil, "", fmt.Errorf("agent loop: transform context: %w", err)
+		}
+		messages = transformed
+	}
+
+	llmMessages, err := cfg.ConvertToLLM(messages)
+	if err != nil {
+		return nil, "", fmt.Errorf("agent loop: convert to llm: %w", err)
+	}
+
+	modelName := turnModelName(cfg, current)
+	trace.SetSpanAttributes(ctx, attribute.String("model", modelName))
+	return llmMessages, modelName, nil
+}
+
+func buildStreamOptions(cfg Config, modelName string, llmTools []llms.Tool, emit func(agentevent.Event) error, capture *reasoningCapture) agentllm.StreamOptions {
 	retry := llmRetryFromConfig(cfg)
 	retry.OnRetry = func(_ int, _ time.Duration, _ error) {
 		metrics.Agent().IncLLMRetry(modelName)
@@ -233,20 +264,12 @@ func streamAssistant(
 		Retry:       retry,
 	}
 	if agentllm.SupportsReasoningStream(modelName) {
-		streamOpts.OnReasoningDelta = messageReasoningDeltaHandler(emit)
+		streamOpts.OnReasoningDelta = capture.deltaHandler(emit)
 	}
+	return streamOpts
+}
 
-	start := time.Now()
-	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, streamOpts)
-	metrics.Agent().ObserveLLMDuration(modelName, time.Since(start).Seconds())
-	if err != nil {
-		err = agentresult.WrapOverflowError(err)
-		metrics.Agent().IncLLMRequest(modelName, "error")
-		trace.RecordError(ctx, err)
-		return AssistantMessage{}, err
-	}
-	metrics.Agent().IncLLMRequest(modelName, "ok")
-
+func assistantFromStreamResult(result agentllm.AssistantResult, capture reasoningCapture) AssistantMessage {
 	parts := make([]ContentPart, 0, 1+len(result.ToolCalls))
 	if trimmed := msg.TrimToolCallStreamContent(result.Content); trimmed != "" {
 		parts = append(parts, TextPart{Text: trimmed})
@@ -271,14 +294,60 @@ func streamAssistant(
 		StopReason: result.StopReason,
 		Usage:      usageToMsg(result.Usage),
 	}
-
-	if emit != nil {
-		if err := emit(agentevent.Event{Type: agentevent.TypeMessageEnd, Message: assistant}); err != nil {
-			return AssistantMessage{}, err
-		}
+	if capture.has {
+		assistant.ThinkingDurationMs = capture.durationMs()
+		assistant.ThinkingText = capture.text.String()
 	}
+	return assistant
+}
 
-	return assistant, nil
+func emitAssistantEnd(emit func(agentevent.Event) error, assistant AssistantMessage) error {
+	if emit == nil {
+		return nil
+	}
+	endEv := agentevent.Event{Type: agentevent.TypeMessageEnd, Message: assistant}
+	if assistant.ThinkingDurationMs > 0 {
+		endEv.DurationMs = assistant.ThinkingDurationMs
+	}
+	return emit(endEv)
+}
+
+func messageReasoningDeltaHandler(emit func(agentevent.Event) error) func(string) error {
+	var capture reasoningCapture
+	return capture.deltaHandler(emit)
+}
+
+type reasoningCapture struct {
+	start time.Time
+	end   time.Time
+	has   bool
+	text  strings.Builder
+}
+
+func (c *reasoningCapture) deltaHandler(emit func(agentevent.Event) error) func(string) error {
+	return func(delta string) error {
+		if delta == "" {
+			return nil
+		}
+		now := time.Now()
+		if !c.has {
+			c.start = now
+			c.has = true
+		}
+		c.end = now
+		_, _ = c.text.WriteString(delta)
+		if emit == nil {
+			return nil
+		}
+		return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, ReasoningDelta: delta})
+	}
+}
+
+func (c *reasoningCapture) durationMs() int64 {
+	if !c.has {
+		return 0
+	}
+	return c.end.Sub(c.start).Milliseconds()
 }
 
 func messageTextDeltaHandler(emit func(agentevent.Event) error) func(string) error {
@@ -305,15 +374,6 @@ func llmRetryFromConfig(cfg Config) agentllm.RetryConfig {
 		retry.Multiplier = cfg.LLMRetryMultiplier
 	}
 	return retry
-}
-
-func messageReasoningDeltaHandler(emit func(agentevent.Event) error) func(string) error {
-	return func(delta string) error {
-		if emit == nil || delta == "" {
-			return nil
-		}
-		return emit(agentevent.Event{Type: agentevent.TypeMessageUpdate, ReasoningDelta: delta})
-	}
 }
 
 func usageToMsg(usage *agentllm.Usage) *Usage {

@@ -94,6 +94,16 @@
     );
   }
 
+  function formatDuration(ms) {
+    if (!ms || ms <= 0) {
+      return '';
+    }
+    if (ms < 1000) {
+      return ms + 'ms';
+    }
+    return (ms / 1000).toFixed(1) + 's';
+  }
+
   function appendUserMessage(container, text) {
     var wrap = document.createElement('div');
     wrap.className = 'chat chat-end';
@@ -130,7 +140,7 @@
     return body;
   }
 
-  function appendThinkingBlock(container, text) {
+  function appendThinkingBlock(container) {
     var details = document.createElement('details');
     details.className = 'chatagent-thinking opacity-90';
     details.setAttribute('data-role', 'thinking');
@@ -140,24 +150,45 @@
     var summary = document.createElement('summary');
     summary.className =
       'chatagent-thinking-summary cursor-pointer text-xs text-base-content/50 select-none';
-    summary.textContent = 'Thinking';
+    summary.appendChild(document.createTextNode('Thinking'));
+
+    var durationEl = document.createElement('span');
+    durationEl.className = 'chatagent-duration text-base-content/40';
+    durationEl.setAttribute('data-testid', 'chatagent-duration');
+    summary.appendChild(durationEl);
     details.appendChild(summary);
 
     var body = document.createElement('div');
     body.className = 'chatagent-thinking-body mt-2';
     body.setAttribute('data-testid', 'chatagent-message-body');
-    body.textContent = text;
     details.appendChild(body);
     container.appendChild(details);
     scrollMessages(container);
-    return body;
+
+    var startedAt = Date.now();
+    var timer = setInterval(function () {
+      durationEl.textContent = ' · ' + formatDuration(Date.now() - startedAt);
+    }, 100);
+
+    return {
+      body: body,
+      stopTimer: function () {
+        clearInterval(timer);
+      },
+      setDuration: function (ms) {
+        clearInterval(timer);
+        if (ms > 0) {
+          durationEl.textContent = ' · ' + formatDuration(ms);
+        }
+      },
+    };
   }
 
   function toolKey(ev) {
     return (ev.subagent || '') + ':' + (ev.name || 'tool');
   }
 
-  function upsertToolCard(container, ev, cards) {
+  function upsertToolCard(container, ev, cards, anchorBody) {
     var key = toolKey(ev);
     var card = cards[key];
     if (!card) {
@@ -183,8 +214,13 @@
       status.setAttribute('data-testid', 'chatagent-tool-status');
       status.textContent = ev.status || 'running';
 
+      var duration = document.createElement('span');
+      duration.className = 'chatagent-duration text-xs text-base-content/50';
+      duration.setAttribute('data-testid', 'chatagent-duration');
+
       header.appendChild(badge);
       header.appendChild(status);
+      header.appendChild(duration);
       bubble.appendChild(header);
 
       var stdout = document.createElement('pre');
@@ -200,14 +236,49 @@
       bubble.appendChild(stdout);
       bubble.appendChild(stderr);
       wrap.appendChild(bubble);
-      container.appendChild(wrap);
+      insertStreamNode(container, wrap, anchorBody);
 
-      card = { wrap: wrap, status: status, stdout: stdout, stderr: stderr };
+      card = {
+        wrap: wrap,
+        status: status,
+        duration: duration,
+        stdout: stdout,
+        stderr: stderr,
+        startedAt: Date.now(),
+        timer: setInterval(function () {
+          if (card.status.textContent === 'running' && card.startedAt) {
+            card.duration.textContent =
+              '· ' + formatDuration(Date.now() - card.startedAt);
+          }
+        }, 100),
+      };
       cards[key] = card;
     }
 
     if (ev.status) {
       card.status.textContent = ev.status;
+    }
+    if (ev.duration_ms > 0) {
+      if (card.timer) {
+        clearInterval(card.timer);
+        card.timer = null;
+      }
+      card.duration.textContent = '· ' + formatDuration(ev.duration_ms);
+    } else if (card.status.textContent === 'running' && card.startedAt) {
+      card.duration.textContent =
+        '· ' + formatDuration(Date.now() - card.startedAt);
+    } else if (
+      card.status.textContent === 'completed' ||
+      card.status.textContent === 'error'
+    ) {
+      if (card.timer) {
+        clearInterval(card.timer);
+        card.timer = null;
+      }
+      if (!card.duration.textContent && card.startedAt) {
+        card.duration.textContent =
+          '· ' + formatDuration(Date.now() - card.startedAt);
+      }
     }
     if (ev.stdout) {
       card.stdout.textContent = (card.stdout.textContent || '') + ev.stdout;
@@ -219,6 +290,101 @@
     }
     scrollMessages(container);
     return card;
+  }
+
+  function insertStreamNode(container, node, anchorBody) {
+    var anchor = anchorBody ? anchorBody.parentElement : null;
+    if (anchor && anchor.parentElement === container) {
+      container.insertBefore(node, anchor);
+      return;
+    }
+    container.appendChild(node);
+  }
+
+  function appendTurnMarker(container, step, durationMs, anchorBody) {
+    var wrap = document.createElement('div');
+    wrap.className = 'chat chat-start';
+    wrap.setAttribute('data-role', 'turn-marker');
+    wrap.setAttribute('data-testid', 'chatagent-turn-marker');
+
+    var marker = document.createElement('div');
+    marker.className = 'chatagent-turn-marker';
+    var label = 'Step ' + (step || 1);
+    if (durationMs > 0) {
+      label += ' · ' + formatDuration(durationMs);
+    }
+    marker.textContent = label;
+    wrap.appendChild(marker);
+    insertStreamNode(container, wrap, anchorBody);
+    scrollMessages(container);
+  }
+
+  function showRunDuration(messagesEl, durationMs) {
+    if (!messagesEl || !durationMs || durationMs <= 0) {
+      return;
+    }
+    var existing = messagesEl.querySelector(
+      '[data-testid="chatagent-run-duration"]',
+    );
+    if (existing) {
+      existing.remove();
+    }
+    var footer = document.createElement('div');
+    footer.className =
+      'chatagent-run-duration chatagent-duration text-xs text-base-content/50 text-center py-2';
+    footer.setAttribute('data-testid', 'chatagent-run-duration');
+    footer.textContent = 'Completed in ' + formatDuration(durationMs);
+    messagesEl.appendChild(footer);
+    scrollMessages(messagesEl);
+  }
+
+  function appendAssistantDuration(bodyEl, turnMs, runMs) {
+    if (!bodyEl || (turnMs <= 0 && runMs <= 0)) {
+      return;
+    }
+    var existing = bodyEl.querySelector(
+      '[data-testid="chatagent-message-duration"]',
+    );
+    if (existing) {
+      existing.remove();
+    }
+    var footer = document.createElement('div');
+    footer.className =
+      'mt-2 pt-2 border-t border-base-300/60 text-xs text-base-content/50 chatagent-duration';
+    footer.setAttribute('data-testid', 'chatagent-message-duration');
+    var parts = [];
+    if (turnMs > 0) {
+      parts.push('Turn ' + formatDuration(turnMs));
+    }
+    if (runMs > 0) {
+      parts.push('Total ' + formatDuration(runMs));
+    }
+    footer.textContent = parts.join(' · ');
+    bodyEl.appendChild(footer);
+  }
+
+  function applyAssistantDuration(bodyEl, turnMs, runMs) {
+    if (!bodyEl) {
+      return;
+    }
+    if (turnMs > 0) {
+      bodyEl.dataset.turnDurationMs = String(turnMs);
+    }
+    if (runMs > 0) {
+      bodyEl.dataset.runDurationMs = String(runMs);
+    }
+    appendAssistantDuration(
+      bodyEl,
+      turnMs > 0 ? turnMs : Number(bodyEl.dataset.turnDurationMs || 0),
+      runMs > 0 ? runMs : Number(bodyEl.dataset.runDurationMs || 0),
+    );
+  }
+
+  function flushSSEBuffer(buffer, onEvent) {
+    if (!buffer) {
+      return '';
+    }
+    return parseSSEChunk(buffer, onEvent);
   }
 
   function parseSSEChunk(buffer, onEvent) {
@@ -641,6 +807,9 @@
       bodyEl.className = renderedClass;
       bodyEl.innerHTML = html;
       bodyEl.dataset.mdRendered = '1';
+      if (options.onAfterRender) {
+        options.onAfterRender(bodyEl);
+      }
       scroll();
     }
 
@@ -648,6 +817,9 @@
       bodyEl.className = plainClass;
       delete bodyEl.dataset.mdRendered;
       bodyEl.textContent = text;
+      if (options.onAfterRender) {
+        options.onAfterRender(bodyEl);
+      }
       scroll();
     }
 
@@ -754,17 +926,34 @@
     var cancelURL = threadRoot.getAttribute('data-cancel-url') || '';
     var assistantBody = null;
     var assistantText = '';
-    var thinkingBody = null;
+    var thinkingState = null;
     var thinkingText = '';
     var toolCards = {};
+    var lastTurnDurationMs = 0;
+    var lastRunDurationMs = 0;
+    function syncAssistantDuration() {
+      applyAssistantDuration(
+        assistantBody,
+        lastTurnDurationMs,
+        lastRunDurationMs,
+      );
+    }
+    var mdRenderer = createStreamingMarkdownRenderer(
+      threadRoot,
+      function () {
+        return assistantBody;
+      },
+      {
+        onAfterRender: function () {
+          syncAssistantDuration();
+        },
+      },
+    );
     var ctxCtrl = getContextControl(threadRoot);
-    var mdRenderer = createStreamingMarkdownRenderer(threadRoot, function () {
-      return assistantBody;
-    });
     var thinkingRenderer = createStreamingMarkdownRenderer(
       threadRoot,
       function () {
-        return thinkingBody;
+        return thinkingState ? thinkingState.body : null;
       },
       {
         renderedClass: thinkingBodyClass,
@@ -805,79 +994,111 @@
         var decoder = new TextDecoder();
         var buffer = '';
 
-        function pump() {
-          return reader.read().then(function (result) {
-            if (result.done) {
+        function handleStreamEvent(ev) {
+          if (ev.type === 'thinking') {
+            if (!thinkingState) {
+              thinkingState = appendThinkingBlock(messagesEl);
+            }
+            if (ev.status === 'completed') {
+              if (thinkingState.setDuration) {
+                thinkingState.setDuration(ev.duration_ms || 0);
+              }
               return;
             }
-            buffer += decoder.decode(result.value, { stream: true });
-            buffer = parseSSEChunk(buffer, function (ev) {
-              if (ev.type === 'thinking') {
-                if (!thinkingBody) {
-                  thinkingBody = appendThinkingBlock(messagesEl, '');
-                }
-                thinkingText += ev.text || '';
-                thinkingRenderer.update(thinkingText);
-                return;
-              }
-              if (ev.type === 'tool') {
-                upsertToolCard(messagesEl, ev, toolCards);
-                return;
-              }
-              if (ev.type === 'delta') {
-                var chunk = ev.text || '';
-                if (isToolPayloadText(chunk) || isRunningToolStatus(chunk)) {
-                  return;
-                }
-                if (!assistantBody) {
-                  assistantBody = appendAssistantMessage(messagesEl, '', true);
-                }
-                assistantText += chunk;
-                mdRenderer.update(assistantText);
-                return;
-              }
-              if (ev.type === 'done') {
-                if (ev.text) {
-                  assistantText = ev.text;
-                }
-                if (assistantBody && assistantText.trim()) {
-                  mdRenderer.update(assistantText);
-                }
-                return;
-              }
-              if (ev.type === 'usage') {
-                if (ctxCtrl) {
-                  ctxCtrl.handleUsage(ev);
-                }
-                return;
-              }
-              if (
-                approval &&
-                (ev.type === 'confirm' ||
-                  ev.type === 'confirm_resolved' ||
-                  ev.type === 'canceled')
-              ) {
-                approval.handleStreamEvent(ev);
-                return;
-              }
-              if (ev.type === 'error') {
-                showThreadError(errorEl, ev.message || 'Run failed');
-              } else if (ev.type === 'canceled') {
-                showThreadError(errorEl, ev.message || 'Run canceled');
-              }
-            });
-            return pump();
+            thinkingText += ev.text || '';
+            thinkingRenderer.update(thinkingText);
+            return;
+          }
+          if (ev.type === 'tool') {
+            upsertToolCard(messagesEl, ev, toolCards, assistantBody);
+            return;
+          }
+          if (ev.type === 'turn') {
+            if (ev.duration_ms > 0) {
+              lastTurnDurationMs = ev.duration_ms;
+              syncAssistantDuration();
+            }
+            appendTurnMarker(
+              messagesEl,
+              ev.step,
+              ev.duration_ms || 0,
+              assistantBody,
+            );
+            return;
+          }
+          if (ev.type === 'delta') {
+            var chunk = ev.text || '';
+            if (isToolPayloadText(chunk) || isRunningToolStatus(chunk)) {
+              return;
+            }
+            if (!assistantBody) {
+              assistantBody = appendAssistantMessage(messagesEl, '', true);
+            }
+            assistantText += chunk;
+            mdRenderer.update(assistantText);
+            return;
+          }
+          if (ev.type === 'done') {
+            if (ev.text) {
+              assistantText = ev.text;
+            }
+            if (!assistantBody && assistantText.trim()) {
+              assistantBody = appendAssistantMessage(messagesEl, '', true);
+            }
+            if (assistantBody && assistantText.trim()) {
+              mdRenderer.update(assistantText);
+            }
+            if (assistantBody && assistantBody.parentElement) {
+              messagesEl.appendChild(assistantBody.parentElement);
+            }
+            if (ev.duration_ms > 0) {
+              lastRunDurationMs = ev.duration_ms;
+              showRunDuration(messagesEl, ev.duration_ms);
+            }
+            syncAssistantDuration();
+            return;
+          }
+          if (ev.type === 'usage') {
+            if (ctxCtrl) {
+              ctxCtrl.handleUsage(ev);
+            }
+            return;
+          }
+          if (
+            approval &&
+            (ev.type === 'confirm' ||
+              ev.type === 'confirm_resolved' ||
+              ev.type === 'canceled')
+          ) {
+            approval.handleStreamEvent(ev);
+            return;
+          }
+          if (ev.type === 'error') {
+            showThreadError(errorEl, ev.message || 'Run failed');
+          } else if (ev.type === 'canceled') {
+            showThreadError(errorEl, ev.message || 'Run canceled');
+          }
+        }
+
+        function pump() {
+          return reader.read().then(function (result) {
+            if (result.value) {
+              buffer += decoder.decode(result.value, { stream: true });
+            }
+            buffer = flushSSEBuffer(buffer, handleStreamEvent);
+            if (!result.done) {
+              return pump();
+            }
+            if (buffer.trim()) {
+              flushSSEBuffer(buffer + '\n\n', handleStreamEvent);
+            }
           });
         }
         return pump();
       })
-      .catch(function (err) {
-        showThreadError(errorEl, err.message || 'Request failed');
-      })
-      .finally(function () {
-        setRunning(false, threadRoot);
+      .then(function () {
         var finalize = Promise.resolve();
-        if (thinkingBody && thinkingText.trim()) {
+        if (thinkingState && thinkingText.trim()) {
           finalize = thinkingRenderer.finalize(thinkingText);
         }
         if (assistantBody && assistantText.trim()) {
@@ -887,10 +1108,14 @@
         } else {
           mdRenderer.cancel();
         }
-        if (!thinkingBody || !thinkingText.trim()) {
+        if (!thinkingState || !thinkingText.trim()) {
           thinkingRenderer.cancel();
         }
-        finalize.finally(function () {
+        if (thinkingState && thinkingState.stopTimer) {
+          thinkingState.stopTimer();
+        }
+        return finalize.then(function () {
+          syncAssistantDuration();
           if (assistantBody) {
             assistantBody.parentElement.classList.remove('opacity-80');
           }
@@ -901,6 +1126,12 @@
             onDone();
           }
         });
+      })
+      .catch(function (err) {
+        showThreadError(errorEl, err.message || 'Request failed');
+      })
+      .finally(function () {
+        setRunning(false, threadRoot);
       });
 
     if (cancelURL) {

@@ -32,10 +32,11 @@ const (
 
 // RunRequest carries one user turn for the chat assistant.
 type RunRequest struct {
-	SessionID string
-	Text      string
-	API       *APIRunOptions
-	Kind      RunKind
+	SessionID    string
+	Text         string
+	API          *APIRunOptions
+	Kind         RunKind
+	RunStartedAt time.Time
 }
 
 // ManualCompactionResult reports the outcome of a user-triggered compaction run.
@@ -56,6 +57,7 @@ func NewService() *Service {
 // Run executes one agent turn and returns the assistant reply text.
 func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (string, error) {
 	start := time.Now()
+	req.RunStartedAt = start
 	textLen := len(strings.TrimSpace(req.Text))
 
 	if err := validateRunRequest(ctx, req); err != nil {
@@ -158,6 +160,11 @@ func validateRunRequest(ctx context.Context, req RunRequest) error {
 }
 
 func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
+	if !req.RunStartedAt.IsZero() {
+		h.SetRunStartedAt(req.RunStartedAt)
+	} else {
+		h.SetRunStartedAt(start)
+	}
 	stream, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
 	if err != nil {
 		return handlePromptError(req.SessionID, start, err)
@@ -185,7 +192,7 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 		reply = AppendPlanLinkFooter(reply, planID, title)
 		resources = []ResourceRef{FormatPlanResourceRef(planID, title)}
 	}
-	deliverRunResult(ctx, h, req, reply, sink, result.Messages, resources)
+	deliverRunResult(ctx, h, req, reply, sink, result.Messages, resources, time.Since(start))
 	maybeGenerateSessionTitle(req.SessionID, req.Text, reply)
 
 	flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",
@@ -228,15 +235,23 @@ func resolveAssistantReply(sessionID string, start time.Time, messages []any) st
 	return "I could not produce a reply."
 }
 
-func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, reply string, sink StreamSink, messages []any, resources []ResourceRef) {
+func deliverRunResult(ctx context.Context, h *harness.Harness, req RunRequest, reply string, sink StreamSink, messages []any, resources []ResourceRef, runDuration time.Duration) {
 	if req.API != nil && req.API.Publisher != nil {
 		contextWindow := 0
-		if cm := h.ContextManager(); cm != nil {
-			contextWindow = cm.ContextWindow()
+		if h != nil {
+			if cm := h.ContextManager(); cm != nil {
+				contextWindow = cm.ContextWindow()
+			}
 		}
 		publishFinalUsage(req.API.Publisher, messages, contextWindow)
 		title := LoadSessionTitle(ctx, req.SessionID)
-		_ = req.API.Publisher.Publish(StreamEvent{Type: EventTypeDone, Text: reply, Title: title, Resources: resources})
+		_ = req.API.Publisher.Publish(StreamEvent{
+			Type:       EventTypeDone,
+			Text:       reply,
+			Title:      title,
+			Resources:  resources,
+			DurationMs: runDuration.Milliseconds(),
+		})
 		return
 	}
 	if sink == nil {

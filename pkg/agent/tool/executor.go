@@ -213,6 +213,7 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 	}
 	toolResult.ToolCallID = call.ID
 	toolResult.Name = call.Name
+	toolResult.DurationMs = time.Since(start).Milliseconds()
 
 	terminate := false
 	if req.After != nil {
@@ -242,6 +243,7 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 			Type:       agentevent.TypeToolExecutionEnd,
 			ToolCall:   call,
 			ToolResult: toolResult,
+			DurationMs: toolResult.DurationMs,
 		})
 	}
 

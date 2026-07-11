@@ -74,6 +74,14 @@ type AssistantMessage struct {
 	StopReason string
 	Usage      *Usage
 	Timestamp  time.Time
+	// TurnDurationMs is elapsed milliseconds for the full agent turn (LLM + tools).
+	TurnDurationMs int64
+	// ThinkingDurationMs is elapsed milliseconds for the reasoning stream phase.
+	ThinkingDurationMs int64
+	// ThinkingText is accumulated reasoning output for UI replay after refresh.
+	ThinkingText string
+	// RunDurationMs is total run milliseconds; set on the final assistant message of a run.
+	RunDurationMs int64
 }
 
 // Role returns RoleAssistant.
@@ -108,6 +116,8 @@ type ToolResultMessage struct {
 	Parts      []ContentPart
 	IsError    bool
 	Timestamp  time.Time
+	// DurationMs is elapsed milliseconds for tool execution.
+	DurationMs int64
 }
 
 // Role returns RoleToolResult.

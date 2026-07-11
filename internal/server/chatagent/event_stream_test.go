@@ -83,3 +83,77 @@ func TestHandleAPIStreamEventReasoning(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleAPIStreamEventTiming(t *testing.T) {
+	tests := []struct {
+		name      string
+		events    []agentevent.Event
+		wantLast  StreamEvent
+		wantCount int
+	}{
+		{
+			name: "tool end publishes completed duration",
+			events: []agentevent.Event{
+				{
+					Type:       agentevent.TypeToolExecutionEnd,
+					DurationMs: 120,
+					ToolCall:   msg.ToolCallPart{ID: "1", Name: "echo"},
+					ToolResult: msg.ToolResultMessage{
+						Name:  "echo",
+						Parts: []msg.ContentPart{msg.TextPart{Text: "ok"}},
+					},
+				},
+			},
+			wantLast: StreamEvent{
+				Type:       EventTypeTool,
+				Name:       "echo",
+				Status:     "completed",
+				Stdout:     "ok",
+				DurationMs: 120,
+			},
+			wantCount: 1,
+		},
+		{
+			name: "thinking completed on message end",
+			events: []agentevent.Event{
+				{Type: agentevent.TypeMessageStart, Message: msg.AssistantMessage{}},
+				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "plan"},
+				{Type: agentevent.TypeMessageEnd, Message: msg.AssistantMessage{ThinkingDurationMs: 450}},
+			},
+			wantLast: StreamEvent{
+				Type:       EventTypeThinking,
+				Status:     "completed",
+				DurationMs: 450,
+			},
+			wantCount: 1,
+		},
+		{
+			name: "turn end publishes step duration",
+			events: []agentevent.Event{
+				{Type: agentevent.TypeTurnEnd, DurationMs: 1800, Step: 2},
+			},
+			wantLast: StreamEvent{
+				Type:       EventTypeTurn,
+				DurationMs: 1800,
+				Step:       2,
+			},
+			wantCount: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			pub := &apiEventRecorder{}
+			tracker := &apiStreamTracker{
+				coalescer:          newStreamCoalescer(),
+				reasoningCoalescer: newStreamCoalescer(),
+			}
+			for _, ev := range tt.events {
+				handleAPIStreamEvent(pub, tracker, ev)
+			}
+			require.Len(t, pub.events, tt.wantCount)
+			assert.Equal(t, tt.wantLast, pub.events[len(pub.events)-1])
+		})
+	}
+}

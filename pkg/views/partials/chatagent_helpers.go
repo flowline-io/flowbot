@@ -41,6 +41,28 @@ func FormatChatAgentRelativeTime(t time.Time) string {
 	return chatAgentRelativeTimeSince(t, time.Now())
 }
 
+// ChatAgentDurationLabel formats a millisecond duration for chat UI labels.
+func ChatAgentDurationLabel(ms int64) string {
+	if ms <= 0 {
+		return ""
+	}
+	if ms < 1000 {
+		return fmt.Sprintf("%dms", ms)
+	}
+	return fmt.Sprintf("%.1fs", float64(ms)/1000)
+}
+
+// FormatChatAgentDuration formats milliseconds for chat timing labels.
+func FormatChatAgentDuration(ms int64) string {
+	if ms <= 0 {
+		return ""
+	}
+	if ms < 1000 {
+		return fmt.Sprintf("%dms", ms)
+	}
+	return fmt.Sprintf("%.1fs", float64(ms)/1000)
+}
+
 func chatAgentRelativeTimeSince(t, now time.Time) string {
 	if t.IsZero() {
 		return ""

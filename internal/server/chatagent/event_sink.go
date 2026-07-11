@@ -26,7 +26,7 @@ func (p *ChannelPublisher) Publish(event StreamEvent) error {
 	if p.done {
 		return nil
 	}
-	if isCriticalStreamEvent(event.Type) {
+	if isCriticalStreamEvent(event) {
 		p.ch <- event
 		return nil
 	}
@@ -38,11 +38,16 @@ func (p *ChannelPublisher) Publish(event StreamEvent) error {
 	return nil
 }
 
-func isCriticalStreamEvent(eventType string) bool {
-	switch eventType {
+func isCriticalStreamEvent(event StreamEvent) bool {
+	switch event.Type {
 	case EventTypeConfirm, EventTypeConfirmResolved, EventTypeCanceled,
-		EventTypeDone, EventTypeError, EventTypeUsage, EventTypeModeChange:
+		EventTypeDone, EventTypeError, EventTypeUsage, EventTypeModeChange,
+		EventTypeTurn:
 		return true
+	case EventTypeTool:
+		return event.Status == "completed" || event.Status == "error"
+	case EventTypeThinking:
+		return event.Status == "completed"
 	default:
 		return false
 	}

@@ -375,9 +375,64 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSess
 }
 
 func mapChatMessages(messages []chatagent.HistoryMessage) []model.AgentChatMessage {
+	usePersisted := chatagent.HasPersistedToolResults(messages)
 	out := make([]model.AgentChatMessage, 0, len(messages))
 	for _, m := range messages {
-		out = append(out, partials.ClassifyHistoryMessage(m.Role, m.Text, m.CreatedAt)...)
+		if !usePersisted && m.Role == "assistant" && (m.Kind == "" || m.Kind == "assistant") {
+			out = append(out, partials.ClassifyHistoryMessage(m.Role, m.Text, m.CreatedAt)...)
+			continue
+		}
+		out = append(out, mapHistoryMessage(m))
 	}
 	return out
+}
+
+func mapHistoryMessage(m chatagent.HistoryMessage) model.AgentChatMessage {
+	kind := m.Kind
+	if kind == "" {
+		kind = m.Role
+	}
+	switch kind {
+	case "tool":
+		return model.AgentChatMessage{
+			Role:       "tool",
+			Kind:       "tool",
+			ToolName:   m.ToolName,
+			ToolStatus: m.ToolStatus,
+			ToolStdout: m.Text,
+			DurationMs: m.DurationMs,
+			CreatedAt:  m.CreatedAt,
+		}
+	case "thinking":
+		text := m.ThinkingText
+		if text == "" {
+			text = m.Text
+		}
+		return model.AgentChatMessage{
+			Role:               "assistant",
+			Kind:               "thinking",
+			Text:               text,
+			HTML:               partials.RenderChatAgentMarkdownHTML(text),
+			ThinkingDurationMs: m.ThinkingDurationMs,
+			CreatedAt:          m.CreatedAt,
+		}
+	case "user":
+		return model.AgentChatMessage{
+			Role:      "user",
+			Kind:      "user",
+			Text:      m.Text,
+			HTML:      partials.FormatChatAgentMessageHTML("user", m.Text),
+			CreatedAt: m.CreatedAt,
+		}
+	default:
+		return model.AgentChatMessage{
+			Role:           "assistant",
+			Kind:           "assistant",
+			Text:           m.Text,
+			HTML:           partials.FormatChatAgentMessageHTML("assistant", m.Text),
+			TurnDurationMs: m.TurnDurationMs,
+			RunDurationMs:  m.RunDurationMs,
+			CreatedAt:      m.CreatedAt,
+		}
+	}
 }

@@ -312,6 +312,28 @@ body:has(.chatagent-page) > main {
   margin-bottom: 0.5rem;
 }
 
+.chatagent-page .chatagent-duration {
+  font-variant-numeric: tabular-nums;
+}
+
+.chatagent-page .chatagent-turn-marker {
+  width: 100%;
+  max-width: 92%;
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid color-mix(in oklch, var(--color-base-300, #d0d7de) 60%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  color: color-mix(in oklch, var(--color-base-content, #24292f) 40%, transparent);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.chatagent-page .chatagent-run-duration {
+  font-variant-numeric: tabular-nums;
+}
+
 .chatagent-page .chatagent-thinking-body {
   background-color: var(--color-base-100, #ffffff);
   color: color-mix(

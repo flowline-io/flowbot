@@ -9,6 +9,7 @@ const (
 	EventTypeDelta           = "delta"
 	EventTypeThinking        = "thinking"
 	EventTypeTool            = "tool"
+	EventTypeTurn            = "turn"
 	EventTypeUsage           = "usage"
 	EventTypeConfirm         = "confirm"
 	EventTypeConfirmResolved = "confirm_resolved"
@@ -32,6 +33,10 @@ type StreamEvent struct {
 	Status   string `json:"status,omitempty"`
 	Stdout   string `json:"stdout,omitempty"`
 	Stderr   string `json:"stderr,omitempty"`
+
+	// tool / turn timing
+	DurationMs int64 `json:"duration_ms,omitempty"`
+	Step       int   `json:"step,omitempty"`
 
 	// usage
 	PromptTokens     int     `json:"prompt_tokens,omitempty"`

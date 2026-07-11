@@ -85,6 +85,18 @@ func messageToRaw(message msg.AgentMessage) map[string]any {
 		return map[string]any{"role": "user", "text": textFromParts(m.Parts)}
 	case msg.AssistantMessage:
 		raw := map[string]any{"role": "assistant", "text": textFromParts(m.Parts), "model": m.Model, "stop_reason": m.StopReason}
+		if m.TurnDurationMs > 0 {
+			raw["turn_duration_ms"] = m.TurnDurationMs
+		}
+		if m.ThinkingDurationMs > 0 {
+			raw["thinking_duration_ms"] = m.ThinkingDurationMs
+		}
+		if strings.TrimSpace(m.ThinkingText) != "" {
+			raw["thinking_text"] = m.ThinkingText
+		}
+		if m.RunDurationMs > 0 {
+			raw["run_duration_ms"] = m.RunDurationMs
+		}
 		if m.Usage != nil {
 			raw["usage"] = map[string]any{
 				"prompt_tokens":     m.Usage.PromptTokens,
@@ -107,13 +119,17 @@ func messageToRaw(message msg.AgentMessage) map[string]any {
 		}
 		return raw
 	case msg.ToolResultMessage:
-		return map[string]any{
+		raw := map[string]any{
 			"role":         "toolResult",
 			"tool_call_id": m.ToolCallID,
 			"name":         m.Name,
 			"text":         textFromParts(m.Parts),
 			"is_error":     m.IsError,
 		}
+		if m.DurationMs > 0 {
+			raw["duration_ms"] = m.DurationMs
+		}
+		return raw
 	default:
 		return map[string]any{"role": string(message.Role())}
 	}
@@ -179,4 +195,21 @@ func usageFromRaw(raw map[string]any) *msg.Usage {
 		return nil
 	}
 	return usage
+}
+
+func optionalIntField(payload map[string]any, key string) int64 {
+	raw, ok := payload[key]
+	if !ok {
+		return 0
+	}
+	switch v := raw.(type) {
+	case float64:
+		return int64(v)
+	case int64:
+		return v
+	case int:
+		return int64(v)
+	default:
+		return 0
+	}
 }

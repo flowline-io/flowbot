@@ -10,6 +10,9 @@ templ ChatAgentToolMessage(msg model.AgentChatMessage) {
 				if msg.ToolStatus != "" {
 					<span class="text-xs text-base-content/60">{ msg.ToolStatus }</span>
 				}
+				if msg.DurationMs > 0 {
+					<span class="chatagent-duration text-xs text-base-content/50" data-testid="chatagent-duration">· { ChatAgentDurationLabel(msg.DurationMs) }</span>
+				}
 			</div>
 			if msg.ToolStdout != "" {
 				<pre class="mt-2 text-xs whitespace-pre-wrap overflow-x-auto max-h-56 bg-base-300/40 rounded p-2 font-mono" data-testid="chatagent-tool-stdout">{ msg.ToolStdout }</pre>
