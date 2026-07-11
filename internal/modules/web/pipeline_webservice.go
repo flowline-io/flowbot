@@ -15,6 +15,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/rdb"
@@ -171,6 +172,9 @@ func publishPipeline(c fiber.Ctx) error {
 			})
 		}
 		return types.Errorf(types.ErrInternal, "publish: %v", err)
+	}
+	if reloadErr := pipeline.ReloadDefinitions(context.Background()); reloadErr != nil {
+		flog.Error(fmt.Errorf("reload pipeline engine after publish: %w", reloadErr))
 	}
 	return c.JSON(fiber.Map{"version": def.Version, "status": def.Status})
 }

@@ -94,6 +94,7 @@ type Engine struct {
 	cron            *cron.Cron
 	clock           Clock
 	callback        StepCallback
+	reloadMu        sync.Mutex
 }
 
 func NewEngine(defs []Definition, store RunStore, auditor audit.Auditor, pc *metrics.PipelineCollector, ec *metrics.EventCollector) *Engine {
@@ -120,7 +121,12 @@ func NewEngineWithClock(defs []Definition, store RunStore, auditor audit.Auditor
 		cron.WithSeconds(),
 		cron.WithParser(cron.NewParser(cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor)),
 	)
+	e.registerCronJobs(defs)
+	e.cron.Start()
+	return e
+}
 
+func (e *Engine) registerCronJobs(defs []Definition) {
 	for _, def := range defs {
 		if def.Trigger.Cron == "" {
 			continue
@@ -136,9 +142,30 @@ func NewEngineWithClock(defs []Definition, store RunStore, auditor audit.Auditor
 			flog.Info("pipeline %s: registered cron trigger %q", def.Name, def.Trigger.Cron)
 		}
 	}
+}
 
-	e.cron.Start()
-	return e
+// Reload replaces in-memory pipeline definitions and refreshes cron registrations.
+// Event and webhook handlers use the updated defs slice; webhook HTTP routes are not re-registered.
+func (e *Engine) Reload(defs []Definition) error {
+	if e == nil {
+		return nil
+	}
+	e.reloadMu.Lock()
+	defer e.reloadMu.Unlock()
+
+	for _, entry := range e.cron.Entries() {
+		e.cron.Remove(entry.ID())
+	}
+
+	e.defs = defs
+	for _, def := range defs {
+		if _, ok := e.mu[def.Name]; !ok {
+			e.mu[def.Name] = &sync.Mutex{}
+		}
+	}
+	e.registerCronJobs(defs)
+	flog.Info("pipeline engine reloaded with %d definition(s)", len(defs))
+	return nil
 }
 
 func (e *Engine) Handler() func(ctx context.Context, event types.DataEvent) error {

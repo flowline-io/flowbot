@@ -109,6 +109,57 @@ func TestNewEngine_CronRegistration(t *testing.T) {
 	}
 }
 
+func TestEngine_Reload(t *testing.T) {
+	t.Parallel()
+	seed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	clock := NewFakeClock(seed)
+	tests := []struct {
+		name        string
+		initial     []Definition
+		reloaded    []Definition
+		wantEntries int
+		wantDefLen  int
+	}{
+		{
+			name:        "reload adds cron definition",
+			initial:     []Definition{{Name: "event-only", Enabled: true, Trigger: Trigger{Event: "e1"}}},
+			reloaded:    []Definition{{Name: "cron-new", Enabled: true, Trigger: Trigger{Cron: "0 0 * * *"}}},
+			wantEntries: 1,
+			wantDefLen:  1,
+		},
+		{
+			name: "reload replaces cron definition",
+			initial: []Definition{
+				{Name: "cron-old", Enabled: true, Trigger: Trigger{Cron: "0 0 * * *"}},
+			},
+			reloaded: []Definition{
+				{Name: "cron-new", Enabled: true, Trigger: Trigger{Cron: "@daily"}},
+			},
+			wantEntries: 1,
+			wantDefLen:  1,
+		},
+		{
+			name: "reload clears cron definitions",
+			initial: []Definition{
+				{Name: "cron-old", Enabled: true, Trigger: Trigger{Cron: "0 0 * * *"}},
+			},
+			reloaded:    []Definition{{Name: "event-only", Enabled: true, Trigger: Trigger{Event: "e1"}}},
+			wantEntries: 0,
+			wantDefLen:  1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := NewEngineWithClock(tt.initial, nil, nil, noopPC, noopEC, clock)
+			defer e.Stop()
+			require.NoError(t, e.Reload(tt.reloaded))
+			assert.Len(t, e.cron.Entries(), tt.wantEntries)
+			assert.Len(t, e.defs, tt.wantDefLen)
+		})
+	}
+}
+
 func TestEngine_CronConcurrencyGuard(t *testing.T) {
 	t.Parallel()
 	seed := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)

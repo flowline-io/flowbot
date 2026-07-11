@@ -139,8 +139,29 @@ func initPipeline(
 		return fmt.Errorf("init event source manager: %w", err)
 	}
 
+	pipelineDefs := loadPipelineDefinitions(context.Background(), cfg)
+	engine, err := setupPipelineEngine(lc, pipelineDefs, auditor, pc, ec)
+	if err != nil {
+		return fmt.Errorf("setup pipeline engine: %w", err)
+	}
+
+	pipeline.SetReloadSource(func(ctx context.Context) ([]pipeline.Definition, error) {
+		return loadPipelineDefinitions(ctx, cfg), nil
+	}, engine)
+
+	if err := setupAbilityEmitter(cfg, ac); err != nil {
+		return fmt.Errorf("setup ability emitter: %w", err)
+	}
+
+	registerPipelineHandler(router, subscriber, engine, ec)
+
+	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
+
+	return nil
+}
+
+func loadPipelineDefinitions(ctx context.Context, cfg *config.Type) []pipeline.Definition {
 	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
-	ctx := context.Background()
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
 			pipelineDefStore := store.NewPipelineStore(client)
@@ -152,25 +173,7 @@ func initPipeline(
 			}
 		}
 	}
-	if len(pipelineDefs) == 0 {
-		flog.Info("no pipelines configured, skipping pipeline engine")
-		return nil
-	}
-
-	engine, err := setupPipelineEngine(lc, pipelineDefs, auditor, pc, ec)
-	if err != nil {
-		return fmt.Errorf("setup pipeline engine: %w", err)
-	}
-
-	if err := setupAbilityEmitter(cfg, ac); err != nil {
-		return fmt.Errorf("setup ability emitter: %w", err)
-	}
-
-	registerPipelineHandler(router, subscriber, engine, ec)
-
-	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
-
-	return nil
+	return pipelineDefs
 }
 
 func setupPipelineEngine(
