@@ -54,6 +54,13 @@ func TestScheduledRunPermissionOverlay(t *testing.T) {
 			wantBlk: false,
 		},
 		{
+			name:    "pipeline run blocks bash",
+			kind:    RunKindPipeline,
+			tool:    permission.ToolRunTerminal,
+			args:    map[string]any{"command": "ls"},
+			wantBlk: true,
+		},
+		{
 			name:    "interactive run blocks bash without gate",
 			kind:    RunKindInteractive,
 			tool:    permission.ToolRunTerminal,

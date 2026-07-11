@@ -48,6 +48,13 @@ func TestApplyToolScope(t *testing.T) {
 			},
 			wantSchedule: true,
 		},
+		{
+			name: "pipeline run includes schedule",
+			in: chatagent.ToolScopeInput{
+				Mode: chatagent.ModeNormal, Kind: chatagent.RunKindPipeline, UserText: "run", AllActive: all,
+			},
+			wantSchedule: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

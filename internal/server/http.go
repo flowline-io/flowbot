@@ -111,11 +111,13 @@ func newHTTPServer() *fiber.App {
 		},
 		AllowCredentials: true,
 	}))
-	// limiter
+	// limiter — static assets and health probes are excluded because each page
+	// load issues 10+ /static/* requests that would exhaust the API quota.
 	app.Use(limiter.New(limiter.Config{
-		Max:               50,
+		Max:               200,
 		Expiration:        10 * time.Second,
 		LimiterMiddleware: limiter.SlidingWindow{},
+		Next:              shouldSkipRateLimit,
 	}))
 	// logger
 	app.Use(fiberzerolog.New(fiberzerolog.Config{
@@ -153,6 +155,22 @@ func newHTTPServer() *fiber.App {
 	sharedAppMu.Unlock()
 
 	return app
+}
+
+// shouldSkipRateLimit returns true for paths that should not count toward the
+// global HTTP rate limiter (static assets, health probes, metrics scraping).
+func shouldSkipRateLimit(c fiber.Ctx) bool {
+	if strings.HasPrefix(c.Path(), "/static/") {
+		return true
+	}
+	skipPaths := []string{
+		healthcheck.LivenessEndpoint,
+		healthcheck.ReadinessEndpoint,
+		healthcheck.StartupEndpoint,
+		"/",
+		"/service/user/metrics",
+	}
+	return utils.Contains(skipPaths, c.Path())
 }
 
 // securityHeadersMiddleware adds security-related HTTP response headers.

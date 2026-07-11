@@ -410,6 +410,50 @@ params, err := e.Render(map[string]any{
 // params["action"] = "present"
 ```
 
+## Agent Step (`agent.run`)
+
+Pipeline steps can invoke the chat agent when `chat_agent` is configured:
+
+```yaml
+steps:
+  - name: summarize-bookmark
+    capability: agent
+    operation: run
+    params:
+      prompt: |
+        Summarize this bookmark:
+        URL: {{.Event.url}}
+        Title: {{step "fetch-meta" "title"}}
+      uid: "{{.Event.uid}}"   # recommended for event-triggered pipelines
+    retry:
+      max_attempts: 2
+      delay: 30s
+  - name: notify-summary
+    capability: notify
+    operation: send
+    params:
+      template_id: bookmark.summary
+      channels: [ntfy]
+      payload:
+        summary: '{{step "summarize-bookmark" "reply"}}'
+```
+
+**Parameters**
+
+| Param | Required | Description |
+| ----- | -------- | ----------- |
+| `prompt` | yes | User message; supports all template syntax above |
+| `uid` | no | Permission owner UID. Use `{{.Event.uid}}` when the trigger event carries a user. Cron pipelines may omit it. |
+
+**Output fields** (available via `{{step "name" "field"}}`):
+
+| Field | Description |
+| ----- | ----------- |
+| `reply` | Assistant text from the agent run |
+| `session_id` | Ephemeral session ID (debugging) |
+
+Each agent step uses a temporary session with the same autonomous permission rules as scheduled chat tasks (no shell/edit by default). Ensure `chat_agent.run_timeout` is less than the pipeline cron timeout when using cron triggers.
+
 ## Testing
 
 ```bash

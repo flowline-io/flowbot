@@ -204,6 +204,103 @@ func TestNewHTTPServer_ErrorHandler_UnknownError(t *testing.T) {
 	}
 }
 
+func TestShouldSkipRateLimit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{name: "static asset skipped", path: "/static/js/app.js", want: true},
+		{name: "static vendor skipped", path: "/static/vendor/htmx.min.js", want: true},
+		{name: "liveness skipped", path: "/livez", want: true},
+		{name: "readiness skipped", path: "/readyz", want: true},
+		{name: "startup skipped", path: "/startupz", want: true},
+		{name: "metrics skipped", path: "/service/user/metrics", want: true},
+		{name: "root skipped", path: "/", want: true},
+		{name: "api route not skipped", path: "/service/web/pipelines", want: false},
+		{name: "hub route not skipped", path: "/hub/apps", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := fiber.New()
+			defer app.Shutdown()
+
+			var got bool
+			app.Get(tt.path, func(c fiber.Ctx) error {
+				got = shouldSkipRateLimit(c)
+				return c.SendStatus(fiber.StatusOK)
+			})
+
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			require.Equal(t, http.StatusOK, resp.StatusCode)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestNewHTTPServer_RateLimiterSkipsStaticAssets(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "static assets are not counted toward rate limit"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := newHTTPServer()
+			defer app.Shutdown()
+
+			app.Get("/static/test.js", func(c fiber.Ctx) error {
+				return c.SendString("ok")
+			})
+
+			for range 60 {
+				req := httptest.NewRequest(http.MethodGet, "/static/test.js", http.NoBody)
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				assert.Equal(t, http.StatusOK, resp.StatusCode)
+			}
+		})
+	}
+}
+
+func TestNewHTTPServer_RateLimiterBlocksBurstAPIRequests(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "api routes are rate limited after burst"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := newHTTPServer()
+			defer app.Shutdown()
+
+			app.Get("/api-burst", func(c fiber.Ctx) error {
+				return c.SendString("ok")
+			})
+
+			var gotTooMany bool
+			for range 120 {
+				req := httptest.NewRequest(http.MethodGet, "/api-burst", http.NoBody)
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				if resp.StatusCode == http.StatusTooManyRequests {
+					gotTooMany = true
+					break
+				}
+			}
+			assert.True(t, gotTooMany, "expected at least one 429 response")
+		})
+	}
+}
+
 func TestStructValidator_Validate(t *testing.T) {
 	t.Parallel()
 	v := &structValidator{validate: newTestApp().Config().StructValidator.(*structValidator).validate}

@@ -16,6 +16,7 @@ const (
 	CapGithub       CapabilityType = "github"
 	CapNote         CapabilityType = "note"
 	CapMemo         CapabilityType = "memo"
+	CapAgent        CapabilityType = "agent"
 )
 
 // EventDef describes an event that a capability emits.

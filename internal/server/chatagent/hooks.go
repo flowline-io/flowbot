@@ -92,7 +92,7 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 		if err != nil {
 			return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
 		}
-		if deps.Kind == RunKindScheduled {
+		if IsAutonomousRunKind(deps.Kind) {
 			cfg = permission.Merge(cfg, permission.ScheduledRunOverlay())
 		}
 		evaluator := permission.NewEvaluator(cfg)

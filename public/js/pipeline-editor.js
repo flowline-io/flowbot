@@ -15,6 +15,7 @@
       drawerExpanded: false,
       drawerTab: 'setup',
       drawerDirty: false,
+      drawerSnapshot: null,
       codeView: false,
       yamlText: '',
       variablePickerOpen: false,
@@ -387,18 +388,78 @@
             confirmText: 'Discard',
             confirmClass: 'btn-error',
             onConfirm: function () {
-              self.selectedNode = { type, index: idx };
-              self.drawerOpen = true;
-              self.drawerDirty = false;
-              self.drawerTab = 'setup';
+              self.restoreDrawerSnapshot();
+              self.openDrawerNode(type, idx);
             },
           });
           return;
         }
+        this.openDrawerNode(type, idx);
+      },
+
+      captureDrawerSnapshot(type, idx) {
+        if (type === 'step') {
+          return JSON.parse(JSON.stringify(this.steps[idx]));
+        }
+        if (type === 'trigger') {
+          return JSON.parse(JSON.stringify(this.triggers[idx]));
+        }
+        return null;
+      },
+
+      restoreDrawerSnapshot() {
+        if (!this.selectedNode || !this.drawerSnapshot) return;
+        const { type, index } = this.selectedNode;
+        if (type === 'step') {
+          this.steps[index] = JSON.parse(JSON.stringify(this.drawerSnapshot));
+        } else if (type === 'trigger') {
+          this.triggers[index] = JSON.parse(
+            JSON.stringify(this.drawerSnapshot),
+          );
+        }
+        this.validate();
+      },
+
+      openDrawerNode(type, idx) {
         this.selectedNode = { type, index: idx };
         this.drawerOpen = true;
         this.drawerDirty = false;
         this.drawerTab = 'setup';
+        this.drawerSnapshot = this.captureDrawerSnapshot(type, idx);
+      },
+
+      finishDrawerSession() {
+        this.drawerDirty = false;
+        this.drawerSnapshot = null;
+        this.drawerOpen = false;
+        this.selectedNode = null;
+      },
+
+      async saveDrawer() {
+        if (!this.selectedNode) return;
+        const { type, index } = this.selectedNode;
+        if (type === 'step') {
+          try {
+            JSON.parse(this.steps[index].paramsText || '{}');
+          } catch (e) {
+            showToast('Invalid params JSON: ' + e.message, 'error');
+            return;
+          }
+        }
+        this.validate();
+        const nodeErrors = this.errors.filter(
+          (e) => e.node.type === type && e.node.index === index,
+        );
+        if (nodeErrors.length > 0) {
+          showToast(nodeErrors[0].message, 'error');
+          return;
+        }
+        if (this.drawerDirty) {
+          this.pushUndo();
+          this.markDirty();
+        }
+        this.finishDrawerSession();
+        await this.saveDraft();
       },
 
       closeDrawer() {
@@ -410,16 +471,13 @@
             confirmText: 'Discard',
             confirmClass: 'btn-error',
             onConfirm: function () {
-              self.drawerOpen = false;
-              self.selectedNode = null;
-              self.drawerDirty = false;
+              self.restoreDrawerSnapshot();
+              self.finishDrawerSession();
             },
           });
           return;
         }
-        this.drawerOpen = false;
-        this.selectedNode = null;
-        this.drawerDirty = false;
+        this.finishDrawerSession();
       },
 
       toggleDrawerExpand() {
@@ -455,8 +513,8 @@
         } else {
           step.paramsText = (step.paramsText || '') + template;
         }
+        this.drawerDirty = true;
         this.variablePickerOpen = false;
-        this.markDirty();
       },
 
       validate() {

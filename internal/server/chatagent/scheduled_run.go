@@ -29,9 +29,9 @@ func executeScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) {
 	if !sessionOK {
 		return
 	}
-	defer closeScheduledTaskSession(ctx, task.Flag, runSessionID)
+	defer CloseEphemeralSession(ctx, runSessionID)
 
-	reply, runErr := runScheduledTaskPrompt(ctx, runSessionID, task)
+	reply, runErr := RunAutonomousPrompt(ctx, scheduledRunService, runSessionID, task.Prompt, RunKindScheduled)
 	finished := time.Now().UTC()
 	persistScheduledTaskRun(ctx, task, runFlag, reply, runErr, finished)
 	updateScheduledTaskAfterRun(ctx, task, finished)
@@ -41,9 +41,10 @@ func executeScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) {
 
 func beginScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask) (runSessionID, runFlag string, ok bool) {
 	uid := types.Uid(task.UID)
-	runSessionID = types.Id()
 	runFlag = types.Id()
-	if err := CreateSession(ctx, uid, runSessionID); err != nil {
+	var err error
+	runSessionID, err = BeginEphemeralSession(ctx, uid)
+	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] scheduled task session create task=%s: %w", task.Flag, err))
 		return "", "", false
 	}
@@ -55,28 +56,10 @@ func beginScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask) (ru
 		StartedAt:    time.Now().UTC(),
 	}); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] scheduled task run record task=%s: %w", task.Flag, err))
-		if cerr := CloseSession(ctx, runSessionID); cerr != nil {
-			flog.Warn("[chat-agent] scheduled task session close after run record failure task=%s: %v", task.Flag, cerr)
-		}
+		CloseEphemeralSession(ctx, runSessionID)
 		return "", "", false
 	}
 	return runSessionID, runFlag, true
-}
-
-func closeScheduledTaskSession(ctx context.Context, taskID, runSessionID string) {
-	if err := CloseSession(ctx, runSessionID); err != nil {
-		flog.Warn("[chat-agent] scheduled task session close task=%s session=%s: %v", taskID, runSessionID, err)
-	}
-}
-
-func runScheduledTaskPrompt(ctx context.Context, runSessionID string, task *gen.ChatScheduledTask) (string, error) {
-	runCtx, cancel := context.WithTimeout(ctx, RunTimeout())
-	defer cancel()
-	return scheduledRunService.Run(runCtx, RunRequest{
-		SessionID: runSessionID,
-		Text:      task.Prompt,
-		Kind:      RunKindScheduled,
-	}, nil)
 }
 
 func persistScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask, runFlag, reply string, runErr error, finished time.Time) {

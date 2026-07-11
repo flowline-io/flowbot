@@ -525,26 +525,7 @@ func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelin
 }
 
 func extractResult(res *ability.InvokeResult) map[string]any {
-	if res.Data == nil {
-		return map[string]any{}
-	}
-	if m, ok := res.Data.(map[string]any); ok {
-		return m
-	}
-	// For non-map types (e.g. slices, structs), serialize via JSON and store
-	// in a map so template resolution can access individual fields.
-	dataJSON, err := pooledSonic.Marshal(res.Data)
-	if err != nil {
-		return map[string]any{"result": res.Data}
-	}
-	var stepResult any
-	if err := pooledSonic.Unmarshal(dataJSON, &stepResult); err != nil {
-		return map[string]any{"result": res.Data}
-	}
-	if m, ok := stepResult.(map[string]any); ok {
-		return m
-	}
-	return map[string]any{"items": stepResult}
+	return StepResultFromInvoke(res)
 }
 
 func convertToTypesKV(m map[string]any) types.KV {

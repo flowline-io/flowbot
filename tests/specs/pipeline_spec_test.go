@@ -439,3 +439,28 @@ var _ = Describe("Webhook trigger", Label("pipeline"), func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 })
+
+var _ = Describe("Pipeline Agent Step", Label("pipeline"), func() {
+	It("passes rendered prompt to next step via reply field", func() {
+		rc := pipeline.NewRenderContext(types.DataEvent{
+			EventID:   "agent-step-" + types.Id(),
+			EventType: types.EventBookmarkCreated,
+			UID:       "user-agent",
+			Data:      types.KV{"url": "https://example.com/item"},
+		})
+		rc.RecordStepResult("fetch-meta", map[string]any{"title": "Spec Title"})
+
+		rendered, err := rc.RenderParams(map[string]any{
+			"prompt": "Review {{.Event.url}} / {{step \"fetch-meta\" \"title\"}}",
+			"uid":    "{{.Event.uid}}",
+		})
+		Expect(err).NotTo(HaveOccurred())
+		Expect(rendered["prompt"]).To(Equal("Review https://example.com/item / Spec Title"))
+		Expect(rendered["uid"]).To(Equal("user-agent"))
+
+		rc.RecordStepResult("summarize", map[string]any{"reply": "mock agent output", "session_id": "sess-1"})
+		next, err := rc.RenderString(`{{step "summarize" "reply"}}`)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(next).To(Equal("mock agent output"))
+	})
+})

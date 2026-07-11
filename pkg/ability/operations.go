@@ -97,6 +97,9 @@ var Operations = map[hub.CapabilityType]map[string]string{
 		"Delete": "delete",
 		"Health": "health",
 	},
+	hub.CapAgent: {
+		"Run": "run",
+	},
 }
 
 // Op returns the string operation name for the given capability and operation key.
@@ -219,6 +222,11 @@ const (
 	OpMemoHealth = "health"
 )
 
+// Agent operations as package-level constants.
+const (
+	OpAgentRun = "run"
+)
+
 // mutationOps is the explicit set of operations that modify state.
 // Add new mutation operations here when introducing write operations.
 var mutationOps = map[string]bool{
@@ -234,6 +242,8 @@ var mutationOps = map[string]bool{
 	"star_entry": true, "unstar_entry": true,
 	// Notify mutations
 	"send": true,
+	// Agent mutations
+	"run": true,
 	// Archive mutations
 	"add": true,
 	// Finance mutations

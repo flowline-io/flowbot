@@ -339,17 +339,18 @@ func testPipelineStep(c fiber.Ctx) error {
 			results = append(results, stepResult{Name: step.Name, Status: "error", Error: fmt.Sprintf("render params: %v", rErr)})
 			return c.JSON(fiber.Map{"success": false, "error": "Step " + step.Name + " failed", "steps": results})
 		}
-		_, iErr := ability.Invoke(context.Background(), step.Capability, step.Operation, rendered)
+		res, iErr := ability.Invoke(context.Background(), step.Capability, step.Operation, rendered)
 		duration := time.Since(start).Milliseconds()
 		if iErr != nil {
 			results = append(results, stepResult{Name: step.Name, Status: "error", Error: fmt.Sprintf("invoke: %v", iErr)})
 			return c.JSON(fiber.Map{"success": false, "error": "Step " + step.Name + " failed", "steps": results})
 		}
+		stepOutput := pipeline.StepResultFromInvoke(res)
 		results = append(results, stepResult{
 			Name: step.Name, Status: "ok", DurationMs: duration,
-			Output: rendered, RenderedParams: rendered,
+			Output: stepOutput, RenderedParams: rendered,
 		})
-		rc.RecordStepResult(step.Name, rendered)
+		rc.RecordStepResult(step.Name, stepOutput)
 	}
 	return c.JSON(fiber.Map{"success": true, "steps": results})
 }

@@ -39,7 +39,7 @@ func ApplyToolScope(in ToolScopeInput) []string {
 	if len(all) == 0 {
 		all = ActiveToolNames()
 	}
-	includeSchedule := in.Kind == RunKindScheduled || scheduleIntentPattern.MatchString(in.UserText)
+	includeSchedule := IsAutonomousRunKind(in.Kind) || scheduleIntentPattern.MatchString(in.UserText)
 	if includeSchedule {
 		return append([]string(nil), all...)
 	}

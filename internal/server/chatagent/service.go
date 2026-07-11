@@ -28,6 +28,8 @@ const (
 	RunKindInteractive RunKind = "interactive"
 	// RunKindScheduled is an autonomous run triggered by a scheduled task.
 	RunKindScheduled RunKind = "scheduled"
+	// RunKindPipeline is an autonomous run triggered by a pipeline agent step.
+	RunKindPipeline RunKind = "pipeline"
 )
 
 // RunRequest carries one user turn for the chat assistant.
