@@ -16,7 +16,10 @@ func TestRunPipelineAgentUsesEphemeralSession(t *testing.T) {
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "pipeline reply text")
 
-	out, err := RunPipelineAgent(context.Background(), "analyze event", types.Uid("user-9"))
+	out, err := RunPipelineAgent(context.Background(), abilityagent.RunParams{
+		Prompt: "analyze event",
+		UID:    types.Uid("user-9"),
+	})
 	require.NoError(t, err)
 	require.NotNil(t, out)
 	assert.Equal(t, "pipeline reply text", out.Reply)
@@ -30,7 +33,10 @@ func TestRunPipelineAgentRejectsEmptyPrompt(t *testing.T) {
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "unused")
 
-	_, err := RunPipelineAgent(context.Background(), "   ", types.Uid("user-9"))
+	_, err := RunPipelineAgent(context.Background(), abilityagent.RunParams{
+		Prompt: "   ",
+		UID:    types.Uid("user-9"),
+	})
 	assert.Error(t, err)
 }
 
@@ -40,7 +46,10 @@ func TestRunPipelineAgentReturnsSessionIDOnFailure(t *testing.T) {
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "unused")
 
-	out, err := RunPipelineAgent(context.Background(), "   ", types.Uid("user-9"))
+	out, err := RunPipelineAgent(context.Background(), abilityagent.RunParams{
+		Prompt: "   ",
+		UID:    types.Uid("user-9"),
+	})
 	require.Error(t, err)
 	require.NotNil(t, out)
 	assert.NotEmpty(t, out.SessionID)
@@ -59,4 +68,26 @@ func TestPipelineAgentRunnerForwardsToRunPipelineAgent(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "runner reply", out.Reply)
 	WaitForSessionTitleGenerationForTest()
+}
+
+func TestValidatePipelineAgentTools(t *testing.T) {
+	tests := []struct {
+		name    string
+		tools   []string
+		wantErr bool
+	}{
+		{name: "empty tools allowed", tools: nil},
+		{name: "known tool allowed", tools: []string{"read_file"}},
+		{name: "unknown tool rejected", tools: []string{"evil_tool"}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validatePipelineAgentTools(tt.tools)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
 }

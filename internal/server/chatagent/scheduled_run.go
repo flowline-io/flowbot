@@ -31,7 +31,7 @@ func executeScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) {
 	}
 	defer CloseEphemeralSession(ctx, runSessionID)
 
-	reply, runErr := RunAutonomousPrompt(ctx, scheduledRunService, runSessionID, task.Prompt, RunKindScheduled)
+	reply, runErr := RunAutonomousPrompt(ctx, scheduledRunService, runSessionID, task.Prompt, RunKindScheduled, nil, nil)
 	finished := time.Now().UTC()
 	persistScheduledTaskRun(ctx, task, runFlag, reply, runErr, finished)
 	updateScheduledTaskAfterRun(ctx, task, finished)

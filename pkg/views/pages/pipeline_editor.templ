@@ -323,11 +323,51 @@ templ PipelineEditorPage(name string) {
 										<option :value="op.name" x-text="op.name" :title="op.description"></option>
 									</template>
 								</select>
+								<div x-show="isAgentRunStep(selectedNode.index)" class="mb-3">
+									<label class="block text-sm font-medium mb-1">Tools</label>
+									<p class="text-xs text-base-content/50 mb-2">Leave all unchecked to use pipeline defaults.</p>
+									<div class="grid grid-cols-2 md:grid-cols-3 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 mb-3">
+										<template x-for="toolName in agentRunOptions.tools" :key="toolName">
+											<label class="flex items-center gap-2 text-sm cursor-pointer">
+												<input type="checkbox"
+													:checked="isAgentRunOptionSelected(selectedNode.index, 'tools', toolName)"
+													@change="toggleAgentRunOption(selectedNode.index, 'tools', toolName)"
+													class="checkbox checkbox-xs"
+													:data-testid="'agent-run-tool-' + toolName"
+												/>
+												<span class="font-mono text-xs" x-text="toolName"></span>
+											</label>
+										</template>
+									</div>
+									<label class="block text-sm font-medium mb-1">Skills</label>
+									<p class="text-xs text-base-content/50 mb-2">Selected skills are injected into the agent prompt and enabled via read_skill.</p>
+									<template x-if="agentRunOptions.skills.length === 0">
+										<p class="text-xs text-base-content/50 mb-3">No enabled skills. Create skills under Agent → Skills.</p>
+									</template>
+									<template x-if="agentRunOptions.skills.length > 0">
+										<div class="grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 max-h-48 overflow-y-auto mb-3">
+											<template x-for="skill in agentRunOptions.skills" :key="skill.name">
+												<label class="flex items-start gap-2 text-sm cursor-pointer">
+													<input type="checkbox"
+														:checked="isAgentRunOptionSelected(selectedNode.index, 'skills', skill.name)"
+														@change="toggleAgentRunOption(selectedNode.index, 'skills', skill.name)"
+														class="checkbox checkbox-xs mt-0.5"
+														:data-testid="'agent-run-skill-' + skill.name"
+													/>
+													<span>
+														<span class="font-mono text-xs" x-text="skill.name"></span>
+														<span class="block text-xs text-base-content/50" x-text="skill.description" x-show="skill.description"></span>
+													</span>
+												</label>
+											</template>
+										</div>
+									</template>
+								</div>
 								<label class="block text-sm font-medium mb-1">Params (JSON)</label>
 								<textarea rows="10" x-model="steps[selectedNode.index].paramsText"
 									class="textarea textarea-bordered w-full font-mono mb-3"
 										placeholder='{ &quot;title&quot;: &quot;event.title&quot; }'
-									@input="drawerDirty = true"
+									@input="drawerDirty = true; onParamsTextInput(selectedNode.index)"
 									data-testid="params-editor"></textarea>
 								<template x-if="getCurrentOperationInput(selectedNode.index).length > 0">
 									<div class="mb-3 border border-base-300 rounded-box bg-base-200">

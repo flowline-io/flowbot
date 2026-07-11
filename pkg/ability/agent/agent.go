@@ -16,6 +16,8 @@ import (
 type RunParams struct {
 	Prompt string
 	UID    types.Uid
+	Tools  []string
+	Skills []string
 }
 
 // RunResult holds the outcome of one agent.run invocation.
@@ -60,6 +62,8 @@ func Descriptor() hub.Descriptor {
 				Input: []hub.ParamDef{
 					{Name: "prompt", Type: "string", Required: true, Description: "User prompt (supports pipeline template rendering)"},
 					{Name: "uid", Type: "string", Required: false, Description: "Owner UID for permissions; use {{.Event.uid}} in YAML when available"},
+					{Name: "tools", Type: "[]string", Required: false, Description: "Tool allowlist; omit or leave empty for pipeline defaults"},
+					{Name: "skills", Type: "[]string", Required: false, Description: "Skill allowlist by name; omit or leave empty for all enabled skills"},
 				},
 			},
 		},
@@ -93,12 +97,26 @@ func runInvoker(ctx context.Context, params map[string]any) (*ability.InvokeResu
 		}
 	}
 
+	tools, err := optionalStringListParam(params, "tools")
+	if err != nil {
+		return nil, err
+	}
+	skills, err := optionalStringListParam(params, "skills")
+	if err != nil {
+		return nil, err
+	}
+
 	r := getRunner()
 	if r == nil {
 		return nil, types.Errorf(types.ErrUnavailable, "agent pipeline runner is not configured")
 	}
 
-	result, err := r.Run(ctx, RunParams{Prompt: prompt, UID: uid})
+	result, err := r.Run(ctx, RunParams{
+		Prompt: prompt,
+		UID:    uid,
+		Tools:  tools,
+		Skills: skills,
+	})
 	if err != nil {
 		return nil, err
 	}

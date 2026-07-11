@@ -216,3 +216,36 @@ func TestSetPipelineEnabledRejectsDraftPipeline(t *testing.T) {
 	_, err = ps.GetDefinitionByName(ctx, "draft-pause")
 	require.NoError(t, err)
 }
+
+type agentRunOptionsTestSkill struct {
+	Name string `json:"name"`
+}
+
+type agentRunOptionsTestData struct {
+	Tools  []string                   `json:"tools"`
+	Skills []agentRunOptionsTestSkill `json:"skills"`
+}
+
+type agentRunOptionsTestPayload struct {
+	Status string                  `json:"status"`
+	Data   agentRunOptionsTestData `json:"data"`
+}
+
+func TestGetAgentRunOptions(t *testing.T) {
+	app, _, _ := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/agent-run-options", http.NoBody)
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	var payload agentRunOptionsTestPayload
+	require.NoError(t, sonic.Unmarshal(body, &payload))
+	assert.Equal(t, "ok", string(payload.Status))
+	assert.NotEmpty(t, payload.Data.Tools)
+}

@@ -81,3 +81,64 @@ func TestRunInvokerParsesOptionalUID(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, stub.last.UID.IsZero())
 }
+
+func TestRunInvokerParsesToolsAndSkills(t *testing.T) {
+	stub := &stubRunner{reply: "ok", sessionID: "sess-1"}
+	SetRunner(stub)
+	t.Cleanup(func() { SetRunner(nil) })
+
+	tests := []struct {
+		name   string
+		params map[string]any
+		tools  []string
+		skills []string
+	}{
+		{
+			name: "string slices are forwarded",
+			params: map[string]any{
+				"prompt": "go",
+				"tools":  []string{"read_file"},
+				"skills": []string{"skill-a"},
+			},
+			tools:  []string{"read_file"},
+			skills: []string{"skill-a"},
+		},
+		{
+			name: "any slices are forwarded",
+			params: map[string]any{
+				"prompt": "go",
+				"tools":  []any{"web_search"},
+				"skills": []any{"skill-b"},
+			},
+			tools:  []string{"web_search"},
+			skills: []string{"skill-b"},
+		},
+		{
+			name: "empty arrays are omitted",
+			params: map[string]any{
+				"prompt": "go",
+				"tools":  []string{},
+				"skills": []any{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := runInvoker(context.Background(), tt.params)
+			require.NoError(t, err)
+			assert.Equal(t, tt.tools, stub.last.Tools)
+			assert.Equal(t, tt.skills, stub.last.Skills)
+		})
+	}
+}
+
+func TestRunInvokerRejectsInvalidToolsType(t *testing.T) {
+	SetRunner(&stubRunner{reply: "ok"})
+	t.Cleanup(func() { SetRunner(nil) })
+
+	_, err := runInvoker(context.Background(), map[string]any{
+		"prompt": "go",
+		"tools":  "read_file",
+	})
+	require.Error(t, err)
+}

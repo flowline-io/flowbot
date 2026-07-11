@@ -444,6 +444,21 @@ steps:
 | ----- | -------- | ----------- |
 | `prompt` | yes | User message; supports all template syntax above |
 | `uid` | no | Permission owner UID. Use `{{.Event.uid}}` when the trigger event carries a user. Cron pipelines may omit it. |
+| `tools` | no | Tool allowlist (`[]string`). Omit or leave empty to use pipeline defaults (all scoped tools). |
+| `skills` | no | Skill allowlist by name (`[]string`). Omit or leave empty to inject all enabled skills. |
+
+Example with scoped tools and skills:
+
+```yaml
+  - name: research
+    capability: agent
+    operation: run
+    params:
+      prompt: "Research {{.Event.url}}"
+      uid: "{{.Event.uid}}"
+      tools: [read_file, web_search]
+      skills: [bookmark-summary]
+```
 
 **Output fields** (available via `{{step "name" "field"}}`):
 

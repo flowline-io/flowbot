@@ -114,17 +114,27 @@ func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) e
 	if kind == "" {
 		kind = RunKindInteractive
 	}
-	h.SetActiveTools(ApplyToolScope(ToolScopeInput{
+
+	baseTools := ActiveToolNames()
+	if len(req.Tools) > 0 {
+		baseTools = req.Tools
+	}
+	scopedTools := ApplyToolScope(ToolScopeInput{
 		Mode:      mode,
 		Kind:      kind,
 		UserText:  req.Text,
-		AllActive: ActiveToolNames(),
-	}))
+		AllActive: baseTools,
+	})
+	h.SetActiveTools(activeSubagentTools(scopedTools, req.Skills))
+
 	workspace, err := WorkspaceFromConfig()
 	if err != nil {
 		return err
 	}
 	systemPrompt := SessionSystemPrompt(ctx, workspace, mode)
+	if len(req.Skills) > 0 {
+		systemPrompt = buildFilteredSystemPrompt(ctx, workspace, req.Skills)
+	}
 	h.SetSystemPrompt(systemPrompt)
 	if ctxMgr := h.ContextManager(); ctxMgr != nil {
 		ctxMgr.UpdateSystemPrompt(systemPrompt)

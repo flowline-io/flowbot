@@ -128,6 +128,36 @@ func SessionSystemPrompt(ctx context.Context, ws coding.Workspace, mode string) 
 	if mode != ModePlan {
 		return CachedSystemPrompt(ctx, ws)
 	}
+	return buildPlanModeSystemPrompt(ctx, ws)
+}
+
+// buildFilteredSystemPrompt builds a system prompt with only the selected skills injected.
+func buildFilteredSystemPrompt(ctx context.Context, ws coding.Workspace, skillNames []string) string {
+	cfg := config.App.ChatAgent
+	allSkills, err := LoadSkillsFromStore(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load skills: %v", err)
+		allSkills = nil
+	}
+	skills := FilterSkillsByNames(allSkills, skillNames)
+	subagents, err := LoadSubagentsFromStore(ctx)
+	if err != nil {
+		flog.Warn("[chat-agent] load subagents: %v", err)
+		subagents = nil
+	}
+	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
+	return BuildSystemPrompt(BuildSystemPromptOptions{
+		CustomPrompt:       cfg.SystemPrompt,
+		PromptGuidelines:   cfg.PromptGuidelines,
+		AppendSystemPrompt: cfg.AppendSystemPrompt,
+		CWD:                ws.Root,
+		ContextFiles:       contextFiles,
+		Skills:             skills,
+		Subagents:          subagents,
+	})
+}
+
+func buildPlanModeSystemPrompt(ctx context.Context, ws coding.Workspace) string {
 	cfg := config.App.ChatAgent
 	skills, err := LoadSkillsFromStore(ctx)
 	if err != nil {

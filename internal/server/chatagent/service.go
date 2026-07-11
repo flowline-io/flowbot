@@ -39,6 +39,8 @@ type RunRequest struct {
 	API          *APIRunOptions
 	Kind         RunKind
 	RunStartedAt time.Time
+	Tools        []string
+	Skills       []string
 }
 
 // ManualCompactionResult reports the outcome of a user-triggered compaction run.

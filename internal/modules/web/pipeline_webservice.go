@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/redis/go-redis/v9"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -20,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/rdb"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -30,6 +32,7 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines", pipelineListPage),
 	webservice.Get("/pipelines/list", pipelineListTable),
 	webservice.Get("/pipelines/capabilities", getCapabilities),
+	webservice.Get("/pipelines/agent-run-options", getAgentRunOptions),
 	webservice.Get("/pipelines/stats", pipelineStats),
 	webservice.Get("/pipelines/:name", pipelineEditorPage),
 	webservice.Post("/pipelines", createPipeline),
@@ -434,6 +437,23 @@ func pipelineRunSteps(c fiber.Ctx) error {
 // for the pipeline editor capability/operation select dropdowns.
 func getCapabilities(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(hub.Default.List()))
+}
+
+type agentRunOptionsResponse struct {
+	Tools  []string                         `json:"tools"`
+	Skills []model.AgentSubagentSkillOption `json:"skills"`
+}
+
+// getAgentRunOptions returns selectable tools and skills for pipeline agent.run steps.
+func getAgentRunOptions(ctx fiber.Ctx) error {
+	skills, err := listAgentSubagentSkillOptions(context.Background())
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list agent skills: %v", err)
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(agentRunOptionsResponse{
+		Tools:  chatagent.SelectableSubagentTools(),
+		Skills: skills,
+	}))
 }
 
 // watchPipelineRunLive opens an SSE stream for a running pipeline.

@@ -29,6 +29,7 @@
       testMockPayload: '{}',
       testResults: null,
       capabilities: [],
+      agentRunOptions: { tools: [], skills: [] },
       defaultTemplateSet: null,
       loading: false,
       saving: false,
@@ -52,6 +53,7 @@
         this.name = pipelineName;
         if (pipelineName) this.loadPipeline(pipelineName);
         this.fetchCapabilities();
+        this.fetchAgentRunOptions();
         this.pushUndo();
         this.loadVersions();
       },
@@ -71,6 +73,16 @@
           showToast('Failed to load pipeline', 'error');
         } finally {
           this.loading = false;
+        }
+      },
+
+      async fetchAgentRunOptions() {
+        try {
+          const resp = await fetch('/service/web/pipelines/agent-run-options');
+          const json = await resp.json();
+          this.agentRunOptions = json.data || { tools: [], skills: [] };
+        } catch (e) {
+          console.error('Failed to load agent run options:', e);
         }
       },
 
@@ -183,6 +195,53 @@
         if (!step || !step.capability || !step.operation) return [];
         const op = this.getOperation(step.capability, step.operation);
         return op ? op.input || [] : [];
+      },
+
+      isAgentRunStep(idx) {
+        const step = this.steps[idx];
+        return step?.capability === 'agent' && step?.operation === 'run';
+      },
+
+      parseStepParams(idx) {
+        try {
+          return JSON.parse(this.steps[idx]?.paramsText || '{}');
+        } catch {
+          return {};
+        }
+      },
+
+      getAgentRunParamList(idx, key) {
+        if (!this.isAgentRunStep(idx)) return [];
+        const params = this.parseStepParams(idx);
+        const value = params[key];
+        return Array.isArray(value) ? value : [];
+      },
+
+      isAgentRunOptionSelected(idx, key, value) {
+        return this.getAgentRunParamList(idx, key).includes(value);
+      },
+
+      setAgentRunParamList(idx, key, values) {
+        const params = this.parseStepParams(idx);
+        if (values.length === 0) {
+          delete params[key];
+        } else {
+          params[key] = values;
+        }
+        this.steps[idx].paramsText = JSON.stringify(params, null, 2);
+        this.drawerDirty = true;
+      },
+
+      toggleAgentRunOption(idx, key, value) {
+        const current = this.getAgentRunParamList(idx, key);
+        const next = current.includes(value)
+          ? current.filter((item) => item !== value)
+          : [...current, value];
+        this.setAgentRunParamList(idx, key, next);
+      },
+
+      onParamsTextInput(_idx) {
+        // Checkbox state is derived from paramsText via :checked bindings.
       },
 
       getEventsForTrigger() {
