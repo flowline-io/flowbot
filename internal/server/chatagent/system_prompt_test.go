@@ -13,9 +13,13 @@ import (
 )
 
 func TestBuildSystemPrompt(t *testing.T) {
+	chatagent.LockAppConfigForTest(t)
+
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# Project rules\nUse TDD."), 0o644))
 
+	prevLanguage := config.App.Flowbot.Language
+	t.Cleanup(func() { config.App.Flowbot.Language = prevLanguage })
 	config.App.Flowbot.Language = "Chinese"
 
 	tests := []struct {

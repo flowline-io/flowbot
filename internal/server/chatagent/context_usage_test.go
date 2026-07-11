@@ -14,6 +14,8 @@ import (
 )
 
 func TestBuildContextUsageReport(t *testing.T) {
+	chatagent.LockAppConfigForTest(t)
+
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
 
@@ -104,6 +106,8 @@ func TestBuildContextUsageReport(t *testing.T) {
 }
 
 func TestBuildContextUsageReportDualModel(t *testing.T) {
+	chatagent.LockAppConfigForTest(t)
+
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
 

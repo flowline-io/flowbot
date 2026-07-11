@@ -143,6 +143,8 @@ func TestDeriveProgressFromMessages(t *testing.T) {
 }
 
 func TestRegisterHooksProgressInject(t *testing.T) {
+	chatagent.LockAppConfigForTest(t)
+
 	prev := config.App.ChatAgent.Workspace
 	t.Cleanup(func() { config.App.ChatAgent.Workspace = prev })
 

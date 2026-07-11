@@ -18,6 +18,8 @@ import (
 )
 
 func TestScheduledRunPermissionOverlay(t *testing.T) {
+	LockAppConfigForTest(t)
+
 	origDB := store.Database
 	origCfg := config.App.ChatAgent
 	store.Database = postgres.NewSQLiteTestAdapter(t)

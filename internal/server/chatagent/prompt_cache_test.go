@@ -55,6 +55,8 @@ func TestCachedSystemPromptCacheHit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+
 			ResetPromptCacheForTest()
 			root := t.TempDir()
 			require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
@@ -126,6 +128,8 @@ func TestPromptConfigHashStable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+
 			root := t.TempDir()
 			originalAppend := config.App.ChatAgent.AppendSystemPrompt
 			originalLanguage := config.App.Flowbot.Language

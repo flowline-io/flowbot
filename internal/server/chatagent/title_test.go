@@ -97,6 +97,8 @@ func TestSessionTitleInflightDedupes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+
 			origDB := store.Database
 			store.Database = postgres.NewSQLiteTestAdapter(t)
 			origChatAgent := config.App.ChatAgent

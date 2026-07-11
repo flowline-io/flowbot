@@ -20,6 +20,8 @@ func TestRunTimeout(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+
 			orig := config.App.ChatAgent
 			config.App.ChatAgent = tt.cfg
 			t.Cleanup(func() { config.App.ChatAgent = orig })

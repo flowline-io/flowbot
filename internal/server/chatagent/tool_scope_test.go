@@ -11,6 +11,8 @@ import (
 
 func TestApplyToolScope(t *testing.T) {
 	t.Parallel()
+	chatagent.LockAppConfigForTest(t)
+
 	all := chatagent.ActiveToolNames()
 	tests := []struct {
 		name             string
@@ -63,6 +65,8 @@ func TestApplyToolScope(t *testing.T) {
 
 func TestApplyToolScopeKeepsAbilityTools(t *testing.T) {
 	t.Parallel()
+	chatagent.LockAppConfigForTest(t)
+
 	prev := config.App.ChatAgent.AbilityTools
 	t.Cleanup(func() { config.App.ChatAgent.AbilityTools = prev })
 	config.App.ChatAgent.AbilityTools = []config.AbilityToolConfig{{

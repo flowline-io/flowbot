@@ -44,6 +44,8 @@ func TestParseResourceURI(t *testing.T) {
 }
 
 func TestResolveFileResource(t *testing.T) {
+	LockAppConfigForTest(t)
+
 	origCfg := config.App.ChatAgent
 	origDB := store.Database
 	root := t.TempDir()

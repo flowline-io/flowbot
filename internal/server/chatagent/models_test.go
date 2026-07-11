@@ -61,6 +61,8 @@ func TestAgentLoopConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+
 			config.App.ChatAgent = tt.chatAgent
 			config.App.Models = tt.models
 

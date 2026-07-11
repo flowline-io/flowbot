@@ -14,6 +14,7 @@ import (
 
 func TestRegisterHooksLintSensor(t *testing.T) {
 	t.Parallel()
+	chatagent.LockAppConfigForTest(t)
 
 	prevSensors := config.App.ChatAgent.Sensors
 	prevWS := config.App.ChatAgent.Workspace
@@ -81,6 +82,8 @@ func TestRegisterHooksLintSensor(t *testing.T) {
 
 func TestRegisterHooksPathSensor(t *testing.T) {
 	t.Parallel()
+	chatagent.LockAppConfigForTest(t)
+
 	prev := config.App.ChatAgent.Workspace
 	t.Cleanup(func() { config.App.ChatAgent.Workspace = prev })
 	config.App.ChatAgent.Workspace = t.TempDir()
