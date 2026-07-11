@@ -153,9 +153,29 @@ tasks:
       - echo "coverage report generated in coverage.html"
 
   test:race:
-    desc: Race testing
+    desc: Race testing (all packages, default count=3)
+    vars:
+      COUNT: '{{.COUNT | default "3"}}'
     cmds:
-      - go test -count=10 -race ./...
+      - go tool gotestsum --hide-summary=skipped -- -race -count={{.COUNT}} ./...
+
+  test:race:ci:
+    desc: Race testing for a CI shard (requires PACKAGES var)
+    vars:
+      COUNT: '{{.COUNT | default "3"}}'
+      PACKAGES: '{{.PACKAGES}}'
+    cmds:
+      - go tool gotestsum --hide-summary=skipped --packages="{{.PACKAGES}}" -- -race -count={{.COUNT}}
+
+  test:race:nightly:
+    desc: Deep race scan for nightly cron
+    vars:
+      PACKAGES: '{{.PACKAGES}}'
+    cmds:
+      - task: test:race:ci
+        vars:
+          COUNT: "10"
+          PACKAGES: '{{.PACKAGES}}'
 
   # Documentation tasks
   swagger:

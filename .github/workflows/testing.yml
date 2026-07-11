@@ -17,17 +17,23 @@ on:
       - '**/AGENTS.md'
       - 'README.md'
       - '**/README.md'
+  schedule:
+    # UTC 02:00 (Beijing 10:00) — deep race scan on default branch
+    - cron: '0 2 * * *'
 
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   race:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}-race-${{ matrix.shard }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v7
 
@@ -40,11 +46,26 @@ jobs:
       - name: Go mod download
         run: go mod download
 
-      - name: Race testing
-        run: go tool task test:race
+      - name: Resolve packages for shard
+        id: pkgs
+        run: |
+          PACKAGES=$(go list ./... | awk -v s=${{ matrix.shard }} -v n=4 'NR % n == s' | paste -sd ' ' -)
+          echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
+
+      - name: Race testing (nightly deep scan)
+        if: github.event_name == 'schedule'
+        run: go tool task test:race:nightly PACKAGES="${{ steps.pkgs.outputs.packages }}"
+
+      - name: Race testing (PR/push)
+        if: github.event_name != 'schedule'
+        run: go tool task test:race:ci PACKAGES="${{ steps.pkgs.outputs.packages }}"
 
   bdd:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-bdd
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v7
 
