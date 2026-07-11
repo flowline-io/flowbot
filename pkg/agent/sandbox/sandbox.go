@@ -18,12 +18,14 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 const (
-	defaultImage    = "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"
-	workspaceMount  = "/workspace"
-	defaultStopWait = 5 * time.Second
+	defaultImage        = "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"
+	workspaceMount      = "/workspace"
+	defaultStopWait     = 5 * time.Second
+	maxLoggedCommandLen = 200
 )
 
 // Config configures Docker sandbox execution.
@@ -83,6 +85,8 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 	if runner == nil {
 		runner = DockerRunner{}
 	}
+	flog.Info("[sandbox] env ready workspace=%s image=%s network=%s memory=%s",
+		cfg.Workspace, cfg.Image, cfg.Network, cfg.Memory)
 	return &Env{cfg: cfg, host: host, runner: runner}
 }
 
@@ -119,7 +123,7 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 			workDir = filepath.ToSlash(filepath.Join(workspaceMount, rel))
 		}
 	}
-	capture, err := e.runner.Run(runCtx, RunOptions{
+	runOpts := RunOptions{
 		Image:     e.cfg.Image,
 		Network:   e.cfg.Network,
 		Memory:    e.cfg.Memory,
@@ -127,7 +131,10 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 		WorkDir:   workDir,
 		Command:   opts.Command,
 		Argv:      append([]string(nil), opts.Argv...),
-	})
+	}
+	flog.Info("[sandbox] exec start workspace=%s workdir=%s %s",
+		e.cfg.Workspace, workDir, summarizeCommand(runOpts))
+	capture, err := e.runner.Run(runCtx, runOpts)
 	if err != nil {
 		code := "spawn_error"
 		cause := err
@@ -143,10 +150,14 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 				cause = runCtx.Err()
 			}
 		}
+		flog.Info("[sandbox] exec failed workspace=%s workdir=%s code=%s err=%s",
+			e.cfg.Workspace, workDir, code, cause.Error())
 		return result.Err[env.Capture, result.ExecutionError](
 			result.NewExecutionError(code, cause.Error(), cause),
 		)
 	}
+	flog.Info("[sandbox] exec done workspace=%s workdir=%s exit_code=%d",
+		e.cfg.Workspace, workDir, capture.ExitCode)
 	return result.Ok[env.Capture, result.ExecutionError](capture)
 }
 
@@ -176,6 +187,8 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	if workDir == "" {
 		workDir = workspaceMount
 	}
+	flog.Info("[sandbox] container create image=%s workspace=%s workdir=%s %s",
+		opts.Image, opts.Workspace, workDir, summarizeCommand(opts))
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image:      opts.Image,
 		Cmd:        cmd,
@@ -183,13 +196,16 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 		Tty:        false,
 	}, hostConfig, nil, nil, "")
 	if err != nil {
+		flog.Info("[sandbox] container create failed image=%s workspace=%s err=%s",
+			opts.Image, opts.Workspace, err.Error())
 		return env.Capture{}, err
 	}
 	id := resp.ID
+	flog.Info("[sandbox] container created id=%s image=%s workdir=%s", id, opts.Image, workDir)
 	defer func() {
 		_ = cli.ContainerRemove(context.Background(), id, container.RemoveOptions{Force: true})
 	}()
-	return waitAndCollectLogs(ctx, cli, id)
+	return waitAndCollectLogs(ctx, cli, id, opts.Workspace, workDir)
 }
 
 func validateRunOptions(opts RunOptions) error {
@@ -219,7 +235,7 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 	return hostConfig, nil
 }
 
-func waitAndCollectLogs(ctx context.Context, cli *client.Client, id string) (env.Capture, error) {
+func waitAndCollectLogs(ctx context.Context, cli *client.Client, id, workspace, workDir string) (env.Capture, error) {
 	if err := cli.ContainerStart(ctx, id, container.StartOptions{}); err != nil {
 		return env.Capture{}, err
 	}
@@ -248,7 +264,23 @@ func waitAndCollectLogs(ctx context.Context, cli *client.Client, id string) (env
 		return env.Capture{}, err
 	}
 	text := stripDockerLogHeaders(output)
+	flog.Info("[sandbox] container done id=%s workspace=%s workdir=%s exit_code=%d",
+		id, workspace, workDir, exitCode)
 	return env.Capture{Stdout: text, Stderr: text, ExitCode: int(exitCode)}, nil
+}
+
+func summarizeCommand(opts RunOptions) string {
+	if len(opts.Argv) > 0 {
+		return "argv=" + truncateForLog(strings.Join(opts.Argv, " "))
+	}
+	return "command=" + truncateForLog(strings.TrimSpace(opts.Command))
+}
+
+func truncateForLog(text string) string {
+	if len(text) <= maxLoggedCommandLen {
+		return text
+	}
+	return text[:maxLoggedCommandLen] + "..."
 }
 
 func buildCommand(opts RunOptions) ([]string, error) {

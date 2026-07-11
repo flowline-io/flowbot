@@ -8,8 +8,8 @@ import (
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
-	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/transform"

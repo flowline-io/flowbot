@@ -1230,7 +1230,9 @@
     if (!sessionID || !messagesURL || !input) {
       return;
     }
-    var approval = initApproval(root.querySelector('#chatagent-approval-panel'));
+    var approval = initApproval(
+      root.querySelector('#chatagent-approval-panel'),
+    );
 
     function sendFollowUp() {
       var text = (input.value || '').trim();
@@ -1261,7 +1263,7 @@
   document
     .querySelectorAll('[data-chatagent-root="thread"]')
     .forEach(initThread);
-    document
+  document
     .querySelectorAll('#chatagent-approval-panel')
     .forEach(function (panel) {
       if (panel.closest('[data-chatagent-root="thread"]')) {
