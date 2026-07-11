@@ -71,7 +71,7 @@ func TestRunAutonomousPromptRejectsEmptyMessage(t *testing.T) {
 	require.NoError(t, err)
 	defer CloseEphemeralSession(context.Background(), sessionID)
 
-	_, err = RunAutonomousPrompt(context.Background(), NewService(), sessionID, "   ", RunKindScheduled, nil, nil)
+	_, err = RunAutonomousPrompt(context.Background(), NewService(), sessionID, "   ", RunKindScheduled, nil, nil, "")
 	assert.Error(t, err)
 }
 

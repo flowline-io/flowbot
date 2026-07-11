@@ -36,6 +36,12 @@ templ PipelineEditorPage(name string) {
 					:class="historyOpen ? 'btn-active' : ''"
 					class="btn btn-ghost btn-sm"
 					data-testid="btn-history">History</button>
+				<button
+					type="button"
+					x-show="pipelineMemoryEnabled()"
+					@click="openMemoryModal()"
+					class="btn btn-ghost btn-sm"
+					data-testid="btn-memory-notes">Memory Notes</button>
 				<button type="button" @click="toggleCodeView"
 					class="btn btn-ghost btn-sm font-mono"
 					data-testid="btn-code-view">&lt;/&gt; Code</button>
@@ -488,6 +494,8 @@ templ PipelineEditorPage(name string) {
 					</div>
 				</div>
 			</div>
+
+			@partials.AgentMemoryModal()
 		</div>
 	}
 }

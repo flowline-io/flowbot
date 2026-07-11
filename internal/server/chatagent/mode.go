@@ -31,7 +31,7 @@ func IsReadOnlyTool(name string) bool {
 
 // ReadOnlyToolNames returns the active tool set for plan mode.
 func ReadOnlyToolNames() []string {
-	names := []string{"read_file", "web_search", "read_skill", listScheduleToolName}
+	names := []string{"read_file", "web_search", "read_skill", listScheduleToolName, updateMemoryToolName}
 	return append(names, AbilityToolNames()...)
 }
 

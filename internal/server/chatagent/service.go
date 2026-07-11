@@ -41,6 +41,7 @@ type RunRequest struct {
 	RunStartedAt time.Time
 	Tools        []string
 	Skills       []string
+	MemoryScope  string
 }
 
 // ManualCompactionResult reports the outcome of a user-triggered compaction run.
@@ -76,6 +77,8 @@ func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (strin
 		flog.Warn("[chat-agent] run rejected after lock: session=%s: %v", req.SessionID, err)
 		return "", err
 	}
+
+	ctx = WithMemoryScope(ctx, ResolveMemoryScope(req))
 
 	h, err := getOrCreateHarness(ctx, req, textLen)
 	if err != nil {

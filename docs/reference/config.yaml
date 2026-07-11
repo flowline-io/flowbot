@@ -195,12 +195,6 @@ chat_agent:
   sensors:
     lint_on_write: false         # observation-only lint log after write_file of *.go
   ability_tools: []              # each entry requires readonly: true
-  # ability_tools:
-  #   - name: memo_list
-  #     description: List memos
-  #     capability: memo
-  #     operation: list
-  #     readonly: true
   sandbox:
     enabled: false
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest

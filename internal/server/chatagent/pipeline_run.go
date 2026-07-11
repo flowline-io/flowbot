@@ -24,11 +24,12 @@ func RunPipelineAgent(ctx context.Context, params abilityagent.RunParams) (*abil
 		params.UID, len(prompt), len(params.Tools), len(params.Skills), RunTimeout(), formatContextDeadline(ctx))
 
 	out, err := RunEphemeral(ctx, pipelineRunService, EphemeralRunParams{
-		UID:    params.UID,
-		Prompt: prompt,
-		Kind:   RunKindPipeline,
-		Tools:  params.Tools,
-		Skills: params.Skills,
+		UID:         params.UID,
+		Prompt:      prompt,
+		Kind:        RunKindPipeline,
+		Tools:       params.Tools,
+		Skills:      params.Skills,
+		MemoryScope: params.MemoryScope,
 	})
 	duration := time.Since(start).Round(time.Millisecond)
 	if err != nil {

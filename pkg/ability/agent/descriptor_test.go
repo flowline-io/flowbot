@@ -27,3 +27,34 @@ func TestDescriptorHealthyReflectsChatAgentEnabled(t *testing.T) {
 		})
 	}
 }
+
+func TestDescriptorIncludesMemoryScopeParam(t *testing.T) {
+	prev := config.App.ChatAgent
+	t.Cleanup(func() { config.App.ChatAgent = prev })
+	config.App.ChatAgent.ChatModel = "gpt-test"
+
+	tests := []struct {
+		name      string
+		paramName string
+		wantFound bool
+	}{
+		{name: "memory_scope present", paramName: "memory_scope", wantFound: true},
+		{name: "prompt still present", paramName: "prompt", wantFound: true},
+		{name: "unknown param absent", paramName: "unknown_param", wantFound: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			desc := Descriptor()
+			found := false
+			for _, op := range desc.Operations {
+				for _, param := range op.Input {
+					if param.Name == tt.paramName {
+						found = true
+						break
+					}
+				}
+			}
+			assert.Equal(t, tt.wantFound, found)
+		})
+	}
+}

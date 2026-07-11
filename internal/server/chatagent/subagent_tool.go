@@ -142,7 +142,11 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 		Skills:       def.Skills,
 		Model:        def.Model,
 	}
-	result, runErr := subagent.Run(ctx, runDef, subagent.Deps{
+	childCtx := ctx
+	if scope := MemoryScopeFromContext(ctx); scope != "" {
+		childCtx = WithMemoryScope(ctx, scope)
+	}
+	result, runErr := subagent.Run(childCtx, runDef, subagent.Deps{
 		Model:    model,
 		Registry: childRegistry,
 		Config:   cfg,

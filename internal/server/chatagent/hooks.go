@@ -100,7 +100,7 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 		workspaceRoot := config.App.ChatAgent.Workspace
 		externalPath := detectExternalPath(event, workspaceRoot)
 
-		if block := planModeToolBlock(ctx, deps.SessionID, event.ToolCall.Name); block != nil {
+		if block := planModeToolBlock(ctx, deps.SessionID, event); block != nil {
 			return block, nil
 		}
 
@@ -187,9 +187,22 @@ func detectExternalPath(event hooks.ToolCallEvent, workspaceRoot string) bool {
 	return false
 }
 
-func planModeToolBlock(ctx context.Context, sessionID, toolName string) *hooks.ToolCallResult {
-	mode := LoadSessionMode(ctx, sessionID)
-	if mode != ModePlan || IsReadOnlyTool(toolName) {
+func planModeToolBlock(ctx context.Context, sessionID string, event hooks.ToolCallEvent) *hooks.ToolCallResult {
+	if LoadSessionMode(ctx, sessionID) != ModePlan {
+		return nil
+	}
+	toolName := event.ToolCall.Name
+	if toolName == updateMemoryToolName {
+		switch MemoryOperation(event.Args) {
+		case "read", "list":
+			return nil
+		case "write":
+			return &hooks.ToolCallResult{Block: true, Reason: "plan mode: memory write disabled"}
+		default:
+			return &hooks.ToolCallResult{Block: true, Reason: "plan mode: read-only"}
+		}
+	}
+	if IsReadOnlyTool(toolName) {
 		return nil
 	}
 	reason := "plan mode: read-only"

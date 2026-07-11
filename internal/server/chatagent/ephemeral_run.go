@@ -12,11 +12,12 @@ import (
 
 // EphemeralRunParams describes one isolated autonomous agent turn.
 type EphemeralRunParams struct {
-	UID    types.Uid
-	Prompt string
-	Kind   RunKind
-	Tools  []string
-	Skills []string
+	UID         types.Uid
+	Prompt      string
+	Kind        RunKind
+	Tools       []string
+	Skills      []string
+	MemoryScope string
 }
 
 // EphemeralRunResult holds the outcome of one ephemeral run.
@@ -50,15 +51,16 @@ func CloseEphemeralSession(ctx context.Context, sessionID string) {
 }
 
 // RunAutonomousPrompt executes one prompt in an existing session with RunTimeout.
-func RunAutonomousPrompt(ctx context.Context, svc *Service, sessionID, prompt string, kind RunKind, tools, skills []string) (string, error) {
+func RunAutonomousPrompt(ctx context.Context, svc *Service, sessionID, prompt string, kind RunKind, tools, skills []string, memoryScope string) (string, error) {
 	runCtx, cancel := context.WithTimeout(ctx, RunTimeout())
 	defer cancel()
 	return svc.Run(runCtx, RunRequest{
-		SessionID: sessionID,
-		Text:      prompt,
-		Kind:      kind,
-		Tools:     tools,
-		Skills:    skills,
+		SessionID:   sessionID,
+		Text:        prompt,
+		Kind:        kind,
+		Tools:       tools,
+		Skills:      skills,
+		MemoryScope: memoryScope,
 	}, nil)
 }
 
@@ -78,7 +80,7 @@ func RunEphemeral(ctx context.Context, svc *Service, params EphemeralRunParams) 
 			sessionID, len(strings.TrimSpace(params.Prompt)), RunTimeout())
 	}
 	promptStart := time.Now()
-	reply, err := RunAutonomousPrompt(ctx, svc, sessionID, params.Prompt, params.Kind, params.Tools, params.Skills)
+	reply, err := RunAutonomousPrompt(ctx, svc, sessionID, params.Prompt, params.Kind, params.Tools, params.Skills, params.MemoryScope)
 	if params.Kind == RunKindPipeline {
 		flog.Info("[pipeline-agent] autonomous prompt end session=%s duration=%s err=%v",
 			sessionID, time.Since(promptStart).Round(time.Millisecond), err)

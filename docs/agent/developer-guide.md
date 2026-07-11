@@ -125,6 +125,30 @@ reg.SetActive([]string{"disk_usage"}) // review mode: read-only tools only
 
 See reference: [pkg/agent/example/echo/](../../pkg/agent/example/echo/echo.go).
 
+## Persistent memory (`update_memory`)
+
+The chat agent always registers `update_memory`. Memory files live outside `chat_agent.workspace` at `<workspace-parent>/agent-memories/{scope}/*.md`.
+
+Tool arguments:
+
+- `operation` (required): `read`, `write`, or `list`
+- `file` (optional): markdown filename, default `MEMORIES.md`
+- `content` (required for `write`): file body
+
+Scope is chosen per run:
+
+- Pipeline `agent.run`: pipeline name (auto-injected as `memory_scope`)
+- Scheduled tasks: task flag
+- Interactive chat: `default`
+
+Permissions:
+
+- Interactive chat: `read`/`list` allow; `write` asks for approval
+- Pipeline and scheduled runs: `write` is allowed (no confirm gate) when the tool is enabled
+- Plan mode: `read`/`list` only; `write` is blocked
+
+Interactive chat always has `update_memory` available. Pipeline `agent.run` and scheduled tasks must include `update_memory` in the step **Tools** allowlist to enable it. The Pipeline editor shows **Memory Notes** when at least one `agent.run` step in the current pipeline includes that tool.
+
 ## Session Persistence
 
 Implement `session.Storage` for your backend (PostgreSQL, file, etc.):

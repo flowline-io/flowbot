@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -285,6 +287,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	if err != nil {
 		return fmt.Errorf("render params step %s: %w", step.Name, err)
 	}
+	injectAgentRunMemoryScope(step, renderedParams, pipelineName)
 
 	if e.callback != nil {
 		e.callback.OnStepStart(ctx, runID, pipelineName, stepIndex, step.Name, renderedParams)
@@ -358,6 +361,21 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 // injectTags merges event tags into rendered params for mutation steps.
 func injectTags(rc *RenderContext, renderedParams map[string]any) {
 	renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
+}
+
+func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelineName string) {
+	if step.Capability != hub.CapAgent || step.Operation != ability.OpAgentRun {
+		return
+	}
+	if renderedParams == nil {
+		return
+	}
+	if raw, ok := renderedParams["memory_scope"]; ok && raw != nil {
+		if scope, ok := raw.(string); ok && strings.TrimSpace(scope) != "" {
+			return
+		}
+	}
+	renderedParams["memory_scope"] = pipelineName
 }
 
 // saveResourceLink records a resource link when a capability step reports a created resource.

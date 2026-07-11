@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,9 @@ func TestPlanModeToolBlockUsesLiveSessionMode(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			block := planModeToolBlock(context.Background(), tt.sessionID, tt.tool)
+			block := planModeToolBlock(context.Background(), tt.sessionID, hooks.ToolCallEvent{
+				ToolCall: msg.ToolCallPart{Name: tt.tool},
+			})
 			if tt.wantBlock {
 				require.NotNil(t, block)
 				assert.True(t, block.Block)

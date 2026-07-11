@@ -30,6 +30,12 @@
       testResults: null,
       capabilities: [],
       agentRunOptions: { tools: [], skills: [] },
+      memoryModalOpen: false,
+      memoryFiles: [],
+      memorySelectedFile: 'MEMORIES.md',
+      memoryContent: '',
+      memoryError: '',
+      memorySaving: false,
       defaultTemplateSet: null,
       loading: false,
       saving: false,
@@ -80,7 +86,10 @@
         try {
           const resp = await fetch('/service/web/pipelines/agent-run-options');
           const json = await resp.json();
-          this.agentRunOptions = json.data || { tools: [], skills: [] };
+          this.agentRunOptions = json.data || {
+            tools: [],
+            skills: [],
+          };
         } catch (e) {
           console.error('Failed to load agent run options:', e);
         }
@@ -200,6 +209,27 @@
       isAgentRunStep(idx) {
         const step = this.steps[idx];
         return step?.capability === 'agent' && step?.operation === 'run';
+      },
+
+      pipelineMemoryEnabled() {
+        if (!this.name) {
+          return false;
+        }
+        const available = (this.agentRunOptions.tools || []).includes(
+          'update_memory',
+        );
+        if (!available) {
+          return false;
+        }
+        for (let i = 0; i < this.steps.length; i++) {
+          if (!this.isAgentRunStep(i)) {
+            continue;
+          }
+          if (this.getAgentRunParamList(i, 'tools').includes('update_memory')) {
+            return true;
+          }
+        }
+        return false;
       },
 
       parseStepParams(idx) {
@@ -1056,6 +1086,91 @@
         } catch (e) {
           console.error('Diff error:', e);
           this.diffResult = null;
+        }
+      },
+
+      async openMemoryModal() {
+        this.memoryModalOpen = true;
+        this.memoryError = '';
+        await this.loadMemoryFiles();
+        await this.loadMemoryContent();
+      },
+
+      closeMemoryModal() {
+        this.memoryModalOpen = false;
+        this.memoryError = '';
+      },
+
+      async loadMemoryFiles() {
+        try {
+          const resp = await fetch(
+            '/service/web/agent-memory/files?scope=' +
+              encodeURIComponent(this.name),
+          );
+          if (!resp.ok) {
+            throw new Error('failed to list memory files');
+          }
+          const json = await resp.json();
+          const files = json.data || [];
+          this.memoryFiles = files.length > 0 ? files : ['MEMORIES.md'];
+          if (!this.memoryFiles.includes(this.memorySelectedFile)) {
+            this.memorySelectedFile = this.memoryFiles[0];
+          }
+        } catch (e) {
+          console.error('Failed to load memory files:', e);
+          this.memoryError = 'Failed to load memory files';
+          this.memoryFiles = ['MEMORIES.md'];
+        }
+      },
+
+      async loadMemoryContent() {
+        if (!this.name) {
+          return;
+        }
+        try {
+          const url =
+            '/service/web/agent-memory/content?scope=' +
+            encodeURIComponent(this.name) +
+            '&file=' +
+            encodeURIComponent(this.memorySelectedFile || 'MEMORIES.md');
+          const resp = await fetch(url);
+          if (!resp.ok) {
+            throw new Error('failed to load memory content');
+          }
+          const json = await resp.json();
+          this.memoryContent = (json.data && json.data.content) || '';
+          this.memoryError = '';
+        } catch (e) {
+          console.error('Failed to load memory content:', e);
+          this.memoryError = 'Failed to load memory content';
+        }
+      },
+
+      async saveMemoryContent() {
+        if (!this.name) {
+          return;
+        }
+        this.memorySaving = true;
+        this.memoryError = '';
+        try {
+          const resp = await fetch('/service/web/agent-memory/content', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              scope: this.name,
+              file: this.memorySelectedFile || 'MEMORIES.md',
+              content: this.memoryContent,
+            }),
+          });
+          if (!resp.ok) {
+            throw new Error('failed to save memory content');
+          }
+          this.closeMemoryModal();
+        } catch (e) {
+          console.error('Failed to save memory content:', e);
+          this.memoryError = 'Failed to save memory content';
+        } finally {
+          this.memorySaving = false;
         }
       },
     }));

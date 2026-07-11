@@ -9,5 +9,6 @@ func ScheduledRunOverlay() Config {
 		KeyDelegate:          {Default: ActionDeny},
 		KeySchedule:          {Default: ActionDeny},
 		KeyExternalDirectory: {Default: ActionDeny},
+		KeyMemory:            {Default: ActionAllow},
 	}
 }

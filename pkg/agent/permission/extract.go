@@ -21,6 +21,7 @@ const (
 	ToolUpdateScheduledTask = "update_scheduled_task"
 	ToolListScheduledTasks  = "list_scheduled_tasks"
 	ToolCancelScheduledTask = "cancel_scheduled_task"
+	ToolUpdateMemory        = "update_memory"
 )
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
@@ -42,6 +43,8 @@ func PermissionKeyForTool(tool string) string {
 		return KeySchedule
 	case ToolListScheduledTasks:
 		return KeyScheduleRead
+	case ToolUpdateMemory:
+		return KeyMemory
 	default:
 		return KeyWildcard
 	}
@@ -66,44 +69,52 @@ type ExtractedInputs struct {
 // ExtractInputs derives permission match inputs from a tool call.
 func ExtractInputs(req Request) ExtractedInputs {
 	key := PermissionKeyForTool(req.Tool)
-	out := ExtractedInputs{PermissionKey: key}
-	switch req.Tool {
-	case ToolRunTerminal:
-		cmd := strings.TrimSpace(fmt.Sprint(req.Args["command"]))
-		out.Bash = AnalyzeBashCommand(cmd)
-		if out.Bash.Complex {
-			out.Primary = cmd
-		} else if cmd != "" {
-			out.Primary = cmd
-		} else {
-			out.Primary = out.Bash.Prefix
-		}
-		out.ExternalPaths = extractPathsFromCommand(cmd, req.WorkspaceRoot)
-	case ToolRunCode:
-		lang := strings.TrimSpace(fmt.Sprint(req.Args["language"]))
-		out.Primary = "run " + lang
-		out.Bash = ParseBashCommand{Prefix: out.Primary}
-	case ToolReadFile, ToolWriteFile:
-		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["path"]))
-	case ToolWebSearch:
-		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["query"]))
-	case ToolReadSkill:
-		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["name"]))
-	case ToolTask:
-		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["subagent_type"]))
-	case ToolScheduleTask:
-		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["name"]))
-	case ToolUpdateScheduledTask, ToolCancelScheduledTask:
-		out.Primary = strings.TrimSpace(fmt.Sprint(req.Args["task_id"]))
-	case ToolListScheduledTasks:
-		out.Primary = "*"
-	default:
-		out.Primary = req.Tool
+	primary, bash, paths := extractToolPrimary(req)
+	out := ExtractedInputs{
+		PermissionKey: key,
+		Primary:       primary,
+		Bash:          bash,
+		ExternalPaths: paths,
 	}
 	if req.ExternalPath && out.Primary != "" {
 		out.ExternalPaths = append(out.ExternalPaths, out.Primary)
 	}
 	return out
+}
+
+func extractToolPrimary(req Request) (string, ParseBashCommand, []string) {
+	switch req.Tool {
+	case ToolRunTerminal:
+		cmd := strings.TrimSpace(fmt.Sprint(req.Args["command"]))
+		bash := AnalyzeBashCommand(cmd)
+		primary := bash.Prefix
+		if bash.Complex || cmd != "" {
+			primary = cmd
+		}
+		return primary, bash, extractPathsFromCommand(cmd, req.WorkspaceRoot)
+	case ToolRunCode:
+		lang := strings.TrimSpace(fmt.Sprint(req.Args["language"]))
+		primary := "run " + lang
+		return primary, ParseBashCommand{Prefix: primary}, nil
+	case ToolReadFile, ToolWriteFile:
+		return strings.TrimSpace(fmt.Sprint(req.Args["path"])), ParseBashCommand{}, nil
+	case ToolWebSearch:
+		return strings.TrimSpace(fmt.Sprint(req.Args["query"])), ParseBashCommand{}, nil
+	case ToolReadSkill:
+		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil
+	case ToolTask:
+		return strings.TrimSpace(fmt.Sprint(req.Args["subagent_type"])), ParseBashCommand{}, nil
+	case ToolScheduleTask:
+		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil
+	case ToolUpdateScheduledTask, ToolCancelScheduledTask:
+		return strings.TrimSpace(fmt.Sprint(req.Args["task_id"])), ParseBashCommand{}, nil
+	case ToolListScheduledTasks:
+		return "*", ParseBashCommand{}, nil
+	case ToolUpdateMemory:
+		return strings.ToLower(strings.TrimSpace(fmt.Sprint(req.Args["operation"]))), ParseBashCommand{}, nil
+	default:
+		return req.Tool, ParseBashCommand{}, nil
+	}
 }
 
 func extractPathsFromCommand(command, workspaceRoot string) []string {

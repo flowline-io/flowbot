@@ -40,6 +40,13 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	if _, err := RegisterAbilityTools(registry, config.App.ChatAgent.AbilityTools, nil); err != nil {
 		return nil, err
 	}
+	memTool, err := NewUpdateMemoryTool()
+	if err != nil {
+		return nil, err
+	}
+	if err := registry.Register(memTool); err != nil {
+		return nil, err
+	}
 	registry.SetActive(ActiveToolNames())
 	return registry, nil
 }
@@ -57,6 +64,13 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 	if err := registry.Register(skillTool); err != nil {
 		return nil, err
 	}
+	memTool, err := NewUpdateMemoryTool()
+	if err != nil {
+		return nil, err
+	}
+	if err := registry.Register(memTool); err != nil {
+		return nil, err
+	}
 	return registry, nil
 }
 
@@ -66,7 +80,31 @@ func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, "read_skill", taskToolName)
 	names = append(names, scheduleToolNames()...)
+	names = append(names, updateMemoryToolName)
 	return append(names, AbilityToolNames()...)
+}
+
+// BaseToolNamesForRun returns the active tool set for one run.
+// Autonomous runs omit update_memory unless it appears in explicitTools.
+func BaseToolNamesForRun(kind RunKind, explicitTools []string) []string {
+	if len(explicitTools) > 0 {
+		return append([]string(nil), explicitTools...)
+	}
+	names := ActiveToolNames()
+	if IsAutonomousRunKind(kind) {
+		return omitToolName(names, updateMemoryToolName)
+	}
+	return names
+}
+
+func omitToolName(names []string, drop string) []string {
+	out := make([]string, 0, len(names))
+	for _, name := range names {
+		if name != drop {
+			out = append(out, name)
+		}
+	}
+	return out
 }
 
 // AbilityToolNames returns configured ability tool names.

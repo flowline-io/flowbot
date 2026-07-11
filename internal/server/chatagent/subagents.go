@@ -175,5 +175,6 @@ func FormatSubagentsForPrompt(subagents []Subagent) string {
 
 // SelectableSubagentTools returns tool names available for subagent allowlist configuration.
 func SelectableSubagentTools() []string {
-	return coding.ActiveToolNames()
+	names := coding.ActiveToolNames()
+	return append(names, updateMemoryToolName)
 }

@@ -115,10 +115,7 @@ func applySessionMode(ctx context.Context, h *harness.Harness, req RunRequest) e
 		kind = RunKindInteractive
 	}
 
-	baseTools := ActiveToolNames()
-	if len(req.Tools) > 0 {
-		baseTools = req.Tools
-	}
+	baseTools := BaseToolNamesForRun(kind, req.Tools)
 	scopedTools := ApplyToolScope(ToolScopeInput{
 		Mode:      mode,
 		Kind:      kind,

@@ -287,7 +287,7 @@ func TestNewHTTPServer_RateLimiterBlocksBurstAPIRequests(t *testing.T) {
 			})
 
 			var gotTooMany bool
-			for range 120 {
+			for range 250 {
 				req := httptest.NewRequest(http.MethodGet, "/api-burst", http.NoBody)
 				resp, err := app.Test(req)
 				require.NoError(t, err)

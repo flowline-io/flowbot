@@ -18,6 +18,9 @@ const KeySchedule = "schedule"
 // KeyScheduleRead is the permission key for listing scheduled tasks.
 const KeyScheduleRead = "schedule_read"
 
+// KeyMemory is the permission key for the update_memory tool.
+const KeyMemory = "memory"
+
 // DefaultConfig returns OpenCode-style baseline rules used when the user has no overrides.
 func DefaultConfig() Config {
 	return Config{
@@ -45,7 +48,15 @@ func DefaultConfig() Config {
 		KeyDelegate:     {Default: ActionAsk},
 		KeySchedule:     {Default: ActionAsk},
 		KeyScheduleRead: {Default: ActionAllow},
-		KeyDoomLoop:     {Default: ActionAsk},
+		KeyMemory: {
+			Patterns: []PatternRule{
+				{Pattern: "read", Action: ActionAllow},
+				{Pattern: "list", Action: ActionAllow},
+				{Pattern: "write", Action: ActionAsk},
+			},
+			Default: ActionAsk,
+		},
+		KeyDoomLoop: {Default: ActionAsk},
 		KeyExternalDirectory: {
 			Patterns: []PatternRule{
 				{Pattern: "*", Action: ActionAsk},
