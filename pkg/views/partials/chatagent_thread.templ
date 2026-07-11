@@ -30,6 +30,11 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 				}
 			</div>
 		</div>
+		<div
+			id="chatagent-status-toast"
+			class="chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm"
+			data-testid="chatagent-status-toast"></div>
+		@ChatAgentApprovalPanel(session.Flag, endpoints)
 		<div id="chatagent-messages" class="flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4" data-testid="chatagent-messages">
 			for _, msg := range messages {
 				@ChatAgentMessage(msg, false)

@@ -8,6 +8,7 @@ import (
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
@@ -247,8 +248,8 @@ func streamAssistant(
 	metrics.Agent().IncLLMRequest(modelName, "ok")
 
 	parts := make([]ContentPart, 0, 1+len(result.ToolCalls))
-	if result.Content != "" {
-		parts = append(parts, TextPart{Text: result.Content})
+	if trimmed := msg.TrimToolCallStreamContent(result.Content); trimmed != "" {
+		parts = append(parts, TextPart{Text: trimmed})
 	}
 	for _, call := range result.ToolCalls {
 		args := ""

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/tmc/langchaingo/llms"
@@ -178,6 +179,9 @@ func assembleAssistantResult(modelName string, resp *llms.ContentResponse, textB
 	if content == "" && textBuilder.Len() > 0 {
 		content = textBuilder.String()
 	}
+	if len(choice.ToolCalls) > 0 {
+		content = msg.TrimToolCallStreamContent(content)
+	}
 	stopReason := "complete"
 	if choice.StopReason == "tool_calls" || len(choice.ToolCalls) > 0 {
 		stopReason = "tool_calls"
@@ -200,6 +204,9 @@ func buildAssistantStreamOptions(opts StreamOptions, textBuilder *strings.Builde
 			return nil
 		}
 		delta := string(chunk)
+		if msg.IsToolCallStreamDelta(delta) {
+			return nil
+		}
 		textMu.Lock()
 		_, _ = textBuilder.WriteString(delta)
 		textMu.Unlock()

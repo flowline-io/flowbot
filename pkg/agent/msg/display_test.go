@@ -8,6 +8,108 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsToolCallStreamDelta(t *testing.T) {
+	tests := []struct {
+		name  string
+		delta string
+		want  bool
+	}{
+		{
+			name:  "tool call start chunk",
+			delta: `[{"id":"call_00","type":"function","function":{"name":"write_file","arguments":""}}]`,
+			want:  true,
+		},
+		{
+			name:  "arguments delta chunk",
+			delta: `[{"type":"","function":{"name":"","arguments":"path"}}]`,
+			want:  true,
+		},
+		{
+			name:  "legacy function call chunk",
+			delta: `{"name":"write_file","arguments":"{\"path\"`,
+			want:  true,
+		},
+		{
+			name:  "plain text answer",
+			delta: "hello",
+			want:  false,
+		},
+		{
+			name:  "markdown reply",
+			delta: "# Title\n\n- item",
+			want:  false,
+		},
+		{
+			name:  "json code sample in answer",
+			delta: `{"foo":"bar"}`,
+			want:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, msg.IsToolCallStreamDelta(tt.delta))
+		})
+	}
+}
+
+func TestTrimToolCallStreamContent(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want string
+	}{
+		{
+			name: "pure tool call json",
+			text: `[{"id":"call_00","type":"function","function":{"name":"write_file","arguments":""}}]`,
+			want: "",
+		},
+		{
+			name: "visible text before tool json",
+			text: `I will write a file.[{"id":"call_00","type":"function","function":{"name":"write_file","arguments":""}}]`,
+			want: "I will write a file.",
+		},
+		{
+			name: "plain assistant reply",
+			text: "hello",
+			want: "hello",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, msg.TrimToolCallStreamContent(tt.text))
+		})
+	}
+}
+
+func TestIsToolCallOnlyContent(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want bool
+	}{
+		{
+			name: "pure tool call json",
+			text: `[{"id":"call_00","type":"function","function":{"name":"write_file","arguments":""}}]`,
+			want: true,
+		},
+		{
+			name: "visible text before tool json",
+			text: `I will write a file.[{"id":"call_00","type":"function","function":{"name":"write_file","arguments":""}}]`,
+			want: false,
+		},
+		{
+			name: "plain assistant reply",
+			text: "hello",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, msg.IsToolCallOnlyContent(tt.text))
+		})
+	}
+}
+
 func TestIsToolCallPayload(t *testing.T) {
 	tests := []struct {
 		name string

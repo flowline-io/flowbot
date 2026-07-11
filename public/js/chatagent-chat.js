@@ -733,7 +733,22 @@
     };
   }
 
-  function streamMessage(messagesURL, text, threadRoot, onDone) {
+  function isApprovalStatusMessage(message) {
+    var trimmed = (message || '').trim();
+    if (!trimmed) {
+      return false;
+    }
+    return /^(Approved|Denied|Timed out)/i.test(trimmed);
+  }
+
+  function showThreadError(el, message) {
+    if (isApprovalStatusMessage(message)) {
+      return;
+    }
+    showError(el, message);
+  }
+
+  function streamMessage(messagesURL, text, threadRoot, onDone, approval) {
     var messagesEl = threadRoot.querySelector('#chatagent-messages');
     var errorEl = threadRoot.querySelector('#chatagent-thread-error');
     var cancelURL = threadRoot.getAttribute('data-cancel-url') || '';
@@ -757,7 +772,7 @@
       },
     );
 
-    showError(errorEl, '');
+    showThreadError(errorEl, '');
     setRunning(true, threadRoot);
     appendUserMessage(messagesEl, text);
 
@@ -837,18 +852,18 @@
                 return;
               }
               if (
-                approvalController &&
+                approval &&
                 (ev.type === 'confirm' ||
                   ev.type === 'confirm_resolved' ||
                   ev.type === 'canceled')
               ) {
-                approvalController.handleStreamEvent(ev);
+                approval.handleStreamEvent(ev);
                 return;
               }
               if (ev.type === 'error') {
-                showError(errorEl, ev.message || 'Run failed');
+                showThreadError(errorEl, ev.message || 'Run failed');
               } else if (ev.type === 'canceled') {
-                showError(errorEl, ev.message || 'Run canceled');
+                showThreadError(errorEl, ev.message || 'Run canceled');
               }
             });
             return pump();
@@ -857,7 +872,7 @@
         return pump();
       })
       .catch(function (err) {
-        showError(errorEl, err.message || 'Request failed');
+        showThreadError(errorEl, err.message || 'Request failed');
       })
       .finally(function () {
         setRunning(false, threadRoot);
@@ -909,13 +924,6 @@
     return label;
   }
 
-  function chatagentThreadErrorEl() {
-    var thread = document.querySelector('[data-chatagent-root="thread"]');
-    return thread ? thread.querySelector('#chatagent-thread-error') : null;
-  }
-
-  var approvalController = null;
-
   function initApproval(panel) {
     if (!panel) {
       return null;
@@ -927,57 +935,77 @@
       return null;
     }
 
-    var summaryEl = document.getElementById('chatagent-approval-summary');
-    var metaEl = document.getElementById('chatagent-approval-meta');
-    var resolvedEl = document.getElementById('chatagent-approval-resolved');
-    var actionsEl = document.getElementById('chatagent-approval-actions');
+    var threadRoot = panel.closest('[data-chatagent-root="thread"]');
+    var toastEl = threadRoot
+      ? threadRoot.querySelector('#chatagent-status-toast')
+      : document.getElementById('chatagent-status-toast');
+    var summaryEl = panel.querySelector('#chatagent-approval-summary');
+    var metaEl = panel.querySelector('#chatagent-approval-meta');
+    var actionsEl = panel.querySelector('#chatagent-approval-actions');
     var alwaysBtn = panel.querySelector('[data-mode="always"]');
     var pending = null;
     var submitting = false;
-    var hideTimer = null;
+    var toastTimer = null;
     var source = null;
 
-    function clearHideTimer() {
-      if (hideTimer) {
-        clearTimeout(hideTimer);
-        hideTimer = null;
+    function clearToastTimer() {
+      if (toastTimer) {
+        clearTimeout(toastTimer);
+        toastTimer = null;
       }
     }
 
-    function scheduleHidePanel() {
-      clearHideTimer();
-      hideTimer = window.setTimeout(function () {
-        hideTimer = null;
-        hidePanel();
-      }, 2500);
+    function hideToast() {
+      clearToastTimer();
+      if (!toastEl) {
+        return;
+      }
+      toastEl.classList.add('hidden');
+      toastEl.textContent = '';
+      toastEl.classList.remove(
+        'alert-success',
+        'alert-warning',
+        'alert-error',
+        'alert-info',
+      );
+    }
+
+    function showStatusToast(text, tone) {
+      if (!toastEl) {
+        return;
+      }
+      clearToastTimer();
+      toastEl.textContent = text;
+      toastEl.classList.remove(
+        'hidden',
+        'alert-success',
+        'alert-warning',
+        'alert-error',
+        'alert-info',
+      );
+      if (tone === 'success') {
+        toastEl.classList.add('alert-success');
+      } else if (tone === 'error') {
+        toastEl.classList.add('alert-error');
+      } else if (tone === 'warning') {
+        toastEl.classList.add('alert-warning');
+      } else {
+        toastEl.classList.add('alert-info');
+      }
+      toastTimer = window.setTimeout(hideToast, 2500);
     }
 
     function hidePanel() {
-      clearHideTimer();
       panel.classList.add('hidden');
       pending = null;
       submitting = false;
       if (actionsEl) {
         actionsEl.classList.remove('hidden');
       }
-      if (resolvedEl) {
-        resolvedEl.classList.add('hidden');
-      }
-    }
-
-    function showResolved(text) {
-      if (!resolvedEl) {
-        return;
-      }
-      resolvedEl.textContent = text;
-      resolvedEl.classList.remove('hidden');
-      if (actionsEl) {
-        actionsEl.classList.add('hidden');
-      }
     }
 
     function showConfirm(ev) {
-      clearHideTimer();
+      hideToast();
       pending = ev;
       submitting = false;
       panel.classList.remove('hidden');
@@ -1001,9 +1029,6 @@
           alwaysBtn.classList.add('hidden');
         }
       }
-      if (resolvedEl) {
-        resolvedEl.classList.add('hidden');
-      }
       if (actionsEl) {
         actionsEl.classList.remove('hidden');
       }
@@ -1020,38 +1045,26 @@
         }
         pending = null;
         submitting = false;
-        var label = formatConfirmResolvedLabel(ev);
-        showResolved(label);
-        showError(chatagentThreadErrorEl(), '');
-        scheduleHidePanel();
+        hidePanel();
+        showStatusToast(
+          formatConfirmResolvedLabel(ev),
+          ev.approved ? 'success' : 'warning',
+        );
         return;
       }
       if (ev.type === 'canceled') {
         pending = null;
         submitting = false;
-        showResolved('Run canceled.');
-        scheduleHidePanel();
-      }
-    }
-
-    function showApprovalError(message) {
-      showResolved(message);
-      var errEl = chatagentThreadErrorEl();
-      showError(errEl, message);
-      if (errEl) {
-        window.setTimeout(function () {
-          if (errEl.textContent === message) {
-            showError(errEl, '');
-          }
-        }, 2500);
+        hidePanel();
+        showStatusToast('Run canceled.', 'warning');
       }
     }
 
     function showConfirmExpired(message) {
       pending = null;
       submitting = false;
-      showApprovalError(message || 'Approval request expired.');
-      scheduleHidePanel();
+      hidePanel();
+      showStatusToast(message || 'Approval request expired.', 'error');
     }
 
     function postConfirm(approved, mode) {
@@ -1088,14 +1101,15 @@
               return {};
             })
             .then(function (data) {
-              showApprovalError(
+              showStatusToast(
                 (data && data.error) || 'Confirm request failed.',
+                'error',
               );
             });
         })
         .catch(function () {
           submitting = false;
-          showApprovalError('Confirm request failed.');
+          showStatusToast('Confirm request failed.', 'error');
         });
     }
 
@@ -1216,6 +1230,7 @@
     if (!sessionID || !messagesURL || !input) {
       return;
     }
+    var approval = initApproval(root.querySelector('#chatagent-approval-panel'));
 
     function sendFollowUp() {
       var text = (input.value || '').trim();
@@ -1223,7 +1238,7 @@
         return;
       }
       input.value = '';
-      streamMessage(messagesURL, text, root);
+      streamMessage(messagesURL, text, root, null, approval);
     }
 
     input.addEventListener('keydown', function (ev) {
@@ -1236,7 +1251,7 @@
     var pending = consumePendingPrompt(sessionID);
     initContextControl(root);
     if (pending && !threadHasHistory(root)) {
-      streamMessage(messagesURL, pending, root);
+      streamMessage(messagesURL, pending, root, null, approval);
     }
   }
 
@@ -1246,7 +1261,12 @@
   document
     .querySelectorAll('[data-chatagent-root="thread"]')
     .forEach(initThread);
-  approvalController = initApproval(
-    document.getElementById('chatagent-approval-panel'),
-  );
+    document
+    .querySelectorAll('#chatagent-approval-panel')
+    .forEach(function (panel) {
+      if (panel.closest('[data-chatagent-root="thread"]')) {
+        return;
+      }
+      initApproval(panel);
+    });
 })();

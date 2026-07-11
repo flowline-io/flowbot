@@ -199,7 +199,15 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div><div id=\"chatagent-messages\" class=\"flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4\" data-testid=\"chatagent-messages\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div><div id=\"chatagent-status-toast\" class=\"chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm\" data-testid=\"chatagent-status-toast\"></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = ChatAgentApprovalPanel(session.Flag, endpoints).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<div id=\"chatagent-messages\" class=\"flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4\" data-testid=\"chatagent-messages\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -209,7 +217,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div><div class=\"chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4\" data-testid=\"chatagent-input-bar\"><div class=\"chatagent-input-stack\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div><div class=\"chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4\" data-testid=\"chatagent-input-bar\"><div class=\"chatagent-input-stack\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -217,7 +225,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"flex items-end gap-2\"><div class=\"chatagent-input-wrap flex-1 min-w-0\"><textarea id=\"chatagent-followup-input\" class=\"chatagent-followup-textarea w-full min-h-12 max-h-40 resize-y leading-normal\" placeholder=\"Add follow-up... (Enter to send, Shift+Enter for newline)\" rows=\"2\" data-testid=\"chatagent-followup-input\"></textarea>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"flex items-end gap-2\"><div class=\"chatagent-input-wrap flex-1 min-w-0\"><textarea id=\"chatagent-followup-input\" class=\"chatagent-followup-textarea w-full min-h-12 max-h-40 resize-y leading-normal\" placeholder=\"Add follow-up... (Enter to send, Shift+Enter for newline)\" rows=\"2\" data-testid=\"chatagent-followup-input\"></textarea>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -225,7 +233,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div><button type=\"button\" id=\"chatagent-cancel-run\" class=\"btn btn-ghost btn-sm hidden shrink-0\" data-testid=\"chatagent-cancel-run\">Cancel</button></div></div><p class=\"text-xs text-error hidden mt-2\" id=\"chatagent-thread-error\" data-testid=\"chatagent-thread-error\"></p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div><button type=\"button\" id=\"chatagent-cancel-run\" class=\"btn btn-ghost btn-sm hidden shrink-0\" data-testid=\"chatagent-cancel-run\">Cancel</button></div></div><p class=\"text-xs text-error hidden mt-2\" id=\"chatagent-thread-error\" data-testid=\"chatagent-thread-error\"></p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

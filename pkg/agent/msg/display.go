@@ -87,6 +87,79 @@ func SummarizeToolCallPayload(text string) string {
 	return ""
 }
 
+// IsToolCallStreamDelta reports whether one streaming chunk carries tool-call JSON
+// emitted by langchaingo instead of user-visible assistant text.
+func IsToolCallStreamDelta(delta string) bool {
+	delta = strings.TrimSpace(delta)
+	if delta == "" {
+		return false
+	}
+	prefixes := []string{
+		`[{"id":`,
+		`[{"id" :`,
+		`[{"type":"function"`,
+		`[{"type": "function"`,
+		`[{"type":"","function"`,
+		`[{"type": "","function"`,
+	}
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(delta, prefix) {
+			return true
+		}
+	}
+	if strings.HasPrefix(delta, `{"name":`) && strings.Contains(delta, `"arguments"`) {
+		return true
+	}
+	if strings.HasPrefix(delta, `{"name" :`) && strings.Contains(delta, `"arguments"`) {
+		return true
+	}
+	return false
+}
+
+// TrimToolCallStreamContent removes langchaingo tool-call JSON from assistant text,
+// keeping any preceding user-visible content.
+func TrimToolCallStreamContent(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	if IsToolCallOnlyContent(text) {
+		return ""
+	}
+	markers := []string{
+		`[{"id":`,
+		`[{"type":"function"`,
+		`[{"type": "function"`,
+		`[{"type":"","function"`,
+	}
+	cut := -1
+	for _, marker := range markers {
+		if idx := strings.Index(text, marker); idx >= 0 && (cut < 0 || idx < cut) {
+			cut = idx
+		}
+	}
+	if cut <= 0 {
+		return text
+	}
+	return strings.TrimSpace(text[:cut])
+}
+
+// IsToolCallOnlyContent reports whether text is exclusively tool-call JSON with
+// no preceding user-visible assistant text.
+func IsToolCallOnlyContent(text string) bool {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return false
+	}
+	if isToolCallPrefix(text) {
+		return true
+	}
+	if strings.HasPrefix(text, `{`) {
+		return IsToolCallPayload(text)
+	}
+	return false
+}
+
 // IsToolCallPayload reports whether text is a serialized tool invocation payload.
 func IsToolCallPayload(text string) bool {
 	text = strings.TrimSpace(text)

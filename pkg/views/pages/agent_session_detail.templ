@@ -4,6 +4,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
+	"github.com/flowline-io/flowbot/version"
 )
 
 templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan) {
@@ -11,6 +12,10 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		<div class="mb-4">
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm" data-testid="agent-session-back">← Back to Sessions</a>
 		</div>
+		<div
+			id="chatagent-status-toast"
+			class="chatagent-status-toast hidden shrink-0 mb-3 alert py-2 text-sm"
+			data-testid="chatagent-status-toast"></div>
 		@partials.ChatAgentApprovalPanel(session.Flag, partials.ChatAgentEndpoints{
 			ConfirmURL: "/service/web/agent-sessions/" + session.Flag + "/confirm",
 			EventsURL:  "/service/web/agent-sessions/" + session.Flag + "/events",
@@ -60,6 +65,6 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		@partials.AgentSessionPlansCard(session.Flag, plans)
 		<h2 class="text-lg font-semibold mb-3">Entries</h2>
 		@partials.AgentSessionEntriesTable(entries)
-		<script src="/static/js/chatagent-chat.js" defer></script>
+		<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
 	}
 }

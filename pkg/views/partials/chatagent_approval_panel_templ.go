@@ -29,7 +29,7 @@ func ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints) temp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"chatagent-approval-panel\" class=\"card bg-base-100 shadow-sm mb-6 hidden\" data-session-id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"chatagent-approval-panel\" class=\"chatagent-approval-panel shrink-0 card bg-base-100 shadow-sm mx-1 mb-2 hidden border border-warning/30\" data-session-id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -68,7 +68,7 @@ func ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints) temp
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" data-testid=\"chatagent-approval-panel\"><div class=\"card-body\"><h2 class=\"card-title text-lg\">Pending Tool Approval</h2><p class=\"text-sm\" id=\"chatagent-approval-summary\"></p><p class=\"text-xs text-base-content/60\" id=\"chatagent-approval-meta\"></p><div class=\"flex gap-2 mt-2\" id=\"chatagent-approval-actions\"><button type=\"button\" class=\"btn btn-primary btn-sm\" data-mode=\"once\" data-testid=\"chatagent-approve-once\">Approve once</button> <button type=\"button\" class=\"btn btn-secondary btn-sm hidden\" data-mode=\"always\" data-testid=\"chatagent-approve-always\">Always allow</button> <button type=\"button\" class=\"btn btn-ghost btn-sm\" data-mode=\"reject\" data-testid=\"chatagent-approve-deny\">Deny</button></div><p class=\"text-xs text-base-content/50 mt-2 hidden\" id=\"chatagent-approval-resolved\"></p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" data-testid=\"chatagent-approval-panel\"><div class=\"card-body\"><h2 class=\"card-title text-lg\">Pending Tool Approval</h2><p class=\"text-sm\" id=\"chatagent-approval-summary\"></p><p class=\"text-xs text-base-content/60\" id=\"chatagent-approval-meta\"></p><div class=\"flex gap-2 mt-2\" id=\"chatagent-approval-actions\"><button type=\"button\" class=\"btn btn-primary btn-sm\" data-mode=\"once\" data-testid=\"chatagent-approve-once\">Approve once</button> <button type=\"button\" class=\"btn btn-secondary btn-sm hidden\" data-mode=\"always\" data-testid=\"chatagent-approve-always\">Always allow</button> <button type=\"button\" class=\"btn btn-ghost btn-sm\" data-mode=\"reject\" data-testid=\"chatagent-approve-deny\">Deny</button></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

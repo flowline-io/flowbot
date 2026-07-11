@@ -2,7 +2,7 @@ package partials
 
 templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints) {
 	<div id="chatagent-approval-panel"
-		class="card bg-base-100 shadow-sm mb-6 hidden"
+		class="chatagent-approval-panel shrink-0 card bg-base-100 shadow-sm mx-1 mb-2 hidden border border-warning/30"
 		data-session-id={ sessionID }
 		data-confirm-url={ endpoints.ConfirmURL }
 		data-events-url={ endpoints.EventsURL }
@@ -16,7 +16,6 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints) {
 				<button type="button" class="btn btn-secondary btn-sm hidden" data-mode="always" data-testid="chatagent-approve-always">Always allow</button>
 				<button type="button" class="btn btn-ghost btn-sm" data-mode="reject" data-testid="chatagent-approve-deny">Deny</button>
 			</div>
-			<p class="text-xs text-base-content/50 mt-2 hidden" id="chatagent-approval-resolved"></p>
 		</div>
 	</div>
 }
