@@ -4,27 +4,45 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type blockingReader struct {
-	ch chan []byte
+	ch     chan []byte
+	closed chan struct{}
+	once   sync.Once
+}
+
+func newBlockingReader(ch chan []byte) *blockingReader {
+	return &blockingReader{
+		ch:     ch,
+		closed: make(chan struct{}),
+	}
 }
 
 func (r *blockingReader) Read(p []byte) (int, error) {
-	data, ok := <-r.ch
-	if !ok {
+	select {
+	case <-r.closed:
 		return 0, io.EOF
+	case data, ok := <-r.ch:
+		if !ok {
+			return 0, io.EOF
+		}
+		return copy(p, data), nil
 	}
-	return copy(p, data), nil
 }
 
-func (*blockingReader) Close() error { return nil }
+func (r *blockingReader) Close() error {
+	r.once.Do(func() { close(r.closed) })
+	return nil
+}
 
 type blockingBodyRoundTripper struct {
 	ch chan []byte
@@ -33,7 +51,7 @@ type blockingBodyRoundTripper struct {
 func (b *blockingBodyRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
 	return &http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(&blockingReader{ch: b.ch}),
+		Body:       newBlockingReader(b.ch),
 		Header:     make(http.Header),
 	}, nil
 }
@@ -50,7 +68,7 @@ func TestIdleTimeoutReadCloser(t *testing.T) {
 			setup: func() io.ReadCloser {
 				ch := make(chan []byte, 1)
 				ch <- []byte("ok")
-				return llm.IdleTimeoutReadCloserForTest(&blockingReader{ch: ch}, 50*time.Millisecond)
+				return llm.IdleTimeoutReadCloserForTest(newBlockingReader(ch), 50*time.Millisecond)
 			},
 			wantRead: "ok",
 		},
@@ -58,7 +76,7 @@ func TestIdleTimeoutReadCloser(t *testing.T) {
 			name: "times out when read blocks",
 			setup: func() io.ReadCloser {
 				ch := make(chan []byte)
-				return llm.IdleTimeoutReadCloserForTest(&blockingReader{ch: ch}, 20*time.Millisecond)
+				return llm.IdleTimeoutReadCloserForTest(newBlockingReader(ch), 20*time.Millisecond)
 			},
 			wantErrIdle: true,
 		},
@@ -68,7 +86,7 @@ func TestIdleTimeoutReadCloser(t *testing.T) {
 				ch := make(chan []byte, 2)
 				ch <- []byte("a")
 				ch <- []byte("b")
-				return llm.IdleTimeoutReadCloserForTest(&blockingReader{ch: ch}, 50*time.Millisecond)
+				return llm.IdleTimeoutReadCloserForTest(newBlockingReader(ch), 50*time.Millisecond)
 			},
 			wantRead: "a",
 		},
@@ -90,6 +108,10 @@ func TestIdleTimeoutReadCloser(t *testing.T) {
 }
 
 func TestStreamIdleTransportWrapsChatCompletions(t *testing.T) {
+	origIdle := config.App.ChatAgent.StreamIdleTimeout
+	config.App.ChatAgent.StreamIdleTimeout = 20 * time.Millisecond
+	t.Cleanup(func() { config.App.ChatAgent.StreamIdleTimeout = origIdle })
+
 	tests := []struct {
 		name     string
 		path     string

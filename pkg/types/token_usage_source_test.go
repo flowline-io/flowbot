@@ -9,9 +9,9 @@ import (
 func TestNormalizeTokenUsageSource(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name   string
-		input  string
-		want   string
+		name  string
+		input string
+		want  string
 	}{
 		{name: "agent canonical", input: "agent", want: TokenUsageSourceAgent},
 		{name: "legacy chat agent", input: "chat_agent", want: TokenUsageSourceAgent},
