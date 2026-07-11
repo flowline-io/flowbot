@@ -8,6 +8,7 @@ import (
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type recordingSink struct {
@@ -112,6 +113,93 @@ func TestStartStreamCoalescer_throttlesUpdates(t *testing.T) {
 
 			assert.NotEmpty(t, sink.deltas)
 			assert.Equal(t, "hello", sink.deltas[len(sink.deltas)-1])
+		})
+	}
+}
+
+func TestStartEventDrain_DoesNotBlockProducer(t *testing.T) {
+	tests := []struct {
+		name   string
+		buffer int
+		count  int
+	}{
+		{name: "overflows small buffer", buffer: 2, count: 8},
+		{name: "exact buffer plus one", buffer: 4, count: 5},
+		{name: "agent default sized", buffer: 64, count: 80},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			stream := agentevent.NewStream(tt.buffer)
+			ctx := context.Background()
+			wait := startEventDrain(ctx, stream.Events())
+
+			done := make(chan error, 1)
+			go func() {
+				for i := 0; i < tt.count; i++ {
+					if err := stream.Push(ctx, agentevent.Event{
+						Type:      agentevent.TypeMessageUpdate,
+						TextDelta: "x",
+					}); err != nil {
+						done <- err
+						return
+					}
+				}
+				stream.End(nil, nil)
+				done <- nil
+			}()
+
+			select {
+			case err := <-done:
+				require.NoError(t, err)
+			case <-time.After(2 * time.Second):
+				t.Fatal("producer blocked without event drain")
+			}
+			wait()
+		})
+	}
+}
+
+func TestStartRunStreamCoalescer_NilSinkDrainsEvents(t *testing.T) {
+	tests := []struct {
+		name string
+		kind RunKind
+	}{
+		{name: "pipeline run", kind: RunKindPipeline},
+		{name: "scheduled run", kind: RunKindScheduled},
+		{name: "interactive without sink", kind: RunKindInteractive},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			stream := agentevent.NewStream(2)
+			ctx := context.Background()
+			wait := startRunStreamCoalescer(ctx, RunRequest{Kind: tt.kind}, stream, nil)
+
+			done := make(chan error, 1)
+			go func() {
+				for i := 0; i < 8; i++ {
+					if err := stream.Push(ctx, agentevent.Event{
+						Type:      agentevent.TypeMessageUpdate,
+						TextDelta: "x",
+					}); err != nil {
+						done <- err
+						return
+					}
+				}
+				stream.End(nil, nil)
+				done <- nil
+			}()
+
+			select {
+			case err := <-done:
+				require.NoError(t, err)
+			case <-time.After(2 * time.Second):
+				t.Fatal("nil-sink run blocked on event channel")
+			}
+			wait()
 		})
 	}
 }

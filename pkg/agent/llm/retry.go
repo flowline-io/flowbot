@@ -97,6 +97,9 @@ func IsRetryableLLMError(err error) bool {
 	if err == nil || errors.Is(err, ErrAborted) || errors.Is(err, ErrStreamStarted) {
 		return false
 	}
+	if errors.Is(err, ErrStreamIdle) {
+		return true
+	}
 	errText := err.Error()
 	if matchesOverflow(errText) || containsAny(strings.ToLower(errText), nonRetryableSubstrings) {
 		return false

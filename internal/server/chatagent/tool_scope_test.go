@@ -49,9 +49,16 @@ func TestApplyToolScope(t *testing.T) {
 			wantSchedule: true,
 		},
 		{
-			name: "pipeline run includes schedule",
+			name: "pipeline run excludes schedule without intent",
 			in: chatagent.ToolScopeInput{
 				Mode: chatagent.ModeNormal, Kind: chatagent.RunKindPipeline, UserText: "run", AllActive: all,
+			},
+			wantSchedule: false,
+		},
+		{
+			name: "pipeline run includes schedule on intent",
+			in: chatagent.ToolScopeInput{
+				Mode: chatagent.ModeNormal, Kind: chatagent.RunKindPipeline, UserText: "please schedule a daily reminder", AllActive: all,
 			},
 			wantSchedule: true,
 		},

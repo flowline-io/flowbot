@@ -171,10 +171,17 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	if err != nil {
 		return handlePromptError(req.SessionID, start, err)
 	}
+	if req.Kind == RunKindPipeline {
+		flog.Info("[pipeline-agent] harness prompt accepted session=%s waiting_for_idle", req.SessionID)
+	}
 
 	waitCoalescer := startRunStreamCoalescer(ctx, req, stream, sink)
 	if err := h.WaitIdle(ctx); err != nil {
 		finishRunCoalescer(waitCoalescer)
+		if req.Kind == RunKindPipeline {
+			flog.Info("[pipeline-agent] harness wait idle failed session=%s duration=%s err=%v",
+				req.SessionID, time.Since(start).Round(time.Millisecond), err)
+		}
 		if isRunInterrupted(err) {
 			releaseHarnessAfterRunAbort(h, req.SessionID)
 		}
@@ -197,8 +204,13 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	deliverRunResult(ctx, h, req, reply, sink, result.Messages, resources, time.Since(start))
 	maybeGenerateSessionTitle(req.SessionID, req.Text, reply)
 
-	flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",
-		req.SessionID, len(reply), time.Since(start).Round(time.Millisecond))
+	if req.Kind == RunKindPipeline {
+		flog.Info("[pipeline-agent] harness finished session=%s reply_len=%d duration=%s",
+			req.SessionID, len(reply), time.Since(start).Round(time.Millisecond))
+	} else {
+		flog.Debug("[chat-agent] harness finished session=%s reply_len=%d duration=%s",
+			req.SessionID, len(reply), time.Since(start).Round(time.Millisecond))
+	}
 	return reply, nil
 }
 
@@ -212,13 +224,16 @@ func handlePromptError(sessionID string, start time.Time, err error) (string, er
 }
 
 func startRunStreamCoalescer(ctx context.Context, req RunRequest, stream *agentevent.Stream, sink StreamSink) func() {
-	if req.API != nil && req.API.Publisher != nil && stream != nil {
+	if stream == nil {
+		return nil
+	}
+	if req.API != nil && req.API.Publisher != nil {
 		return startAPIEventStream(ctx, stream.Events(), req.API.Publisher, apiStreamUpdateInterval)
 	}
-	if sink != nil && stream != nil {
+	if sink != nil {
 		return startStreamCoalescer(ctx, stream.Events(), sink, streamUpdateInterval)
 	}
-	return nil
+	return startEventDrain(ctx, stream.Events())
 }
 
 func finishRunCoalescer(wait func()) {

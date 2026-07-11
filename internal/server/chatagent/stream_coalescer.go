@@ -80,14 +80,38 @@ func (c *streamCoalescer) markClean() {
 	c.dirty = false
 }
 
-// startStreamCoalescer consumes agent events and publishes throttled sink updates.
-// The returned wait function blocks until the event stream closes.
-func startStreamCoalescer(ctx context.Context, events <-chan agentevent.Event, sink StreamSink, interval time.Duration) func() {
+// startEventDrain consumes agent events without publishing them.
+// Pipeline and scheduled runs pass a nil sink; without a reader, Stream.Push blocks once the
+// buffered events channel fills and freezes the LLM streaming callbacks mid-response.
+func startEventDrain(ctx context.Context, events <-chan agentevent.Event) func() {
 	done := make(chan struct{})
-	if sink == nil || events == nil {
+	if events == nil {
 		close(done)
 		return func() { <-done }
 	}
+	go func() {
+		defer close(done)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case _, ok := <-events:
+				if !ok {
+					return
+				}
+			}
+		}
+	}()
+	return func() { <-done }
+}
+
+// startStreamCoalescer consumes agent events and publishes throttled sink updates.
+// The returned wait function blocks until the event stream closes.
+func startStreamCoalescer(ctx context.Context, events <-chan agentevent.Event, sink StreamSink, interval time.Duration) func() {
+	if sink == nil || events == nil {
+		return startEventDrain(ctx, events)
+	}
+	done := make(chan struct{})
 	if interval <= 0 {
 		interval = time.Second
 	}

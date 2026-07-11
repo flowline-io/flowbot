@@ -56,10 +56,16 @@ func (t *deepSeekThinkingTransport) RoundTrip(req *http.Request) (*http.Response
 }
 
 func deepSeekThinkingHTTPClient() *http.Client {
-	return &http.Client{Transport: &deepSeekThinkingTransport{base: http.DefaultTransport}}
+	return openaiHTTPClient(true)
 }
 
 // DeepSeekThinkingHTTPClientForTest exposes the DeepSeek thinking HTTP client for tests.
 func DeepSeekThinkingHTTPClientForTest(base http.RoundTripper) *http.Client {
-	return &http.Client{Transport: &deepSeekThinkingTransport{base: base}}
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	return &http.Client{
+		Transport: &streamIdleTransport{base: &deepSeekThinkingTransport{base: base}},
+		Timeout:   llmHTTPTimeout(),
+	}
 }

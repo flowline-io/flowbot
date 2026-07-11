@@ -549,6 +549,8 @@ type ChatAgentConfig struct {
 	MaxSteps int `json:"max_steps" yaml:"max_steps" mapstructure:"max_steps"`
 	// RunTimeout limits total duration for one assistant turn in direct chat.
 	RunTimeout time.Duration `json:"run_timeout" yaml:"run_timeout" mapstructure:"run_timeout"`
+	// StreamIdleTimeout cancels an LLM stream when no deltas arrive for this duration. Zero uses 60s.
+	StreamIdleTimeout time.Duration `json:"stream_idle_timeout" yaml:"stream_idle_timeout" mapstructure:"stream_idle_timeout"`
 	// SystemPrompt replaces the default system prompt when non-empty.
 	SystemPrompt string `json:"system_prompt" yaml:"system_prompt" mapstructure:"system_prompt"`
 	// AppendSystemPrompt is appended to the system prompt body.

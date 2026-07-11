@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -95,14 +97,48 @@ func streamAssistantOnce(
 	var textBuilder strings.Builder
 	var textMu sync.Mutex
 	tracker := &streamStartTracker{}
-	wrapped := wrapStreamCallbacks(opts, tracker)
+	streamCtx, cancel := context.WithCancelCause(ctx)
+	defer cancel(nil)
+
+	var progress *streamProgressTracker
+	if opts.OnTextDelta != nil || opts.OnReasoningDelta != nil {
+		progress = newStreamProgressTracker(opts.ModelName, streamIdleTimeout(), cancel)
+		defer progress.end()
+	}
+	wrapped := wrapStreamCallbacks(streamCtx, opts, tracker, progress)
 	callOpts = append(callOpts, buildAssistantStreamOptions(wrapped, &textBuilder, &textMu)...)
 
-	resp, err := model.GenerateContent(ctx, messages, callOpts...)
+	start := time.Now()
+	flog.Info("[agent-llm] generate start model=%s messages=%d tools=%d reasoning=%t ctx_deadline=%s",
+		opts.ModelName, len(messages), len(opts.Tools), SupportsReasoningStream(opts.ModelName), formatLLMDeadline(ctx))
+
+	resp, err := model.GenerateContent(streamCtx, messages, callOpts...)
+	duration := time.Since(start).Round(time.Millisecond)
 	if err != nil {
-		return mapGenerateError(ctx, err, tracker.hasStarted())
+		flog.Info("[agent-llm] generate failed model=%s duration=%s stream_started=%t err=%v",
+			opts.ModelName, duration, tracker.hasStarted(), err)
+		return mapGenerateError(streamCtx, err, tracker.hasStarted())
 	}
-	return assembleAssistantResult(opts.ModelName, resp, &textBuilder)
+	result, assembleErr := assembleAssistantResult(opts.ModelName, resp, &textBuilder)
+	if assembleErr != nil {
+		flog.Info("[agent-llm] generate assemble failed model=%s duration=%s err=%v",
+			opts.ModelName, duration, assembleErr)
+		return AssistantResult{}, assembleErr
+	}
+	flog.Info("[agent-llm] generate done model=%s duration=%s content_len=%d tool_calls=%d stream_started=%t",
+		opts.ModelName, duration, len(result.Content), len(result.ToolCalls), tracker.hasStarted())
+	return result, nil
+}
+
+func formatLLMDeadline(ctx context.Context) string {
+	if ctx == nil {
+		return "none"
+	}
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return "none"
+	}
+	return time.Until(deadline).Round(time.Millisecond).String()
 }
 
 type streamStartTracker struct {
@@ -112,8 +148,12 @@ type streamStartTracker struct {
 
 func (t *streamStartTracker) mark() {
 	t.mu.Lock()
+	defer t.mu.Unlock()
+	if t.started {
+		return
+	}
 	t.started = true
-	t.mu.Unlock()
+	flog.Info("[agent-llm] generate first stream delta received")
 }
 
 func (t *streamStartTracker) hasStarted() bool {
@@ -136,13 +176,17 @@ func buildGenerateCallOptions(opts StreamOptions) []llms.CallOption {
 	return callOpts
 }
 
-func wrapStreamCallbacks(opts StreamOptions, tracker *streamStartTracker) StreamOptions {
+func wrapStreamCallbacks(ctx context.Context, opts StreamOptions, tracker *streamStartTracker, progress *streamProgressTracker) StreamOptions {
 	wrapped := opts
 	if opts.OnTextDelta != nil {
 		inner := opts.OnTextDelta
 		wrapped.OnTextDelta = func(delta string) error {
 			if delta != "" {
 				tracker.mark()
+				if progress != nil {
+					progress.recordText(delta)
+					progress.begin(ctx)
+				}
 			}
 			return inner(delta)
 		}
@@ -152,6 +196,10 @@ func wrapStreamCallbacks(opts StreamOptions, tracker *streamStartTracker) Stream
 		wrapped.OnReasoningDelta = func(delta string) error {
 			if delta != "" {
 				tracker.mark()
+				if progress != nil {
+					progress.recordReasoning(delta)
+					progress.begin(ctx)
+				}
 			}
 			return inner(delta)
 		}
@@ -160,6 +208,14 @@ func wrapStreamCallbacks(opts StreamOptions, tracker *streamStartTracker) Stream
 }
 
 func mapGenerateError(ctx context.Context, err error, streamStarted bool) (AssistantResult, error) {
+	if errors.Is(context.Cause(ctx), ErrStreamIdle) || errors.Is(err, ErrStreamIdle) || IsStreamIdleError(err) {
+		idleErr := fmt.Errorf("agent llm: %w", ErrStreamIdle)
+		if streamStarted {
+			// Partial output may already be visible; do not retry the same turn.
+			return AssistantResult{}, streamStartedError{cause: idleErr}
+		}
+		return AssistantResult{}, idleErr
+	}
 	if ctx.Err() != nil {
 		return AssistantResult{}, ErrAborted
 	}

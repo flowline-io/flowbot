@@ -3,6 +3,8 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -21,7 +23,7 @@ type EphemeralRunResult struct {
 	Reply     string
 }
 
-// IsAutonomousRunKind reports whether the run uses scheduled-style permissions and tool scope.
+// IsAutonomousRunKind reports whether the run uses scheduled-style permissions.
 func IsAutonomousRunKind(kind RunKind) bool {
 	return kind == RunKindScheduled || kind == RunKindPipeline
 }
@@ -62,9 +64,21 @@ func RunEphemeral(ctx context.Context, svc *Service, params EphemeralRunParams) 
 	if err != nil {
 		return EphemeralRunResult{}, fmt.Errorf("begin ephemeral session: %w", err)
 	}
+	if params.Kind == RunKindPipeline {
+		flog.Info("[pipeline-agent] ephemeral session created uid=%s session=%s", params.UID, sessionID)
+	}
 	defer CloseEphemeralSession(ctx, sessionID)
 
+	if params.Kind == RunKindPipeline {
+		flog.Info("[pipeline-agent] autonomous prompt start session=%s prompt_len=%d timeout=%s",
+			sessionID, len(strings.TrimSpace(params.Prompt)), RunTimeout())
+	}
+	promptStart := time.Now()
 	reply, err := RunAutonomousPrompt(ctx, svc, sessionID, params.Prompt, params.Kind)
+	if params.Kind == RunKindPipeline {
+		flog.Info("[pipeline-agent] autonomous prompt end session=%s duration=%s err=%v",
+			sessionID, time.Since(promptStart).Round(time.Millisecond), err)
+	}
 	if err != nil {
 		return EphemeralRunResult{SessionID: sessionID}, err
 	}

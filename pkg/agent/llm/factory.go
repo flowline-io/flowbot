@@ -88,7 +88,9 @@ func NewModel(ctx context.Context, modelName string) (llms.Model, string, error)
 			opts = append(opts, openai.WithBaseURL(cfg.BaseUrl))
 		}
 		if isDeepSeekV4ReasoningModel(modelName) {
-			opts = append(opts, openai.WithHTTPClient(deepSeekThinkingHTTPClient()))
+			opts = append(opts, openai.WithHTTPClient(openaiHTTPClient(true)))
+		} else {
+			opts = append(opts, openai.WithHTTPClient(openaiHTTPClient(false)))
 		}
 		model, err := openai.New(opts...)
 		if err != nil {

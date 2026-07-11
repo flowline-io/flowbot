@@ -30,7 +30,7 @@ type ToolScopeInput struct {
 
 // ApplyToolScope selects the active tool set for one Prompt.
 // Plan mode uses the read-only set. Normal mode excludes schedule tools unless
-// the run is scheduled or the user message matches schedule intent.
+// the run is a cron scheduled task or the user message matches schedule intent.
 func ApplyToolScope(in ToolScopeInput) []string {
 	if in.Mode == ModePlan {
 		return ReadOnlyToolNames()
@@ -39,7 +39,7 @@ func ApplyToolScope(in ToolScopeInput) []string {
 	if len(all) == 0 {
 		all = ActiveToolNames()
 	}
-	includeSchedule := IsAutonomousRunKind(in.Kind) || scheduleIntentPattern.MatchString(in.UserText)
+	includeSchedule := in.Kind == RunKindScheduled || scheduleIntentPattern.MatchString(in.UserText)
 	if includeSchedule {
 		return append([]string(nil), all...)
 	}

@@ -29,6 +29,7 @@ func TestIsRetryableLLMError(t *testing.T) {
 		{name: "auth", err: errors.New("unauthorized invalid api key"), want: false},
 		{name: "aborted", err: agentllm.ErrAborted, want: false},
 		{name: "stream started", err: agentllm.ErrStreamStarted, want: false},
+		{name: "stream idle", err: agentllm.ErrStreamIdle, want: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -74,6 +75,24 @@ func TestStreamAssistantRetry(t *testing.T) {
 			},
 			wantCalls: 1,
 			wantErr:   agentllm.ErrStreamStarted,
+		},
+		{
+			name: "no retry after stream idle once started",
+			scripts: []agentllm.ResponseScript{
+				{Chunks: []string{"hi"}, ErrAfterStream: agentllm.ErrStreamIdle},
+				{Content: "ok"},
+			},
+			wantCalls: 1,
+			wantErr:   agentllm.ErrStreamStarted,
+		},
+		{
+			name: "retries stream idle before any delta",
+			scripts: []agentllm.ResponseScript{
+				{Err: agentllm.ErrStreamIdle},
+				{Content: "recovered"},
+			},
+			wantCalls: 2,
+			wantText:  "recovered",
 		},
 	}
 	for _, tt := range tests {
