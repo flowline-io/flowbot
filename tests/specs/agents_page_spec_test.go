@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -112,21 +114,31 @@ func (a *agentsWebAdapter) ListChatSessionEntries(ctx context.Context, sessionID
 
 var _ = Describe("Agents UI", Label("module", "web"), func() {
 	var (
-		origDB    store.Adapter
-		adapter   *agentsWebAdapter
-		sessionID string
-		origModel string
+		origDB          store.Adapter
+		adapter         *agentsWebAdapter
+		sessionID       string
+		origModel       string
+		origWorkspace   string
+		workspaceDir    string
 	)
 
 	BeforeEach(func() {
 		origDB = store.Database
 		origModel = pkgconfig.App.ChatAgent.ChatModel
+		origWorkspace = pkgconfig.App.ChatAgent.Workspace
 		pkgconfig.App.ChatAgent.ChatModel = "bdd-test-model"
 		sessionID = "bdd-agent-" + types.Id()
 
+		var err error
+		workspaceDir, err = os.MkdirTemp("", "agents-page-bdd-*")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.WriteFile(filepath.Join(workspaceDir, "AGENTS.md"), []byte("# rules"), 0o644)).To(Succeed())
+		pkgconfig.App.ChatAgent.Workspace = workspaceDir
+
 		adapter = &agentsWebAdapter{
-			ent: EntClient,
-			uid: "bdd-agents-" + types.Id(),
+			Adapter: origDB,
+			ent:     EntClient,
+			uid:     "bdd-agents-" + types.Id(),
 		}
 		store.Database = adapter
 
@@ -150,6 +162,11 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 		EntClient.ChatSession.Delete().Where(chatsession.FlagEQ(sessionID)).ExecX(ctx)
 		store.Database = origDB
 		pkgconfig.App.ChatAgent.ChatModel = origModel
+		pkgconfig.App.ChatAgent.Workspace = origWorkspace
+		if workspaceDir != "" {
+			_ = os.RemoveAll(workspaceDir)
+			workspaceDir = ""
+		}
 	})
 
 	Describe("GET /service/web/agents", func() {
