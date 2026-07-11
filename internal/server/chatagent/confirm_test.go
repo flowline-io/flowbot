@@ -144,6 +144,30 @@ func TestResolveConfirmAPI(t *testing.T) {
 	assert.ErrorIs(t, err, ErrConfirmResolved)
 }
 
+func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
+	pub := NewChannelPublisher(8)
+	gate := NewConfirmGate("sess-premature", pub)
+	gate.timeout = 2 * time.Second
+	state := NewAPIRunState(pub, gate)
+	require.NoError(t, TrySetAPIRunState("sess-premature", state))
+	t.Cleanup(func() { ClearAPIRunState("sess-premature", nil) })
+
+	go func() {
+		_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+			Args:     map[string]any{"command": "ls"},
+		}, testEvalResult())
+	}()
+
+	waitConfirmEvent(t, pub)
+	confirmID := gate.ID()
+
+	ClearAPIRunState("sess-premature", state)
+
+	_, err := ResolveConfirm("sess-premature", confirmID, true, ConfirmModeOnce, "", ConfirmReasonApproved)
+	assert.ErrorIs(t, err, ErrConfirmNotFound)
+}
+
 func TestAlwaysGrantPattern(t *testing.T) {
 	tests := []struct {
 		name          string

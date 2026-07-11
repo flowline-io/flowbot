@@ -836,6 +836,15 @@
                 }
                 return;
               }
+              if (
+                approvalController &&
+                (ev.type === 'confirm' ||
+                  ev.type === 'confirm_resolved' ||
+                  ev.type === 'canceled')
+              ) {
+                approvalController.handleStreamEvent(ev);
+                return;
+              }
               if (ev.type === 'error') {
                 showError(errorEl, ev.message || 'Run failed');
               } else if (ev.type === 'canceled') {
@@ -889,15 +898,33 @@
     }
   }
 
+  function formatConfirmResolvedLabel(ev) {
+    if (ev.reason === 'timeout') {
+      return 'Timed out — tool was denied automatically.';
+    }
+    var label = ev.approved ? 'Approved' : 'Denied';
+    if (ev.reason && ev.reason !== 'approved' && ev.reason !== 'denied') {
+      label += ' (' + ev.reason + ')';
+    }
+    return label;
+  }
+
+  function chatagentThreadErrorEl() {
+    var thread = document.querySelector('[data-chatagent-root="thread"]');
+    return thread ? thread.querySelector('#chatagent-thread-error') : null;
+  }
+
+  var approvalController = null;
+
   function initApproval(panel) {
     if (!panel) {
-      return;
+      return null;
     }
     var sessionID = panel.getAttribute('data-session-id');
     var confirmURL = panel.getAttribute('data-confirm-url');
     var eventsURL = panel.getAttribute('data-events-url');
     if (!sessionID || !confirmURL || !eventsURL) {
-      return;
+      return null;
     }
 
     var summaryEl = document.getElementById('chatagent-approval-summary');
@@ -906,11 +933,30 @@
     var actionsEl = document.getElementById('chatagent-approval-actions');
     var alwaysBtn = panel.querySelector('[data-mode="always"]');
     var pending = null;
+    var submitting = false;
+    var hideTimer = null;
     var source = null;
 
+    function clearHideTimer() {
+      if (hideTimer) {
+        clearTimeout(hideTimer);
+        hideTimer = null;
+      }
+    }
+
+    function scheduleHidePanel() {
+      clearHideTimer();
+      hideTimer = window.setTimeout(function () {
+        hideTimer = null;
+        hidePanel();
+      }, 2500);
+    }
+
     function hidePanel() {
+      clearHideTimer();
       panel.classList.add('hidden');
       pending = null;
+      submitting = false;
       if (actionsEl) {
         actionsEl.classList.remove('hidden');
       }
@@ -931,7 +977,9 @@
     }
 
     function showConfirm(ev) {
+      clearHideTimer();
       pending = ev;
+      submitting = false;
       panel.classList.remove('hidden');
       if (summaryEl) {
         summaryEl.textContent = (ev.tool || 'tool') + ': ' + (ev.summary || '');
@@ -961,10 +1009,56 @@
       }
     }
 
-    function postConfirm(approved, mode) {
-      if (!pending || !pending.id) {
+    function resolveConfirmEvent(ev) {
+      if (ev.type === 'confirm') {
+        showConfirm(ev);
         return;
       }
+      if (ev.type === 'confirm_resolved') {
+        if (pending && ev.id && pending.id !== ev.id) {
+          return;
+        }
+        pending = null;
+        submitting = false;
+        var label = formatConfirmResolvedLabel(ev);
+        showResolved(label);
+        showError(chatagentThreadErrorEl(), '');
+        scheduleHidePanel();
+        return;
+      }
+      if (ev.type === 'canceled') {
+        pending = null;
+        submitting = false;
+        showResolved('Run canceled.');
+        scheduleHidePanel();
+      }
+    }
+
+    function showApprovalError(message) {
+      showResolved(message);
+      var errEl = chatagentThreadErrorEl();
+      showError(errEl, message);
+      if (errEl) {
+        window.setTimeout(function () {
+          if (errEl.textContent === message) {
+            showError(errEl, '');
+          }
+        }, 2500);
+      }
+    }
+
+    function showConfirmExpired(message) {
+      pending = null;
+      submitting = false;
+      showApprovalError(message || 'Approval request expired.');
+      scheduleHidePanel();
+    }
+
+    function postConfirm(approved, mode) {
+      if (!pending || !pending.id || submitting) {
+        return;
+      }
+      submitting = true;
       fetch(confirmURL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -977,14 +1071,37 @@
               ? pending.suggested_pattern || ''
               : '',
         }),
-      }).catch(function () {
-        showResolved('Confirm request failed.');
-      });
+      })
+        .then(function (res) {
+          if (res.status === 204) {
+            submitting = false;
+            return;
+          }
+          if (res.status === 404 || res.status === 409) {
+            showConfirmExpired('Approval request expired or already resolved.');
+            return;
+          }
+          submitting = false;
+          return res
+            .json()
+            .catch(function () {
+              return {};
+            })
+            .then(function (data) {
+              showApprovalError(
+                (data && data.error) || 'Confirm request failed.',
+              );
+            });
+        })
+        .catch(function () {
+          submitting = false;
+          showApprovalError('Confirm request failed.');
+        });
     }
 
     panel.addEventListener('click', function (event) {
       var btn = event.target.closest('[data-mode]');
-      if (!btn || !pending) {
+      if (!btn || !pending || submitting) {
         return;
       }
       var mode = btn.getAttribute('data-mode');
@@ -1012,19 +1129,7 @@
         } catch {
           return;
         }
-        if (ev.type === 'confirm') {
-          showConfirm(ev);
-        } else if (ev.type === 'confirm_resolved') {
-          var label = ev.approved ? 'Approved' : 'Denied';
-          if (ev.reason) {
-            label += ' (' + ev.reason + ')';
-          }
-          showResolved(label);
-          window.setTimeout(hidePanel, 2500);
-        } else if (ev.type === 'canceled') {
-          showResolved('Run canceled.');
-          window.setTimeout(hidePanel, 2500);
-        }
+        resolveConfirmEvent(ev);
       });
       source.addEventListener('error', function () {
         if (source) {
@@ -1036,6 +1141,7 @@
     }
 
     connect();
+    return { handleStreamEvent: resolveConfirmEvent };
   }
 
   function initComposer(root) {
@@ -1140,5 +1246,7 @@
   document
     .querySelectorAll('[data-chatagent-root="thread"]')
     .forEach(initThread);
-  initApproval(document.getElementById('chatagent-approval-panel'));
+  approvalController = initApproval(
+    document.getElementById('chatagent-approval-panel'),
+  );
 })();

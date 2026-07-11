@@ -67,15 +67,19 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 		})
 		return
 	}
-	defer ClearAPIRunState(sessionID, runState)
 
-	runCtx, cancel := context.WithTimeout(ctx, RunTimeout())
-	defer cancel()
+	// Detach from the HTTP request context so closing the message SSE stream
+	// does not cancel a run that is still waiting for tool approval.
+	runCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), RunTimeout())
 	BindRunCancel(sessionID, cancel)
-	defer UnbindRunCancel(sessionID)
 
 	runDone := make(chan error, 1)
 	go func() {
+		defer func() {
+			cancel()
+			UnbindRunCancel(sessionID)
+			ClearAPIRunState(sessionID, runState)
+		}()
 		runDone <- svc.RunAPI(runCtx, RunRequest{
 			SessionID: sessionID,
 			Text:      text,

@@ -508,6 +508,82 @@ func TestMapChatMessages(t *testing.T) {
 	}
 }
 
+func TestAgentChatConfirmNotFound(t *testing.T) {
+	now := time.Now().UTC()
+	tests := []struct {
+		name       string
+		body       func(gateID string) string
+		inFlight   bool
+		resolve    bool
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name: "missing gate returns not found",
+			body: func(string) string {
+				return `{"id":"stale-confirm","approved":true,"mode":"once"}`
+			},
+			wantStatus: http.StatusNotFound,
+			wantBody:   "confirm not found",
+		},
+		{
+			name: "stale confirm id returns not found",
+			body: func(string) string {
+				return `{"id":"stale-confirm","approved":true,"mode":"once"}`
+			},
+			inFlight:   true,
+			wantStatus: http.StatusNotFound,
+			wantBody:   "confirm not found",
+		},
+		{
+			name: "already resolved returns conflict",
+			body: func(gateID string) string {
+				return `{"id":"` + gateID + `","approved":true,"mode":"once"}`
+			},
+			inFlight:   true,
+			resolve:    true,
+			wantStatus: http.StatusConflict,
+			wantBody:   "confirm already resolved",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withChatAgentEnabled(t, func() {
+				sessionID := "sess-confirm"
+				var gateID string
+				if tt.inFlight {
+					pub := chatagent.NewChannelPublisher(4)
+					gate := chatagent.NewConfirmGate(sessionID, pub)
+					gateID = gate.ID()
+					require.NoError(t, chatagent.TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
+					t.Cleanup(func() { chatagent.ClearAPIRunState(sessionID, nil) })
+					if tt.resolve {
+						_, err := chatagent.ResolveConfirm(sessionID, gateID, true, chatagent.ConfirmModeOnce, "", chatagent.ConfirmReasonApproved)
+						require.NoError(t, err)
+					}
+				}
+
+				ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
+					sessionID: {Flag: sessionID, UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+				}}
+				app := setupAuthenticatedApp(t, ts)
+
+				req := httptest.NewRequest(http.MethodPost, "/service/web/agents/"+sessionID+"/confirm", strings.NewReader(tt.body(gateID)))
+				req.Header.Set("Cookie", "accessToken=test-token")
+				req.Header.Set("Content-Type", "application/json")
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.wantStatus, resp.StatusCode)
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.wantBody)
+			})
+		})
+	}
+}
+
 func TestAgentsCreateReturnsJSON(t *testing.T) {
 	withChatAgentEnabled(t, func() {
 		ts := &testStore{}
