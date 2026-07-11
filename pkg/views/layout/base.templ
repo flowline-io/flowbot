@@ -33,10 +33,6 @@ templ Base(title string) {
 						<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 					</div>
 					<ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box z-[100] mt-3 w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 shadow-lg border border-base-300">
-						<li class="menu-title">Automation</li>
-						<li><a href="/service/web/pipelines">Pipelines</a></li>
-						<li><a href="/service/web/events">Events</a></li>
-						<li><a href="/service/web/relations">Relations</a></li>
 						<li class="menu-title">Agent</li>
 						<li><a href="/service/web/agents">Agents</a></li>
 						<li><a href="/service/web/agent-skills">Skills</a></li>
@@ -44,30 +40,25 @@ templ Base(title string) {
 						<li><a href="/service/web/agent-scheduled-tasks">Scheduled Tasks</a></li>
 						<li><a href="/service/web/agent-sessions">Sessions (inspect)</a></li>
 						<li><a href="/service/web/chatagent-permissions">Permissions</a></li>
-						<li class="menu-title">Data</li>
-						<li><a href="/service/web/notifications">Notifications</a></li>
-						<li><a href="/service/web/notify-settings">Notify Settings</a></li>
-						<li><a href="/service/web/configs">Configs</a></li>
+						<li class="menu-title">Automation</li>
+						<li><a href="/service/web/pipelines">Pipelines</a></li>
+						<li><a href="/service/web/events">Events</a></li>
+						<li><a href="/service/web/relations">Relations</a></li>
 						<li class="menu-title">Admin</li>
 						<li><a href="/service/web/hub">Apps</a></li>
 						<li><a href="/service/web/homelab">Registry</a></li>
 						<li><a href="/service/web/tokens">Tokens</a></li>
 						<li><a href="/service/web/capabilities">Capabilities</a></li>
 						<li><a href="/service/web/healthz">Health</a></li>
+						<li><a href="/service/web/notifications">Notifications</a></li>
+						<li><a href="/service/web/notify-settings">Notify Settings</a></li>
+						<li><a href="/service/web/configs">Configs</a></li>
 					</ul>
 				</div>
 				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate">Flowbot</a>
 			</div>
 			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
 				<div class="hidden lg:flex items-center gap-1">
-					<div class="dropdown dropdown-hover">
-						<div tabindex="0" role="button" data-testid="nav-group-automation" class="btn btn-ghost btn-sm">Automation</div>
-						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
-							<li><a href="/service/web/pipelines" data-testid="nav-pipelines">Pipelines</a></li>
-							<li><a href="/service/web/events" data-testid="nav-events">Events</a></li>
-							<li><a href="/service/web/relations" data-testid="nav-relations">Relations</a></li>
-						</ul>
-					</div>
 					<div class="dropdown dropdown-hover">
 						<div tabindex="0" role="button" data-testid="nav-group-agent" class="btn btn-ghost btn-sm">Agent</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44 z-50">
@@ -80,21 +71,24 @@ templ Base(title string) {
 						</ul>
 					</div>
 					<div class="dropdown dropdown-hover">
-						<div tabindex="0" role="button" data-testid="nav-group-data" class="btn btn-ghost btn-sm">Data</div>
+						<div tabindex="0" role="button" data-testid="nav-group-automation" class="btn btn-ghost btn-sm">Automation</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
-							<li><a href="/service/web/notifications" data-testid="nav-notifications">Notifications</a></li>
-							<li><a href="/service/web/notify-settings" data-testid="nav-notify-settings">Notify Settings</a></li>
-							<li><a href="/service/web/configs" data-testid="nav-configs">Configs</a></li>
+							<li><a href="/service/web/pipelines" data-testid="nav-pipelines">Pipelines</a></li>
+							<li><a href="/service/web/events" data-testid="nav-events">Events</a></li>
+							<li><a href="/service/web/relations" data-testid="nav-relations">Relations</a></li>
 						</ul>
 					</div>
 					<div class="dropdown dropdown-hover">
 						<div tabindex="0" role="button" data-testid="nav-group-admin" class="btn btn-ghost btn-sm">Admin</div>
-						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40 z-50">
+						<ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44 z-50">
 							<li><a href="/service/web/hub" data-testid="nav-hub">Apps</a></li>
 							<li><a href="/service/web/homelab" data-testid="nav-homelab">Registry</a></li>
 							<li><a href="/service/web/tokens" data-testid="nav-tokens">Tokens</a></li>
 							<li><a href="/service/web/capabilities" data-testid="nav-capabilities">Capabilities</a></li>
 							<li><a href="/service/web/healthz" data-testid="nav-healthz">Health</a></li>
+							<li><a href="/service/web/notifications" data-testid="nav-notifications">Notifications</a></li>
+							<li><a href="/service/web/notify-settings" data-testid="nav-notify-settings">Notify Settings</a></li>
+							<li><a href="/service/web/configs" data-testid="nav-configs">Configs</a></li>
 						</ul>
 					</div>
 				</div>
