@@ -63,6 +63,9 @@ templ ChatAgentSessionRow(item model.AgentSession, detailURL string) {
 			<div class="agents-session-title" data-testid="chatagent-session-link">{ ChatAgentSessionTitle(item) }</div>
 			<div class="agents-session-meta">
 				<span>{ FormatChatAgentRelativeTime(item.UpdatedAt) }</span>
+				if item.TotalDurationMs > 0 {
+					<span class="chatagent-duration" data-testid="chatagent-session-duration">· Total { ChatAgentDurationLabel(item.TotalDurationMs) }</span>
+				}
 			</div>
 		</div>
 	</a>

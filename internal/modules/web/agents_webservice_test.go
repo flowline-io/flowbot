@@ -15,10 +15,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/session"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 )
 
@@ -113,6 +116,70 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestAgentsListShowsTotalDuration(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		e1Payload := mustChatSessionEntryPayload(t, session.TreeEntry{
+			ID:       "e1",
+			Type:     session.EntryMessage,
+			ParentID: "",
+			Message: msg.AssistantMessage{
+				Parts:         []msg.ContentPart{msg.TextPart{Text: "first"}},
+				RunDurationMs: 1200,
+			},
+		})
+		e2Payload := mustChatSessionEntryPayload(t, session.TreeEntry{
+			ID:       "e2",
+			Type:     session.EntryMessage,
+			ParentID: "e1",
+			Message: msg.AssistantMessage{
+				Parts:         []msg.ContentPart{msg.TextPart{Text: "second"}},
+				RunDurationMs: 3400,
+			},
+		})
+		ts := &testStore{
+			chatSessions: []*gen.ChatSession{{
+				Flag:      "sess-dur",
+				Title:     "Timed task",
+				UID:       "testuser",
+				LeafID:    "e2",
+				State:     int(schema.ChatSessionActive),
+				UpdatedAt: now,
+				CreatedAt: now,
+			}},
+			chatSessionEntries: map[string][]*gen.ChatSessionEntry{
+				"sess-dur": {
+					{Flag: "e1", SessionID: "sess-dur", ParentID: "", EntryType: "message", Payload: e1Payload},
+					{Flag: "e2", SessionID: "sess-dur", ParentID: "e1", EntryType: "message", Payload: e2Payload},
+				},
+			},
+		}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		text := string(body)
+		assert.Contains(t, text, "Timed task")
+		assert.Contains(t, text, "Total 4.6s")
+		assert.Contains(t, text, `data-testid="chatagent-session-duration"`)
+	})
+}
+
+func mustChatSessionEntryPayload(t *testing.T, entry session.TreeEntry) map[string]any {
+	t.Helper()
+	raw, err := session.MarshalEntry(entry)
+	require.NoError(t, err)
+	var payload map[string]any
+	require.NoError(t, sonic.Unmarshal(raw, &payload))
+	return payload
 }
 
 func TestAgentsCreateSession(t *testing.T) {

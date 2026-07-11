@@ -369,7 +369,11 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSess
 	}
 	items := make([]model.AgentSession, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, mapAgentSession(row))
+		item := mapAgentSession(row)
+		if total, err := chatagent.SumSessionRunDurationMs(ctx.Context(), row.Flag); err == nil {
+			item.TotalDurationMs = total
+		}
+		items = append(items, item)
 	}
 	return items, nextCursor, nil
 }
