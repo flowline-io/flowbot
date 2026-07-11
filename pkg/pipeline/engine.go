@@ -128,7 +128,7 @@ func NewEngineWithClock(defs []Definition, store RunStore, auditor audit.Auditor
 
 func (e *Engine) registerCronJobs(defs []Definition) {
 	for _, def := range defs {
-		if def.Trigger.Cron == "" {
+		if !def.Enabled || def.Trigger.Cron == "" {
 			continue
 		}
 		defCopy := def

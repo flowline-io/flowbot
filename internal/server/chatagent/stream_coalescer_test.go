@@ -180,7 +180,7 @@ func TestStartRunStreamCoalescer_NilSinkDrainsEvents(t *testing.T) {
 
 			done := make(chan error, 1)
 			go func() {
-				for i := 0; i < 8; i++ {
+				for range 8 {
 					if err := stream.Push(ctx, agentevent.Event{
 						Type:      agentevent.TypeMessageUpdate,
 						TextDelta: "x",

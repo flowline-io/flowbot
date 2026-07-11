@@ -3,6 +3,7 @@
     Alpine.data('pipelineEditor', () => ({
       name: '',
       description: '',
+      enabled: true,
       status: 'draft',
       version: 1,
       dirty: false,
@@ -211,6 +212,7 @@
           const obj = jsyaml.load(yaml);
           this.name = obj.name || this.name;
           this.description = obj.description || '';
+          this.enabled = obj.enabled !== false;
           this.triggers = (obj.triggers || []).map((t) => ({
             type: t.type || 'event',
             enabled: t.enabled !== false,
@@ -238,7 +240,7 @@
         const obj = {
           name: this.name,
           description: this.description,
-          enabled: true,
+          enabled: this.enabled !== false,
           resumable: false,
           triggers: this.triggers.map((t) => {
             const e = { type: t.type, enabled: t.enabled };

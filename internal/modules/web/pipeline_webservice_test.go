@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/ability"
 	abilityagent "github.com/flowline-io/flowbot/pkg/ability/agent"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/pipeline"
 )
 
 type webStubAgentRunner struct {
@@ -148,4 +149,70 @@ steps:
 	raw, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	assert.Contains(t, string(raw), `"success":false`)
+}
+
+func TestSetPipelineEnabledPauseAndResume(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	ctx := context.Background()
+	ps := store.NewPipelineStore(client)
+	require.NoError(t, ps.CreateDefinition(ctx, "pause-test", ""))
+	yaml := "name: pause-test\nenabled: true\ntriggers: []\nsteps: []"
+	_, err := ps.UpdateDefinitionDraft(ctx, "pause-test", yaml, 1)
+	require.NoError(t, err)
+	_, err = ps.PublishDefinition(ctx, "pause-test", 2)
+	require.NoError(t, err)
+
+	pauseBody := bytes.NewBufferString(`{"enabled":false}`)
+	req := httptest.NewRequest(http.MethodPut, "/service/web/pipelines/pause-test/enabled", pauseBody)
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	pauseHTML, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(pauseHTML), "Paused")
+	assert.Contains(t, string(pauseHTML), `btn-resume-pause-test`)
+
+	def, err := ps.GetDefinitionByName(ctx, "pause-test")
+	require.NoError(t, err)
+	require.NotNil(t, def.YamlPublished)
+	assert.False(t, pipeline.IsEnabledInYAML(*def.YamlPublished))
+
+	resumeBody := bytes.NewBufferString(`{"enabled":true}`)
+	req = httptest.NewRequest(http.MethodPut, "/service/web/pipelines/pause-test/enabled", resumeBody)
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	resp, err = app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	resumeHTML, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(resumeHTML), "Active")
+	assert.Contains(t, string(resumeHTML), `btn-pause-pause-test`)
+}
+
+func TestSetPipelineEnabledRejectsDraftPipeline(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	ctx := context.Background()
+	ps := store.NewPipelineStore(client)
+	require.NoError(t, ps.CreateDefinition(ctx, "draft-pause", ""))
+
+	body := bytes.NewBufferString(`{"enabled":false}`)
+	req := httptest.NewRequest(http.MethodPut, "/service/web/pipelines/draft-pause/enabled", body)
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+
+	_, err = ps.GetDefinitionByName(ctx, "draft-pause")
+	require.NoError(t, err)
 }

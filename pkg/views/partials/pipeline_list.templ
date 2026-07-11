@@ -1,9 +1,7 @@
 package partials
 
-import "github.com/flowline-io/flowbot/internal/store/ent/gen"
-
-templ PipelineListTable(defs []*gen.PipelineDefinition) {
-	if len(defs) == 0 {
+templ PipelineListTable(entries []PipelineListEntry) {
+	if len(entries) == 0 {
 		<div class="text-center py-12 text-base-content/30" data-testid="pipeline-empty">
 			<p class="text-lg">No pipelines yet.</p>
 			<p class="text-sm mt-2">Create your first pipeline to get started.</p>
@@ -16,18 +14,19 @@ templ PipelineListTable(defs []*gen.PipelineDefinition) {
 					<tr>
 						<th>Name</th>
 						<th>Status</th>
+						<th>Runtime</th>
 						<th>Updated</th>
 						<th class="text-right">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
-					for _, d := range defs {
+					for _, entry := range entries {
 						<tr class="hover">
 							<td class="font-medium text-base-content">
-								<a href={ templ.URL("/service/web/pipelines/" + d.Name) } class="link link-hover">{ d.Name }</a>
+								<a href={ templ.URL("/service/web/pipelines/" + entry.Definition.Name) } class="link link-hover">{ entry.Definition.Name }</a>
 							</td>
 							<td>
-								if d.Status == "published" {
+								if entry.Definition.Status == "published" {
 									<span class="badge badge-success">
 										Published
 									</span>
@@ -35,16 +34,52 @@ templ PipelineListTable(defs []*gen.PipelineDefinition) {
 									<span class="badge badge-ghost">Draft</span>
 								}
 							</td>
-							<td class="text-base-content/50 text-xs">{ d.UpdatedAt.Format("2006-01-02 15:04") }</td>
+							<td>
+								if PipelineIsPublished(entry.Definition) {
+									if entry.Enabled {
+										<span class="badge badge-success badge-outline" data-testid={ "pipeline-runtime-" + entry.Definition.Name }>Active</span>
+									} else {
+										<span class="badge badge-warning badge-outline" data-testid={ "pipeline-runtime-" + entry.Definition.Name }>Paused</span>
+									}
+								} else {
+									<span class="text-base-content/30 text-xs">—</span>
+								}
+							</td>
+							<td class="text-base-content/50 text-xs">{ entry.Definition.UpdatedAt.Format("2006-01-02 15:04") }</td>
 							<td class="text-right">
-								<button type="button"
-									hx-delete={ templ.URL("/service/web/pipelines/" + d.Name) }
-									hx-target="#pipeline-list-container"
-									data-confirm="Delete this pipeline? Associated run records will also be removed."
-									data-confirm-title="Delete Pipeline"
-									data-confirm-btn="Delete"
-									data-confirm-class="btn-error"
-									class="btn btn-ghost btn-xs text-error">Delete</button>
+								<div class="flex items-center justify-end gap-1">
+									if PipelineIsPublished(entry.Definition) {
+										if entry.Enabled {
+											<button type="button"
+												hx-put={ templ.URL("/service/web/pipelines/" + entry.Definition.Name + "/enabled") }
+												hx-vals='{"enabled": false}'
+												hx-target="#pipeline-list-container"
+												hx-swap="outerHTML"
+												data-confirm="Pause this pipeline? Triggers will stop firing until resumed."
+												data-confirm-title="Pause Pipeline"
+												data-confirm-btn="Pause"
+												data-confirm-class="btn-warning"
+												data-testid={ "btn-pause-" + entry.Definition.Name }
+												class="btn btn-ghost btn-xs text-warning">Pause</button>
+										} else {
+											<button type="button"
+												hx-put={ templ.URL("/service/web/pipelines/" + entry.Definition.Name + "/enabled") }
+												hx-vals='{"enabled": true}'
+												hx-target="#pipeline-list-container"
+												hx-swap="outerHTML"
+												data-testid={ "btn-resume-" + entry.Definition.Name }
+												class="btn btn-ghost btn-xs text-success">Resume</button>
+										}
+									}
+									<button type="button"
+										hx-delete={ templ.URL("/service/web/pipelines/" + entry.Definition.Name) }
+										hx-target="#pipeline-list-container"
+										data-confirm="Delete this pipeline? Associated run records will also be removed."
+										data-confirm-title="Delete Pipeline"
+										data-confirm-btn="Delete"
+										data-confirm-class="btn-error"
+										class="btn btn-ghost btn-xs text-error">Delete</button>
+								</div>
 							</td>
 						</tr>
 					}

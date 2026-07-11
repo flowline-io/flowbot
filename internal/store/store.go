@@ -1256,6 +1256,44 @@ func (s *PipelineStore) PublishDefinition(ctx context.Context, name string, vers
 	return s.GetDefinitionByName(ctx, name)
 }
 
+// SetDefinitionEnabled toggles the top-level enabled flag in draft and published YAML.
+// Only published pipelines can be paused at runtime.
+func (s *PipelineStore) SetDefinitionEnabled(ctx context.Context, name string, enabled bool) (*gen.PipelineDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	def, err := s.GetDefinitionByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+	if def.Status != pipelinedefinition.StatusPublished || def.YamlPublished == nil || *def.YamlPublished == "" {
+		return nil, fmt.Errorf("pipeline %q is not published: %w", name, types.ErrInvalidArgument)
+	}
+
+	newPublished, err := pipeline.SetEnabledInYAML(*def.YamlPublished, enabled)
+	if err != nil {
+		return nil, fmt.Errorf("set enabled on published yaml: %w", err)
+	}
+
+	update := s.client.PipelineDefinition.Update().
+		Where(pipelinedefinition.Name(name)).
+		SetYamlPublished(newPublished).
+		SetUpdatedAt(time.Now())
+
+	if def.YamlDraft != "" {
+		newDraft, draftErr := pipeline.SetEnabledInYAML(def.YamlDraft, enabled)
+		if draftErr != nil {
+			return nil, fmt.Errorf("set enabled on draft yaml: %w", draftErr)
+		}
+		update = update.SetYamlDraft(newDraft)
+	}
+
+	if _, err := update.Save(ctx); err != nil {
+		return nil, err
+	}
+	return s.GetDefinitionByName(ctx, name)
+}
+
 // DeleteDefinitionByName removes a pipeline definition and its associated runs.
 // Returns the number of pipeline runs that were deleted.
 func (s *PipelineStore) DeleteDefinitionByName(ctx context.Context, name string) (int64, error) {

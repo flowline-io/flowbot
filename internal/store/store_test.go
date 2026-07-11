@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
+	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/stretchr/testify/assert"
@@ -444,6 +445,50 @@ func TestPipelineDefinitionStore_PublishAndListPublished(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, defs, 1)
 	assert.Equal(t, "pub-test", defs[0].Name)
+}
+
+func TestPipelineDefinitionStore_SetDefinitionEnabled(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPipelineStore(client)
+
+	ctx := context.Background()
+	require.NoError(t, store.CreateDefinition(ctx, "toggle-test", "desc"))
+
+	yaml := `name: toggle-test
+enabled: true
+triggers:
+  - type: cron
+    enabled: true
+    cron: "0 * * * *"
+steps: []`
+	_, err := store.UpdateDefinitionDraft(ctx, "toggle-test", yaml, 1)
+	require.NoError(t, err)
+	_, err = store.PublishDefinition(ctx, "toggle-test", 2)
+	require.NoError(t, err)
+
+	paused, err := store.SetDefinitionEnabled(ctx, "toggle-test", false)
+	require.NoError(t, err)
+	require.NotNil(t, paused.YamlPublished)
+	assert.False(t, pipeline.IsEnabledInYAML(*paused.YamlPublished))
+	assert.False(t, pipeline.IsEnabledInYAML(paused.YamlDraft))
+	pausedDef, err := pipeline.ParseEditorYAML(*paused.YamlPublished)
+	require.NoError(t, err)
+	require.Len(t, pausedDef.Triggers, 1)
+	assert.False(t, pausedDef.Triggers[0].Enabled)
+
+	resumed, err := store.SetDefinitionEnabled(ctx, "toggle-test", true)
+	require.NoError(t, err)
+	require.NotNil(t, resumed.YamlPublished)
+	assert.True(t, pipeline.IsEnabledInYAML(*resumed.YamlPublished))
+	resumedDef, err := pipeline.ParseEditorYAML(*resumed.YamlPublished)
+	require.NoError(t, err)
+	require.Len(t, resumedDef.Triggers, 1)
+	assert.True(t, resumedDef.Triggers[0].Enabled)
+
+	require.NoError(t, store.CreateDefinition(ctx, "draft-only", ""))
+	_, err = store.SetDefinitionEnabled(ctx, "draft-only", false)
+	require.Error(t, err)
+	require.ErrorIs(t, err, types.ErrInvalidArgument)
 }
 
 func TestPipelineDefinitionStore_ListAndDelete(t *testing.T) {

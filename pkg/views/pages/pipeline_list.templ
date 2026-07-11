@@ -26,7 +26,7 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 				</div>
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">
-				@partials.PipelineListTable(defs)
+				@partials.PipelineListTable(partials.BuildPipelineListEntries(defs))
 			</div>
 		</div>
 		<dialog id="create-modal" class="modal" data-testid="create-modal">

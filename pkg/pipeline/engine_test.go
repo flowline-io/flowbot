@@ -98,6 +98,13 @@ func TestNewEngine_CronRegistration(t *testing.T) {
 			},
 			wantEntries: 0,
 		},
+		{
+			name: "disabled cron definition not registered",
+			defs: []Definition{
+				{Name: "cron-off", Enabled: false, Trigger: Trigger{Cron: "0 0 * * *"}},
+			},
+			wantEntries: 0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -35,6 +35,7 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Post("/pipelines", createPipeline),
 	webservice.Put("/pipelines/:name", updatePipelineDraft),
 	webservice.Put("/pipelines/:name/publish", publishPipeline),
+	webservice.Put("/pipelines/:name/enabled", setPipelineEnabled),
 	webservice.Delete("/pipelines/:name", deletePipeline),
 	webservice.Get("/pipelines/:name/yaml", getPipelineYaml),
 	webservice.Get("/pipelines/:name/mock", getMockPayload),
@@ -77,7 +78,7 @@ func pipelineListTable(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(partials.BuildPipelineListEntries(defs)).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineEditorPage(c fiber.Ctx) error {
@@ -179,6 +180,40 @@ func publishPipeline(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"version": def.Version, "status": def.Status})
 }
 
+func setPipelineEnabled(c fiber.Ctx) error {
+	name := c.Params("name")
+	var body struct {
+		Enabled bool `json:"enabled"`
+	}
+	if err := c.Bind().Body(&body); err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
+	}
+	s := getPipelineDefStore()
+	_, err := s.SetDefinitionEnabled(context.Background(), name, body.Enabled)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{
+				"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"},
+			})
+		}
+		if errors.Is(err, types.ErrInvalidArgument) {
+			return c.Status(400).JSON(fiber.Map{
+				"error": fiber.Map{"code": "INVALID_ARGUMENT", "message": "Only published pipelines can be paused or resumed"},
+			})
+		}
+		return types.Errorf(types.ErrInternal, "set pipeline enabled: %v", err)
+	}
+	if reloadErr := pipeline.ReloadDefinitions(context.Background()); reloadErr != nil {
+		return types.Errorf(types.ErrInternal, "reload pipeline engine after enabled toggle: %v", reloadErr)
+	}
+	defs, err := s.ListDefinitions(context.Background())
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
+	}
+	c.Type("html")
+	return partials.PipelineListTable(partials.BuildPipelineListEntries(defs)).Render(context.Background(), c.Response().BodyWriter())
+}
+
 func deletePipeline(c fiber.Ctx) error {
 	name := c.Params("name")
 	s := getPipelineDefStore()
@@ -199,7 +234,7 @@ func deletePipeline(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
 	c.Type("html")
-	return partials.PipelineListTable(defs).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(partials.BuildPipelineListEntries(defs)).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func getPipelineYaml(c fiber.Ctx) error {
