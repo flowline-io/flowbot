@@ -90,6 +90,9 @@ type Form func(*sql.Selector)
 // Instruct is the predicate function for instruct builders.
 type Instruct func(*sql.Selector)
 
+// LLMUsageRecord is the predicate function for llmusagerecord builders.
+type LLMUsageRecord func(*sql.Selector)
+
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 

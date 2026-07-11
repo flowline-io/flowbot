@@ -718,6 +718,38 @@ var (
 			},
 		},
 	}
+	// LlmUsageRecordsColumns holds the columns for the "llm_usage_records" table.
+	LlmUsageRecordsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "session_id", Type: field.TypeString, Default: ""},
+		{Name: "model", Type: field.TypeString, Default: ""},
+		{Name: "prompt_tokens", Type: field.TypeInt, Default: 0},
+		{Name: "completion_tokens", Type: field.TypeInt, Default: 0},
+		{Name: "total_tokens", Type: field.TypeInt, Default: 0},
+		{Name: "cache_read", Type: field.TypeInt, Default: 0},
+		{Name: "cache_write", Type: field.TypeInt, Default: 0},
+		{Name: "source", Type: field.TypeString, Default: "chat_agent"},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LlmUsageRecordsTable holds the schema information for the "llm_usage_records" table.
+	LlmUsageRecordsTable = &schema.Table{
+		Name:       "llm_usage_records",
+		Columns:    LlmUsageRecordsColumns,
+		PrimaryKey: []*schema.Column{LlmUsageRecordsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "llmusagerecord_uid_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{LlmUsageRecordsColumns[1], LlmUsageRecordsColumns[10]},
+			},
+			{
+				Name:    "llmusagerecord_uid_model_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{LlmUsageRecordsColumns[1], LlmUsageRecordsColumns[3], LlmUsageRecordsColumns[10]},
+			},
+		},
+	}
 	// MessagesColumns holds the columns for the "messages" table.
 	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1380,6 +1412,7 @@ var (
 		FileuploadsTable,
 		FormTable,
 		InstructTable,
+		LlmUsageRecordsTable,
 		MessagesTable,
 		NotificationRecordsTable,
 		NotifyChannelsTable,
@@ -1491,6 +1524,9 @@ func init() {
 	}
 	InstructTable.Annotation = &entsql.Annotation{
 		Table: "instruct",
+	}
+	LlmUsageRecordsTable.Annotation = &entsql.Annotation{
+		Table: "llm_usage_records",
 	}
 	MessagesTable.Annotation = &entsql.Annotation{
 		Table: "messages",

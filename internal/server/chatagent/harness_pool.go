@@ -274,7 +274,7 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		return nil, err
 	}
 
-	agentSession := session.New(NewDBStorage(req.SessionID))
+	agentSession := session.New(NewDBStorage(req.SessionID, uid, TokenUsageSourceFromRunKind(kind)))
 	branch, err := agentSession.GetBranch(ctx, "")
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] load branch session=%s: %w", req.SessionID, err))

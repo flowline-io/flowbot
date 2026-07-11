@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -371,6 +372,11 @@ func testPipelineStep(c fiber.Ctx) error {
 	if et, ok := body.MockPayload["event_type"].(string); ok {
 		event.EventType = et
 	}
+	if uid, ok := body.MockPayload["uid"].(string); ok && strings.TrimSpace(uid) != "" {
+		event.UID = strings.TrimSpace(uid)
+	} else if uid, err := webUID(c); err == nil {
+		event.UID = uid.String()
+	}
 	rc := pipeline.NewRenderContext(event)
 	var results []stepResult
 	for i := 0; i <= body.UpToStepIndex; i++ {
@@ -381,6 +387,7 @@ func testPipelineStep(c fiber.Ctx) error {
 			results = append(results, stepResult{Name: step.Name, Status: "error", Error: fmt.Sprintf("render params: %v", rErr)})
 			return c.JSON(fiber.Map{"success": false, "error": "Step " + step.Name + " failed", "steps": results})
 		}
+		pipeline.InjectAgentRunDefaults(step, rendered, rc, name)
 		res, iErr := ability.Invoke(context.Background(), step.Capability, step.Operation, rendered)
 		duration := time.Since(start).Milliseconds()
 		if iErr != nil {

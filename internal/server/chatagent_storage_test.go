@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +30,7 @@ func TestDBStorageGetBranchBrokenChain(t *testing.T) {
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	})
 
-	storage := chatagent.NewDBStorage("s1")
+	storage := chatagent.NewDBStorage("s1", types.Uid(""), "")
 	_, err := storage.GetBranch(context.Background(), "leaf")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "load entry")

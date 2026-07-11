@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // SessionExport is the full session snapshot returned by the export API.
@@ -32,7 +33,7 @@ func ExportSession(ctx context.Context, sessionID string) (*SessionExport, error
 		return nil, err
 	}
 
-	storage := NewDBStorage(sessionID)
+	storage := NewDBStorage(sessionID, types.Uid(""), "")
 	entries, err := storage.ListEntries(ctx)
 	if err != nil {
 		return nil, err

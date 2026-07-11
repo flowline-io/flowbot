@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // HistoryMessage is one persisted chat row exposed to HTTP clients.
@@ -28,7 +29,7 @@ type HistoryMessage struct {
 
 // ListSessionMessages returns user and assistant messages for a session branch.
 func ListSessionMessages(ctx context.Context, sessionID string) ([]HistoryMessage, error) {
-	storage := NewDBStorage(sessionID)
+	storage := NewDBStorage(sessionID, types.Uid(""), "")
 	branch, err := storage.GetBranch(ctx, "")
 	if err != nil {
 		return nil, err

@@ -42,6 +42,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
@@ -129,6 +130,8 @@ type Client struct {
 	Form *FormClient
 	// Instruct is the client for interacting with the Instruct builders.
 	Instruct *InstructClient
+	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
+	LLMUsageRecord *LLMUsageRecordClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// NotificationRecord is the client for interacting with the NotificationRecord builders.
@@ -216,6 +219,7 @@ func (c *Client) init() {
 	c.Fileupload = NewFileuploadClient(c.config)
 	c.Form = NewFormClient(c.config)
 	c.Instruct = NewInstructClient(c.config)
+	c.LLMUsageRecord = NewLLMUsageRecordClient(c.config)
 	c.Message = NewMessageClient(c.config)
 	c.NotificationRecord = NewNotificationRecordClient(c.config)
 	c.NotifyChannel = NewNotifyChannelClient(c.config)
@@ -360,6 +364,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Fileupload:                NewFileuploadClient(cfg),
 		Form:                      NewFormClient(cfg),
 		Instruct:                  NewInstructClient(cfg),
+		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		Message:                   NewMessageClient(cfg),
 		NotificationRecord:        NewNotificationRecordClient(cfg),
 		NotifyChannel:             NewNotifyChannelClient(cfg),
@@ -431,6 +436,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Fileupload:                NewFileuploadClient(cfg),
 		Form:                      NewFormClient(cfg),
 		Instruct:                  NewInstructClient(cfg),
+		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		Message:                   NewMessageClient(cfg),
 		NotificationRecord:        NewNotificationRecordClient(cfg),
 		NotifyChannel:             NewNotifyChannelClient(cfg),
@@ -489,10 +495,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.CapabilityBinding, c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun,
 		c.ChatSession, c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
-		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
+		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
+		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
 		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
 		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
@@ -509,10 +515,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.CapabilityBinding, c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun,
 		c.ChatSession, c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.Message, c.NotificationRecord,
-		c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page, c.PageData, c.Parameter,
-		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
-		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
+		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
+		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
 		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
 		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
@@ -579,6 +585,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Form.mutate(ctx, m)
 	case *InstructMutation:
 		return c.Instruct.mutate(ctx, m)
+	case *LLMUsageRecordMutation:
+		return c.LLMUsageRecord.mutate(ctx, m)
 	case *MessageMutation:
 		return c.Message.mutate(ctx, m)
 	case *NotificationRecordMutation:
@@ -4356,6 +4364,139 @@ func (c *InstructClient) mutate(ctx context.Context, m *InstructMutation) (Value
 	}
 }
 
+// LLMUsageRecordClient is a client for the LLMUsageRecord schema.
+type LLMUsageRecordClient struct {
+	config
+}
+
+// NewLLMUsageRecordClient returns a client for the LLMUsageRecord from the given config.
+func NewLLMUsageRecordClient(c config) *LLMUsageRecordClient {
+	return &LLMUsageRecordClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `llmusagerecord.Hooks(f(g(h())))`.
+func (c *LLMUsageRecordClient) Use(hooks ...Hook) {
+	c.hooks.LLMUsageRecord = append(c.hooks.LLMUsageRecord, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `llmusagerecord.Intercept(f(g(h())))`.
+func (c *LLMUsageRecordClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LLMUsageRecord = append(c.inters.LLMUsageRecord, interceptors...)
+}
+
+// Create returns a builder for creating a LLMUsageRecord entity.
+func (c *LLMUsageRecordClient) Create() *LLMUsageRecordCreate {
+	mutation := newLLMUsageRecordMutation(c.config, OpCreate)
+	return &LLMUsageRecordCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LLMUsageRecord entities.
+func (c *LLMUsageRecordClient) CreateBulk(builders ...*LLMUsageRecordCreate) *LLMUsageRecordCreateBulk {
+	return &LLMUsageRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LLMUsageRecordClient) MapCreateBulk(slice any, setFunc func(*LLMUsageRecordCreate, int)) *LLMUsageRecordCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LLMUsageRecordCreateBulk{err: fmt.Errorf("calling to LLMUsageRecordClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LLMUsageRecordCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LLMUsageRecordCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LLMUsageRecord.
+func (c *LLMUsageRecordClient) Update() *LLMUsageRecordUpdate {
+	mutation := newLLMUsageRecordMutation(c.config, OpUpdate)
+	return &LLMUsageRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LLMUsageRecordClient) UpdateOne(_m *LLMUsageRecord) *LLMUsageRecordUpdateOne {
+	mutation := newLLMUsageRecordMutation(c.config, OpUpdateOne, withLLMUsageRecord(_m))
+	return &LLMUsageRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LLMUsageRecordClient) UpdateOneID(id int64) *LLMUsageRecordUpdateOne {
+	mutation := newLLMUsageRecordMutation(c.config, OpUpdateOne, withLLMUsageRecordID(id))
+	return &LLMUsageRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LLMUsageRecord.
+func (c *LLMUsageRecordClient) Delete() *LLMUsageRecordDelete {
+	mutation := newLLMUsageRecordMutation(c.config, OpDelete)
+	return &LLMUsageRecordDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LLMUsageRecordClient) DeleteOne(_m *LLMUsageRecord) *LLMUsageRecordDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LLMUsageRecordClient) DeleteOneID(id int64) *LLMUsageRecordDeleteOne {
+	builder := c.Delete().Where(llmusagerecord.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LLMUsageRecordDeleteOne{builder}
+}
+
+// Query returns a query builder for LLMUsageRecord.
+func (c *LLMUsageRecordClient) Query() *LLMUsageRecordQuery {
+	return &LLMUsageRecordQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLLMUsageRecord},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LLMUsageRecord entity by its id.
+func (c *LLMUsageRecordClient) Get(ctx context.Context, id int64) (*LLMUsageRecord, error) {
+	return c.Query().Where(llmusagerecord.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LLMUsageRecordClient) GetX(ctx context.Context, id int64) *LLMUsageRecord {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LLMUsageRecordClient) Hooks() []Hook {
+	return c.hooks.LLMUsageRecord
+}
+
+// Interceptors returns the client interceptors.
+func (c *LLMUsageRecordClient) Interceptors() []Interceptor {
+	return c.inters.LLMUsageRecord
+}
+
+func (c *LLMUsageRecordClient) mutate(ctx context.Context, m *LLMUsageRecordMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LLMUsageRecordCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LLMUsageRecordUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LLMUsageRecordUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LLMUsageRecordDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LLMUsageRecord mutation op: %q", m.Op())
+	}
+}
+
 // MessageClient is a client for the Message schema.
 type MessageClient struct {
 	config
@@ -7555,8 +7696,8 @@ type (
 		App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
+		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
 		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
 		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
 		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
@@ -7567,8 +7708,8 @@ type (
 		App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
+		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
+		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
 		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
 		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
 		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,

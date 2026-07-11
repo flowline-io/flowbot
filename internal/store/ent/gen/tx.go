@@ -68,6 +68,8 @@ type Tx struct {
 	Form *FormClient
 	// Instruct is the client for interacting with the Instruct builders.
 	Instruct *InstructClient
+	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
+	LLMUsageRecord *LLMUsageRecordClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// NotificationRecord is the client for interacting with the NotificationRecord builders.
@@ -275,6 +277,7 @@ func (tx *Tx) init() {
 	tx.Fileupload = NewFileuploadClient(tx.config)
 	tx.Form = NewFormClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)
+	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.NotificationRecord = NewNotificationRecordClient(tx.config)
 	tx.NotifyChannel = NewNotifyChannelClient(tx.config)

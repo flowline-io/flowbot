@@ -345,6 +345,18 @@ func (f InstructFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.InstructMutation", m)
 }
 
+// The LLMUsageRecordFunc type is an adapter to allow the use of ordinary
+// function as LLMUsageRecord mutator.
+type LLMUsageRecordFunc func(context.Context, *gen.LLMUsageRecordMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LLMUsageRecordFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LLMUsageRecordMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LLMUsageRecordMutation", m)
+}
+
 // The MessageFunc type is an adapter to allow the use of ordinary
 // function as Message mutator.
 type MessageFunc func(context.Context, *gen.MessageMutation) (gen.Value, error)

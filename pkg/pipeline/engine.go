@@ -287,7 +287,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	if err != nil {
 		return fmt.Errorf("render params step %s: %w", step.Name, err)
 	}
-	injectAgentRunMemoryScope(step, renderedParams, pipelineName)
+	InjectAgentRunDefaults(step, renderedParams, rc, pipelineName)
 
 	if e.callback != nil {
 		e.callback.OnStepStart(ctx, runID, pipelineName, stepIndex, step.Name, renderedParams)
@@ -363,6 +363,12 @@ func injectTags(rc *RenderContext, renderedParams map[string]any) {
 	renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
 }
 
+// InjectAgentRunDefaults applies default uid and memory_scope for agent.run steps.
+func InjectAgentRunDefaults(step Step, renderedParams map[string]any, rc *RenderContext, pipelineName string) {
+	injectAgentRunMemoryScope(step, renderedParams, pipelineName)
+	injectAgentRunUID(step, renderedParams, rc)
+}
+
 func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelineName string) {
 	if step.Capability != hub.CapAgent || step.Operation != ability.OpAgentRun {
 		return
@@ -376,6 +382,25 @@ func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelin
 		}
 	}
 	renderedParams["memory_scope"] = pipelineName
+}
+
+func injectAgentRunUID(step Step, renderedParams map[string]any, rc *RenderContext) {
+	if step.Capability != hub.CapAgent || step.Operation != ability.OpAgentRun {
+		return
+	}
+	if renderedParams == nil || rc == nil {
+		return
+	}
+	if raw, ok := renderedParams["uid"]; ok && raw != nil {
+		if uid, ok := raw.(string); ok && strings.TrimSpace(uid) != "" {
+			return
+		}
+	}
+	uid := strings.TrimSpace(rc.Event.UID)
+	if uid == "" {
+		return
+	}
+	renderedParams["uid"] = uid
 }
 
 // saveResourceLink records a resource link when a capability step reports a created resource.

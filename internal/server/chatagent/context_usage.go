@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // ContextCategoryInfo is one row in the context usage breakdown.
@@ -148,7 +149,7 @@ func estimateSessionMessageTokens(ctx context.Context, sessionID string) (int, e
 	if sessionID == "" || store.Database == nil {
 		return 0, nil
 	}
-	storage := NewDBStorage(sessionID)
+	storage := NewDBStorage(sessionID, types.Uid(""), "")
 	branch, err := storage.GetBranch(ctx, "")
 	if err != nil {
 		return 0, nil

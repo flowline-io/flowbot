@@ -172,6 +172,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 		text += auditNote
 	}
 	completeSubagentTask(ctx, taskRecord, text)
+	RecordLLMUsageMessages(ctx, t.deps.UID, t.deps.SessionID, types.TokenUsageSourceSubagent, result.Messages)
 	return msg.ToolResultMessage{
 		ToolCallID: id,
 		Name:       taskToolName,

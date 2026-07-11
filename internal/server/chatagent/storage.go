@@ -8,18 +8,27 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // DBStorage persists agent session trees in PostgreSQL.
 type DBStorage struct {
-	sessionID string
+	sessionID   string
+	uid         types.Uid
+	usageSource string
 }
 
-// NewDBStorage creates a session storage adapter for the given session flag.
-func NewDBStorage(sessionID string) *DBStorage {
-	return &DBStorage{sessionID: sessionID}
+// NewDBStorage creates a session storage adapter for the given session flag, owner uid, and usage source.
+func NewDBStorage(sessionID string, uid types.Uid, usageSource string) *DBStorage {
+	return &DBStorage{
+		sessionID:   sessionID,
+		uid:         uid,
+		usageSource: types.NormalizeTokenUsageSource(usageSource),
+	}
 }
 
 // Append stores a tree entry and updates the session leaf pointer.
@@ -45,9 +54,21 @@ func (s *DBStorage) Append(ctx context.Context, entry session.TreeEntry) error {
 			s.sessionID, entry.ID, entry.Type, err))
 		return err
 	}
+	s.recordLLMUsage(ctx, entry)
 	flog.Debug("[chat-agent] appended entry session=%s entry=%s type=%s parent=%s",
 		s.sessionID, entry.ID, entry.Type, entry.ParentID)
 	return nil
+}
+
+func (s *DBStorage) recordLLMUsage(ctx context.Context, entry session.TreeEntry) {
+	if s.uid.IsZero() || entry.Message == nil {
+		return
+	}
+	assistant, ok := entry.Message.(msg.AssistantMessage)
+	if !ok || assistant.Usage == nil {
+		return
+	}
+	RecordLLMUsageMessages(ctx, s.uid, s.sessionID, s.usageSource, []agent.AgentMessage{assistant})
 }
 
 // GetBranch returns the ordered path from root to the requested leaf.

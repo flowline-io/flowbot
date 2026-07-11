@@ -39,6 +39,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
@@ -103,6 +104,7 @@ const (
 	TypeFileupload                = "Fileupload"
 	TypeForm                      = "Form"
 	TypeInstruct                  = "Instruct"
+	TypeLLMUsageRecord            = "LLMUsageRecord"
 	TypeMessage                   = "Message"
 	TypeNotificationRecord        = "NotificationRecord"
 	TypeNotifyChannel             = "NotifyChannel"
@@ -20400,6 +20402,992 @@ func (m *InstructMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *InstructMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Instruct edge %s", name)
+}
+
+// LLMUsageRecordMutation represents an operation that mutates the LLMUsageRecord nodes in the graph.
+type LLMUsageRecordMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *int64
+	uid                  *string
+	session_id           *string
+	model                *string
+	prompt_tokens        *int
+	addprompt_tokens     *int
+	completion_tokens    *int
+	addcompletion_tokens *int
+	total_tokens         *int
+	addtotal_tokens      *int
+	cache_read           *int
+	addcache_read        *int
+	cache_write          *int
+	addcache_write       *int
+	source               *string
+	created_at           *time.Time
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*LLMUsageRecord, error)
+	predicates           []predicate.LLMUsageRecord
+}
+
+var _ ent.Mutation = (*LLMUsageRecordMutation)(nil)
+
+// llmusagerecordOption allows management of the mutation configuration using functional options.
+type llmusagerecordOption func(*LLMUsageRecordMutation)
+
+// newLLMUsageRecordMutation creates new mutation for the LLMUsageRecord entity.
+func newLLMUsageRecordMutation(c config, op Op, opts ...llmusagerecordOption) *LLMUsageRecordMutation {
+	m := &LLMUsageRecordMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLLMUsageRecord,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLLMUsageRecordID sets the ID field of the mutation.
+func withLLMUsageRecordID(id int64) llmusagerecordOption {
+	return func(m *LLMUsageRecordMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LLMUsageRecord
+		)
+		m.oldValue = func(ctx context.Context) (*LLMUsageRecord, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LLMUsageRecord.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLLMUsageRecord sets the old LLMUsageRecord of the mutation.
+func withLLMUsageRecord(node *LLMUsageRecord) llmusagerecordOption {
+	return func(m *LLMUsageRecordMutation) {
+		m.oldValue = func(context.Context) (*LLMUsageRecord, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LLMUsageRecordMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LLMUsageRecordMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LLMUsageRecord entities.
+func (m *LLMUsageRecordMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LLMUsageRecordMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LLMUsageRecordMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LLMUsageRecord.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUID sets the "uid" field.
+func (m *LLMUsageRecordMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *LLMUsageRecordMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *LLMUsageRecordMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetSessionID sets the "session_id" field.
+func (m *LLMUsageRecordMutation) SetSessionID(s string) {
+	m.session_id = &s
+}
+
+// SessionID returns the value of the "session_id" field in the mutation.
+func (m *LLMUsageRecordMutation) SessionID() (r string, exists bool) {
+	v := m.session_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSessionID returns the old "session_id" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldSessionID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSessionID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSessionID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSessionID: %w", err)
+	}
+	return oldValue.SessionID, nil
+}
+
+// ResetSessionID resets all changes to the "session_id" field.
+func (m *LLMUsageRecordMutation) ResetSessionID() {
+	m.session_id = nil
+}
+
+// SetModel sets the "model" field.
+func (m *LLMUsageRecordMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *LLMUsageRecordMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *LLMUsageRecordMutation) ResetModel() {
+	m.model = nil
+}
+
+// SetPromptTokens sets the "prompt_tokens" field.
+func (m *LLMUsageRecordMutation) SetPromptTokens(i int) {
+	m.prompt_tokens = &i
+	m.addprompt_tokens = nil
+}
+
+// PromptTokens returns the value of the "prompt_tokens" field in the mutation.
+func (m *LLMUsageRecordMutation) PromptTokens() (r int, exists bool) {
+	v := m.prompt_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPromptTokens returns the old "prompt_tokens" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldPromptTokens(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPromptTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPromptTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPromptTokens: %w", err)
+	}
+	return oldValue.PromptTokens, nil
+}
+
+// AddPromptTokens adds i to the "prompt_tokens" field.
+func (m *LLMUsageRecordMutation) AddPromptTokens(i int) {
+	if m.addprompt_tokens != nil {
+		*m.addprompt_tokens += i
+	} else {
+		m.addprompt_tokens = &i
+	}
+}
+
+// AddedPromptTokens returns the value that was added to the "prompt_tokens" field in this mutation.
+func (m *LLMUsageRecordMutation) AddedPromptTokens() (r int, exists bool) {
+	v := m.addprompt_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPromptTokens resets all changes to the "prompt_tokens" field.
+func (m *LLMUsageRecordMutation) ResetPromptTokens() {
+	m.prompt_tokens = nil
+	m.addprompt_tokens = nil
+}
+
+// SetCompletionTokens sets the "completion_tokens" field.
+func (m *LLMUsageRecordMutation) SetCompletionTokens(i int) {
+	m.completion_tokens = &i
+	m.addcompletion_tokens = nil
+}
+
+// CompletionTokens returns the value of the "completion_tokens" field in the mutation.
+func (m *LLMUsageRecordMutation) CompletionTokens() (r int, exists bool) {
+	v := m.completion_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletionTokens returns the old "completion_tokens" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldCompletionTokens(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletionTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletionTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletionTokens: %w", err)
+	}
+	return oldValue.CompletionTokens, nil
+}
+
+// AddCompletionTokens adds i to the "completion_tokens" field.
+func (m *LLMUsageRecordMutation) AddCompletionTokens(i int) {
+	if m.addcompletion_tokens != nil {
+		*m.addcompletion_tokens += i
+	} else {
+		m.addcompletion_tokens = &i
+	}
+}
+
+// AddedCompletionTokens returns the value that was added to the "completion_tokens" field in this mutation.
+func (m *LLMUsageRecordMutation) AddedCompletionTokens() (r int, exists bool) {
+	v := m.addcompletion_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCompletionTokens resets all changes to the "completion_tokens" field.
+func (m *LLMUsageRecordMutation) ResetCompletionTokens() {
+	m.completion_tokens = nil
+	m.addcompletion_tokens = nil
+}
+
+// SetTotalTokens sets the "total_tokens" field.
+func (m *LLMUsageRecordMutation) SetTotalTokens(i int) {
+	m.total_tokens = &i
+	m.addtotal_tokens = nil
+}
+
+// TotalTokens returns the value of the "total_tokens" field in the mutation.
+func (m *LLMUsageRecordMutation) TotalTokens() (r int, exists bool) {
+	v := m.total_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalTokens returns the old "total_tokens" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldTotalTokens(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalTokens is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalTokens requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalTokens: %w", err)
+	}
+	return oldValue.TotalTokens, nil
+}
+
+// AddTotalTokens adds i to the "total_tokens" field.
+func (m *LLMUsageRecordMutation) AddTotalTokens(i int) {
+	if m.addtotal_tokens != nil {
+		*m.addtotal_tokens += i
+	} else {
+		m.addtotal_tokens = &i
+	}
+}
+
+// AddedTotalTokens returns the value that was added to the "total_tokens" field in this mutation.
+func (m *LLMUsageRecordMutation) AddedTotalTokens() (r int, exists bool) {
+	v := m.addtotal_tokens
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalTokens resets all changes to the "total_tokens" field.
+func (m *LLMUsageRecordMutation) ResetTotalTokens() {
+	m.total_tokens = nil
+	m.addtotal_tokens = nil
+}
+
+// SetCacheRead sets the "cache_read" field.
+func (m *LLMUsageRecordMutation) SetCacheRead(i int) {
+	m.cache_read = &i
+	m.addcache_read = nil
+}
+
+// CacheRead returns the value of the "cache_read" field in the mutation.
+func (m *LLMUsageRecordMutation) CacheRead() (r int, exists bool) {
+	v := m.cache_read
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCacheRead returns the old "cache_read" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldCacheRead(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCacheRead is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCacheRead requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCacheRead: %w", err)
+	}
+	return oldValue.CacheRead, nil
+}
+
+// AddCacheRead adds i to the "cache_read" field.
+func (m *LLMUsageRecordMutation) AddCacheRead(i int) {
+	if m.addcache_read != nil {
+		*m.addcache_read += i
+	} else {
+		m.addcache_read = &i
+	}
+}
+
+// AddedCacheRead returns the value that was added to the "cache_read" field in this mutation.
+func (m *LLMUsageRecordMutation) AddedCacheRead() (r int, exists bool) {
+	v := m.addcache_read
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCacheRead resets all changes to the "cache_read" field.
+func (m *LLMUsageRecordMutation) ResetCacheRead() {
+	m.cache_read = nil
+	m.addcache_read = nil
+}
+
+// SetCacheWrite sets the "cache_write" field.
+func (m *LLMUsageRecordMutation) SetCacheWrite(i int) {
+	m.cache_write = &i
+	m.addcache_write = nil
+}
+
+// CacheWrite returns the value of the "cache_write" field in the mutation.
+func (m *LLMUsageRecordMutation) CacheWrite() (r int, exists bool) {
+	v := m.cache_write
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCacheWrite returns the old "cache_write" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldCacheWrite(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCacheWrite is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCacheWrite requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCacheWrite: %w", err)
+	}
+	return oldValue.CacheWrite, nil
+}
+
+// AddCacheWrite adds i to the "cache_write" field.
+func (m *LLMUsageRecordMutation) AddCacheWrite(i int) {
+	if m.addcache_write != nil {
+		*m.addcache_write += i
+	} else {
+		m.addcache_write = &i
+	}
+}
+
+// AddedCacheWrite returns the value that was added to the "cache_write" field in this mutation.
+func (m *LLMUsageRecordMutation) AddedCacheWrite() (r int, exists bool) {
+	v := m.addcache_write
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCacheWrite resets all changes to the "cache_write" field.
+func (m *LLMUsageRecordMutation) ResetCacheWrite() {
+	m.cache_write = nil
+	m.addcache_write = nil
+}
+
+// SetSource sets the "source" field.
+func (m *LLMUsageRecordMutation) SetSource(s string) {
+	m.source = &s
+}
+
+// Source returns the value of the "source" field in the mutation.
+func (m *LLMUsageRecordMutation) Source() (r string, exists bool) {
+	v := m.source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSource returns the old "source" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSource: %w", err)
+	}
+	return oldValue.Source, nil
+}
+
+// ResetSource resets all changes to the "source" field.
+func (m *LLMUsageRecordMutation) ResetSource() {
+	m.source = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LLMUsageRecordMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LLMUsageRecordMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LLMUsageRecord entity.
+// If the LLMUsageRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LLMUsageRecordMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LLMUsageRecordMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the LLMUsageRecordMutation builder.
+func (m *LLMUsageRecordMutation) Where(ps ...predicate.LLMUsageRecord) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LLMUsageRecordMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LLMUsageRecordMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LLMUsageRecord, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LLMUsageRecordMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LLMUsageRecordMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LLMUsageRecord).
+func (m *LLMUsageRecordMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LLMUsageRecordMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.uid != nil {
+		fields = append(fields, llmusagerecord.FieldUID)
+	}
+	if m.session_id != nil {
+		fields = append(fields, llmusagerecord.FieldSessionID)
+	}
+	if m.model != nil {
+		fields = append(fields, llmusagerecord.FieldModel)
+	}
+	if m.prompt_tokens != nil {
+		fields = append(fields, llmusagerecord.FieldPromptTokens)
+	}
+	if m.completion_tokens != nil {
+		fields = append(fields, llmusagerecord.FieldCompletionTokens)
+	}
+	if m.total_tokens != nil {
+		fields = append(fields, llmusagerecord.FieldTotalTokens)
+	}
+	if m.cache_read != nil {
+		fields = append(fields, llmusagerecord.FieldCacheRead)
+	}
+	if m.cache_write != nil {
+		fields = append(fields, llmusagerecord.FieldCacheWrite)
+	}
+	if m.source != nil {
+		fields = append(fields, llmusagerecord.FieldSource)
+	}
+	if m.created_at != nil {
+		fields = append(fields, llmusagerecord.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LLMUsageRecordMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case llmusagerecord.FieldUID:
+		return m.UID()
+	case llmusagerecord.FieldSessionID:
+		return m.SessionID()
+	case llmusagerecord.FieldModel:
+		return m.Model()
+	case llmusagerecord.FieldPromptTokens:
+		return m.PromptTokens()
+	case llmusagerecord.FieldCompletionTokens:
+		return m.CompletionTokens()
+	case llmusagerecord.FieldTotalTokens:
+		return m.TotalTokens()
+	case llmusagerecord.FieldCacheRead:
+		return m.CacheRead()
+	case llmusagerecord.FieldCacheWrite:
+		return m.CacheWrite()
+	case llmusagerecord.FieldSource:
+		return m.Source()
+	case llmusagerecord.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LLMUsageRecordMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case llmusagerecord.FieldUID:
+		return m.OldUID(ctx)
+	case llmusagerecord.FieldSessionID:
+		return m.OldSessionID(ctx)
+	case llmusagerecord.FieldModel:
+		return m.OldModel(ctx)
+	case llmusagerecord.FieldPromptTokens:
+		return m.OldPromptTokens(ctx)
+	case llmusagerecord.FieldCompletionTokens:
+		return m.OldCompletionTokens(ctx)
+	case llmusagerecord.FieldTotalTokens:
+		return m.OldTotalTokens(ctx)
+	case llmusagerecord.FieldCacheRead:
+		return m.OldCacheRead(ctx)
+	case llmusagerecord.FieldCacheWrite:
+		return m.OldCacheWrite(ctx)
+	case llmusagerecord.FieldSource:
+		return m.OldSource(ctx)
+	case llmusagerecord.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LLMUsageRecord field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LLMUsageRecordMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case llmusagerecord.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case llmusagerecord.FieldSessionID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSessionID(v)
+		return nil
+	case llmusagerecord.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case llmusagerecord.FieldPromptTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPromptTokens(v)
+		return nil
+	case llmusagerecord.FieldCompletionTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletionTokens(v)
+		return nil
+	case llmusagerecord.FieldTotalTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalTokens(v)
+		return nil
+	case llmusagerecord.FieldCacheRead:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCacheRead(v)
+		return nil
+	case llmusagerecord.FieldCacheWrite:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCacheWrite(v)
+		return nil
+	case llmusagerecord.FieldSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSource(v)
+		return nil
+	case llmusagerecord.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LLMUsageRecord field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LLMUsageRecordMutation) AddedFields() []string {
+	var fields []string
+	if m.addprompt_tokens != nil {
+		fields = append(fields, llmusagerecord.FieldPromptTokens)
+	}
+	if m.addcompletion_tokens != nil {
+		fields = append(fields, llmusagerecord.FieldCompletionTokens)
+	}
+	if m.addtotal_tokens != nil {
+		fields = append(fields, llmusagerecord.FieldTotalTokens)
+	}
+	if m.addcache_read != nil {
+		fields = append(fields, llmusagerecord.FieldCacheRead)
+	}
+	if m.addcache_write != nil {
+		fields = append(fields, llmusagerecord.FieldCacheWrite)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LLMUsageRecordMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case llmusagerecord.FieldPromptTokens:
+		return m.AddedPromptTokens()
+	case llmusagerecord.FieldCompletionTokens:
+		return m.AddedCompletionTokens()
+	case llmusagerecord.FieldTotalTokens:
+		return m.AddedTotalTokens()
+	case llmusagerecord.FieldCacheRead:
+		return m.AddedCacheRead()
+	case llmusagerecord.FieldCacheWrite:
+		return m.AddedCacheWrite()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LLMUsageRecordMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case llmusagerecord.FieldPromptTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPromptTokens(v)
+		return nil
+	case llmusagerecord.FieldCompletionTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCompletionTokens(v)
+		return nil
+	case llmusagerecord.FieldTotalTokens:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalTokens(v)
+		return nil
+	case llmusagerecord.FieldCacheRead:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCacheRead(v)
+		return nil
+	case llmusagerecord.FieldCacheWrite:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCacheWrite(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LLMUsageRecord numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LLMUsageRecordMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LLMUsageRecordMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LLMUsageRecordMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LLMUsageRecord nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LLMUsageRecordMutation) ResetField(name string) error {
+	switch name {
+	case llmusagerecord.FieldUID:
+		m.ResetUID()
+		return nil
+	case llmusagerecord.FieldSessionID:
+		m.ResetSessionID()
+		return nil
+	case llmusagerecord.FieldModel:
+		m.ResetModel()
+		return nil
+	case llmusagerecord.FieldPromptTokens:
+		m.ResetPromptTokens()
+		return nil
+	case llmusagerecord.FieldCompletionTokens:
+		m.ResetCompletionTokens()
+		return nil
+	case llmusagerecord.FieldTotalTokens:
+		m.ResetTotalTokens()
+		return nil
+	case llmusagerecord.FieldCacheRead:
+		m.ResetCacheRead()
+		return nil
+	case llmusagerecord.FieldCacheWrite:
+		m.ResetCacheWrite()
+		return nil
+	case llmusagerecord.FieldSource:
+		m.ResetSource()
+		return nil
+	case llmusagerecord.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LLMUsageRecord field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LLMUsageRecordMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LLMUsageRecordMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LLMUsageRecordMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LLMUsageRecordMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LLMUsageRecordMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LLMUsageRecordMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LLMUsageRecordMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LLMUsageRecord unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LLMUsageRecordMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LLMUsageRecord edge %s", name)
 }
 
 // MessageMutation represents an operation that mutates the Message nodes in the graph.

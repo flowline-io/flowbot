@@ -1,0 +1,184 @@
+package partials
+
+import (
+	"fmt"
+	"net/url"
+
+	"github.com/bytedance/sonic"
+
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+templ TokenUsage(stats *types.TokenUsageStats) {
+	<div id="token-usage-container" class="card bg-base-100 shadow-sm mb-6" data-testid="token-usage-container">
+		<div class="card-body p-4 sm:p-6">
+			<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
+				<div>
+					<h2 class="text-xl font-bold text-base-content">Token Usage</h2>
+					<p class="text-sm text-base-content/60">Your usage per day across this period</p>
+				</div>
+				<div id="token-usage-filter-fields">
+					if stats.ActiveRange == "custom" {
+						<input type="hidden" name="since" value={ stats.PeriodStart }/>
+						<input type="hidden" name="until" value={ stats.PeriodEnd }/>
+					} else {
+						<input type="hidden" name="range" value={ stats.ActiveRange }/>
+					}
+					<div class="flex flex-wrap items-center gap-2">
+						<label class="text-sm text-base-content/70">
+							Group By
+							<select
+								class="select select-bordered select-sm ml-1"
+								name="groupBy"
+								data-testid="token-usage-groupby"
+								hx-get="/service/web/home/token-usage"
+								hx-include="#token-usage-filter-fields"
+								hx-target="#token-usage-container"
+								hx-swap="outerHTML">
+								<option value="model" selected?={ stats.GroupBy == "model" }>Model</option>
+								<option value="usage_type" selected?={ stats.GroupBy == "usage_type" }>Usage Type</option>
+							</select>
+						</label>
+						<label class="text-sm text-base-content/70">
+							Metric
+							<select class="select select-bordered select-sm ml-1" disabled data-testid="token-usage-metric">
+								<option selected>Tokens</option>
+							</select>
+						</label>
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-wrap items-center gap-3 mb-4">
+				<details class="dropdown">
+					<summary class="btn btn-sm btn-outline" data-testid="token-usage-date-range">{ stats.RangeLabel }</summary>
+					<div class="dropdown-content z-10 menu p-4 shadow bg-base-100 rounded-box w-72 mt-1 border border-base-300">
+						<form id="token-usage-date-form"
+							class="flex flex-col gap-2"
+							hx-get="/service/web/home/token-usage"
+							hx-target="#token-usage-container"
+							hx-swap="outerHTML">
+							<input type="hidden" name="groupBy" value={ stats.GroupBy }/>
+							<label class="form-control">
+								<span class="label-text text-xs">Since (UTC)</span>
+								<input type="date" name="since" class="input input-bordered input-sm" value={ stats.PeriodStart } required/>
+							</label>
+							<label class="form-control">
+								<span class="label-text text-xs">Until (UTC)</span>
+								<input type="date" name="until" class="input input-bordered input-sm" value={ stats.PeriodEnd } required/>
+							</label>
+							<button type="submit" class="btn btn-sm btn-primary mt-1" data-testid="token-usage-apply-dates">Apply</button>
+						</form>
+					</div>
+				</details>
+				<span class="text-base-content/40 cursor-help" title="Stats from new LLM calls after deploy; dates are UTC." data-testid="token-usage-info">&#9432;</span>
+				<div class="join" data-testid="token-usage-range-tabs">
+					<button type="button"
+						class={ tokenUsageRangeBtnClass(stats.ActiveRange, "1d") }
+						hx-get={ buildTokenUsageURL("1d", stats.GroupBy, "", "") }
+						hx-target="#token-usage-container"
+						hx-swap="outerHTML"
+						data-testid="btn-range-1d">1d</button>
+					<button type="button"
+						class={ tokenUsageRangeBtnClass(stats.ActiveRange, "7d") }
+						hx-get={ buildTokenUsageURL("7d", stats.GroupBy, "", "") }
+						hx-target="#token-usage-container"
+						hx-swap="outerHTML"
+						data-testid="btn-range-7d">7d</button>
+					<button type="button"
+						class={ tokenUsageRangeBtnClass(stats.ActiveRange, "30d") }
+						hx-get={ buildTokenUsageURL("30d", stats.GroupBy, "", "") }
+						hx-target="#token-usage-container"
+						hx-swap="outerHTML"
+						data-testid="btn-range-30d">30d</button>
+					<button type="button"
+						class={ tokenUsageRangeBtnClass(stats.ActiveRange, "mtd") }
+						hx-get={ buildTokenUsageURL("mtd", stats.GroupBy, "", "") }
+						hx-target="#token-usage-container"
+						hx-swap="outerHTML"
+						data-testid="btn-range-mtd">MTD</button>
+					<button type="button"
+						class={ tokenUsageRangeBtnClass(stats.ActiveRange, "last_month") }
+						hx-get={ buildTokenUsageURL("last_month", stats.GroupBy, "", "") }
+						hx-target="#token-usage-container"
+						hx-swap="outerHTML"
+						data-testid="btn-range-last-month">Last month</button>
+				</div>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" data-testid="token-usage-summary">
+				<div class="stat bg-base-100 shadow-sm rounded-box px-4 py-3 border border-base-200">
+					<div class="stat-title text-xs">Total Tokens</div>
+					<div class="stat-value text-2xl text-primary">{ formatTokenCount(stats.Summary.TotalTokens) }</div>
+				</div>
+				<div class="stat bg-base-100 shadow-sm rounded-box px-4 py-3 border border-base-200">
+					<div class="stat-title text-xs">Prompt Tokens</div>
+					<div class="stat-value text-2xl text-base-content">{ formatTokenCount(stats.Summary.PromptTokens) }</div>
+				</div>
+				<div class="stat bg-base-100 shadow-sm rounded-box px-4 py-3 border border-base-200">
+					<div class="stat-title text-xs">Completion Tokens</div>
+					<div class="stat-value text-2xl text-base-content">{ formatTokenCount(stats.Summary.CompletionTokens) }</div>
+				</div>
+			</div>
+			if len(stats.Series) == 0 {
+				@EmptyState("No usage recorded yet. Start a conversation in Agents to see stats here.")
+			} else {
+				<div class="card bg-base-100 border border-base-200" data-testid="token-usage-chart-card">
+					<div class="card-body p-4">
+						<h3 class="card-title text-sm text-base-content/70">Cumulative Tokens</h3>
+						<div class="relative w-full" style="height:280px" data-testid="token-usage-chart-wrap">
+							<div id="token-usage-today-marker" class="pointer-events-none absolute top-0 bottom-8 w-px border-l border-dashed border-base-content/30 hidden" data-testid="token-usage-today-marker"></div>
+							<span id="token-usage-today-label" class="pointer-events-none absolute text-xs text-base-content/50 hidden" data-testid="token-usage-today-label">Today</span>
+							<canvas id="token-usage-chart"
+								data-stats={ tokenUsageJSON(stats) }
+								data-chart-type="area"></canvas>
+						</div>
+						<div class="flex flex-wrap gap-3 mt-2 text-xs text-base-content/70" data-testid="token-usage-legend">
+							for _, series := range stats.Series {
+								<span>{ series.Label }</span>
+							}
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+func tokenUsageJSON(stats *types.TokenUsageStats) string {
+	b, _ := sonic.Marshal(stats)
+	return string(b)
+}
+
+func buildTokenUsageURL(activeRange, groupBy, since, until string) string {
+	q := url.Values{}
+	q.Set("groupBy", groupBy)
+	if since != "" && until != "" {
+		q.Set("since", since)
+		q.Set("until", until)
+	} else {
+		if activeRange == "" {
+			activeRange = "7d"
+		}
+		q.Set("range", activeRange)
+	}
+	return "/service/web/home/token-usage?" + q.Encode()
+}
+
+func tokenUsageRangeBtnClass(activeRange, preset string) string {
+	if activeRange == preset {
+		return "join-item btn btn-sm btn-active"
+	}
+	return "join-item btn btn-sm"
+}
+
+func formatTokenCount(n int64) string {
+	switch {
+	case n >= 1_000_000_000:
+		return fmt.Sprintf("%.1fB", float64(n)/1_000_000_000)
+	case n >= 1_000_000:
+		return fmt.Sprintf("%.1fM", float64(n)/1_000_000)
+	case n >= 1_000:
+		return fmt.Sprintf("%.1fK", float64(n)/1_000)
+	default:
+		return fmt.Sprint(n)
+	}
+}

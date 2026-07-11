@@ -40,6 +40,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
@@ -152,6 +153,7 @@ func checkColumn(t, c string) error {
 			fileupload.Table:                fileupload.ValidColumn,
 			form.Table:                      form.ValidColumn,
 			instruct.Table:                  instruct.ValidColumn,
+			llmusagerecord.Table:            llmusagerecord.ValidColumn,
 			message.Table:                   message.ValidColumn,
 			notificationrecord.Table:        notificationrecord.ValidColumn,
 			notifychannel.Table:             notifychannel.ValidColumn,

@@ -33,6 +33,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
@@ -902,6 +903,48 @@ func init() {
 	instruct.DefaultUpdatedAt = instructDescUpdatedAt.Default.(func() time.Time)
 	// instruct.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	instruct.UpdateDefaultUpdatedAt = instructDescUpdatedAt.UpdateDefault.(func() time.Time)
+	llmusagerecordFields := schema.LLMUsageRecord{}.Fields()
+	_ = llmusagerecordFields
+	// llmusagerecordDescUID is the schema descriptor for uid field.
+	llmusagerecordDescUID := llmusagerecordFields[1].Descriptor()
+	// llmusagerecord.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	llmusagerecord.UIDValidator = llmusagerecordDescUID.Validators[0].(func(string) error)
+	// llmusagerecordDescSessionID is the schema descriptor for session_id field.
+	llmusagerecordDescSessionID := llmusagerecordFields[2].Descriptor()
+	// llmusagerecord.DefaultSessionID holds the default value on creation for the session_id field.
+	llmusagerecord.DefaultSessionID = llmusagerecordDescSessionID.Default.(string)
+	// llmusagerecordDescModel is the schema descriptor for model field.
+	llmusagerecordDescModel := llmusagerecordFields[3].Descriptor()
+	// llmusagerecord.DefaultModel holds the default value on creation for the model field.
+	llmusagerecord.DefaultModel = llmusagerecordDescModel.Default.(string)
+	// llmusagerecordDescPromptTokens is the schema descriptor for prompt_tokens field.
+	llmusagerecordDescPromptTokens := llmusagerecordFields[4].Descriptor()
+	// llmusagerecord.DefaultPromptTokens holds the default value on creation for the prompt_tokens field.
+	llmusagerecord.DefaultPromptTokens = llmusagerecordDescPromptTokens.Default.(int)
+	// llmusagerecordDescCompletionTokens is the schema descriptor for completion_tokens field.
+	llmusagerecordDescCompletionTokens := llmusagerecordFields[5].Descriptor()
+	// llmusagerecord.DefaultCompletionTokens holds the default value on creation for the completion_tokens field.
+	llmusagerecord.DefaultCompletionTokens = llmusagerecordDescCompletionTokens.Default.(int)
+	// llmusagerecordDescTotalTokens is the schema descriptor for total_tokens field.
+	llmusagerecordDescTotalTokens := llmusagerecordFields[6].Descriptor()
+	// llmusagerecord.DefaultTotalTokens holds the default value on creation for the total_tokens field.
+	llmusagerecord.DefaultTotalTokens = llmusagerecordDescTotalTokens.Default.(int)
+	// llmusagerecordDescCacheRead is the schema descriptor for cache_read field.
+	llmusagerecordDescCacheRead := llmusagerecordFields[7].Descriptor()
+	// llmusagerecord.DefaultCacheRead holds the default value on creation for the cache_read field.
+	llmusagerecord.DefaultCacheRead = llmusagerecordDescCacheRead.Default.(int)
+	// llmusagerecordDescCacheWrite is the schema descriptor for cache_write field.
+	llmusagerecordDescCacheWrite := llmusagerecordFields[8].Descriptor()
+	// llmusagerecord.DefaultCacheWrite holds the default value on creation for the cache_write field.
+	llmusagerecord.DefaultCacheWrite = llmusagerecordDescCacheWrite.Default.(int)
+	// llmusagerecordDescSource is the schema descriptor for source field.
+	llmusagerecordDescSource := llmusagerecordFields[9].Descriptor()
+	// llmusagerecord.DefaultSource holds the default value on creation for the source field.
+	llmusagerecord.DefaultSource = llmusagerecordDescSource.Default.(string)
+	// llmusagerecordDescCreatedAt is the schema descriptor for created_at field.
+	llmusagerecordDescCreatedAt := llmusagerecordFields[10].Descriptor()
+	// llmusagerecord.DefaultCreatedAt holds the default value on creation for the created_at field.
+	llmusagerecord.DefaultCreatedAt = llmusagerecordDescCreatedAt.Default.(func() time.Time)
 	messageFields := schema.Message{}.Fields()
 	_ = messageFields
 	// messageDescFlag is the schema descriptor for flag field.
