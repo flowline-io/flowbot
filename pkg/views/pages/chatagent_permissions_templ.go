@@ -9,8 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/flowline-io/flowbot/pkg/views/layout"
+import "github.com/flowline-io/flowbot/pkg/views/partials"
 
-func ChatAgentPermissionsPage(rulesJSON string) templ.Component {
+func ChatAgentPermissionsPage(data partials.PermissionFormPageData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,20 +44,38 @@ func ChatAgentPermissionsPage(rulesJSON string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"mb-4\"><a href=\"/service/web/agent-sessions\" class=\"btn btn-ghost btn-sm\">← Back to Sessions</a></div><div class=\"card bg-base-100 shadow-sm\"><div class=\"card-body\"><h1 class=\"card-title text-2xl\">Chat Agent Permissions</h1><p class=\"text-sm text-base-content/70\">Edit OpenCode-style permission rules stored for your user account.</p><form method=\"post\" action=\"/service/web/chatagent-permissions\" class=\"mt-4 space-y-4\"><label class=\"form-control w-full\"><span class=\"label-text\">Rules JSON</span> <textarea name=\"rules\" class=\"textarea textarea-bordered font-mono text-xs h-96\" data-testid=\"chatagent-permissions-json\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/js/chatagent-permissions.js\"></script> <div class=\"mb-4\"><a href=\"/service/web/agent-sessions\" class=\"btn btn-ghost btn-sm\">← Back to Sessions</a></div><div class=\"card bg-base-100 shadow-sm\"><div class=\"card-body\"><h1 class=\"card-title text-2xl\">Chat Agent Permissions</h1><p class=\"text-sm text-base-content/70\">Edit OpenCode-style permission rules stored for your user account.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(rulesJSON)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/chatagent_permissions.templ`, Line: 17, Col: 139}
+			if data.Errors["_form"] != "" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"alert alert-error text-sm mt-4\" data-testid=\"chatagent-permissions-form-error\"><span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 string
+				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(data.Errors["_form"])
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/chatagent_permissions.templ`, Line: 18, Col: 34}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"mt-4\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</textarea></label><div class=\"flex gap-2\"><button type=\"submit\" class=\"btn btn-primary btn-sm\" data-testid=\"chatagent-permissions-save\">Save</button> <button type=\"submit\" formaction=\"/service/web/chatagent-permissions/reset\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-permissions-reset\">Reset to defaults</button></div></form></div></div>")
+			templ_7745c5c3_Err = partials.ChatAgentPermissionsForm(data).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

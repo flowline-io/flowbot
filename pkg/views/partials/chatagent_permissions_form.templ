@@ -1,0 +1,167 @@
+package partials
+
+import "strconv"
+
+templ permissionPatternRow(key string, idx int, row PermissionPatternRow, errors map[string]string) {
+	<div class="pattern-row flex flex-wrap items-start gap-2">
+		<input
+			type="text"
+			name={ "perm[" + key + "][patterns][" + strconv.Itoa(idx) + "][pattern]" }
+			value={ row.Pattern }
+			data-testid={ "perm-" + key + "-pattern-" + strconv.Itoa(idx) }
+			class={ "input input-bordered input-sm font-mono flex-1 min-w-[12rem] " + PermissionPatternErrorClass(errors, key, idx) }
+			placeholder="git *"
+		/>
+		<select
+			name={ "perm[" + key + "][patterns][" + strconv.Itoa(idx) + "][action]" }
+			data-testid={ "perm-" + key + "-action-" + strconv.Itoa(idx) }
+			class={ "select select-bordered select-sm w-28 " + PermissionPatternActionErrorClass(errors, key, idx) }
+		>
+			<option value="ask" if row.Action == "ask" || row.Action == "" { selected }>ask</option>
+			<option value="allow" if row.Action == "allow" { selected }>allow</option>
+			<option value="deny" if row.Action == "deny" { selected }>deny</option>
+		</select>
+		<button type="button" class="btn btn-ghost btn-sm pattern-row-remove" data-testid={ "perm-" + key + "-remove-" + strconv.Itoa(idx) }>Remove</button>
+		<div class="text-error text-xs w-full">{ PermissionPatternError(errors, key, idx) }</div>
+		<div class="text-error text-xs w-full">{ PermissionPatternActionError(errors, key, idx) }</div>
+	</div>
+}
+
+templ ChatAgentPermissionsForm(data PermissionFormPageData) {
+	<form method="post" action="/service/web/chatagent-permissions" class="space-y-6" data-testid="chatagent-permissions-form">
+		<input type="hidden" name="submit_mode" id="chatagent-permissions-submit-mode" value="form"/>
+
+		<div class="alert alert-info text-sm">
+			<span>Form edits store your override rules only. Keys set to <strong>Inherit default</strong> use the system baseline shown beside each field.</span>
+		</div>
+
+		<div class="space-y-4">
+			<h2 class="text-lg font-semibold">General Permissions</h2>
+			<div class="overflow-x-auto">
+				<table class="table table-sm">
+					<thead>
+						<tr>
+							<th>Permission</th>
+							<th>Default</th>
+							<th>Your setting</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, field := range data.Fields {
+							if !field.Meta.SupportsPatterns {
+								<tr data-testid={ "perm-row-" + field.Meta.Key }>
+									<td>
+										<div class="font-medium">{ field.Meta.Label }</div>
+										<div class="text-xs text-base-content/60">{ field.Meta.Description }</div>
+										if field.IsOverridden {
+											<span class="badge badge-warning badge-xs mt-1">Overridden</span>
+										}
+									</td>
+									<td>
+										<span class="font-mono text-xs">{ field.DefaultSummary }</span>
+									</td>
+									<td>
+										<select
+											name={ "perm[" + field.Meta.Key + "]" }
+											data-testid={ "perm-" + field.Meta.Key + "-action" }
+											class={ "select select-bordered select-sm w-full max-w-xs " + fieldError(data.Errors, "perm."+field.Meta.Key) }
+										>
+											<option value="inherit" if field.SelectedAction == "inherit" { selected }>Inherit default</option>
+											<option value="ask" if field.SelectedAction == "ask" { selected }>ask</option>
+											if !field.Meta.DisallowAllow {
+												<option value="allow" if field.SelectedAction == "allow" { selected }>allow</option>
+											}
+											<option value="deny" if field.SelectedAction == "deny" { selected }>deny</option>
+										</select>
+										<div class="text-error text-xs">{ PermissionFieldError(data.Errors, field.Meta.Key) }</div>
+									</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="space-y-4">
+			<h2 class="text-lg font-semibold">Pattern Permissions</h2>
+			<p class="text-sm text-base-content/70">
+				Overriding a pattern permission replaces all default rules for that key. Add specific patterns to allow, ask, or deny matching targets.
+			</p>
+			for _, field := range data.Fields {
+				if field.Meta.SupportsPatterns {
+					<div class="card bg-base-200/40 border border-base-300" data-testid={ "perm-pattern-" + field.Meta.Key }>
+						<div class="card-body p-4 space-y-3">
+							<div class="flex flex-wrap items-center gap-2">
+								<h3 class="font-medium">{ field.Meta.Label }</h3>
+								if field.IsOverridden {
+									<span class="badge badge-warning badge-xs">Overridden</span>
+								} else {
+									<span class="badge badge-ghost badge-xs">Inheriting default</span>
+								}
+							</div>
+							<p class="text-xs text-base-content/60">{ field.Meta.Description }</p>
+							<p class="text-xs"><span class="font-medium">Default:</span> <span class="font-mono">{ field.DefaultSummary }</span></p>
+
+							<div
+								id={ "perm-patterns-" + field.Meta.Key }
+								class="space-y-2 pattern-rows"
+								data-perm-key={ field.Meta.Key }
+								data-next-index={ strconv.Itoa(len(field.PatternRows)) }
+							>
+								for idx, row := range field.PatternRows {
+									@permissionPatternRow(field.Meta.Key, idx, row, data.Errors)
+								}
+							</div>
+							<button type="button" class="btn btn-ghost btn-sm pattern-row-add" data-perm-key={ field.Meta.Key } data-testid={ "perm-" + field.Meta.Key + "-add" }>
+								Add pattern rule
+							</button>
+						</div>
+					</div>
+				}
+			}
+		</div>
+
+		<div class="space-y-2">
+			<h2 class="text-lg font-semibold">Wildcard Fallback</h2>
+			<p class="text-sm text-base-content/70">
+				The <span class="font-mono">*</span> key applies when no specific rule matches. It defaults to <span class="font-mono">ask</span> and cannot be overridden.
+			</p>
+		</div>
+
+		<details class="collapse collapse-arrow bg-base-200/40 border border-base-300">
+			<summary class="collapse-title font-medium">Advanced JSON</summary>
+			<div class="collapse-content space-y-2">
+				<p class="text-xs text-base-content/60">Edit raw user override JSON. Saving from this section ignores the form above.</p>
+				<textarea
+					name="rules"
+					class={ "textarea textarea-bordered font-mono text-xs w-full h-48 " + fieldError(data.Errors, "rules") }
+					data-testid="chatagent-permissions-json"
+				>{ data.UserJSON }</textarea>
+				<div class="text-error text-xs">{ data.Errors["rules"] }</div>
+				<button
+					type="submit"
+					class="btn btn-outline btn-sm"
+					data-testid="chatagent-permissions-save-json"
+					onclick="document.getElementById('chatagent-permissions-submit-mode').value='json'"
+				>
+					Save JSON
+				</button>
+			</div>
+		</details>
+
+		<div class="flex gap-2 pt-2">
+			<button
+				type="submit"
+				class="btn btn-primary btn-sm"
+				data-testid="chatagent-permissions-save"
+				onclick="document.getElementById('chatagent-permissions-submit-mode').value='form'"
+			>
+				Save
+			</button>
+			<button type="submit" formaction="/service/web/chatagent-permissions/reset" class="btn btn-ghost btn-sm" data-testid="chatagent-permissions-reset">
+				Reset to defaults
+			</button>
+		</div>
+	</form>
+}

@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 var chatAgentPermissionsWebserviceRules = []webservice.Rule{
@@ -36,12 +37,7 @@ func chatAgentPermissionsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "load permissions: %v", err)
 	}
-	raw, err := sonic.MarshalString(view.Effective)
-	if err != nil {
-		return types.Errorf(types.ErrInternal, "marshal permissions: %v", err)
-	}
-	ctx.Type("html")
-	return pages.ChatAgentPermissionsPage(raw).Render(context.Background(), ctx.Response().BodyWriter())
+	return renderChatAgentPermissionsPage(ctx, view, nil, permission.FormValues{})
 }
 
 func chatAgentPermissionsSave(ctx fiber.Ctx) error {
@@ -52,20 +48,45 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	body := strings.TrimSpace(ctx.FormValue("rules"))
-	if body == "" {
-		ctx.Status(http.StatusBadRequest)
-		return renderError(ctx, "Rules JSON is required")
-	}
-	cfg, err := permission.ParseConfig([]byte(body))
+	view, err := chatagent.BuildPermissionsView(ctx.Context(), uid, "")
 	if err != nil {
-		ctx.Status(http.StatusBadRequest)
-		return renderError(ctx, "Invalid permission JSON")
+		return types.Errorf(types.ErrInternal, "load permissions: %v", err)
 	}
+
+	submitMode := strings.TrimSpace(ctx.FormValue("submit_mode"))
+	if submitMode == "" {
+		submitMode = "form"
+	}
+
+	var (
+		cfg         permission.Config
+		fieldErrors map[string]string
+		submitted   permission.FormValues
+	)
+	switch submitMode {
+	case "json":
+		cfg, fieldErrors, err = parsePermissionJSON(ctx)
+	default:
+		submitted = permission.ParseFormPostArgs(collectFormArgs(ctx))
+		cfg, fieldErrors, err = permission.BuildUserConfigFromForm(view.Defaults, submitted)
+	}
+	if err != nil {
+		if len(fieldErrors) > 0 {
+			ctx.Status(http.StatusBadRequest)
+			return renderChatAgentPermissionsPage(ctx, view, fieldErrors, submitted)
+		}
+		if errors.Is(err, types.ErrInvalidArgument) {
+			ctx.Status(http.StatusBadRequest)
+			return renderChatAgentPermissionsPage(ctx, view, map[string]string{"_form": err.Error()}, submitted)
+		}
+		ctx.Status(http.StatusBadRequest)
+		return renderChatAgentPermissionsPage(ctx, view, map[string]string{"_form": err.Error()}, submitted)
+	}
+
 	if err := chatagent.SaveUserPermissions(ctx.Context(), uid, cfg); err != nil {
 		if errors.Is(err, types.ErrInvalidArgument) {
 			ctx.Status(http.StatusBadRequest)
-			return renderError(ctx, err.Error())
+			return renderChatAgentPermissionsPage(ctx, view, map[string]string{"_form": err.Error()}, submitted)
 		}
 		return types.Errorf(types.ErrInternal, "save permissions: %v", err)
 	}
@@ -86,6 +107,59 @@ func chatAgentPermissionsReset(ctx fiber.Ctx) error {
 	}
 	ctx.Redirect().To("/service/web/chatagent-permissions")
 	return nil
+}
+
+func parsePermissionJSON(ctx fiber.Ctx) (permission.Config, map[string]string, error) {
+	body := strings.TrimSpace(ctx.FormValue("rules"))
+	if body == "" {
+		return nil, map[string]string{"rules": "Rules JSON is required"}, errors.New("rules required")
+	}
+	cfg, err := permission.ParseConfig([]byte(body))
+	if err != nil {
+		return nil, map[string]string{"rules": "Invalid permission JSON"}, err
+	}
+	if err := permission.ValidateUserConfig(cfg); err != nil {
+		return nil, map[string]string{"rules": err.Error()}, types.Errorf(types.ErrInvalidArgument, "%v", err)
+	}
+	return cfg, nil, nil
+}
+
+func collectFormArgs(ctx fiber.Ctx) map[string]string {
+	args := make(map[string]string)
+	ctx.Request().PostArgs().VisitAll(func(key, value []byte) {
+		args[string(key)] = string(value)
+	})
+	return args
+}
+
+func renderChatAgentPermissionsPage(
+	ctx fiber.Ctx,
+	view chatagent.PermissionsView,
+	fieldErrors map[string]string,
+	submitted permission.FormValues,
+) error {
+	userJSON, err := marshalUserPermissionsJSON(view.User)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "marshal permissions: %v", err)
+	}
+	fields := partials.BuildPermissionFormFields(view)
+	if len(submitted.Simple) > 0 || len(submitted.Patterns) > 0 {
+		fields = partials.ApplySubmittedPermissionForm(fields, submitted)
+	}
+	data := partials.PermissionFormPageData{
+		Fields:   fields,
+		UserJSON: userJSON,
+		Errors:   fieldErrors,
+	}
+	ctx.Type("html")
+	return pages.ChatAgentPermissionsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+func marshalUserPermissionsJSON(user permission.Config) (string, error) {
+	if len(user) == 0 {
+		return "{}", nil
+	}
+	return sonic.MarshalString(user)
 }
 
 func webUID(ctx fiber.Ctx) (types.Uid, error) {
