@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
@@ -38,98 +39,147 @@ func PipelineStats(name string, stats *types.PipelineStats) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"pipeline-stats-container\" data-testid=\"pipeline-stats-container\"><!-- Time Range & Group-by Tabs --><div class=\"flex items-center gap-3 mb-4 flex-wrap\"><div class=\"join\" data-testid=\"time-range-tabs\"><button type=\"button\" class=\"join-item btn btn-sm btn-active\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"pipeline-stats-container\" data-testid=\"pipeline-stats-container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "day"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 19, Col: 44}
+		if name == "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4\" data-testid=\"pipeline-stats-summary\"><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3\"><div class=\"stat-title text-xs\">Total Pipelines</div><div class=\"stat-value text-2xl text-primary\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var2 string
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(stats.Summary.TotalPipelines))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 19, Col: 93}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3\"><div class=\"stat-title text-xs\">Successful Runs</div><div class=\"stat-value text-2xl text-success\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(stats.Summary.SuccessfulRuns))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 23, Col: 93}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3\"><div class=\"stat-title text-xs\">Failed Runs</div><div class=\"stat-value text-2xl text-error\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(stats.Summary.FailedRuns))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 27, Col: 87}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-30d\">30d</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 90, "day"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 25, Col: 44}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-90d\">90d</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 0, "day"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 31, Col: 43}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-all\">All</button></div><div class=\"join\" data-testid=\"groupby-tabs\"><button type=\"button\" class=\"join-item btn btn-sm btn-active\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<!-- Time Range & Group-by Tabs --><div class=\"flex items-center gap-3 mb-4 flex-wrap\"><div class=\"join\" data-testid=\"time-range-tabs\"><button type=\"button\" class=\"join-item btn btn-sm btn-active\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "day"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 39, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 36, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-day\">day</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-30d\">30d</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "week"))
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 90, "day"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 45, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 42, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var6)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-week\">week</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-90d\">90d</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "month"))
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 0, "day"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 51, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 48, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-month\">month</button></div></div><!-- Charts --><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6\"><div class=\"lg:col-span-2 card bg-base-100 shadow-sm\" data-testid=\"chart-success-rate\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Success Rate Trend</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-success-rate\" data-stats=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-all\">All</button></div><div class=\"join\" data-testid=\"groupby-tabs\"><button type=\"button\" class=\"join-item btn btn-sm btn-active\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(toJSON(stats))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "day"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 65, Col: 33}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 56, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-chart-type=\"line\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-duration\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Duration Distribution</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-duration\" data-chart-type=\"bar\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-trigger\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Trigger Sources</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-trigger\" data-chart-type=\"doughnut\"></canvas></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-day\">day</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "week"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 62, Col: 45}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-week\">week</button> <button type=\"button\" class=\"join-item btn btn-sm\" hx-get=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(buildStatsURL(name, 30, "month"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 68, Col: 46}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-month\">month</button></div></div><!-- Charts --><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6\"><div class=\"lg:col-span-2 card bg-base-100 shadow-sm\" data-testid=\"chart-success-rate\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Success Rate Trend</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-success-rate\" data-stats=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(toJSON(stats))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 82, Col: 33}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-chart-type=\"line\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-duration\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Duration Distribution</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-duration\" data-chart-type=\"bar\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-trigger\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Trigger Sources</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-trigger\" data-chart-type=\"doughnut\"></canvas></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

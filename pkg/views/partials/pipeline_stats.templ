@@ -1,6 +1,7 @@
 package partials
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 
@@ -11,6 +12,22 @@ import (
 
 templ PipelineStats(name string, stats *types.PipelineStats) {
 	<div id="pipeline-stats-container" data-testid="pipeline-stats-container">
+		if name == "" {
+			<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4" data-testid="pipeline-stats-summary">
+				<div class="stat bg-base-100 shadow-sm rounded-box px-4 py-3">
+					<div class="stat-title text-xs">Total Pipelines</div>
+					<div class="stat-value text-2xl text-primary">{ fmt.Sprint(stats.Summary.TotalPipelines) }</div>
+				</div>
+				<div class="stat bg-base-100 shadow-sm rounded-box px-4 py-3">
+					<div class="stat-title text-xs">Successful Runs</div>
+					<div class="stat-value text-2xl text-success">{ fmt.Sprint(stats.Summary.SuccessfulRuns) }</div>
+				</div>
+				<div class="stat bg-base-100 shadow-sm rounded-box px-4 py-3">
+					<div class="stat-title text-xs">Failed Runs</div>
+					<div class="stat-value text-2xl text-error">{ fmt.Sprint(stats.Summary.FailedRuns) }</div>
+				</div>
+			</div>
+		}
 		<!-- Time Range & Group-by Tabs -->
 		<div class="flex items-center gap-3 mb-4 flex-wrap">
 			<div class="join" data-testid="time-range-tabs">

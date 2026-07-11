@@ -2,9 +2,17 @@ package types
 
 // PipelineStats holds aggregated pipeline run statistics for chart rendering.
 type PipelineStats struct {
+	Summary              PipelineStatsSummary `json:"summary"`
 	SuccessRateTrend     []SuccessRatePoint   `json:"success_rate_trend"`
 	DurationDistribution DurationDistribution `json:"duration_distribution"`
 	TriggerSourcePie     []TriggerSourceCount `json:"trigger_source_pie"`
+}
+
+// PipelineStatsSummary holds headline counters for the pipelines overview.
+type PipelineStatsSummary struct {
+	TotalPipelines int64 `json:"total_pipelines"`
+	SuccessfulRuns int64 `json:"successful_runs"`
+	FailedRuns     int64 `json:"failed_runs"`
 }
 
 // SuccessRatePoint is a single data point on the success rate trend chart.
