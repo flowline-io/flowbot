@@ -71,6 +71,39 @@ templ ChatAgentSessionRow(item model.AgentSession, detailURL string) {
 	</a>
 }
 
+templ ChatAgentSessionLoadMore(nextCursor string, endpoints ChatAgentEndpoints, oob bool) {
+	if nextCursor != "" {
+		if oob {
+			<div class="pt-4 text-center" id="chatagent-sessions-load-more" hx-swap-oob="true">
+				<button
+					class="btn btn-sm btn-ghost"
+					hx-get={ templ.URL(endpoints.ListURL + "?cursor=" + nextCursor) }
+					hx-target="#chatagent-session-rows"
+					hx-swap="beforeend"
+					data-testid="chatagent-sessions-load-more">Load more</button>
+			</div>
+		} else {
+			<div class="pt-4 text-center" id="chatagent-sessions-load-more">
+				<button
+					class="btn btn-sm btn-ghost"
+					hx-get={ templ.URL(endpoints.ListURL + "?cursor=" + nextCursor) }
+					hx-target="#chatagent-session-rows"
+					hx-swap="beforeend"
+					data-testid="chatagent-sessions-load-more">Load more</button>
+			</div>
+		}
+	} else if oob {
+		<div id="chatagent-sessions-load-more" hx-swap-oob="delete"></div>
+	}
+}
+
+templ ChatAgentSessionListAppend(items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
+	for _, item := range items {
+		@ChatAgentSessionRow(item, ChatAgentDetailURL(endpoints.DetailURLTemplate, item.Flag))
+	}
+	@ChatAgentSessionLoadMore(nextCursor, endpoints, true)
+}
+
 templ ChatAgentSessionList(items []model.AgentSession, nextCursor string, endpoints ChatAgentEndpoints) {
 	<div class="agents-session-list" id="chatagent-session-list" data-testid="chatagent-session-list">
 		<div class="agents-session-list-header">
@@ -92,15 +125,6 @@ templ ChatAgentSessionList(items []model.AgentSession, nextCursor string, endpoi
 				</div>
 			}
 		</div>
-		if nextCursor != "" {
-			<div class="pt-4 text-center" id="chatagent-sessions-load-more">
-				<button
-					class="btn btn-sm btn-ghost"
-					hx-get={ templ.URL(endpoints.ListURL + "?cursor=" + nextCursor) }
-					hx-target="#chatagent-session-list"
-					hx-swap="outerHTML"
-					data-testid="chatagent-sessions-load-more">Load more</button>
-			</div>
-		}
+		@ChatAgentSessionLoadMore(nextCursor, endpoints, false)
 	</div>
 }

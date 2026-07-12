@@ -7,6 +7,7 @@ type ChatAgentEndpoints struct {
 	DetailURLTemplate string
 	MessagesURL       string
 	CancelURL         string
+	CloseURL          string
 	ConfirmURL        string
 	EventsURL         string
 	InspectURL        string

@@ -1457,13 +1457,68 @@
   function initThread(root) {
     var sessionID = root.getAttribute('data-session-id');
     var messagesURL = root.getAttribute('data-messages-url');
+    var closeURL = root.getAttribute('data-close-url');
     var input = root.querySelector('#chatagent-followup-input');
+    var errorEl = root.querySelector('#chatagent-thread-error');
     if (!sessionID || !messagesURL || !input) {
       return;
     }
     var approval = initApproval(
       root.querySelector('#chatagent-approval-panel'),
     );
+
+    function closeSession() {
+      if (!closeURL) {
+        return;
+      }
+      var closeBtn = root.querySelector('#chatagent-close-session');
+      function doClose() {
+        if (closeBtn) {
+          closeBtn.disabled = true;
+        }
+        fetch(closeURL, { method: 'DELETE' })
+          .then(function (res) {
+            if (!res.ok) {
+              return res
+                .json()
+                .catch(function () {
+                  return {};
+                })
+                .then(function (data) {
+                  throw new Error(
+                    (data && data.error) || 'Failed to close session',
+                  );
+                });
+            }
+            window.location.href = '/service/web/agents';
+          })
+          .catch(function (err) {
+            showError(errorEl, err.message || 'Failed to close session');
+            if (closeBtn) {
+              closeBtn.disabled = false;
+            }
+          });
+      }
+      if (window.showConfirmModal) {
+        window.showConfirmModal({
+          title: 'Close session',
+          message:
+            'Close this session? You will not be able to send more messages.',
+          confirmText: 'Close',
+          confirmClass: 'btn-error',
+          onConfirm: doClose,
+        });
+        return;
+      }
+      if (window.confirm('Close this session?')) {
+        doClose();
+      }
+    }
+
+    var closeBtn = root.querySelector('#chatagent-close-session');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeSession);
+    }
 
     function sendFollowUp() {
       var text = (input.value || '').trim();

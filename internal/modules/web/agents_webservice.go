@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -28,6 +29,7 @@ var (
 		// Static paths must be registered before /agents/:id.
 		webservice.Post("/agents/render-markdown", agentRenderMarkdown, route.WithNotAuth()),
 		webservice.Get("/agents/:id", agentChatPage, route.WithNotAuth()),
+		webservice.Delete("/agents/:id", agentChatClose, route.WithNotAuth()),
 		webservice.Post("/agents/:id/messages", agentChatSendMessage, route.WithNotAuth()),
 		webservice.Post("/agents/:id/cancel", agentChatCancel, route.WithNotAuth()),
 		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
@@ -53,6 +55,7 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 		DetailURLTemplate: "/service/web/agents/{id}",
 		MessagesURL:       prefix + "/messages",
 		CancelURL:         prefix + "/cancel",
+		CloseURL:          prefix,
 		ConfirmURL:        prefix + "/confirm",
 		EventsURL:         prefix + "/events",
 		InspectURL:        "/service/web/agent-sessions/" + sessionID,
@@ -102,7 +105,12 @@ func agentsTable(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load sessions")
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpoints()).
+	endpoints := agentsEndpoints()
+	if cursor != "" {
+		return partials.ChatAgentSessionListAppend(items, nextCursor, endpoints).
+			Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	return partials.ChatAgentSessionList(items, nextCursor, endpoints).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -206,6 +214,30 @@ func agentChatSendMessage(ctx fiber.Ctx) error {
 		sse := &chatagent.BufioSSEWriter{W: w}
 		chatagent.StreamAPIRun(baseCtx, webChatAgentService, sessionID, text, sse)
 	})
+}
+
+func agentChatClose(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "close session: %v", err)
+	}
+	if err := chatagent.CloseSession(ctx.Context(), sessionID); err != nil {
+		return types.Errorf(types.ErrInternal, "close session: %v", err)
+	}
+	chatagent.ClearAPIRunState(sessionID, nil)
+	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
 func agentChatCancel(ctx fiber.Ctx) error {
@@ -359,10 +391,12 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSess
 		return nil, "", errors.New("store not available")
 	}
 	uid := getUID(ctx)
+	active := int(schema.ChatSessionActive)
 	rows, nextCursor, err := store.Database.ListChatSessions(ctx.Context(), store.ListChatSessionsOptions{
 		Limit:  20,
 		Cursor: cursor,
 		UID:    uid,
+		State:  &active,
 	})
 	if err != nil {
 		return nil, "", err

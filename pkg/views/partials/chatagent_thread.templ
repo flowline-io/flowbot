@@ -9,6 +9,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		data-session-id={ session.Flag }
 		data-messages-url={ endpoints.MessagesURL }
 		data-cancel-url={ endpoints.CancelURL }
+		data-close-url={ endpoints.CloseURL }
 		data-confirm-url={ endpoints.ConfirmURL }
 		data-events-url={ endpoints.EventsURL }
 		data-render-markdown-url={ endpoints.RenderMarkdownURL }
@@ -24,10 +25,17 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 				}
 			</div>
 			<div class="flex gap-2">
-				<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">Back to Agents</a>
+				if session.State == "Active" && endpoints.CloseURL != "" {
+					<button
+						type="button"
+						id="chatagent-close-session"
+						class="btn btn-ghost btn-sm text-error"
+						data-testid="chatagent-close-session">Close session</button>
+				}
 				if endpoints.InspectURL != "" {
 					<a href={ templ.URL(endpoints.InspectURL) } class="btn btn-ghost btn-sm" data-testid="chatagent-inspect">Inspect entries</a>
 				}
+				<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">Back to Agents</a>
 			</div>
 		</div>
 		<div

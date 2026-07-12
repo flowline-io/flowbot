@@ -2,12 +2,14 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -170,6 +172,149 @@ func TestAgentsListShowsTotalDuration(t *testing.T) {
 		assert.Contains(t, text, "Timed task")
 		assert.Contains(t, text, "Total 4.6s")
 		assert.Contains(t, text, `data-testid="chatagent-session-duration"`)
+	})
+}
+
+func TestAgentsListExcludesClosedSessions(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		ts := &testStore{
+			chatSessions: []*gen.ChatSession{
+				{ID: 1, Flag: "sess-active", Title: "Still open", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+				{ID: 2, Flag: "sess-closed", Title: "Already closed", UID: "testuser", State: int(schema.ChatSessionClosed), UpdatedAt: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
+			},
+		}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+		text := string(body)
+		assert.Contains(t, text, "Still open")
+		assert.NotContains(t, text, "Already closed")
+	})
+}
+
+func TestAgentsListLoadMoreAppendsRows(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		sessions := make([]*gen.ChatSession, 0, 21)
+		for i := range 21 {
+			id := int64(21 - i)
+			sessions = append(sessions, &gen.ChatSession{
+				ID:        id,
+				Flag:      "sess-page-" + strconv.FormatInt(id, 10),
+				Title:     "Page " + strconv.FormatInt(id, 10),
+				UID:       "testuser",
+				State:     int(schema.ChatSessionActive),
+				UpdatedAt: now.Add(-time.Duration(i) * time.Minute),
+				CreatedAt: now.Add(-time.Duration(i) * time.Minute),
+			})
+		}
+		app := setupAuthenticatedApp(t, &testStore{chatSessions: sessions})
+
+		firstReq := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
+		firstReq.Header.Set("Cookie", "accessToken=test-token")
+		firstResp, err := app.Test(firstReq)
+		require.NoError(t, err)
+		defer firstResp.Body.Close()
+		firstBody, _ := io.ReadAll(firstResp.Body)
+		firstText := string(firstBody)
+		assert.Contains(t, firstText, "Page 21")
+		assert.Contains(t, firstText, `hx-target="#chatagent-session-rows"`)
+		assert.NotContains(t, firstText, "Page 1</div>")
+
+		secondReq := httptest.NewRequest(http.MethodGet, "/service/web/agents/list?cursor=2", http.NoBody)
+		secondReq.Header.Set("Cookie", "accessToken=test-token")
+		secondResp, err := app.Test(secondReq)
+		require.NoError(t, err)
+		defer secondResp.Body.Close()
+		secondBody, _ := io.ReadAll(secondResp.Body)
+		secondText := string(secondBody)
+		assert.Contains(t, secondText, "Page 1</div>")
+		assert.NotContains(t, secondText, "Your sessions")
+		assert.NotContains(t, secondText, "Page 21</div>")
+	})
+}
+
+func TestAgentsCloseSession(t *testing.T) {
+	now := time.Now().UTC()
+	tests := []struct {
+		name       string
+		sessionID  string
+		sessions   map[string]*gen.ChatSession
+		wantStatus int
+	}{
+		{
+			name:      "owner can close active session",
+			sessionID: "sess-close",
+			sessions: map[string]*gen.ChatSession{
+				"sess-close": {Flag: "sess-close", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusNoContent,
+		},
+		{
+			name:      "forbidden for other user session",
+			sessionID: "sess-other",
+			sessions: map[string]*gen.ChatSession{
+				"sess-other": {Flag: "sess-other", UID: "other", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+			},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:       "missing session returns not found",
+			sessionID:  "missing",
+			sessions:   map[string]*gen.ChatSession{},
+			wantStatus: http.StatusNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withChatAgentEnabled(t, func() {
+				ts := &testStore{chatSessionsByFlag: tt.sessions}
+				app := setupAuthenticatedApp(t, ts)
+
+				req := httptest.NewRequest(http.MethodDelete, "/service/web/agents/"+tt.sessionID, http.NoBody)
+				req.Header.Set("Cookie", "accessToken=test-token")
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				assert.Equal(t, tt.wantStatus, resp.StatusCode)
+
+				if tt.wantStatus == http.StatusNoContent {
+					row, err := ts.GetChatSession(context.Background(), tt.sessionID)
+					require.NoError(t, err)
+					assert.Equal(t, int(schema.ChatSessionClosed), row.State)
+				}
+			})
+		})
+	}
+}
+
+func TestAgentChatPageShowsCloseButton(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		sessionID := "sess-close-btn"
+		ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
+			sessionID: {Flag: sessionID, Title: "Close me", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
+		}}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/"+sessionID, http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+		text := string(body)
+		assert.Contains(t, text, `data-testid="chatagent-close-session"`)
+		assert.Contains(t, text, `data-close-url="/service/web/agents/`+sessionID+`"`)
 	})
 }
 

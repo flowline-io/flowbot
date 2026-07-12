@@ -90,6 +90,24 @@ func (s *testStore) GetChatSession(_ context.Context, flag string) (*gen.ChatSes
 	return nil, types.ErrNotFound
 }
 
+func (s *testStore) CloseChatSession(_ context.Context, flag string) error {
+	sess, err := s.GetChatSession(context.Background(), flag)
+	if err != nil {
+		return err
+	}
+	sess.State = int(schema.ChatSessionClosed)
+	if s.chatSessionsByFlag != nil {
+		s.chatSessionsByFlag[flag] = sess
+	}
+	for i, row := range s.chatSessions {
+		if row.Flag == flag {
+			s.chatSessions[i] = sess
+			break
+		}
+	}
+	return nil
+}
+
 func (s *testStore) ListChatSessionEntries(_ context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
 	if s.chatSessionEntriesErr != nil {
 		return nil, s.chatSessionEntriesErr
