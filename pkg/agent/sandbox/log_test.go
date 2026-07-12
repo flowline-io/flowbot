@@ -38,3 +38,23 @@ func TestSummarizeCommand(t *testing.T) {
 		})
 	}
 }
+
+func TestContainerWorkspacePath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		path string
+		want string
+	}{
+		{name: "unix path unchanged", path: "/home/yuan/workspace", want: "/home/yuan/workspace"},
+		{name: "trailing slash cleaned", path: "/home/yuan/workspace/", want: "/home/yuan/workspace"},
+		{name: "windows separators normalized", path: `D:\Projects\flowbot`, want: "D:/Projects/flowbot"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, containerWorkspacePath(tt.path))
+		})
+	}
+}

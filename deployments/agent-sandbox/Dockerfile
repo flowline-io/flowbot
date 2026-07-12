@@ -65,7 +65,7 @@ RUN set -eux; \
     echo 'agent ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/agent; \
     chmod 0440 /etc/sudoers.d/agent
 
-WORKDIR /workspace
+WORKDIR /opt/app
 
 LABEL org.opencontainers.image.title="flowbot-agent-sandbox" \
       org.opencontainers.image.description="Ephemeral Cloud Agent sandbox with git and common language toolchains" \

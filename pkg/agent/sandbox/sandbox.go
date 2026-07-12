@@ -23,7 +23,6 @@ import (
 
 const (
 	defaultImage        = "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"
-	workspaceMount      = "/workspace"
 	defaultStopWait     = 5 * time.Second
 	maxLoggedCommandLen = 200
 )
@@ -36,7 +35,7 @@ type Config struct {
 	Network string
 	// Memory limits container memory (e.g. "512m").
 	Memory string
-	// Workspace is the host workspace path mounted at /workspace.
+	// Workspace is the host workspace path bind-mounted at the same path inside the container.
 	Workspace string
 }
 
@@ -116,11 +115,12 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 	if opts.Timeout != nil {
 		runCtx = opts.Timeout
 	}
-	workDir := workspaceMount
+	containerRoot := containerWorkspacePath(e.cfg.Workspace)
+	workDir := containerRoot
 	if opts.Dir != "" && e.cfg.Workspace != "" {
 		rel, err := filepath.Rel(e.cfg.Workspace, opts.Dir)
 		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
-			workDir = filepath.ToSlash(filepath.Join(workspaceMount, rel))
+			workDir = containerWorkspacePath(filepath.Join(e.cfg.Workspace, rel))
 		}
 	}
 	runOpts := RunOptions{
@@ -185,7 +185,7 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	}
 	workDir := opts.WorkDir
 	if workDir == "" {
-		workDir = workspaceMount
+		workDir = containerWorkspacePath(opts.Workspace)
 	}
 	flog.Info("[sandbox] container create image=%s workspace=%s workdir=%s %s",
 		opts.Image, opts.Workspace, workDir, summarizeCommand(opts))
@@ -219,8 +219,9 @@ func validateRunOptions(opts RunOptions) error {
 }
 
 func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
+	containerPath := containerWorkspacePath(opts.Workspace)
 	hostConfig := &container.HostConfig{
-		Binds: []string{fmt.Sprintf("%s:%s", opts.Workspace, workspaceMount)},
+		Binds: []string{fmt.Sprintf("%s:%s", opts.Workspace, containerPath)},
 	}
 	if opts.Network != "" {
 		hostConfig.NetworkMode = container.NetworkMode(opts.Network)
@@ -267,6 +268,11 @@ func waitAndCollectLogs(ctx context.Context, cli *client.Client, id, workspace, 
 	flog.Info("[sandbox] container done id=%s workspace=%s workdir=%s exit_code=%d",
 		id, workspace, workDir, exitCode)
 	return env.Capture{Stdout: text, Stderr: text, ExitCode: int(exitCode)}, nil
+}
+
+// containerWorkspacePath normalizes the workspace path for container bind mounts and WorkingDir.
+func containerWorkspacePath(workspace string) string {
+	return strings.ReplaceAll(filepath.Clean(workspace), "\\", "/")
 }
 
 func summarizeCommand(opts RunOptions) string {

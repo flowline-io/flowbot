@@ -52,18 +52,34 @@ func TestEnvExecUsesRunner(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		opts      env.ExecOptions
-		runnerErr error
-		wantOK    bool
-		wantCode  string
-		wantCmd   string
+		name        string
+		opts        env.ExecOptions
+		runnerErr   error
+		wantOK      bool
+		wantCode    string
+		wantCmd     string
+		wantWorkDir string
 	}{
 		{
-			name:    "command success",
-			opts:    env.ExecOptions{Command: "echo hi", Dir: "/ws"},
-			wantOK:  true,
-			wantCmd: "echo hi",
+			name:        "command success",
+			opts:        env.ExecOptions{Command: "echo hi", Dir: "/ws"},
+			wantOK:      true,
+			wantCmd:     "echo hi",
+			wantWorkDir: "/ws",
+		},
+		{
+			name:        "default workdir uses workspace",
+			opts:        env.ExecOptions{Command: "pwd"},
+			wantOK:      true,
+			wantCmd:     "pwd",
+			wantWorkDir: "/ws",
+		},
+		{
+			name:        "subdir workdir under workspace",
+			opts:        env.ExecOptions{Command: "pwd", Dir: "/ws/pkg"},
+			wantOK:      true,
+			wantCmd:     "pwd",
+			wantWorkDir: "/ws/pkg",
 		},
 		{
 			name:      "runner spawn error",
@@ -74,10 +90,10 @@ func TestEnvExecUsesRunner(t *testing.T) {
 			wantCmd:   "boom",
 		},
 		{
-			name:    "argv forwarded",
-			opts:    env.ExecOptions{Argv: []string{"python", "x.py"}, Dir: "/ws"},
-			wantOK:  true,
-			wantCmd: "",
+			name:        "argv forwarded",
+			opts:        env.ExecOptions{Argv: []string{"python", "x.py"}, Dir: "/ws"},
+			wantOK:      true,
+			wantWorkDir: "/ws",
 		},
 	}
 	for _, tt := range tests {
@@ -94,6 +110,9 @@ func TestEnvExecUsesRunner(t *testing.T) {
 			got := e.Exec(context.Background(), tt.opts)
 			assert.Equal(t, tt.wantOK, got.IsOk())
 			assert.Equal(t, tt.wantCmd, runner.last.Command)
+			if tt.wantWorkDir != "" {
+				assert.Equal(t, tt.wantWorkDir, runner.last.WorkDir)
+			}
 			if len(tt.opts.Argv) > 0 {
 				assert.Equal(t, tt.opts.Argv, runner.last.Argv)
 			}
