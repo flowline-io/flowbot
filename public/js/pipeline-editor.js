@@ -21,6 +21,8 @@
       yamlText: '',
       variablePickerOpen: false,
       variablePickerTarget: null,
+      paramsAdvancedOpen: false,
+      paramFieldErrors: {},
       variablePickerSource: 'event',
       errors: [],
       publishDisabled: false,
@@ -115,6 +117,62 @@
         }
       },
 
+      selectedStepIndex() {
+        const node = this.selectedNode;
+        if (!node || node.type !== 'step') return null;
+        const idx = node.index;
+        if (!Number.isInteger(idx) || idx < 0 || idx >= this.steps.length) {
+          return null;
+        }
+        return idx;
+      },
+
+      selectedTriggerIndex() {
+        const node = this.selectedNode;
+        if (!node || node.type !== 'trigger') return null;
+        const idx = node.index;
+        if (!Number.isInteger(idx) || idx < 0 || idx >= this.triggers.length) {
+          return null;
+        }
+        return idx;
+      },
+
+      selectedStep() {
+        const idx = this.selectedStepIndex();
+        if (idx == null) return null;
+        return this.steps[idx] ?? null;
+      },
+
+      selectedTrigger() {
+        const idx = this.selectedTriggerIndex();
+        if (idx == null) return null;
+        return this.triggers[idx] ?? null;
+      },
+
+      validateSelectedNode() {
+        if (!this.selectedNode) return;
+        const type = this.selectedNode.type;
+        const list =
+          type === 'step'
+            ? this.steps
+            : type === 'trigger'
+              ? this.triggers
+              : null;
+        if (!list) {
+          this.finishDrawerSession();
+          return;
+        }
+        const idx = this.selectedNode.index;
+        if (
+          !Number.isInteger(idx) ||
+          idx < 0 ||
+          idx >= list.length ||
+          list[idx] == null
+        ) {
+          this.finishDrawerSession();
+        }
+      },
+
       getOperationsFor(capType) {
         const cap = this.capabilities.find((c) => c.type === capType);
         return cap ? cap.operations || [] : [];
@@ -152,12 +210,8 @@
         return this.buildParamsTemplate(op.input);
       },
 
-      buildParamsTemplate(input) {
-        const obj = {};
-        for (const p of input) {
-          obj[p.name] = this.typeDefaultValue(p.type);
-        }
-        return JSON.stringify(obj, null, 2);
+      buildParamsTemplate(_input) {
+        return '{}';
       },
 
       isParamsDefault(paramsText) {
@@ -174,6 +228,16 @@
           }
         }
         return false;
+      },
+
+      formatStepParamsPreview(paramsText) {
+        const trimmed = (paramsText || '').trim();
+        if (!trimmed || trimmed === '{}') return '';
+        try {
+          return JSON.stringify(JSON.parse(trimmed), null, 2);
+        } catch {
+          return trimmed;
+        }
       },
 
       onCapabilityChange(idx) {
@@ -204,6 +268,65 @@
         if (!step || !step.capability || !step.operation) return [];
         const op = this.getOperation(step.capability, step.operation);
         return op ? op.input || [] : [];
+      },
+
+      getFormOperationInput(idx) {
+        if (idx == null) return [];
+        return this.getCurrentOperationInput(idx).filter((p) => {
+          if (this.isAgentRunStringListParam(idx, p.name)) {
+            return false;
+          }
+          return true;
+        });
+      },
+
+      isParamTypeString(p) {
+        return p?.type === 'string';
+      },
+
+      isParamTypeNumber(p) {
+        return p?.type === 'int' || p?.type === 'int64';
+      },
+
+      isParamTypeBool(p) {
+        return p?.type === 'bool';
+      },
+
+      isParamTypeStringList(p) {
+        return p?.type === '[]string';
+      },
+
+      isParamTypeMap(p) {
+        return p?.type === 'map[string]any';
+      },
+
+      isParamTemplateValue(value, type) {
+        const def = this.typeDefaultValue(type);
+        switch (type) {
+          case 'string':
+            return String(value).trim() === String(def).trim();
+          case 'int':
+          case 'int64':
+            return Number(value) === Number(def);
+          case 'bool':
+            return value === def;
+          case '[]string':
+            return (
+              Array.isArray(value) &&
+              Array.isArray(def) &&
+              value.length === 0 &&
+              def.length === 0
+            );
+          case 'map[string]any':
+            return (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value) &&
+              Object.keys(value).length === 0
+            );
+          default:
+            return false;
+        }
       },
 
       isAgentRunStep(idx) {
@@ -240,6 +363,342 @@
         }
       },
 
+      writeStepParams(idx, params) {
+        const normalized = this.normalizeStepParams(idx, params);
+        this.steps[idx].paramsText = JSON.stringify(normalized, null, 2);
+        this.drawerDirty = true;
+      },
+
+      normalizeStepParams(idx, params) {
+        const input = this.getCurrentOperationInput(idx);
+        const normalized = { ...params };
+        for (const p of input) {
+          if (
+            p.name in normalized &&
+            this.isParamTemplateValue(normalized[p.name], p.type)
+          ) {
+            delete normalized[p.name];
+          }
+        }
+        return normalized;
+      },
+
+      getParamDef(idx, name) {
+        return (
+          this.getCurrentOperationInput(idx).find((p) => p.name === name) ||
+          null
+        );
+      },
+
+      getStepParam(idx, name) {
+        return this.parseStepParams(idx)[name];
+      },
+
+      shouldOmitParam(value, type, required) {
+        if (required) {
+          return false;
+        }
+        if (value === undefined || value === null) {
+          return true;
+        }
+        if (this.isParamTemplateValue(value, type)) {
+          return true;
+        }
+        switch (type) {
+          case 'string':
+            return (
+              String(value).trim() === '' || String(value).trim() === '<string>'
+            );
+          case 'int':
+          case 'int64':
+            return value === '' || Number.isNaN(Number(value));
+          case 'bool':
+            return value === 'unset';
+          case '[]string':
+            return !Array.isArray(value) || value.length === 0;
+          case 'map[string]any':
+            return (
+              typeof value !== 'object' ||
+              value === null ||
+              Array.isArray(value) ||
+              Object.keys(value).length === 0
+            );
+          default:
+            return value === '' || value === undefined || value === null;
+        }
+      },
+
+      coerceParamValue(value, type) {
+        switch (type) {
+          case 'int':
+            return parseInt(value, 10);
+          case 'int64':
+            return Number(value);
+          case 'bool':
+            return value === true || value === 'true';
+          default:
+            return value;
+        }
+      },
+
+      setStepParam(idx, name, value, type, required) {
+        const pDef = this.getParamDef(idx, name);
+        const req = required ?? pDef?.required ?? false;
+        const params = this.parseStepParams(idx);
+        if (this.shouldOmitParam(value, type, req)) {
+          delete params[name];
+        } else {
+          params[name] = this.coerceParamValue(value, type);
+        }
+        this.writeStepParams(idx, params);
+        const errKey = idx + ':' + name;
+        if (this.paramFieldErrors[errKey]) {
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+        }
+      },
+
+      clearStepParam(idx, name) {
+        const pDef = this.getParamDef(idx, name);
+        if (!pDef || pDef.required) {
+          return;
+        }
+        const params = this.parseStepParams(idx);
+        delete params[name];
+        this.writeStepParams(idx, params);
+        const errKey = idx + ':' + name;
+        if (this.paramFieldErrors[errKey]) {
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+        }
+      },
+
+      getStepParamString(idx, name) {
+        const val = this.getStepParam(idx, name);
+        if (val === undefined || val === null) {
+          return '';
+        }
+        if (this.isParamTemplateValue(val, 'string')) {
+          return '';
+        }
+        return String(val);
+      },
+
+      setStepParamString(idx, name, val) {
+        const pDef = this.getParamDef(idx, name);
+        this.setStepParam(idx, name, val, 'string', pDef?.required ?? false);
+      },
+
+      getStepParamNumber(idx, name) {
+        const pDef = this.getParamDef(idx, name);
+        const val = this.getStepParam(idx, name);
+        if (val === undefined || val === null || val === '') {
+          return '';
+        }
+        if (this.isParamTemplateValue(val, pDef?.type || 'int')) {
+          return '';
+        }
+        return String(val);
+      },
+
+      setStepParamNumber(idx, name, val, type) {
+        const pDef = this.getParamDef(idx, name);
+        const paramType = type || pDef?.type || 'int';
+        if (val === '' || val === null || val === undefined) {
+          this.setStepParam(idx, name, '', paramType, pDef?.required ?? false);
+          return;
+        }
+        this.setStepParam(idx, name, val, paramType, pDef?.required ?? false);
+      },
+
+      getStepParamBoolMode(idx, name) {
+        const pDef = this.getParamDef(idx, name);
+        const params = this.parseStepParams(idx);
+        if (!(name in params)) {
+          return 'unset';
+        }
+        if (!pDef?.required && this.isParamTemplateValue(params[name], 'bool')) {
+          return 'unset';
+        }
+        return params[name] ? 'true' : 'false';
+      },
+
+      setStepParamBoolMode(idx, name, mode) {
+        const pDef = this.getParamDef(idx, name);
+        if (mode === 'unset') {
+          this.setStepParam(
+            idx,
+            name,
+            'unset',
+            'bool',
+            pDef?.required ?? false,
+          );
+          return;
+        }
+        this.setStepParam(
+          idx,
+          name,
+          mode === 'true',
+          'bool',
+          pDef?.required ?? false,
+        );
+      },
+
+      getStepParamStringList(idx, name) {
+        const val = this.getStepParam(idx, name);
+        if (!Array.isArray(val)) {
+          return '';
+        }
+        return val.join(', ');
+      },
+
+      setStepParamStringList(idx, name, text) {
+        const pDef = this.getParamDef(idx, name);
+        const trimmed = (text || '').trim();
+        if (!trimmed) {
+          this.setStepParam(idx, name, [], '[]string', pDef?.required ?? false);
+          return;
+        }
+        const values = trimmed
+          .split(',')
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0);
+        this.setStepParam(
+          idx,
+          name,
+          values,
+          '[]string',
+          pDef?.required ?? false,
+        );
+      },
+
+      getStepParamMapJSON(idx, name) {
+        const val = this.getStepParam(idx, name);
+        if (val === undefined || val === null) {
+          return '';
+        }
+        if (this.isParamTemplateValue(val, 'map[string]any')) {
+          return '';
+        }
+        try {
+          return JSON.stringify(val, null, 2);
+        } catch {
+          return '';
+        }
+      },
+
+      setStepParamMapJSON(idx, name, text) {
+        const pDef = this.getParamDef(idx, name);
+        const required = pDef?.required ?? false;
+        const trimmed = (text || '').trim();
+        const errKey = idx + ':' + name;
+        if (!trimmed || trimmed === '{}') {
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+          this.setStepParam(idx, name, {}, 'map[string]any', required);
+          return;
+        }
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (
+            typeof parsed !== 'object' ||
+            parsed === null ||
+            Array.isArray(parsed)
+          ) {
+            throw new Error('must be a JSON object');
+          }
+          const next = { ...this.paramFieldErrors };
+          delete next[errKey];
+          this.paramFieldErrors = next;
+          this.setStepParam(idx, name, parsed, 'map[string]any', required);
+        } catch (e) {
+          this.paramFieldErrors = {
+            ...this.paramFieldErrors,
+            [errKey]: e.message || 'Invalid JSON',
+          };
+          this.drawerDirty = true;
+        }
+      },
+
+      isParamFieldError(idx, name) {
+        return Boolean(this.paramFieldErrors[idx + ':' + name]);
+      },
+
+      getExtraParamKeys(idx) {
+        const params = this.parseStepParams(idx);
+        const schemaNames = new Set(
+          this.getCurrentOperationInput(idx).map((p) => p.name),
+        );
+        return Object.keys(params).filter((k) => !schemaNames.has(k));
+      },
+
+      isAgentRunStringListParam(idx, paramName) {
+        return (
+          this.isAgentRunStep(idx) &&
+          (paramName === 'tools' || paramName === 'skills')
+        );
+      },
+
+      isParamValueMissing(val, type) {
+        if (val === undefined || val === null) {
+          return true;
+        }
+        if (this.isParamTemplateValue(val, type)) {
+          return true;
+        }
+        switch (type) {
+          case 'string':
+            return String(val).trim() === '';
+          case 'int':
+          case 'int64':
+            return val === '' || Number.isNaN(Number(val));
+          case 'bool':
+            return false;
+          case '[]string':
+            return !Array.isArray(val) || val.length === 0;
+          case 'map[string]any':
+            return (
+              typeof val !== 'object' ||
+              val === null ||
+              Array.isArray(val) ||
+              Object.keys(val).length === 0
+            );
+          default:
+            return (
+              val === undefined || val === null || String(val).trim() === ''
+            );
+        }
+      },
+
+      validateStepParams(idx) {
+        const step = this.steps[idx];
+        if (!step) {
+          return null;
+        }
+        try {
+          JSON.parse(step.paramsText || '{}');
+        } catch (e) {
+          return 'Invalid params JSON: ' + e.message;
+        }
+        const input = this.getCurrentOperationInput(idx);
+        const params = this.parseStepParams(idx);
+        for (const p of input) {
+          if (p.required && this.isParamValueMissing(params[p.name], p.type)) {
+            return 'Parameter "' + p.name + '" is required';
+          }
+          if (
+            p.type === 'map[string]any' &&
+            this.isParamFieldError(idx, p.name)
+          ) {
+            return 'Parameter "' + p.name + '" has invalid JSON';
+          }
+        }
+        return null;
+      },
+
       getAgentRunParamList(idx, key) {
         if (!this.isAgentRunStep(idx)) return [];
         const params = this.parseStepParams(idx);
@@ -258,8 +717,7 @@
         } else {
           params[key] = values;
         }
-        this.steps[idx].paramsText = JSON.stringify(params, null, 2);
-        this.drawerDirty = true;
+        this.writeStepParams(idx, params);
       },
 
       toggleAgentRunOption(idx, key, value) {
@@ -271,7 +729,7 @@
       },
 
       onParamsTextInput(_idx) {
-        // Checkbox state is derived from paramsText via :checked bindings.
+        this.drawerDirty = true;
       },
 
       getEventsForTrigger() {
@@ -320,6 +778,7 @@
             paramsText: JSON.stringify(s.params || {}, null, 2),
           }));
           this.validate();
+          this.validateSelectedNode();
         } catch (e) {
           console.error('YAML parse error:', e);
         }
@@ -372,6 +831,7 @@
         this.steps = JSON.parse(JSON.stringify(prev.steps));
         this.markDirty();
         this.validate();
+        this.validateSelectedNode();
       },
 
       redo() {
@@ -382,6 +842,7 @@
         this.steps = JSON.parse(JSON.stringify(next.steps));
         this.markDirty();
         this.validate();
+        this.validateSelectedNode();
       },
 
       addTrigger() {
@@ -400,11 +861,26 @@
         this.markDirty();
       },
 
+      syncDrawerAfterListRemoval(type, removedIdx) {
+        if (!this.drawerOpen || this.selectedNode?.type !== type) return;
+        const selIdx = this.selectedNode.index;
+        if (selIdx === removedIdx) {
+          this.finishDrawerSession();
+          return;
+        }
+        if (selIdx > removedIdx) {
+          const newIdx = selIdx - 1;
+          this.selectedNode = { type, index: newIdx };
+          this.drawerSnapshot = this.captureDrawerSnapshot(type, newIdx);
+        }
+      },
+
       removeTrigger(idx) {
         this.pushUndo();
         this.triggers.splice(idx, 1);
         this.markDirty();
         this.validate();
+        this.syncDrawerAfterListRemoval('trigger', idx);
       },
 
       confirmRemoveTrigger(idx) {
@@ -437,8 +913,7 @@
         this.steps.splice(idx, 1);
         this.markDirty();
         this.validate();
-        if (this.drawerOpen && this.selectedNode?.index === idx)
-          this.drawerOpen = false;
+        this.syncDrawerAfterListRemoval('step', idx);
       },
 
       confirmRemoveStep(idx) {
@@ -516,24 +991,25 @@
         this.drawerOpen = true;
         this.drawerDirty = false;
         this.drawerTab = 'setup';
+        this.paramsAdvancedOpen = false;
+        this.paramFieldErrors = {};
         this.drawerSnapshot = this.captureDrawerSnapshot(type, idx);
       },
 
       finishDrawerSession() {
         this.drawerDirty = false;
         this.drawerSnapshot = null;
-        this.drawerOpen = false;
         this.selectedNode = null;
+        this.drawerOpen = false;
       },
 
       async saveDrawer() {
         if (!this.selectedNode) return;
         const { type, index } = this.selectedNode;
         if (type === 'step') {
-          try {
-            JSON.parse(this.steps[index].paramsText || '{}');
-          } catch (e) {
-            showToast('Invalid params JSON: ' + e.message, 'error');
+          const paramErr = this.validateStepParams(index);
+          if (paramErr) {
+            showToast(paramErr, 'error');
             return;
           }
         }
@@ -575,34 +1051,64 @@
         this.drawerExpanded = !this.drawerExpanded;
       },
 
-      openVariablePicker(targetIdx) {
-        this.variablePickerTarget = targetIdx;
+      openVariablePicker(stepIdx, paramName) {
+        this.variablePickerTarget = {
+          stepIdx,
+          paramName: paramName || null,
+        };
         this.variablePickerOpen = true;
       },
 
       insertVariable(path) {
-        if (this.variablePickerTarget === null) return;
-        const step = this.steps[this.variablePickerTarget];
+        if (!this.variablePickerTarget) {
+          return;
+        }
+        const { stepIdx, paramName } = this.variablePickerTarget;
         const template = '{{' + path + '}}';
-        const textarea = document.querySelector(
-          '[data-testid="params-editor"]',
-        );
-        if (textarea) {
-          const start = textarea.selectionStart;
-          const end = textarea.selectionEnd;
-          step.paramsText =
-            (step.paramsText || '').substring(0, start) +
-            template +
-            (step.paramsText || '').substring(end);
-          setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(
-              start + template.length,
-              start + template.length,
-            );
-          }, 50);
+
+        if (paramName) {
+          const current = this.getStepParamString(stepIdx, paramName);
+          const input = document.querySelector(
+            '[data-param-field="' + paramName + '"]',
+          );
+          if (input && typeof input.selectionStart === 'number') {
+            const start = input.selectionStart;
+            const end = input.selectionEnd;
+            const next =
+              current.substring(0, start) + template + current.substring(end);
+            this.setStepParamString(stepIdx, paramName, next);
+            setTimeout(() => {
+              input.focus();
+              input.setSelectionRange(
+                start + template.length,
+                start + template.length,
+              );
+            }, 50);
+          } else {
+            this.setStepParamString(stepIdx, paramName, current + template);
+          }
         } else {
-          step.paramsText = (step.paramsText || '') + template;
+          const step = this.steps[stepIdx];
+          const textarea = document.querySelector(
+            '[data-testid="params-editor"]',
+          );
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            step.paramsText =
+              (step.paramsText || '').substring(0, start) +
+              template +
+              (step.paramsText || '').substring(end);
+            setTimeout(() => {
+              textarea.focus();
+              textarea.setSelectionRange(
+                start + template.length,
+                start + template.length,
+              );
+            }, 50);
+          } else {
+            step.paramsText = (step.paramsText || '') + template;
+          }
         }
         this.drawerDirty = true;
         this.variablePickerOpen = false;
@@ -926,6 +1432,7 @@
         this.steps.splice(idx, 0, item);
         this.markDirty();
         this.validate();
+        this.validateSelectedNode();
         this.dragFromIdx = null;
       },
 
@@ -943,7 +1450,12 @@
       },
 
       triggerImport() {
-        this.$el.querySelector('#yaml-import-input').click();
+        const input =
+          this.$el.querySelector('#yaml-import-input') ||
+          document.getElementById('yaml-import-input');
+        if (input) {
+          input.click();
+        }
       },
 
       async handleYamlImport(e) {

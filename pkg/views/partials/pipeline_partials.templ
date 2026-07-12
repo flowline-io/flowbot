@@ -49,6 +49,8 @@ templ StepCard() {
 			</div>
 			<button type="button" @click.stop="selectNode('step', idx)" class="text-base-content/30 hover:text-base-content">...</button>
 		</div>
-		<div x-show="step.paramsText" class="mt-2 text-xs text-base-content/50 line-clamp-2 font-mono bg-base-200 rounded-box p-2" x-text="step.paramsText"></div>
+		<div x-show="step.paramsText && step.paramsText.trim() !== '{}'"
+			class="mt-2 text-xs text-base-content/50 font-mono bg-base-200 rounded-box p-2 whitespace-pre-wrap break-words"
+			x-text="formatStepParamsPreview(step.paramsText)"></div>
 	</div>
 }

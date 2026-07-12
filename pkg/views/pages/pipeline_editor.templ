@@ -239,19 +239,19 @@ templ PipelineEditorPage(name string) {
 
 					<!-- Setup Tab -->
 					<div x-show="drawerTab === 'setup'" data-testid="drawer-setup">
-						<template x-if="selectedNode?.type === 'trigger'">
+						<template x-if="selectedTrigger()">
 							<div>
 								<label class="block text-sm font-medium mb-1">Type</label>
-								<select x-model="triggers[selectedNode.index].type"
+								<select x-model="selectedTrigger().type"
 									class="select select-bordered w-full mb-3" data-testid="trigger-type-select"
 									@change="drawerDirty = true">
 									<option value="event">Event</option>
 									<option value="webhook">Webhook</option>
 									<option value="cron">Cron</option>
 								</select>
-								<div x-show="triggers[selectedNode.index].type === 'event'">
+								<div x-show="selectedTrigger().type === 'event'">
 									<label class="block text-sm font-medium mb-1">Event Type</label>
-									<select x-model="triggers[selectedNode.index].event"
+									<select x-model="selectedTrigger().event"
 										class="select select-bordered w-full mb-3"
 										data-testid="trigger-event-select" required
 										@change="drawerDirty = true">
@@ -263,21 +263,21 @@ templ PipelineEditorPage(name string) {
 												</template>
 											</optgroup>
 										</template>
-										<template x-if="triggers[selectedNode.index].event && !isEventKnown(triggers[selectedNode.index].event)">
+										<template x-if="selectedTrigger().event && !isEventKnown(selectedTrigger().event)">
 											<optgroup label="Custom">
-												<option :value="triggers[selectedNode.index].event" x-text="triggers[selectedNode.index].event + ' (custom)'" selected></option>
+												<option :value="selectedTrigger().event" x-text="selectedTrigger().event + ' (custom)'" selected></option>
 											</optgroup>
 										</template>
 									</select>
 								</div>
-								<div x-show="triggers[selectedNode.index].type === 'webhook'">
+								<div x-show="selectedTrigger().type === 'webhook'">
 									<label class="block text-sm font-medium mb-1">Path</label>
-									<input type="text" x-model="triggers[selectedNode.index].webhook.path"
+									<input type="text" x-model="selectedTrigger().webhook.path"
 										class="input input-bordered w-full mb-3"
 										placeholder="/github-push" data-testid="webhook-path-input"
 										@input="drawerDirty = true">
 									<label class="block text-sm font-medium mb-1">Method</label>
-									<select x-model="triggers[selectedNode.index].webhook.method"
+									<select x-model="selectedTrigger().webhook.method"
 										class="select select-bordered w-full mb-3" data-testid="webhook-method-select"
 										@change="drawerDirty = true">
 										<option value="POST">POST</option>
@@ -285,33 +285,33 @@ templ PipelineEditorPage(name string) {
 										<option value="PUT">PUT</option>
 									</select>
 									<label class="block text-sm font-medium mb-1">Token</label>
-									<input type="text" x-model="triggers[selectedNode.index].webhook.auth.token"
+									<input type="text" x-model="selectedTrigger().webhook.auth.token"
 										class="input input-bordered w-full mb-3" data-testid="webhook-token-input"
 										@input="drawerDirty = true">
 									<label class="block text-sm font-medium mb-1">HMAC Secret</label>
-									<input type="text" x-model="triggers[selectedNode.index].webhook.auth.hmac_secret"
+									<input type="text" x-model="selectedTrigger().webhook.auth.hmac_secret"
 										class="input input-bordered w-full mb-3" data-testid="webhook-hmac-input"
 										@input="drawerDirty = true">
 								</div>
-								<div x-show="triggers[selectedNode.index].type === 'cron'">
+								<div x-show="selectedTrigger().type === 'cron'">
 									<label class="block text-sm font-medium mb-1">Cron Expression</label>
-									<input type="text" x-model="triggers[selectedNode.index].cron"
+									<input type="text" x-model="selectedTrigger().cron"
 										class="input input-bordered w-full mb-3"
 										placeholder="*/5 * * * *" data-testid="cron-expr-input"
 										@input="drawerDirty = true">
 								</div>
 							</div>
 						</template>
-						<template x-if="selectedNode?.type === 'step'">
+						<template x-if="selectedStep()">
 							<div>
 								<label class="block text-sm font-medium mb-1">Step Name</label>
-								<input type="text" x-model="steps[selectedNode.index].name"
+								<input type="text" x-model="selectedStep().name"
 									class="input input-bordered w-full mb-3"
 									placeholder="my-step" data-testid="step-name-input"
 									@input="drawerDirty = true">
 								<label class="block text-sm font-medium mb-1">Capability</label>
-								<select x-model="steps[selectedNode.index].capability"
-									@change="onCapabilityChange(selectedNode.index)"
+								<select x-model="selectedStep().capability"
+									@change="onCapabilityChange(selectedStepIndex())"
 									class="select select-bordered w-full mb-3"
 									data-testid="step-capability-select">
 									<option value="" disabled>Select capability...</option>
@@ -320,27 +320,26 @@ templ PipelineEditorPage(name string) {
 									</template>
 								</select>
 								<label class="block text-sm font-medium mb-1">Operation</label>
-								<select x-model="steps[selectedNode.index].operation"
-									@change="onOperationChange(selectedNode.index)"
+								<select x-model="selectedStep().operation"
+									@change="onOperationChange(selectedStepIndex())"
 									class="select select-bordered w-full mb-3"
 									data-testid="step-operation-select">
 									<option value="" disabled>Select operation...</option>
-									<template x-for="op in getOperationsFor(steps[selectedNode.index].capability)" :key="op.name">
+									<template x-for="op in getOperationsFor(selectedStep()?.capability)" :key="op.name">
 										<option :value="op.name" x-text="op.name" :title="op.description"></option>
 									</template>
 								</select>
-								<div x-show="isAgentRunStep(selectedNode.index)" class="mb-3">
+								<div x-show="isAgentRunStep(selectedStepIndex())" class="mb-3" data-testid="agent-run-options">
 									<label class="block text-sm font-medium mb-1">Tools</label>
 									<p class="text-xs text-base-content/50 mb-2">Leave all unchecked to use pipeline defaults.</p>
 									<div class="grid grid-cols-2 md:grid-cols-3 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 mb-3">
 										<template x-for="toolName in agentRunOptions.tools" :key="toolName">
 											<label class="flex items-center gap-2 text-sm cursor-pointer">
 												<input type="checkbox"
-													:checked="isAgentRunOptionSelected(selectedNode.index, 'tools', toolName)"
-													@change="toggleAgentRunOption(selectedNode.index, 'tools', toolName)"
+													:checked="isAgentRunOptionSelected(selectedStepIndex(), 'tools', toolName)"
+													@change="toggleAgentRunOption(selectedStepIndex(), 'tools', toolName)"
 													class="checkbox checkbox-xs"
-													:data-testid="'agent-run-tool-' + toolName"
-												/>
+													:data-testid="'agent-run-tool-' + toolName">
 												<span class="font-mono text-xs" x-text="toolName"></span>
 											</label>
 										</template>
@@ -348,18 +347,17 @@ templ PipelineEditorPage(name string) {
 									<label class="block text-sm font-medium mb-1">Skills</label>
 									<p class="text-xs text-base-content/50 mb-2">Selected skills are injected into the agent prompt and enabled via read_skill.</p>
 									<template x-if="agentRunOptions.skills.length === 0">
-										<p class="text-xs text-base-content/50 mb-3">No enabled skills. Create skills under Agent → Skills.</p>
+										<p class="text-xs text-base-content/50 mb-3">No enabled skills. Create skills under Agent &rarr; Skills.</p>
 									</template>
 									<template x-if="agentRunOptions.skills.length > 0">
 										<div class="grid grid-cols-1 md:grid-cols-2 gap-2 rounded-lg border border-base-300 p-3 bg-base-100 max-h-48 overflow-y-auto mb-3">
 											<template x-for="skill in agentRunOptions.skills" :key="skill.name">
 												<label class="flex items-start gap-2 text-sm cursor-pointer">
 													<input type="checkbox"
-														:checked="isAgentRunOptionSelected(selectedNode.index, 'skills', skill.name)"
-														@change="toggleAgentRunOption(selectedNode.index, 'skills', skill.name)"
+														:checked="isAgentRunOptionSelected(selectedStepIndex(), 'skills', skill.name)"
+														@change="toggleAgentRunOption(selectedStepIndex(), 'skills', skill.name)"
 														class="checkbox checkbox-xs mt-0.5"
-														:data-testid="'agent-run-skill-' + skill.name"
-													/>
+														:data-testid="'agent-run-skill-' + skill.name">
 													<span>
 														<span class="font-mono text-xs" x-text="skill.name"></span>
 														<span class="block text-xs text-base-content/50" x-text="skill.description" x-show="skill.description"></span>
@@ -369,34 +367,112 @@ templ PipelineEditorPage(name string) {
 										</div>
 									</template>
 								</div>
-								<label class="block text-sm font-medium mb-1">Params (JSON)</label>
-								<textarea rows="10" x-model="steps[selectedNode.index].paramsText"
-									class="textarea textarea-bordered w-full font-mono mb-3"
-										placeholder='{ &quot;title&quot;: &quot;event.title&quot; }'
-									@input="drawerDirty = true; onParamsTextInput(selectedNode.index)"
-									data-testid="params-editor"></textarea>
-								<template x-if="getCurrentOperationInput(selectedNode.index).length > 0">
-									<div class="mb-3 border border-base-300 rounded-box bg-base-200">
-										<div class="text-xs font-medium text-base-content/50 uppercase px-3 py-2 border-b border-base-300">Parameters</div>
-										<template x-for="p in getCurrentOperationInput(selectedNode.index)" :key="p.name">
-											<div class="flex items-start gap-2 px-3 py-2 border-b border-base-100 last:border-b-0">
-												<span class="text-xs font-mono font-medium text-base-content min-w-[100px]" x-text="p.name"></span>
-												<span class="text-xs font-mono text-base-content/30 bg-base-300 rounded-box px-1.5 py-0.5 min-w-[60px] text-center" x-text="p.type"></span>
-												<span x-show="p.required" class="badge badge-error badge-xs">required</span>
-												<span x-show="!p.required" class="badge badge-ghost badge-xs">optional</span>
-												<span class="text-xs text-base-content/50 flex-1" x-text="p.description" x-show="p.description"></span>
-											</div>
-										</template>
+								<template x-if="getFormOperationInput(selectedStepIndex()).length > 0">
+									<div class="mb-3" data-testid="params-form">
+										<label class="block text-sm font-medium mb-2">Parameters</label>
+										<div class="space-y-4">
+											<template x-for="p in getFormOperationInput(selectedStepIndex())" :key="p.name">
+												<div class="border border-base-300 rounded-box p-3 bg-base-100">
+													<div class="flex items-center gap-2 mb-1">
+														<span class="text-sm font-mono font-medium" x-text="p.name"></span>
+														<span class="text-xs font-mono text-base-content/30 bg-base-200 rounded-box px-1.5 py-0.5" x-text="p.type"></span>
+														<span x-show="p.required" class="badge badge-error badge-xs">required</span>
+														<span x-show="!p.required" class="badge badge-ghost badge-xs">optional</span>
+														<button type="button"
+															x-show="!p.required"
+															@click="clearStepParam(selectedStepIndex(), p.name)"
+															class="btn btn-ghost btn-xs ml-auto text-base-content/50"
+															:data-testid="'btn-clear-param-' + p.name">Clear</button>
+													</div>
+													<p x-show="p.description" class="text-xs text-base-content/50 mb-2" x-text="p.description"></p>
+													<div x-show="isParamTypeString(p)">
+														<div class="flex gap-2 items-start">
+															<textarea rows="3"
+																:value="getStepParamString(selectedStepIndex(), p.name)"
+																@input="setStepParamString(selectedStepIndex(), p.name, $event.target.value)"
+																class="textarea textarea-bordered textarea-sm w-full font-mono"
+																:placeholder="p.required ? 'required' : 'optional'"
+																:data-param-field="p.name"
+																:data-testid="'param-field-' + p.name"></textarea>
+															<button type="button"
+																@click="openVariablePicker(selectedStepIndex(), p.name)"
+																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
+														</div>
+													</div>
+													<div x-show="isParamTypeNumber(p)">
+														<input type="number"
+															:value="getStepParamNumber(selectedStepIndex(), p.name)"
+															@input="setStepParamNumber(selectedStepIndex(), p.name, $event.target.value, p.type)"
+															class="input input-bordered input-sm w-full font-mono"
+															:placeholder="p.required ? '0' : 'optional'"
+															:data-param-field="p.name"
+															:data-testid="'param-field-' + p.name">
+													</div>
+													<div x-show="isParamTypeBool(p)">
+														<select
+															:value="getStepParamBoolMode(selectedStepIndex(), p.name)"
+															@change="setStepParamBoolMode(selectedStepIndex(), p.name, $event.target.value)"
+															class="select select-bordered select-sm w-full"
+															:data-param-field="p.name"
+															:data-testid="'param-field-' + p.name">
+															<option value="unset">Not set</option>
+															<option value="true">true</option>
+															<option value="false">false</option>
+														</select>
+													</div>
+													<div x-show="isParamTypeStringList(p)">
+														<textarea rows="3"
+															:value="getStepParamStringList(selectedStepIndex(), p.name)"
+															@input="setStepParamStringList(selectedStepIndex(), p.name, $event.target.value)"
+															class="textarea textarea-bordered textarea-sm w-full font-mono"
+															placeholder="comma-separated values"
+															:data-param-field="p.name"
+															:data-testid="'param-field-' + p.name"></textarea>
+													</div>
+													<div x-show="isParamTypeMap(p)">
+														<textarea rows="4"
+															:value="getStepParamMapJSON(selectedStepIndex(), p.name)"
+															@input="setStepParamMapJSON(selectedStepIndex(), p.name, $event.target.value)"
+															class="textarea textarea-bordered textarea-sm w-full font-mono"
+															:class="isParamFieldError(selectedStepIndex(), p.name) ? 'textarea-error' : ''"
+															placeholder="{}"
+															:data-param-field="p.name"
+															:data-testid="'param-field-' + p.name"></textarea>
+														<p x-show="isParamFieldError(selectedStepIndex(), p.name)"
+															class="text-xs text-error mt-1">Invalid JSON object</p>
+													</div>
+												</div>
+											</template>
+										</div>
 									</div>
 								</template>
-								<button type="button" @click="openVariablePicker(selectedNode.index)"
-									class="btn btn-ghost btn-sm text-primary"
-									data-testid="btn-open-var-picker">&#123;x&#125; Insert Variable</button>
+								<template x-if="getExtraParamKeys(selectedStepIndex()).length > 0">
+									<p class="text-xs text-base-content/50 mb-3"
+										data-testid="params-extra-keys-info">
+										<span x-text="getExtraParamKeys(selectedStepIndex()).length"></span>
+										extra field(s) only visible in Advanced JSON.
+									</p>
+								</template>
+								<div class="collapse collapse-arrow border border-base-300 rounded-box bg-base-200 mb-3">
+									<input type="checkbox" x-model="paramsAdvancedOpen" data-testid="params-advanced-toggle">
+									<div class="collapse-title text-sm font-medium min-h-0 py-3">Advanced JSON</div>
+									<div class="collapse-content">
+										<textarea rows="8" x-model="selectedStep().paramsText"
+											class="textarea textarea-bordered w-full font-mono"
+											placeholder='{ "title": "event.title" }'
+											@input="drawerDirty = true; onParamsTextInput(selectedStepIndex())"
+											data-testid="params-editor"></textarea>
+										<button type="button" @click="openVariablePicker(selectedStepIndex(), null)"
+											class="btn btn-ghost btn-sm text-primary mt-2"
+											data-testid="btn-open-var-picker">&#123;x&#125; Insert Variable</button>
+									</div>
+								</div>
 							</div>
 						</template>
 					</div>
 
-					<div x-show="drawerTab === 'setup' && selectedNode"
+					<div x-show="drawerTab === 'setup' && (selectedStep() || selectedTrigger())"
 						class="sticky bottom-0 -mx-6 -mb-6 mt-6 border-t border-base-300 bg-base-100 px-6 py-4 flex justify-end gap-2"
 						data-testid="drawer-setup-actions">
 						<button type="button" @click="closeDrawer"
@@ -416,7 +492,7 @@ templ PipelineEditorPage(name string) {
 
 					<!-- Test Tab -->
 					<div x-show="drawerTab === 'test'" data-testid="drawer-test">
-						<template x-if="selectedNode?.type === 'step'">
+						<template x-if="selectedStep()">
 							<div>
 								<label class="block text-sm font-medium mb-1">Trigger Source</label>
 								<select x-model="testTriggerSource"
@@ -478,7 +554,7 @@ templ PipelineEditorPage(name string) {
 						<button @click="insertVariable('event.entity_id')" class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">event.entity_id</button>
 						<button @click="insertVariable('event.source')" class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">event.source</button>
 						<button @click="insertVariable('event.capability')" class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">event.capability</button>
-						<template x-for="idx in [...Array(selectedNode?.index || 0).keys()]" :key="idx">
+						<template x-for="idx in [...Array(selectedStepIndex() ?? 0).keys()]" :key="idx">
 							<div x-show="steps[idx]">
 								<div class="text-xs text-base-content/30 uppercase mt-2 mb-1" x-text="'steps.' + steps[idx]?.name"></div>
 								<button @click={ "insertVariable('steps.' + steps[idx]?.name + '.id')" }
