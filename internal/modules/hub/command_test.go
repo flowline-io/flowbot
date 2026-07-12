@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
+	"github.com/flowline-io/flowbot/version"
 )
 
 func TestCommandRules_Metadata(t *testing.T) {
@@ -31,6 +32,7 @@ func TestCommandRules_Metadata(t *testing.T) {
 				assert.Contains(t, defines, "hub apps")
 				assert.Contains(t, defines, "hub app [name]")
 				assert.Contains(t, defines, "hub capabilities")
+				assert.Contains(t, defines, "version")
 				assert.Contains(t, defines, "hub app start [name]")
 				assert.Contains(t, defines, "hub app stop [name]")
 				assert.Contains(t, defines, "hub app restart [name]")
@@ -63,6 +65,7 @@ func TestCommandRules_TokenParsing(t *testing.T) {
 		{name: "hub apps exact match", define: "hub apps", input: "hub apps", want: true},
 		{name: "hub app with name param", define: "hub app [name]", input: "hub app archivebox", want: true},
 		{name: "hub capabilities exact match", define: "hub capabilities", input: "hub capabilities", want: true},
+		{name: "version exact match", define: "version", input: "version", want: true},
 		{name: "hub app start with name param", define: "hub app start [name]", input: "hub app start archivebox", want: true},
 		{name: "hub app stop with name param", define: "hub app stop [name]", input: "hub app stop archivebox", want: true},
 		{name: "hub app restart with name param", define: "hub app restart [name]", input: "hub app restart archivebox", want: true},
@@ -262,6 +265,40 @@ func TestHubAppHandler(t *testing.T) {
 				require.True(t, ok)
 				assert.Equal(t, tt.wantTitle, msg.Title)
 			}
+		})
+	}
+}
+
+func TestVersionHandler(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "version handler returns InfoMsg with version fields"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var versionRule *command.Rule
+			for i := range commandRules {
+				if commandRules[i].Define == "version" {
+					versionRule = &commandRules[i]
+					break
+				}
+			}
+			require.NotNil(t, versionRule)
+
+			tokens, _ := parser.ParseString("version")
+			ctx := types.Context{Platform: "test", Topic: "test", AsUser: types.Uid("test")}
+			payload := versionRule.Handler(ctx, tokens)
+			require.NotNil(t, payload)
+
+			msg, ok := payload.(types.InfoMsg)
+			require.True(t, ok)
+			assert.Equal(t, "Flowbot Version", msg.Title)
+
+			model, ok := msg.Model.(types.KV)
+			require.True(t, ok)
+			assert.Equal(t, version.Buildtags, model["Version"])
+			assert.Equal(t, version.Buildstamp, model["Build"])
 		})
 	}
 }

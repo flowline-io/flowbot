@@ -21,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/providers/miniflux"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
+	"github.com/flowline-io/flowbot/version"
 )
 
 var commandRules = []command.Rule{
@@ -81,6 +82,19 @@ var commandRules = []command.Rule{
 			return types.InfoMsg{
 				Title: "Hub Capabilities",
 				Model: bindings,
+			}
+		},
+	},
+	{
+		Define: "version",
+		Help:   `Print flowbot version information`,
+		Handler: func(_ types.Context, _ []*parser.Token) types.MsgPayload {
+			return types.InfoMsg{
+				Title: "Flowbot Version",
+				Model: types.KV{
+					"Version": version.Buildtags,
+					"Build":   version.Buildstamp,
+				},
 			}
 		},
 	},
