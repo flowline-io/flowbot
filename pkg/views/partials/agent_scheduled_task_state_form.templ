@@ -1,0 +1,31 @@
+package partials
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+)
+
+templ AgentScheduledTaskStatePanel(task model.AgentScheduledTask) {
+	<div id="agent-scheduled-task-state-panel" data-testid="agent-scheduled-task-state-panel">
+		<div>
+			<span class="text-base-content/50">State:</span>
+			<span class={ AgentScheduledTaskStateBadgeClass(task.State) + " ml-1" }>{ task.State }</span>
+		</div>
+		<form
+			class="flex flex-wrap items-end gap-2 mt-2"
+			hx-put={ AgentScheduledTaskStateURL(task.TaskID) }
+			hx-target="#agent-scheduled-task-state-panel"
+			hx-swap="outerHTML"
+			data-testid="agent-scheduled-task-state-form"
+		>
+			<label class="form-control w-full max-w-xs">
+				<span class="label-text text-xs text-base-content/60">Set state</span>
+				<select name="state" class="select select-bordered select-sm" data-testid="agent-scheduled-task-state-select">
+					for _, option := range AgentScheduledTaskStateOptions() {
+						<option value={ option } selected={ templ.KV(option == task.State, true) }>{ option }</option>
+					}
+				</select>
+			</label>
+			<button type="submit" class="btn btn-primary btn-sm" data-testid="agent-scheduled-task-state-submit">Update</button>
+		</form>
+	</div>
+}

@@ -23,8 +23,7 @@ templ AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.A
 				<p class="font-mono text-sm text-base-content/60">{ task.TaskID }</p>
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-base-content/70 mt-2">
 					<div>
-						<span class="text-base-content/50">State:</span>
-						<span class={ partials.AgentScheduledTaskStateBadgeClass(task.State) }>{ task.State }</span>
+						@partials.AgentScheduledTaskStatePanel(task)
 					</div>
 					<div>
 						<span class="text-base-content/50">Kind:</span>

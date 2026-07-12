@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -59,6 +60,34 @@ func (s *testStore) GetChatScheduledTaskForUID(_ context.Context, flag, uid stri
 		}
 	}
 	return nil, types.ErrNotFound
+}
+
+func (s *testStore) GetChatScheduledTask(_ context.Context, flag string) (*gen.ChatScheduledTask, error) {
+	if s.chatScheduledTasksByFlag != nil {
+		task, ok := s.chatScheduledTasksByFlag[flag]
+		if !ok {
+			return nil, types.ErrNotFound
+		}
+		return task, nil
+	}
+	for _, task := range s.chatScheduledTasks {
+		if task.Flag == flag {
+			return task, nil
+		}
+	}
+	return nil, types.ErrNotFound
+}
+
+func (s *testStore) UpdateChatScheduledTask(_ context.Context, flag string, params store.UpdateChatScheduledTaskParams) error {
+	task, err := s.GetChatScheduledTask(context.Background(), flag)
+	if err != nil {
+		return err
+	}
+	if params.State != nil {
+		task.State = *params.State
+	}
+	task.UpdatedAt = time.Now().UTC()
+	return nil
 }
 
 func (s *testStore) ListChatScheduledTaskRuns(_ context.Context, taskID string, limit int) ([]*gen.ChatScheduledTaskRun, error) {
@@ -246,6 +275,18 @@ func TestAgentScheduledTaskDetailAuthenticated(t *testing.T) {
 			wantBody:   "check system health",
 		},
 		{
+			name: "detail includes state panel",
+			path: "/service/web/agent-scheduled-tasks/task-detail",
+			tasks: map[string]*gen.ChatScheduledTask{
+				"task-detail": {
+					ID: 1, Flag: "task-detail", UID: "testuser", Name: "Daily Check", Prompt: "check system health",
+					ScheduleKind: "cron", Cron: "0 * * * *", State: string(schema.ChatScheduledTaskStateActive), UpdatedAt: now, CreatedAt: now,
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `data-testid="agent-scheduled-task-state-form"`,
+		},
+		{
 			name:       "missing task returns not found",
 			path:       "/service/web/agent-scheduled-tasks/missing",
 			tasks:      map[string]*gen.ChatScheduledTask{},
@@ -285,6 +326,77 @@ func TestAgentScheduledTaskDetailAuthenticated(t *testing.T) {
 				assert.Equal(t, tt.wantStatus, resp.StatusCode)
 				body, _ := io.ReadAll(resp.Body)
 				assert.Contains(t, string(body), tt.wantBody)
+			})
+		})
+	}
+}
+
+func TestAgentScheduledTaskSetStateAuthenticated(t *testing.T) {
+	now := time.Now().UTC()
+	tests := []struct {
+		name       string
+		path       string
+		body       string
+		tasks      map[string]*gen.ChatScheduledTask
+		wantStatus int
+		wantBody   string
+	}{
+		{
+			name: "updates task state and returns panel",
+			path: "/service/web/agent-scheduled-tasks/task-state/state",
+			body: "state=paused",
+			tasks: map[string]*gen.ChatScheduledTask{
+				"task-state": {
+					ID: 1, Flag: "task-state", UID: "testuser", Name: "Daily", Prompt: "run",
+					ScheduleKind: "cron", Cron: "0 * * * *", State: string(schema.ChatScheduledTaskStateActive), UpdatedAt: now, CreatedAt: now,
+				},
+			},
+			wantStatus: http.StatusOK,
+			wantBody:   `data-testid="agent-scheduled-task-state-panel"`,
+		},
+		{
+			name: "invalid state returns bad request",
+			path: "/service/web/agent-scheduled-tasks/task-state/state",
+			body: "state=archived",
+			tasks: map[string]*gen.ChatScheduledTask{
+				"task-state": {
+					ID: 1, Flag: "task-state", UID: "testuser", Name: "Daily", Prompt: "run",
+					ScheduleKind: "cron", Cron: "0 * * * *", State: string(schema.ChatScheduledTaskStateActive), UpdatedAt: now, CreatedAt: now,
+				},
+			},
+			wantStatus: http.StatusBadRequest,
+			wantBody:   "invalid state",
+		},
+		{
+			name:       "missing task returns not found",
+			path:       "/service/web/agent-scheduled-tasks/missing/state",
+			body:       "state=paused",
+			tasks:      map[string]*gen.ChatScheduledTask{},
+			wantStatus: http.StatusNotFound,
+			wantBody:   "scheduled task not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withChatAgentEnabled(t, func() {
+				ts := &testStore{chatScheduledTasksByFlag: tt.tasks}
+				app := setupAuthenticatedApp(t, ts)
+
+				req := httptest.NewRequest(http.MethodPut, tt.path, strings.NewReader(tt.body))
+				req.Header.Set("Cookie", "accessToken=test-token")
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+
+				assert.Equal(t, tt.wantStatus, resp.StatusCode)
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.wantBody)
+				if tt.wantStatus == http.StatusOK {
+					task := tt.tasks["task-state"]
+					assert.Equal(t, string(schema.ChatScheduledTaskStatePaused), task.State)
+				}
 			})
 		})
 	}

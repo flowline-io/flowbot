@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -20,6 +21,7 @@ var agentScheduledTasksWebserviceRules = []webservice.Rule{
 	webservice.Get("/agent-scheduled-tasks", agentScheduledTasksPage, route.WithNotAuth()),
 	webservice.Get("/agent-scheduled-tasks/list", agentScheduledTasksTable, route.WithNotAuth()),
 	webservice.Get("/agent-scheduled-tasks/:id", agentScheduledTaskDetailPage, route.WithNotAuth()),
+	webservice.Put("/agent-scheduled-tasks/:id/state", agentScheduledTaskSetState, route.WithNotAuth()),
 }
 
 func agentScheduledTasksPage(ctx fiber.Ctx) error {
@@ -89,6 +91,42 @@ func agentScheduledTaskDetailPage(ctx fiber.Ctx) error {
 		mapScheduledTask(*task),
 		mapScheduledTaskRuns(runs),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func agentScheduledTaskSetState(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		ctx.Status(http.StatusServiceUnavailable)
+		return renderError(ctx, "Chat agent is not enabled")
+	}
+	uid, err := webUID(ctx)
+	if err != nil {
+		return ctx.Status(http.StatusUnauthorized).SendString("unauthorized")
+	}
+	taskID := ctx.Params("id")
+	if taskID == "" {
+		return ctx.Status(http.StatusBadRequest).SendString("task id required")
+	}
+	state := strings.TrimSpace(ctx.FormValue("state"))
+	if state == "" {
+		ctx.Status(http.StatusBadRequest)
+		return renderError(ctx, "state is required")
+	}
+	task, err := chatagent.SetScheduledTaskStateForUID(ctx.Context(), uid, taskID, state)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).SendString("scheduled task not found")
+		}
+		if errors.Is(err, types.ErrInvalidArgument) {
+			ctx.Status(http.StatusBadRequest)
+			return renderError(ctx, "invalid state")
+		}
+		return types.Errorf(types.ErrInternal, "set scheduled task state: %v", err)
+	}
+	ctx.Type("html")
+	return partials.AgentScheduledTaskStatePanel(mapScheduledTask(*task)).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func listScheduledTaskModels(ctx fiber.Ctx) ([]model.AgentScheduledTask, error) {

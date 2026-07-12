@@ -14,6 +14,23 @@ func AgentScheduledTaskDetailURL(taskID string) templ.SafeURL {
 	return templ.URL("/service/web/agent-scheduled-tasks/" + taskID)
 }
 
+// AgentScheduledTaskStateURL builds the state update endpoint for a scheduled task.
+func AgentScheduledTaskStateURL(taskID string) templ.SafeURL {
+	return templ.URL("/service/web/agent-scheduled-tasks/" + taskID + "/state")
+}
+
+// AgentScheduledTaskStateOptions returns supported lifecycle states for manual updates.
+func AgentScheduledTaskStateOptions() []string {
+	return []string{
+		"active",
+		"paused",
+		"cancelled",
+		"completed",
+		"failed",
+		"missed",
+	}
+}
+
 // AgentScheduledTaskPageTitle returns the browser title for a scheduled task detail page.
 func AgentScheduledTaskPageTitle(task model.AgentScheduledTask) string {
 	if strings.TrimSpace(task.Name) != "" {

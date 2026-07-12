@@ -120,6 +120,28 @@ func CreateScheduledTaskForUID(ctx context.Context, uid types.Uid, sourceSession
 	return &view, nil
 }
 
+// SetScheduledTaskStateForUID sets the lifecycle state of one owned task.
+func SetScheduledTaskStateForUID(ctx context.Context, uid types.Uid, taskID string, state string) (*ScheduledTaskView, error) {
+	if store.Database == nil {
+		return nil, types.ErrUnavailable
+	}
+	state = strings.TrimSpace(state)
+	if !ValidScheduledTaskState(state) {
+		return nil, types.Errorf(types.ErrInvalidArgument, "invalid state")
+	}
+	if _, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
+		return nil, err
+	}
+	updated, err := applyScheduledTaskUpdate(ctx, taskID, store.UpdateChatScheduledTaskParams{
+		State: &state,
+	})
+	if err != nil {
+		return nil, err
+	}
+	view := taskViewFromRow(updated)
+	return &view, nil
+}
+
 // CancelScheduledTaskForUID cancels one owned task.
 func CancelScheduledTaskForUID(ctx context.Context, uid types.Uid, taskID string) error {
 	if store.Database == nil {
