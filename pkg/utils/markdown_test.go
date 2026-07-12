@@ -46,6 +46,11 @@ func TestMarkdownToHTML(t *testing.T) {
 			wantSubstr: []string{"<del>removed</del>"},
 		},
 		{
+			name:       "inline math",
+			source:     "Exponent: $10^2 = 100$\n",
+			wantSubstr: []string{"katex", "katex-html"},
+		},
+		{
 			name:      "empty input",
 			source:    "",
 			wantEmpty: true,

@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/microcosm-cc/bluemonday"
-
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -253,7 +251,7 @@ func RenderChatAgentMarkdownHTML(text string) string {
 	if err != nil {
 		return "<pre class=\"whitespace-pre-wrap font-sans text-sm\">" + htmlEscapeChat(trimmed) + "</pre>"
 	}
-	safe := string(bluemonday.UGCPolicy().SanitizeBytes(html))
+	safe := string(chatAgentMarkdownSanitizer().SanitizeBytes(html))
 	return enhanceChatAgentMarkdownHTML(safe)
 }
 

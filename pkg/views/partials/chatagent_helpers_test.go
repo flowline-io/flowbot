@@ -179,6 +179,7 @@ func TestRenderChatAgentMarkdownHTML(t *testing.T) {
 		name       string
 		text       string
 		wantSubstr []string
+		wantAbsent []string
 		wantEmpty  bool
 	}{
 		{
@@ -196,6 +197,12 @@ func TestRenderChatAgentMarkdownHTML(t *testing.T) {
 			text:       "use `ls -all` here",
 			wantSubstr: []string{"<code>ls -all</code>"},
 		},
+		{
+			name:       "inline math in table",
+			text:       "| A | B |\n| --- | --- |\n| $10^0 = 1$ | $\\lg 1 = 0$ |",
+			wantSubstr: []string{"chatagent-md-table-wrap", "katex", "katex-html"},
+			wantAbsent: []string{"$10^0 = 1$"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -206,6 +213,9 @@ func TestRenderChatAgentMarkdownHTML(t *testing.T) {
 			}
 			for _, sub := range tt.wantSubstr {
 				assert.Contains(t, got, sub)
+			}
+			for _, absent := range tt.wantAbsent {
+				assert.NotContains(t, got, absent)
 			}
 		})
 	}

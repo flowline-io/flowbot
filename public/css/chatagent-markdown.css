@@ -341,3 +341,18 @@
   border-radius: 6px;
   box-shadow: inset 0 -1px 0 var(--md-neutral-muted);
 }
+
+.chatagent-markdown.markdown-body .katex {
+  font-size: 1em;
+}
+
+.chatagent-markdown.markdown-body .katex-display {
+  margin: 0.75em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.chatagent-markdown.markdown-body td .katex,
+.chatagent-markdown.markdown-body th .katex {
+  white-space: nowrap;
+}

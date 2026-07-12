@@ -519,7 +519,10 @@
         if (!(name in params)) {
           return 'unset';
         }
-        if (!pDef?.required && this.isParamTemplateValue(params[name], 'bool')) {
+        if (
+          !pDef?.required &&
+          this.isParamTemplateValue(params[name], 'bool')
+        ) {
           return 'unset';
         }
         return params[name] ? 'true' : 'false';

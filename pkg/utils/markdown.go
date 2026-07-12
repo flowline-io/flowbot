@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 
+	"github.com/FurqanSoftware/goldmark-katex"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -19,6 +20,7 @@ func MarkdownToHTML(source []byte) ([]byte, error) {
 			extension.Linkify,
 			extension.DefinitionList,
 			extension.TaskList,
+			&katex.Extender{},
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
