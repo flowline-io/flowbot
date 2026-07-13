@@ -292,11 +292,11 @@ git commit -m "feat: add ResourceLink schema with unique constraint and indexes"
 
 **Files:**
 
-- Modify: `pkg/ability/ability.go:65-79`
+- Modify: `pkg/ability/capability.go:65-79`
 
 - [ ] **Step 1: Define ResourceMeta and add to InvokeResult**
 
-In `pkg/ability/ability.go`, add after `EventRef`:
+In `pkg/ability/capability.go`, add after `EventRef`:
 
 ```go
 // ResourceMeta identifies a resource created by a capability mutation operation.
@@ -373,7 +373,7 @@ Expected: PASS
 
 ```bash
 go build ./...
-git add pkg/ability/ability.go pkg/ability/invoke_test.go
+git add pkg/ability/capability.go pkg/ability/invoke_test.go
 git commit -m "feat: add ResourceMeta to InvokeResult for resource link recording"
 ```
 
@@ -470,12 +470,12 @@ func mergeTags(upstream types.KV, stepTags any) types.KV {
 In `executeStep`, after `renderedParams, err := rc.RenderParams(step.Params)` and before the `backoff.Do` block, add:
 
 ```go
-if ability.IsMutation(step.Operation) && len(rc.Event.Tags) > 0 {
+if capability.IsMutation(step.Operation) && len(rc.Event.Tags) > 0 {
 	renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
 }
 ```
 
-Add `"github.com/flowline-io/flowbot/pkg/ability"` to imports.
+Add `"github.com/flowline-io/flowbot/pkg/capability"` to imports.
 
 - [ ] **Step 5: Capture ResourceMeta and record link in executeStep**
 
@@ -484,7 +484,7 @@ In `executeStep`, replace the `backoff.Do` variables from:
 ```go
 var stepResult map[string]any
 attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
-	res, invokeErr := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
+	res, invokeErr := capability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 	if invokeErr != nil {
 		trace.RecordError(ctx, invokeErr)
 		return invokeErr
@@ -498,9 +498,9 @@ To:
 
 ```go
 var stepResult map[string]any
-var stepResource *ability.ResourceMeta
+var stepResource *capability.ResourceMeta
 attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
-	res, invokeErr := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
+	res, invokeErr := capability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 	if invokeErr != nil {
 		trace.RecordError(ctx, invokeErr)
 		return invokeErr
@@ -1144,7 +1144,7 @@ git commit -m "feat: add resourcechain module with tag query and relations endpo
 In `pkg/ability/example/interface.go`, add `"github.com/flowline-io/flowbot/pkg/types"` import and change:
 
 ```go
-CreateItem(ctx context.Context, title string, tags types.KV) (*ability.Host, error)
+CreateItem(ctx context.Context, title string, tags types.KV) (*capability.Host, error)
 ```
 
 - [ ] **Step 2: Update adapter**
@@ -1152,7 +1152,7 @@ CreateItem(ctx context.Context, title string, tags types.KV) (*ability.Host, err
 In `pkg/ability/example/example/adapter.go`, add `"github.com/flowline-io/flowbot/pkg/types"` import and change:
 
 ```go
-func (a *Adapter) CreateItem(ctx context.Context, title string, _ types.KV) (*ability.Host, error) {
+func (a *Adapter) CreateItem(ctx context.Context, title string, _ types.KV) (*capability.Host, error) {
 ```
 
 In `pkg/ability/example/example/adapter_test.go`, update the `TestAdapter_CreateItem` test to pass `nil` for the tags parameter when calling `a.CreateItem`:
@@ -1166,9 +1166,9 @@ item, err := a.CreateItem(context.Background(), tt.title, nil)
 In `pkg/ability/example/descriptor.go`, add `"github.com/flowline-io/flowbot/pkg/types"` import and replace `invokeCreate`:
 
 ```go
-func invokeCreate(svc Service) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		title, err := ability.RequiredString(params, "title")
+func invokeCreate(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		title, err := capability.RequiredString(params, "title")
 		if err != nil {
 			return nil, err
 		}
@@ -1177,9 +1177,9 @@ func invokeCreate(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{
+		return &capability.InvokeResult{
 			Data: item,
-			Resource: &ability.ResourceMeta{
+			Resource: &capability.ResourceMeta{
 				EntityID: item.ID,
 				App:      backend,
 			},
@@ -1193,19 +1193,19 @@ func invokeCreate(svc Service) ability.Invoker {
 In `pkg/ability/example/descriptor_test.go:19`, update mock:
 
 ```go
-func (mockService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) { return nil, nil }
+func (mockService) CreateItem(_ context.Context, _ string, _ types.KV) (*capability.Host, error) { return nil, nil }
 ```
 
 In `pkg/ability/example/poller_test.go:26`, update mock:
 
 ```go
-func (*fakePollerService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) { return nil, nil }
+func (*fakePollerService) CreateItem(_ context.Context, _ string, _ types.KV) (*capability.Host, error) { return nil, nil }
 ```
 
 In `pkg/ability/example/conformance.go:19`, update Config struct:
 
 ```go
-CreateItem *ability.Host
+CreateItem *capability.Host
 ```
 
 No change to the field itself; just ensure `CreateItem(ctx, title, nil)` calls in conformance.go:138 use the new signature.
@@ -1213,7 +1213,7 @@ No change to the field itself; just ensure `CreateItem(ctx, title, nil)` calls i
 In `pkg/ability/example/conformance_test.go:40`, update:
 
 ```go
-func (c *conformanceService) CreateItem(ctx context.Context, title string, _ types.KV) (*ability.Host, error) {
+func (c *conformanceService) CreateItem(ctx context.Context, title string, _ types.KV) (*capability.Host, error) {
 ```
 
 - [ ] **Step 5: Update example module webservice**
@@ -1232,7 +1232,7 @@ func createExampleItem(ctx fiber.Ctx) error {
 	if body.Title == "" {
 		return types.Errorf(types.ErrInvalidArgument, "title is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate,
+	res, err := capability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate,
 		map[string]any{"title": body.Title, "tags": body.Tags})
 	if err != nil {
 		return err

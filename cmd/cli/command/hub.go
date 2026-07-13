@@ -186,7 +186,7 @@ func hubCapabilitiesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "capabilities",
 		Short: "List capabilities",
-		Long:  "Display all registered capability descriptors with their backends.",
+		Long:  "Display all registered capability descriptors with their apps.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			c, err := utils.NewClient(cmd)
 			if err != nil {
@@ -211,14 +211,14 @@ func hubCapabilitiesCommand() *cobra.Command {
 				}
 				_, _ = fmt.Println(string(data))
 			} else {
-				_, _ = fmt.Printf("%-18s %-14s %-14s %s\n", "CAPABILITY", "BACKEND", "APP", "HEALTHY")
-				_, _ = fmt.Printf("%s\n", strings.Repeat("-", 64))
+				_, _ = fmt.Printf("%-18s %-14s %s\n", "CAPABILITY", "APP", "HEALTHY")
+				_, _ = fmt.Printf("%s\n", strings.Repeat("-", 48))
 				for _, c := range caps {
 					healthy := "no"
 					if c.Healthy {
 						healthy = "yes"
 					}
-					_, _ = fmt.Printf("%-18s %-14s %-14s %s\n", c.Type, c.Backend, c.App, healthy)
+					_, _ = fmt.Printf("%-18s %-14s %s\n", c.Type, c.App, healthy)
 				}
 			}
 
@@ -262,8 +262,8 @@ func hubHealthCommand() *cobra.Command {
 				if len(health.Details) > 0 {
 					_, _ = fmt.Printf("Capabilities:\n")
 					for _, d := range health.Details {
-						_, _ = fmt.Printf("  %-18s (backend: %-14s app: %s) [%s]\n",
-							d.Capability, d.Backend, d.App, d.Status)
+						_, _ = fmt.Printf("  %-18s (app: %s) [%s]\n",
+							d.Capability, d.App, d.Status)
 					}
 					_, _ = fmt.Println()
 				}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -27,7 +27,7 @@ func New() *Runtime {
 }
 
 // Run parses the task's Run field as "capability:<type>.<operation>", decodes
-// params from the CAPABILITY_PARAMS env var, and invokes the matching ability.
+// params from the CAPABILITY_PARAMS env var, and invokes the matching capability.
 func (*Runtime) Run(ctx context.Context, t *types.Task) error {
 	action := strings.TrimPrefix(t.Run, Prefix)
 	dot := strings.LastIndex(action, ".")
@@ -55,7 +55,7 @@ func (*Runtime) Run(ctx context.Context, t *types.Task) error {
 		params["_topic"] = topic
 	}
 
-	result, err := ability.Invoke(ctx, hub.CapabilityType(capType), operation, params)
+	result, err := capability.Invoke(ctx, hub.CapabilityType(capType), operation, params)
 	if err != nil {
 		return fmt.Errorf("%s.%s: %w", capType, operation, err)
 	}

@@ -23,8 +23,6 @@ const (
 	FieldCapability = "capability"
 	// FieldOperation holds the string denoting the operation field in the database.
 	FieldOperation = "operation"
-	// FieldBackend holds the string denoting the backend field in the database.
-	FieldBackend = "backend"
 	// FieldApp holds the string denoting the app field in the database.
 	FieldApp = "app"
 	// FieldEntityID holds the string denoting the entity_id field in the database.
@@ -53,7 +51,6 @@ var Columns = []string{
 	FieldSource,
 	FieldCapability,
 	FieldOperation,
-	FieldBackend,
 	FieldApp,
 	FieldEntityID,
 	FieldIdempotencyKey,
@@ -85,8 +82,6 @@ var (
 	DefaultCapability string
 	// DefaultOperation holds the default value on creation for the "operation" field.
 	DefaultOperation string
-	// DefaultBackend holds the default value on creation for the "backend" field.
-	DefaultBackend string
 	// DefaultApp holds the default value on creation for the "app" field.
 	DefaultApp string
 	// DefaultEntityID holds the default value on creation for the "entity_id" field.
@@ -132,11 +127,6 @@ func ByCapability(opts ...sql.OrderTermOption) OrderOption {
 // ByOperation orders the results by the operation field.
 func ByOperation(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldOperation, opts...).ToFunc()
-}
-
-// ByBackend orders the results by the backend field.
-func ByBackend(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBackend, opts...).ToFunc()
 }
 
 // ByApp orders the results by the app field.

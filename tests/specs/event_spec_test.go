@@ -12,7 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -27,7 +27,7 @@ var _ = Describe("Event System", Label("event"), func() {
 				EventID:        "test-event-" + types.Id(),
 				EventType:      types.EventBookmarkCreated,
 				Source:         "test",
-				Capability:     "bookmark",
+				Capability:     "karakeep",
 				Operation:      "create",
 				EntityID:       "entity-1",
 				IdempotencyKey: "idem-" + types.Id(),
@@ -48,7 +48,7 @@ var _ = Describe("Event System", Label("event"), func() {
 				EventID:        "unique-test-" + types.Id(),
 				EventType:      types.EventBookmarkCreated,
 				Source:         "test",
-				Capability:     "bookmark",
+				Capability:     "karakeep",
 				Operation:      "create",
 				EntityID:       "entity-2",
 				IdempotencyKey: "idem-" + types.Id(),
@@ -57,7 +57,7 @@ var _ = Describe("Event System", Label("event"), func() {
 				EventID:        "unique-test-" + types.Id(),
 				EventType:      types.EventBookmarkCreated,
 				Source:         "test",
-				Capability:     "bookmark",
+				Capability:     "karakeep",
 				Operation:      "create",
 				EntityID:       "entity-3",
 				IdempotencyKey: "idem-" + types.Id(),
@@ -157,7 +157,7 @@ var _ = Describe("Event System", Label("event"), func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			params := schema.JSON{"url": "https://example.com"}
-			stepRun, err := pipelineStore.CreateStepRun(context.Background(), run.ID, "fetch-step", "reader", "list_entries", params, 1)
+			stepRun, err := pipelineStore.CreateStepRun(context.Background(), run.ID, "fetch-step", "miniflux", "list_entries", params, 1)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(stepRun.StepName).To(Equal("fetch-step"))
 			Expect(stepRun.Attempt).To(Equal(1))
@@ -237,9 +237,9 @@ var _ = Describe("Event System", Label("event"), func() {
 	})
 
 	Describe("Ability EventStore interface", func() {
-		It("satisfies the ability.EventStore interface", func() {
+		It("satisfies the capability.EventStore interface", func() {
 			es := store.NewEventStore(EntClient)
-			var iface ability.EventStore = es
+			var iface capability.EventStore = es
 			Expect(iface).NotTo(BeNil())
 		})
 	})
@@ -250,7 +250,7 @@ var _ = Describe("Event System", Label("event"), func() {
 				EventID:        "json-test-" + types.Id(),
 				EventType:      types.EventKanbanTaskCreated,
 				Source:         "test",
-				Capability:     "kanban",
+				Capability:     "kanboard",
 				Operation:      "create_task",
 				EntityID:       "task-42",
 				IdempotencyKey: "idem-key",

@@ -1123,7 +1123,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 
 	var stepResult map[string]any
 	attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
-		res, invokeErr := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
+		res, invokeErr := capability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 		if invokeErr != nil {
 			trace.RecordError(ctx, invokeErr)
 			return invokeErr

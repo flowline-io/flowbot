@@ -4,7 +4,7 @@
 
 **Homelab Data Hub & Capability Orchestration Center**
 
-Flowbot discovers self-hosted apps, abstracts their capabilities, exposes unified interfaces, and orchestrates cross-service automation via declarative Pipelines and Workflows.
+Flowbot discovers self-hosted apps, exposes a unified invocation surface per integrated provider, and orchestrates cross-service automation via declarative Pipelines and Workflows.
 
 ## What Flowbot Solves
 
@@ -15,7 +15,7 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 | Problem                   | Flowbot Solution                                                                                            |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | App discovery & lifecycle | **Homelab Scanner** scans `docker-compose.yaml`, registers apps                                             |
-| Capability abstraction    | **Ability Layer** maps apps to unified capabilities (`bookmark`, `archive`, `reader`, ...)                  |
+| Capability abstraction    | **Capability Layer** exposes each integrated provider (`karakeep`, `miniflux`, …) via `capability.Invoke` |
 | Unified interfaces        | REST, CLI, Chat, Form, Webhook, Cron, Workflow                                                              |
 | Cross-service data flow   | **Declarative Pipeline** — event-driven, idempotent, auditable                                              |
 | Composable automation     | **Workflow Capability Step** — DAG of capability invocations                                                |
@@ -29,35 +29,31 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 
 ```
 /home/<user>/homelab/apps
-        |                          Module (16 interaction surfaces)
+        |                          Module (interaction surfaces)
         | scan apps/*/docker-compose.yaml        |
         v                                        v
 +-------------------+                  +---------------------+
 | Homelab Registry  |  bind app →      | Capability Registry |
-| archivebox,atuin, |  capability      | bookmark, archive,  |
-| beszel,karakeep...| ---------------> | reader, kanban,     |
-+-------------------+                  | infra, shellhistory |
-        |                              +---------+-----------+
+| archivebox,atuin, |  capability      | karakeep, miniflux, |
+| beszel,karakeep...| ---------------> | kanboard, gitea, …  |
++-------------------+                  +---------+-----------+
+        |                                        |
         | register apps                          |
-        v                                ability.Invoke()
+        v                                capability.Invoke()
 +-------------------+                            |
 |       Hub         |                            v
 | /hub/apps         |                  +--------------------+
-| /hub/capabilities |                  |  Ability Layer     |
-| /hub/health       |                  |  bookmark.Service  |
-+-------------------+                  |  archive.Service   |
-                                       |  reader.Service    |
-                                       |  kanban.Service    |
-                                       |  infra.Service     |
+| /hub/capabilities |                  | Capability Layer   |
+| /hub/health       |                  | pkg/capability/*   |
++-------------------+                  | karakeep.Service   |
+                                       | miniflux.Service   |
+                                       | …                  |
                                        +---------+----------+
                                                  | adapter
                                                  v
                                        +-----------------------+
                                        |  Provider Layer       |
-                                       |  karakeep, archivebox,|
-                                       |  miniflux, kanboard,  |
-                                       |  fireflyiii, beszel,  |
-                                       |  atuin, ...           |
+                                       |  pkg/providers/*      |
                                        +-----------------------+
 ```
 
@@ -65,23 +61,29 @@ See [architecture diagrams](docs/architecture/README.md) for full PlantUML compo
 
 ## Capabilities
 
-| Capability        | Apps Mapped                  | Interfaces                     |
-| ----------------- | ---------------------------- | ------------------------------ |
-| **bookmark**      | karakeep, linkwarden         | REST, CLI, Chat, Workflow      |
-| **archive**       | archivebox                   | REST, CLI, Chat, Workflow      |
-| **reader**        | miniflux                     | REST, CLI, Chat, Webhook, Cron |
-| **kanban**        | kanboard                     | REST, CLI, Chat, Webhook       |
-| **finance**       | fireflyiii                   | REST, CLI, Chat, Webhook       |
-| **infra**         | beszel, uptime-kuma, adguard | REST, CLI                      |
-| **shell_history** | atuin                        | REST, CLI                      |
+Provider-backed capabilities use the provider ID as the capability name. Domain event names (e.g. `bookmark.created`) stay stable for orchestration.
 
-All capabilities share the same invocation pattern:
+| Capability   | Provider   | Interfaces                     |
+| ------------ | ---------- | ------------------------------ |
+| **karakeep** | karakeep   | REST, CLI, Chat, Workflow      |
+| **miniflux** | miniflux   | REST, CLI, Chat, Webhook, Cron |
+| **kanboard** | kanboard   | REST, CLI, Chat, Webhook       |
+| **trilium**  | trilium    | REST, CLI, Chat                |
+| **memos**    | memos      | REST, CLI, Chat, Webhook       |
+| **gitea**    | gitea      | REST, CLI, Chat, Webhook       |
+| **github**   | github     | REST, CLI, Chat, Webhook       |
+
+Discovery-only (no capability package yet): archivebox, fireflyiii, beszel/uptime-kuma/adguard, atuin.
+
+All provider capabilities share the same invocation pattern:
 
 ```go
-result, err := ability.Invoke(ctx, "bookmark", ability.OpList, ability.Params{Limit: 20})
+result, err := capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit": 20})
 ```
 
-Standard errors, unified pagination, provider-agnostic.
+Standard errors, unified pagination, provider adapters behind `pkg/capability/<provider>/`.
+
+See [UPGRADE-capability-1to1.md](docs/migrations/UPGRADE-capability-1to1.md) when migrating from domain CapTypes (`bookmark`, `reader`, …).
 
 ## Pipeline & Workflow
 

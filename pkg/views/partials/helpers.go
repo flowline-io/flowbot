@@ -31,10 +31,9 @@ type HealthzData struct {
 
 // HealthzCap represents a capability health status for display.
 type HealthzCap struct {
-	Type    string
-	Backend string
-	Status  string
-	Error   string
+	Type   string
+	Status string
+	Error  string
 }
 
 // PageInfo holds pagination state for the event table.

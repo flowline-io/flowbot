@@ -166,7 +166,7 @@ Cron-specific metrics on `PipelineCollector`:
 ### Auth context
 
 Cron-triggered pipeline steps use `auth.SystemCronContext()` so that
-`ability.Invoke` calls are traceable to the cron subsystem.
+`capability.Invoke` calls are traceable to the cron subsystem.
 
 ## Key decisions
 

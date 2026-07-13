@@ -613,7 +613,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/audit"
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/flog"

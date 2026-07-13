@@ -63,26 +63,30 @@ func TestParseLabels_UnknownCapability(t *testing.T) {
 func TestParseLabels_MinimalLabel(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name   string
-		labels map[string]string
+		name       string
+		labels     map[string]string
+		capability string
 	}{
 		{
-			name: "minimal bookmark capability",
+			name: "minimal bookmark capability maps to karakeep",
 			labels: map[string]string{
 				LabelCapability: "bookmark",
 			},
+			capability: CapKarakeep,
 		},
 		{
 			name: "minimal archive capability",
 			labels: map[string]string{
 				LabelCapability: "archive",
 			},
+			capability: CapArchive,
 		},
 		{
 			name: "minimal finance capability",
 			labels: map[string]string{
 				LabelCapability: "finance",
 			},
+			capability: CapFinance,
 		},
 	}
 	for _, tt := range tests {
@@ -90,34 +94,34 @@ func TestParseLabels_MinimalLabel(t *testing.T) {
 			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
-			assert.Equal(t, tt.labels[LabelCapability], capabilities[0].Backend)
+			assert.Equal(t, tt.capability, capabilities[0].Capability)
 			assert.Nil(t, capabilities[0].Endpoint)
 			assert.Nil(t, capabilities[0].Auth)
 		})
 	}
 }
 
-func TestParseLabels_WithBackend(t *testing.T) {
+func TestParseLabels_WithBackendIgnored(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		labels   map[string]string
-		expected string
+		name       string
+		labels     map[string]string
+		capability string
 	}{
 		{
-			name:     "bookmark with karakeep backend",
-			labels:   map[string]string{LabelCapability: "bookmark", LabelBackend: "karakeep"},
-			expected: "karakeep",
+			name:       "bookmark with karakeep backend still maps to karakeep",
+			labels:     map[string]string{LabelCapability: "bookmark", LabelBackend: "karakeep"},
+			capability: CapKarakeep,
 		},
 		{
-			name:     "infra with portainer backend",
-			labels:   map[string]string{LabelCapability: "infra", LabelBackend: "portainer"},
-			expected: "portainer",
+			name:       "infra with portainer backend keeps infra capability",
+			labels:     map[string]string{LabelCapability: "infra", LabelBackend: "portainer"},
+			capability: CapInfra,
 		},
 		{
-			name:     "finance with actual-budget backend",
-			labels:   map[string]string{LabelCapability: "finance", LabelBackend: "actual-budget"},
-			expected: "actual-budget",
+			name:       "finance with actual-budget backend keeps finance capability",
+			labels:     map[string]string{LabelCapability: "finance", LabelBackend: "actual-budget"},
+			capability: CapFinance,
 		},
 	}
 	for _, tt := range tests {
@@ -125,7 +129,7 @@ func TestParseLabels_WithBackend(t *testing.T) {
 			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
-			assert.Equal(t, tt.expected, capabilities[0].Backend)
+			assert.Equal(t, tt.capability, capabilities[0].Capability)
 		})
 	}
 }
@@ -264,13 +268,16 @@ func TestParseLabels_AllCapabilities(t *testing.T) {
 		labelValue string
 		expected   string
 	}{
-		{"bookmark", CapBookmark},
+		{"bookmark", CapKarakeep},
 		{"archive", CapArchive},
-		{"reader", CapReader},
-		{"kanban", CapKanban},
+		{"reader", CapMiniflux},
+		{"kanban", CapKanboard},
 		{"finance", CapFinance},
 		{"infra", CapInfra},
 		{"shell_history", CapShellHistory},
+		{"karakeep", CapKarakeep},
+		{"miniflux", CapMiniflux},
+		{"kanboard", CapKanboard},
 	}
 	for _, tt := range tests {
 		t.Run(tt.labelValue, func(t *testing.T) {
@@ -286,33 +293,33 @@ func TestParseLabels_AllCapabilities(t *testing.T) {
 func TestParseLabels_TrimSpaces(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name            string
-		labels          map[string]string
-		expectedBackend string
+		name               string
+		labels             map[string]string
+		expectedCapability string
 	}{
 		{
-			name: "trims surrounding whitespace",
+			name: "trims surrounding whitespace on legacy bookmark",
 			labels: map[string]string{
 				LabelCapability: "  bookmark  ",
 				LabelBackend:    "  karakeep  ",
 			},
-			expectedBackend: "karakeep",
+			expectedCapability: CapKarakeep,
 		},
 		{
-			name: "trims tabs and newlines",
+			name: "trims tabs and newlines on legacy reader",
 			labels: map[string]string{
 				LabelCapability: "\treader\n",
 				LabelBackend:    "\tminiflux\n",
 			},
-			expectedBackend: "miniflux",
+			expectedCapability: CapMiniflux,
 		},
 		{
-			name: "whitespace-only backend falls back to capability name",
+			name: "whitespace-only backend is ignored for infra",
 			labels: map[string]string{
 				LabelCapability: "infra",
 				LabelBackend:    "   ",
 			},
-			expectedBackend: "infra",
+			expectedCapability: CapInfra,
 		},
 	}
 	for _, tt := range tests {
@@ -320,7 +327,7 @@ func TestParseLabels_TrimSpaces(t *testing.T) {
 			t.Parallel()
 			capabilities := ParseLabels(tt.labels)
 			require.Len(t, capabilities, 1)
-			assert.Equal(t, tt.expectedBackend, capabilities[0].Backend)
+			assert.Equal(t, tt.expectedCapability, capabilities[0].Capability)
 		})
 	}
 }

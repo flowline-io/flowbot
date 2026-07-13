@@ -260,6 +260,6 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 - Never skip `data-testid` on interactive elements.
 - Never use `<script>` tags in partial templates — scripts belong in `base.templ` or `public/js/`.
 - Never hardcode URLs in templates — use `templ.URL()` for dynamic paths.
-- Never call provider clients directly from web handlers — use `ability.Invoke`.
+- Never call provider clients directly from web handlers — use `capability.Invoke`.
 - Never render error pages as full HTML for HTMX requests — return error fragments or set `HX-Retarget`.
 - Never reference CDN URLs for frontend dependencies — all deps are vendored in `public/vendor/`.

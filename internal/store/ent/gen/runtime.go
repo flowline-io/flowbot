@@ -417,24 +417,20 @@ func init() {
 	capabilitybindingDescCapability := capabilitybindingFields[1].Descriptor()
 	// capabilitybinding.CapabilityValidator is a validator for the "capability" field. It is called by the builders before save.
 	capabilitybinding.CapabilityValidator = capabilitybindingDescCapability.Validators[0].(func(string) error)
-	// capabilitybindingDescBackend is the schema descriptor for backend field.
-	capabilitybindingDescBackend := capabilitybindingFields[2].Descriptor()
-	// capabilitybinding.BackendValidator is a validator for the "backend" field. It is called by the builders before save.
-	capabilitybinding.BackendValidator = capabilitybindingDescBackend.Validators[0].(func(string) error)
 	// capabilitybindingDescApp is the schema descriptor for app field.
-	capabilitybindingDescApp := capabilitybindingFields[3].Descriptor()
+	capabilitybindingDescApp := capabilitybindingFields[2].Descriptor()
 	// capabilitybinding.AppValidator is a validator for the "app" field. It is called by the builders before save.
 	capabilitybinding.AppValidator = capabilitybindingDescApp.Validators[0].(func(string) error)
 	// capabilitybindingDescHealthy is the schema descriptor for healthy field.
-	capabilitybindingDescHealthy := capabilitybindingFields[4].Descriptor()
+	capabilitybindingDescHealthy := capabilitybindingFields[3].Descriptor()
 	// capabilitybinding.DefaultHealthy holds the default value on creation for the healthy field.
 	capabilitybinding.DefaultHealthy = capabilitybindingDescHealthy.Default.(bool)
 	// capabilitybindingDescCreatedAt is the schema descriptor for created_at field.
-	capabilitybindingDescCreatedAt := capabilitybindingFields[5].Descriptor()
+	capabilitybindingDescCreatedAt := capabilitybindingFields[4].Descriptor()
 	// capabilitybinding.DefaultCreatedAt holds the default value on creation for the created_at field.
 	capabilitybinding.DefaultCreatedAt = capabilitybindingDescCreatedAt.Default.(func() time.Time)
 	// capabilitybindingDescUpdatedAt is the schema descriptor for updated_at field.
-	capabilitybindingDescUpdatedAt := capabilitybindingFields[6].Descriptor()
+	capabilitybindingDescUpdatedAt := capabilitybindingFields[5].Descriptor()
 	// capabilitybinding.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	capabilitybinding.DefaultUpdatedAt = capabilitybindingDescUpdatedAt.Default.(func() time.Time)
 	// capabilitybinding.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -739,32 +735,28 @@ func init() {
 	dataeventDescOperation := dataeventFields[5].Descriptor()
 	// dataevent.DefaultOperation holds the default value on creation for the operation field.
 	dataevent.DefaultOperation = dataeventDescOperation.Default.(string)
-	// dataeventDescBackend is the schema descriptor for backend field.
-	dataeventDescBackend := dataeventFields[6].Descriptor()
-	// dataevent.DefaultBackend holds the default value on creation for the backend field.
-	dataevent.DefaultBackend = dataeventDescBackend.Default.(string)
 	// dataeventDescApp is the schema descriptor for app field.
-	dataeventDescApp := dataeventFields[7].Descriptor()
+	dataeventDescApp := dataeventFields[6].Descriptor()
 	// dataevent.DefaultApp holds the default value on creation for the app field.
 	dataevent.DefaultApp = dataeventDescApp.Default.(string)
 	// dataeventDescEntityID is the schema descriptor for entity_id field.
-	dataeventDescEntityID := dataeventFields[8].Descriptor()
+	dataeventDescEntityID := dataeventFields[7].Descriptor()
 	// dataevent.DefaultEntityID holds the default value on creation for the entity_id field.
 	dataevent.DefaultEntityID = dataeventDescEntityID.Default.(string)
 	// dataeventDescIdempotencyKey is the schema descriptor for idempotency_key field.
-	dataeventDescIdempotencyKey := dataeventFields[9].Descriptor()
+	dataeventDescIdempotencyKey := dataeventFields[8].Descriptor()
 	// dataevent.DefaultIdempotencyKey holds the default value on creation for the idempotency_key field.
 	dataevent.DefaultIdempotencyKey = dataeventDescIdempotencyKey.Default.(string)
 	// dataeventDescUID is the schema descriptor for uid field.
-	dataeventDescUID := dataeventFields[10].Descriptor()
+	dataeventDescUID := dataeventFields[9].Descriptor()
 	// dataevent.DefaultUID holds the default value on creation for the uid field.
 	dataevent.DefaultUID = dataeventDescUID.Default.(string)
 	// dataeventDescTopic is the schema descriptor for topic field.
-	dataeventDescTopic := dataeventFields[11].Descriptor()
+	dataeventDescTopic := dataeventFields[10].Descriptor()
 	// dataevent.DefaultTopic holds the default value on creation for the topic field.
 	dataevent.DefaultTopic = dataeventDescTopic.Default.(string)
 	// dataeventDescCreatedAt is the schema descriptor for created_at field.
-	dataeventDescCreatedAt := dataeventFields[14].Descriptor()
+	dataeventDescCreatedAt := dataeventFields[13].Descriptor()
 	// dataevent.DefaultCreatedAt holds the default value on creation for the created_at field.
 	dataevent.DefaultCreatedAt = dataeventDescCreatedAt.Default.(func() time.Time)
 	eventconsumptionFields := schema.EventConsumption{}.Fields()

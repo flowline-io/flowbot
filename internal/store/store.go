@@ -608,7 +608,6 @@ func (s *EventStore) AppendDataEvent(ctx context.Context, event types.DataEvent)
 		SetSource(event.Source).
 		SetCapability(event.Capability).
 		SetOperation(event.Operation).
-		SetBackend(event.Backend).
 		SetApp(event.App).
 		SetEntityID(event.EntityID).
 		SetIdempotencyKey(event.IdempotencyKey).
@@ -641,7 +640,6 @@ func (s *EventStore) AppendEventOutbox(ctx context.Context, event types.DataEven
 		"source":          event.Source,
 		"capability":      event.Capability,
 		"operation":       event.Operation,
-		"backend":         event.Backend,
 		"app":             event.App,
 		"entity_id":       event.EntityID,
 		"idempotency_key": event.IdempotencyKey,
@@ -2109,7 +2107,6 @@ func (s *ResourceChainStore) FindResourcesByTag(ctx context.Context, key, value 
 			Source:     e.Source,
 			Capability: e.Capability,
 			Operation:  e.Operation,
-			Backend:    e.Backend,
 			App:        e.App,
 			EntityID:   e.EntityID,
 			CreatedAt:  e.CreatedAt,

@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -23,7 +23,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 	Describe("Inbound Webhook", func() {
 		It("returns 202 for valid webhook", func() {
 			app := fiber.New()
-			mgr := ability.NewEventSourceManager(nil, nil, nil)
+			mgr := capability.NewEventSourceManager(nil, nil, nil)
 			mgr.RegisterWebhook(&stubConverter{path: "github/events"})
 			app.Post("/webhook/provider/*", mgr.WebhookHandler())
 
@@ -35,7 +35,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 
 		It("returns 404 for unknown webhook path", func() {
 			app := fiber.New()
-			mgr := ability.NewEventSourceManager(nil, nil, nil)
+			mgr := capability.NewEventSourceManager(nil, nil, nil)
 			app.Post("/webhook/provider/*", mgr.WebhookHandler())
 
 			req := httptest.NewRequest("POST", "/webhook/provider/unknown/hooks", http.NoBody)
@@ -45,7 +45,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 
 		It("returns 401 for failed signature verification", func() {
 			app := fiber.New()
-			mgr := ability.NewEventSourceManager(nil, nil, nil)
+			mgr := capability.NewEventSourceManager(nil, nil, nil)
 			mgr.RegisterWebhook(&stubConverter{
 				path:    "secure/service",
 				sigFail: true,
@@ -60,7 +60,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 
 		It("returns 400 for convert error", func() {
 			app := fiber.New()
-			mgr := ability.NewEventSourceManager(nil, nil, nil)
+			mgr := capability.NewEventSourceManager(nil, nil, nil)
 			mgr.RegisterWebhook(&stubConverter{
 				path:       "bad/payload",
 				convertErr: true,
@@ -76,7 +76,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 
 	Describe("Cron Polling", func() {
 		It("registers polling resource and starts without error", func() {
-			mgr := ability.NewEventSourceManager(nil, nil, nil)
+			mgr := capability.NewEventSourceManager(nil, nil, nil)
 			r := &stubPollRes{name: "test/bookmarks"}
 			mgr.RegisterPolling(r)
 			Expect(mgr.Start(context.Background())).To(Succeed())
@@ -84,7 +84,7 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 		})
 
 		It("starts with empty pollers without error", func() {
-			mgr := ability.NewEventSourceManager(nil, nil, nil)
+			mgr := capability.NewEventSourceManager(nil, nil, nil)
 			Expect(mgr.Start(context.Background())).To(Succeed())
 			Expect(mgr.Stop(context.Background())).To(Succeed())
 		})
@@ -92,8 +92,8 @@ var _ = Describe("Provider Event Source", Label("event_source"), func() {
 
 	Describe("Polling State", func() {
 		It("persists and recovers cursor state", func() {
-			state := ability.NewPollingState(nil)
-			state.Update("test/recovery", ability.PollingEntry{
+			state := capability.NewPollingState(nil)
+			state.Update("test/recovery", capability.PollingEntry{
 				Cursor:      "cursor-42",
 				KnownHashes: map[string]string{"k1": "h1"},
 			})
@@ -136,6 +136,6 @@ func (r *stubPollRes) DefaultInterval() time.Duration { return time.Hour }
 func (r *stubPollRes) DiffKey(item any) string        { return "" }
 func (r *stubPollRes) ContentHash(item any) string    { return "" }
 func (r *stubPollRes) CursorField() string            { return "id" }
-func (r *stubPollRes) List(ctx context.Context, cursor string) (ability.PollResult, error) {
-	return ability.PollResult{}, nil
+func (r *stubPollRes) List(ctx context.Context, cursor string) (capability.PollResult, error) {
+	return capability.PollResult{}, nil
 }

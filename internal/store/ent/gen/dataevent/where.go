@@ -79,11 +79,6 @@ func Operation(v string) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldEQ(FieldOperation, v))
 }
 
-// Backend applies equality check predicate on the "backend" field. It's identical to BackendEQ.
-func Backend(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldEQ(FieldBackend, v))
-}
-
 // App applies equality check predicate on the "app" field. It's identical to AppEQ.
 func App(v string) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldEQ(FieldApp, v))
@@ -437,71 +432,6 @@ func OperationEqualFold(v string) predicate.DataEvent {
 // OperationContainsFold applies the ContainsFold predicate on the "operation" field.
 func OperationContainsFold(v string) predicate.DataEvent {
 	return predicate.DataEvent(sql.FieldContainsFold(FieldOperation, v))
-}
-
-// BackendEQ applies the EQ predicate on the "backend" field.
-func BackendEQ(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldEQ(FieldBackend, v))
-}
-
-// BackendNEQ applies the NEQ predicate on the "backend" field.
-func BackendNEQ(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldNEQ(FieldBackend, v))
-}
-
-// BackendIn applies the In predicate on the "backend" field.
-func BackendIn(vs ...string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldIn(FieldBackend, vs...))
-}
-
-// BackendNotIn applies the NotIn predicate on the "backend" field.
-func BackendNotIn(vs ...string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldNotIn(FieldBackend, vs...))
-}
-
-// BackendGT applies the GT predicate on the "backend" field.
-func BackendGT(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldGT(FieldBackend, v))
-}
-
-// BackendGTE applies the GTE predicate on the "backend" field.
-func BackendGTE(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldGTE(FieldBackend, v))
-}
-
-// BackendLT applies the LT predicate on the "backend" field.
-func BackendLT(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldLT(FieldBackend, v))
-}
-
-// BackendLTE applies the LTE predicate on the "backend" field.
-func BackendLTE(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldLTE(FieldBackend, v))
-}
-
-// BackendContains applies the Contains predicate on the "backend" field.
-func BackendContains(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldContains(FieldBackend, v))
-}
-
-// BackendHasPrefix applies the HasPrefix predicate on the "backend" field.
-func BackendHasPrefix(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldHasPrefix(FieldBackend, v))
-}
-
-// BackendHasSuffix applies the HasSuffix predicate on the "backend" field.
-func BackendHasSuffix(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldHasSuffix(FieldBackend, v))
-}
-
-// BackendEqualFold applies the EqualFold predicate on the "backend" field.
-func BackendEqualFold(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldEqualFold(FieldBackend, v))
-}
-
-// BackendContainsFold applies the ContainsFold predicate on the "backend" field.
-func BackendContainsFold(v string) predicate.DataEvent {
-	return predicate.DataEvent(sql.FieldContainsFold(FieldBackend, v))
 }
 
 // AppEQ applies the EQ predicate on the "app" field.

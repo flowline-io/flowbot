@@ -3,16 +3,22 @@ package homelab
 import "time"
 
 // Capability type string constants used for label-based and probe-based
-// discovery. These must stay in sync with pkg/hub/capability.go.
+// discovery. Provider-backed values match pkg/hub Cap* constants.
 const (
-	CapBookmark     = "bookmark"
+	CapKarakeep = "karakeep"
+	CapMiniflux = "miniflux"
+	CapKanboard = "kanboard"
+	CapTrilium  = "trilium"
+	CapMemos    = "memos"
+	CapGitea    = "gitea"
+	CapGithub   = "github"
+	CapExample  = "example"
+
+	// Discovery-only capabilities (no pkg/capability implementation yet).
 	CapArchive      = "archive"
-	CapReader       = "reader"
-	CapKanban       = "kanban"
 	CapFinance      = "finance"
 	CapInfra        = "infra"
 	CapShellHistory = "shell_history"
-	CapForge        = "forge"
 )
 
 // AuthType identifies the authentication mechanism used by an API endpoint.
@@ -48,7 +54,6 @@ type AuthInfo struct {
 // endpoint and authentication metadata for automatic binding.
 type AppCapability struct {
 	Capability string        `json:"capability"`
-	Backend    string        `json:"backend"`
 	Endpoint   *EndpointInfo `json:"endpoint,omitzero"`
 	Auth       *AuthInfo     `json:"auth,omitzero"`
 }

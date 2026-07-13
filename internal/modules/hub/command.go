@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -164,14 +164,14 @@ var commandRules = []command.Rule{
 		Define: "bookmark list",
 		Help:   `newest 10`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{"limit": 10})
+			res, err := capability.Invoke(ctx.Context(), hub.CapKarakeep, capability.OpBookmarkList, map[string]any{"limit": 10})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
 
 			var header []string
 			var row [][]any
-			bookmarks, ok := res.Data.([]*ability.Bookmark)
+			bookmarks, ok := res.Data.([]*capability.Bookmark)
 			if !ok {
 				bookmarks = nil
 			}
@@ -232,11 +232,11 @@ var commandRules = []command.Rule{
 		Define: "github user",
 		Help:   `Get current user info`,
 		Handler: func(ctx types.Context, _ []*parser.Token) types.MsgPayload {
-			res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUser, nil)
+			res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetUser, nil)
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			user, ok := res.Data.(*ability.ForgeUser)
+			user, ok := res.Data.(*capability.ForgeUser)
 			if !ok || user == nil {
 				return types.TextMsg{Text: "user error"}
 			}
@@ -280,14 +280,14 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "repo error"}
 			}
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetRepo, map[string]any{
+			res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetRepo, map[string]any{
 				"owner": repoArr[0],
 				"repo":  repoArr[1],
 			})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			repo, ok := res.Data.(*ability.ForgeRepo)
+			repo, ok := res.Data.(*capability.ForgeRepo)
 			if !ok || repo == nil {
 				return types.TextMsg{Text: "repo error"}
 			}
@@ -308,13 +308,13 @@ var commandRules = []command.Rule{
 		Handler: func(ctx types.Context, tokens []*parser.Token) types.MsgPayload {
 			username, _ := tokens[1].Value.String()
 
-			res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUserByLogin, map[string]any{
+			res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetUserByLogin, map[string]any{
 				"login": username,
 			})
 			if err != nil {
 				return types.TextMsg{Text: err.Error()}
 			}
-			user, ok := res.Data.(*ability.ForgeUser)
+			user, ok := res.Data.(*capability.ForgeUser)
 			if !ok || user == nil {
 				return types.TextMsg{Text: "user error"}
 			}

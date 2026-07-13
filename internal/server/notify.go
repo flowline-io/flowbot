@@ -6,8 +6,8 @@ import (
 	"github.com/bytedance/sonic"
 
 	storeDB "github.com/flowline-io/flowbot/internal/store"
-	abilitynotify "github.com/flowline-io/flowbot/pkg/ability/notify"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	abilitynotify "github.com/flowline-io/flowbot/pkg/capability/notify"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify/messagepusher"

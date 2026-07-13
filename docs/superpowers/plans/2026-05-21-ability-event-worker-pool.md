@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace unbounded goroutine-per-event-emission with a `ants` goroutine pool in `ability.Invoke`.
+**Goal:** Replace unbounded goroutine-per-event-emission with a `ants` goroutine pool in `capability.Invoke`.
 
 **Architecture:** Add `pkg/ability/pool.go` wrapping `ants.PoolWithFunc` with nonblocking submit + best-effort drop. Wire pool init in `initPipeline`, shutdown in `RunServer.OnStop`. Add `event_dropped_total` counter to `AbilityCollector`.
 
@@ -18,11 +18,11 @@
 | `pkg/ability/pool_test.go`    | Create | Unit tests for pool wrapper                     |
 | `pkg/ability/invoke.go`       | Modify | Replace `go func()` with `pool.Invoke()`        |
 | `pkg/ability/invoke_test.go`  | Modify | Update event emission tests for pool            |
-| `pkg/metrics/ability.go`      | Modify | Add `eventDroppedTotal` counter                 |
+| `pkg/metrics/capability.go`      | Modify | Add `eventDroppedTotal` counter                 |
 | `pkg/config/config.go`        | Modify | Add `AbilityEventPool` config struct            |
-| `internal/server/pipeline.go` | Modify | Call `ability.InitEventPool`                    |
-| `internal/server/server.go`   | Modify | Call `ability.ShutdownEventPool` in OnStop      |
-| `docs/reference/config.yaml`  | Modify | Add `ability.event_pool` section                |
+| `internal/server/pipeline.go` | Modify | Call `capability.InitEventPool`                    |
+| `internal/server/server.go`   | Modify | Call `capability.ShutdownEventPool` in OnStop      |
+| `docs/reference/config.yaml`  | Modify | Add `capability.event_pool` section                |
 | `go.mod`                      | Modify | Add `ants/v2` dependency                        |
 
 ---
@@ -54,7 +54,7 @@ git commit -m "deps: add ants goroutine pool"
 
 **Files:**
 
-- Modify: `pkg/metrics/ability.go:12-56`
+- Modify: `pkg/metrics/capability.go:12-56`
 
 - [ ] **Step 1: Write the test for dropped counter**
 
@@ -89,7 +89,7 @@ func TestAbilityCollector_IncEventDropped(t *testing.T) {
 
 - [ ] **Step 2: Add the counter field and method to AbilityCollector**
 
-Modify `pkg/metrics/ability.go`:
+Modify `pkg/metrics/capability.go`:
 
 ```go
 type AbilityCollector struct {
@@ -132,7 +132,7 @@ Expected: test passes.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add pkg/metrics/ability.go pkg/metrics/ability_test.go
+git add pkg/metrics/capability.go pkg/metrics/ability_test.go
 git commit -m "feat: add event_dropped counter to AbilityCollector"
 ```
 
@@ -196,7 +196,7 @@ Expected: existing config tests pass.
 
 ```bash
 git add pkg/config/config.go pkg/config/config_test.go docs/reference/config.yaml
-git commit -m "feat: add ability.event_pool configuration"
+git commit -m "feat: add capability.event_pool configuration"
 ```
 
 ---
@@ -587,7 +587,7 @@ git commit -m "feat: add ants-based event pool wrapper to ability"
 
 ---
 
-### Task 5: Wire pool into ability.Invoke
+### Task 5: Wire pool into capability.Invoke
 
 **Files:**
 
@@ -685,7 +685,7 @@ Expected: all existing tests pass plus new pool tests.
 
 ```bash
 git add pkg/ability/invoke.go
-git commit -m "feat: replace go func() with event pool in ability.Invoke"
+git commit -m "feat: replace go func() with event pool in capability.Invoke"
 ```
 
 ---
@@ -699,14 +699,14 @@ git commit -m "feat: replace go func() with event pool in ability.Invoke"
 
 - [ ] **Step 1: Init pool in initPipeline**
 
-In `internal/server/pipeline.go`, add pool initialization after the existing `ability.SetMetricsCollector(ac)` line:
+In `internal/server/pipeline.go`, add pool initialization after the existing `capability.SetMetricsCollector(ac)` line:
 
 ```go
-	ability.SetMetricsCollector(ac)
+	capability.SetMetricsCollector(ac)
 
 	// Initialize event pool
-	poolCfg := cfg.Ability.EventPool
-	if err := ability.InitEventPool(poolCfg.Size, poolCfg.ExpiryDuration, ac); err != nil {
+	poolCfg := cfg.capability.EventPool
+	if err := capability.InitEventPool(poolCfg.Size, poolCfg.ExpiryDuration, ac); err != nil {
 		return fmt.Errorf("init event pool: %w", err)
 	}
 ```
@@ -729,13 +729,13 @@ In `internal/server/server.go`, in the `OnStop` hook, add:
 				ruleset.Shutdown()
 			}
 
-			ability.ShutdownEventPool()
+			capability.ShutdownEventPool()
 
 			return nil
 		},
 ```
 
-Add `"github.com/flowline-io/flowbot/pkg/ability"` to the import block in `server.go`.
+Add `"github.com/flowline-io/flowbot/pkg/capability"` to the import block in `server.go`.
 
 - [ ] **Step 3: Run server package tests**
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 )
@@ -27,10 +27,10 @@ func NewAbilityAdapter(r plugin.Runner, capType string, ops []string) *PluginAbi
 	}
 }
 
-// Register registers all declared operations as ability.Invoker closures.
+// Register registers all declared operations as capability.Invoker closures.
 func (a *PluginAbilityAdapter) Register() error {
 	for _, op := range a.operations {
-		if err := ability.RegisterInvoker(a.capability, op, a.makeInvoker(op)); err != nil {
+		if err := capability.RegisterInvoker(a.capability, op, a.makeInvoker(op)); err != nil {
 			return fmt.Errorf("register invoker %s/%s: %w", a.capability, op, err)
 		}
 	}
@@ -40,12 +40,12 @@ func (a *PluginAbilityAdapter) Register() error {
 // Unregister removes all registered invokers.
 func (a *PluginAbilityAdapter) Unregister() {
 	for _, op := range a.operations {
-		ability.UnregisterInvoker(a.capability, op)
+		capability.UnregisterInvoker(a.capability, op)
 	}
 }
 
-func (a *PluginAbilityAdapter) makeInvoker(op string) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
+func (a *PluginAbilityAdapter) makeInvoker(op string) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		raw, err := sonic.Marshal(struct {
 			Operation string         `json:"operation"`
 			Params    map[string]any `json:"params"`
@@ -57,7 +57,7 @@ func (a *PluginAbilityAdapter) makeInvoker(op string) ability.Invoker {
 		if err != nil {
 			return nil, fmt.Errorf("ability invoke: %w", err)
 		}
-		var invokeResult ability.InvokeResult
+		var invokeResult capability.InvokeResult
 		if err := sonic.Unmarshal(result, &invokeResult); err != nil {
 			return nil, fmt.Errorf("ability invoke unmarshal: %w", err)
 		}

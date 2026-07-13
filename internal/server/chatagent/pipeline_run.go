@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	abilityagent "github.com/flowline-io/flowbot/pkg/ability/agent"
+	abilityagent "github.com/flowline-io/flowbot/pkg/capability/agent"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )

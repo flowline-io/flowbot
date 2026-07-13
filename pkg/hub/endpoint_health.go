@@ -64,10 +64,9 @@ func (c *EndpointHealthChecker) CheckCapabilities(ctx context.Context, registry 
 				}
 			}
 			ch := CapabilityHealth{
-				Type:    CapabilityType(cap.Capability),
-				Backend: cap.Backend,
-				App:     app.Name,
-				Status:  HealthHealthy,
+				Type:   CapabilityType(cap.Capability),
+				App:    app.Name,
+				Status: HealthHealthy,
 			}
 			if cap.Endpoint != nil && cap.Endpoint.Health != "" {
 				healthURL, joinErr := url.JoinPath(cap.Endpoint.BaseURL, cap.Endpoint.Health)

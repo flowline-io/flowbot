@@ -5,10 +5,9 @@ package pages
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
 import (
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 )
@@ -304,7 +303,7 @@ func HomelabDetailPage(app homelab.App, status homelab.AppStatus, version string
 				return templ_7745c5c3_Err
 			}
 			if len(app.Capabilities) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"card bg-base-100 shadow-sm mb-6\"><div class=\"card-body\"><h2 class=\"card-title text-lg mb-2\">Exposed Endpoints</h2><div class=\"overflow-x-auto\"><table class=\"table table-xs\"><thead><tr><th>Capability</th><th>Backend</th><th>Base URL</th><th>Auth</th><th>Health</th></tr></thead> <tbody>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"card bg-base-100 shadow-sm mb-6\"><div class=\"card-body\"><h2 class=\"card-title text-lg mb-2\">Exposed Endpoints</h2><div class=\"overflow-x-auto\"><table class=\"table table-xs\"><thead><tr><th>Capability</th><th>Provider</th><th>Base URL</th><th>Auth</th><th>Health</th></tr></thead> <tbody>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -327,9 +326,9 @@ func HomelabDetailPage(app homelab.App, status homelab.AppStatus, version string
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var18 string
-					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(cap.Backend)
+					templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(cap.Capability)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/homelab_detail.templ`, Line: 122, Col: 27}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/homelab_detail.templ`, Line: 122, Col: 30}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 					if templ_7745c5c3_Err != nil {

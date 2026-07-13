@@ -250,7 +250,7 @@ Response (error):
 }
 ```
 
-Test execution uses `ability.Invoke()` but does not persist run records, audit events,
+Test execution uses `capability.Invoke()` but does not persist run records, audit events,
 or publish events. Timeout: 30 seconds.
 
 ### Error response format

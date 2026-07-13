@@ -42,20 +42,6 @@ func (_u *CapabilityBindingUpdate) SetNillableCapability(v *string) *CapabilityB
 	return _u
 }
 
-// SetBackend sets the "backend" field.
-func (_u *CapabilityBindingUpdate) SetBackend(v string) *CapabilityBindingUpdate {
-	_u.mutation.SetBackend(v)
-	return _u
-}
-
-// SetNillableBackend sets the "backend" field if the given value is not nil.
-func (_u *CapabilityBindingUpdate) SetNillableBackend(v *string) *CapabilityBindingUpdate {
-	if v != nil {
-		_u.SetBackend(*v)
-	}
-	return _u
-}
-
 // SetApp sets the "app" field.
 func (_u *CapabilityBindingUpdate) SetApp(v string) *CapabilityBindingUpdate {
 	_u.mutation.SetApp(v)
@@ -138,11 +124,6 @@ func (_u *CapabilityBindingUpdate) check() error {
 			return &ValidationError{Name: "capability", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.capability": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Backend(); ok {
-		if err := capabilitybinding.BackendValidator(v); err != nil {
-			return &ValidationError{Name: "backend", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.backend": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.App(); ok {
 		if err := capabilitybinding.AppValidator(v); err != nil {
 			return &ValidationError{Name: "app", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.app": %w`, err)}
@@ -165,9 +146,6 @@ func (_u *CapabilityBindingUpdate) sqlSave(ctx context.Context) (_node int, err 
 	}
 	if value, ok := _u.mutation.Capability(); ok {
 		_spec.SetField(capabilitybinding.FieldCapability, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Backend(); ok {
-		_spec.SetField(capabilitybinding.FieldBackend, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.App(); ok {
 		_spec.SetField(capabilitybinding.FieldApp, field.TypeString, value)
@@ -208,20 +186,6 @@ func (_u *CapabilityBindingUpdateOne) SetCapability(v string) *CapabilityBinding
 func (_u *CapabilityBindingUpdateOne) SetNillableCapability(v *string) *CapabilityBindingUpdateOne {
 	if v != nil {
 		_u.SetCapability(*v)
-	}
-	return _u
-}
-
-// SetBackend sets the "backend" field.
-func (_u *CapabilityBindingUpdateOne) SetBackend(v string) *CapabilityBindingUpdateOne {
-	_u.mutation.SetBackend(v)
-	return _u
-}
-
-// SetNillableBackend sets the "backend" field if the given value is not nil.
-func (_u *CapabilityBindingUpdateOne) SetNillableBackend(v *string) *CapabilityBindingUpdateOne {
-	if v != nil {
-		_u.SetBackend(*v)
 	}
 	return _u
 }
@@ -321,11 +285,6 @@ func (_u *CapabilityBindingUpdateOne) check() error {
 			return &ValidationError{Name: "capability", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.capability": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.Backend(); ok {
-		if err := capabilitybinding.BackendValidator(v); err != nil {
-			return &ValidationError{Name: "backend", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.backend": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.App(); ok {
 		if err := capabilitybinding.AppValidator(v); err != nil {
 			return &ValidationError{Name: "app", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.app": %w`, err)}
@@ -365,9 +324,6 @@ func (_u *CapabilityBindingUpdateOne) sqlSave(ctx context.Context) (_node *Capab
 	}
 	if value, ok := _u.mutation.Capability(); ok {
 		_spec.SetField(capabilitybinding.FieldCapability, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Backend(); ok {
-		_spec.SetField(capabilitybinding.FieldBackend, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.App(); ok {
 		_spec.SetField(capabilitybinding.FieldApp, field.TypeString, value)

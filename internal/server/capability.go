@@ -2,28 +2,29 @@
 package server
 
 import (
-	abookmark "github.com/flowline-io/flowbot/pkg/ability/bookmark"
-	bookmarkkarakeep "github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"
-	akanban "github.com/flowline-io/flowbot/pkg/ability/kanban"
-	kanbankanboard "github.com/flowline-io/flowbot/pkg/ability/kanban/kanboard"
-	anote "github.com/flowline-io/flowbot/pkg/ability/note"
-	notetrilium "github.com/flowline-io/flowbot/pkg/ability/note/trilium"
-	areader "github.com/flowline-io/flowbot/pkg/ability/reader"
-	readerminiflux "github.com/flowline-io/flowbot/pkg/ability/reader/miniflux"
+	"errors"
+
+	"github.com/flowline-io/flowbot/pkg/capability/gitea"
+	"github.com/flowline-io/flowbot/pkg/capability/github"
+	"github.com/flowline-io/flowbot/pkg/capability/kanboard"
+	"github.com/flowline-io/flowbot/pkg/capability/karakeep"
+	"github.com/flowline-io/flowbot/pkg/capability/memos"
+	"github.com/flowline-io/flowbot/pkg/capability/miniflux"
+	"github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
 func initCapabilityHub() error {
-	if err := abookmark.RegisterService("karakeep", "karakeep", bookmarkkarakeep.New()); err != nil {
-		return err
-	}
-	if err := areader.RegisterService("miniflux", "miniflux", readerminiflux.New()); err != nil {
-		return err
-	}
-	if err := akanban.RegisterService("kanboard", "kanboard", kanbankanboard.New()); err != nil {
-		return err
-	}
-	if err := anote.RegisterService("trilium", "trilium", notetrilium.New()); err != nil {
+	err := errors.Join(
+		karakeep.Register("karakeep", karakeep.New()),
+		miniflux.Register("miniflux", miniflux.New()),
+		kanboard.Register("kanboard", kanboard.New()),
+		trilium.Register("trilium", trilium.New()),
+		memos.Register("memos", memos.New()),
+		gitea.Register("gitea", gitea.New()),
+		github.Register("github", github.New()),
+	)
+	if err != nil {
 		return err
 	}
 	hub.LogDiscovered()

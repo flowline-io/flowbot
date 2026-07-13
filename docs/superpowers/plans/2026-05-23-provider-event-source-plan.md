@@ -1886,8 +1886,8 @@ Add to `internal/server/pipeline.go` after the ability event pool initialization
 ```go
 // Create EventSourceManager
 srcCollector := metrics.NewEventSourceCollector(nil)
-stateStore := ability.NewPollingState(nil)
-srcMgr := ability.NewEventSourceManager(nil, stateStore, srcCollector)
+stateStore := capability.NewPollingState(nil)
+srcMgr := capability.NewEventSourceManager(nil, stateStore, srcCollector)
 
 lc.Append(fx.Hook{
 	OnStart: func(ctx context.Context) error {
@@ -1969,7 +1969,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 type bddTestResource struct {
@@ -1985,14 +1985,14 @@ func (r *bddTestResource) DefaultInterval() time.Duration      { return time.Hou
 func (r *bddTestResource) DiffKey(item any) string            { return r.diffKey(item) }
 func (r *bddTestResource) ContentHash(item any) string        { return r.hash(item) }
 func (r *bddTestResource) CursorField() string                { return "id" }
-func (r *bddTestResource) List(ctx context.Context, cursor string) (ability.PollResult, error) {
-	return ability.PollResult{Items: r.items, NextCursor: r.cursor}, nil
+func (r *bddTestResource) List(ctx context.Context, cursor string) (capability.PollResult, error) {
+	return capability.PollResult{Items: r.items, NextCursor: r.cursor}, nil
 }
 
 var _ = Describe("Cron Polling", func() {
 	It("detects created events from new items via diff", func() {
 		emitter := &testEmitter{}
-		mgr := ability.NewEventSourceManager(emitter.Emit, nil, nil)
+		mgr := capability.NewEventSourceManager(emitter.Emit, nil, nil)
 		r := &bddTestResource{
 			name:   "bdd/bookmarks",
 			items:  []any{"item1", "item2"},

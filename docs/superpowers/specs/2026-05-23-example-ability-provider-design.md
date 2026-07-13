@@ -8,7 +8,7 @@ Provide reference implementations for developers creating new abilities and prov
 
 ```
 internal/modules/example/      Module: Init, Hub Descriptor, EventSource, Fiber routes
-        │  ability.Invoke()
+        │  capability.Invoke()
 pkg/ability/example/            Ability: Service interface, Descriptor, Conformance, Webhook/Polling
         │  calls provider
 pkg/providers/example/          Provider: HTTP client + OAuth → httpbin.org
@@ -91,9 +91,9 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 
 **Service interface** (7 methods):
 
-- `GetItem(ctx, id string) (*ability.Host, error)` — query single
-- `ListItems(ctx, q *ListQuery) (*ability.ListResult[ability.Host], error)` — list with pagination
-- `CreateItem(ctx, url string) (*ability.Host, error)` — create/mutation
+- `GetItem(ctx, id string) (*capability.Host, error)` — query single
+- `ListItems(ctx, q *ListQuery) (*capability.ListResult[capability.Host], error)` — list with pagination
+- `CreateItem(ctx, url string) (*capability.Host, error)` — create/mutation
 - `UpdateItem(ctx, id string, data map[string]any) error` — update
 - `DeleteItem(ctx, id string) error` — delete
 - `HealthCheck(ctx) (bool, error)` — health/status
@@ -114,18 +114,18 @@ Demonstrates the ability adapter pattern wrapping the example provider.
 - Capability constant: `CapabilityExample hub.CapabilityType = "example"`
 - Operation constants for each service method, with mutation verbs properly marked (create, update, delete → `IsMutation`)
 - `Descriptor(backend, app string, svc Service) hub.Descriptor` — builds hub descriptor with auth scopes per operation
-- `RegisterService(backend, app string, svc Service) error` — calls Descriptor then registers each operation as an `ability.Invoker`, parsing params from `map[string]any`, calling the Service, and returning `*ability.InvokeResult`
+- `RegisterService(backend, app string, svc Service) error` — calls Descriptor then registers each operation as an `capability.Invoker`, parsing params from `map[string]any`, calling the Service, and returning `*capability.InvokeResult`
 
 **WebhookConverter** (`webhook.go`):
 
-- `ExampleWebhook` struct implementing `ability.WebhookConverter`
+- `ExampleWebhook` struct implementing `capability.WebhookConverter`
 - `WebhookPath() string` — returns webhook URL path
 - `VerifySignature(headers map[string]string, body []byte) error` — HMAC-SHA256 verification
 - `Convert(body []byte, headers map[string]string) ([]types.DataEvent, error)` — transforms webhook payload into DataEvent records
 
 **PollingResource** (`poller.go`):
 
-- `ExamplePoller` struct implementing `ability.PollingResource`
+- `ExamplePoller` struct implementing `capability.PollingResource`
 - `ResourceName() string` — unique resource identifier
 - `DefaultInterval() time.Duration` — 60s polling interval
 - `DiffKey(item any) string` — key for change detection
@@ -168,7 +168,7 @@ Demonstrates the full startup wiring following the standard module contract.
 **`webservice.go`** — REST rule definitions:
 
 - Rule structs with `Path`, `Method`, `Handler`, `Scopes` following `module.FiberRule` pattern
-- `GET /service/example/get` → `ability.Invoke(ctx, abilityexample.Cap, "get", params)`
+- `GET /service/example/get` → `capability.Invoke(ctx, abilityexample.Cap, "get", params)`
 - `GET /service/example/list` → list with pagination
 - `POST /service/example/create` → body → params → invoke
 - `DELETE /service/example/delete` → mutation invoke
@@ -208,7 +208,7 @@ Demonstrates the full startup wiring following the standard module contract.
 - `Describe` / `Context` / `It` structure
 - `SynchronizedBeforeSuite` for shared setup
 - `GinkgoParallelProcess()` for parallel execution
-- Tests the full chain: HTTP request → handler → ability.Invoke → provider mock → response
+- Tests the full chain: HTTP request → handler → capability.Invoke → provider mock → response
 
 ## Coverage Checklist
 
@@ -233,7 +233,7 @@ Demonstrates the full startup wiring following the standard module contract.
 - [x] Descriptor + RegisterService
 - [x] Operation constants
 - [x] IsMutation marking for write operations
-- [x] ability.Invoke delegation pattern
+- [x] capability.Invoke delegation pattern
 - [x] WebhookConverter implementation
 - [x] PollingResource implementation
 - [x] Conformance test entry (RunExampleConformance)

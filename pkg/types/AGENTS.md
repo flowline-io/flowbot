@@ -38,7 +38,7 @@ types/
 
 ## Rules
 
-- Prefer `KV` type over raw `map[string]any` for structured key-value access. `map[string]any` is acceptable in interface signatures (e.g. `ability.Invoke` params), protocol definitions, and generated code.
+- Prefer `KV` type over raw `map[string]any` for structured key-value access. `map[string]any` is acceptable in interface signatures (e.g. `capability.Invoke` params), protocol definitions, and generated code.
 - Never define new message types outside this package
 - Always implement `MsgPayload.Convert()` for new message types
 

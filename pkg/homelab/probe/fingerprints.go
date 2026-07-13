@@ -7,8 +7,8 @@ type FingerprintPattern struct {
 	Value string // regex pattern to match
 }
 
-// ServiceFingerprint associates a capability type, backend provider and
-// detection patterns for known services.
+// ServiceFingerprint associates a capability (provider ID) and detection
+// patterns for known services.
 type ServiceFingerprint struct {
 	Capability string
 	Provider   string
@@ -19,7 +19,7 @@ type ServiceFingerprint struct {
 // identify by response patterns.
 var KnownServices = []ServiceFingerprint{
 	{
-		Capability: "bookmark",
+		Capability: "karakeep",
 		Provider:   "karakeep",
 		Patterns: []FingerprintPattern{
 			{Field: "header", Key: "Server", Value: "LinkWarden"},
@@ -27,7 +27,7 @@ var KnownServices = []ServiceFingerprint{
 		},
 	},
 	{
-		Capability: "kanban",
+		Capability: "kanboard",
 		Provider:   "kanboard",
 		Patterns: []FingerprintPattern{
 			{Field: "title", Key: "", Value: "Kanboard"},
@@ -35,7 +35,7 @@ var KnownServices = []ServiceFingerprint{
 		},
 	},
 	{
-		Capability: "reader",
+		Capability: "miniflux",
 		Provider:   "miniflux",
 		Patterns: []FingerprintPattern{
 			{Field: "header", Key: "X-Auth-Token", Value: ""},

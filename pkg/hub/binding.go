@@ -5,13 +5,14 @@ import (
 	"slices"
 )
 
+// Binding is a projection of a registered capability for hub APIs.
 type Binding struct {
 	Capability CapabilityType `json:"capability"`
-	Backend    string         `json:"backend"`
 	App        string         `json:"app"`
 	Healthy    bool           `json:"healthy"`
 }
 
+// Bindings returns all registered capability bindings sorted by type.
 func (r *Registry) Bindings() []Binding {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -19,7 +20,6 @@ func (r *Registry) Bindings() []Binding {
 	for _, desc := range r.descriptors {
 		bindings = append(bindings, Binding{
 			Capability: desc.Type,
-			Backend:    desc.Backend,
 			App:        desc.App,
 			Healthy:    desc.Healthy,
 		})

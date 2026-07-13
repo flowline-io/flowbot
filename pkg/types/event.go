@@ -75,7 +75,6 @@ type DataEvent struct {
 	Source         string    `json:"source"`
 	Capability     string    `json:"capability"`
 	Operation      string    `json:"operation"`
-	Backend        string    `json:"backend"`
 	App            string    `json:"app"`
 	EntityID       string    `json:"entity_id"`
 	CreatedAt      time.Time `json:"created_at"`

@@ -19,7 +19,7 @@
 | `pkg/bulkhead/bulkhead.go`      | `Bulkhead` struct, `config`, `Option` pattern, `New`, `Do`, sentinel errors |
 | `pkg/bulkhead/bulkhead_test.go` | TDD unit tests (9+ cases, table-driven)                                     |
 | `pkg/bulkhead/manager.go`       | Global manager, `Get`, `SetDefaults`                                        |
-| `pkg/metrics/ability.go`        | New bulkhead gauge/counter/histogram fields + methods                       |
+| `pkg/metrics/capability.go`        | New bulkhead gauge/counter/histogram fields + methods                       |
 | `pkg/ability/invoke.go`         | Wrap `invoker(ctx, params)` with `bulkhead.Get(...).Do(...)`                |
 
 No files deleted. `pkg/types/errors.go` uses existing `ErrRateLimited`/`ErrTimeout` — no changes needed.
@@ -671,9 +671,9 @@ git commit -m "test: add manager singleton tests"
 
 **Files:**
 
-- Modify: `pkg/metrics/ability.go`
+- Modify: `pkg/metrics/capability.go`
 
-- [ ] **Step 1: Add bulkhead metric fields and registration to `pkg/metrics/ability.go`**
+- [ ] **Step 1: Add bulkhead metric fields and registration to `pkg/metrics/capability.go`**
 
 In `AbilityCollector` struct (after `eventDroppedTotal`):
 
@@ -793,13 +793,13 @@ Expected: all pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pkg/metrics/ability.go pkg/metrics/ability_test.go
+git add pkg/metrics/capability.go pkg/metrics/ability_test.go
 git commit -m "feat: add bulkhead metrics to AbilityCollector"
 ```
 
 ---
 
-### Task 6: Integrate bulkhead into ability.Invoke
+### Task 6: Integrate bulkhead into capability.Invoke
 
 **Files:**
 
@@ -895,11 +895,11 @@ import (
 
 - [ ] **Step 3: Call SetBulkheadCallbacks during startup**
 
-In `internal/server/pipeline.go:51`, add `ability.SetBulkheadCallbacks()` right after `ability.SetMetricsCollector(ac)`:
+In `internal/server/pipeline.go:51`, add `capability.SetBulkheadCallbacks()` right after `capability.SetMetricsCollector(ac)`:
 
 ```go
-ability.SetMetricsCollector(ac)
-ability.SetBulkheadCallbacks()
+capability.SetMetricsCollector(ac)
+capability.SetBulkheadCallbacks()
 ```
 
 - [ ] **Step 4: Verify compilation**
@@ -922,7 +922,7 @@ Expected: existing tests still pass.
 
 ```bash
 git add pkg/ability/invoke.go internal/server/pipeline.go
-git commit -m "feat: integrate bulkhead isolation into ability.Invoke"
+git commit -m "feat: integrate bulkhead isolation into capability.Invoke"
 ```
 
 ---

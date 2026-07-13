@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Cache Read operation results from `ability.Invoke()` in Ristretto with 2-minute TTL; write operations invalidate capability-level cache entries.
+**Goal:** Cache Read operation results from `capability.Invoke()` in Ristretto with 2-minute TTL; write operations invalidate capability-level cache entries.
 
 **Architecture:** Cache-aside wrapper inside `Registry.Invoke()`. Cache key = `ability:{capType}:{op}:{sha1(sortedParamsJSON)}`. Mutation detection via operation name substring matching against known write verbs. Active invalidation via `DelByPrefix` backed by a `sync.Map` key index. `sonic` for serialization. Cache failures never affect correctness.
 
@@ -686,7 +686,7 @@ func (r *Registry) Invoke(ctx context.Context, capability hub.CapabilityType, op
 		}
 	}
 
-	ctx, span := trace.StartSpan(ctx, "ability."+string(capability)+"."+operation,
+	ctx, span := trace.StartSpan(ctx, "capability."+string(capability)+"."+operation,
 		attribute.String("capability.name", string(capability)),
 		attribute.String("capability.operation", operation),
 	)
@@ -786,7 +786,7 @@ Expected: clean (no new warnings)
 
 ```bash
 git add pkg/ability/invoke.go pkg/ability/invoke_test.go
-git commit -m "feat: add cache-aside layer to ability.Invoke with Ristretto"
+git commit -m "feat: add cache-aside layer to capability.Invoke with Ristretto"
 ```
 
 ---

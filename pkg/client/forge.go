@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 // ForgeClient provides access to the forge API.
@@ -15,9 +15,9 @@ type ForgeClient struct {
 }
 
 // GetUser returns the authenticated forge user.
-func (f *ForgeClient) GetUser(ctx context.Context) (*ability.ForgeUser, error) {
-	var result ability.ForgeUser
-	err := f.c.Get(ctx, "/service/forge/user", &result)
+func (f *ForgeClient) GetUser(ctx context.Context) (*capability.ForgeUser, error) {
+	var result capability.ForgeUser
+	err := f.c.Get(ctx, "/service/gitea/user", &result)
 	if err != nil {
 		return nil, err
 	}
@@ -25,15 +25,15 @@ func (f *ForgeClient) GetUser(ctx context.Context) (*ability.ForgeUser, error) {
 }
 
 // GetRepo returns a repository by owner and repo name.
-func (f *ForgeClient) GetRepo(ctx context.Context, owner, repo string) (*ability.ForgeRepo, error) {
+func (f *ForgeClient) GetRepo(ctx context.Context, owner, repo string) (*capability.ForgeRepo, error) {
 	if owner == "" || repo == "" {
 		return nil, fmt.Errorf("owner and repo are required")
 	}
-	path := "/service/forge/repo?" + url.Values{
+	path := "/service/gitea/repo?" + url.Values{
 		"owner": {owner},
 		"repo":  {repo},
 	}.Encode()
-	var result ability.ForgeRepo
+	var result capability.ForgeRepo
 	err := f.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ type ListIssuesQuery struct {
 }
 
 // ListIssues returns issues for an owner with optional filtering.
-func (f *ForgeClient) ListIssues(ctx context.Context, owner string, query *ListIssuesQuery) ([]*ability.ForgeIssue, error) {
+func (f *ForgeClient) ListIssues(ctx context.Context, owner string, query *ListIssuesQuery) ([]*capability.ForgeIssue, error) {
 	if owner == "" {
 		return nil, fmt.Errorf("owner is required")
 	}
@@ -65,26 +65,26 @@ func (f *ForgeClient) ListIssues(ctx context.Context, owner string, query *ListI
 			params.Set("cursor", query.Cursor)
 		}
 	}
-	path := "/service/forge/issues?" + params.Encode()
-	var result []*ability.ForgeIssue
+	path := "/service/gitea/issues?" + params.Encode()
+	var result []*capability.ForgeIssue
 	err := f.c.Get(ctx, path, &result)
 	return result, err
 }
 
 // GetIssue returns a single issue by owner, repo, and issue index.
-func (f *ForgeClient) GetIssue(ctx context.Context, owner, repo string, index int64) (*ability.ForgeIssue, error) {
+func (f *ForgeClient) GetIssue(ctx context.Context, owner, repo string, index int64) (*capability.ForgeIssue, error) {
 	if owner == "" || repo == "" {
 		return nil, fmt.Errorf("owner and repo are required")
 	}
 	if index <= 0 {
 		return nil, fmt.Errorf("index must be positive, got %d", index)
 	}
-	path := "/service/forge/issue?" + url.Values{
+	path := "/service/gitea/issue?" + url.Values{
 		"owner": {owner},
 		"repo":  {repo},
 		"index": {strconv.FormatInt(index, 10)},
 	}.Encode()
-	var result ability.ForgeIssue
+	var result capability.ForgeIssue
 	err := f.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -93,16 +93,16 @@ func (f *ForgeClient) GetIssue(ctx context.Context, owner, repo string, index in
 }
 
 // GetCommitDiff returns the diff for a specific commit.
-func (f *ForgeClient) GetCommitDiff(ctx context.Context, owner, repo, commitID string) (*ability.ForgeCommitDiff, error) {
+func (f *ForgeClient) GetCommitDiff(ctx context.Context, owner, repo, commitID string) (*capability.ForgeCommitDiff, error) {
 	if owner == "" || repo == "" || commitID == "" {
 		return nil, fmt.Errorf("owner, repo and commit_id are required")
 	}
-	path := "/service/forge/commit-diff?" + url.Values{
+	path := "/service/gitea/commit-diff?" + url.Values{
 		"owner":     {owner},
 		"repo":      {repo},
 		"commit_id": {commitID},
 	}.Encode()
-	var result ability.ForgeCommitDiff
+	var result capability.ForgeCommitDiff
 	err := f.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func (f *ForgeClient) GetFileContent(ctx context.Context, owner, repo, commitID,
 			params.Set("line_count", strconv.Itoa(query.LineCount))
 		}
 	}
-	path := "/service/forge/file-content?" + params.Encode()
+	path := "/service/gitea/file-content?" + params.Encode()
 	var result string
 	err := f.c.Get(ctx, path, &result)
 	return result, err

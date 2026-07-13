@@ -9,7 +9,7 @@ pipeline:
 
 tasks:
   - id: save_bookmark
-    action: capability:bookmark.create
+    action: capability:karakeep.create
     describe: "Save the URL as a bookmark"
     params:
       url: "{{input.url}}"
@@ -32,7 +32,7 @@ tasks:
       max_delay: 60s
 
   - id: create_task
-    action: capability:kanban.create_task
+    action: capability:kanboard.create_task
     describe: "Create a follow-up task"
     params:
       title: "Read: {{input.title}}"

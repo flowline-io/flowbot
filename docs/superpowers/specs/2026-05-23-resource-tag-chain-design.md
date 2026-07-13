@@ -86,10 +86,10 @@ New DAO in `internal/store/postgres/`:
 
 ### Tag auto-injection
 
-In `pkg/pipeline/engine.go`, `executeStep()` merges tags into params before `ability.Invoke` for mutation operations:
+In `pkg/pipeline/engine.go`, `executeStep()` merges tags into params before `capability.Invoke` for mutation operations:
 
 ```go
-if ability.IsMutation(step.Operation) && rc.Event.Tags != nil {
+if capability.IsMutation(step.Operation) && rc.Event.Tags != nil {
     renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
 }
 ```
@@ -98,7 +98,7 @@ Merge strategy: upstream tags (`rc.Event.Tags`) are the base; step-declared tags
 
 ### Resource link auto-recording
 
-New struct in `pkg/ability/ability.go`:
+New struct in `pkg/ability/capability.go`:
 
 ```go
 type ResourceMeta struct {
@@ -198,9 +198,9 @@ Each mutation handler should:
 Example (in descriptor invokeCreate):
 
 ```go
-func invokeCreate(svc Service) ability.Invoker {
-    return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-        title, err := ability.RequiredString(params, "title")
+func invokeCreate(svc Service) capability.Invoker {
+    return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+        title, err := capability.RequiredString(params, "title")
         if err != nil {
             return nil, err
         }
@@ -210,9 +210,9 @@ func invokeCreate(svc Service) ability.Invoker {
             return nil, err
         }
         eventID := emitDataEvent(ctx, "example.item.created", item, tags)
-        return &ability.InvokeResult{
+        return &capability.InvokeResult{
             Data: item,
-            Resource: &ability.ResourceMeta{
+            Resource: &capability.ResourceMeta{
                 EventID:  eventID,
                 EntityID: item.ID,
                 App:      getAppName(),
@@ -239,9 +239,9 @@ Existing capability handlers that do not populate `result.Resource` continue to 
 Update `invokeCreate` to demonstrate reading `tags` from params and populating `result.Resource`:
 
 ```go
-func invokeCreate(svc Service) ability.Invoker {
-    return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-        title, err := ability.RequiredString(params, "title")
+func invokeCreate(svc Service) capability.Invoker {
+    return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+        title, err := capability.RequiredString(params, "title")
         if err != nil {
             return nil, err
         }
@@ -250,9 +250,9 @@ func invokeCreate(svc Service) ability.Invoker {
         if err != nil {
             return nil, err
         }
-        return &ability.InvokeResult{
+        return &capability.InvokeResult{
             Data: item,
-            Resource: &ability.ResourceMeta{
+            Resource: &capability.ResourceMeta{
                 EventID:  "", // populated by real capability event emitter
                 EntityID: item.ID,
                 App:      backend,
@@ -267,7 +267,7 @@ func invokeCreate(svc Service) ability.Invoker {
 Update `CreateItem` signature to accept optional tags:
 
 ```go
-func (a *Adapter) CreateItem(ctx context.Context, title string, _ types.KV) (*ability.Host, error) {
+func (a *Adapter) CreateItem(ctx context.Context, title string, _ types.KV) (*capability.Host, error) {
 ```
 
 ### ability/example/interface.go
@@ -277,7 +277,7 @@ Update `Service` interface:
 ```go
 type Service interface {
     // ...
-    CreateItem(ctx context.Context, title string, tags types.KV) (*ability.Host, error)
+    CreateItem(ctx context.Context, title string, tags types.KV) (*capability.Host, error)
     // ...
 }
 ```
@@ -293,7 +293,7 @@ func createExampleItem(ctx fiber.Ctx) error {
         Tags  types.KV  `json:"tags,omitempty"`
     }
     // ...
-    res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate,
+    res, err := capability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate,
         map[string]any{"title": body.Title, "tags": body.Tags})
     // ...
 }
@@ -345,7 +345,7 @@ internal/store/postgres/resource_chain_dao.go   # NEW - DAO queries
 pkg/types/event.go                              # add Tags KV field to DataEvent
 pkg/pipeline/context.go                         # expose tags in template data
 pkg/pipeline/engine.go                          # auto-inject tags + record resource link
-pkg/ability/ability.go                          # add ResourceMeta + Resource field to InvokeResult
+pkg/ability/capability.go                          # add ResourceMeta + Resource field to InvokeResult
 pkg/ability/invoke.go                           # no signature change
 pkg/ability/operations.go                       # IsMutation already exists
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 func TestBuildPollingState_NilDatabase(t *testing.T) {
@@ -24,5 +24,5 @@ func TestBuildPollingState_NilDatabase(t *testing.T) {
 	}
 }
 
-// verify pollingPersistenceAdapter implements ability.Persistence.
-var _ ability.Persistence = (*pollingPersistenceAdapter)(nil)
+// verify pollingPersistenceAdapter implements capability.Persistence.
+var _ capability.Persistence = (*pollingPersistenceAdapter)(nil)

@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 
@@ -17,20 +17,20 @@ import (
 
 var _ = Describe("Ability Layer", Label("ability"), func() {
 
-	Describe("ability.Invoke", func() {
+	Describe("capability.Invoke", func() {
 		Context("with a registered capability", func() {
 			It("invokes a capability operation successfully", func() {
-				result, err := ability.Invoke(context.Background(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{"limit": 10})
+				result, err := capability.Invoke(context.Background(), hub.CapKarakeep, capability.OpBookmarkList, map[string]any{"limit": 10})
 				if err != nil {
 					Skip("bookmark capability not registered: " + err.Error())
 				}
 				Expect(result).NotTo(BeNil())
-				Expect(result.Capability).To(Equal(hub.CapBookmark))
-				Expect(result.Operation).To(Equal(ability.OpBookmarkList))
+				Expect(result.Capability).To(Equal(hub.CapKarakeep))
+				Expect(result.Operation).To(Equal(capability.OpBookmarkList))
 			})
 
 			It("returns the operation result", func() {
-				result, err := ability.Invoke(context.Background(), hub.CapBookmark, ability.OpBookmarkList, map[string]any{"limit": 5})
+				result, err := capability.Invoke(context.Background(), hub.CapKarakeep, capability.OpBookmarkList, map[string]any{"limit": 5})
 				if err != nil {
 					Skip("bookmark capability not registered: " + err.Error())
 				}
@@ -42,7 +42,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 			It("passes parameters to the capability handler", func() {
 				params := map[string]any{"limit": 20, "archived": true}
-				result, err := ability.Invoke(context.Background(), hub.CapBookmark, ability.OpBookmarkList, params)
+				result, err := capability.Invoke(context.Background(), hub.CapKarakeep, capability.OpBookmarkList, params)
 				if err != nil {
 					Skip("bookmark capability not registered: " + err.Error())
 				}
@@ -52,7 +52,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 		Context("with an unregistered capability", func() {
 			It("returns capability not found error", func() {
-				result, err := ability.Invoke(context.Background(), hub.CapabilityType("nonexistent_cap"), "op", nil)
+				result, err := capability.Invoke(context.Background(), hub.CapabilityType("nonexistent_cap"), "op", nil)
 				Expect(err).To(HaveOccurred())
 				Expect(result).To(BeNil())
 			})
@@ -60,7 +60,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 		Context("with a valid capability but invalid operation", func() {
 			It("returns operation not supported error", func() {
-				_, err := ability.Invoke(context.Background(), hub.CapBookmark, "nonexistent_operation", nil)
+				_, err := capability.Invoke(context.Background(), hub.CapKarakeep, "nonexistent_operation", nil)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -68,7 +68,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 	Describe("Pagination", func() {
 		It("returns paginated results with limit", func() {
-			pageReq := ability.PageRequestFromParams(map[string]any{"limit": 5})
+			pageReq := capability.PageRequestFromParams(map[string]any{"limit": 5})
 			Expect(pageReq.Limit).To(Equal(5))
 			Expect(pageReq.Cursor).To(BeEmpty())
 		})
@@ -76,19 +76,19 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		It("returns a cursor for the next page", func() {
 			secret := []byte("test-secret-0123456789")
 			now := time.Now()
-			payload := ability.CursorPayload{
-				Capability: "bookmark",
+			payload := capability.CursorPayload{
+				Capability: "karakeep",
 				Backend:    "test",
 				Strategy:   "offset",
 				Offset:     0,
 				Limit:      10,
 				ExpiresAt:  now.Add(time.Hour),
 			}
-			cursor, err := ability.EncodeCursor(secret, payload)
+			cursor, err := capability.EncodeCursor(secret, payload)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cursor).NotTo(BeEmpty())
 
-			decoded, err := ability.DecodeCursor(secret, cursor, now)
+			decoded, err := capability.DecodeCursor(secret, cursor, now)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(decoded.Capability).To(Equal("bookmark"))
 			Expect(decoded.Limit).To(Equal(10))
@@ -96,18 +96,18 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		})
 
 		It("returns empty cursor on the last page", func() {
-			pageReq := ability.PageRequestFromParams(map[string]any{})
+			pageReq := capability.PageRequestFromParams(map[string]any{})
 			Expect(pageReq.Limit).To(Equal(0))
 			Expect(pageReq.Cursor).To(BeEmpty())
 		})
 
 		It("rejects negative limit values", func() {
-			pageReq := ability.PageRequestFromParams(map[string]any{"limit": -1})
+			pageReq := capability.PageRequestFromParams(map[string]any{"limit": -1})
 			Expect(pageReq.Limit).To(Equal(-1))
 		})
 
 		It("uses provided limit value unchanged (no server-side capping in client)", func() {
-			pageReq := ability.PageRequestFromParams(map[string]any{"limit": 9999})
+			pageReq := capability.PageRequestFromParams(map[string]any{"limit": 9999})
 			Expect(pageReq.Limit).To(Equal(9999))
 		})
 	})
@@ -116,14 +116,14 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		It("encodes cursor data opaquely", func() {
 			secret := []byte("opaque-secret-key")
 			now := time.Now()
-			payload := ability.CursorPayload{
-				Capability: "reader",
+			payload := capability.CursorPayload{
+				Capability: "miniflux",
 				Backend:    "miniflux",
 				Strategy:   "cursor",
 				Limit:      25,
 				ExpiresAt:  now.Add(30 * time.Minute),
 			}
-			cursor, err := ability.EncodeCursor(secret, payload)
+			cursor, err := capability.EncodeCursor(secret, payload)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cursor).NotTo(ContainSubstring("reader"))
 			Expect(cursor).NotTo(ContainSubstring("miniflux"))
@@ -132,18 +132,18 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		It("decodes cursor back to original data", func() {
 			secret := []byte("roundtrip-secret")
 			now := time.Now()
-			original := ability.CursorPayload{
-				Capability:     "bookmark",
+			original := capability.CursorPayload{
+				Capability:     "karakeep",
 				Backend:        "karakeep",
 				Strategy:       "cursor",
 				ProviderCursor: "abc123",
 				Limit:          50,
 				ExpiresAt:      now.Add(time.Hour),
 			}
-			cursor, err := ability.EncodeCursor(secret, original)
+			cursor, err := capability.EncodeCursor(secret, original)
 			Expect(err).NotTo(HaveOccurred())
 
-			decoded, err := ability.DecodeCursor(secret, cursor, now)
+			decoded, err := capability.DecodeCursor(secret, cursor, now)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(decoded.Backend).To(Equal(original.Backend))
 			Expect(decoded.ProviderCursor).To(Equal(original.ProviderCursor))
@@ -153,16 +153,16 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 		It("rejects tampered cursor data", func() {
 			secret := []byte("tamper-secret")
 			now := time.Now()
-			payload := ability.CursorPayload{
-				Capability: "bookmark",
+			payload := capability.CursorPayload{
+				Capability: "karakeep",
 				Limit:      10,
 				ExpiresAt:  now.Add(time.Hour),
 			}
-			cursor, err := ability.EncodeCursor(secret, payload)
+			cursor, err := capability.EncodeCursor(secret, payload)
 			Expect(err).NotTo(HaveOccurred())
 
 			tampered := cursor + "tampered"
-			_, err = ability.DecodeCursor(secret, tampered, now)
+			_, err = capability.DecodeCursor(secret, tampered, now)
 			Expect(err).To(HaveOccurred())
 		})
 	})
@@ -170,29 +170,29 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 	Describe("Parameter Validation", func() {
 		It("validates required parameters are present", func() {
 			params := map[string]any{"name": "test", "count": 42}
-			name, err := ability.RequiredString(params, "name")
+			name, err := capability.RequiredString(params, "name")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(name).To(Equal("test"))
 
-			count, err := ability.RequiredInt(params, "count")
+			count, err := capability.RequiredInt(params, "count")
 			Expect(err).NotTo(HaveOccurred())
 			Expect(count).To(Equal(42))
 		})
 
 		It("validates parameter types match schema", func() {
 			params := map[string]any{"count": 42}
-			count, ok := ability.IntParam(params, "count")
+			count, ok := capability.IntParam(params, "count")
 			Expect(ok).To(BeTrue())
 			Expect(count).To(Equal(42))
 
-			name, ok := ability.StringParam(params, "missing")
+			name, ok := capability.StringParam(params, "missing")
 			Expect(ok).To(BeFalse())
 			Expect(name).To(BeEmpty())
 		})
 
 		It("returns descriptive validation errors", func() {
 			params := map[string]any{}
-			_, err := ability.RequiredString(params, "required_field")
+			_, err := capability.RequiredString(params, "required_field")
 			Expect(err).To(HaveOccurred())
 			Expect(err.Error()).To(ContainSubstring("required_field"))
 		})
@@ -200,23 +200,23 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 	Describe("ListResult and operations", func() {
 		It("has defined operations for bookmark capability", func() {
-			ops := ability.Operations[hub.CapBookmark]
+			ops := capability.Operations[hub.CapKarakeep]
 			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["List"]).To(Equal(ability.OpBookmarkList))
-			Expect(ops["Create"]).To(Equal(ability.OpBookmarkCreate))
-			Expect(ops["Search"]).To(Equal(ability.OpBookmarkSearch))
+			Expect(ops["List"]).To(Equal(capability.OpBookmarkList))
+			Expect(ops["Create"]).To(Equal(capability.OpBookmarkCreate))
+			Expect(ops["Search"]).To(Equal(capability.OpBookmarkSearch))
 		})
 
 		It("has defined operations for reader capability", func() {
-			ops := ability.Operations[hub.CapReader]
+			ops := capability.Operations[hub.CapMiniflux]
 			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["ListFeeds"]).To(Equal(ability.OpReaderListFeeds))
+			Expect(ops["ListFeeds"]).To(Equal(capability.OpReaderListFeeds))
 		})
 
 		It("has defined operations for kanban capability", func() {
-			ops := ability.Operations[hub.CapKanban]
+			ops := capability.Operations[hub.CapKanboard]
 			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["ListTasks"]).To(Equal(ability.OpKanbanListTasks))
+			Expect(ops["ListTasks"]).To(Equal(capability.OpKanbanListTasks))
 		})
 	})
 

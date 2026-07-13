@@ -39,7 +39,7 @@ pkg/plugin/
 ├── adapter/
 │   ├── module.go          # PluginModuleAdapter → module.Handler
 │   ├── module_test.go     # Module adapter tests
-│   ├── ability.go         # PluginAbilityAdapter → ability.Invoker
+│   ├── capability.go         # PluginAbilityAdapter → capability.Invoker
 │   ├── ability_test.go    # Ability adapter tests
 │   ├── provider.go        # PluginProviderAdapter → provider interfaces
 │   └── provider_test.go   # Provider adapter tests
@@ -53,7 +53,7 @@ pkg/plugin/
 │   └── git_test.go        # Git source tests
 └── sdk/
     ├── module.go          # Module interface + ModuleBase
-    ├── ability.go         # Ability plugin interface
+    ├── capability.go         # Ability plugin interface
     ├── provider.go        # Provider plugin interface
     ├── host.go            # Host API client (wraps HostService)
     ├── serve.go           # go-plugin.Serve() entry point
@@ -2286,10 +2286,10 @@ git commit -m "feat(plugin): implement PluginModuleAdapter with atomic runner sw
 ### Task 11: Plugin Ability Adapter
 
 **Files:**
-- Create: `pkg/plugin/adapter/ability.go`
+- Create: `pkg/plugin/adapter/capability.go`
 - Create: `pkg/plugin/adapter/ability_test.go`
 
-- [ ] **Step 1: Implement PluginAbilityAdapter in `pkg/plugin/adapter/ability.go`**
+- [ ] **Step 1: Implement PluginAbilityAdapter in `pkg/plugin/adapter/capability.go`**
 
 ```go
 package adapter
@@ -2323,11 +2323,11 @@ func NewAbilityAdapter(r plugin.Runner, capType string, ops []string) *PluginAbi
 	}
 }
 
-// Register registers all declared operations as ability.Invoker closures.
+// Register registers all declared operations as capability.Invoker closures.
 func (a *PluginAbilityAdapter) Register() error {
 	for _, op := range a.operations {
 		invoker := a.makeInvoker(op)
-		if err := ability.RegisterInvoker(a.capability, op, invoker); err != nil {
+		if err := capability.RegisterInvoker(a.capability, op, invoker); err != nil {
 			return fmt.Errorf("register invoker %s/%s: %w", a.capability, op, err)
 		}
 	}
@@ -2337,11 +2337,11 @@ func (a *PluginAbilityAdapter) Register() error {
 // Unregister removes all registered invokers.
 func (a *PluginAbilityAdapter) Unregister() {
 	for _, op := range a.operations {
-		ability.UnregisterInvoker(a.capability, op)
+		capability.UnregisterInvoker(a.capability, op)
 	}
 }
 
-// Descriptor returns the hub.Descriptor for this ability.
+// Descriptor returns the hub.Descriptor for this capability.
 func (a *PluginAbilityAdapter) Descriptor() *hub.Descriptor {
 	if a.descriptor == nil {
 		return nil
@@ -2349,8 +2349,8 @@ func (a *PluginAbilityAdapter) Descriptor() *hub.Descriptor {
 	return a.descriptor
 }
 
-func (a *PluginAbilityAdapter) makeInvoker(op string) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
+func (a *PluginAbilityAdapter) makeInvoker(op string) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		raw, err := sonic.Marshal(struct {
 			Operation string         `json:"operation"`
 			Params    map[string]any `json:"params"`
@@ -2367,7 +2367,7 @@ func (a *PluginAbilityAdapter) makeInvoker(op string) ability.Invoker {
 			return nil, fmt.Errorf("ability invoke: %w", err)
 		}
 
-		var invokeResult ability.InvokeResult
+		var invokeResult capability.InvokeResult
 		if err := sonic.Unmarshal(result, &invokeResult); err != nil {
 			return nil, fmt.Errorf("ability invoke unmarshal: %w", err)
 		}
@@ -2464,7 +2464,7 @@ Expected: Tests PASS.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add pkg/plugin/adapter/ability.go pkg/plugin/adapter/ability_test.go
+git add pkg/plugin/adapter/capability.go pkg/plugin/adapter/ability_test.go
 git commit -m "feat(plugin): implement PluginAbilityAdapter with Invoker registration"
 ```
 

@@ -892,7 +892,7 @@ git commit -m "feat(metrics): add EventCollector"
 
 **Files:**
 
-- Create: `pkg/metrics/ability.go`
+- Create: `pkg/metrics/capability.go`
 - Create: `pkg/metrics/ability_test.go`
 
 - [ ] **Step 1: Write failing test**
@@ -988,7 +988,7 @@ go test ./pkg/metrics/ -run TestAbilityCollector -v
 
 Expected: compilation error.
 
-- [ ] **Step 3: Create ability.go**
+- [ ] **Step 3: Create capability.go**
 
 ```go
 package metrics
@@ -1046,7 +1046,7 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add pkg/metrics/ability.go pkg/metrics/ability_test.go
+git add pkg/metrics/capability.go pkg/metrics/ability_test.go
 git commit -m "feat(metrics): add AbilityCollector"
 ```
 
@@ -1960,10 +1960,10 @@ Replace the nil-passing call from Task 9:
 
 - [ ] **Step 3: Wire AbilityCollector**
 
-After engine creation, before `ability.SetEventEmitter`:
+After engine creation, before `capability.SetEventEmitter`:
 
 ```go
-	ability.SetMetricsCollector(ac)
+	capability.SetMetricsCollector(ac)
 ```
 
 - [ ] **Step 4: Add EventCollector instrumentation in Watermill handler**

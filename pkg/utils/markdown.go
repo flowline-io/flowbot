@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 
-	"github.com/FurqanSoftware/goldmark-katex"
+	katex "github.com/FurqanSoftware/goldmark-katex"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"

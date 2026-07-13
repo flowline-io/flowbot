@@ -166,7 +166,7 @@ func TestValidate_Format(t *testing.T) {
 		{
 			name: "invalid expiry duration",
 			mutate: func(c *Type) {
-				c.Ability.EventPool.ExpiryDuration = "bad"
+				c.Capability.EventPool.ExpiryDuration = "bad"
 			},
 			wantErr: "expiry_duration",
 		},
@@ -259,7 +259,7 @@ func TestValidate_Conditional(t *testing.T) {
 			mutate: func(c *Type) {
 				c.ChatAgent = ChatAgentConfig{
 					AbilityTools: []AbilityToolConfig{{
-						Name: "memo_list", Capability: "memo", Operation: "list", Readonly: false,
+						Name: "memo_list", Capability: "memos", Operation: "list", Readonly: false,
 					}},
 				}
 			},
@@ -281,7 +281,7 @@ func TestValidate_Conditional(t *testing.T) {
 			mutate: func(c *Type) {
 				c.ChatAgent = ChatAgentConfig{
 					AbilityTools: []AbilityToolConfig{{
-						Name: "memo_list", Capability: "memo", Operation: "list", Readonly: true,
+						Name: "memo_list", Capability: "memos", Operation: "list", Readonly: true,
 					}},
 				}
 			},

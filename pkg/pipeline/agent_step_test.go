@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
-	abilityagent "github.com/flowline-io/flowbot/pkg/ability/agent"
+	"github.com/flowline-io/flowbot/pkg/capability"
+	abilityagent "github.com/flowline-io/flowbot/pkg/capability/agent"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -23,12 +24,16 @@ func (s *stubAgentRunner) Run(_ context.Context, params abilityagent.RunParams) 
 }
 
 func TestAgentStepTemplateAndInvoke(t *testing.T) {
+	prevModel := config.App.ChatAgent.ChatModel
+	config.App.ChatAgent.ChatModel = "gpt-test"
+	t.Cleanup(func() { config.App.ChatAgent.ChatModel = prevModel })
+
 	stub := &stubAgentRunner{reply: "agent summary"}
 	abilityagent.SetRunner(stub)
 	require.NoError(t, abilityagent.Register())
 	t.Cleanup(func() {
 		abilityagent.SetRunner(nil)
-		ability.UnregisterInvoker(hub.CapAgent, ability.OpAgentRun)
+		capability.UnregisterInvoker(hub.CapAgent, capability.OpAgentRun)
 		hub.Default.Unregister(hub.CapAgent)
 	})
 
@@ -47,7 +52,7 @@ func TestAgentStepTemplateAndInvoke(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	res, err := ability.Invoke(context.Background(), hub.CapAgent, ability.OpAgentRun, rendered)
+	res, err := capability.Invoke(context.Background(), hub.CapAgent, capability.OpAgentRun, rendered)
 	require.NoError(t, err)
 
 	stepOutput := StepResultFromInvoke(res)

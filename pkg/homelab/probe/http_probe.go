@@ -183,7 +183,6 @@ func (p *HTTPProbe) matchFingerprints(ctx context.Context, baseURL string, br *b
 			matches = append(matches, ProbeMatch{
 				Capability: homelab.AppCapability{
 					Capability: fp.Capability,
-					Backend:    fp.Provider,
 					Endpoint: &homelab.EndpointInfo{
 						BaseURL: baseURL,
 					},

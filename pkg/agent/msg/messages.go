@@ -1,8 +1,9 @@
 package msg
 
-import "strings"
-
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 // MessageRole identifies the role of an agent message in the session tree.
 type MessageRole string

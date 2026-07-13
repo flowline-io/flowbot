@@ -159,7 +159,7 @@ func TestMergeProbeResults(t *testing.T) {
 				{
 					AppName: "app1",
 					Capabilities: []homelab.AppCapability{
-						{Capability: homelab.CapBookmark, Backend: "linkding"},
+						{Capability: homelab.CapKarakeep},
 					},
 				},
 			},
@@ -167,7 +167,7 @@ func TestMergeProbeResults(t *testing.T) {
 				{
 					Name: "app1",
 					Capabilities: []homelab.AppCapability{
-						{Capability: homelab.CapBookmark, Backend: "linkding"},
+						{Capability: homelab.CapKarakeep},
 					},
 				},
 			},
@@ -178,7 +178,7 @@ func TestMergeProbeResults(t *testing.T) {
 				{
 					Name: "app2",
 					Capabilities: []homelab.AppCapability{
-						{Capability: homelab.CapReader, Backend: "miniflux", Endpoint: nil, Auth: nil},
+						{Capability: homelab.CapMiniflux, Endpoint: nil, Auth: nil},
 					},
 				},
 			},
@@ -187,8 +187,7 @@ func TestMergeProbeResults(t *testing.T) {
 					AppName: "app2",
 					Capabilities: []homelab.AppCapability{
 						{
-							Capability: homelab.CapReader,
-							Backend:    "miniflux",
+							Capability: homelab.CapMiniflux,
 							Endpoint:   &homelab.EndpointInfo{BaseURL: "http://miniflux:8080", Health: "/health"},
 							Auth:       &homelab.AuthInfo{Type: homelab.AuthAPIToken, Header: "X-Auth-Token"},
 						},
@@ -200,8 +199,7 @@ func TestMergeProbeResults(t *testing.T) {
 					Name: "app2",
 					Capabilities: []homelab.AppCapability{
 						{
-							Capability: homelab.CapReader,
-							Backend:    "miniflux",
+							Capability: homelab.CapMiniflux,
 							Endpoint:   &homelab.EndpointInfo{BaseURL: "http://miniflux:8080", Health: "/health"},
 							Auth:       &homelab.AuthInfo{Type: homelab.AuthAPIToken, Header: "X-Auth-Token"},
 						},
@@ -217,7 +215,6 @@ func TestMergeProbeResults(t *testing.T) {
 					Capabilities: []homelab.AppCapability{
 						{
 							Capability: homelab.CapArchive,
-							Backend:    "archivebox",
 							Endpoint:   &homelab.EndpointInfo{BaseURL: "http://custom:9000", Health: "/ready"},
 							Auth:       nil,
 						},
@@ -230,7 +227,6 @@ func TestMergeProbeResults(t *testing.T) {
 					Capabilities: []homelab.AppCapability{
 						{
 							Capability: homelab.CapArchive,
-							Backend:    "archivebox",
 							Endpoint:   &homelab.EndpointInfo{BaseURL: "http://probed:9000", Health: "/probe"},
 							Auth:       &homelab.AuthInfo{Type: homelab.AuthBasic},
 						},
@@ -243,7 +239,6 @@ func TestMergeProbeResults(t *testing.T) {
 					Capabilities: []homelab.AppCapability{
 						{
 							Capability: homelab.CapArchive,
-							Backend:    "archivebox",
 							Endpoint:   &homelab.EndpointInfo{BaseURL: "http://custom:9000", Health: "/ready"},
 							Auth:       &homelab.AuthInfo{Type: homelab.AuthBasic},
 						},
@@ -263,7 +258,7 @@ func TestMergeProbeResults(t *testing.T) {
 				{
 					AppName: "other-app",
 					Capabilities: []homelab.AppCapability{
-						{Capability: homelab.CapKanban, Backend: "vikunja"},
+						{Capability: homelab.CapKanboard},
 					},
 				},
 			},

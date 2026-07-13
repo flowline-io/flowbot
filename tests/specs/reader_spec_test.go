@@ -9,7 +9,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	hubmod "github.com/flowline-io/flowbot/internal/modules/hub"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -25,14 +25,14 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 	Describe("Webservice — Feeds", func() {
 		Context("GET /", func() {
 			It("lists all subscribed feeds", func() {
-				req := MakeRequest(http.MethodGet, "/service/reader/", nil)
+				req := MakeRequest(http.MethodGet, "/service/miniflux/", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
 			})
 
 			It("returns empty list when no feeds exist", func() {
-				req := MakeRequest(http.MethodGet, "/service/reader/", nil)
+				req := MakeRequest(http.MethodGet, "/service/miniflux/", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				_ = resp
@@ -42,7 +42,7 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 		Context("POST /", func() {
 			It("rejects invalid feed URL", func() {
 				body, _ := sonic.Marshal(map[string]string{"feed_url": "not-a-valid-feed-url"})
-				req := JSONRequest(http.MethodPost, "/service/reader/", body)
+				req := JSONRequest(http.MethodPost, "/service/miniflux/", body)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized)))
@@ -50,7 +50,7 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 
 			It("rejects empty URL", func() {
 				body, _ := sonic.Marshal(map[string]string{"feed_url": ""})
-				req := JSONRequest(http.MethodPost, "/service/reader/", body)
+				req := JSONRequest(http.MethodPost, "/service/miniflux/", body)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				_ = resp
@@ -61,14 +61,14 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 	Describe("Webservice — Entries", func() {
 		Context("GET /entries", func() {
 			It("lists entries with status filter", func() {
-				req := MakeRequest(http.MethodGet, "/service/reader/entries?status=unread", nil)
+				req := MakeRequest(http.MethodGet, "/service/miniflux/entries?status=unread", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				_ = resp
 			})
 
 			It("filters entries by feed", func() {
-				req := MakeRequest(http.MethodGet, "/service/reader/entries?feed_id=1", nil)
+				req := MakeRequest(http.MethodGet, "/service/miniflux/entries?feed_id=1", nil)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				_ = resp
@@ -78,7 +78,7 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 		Context("PATCH /entries", func() {
 			It("marks entries as read", func() {
 				body, _ := sonic.Marshal(map[string]any{"entry_ids": []int{1}, "status": "read"})
-				req := JSONRequest(http.MethodPatch, "/service/reader/entries", body)
+				req := JSONRequest(http.MethodPatch, "/service/miniflux/entries", body)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				_ = resp
@@ -88,7 +88,7 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 
 	Describe("Ability layer operations", func() {
 		It("lists feeds via ability layer", func() {
-			result, err := ability.Invoke(context.Background(), hub.CapReader, ability.OpReaderListFeeds, map[string]any{})
+			result, err := capability.Invoke(context.Background(), hub.CapMiniflux, capability.OpReaderListFeeds, map[string]any{})
 			if err != nil {
 				Skip("reader backend not configured: " + err.Error())
 			}
@@ -96,7 +96,7 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 		})
 
 		It("creates feed via ability layer rejects bad URL", func() {
-			result, err := ability.Invoke(context.Background(), hub.CapReader, ability.OpReaderCreateFeed, map[string]any{"feed_url": "invalid"})
+			result, err := capability.Invoke(context.Background(), hub.CapMiniflux, capability.OpReaderCreateFeed, map[string]any{"feed_url": "invalid"})
 			if err != nil {
 				Skip("reader backend not configured: " + err.Error())
 			}
@@ -108,11 +108,11 @@ var _ = Describe("Reader Module", Label("module", "reader"), func() {
 
 	Describe("Operation constants", func() {
 		It("has all expected reader operations", func() {
-			Expect(ability.OpReaderListFeeds).To(Equal("list_feeds"))
-			Expect(ability.OpReaderCreateFeed).To(Equal("create_feed"))
-			Expect(ability.OpReaderListEntries).To(Equal("list_entries"))
-			Expect(ability.OpReaderMarkEntryRead).To(Equal("mark_entry_read"))
-			Expect(ability.OpReaderMarkEntryUnread).To(Equal("mark_entry_unread"))
+			Expect(capability.OpReaderListFeeds).To(Equal("list_feeds"))
+			Expect(capability.OpReaderCreateFeed).To(Equal("create_feed"))
+			Expect(capability.OpReaderListEntries).To(Equal("list_entries"))
+			Expect(capability.OpReaderMarkEntryRead).To(Equal("mark_entry_read"))
+			Expect(capability.OpReaderMarkEntryUnread).To(Equal("mark_entry_unread"))
 		})
 	})
 })

@@ -83,7 +83,7 @@ Four DaisyUI card sections:
 3. **Capability Status**
    - Table: capability type, backend, app, status (healthy/unhealthy/error)
    - Uses `hub.Default.List()` to enumerate capabilities
-   - Calls `ability.Invoke(ctx, desc.Type, "health")` per capability with 2s timeout
+   - Calls `capability.Invoke(ctx, desc.Type, "health")` per capability with 2s timeout
    - Capabilities without a health operation show "n/a"
    - Status badge: `badge-success` (healthy), `badge-error` (unhealthy/error)
 

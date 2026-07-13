@@ -84,7 +84,7 @@ func TestApplyToolScopeKeepsAbilityTools(t *testing.T) {
 	prev := config.App.ChatAgent.AbilityTools
 	t.Cleanup(func() { config.App.ChatAgent.AbilityTools = prev })
 	config.App.ChatAgent.AbilityTools = []config.AbilityToolConfig{{
-		Name: "list_bookmarks", Capability: "bookmark", Operation: "list", Readonly: true,
+		Name: "list_bookmarks", Capability: "karakeep", Operation: "list", Readonly: true,
 	}}
 
 	tests := []struct {

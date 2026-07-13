@@ -35,18 +35,16 @@ func TestRegistry_Register(t *testing.T) {
 			name: "registers descriptor successfully",
 			descriptors: []Descriptor{
 				{
-					Type:        CapBookmark,
-					Backend:     "karakeep",
+					Type:        CapKarakeep,
 					App:         "karakeep",
 					Description: "Bookmark service",
 					Healthy:     true,
 				},
 			},
 			check: func(t *testing.T, r *Registry) {
-				got, ok := r.Get(CapBookmark)
+				got, ok := r.Get(CapKarakeep)
 				assert.True(t, ok)
-				assert.Equal(t, CapBookmark, got.Type)
-				assert.Equal(t, "karakeep", got.Backend)
+				assert.Equal(t, CapKarakeep, got.Type)
 				assert.Equal(t, "karakeep", got.App)
 				assert.True(t, got.Healthy)
 			},
@@ -54,7 +52,7 @@ func TestRegistry_Register(t *testing.T) {
 		{
 			name: "empty capability type",
 			descriptors: []Descriptor{
-				{Backend: "test", App: "test"},
+				{App: "test"},
 			},
 			wantErr:     true,
 			errContains: "capability type is required",
@@ -63,22 +61,21 @@ func TestRegistry_Register(t *testing.T) {
 		{
 			name: "overwrites existing capability",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep"},
-				{Type: CapBookmark, Backend: "linkwarden", App: "linkwarden"},
+				{Type: CapKarakeep, App: "karakeep"},
+				{Type: CapKarakeep, App: "linkwarden"},
 			},
 			check: func(t *testing.T, r *Registry) {
-				got, ok := r.Get(CapBookmark)
+				got, ok := r.Get(CapKarakeep)
 				assert.True(t, ok)
-				assert.Equal(t, "linkwarden", got.Backend)
+				assert.Equal(t, "linkwarden", got.App)
 			},
 		},
 		{
 			name: "with operations",
 			descriptors: []Descriptor{
 				{
-					Type:    CapBookmark,
-					Backend: "karakeep",
-					App:     "karakeep",
+					Type: CapKarakeep,
+					App:  "karakeep",
 					Operations: []Operation{
 						{
 							Name:        "list",
@@ -91,7 +88,7 @@ func TestRegistry_Register(t *testing.T) {
 				},
 			},
 			check: func(t *testing.T, r *Registry) {
-				got, ok := r.Get(CapBookmark)
+				got, ok := r.Get(CapKarakeep)
 				assert.True(t, ok)
 				require.Len(t, got.Operations, 1)
 				assert.Equal(t, "list", got.Operations[0].Name)
@@ -101,13 +98,13 @@ func TestRegistry_Register(t *testing.T) {
 		{
 			name: "multiple capabilities",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep"},
-				{Type: CapArchive, Backend: "archivebox"},
-				{Type: CapReader, Backend: "miniflux"},
-				{Type: CapKanban, Backend: "kanboard"},
-				{Type: CapFinance, Backend: "fireflyiii"},
-				{Type: CapInfra, Backend: "beszel"},
-				{Type: CapShellHistory, Backend: "atuin"},
+				{Type: CapKarakeep},
+				{Type: CapExample},
+				{Type: CapMiniflux},
+				{Type: CapKanboard},
+				{Type: CapTrilium},
+				{Type: CapMemos},
+				{Type: CapGitea},
 			},
 			check: func(t *testing.T, r *Registry) {
 				list := r.List()
@@ -154,17 +151,17 @@ func TestRegistry_Get(t *testing.T) {
 	}{
 		{
 			name:    "missing capability",
-			capType: CapArchive,
+			capType: CapExample,
 			wantOk:  false,
 		},
 		{
 			name:    "empty registry returns false",
-			capType: CapReader,
+			capType: CapMiniflux,
 			wantOk:  false,
 		},
 		{
 			name:    "retrieves registered capability",
-			capType: CapBookmark,
+			capType: CapKarakeep,
 			wantOk:  true,
 		},
 	}
@@ -174,7 +171,7 @@ func TestRegistry_Get(t *testing.T) {
 			t.Parallel()
 			r := NewRegistry()
 			if tt.wantOk {
-				require.NoError(t, r.Register(Descriptor{Type: tt.capType, Backend: "test"}))
+				require.NoError(t, r.Register(Descriptor{Type: tt.capType}))
 			}
 			_, ok := r.Get(tt.capType)
 			assert.Equal(t, tt.wantOk, ok)
@@ -193,15 +190,15 @@ func TestRegistry_List(t *testing.T) {
 		{
 			name: "sorted by capability type",
 			descriptors: []Descriptor{
-				{Type: CapKanban, Backend: "kanboard"},
-				{Type: CapArchive, Backend: "archivebox"},
-				{Type: CapBookmark, Backend: "karakeep"},
+				{Type: CapKanboard},
+				{Type: CapExample},
+				{Type: CapKarakeep},
 			},
 			check: func(t *testing.T, list []Descriptor) {
 				require.Len(t, list, 3)
-				assert.Equal(t, CapArchive, list[0].Type)
-				assert.Equal(t, CapBookmark, list[1].Type)
-				assert.Equal(t, CapKanban, list[2].Type)
+				assert.Equal(t, CapExample, list[0].Type)
+				assert.Equal(t, CapKanboard, list[1].Type)
+				assert.Equal(t, CapKarakeep, list[2].Type)
 			},
 		},
 		{
@@ -214,12 +211,12 @@ func TestRegistry_List(t *testing.T) {
 		{
 			name: "single capability",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep"},
+				{Type: CapKarakeep, App: "karakeep"},
 			},
 			check: func(t *testing.T, list []Descriptor) {
 				require.Len(t, list, 1)
-				assert.Equal(t, CapBookmark, list[0].Type)
-				assert.Equal(t, "karakeep", list[0].Backend)
+				assert.Equal(t, CapKarakeep, list[0].Type)
+				assert.Equal(t, "karakeep", list[0].App)
 			},
 		},
 	}
@@ -247,7 +244,6 @@ func TestDescriptorZeroValue(t *testing.T) {
 	t.Run("descriptor fields are zero values", func(t *testing.T) {
 		var d Descriptor
 		assert.Empty(t, d.Type)
-		assert.Empty(t, d.Backend)
 		assert.Empty(t, d.App)
 		assert.False(t, d.Healthy)
 		assert.Nil(t, d.Instance)

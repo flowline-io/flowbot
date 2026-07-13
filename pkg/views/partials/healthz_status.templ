@@ -94,7 +94,6 @@ templ HealthzStatus(data HealthzData) {
 							<thead>
 								<tr>
 									<th>Capability</th>
-									<th>Backend</th>
 									<th>Status</th>
 								</tr>
 							</thead>
@@ -102,7 +101,6 @@ templ HealthzStatus(data HealthzData) {
 								for _, cap := range data.Capabilities {
 									<tr>
 							<td class="font-medium">{ cap.Type }</td>
-							<td class="text-base-content/70 text-xs">{ cap.Backend }</td>
 							<td>
 								if cap.Status == "healthy" {
 									<span class="badge badge-success badge-sm">healthy</span>

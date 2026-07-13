@@ -13,7 +13,7 @@ func Module() fx.Option {
 			NewPipelineCollector,
 			NewWorkflowCollector,
 			NewEventCollector,
-			NewAbilityCollector,
+			NewCapabilityCollector,
 			NewAgentCollector,
 		),
 	)

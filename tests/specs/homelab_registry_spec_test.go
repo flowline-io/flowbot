@@ -74,8 +74,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 				},
 				Capabilities: []homelab.AppCapability{
 					{
-						Capability: "forge",
-						Backend:    "gitea",
+						Capability: homelab.CapGitea,
 						Endpoint: &homelab.EndpointInfo{
 							BaseURL: "http://gitea.local:3000",
 							Health:  "/api/health",
@@ -89,7 +88,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 				Status: homelab.AppStatusStopped,
 				Health: homelab.HealthUnknown,
 				Capabilities: []homelab.AppCapability{
-					{Capability: "bookmark", Backend: "karakeep"},
+					{Capability: homelab.CapKarakeep},
 				},
 			},
 		})

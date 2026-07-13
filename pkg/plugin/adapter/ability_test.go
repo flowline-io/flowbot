@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 func TestAbilityAdapterRegister(t *testing.T) {
@@ -144,14 +144,14 @@ func TestAbilityAdapterUnregister(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify invokers are registered by invoking one
-	result, err := ability.Invoke(context.Background(), "test_unreg", "op1", map[string]any{})
+	result, err := capability.Invoke(context.Background(), "test_unreg", "op1", map[string]any{})
 	require.NoError(t, err)
 	require.NotNil(t, result)
 
 	adapter.Unregister()
 
 	// Verify invokers are unregistered
-	_, err = ability.Invoke(context.Background(), "test_unreg", "op1", map[string]any{})
+	_, err = capability.Invoke(context.Background(), "test_unreg", "op1", map[string]any{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }

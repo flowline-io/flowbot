@@ -146,7 +146,7 @@ if err := e.store.UpdateRunHeartbeat(ctx, runID); err != nil {
 
 - [ ] **Step 5: Update EventStore callers in `internal/server/pipeline.go:79-81`**
 
-The `ability.SetEventEmitter` callback already receives `ctx context.Context`:
+The `capability.SetEventEmitter` callback already receives `ctx context.Context`:
 
 ```go
 eventStore := store.NewEventStore(store.Database.GetDB().(*store.Client))

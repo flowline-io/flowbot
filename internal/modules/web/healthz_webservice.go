@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -81,11 +81,10 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 			defer cancel()
 
 			info := partials.HealthzCap{
-				Type:    string(d.Type),
-				Backend: string(d.Backend),
+				Type: string(d.Type),
 			}
 
-			result, err := ability.Invoke(capCtx, d.Type, "health", map[string]any{})
+			result, err := capability.Invoke(capCtx, d.Type, "health", map[string]any{})
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					info.Status = "timeout"

@@ -49,7 +49,7 @@ type StepProgressEvent struct {
 | Hook | Location | When |
 |---|---|---|
 | `OnRunStart` | `executePipeline()`, before step loop | After run record created |
-| `OnStepStart` | `executeStep()`, before `ability.Invoke()` | After params rendered |
+| `OnStepStart` | `executeStep()`, before `capability.Invoke()` | After params rendered |
 | `OnStepDone` | `executeStep()`, after successful invoke | After step record updated |
 | `OnStepError` | `executeStep()`, on invoke failure | After error recorded |
 | `OnRunComplete` | `executePipeline()`, after `finishRunRecord()` | Run done or failed |

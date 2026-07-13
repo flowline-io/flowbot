@@ -644,7 +644,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -719,7 +719,7 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 				Type: string(d.Backend),
 			}
 
-			result, err := ability.Invoke(capCtx, d.Type, "health", map[string]any{})
+			result, err := capability.Invoke(capCtx, d.Type, "health", map[string]any{})
 			if err != nil {
 				info.Status = "unhealthy"
 				info.Error = err.Error()

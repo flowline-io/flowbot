@@ -20,7 +20,7 @@ Pipeline Engine (pkg/pipeline/engine.go)
     │     ├── Save checkpoint (if resumable)
     │     ├── Render template params
     │     ├── Create step_run record
-    │     ├── ability.Invoke (with retry)
+    │     ├── capability.Invoke (with retry)
     │     └── Update step_run result
     └── Update pipeline_run status
 ```
@@ -171,7 +171,7 @@ Heartbeats stop automatically when the step completes (context cancelled via `de
 
 ## Event Flow
 
-1. `ability.Invoke` returns `InvokeResult` with `Events` — a list of business events (`bookmark.created`, `rss.item.fetched`, etc.).
+1. `capability.Invoke` returns `InvokeResult` with `Events` — a list of business events (`bookmark.created`, `rss.item.fetched`, etc.).
 2. The event emitter (registered in `initPipeline`) creates a `DataEvent` and persists it:
    - `data_events` table (durable store)
    - `event_outbox` table (transactional outbox pattern)

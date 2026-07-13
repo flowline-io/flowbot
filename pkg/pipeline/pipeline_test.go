@@ -37,7 +37,7 @@ func TestLoadConfig(t *testing.T) {
 					Enabled:     true,
 					Trigger:     config.PipelineTrigger{Event: "bookmark.created"},
 					Steps: []config.PipelineStep{
-						{Name: "step1", Capability: "bookmark", Operation: "list", Params: map[string]any{"limit": 10}},
+						{Name: "step1", Capability: "karakeep", Operation: "list", Params: map[string]any{"limit": 10}},
 					},
 				},
 			},
@@ -49,7 +49,7 @@ func TestLoadConfig(t *testing.T) {
 				assert.Equal(t, "bookmark.created", defs[0].Trigger.Event)
 				require.Len(t, defs[0].Steps, 1)
 				assert.Equal(t, "step1", defs[0].Steps[0].Name)
-				assert.Equal(t, hub.CapabilityType("bookmark"), defs[0].Steps[0].Capability)
+				assert.Equal(t, hub.CapabilityType("karakeep"), defs[0].Steps[0].Capability)
 				assert.Equal(t, "list", defs[0].Steps[0].Operation)
 				assert.Equal(t, 10, defs[0].Steps[0].Params["limit"])
 			},
@@ -72,9 +72,9 @@ func TestLoadConfig(t *testing.T) {
 					Name:    "multi-step",
 					Enabled: true,
 					Steps: []config.PipelineStep{
-						{Name: "s1", Capability: "bookmark", Operation: "list"},
+						{Name: "s1", Capability: "karakeep", Operation: "list"},
 						{Name: "s2", Capability: "archive", Operation: "add"},
-						{Name: "s3", Capability: "kanban", Operation: "create_task"},
+						{Name: "s3", Capability: "kanboard", Operation: "create_task"},
 					},
 				},
 			},

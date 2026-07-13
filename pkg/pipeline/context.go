@@ -46,7 +46,6 @@ func (rc *RenderContext) templateData() *template.TemplateData {
 	event["source"] = rc.Event.Source
 	event["capability"] = rc.Event.Capability
 	event["operation"] = rc.Event.Operation
-	event["backend"] = rc.Event.Backend
 	event["app"] = rc.Event.App
 	event["entity_id"] = rc.Event.EntityID
 	event["idempotency_key"] = rc.Event.IdempotencyKey

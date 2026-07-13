@@ -15,8 +15,8 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -119,7 +119,7 @@ func RunServer(
 				flog.Error(err)
 			}
 
-			ability.ShutdownEventPool()
+			capability.ShutdownEventPool()
 
 			return nil
 		},

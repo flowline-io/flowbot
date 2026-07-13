@@ -266,8 +266,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 	Describe("CapabilityBinding", func() {
 		It("creates a new capability binding", func() {
 			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("bookmark").
-				SetBackend("karakeep").
+				SetCapability("karakeep").
 				SetApp("test-app").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
@@ -278,23 +277,21 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 		It("retrieves a binding by ID", func() {
 			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("reader").
-				SetBackend("miniflux").
+				SetCapability("miniflux").
 				SetApp("reader-app").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
 			got, err := EntClient.CapabilityBinding.Get(ctx, cb.ID)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(got.Capability).To(Equal("reader"))
+			Expect(got.Capability).To(Equal("miniflux"))
 
 			EntClient.CapabilityBinding.DeleteOne(cb).Exec(ctx)
 		})
 
 		It("updates binding fields", func() {
 			cb, err := EntClient.CapabilityBinding.Create().
-				SetCapability("kanban").
-				SetBackend("kanboard").
+				SetCapability("kanboard").
 				SetApp("kanban-app").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
@@ -309,7 +306,6 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 		It("deletes a binding", func() {
 			cb, err := EntClient.CapabilityBinding.Create().
 				SetCapability("archive").
-				SetBackend("archivebox").
 				SetApp("archive-app").
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())

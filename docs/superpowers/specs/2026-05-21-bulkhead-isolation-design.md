@@ -6,7 +6,7 @@
 
 ## Problem
 
-`ability.Invoke()` in `pkg/ability/invoke.go:214` calls provider invokers synchronously on the caller's goroutine with no concurrency guard. A slow or stalled provider can consume all available goroutines, starving other providers and degrading the entire system. There is no per-capability isolation.
+`capability.Invoke()` in `pkg/ability/invoke.go:214` calls provider invokers synchronously on the caller's goroutine with no concurrency guard. A slow or stalled provider can consume all available goroutines, starving other providers and degrading the entire system. There is no per-capability isolation.
 
 ## Solution
 
@@ -14,7 +14,7 @@ Introduce a bulkhead pattern: a semaphore per capability with bounded concurrenc
 
 ### Scope
 
-- Only the `invoker(ctx, params)` call in `ability.Invoke()` is wrapped.
+- Only the `invoker(ctx, params)` call in `capability.Invoke()` is wrapped.
 - Bulkhead instances are created lazily per capability.
 - No configuration surface — defaults are hardcoded.
 - No adaptive sizing in this iteration.
@@ -32,7 +32,7 @@ Introduce a bulkhead pattern: a semaphore per capability with bounded concurrenc
 ## Architecture
 
 ```
-ability.Invoke(ctx, capability="llm", operation="chat", params)
+capability.Invoke(ctx, capability="llm", operation="chat", params)
     |
     v
 bulkhead.Get("llm").Do(ctx, func() error { return invoker(ctx, params) })
@@ -85,7 +85,7 @@ var (
 )
 ```
 
-Mapping in `ability.Invoke()`:
+Mapping in `capability.Invoke()`:
 
 | Bulkhead error       | Returned error                            |
 | -------------------- | ----------------------------------------- |
@@ -97,7 +97,7 @@ Both errors are marked `Retryable: true` so `pkg/backoff/` retries them.
 
 ## Metrics
 
-Added to `AbilityCollector` in `pkg/metrics/ability.go`:
+Added to `AbilityCollector` in `pkg/metrics/capability.go`:
 
 | Method                                    | Prometheus metric                | Type                         |
 | ----------------------------------------- | -------------------------------- | ---------------------------- |
@@ -115,7 +115,7 @@ Logging: `flog.Warn` on dropped events only. Normal execution produces no log ou
 | `pkg/bulkhead/bulkhead.go`      | New: `Bulkhead` struct, `Do` method, sentinel errors                |
 | `pkg/bulkhead/bulkhead_test.go` | New: TDD unit tests                                                 |
 | `pkg/bulkhead/manager.go`       | New: global registry, `Get` function, default config                |
-| `pkg/metrics/ability.go`        | Modify: add bulkhead gauge, counter, histogram                      |
+| `pkg/metrics/capability.go`        | Modify: add bulkhead gauge, counter, histogram                      |
 | `pkg/ability/invoke.go`         | Modify: wrap `invoker` call with `bulkhead.Get(...).Do(...)`        |
 | `pkg/types/errors.go`           | No change needed — existing `ErrRateLimited` / `ErrTimeout` suffice |
 

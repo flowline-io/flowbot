@@ -101,20 +101,20 @@ func TestProvidesEqual(t *testing.T) {
 		},
 		{
 			name:  "abilities match",
-			a:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "bookmark", Operations: []string{"list"}}}},
-			b:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "bookmark", Operations: []string{"list"}}}},
+			a:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "karakeep", Operations: []string{"list"}}}},
+			b:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "karakeep", Operations: []string{"list"}}}},
 			equal: true,
 		},
 		{
 			name:  "abilities capability mismatch",
-			a:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "bookmark", Operations: []string{"list"}}}},
+			a:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "karakeep", Operations: []string{"list"}}}},
 			b:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "notes", Operations: []string{"list"}}}},
 			equal: false,
 		},
 		{
 			name:  "abilities operations mismatch",
-			a:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "bookmark", Operations: []string{"list"}}}},
-			b:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "bookmark", Operations: []string{"list", "get"}}}},
+			a:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "karakeep", Operations: []string{"list"}}}},
+			b:     plugin.Provides{Abilities: []plugin.AbilityDecl{{Capability: "karakeep", Operations: []string{"list", "get"}}}},
 			equal: false,
 		},
 		{

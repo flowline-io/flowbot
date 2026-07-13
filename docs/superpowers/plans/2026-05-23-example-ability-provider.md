@@ -4,7 +4,7 @@
 
 **Goal:** Create complete reference implementations for providers (`pkg/providers/example/`), abilities (`pkg/ability/example/`), and modules (`internal/modules/example/`) that demonstrate the full Module -> Ability -> Provider -> httpbin.org chain.
 
-**Architecture:** Provider layer wraps httpbin.org REST API. Ability layer defines Service interface, Descriptor + RegisterService, WebhookConverter, PollingResource. Adapter (`ability/example/example/adapter.go`) bridges provider and ability. Module layer wires everything together in Init() and exposes REST + webhook routes.
+**Architecture:** Provider layer wraps httpbin.org REST API. Ability layer defines Service interface, Descriptor + RegisterService, WebhookConverter, PollingResource. Adapter (`ability/example/example/adapter.go`) bridges provider and capability. Module layer wires everything together in Init() and exposes REST + webhook routes.
 
 **Tech Stack:** Go 1.26+, resty v3 HTTP client, Fiber v3 router, sonic JSON, testify assertions, Ginkgo v2 + Gomega BDD
 
@@ -804,21 +804,21 @@ package example
 import (
 	"context"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 // ListQuery wraps pagination with optional filter fields for listing items.
 type ListQuery struct {
-	Page ability.PageRequest
+	Page capability.PageRequest
 }
 
 // Service defines the example capability contract.
 // Provider adapters implement this interface to bridge providers and invokers.
 type Service interface {
-	GetItem(ctx context.Context, id string) (*ability.Host, error)
-	ListItems(ctx context.Context, q *ListQuery) (*ability.ListResult[ability.Host], error)
-	CreateItem(ctx context.Context, title string) (*ability.Host, error)
-	UpdateItem(ctx context.Context, id string, data map[string]any) (*ability.Host, error)
+	GetItem(ctx context.Context, id string) (*capability.Host, error)
+	ListItems(ctx context.Context, q *ListQuery) (*capability.ListResult[capability.Host], error)
+	CreateItem(ctx context.Context, title string) (*capability.Host, error)
+	UpdateItem(ctx context.Context, id string, data map[string]any) (*capability.Host, error)
 	DeleteItem(ctx context.Context, id string) error
 	HealthCheck(ctx context.Context) (bool, error)
 	ListRawEvents(ctx context.Context, cursor string) ([]any, string, error)
@@ -828,7 +828,7 @@ type Service interface {
 - [ ] **Step 2: Verify compilation**
 
 Run: `go build ./pkg/ability/example/...`
-Expected: No errors (depends on ability.go types which exist)
+Expected: No errors (depends on capability.go types which exist)
 
 - [ ] **Step 3: Commit**
 
@@ -854,7 +854,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -904,7 +904,7 @@ func RegisterService(backend, app string, svc Service) error {
 	}
 	for _, item := range []struct {
 		operation string
-		invoker   ability.Invoker
+		invoker   capability.Invoker
 	}{
 		{operation: OpExampleList, invoker: invokeList(svc)},
 		{operation: OpExampleGet, invoker: invokeGet(svc)},
@@ -913,30 +913,30 @@ func RegisterService(backend, app string, svc Service) error {
 		{operation: OpExampleDelete, invoker: invokeDelete(svc)},
 		{operation: OpExampleHealth, invoker: invokeHealth(svc)},
 	} {
-		if err := ability.RegisterInvoker(hub.CapExample, item.operation, item.invoker); err != nil {
+		if err := capability.RegisterInvoker(hub.CapExample, item.operation, item.invoker); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func invokeList(svc Service) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		q := &ListQuery{Page: ability.PageRequestFromParams(params)}
+func invokeList(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		q := &ListQuery{Page: capability.PageRequestFromParams(params)}
 		result, err := svc.ListItems(ctx, q)
 		if err != nil {
 			return nil, err
 		}
 		if result == nil {
-			result = &ability.ListResult[ability.Host]{Items: []*ability.Host{}, Page: &ability.PageInfo{}}
+			result = &capability.ListResult[capability.Host]{Items: []*capability.Host{}, Page: &capability.PageInfo{}}
 		}
-		return &ability.InvokeResult{Data: result.Items, Page: result.Page}, nil
+		return &capability.InvokeResult{Data: result.Items, Page: result.Page}, nil
 	}
 }
 
-func invokeGet(svc Service) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := ability.RequiredString(params, "id")
+func invokeGet(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		id, err := capability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -944,13 +944,13 @@ func invokeGet(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{Data: item}, nil
+		return &capability.InvokeResult{Data: item}, nil
 	}
 }
 
-func invokeCreate(svc Service) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		title, err := ability.RequiredString(params, "title")
+func invokeCreate(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		title, err := capability.RequiredString(params, "title")
 		if err != nil {
 			return nil, err
 		}
@@ -958,13 +958,13 @@ func invokeCreate(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{Data: item}, nil
+		return &capability.InvokeResult{Data: item}, nil
 	}
 }
 
-func invokeUpdate(svc Service) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := ability.RequiredString(params, "id")
+func invokeUpdate(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		id, err := capability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
@@ -973,31 +973,31 @@ func invokeUpdate(svc Service) ability.Invoker {
 		if err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{Data: item}, nil
+		return &capability.InvokeResult{Data: item}, nil
 	}
 }
 
-func invokeDelete(svc Service) ability.Invoker {
-	return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
-		id, err := ability.RequiredString(params, "id")
+func invokeDelete(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		id, err := capability.RequiredString(params, "id")
 		if err != nil {
 			return nil, err
 		}
 		if err := svc.DeleteItem(ctx, id); err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{}, nil
+		return &capability.InvokeResult{}, nil
 	}
 }
 
-func invokeHealth(svc Service) ability.Invoker {
-	return func(ctx context.Context, _ map[string]any) (*ability.InvokeResult, error) {
+func invokeHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
 		_, _ = time.ParseDuration("") // suppress unused import — keep time for now usage
 		ok, err := svc.HealthCheck(ctx)
 		if err != nil {
 			return nil, err
 		}
-		return &ability.InvokeResult{Data: ok, Text: "ok"}, nil
+		return &capability.InvokeResult{Data: ok, Text: "ok"}, nil
 	}
 }
 ```
@@ -1035,16 +1035,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
 type mockService struct{}
 
-func (m mockService) GetItem(_ /*ctx*/, _ /*id*/ string) (*ability.Host, error)         { return nil, nil }
-func (m mockService) ListItems(_ /*ctx*/, _ *ListQuery) (*ability.ListResult[ability.Host], error) { return nil, nil }
-func (m mockService) CreateItem(_ /*ctx*/, _ string) (*ability.Host, error)              { return nil, nil }
-func (m mockService) UpdateItem(_ /*ctx*/, _ string, _ map[string]any) (*ability.Host, error) { return nil, nil }
+func (m mockService) GetItem(_ /*ctx*/, _ /*id*/ string) (*capability.Host, error)         { return nil, nil }
+func (m mockService) ListItems(_ /*ctx*/, _ *ListQuery) (*capability.ListResult[capability.Host], error) { return nil, nil }
+func (m mockService) CreateItem(_ /*ctx*/, _ string) (*capability.Host, error)              { return nil, nil }
+func (m mockService) UpdateItem(_ /*ctx*/, _ string, _ map[string]any) (*capability.Host, error) { return nil, nil }
 func (m mockService) DeleteItem(_ /*ctx*/, _ string) error                                { return nil }
 func (m mockService) HealthCheck(_ /*ctx*/) (bool, error)                                 { return true, nil }
 func (m mockService) ListRawEvents(_ /*ctx*/, _ string) ([]any, string, error)           { return nil, "", nil }
@@ -1163,7 +1163,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// ExampleWebhook implements ability.WebhookConverter for the example provider.
+// ExampleWebhook implements capability.WebhookConverter for the example provider.
 // It demonstrates signature verification and payload conversion patterns.
 type ExampleWebhook struct {
 	secret []byte
@@ -1448,10 +1448,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
-// ExamplePoller implements ability.PollingResource for the example provider.
+// ExamplePoller implements capability.PollingResource for the example provider.
 // It demonstrates the polling pattern with cursor-based pagination and content hashing.
 type ExamplePoller struct {
 	svc     Service
@@ -1502,12 +1502,12 @@ func (p *ExamplePoller) CursorField() string {
 }
 
 // List fetches a batch of items from the provider starting after the given cursor.
-func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) {
+func (p *ExamplePoller) List(ctx context.Context, cursor string) (capability.PollResult, error) {
 	items, nextCursor, err := p.svc.ListRawEvents(ctx, cursor)
 	if err != nil {
-		return ability.PollResult{}, err
+		return capability.PollResult{}, err
 	}
-	return ability.PollResult{
+	return capability.PollResult{
 		Items:      items,
 		NextCursor: nextCursor,
 		HasMore:    nextCursor != "",
@@ -1554,10 +1554,10 @@ type fakePollerService struct {
 	err    error
 }
 
-func (f *fakePollerService) GetItem(_ context.Context, _ string) (*ability.Host, error)         { return nil, nil }
-func (f *fakePollerService) ListItems(_ context.Context, _ *ListQuery) (*ability.ListResult[ability.Host], error) { return nil, nil }
-func (f *fakePollerService) CreateItem(_ context.Context, _ string) (*ability.Host, error)      { return nil, nil }
-func (f *fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) { return nil, nil }
+func (f *fakePollerService) GetItem(_ context.Context, _ string) (*capability.Host, error)         { return nil, nil }
+func (f *fakePollerService) ListItems(_ context.Context, _ *ListQuery) (*capability.ListResult[capability.Host], error) { return nil, nil }
+func (f *fakePollerService) CreateItem(_ context.Context, _ string) (*capability.Host, error)      { return nil, nil }
+func (f *fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*capability.Host, error) { return nil, nil }
 func (f *fakePollerService) DeleteItem(_ context.Context, _ string) error                        { return nil }
 func (f *fakePollerService) HealthCheck(_ context.Context) (bool, error)                         { return true, nil }
 func (f *fakePollerService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
@@ -1723,19 +1723,19 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
-	"github.com/flowline-io/flowbot/pkg/ability/conformance"
+	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/conformance"
 )
 
 // Config holds mock backend behavior for conformance testing each Service method.
 type Config struct {
-	ListItems      []*ability.Host
+	ListItems      []*capability.Host
 	ListErr        error
-	GetItem        *ability.Host
+	GetItem        *capability.Host
 	GetErr         error
-	CreateItem     *ability.Host
+	CreateItem     *capability.Host
 	CreateErr      error
-	UpdateItem     *ability.Host
+	UpdateItem     *capability.Host
 	UpdateErr      error
 	DeleteErr      error
 	HealthOk       bool
@@ -1764,19 +1764,19 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 		}{
 			{
 				name:    "success",
-				cfg:     Config{GetItem: &ability.Host{ID: "h-1", Name: "test"}},
+				cfg:     Config{GetItem: &capability.Host{ID: "h-1", Name: "test"}},
 				id:      "h-1",
 				wantErr: false,
 			},
 			{
 				name:    "empty id",
-				cfg:     Config{GetErr: ability.Errorf(ability.ErrInvalidArgument, "id required")},
+				cfg:     Config{GetErr: capability.Errorf(capability.ErrInvalidArgument, "id required")},
 				id:      "",
 				wantErr: true,
 			},
 			{
 				name:    "provider error",
-				cfg:     Config{GetErr: ability.Errorf(ability.ErrProvider, "down")},
+				cfg:     Config{GetErr: capability.Errorf(capability.ErrProvider, "down")},
 				id:      "h-1",
 				wantErr: true,
 			},
@@ -1806,19 +1806,19 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 		}{
 			{
 				name:    "success with items",
-				cfg:     Config{ListItems: []*ability.Host{{ID: "h-1"}, {ID: "h-2"}}},
+				cfg:     Config{ListItems: []*capability.Host{{ID: "h-1"}, {ID: "h-2"}}},
 				wantLen: 2,
 				wantErr: false,
 			},
 			{
 				name:    "empty list",
-				cfg:     Config{ListItems: []*ability.Host{}},
+				cfg:     Config{ListItems: []*capability.Host{}},
 				wantLen: 0,
 				wantErr: false,
 			},
 			{
 				name:    "provider error",
-				cfg:     Config{ListErr: ability.Errorf(ability.ErrProvider, "down")},
+				cfg:     Config{ListErr: capability.Errorf(capability.ErrProvider, "down")},
 				wantErr: true,
 			},
 		}
@@ -1846,9 +1846,9 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 			title   string
 			wantErr bool
 		}{
-			{name: "success", cfg: Config{CreateItem: &ability.Host{ID: "new", Name: "test"}}, title: "test", wantErr: false},
-			{name: "empty title", cfg: Config{CreateErr: ability.Errorf(ability.ErrInvalidArgument, "title required")}, title: "", wantErr: true},
-			{name: "provider error", cfg: Config{CreateErr: ability.Errorf(ability.ErrProvider, "down")}, title: "test", wantErr: true},
+			{name: "success", cfg: Config{CreateItem: &capability.Host{ID: "new", Name: "test"}}, title: "test", wantErr: false},
+			{name: "empty title", cfg: Config{CreateErr: capability.Errorf(capability.ErrInvalidArgument, "title required")}, title: "", wantErr: true},
+			{name: "provider error", cfg: Config{CreateErr: capability.Errorf(capability.ErrProvider, "down")}, title: "test", wantErr: true},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -1875,7 +1875,7 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 		}{
 			{name: "healthy", cfg: Config{HealthOk: true}, wantOk: true, wantErr: false},
 			{name: "unhealthy", cfg: Config{HealthOk: false}, wantOk: false, wantErr: false},
-			{name: "error", cfg: Config{HealthErr: ability.Errorf(ability.ErrProvider, "timeout")}, wantErr: true},
+			{name: "error", cfg: Config{HealthErr: capability.Errorf(capability.ErrProvider, "timeout")}, wantErr: true},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
@@ -1896,7 +1896,7 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 		t.Parallel()
 		t.Run("canceled context", func(t *testing.T) {
 			t.Parallel()
-			svc := factory(t, Config{GetItem: &ability.Host{ID: "h-1"}})
+			svc := factory(t, Config{GetItem: &capability.Host{ID: "h-1"}})
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 			_, err := svc.GetItem(ctx, "h-1")
@@ -1911,11 +1911,11 @@ func RunExampleConformance(t *testing.T, factory ServiceFactory) {
 Run: `go build ./pkg/ability/example/...`
 Expected: No errors
 
-Wait — `ability.Errorf` doesn't exist. Let me use `fmt.Errorf` or `types.Errorf` instead. Actually, looking at the existing conformance code, the Config structs use `assert.AnError` which is `var AnError = errors.New("assert.AnError general error for testing")`. That's simpler. Let me fix.
+Wait — `capability.Errorf` doesn't exist. Let me use `fmt.Errorf` or `types.Errorf` instead. Actually, looking at the existing conformance code, the Config structs use `assert.AnError` which is `var AnError = errors.New("assert.AnError general error for testing")`. That's simpler. Let me fix.
 
 In `Config`, errors should just be generic `error` fields, and the factory uses `assert.AnError` for test error values. For the invalid argument errors, the adapter implementation creates them from empty input.
 
-Fixed conformance.go errors: use simple errors, not `ability.Errorf` (which doesn't exist).
+Fixed conformance.go errors: use simple errors, not `capability.Errorf` (which doesn't exist).
 
 - [ ] **Step 3: Commit**
 
@@ -1942,26 +1942,26 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 type conformanceService struct {
 	cfg Config
 }
 
-func (c *conformanceService) GetItem(_ /*ctx*/, id string) (*ability.Host, error) {
+func (c *conformanceService) GetItem(_ /*ctx*/, id string) (*capability.Host, error) {
 	if c.cfg.GetErr != nil { return nil, c.cfg.GetErr }
 	return c.cfg.GetItem, nil
 }
-func (c *conformanceService) ListItems(_ /*ctx*/, _ *ListQuery) (*ability.ListResult[ability.Host], error) {
+func (c *conformanceService) ListItems(_ /*ctx*/, _ *ListQuery) (*capability.ListResult[capability.Host], error) {
 	if c.cfg.ListErr != nil { return nil, c.cfg.ListErr }
-	return &ability.ListResult[ability.Host]{Items: c.cfg.ListItems}, nil
+	return &capability.ListResult[capability.Host]{Items: c.cfg.ListItems}, nil
 }
-func (c *conformanceService) CreateItem(_ /*ctx*/, _ string) (*ability.Host, error) {
+func (c *conformanceService) CreateItem(_ /*ctx*/, _ string) (*capability.Host, error) {
 	if c.cfg.CreateErr != nil { return nil, c.cfg.CreateErr }
 	return c.cfg.CreateItem, nil
 }
-func (c *conformanceService) UpdateItem(_ /*ctx*/, _ string, _ map[string]any) (*ability.Host, error) {
+func (c *conformanceService) UpdateItem(_ /*ctx*/, _ string, _ map[string]any) (*capability.Host, error) {
 	if c.cfg.UpdateErr != nil { return nil, c.cfg.UpdateErr }
 	return c.cfg.UpdateItem, nil
 }
@@ -2015,8 +2015,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
-	example "github.com/flowline-io/flowbot/pkg/ability/example"
+	"github.com/flowline-io/flowbot/pkg/capability"
+	example "github.com/flowline-io/flowbot/pkg/capability/example"
 	provider "github.com/flowline-io/flowbot/pkg/providers/example"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -2050,7 +2050,7 @@ func NewWithClient(c client) example.Service {
 	}
 }
 
-func (a *Adapter) GetItem(ctx context.Context, id string) (*ability.Host, error) {
+func (a *Adapter) GetItem(ctx context.Context, id string) (*capability.Host, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
@@ -2061,10 +2061,10 @@ func (a *Adapter) GetItem(ctx context.Context, id string) (*ability.Host, error)
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example get failed", err)
 	}
-	return &ability.Host{ID: id, Name: resp.Origin, Status: resp.URL}, nil
+	return &capability.Host{ID: id, Name: resp.Origin, Status: resp.URL}, nil
 }
 
-func (a *Adapter) ListItems(ctx context.Context, q *example.ListQuery) (*ability.ListResult[ability.Host], error) {
+func (a *Adapter) ListItems(ctx context.Context, q *example.ListQuery) (*capability.ListResult[capability.Host], error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
@@ -2072,13 +2072,13 @@ func (a *Adapter) ListItems(ctx context.Context, q *example.ListQuery) (*ability
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example list failed", err)
 	}
-	item := &ability.Host{ID: "item-1", Name: resp.Origin, Status: "active"}
-	return &ability.ListResult[ability.Host]{
-		Items: []*ability.Host{item},
+	item := &capability.Host{ID: "item-1", Name: resp.Origin, Status: "active"}
+	return &capability.ListResult[capability.Host]{
+		Items: []*capability.Host{item},
 	}, nil
 }
 
-func (a *Adapter) CreateItem(ctx context.Context, title string) (*ability.Host, error) {
+func (a *Adapter) CreateItem(ctx context.Context, title string) (*capability.Host, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
@@ -2089,10 +2089,10 @@ func (a *Adapter) CreateItem(ctx context.Context, title string) (*ability.Host, 
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example create failed", err)
 	}
-	return &ability.Host{ID: "created-1", Name: title, Status: resp.URL}, nil
+	return &capability.Host{ID: "created-1", Name: title, Status: resp.URL}, nil
 }
 
-func (a *Adapter) UpdateItem(ctx context.Context, id string, data map[string]any) (*ability.Host, error) {
+func (a *Adapter) UpdateItem(ctx context.Context, id string, data map[string]any) (*capability.Host, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
@@ -2103,7 +2103,7 @@ func (a *Adapter) UpdateItem(ctx context.Context, id string, data map[string]any
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "example update failed", err)
 	}
-	return &ability.Host{ID: id, Name: resp.Origin, Status: "updated"}, nil
+	return &capability.Host{ID: id, Name: resp.Origin, Status: "updated"}, nil
 }
 
 func (a *Adapter) DeleteItem(ctx context.Context, id string) error {
@@ -2180,7 +2180,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	provider "github.com/flowline-io/flowbot/pkg/providers/example"
 )
 
@@ -2282,7 +2282,7 @@ func TestAdapter_ListItems(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			a := NewWithClient(tt.client)
-			result, err := a.ListItems(context.Background(), &ability.ListQuery{})
+			result, err := a.ListItems(context.Background(), &capability.ListQuery{})
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -2444,8 +2444,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	example "github.com/flowline-io/flowbot/pkg/ability/example"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	example "github.com/flowline-io/flowbot/pkg/capability/example"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	provider "github.com/flowline-io/flowbot/pkg/providers/example"
 )
 
@@ -2532,8 +2532,8 @@ The existing `module.go` has a simple `Init()` that just parses config. We need 
 // Add these imports to existing imports:
 import (
 	// ... existing imports ...
-	abilityexample "github.com/flowline-io/flowbot/pkg/ability/example"
-	adapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
+	abilityexample "github.com/flowline-io/flowbot/pkg/capability/example"
+	adapter "github.com/flowline-io/flowbot/pkg/capability/example/example"
 )
 ```
 
@@ -2628,7 +2628,7 @@ func getExampleItem(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleGet, map[string]any{"id": id})
+	res, err := capability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleGet, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -2642,7 +2642,7 @@ func getExampleItem(ctx fiber.Ctx) error {
 //	@Success	200	{object}	protocol.Response{}
 //	@Router		/example/health [get]
 func healthExample(ctx fiber.Ctx) error {
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleHealth, map[string]any{})
+	res, err := capability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleHealth, map[string]any{})
 	if err != nil {
 		return err
 	}
@@ -2667,7 +2667,7 @@ func createExampleItem(ctx fiber.Ctx) error {
 	if body.Title == "" {
 		return types.Errorf(types.ErrInvalidArgument, "title is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate, map[string]any{"title": body.Title})
+	res, err := capability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleCreate, map[string]any{"title": body.Title})
 	if err != nil {
 		return err
 	}
@@ -2686,7 +2686,7 @@ func deleteExampleItem(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	res, err := ability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleDelete, map[string]any{"id": id})
+	res, err := capability.Invoke(context.Background(), hub.CapExample, abilityexample.OpExampleDelete, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -2700,7 +2700,7 @@ Add new imports to the existing import block:
 import (
 	// ... existing imports ...
 	"github.com/flowline-io/flowbot/pkg/hub"
-	abilityexample "github.com/flowline-io/flowbot/pkg/ability/example"
+	abilityexample "github.com/flowline-io/flowbot/pkg/capability/example"
 )
 ```
 

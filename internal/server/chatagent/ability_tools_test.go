@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -26,13 +26,13 @@ func TestValidateAbilityToolConfig(t *testing.T) {
 		{
 			name: "readonly ok",
 			cfg: config.AbilityToolConfig{
-				Name: "memo_list", Capability: "memo", Operation: "list", Readonly: true,
+				Name: "memo_list", Capability: "memos", Operation: "list", Readonly: true,
 			},
 		},
 		{
 			name: "rejects non-readonly",
 			cfg: config.AbilityToolConfig{
-				Name: "memo_create", Capability: "memo", Operation: "create", Readonly: false,
+				Name: "memo_create", Capability: "memos", Operation: "create", Readonly: false,
 			},
 			wantErr: "readonly must be true",
 		},
@@ -71,15 +71,15 @@ func TestAbilityToolExecute(t *testing.T) {
 	}{
 		{
 			name: "success returns text",
-			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*ability.InvokeResult, error) {
-				return &ability.InvokeResult{Text: "memo ok"}, nil
+			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*capability.InvokeResult, error) {
+				return &capability.InvokeResult{Text: "memo ok"}, nil
 			},
 			args:       map[string]any{"params": map[string]any{"limit": 1}},
 			wantSubstr: "memo ok",
 		},
 		{
 			name: "maps not found without provider leak",
-			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*ability.InvokeResult, error) {
+			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*capability.InvokeResult, error) {
 				return nil, types.Errorf(types.ErrNotFound, "item missing")
 			},
 			wantError:  true,
@@ -88,7 +88,7 @@ func TestAbilityToolExecute(t *testing.T) {
 		},
 		{
 			name: "maps provider error safely",
-			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*ability.InvokeResult, error) {
+			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*capability.InvokeResult, error) {
 				return nil, types.WrapError(types.ErrProvider, "raw provider dump secret-token", nil)
 			},
 			wantError:  true,
@@ -100,7 +100,7 @@ func TestAbilityToolExecute(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			toolItem, err := chatagent.NewAbilityTool(config.AbilityToolConfig{
-				Name: "memo_list", Description: "list memos", Capability: "memo", Operation: "list", Readonly: true,
+				Name: "memo_list", Description: "list memos", Capability: "memos", Operation: "list", Readonly: true,
 			}, tt.invoke)
 			require.NoError(t, err)
 			result, err := toolItem.Execute(context.Background(), "call-1", tt.args, nil)
@@ -127,14 +127,14 @@ func TestRegisterAbilityTools(t *testing.T) {
 		{
 			name: "registers readonly tools",
 			entries: []config.AbilityToolConfig{{
-				Name: "memo_list", Capability: "memo", Operation: "list", Readonly: true,
+				Name: "memo_list", Capability: "memos", Operation: "list", Readonly: true,
 			}},
 			wantLen: 1,
 		},
 		{
 			name: "fails when readonly missing",
 			entries: []config.AbilityToolConfig{{
-				Name: "memo_create", Capability: "memo", Operation: "create",
+				Name: "memo_create", Capability: "memos", Operation: "create",
 			}},
 			wantErr: "readonly must be true",
 		},

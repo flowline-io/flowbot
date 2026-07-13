@@ -3,12 +3,14 @@ package homelab
 import (
 	"strings"
 	"time"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
 // Label key constants for the flowbot docker-compose label convention.
 const (
 	LabelCapability        = "flowbot.capability"
-	LabelBackend           = "flowbot.backend"
+	LabelBackend           = "flowbot.backend" // deprecated: ignored; CapType is provider ID
 	LabelEndpointBase      = "flowbot.endpoint.base"
 	LabelEndpointHealth    = "flowbot.endpoint.health"
 	LabelEndpointHealthTTL = "flowbot.endpoint.health_ttl"
@@ -20,15 +22,38 @@ const (
 )
 
 // knownCapabilities maps label values to capability type constants.
+// Legacy domain labels are mapped for this release only.
 var knownCapabilities = map[string]string{
-	"bookmark":      CapBookmark,
+	// Provider IDs (canonical)
+	"karakeep": CapKarakeep,
+	"miniflux": CapMiniflux,
+	"kanboard": CapKanboard,
+	"trilium":  CapTrilium,
+	"memos":    CapMemos,
+	"gitea":    CapGitea,
+	"github":   CapGithub,
+	"example":  CapExample,
+	// Discovery-only
 	"archive":       CapArchive,
-	"reader":        CapReader,
-	"kanban":        CapKanban,
 	"finance":       CapFinance,
 	"infra":         CapInfra,
 	"shell_history": CapShellHistory,
-	"forge":         CapForge,
+	// Legacy domain labels (deprecated this version)
+	"bookmark": CapKarakeep,
+	"reader":   CapMiniflux,
+	"kanban":   CapKanboard,
+	"note":     CapTrilium,
+	"memo":     CapMemos,
+	"forge":    CapGitea,
+}
+
+var legacyCapabilityLabels = map[string]string{
+	"bookmark": CapKarakeep,
+	"reader":   CapMiniflux,
+	"kanban":   CapKanboard,
+	"note":     CapTrilium,
+	"memo":     CapMemos,
+	"forge":    CapGitea,
 }
 
 // ParseLabels extracts AppCapability entries from the labels map using the
@@ -40,19 +65,20 @@ func ParseLabels(labels map[string]string) []AppCapability {
 	}
 
 	capLabel := strings.TrimSpace(labels[LabelCapability])
-	backendLabel := strings.TrimSpace(labels[LabelBackend])
-
 	capType, ok := knownCapabilities[capLabel]
 	if !ok {
 		return nil
 	}
-	if backendLabel == "" {
-		backendLabel = capLabel
+	if mapped, legacy := legacyCapabilityLabels[capLabel]; legacy {
+		flog.Warn("homelab: deprecated flowbot.capability=%q; use %q (legacy mapping removed next release)", capLabel, mapped)
+		capType = mapped
+	}
+	if strings.TrimSpace(labels[LabelBackend]) != "" {
+		flog.Warn("homelab: flowbot.backend label is deprecated and ignored")
 	}
 
 	capability := AppCapability{
 		Capability: capType,
-		Backend:    backendLabel,
 	}
 
 	if baseURL := strings.TrimSpace(labels[LabelEndpointBase]); baseURL != "" {

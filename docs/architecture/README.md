@@ -32,7 +32,7 @@ Layer 6 — External:        Users, Chat Platforms, Third-Party APIs
 Layer 5 — Platform:        Discord/Slack/Tailchat adapters
 Layer 4 — HTTP Gateway:    Fiber v3 server, REST API, auth middleware
 Layer 3 — Business Logic:  modules, workflow engine, pipeline engine, LLM, agent engine
-Layer 2 — Capability:      ability.Invoke() abstraction over providers
+Layer 2 — Capability:      capability.Invoke() abstraction over providers
 Layer 1 — Providers:       18 third-party service integrations
 Layer 0 — Infrastructure:  PostgreSQL, Redis, Docker executor
 ```
@@ -47,7 +47,7 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 
 ### Key Design Rules
 
-- Modules never import providers directly — use `ability.Invoke()`
+- Modules never import providers directly — use `capability.Invoke()`
 - Providers never emit DataEvents, call Hub, or call Pipeline
 - Standard pagination: limit + opaque cursor (provider internals hidden)
 - Durable events: DataEvent → PostgreSQL data_events → Redis Stream → Pipeline
@@ -56,7 +56,7 @@ Homelab Scanner → App Registry → Hub Manager → Capability Binding → Abil
 
 ### Data Flows
 
-1. **Chat Message**: User → Platform → Adapter → Server → Bot Module → ability.Invoke() → Provider → API
+1. **Chat Message**: User → Platform → Adapter → Server → Bot Module → capability.Invoke() → Provider → API
 2. **Workflow**: Trigger → Workflow Engine → Executor (Docker) → Pipeline Engine → Notifications
 3. **Durable Events**: DataEvent → PostgreSQL (data_events) → Redis Stream Outbox → Pipeline → Actions
 4. **Hub Management**: Homelab Scan → Discovery (labels + probes) → App Registry → Hub → Capability Binding → Ability Registry

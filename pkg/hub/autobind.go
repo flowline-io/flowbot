@@ -10,7 +10,6 @@ import (
 // yet registered in the hub as a full-capability descriptor.
 type DiscoveredBinding struct {
 	Capability CapabilityType
-	Backend    string
 	App        string
 	Endpoint   *homelab.EndpointInfo
 	Auth       *homelab.AuthInfo
@@ -29,7 +28,6 @@ func AutoBind() []DiscoveredBinding {
 			_, bound := Default.Get(capType)
 			bindings = append(bindings, DiscoveredBinding{
 				Capability: capType,
-				Backend:    cap.Backend,
 				App:        app.Name,
 				Endpoint:   cap.Endpoint,
 				Auth:       cap.Auth,
@@ -52,7 +50,7 @@ func LogDiscovered() {
 				d.Capability, d.App)
 			continue
 		}
-		flog.Info("hub autobind: discovered %s (%s) on app %s (not yet configured)",
-			d.Capability, d.Backend, d.App)
+		flog.Info("hub autobind: discovered %s on app %s (not yet configured)",
+			d.Capability, d.App)
 	}
 }

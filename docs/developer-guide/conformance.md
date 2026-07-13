@@ -147,8 +147,8 @@ package newprovider
 
 import (
     "testing"
-    "github.com/flowline-io/flowbot/pkg/ability/conformance"
-    bm "github.com/flowline-io/flowbot/pkg/ability/bookmark"
+    "github.com/flowline-io/flowbot/pkg/capability/conformance"
+    bm "github.com/flowline-io/flowbot/pkg/capability/bookmark"
 )
 
 func TestConformance(t *testing.T) {

@@ -16,7 +16,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
@@ -388,7 +388,7 @@ func testPipelineStep(c fiber.Ctx) error {
 			return c.JSON(fiber.Map{"success": false, "error": "Step " + step.Name + " failed", "steps": results})
 		}
 		pipeline.InjectAgentRunDefaults(step, rendered, rc, name)
-		res, iErr := ability.Invoke(context.Background(), step.Capability, step.Operation, rendered)
+		res, iErr := capability.Invoke(context.Background(), step.Capability, step.Operation, rendered)
 		duration := time.Since(start).Milliseconds()
 		if iErr != nil {
 			results = append(results, stepResult{Name: step.Name, Status: "error", Error: fmt.Sprintf("invoke: %v", iErr)})

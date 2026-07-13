@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
@@ -133,7 +133,7 @@ func getRelations(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(relations))
 }
 
-// --- Bookmark routes (registered under /service/bookmark) ---
+// --- Karakeep routes (registered under /service/karakeep) ---
 
 type createBookmarkRequest struct {
 	URL string `json:"url" validate:"required,url,max=2048"`
@@ -162,7 +162,7 @@ func listBookmarks(ctx fiber.Ctx) error {
 	if v := ctx.Query("favourited"); v != "" {
 		params["favourited"] = v
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkList, params)
+	return invokeBookmark(ctx, capability.OpBookmarkList, params)
 }
 
 func checkURLExists(ctx fiber.Ctx) error {
@@ -170,7 +170,7 @@ func checkURLExists(ctx fiber.Ctx) error {
 	if url == "" {
 		return types.Errorf(types.ErrInvalidArgument, "url is required")
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkCheckURL, map[string]any{"url": url})
+	return invokeBookmark(ctx, capability.OpBookmarkCheckURL, map[string]any{"url": url})
 }
 
 func searchBookmarks(ctx fiber.Ctx) error {
@@ -181,7 +181,7 @@ func searchBookmarks(ctx fiber.Ctx) error {
 	if v := ctx.Query("sort_order"); v != "" {
 		params["sort_order"] = v
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkSearch, params)
+	return invokeBookmark(ctx, capability.OpBookmarkSearch, params)
 }
 
 func getBookmark(ctx fiber.Ctx) error {
@@ -189,7 +189,7 @@ func getBookmark(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkGet, map[string]any{"id": id})
+	return invokeBookmark(ctx, capability.OpBookmarkGet, map[string]any{"id": id})
 }
 
 func createBookmark(ctx fiber.Ctx) error {
@@ -200,7 +200,7 @@ func createBookmark(ctx fiber.Ctx) error {
 	if err := validate.Validate.Struct(body); err != nil {
 		return types.WrapError(types.ErrInvalidArgument, "validate create bookmark request", err)
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkCreate, map[string]any{"url": body.URL})
+	return invokeBookmark(ctx, capability.OpBookmarkCreate, map[string]any{"url": body.URL})
 }
 
 func archiveBookmark(ctx fiber.Ctx) error {
@@ -208,7 +208,7 @@ func archiveBookmark(ctx fiber.Ctx) error {
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkArchive, map[string]any{"id": id})
+	return invokeBookmark(ctx, capability.OpBookmarkArchive, map[string]any{"id": id})
 }
 
 func attachTags(ctx fiber.Ctx) error {
@@ -220,7 +220,7 @@ func attachTags(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkAttachTags, map[string]any{"id": id, "tags": body.Tags})
+	return invokeBookmark(ctx, capability.OpBookmarkAttachTags, map[string]any{"id": id, "tags": body.Tags})
 }
 
 func detachTags(ctx fiber.Ctx) error {
@@ -232,11 +232,11 @@ func detachTags(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return invokeBookmark(ctx, ability.OpBookmarkDetachTags, map[string]any{"id": id, "tags": body.Tags})
+	return invokeBookmark(ctx, capability.OpBookmarkDetachTags, map[string]any{"id": id, "tags": body.Tags})
 }
 
 func invokeBookmark(ctx fiber.Ctx, operation string, params map[string]any) error {
-	res, err := ability.Invoke(context.Background(), hub.CapBookmark, operation, params)
+	res, err := capability.Invoke(context.Background(), hub.CapKarakeep, operation, params)
 	if err != nil {
 		return err
 	}
@@ -275,7 +275,7 @@ func bindTags(ctx fiber.Ctx) (tagsRequest, error) {
 	return body, nil
 }
 
-// --- Kanban routes (registered under /service/kanban) ---
+// --- Kanboard routes (registered under /service/kanboard) ---
 
 type createTaskRequest struct {
 	Title       string `json:"title" validate:"required,min=1,max=200"`
@@ -374,7 +374,7 @@ func listTasks(ctx fiber.Ctx) error {
 		params["status"] = "inactive"
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanListTasks, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanListTasks, params)
 	if err != nil {
 		return err
 	}
@@ -391,7 +391,7 @@ func getTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanGetTask, map[string]any{"id": id})
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanGetTask, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -407,7 +407,7 @@ func createTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanCreateTask, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanCreateTask, map[string]any{
 		"title":       body.Title,
 		"description": body.Description,
 		"project_id":  body.ProjectID,
@@ -437,7 +437,7 @@ func updateTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanUpdateTask, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanUpdateTask, map[string]any{
 		"id":          id,
 		"title":       body.Title,
 		"description": body.Description,
@@ -458,7 +458,7 @@ func deleteTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("invalid task ID")
 	}
 
-	_, err = ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanDeleteTask, map[string]any{"id": id})
+	_, err = capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanDeleteTask, map[string]any{"id": id})
 	if err != nil {
 		return err
 	}
@@ -483,7 +483,7 @@ func moveTask(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanMoveTask, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanMoveTask, map[string]any{
 		"id":          id,
 		"column_id":   body.ColumnID,
 		"position":    body.Position,
@@ -504,7 +504,7 @@ func listColumns(ctx fiber.Ctx) error {
 		}
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanGetColumns, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanGetColumns, map[string]any{
 		"project_id": projectID,
 	})
 	if err != nil {
@@ -524,7 +524,7 @@ func searchTasks(ctx fiber.Ctx) error {
 		params["q"] = v
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapKanban, ability.OpKanbanSearchTasks, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapKanboard, capability.OpKanbanSearchTasks, params)
 	if err != nil {
 		return err
 	}
@@ -843,7 +843,7 @@ func getSubtaskTimeSpent(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(map[string]float64{"time_spent": spent}))
 }
 
-// --- Note routes (registered under /service/note) ---
+// --- Trilium routes (registered under /service/trilium) ---
 
 var noteWebserviceRules = []webservice.Rule{
 	webservice.Get("/", listNotes),
@@ -868,11 +868,11 @@ func listNotes(ctx fiber.Ctx) error {
 	if c := ctx.Query("cursor"); c != "" {
 		params["cursor"] = c
 	}
-	return invokeNote(ctx, ability.OpNoteList, params)
+	return invokeNote(ctx, capability.OpNoteList, params)
 }
 
 func getNote(ctx fiber.Ctx) error {
-	return invokeNote(ctx, ability.OpNoteGet, map[string]any{
+	return invokeNote(ctx, capability.OpNoteGet, map[string]any{
 		"id": ctx.Params("id"),
 	})
 }
@@ -890,7 +890,7 @@ func createNote(ctx fiber.Ctx) error {
 	if body.Title == "" {
 		return types.Errorf(types.ErrInvalidArgument, "title is required")
 	}
-	return invokeNote(ctx, ability.OpNoteCreate, map[string]any{
+	return invokeNote(ctx, capability.OpNoteCreate, map[string]any{
 		"title":          body.Title,
 		"content":        body.Content,
 		"type":           body.Type,
@@ -906,7 +906,7 @@ func updateNote(ctx fiber.Ctx) error {
 	if err := ctx.Bind().Body(&body); err != nil {
 		return types.WrapError(types.ErrInvalidArgument, "decode note update request", err)
 	}
-	return invokeNote(ctx, ability.OpNoteUpdate, map[string]any{
+	return invokeNote(ctx, capability.OpNoteUpdate, map[string]any{
 		"id":      ctx.Params("id"),
 		"title":   body.Title,
 		"content": body.Content,
@@ -914,20 +914,20 @@ func updateNote(ctx fiber.Ctx) error {
 }
 
 func deleteNote(ctx fiber.Ctx) error {
-	return invokeNote(ctx, ability.OpNoteDelete, map[string]any{
+	return invokeNote(ctx, capability.OpNoteDelete, map[string]any{
 		"id": ctx.Params("id"),
 	})
 }
 
 func getNoteContent(ctx fiber.Ctx) error {
-	return invokeNote(ctx, ability.OpNoteGetContent, map[string]any{
+	return invokeNote(ctx, capability.OpNoteGetContent, map[string]any{
 		"id": ctx.Params("id"),
 	})
 }
 
 func setNoteContent(ctx fiber.Ctx) error {
 	content := string(ctx.Body())
-	return invokeNote(ctx, ability.OpNoteSetContent, map[string]any{
+	return invokeNote(ctx, capability.OpNoteSetContent, map[string]any{
 		"id":      ctx.Params("id"),
 		"content": content,
 	})
@@ -938,24 +938,24 @@ func searchNotes(ctx fiber.Ctx) error {
 	if query == "" {
 		return types.Errorf(types.ErrInvalidArgument, "query parameter 'q' is required")
 	}
-	return invokeNote(ctx, ability.OpNoteSearch, map[string]any{
+	return invokeNote(ctx, capability.OpNoteSearch, map[string]any{
 		"query": query,
 	})
 }
 
 func noteHealth(ctx fiber.Ctx) error {
-	return invokeNote(ctx, ability.OpNoteGetAppInfo, map[string]any{})
+	return invokeNote(ctx, capability.OpNoteGetAppInfo, map[string]any{})
 }
 
 func invokeNote(ctx fiber.Ctx, operation string, params map[string]any) error {
-	res, err := ability.Invoke(context.Background(), hub.CapNote, operation, params)
+	res, err := capability.Invoke(context.Background(), hub.CapTrilium, operation, params)
 	if err != nil {
 		return err
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
-// --- Memo routes (registered under /service/memo) ---
+// --- Memos routes (registered under /service/memos) ---
 
 var memoWebserviceRules = []webservice.Rule{
 	webservice.Get("/", listMemos),
@@ -967,10 +967,10 @@ var memoWebserviceRules = []webservice.Rule{
 
 func listMemos(ctx fiber.Ctx) error {
 	if name := ctx.Query("name"); name != "" {
-		return invokeMemo(ctx, ability.OpMemoGet, map[string]any{"name": name})
+		return invokeMemo(ctx, capability.OpMemoGet, map[string]any{"name": name})
 	}
 	params := pageParams(ctx)
-	return invokeMemo(ctx, ability.OpMemoList, params)
+	return invokeMemo(ctx, capability.OpMemoList, params)
 }
 
 func createMemo(ctx fiber.Ctx) error {
@@ -984,7 +984,7 @@ func createMemo(ctx fiber.Ctx) error {
 	if body.Content == "" {
 		return types.Errorf(types.ErrInvalidArgument, "content is required")
 	}
-	return invokeMemo(ctx, ability.OpMemoCreate, map[string]any{
+	return invokeMemo(ctx, capability.OpMemoCreate, map[string]any{
 		"content":    body.Content,
 		"visibility": body.Visibility,
 	})
@@ -1013,7 +1013,7 @@ func updateMemo(ctx fiber.Ctx) error {
 	if body.Pinned != nil {
 		params["pinned"] = *body.Pinned
 	}
-	return invokeMemo(ctx, ability.OpMemoUpdate, params)
+	return invokeMemo(ctx, capability.OpMemoUpdate, params)
 }
 
 func deleteMemo(ctx fiber.Ctx) error {
@@ -1021,22 +1021,22 @@ func deleteMemo(ctx fiber.Ctx) error {
 	if name == "" {
 		return types.Errorf(types.ErrInvalidArgument, "name query param is required")
 	}
-	return invokeMemo(ctx, ability.OpMemoDelete, map[string]any{"name": name})
+	return invokeMemo(ctx, capability.OpMemoDelete, map[string]any{"name": name})
 }
 
 func memoHealth(ctx fiber.Ctx) error {
-	return invokeMemo(ctx, ability.OpMemoHealth, map[string]any{})
+	return invokeMemo(ctx, capability.OpMemoHealth, map[string]any{})
 }
 
 func invokeMemo(ctx fiber.Ctx, operation string, params map[string]any) error {
-	res, err := ability.Invoke(context.Background(), hub.CapMemo, operation, params)
+	res, err := capability.Invoke(context.Background(), hub.CapMemos, operation, params)
 	if err != nil {
 		return err
 	}
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
-// --- Reader routes (registered under /service/reader) ---
+// --- Miniflux routes (registered under /service/miniflux) ---
 
 type createFeedRequest struct {
 	FeedURL    string `json:"feed_url" validate:"required,url,max=2048"`
@@ -1055,7 +1055,7 @@ var readerWebserviceRules = []webservice.Rule{
 	webservice.Patch("/entries", updateEntriesStatus),
 }
 
-// --- Forge routes (registered under /service/forge) ---
+// --- Gitea routes (registered under /service/gitea) ---
 
 var forgeWebserviceRules = []webservice.Rule{
 	webservice.Get("/user", forgeGetUser),
@@ -1067,7 +1067,7 @@ var forgeWebserviceRules = []webservice.Rule{
 }
 
 func forgeGetUser(ctx fiber.Ctx) error {
-	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetUser, nil)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGitea, capability.OpForgeGetUser, nil)
 	if err != nil {
 		return err
 	}
@@ -1081,7 +1081,7 @@ func forgeGetRepo(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "owner and repo query params are required")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetRepo, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGitea, capability.OpForgeGetRepo, map[string]any{
 		"owner": owner,
 		"repo":  repo,
 	})
@@ -1112,7 +1112,7 @@ func forgeListIssues(ctx fiber.Ctx) error {
 		params["cursor"] = v
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeListIssues, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGitea, capability.OpForgeListIssues, params)
 	if err != nil {
 		return err
 	}
@@ -1131,7 +1131,7 @@ func forgeGetIssue(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "invalid index: %v", err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetIssue, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGitea, capability.OpForgeGetIssue, map[string]any{
 		"owner": owner,
 		"repo":  repo,
 		"index": index,
@@ -1150,7 +1150,7 @@ func forgeGetCommitDiff(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "owner, repo and commit_id query params are required")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetCommitDiff, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGitea, capability.OpForgeGetCommitDiff, map[string]any{
 		"owner":     owner,
 		"repo":      repo,
 		"commit_id": commitID,
@@ -1187,7 +1187,7 @@ func forgeGetFileContent(ctx fiber.Ctx) error {
 		}
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapForge, ability.OpForgeGetFileContent, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGitea, capability.OpForgeGetFileContent, params)
 	if err != nil {
 		return err
 	}
@@ -1209,7 +1209,7 @@ var githubWebserviceRules = []webservice.Rule{
 }
 
 func githubGetUser(ctx fiber.Ctx) error {
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUser, nil)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetUser, nil)
 	if err != nil {
 		return err
 	}
@@ -1222,7 +1222,7 @@ func githubGetUserByLogin(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "login path param is required")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetUserByLogin, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetUserByLogin, map[string]any{
 		"login": login,
 	})
 	if err != nil {
@@ -1238,7 +1238,7 @@ func githubGetRepo(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "owner and repo query params are required")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetRepo, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetRepo, map[string]any{
 		"owner": owner,
 		"repo":  repo,
 	})
@@ -1269,7 +1269,7 @@ func githubListIssues(ctx fiber.Ctx) error {
 		params["cursor"] = v
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubListIssues, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubListIssues, params)
 	if err != nil {
 		return err
 	}
@@ -1288,7 +1288,7 @@ func githubGetIssue(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "invalid number: %v", err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetIssue, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetIssue, map[string]any{
 		"owner":  owner,
 		"repo":   repo,
 		"number": number,
@@ -1307,7 +1307,7 @@ func githubGetCommitDiff(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "owner, repo and commit_id query params are required")
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetCommitDiff, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetCommitDiff, map[string]any{
 		"owner":     owner,
 		"repo":      repo,
 		"commit_id": commitID,
@@ -1344,7 +1344,7 @@ func githubGetFileContent(ctx fiber.Ctx) error {
 		}
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubGetFileContent, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubGetFileContent, params)
 	if err != nil {
 		return err
 	}
@@ -1364,7 +1364,7 @@ func githubListNotifications(ctx fiber.Ctx) error {
 		params["cursor"] = v
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubListNotifications, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubListNotifications, params)
 	if err != nil {
 		return err
 	}
@@ -1393,7 +1393,7 @@ func githubListReleases(ctx fiber.Ctx) error {
 		params["cursor"] = v
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapGithub, ability.OpGithubListReleases, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapGithub, capability.OpGithubListReleases, params)
 	if err != nil {
 		return err
 	}
@@ -1413,7 +1413,7 @@ var webserviceRules = append(append(append(append(append(append(append(
 	memoWebserviceRules...)
 
 func listFeeds(ctx fiber.Ctx) error {
-	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListFeeds, nil)
+	res, err := capability.Invoke(ctx.Context(), hub.CapMiniflux, capability.OpReaderListFeeds, nil)
 	if err != nil {
 		return err
 	}
@@ -1430,7 +1430,7 @@ func createFeed(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.Wrap(err)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderCreateFeed, map[string]any{
+	res, err := capability.Invoke(ctx.Context(), hub.CapMiniflux, capability.OpReaderCreateFeed, map[string]any{
 		"feed_url": body.FeedURL,
 	})
 	if err != nil {
@@ -1449,7 +1449,7 @@ func listEntries(ctx fiber.Ctx) error {
 		params["feed_id"] = parseQueryInt(v)
 	}
 
-	res, err := ability.Invoke(ctx.Context(), hub.CapReader, ability.OpReaderListEntries, params)
+	res, err := capability.Invoke(ctx.Context(), hub.CapMiniflux, capability.OpReaderListEntries, params)
 	if err != nil {
 		return err
 	}
@@ -1470,11 +1470,11 @@ func updateEntriesStatus(ctx fiber.Ctx) error {
 		var operation string
 		switch body.Status {
 		case "read":
-			operation = ability.OpReaderMarkEntryRead
+			operation = capability.OpReaderMarkEntryRead
 		default:
-			operation = ability.OpReaderMarkEntryUnread
+			operation = capability.OpReaderMarkEntryUnread
 		}
-		_, err := ability.Invoke(ctx.Context(), hub.CapReader, operation, map[string]any{
+		_, err := capability.Invoke(ctx.Context(), hub.CapMiniflux, operation, map[string]any{
 			"id": entryID,
 		})
 		if err != nil {

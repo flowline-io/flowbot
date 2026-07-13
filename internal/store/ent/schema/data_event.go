@@ -22,7 +22,6 @@ func (DataEvent) Fields() []ent.Field {
 		field.String("source").Default(""),
 		field.String("capability").Default(""),
 		field.String("operation").Default(""),
-		field.String("backend").Default(""),
 		field.String("app").Default(""),
 		field.String("entity_id").Default(""),
 		field.String("idempotency_key").Default(""),

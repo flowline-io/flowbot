@@ -15,8 +15,6 @@ const (
 	FieldID = "id"
 	// FieldCapability holds the string denoting the capability field in the database.
 	FieldCapability = "capability"
-	// FieldBackend holds the string denoting the backend field in the database.
-	FieldBackend = "backend"
 	// FieldApp holds the string denoting the app field in the database.
 	FieldApp = "app"
 	// FieldHealthy holds the string denoting the healthy field in the database.
@@ -33,7 +31,6 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldCapability,
-	FieldBackend,
 	FieldApp,
 	FieldHealthy,
 	FieldCreatedAt,
@@ -53,8 +50,6 @@ func ValidColumn(column string) bool {
 var (
 	// CapabilityValidator is a validator for the "capability" field. It is called by the builders before save.
 	CapabilityValidator func(string) error
-	// BackendValidator is a validator for the "backend" field. It is called by the builders before save.
-	BackendValidator func(string) error
 	// AppValidator is a validator for the "app" field. It is called by the builders before save.
 	AppValidator func(string) error
 	// DefaultHealthy holds the default value on creation for the "healthy" field.
@@ -78,11 +73,6 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 // ByCapability orders the results by the capability field.
 func ByCapability(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCapability, opts...).ToFunc()
-}
-
-// ByBackend orders the results by the backend field.
-func ByBackend(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldBackend, opts...).ToFunc()
 }
 
 // ByApp orders the results by the app field.

@@ -3,11 +3,11 @@ package pipeline
 import (
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 // StepResultFromInvoke converts an ability invoke result into a step output map for templates.
-func StepResultFromInvoke(res *ability.InvokeResult) map[string]any {
+func StepResultFromInvoke(res *capability.InvokeResult) map[string]any {
 	if res == nil {
 		return map[string]any{}
 	}

@@ -25,7 +25,6 @@ const (
 
 type CapabilityHealth struct {
 	Type        CapabilityType `json:"capability"`
-	Backend     string         `json:"backend"`
 	App         string         `json:"app"`
 	Status      HealthStatus   `json:"status"`
 	Description string         `json:"description,omitempty"`
@@ -55,7 +54,6 @@ func (c *Checker) Check(ctx context.Context) *HealthResult {
 	for _, desc := range descriptors {
 		ch := CapabilityHealth{
 			Type:        desc.Type,
-			Backend:     desc.Backend,
 			App:         desc.App,
 			Description: desc.Description,
 			Status:      HealthHealthy,
@@ -108,7 +106,6 @@ func (c *Checker) CheckCapability(_ context.Context, capType CapabilityType) (*C
 
 	ch := &CapabilityHealth{
 		Type:        desc.Type,
-		Backend:     desc.Backend,
 		App:         desc.App,
 		Description: desc.Description,
 		Status:      HealthHealthy,

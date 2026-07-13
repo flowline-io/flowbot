@@ -20,7 +20,7 @@ pkg/metrics/
 ├── pipeline.go         # PipelineCollector (Counter/Gauge/Histogram)
 ├── workflow.go         # WorkflowCollector
 ├── event.go            # EventCollector (consumer-layer instrumentation)
-├── ability.go          # AbilityCollector (invocation-layer instrumentation)
+├── capability.go          # AbilityCollector (invocation-layer instrumentation)
 ├── pipeline_test.go
 ├── workflow_test.go
 ├── event_test.go

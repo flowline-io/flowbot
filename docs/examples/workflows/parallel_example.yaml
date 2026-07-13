@@ -10,7 +10,7 @@ pipeline:
 tasks:
   - id: fetch_data
     describe: Fetch bookmark data
-    action: capability:bookmark.list
+    action: capability:karakeep.list
   - id: archive_url
     describe: Archive the URL
     action: capability:archive.create
@@ -18,7 +18,7 @@ tasks:
       - fetch_data
   - id: create_task
     describe: Create kanban task
-    action: capability:kanban.create
+    action: capability:kanboard.create
     conn:
       - fetch_data
   - id: notify

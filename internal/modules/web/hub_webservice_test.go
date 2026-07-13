@@ -250,7 +250,7 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 		{
 			name:         "filter by type shows only matching card",
 			wantStatus:   http.StatusOK,
-			wantContains: "capability-card-bookmark",
+			wantContains: "capability-card-karakeep",
 		},
 		{
 			name:         "filter with match shows grid not empty state",
@@ -270,8 +270,7 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 			defer func() { hub.Default = oldDefault }()
 
 			hub.Default.Register(hub.Descriptor{
-				Type:        hub.CapBookmark,
-				Backend:     "test-backend",
+				Type:        hub.CapKarakeep,
 				App:         "test-app",
 				Description: "Test capability",
 				Healthy:     true,
@@ -283,9 +282,9 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 			var url string
 			switch tt.name {
 			case "filter by type shows only matching card":
-				url = "/service/web/capabilities/grid?type=bookmark"
+				url = "/service/web/capabilities/grid?type=karakeep"
 			case "filter with match shows grid not empty state":
-				url = "/service/web/capabilities/grid?type=bookmark&provider=test-backend"
+				url = "/service/web/capabilities/grid?type=karakeep&provider=karakeep"
 			case "no match filter shows empty filter message":
 				url = "/service/web/capabilities/grid?type=unknown"
 			}

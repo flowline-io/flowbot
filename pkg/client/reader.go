@@ -22,14 +22,14 @@ type ListFeedsQuery struct{}
 // ListFeeds returns all feeds.
 func (r *ReaderClient) ListFeeds(ctx context.Context) (rssClient.Feeds, error) {
 	var result rssClient.Feeds
-	err := r.c.Get(ctx, "/service/reader", &result)
+	err := r.c.Get(ctx, "/service/miniflux", &result)
 	return result, err
 }
 
 // GetFeed returns a single feed by ID.
 func (r *ReaderClient) GetFeed(ctx context.Context, id int64) (*rssClient.Feed, error) {
 	var result rssClient.Feed
-	path := fmt.Sprintf("/service/reader/%d", id)
+	path := fmt.Sprintf("/service/miniflux/%d", id)
 	err := r.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (r *ReaderClient) CreateFeed(ctx context.Context, req *CreateFeedRequest) (
 	}
 
 	var result CreateFeedResult
-	err := r.c.Post(ctx, "/service/reader", req, &result)
+	err := r.c.Post(ctx, "/service/miniflux", req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ type UpdateFeedRequest struct {
 // UpdateFeed updates an existing feed.
 func (r *ReaderClient) UpdateFeed(ctx context.Context, id int64, req *UpdateFeedRequest) (*rssClient.Feed, error) {
 	var result rssClient.Feed
-	path := fmt.Sprintf("/service/reader/%d", id)
+	path := fmt.Sprintf("/service/miniflux/%d", id)
 	err := r.c.Patch(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ type RefreshFeedResult struct {
 // RefreshFeed triggers a refresh of a feed.
 func (r *ReaderClient) RefreshFeed(ctx context.Context, id int64) (*RefreshFeedResult, error) {
 	var result RefreshFeedResult
-	path := fmt.Sprintf("/service/reader/%d/refresh", id)
+	path := fmt.Sprintf("/service/miniflux/%d/refresh", id)
 	err := r.c.Post(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ type ListEntriesQuery struct {
 
 // ListEntries returns entries with optional filtering.
 func (r *ReaderClient) ListEntries(ctx context.Context, query *ListEntriesQuery) (*rssClient.EntryResultSet, error) {
-	path := "/service/reader/entries"
+	path := "/service/miniflux/entries"
 	params := url.Values{}
 
 	if query != nil {
@@ -192,7 +192,7 @@ func (r *ReaderClient) UpdateEntriesStatus(ctx context.Context, req *UpdateEntri
 	}
 
 	var result UpdateEntriesResult
-	err := r.c.Patch(ctx, "/service/reader/entries", req, &result)
+	err := r.c.Patch(ctx, "/service/miniflux/entries", req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ type GetFeedEntriesQuery struct {
 
 // GetFeedEntries returns entries for a specific feed.
 func (r *ReaderClient) GetFeedEntries(ctx context.Context, feedID int64, query *GetFeedEntriesQuery) (*rssClient.EntryResultSet, error) {
-	path := fmt.Sprintf("/service/reader/%d/entries", feedID)
+	path := fmt.Sprintf("/service/miniflux/%d/entries", feedID)
 	params := url.Values{}
 
 	if query != nil {

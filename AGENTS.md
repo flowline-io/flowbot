@@ -17,9 +17,9 @@ Homelab Data Hub & Capability Orchestration Center.
 
 ## Key Patterns
 
-- **Reference implementations**: When creating or modifying provider, ability, or module code, reference the corresponding `example/` package for file structure and code style:
+- **Reference implementations**: When creating or modifying provider, capability, or module code, reference the corresponding `example/` package for file structure and code style:
   - Provider: `pkg/providers/example/` — demonstrates `GetClient()`/`NewXxx()`, OAuth, CRUD, config reading, webhook payload types
-  - Ability: `pkg/ability/example/` — demonstrates `Service` interface, `Descriptor()`/`RegisterService()`, `WebhookConverter`, `PollingResource`, conformance, and adapter pattern (`example/adapter.go`)
+  - Capability: `pkg/capability/example/` — demonstrates `Service` interface, `Register()`, `WebhookConverter`, `PollingResource`, conformance, and adapter pattern (`adapter.go`)
   - Module: `internal/modules/example/` — demonstrates `moduleHandler`, `module.Base`, `Register()`, `Init()`, `Rules()`, `Webservice()`, rule definitions
 - **Format**: run command `go tool task format`
 - **JS Style**: Use single quotes (`'`) for strings
@@ -28,7 +28,7 @@ Homelab Data Hub & Capability Orchestration Center.
 - **Naming**: packages lowercase, types CamelCase
 - **Errors**: Wrap with `%w`, use `types.ErrNotFound / ErrForbidden / ErrProvider`
 - **Pagination**: limit + opaque cursor; provider internals hidden in adapter
-- **Routing**: `/service/{capability}/*` for business, `/hub/*` for management
+- **Routing**: `/service/{provider}/*` for business, `/hub/*` for management
 - **AuthContext**: REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow
 - **Events**: DataEvent → PostgreSQL data_events → Redis Stream → pipeline_runs
 - **TDD (Test-driven development)**: Red-Green-Refactor cycle. Write test before implementation. `*_test.go` co-located with source. All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`. Each table must contain at least 3 cases. See (docs/testing/tdd-specs.md)
@@ -41,7 +41,7 @@ Homelab Data Hub & Capability Orchestration Center.
 - Never ignore errors (assign to `_` or handle)
 - Never edit generated code
 - Never block in event handlers
-- Never import `pkg/providers/*` from `internal/modules/*` — use `ability.Invoke`
+- Never import `pkg/providers/*` from `internal/modules/*` — use `capability.Invoke`
 - Never call provider clients directly in modules
 - Never call hub/pipeline/emit DataEvent from inside a provider
 - Never return provider-private types from an adapter

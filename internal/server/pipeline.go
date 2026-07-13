@@ -12,7 +12,7 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/event"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -132,7 +132,7 @@ func initPipeline(
 	subscriber message.Subscriber,
 	pc *metrics.PipelineCollector,
 	ec *metrics.EventCollector,
-	ac *metrics.AbilityCollector,
+	ac *metrics.CapabilityCollector,
 	auditor audit.Auditor,
 ) error {
 	if err := initEventSourceManager(lc); err != nil {
@@ -210,16 +210,16 @@ func setupPipelineEngine(
 	return engine, nil
 }
 
-func setupAbilityEmitter(cfg *config.Type, ac *metrics.AbilityCollector) error {
-	ability.SetMetricsCollector(ac)
-	ability.SetBulkheadCallbacks()
+func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) error {
+	capability.SetMetricsCollector(ac)
+	capability.SetBulkheadCallbacks()
 
-	poolCfg := cfg.Ability.EventPool
-	if err := ability.InitEventPool(poolCfg.Size, poolCfg.ExpiryDuration, ac); err != nil {
+	poolCfg := cfg.Capability.EventPool
+	if err := capability.InitEventPool(poolCfg.Size, poolCfg.ExpiryDuration, ac); err != nil {
 		return fmt.Errorf("init event pool: %w", err)
 	}
 
-	ability.SetEventEmitter(func(ctx context.Context, result *ability.InvokeResult) {
+	capability.SetEventEmitter(func(ctx context.Context, result *capability.InvokeResult) {
 		if len(result.Events) == 0 {
 			return
 		}
@@ -233,10 +233,9 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.AbilityCollector) error {
 			dataEvent := types.DataEvent{
 				EventID:        eventID,
 				EventType:      ref.EventType,
-				Source:         "ability",
+				Source:         "capability",
 				Capability:     string(result.Capability),
 				Operation:      result.Operation,
-				Backend:        desc.Backend,
 				App:            desc.App,
 				EntityID:       ref.EntityID,
 				IdempotencyKey: eventID,
@@ -288,7 +287,7 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 
 	srcStateStore := buildPollingState()
 
-	srcMgr := ability.NewEventSourceManager(
+	srcMgr := capability.NewEventSourceManager(
 		func(ctx context.Context, events []types.DataEvent) error {
 			if store.Database == nil || store.Database.GetDB() == nil {
 				flog.Warn("event_source: emitter skipped, store.Database not ready")
@@ -320,9 +319,9 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	)
 
 	// Store globally so modules can register webhooks during Bootstrap.
-	ability.SetEventSourceManager(srcMgr)
+	capability.SetEventSourceManager(srcMgr)
 
-	if pool := ability.GetEventPool(); pool != nil {
+	if pool := capability.GetEventPool(); pool != nil {
 		srcMgr.SetPool(pool)
 	}
 
@@ -342,31 +341,31 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 	return nil
 }
 
-func buildPollingState() *ability.PollingState {
+func buildPollingState() *capability.PollingState {
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
 			pollStore := store.NewPollingStateStore(client)
-			return ability.NewPollingState(
+			return capability.NewPollingState(
 				&pollingPersistenceAdapter{store: pollStore},
 			)
 		}
 	}
-	return ability.NewPollingState(nil)
+	return capability.NewPollingState(nil)
 }
 
-// pollingPersistenceAdapter adapts store.PollingStateStore to ability.Persistence.
+// pollingPersistenceAdapter adapts store.PollingStateStore to capability.Persistence.
 type pollingPersistenceAdapter struct {
 	store *store.PollingStateStore
 }
 
-func (a *pollingPersistenceAdapter) LoadAll(ctx context.Context) (map[string]ability.PollingEntry, error) {
+func (a *pollingPersistenceAdapter) LoadAll(ctx context.Context) (map[string]capability.PollingEntry, error) {
 	entries, err := a.store.LoadAll(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := make(map[string]ability.PollingEntry, len(entries))
+	result := make(map[string]capability.PollingEntry, len(entries))
 	for name, e := range entries {
-		result[name] = ability.PollingEntry{
+		result[name] = capability.PollingEntry{
 			Cursor:      e.Cursor,
 			KnownHashes: e.KnownHashes,
 		}

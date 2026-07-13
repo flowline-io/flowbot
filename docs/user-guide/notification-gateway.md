@@ -481,10 +481,10 @@ err := notify.GatewaySend(ctx.Context(), uid, "agent.status",
 | Call Site      | Mechanism                                                  |
 | -------------- | ---------------------------------------------------------- |
 | Pipeline steps | `capability: notify`, `operation: send`                    |
-| Cron ruleset   | `ability.Invoke(ctx, "notify", "send", ...)`               |
-| Webhook ruleset| `ability.Invoke(ctx, "notify", "send", ...)`               |
-| Agent actions  | `ability.Invoke(ctx, "notify", "send", ...)`               |
-| Form ruleset   | `ability.Invoke(ctx, "notify", "send", ...)`               |
+| Cron ruleset   | `capability.Invoke(ctx, "notify", "send", ...)`               |
+| Webhook ruleset| `capability.Invoke(ctx, "notify", "send", ...)`               |
+| Agent actions  | `capability.Invoke(ctx, "notify", "send", ...)`               |
+| Form ruleset   | `capability.Invoke(ctx, "notify", "send", ...)`               |
 
 Interactive chat messages (command responses, form interactions) continue to use `event.SendMessage()` directly.
 

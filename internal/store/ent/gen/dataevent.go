@@ -28,8 +28,6 @@ type DataEvent struct {
 	Capability string `json:"capability,omitempty"`
 	// Operation holds the value of the "operation" field.
 	Operation string `json:"operation,omitempty"`
-	// Backend holds the value of the "backend" field.
-	Backend string `json:"backend,omitempty"`
 	// App holds the value of the "app" field.
 	App string `json:"app,omitempty"`
 	// EntityID holds the value of the "entity_id" field.
@@ -58,7 +56,7 @@ func (*DataEvent) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case dataevent.FieldID:
 			values[i] = new(sql.NullInt64)
-		case dataevent.FieldEventID, dataevent.FieldEventType, dataevent.FieldSource, dataevent.FieldCapability, dataevent.FieldOperation, dataevent.FieldBackend, dataevent.FieldApp, dataevent.FieldEntityID, dataevent.FieldIdempotencyKey, dataevent.FieldUID, dataevent.FieldTopic:
+		case dataevent.FieldEventID, dataevent.FieldEventType, dataevent.FieldSource, dataevent.FieldCapability, dataevent.FieldOperation, dataevent.FieldApp, dataevent.FieldEntityID, dataevent.FieldIdempotencyKey, dataevent.FieldUID, dataevent.FieldTopic:
 			values[i] = new(sql.NullString)
 		case dataevent.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -112,12 +110,6 @@ func (_m *DataEvent) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field operation", values[i])
 			} else if value.Valid {
 				_m.Operation = value.String
-			}
-		case dataevent.FieldBackend:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field backend", values[i])
-			} else if value.Valid {
-				_m.Backend = value.String
 			}
 		case dataevent.FieldApp:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -221,9 +213,6 @@ func (_m *DataEvent) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("operation=")
 	builder.WriteString(_m.Operation)
-	builder.WriteString(", ")
-	builder.WriteString("backend=")
-	builder.WriteString(_m.Backend)
 	builder.WriteString(", ")
 	builder.WriteString("app=")
 	builder.WriteString(_m.App)

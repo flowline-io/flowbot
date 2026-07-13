@@ -109,7 +109,7 @@ templ HomelabDetailPage(app homelab.App, status homelab.AppStatus, version strin
 							<thead>
 								<tr>
 									<th>Capability</th>
-									<th>Backend</th>
+									<th>Provider</th>
 									<th>Base URL</th>
 									<th>Auth</th>
 									<th>Health</th>
@@ -119,7 +119,7 @@ templ HomelabDetailPage(app homelab.App, status homelab.AppStatus, version strin
 								for _, cap := range app.Capabilities {
 									<tr>
 										<td><span class="badge badge-primary badge-xs">{ cap.Capability }</span></td>
-										<td>{ cap.Backend }</td>
+										<td>{ cap.Capability }</td>
 										<td>
 											if cap.Endpoint != nil && cap.Endpoint.BaseURL != "" {
 												<a href={ cap.Endpoint.BaseURL } target="_blank"

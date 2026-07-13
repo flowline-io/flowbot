@@ -796,9 +796,9 @@ func TestListDataEvents(t *testing.T) {
 	ctx := context.Background()
 
 	events := []types.DataEvent{
-		{EventID: "evt-001", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#42", Data: map[string]any{"title": "feed event data"}},
-		{EventID: "evt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "bookmark", EntityID: "url-1"},
-		{EventID: "evt-003", EventType: "entry.new", Source: "reader", Capability: "reader", EntityID: "feed-5"},
+		{EventID: "evt-001", EventType: "issue.created", Source: "github", Capability: "gitea", EntityID: "repo#42", Data: map[string]any{"title": "feed event data"}},
+		{EventID: "evt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "karakeep", EntityID: "url-1"},
+		{EventID: "evt-003", EventType: "entry.new", Source: "reader", Capability: "miniflux", EntityID: "feed-5"},
 	}
 
 	for _, e := range events {
@@ -908,9 +908,9 @@ func TestCountDataEvents(t *testing.T) {
 	ctx := context.Background()
 
 	events := []types.DataEvent{
-		{EventID: "cnt-001", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#1"},
-		{EventID: "cnt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "bookmark", EntityID: "url-1"},
-		{EventID: "cnt-003", EventType: "issue.created", Source: "github", Capability: "forge", EntityID: "repo#2"},
+		{EventID: "cnt-001", EventType: "issue.created", Source: "github", Capability: "gitea", EntityID: "repo#1"},
+		{EventID: "cnt-002", EventType: "bookmark.created", Source: "karakeep", Capability: "karakeep", EntityID: "url-1"},
+		{EventID: "cnt-003", EventType: "issue.created", Source: "github", Capability: "gitea", EntityID: "repo#2"},
 	}
 	for _, e := range events {
 		require.NoError(t, store.AppendDataEvent(ctx, e))

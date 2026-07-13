@@ -205,14 +205,13 @@ func TestHubCapability_Found(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			desc := hub.Descriptor{
-				Type:        hub.CapBookmark,
-				Backend:     "linkding",
+				Type:        hub.CapKarakeep,
 				Description: "bookmark service",
 			}
 			_ = hub.Default.Register(desc)
 			app := setupHubTestApp()
 
-			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/bookmark", http.NoBody)
+			req := httptest.NewRequest(http.MethodGet, "/hub/capabilities/karakeep", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -232,8 +231,7 @@ func TestHubCapability_TypeParamCaseSensitive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			desc := hub.Descriptor{
-				Type:    hub.CapBookmark,
-				Backend: "linkding",
+				Type: hub.CapKarakeep,
 			}
 			_ = hub.Default.Register(desc)
 			app := setupHubTestApp()

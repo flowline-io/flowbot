@@ -7,16 +7,16 @@ import (
 	"strings"
 
 	"github.com/bytedance/sonic"
-	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// AbilityInvoker invokes a capability operation; defaults to ability.Invoke.
-type AbilityInvoker func(ctx context.Context, capability hub.CapabilityType, operation string, params map[string]any) (*ability.InvokeResult, error)
+// AbilityInvoker invokes a capability operation; defaults to capability.Invoke.
+type AbilityInvoker func(ctx context.Context, capType hub.CapabilityType, operation string, params map[string]any) (*capability.InvokeResult, error)
 
 // AbilityTool exposes a readonly ability operation as an agent tool.
 type AbilityTool struct {
@@ -30,7 +30,7 @@ func NewAbilityTool(cfg config.AbilityToolConfig, invoke AbilityInvoker) (*Abili
 		return nil, err
 	}
 	if invoke == nil {
-		invoke = ability.Invoke
+		invoke = capability.Invoke
 	}
 	return &AbilityTool{cfg: cfg, invoke: invoke}, nil
 }
@@ -131,7 +131,7 @@ func abilityParams(args map[string]any) map[string]any {
 	return out
 }
 
-func formatAbilityResult(result *ability.InvokeResult) (string, error) {
+func formatAbilityResult(result *capability.InvokeResult) (string, error) {
 	if result == nil {
 		return "ok", nil
 	}

@@ -89,8 +89,7 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 			}
 			caps := homelab.ParseLabels(labels)
 			Expect(caps).To(HaveLen(1))
-			Expect(caps[0].Capability).To(Equal("bookmark"))
-			Expect(caps[0].Backend).To(Equal("karakeep"))
+			Expect(caps[0].Capability).To(Equal(homelab.CapKarakeep))
 			Expect(caps[0].Endpoint.BaseURL).To(Equal("http://localhost:8080"))
 			Expect(caps[0].Endpoint.Health).To(Equal("/health"))
 		})
@@ -102,7 +101,7 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 			}
 			caps := homelab.ParseLabels(labels)
 			Expect(caps).To(HaveLen(1))
-			Expect(caps[0].Capability).To(Equal("reader"))
+			Expect(caps[0].Capability).To(Equal(homelab.CapMiniflux))
 			Expect(caps[0].Endpoint).To(BeNil())
 			Expect(caps[0].Auth).To(BeNil())
 		})
@@ -157,8 +156,7 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 			}
 			caps := homelab.ParseLabels(labels)
 			Expect(caps).To(HaveLen(1))
-			Expect(caps[0].Capability).To(Equal("kanban"))
-			Expect(caps[0].Backend).To(Equal("kanboard"))
+			Expect(caps[0].Capability).To(Equal(homelab.CapKanboard))
 			Expect(caps[0].Endpoint.BaseURL).To(Equal("http://kanban.local:8080"))
 			Expect(caps[0].Auth.Type).To(Equal(homelab.AuthBasic))
 			Expect(caps[0].Auth.Header).To(Equal("Authorization"))
@@ -248,10 +246,10 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 		})
 
 		It("has capability type constants matching hub types", func() {
-			Expect(homelab.CapBookmark).To(Equal("bookmark"))
+			Expect(homelab.CapKarakeep).To(Equal("bookmark"))
 			Expect(homelab.CapArchive).To(Equal("archive"))
-			Expect(homelab.CapReader).To(Equal("reader"))
-			Expect(homelab.CapKanban).To(Equal("kanban"))
+			Expect(homelab.CapMiniflux).To(Equal("reader"))
+			Expect(homelab.CapKanboard).To(Equal("kanban"))
 			Expect(homelab.CapFinance).To(Equal("finance"))
 			Expect(homelab.CapInfra).To(Equal("infra"))
 		})

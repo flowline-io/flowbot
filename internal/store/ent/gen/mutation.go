@@ -8244,7 +8244,6 @@ type CapabilityBindingMutation struct {
 	typ           string
 	id            *int64
 	capability    *string
-	backend       *string
 	app           *string
 	healthy       *bool
 	created_at    *time.Time
@@ -8393,42 +8392,6 @@ func (m *CapabilityBindingMutation) OldCapability(ctx context.Context) (v string
 // ResetCapability resets all changes to the "capability" field.
 func (m *CapabilityBindingMutation) ResetCapability() {
 	m.capability = nil
-}
-
-// SetBackend sets the "backend" field.
-func (m *CapabilityBindingMutation) SetBackend(s string) {
-	m.backend = &s
-}
-
-// Backend returns the value of the "backend" field in the mutation.
-func (m *CapabilityBindingMutation) Backend() (r string, exists bool) {
-	v := m.backend
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBackend returns the old "backend" field's value of the CapabilityBinding entity.
-// If the CapabilityBinding object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CapabilityBindingMutation) OldBackend(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBackend is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBackend requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBackend: %w", err)
-	}
-	return oldValue.Backend, nil
-}
-
-// ResetBackend resets all changes to the "backend" field.
-func (m *CapabilityBindingMutation) ResetBackend() {
-	m.backend = nil
 }
 
 // SetApp sets the "app" field.
@@ -8609,12 +8572,9 @@ func (m *CapabilityBindingMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CapabilityBindingMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 5)
 	if m.capability != nil {
 		fields = append(fields, capabilitybinding.FieldCapability)
-	}
-	if m.backend != nil {
-		fields = append(fields, capabilitybinding.FieldBackend)
 	}
 	if m.app != nil {
 		fields = append(fields, capabilitybinding.FieldApp)
@@ -8638,8 +8598,6 @@ func (m *CapabilityBindingMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case capabilitybinding.FieldCapability:
 		return m.Capability()
-	case capabilitybinding.FieldBackend:
-		return m.Backend()
 	case capabilitybinding.FieldApp:
 		return m.App()
 	case capabilitybinding.FieldHealthy:
@@ -8659,8 +8617,6 @@ func (m *CapabilityBindingMutation) OldField(ctx context.Context, name string) (
 	switch name {
 	case capabilitybinding.FieldCapability:
 		return m.OldCapability(ctx)
-	case capabilitybinding.FieldBackend:
-		return m.OldBackend(ctx)
 	case capabilitybinding.FieldApp:
 		return m.OldApp(ctx)
 	case capabilitybinding.FieldHealthy:
@@ -8684,13 +8640,6 @@ func (m *CapabilityBindingMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCapability(v)
-		return nil
-	case capabilitybinding.FieldBackend:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBackend(v)
 		return nil
 	case capabilitybinding.FieldApp:
 		v, ok := value.(string)
@@ -8771,9 +8720,6 @@ func (m *CapabilityBindingMutation) ResetField(name string) error {
 	switch name {
 	case capabilitybinding.FieldCapability:
 		m.ResetCapability()
-		return nil
-	case capabilitybinding.FieldBackend:
-		m.ResetBackend()
 		return nil
 	case capabilitybinding.FieldApp:
 		m.ResetApp()
@@ -15791,7 +15737,6 @@ type DataEventMutation struct {
 	source          *string
 	capability      *string
 	operation       *string
-	backend         *string
 	app             *string
 	entity_id       *string
 	idempotency_key *string
@@ -16088,42 +16033,6 @@ func (m *DataEventMutation) OldOperation(ctx context.Context) (v string, err err
 // ResetOperation resets all changes to the "operation" field.
 func (m *DataEventMutation) ResetOperation() {
 	m.operation = nil
-}
-
-// SetBackend sets the "backend" field.
-func (m *DataEventMutation) SetBackend(s string) {
-	m.backend = &s
-}
-
-// Backend returns the value of the "backend" field in the mutation.
-func (m *DataEventMutation) Backend() (r string, exists bool) {
-	v := m.backend
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldBackend returns the old "backend" field's value of the DataEvent entity.
-// If the DataEvent object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DataEventMutation) OldBackend(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldBackend is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldBackend requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldBackend: %w", err)
-	}
-	return oldValue.Backend, nil
-}
-
-// ResetBackend resets all changes to the "backend" field.
-func (m *DataEventMutation) ResetBackend() {
-	m.backend = nil
 }
 
 // SetApp sets the "app" field.
@@ -16474,7 +16383,7 @@ func (m *DataEventMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DataEventMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 13)
 	if m.event_id != nil {
 		fields = append(fields, dataevent.FieldEventID)
 	}
@@ -16489,9 +16398,6 @@ func (m *DataEventMutation) Fields() []string {
 	}
 	if m.operation != nil {
 		fields = append(fields, dataevent.FieldOperation)
-	}
-	if m.backend != nil {
-		fields = append(fields, dataevent.FieldBackend)
 	}
 	if m.app != nil {
 		fields = append(fields, dataevent.FieldApp)
@@ -16535,8 +16441,6 @@ func (m *DataEventMutation) Field(name string) (ent.Value, bool) {
 		return m.Capability()
 	case dataevent.FieldOperation:
 		return m.Operation()
-	case dataevent.FieldBackend:
-		return m.Backend()
 	case dataevent.FieldApp:
 		return m.App()
 	case dataevent.FieldEntityID:
@@ -16572,8 +16476,6 @@ func (m *DataEventMutation) OldField(ctx context.Context, name string) (ent.Valu
 		return m.OldCapability(ctx)
 	case dataevent.FieldOperation:
 		return m.OldOperation(ctx)
-	case dataevent.FieldBackend:
-		return m.OldBackend(ctx)
 	case dataevent.FieldApp:
 		return m.OldApp(ctx)
 	case dataevent.FieldEntityID:
@@ -16633,13 +16535,6 @@ func (m *DataEventMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOperation(v)
-		return nil
-	case dataevent.FieldBackend:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetBackend(v)
 		return nil
 	case dataevent.FieldApp:
 		v, ok := value.(string)
@@ -16775,9 +16670,6 @@ func (m *DataEventMutation) ResetField(name string) error {
 		return nil
 	case dataevent.FieldOperation:
 		m.ResetOperation()
-		return nil
-	case dataevent.FieldBackend:
-		m.ResetBackend()
 		return nil
 	case dataevent.FieldApp:
 		m.ResetApp()

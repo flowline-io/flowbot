@@ -123,7 +123,7 @@ func TestHubHealthHandler(t *testing.T) {
 			}()
 
 			require.NoError(t, hub.Default.Register(hub.Descriptor{
-				Type: hub.CapBookmark, Backend: "karakeep", App: "karakeep",
+				Type: hub.CapKarakeep, App: "karakeep",
 				Instance: "ok", Healthy: true,
 			}))
 
@@ -319,10 +319,10 @@ func TestHubCapabilitiesHandler(t *testing.T) {
 			}()
 
 			require.NoError(t, hub.Default.Register(hub.Descriptor{
-				Type: hub.CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: true,
+				Type: hub.CapKarakeep, App: "karakeep", Healthy: true,
 			}))
 			require.NoError(t, hub.Default.Register(hub.Descriptor{
-				Type: hub.CapArchive, Backend: "archivebox", App: "archivebox", Healthy: false,
+				Type: hub.CapExample, App: "example", Healthy: false,
 			}))
 
 			var capRule *command.Rule

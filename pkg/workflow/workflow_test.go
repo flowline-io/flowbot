@@ -24,21 +24,21 @@ func TestParseAction(t *testing.T) {
 	}{
 		{
 			name:             "capability-with-dot",
-			action:           "capability:bookmark.list",
+			action:           "capability:karakeep.list",
 			wantIsCapability: true,
 			wantType:         "capability",
-			wantCapType:      "bookmark",
+			wantCapType:      "karakeep",
 			wantOperation:    "list",
-			wantDetails:      "bookmark.list",
+			wantDetails:      "karakeep.list",
 		},
 		{
 			name:             "capability-no-dot",
-			action:           "capability:bookmark",
+			action:           "capability:karakeep",
 			wantIsCapability: true,
 			wantType:         "capability",
 			wantCapType:      "",
 			wantOperation:    "",
-			wantDetails:      "bookmark",
+			wantDetails:      "karakeep",
 		},
 		{
 			name:             "docker",
@@ -109,7 +109,7 @@ func TestDetermineRuntimeType(t *testing.T) {
 	}{
 		{
 			name: "capability",
-			task: &types.Task{Run: "capability:bookmark.list"},
+			task: &types.Task{Run: "capability:karakeep.list"},
 			want: "capability",
 		},
 		{
@@ -150,11 +150,11 @@ func TestWorkflowTaskToTask(t *testing.T) {
 			name: "capability",
 			wt: types.WorkflowTask{
 				ID:     "step1",
-				Action: "capability:bookmark.list",
+				Action: "capability:karakeep.list",
 				Params: types.KV{"url": "https://example.com"},
 			},
 			check: func(t *testing.T, task *types.Task) {
-				assert.Equal(t, "capability:bookmark.list", task.Run)
+				assert.Equal(t, "capability:karakeep.list", task.Run)
 				assert.Contains(t, task.Env, "CAPABILITY_PARAMS")
 				assert.JSONEq(t, `{"url":"https://example.com"}`, task.Env["CAPABILITY_PARAMS"])
 			},
@@ -163,7 +163,7 @@ func TestWorkflowTaskToTask(t *testing.T) {
 			name: "capability-no-params",
 			wt: types.WorkflowTask{
 				ID:     "step1",
-				Action: "capability:bookmark.list",
+				Action: "capability:karakeep.list",
 			},
 			check: func(t *testing.T, task *types.Task) {
 				assert.NotContains(t, task.Env, "CAPABILITY_PARAMS")
@@ -248,7 +248,7 @@ func TestWorkflowTaskToTask(t *testing.T) {
 			name: "marshal-error",
 			wt: types.WorkflowTask{
 				ID:     "step1",
-				Action: "capability:bookmark.list",
+				Action: "capability:karakeep.list",
 				Params: types.KV{"ch": make(chan int)},
 			},
 			wantErr:     true,

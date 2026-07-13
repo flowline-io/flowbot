@@ -28,7 +28,6 @@ type HubAppStatus struct {
 // HubCapability represents a registered capability.
 type HubCapability struct {
 	Type        string `json:"type"`
-	Backend     string `json:"backend"`
 	App         string `json:"app"`
 	Description string `json:"description,omitempty"`
 	Healthy     bool   `json:"healthy"`
@@ -45,7 +44,6 @@ type HubHealth struct {
 // CapabilityHealth represents a single capability's health.
 type CapabilityHealth struct {
 	Capability  string `json:"capability"`
-	Backend     string `json:"backend"`
 	App         string `json:"app"`
 	Status      string `json:"status"`
 	Description string `json:"description,omitempty"`

@@ -174,7 +174,7 @@ func triggerDescription(t Trigger) string {
 
 - [ ] **Step 5: Add callback calls in executeStep**
 
-In `executeStep` (around line 230), add `OnStepStart` after params are rendered but before `ability.Invoke` (after line 245 area, before the retry block):
+In `executeStep` (around line 230), add `OnStepStart` after params are rendered but before `capability.Invoke` (after line 245 area, before the retry block):
 
 ```go
 // After tag injection, before backoff.Do:
@@ -207,8 +207,8 @@ Read the `executeStep` function to find the variable names for:
 - `runID` (first param to `createStepRunRecord`)
 - `pipelineName` (passed through or available from the outer scope)
 - `stepIndex` (loop counter from `executePipeline`)
-- `invokeErr` (error from `ability.Invoke`)
-- `result` (output map from `ability.Invoke`)
+- `invokeErr` (error from `capability.Invoke`)
+- `result` (output map from `capability.Invoke`)
 - `elapsed` (time since step start)
 
 If `stepIndex` is not available, add it as a parameter to `executeStep`:
@@ -372,7 +372,7 @@ func TestEngine_CallbackInvocation(t *testing.T) {
 			if tt.wantStart {
 				engine.SetCallback(mockCB)
 			}
-			// ability.Invoke is called during execution — mock it
+			// capability.Invoke is called during execution — mock it
 			// Note: this test requires the ability invocation to be mockable.
 			// See existing engine_test.go for how engine tests mock ability calls.
 		})
@@ -380,7 +380,7 @@ func TestEngine_CallbackInvocation(t *testing.T) {
 }
 ```
 
-Note: The existing `engine_test.go` likely has a pattern for mocking `ability.Invoke`. Read the existing test file to match the pattern for invoking pipeline steps. If the engine tests require a full integration setup (`ability` registry), this test may need to verify callback at a unit level instead — by calling `executePipeline`/`executeStep` directly with mocked dependencies.
+Note: The existing `engine_test.go` likely has a pattern for mocking `capability.Invoke`. Read the existing test file to match the pattern for invoking pipeline steps. If the engine tests require a full integration setup (`ability` registry), this test may need to verify callback at a unit level instead — by calling `executePipeline`/`executeStep` directly with mocked dependencies.
 
 - [ ] **Step 3: Write test — order of callbacks is correct**
 

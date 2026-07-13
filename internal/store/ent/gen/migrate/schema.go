@@ -281,7 +281,6 @@ var (
 	CapabilityBindingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "capability", Type: field.TypeString},
-		{Name: "backend", Type: field.TypeString},
 		{Name: "app", Type: field.TypeString},
 		{Name: "healthy", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
@@ -543,7 +542,6 @@ var (
 		{Name: "source", Type: field.TypeString, Default: ""},
 		{Name: "capability", Type: field.TypeString, Default: ""},
 		{Name: "operation", Type: field.TypeString, Default: ""},
-		{Name: "backend", Type: field.TypeString, Default: ""},
 		{Name: "app", Type: field.TypeString, Default: ""},
 		{Name: "entity_id", Type: field.TypeString, Default: ""},
 		{Name: "idempotency_key", Type: field.TypeString, Default: ""},
@@ -567,7 +565,7 @@ var (
 			{
 				Name:    "dataevent_tags",
 				Unique:  false,
-				Columns: []*schema.Column{DataEventsColumns[13]},
+				Columns: []*schema.Column{DataEventsColumns[12]},
 				Annotation: &entsql.IndexAnnotation{
 					Type: "GIN",
 				},
@@ -575,12 +573,12 @@ var (
 			{
 				Name:    "dataevent_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{DataEventsColumns[14]},
+				Columns: []*schema.Column{DataEventsColumns[13]},
 			},
 			{
 				Name:    "dataevent_source_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{DataEventsColumns[3], DataEventsColumns[14]},
+				Columns: []*schema.Column{DataEventsColumns[3], DataEventsColumns[13]},
 			},
 		},
 	}
@@ -729,7 +727,7 @@ var (
 		{Name: "total_tokens", Type: field.TypeInt, Default: 0},
 		{Name: "cache_read", Type: field.TypeInt, Default: 0},
 		{Name: "cache_write", Type: field.TypeInt, Default: 0},
-		{Name: "source", Type: field.TypeString, Default: "chat_agent"},
+		{Name: "source", Type: field.TypeString, Default: "agent"},
 		{Name: "created_at", Type: field.TypeTime},
 	}
 	// LlmUsageRecordsTable holds the schema information for the "llm_usage_records" table.

@@ -43,7 +43,7 @@ pipeline:                              # ordered list of task IDs
 
 tasks:
   - id: save_bookmark
-    action: capability:bookmark.create   # action format: <type>:<details>
+    action: capability:karakeep.create   # action format: <type>:<details>
     describe: "Save the URL as a bookmark"
     params:                              # template-rendered input
       url: "{{input.url}}"
@@ -71,7 +71,7 @@ tasks:
       max_delay: 60s
 
   - id: create_task
-    action: capability:kanban.create_task
+    action: capability:kanboard.create_task
     describe: "Create a follow-up task"
     params:
       title: "Read: {{input.title}}"
@@ -108,7 +108,7 @@ tasks:
 
 | Prefix        | Runtime               | Example                      |
 | ------------- | --------------------- | ---------------------------- |
-| `capability:` | Capability            | `capability:bookmark.create` |
+| `capability:` | Capability            | `capability:karakeep.create` |
 | `docker:`     | Docker container      | `docker:nginx:latest`        |
 | `shell:`      | Shell command         | `shell:echo hello`           |
 | `machine:`    | Remote SSH            | `machine:vm1`                |
@@ -150,7 +150,7 @@ tasks:
         priority: high
 
   - id: consume_data
-    action: capability:bookmark.create
+    action: capability:karakeep.create
     params:
       url: '{{jsonpath (step "transform_output" "result") "target_url"}}'
       title: '{{jsonpath (step "transform_output" "result") "target_title"}}'

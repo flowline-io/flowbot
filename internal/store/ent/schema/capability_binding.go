@@ -17,7 +17,6 @@ func (CapabilityBinding) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Immutable(),
 		field.String("capability").NotEmpty(),
-		field.String("backend").NotEmpty(),
 		field.String("app").NotEmpty(),
 		field.Bool("healthy").Default(false),
 		field.Time("created_at").Immutable().Default(time.Now),

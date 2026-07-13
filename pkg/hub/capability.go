@@ -1,22 +1,20 @@
 package hub
 
+// CapabilityType identifies a registered capability.
+// For provider-backed capabilities this equals the provider ID (e.g. "karakeep").
 type CapabilityType string
 
 const (
-	CapBookmark     CapabilityType = "bookmark"
-	CapArchive      CapabilityType = "archive"
-	CapReader       CapabilityType = "reader"
-	CapKanban       CapabilityType = "kanban"
-	CapFinance      CapabilityType = "finance"
-	CapInfra        CapabilityType = "infra"
-	CapShellHistory CapabilityType = "shell_history"
-	CapNotify       CapabilityType = "notify"
-	CapExample      CapabilityType = "example"
-	CapForge        CapabilityType = "forge"
-	CapGithub       CapabilityType = "github"
-	CapNote         CapabilityType = "note"
-	CapMemo         CapabilityType = "memo"
-	CapAgent        CapabilityType = "agent"
+	CapKarakeep CapabilityType = "karakeep"
+	CapMiniflux CapabilityType = "miniflux"
+	CapKanboard CapabilityType = "kanboard"
+	CapTrilium  CapabilityType = "trilium"
+	CapMemos    CapabilityType = "memos"
+	CapGitea    CapabilityType = "gitea"
+	CapGithub   CapabilityType = "github"
+	CapExample  CapabilityType = "example"
+	CapNotify   CapabilityType = "notify"
+	CapAgent    CapabilityType = "agent"
 )
 
 // EventDef describes an event that a capability emits.
@@ -33,6 +31,7 @@ type ParamDef struct {
 	Required    bool   `json:"required,omitzero"`
 }
 
+// Operation describes a capability operation for discovery and auth scopes.
 type Operation struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description,omitzero"`
@@ -41,9 +40,9 @@ type Operation struct {
 	Scopes      []string   `json:"scopes,omitzero"`
 }
 
+// Descriptor is the hub metadata for a registered capability.
 type Descriptor struct {
 	Type        CapabilityType `json:"type"`
-	Backend     string         `json:"backend"`
 	App         string         `json:"app"`
 	Description string         `json:"description,omitzero"`
 	Operations  []Operation    `json:"operations,omitzero"`

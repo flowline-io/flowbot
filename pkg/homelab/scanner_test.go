@@ -33,7 +33,6 @@ networks: { proxy: {} }`)
 				assert.Equal(t, "archive", apps[0].Labels["flowbot.capability"])
 				assert.Len(t, apps[0].Capabilities, 1)
 				assert.Equal(t, CapArchive, apps[0].Capabilities[0].Capability)
-				assert.Equal(t, "archive", apps[0].Capabilities[0].Backend)
 			},
 		},
 		{

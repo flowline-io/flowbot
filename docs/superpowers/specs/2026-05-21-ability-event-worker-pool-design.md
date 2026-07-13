@@ -6,7 +6,7 @@
 
 ## Problem
 
-`ability.Invoke()` in `pkg/ability/invoke.go:131-140` spawns an unbounded goroutine per invocation for event emission (persisting `data_events` to PostgreSQL and publishing to Redis Stream). There is no concurrency control anywhere in the emission path. Under high load (e.g. 1000 concurrent HTTP requests), 1000 goroutines compete for database and Redis connections simultaneously, risking resource exhaustion.
+`capability.Invoke()` in `pkg/ability/invoke.go:131-140` spawns an unbounded goroutine per invocation for event emission (persisting `data_events` to PostgreSQL and publishing to Redis Stream). There is no concurrency control anywhere in the emission path. Under high load (e.g. 1000 concurrent HTTP requests), 1000 goroutines compete for database and Redis connections simultaneously, risking resource exhaustion.
 
 ## Solution
 
@@ -23,14 +23,14 @@ Replace the raw `go func()` with a goroutine pool backed by `github.com/panjf200
 | Component        | File                         | Purpose                                                       |
 | ---------------- | ---------------------------- | ------------------------------------------------------------- |
 | EventPool        | `pkg/ability/pool.go`        | `ants.Pool` wrapper: `Submit()`, `Shutdown()`, config parsing |
-| Config           | `docs/reference/config.yaml` | New `ability.event_pool` section                              |
+| Config           | `docs/reference/config.yaml` | New `capability.event_pool` section                              |
 | Registry         | `pkg/ability/invoke.go`      | Replace `go func()` with `pool.Submit()`                      |
-| AbilityCollector | `pkg/metrics/ability.go`     | New `event_dropped_total` counter                             |
+| AbilityCollector | `pkg/metrics/capability.go`     | New `event_dropped_total` counter                             |
 
 ### Architecture
 
 ```
-ability.Invoke(ctx, capability, operation, params)
+capability.Invoke(ctx, capability, operation, params)
     |
     v
 invoker(ctx, params)  ← synchronous, runs on caller goroutine
@@ -51,8 +51,8 @@ pool.Submit(func() { emitter(ctx, result) })
 
 | Parameter   | Key                                  | Default                                       | Description                   |
 | ----------- | ------------------------------------ | --------------------------------------------- | ----------------------------- |
-| Size        | `ability.event_pool.size`            | `0` (ants default: `runtime.GOMAXPROCS(-1)` ) | Max concurrent workers        |
-| Expiry      | `ability.event_pool.expiry_duration` | `"30s"`                                       | Idle worker eviction interval |
+| Size        | `capability.event_pool.size`            | `0` (ants default: `runtime.GOMAXPROCS(-1)` ) | Max concurrent workers        |
+| Expiry      | `capability.event_pool.expiry_duration` | `"30s"`                                       | Idle worker eviction interval |
 | Nonblocking | —                                    | `true` (hardcoded)                            | Never block caller on submit  |
 
 ```yaml
@@ -70,7 +70,7 @@ ability:
 
 ### Graceful Shutdown
 
-`ability.ShutdownPool()` calls `pool.ReleaseTimeout(30s)`, which:
+`capability.ShutdownPool()` calls `pool.ReleaseTimeout(30s)`, which:
 
 1. Stops accepting new tasks
 2. Waits up to 30s for in-flight tasks to complete
@@ -102,7 +102,7 @@ New dependency: `github.com/panjf2000/ants/v2`
 
 ### Anti-Patterns Avoided
 
-- No change to `ability.Invoke` API signature
+- No change to `capability.Invoke` API signature
 - No blocking in `Invoke` (nonblocking submit)
 - No new goroutine spawn per invocation
 - No cross-service logic in pool wrapper

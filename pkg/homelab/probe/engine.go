@@ -213,7 +213,7 @@ func deduplicateCapabilities(caps []homelab.AppCapability) []homelab.AppCapabili
 	seen := make(map[string]bool)
 	var result []homelab.AppCapability
 	for _, mc := range caps {
-		key := mc.Capability + "|" + mc.Backend
+		key := mc.Capability
 		if !seen[key] {
 			seen[key] = true
 			result = append(result, mc)

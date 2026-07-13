@@ -12,7 +12,7 @@ data_events -> event_outbox -> Redis Stream -> Pipeline engine).
 
 ## Motivation
 
-Currently, DataEvents are only produced by `ability.Invoke()` when modules
+Currently, DataEvents are only produced by `capability.Invoke()` when modules
 actively perform operations. There is no passive detection of external state
 changes. Users need to react to events that happen in connected services (new
 GitHub star, new Miniflux entry, new Gitea issue) without an active user
@@ -306,7 +306,7 @@ Poll timeout: each `List()` call receives a context with deadline set to
 ### Lifecycle (fx)
 
 ```go
-fx.Invoke(func(lc fx.Lifecycle, mgr *ability.EventSourceManager) {
+fx.Invoke(func(lc fx.Lifecycle, mgr *capability.EventSourceManager) {
     lc.Append(fx.Hook{
         OnStart: func(ctx context.Context) error {
             mgr.Start(ctx)  // Load state from PG, register cron jobs

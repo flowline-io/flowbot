@@ -3,7 +3,7 @@ package pipeline
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,7 +11,7 @@ import (
 func TestStepResultFromInvoke(t *testing.T) {
 	tests := []struct {
 		name string
-		res  *ability.InvokeResult
+		res  *capability.InvokeResult
 		want map[string]any
 	}{
 		{
@@ -21,7 +21,7 @@ func TestStepResultFromInvoke(t *testing.T) {
 		},
 		{
 			name: "map data passthrough",
-			res: &ability.InvokeResult{
+			res: &capability.InvokeResult{
 				Capability: hub.CapAgent,
 				Operation:  "run",
 				Data:       map[string]any{"reply": "hello", "session_id": "s1"},
@@ -30,7 +30,7 @@ func TestStepResultFromInvoke(t *testing.T) {
 		},
 		{
 			name: "scalar data wrapped",
-			res: &ability.InvokeResult{
+			res: &capability.InvokeResult{
 				Data: "plain",
 			},
 			want: map[string]any{"items": "plain"},

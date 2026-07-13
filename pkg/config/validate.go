@@ -130,9 +130,9 @@ func (t *Type) validateDurations(errs ValidationErrors) ValidationErrors {
 			errs = append(errs, fmt.Errorf("homelab.discovery.probe_timeout: invalid duration %q. Fix: set a valid Go duration (e.g. \"30s\") in homelab.discovery.probe_timeout in flowbot.yaml", t.Homelab.Discovery.ProbeTimeout))
 		}
 	}
-	if t.Ability.EventPool.ExpiryDuration != "" {
-		if _, err := time.ParseDuration(t.Ability.EventPool.ExpiryDuration); err != nil {
-			errs = append(errs, fmt.Errorf("ability.event_pool.expiry_duration: invalid duration %q. Fix: set a valid Go duration (e.g. \"30s\") in ability.event_pool.expiry_duration in flowbot.yaml", t.Ability.EventPool.ExpiryDuration))
+	if t.Capability.EventPool.ExpiryDuration != "" {
+		if _, err := time.ParseDuration(t.Capability.EventPool.ExpiryDuration); err != nil {
+			errs = append(errs, fmt.Errorf("ability.event_pool.expiry_duration: invalid duration %q. Fix: set a valid Go duration (e.g. \"30s\") in ability.event_pool.expiry_duration in flowbot.yaml", t.Capability.EventPool.ExpiryDuration))
 		}
 	}
 	return errs

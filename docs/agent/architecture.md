@@ -273,7 +273,7 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 | Metrics | `pkg/metrics.AgentCollector` (low-cardinality labels); OTel spans `agent.run` / `agent.llm.stream` / `agent.tool.*` / `agent.compact` |
 | Progress artifact | `{workspace}/.flowbot/progress.md` injected via `OnContext` (≤500 tokens) |
 | Dynamic tools | `ApplyToolScope` — plan readonly; normal excludes schedule unless intent/RunKind |
-| Ability tools | Readonly `ability.Invoke` adapters from `chat_agent.ability_tools` |
+| Ability tools | Readonly `capability.Invoke` adapters from `chat_agent.ability_tools` |
 | Sandbox | Opt-in Docker `pkg/agent/sandbox` for `run_terminal` / `run_code` |
 | Eval | `pkg/agent/eval` FakeModel suite (`go test ./pkg/agent/eval/...`) |
 

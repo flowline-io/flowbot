@@ -8,8 +8,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
-	abilityexample "github.com/flowline-io/flowbot/pkg/ability/example"
-	adapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
+	adapter "github.com/flowline-io/flowbot/pkg/capability/example"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
@@ -49,8 +48,8 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	handler.initialized = true
 	// Register the example capability with the adapter.
 	svc := adapter.New()
-	if err := abilityexample.RegisterService("example", config.Environment, svc); err != nil {
-		return fmt.Errorf("register example ability: %w", err)
+	if err := adapter.Register(config.Environment, svc); err != nil {
+		return fmt.Errorf("register example capability: %w", err)
 	}
 	return nil
 }

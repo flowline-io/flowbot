@@ -44,8 +44,8 @@ func TestChecker_Check(t *testing.T) {
 		{
 			name: "all healthy descriptors",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Description: "bookmark service", Healthy: true, Instance: "ok"},
-				{Type: CapArchive, Backend: "archivebox", App: "archivebox", Description: "archive service", Healthy: true, Instance: "ok"},
+				{Type: CapKarakeep, App: "karakeep", Description: "bookmark service", Healthy: true, Instance: "ok"},
+				{Type: CapExample, App: "example", Description: "example service", Healthy: true, Instance: "ok"},
 			},
 			setup: func() func() {
 				old := homelab.DefaultRegistry.Permissions()
@@ -60,14 +60,14 @@ func TestChecker_Check(t *testing.T) {
 				for _, d := range result.Details {
 					healthByType[d.Type] = d.Status
 				}
-				assert.Equal(t, HealthHealthy, healthByType[CapArchive])
-				assert.Equal(t, HealthHealthy, healthByType[CapBookmark])
+				assert.Equal(t, HealthHealthy, healthByType[CapExample])
+				assert.Equal(t, HealthHealthy, healthByType[CapKarakeep])
 			},
 		},
 		{
 			name: "unhealthy descriptor",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: false, Instance: "ok"},
+				{Type: CapKarakeep, App: "karakeep", Healthy: false, Instance: "ok"},
 			},
 			setup: func() func() {
 				old := homelab.DefaultRegistry.Permissions()
@@ -83,7 +83,7 @@ func TestChecker_Check(t *testing.T) {
 		{
 			name: "degraded nil instance",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: true, Instance: nil},
+				{Type: CapKarakeep, App: "karakeep", Healthy: true, Instance: nil},
 			},
 			setup: func() func() {
 				old := homelab.DefaultRegistry.Permissions()
@@ -99,9 +99,9 @@ func TestChecker_Check(t *testing.T) {
 		{
 			name: "mixed health",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: true, Instance: "ok"},
-				{Type: CapArchive, Backend: "archivebox", App: "archivebox", Healthy: false, Instance: "ok"},
-				{Type: CapReader, Backend: "miniflux", App: "miniflux", Healthy: true, Instance: nil},
+				{Type: CapKarakeep, App: "karakeep", Healthy: true, Instance: "ok"},
+				{Type: CapExample, App: "example", Healthy: false, Instance: "ok"},
+				{Type: CapMiniflux, App: "miniflux", Healthy: true, Instance: nil},
 			},
 			setup: func() func() {
 				old := homelab.DefaultRegistry.Permissions()
@@ -116,15 +116,15 @@ func TestChecker_Check(t *testing.T) {
 				for _, d := range result.Details {
 					healthByType[d.Type] = d.Status
 				}
-				assert.Equal(t, HealthUnhealthy, healthByType[CapArchive])
-				assert.Equal(t, HealthHealthy, healthByType[CapBookmark])
-				assert.Equal(t, HealthDegraded, healthByType[CapReader])
+				assert.Equal(t, HealthUnhealthy, healthByType[CapExample])
+				assert.Equal(t, HealthHealthy, healthByType[CapKarakeep])
+				assert.Equal(t, HealthDegraded, healthByType[CapMiniflux])
 			},
 		},
 		{
 			name: "includes app statuses",
 			descriptors: []Descriptor{
-				{Type: CapArchive, Backend: "archivebox", App: "archivebox", Healthy: true, Instance: "ok"},
+				{Type: CapExample, App: "example", Healthy: true, Instance: "ok"},
 			},
 			setup: func() func() {
 				oldList := homelab.DefaultRegistry.List()
@@ -180,13 +180,12 @@ func TestChecker_CheckCapability(t *testing.T) {
 		{
 			name: "capability found and healthy",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Description: "bookmark service", Healthy: true, Instance: "ok"},
+				{Type: CapKarakeep, App: "karakeep", Description: "bookmark service", Healthy: true, Instance: "ok"},
 			},
-			capType: CapBookmark,
+			capType: CapKarakeep,
 			check: func(t *testing.T, ch *CapabilityHealth) {
 				require.NotNil(t, ch)
-				assert.Equal(t, CapBookmark, ch.Type)
-				assert.Equal(t, "karakeep", ch.Backend)
+				assert.Equal(t, CapKarakeep, ch.Type)
 				assert.Equal(t, "karakeep", ch.App)
 				assert.Equal(t, "bookmark service", ch.Description)
 				assert.Equal(t, HealthHealthy, ch.Status)
@@ -195,16 +194,16 @@ func TestChecker_CheckCapability(t *testing.T) {
 		{
 			name:        "capability not found",
 			descriptors: nil,
-			capType:     CapBookmark,
+			capType:     CapKarakeep,
 			wantErr:     true,
-			errContains: "capability bookmark not found",
+			errContains: "capability karakeep not found",
 		},
 		{
 			name: "capability found but unhealthy",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: false, Instance: "ok"},
+				{Type: CapKarakeep, App: "karakeep", Healthy: false, Instance: "ok"},
 			},
-			capType: CapBookmark,
+			capType: CapKarakeep,
 			check: func(t *testing.T, ch *CapabilityHealth) {
 				require.NotNil(t, ch)
 				assert.Equal(t, HealthUnhealthy, ch.Status)
@@ -213,9 +212,9 @@ func TestChecker_CheckCapability(t *testing.T) {
 		{
 			name: "capability found with nil instance",
 			descriptors: []Descriptor{
-				{Type: CapBookmark, Backend: "karakeep", App: "karakeep", Healthy: true, Instance: nil},
+				{Type: CapKarakeep, App: "karakeep", Healthy: true, Instance: nil},
 			},
-			capType: CapBookmark,
+			capType: CapKarakeep,
 			check: func(t *testing.T, ch *CapabilityHealth) {
 				require.NotNil(t, ch)
 				assert.Equal(t, HealthDegraded, ch.Status)

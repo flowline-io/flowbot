@@ -70,7 +70,7 @@ pkg/plugin/
 │   └── memory.go       # Memory read/write helpers
 ├── adapter/
 │   ├── module.go       # PluginModuleAdapter → module.Handler
-│   ├── ability.go      # PluginAbilityAdapter → ability.Service
+│   ├── capability.go      # PluginAbilityAdapter → capability.Service
 │   └── provider.go     # PluginProviderAdapter → providers.OAuthProvider
 ├── source/
 │   ├── source.go       # Source interface (Load, Watch, Close)
@@ -79,7 +79,7 @@ pkg/plugin/
 │   └── git.go          # Git repo source
 └── sdk/
     ├── module.go       # Go SDK: module plugin interface
-    ├── ability.go      # Go SDK: ability plugin interface
+    ├── capability.go      # Go SDK: ability plugin interface
     ├── provider.go     # Go SDK: provider plugin interface
     ├── host.go         # Go SDK: host API client
     └── serve.go        # Go SDK: go-plugin.Serve() boilerplate
@@ -397,7 +397,7 @@ func (a *PluginModuleAdapter) Command(ctx types.Context, content any) (types.Msg
 // PluginAbilityAdapter registers Invoker closures for declared operations.
 // Rather than implementing a per-capability Service interface (which has
 // capability-specific method signatures), the adapter registers generic
-// Invoker functions into ability.RegisterInvoker(). Each Invoker serializes
+// Invoker functions into capability.RegisterInvoker(). Each Invoker serializes
 // the operation name and params, calls Runner.Call("ability_call", ...),
 // and deserializes the result.
 type PluginAbilityAdapter struct {
@@ -408,13 +408,13 @@ type PluginAbilityAdapter struct {
 
 func (a *PluginAbilityAdapter) Register() error {
     for _, op := range a.operations {
-        ability.RegisterInvoker(a.capability, op, a.makeInvoker(op))
+        capability.RegisterInvoker(a.capability, op, a.makeInvoker(op))
     }
     return nil
 }
 
-func (a *PluginAbilityAdapter) makeInvoker(op string) ability.Invoker {
-    return func(ctx context.Context, params map[string]any) (*ability.InvokeResult, error) {
+func (a *PluginAbilityAdapter) makeInvoker(op string) capability.Invoker {
+    return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
         payload := marshal(map[string]any{"operation": op, "params": params})
         result, err := a.runner.Call(ctx, "ability_call", payload)
         if err != nil {
@@ -425,7 +425,7 @@ func (a *PluginAbilityAdapter) makeInvoker(op string) ability.Invoker {
 }
 ```
 
-Only declared operations are registered. Undeclared operations remain unregistered and return `types.ErrNotFound` from `ability.Invoke()`.
+Only declared operations are registered. Undeclared operations remain unregistered and return `types.ErrNotFound` from `capability.Invoke()`.
 
 ### Provider Adapter
 
@@ -442,7 +442,7 @@ type PluginProviderAdapter struct {
 When `PluginManager.Load()` processes a manifest:
 
 1. `manifest.provides.module == true` → Create `PluginModuleAdapter` → `module.Register(name, adapter)`
-2. `manifest.provides.abilities != nil` → For each ability: create `PluginAbilityAdapter` → `ability.RegisterInvoker(cap, op, adapterFunc)` → `hub.Default.Register(descriptor)`
+2. `manifest.provides.abilities != nil` → For each ability: create `PluginAbilityAdapter` → `capability.RegisterInvoker(cap, op, adapterFunc)` → `hub.Default.Register(descriptor)`
 3. `manifest.provides.provider != nil` → Create `PluginProviderAdapter` → `providers.RegisterOAuthProvider(name, factory)` if `oauth: true`
 
 ### Unregistration (for hot-reload)
@@ -450,7 +450,7 @@ When `PluginManager.Load()` processes a manifest:
 When the manifest's `provides` section changes (capabilities added/removed):
 
 1. `module.Unregister(name)`
-2. `ability.UnregisterInvoker(cap, ops...)`
+2. `capability.UnregisterInvoker(cap, ops...)`
 3. `hub.Default.Unregister(cap)`
 4. `providers.UnregisterOAuthProvider(name)`
 5. `runner.Stop(ctx)` — drain + kill

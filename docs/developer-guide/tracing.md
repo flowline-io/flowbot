@@ -22,7 +22,7 @@ Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `p
          ┌─────────────────────────┼─────────────────────────┐
          │                         │                         │
   ┌──────▼──────┐   ┌──────────────▼──────┐   ┌──────────────▼──────┐
-  │ Fiber OTel  │   │  Pipeline Engine    │   │  ability.Invoke     │
+  │ Fiber OTel  │   │  Pipeline Engine    │   │  capability.Invoke     │
   │ middleware  │   │  (custom spans)     │   │  (custom spans)     │
   └──────┬──────┘   └──────────┬──────────┘   └──────────┬──────────┘
          │                     │                         │
@@ -42,7 +42,7 @@ Source: `pkg/trace/` (core), with instrumentation spread across `pkg/event/`, `p
 | Ent driver          | `internal/store/postgres/adapter.go`   | Auto-span for all database queries                           |
 | Redis hook          | `pkg/rdb/rdb.go`, `pkg/event/redis.go` | Auto-span for all Redis commands                             |
 | Pipeline spans      | `pkg/pipeline/engine.go`               | Pipeline + step execution spans                              |
-| ability.Invoke span | `pkg/ability/invoke.go`                | Capability invocation span                                   |
+| capability.Invoke span | `pkg/ability/invoke.go`                | Capability invocation span                                   |
 | HTTP client         | `pkg/utils/resty.go`                   | `otelhttp` transport for outgoing HTTP                       |
 | Watermill trace     | `pkg/event/pubsub.go`                  | Publish span + consumer span + W3C propagation               |
 | Log correlation     | `pkg/flog/flog.go`                     | `Ctx(ctx)` annotates log entries with `trace_id` / `span_id` |
@@ -59,7 +59,7 @@ Spans follow a hierarchical dot-separated naming scheme. Each layer prefixes its
 | Event consume    | `event.receive {topic}`                | `event/pubsub.go`    | Yes       |
 | Pipeline execute | `pipeline.{name}.execute`              | `pipeline/engine.go` | Yes       |
 | Pipeline step    | `pipeline.{pipeline}.step.{step}`      | `pipeline/engine.go` | Yes       |
-| Ability invoke   | `ability.{capability}.{operation}`     | `ability/invoke.go`  | Yes       |
+| Ability invoke   | `capability.{capability}.{operation}`     | `ability/invoke.go`  | Yes       |
 | Database query   | `db.Query` / `db.Exec`                 | Ent driver           | Yes       |
 | Redis command    | `GET` / `SET` / `LPUSH` / `XADD` / ... | redisotel hook       | Yes       |
 | Outgoing HTTP    | `HTTP {method}`                        | otelhttp transport   | Yes       |
@@ -87,7 +87,7 @@ HTTP POST /service/{module}/command          ← Fiber middleware span
   │
   ├── db.Query (user lookup)                ← Ent auto-span
   ├── GET (redis:get chat session)           ← Redis auto-span
-  ├── ability.{capability}.{operation}       ← ability.Invoke span
+  ├── capability.{capability}.{operation}       ← capability.Invoke span
   │     ├── HTTP GET https://api.example.com ← otelhttp auto-span
   │     └── db.Query (data fetch)           ← Ent auto-span
   └── event.publish message:send             ← PublishMessage span
@@ -107,10 +107,10 @@ event.receive pipeline:data_event            ← TraceConsumerMiddleware span
         ├── db.Query (consumption check)    ← Ent auto-span
         ├── db.Query (create run)           ← Ent auto-span
         ├── pipeline.{name}.step.{step1}     ← Step span
-        │     └── ability.{cap}.{operation}  ← ability.Invoke span
+        │     └── capability.{cap}.{operation}  ← capability.Invoke span
         │           └── HTTP GET ...         ← otelhttp auto-span
         ├── pipeline.{name}.step.{step2}     ← Step span
-        │     └── ability.{cap}.{operation}
+        │     └── capability.{cap}.{operation}
         └── db.Query (update run status)    ← Ent auto-span
 ```
 
@@ -120,7 +120,7 @@ event.receive pipeline:data_event            ← TraceConsumerMiddleware span
 HTTP POST /webhook/{id}                      ← Fiber middleware span
   │
   ├── db.Query (webhook lookup)             ← Ent auto-span
-  ├── ability.{cap}.{operation}              ← ability.Invoke span
+  ├── capability.{cap}.{operation}              ← capability.Invoke span
   │     └── event.publish {data_event}       ← Emitted DataEvent span
   │           │
   │           └── [cross-process via Watermill]

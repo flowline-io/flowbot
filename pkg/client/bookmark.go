@@ -29,9 +29,9 @@ func (b *BookmarkClient) List(ctx context.Context, query *ListBookmarksQuery) (*
 		}
 	}
 
-	path := "/service/bookmark"
+	path := "/service/karakeep"
 	if query != nil {
-		path = fmt.Sprintf("/service/bookmark?limit=%d", query.Limit)
+		path = fmt.Sprintf("/service/karakeep?limit=%d", query.Limit)
 		if query.Cursor != "" {
 			path += fmt.Sprintf("&cursor=%s", query.Cursor)
 		}
@@ -64,7 +64,7 @@ func validateListBookmarksQuery(query *ListBookmarksQuery) error {
 // Get returns a single bookmark by ID.
 func (b *BookmarkClient) Get(ctx context.Context, id string) (*karakeep.Bookmark, error) {
 	var result karakeep.Bookmark
-	path := fmt.Sprintf("/service/bookmark/%s", id)
+	path := fmt.Sprintf("/service/karakeep/%s", id)
 	err := b.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (b *BookmarkClient) Create(ctx context.Context, url string) (*karakeep.Book
 
 	var result karakeep.Bookmark
 	body := map[string]string{"url": url}
-	err := b.c.Post(ctx, "/service/bookmark", body, &result)
+	err := b.c.Post(ctx, "/service/karakeep", body, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ type ArchiveResult struct {
 // Archive archives (or unarchives) a bookmark.
 func (b *BookmarkClient) Archive(ctx context.Context, id string) (*ArchiveResult, error) {
 	var result ArchiveResult
-	path := fmt.Sprintf("/service/bookmark/%s", id)
+	path := fmt.Sprintf("/service/karakeep/%s", id)
 	err := b.c.Patch(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (b *BookmarkClient) AttachTags(ctx context.Context, id string, tags []strin
 	}
 
 	var result AttachTagsResult
-	path := fmt.Sprintf("/service/bookmark/%s/tags", id)
+	path := fmt.Sprintf("/service/karakeep/%s/tags", id)
 	err := b.c.Post(ctx, path, tags, &result)
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (b *BookmarkClient) DetachTags(ctx context.Context, id string, tags []strin
 	}
 
 	var result DetachTagsResult
-	path := fmt.Sprintf("/service/bookmark/%s/tags", id)
+	path := fmt.Sprintf("/service/karakeep/%s/tags", id)
 	err := b.c.Delete(ctx, path, tags, &result)
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func (b *BookmarkClient) CheckUrl(ctx context.Context, url string) (*CheckUrlRes
 	}
 
 	var result CheckUrlResult
-	path := fmt.Sprintf("/service/bookmark/check-url?url=%s", url)
+	path := fmt.Sprintf("/service/karakeep/check-url?url=%s", url)
 	err := b.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -195,9 +195,9 @@ func (b *BookmarkClient) Search(ctx context.Context, query *SearchBookmarksQuery
 		}
 	}
 
-	path := "/service/bookmark/search"
+	path := "/service/karakeep/search"
 	if query != nil {
-		path = fmt.Sprintf("/service/bookmark/search?q=%s", query.Q)
+		path = fmt.Sprintf("/service/karakeep/search?q=%s", query.Q)
 		if query.SortOrder != "" {
 			path += fmt.Sprintf("&sortOrder=%s", query.SortOrder)
 		}

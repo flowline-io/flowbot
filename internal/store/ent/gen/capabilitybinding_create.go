@@ -28,12 +28,6 @@ func (_c *CapabilityBindingCreate) SetCapability(v string) *CapabilityBindingCre
 	return _c
 }
 
-// SetBackend sets the "backend" field.
-func (_c *CapabilityBindingCreate) SetBackend(v string) *CapabilityBindingCreate {
-	_c.mutation.SetBackend(v)
-	return _c
-}
-
 // SetApp sets the "app" field.
 func (_c *CapabilityBindingCreate) SetApp(v string) *CapabilityBindingCreate {
 	_c.mutation.SetApp(v)
@@ -147,14 +141,6 @@ func (_c *CapabilityBindingCreate) check() error {
 			return &ValidationError{Name: "capability", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.capability": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.Backend(); !ok {
-		return &ValidationError{Name: "backend", err: errors.New(`gen: missing required field "CapabilityBinding.backend"`)}
-	}
-	if v, ok := _c.mutation.Backend(); ok {
-		if err := capabilitybinding.BackendValidator(v); err != nil {
-			return &ValidationError{Name: "backend", err: fmt.Errorf(`gen: validator failed for field "CapabilityBinding.backend": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.App(); !ok {
 		return &ValidationError{Name: "app", err: errors.New(`gen: missing required field "CapabilityBinding.app"`)}
 	}
@@ -208,10 +194,6 @@ func (_c *CapabilityBindingCreate) createSpec() (*CapabilityBinding, *sqlgraph.C
 	if value, ok := _c.mutation.Capability(); ok {
 		_spec.SetField(capabilitybinding.FieldCapability, field.TypeString, value)
 		_node.Capability = value
-	}
-	if value, ok := _c.mutation.Backend(); ok {
-		_spec.SetField(capabilitybinding.FieldBackend, field.TypeString, value)
-		_node.Backend = value
 	}
 	if value, ok := _c.mutation.App(); ok {
 		_spec.SetField(capabilitybinding.FieldApp, field.TypeString, value)
@@ -290,18 +272,6 @@ func (u *CapabilityBindingUpsert) SetCapability(v string) *CapabilityBindingUpse
 // UpdateCapability sets the "capability" field to the value that was provided on create.
 func (u *CapabilityBindingUpsert) UpdateCapability() *CapabilityBindingUpsert {
 	u.SetExcluded(capabilitybinding.FieldCapability)
-	return u
-}
-
-// SetBackend sets the "backend" field.
-func (u *CapabilityBindingUpsert) SetBackend(v string) *CapabilityBindingUpsert {
-	u.Set(capabilitybinding.FieldBackend, v)
-	return u
-}
-
-// UpdateBackend sets the "backend" field to the value that was provided on create.
-func (u *CapabilityBindingUpsert) UpdateBackend() *CapabilityBindingUpsert {
-	u.SetExcluded(capabilitybinding.FieldBackend)
 	return u
 }
 
@@ -403,20 +373,6 @@ func (u *CapabilityBindingUpsertOne) SetCapability(v string) *CapabilityBindingU
 func (u *CapabilityBindingUpsertOne) UpdateCapability() *CapabilityBindingUpsertOne {
 	return u.Update(func(s *CapabilityBindingUpsert) {
 		s.UpdateCapability()
-	})
-}
-
-// SetBackend sets the "backend" field.
-func (u *CapabilityBindingUpsertOne) SetBackend(v string) *CapabilityBindingUpsertOne {
-	return u.Update(func(s *CapabilityBindingUpsert) {
-		s.SetBackend(v)
-	})
-}
-
-// UpdateBackend sets the "backend" field to the value that was provided on create.
-func (u *CapabilityBindingUpsertOne) UpdateBackend() *CapabilityBindingUpsertOne {
-	return u.Update(func(s *CapabilityBindingUpsert) {
-		s.UpdateBackend()
 	})
 }
 
@@ -690,20 +646,6 @@ func (u *CapabilityBindingUpsertBulk) SetCapability(v string) *CapabilityBinding
 func (u *CapabilityBindingUpsertBulk) UpdateCapability() *CapabilityBindingUpsertBulk {
 	return u.Update(func(s *CapabilityBindingUpsert) {
 		s.UpdateCapability()
-	})
-}
-
-// SetBackend sets the "backend" field.
-func (u *CapabilityBindingUpsertBulk) SetBackend(v string) *CapabilityBindingUpsertBulk {
-	return u.Update(func(s *CapabilityBindingUpsert) {
-		s.SetBackend(v)
-	})
-}
-
-// UpdateBackend sets the "backend" field to the value that was provided on create.
-func (u *CapabilityBindingUpsertBulk) UpdateBackend() *CapabilityBindingUpsertBulk {
-	return u.Update(func(s *CapabilityBindingUpsert) {
-		s.UpdateBackend()
 	})
 }
 

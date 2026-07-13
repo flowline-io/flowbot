@@ -97,20 +97,6 @@ func (_u *DataEventUpdate) SetNillableOperation(v *string) *DataEventUpdate {
 	return _u
 }
 
-// SetBackend sets the "backend" field.
-func (_u *DataEventUpdate) SetBackend(v string) *DataEventUpdate {
-	_u.mutation.SetBackend(v)
-	return _u
-}
-
-// SetNillableBackend sets the "backend" field if the given value is not nil.
-func (_u *DataEventUpdate) SetNillableBackend(v *string) *DataEventUpdate {
-	if v != nil {
-		_u.SetBackend(*v)
-	}
-	return _u
-}
-
 // SetApp sets the "app" field.
 func (_u *DataEventUpdate) SetApp(v string) *DataEventUpdate {
 	_u.mutation.SetApp(v)
@@ -279,9 +265,6 @@ func (_u *DataEventUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Operation(); ok {
 		_spec.SetField(dataevent.FieldOperation, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Backend(); ok {
-		_spec.SetField(dataevent.FieldBackend, field.TypeString, value)
-	}
 	if value, ok := _u.mutation.App(); ok {
 		_spec.SetField(dataevent.FieldApp, field.TypeString, value)
 	}
@@ -395,20 +378,6 @@ func (_u *DataEventUpdateOne) SetOperation(v string) *DataEventUpdateOne {
 func (_u *DataEventUpdateOne) SetNillableOperation(v *string) *DataEventUpdateOne {
 	if v != nil {
 		_u.SetOperation(*v)
-	}
-	return _u
-}
-
-// SetBackend sets the "backend" field.
-func (_u *DataEventUpdateOne) SetBackend(v string) *DataEventUpdateOne {
-	_u.mutation.SetBackend(v)
-	return _u
-}
-
-// SetNillableBackend sets the "backend" field if the given value is not nil.
-func (_u *DataEventUpdateOne) SetNillableBackend(v *string) *DataEventUpdateOne {
-	if v != nil {
-		_u.SetBackend(*v)
 	}
 	return _u
 }
@@ -610,9 +579,6 @@ func (_u *DataEventUpdateOne) sqlSave(ctx context.Context) (_node *DataEvent, er
 	}
 	if value, ok := _u.mutation.Operation(); ok {
 		_spec.SetField(dataevent.FieldOperation, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Backend(); ok {
-		_spec.SetField(dataevent.FieldBackend, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.App(); ok {
 		_spec.SetField(dataevent.FieldApp, field.TypeString, value)

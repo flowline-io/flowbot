@@ -37,7 +37,7 @@ Registration moves from `pipeline.go` to `hub/module.go` `Bootstrap()`, mirrorin
 
 ```go
 func (moduleHandler) Bootstrap() error {
-    mgr := ability.GetEventSourceManager()
+    mgr := capability.GetEventSourceManager()
     // Webhooks (existing)
     mgr.RegisterWebhook(karakeepAdapter.NewWebhook())
     mgr.RegisterWebhook(minifluxAdapter.NewWebhook())
@@ -74,7 +74,7 @@ func (moduleHandler) Bootstrap() error {
 
 | File                                     | Change                                                                                                                                                                     |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pkg/ability/example/example/poller.go`  | Package `example` → adapter package; `NewExamplePoller()` → `NewPoller()`; compile-time check imports `ability.PollingResource`                                            |
+| `pkg/ability/example/example/poller.go`  | Package `example` → adapter package; `NewExamplePoller()` → `NewPoller()`; compile-time check imports `capability.PollingResource`                                            |
 | `pkg/ability/note/trilium/poller.go`     | Package `note` → `trilium`; `NewNotePoller()` → `NewPoller()`; imports `note.Service` interface                                                                            |
 | `pkg/ability/example/example/adapter.go` | Remove `NewExamplePoller()` factory — poller is now self-contained in same package                                                                                         |
 | `pkg/ability/note/trilium/adapter.go`    | Remove `NewNotePoller()` factory — poller is now self-contained in same package                                                                                            |
@@ -109,5 +109,5 @@ The `EventSourceManager` must be created (in `initPipeline`) before modules call
 ## Testing
 
 - Existing poller tests relocate with the source files, updating imports and package names
-- Conformance: `var _ ability.PollingResource = (*NotePoller)(nil)` compile-time check stays
+- Conformance: `var _ capability.PollingResource = (*NotePoller)(nil)` compile-time check stays
 - No new conformance suite needed since `PollingResource` is already covered by `eventsource_test.go`

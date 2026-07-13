@@ -5,15 +5,15 @@ Status: design-approved
 
 ## Problem Statement
 
-Ristretto in-process cache is allocated 1GB (10M counters) but only used by alarm deduplication (`pkg/alarm/alarm.go:77` — `SetNX` with 24h TTL). The `ability.Invoke()` path has no caching layer, causing redundant external API calls:
+Ristretto in-process cache is allocated 1GB (10M counters) but only used by alarm deduplication (`pkg/alarm/alarm.go:77` — `SetNX` with 24h TTL). The `capability.Invoke()` path has no caching layer, causing redundant external API calls:
 
-1. **Bookmark cron redundancy** — Five cron jobs (`bookmarks_tag`, `bookmarks_metrics`, `bookmarks_search`, `bookmarks_task`, `bookmarks_tag_merge`) independently call `ability.Invoke(ctx, hub.CapBookmark, ability.OpBookmarkList, map[string]any{})`, hitting the Karakeep API up to 3+ times within 60 seconds.
+1. **Bookmark cron redundancy** — Five cron jobs (`bookmarks_tag`, `bookmarks_metrics`, `bookmarks_search`, `bookmarks_task`, `bookmarks_tag_merge`) independently call `capability.Invoke(ctx, hub.CapBookmark, capability.OpBookmarkList, map[string]any{})`, hitting the Karakeep API up to 3+ times within 60 seconds.
 2. **Reader/kanban cron redundancy** — Similar patterns: `reader_metrics` and `reader_daily_summary` both call `OpReaderListEntries`; `kanban_metrics` calls `OpKanbanListTasks` every minute.
-3. **No read-through caching** — Every `ability.Invoke()` traverses the full chain (Registry → Invoker → Adapter → Provider → external API). Most Read operations fetch identical data across redundant calls.
+3. **No read-through caching** — Every `capability.Invoke()` traverses the full chain (Registry → Invoker → Adapter → Provider → external API). Most Read operations fetch identical data across redundant calls.
 
 ## Success Criterion
 
-Cache `ability.Invoke()` results for Read operations in Ristretto with 2-minute TTL. Mutation operations invalidate capability-level cached entries on write. Caching is transparent to callers — miss paths degrade to existing behavior. Cache failures never impact correctness.
+Cache `capability.Invoke()` results for Read operations in Ristretto with 2-minute TTL. Mutation operations invalidate capability-level cached entries on write. Caching is transparent to callers — miss paths degrade to existing behavior. Cache failures never impact correctness.
 
 ## Environment
 
@@ -28,7 +28,7 @@ Cache `ability.Invoke()` results for Read operations in Ristretto with 2-minute 
 ### Invocation Flow (with cache)
 
 ```
-ability.Invoke(ctx, capType, op, params)
+capability.Invoke(ctx, capType, op, params)
   → 1. key := "ability:{capType}:{op}:<sha1(sortedParamsJSON)>"
   → 2. if isMutation(op): cache.DelByPrefix("ability:{capType}:")
   → 3. if !isMutation(op) && !hasCursor(params):

@@ -76,20 +76,6 @@ func (_c *DataEventCreate) SetNillableOperation(v *string) *DataEventCreate {
 	return _c
 }
 
-// SetBackend sets the "backend" field.
-func (_c *DataEventCreate) SetBackend(v string) *DataEventCreate {
-	_c.mutation.SetBackend(v)
-	return _c
-}
-
-// SetNillableBackend sets the "backend" field if the given value is not nil.
-func (_c *DataEventCreate) SetNillableBackend(v *string) *DataEventCreate {
-	if v != nil {
-		_c.SetBackend(*v)
-	}
-	return _c
-}
-
 // SetApp sets the "app" field.
 func (_c *DataEventCreate) SetApp(v string) *DataEventCreate {
 	_c.mutation.SetApp(v)
@@ -239,10 +225,6 @@ func (_c *DataEventCreate) defaults() {
 		v := dataevent.DefaultOperation
 		_c.mutation.SetOperation(v)
 	}
-	if _, ok := _c.mutation.Backend(); !ok {
-		v := dataevent.DefaultBackend
-		_c.mutation.SetBackend(v)
-	}
 	if _, ok := _c.mutation.App(); !ok {
 		v := dataevent.DefaultApp
 		_c.mutation.SetApp(v)
@@ -295,9 +277,6 @@ func (_c *DataEventCreate) check() error {
 	}
 	if _, ok := _c.mutation.Operation(); !ok {
 		return &ValidationError{Name: "operation", err: errors.New(`gen: missing required field "DataEvent.operation"`)}
-	}
-	if _, ok := _c.mutation.Backend(); !ok {
-		return &ValidationError{Name: "backend", err: errors.New(`gen: missing required field "DataEvent.backend"`)}
 	}
 	if _, ok := _c.mutation.App(); !ok {
 		return &ValidationError{Name: "app", err: errors.New(`gen: missing required field "DataEvent.app"`)}
@@ -369,10 +348,6 @@ func (_c *DataEventCreate) createSpec() (*DataEvent, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Operation(); ok {
 		_spec.SetField(dataevent.FieldOperation, field.TypeString, value)
 		_node.Operation = value
-	}
-	if value, ok := _c.mutation.Backend(); ok {
-		_spec.SetField(dataevent.FieldBackend, field.TypeString, value)
-		_node.Backend = value
 	}
 	if value, ok := _c.mutation.App(); ok {
 		_spec.SetField(dataevent.FieldApp, field.TypeString, value)
@@ -515,18 +490,6 @@ func (u *DataEventUpsert) SetOperation(v string) *DataEventUpsert {
 // UpdateOperation sets the "operation" field to the value that was provided on create.
 func (u *DataEventUpsert) UpdateOperation() *DataEventUpsert {
 	u.SetExcluded(dataevent.FieldOperation)
-	return u
-}
-
-// SetBackend sets the "backend" field.
-func (u *DataEventUpsert) SetBackend(v string) *DataEventUpsert {
-	u.Set(dataevent.FieldBackend, v)
-	return u
-}
-
-// UpdateBackend sets the "backend" field to the value that was provided on create.
-func (u *DataEventUpsert) UpdateBackend() *DataEventUpsert {
-	u.SetExcluded(dataevent.FieldBackend)
 	return u
 }
 
@@ -744,20 +707,6 @@ func (u *DataEventUpsertOne) SetOperation(v string) *DataEventUpsertOne {
 func (u *DataEventUpsertOne) UpdateOperation() *DataEventUpsertOne {
 	return u.Update(func(s *DataEventUpsert) {
 		s.UpdateOperation()
-	})
-}
-
-// SetBackend sets the "backend" field.
-func (u *DataEventUpsertOne) SetBackend(v string) *DataEventUpsertOne {
-	return u.Update(func(s *DataEventUpsert) {
-		s.SetBackend(v)
-	})
-}
-
-// UpdateBackend sets the "backend" field to the value that was provided on create.
-func (u *DataEventUpsertOne) UpdateBackend() *DataEventUpsertOne {
-	return u.Update(func(s *DataEventUpsert) {
-		s.UpdateBackend()
 	})
 }
 
@@ -1157,20 +1106,6 @@ func (u *DataEventUpsertBulk) SetOperation(v string) *DataEventUpsertBulk {
 func (u *DataEventUpsertBulk) UpdateOperation() *DataEventUpsertBulk {
 	return u.Update(func(s *DataEventUpsert) {
 		s.UpdateOperation()
-	})
-}
-
-// SetBackend sets the "backend" field.
-func (u *DataEventUpsertBulk) SetBackend(v string) *DataEventUpsertBulk {
-	return u.Update(func(s *DataEventUpsert) {
-		s.SetBackend(v)
-	})
-}
-
-// UpdateBackend sets the "backend" field to the value that was provided on create.
-func (u *DataEventUpsertBulk) UpdateBackend() *DataEventUpsertBulk {
-	return u.Update(func(s *DataEventUpsert) {
-		s.UpdateBackend()
 	})
 }
 

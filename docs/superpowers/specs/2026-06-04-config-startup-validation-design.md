@@ -99,7 +99,7 @@ if err := App.ReachabilityCheck(context.Background()); err != nil {
 | `log.rotation.maxBackups` | >= 0 when rotation block present |
 | `flowbot.url` | valid URL if non-empty |
 | `homelab.discovery.probe_timeout` | valid Go duration string if non-empty |
-| `ability.event_pool.expiry_duration` | valid Go duration string if non-empty |
+| `capability.event_pool.expiry_duration` | valid Go duration string if non-empty |
 
 ### Conditional (only when `.Enabled`)
 

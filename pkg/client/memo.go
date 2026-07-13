@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 // MemoClient provides access to the memo API.
@@ -22,8 +22,8 @@ type ListMemosQuery struct {
 
 // MemoListResult holds the paginated list response extracted from InvokeResult.
 type MemoListResult struct {
-	Items []*ability.Memo `json:"data"`
-	Page  MemoPage        `json:"page"`
+	Items []*capability.Memo `json:"data"`
+	Page  MemoPage           `json:"page"`
 }
 
 // MemoPage holds pagination metadata.
@@ -35,7 +35,7 @@ type MemoPage struct {
 
 // MemoItemResult holds a single memo extracted from InvokeResult.
 type MemoItemResult struct {
-	Item ability.Memo `json:"data"`
+	Item capability.Memo `json:"data"`
 }
 
 // MemoHealthResult holds the health check result extracted from InvokeResult.
@@ -50,7 +50,7 @@ func (m *MemoClient) List(ctx context.Context, query *ListMemosQuery) (*MemoList
 			return nil, err
 		}
 	}
-	path := "/service/memo"
+	path := "/service/memos"
 	if query != nil {
 		v := url.Values{}
 		if query.Limit > 0 {
@@ -82,12 +82,12 @@ func validateListMemosQuery(query *ListMemosQuery) error {
 }
 
 // Get returns a single memo by its resource name (e.g., "memos/123").
-func (m *MemoClient) Get(ctx context.Context, name string) (*ability.Memo, error) {
+func (m *MemoClient) Get(ctx context.Context, name string) (*capability.Memo, error) {
 	if name == "" {
 		return nil, fmt.Errorf("name is required")
 	}
 	var result MemoItemResult
-	path := "/service/memo?" + url.Values{"name": {name}}.Encode()
+	path := "/service/memos?" + url.Values{"name": {name}}.Encode()
 	err := m.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ type CreateMemoRequest struct {
 }
 
 // Create creates a new memo.
-func (m *MemoClient) Create(ctx context.Context, content, visibility string) (*ability.Memo, error) {
+func (m *MemoClient) Create(ctx context.Context, content, visibility string) (*capability.Memo, error) {
 	if content == "" {
 		return nil, fmt.Errorf("content is required")
 	}
@@ -111,7 +111,7 @@ func (m *MemoClient) Create(ctx context.Context, content, visibility string) (*a
 		Visibility: visibility,
 	}
 	var result MemoItemResult
-	err := m.c.Post(ctx, "/service/memo", body, &result)
+	err := m.c.Post(ctx, "/service/memos", body, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +126,12 @@ type UpdateMemoRequest struct {
 }
 
 // Update updates an existing memo.
-func (m *MemoClient) Update(ctx context.Context, name string, req *UpdateMemoRequest) (*ability.Memo, error) {
+func (m *MemoClient) Update(ctx context.Context, name string, req *UpdateMemoRequest) (*capability.Memo, error) {
 	if name == "" {
 		return nil, fmt.Errorf("name is required")
 	}
 	var result MemoItemResult
-	path := "/service/memo?" + url.Values{"name": {name}}.Encode()
+	path := "/service/memos?" + url.Values{"name": {name}}.Encode()
 	err := m.c.Patch(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (m *MemoClient) Delete(ctx context.Context, name string) error {
 	if name == "" {
 		return fmt.Errorf("name is required")
 	}
-	path := "/service/memo?" + url.Values{"name": {name}}.Encode()
+	path := "/service/memos?" + url.Values{"name": {name}}.Encode()
 	err := m.c.Delete(ctx, path, nil, nil)
 	return err
 }
@@ -152,7 +152,7 @@ func (m *MemoClient) Delete(ctx context.Context, name string) error {
 // Health checks whether the memo backend is reachable.
 func (m *MemoClient) Health(ctx context.Context) (bool, error) {
 	var result MemoHealthResult
-	err := m.c.Get(ctx, "/service/memo/health", &result)
+	err := m.c.Get(ctx, "/service/memos/health", &result)
 	if err != nil {
 		return false, err
 	}

@@ -19,8 +19,6 @@ type CapabilityBinding struct {
 	ID int64 `json:"id,omitempty"`
 	// Capability holds the value of the "capability" field.
 	Capability string `json:"capability,omitempty"`
-	// Backend holds the value of the "backend" field.
-	Backend string `json:"backend,omitempty"`
 	// App holds the value of the "app" field.
 	App string `json:"app,omitempty"`
 	// Healthy holds the value of the "healthy" field.
@@ -41,7 +39,7 @@ func (*CapabilityBinding) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case capabilitybinding.FieldID:
 			values[i] = new(sql.NullInt64)
-		case capabilitybinding.FieldCapability, capabilitybinding.FieldBackend, capabilitybinding.FieldApp:
+		case capabilitybinding.FieldCapability, capabilitybinding.FieldApp:
 			values[i] = new(sql.NullString)
 		case capabilitybinding.FieldCreatedAt, capabilitybinding.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -71,12 +69,6 @@ func (_m *CapabilityBinding) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field capability", values[i])
 			} else if value.Valid {
 				_m.Capability = value.String
-			}
-		case capabilitybinding.FieldBackend:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field backend", values[i])
-			} else if value.Valid {
-				_m.Backend = value.String
 			}
 		case capabilitybinding.FieldApp:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -140,9 +132,6 @@ func (_m *CapabilityBinding) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
 	builder.WriteString("capability=")
 	builder.WriteString(_m.Capability)
-	builder.WriteString(", ")
-	builder.WriteString("backend=")
-	builder.WriteString(_m.Backend)
 	builder.WriteString(", ")
 	builder.WriteString("app=")
 	builder.WriteString(_m.App)

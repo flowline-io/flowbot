@@ -21,7 +21,7 @@ func (k *KanbanClient) List(ctx context.Context, projectID int, status kanboard.
 	}
 
 	var result []kanboard.Task
-	path := fmt.Sprintf("/service/kanban?project_id=%d&status_id=%d", projectID, status)
+	path := fmt.Sprintf("/service/kanboard?project_id=%d&status_id=%d", projectID, status)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -33,7 +33,7 @@ func (k *KanbanClient) ListAll(ctx context.Context, projectID int) ([]kanboard.T
 	}
 
 	var result []kanboard.Task
-	path := fmt.Sprintf("/service/kanban?project_id=%d", projectID)
+	path := fmt.Sprintf("/service/kanboard?project_id=%d", projectID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -45,7 +45,7 @@ func (k *KanbanClient) Get(ctx context.Context, id int) (*kanboard.Task, error) 
 	}
 
 	var result kanboard.Task
-	path := fmt.Sprintf("/service/kanban/%d", id)
+	path := fmt.Sprintf("/service/kanboard/%d", id)
 	err := k.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (k *KanbanClient) Create(ctx context.Context, req KanbanCreateRequest) (*Ka
 	}
 
 	var result KanbanCreateResult
-	err := k.c.Post(ctx, "/service/kanban", req, &result)
+	err := k.c.Post(ctx, "/service/kanboard", req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (k *KanbanClient) Update(ctx context.Context, id int, req KanbanUpdateReque
 	}
 
 	var result KanbanUpdateResult
-	path := fmt.Sprintf("/service/kanban/%d", id)
+	path := fmt.Sprintf("/service/kanboard/%d", id)
 	err := k.c.Patch(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (k *KanbanClient) Close(ctx context.Context, id int) (*KanbanUpdateResult, 
 	}
 
 	var result KanbanUpdateResult
-	path := fmt.Sprintf("/service/kanban/%d", id)
+	path := fmt.Sprintf("/service/kanboard/%d", id)
 	err := k.c.Delete(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
@@ -170,7 +170,7 @@ func (k *KanbanClient) Move(ctx context.Context, id int, req KanbanMoveRequest) 
 	}
 
 	var result KanbanMoveResult
-	path := fmt.Sprintf("/service/kanban/%d/move", id)
+	path := fmt.Sprintf("/service/kanboard/%d/move", id)
 	err := k.c.Post(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -207,7 +207,7 @@ func (k *KanbanClient) ListColumns(ctx context.Context, projectID int) ([]Kanban
 	}
 
 	var result []KanbanColumn
-	path := fmt.Sprintf("/service/kanban/columns?project_id=%d", projectID)
+	path := fmt.Sprintf("/service/kanboard/columns?project_id=%d", projectID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -227,7 +227,7 @@ func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) 
 	}
 
 	var result []kanboard.Task
-	path := fmt.Sprintf("/service/kanban/search?project_id=%d&query=%s", projectID, query)
+	path := fmt.Sprintf("/service/kanboard/search?project_id=%d&query=%s", projectID, query)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -244,7 +244,7 @@ func (k *KanbanClient) GetMetadata(ctx context.Context, taskID int) ([]kanboard.
 	}
 
 	var result []kanboard.TaskMetadata
-	path := fmt.Sprintf("/service/kanban/%d/metadata", taskID)
+	path := fmt.Sprintf("/service/kanboard/%d/metadata", taskID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -264,7 +264,7 @@ func (k *KanbanClient) GetMetadataByName(ctx context.Context, taskID int, name s
 	}
 
 	var result string
-	path := fmt.Sprintf("/service/kanban/%d/metadata/%s", taskID, name)
+	path := fmt.Sprintf("/service/kanboard/%d/metadata/%s", taskID, name)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -287,7 +287,7 @@ func (k *KanbanClient) SaveMetadata(ctx context.Context, taskID int, values kanb
 
 	req := KanbanSaveMetadataRequest{Values: values}
 	var result KanbanSaveMetadataResult
-	path := fmt.Sprintf("/service/kanban/%d/metadata", taskID)
+	path := fmt.Sprintf("/service/kanboard/%d/metadata", taskID)
 	err := k.c.Post(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -310,7 +310,7 @@ func (k *KanbanClient) RemoveMetadata(ctx context.Context, taskID int, name stri
 	}
 
 	var result KanbanRemoveMetadataResult
-	path := fmt.Sprintf("/service/kanban/%d/metadata/%s", taskID, name)
+	path := fmt.Sprintf("/service/kanboard/%d/metadata/%s", taskID, name)
 	err := k.c.Delete(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
@@ -328,7 +328,7 @@ type KanbanTag struct {
 // ListTags returns all tags.
 func (k *KanbanClient) ListTags(ctx context.Context) ([]KanbanTag, error) {
 	var result []KanbanTag
-	err := k.c.Get(ctx, "/service/kanban/tags", &result)
+	err := k.c.Get(ctx, "/service/kanboard/tags", &result)
 	return result, err
 }
 
@@ -339,7 +339,7 @@ func (k *KanbanClient) ListTagsByProject(ctx context.Context, projectID int) ([]
 	}
 
 	var result []KanbanTag
-	path := fmt.Sprintf("/service/kanban/tags/project?project_id=%d", projectID)
+	path := fmt.Sprintf("/service/kanboard/tags/project?project_id=%d", projectID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -366,7 +366,7 @@ func (k *KanbanClient) CreateTag(ctx context.Context, req KanbanCreateTagRequest
 	}
 
 	var result KanbanCreateTagResult
-	err := k.c.Post(ctx, "/service/kanban/tags", req, &result)
+	err := k.c.Post(ctx, "/service/kanboard/tags", req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func (k *KanbanClient) UpdateTag(ctx context.Context, id int, req KanbanUpdateTa
 	}
 
 	var result KanbanUpdateTagResult
-	path := fmt.Sprintf("/service/kanban/tags/%d", id)
+	path := fmt.Sprintf("/service/kanboard/tags/%d", id)
 	err := k.c.Patch(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -414,7 +414,7 @@ func (k *KanbanClient) RemoveTag(ctx context.Context, id int) (*KanbanRemoveTagR
 	}
 
 	var result KanbanRemoveTagResult
-	path := fmt.Sprintf("/service/kanban/tags/%d", id)
+	path := fmt.Sprintf("/service/kanboard/tags/%d", id)
 	err := k.c.Delete(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
@@ -434,7 +434,7 @@ func (k *KanbanClient) GetTaskTags(ctx context.Context, taskID int) (map[string]
 	}
 
 	var result map[string]string
-	path := fmt.Sprintf("/service/kanban/%d/tags", taskID)
+	path := fmt.Sprintf("/service/kanboard/%d/tags", taskID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -460,7 +460,7 @@ func (k *KanbanClient) SetTaskTags(ctx context.Context, taskID int, req KanbanSe
 	}
 
 	var result KanbanSetTaskTagsResult
-	path := fmt.Sprintf("/service/kanban/%d/tags", taskID)
+	path := fmt.Sprintf("/service/kanboard/%d/tags", taskID)
 	err := k.c.Post(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -475,7 +475,7 @@ func (k *KanbanClient) ListSubtasks(ctx context.Context, taskID int) ([]kanboard
 	}
 
 	var result []kanboard.Subtask
-	path := fmt.Sprintf("/service/kanban/%d/subtasks", taskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks", taskID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
@@ -490,7 +490,7 @@ func (k *KanbanClient) GetSubtask(ctx context.Context, taskID, subtaskID int) (*
 	}
 
 	var result kanboard.Subtask
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d", taskID, subtaskID)
 	err := k.c.Get(ctx, path, &result)
 	if err != nil {
 		return nil, err
@@ -522,7 +522,7 @@ func (k *KanbanClient) CreateSubtask(ctx context.Context, taskID int, req Kanban
 	}
 
 	var result KanbanCreateSubtaskResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks", taskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks", taskID)
 	err := k.c.Post(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -554,7 +554,7 @@ func (k *KanbanClient) UpdateSubtask(ctx context.Context, taskID, subtaskID int,
 	}
 
 	var result KanbanUpdateSubtaskResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d", taskID, subtaskID)
 	err := k.c.Patch(ctx, path, req, &result)
 	if err != nil {
 		return nil, err
@@ -577,7 +577,7 @@ func (k *KanbanClient) RemoveSubtask(ctx context.Context, taskID, subtaskID int)
 	}
 
 	var result KanbanRemoveSubtaskResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d", taskID, subtaskID)
 	err := k.c.Delete(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
@@ -600,7 +600,7 @@ func (k *KanbanClient) HasSubtaskTimer(ctx context.Context, taskID, subtaskID, u
 	}
 
 	var result HasSubtaskTimerResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d/timer", taskID, subtaskID)
 	if userID > 0 {
 		path = fmt.Sprintf("%s?user_id=%d", path, userID)
 	}
@@ -626,7 +626,7 @@ func (k *KanbanClient) SetSubtaskStartTime(ctx context.Context, taskID, subtaskI
 	}
 
 	var result SetSubtaskStartTimeResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer/start", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d/timer/start", taskID, subtaskID)
 	if userID > 0 {
 		path = fmt.Sprintf("%s?user_id=%d", path, userID)
 	}
@@ -652,7 +652,7 @@ func (k *KanbanClient) SetSubtaskEndTime(ctx context.Context, taskID, subtaskID,
 	}
 
 	var result SetSubtaskEndTimeResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer/stop", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d/timer/stop", taskID, subtaskID)
 	if userID > 0 {
 		path = fmt.Sprintf("%s?user_id=%d", path, userID)
 	}
@@ -678,7 +678,7 @@ func (k *KanbanClient) GetSubtaskTimeSpent(ctx context.Context, taskID, subtaskI
 	}
 
 	var result GetSubtaskTimeSpentResult
-	path := fmt.Sprintf("/service/kanban/%d/subtasks/%d/timer/spent", taskID, subtaskID)
+	path := fmt.Sprintf("/service/kanboard/%d/subtasks/%d/timer/spent", taskID, subtaskID)
 	if userID > 0 {
 		path = fmt.Sprintf("%s?user_id=%d", path, userID)
 	}

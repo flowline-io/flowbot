@@ -31,12 +31,12 @@ import (
 	"fmt"
 	"time"
 
-	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	exsvc "github.com/flowline-io/flowbot/pkg/capability/example"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// ExamplePoller implements ability.PollingResource for the example provider.
+// ExamplePoller implements capability.PollingResource for the example provider.
 // It polls the example provider for new and updated items via the example Service.
 type ExamplePoller struct {
 	svc     exsvc.Service
@@ -45,7 +45,7 @@ type ExamplePoller struct {
 }
 
 // NewPoller creates an ExamplePoller backed by a default adapter.
-func NewPoller() ability.PollingResource {
+func NewPoller() capability.PollingResource {
 	return &ExamplePoller{
 		svc:     New(),
 		secret:  []byte("example-polling-secret-v1"),
@@ -96,23 +96,23 @@ func (*ExamplePoller) CursorField() string {
 }
 
 // List fetches a batch of items from the provider starting after the given cursor.
-func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) {
+func (p *ExamplePoller) List(ctx context.Context, cursor string) (capability.PollResult, error) {
 	if err := ctx.Err(); err != nil {
-		return ability.PollResult{}, types.WrapError(types.ErrTimeout, "context canceled", err)
+		return capability.PollResult{}, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
 	items, nextCursor, err := p.svc.ListRawEvents(ctx, cursor)
 	if err != nil {
-		return ability.PollResult{}, err
+		return capability.PollResult{}, err
 	}
-	return ability.PollResult{
+	return capability.PollResult{
 		Items:      items,
 		NextCursor: nextCursor,
 		HasMore:    nextCursor != "",
 	}, nil
 }
 
-// Compile-time check that ExamplePoller implements ability.PollingResource.
-var _ ability.PollingResource = (*ExamplePoller)(nil)
+// Compile-time check that ExamplePoller implements capability.PollingResource.
+var _ capability.PollingResource = (*ExamplePoller)(nil)
 ```
 
 - [ ] **Step 2: Run tests to verify compilation**
@@ -159,8 +159,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	exsvc "github.com/flowline-io/flowbot/pkg/ability/example"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	exsvc "github.com/flowline-io/flowbot/pkg/capability/example"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -170,16 +170,16 @@ type fakePollerService struct {
 	err    error
 }
 
-func (*fakePollerService) GetItem(_ context.Context, _ string) (*ability.Host, error) {
+func (*fakePollerService) GetItem(_ context.Context, _ string) (*capability.Host, error) {
 	return nil, nil
 }
-func (*fakePollerService) ListItems(_ context.Context, _ *exsvc.ListQuery) (*ability.ListResult[ability.Host], error) {
+func (*fakePollerService) ListItems(_ context.Context, _ *exsvc.ListQuery) (*capability.ListResult[capability.Host], error) {
 	return nil, nil
 }
-func (*fakePollerService) CreateItem(_ context.Context, _ string, _ types.KV) (*ability.Host, error) {
+func (*fakePollerService) CreateItem(_ context.Context, _ string, _ types.KV) (*capability.Host, error) {
 	return nil, nil
 }
-func (*fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*ability.Host, error) {
+func (*fakePollerService) UpdateItem(_ context.Context, _ string, _ map[string]any) (*capability.Host, error) {
 	return nil, nil
 }
 func (*fakePollerService) DeleteItem(_ context.Context, _ string) error { return nil }
@@ -352,12 +352,12 @@ import (
 	"fmt"
 	"time"
 
-	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	notesvc "github.com/flowline-io/flowbot/pkg/capability/note"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-// NotePoller implements ability.PollingResource for the note capability.
+// NotePoller implements capability.PollingResource for the note capability.
 // It polls Trilium for new and updated notes.
 type NotePoller struct {
 	svc     notesvc.Service
@@ -366,7 +366,7 @@ type NotePoller struct {
 }
 
 // NewPoller creates a NotePoller backed by a default adapter.
-func NewPoller() ability.PollingResource {
+func NewPoller() capability.PollingResource {
 	return &NotePoller{
 		svc:     New(),
 		secret:  []byte("note-polling-secret-v1"),
@@ -417,23 +417,23 @@ func (*NotePoller) CursorField() string {
 }
 
 // List fetches a batch of items from the provider starting after the given cursor.
-func (p *NotePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) {
+func (p *NotePoller) List(ctx context.Context, cursor string) (capability.PollResult, error) {
 	if err := ctx.Err(); err != nil {
-		return ability.PollResult{}, types.WrapError(types.ErrTimeout, "context canceled", err)
+		return capability.PollResult{}, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
 	items, nextCursor, err := p.svc.ListRawEvents(ctx, cursor)
 	if err != nil {
-		return ability.PollResult{}, err
+		return capability.PollResult{}, err
 	}
-	return ability.PollResult{
+	return capability.PollResult{
 		Items:      items,
 		NextCursor: nextCursor,
 		HasMore:    nextCursor != "",
 	}, nil
 }
 
-// Compile-time check that NotePoller implements ability.PollingResource.
-var _ ability.PollingResource = (*NotePoller)(nil)
+// Compile-time check that NotePoller implements capability.PollingResource.
+var _ capability.PollingResource = (*NotePoller)(nil)
 ```
 
 - [ ] **Step 2: Run build to verify compilation**
@@ -480,8 +480,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	notesvc "github.com/flowline-io/flowbot/pkg/ability/note"
-	"github.com/flowline-io/flowbot/pkg/ability"
+	notesvc "github.com/flowline-io/flowbot/pkg/capability/note"
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 type fakeNotePollerService struct {
@@ -490,23 +490,23 @@ type fakeNotePollerService struct {
 	err    error
 }
 
-func (*fakeNotePollerService) List(_ context.Context, _ *notesvc.ListQuery) (*ability.ListResult[ability.Note], error) {
+func (*fakeNotePollerService) List(_ context.Context, _ *notesvc.ListQuery) (*capability.ListResult[capability.Note], error) {
 	return nil, nil
 }
-func (*fakeNotePollerService) Get(_ context.Context, _ string) (*ability.Note, error) { return nil, nil }
-func (*fakeNotePollerService) Create(_ context.Context, _, _, _, _ string) (*ability.Note, error) {
+func (*fakeNotePollerService) Get(_ context.Context, _ string) (*capability.Note, error) { return nil, nil }
+func (*fakeNotePollerService) Create(_ context.Context, _, _, _, _ string) (*capability.Note, error) {
 	return nil, nil
 }
-func (*fakeNotePollerService) Update(_ context.Context, _, _, _ string) (*ability.Note, error) {
+func (*fakeNotePollerService) Update(_ context.Context, _, _, _ string) (*capability.Note, error) {
 	return nil, nil
 }
 func (*fakeNotePollerService) Delete(_ context.Context, _ string) error            { return nil }
 func (*fakeNotePollerService) GetContent(_ context.Context, _ string) (string, error) { return "", nil }
 func (*fakeNotePollerService) SetContent(_ context.Context, _, _ string) error      { return nil }
-func (*fakeNotePollerService) Search(_ context.Context, _ string) (*ability.ListResult[ability.Note], error) {
+func (*fakeNotePollerService) Search(_ context.Context, _ string) (*capability.ListResult[capability.Note], error) {
 	return nil, nil
 }
-func (*fakeNotePollerService) GetAppInfo(_ context.Context) (*ability.Note, error) { return nil, nil }
+func (*fakeNotePollerService) GetAppInfo(_ context.Context) (*capability.Note, error) { return nil, nil }
 func (f *fakeNotePollerService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
 	return f.items, f.cursor, f.err
 }
@@ -726,7 +726,7 @@ Edit `internal/server/pipeline.go`:
 Remove the import (line 14):
 
 ```go
-exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
+exampleAdapter "github.com/flowline-io/flowbot/pkg/capability/example/example"
 ```
 
 Remove the webhook registration with TODO comment (lines 212-213):
@@ -770,8 +770,8 @@ git add -A && git commit -m "refactor: remove hardcoded webhook and poller regis
 Add the following imports to `internal/modules/hub/module.go`:
 
 ```go
-exampleAdapter "github.com/flowline-io/flowbot/pkg/ability/example/example"
-triliumAdapter "github.com/flowline-io/flowbot/pkg/ability/note/trilium"
+exampleAdapter "github.com/flowline-io/flowbot/pkg/capability/example/example"
+triliumAdapter "github.com/flowline-io/flowbot/pkg/capability/note/trilium"
 ```
 
 Add poller registrations in `Bootstrap()` after the webhook registrations:
@@ -815,7 +815,7 @@ Replace:
 ````markdown
 ### PollingResource (Optional)
 
-When a provider lacks webhooks, implement `ability.PollingResource`:
+When a provider lacks webhooks, implement `capability.PollingResource`:
 
 ```go
 // pkg/ability/example/poller.go
@@ -826,12 +826,12 @@ func (*ExamplePoller) DefaultInterval() time.Duration { ... }
 func (*ExamplePoller) DiffKey(item any) string { ... }
 func (*ExamplePoller) ContentHash(item any) string { ... }
 func (*ExamplePoller) CursorField() string { ... }
-func (p *ExamplePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) { ... }
+func (p *ExamplePoller) List(ctx context.Context, cursor string) (capability.PollResult, error) { ... }
 ```
 ````
 
 - `Service` should expose a `ListRawEvents` method that the poller delegates to.
-- Register via `ability.EventSourceManager.RegisterPollingResource()`.
+- Register via `capability.EventSourceManager.RegisterPollingResource()`.
 
 ````
 
@@ -839,7 +839,7 @@ With:
 ```markdown
 ### PollingResource (Optional)
 
-When a provider lacks webhooks, implement `ability.PollingResource` in the adapter directory alongside `adapter.go` and `webhook.go`:
+When a provider lacks webhooks, implement `capability.PollingResource` in the adapter directory alongside `adapter.go` and `webhook.go`:
 
 ```go
 // pkg/ability/<capability>/<backend>/poller.go
@@ -850,7 +850,7 @@ type NotePoller struct {
 }
 
 // NewPoller creates a poller backed by a default adapter.
-func NewPoller() ability.PollingResource {
+func NewPoller() capability.PollingResource {
 	return &NotePoller{svc: New(), ...}
 }
 
@@ -864,12 +864,12 @@ func (*NotePoller) DefaultInterval() time.Duration { ... }
 func (*NotePoller) DiffKey(item any) string { ... }
 func (*NotePoller) ContentHash(item any) string { ... }
 func (*NotePoller) CursorField() string { ... }
-func (p *NotePoller) List(ctx context.Context, cursor string) (ability.PollResult, error) { ... }
+func (p *NotePoller) List(ctx context.Context, cursor string) (capability.PollResult, error) { ... }
 ````
 
-- Include `var _ ability.PollingResource = (*NotePoller)(nil)` for compile-time safety.
+- Include `var _ capability.PollingResource = (*NotePoller)(nil)` for compile-time safety.
 - `Service` should expose a `ListRawEvents` method that the poller delegates to.
-- Register via `ability.EventSourceManager.RegisterPolling()` in the hub module's `Bootstrap()` alongside webhook converters.
+- Register via `capability.EventSourceManager.RegisterPolling()` in the hub module's `Bootstrap()` alongside webhook converters.
 
 ````
 

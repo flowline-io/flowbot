@@ -12,8 +12,8 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/flc1125/go-cron/v4"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
 	"github.com/flowline-io/flowbot/pkg/backoff"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/metrics"
@@ -73,7 +73,7 @@ func mergeTags(upstream types.KV, stepTags any) types.KV {
 type RunStore interface {
 	CreateRun(ctx context.Context, pipelineName, eventID, eventType, triggerSource string) (*gen.PipelineRun, error)
 	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
-	CreateStepRun(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (*gen.PipelineStepRun, error)
+	CreateStepRun(ctx context.Context, runID int64, stepName, capName, operation string, params map[string]any, attempt int) (*gen.PipelineStepRun, error)
 	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
 	SaveCheckpoint(ctx context.Context, runID int64, data any) error
 	GetIncompleteRuns(ctx context.Context) ([]*gen.PipelineRun, error)
@@ -293,7 +293,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 		e.callback.OnStepStart(ctx, runID, pipelineName, stepIndex, step.Name, renderedParams)
 	}
 
-	if ability.IsMutation(step.Operation) && len(rc.Event.Tags) > 0 {
+	if capability.IsMutation(step.Operation) && len(rc.Event.Tags) > 0 {
 		injectTags(rc, renderedParams)
 	}
 
@@ -327,9 +327,9 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 	}
 
 	var stepResult map[string]any
-	var stepResource *ability.ResourceMeta
+	var stepResource *capability.ResourceMeta
 	attempt, retryErr := backoff.Do(ctx, boCfg, func(ctx context.Context) error {
-		res, invokeErr := ability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
+		res, invokeErr := capability.Invoke(ctx, step.Capability, step.Operation, renderedParams)
 		if invokeErr != nil {
 			trace.RecordError(ctx, invokeErr)
 			return invokeErr
@@ -370,7 +370,7 @@ func InjectAgentRunDefaults(step Step, renderedParams map[string]any, rc *Render
 }
 
 func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelineName string) {
-	if step.Capability != hub.CapAgent || step.Operation != ability.OpAgentRun {
+	if step.Capability != hub.CapAgent || step.Operation != capability.OpAgentRun {
 		return
 	}
 	if renderedParams == nil {
@@ -385,7 +385,7 @@ func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelin
 }
 
 func injectAgentRunUID(step Step, renderedParams map[string]any, rc *RenderContext) {
-	if step.Capability != hub.CapAgent || step.Operation != ability.OpAgentRun {
+	if step.Capability != hub.CapAgent || step.Operation != capability.OpAgentRun {
 		return
 	}
 	if renderedParams == nil || rc == nil {
@@ -404,7 +404,7 @@ func injectAgentRunUID(step Step, renderedParams map[string]any, rc *RenderConte
 }
 
 // saveResourceLink records a resource link when a capability step reports a created resource.
-func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step Step, stepResource *ability.ResourceMeta, runID int64, pipelineName string) {
+func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step Step, stepResource *capability.ResourceMeta, runID int64, pipelineName string) {
 	if stepResource == nil || stepResource.EntityID == "" || stepResource.EventID == "" {
 		return
 	}
@@ -477,12 +477,12 @@ func (e *Engine) createRunRecord(ctx context.Context, name, eventID, eventType, 
 	return run.ID, nil
 }
 
-func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName, capability, operation string, params map[string]any, attempt int) (int64, error) {
+func (e *Engine) createStepRunRecord(ctx context.Context, runID int64, stepName, capName, operation string, params map[string]any, attempt int) (int64, error) {
 	if e.store == nil {
 		return 0, nil
 	}
 	paramsJSON := convertToTypesKV(params)
-	sr, err := e.store.CreateStepRun(ctx, runID, stepName, capability, operation, paramsJSON, attempt)
+	sr, err := e.store.CreateStepRun(ctx, runID, stepName, capName, operation, paramsJSON, attempt)
 	if err != nil {
 		return 0, fmt.Errorf("create step run %s: %w", stepName, err)
 	}
@@ -573,28 +573,28 @@ func (e *Engine) saveCheckpointIfResumable(ctx context.Context, def Definition, 
 	}
 }
 
-func (e *Engine) recordStepMetrics(pipelineName, stepName, capability, status string, durationSec float64, attempt int) {
+func (e *Engine) recordStepMetrics(pipelineName, stepName, capName, status string, durationSec float64, attempt int) {
 	if e.pipelineMetrics == nil {
 		return
 	}
 	e.pipelineMetrics.IncStepTotal(pipelineName, stepName, status)
-	e.pipelineMetrics.ObserveStepDuration(pipelineName, stepName, capability, status, durationSec)
+	e.pipelineMetrics.ObserveStepDuration(pipelineName, stepName, capName, status, durationSec)
 	if attempt > 1 {
 		e.pipelineMetrics.IncStepRetry(pipelineName, stepName)
 	}
 }
 
-func (e *Engine) recordStepSuccess(ctx context.Context, stepRunID int64, pipelineName, stepName, capability string, stepResult map[string]any, attempt int, stepStart time.Time) {
+func (e *Engine) recordStepSuccess(ctx context.Context, stepRunID int64, pipelineName, stepName, capName string, stepResult map[string]any, attempt int, stepStart time.Time) {
 	e.updateStepRunRecord(ctx, stepRunID, int(schema.PipelineDone), stepResult, "", attempt)
-	e.recordStepMetrics(pipelineName, stepName, capability, "done", time.Since(stepStart).Seconds(), attempt)
+	e.recordStepMetrics(pipelineName, stepName, capName, "done", time.Since(stepStart).Seconds(), attempt)
 }
 
-func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelineName, stepName, capability, errMsg string, attempt int, stepStart time.Time) {
+func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelineName, stepName, capName, errMsg string, attempt int, stepStart time.Time) {
 	e.updateStepRunRecord(ctx, stepRunID, int(schema.PipelineCancel), nil, errMsg, attempt)
-	e.recordStepMetrics(pipelineName, stepName, capability, "cancel", time.Since(stepStart).Seconds(), attempt)
+	e.recordStepMetrics(pipelineName, stepName, capName, "cancel", time.Since(stepStart).Seconds(), attempt)
 }
 
-func extractResult(res *ability.InvokeResult) map[string]any {
+func extractResult(res *capability.InvokeResult) map[string]any {
 	return StepResultFromInvoke(res)
 }
 

@@ -279,8 +279,8 @@ func TestHubListCapabilities(t *testing.T) {
 				_, _ = w.Write([]byte(`{
 					"status":"ok",
 					"data":[
-						{"type":"bookmark","backend":"karakeep","app":"karakeep","healthy":true},
-						{"type":"kanban","backend":"kanboard","app":"kanboard","healthy":true}
+						{"type":"karakeep","app":"karakeep","healthy":true},
+						{"type":"kanboard","app":"kanboard","healthy":true}
 					]
 				}`))
 			},
@@ -343,9 +343,9 @@ func TestHubGetCapability(t *testing.T) {
 			name: "capability found",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"type":"bookmark","backend":"karakeep","app":"karakeep","healthy":true}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"type":"karakeep","app":"karakeep","healthy":true}}`))
 			},
-			wantType: "bookmark",
+			wantType: "karakeep",
 			wantErr:  false,
 		},
 		{
@@ -377,7 +377,7 @@ func TestHubGetCapability(t *testing.T) {
 			defer server.Close()
 
 			c := NewClient(server.URL, "token")
-			result, err := c.Hub.GetCapability(context.Background(), "bookmark")
+			result, err := c.Hub.GetCapability(context.Background(), "karakeep")
 
 			if tt.wantErr {
 				require.Error(t, err)

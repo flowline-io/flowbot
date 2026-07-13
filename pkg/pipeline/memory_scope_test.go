@@ -4,7 +4,7 @@ import (
 	"maps"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/ability"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +21,7 @@ func TestInjectAgentRunMemoryScope(t *testing.T) {
 	}{
 		{
 			name:         "injects for agent run",
-			step:         Step{Capability: hub.CapAgent, Operation: ability.OpAgentRun},
+			step:         Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
 			existing:     map[string]any{"prompt": "hi"},
 			pipelineName: "sync-bookmarks",
 			want:         "sync-bookmarks",
@@ -29,7 +29,7 @@ func TestInjectAgentRunMemoryScope(t *testing.T) {
 		},
 		{
 			name:         "keeps explicit scope",
-			step:         Step{Capability: hub.CapAgent, Operation: ability.OpAgentRun},
+			step:         Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
 			existing:     map[string]any{"memory_scope": "custom"},
 			pipelineName: "sync-bookmarks",
 			want:         "custom",
@@ -37,7 +37,7 @@ func TestInjectAgentRunMemoryScope(t *testing.T) {
 		},
 		{
 			name:         "skips non agent step",
-			step:         Step{Capability: hub.CapBookmark, Operation: ability.OpBookmarkList},
+			step:         Step{Capability: hub.CapKarakeep, Operation: capability.OpBookmarkList},
 			existing:     map[string]any{},
 			pipelineName: "sync-bookmarks",
 			wantSet:      false,
@@ -70,7 +70,7 @@ func TestInjectAgentRunUID(t *testing.T) {
 	}{
 		{
 			name:     "injects from event uid",
-			step:     Step{Capability: hub.CapAgent, Operation: ability.OpAgentRun},
+			step:     Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
 			existing: map[string]any{"prompt": "hi"},
 			eventUID: "user-admin",
 			want:     "user-admin",
@@ -78,7 +78,7 @@ func TestInjectAgentRunUID(t *testing.T) {
 		},
 		{
 			name:     "keeps explicit uid",
-			step:     Step{Capability: hub.CapAgent, Operation: ability.OpAgentRun},
+			step:     Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
 			existing: map[string]any{"uid": "user-custom"},
 			eventUID: "user-admin",
 			want:     "user-custom",
@@ -86,7 +86,7 @@ func TestInjectAgentRunUID(t *testing.T) {
 		},
 		{
 			name:     "skips non agent step",
-			step:     Step{Capability: hub.CapBookmark, Operation: ability.OpBookmarkList},
+			step:     Step{Capability: hub.CapKarakeep, Operation: capability.OpBookmarkList},
 			existing: map[string]any{},
 			eventUID: "user-admin",
 			wantSet:  false,

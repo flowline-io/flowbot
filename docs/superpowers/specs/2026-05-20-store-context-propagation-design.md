@@ -10,7 +10,7 @@ All database queries in the store layer use `context.Background()`, creating a h
 - 119 occurrences of `context.Background()` in store layer (86 in Postgres adapter alone)
 - Zero methods in `store.Adapter` (92 methods) accept `context.Context`
 - Specialized stores (`RunStore`, `WorkflowRunStore`, `AuditStore`, `EventStore`, `HubStore`) also all use `context.Background()` internally
-- Upper layers (HTTP, pipeline, workflow, `ability.Invoke`) already propagate `context.Context` properly — it is dropped at the store boundary
+- Upper layers (HTTP, pipeline, workflow, `capability.Invoke`) already propagate `context.Context` properly — it is dropped at the store boundary
 
 This causes:
 

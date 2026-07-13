@@ -93,8 +93,8 @@ type Type struct {
 	// Pyroscope continuous profiling configuration
 	Profiling Profiling `json:"profiling" yaml:"profiling" mapstructure:"profiling"`
 
-	// Ability invocation configuration
-	Ability AbilityConfig `json:"ability" yaml:"ability" mapstructure:"ability"`
+	// Capability invocation configuration (YAML key remains "ability" for backward compatibility).
+	Capability AbilityConfig `json:"ability" yaml:"ability" mapstructure:"ability"`
 
 	// Plugin system configuration
 	Plugins *plugintypes.PluginConfig `json:"plugins" yaml:"plugins" mapstructure:"plugins"`

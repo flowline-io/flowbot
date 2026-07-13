@@ -30,7 +30,7 @@ The webhook converter lives alongside the existing Karakeep adapter (`pkg/abilit
 
 | File                                            | Purpose                                                  |
 | ----------------------------------------------- | -------------------------------------------------------- |
-| `pkg/ability/bookmark/karakeep/webhook.go`      | `Webhook` struct implementing `ability.WebhookConverter` |
+| `pkg/ability/bookmark/karakeep/webhook.go`      | `Webhook` struct implementing `capability.WebhookConverter` |
 | `pkg/ability/bookmark/karakeep/webhook_test.go` | Table-driven unit tests                                  |
 
 ### Modified files
@@ -40,7 +40,7 @@ The webhook converter lives alongside the existing Karakeep adapter (`pkg/abilit
 | `pkg/types/event.go`                  | Add `EventBookmarkUpdated`, `EventBookmarkDeleted` event constants                                          |
 | `pkg/ability/event_source_manager.go` | Add `SetEventSourceManager` / `GetEventSourceManager` global accessor (follows `pool.go` pattern)           |
 | `internal/server/fx.go`               | Move `initPipeline` before `handleModules` in `fx.Invoke` so the manager is set before module `Bootstrap()` |
-| `internal/server/pipeline.go`         | Call `ability.SetEventSourceManager(srcMgr)` after creating the manager                                     |
+| `internal/server/pipeline.go`         | Call `capability.SetEventSourceManager(srcMgr)` after creating the manager                                     |
 | `pkg/providers/karakeep/types.go`     | Add `WebhookPayload` struct                                                                                 |
 | `pkg/providers/karakeep/karakeep.go`  | Add `WebhookTokenKey` constant and `GetWebhookToken()` config reader                                        |
 | `internal/modules/bookmark/module.go` | Register WebhookConverter with EventSourceManager in `Bootstrap()`                                          |
@@ -98,12 +98,12 @@ import (
 
     "github.com/bytedance/sonic"
 
-    "github.com/flowline-io/flowbot/pkg/ability"
+    "github.com/flowline-io/flowbot/pkg/capability"
     provider "github.com/flowline-io/flowbot/pkg/providers/karakeep"
     "github.com/flowline-io/flowbot/pkg/types"
 )
 
-// Webhook implements ability.WebhookConverter for Karakeep.
+// Webhook implements capability.WebhookConverter for Karakeep.
 // It validates Bearer token auth and converts Karakeep webhook payloads.
 type Webhook struct {
     getToken func() string
@@ -118,7 +118,7 @@ func NewWebhook() *Webhook {
 }
 
 // Compile-time interface check.
-var _ ability.WebhookConverter = (*Webhook)(nil)
+var _ capability.WebhookConverter = (*Webhook)(nil)
 ```
 
 ### WebhookPath
@@ -214,7 +214,7 @@ func GetEventSourceManager() *EventSourceManager {
 }
 ```
 
-`internal/server/pipeline.go` calls `ability.SetEventSourceManager(srcMgr)` after `NewEventSourceManager(...)`.
+`internal/server/pipeline.go` calls `capability.SetEventSourceManager(srcMgr)` after `NewEventSourceManager(...)`.
 
 ## Registration Flow
 
@@ -225,7 +225,7 @@ func (moduleHandler) Bootstrap() error {
     if !Config.Enabled {
         return nil
     }
-    mgr := ability.GetEventSourceManager()
+    mgr := capability.GetEventSourceManager()
     if mgr == nil {
         return fmt.Errorf("bookmark: event source manager not initialized")
     }
@@ -235,7 +235,7 @@ func (moduleHandler) Bootstrap() error {
 }
 ```
 
-The `karakeep` import refers to `"github.com/flowline-io/flowbot/pkg/ability/bookmark/karakeep"`. The `ability` import refers to `"github.com/flowline-io/flowbot/pkg/ability"`.
+The `karakeep` import refers to `"github.com/flowline-io/flowbot/pkg/capability/bookmark/karakeep"`. The `ability` import refers to `"github.com/flowline-io/flowbot/pkg/capability"`.
 
 ## Testing
 
@@ -277,7 +277,7 @@ This avoids calling `karakeep.GetWebhookToken()` (which reads config from disk) 
   | `bookmark.updated` | `"updated"` |
   | `bookmark.archived` | `"archived"` |
   | `bookmark.deleted` | `"deleted"` |
-- **TestInterfaceCompliance**: compile-time `var _ ability.WebhookConverter = (*Webhook)(nil)` check
+- **TestInterfaceCompliance**: compile-time `var _ capability.WebhookConverter = (*Webhook)(nil)` check
 
 ## Configuration
 

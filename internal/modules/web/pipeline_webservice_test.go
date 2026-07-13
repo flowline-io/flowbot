@@ -16,8 +16,8 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
-	"github.com/flowline-io/flowbot/pkg/ability"
-	abilityagent "github.com/flowline-io/flowbot/pkg/ability/agent"
+	"github.com/flowline-io/flowbot/pkg/capability"
+	abilityagent "github.com/flowline-io/flowbot/pkg/capability/agent"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 )
@@ -55,7 +55,7 @@ func registerWebAgentRunner(t *testing.T, runner abilityagent.Runner) {
 	require.NoError(t, abilityagent.Register())
 	t.Cleanup(func() {
 		abilityagent.SetRunner(nil)
-		ability.UnregisterInvoker(hub.CapAgent, ability.OpAgentRun)
+		capability.UnregisterInvoker(hub.CapAgent, capability.OpAgentRun)
 		hub.Default.Unregister(hub.CapAgent)
 	})
 }

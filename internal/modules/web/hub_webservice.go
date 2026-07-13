@@ -246,7 +246,7 @@ func hubCapabilitiesGrid(c fiber.Ctx) error {
 			if typeFilter != "" && string(d.Type) != typeFilter {
 				continue
 			}
-			if providerFilter != "" && d.Backend != providerFilter {
+			if providerFilter != "" && string(d.Type) != providerFilter {
 				continue
 			}
 			tmp = append(tmp, d)
@@ -273,17 +273,18 @@ func uniqueTypes(descriptors []hub.Descriptor) []string {
 	return result
 }
 
-// uniqueProviders extracts unique backend strings from descriptors, sorted.
+// uniqueProviders extracts unique provider (capability type) strings from descriptors, sorted.
 func uniqueProviders(descriptors []hub.Descriptor) []string {
 	seen := make(map[string]struct{})
 	result := make([]string, 0, len(descriptors))
 	for _, d := range descriptors {
-		if d.Backend == "" {
+		t := string(d.Type)
+		if t == "" {
 			continue
 		}
-		if _, ok := seen[d.Backend]; !ok {
-			seen[d.Backend] = struct{}{}
-			result = append(result, d.Backend)
+		if _, ok := seen[t]; !ok {
+			seen[t] = struct{}{}
+			result = append(result, t)
 		}
 	}
 	slices.Sort(result)
