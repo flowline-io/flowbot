@@ -5,6 +5,7 @@ go 1.26.3
 require (
 	code.gitea.io/sdk/gitea v0.25.1
 	entgo.io/ent v0.14.6
+	github.com/FurqanSoftware/goldmark-katex v0.0.0-20260328091149-1897eb7a41e4
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/ThreeDotsLabs/watermill v1.5.2
 	github.com/ThreeDotsLabs/watermill-redisstream v1.4.5
@@ -59,7 +60,7 @@ require (
 	github.com/tidwall/gjson v1.19.0
 	github.com/tmc/langchaingo v0.1.14
 	github.com/valyala/fasthttp v1.72.0
-	github.com/yuin/goldmark v1.8.2
+	github.com/yuin/goldmark v1.8.4
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.69.0
 	go.opentelemetry.io/otel v1.44.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.44.0
@@ -125,7 +126,6 @@ require (
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.7.0 // indirect
 	github.com/BobuSumisu/aho-corasick v1.0.3 // indirect
 	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/FurqanSoftware/goldmark-katex v0.0.0-20260328091149-1897eb7a41e4 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.32.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric v0.55.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.55.0 // indirect
