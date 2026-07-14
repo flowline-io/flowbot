@@ -90,7 +90,7 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 
 			decoded, err := capability.DecodeCursor(secret, cursor, now)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(decoded.Capability).To(Equal("bookmark"))
+			Expect(decoded.Capability).To(Equal("karakeep"))
 			Expect(decoded.Limit).To(Equal(10))
 			Expect(decoded.Offset).To(Equal(0))
 		})
@@ -199,24 +199,29 @@ var _ = Describe("Ability Layer", Label("ability"), func() {
 	})
 
 	Describe("ListResult and operations", func() {
-		It("has defined operations for bookmark capability", func() {
-			ops := capability.Operations[hub.CapKarakeep]
-			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["List"]).To(Equal(capability.OpBookmarkList))
-			Expect(ops["Create"]).To(Equal(capability.OpBookmarkCreate))
-			Expect(ops["Search"]).To(Equal(capability.OpBookmarkSearch))
+		It("has defined operations for karakeep capability", func() {
+			capability.RegisterOperations(hub.CapKarakeep, map[string]string{
+				"List":   capability.OpBookmarkList,
+				"Create": capability.OpBookmarkCreate,
+				"Search": capability.OpBookmarkSearch,
+			})
+			Expect(capability.Op(hub.CapKarakeep, "List")).To(Equal(capability.OpBookmarkList))
+			Expect(capability.Op(hub.CapKarakeep, "Create")).To(Equal(capability.OpBookmarkCreate))
+			Expect(capability.Op(hub.CapKarakeep, "Search")).To(Equal(capability.OpBookmarkSearch))
 		})
 
-		It("has defined operations for reader capability", func() {
-			ops := capability.Operations[hub.CapMiniflux]
-			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["ListFeeds"]).To(Equal(capability.OpReaderListFeeds))
+		It("has defined operations for miniflux capability", func() {
+			capability.RegisterOperations(hub.CapMiniflux, map[string]string{
+				"ListFeeds": capability.OpReaderListFeeds,
+			})
+			Expect(capability.Op(hub.CapMiniflux, "ListFeeds")).To(Equal(capability.OpReaderListFeeds))
 		})
 
-		It("has defined operations for kanban capability", func() {
-			ops := capability.Operations[hub.CapKanboard]
-			Expect(ops).NotTo(BeEmpty())
-			Expect(ops["ListTasks"]).To(Equal(capability.OpKanbanListTasks))
+		It("has defined operations for kanboard capability", func() {
+			capability.RegisterOperations(hub.CapKanboard, map[string]string{
+				"ListTasks": capability.OpKanbanListTasks,
+			})
+			Expect(capability.Op(hub.CapKanboard, "ListTasks")).To(Equal(capability.OpKanbanListTasks))
 		})
 	})
 

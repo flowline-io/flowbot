@@ -113,8 +113,6 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 			Expect(string(body)).To(ContainSubstring("Homelab Registry"))
 			Expect(string(body)).To(ContainSubstring("gitea"))
 			Expect(string(body)).To(ContainSubstring("karakeep"))
-			Expect(string(body)).To(ContainSubstring("forge"))
-			Expect(string(body)).To(ContainSubstring("bookmark"))
 		})
 
 		It("shows empty state when no apps are registered", func() {
@@ -146,7 +144,6 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 			Expect(string(body)).To(ContainSubstring("gitea"))
 			Expect(string(body)).To(ContainSubstring("1.22.3"))
 			Expect(string(body)).To(ContainSubstring("gitea/gitea"))
-			Expect(string(body)).To(ContainSubstring("forge"))
 			Expect(string(body)).To(ContainSubstring("http://gitea.local:3000"))
 		})
 

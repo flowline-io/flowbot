@@ -144,9 +144,9 @@ var _ = Describe("Hub Module", Label("module", "hub"), func() {
 
 	Describe("Capability constants", func() {
 		It("defines expected capability type constants", func() {
-			Expect(homelab.CapKarakeep).To(Equal("bookmark"))
-			Expect(homelab.CapMiniflux).To(Equal("reader"))
-			Expect(homelab.CapKanboard).To(Equal("kanban"))
+			Expect(homelab.CapKarakeep).To(Equal("karakeep"))
+			Expect(homelab.CapMiniflux).To(Equal("miniflux"))
+			Expect(homelab.CapKanboard).To(Equal("kanboard"))
 			Expect(homelab.CapArchive).To(Equal("archive"))
 			Expect(homelab.CapFinance).To(Equal("finance"))
 			Expect(homelab.CapInfra).To(Equal("infra"))

@@ -81,10 +81,10 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 
 		It("parses app metadata from labels", func() {
 			labels := map[string]string{
-				"flowbot.capability":         "bookmark",
-				"flowbot.backend":            "karakeep",
-				"flowbot.endpoint.base":      "http://localhost:8080",
-				"flowbot.endpoint.health":    "/health",
+				"flowbot.capability":          "bookmark",
+				"flowbot.backend":             "karakeep",
+				"flowbot.endpoint.base":       "http://localhost:8080",
+				"flowbot.endpoint.health":     "/health",
 				"flowbot.endpoint.health_ttl": "30s",
 			}
 			caps := homelab.ParseLabels(labels)
@@ -146,12 +146,12 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 
 		It("extracts app name, version, and endpoint", func() {
 			labels := map[string]string{
-				"flowbot.capability":      "kanban",
-				"flowbot.backend":         "kanboard",
-				"flowbot.endpoint.base":   "http://kanban.local:8080",
-				"flowbot.auth.type":       "basic",
-				"flowbot.auth.header":     "Authorization",
-				"flowbot.auth.token_key":  "api_key",
+				"flowbot.capability":        "kanban",
+				"flowbot.backend":           "kanboard",
+				"flowbot.endpoint.base":     "http://kanban.local:8080",
+				"flowbot.auth.type":         "basic",
+				"flowbot.auth.header":       "Authorization",
+				"flowbot.auth.token_key":    "api_key",
 				"flowbot.auth.token_source": "env",
 			}
 			caps := homelab.ParseLabels(labels)
@@ -208,11 +208,11 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 
 		It("parses auth labels correctly", func() {
 			labels := map[string]string{
-				"flowbot.capability":    "bookmark",
-				"flowbot.backend":       "karakeep",
-				"flowbot.auth.type":     "api_token",
-				"flowbot.auth.header":   "X-API-Key",
-				"flowbot.auth.prefix":   "Bearer",
+				"flowbot.capability":     "bookmark",
+				"flowbot.backend":        "karakeep",
+				"flowbot.auth.type":      "api_token",
+				"flowbot.auth.header":    "X-API-Key",
+				"flowbot.auth.prefix":    "Bearer",
 				"flowbot.auth.token_key": "token",
 			}
 			caps := homelab.ParseLabels(labels)
@@ -246,10 +246,10 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 		})
 
 		It("has capability type constants matching hub types", func() {
-			Expect(homelab.CapKarakeep).To(Equal("bookmark"))
+			Expect(homelab.CapKarakeep).To(Equal("karakeep"))
 			Expect(homelab.CapArchive).To(Equal("archive"))
-			Expect(homelab.CapMiniflux).To(Equal("reader"))
-			Expect(homelab.CapKanboard).To(Equal("kanban"))
+			Expect(homelab.CapMiniflux).To(Equal("miniflux"))
+			Expect(homelab.CapKanboard).To(Equal("kanboard"))
 			Expect(homelab.CapFinance).To(Equal("finance"))
 			Expect(homelab.CapInfra).To(Equal("infra"))
 		})
@@ -291,9 +291,9 @@ var _ = Describe("Homelab Scanner", Label("homelab"), func() {
 			for i, s := range probe.KnownServices {
 				names[i] = s.Capability
 			}
-			Expect(names).To(ContainElement("bookmark"))
-			Expect(names).To(ContainElement("kanban"))
-			Expect(names).To(ContainElement("reader"))
+			Expect(names).To(ContainElement("karakeep"))
+			Expect(names).To(ContainElement("kanboard"))
+			Expect(names).To(ContainElement("miniflux"))
 			Expect(names).To(ContainElement("archive"))
 		})
 	})
