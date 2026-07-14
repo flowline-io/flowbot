@@ -3,7 +3,6 @@ package web
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
@@ -186,19 +185,15 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		Body:     "Connectivity test from Flowbot",
 		Priority: notifypkg.Low,
 	}
-	notifyURI := ch.URI
-	if !strings.Contains(ch.URI, "://") {
-		notifyURI = ch.Protocol + "://" + ch.URI
-	}
-	if err := notifypkg.Send(notifyURI, notifyMsg); err != nil {
-		ctx.Set("HX-Trigger", `{"showToast": {"type": "error", "message": "Connection failed: `+err.Error()+`"}}`)
+	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
+		setShowToast(ctx, "error", "Connection failed: "+err.Error())
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
 			_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "Test connectivity", "failed", err.Error(), nil)
 		}
 		return ctx.SendString("")
 	}
-	ctx.Set("HX-Trigger", `{"showToast": {"type": "success", "message": "Connection successful"}}`)
+	setShowToast(ctx, "success", "Connection successful")
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
 		_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "Test connectivity", "success", "", nil)
@@ -334,6 +329,29 @@ func parseID(ctx fiber.Ctx) (int64, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+// showToastTrigger builds an HX-Trigger payload for the web UI toast system.
+func showToastTrigger(toastType, message string) (string, error) {
+	payload, err := sonic.Marshal(map[string]any{
+		"showToast": map[string]string{
+			"type":    toastType,
+			"message": message,
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+	return string(payload), nil
+}
+
+// setShowToast sets the HX-Trigger header so HTMX can fire a showToast event.
+func setShowToast(ctx fiber.Ctx, toastType, message string) {
+	trigger, err := showToastTrigger(toastType, message)
+	if err != nil {
+		return
+	}
+	ctx.Set("HX-Trigger", trigger)
 }
 
 func notFound(ctx fiber.Ctx) error {

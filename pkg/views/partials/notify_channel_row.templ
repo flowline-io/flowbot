@@ -24,6 +24,7 @@ templ NotifyChannelRow(item model.NotifyChannel) {
 					Edit
 				</button>
 				<button hx-post={ notifyChannelTestURL(item) }
+					hx-swap="none"
 					data-testid="channel-test"
 					class="btn btn-ghost btn-xs text-info"
 					hx-indicator={ "#channel-test-spinner-" + fmt.Sprintf("%d", item.ID) }>

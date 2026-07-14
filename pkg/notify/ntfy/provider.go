@@ -43,11 +43,24 @@ func (*plugin) Templates() []string {
 
 func (*plugin) Send(tokens types.KV, message notify.Message) error {
 	host, _ := tokens.String("host")
-	return doSend(tokens, message, resty.New(), fmt.Sprintf("http://%s", host))
+	if host == "" {
+		host = "ntfy.sh"
+	}
+	if port, ok := tokens.String("port"); ok && port != "" {
+		host = host + ":" + port
+	}
+	schema, _ := tokens.String("schema")
+	if schema == "" {
+		schema = "https"
+	}
+	return doSend(tokens, message, resty.New(), fmt.Sprintf("%s://%s", schema, host))
 }
 
 func doSend(tokens types.KV, message notify.Message, client *resty.Client, baseURL string) error {
 	topic, _ := tokens.String("topic")
+	if topic == "" {
+		topic, _ = tokens.String("targets")
+	}
 
 	client.SetBaseURL(baseURL)
 	client.SetTimeout(time.Minute)

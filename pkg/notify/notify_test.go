@@ -76,6 +76,18 @@ func TestParseTemplate(t *testing.T) {
 			templates: []string{"pushover://{user_key}/{app_token}"},
 			expect:    types.KV{"user_key": "ukey123", "app_token": "atoken"},
 		},
+		{
+			name:      "prefers full match over shorter prefix template",
+			input:     "http://ntfy.example.com/mytopic",
+			templates: []string{"{schema}://{topic}", "{schema}://{host}/{targets}"},
+			expect:    types.KV{"schema": "http", "host": "ntfy.example.com", "targets": "mytopic"},
+		},
+		{
+			name:      "rejects partial-only match",
+			input:     "slack://general/abc123/extra",
+			templates: []string{"slack://{channel}/{token}"},
+			expect:    types.KV{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -118,4 +130,149 @@ func TestMessageZeroValue(t *testing.T) {
 		assert.Empty(t, m.Url)
 		assert.Equal(t, Priority(0), m.Priority)
 	})
+}
+
+type mockNotifyer struct {
+	protocol  string
+	templates []string
+	sendErr   error
+	calls     int
+}
+
+func (m *mockNotifyer) Protocol() string { return m.protocol }
+func (m *mockNotifyer) Templates() []string {
+	return m.templates
+}
+func (m *mockNotifyer) Send(_ types.KV, _ Message) error {
+	m.calls++
+	return m.sendErr
+}
+
+func TestSend(t *testing.T) {
+	tests := []struct {
+		name      string
+		uri       string
+		register  *mockNotifyer
+		wantErr   string
+		wantCalls int
+	}{
+		{
+			name:    "empty input returns error",
+			uri:     "",
+			wantErr: "no notification sent",
+		},
+		{
+			name:    "unknown protocol returns error",
+			uri:     "nosuchproto://token",
+			wantErr: "unknown protocol",
+		},
+		{
+			name: "provider send failure is returned",
+			uri:  "testsendfail://chan/tok",
+			register: &mockNotifyer{
+				protocol:  "testsendfail",
+				templates: []string{"testsendfail://{channel}/{token}"},
+				sendErr:   assert.AnError,
+			},
+			wantErr:   "send message error",
+			wantCalls: 1,
+		},
+		{
+			name: "successful send returns nil",
+			uri:  "testsendsuccess://chan/tok",
+			register: &mockNotifyer{
+				protocol:  "testsendsuccess",
+				templates: []string{"testsendsuccess://{channel}/{token}"},
+			},
+			wantCalls: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.register != nil {
+				Register(tt.register.protocol, tt.register)
+			}
+			err := Send(tt.uri, Message{Title: "t", Body: "b"})
+			if tt.wantErr == "" {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+			if tt.register != nil {
+				assert.Equal(t, tt.wantCalls, tt.register.calls)
+			}
+		})
+	}
+}
+
+func TestSendToProtocol(t *testing.T) {
+	tests := []struct {
+		name      string
+		protocol  string
+		uri       string
+		register  *mockNotifyer
+		wantErr   string
+		wantCalls int
+	}{
+		{
+			name:     "empty protocol returns error",
+			protocol: "",
+			uri:      "http://host/topic",
+			wantErr:  "protocol is required",
+		},
+		{
+			name:     "unknown protocol returns error",
+			protocol: "nosuch",
+			uri:      "http://host/topic",
+			wantErr:  "unknown protocol",
+		},
+		{
+			name:     "http URI uses declared protocol not scheme",
+			protocol: "testprotontfy",
+			uri:      "http://ntfy.example.com/mytopic",
+			register: &mockNotifyer{
+				protocol:  "testprotontfy",
+				templates: []string{"{schema}://{topic}", "{schema}://{host}/{targets}"},
+			},
+			wantCalls: 1,
+		},
+		{
+			name:     "relative URI prepends protocol",
+			protocol: "testprotorel",
+			uri:      "chan/tok",
+			register: &mockNotifyer{
+				protocol:  "testprotorel",
+				templates: []string{"testprotorel://{channel}/{token}"},
+			},
+			wantCalls: 1,
+		},
+		{
+			name:     "no template match returns error",
+			protocol: "testprotonomatch",
+			uri:      "http://only-host",
+			register: &mockNotifyer{
+				protocol:  "testprotonomatch",
+				templates: []string{"testprotonomatch://{channel}/{token}"},
+			},
+			wantErr: "does not match any template",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.register != nil {
+				Register(tt.register.protocol, tt.register)
+			}
+			err := SendToProtocol(tt.protocol, tt.uri, Message{Title: "t", Body: "b"})
+			if tt.wantErr == "" {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+			if tt.register != nil {
+				assert.Equal(t, tt.wantCalls, tt.register.calls)
+			}
+		})
+	}
 }

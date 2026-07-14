@@ -100,3 +100,130 @@ func TestNotifySettingsPageUnauthenticated(t *testing.T) {
 		})
 	}
 }
+
+func TestShowToastTrigger(t *testing.T) {
+	tests := []struct {
+		name      string
+		toastType string
+		message   string
+		wantSub   string
+	}{
+		{
+			name:      "success toast",
+			toastType: "success",
+			message:   "Connection successful",
+			wantSub:   `"type":"success"`,
+		},
+		{
+			name:      "error toast with special characters",
+			toastType: "error",
+			message:   `Connection failed: foo "bar"`,
+			wantSub:   `"type":"error"`,
+		},
+		{
+			name:      "info toast",
+			toastType: "info",
+			message:   "hello",
+			wantSub:   `"message":"hello"`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := showToastTrigger(tt.toastType, tt.message)
+			if err != nil {
+				t.Fatalf("showToastTrigger: %v", err)
+			}
+			if !strings.Contains(got, `"showToast"`) {
+				t.Errorf("want showToast key, got %s", got)
+			}
+			if !strings.Contains(got, tt.wantSub) {
+				t.Errorf("want substring %q in %s", tt.wantSub, got)
+			}
+			if strings.Contains(tt.message, `"`) && strings.Contains(got, `foo "bar"`) {
+				t.Error("message quotes must be JSON-escaped")
+			}
+		})
+	}
+}
+
+func TestNotifyChannelTest(t *testing.T) {
+	tests := []struct {
+		name           string
+		channelID      string
+		channel        *model.NotifyChannel
+		wantStatus     int
+		wantHXContains string
+	}{
+		{
+			name:       "missing channel returns not found",
+			channelID:  "999",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name:      "unknown protocol returns error toast",
+			channelID: "1",
+			channel: &model.NotifyChannel{
+				ID:       1,
+				Name:     "alerts",
+				Protocol: "nosuchproto",
+				URI:      "nosuchproto://token",
+				Enabled:  true,
+			},
+			wantStatus:     http.StatusOK,
+			wantHXContains: `"type":"error"`,
+		},
+		{
+			name:      "relative URI builds scheme from protocol",
+			channelID: "2",
+			channel: &model.NotifyChannel{
+				ID:       2,
+				Name:     "relative",
+				Protocol: "nosuchproto",
+				URI:      "token-only",
+				Enabled:  true,
+			},
+			wantStatus:     http.StatusOK,
+			wantHXContains: `"type":"error"`,
+		},
+		{
+			name:      "http URI with unknown protocol still errors on protocol not scheme",
+			channelID: "3",
+			channel: &model.NotifyChannel{
+				ID:       3,
+				Name:     "http-uri",
+				Protocol: "nosuchproto",
+				URI:      "http://ntfy.example.com/mytopic",
+				Enabled:  true,
+			},
+			wantStatus:     http.StatusOK,
+			wantHXContains: `unknown protocol`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			if tt.channel != nil {
+				ts.notifyChannels = map[int64]model.NotifyChannel{tt.channel.ID: *tt.channel}
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notify-settings/channels/"+tt.channelID+"/test", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if tt.wantHXContains != "" {
+				hx := resp.Header.Get("HX-Trigger")
+				if !strings.Contains(hx, tt.wantHXContains) {
+					t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHXContains, hx)
+				}
+			}
+		})
+	}
+}

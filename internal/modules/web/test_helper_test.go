@@ -55,6 +55,8 @@ type testStore struct {
 	agentPlans                map[string]*gen.AgentPlan
 	agentPlansErr             error
 	dbClient                  *store.Client // in-memory SQLite client for view handler tests
+	notifyChannels            map[int64]model.NotifyChannel
+	notifyChannelErr          error
 }
 
 func (s *testStore) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {
@@ -128,6 +130,21 @@ func (s *testStore) GetDB() any {
 		return s.dbClient
 	}
 	return nil
+}
+
+// GetNotifyChannelRaw returns a channel with its raw URI for connectivity tests.
+func (s *testStore) GetNotifyChannelRaw(_ context.Context, id int64) (model.NotifyChannel, error) {
+	if s.notifyChannelErr != nil {
+		return model.NotifyChannel{}, s.notifyChannelErr
+	}
+	if s.notifyChannels == nil {
+		return model.NotifyChannel{}, types.ErrNotFound
+	}
+	ch, ok := s.notifyChannels[id]
+	if !ok {
+		return model.NotifyChannel{}, types.ErrNotFound
+	}
+	return ch, nil
 }
 
 func setupTestApp() (*fiber.App, *testStore) {

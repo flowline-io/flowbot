@@ -72,6 +72,18 @@ func TestDoSend(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "uses targets as topic when topic empty",
+			tokens: types.KV{
+				"targets": "from-targets",
+			},
+			message: notify.Message{Title: "Test"},
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				w.WriteHeader(http.StatusOK)
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {

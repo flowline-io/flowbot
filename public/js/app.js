@@ -23,3 +23,10 @@ function showToast(message, type) {
     }, 300);
   }, 4000);
 }
+
+// Bridge HTMX HX-Trigger {"showToast": {...}} events to the toast UI.
+// Listen on document (not body): app.js loads in <head> before body exists.
+document.addEventListener('showToast', function (evt) {
+  var d = evt.detail || {};
+  showToast(d.message || '', d.type || 'info');
+});

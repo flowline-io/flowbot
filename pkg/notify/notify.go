@@ -60,7 +60,9 @@ func ParseTemplate(testString string, templates []string) (types.KV, error) {
 	for _, pattern := range patterns {
 		re := regexp.MustCompile(pattern)
 		match := re.FindStringSubmatch(testString)
-		if len(match) > 0 {
+		// Require a full-string match so shorter templates (e.g. {schema}://{topic})
+		// do not win over more specific ones (e.g. {schema}://{host}/{targets}).
+		if len(match) > 0 && match[0] == testString {
 			tmp := make(types.KV)
 			for i, name := range re.SubexpNames() {
 				if i != 0 && name != "" {
@@ -86,6 +88,8 @@ func ParseSchema(testString string) (string, error) {
 }
 
 func Send(text string, message Message) error {
+	var lastErr error
+	sent := 0
 	lines := strings.SplitSeq(text, "\n")
 	for v := range lines {
 		v = strings.TrimSpace(v)
@@ -94,24 +98,76 @@ func Send(text string, message Message) error {
 		}
 		scheme, err := ParseSchema(v)
 		if err != nil {
-			flog.Error(fmt.Errorf("[notify] %s parse schema error: %w", scheme, err))
+			lastErr = fmt.Errorf("[notify] parse schema error: %w", err)
+			flog.Error(lastErr)
 			continue
 		}
-		if _, ok := handlers[scheme]; !ok {
+		if scheme == "" {
+			lastErr = fmt.Errorf("[notify] invalid URI: missing protocol scheme")
+			flog.Error(lastErr)
+			continue
+		}
+		n, ok := handlers[scheme]
+		if !ok {
+			lastErr = fmt.Errorf("[notify] unknown protocol %q", scheme)
+			flog.Error(lastErr)
 			continue
 		}
 
-		tokens, err := ParseTemplate(v, handlers[scheme].Templates())
+		tokens, err := ParseTemplate(v, n.Templates())
 		if err != nil {
-			flog.Error(fmt.Errorf("[notify] %s parse template error: %w", scheme, err))
+			lastErr = fmt.Errorf("[notify] %s parse template error: %w", scheme, err)
+			flog.Error(lastErr)
 			continue
 		}
-		if err := handlers[scheme].Send(tokens, message); err != nil {
-			flog.Error(fmt.Errorf("[notify] %s send message error: %w", scheme, err))
+		if err := n.Send(tokens, message); err != nil {
+			lastErr = fmt.Errorf("[notify] %s send message error: %w", scheme, err)
+			flog.Error(lastErr)
+			continue
 		}
+		sent++
 		flog.Info("[notify] %s send message", scheme)
 	}
 
+	if sent == 0 {
+		if lastErr != nil {
+			return lastErr
+		}
+		return fmt.Errorf("[notify] no notification sent")
+	}
+	return nil
+}
+
+// SendToProtocol dispatches a message using an explicit notify protocol.
+// Unlike Send, the URI scheme (for example http/https used by ntfy endpoints) is not
+// used for provider lookup — protocol selects the Notifyer.
+func SendToProtocol(protocol, uri string, message Message) error {
+	protocol = strings.TrimSpace(protocol)
+	if protocol == "" {
+		return fmt.Errorf("[notify] protocol is required")
+	}
+	n, ok := handlers[protocol]
+	if !ok {
+		return fmt.Errorf("[notify] unknown protocol %q", protocol)
+	}
+	text := strings.TrimSpace(uri)
+	if text == "" {
+		return fmt.Errorf("[notify] uri is required")
+	}
+	if !strings.Contains(text, "://") {
+		text = protocol + "://" + text
+	}
+	tokens, err := ParseTemplate(text, n.Templates())
+	if err != nil {
+		return fmt.Errorf("[notify] %s parse template error: %w", protocol, err)
+	}
+	if len(tokens) == 0 {
+		return fmt.Errorf("[notify] %s: URI does not match any template", protocol)
+	}
+	if err := n.Send(tokens, message); err != nil {
+		return fmt.Errorf("[notify] %s send message error: %w", protocol, err)
+	}
+	flog.Info("[notify] %s send message", protocol)
 	return nil
 }
 
