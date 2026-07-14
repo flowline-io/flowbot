@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -86,7 +87,10 @@ func pipelineListTable(c fiber.Ctx) error {
 }
 
 func pipelineEditorPage(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	c.Type("html")
 	return pages.PipelineEditorPage(name).Render(context.Background(), c.Response().BodyWriter())
 }
@@ -94,8 +98,14 @@ func pipelineEditorPage(c fiber.Ctx) error {
 func createPipeline(c fiber.Ctx) error {
 	name := c.FormValue("name")
 	description := c.FormValue("description")
-	if name == "" {
-		return types.Errorf(types.ErrInvalidArgument, "name is required")
+	if err := pipeline.ValidateName(name); err != nil {
+		c.Response().Header.Set("HX-Retarget", "#create-form")
+		c.Response().Header.Set("HX-Reswap", "beforebegin")
+		c.Type("html")
+		return c.SendString(fmt.Sprintf(
+			`<div class="bg-red-50 border border-red-200 rounded px-4 py-2 mb-4 text-red-700 text-sm">%s</div>`,
+			err.Error(),
+		))
 	}
 	s := getPipelineDefStore()
 	if err := s.CreateDefinition(context.Background(), name, description); err != nil {
@@ -107,12 +117,15 @@ func createPipeline(c fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "create pipeline: %v", err)
 	}
-	c.Response().Header.Set("HX-Redirect", "/service/web/pipelines/"+name)
+	c.Response().Header.Set("HX-Redirect", "/service/web/pipelines/"+url.PathEscape(name))
 	return c.SendStatus(200)
 }
 
 func updatePipelineDraft(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	var body struct {
 		Yaml    string `json:"yaml"`
 		Version int    `json:"version"`
@@ -139,7 +152,10 @@ func updatePipelineDraft(c fiber.Ctx) error {
 }
 
 func publishPipeline(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	var body struct {
 		Version int `json:"version"`
 	}
@@ -185,7 +201,10 @@ func publishPipeline(c fiber.Ctx) error {
 }
 
 func setPipelineEnabled(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	var body struct {
 		Enabled bool `json:"enabled"`
 	}
@@ -193,7 +212,7 @@ func setPipelineEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
 	s := getPipelineDefStore()
-	_, err := s.SetDefinitionEnabled(context.Background(), name, body.Enabled)
+	_, err = s.SetDefinitionEnabled(context.Background(), name, body.Enabled)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{
@@ -219,9 +238,12 @@ func setPipelineEnabled(c fiber.Ctx) error {
 }
 
 func deletePipeline(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	s := getPipelineDefStore()
-	_, err := s.GetDefinitionByName(context.Background(), name)
+	_, err = s.GetDefinitionByName(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"}})
@@ -242,7 +264,10 @@ func deletePipeline(c fiber.Ctx) error {
 }
 
 func getPipelineYaml(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	s := getPipelineDefStore()
 	def, err := s.GetDefinitionByName(context.Background(), name)
 	if err != nil {
@@ -259,11 +284,14 @@ func getPipelineYaml(c fiber.Ctx) error {
 }
 
 func listPipelineVersions(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	s := getPipelineDefStore()
 	// Verify pipeline exists first, since ListDefinitionVersions does not
 	// return ErrNotFound for an unknown pipeline name.
-	_, err := s.GetDefinitionByName(context.Background(), name)
+	_, err = s.GetDefinitionByName(context.Background(), name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return c.Status(404).JSON(fiber.Map{"error": fiber.Map{"code": "NOT_FOUND"}})
@@ -285,7 +313,10 @@ func listPipelineVersions(c fiber.Ctx) error {
 }
 
 func getPipelineVersion(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	version, err := strconv.Atoi(c.Params("version"))
 	if err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid version: %v", err)
@@ -329,6 +360,25 @@ func getMockPayload(c fiber.Ctx) error {
 	}
 }
 
+// buildPipelineTestEvent constructs a DataEvent for pipeline step testing.
+func buildPipelineTestEvent(c fiber.Ctx, name string, payload map[string]any) types.DataEvent {
+	event := types.DataEvent{Data: make(map[string]any)}
+	maps.Copy(event.Data, payload)
+	event.EventID = "mock-test-" + name
+	if eid, ok := payload["event_id"].(string); ok {
+		event.EventID = eid
+	}
+	if et, ok := payload["event_type"].(string); ok {
+		event.EventType = et
+	}
+	if uid, ok := payload["uid"].(string); ok && strings.TrimSpace(uid) != "" {
+		event.UID = strings.TrimSpace(uid)
+	} else if uid, err := webUID(c); err == nil {
+		event.UID = uid.String()
+	}
+	return event
+}
+
 func testPipelineStep(c fiber.Ctx) error {
 	var body struct {
 		TriggerSource string         `json:"trigger_source"`
@@ -338,7 +388,10 @@ func testPipelineStep(c fiber.Ctx) error {
 	if err := c.Bind().Body(&body); err != nil {
 		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
 	}
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	s := getPipelineDefStore()
 	def, err := s.GetDefinitionByName(context.Background(), name)
 	if err != nil {
@@ -363,21 +416,7 @@ func testPipelineStep(c fiber.Ctx) error {
 	if body.UpToStepIndex < 0 || body.UpToStepIndex >= len(ed.Steps) {
 		return c.JSON(fiber.Map{"success": false, "error": "step index out of range"})
 	}
-	event := types.DataEvent{Data: make(map[string]any)}
-	maps.Copy(event.Data, body.MockPayload)
-	event.EventID = "mock-test-" + name
-	if eid, ok := body.MockPayload["event_id"].(string); ok {
-		event.EventID = eid
-	}
-	if et, ok := body.MockPayload["event_type"].(string); ok {
-		event.EventType = et
-	}
-	if uid, ok := body.MockPayload["uid"].(string); ok && strings.TrimSpace(uid) != "" {
-		event.UID = strings.TrimSpace(uid)
-	} else if uid, err := webUID(c); err == nil {
-		event.UID = uid.String()
-	}
-	rc := pipeline.NewRenderContext(event)
+	rc := pipeline.NewRenderContext(buildPipelineTestEvent(c, name, body.MockPayload))
 	var results []stepResult
 	for i := 0; i <= body.UpToStepIndex; i++ {
 		step := ed.Steps[i]
@@ -405,7 +444,10 @@ func testPipelineStep(c fiber.Ctx) error {
 }
 
 func pipelineRunsPage(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	s := getPipelineDefStore()
 	runs, err := s.GetRunsByParentName(context.Background(), name)
 	if err != nil {
@@ -416,7 +458,10 @@ func pipelineRunsPage(c fiber.Ctx) error {
 }
 
 func pipelineRunsTable(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	s := getPipelineDefStore()
 	runs, err := s.GetRunsByParentName(context.Background(), name)
 	if err != nil {
@@ -554,7 +599,10 @@ func writeSSEEvent(w *bufio.Writer, data string) bool {
 
 // pipelineRunLivePage renders the live run dashboard page.
 func pipelineRunLivePage(c fiber.Ctx) error {
-	pipelineName := c.Params("name")
+	pipelineName, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	runIDParam := c.Params("runID")
 	runID, err := strconv.ParseInt(runIDParam, 10, 64)
 	if err != nil {
@@ -606,7 +654,10 @@ func pipelineRunLivePage(c fiber.Ctx) error {
 }
 
 func pipelineStats(c fiber.Ctx) error {
-	name := c.Params("name")
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
 	sinceStr := c.Query("since", "")
 	since := time.Time{}
 	if sinceStr != "" {
@@ -626,7 +677,7 @@ func pipelineStats(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "store not available")
 	}
 	if name != "" {
-		_, err := s.GetDefinitionByName(context.Background(), name)
+		_, err = s.GetDefinitionByName(context.Background(), name)
 		if err != nil {
 			if errors.Is(err, types.ErrNotFound) {
 				return types.Errorf(types.ErrNotFound, "pipeline %s not found", name)

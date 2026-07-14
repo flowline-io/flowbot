@@ -22,6 +22,7 @@ tasks:
   # Build tasks
   build:
     desc: Build flowbot server
+    deps: [templ]
     cmds:
       - GOEXPERIMENT=goroutineleakprofile go build -v -o bin/flowbot ./cmd
 
@@ -45,6 +46,7 @@ tasks:
   # Run tasks
   run:
     desc: Run flowbot server
+    deps: [templ]
     cmds:
       - go run -tags swagger ./cmd
 

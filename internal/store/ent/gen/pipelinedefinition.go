@@ -17,7 +17,7 @@ type PipelineDefinition struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
-	// pipeline name, must match ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+	// pipeline name, must match ^[\p{L}\p{N}][\p{L}\p{N}_-]*$
 	Name string `json:"name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`

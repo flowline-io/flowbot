@@ -45,7 +45,7 @@ templ PipelineEditorPage(name string) {
 				<button type="button" @click="toggleCodeView"
 					class="btn btn-ghost btn-sm font-mono"
 					data-testid="btn-code-view">&lt;/&gt; Code</button>
-				<a :href="'/service/web/pipelines/' + name + '/runs'"
+				<a :href="pipelineURL('/runs')"
 					class="btn btn-ghost btn-sm"
 					data-testid="btn-run-history">Run History</a>
 				<button type="button" @click="downloadYaml"

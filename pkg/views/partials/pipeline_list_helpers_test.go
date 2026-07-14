@@ -70,6 +70,38 @@ func TestBuildPipelineListEntries(t *testing.T) {
 	}
 }
 
+func TestPipelineWebPath(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{
+			name: "ascii name unchanged",
+			in:   "my-pipeline",
+			want: "/service/web/pipelines/my-pipeline",
+		},
+		{
+			name: "chinese name encoded",
+			in:   "数据同步",
+			want: "/service/web/pipelines/%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5",
+		},
+		{
+			name: "mixed name encoded",
+			in:   "同步-bookmarks",
+			want: "/service/web/pipelines/%E5%90%8C%E6%AD%A5-bookmarks",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, PipelineWebPath(tt.in))
+		})
+	}
+}
+
 func TestPipelineIsPublished(t *testing.T) {
 	yaml := "name: test"
 	tests := []struct {

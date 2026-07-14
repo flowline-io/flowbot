@@ -23,7 +23,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 					for _, entry := range entries {
 						<tr class="hover">
 							<td class="font-medium text-base-content">
-								<a href={ templ.URL("/service/web/pipelines/" + entry.Definition.Name) } class="link link-hover">{ entry.Definition.Name }</a>
+								<a href={ templ.URL(PipelineWebPath(entry.Definition.Name)) } class="link link-hover">{ entry.Definition.Name }</a>
 							</td>
 							<td>
 								if entry.Definition.Status == "published" {
@@ -51,7 +51,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 									if PipelineIsPublished(entry.Definition) {
 										if entry.Enabled {
 											<button type="button"
-												hx-put={ templ.URL("/service/web/pipelines/" + entry.Definition.Name + "/enabled") }
+												hx-put={ templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled") }
 												hx-vals='{"enabled": false}'
 												hx-target="#pipeline-list-container"
 												hx-swap="outerHTML"
@@ -63,7 +63,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 												class="btn btn-ghost btn-xs text-warning">Pause</button>
 										} else {
 											<button type="button"
-												hx-put={ templ.URL("/service/web/pipelines/" + entry.Definition.Name + "/enabled") }
+												hx-put={ templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled") }
 												hx-vals='{"enabled": true}'
 												hx-target="#pipeline-list-container"
 												hx-swap="outerHTML"
@@ -72,7 +72,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 										}
 									}
 									<button type="button"
-										hx-delete={ templ.URL("/service/web/pipelines/" + entry.Definition.Name) }
+										hx-delete={ templ.URL(PipelineWebPath(entry.Definition.Name)) }
 										hx-target="#pipeline-list-container"
 										data-confirm="Delete this pipeline? Associated run records will also be removed."
 										data-confirm-title="Delete Pipeline"

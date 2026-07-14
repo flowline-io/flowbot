@@ -397,6 +397,21 @@ func TestPipelineDefinitionStore_CreateAndGet(t *testing.T) {
 	}
 }
 
+func TestPipelineDefinitionStore_CreateChineseName(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPipelineStore(client)
+	ctx := context.Background()
+
+	name := "数据同步"
+	err := store.CreateDefinition(ctx, name, "中文描述")
+	require.NoError(t, err)
+
+	def, err := store.GetDefinitionByName(ctx, name)
+	require.NoError(t, err)
+	assert.Equal(t, name, def.Name)
+	assert.Equal(t, "中文描述", def.Description)
+}
+
 func TestPipelineDefinitionStore_UpdateDraftConcurrency(t *testing.T) {
 	client := getTestClient(t)
 	store := NewPipelineStore(client)

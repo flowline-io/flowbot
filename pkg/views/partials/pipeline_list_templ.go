@@ -5,10 +5,8 @@ package partials
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-)
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
 
 func PipelineListTable(entries []PipelineListEntry) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -47,9 +45,9 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var2 templ.SafeURL
-				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/service/web/pipelines/" + entry.Definition.Name))
+				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(PipelineWebPath(entry.Definition.Name)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 26, Col: 78}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 26, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -62,7 +60,7 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Definition.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 26, Col: 128}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 26, Col: 117}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -155,9 +153,9 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var7 string
-						templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/pipelines/" + entry.Definition.Name + "/enabled"))
+						templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 54, Col: 94}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 54, Col: 83}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var7)
 						if templ_7745c5c3_Err != nil {
@@ -186,9 +184,9 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var9 string
-						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/pipelines/" + entry.Definition.Name + "/enabled"))
+						templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 66, Col: 94}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 66, Col: 83}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var9)
 						if templ_7745c5c3_Err != nil {
@@ -218,9 +216,9 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
-				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/pipelines/" + entry.Definition.Name))
+				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 75, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 75, Col: 71}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -248,4 +249,50 @@ func TestGetAgentRunOptions(t *testing.T) {
 	require.NoError(t, sonic.Unmarshal(body, &payload))
 	assert.Equal(t, "ok", string(payload.Status))
 	assert.NotEmpty(t, payload.Data.Tools)
+}
+
+func TestCreatePipelineChineseName(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	name := "数据同步"
+	body := strings.NewReader(url.Values{
+		"name":        {name},
+		"description": {"中文描述"},
+	}.Encode())
+	req := httptest.NewRequest(http.MethodPost, "/service/web/pipelines", body)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "/service/web/pipelines/%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5", resp.Header.Get("HX-Redirect"))
+
+	ctx := context.Background()
+	def, err := store.NewPipelineStore(client).GetDefinitionByName(ctx, name)
+	require.NoError(t, err)
+	assert.Equal(t, name, def.Name)
+}
+
+func TestPipelineEditorPageChineseName(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	ctx := context.Background()
+	name := "演示1"
+	require.NoError(t, store.NewPipelineStore(client).CreateDefinition(ctx, name, ""))
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+url.PathEscape(name), http.NoBody)
+	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	bodyStr := string(body)
+	assert.Contains(t, bodyStr, name)
+	assert.NotContains(t, bodyStr, url.PathEscape(name))
 }

@@ -1,6 +1,10 @@
 (function () {
   function register() {
     Alpine.data('pipelineEditor', () => ({
+      pipelineURL(suffix) {
+        const base = '/service/web/pipelines/' + encodeURIComponent(this.name);
+        return suffix ? base + suffix : base;
+      },
       name: '',
       description: '',
       enabled: true,
@@ -66,12 +70,10 @@
         this.loadVersions();
       },
 
-      async loadPipeline(pipelineName) {
+      async loadPipeline(_pipelineName) {
         this.loading = true;
         try {
-          const resp = await fetch(
-            `/service/web/pipelines/${pipelineName}/yaml`,
-          );
+          const resp = await fetch(this.pipelineURL('/yaml'));
           const data = await resp.json();
           this.version = data.version;
           this.status = data.status;
@@ -1247,7 +1249,7 @@
         this.saving = true;
         const yaml = this.stateToYaml();
         try {
-          const resp = await fetch('/service/web/pipelines/' + this.name, {
+          const resp = await fetch(this.pipelineURL(), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ yaml, version: this.version }),
@@ -1276,14 +1278,11 @@
         this.publishing = true;
         await this.saveDraft();
         try {
-          const resp = await fetch(
-            '/service/web/pipelines/' + this.name + '/publish',
-            {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ version: this.version }),
-            },
-          );
+          const resp = await fetch(this.pipelineURL('/publish'), {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ version: this.version }),
+          });
           if (resp.status === 409) {
             showToast(
               'This draft was modified elsewhere. Please refresh the page.',
@@ -1306,10 +1305,7 @@
       async loadMockPayload() {
         try {
           const resp = await fetch(
-            '/service/web/pipelines/' +
-              this.name +
-              '/mock?source=' +
-              this.testTriggerSource,
+            this.pipelineURL('/mock?source=' + this.testTriggerSource),
           );
           const data = await resp.json();
           this.testMockPayload = JSON.stringify(data.payload, null, 2);
@@ -1324,18 +1320,15 @@
         if (upToIdx === null || upToIdx === undefined) return;
         this.testing = true;
         try {
-          const resp = await fetch(
-            '/service/web/pipelines/' + this.name + '/test',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                trigger_source: this.testTriggerSource,
-                mock_payload: JSON.parse(this.testMockPayload || '{}'),
-                up_to_step_index: upToIdx,
-              }),
-            },
-          );
+          const resp = await fetch(this.pipelineURL('/test'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              trigger_source: this.testTriggerSource,
+              mock_payload: JSON.parse(this.testMockPayload || '{}'),
+              up_to_step_index: upToIdx,
+            }),
+          });
           this.testResults = await resp.json();
         } catch (e) {
           console.error('Test failed:', e);
@@ -1495,9 +1488,7 @@
       async loadVersions() {
         this.historyLoading = true;
         try {
-          var resp = await fetch(
-            '/service/web/pipelines/' + this.name + '/versions',
-          );
+          var resp = await fetch(this.pipelineURL('/versions'));
           if (!resp.ok) {
             this.versions = [];
             return;
@@ -1522,9 +1513,7 @@
         this.selectedVersion = v;
         this.historyLoading = true;
         try {
-          var resp = await fetch(
-            '/service/web/pipelines/' + this.name + '/versions/' + v.version,
-          );
+          var resp = await fetch(this.pipelineURL('/versions/' + v.version));
           if (!resp.ok) throw new Error('Not found');
           var data = await resp.json();
           this.selectedVersionYaml = data.yaml;
@@ -1580,9 +1569,7 @@
         var right = this.compareRight;
         var self = this;
         var fetchYaml = async function (v) {
-          var resp = await fetch(
-            '/service/web/pipelines/' + self.name + '/versions/' + v.version,
-          );
+          var resp = await fetch(self.pipelineURL('/versions/' + v.version));
           var data = await resp.json();
           return data.yaml || '';
         };

@@ -1,10 +1,17 @@
 package partials
 
 import (
+	"net/url"
+
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 )
+
+// PipelineWebPath returns the encoded web UI path for a pipeline name.
+func PipelineWebPath(name string) string {
+	return "/service/web/pipelines/" + url.PathEscape(name)
+}
 
 // PipelineListEntry augments a pipeline definition with runtime enabled state.
 type PipelineListEntry struct {

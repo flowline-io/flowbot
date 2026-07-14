@@ -36,10 +36,10 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 					<label class="label">
 						<span class="label-text">Name</span>
 					</label>
-					<input type="text" name="name" required pattern="[a-zA-Z0-9][a-zA-Z0-9_\-]*"
+					<input type="text" name="name" required minlength="1" maxlength="128"
 						class="input input-bordered w-full mb-3"
 						placeholder="my-pipeline"
-						title="Letters, digits, hyphens, underscores. Must start with letter or digit."
+						title="Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit."
 						data-testid="input-pipeline-name">
 					<label class="label">
 						<span class="label-text">Description (optional)</span>

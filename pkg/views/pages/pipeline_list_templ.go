@@ -5,9 +5,10 @@ package pages
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
+
 import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -54,7 +55,7 @@ func PipelineListPage(defs []*gen.PipelineDefinition) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></div><dialog id=\"create-modal\" class=\"modal\" data-testid=\"create-modal\"><div class=\"modal-box\"><h3 class=\"text-lg font-medium text-base-content mb-4\">New Pipeline</h3><form id=\"create-form\" hx-post=\"/service/web/pipelines\" hx-target=\"body\" data-testid=\"create-form\"><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" name=\"name\" required pattern=\"[a-zA-Z0-9][a-zA-Z0-9_\\-]*\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-pipeline\" title=\"Letters, digits, hyphens, underscores. Must start with letter or digit.\" data-testid=\"input-pipeline-name\"> <label class=\"label\"><span class=\"label-text\">Description (optional)</span></label> <input type=\"text\" name=\"description\" class=\"input input-bordered w-full mb-4\" placeholder=\"Brief description\" data-testid=\"input-pipeline-desc\"><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('create-modal').close()\" class=\"btn btn-ghost\" data-testid=\"btn-cancel-create\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\" data-testid=\"btn-submit-create\">Create</button></div></form></div></dialog>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></div><dialog id=\"create-modal\" class=\"modal\" data-testid=\"create-modal\"><div class=\"modal-box\"><h3 class=\"text-lg font-medium text-base-content mb-4\">New Pipeline</h3><form id=\"create-form\" hx-post=\"/service/web/pipelines\" hx-target=\"body\" data-testid=\"create-form\"><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" name=\"name\" required minlength=\"1\" maxlength=\"128\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-pipeline\" title=\"Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit.\" data-testid=\"input-pipeline-name\"> <label class=\"label\"><span class=\"label-text\">Description (optional)</span></label> <input type=\"text\" name=\"description\" class=\"input input-bordered w-full mb-4\" placeholder=\"Brief description\" data-testid=\"input-pipeline-desc\"><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('create-modal').close()\" class=\"btn btn-ghost\" data-testid=\"btn-cancel-create\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\" data-testid=\"btn-submit-create\">Create</button></div></form></div></dialog>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
