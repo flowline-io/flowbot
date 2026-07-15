@@ -191,6 +191,7 @@ func TestSend(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.register != nil {
 				Register(tt.register.protocol, tt.register)
+				t.Cleanup(func() { Unregister(tt.register.protocol) })
 			}
 			err := Send(tt.uri, Message{Title: "t", Body: "b"})
 			if tt.wantErr == "" {
@@ -262,6 +263,7 @@ func TestSendToProtocol(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.register != nil {
 				Register(tt.register.protocol, tt.register)
+				t.Cleanup(func() { Unregister(tt.register.protocol) })
 			}
 			err := SendToProtocol(tt.protocol, tt.uri, Message{Title: "t", Body: "b"})
 			if tt.wantErr == "" {
@@ -273,6 +275,104 @@ func TestSendToProtocol(t *testing.T) {
 			if tt.register != nil {
 				assert.Equal(t, tt.wantCalls, tt.register.calls)
 			}
+		})
+	}
+}
+
+func TestUnregister(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "removes previously registered notifyer",
+			run: func(t *testing.T) {
+				m := &mockNotifyer{
+					protocol:  "testunregister",
+					templates: []string{"testunregister://{token}"},
+				}
+				Register(m.protocol, m)
+				Unregister(m.protocol)
+				err := Send("testunregister://tok", Message{Title: "t", Body: "b"})
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), "unknown protocol")
+				assert.Equal(t, 0, m.calls)
+			},
+		},
+		{
+			name: "no-op for unknown id",
+			run: func(_ *testing.T) {
+				Unregister("does-not-exist")
+			},
+		},
+		{
+			name: "allows re-register after unregister",
+			run: func(t *testing.T) {
+				m := &mockNotifyer{
+					protocol:  "testreregister",
+					templates: []string{"testreregister://{token}"},
+				}
+				Register(m.protocol, m)
+				Unregister(m.protocol)
+				Register(m.protocol, m)
+				t.Cleanup(func() { Unregister(m.protocol) })
+				err := Send("testreregister://tok", Message{Title: "t", Body: "b"})
+				require.NoError(t, err)
+				assert.Equal(t, 1, m.calls)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.run(t)
+		})
+	}
+}
+
+func TestList(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "returns registered notifyers",
+			run: func(t *testing.T) {
+				m := &mockNotifyer{
+					protocol:  "testlist",
+					templates: []string{"testlist://{token}"},
+				}
+				Register(m.protocol, m)
+				t.Cleanup(func() { Unregister(m.protocol) })
+				list := List()
+				assert.Contains(t, list, m.protocol)
+				assert.Equal(t, m, list[m.protocol])
+			},
+		},
+		{
+			name: "returns a copy that does not affect registry",
+			run: func(t *testing.T) {
+				m := &mockNotifyer{
+					protocol:  "testlistcopy",
+					templates: []string{"testlistcopy://{token}"},
+				}
+				Register(m.protocol, m)
+				t.Cleanup(func() { Unregister(m.protocol) })
+				list := List()
+				delete(list, m.protocol)
+				assert.Contains(t, List(), m.protocol)
+			},
+		},
+		{
+			name: "empty registry yields empty map",
+			run: func(t *testing.T) {
+				list := List()
+				require.NotNil(t, list)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.run(t)
 		})
 	}
 }

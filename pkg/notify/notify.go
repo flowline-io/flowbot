@@ -6,6 +6,7 @@ import (
 	"maps"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -16,7 +17,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-var handlers map[string]Notifyer
+var (
+	handlers   map[string]Notifyer
+	handlersMu sync.RWMutex
+)
 
 const (
 	// PayloadKeySummary is the key in the GatewaySend payload map for the summary text.
@@ -25,7 +29,11 @@ const (
 	defaultKeepRecords = 200
 )
 
+// Register adds a Notifyer to the global registry.
 func Register(id string, notifyer Notifyer) {
+	handlersMu.Lock()
+	defer handlersMu.Unlock()
+
 	if handlers == nil {
 		handlers = make(map[string]Notifyer)
 	}
@@ -39,8 +47,27 @@ func Register(id string, notifyer Notifyer) {
 	handlers[id] = notifyer
 }
 
+// Unregister removes a previously registered Notifyer.
+// It is a no-op if the id is not found.
+// Intended primarily for test teardown.
+func Unregister(id string) {
+	handlersMu.Lock()
+	defer handlersMu.Unlock()
+
+	if handlers == nil {
+		return
+	}
+	delete(handlers, id)
+}
+
+// List returns a copy of the registered Notifyer map.
 func List() map[string]Notifyer {
-	return handlers
+	handlersMu.RLock()
+	defer handlersMu.RUnlock()
+
+	out := make(map[string]Notifyer, len(handlers))
+	maps.Copy(out, handlers)
+	return out
 }
 
 func ParseTemplate(testString string, templates []string) (types.KV, error) {
@@ -107,7 +134,7 @@ func Send(text string, message Message) error {
 			flog.Error(lastErr)
 			continue
 		}
-		n, ok := handlers[scheme]
+		n, ok := lookupNotifyer(scheme)
 		if !ok {
 			lastErr = fmt.Errorf("[notify] unknown protocol %q", scheme)
 			flog.Error(lastErr)
@@ -146,7 +173,7 @@ func SendToProtocol(protocol, uri string, message Message) error {
 	if protocol == "" {
 		return fmt.Errorf("[notify] protocol is required")
 	}
-	n, ok := handlers[protocol]
+	n, ok := lookupNotifyer(protocol)
 	if !ok {
 		return fmt.Errorf("[notify] unknown protocol %q", protocol)
 	}
@@ -169,6 +196,14 @@ func SendToProtocol(protocol, uri string, message Message) error {
 	}
 	flog.Info("[notify] %s send message", protocol)
 	return nil
+}
+
+// lookupNotifyer returns the Notifyer registered for protocol, if any.
+func lookupNotifyer(protocol string) (Notifyer, bool) {
+	handlersMu.RLock()
+	defer handlersMu.RUnlock()
+	n, ok := handlers[protocol]
+	return n, ok
 }
 
 // GatewaySend is the central notification gateway entry point.
