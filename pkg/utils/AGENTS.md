@@ -7,16 +7,16 @@ General-purpose utility functions with unit tests.
 ```
 utils/
 ├── utils.go, file.go, network.go, slice.go, string.go, ...
-├── reexec/   # Self-reexec for upgrades
+├── reexec/   # Self-reexec for upgrades (platform-tagged command_*.go)
 ├── sets/     # Generic set types (int, string)
 └── syncx/    # Generic sync.Map wrapper
 ```
 
 ## Rules
 
-- Every `.go` file must have a corresponding `*_test.go`.
+- Prefer a co-located `*_test.go` for each non-trivial `.go` file (platform-tagged `reexec/command_*.go` may share package-level tests).
 - Use `utils.CheckSingleton()` for thread-safe single init.
-- Use `utils.SignalHandler()` to block on SIGTERM/SIGINT.
+- Use `utils.SignalHandler()` to obtain the signal channel (blocks on SIGTERM/SIGINT; also watches SIGHUP).
 
 ## Commands
 

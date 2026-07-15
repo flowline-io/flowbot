@@ -28,9 +28,9 @@ Homelab Data Hub & Capability Orchestration Center.
 - **Naming**: packages lowercase, types CamelCase
 - **Errors**: Wrap with `%w`, use `types.ErrNotFound / ErrForbidden / ErrProvider`
 - **Pagination**: limit + opaque cursor; provider internals hidden in adapter
-- **Routing**: `/service/{provider}/*` for business, `/hub/*` for management
-- **AuthContext**: REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow
-- **Events**: DataEvent → PostgreSQL data_events → Redis Stream → pipeline_runs
+- **Routing**: `/service/{module}/*` for module business routes (module name often matches capability/provider ID), `/hub/*` for management
+- **AuthContext**: `pkg/auth` subjects are `user` / `token` / `cron` / `pipeline` / `workflow` / `agent` (REST / CLI / Chat are call paths, not subject types)
+- **Events**: DataEvent → PostgreSQL `data_events` (+ event outbox) → Redis Stream → pipeline handler → `pipeline_runs`
 - **TDD (Test-driven development)**: Red-Green-Refactor cycle. Write test before implementation. `*_test.go` co-located with source. All test functions must use `for _, tt := range tests { t.Run(tt.name, ...) }` pattern. Each table entry must have a descriptive `name` field. Happy path first, error cases required. Single-case tests still wrap in `t.Run`. Each table must contain at least 3 cases. See (docs/testing/tdd-specs.md)
 - **BDD (Behavior-Driven Development)**: Ginkgo v2 + Gomega. `Describe`/`Context`/`It` with `SynchronizedBeforeSuite` + `GinkgoParallelProcess()` for per-process database isolation. New modules must include BDD specs. See (docs/testing/bdd-specs.md)
 - Use http.NoBody instead of nil in http.NewRequest calls
@@ -46,13 +46,13 @@ Homelab Data Hub & Capability Orchestration Center.
 - Never call hub/pipeline/emit DataEvent from inside a provider
 - Never return provider-private types from an adapter
 - Never write cross-service logic in cron/event handlers — use Pipeline
-- Never mount routes under `/service/hub/*` — use `/hub/*`
+- Never put hub management APIs under `/service/hub/*` — use `/hub/*` (hub module business routes may still live under `/service/hub`)
 - Never hardcode provider names in pipeline/workflow definitions
 - Never return 500/400 for all errors — use appropriate status codes
 - Never leak provider raw errors or pagination internals to HTTP layer
 - Never use Redis Stream as sole event store — persist to PostgreSQL data_events
 - Never skip delivery/audit/idempotency records
-- Never write database query code outside `internal/store/store.go`
+- Never write database query code outside the `internal/store` package (`store.go` interfaces/facades + `postgres/adapter.go` implementations)
 - Never remove `t.Parallel()` to hide test race conditions — fix the root cause instead (e.g. shared-state serialization)
 - Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic`. `json.RawMessage` type from stdlib is allowed.
 
@@ -88,11 +88,11 @@ DB role/database are `flowbot`/`flowbot` (password `flowbot`, superuser). Recrea
 Ent auto-migrates on server startup, so no manual migration step is needed.
 
 ### Config (`flowbot.yaml`, gitignored, already present at repo root)
-Non-obvious validation gotchas (see `pkg/config/validate.go`) when deriving config from `docs/reference/config.yaml`:
+Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`) when deriving config from `docs/reference/config.yaml`:
 - `redis.password` must be NON-empty (validator `required,min=1`), so Redis is run with `--requirepass flowbot`.
-- `platform.{slack,discord,tailchat,telegram}.enabled` are `true` in the reference file but their tokens are empty, which fails `required_if=Enabled true`; set them to `false` unless you supply real tokens.
-- `metrics.enabled` set to `false` (no VictoriaMetrics running); harmless to leave on but produces push errors.
-- `store_config` DSN points at `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
+- Platform `required_if=Enabled true` is **not** uniform: Discord requires app/client/bot credentials; Tailchat requires `api_url`. Slack and Telegram do **not** fail validation with empty tokens — still set unused platforms to `enabled: false` in Cloud.
+- Prefer `metrics.enabled: false` when VictoriaMetrics is not running; leaving it on is harmless except push errors.
+- Local DSN: `store_config.adapters.postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
 
 ### Run / build / lint / test
 - Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (default creds `admin`/`admin` from `modules.web.auth`).

@@ -7,12 +7,13 @@ Multi-channel notification gateway with rule evaluation, template rendering, and
 ```
                       Callers
       ┌────────────┬───────┼───────────────┐
-      │ Modules    │ Agent │ Pipelines/Cron │
-      │ (hub/cmd)  │ Ops   │ (via ability)  │
+      │ Modules    │ Agent │ Capability Op │
+      │ (hub/web)  │ Ops   │ (notify.Send) │
       └─────┬──────┴───┬───┴──────┬────────┘
             │          │          │
-            │   ability/notify/send.go
-            │          │          │
+            │  pkg/capability/notify/send.go
+            │  (optional; many call sites
+            │   invoke GatewaySend directly)
             └──────────┼──────────┘
                        │
                notify.GatewaySend()
@@ -47,7 +48,7 @@ pkg/notify/
 │   ├── aggregate.go     # Redis List-based aggregation buffers
 │   ├── worker.go        # Background worker for flushing expired aggregates
 │   └── engine_test.go   # Rule engine tests
-└── <provider>/          # One directory per notification channel
+└── <provider>/          # Channels: slack/, ntfy/, pushover/, messagepusher/
     ├── provider.go      # Notifyer implementation
     └── provider_test.go # Provider tests (table-driven, httptest mock)
 ```

@@ -15,6 +15,8 @@ modules/<name>/
 └── utils.go        # Helper functions
 ```
 
+Module `Register()` functions are wired via `fx.Invoke` in `internal/modules/fx.go` (pulled into the server app through `modules.Modules`).
+
 ## Reference Implementation
 
 - When creating or modifying a module, reference `internal/modules/example/` for file structure, naming, and code style.
@@ -28,12 +30,12 @@ modules/<name>/
 - Do not import `pkg/providers/*` from `internal/modules/*` — use `capability.Invoke` or go through the adapter layer
 - New capability modules call `capability.Invoke`
 - Provider wiring happens inside the capability adapter (`pkg/capability/<provider>/adapter.go`), not in the module
-- Webservice routes: `/service/{provider}`, management: `/hub/*`
+- Webservice routes: `/service/{module}/*` (see `pkg/route`), management: `/hub/*`
 - Cross-service orchestration in Pipeline, not cron/event handlers
 
 ## Testing
 
-- Each component has `*_test.go` counterpart
+- Prefer a `*_test.go` counterpart for each non-trivial component
 - Table-driven tests with `require`/`assert`
 - BDD integration tests live under `tests/specs/` (Ginkgo v2 + Gomega)
 - Mock external dependencies

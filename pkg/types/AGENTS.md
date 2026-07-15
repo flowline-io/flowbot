@@ -14,13 +14,16 @@ types/
 ├── event.go           # DataEvent type definitions
 ├── task.go            # Task type definitions
 ├── workflow.go        # Workflow type definitions
-├── agent.go           # Agent type definitions
+├── agent.go           # Agent instruct protocol types
 ├── uid.go             # Unique ID generation
 ├── id.go              # Compact ID encoding/decoding
 ├── filter.go          # Event filter types
 ├── filter_cache.go    # In-memory filter cache for source/event type dropdowns
 ├── file.go            # File type definitions
 ├── pipeline_stats.go  # Pipeline statistics types
+├── token_usage_source.go  # Token usage source constants
+├── token_usage_range.go   # Token usage time-range helpers
+├── token_usage_stats.go   # Token usage aggregate stats
 ├── protocol/          # Platform-agnostic types
 │   ├── action.go      # Request/Response, error codes (10xxx–60xxx)
 │   ├── message.go     # Message type definition
@@ -33,7 +36,7 @@ types/
 │   ├── form/          # Form rule types
 │   └── webservice/    # Webservice rule types
 ├── audit/             # Audit trail types
-└── model/             # AI model type definitions
+└── model/             # Persistence/DTO models (agent session/skill/subagent/scheduled task, notify_*, token, config, …)
 ```
 
 ## Rules

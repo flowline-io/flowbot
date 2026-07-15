@@ -13,13 +13,16 @@ internal/platforms/
 ├── caller.go            # Caller dispatch (Caller struct, Do method)
 ├── convert.go           # MessageConvert (MsgPayload -> protocol.Message)
 ├── registry.go          # PlatformRegister, GetCaller
-├── <platform>/
-│   ├── driver.go         # Driver struct + NewDriver() → protocol.Driver
-│   ├── adapter.go        # Adapter struct → protocol.Adapter (MessageConvert, EventConvert)
-│   ├── action.go         # Action struct → protocol.Action (SendMessage, etc.)
-│   ├── types.go          # const ID, platform-local types
-│   ├── *_test.go         # TDD unit tests (table-driven)
-│   └── blockkit.go       # Optional: platform-specific rendering helpers (e.g. Slack Block Kit)
+├── slack/               # Fully wired (fx.Provide + router callbacks)
+├── tailchat/            # Constructed in controller; router callbacks
+├── discord/             # Package + config exist; not wired into server fx yet
+└── <platform>/
+    ├── driver.go         # Driver struct + NewDriver() → protocol.Driver
+    ├── adapter.go        # Adapter struct → protocol.Adapter (MessageConvert, EventConvert)
+    ├── action.go         # Action struct → protocol.Action (SendMessage, etc.)
+    ├── types.go          # const ID, platform-local types
+    ├── *_test.go         # TDD unit tests (table-driven)
+    └── blockkit.go       # Optional: platform-specific rendering helpers (e.g. Slack Block Kit)
 ```
 
 ## Core Package (`caller.go`, `convert.go`, `registry.go`)
@@ -44,10 +47,11 @@ internal/platforms/
 
 - **New platform**: create a sub-package under `internal/platforms/<name>/` with `driver.go`, `adapter.go`, `action.go`, `types.go`.
 - **`types.go`**: define `const ID = "<name>"` (used for DB registration and route dispatch). Add any platform-specific request/response types here.
-- **`driver.go`**: `NewDriver(cfg *config.Type, store store.Adapter) protocol.Driver` initializes the SDK client, calls `platforms.PlatformRegister(ID, &platforms.Caller{Action: …, Adapter: …})`, and returns the `Driver`. Wire the driver via `fx.Provide` in `internal/server/fx.go`.
+- **`driver.go`**: `NewDriver(cfg *config.Type, store store.Adapter) protocol.Driver` initializes the SDK client, calls `platforms.PlatformRegister(ID, &platforms.Caller{Action: …, Adapter: …})`, and returns the `Driver`.
+- **Wiring today**: Slack via `fx.Provide(slack.NewDriver)` in `internal/server/fx.go`; Tailchat via controller construction; Discord not yet provided/invoked. Add router callbacks in `internal/server/router.go` when enabling HTTP platform hooks.
 - **`adapter.go`**: `MessageConvert` typically delegates to `platforms.MessageConvert(data)` for common types; `EventConvert` maps platform-specific webhook/interaction payloads to `protocol.Event`.
 - **`action.go`**: implement `SendMessage` (required for messaging); unsupported actions return `protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))`. Additional helpers (Block Kit builders, chart rendering, file upload) may live in platform-local files like `blockkit.go`.
-- **Route callbacks**: platform HTTP callbacks are dispatched in `router.go` `platformCallback` by matching the `platform` param against platform `ID` constants. The `Controller` may hold platform-specific driver fields (e.g. `tailchatDriver`) in addition to a generic `driver` for the primary platform.
+- **Route callbacks**: `platformCallback` in `router.go` matches `platform` against platform `ID` constants (currently Slack + Tailchat).
 - **Lifecycle**: `handlePlatform` in `server/platform.go` starts `WebSocketClient` on app startup via `fx.Lifecycle`.
 
 ## Rules
@@ -58,7 +62,7 @@ internal/platforms/
 - Channel/message routing logic lives in the platform's `action.go`, not in `server/`.
 - Always use `protocol.NewFailedResponse(protocol.ErrXxx.New(…))` for errors.
 - Use `protocol.NewSuccessResponse(data)` for success responses.
-- Register each platform in `internal/server/fx.go` and `internal/server/router.go`.
+- Register each **wired** platform in `internal/server/fx.go` (or controller) and `internal/server/router.go` as needed.
 
 ## Testing
 

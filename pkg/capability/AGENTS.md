@@ -6,9 +6,9 @@ Capability layer that decouples modules from providers. Each provider-backed cap
 
 ```
 capability/
-├── invoke.go, register.go, types (ability.go), params, page, cursor
+├── invoke.go, register.go, ability.go (domain types), params, page, cursor
 ├── operations.go, ops_compat.go   # IsMutation + legacy Op* aliases
-├── eventsource.go, polling.go, …
+├── eventsource.go, polling.go, pool.go, pollstate.go, queries.go, webhook_handler.go, …
 ├── example/                       # Reference implementation
 │   ├── service.go, ops.go, register.go
 │   ├── adapter.go, webhook.go, poller.go

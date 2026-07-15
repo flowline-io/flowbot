@@ -25,6 +25,12 @@ internal/modules/web/
 ├── token_webservice.go           # API token management routes
 ├── agent_sessions_webservice.go # Agent sessions routes (list, detail, run history)
 ├── agent_skills_webservice.go   # Agent skills routes (list, enable/disable)
+├── agents_webservice.go         # Agents listing / chat UI routes
+├── agent_memory_webservice.go   # Agent memory modal routes
+├── agent_scheduled_tasks_webservice.go # Agent scheduled tasks routes
+├── agent_subagents_webservice.go       # Agent subagents routes
+├── chatagent_permissions_webservice.go # Chatagent permission policy routes
+├── chatagent_web_stream.go      # Chatagent web SSE/stream helpers
 ├── relations_webservice.go       # Resource relations graph routes
 ├── ratelimit.go                  # Login rate limiter
 ├── module_test.go                # Module lifecycle unit tests
@@ -56,9 +62,14 @@ pkg/views/
 │   ├── hub_apps.templ            # Hub apps list page
 │   ├── login.templ               # LoginPage, LoginForm
 │   ├── notifications.templ       # Notifications page
+│   ├── agents.templ              # Agents listing / chat entry
 │   ├── agent_sessions.templ      # Agent sessions list page
 │   ├── agent_session_detail.templ # Agent session detail page
 │   ├── agent_skills.templ        # Agent skills page
+│   ├── agent_subagents.templ     # Agent subagents page
+│   ├── agent_scheduled_tasks.templ # Scheduled tasks list
+│   ├── agent_scheduled_task_detail.templ # Scheduled task detail
+│   ├── chatagent_permissions.templ # Chatagent permissions page
 │   ├── notify_settings.templ     # Notify channels/rules settings page
 │   ├── pipeline_editor.templ     # PipelineEditorPage (SPA: Alpine.js)
 │   ├── pipeline_list.templ       # PipelineListPage
@@ -98,6 +109,22 @@ pkg/views/
     ├── agent_skill_form.templ          # Agent skill form
     ├── agent_skill_row.templ           # Agent skill row
     ├── agent_skill_table.templ         # Agent skills table
+    ├── agent_skill_file_form.templ     # Agent skill file form
+    ├── agent_skill_file_row.templ      # Agent skill file row
+    ├── agent_skill_file_table.templ    # Agent skill files table
+    ├── agent_memory_modal.templ        # Agent memory modal
+    ├── agent_resource_preview.templ    # Agent resource preview
+    ├── agent_subagent_form.templ       # Subagent form
+    ├── agent_subagent_row.templ        # Subagent row
+    ├── agent_subagent_table.templ      # Subagents table
+    ├── agent_subagent_task_row.templ   # Subagent task row
+    ├── agent_subagent_task_table.templ # Subagent tasks table
+    ├── agent_scheduled_task_*.templ    # Scheduled task forms/tables/runs
+    ├── chatagent_*.templ               # Chatagent thread/message/tool/approval/permissions UI
+    ├── chatagent_helpers.go            # Chatagent template helpers
+    ├── chatagent_types.go              # Chatagent view types
+    ├── chatagent_markdown_sanitize.go  # Markdown sanitization for chatagent
+    ├── chatagent_permissions_helpers.go
     ├── notify_channel_form.templ # Notify channel form
     ├── notify_channel_row.templ  # Notify channel row
     ├── notify_channels_table.templ # Notify channels table
@@ -116,6 +143,7 @@ pkg/views/
     ├── token_form.templ          # Token form
     ├── token_row.templ           # Token row
     ├── token_table.templ         # Token table
+    ├── token_usage.templ         # Token usage display
     ├── view_expired.templ        # Expired page placeholder
     ├── view_form.templ           # Read-only form partial
     ├── view_image.templ          # Image content partial
@@ -161,6 +189,12 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 | `public/js/pipeline-run-live.js` | Live pipeline run viewer |
 | `public/js/event-filters.js` | Event timeline filter controls |
 | `public/js/homelab-registry.js` | Homelab registry interactions |
+| `public/js/chatagent-chat.js` | Chatagent chat UI |
+| `public/js/chatagent-permissions.js` | Chatagent permissions UI |
+| `public/js/token-usage.js` | Token usage charts |
+| `public/vendor/katex/` | KaTeX math rendering (chatagent markdown) |
+| `public/css/chatagent-markdown.css` | Chatagent markdown styles |
+| `public/css/styles.css` | Additional shared styles |
 
 ## Template Conventions
 
@@ -170,15 +204,15 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 - Pages import partials: `import "github.com/flowline-io/flowbot/pkg/views/partials"` and call `@partials.Xxx()`.
 - Do not put multi-line inline CSS; use Tailwind utility classes or DaisyUI component classes.
 - Test IDs use `data-testid="kebab-case"` on interactive elements.
-- Generated `*_templ.go` files are regenerated via `templ generate pkg/views/...`. Never edit generated files.
+- Generated `*_templ.go` files are regenerated via `go tool templ generate` (or `go tool task` targets that invoke it). Never edit generated files.
 - Always regenerate after changing `.templ` files.
 
 ## Route Conventions
 
 - All web routes are prefixed: `/service/web/*`
-- Routes defined in package-level `var ...Rules = []webservice.Rule{...}`
-- Filed under `module.Webservice(app, Name, ...Rules)` in `module.go`.
-- General web routes (home, login, configs) use `route.WithNotAuth()` which validates cookie-based tokens only (no scope check). Pipeline routes use default scope-based authentication.
+- Routes defined in package-level `var ...Rules = []webservice.Rule{...}` and aggregated in `rules.go` (`allWebserviceRules`)
+- `module.go` loops `allWebserviceRules` and calls `module.Webservice(app, Name, rules)` for each group.
+- General web routes use `route.WithNotAuth()` so Fiber authorization middleware skips scope checks; handlers still call `authenticateWeb()` for cookie-based login. Pipeline/API routes that need scopes omit `WithNotAuth` and use default scope-based auth.
 - Standard verbs:
   - `GET /resource` → full page (calls `pages.XxxPage().Render(...)`)
   - `GET /resource/list` → table fragment for HTMX refresh (calls `partials.XxxTable().Render(...)`)
@@ -217,23 +251,23 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 - Delivery: Local vendor files in `public/vendor/`, embedded via `webassets.go`, served at `/static/vendor/*`
 - No CDN references; no local build step required
 - Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage)
-- Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.FS`
+- Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.SubFS`
 - Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, etc.
 - Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
 
 ## Static Assets
 
 - Directory: `public/` (embedded via `//go:embed all:public` in `webassets.go`).
-- JavaScript: `public/js/` — Alpine.js components (`pipeline-editor.js`), utility scripts (`app.js`, `confirm.js`), charts (`pipeline-stats.js`), page-specific interactivity (`event-filters.js`, `homelab-registry.js`, `pipeline-run-live.js`).
-- Vendor libraries: `public/vendor/` — third-party JS/CSS vendored locally (daisyui, tailwind, htmx, alpinejs, chart.js, js-yaml, diff).
+- JavaScript: `public/js/` — Alpine/page scripts (`pipeline-editor.js`, `app.js`, `confirm.js`, `pipeline-stats.js`, `event-filters.js`, `homelab-registry.js`, `pipeline-run-live.js`, `chatagent-chat.js`, `chatagent-permissions.js`, `token-usage.js`).
+- Vendor libraries: `public/vendor/` — third-party JS/CSS vendored locally (daisyui, tailwind, htmx, alpinejs, chart.js, js-yaml, diff, katex).
 - Served via: `app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))`.
 - All script dependencies are local — no external CDN requests in production.
 
 ## Authentication
 
 - Cookie-based: `accessToken` HTTP-only cookie.
-- Middleware: `authenticateWeb()` reads cookie, looks up token in store, populates `route.RequestContext`.
-- Routes use `route.WithNotAuth()` which calls `authenticateWeb()` and redirects to `/service/web/login` on failure.
+- `authenticateWeb()` / `isAuthenticated()` read the cookie, look up the token in store, populate `route.RequestContext`.
+- Routes typically combine `route.WithNotAuth()` (skip scope middleware) with an explicit `authenticateWeb(ctx)` call in the handler; unauthenticated users redirect to `/service/web/login`.
 - Login accepts username/password from `flowbot.yaml` → `modules.web.auth`.
 - Token stored via `store.Database.ParameterSet()`, expires in 24h.
 
@@ -241,7 +275,7 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 
 - Web handlers access store via the `store.Database` singleton.
 - Never import ent schema/types directly in templates — pass structs as template args.
-- Never write DB queries in handlers — all queries live in `internal/store/store.go`.
+- Never write DB queries in handlers — all queries live in the `internal/store` package (`store.go` + `postgres/adapter.go`).
 
 ## Testing
 

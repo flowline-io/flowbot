@@ -26,6 +26,9 @@ agent/
 ├── ctxmgr/               # Context budget, compaction, branch summarization
 ├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
 ├── harness/              # High-level orchestration with hooks + overflow degrade
+├── permission/           # Tool permission evaluation, forms, session/scheduled policies
+├── memory/               # Agent memory store
+├── subagent/             # Subagent orchestration
 ├── coding/               # Code execution tools (run_code, read/write_file, web_search, terminal, workspace)
 ├── sandbox/              # Opt-in Docker ExecutionEnv for shell/code
 ├── eval/                 # FakeModel harness eval scenarios
