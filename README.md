@@ -16,14 +16,14 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | App discovery & lifecycle | **Homelab Scanner** scans `docker-compose.yaml`, registers apps                                             |
 | Capability abstraction    | **Capability Layer** exposes each integrated provider (`karakeep`, `miniflux`, …) via `capability.Invoke` |
-| Unified interfaces        | REST, CLI, Chat, Form, Webhook, Cron, Workflow                                                              |
+| Unified interfaces        | REST, CLI, Chat, Webhook, Cron, Workflow, Agent                                                             |
 | Cross-service data flow   | **Declarative Pipeline** — event-driven, idempotent, auditable                                              |
-| Composable automation     | **Workflow Capability Step** — DAG of capability invocations                                                |
-| Auth boundary             | **AuthContext** spans REST / CLI / Chat / Webhook / Cron / Pipeline / Workflow                              |
+| Composable automation     | **Workflow Engine** — DAG of capability / docker / shell / machine steps                                    |
+| Auth boundary             | **AuthContext** subjects: `user` / `token` / `cron` / `pipeline` / `workflow` / `agent`                    |
 | Audit trail               | Durable events, execution history, audit logs — traceable, recoverable, replayable                          |
 | Provider differences      | Standard errors (`ErrNotFound`, `ErrForbidden`, `ErrProvider`) + unified pagination (limit + opaque cursor) |
 
-**Flowbot is not a chatbot.** It uses chat as one of many interaction surfaces. At its core, it is a data hub and orchestration engine for your homelab.
+**Flowbot is not a chatbot.** It uses chat (Discord / Slack / Tailchat) as one of many interaction surfaces. At its core, it is a data hub and orchestration engine for your homelab.
 
 ## Architecture
 
@@ -35,9 +35,9 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
 +-------------------+                  +---------------------+
 | Homelab Registry  |  bind app →      | Capability Registry |
 | archivebox,atuin, |  capability      | karakeep, miniflux, |
-| beszel,karakeep...| ---------------> | kanboard, gitea, …  |
-+-------------------+                  +---------+-----------+
-        |                                        |
+| adguard,karakeep… | ---------------> | kanboard, gitea, …  |
++-------------------+                  | notify, agent       |
+        |                              +---------+-----------+
         | register apps                          |
         v                                capability.Invoke()
 +-------------------+                            |
@@ -57,25 +57,29 @@ In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab
                                        +-----------------------+
 ```
 
-See [architecture diagrams](docs/architecture/README.md) for full PlantUML component, layer, dataflow, and deployment diagrams.
+Layers (top → bottom): Platform adapters → HTTP gateway (Fiber) → modules / pipeline / workflow / agent → `capability.Invoke` → providers → PostgreSQL + Redis.
+
+See [architecture diagrams](docs/architecture/README.md) for PlantUML component, layer, dataflow, and deployment diagrams. Agent engine details live under [docs/agent/](docs/agent/).
 
 ## Capabilities
 
 Provider-backed capabilities use the provider ID as the capability name. Domain event names (e.g. `bookmark.created`) stay stable for orchestration.
 
-| Capability   | Provider   | Interfaces                     |
-| ------------ | ---------- | ------------------------------ |
-| **karakeep** | karakeep   | REST, CLI, Chat, Workflow      |
-| **miniflux** | miniflux   | REST, CLI, Chat, Webhook, Cron |
-| **kanboard** | kanboard   | REST, CLI, Chat, Webhook       |
-| **trilium**  | trilium    | REST, CLI, Chat                |
-| **memos**    | memos      | REST, CLI, Chat, Webhook       |
-| **gitea**    | gitea      | REST, CLI, Chat, Webhook       |
-| **github**   | github     | REST, CLI, Chat, Webhook       |
+| Capability   | Kind              | Notes                                              |
+| ------------ | ----------------- | -------------------------------------------------- |
+| **karakeep** | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **miniflux** | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **kanboard** | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **trilium**  | Provider          | REST, CLI, Chat, Workflow; polling event source    |
+| **memos**    | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **gitea**    | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **github**   | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **notify**   | Internal          | Multi-channel dispatch (Slack, Pushover, ntfy, …)  |
+| **agent**    | Internal          | Chat / Cloud Agent loop (`pkg/agent/`)             |
 
-Discovery-only (no capability package yet): archivebox, fireflyiii, beszel/uptime-kuma/adguard, atuin.
+Providers without a capability package yet (discovery / client only): archivebox, fireflyiii, adguard, uptimekuma, drone, dropbox, email, n8n, slash, transmission, slack (OAuth).
 
-All provider capabilities share the same invocation pattern:
+All capabilities share the same invocation pattern:
 
 ```go
 result, err := capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit": 20})
@@ -89,41 +93,49 @@ See [UPGRADE-capability-1to1.md](docs/migrations/UPGRADE-capability-1to1.md) whe
 
 ### Declarative Pipeline
 
-Cross-service data flows defined in YAML, triggered by durable events:
+Cross-service data flows defined in `pipelines.yaml`, triggered by durable events:
 
 ```yaml
-# When a new bookmark is saved, archive it and notify
-trigger:
-  event: "bookmark.created"
-steps:
-  - action: archive.submit
-    input: $.event.url
-  - action: notify.send
-    input:
-      channel: slack
-      message: "Archived: $.event.url"
+# When a new bookmark is saved, notify
+- name: bookmark_notify
+  enabled: true
+  trigger:
+    event: bookmark.created
+  steps:
+    - name: send_notification
+      capability: notify
+      operation: send
+      params:
+        channel: slack
+        message: "Saved: {{event.url}}"
 ```
 
-Every pipeline run is persisted, idempotent, and audited.
+Every pipeline run is persisted, idempotent, and audited. Events flow: DataEvent → PostgreSQL `data_events` → Redis Stream → pipeline handler → `pipeline_runs`.
 
-### Workflow Capability Step
+### Workflow Engine
 
-Composable automation DAG where each step invokes a capability:
+Composable task DAGs in YAML. Each task uses an action prefix:
 
 ```
-[cron trigger] → [reader.fetch] → [llm.summarize] → [notify.send]
+[cron trigger] → [capability:miniflux.list_entries] → [mapper:] → [capability:notify.send]
 ```
 
-Built-in step types: Capability, Message, Fetch, Feed, LLM, Docker, Grep, Unique, Torrent.
+| Prefix        | Runtime               | Example                      |
+| ------------- | --------------------- | ---------------------------- |
+| `capability:` | Capability invoke     | `capability:karakeep.create` |
+| `docker:`     | Docker container      | `docker:nginx:latest`        |
+| `shell:`      | Shell command         | `shell:echo hello`           |
+| `machine:`    | Remote SSH            | `machine:vm1`                |
+| `mapper:`     | Inline data transform | `mapper:`                    |
 
 ## Quick Start
 
 ### Requirements
 
-- Go 1.26+
+- Go 1.26.3+
 - PostgreSQL + Redis
-- [Task](https://taskfile.dev) runner
-- Docker
+- [Task](https://taskfile.dev) runner (`go tool task`)
+- Docker (for BDD specs / workflow docker steps)
 
 ### Install
 
@@ -131,10 +143,18 @@ Built-in step types: Capability, Message, Fetch, Feed, LLM, Docker, Grep, Unique
 git clone https://github.com/flowline-io/flowbot.git
 cd flowbot
 cp docs/reference/config.yaml flowbot.yaml
-# Edit flowbot.yaml
-task build
+# Edit flowbot.yaml — set store_config.adapters.postgres.dsn and redis.password
+go tool task build
 ./bin/flowbot
 ```
+
+Or run without building:
+
+```bash
+go tool task run
+```
+
+Health probes: `/livez`, `/readyz`, `/startupz`. Web UI: `/service/web/login`.
 
 ### Docker
 
@@ -157,36 +177,41 @@ Or install a specific version:
 curl -fsSL https://raw.githubusercontent.com/flowline-io/flowbot/master/scripts/install.sh | bash -s -- --version v0.40
 ```
 
-The CLI is installed to `/usr/local/bin/flowbot`. Run `flowbot --help` to see available commands.
+The CLI is installed to `/usr/local/bin/flowbot`. Run `flowbot --help` to see available commands. From source: `go tool task build:cli` or `go install github.com/flowline-io/flowbot/cmd/cli@latest`.
 
-## Module Surface
+## Modules & Platforms
 
-16 modules serve as interaction entry points. Each can expose commands, forms, webhooks, cron jobs, web services, or workflow triggers.
+Interaction modules are thin entry points (commands, webhooks, webservice, cron). They never import `pkg/providers/*` — they call `capability.Invoke`.
 
-| Module       | Surface                                                        |
-| ------------ | -------------------------------------------------------------- |
-| **workflow** | DAG execution, job scheduling                                  |
-| **hub**      | App lifecycle management                                       |
-| **notify**   | Multi-channel dispatch (Slack, Pushover, ntfy, Message Pusher) |
-| **server**   | System operations                                              |
-| **webhook**  | Inbound/outbound hooks                                         |
+| Module      | Surface                                              |
+| ----------- | ---------------------------------------------------- |
+| **hub**     | App / capability lifecycle, management APIs (`/hub/*`) |
+| **web**     | Web UI, login, service routes (`/service/web/*`)     |
+| **example** | Reference module for new modules                     |
+
+Chat platforms: **Discord**, **Slack**, **Tailchat** (`internal/platforms/`).
+
+Binaries: server (`cmd/`), admin CLI (`cmd/cli/`), composer (`cmd/composer/` — admin actions, website docs, SKILL.md generation).
 
 ## Development
 
 ```bash
-task default              # tidy → swagger → format → lint → test
-task build                # Main server
-task test                 # Unit tests
-task lint                 # revive + actionlint
-task air                  # Live reload
+go tool task default       # tidy → swagger → format → lint → scc
+go tool task build         # Main server → bin/flowbot
+go tool task run           # go run -tags swagger ./cmd
+go tool task test          # Unit tests
+go tool task test:specs    # BDD acceptance tests (Docker required)
+go tool task lint          # revive + testify + actionlint + oxlint
+go tool task air           # Live reload
 ```
 
 ### Code Generation
 
 ```bash
-task swagger   # Generate Swagger/OpenAPI docs
-task doc       # Generate database schema docs
-task ent       # Generate ent code from database
+go tool task swagger   # Generate Swagger/OpenAPI docs
+go tool task ent       # Generate ent code from database
+go tool task templ     # Generate Go code from Templ templates
+go tool task skills    # Generate SKILL.md for CLI
 ```
 
 ### API
@@ -199,36 +224,44 @@ task ent       # Generate ent code from database
 | `/livez` `/readyz` `/startupz` | Health probes    |
 | `/metrics`                     | Prometheus       |
 
-Auth: `X-AccessToken` header or OAuth 2.0.
+Auth: `X-AccessToken` header or OAuth 2.0. Service routes require minimum scopes (`service:{capability}:read|write`, etc.).
 
 ## Configuration
 
 ```yaml
 listen: ":6060"
 store_config:
-  use_adapter: mysql
+  use_adapter: postgres
   adapters:
-    mysql:
-      dsn: "root:password@tcp(localhost)/flowbot?parseTime=True"
+    postgres:
+      dsn: "postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable"
 redis:
-  addr: "localhost:6379"
+  host: 127.0.0.1
+  port: 6379
+  password: "flowbot"   # required (non-empty)
 platform:
   slack:
-    enabled: true
-    bot_token: "xoxb-..."
+    enabled: false
   discord:
-    enabled: true
-    bot_token: "..."
+    enabled: false
+  tailchat:
+    enabled: false
 ```
+
+Full template: [`docs/reference/config.yaml`](docs/reference/config.yaml). Field reference: [`docs/reference/config-reference.md`](docs/reference/config-reference.md).
 
 ## Documentation
 
+- [Getting Started](docs/getting-started/README.md)
+- [User Guide](docs/user-guide/README.md) — pipelines, workflows, notifications, homelab discovery
 - [Architecture](docs/architecture/README.md)
 - [API Reference](docs/api/README.md)
-- [Configuration](docs/config/README.md)
-- [Database Schema](docs/database/README.md)
-- [Deployment](docs/deployment/README.md)
-- [Notifications](docs/notify.md)
+- [Configuration](docs/reference/config-reference.md)
+- [Database Schema](docs/reference/database-reference.md)
+- [Deployment](docs/developer-guide/deployment.md)
+- [Agent Engine](docs/agent/README.md)
+- [Developer Guide](docs/developer-guide/README.md)
+- [Testing](docs/testing/tdd-specs.md)
 
 ## License
 
