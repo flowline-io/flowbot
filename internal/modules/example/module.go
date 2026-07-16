@@ -63,6 +63,9 @@ func (moduleHandler) Bootstrap() error {
 }
 
 func (moduleHandler) Webservice(app *fiber.App) {
+	if !handler.initialized {
+		return
+	}
 	module.Webservice(app, Name, webserviceRules)
 }
 

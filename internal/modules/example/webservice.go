@@ -7,18 +7,17 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 var webserviceRules = []webservice.Rule{
-	webservice.Get("/example", example, route.WithNotAuth()),
-	webservice.Get("/get", getExampleItem, route.WithNotAuth()),
-	webservice.Get("/health", healthExample, route.WithNotAuth()),
-	webservice.Post("/create", createExampleItem, route.WithNotAuth()),
-	webservice.Delete("/delete", deleteExampleItem, route.WithNotAuth()),
+	webservice.Get("/example", example),
+	webservice.Get("/get", getExampleItem),
+	webservice.Get("/health", healthExample),
+	webservice.Post("/create", createExampleItem),
+	webservice.Delete("/delete", deleteExampleItem),
 }
 
 // example show example data

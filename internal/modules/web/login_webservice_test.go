@@ -406,12 +406,12 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 		},
 		{
 			name:         "Secure true when cookie_secure true",
-			cookieSecure: boolPtr(true),
+			cookieSecure: new(true),
 			wantSecure:   true,
 		},
 		{
 			name:         "Secure false when cookie_secure false",
-			cookieSecure: boolPtr(false),
+			cookieSecure: new(false),
 			wantSecure:   false,
 		},
 	}
@@ -457,7 +457,6 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 	}
 }
 
-func boolPtr(v bool) *bool { return &v }
 
 func TestLoginSubmitStoresHashedToken(t *testing.T) {
 	tests := []struct {

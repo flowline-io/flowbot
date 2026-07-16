@@ -135,19 +135,19 @@ func TestWebserviceEndpoints(t *testing.T) {
 		wantStatus int
 	}{
 		{
-			name:       "GET /example returns OK",
+			name:       "GET /example without auth returns unauthorized",
 			method:     "GET",
 			path:       "/service/example/example",
-			wantStatus: 200,
+			wantStatus: 401,
 		},
 		{
-			name:       "GET /get without id returns 400",
+			name:       "GET /get without auth returns unauthorized",
 			method:     "GET",
 			path:       "/service/example/get",
-			wantStatus: 400,
+			wantStatus: 401,
 		},
 		{
-			name:       "POST /webhook/example returns 202",
+			name:       "POST /webhook/example returns 202 without auth",
 			method:     "POST",
 			path:       "/service/example/webhook/example",
 			wantStatus: 202,
@@ -157,8 +157,10 @@ func TestWebserviceEndpoints(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app := fiber.New(fiber.Config{
 				ErrorHandler: func(ctx fiber.Ctx, err error) error {
-					code, _ := mapDomainErrorStatus(err)
-					return ctx.Status(code).SendString(err.Error())
+					if code, ok := mapDomainErrorStatus(err); ok {
+						return ctx.Status(code).SendString(err.Error())
+					}
+					return ctx.Status(fiber.StatusUnauthorized).SendString(err.Error())
 				},
 			})
 			ruleSets := append(webserviceRules, webhookRules...)

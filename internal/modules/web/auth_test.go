@@ -22,8 +22,8 @@ func TestCookieSecureEnabled(t *testing.T) {
 		want bool
 	}{
 		{name: "nil defaults to true", cfg: AuthConfig{}, want: true},
-		{name: "explicit true", cfg: AuthConfig{CookieSecure: boolPtr(true)}, want: true},
-		{name: "explicit false", cfg: AuthConfig{CookieSecure: boolPtr(false)}, want: false},
+		{name: "explicit true", cfg: AuthConfig{CookieSecure: new(true)}, want: true},
+		{name: "explicit false", cfg: AuthConfig{CookieSecure: new(false)}, want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

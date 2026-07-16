@@ -217,6 +217,7 @@ func TestShouldSkipRateLimit(t *testing.T) {
 		{name: "readiness skipped", path: "/readyz", want: true},
 		{name: "startup skipped", path: "/startupz", want: true},
 		{name: "metrics skipped", path: "/service/user/metrics", want: true},
+		{name: "prometheus metrics skipped", path: "/metrics", want: true},
 		{name: "root skipped", path: "/", want: true},
 		{name: "api route not skipped", path: "/service/web/pipelines", want: false},
 		{name: "hub route not skipped", path: "/hub/apps", want: false},

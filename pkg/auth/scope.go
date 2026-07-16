@@ -7,7 +7,8 @@ type ScopeInfo struct {
 }
 
 const (
-	ScopeAdmin = "admin:*"
+	ScopeAdmin        = "admin:*"
+	ScopeAdminMetrics = "admin:metrics"
 
 	ScopeHubAppsRead         = "hub:apps:read"
 	ScopeHubAppsStatus       = "hub:apps:status"
@@ -108,6 +109,7 @@ func HasScope(scopes []string, required string) bool {
 func AllScopes() []ScopeInfo {
 	return []ScopeInfo{
 		{Value: ScopeAdmin, Description: "full access"},
+		{Value: ScopeAdminMetrics, Description: "scrape /metrics"},
 		{Value: ScopeHubAppsRead, Description: "read apps"},
 		{Value: ScopeHubAppsStatus, Description: "app status"},
 		{Value: ScopeHubAppsLogs, Description: "app logs"},

@@ -412,28 +412,32 @@ func TestMetrics(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		metrics Metrics
-		wantOn  bool
-		wantEp  string
+		name       string
+		metrics    Metrics
+		wantOn     bool
+		wantEp     string
+		wantBearer string
 	}{
 		{
-			name:    "enabled with endpoint",
-			metrics: Metrics{Enabled: true, Endpoint: "/metrics"},
-			wantOn:  true,
-			wantEp:  "/metrics",
+			name:       "enabled with endpoint",
+			metrics:    Metrics{Enabled: true, Endpoint: "/metrics"},
+			wantOn:     true,
+			wantEp:     "/metrics",
+			wantBearer: "",
 		},
 		{
-			name:    "disabled with custom endpoint",
-			metrics: Metrics{Enabled: false, Endpoint: "/custom-metrics"},
-			wantOn:  false,
-			wantEp:  "/custom-metrics",
+			name:       "disabled with custom endpoint",
+			metrics:    Metrics{Enabled: false, Endpoint: "/custom-metrics"},
+			wantOn:     false,
+			wantEp:     "/custom-metrics",
+			wantBearer: "",
 		},
 		{
-			name:    "enabled with empty endpoint",
-			metrics: Metrics{Enabled: true, Endpoint: ""},
-			wantOn:  true,
-			wantEp:  "",
+			name:       "enabled with bearer token",
+			metrics:    Metrics{Enabled: true, Endpoint: "", BearerToken: "scrape-secret"},
+			wantOn:     true,
+			wantEp:     "",
+			wantBearer: "scrape-secret",
 		},
 	}
 	for _, tt := range tests {
@@ -441,6 +445,7 @@ func TestMetrics(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.wantOn, tt.metrics.Enabled)
 			assert.Equal(t, tt.wantEp, tt.metrics.Endpoint)
+			assert.Equal(t, tt.wantBearer, tt.metrics.BearerToken)
 		})
 	}
 }

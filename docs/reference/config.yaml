@@ -3,6 +3,20 @@
 listen: ":6060"
 # API path prefix
 api_path: "/"
+
+# HTTP boundary hardening (CORS, rate limit, HSTS)
+http:
+  # CORS Origin whitelist. Empty = do not reflect any Origin (same-origin Web UI / frp does not need CORS).
+  cors:
+    allow_origins: []
+  # Global HTTP rate limiter (login brute_force is separate under modules.web.auth)
+  rate_limit:
+    max: 200
+    expiration: 10s
+  # Set true when serving HTTPS or behind a TLS-terminating proxy (enables HSTS).
+  # HSTS is also enabled when modules.web.auth.cookie_secure is true (default).
+  tls_behind_proxy: false
+
 media:
   # Media storage handler type: fs(filesystem) or minio
   use_handler: fs
@@ -126,6 +140,9 @@ executor:
 metrics:
   enabled: true
   endpoint: "http://127.0.0.1:8428"
+  # Optional dedicated scrape secret for GET /metrics (Authorization: Bearer ...).
+  # If empty, require a valid access token with admin:metrics (or admin:*) scope.
+  bearer_token: ""
 
 # Pyroscope continuous profiling configuration
 profiling:
@@ -353,6 +370,10 @@ modules:
         lockout_attempts: 10     # full lockout after this many failures
         lockout_duration: 15m    # how long the lockout lasts
         window_duration: 15m     # sliding window for counting attempts
+  # Reference / demo module — keep disabled unless intentionally testing adapters
+  - name: example
+    enabled: false
+    environment: ""
 
 # Third-party service configuration
 vendors:

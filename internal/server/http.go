@@ -19,10 +19,16 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/samber/oops"
 
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	tracepkg "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/utils"
+)
+
+const (
+	defaultRateLimitMax        = 200
+	defaultRateLimitExpiration = 10 * time.Second
 )
 
 var (
@@ -95,10 +101,12 @@ func newHTTPServer() *fiber.App {
 	app.Use(requestid.New())
 	// trace
 	app.Use(tracepkg.FiberMiddleware())
-	// cors
+	// cors — empty allow_origins does not reflect any Origin (same-origin Web UI).
+	// AllowOriginsFunc reads config.App live; AllowCredentials is fixed at startup
+	// (Fiber Config is static), so CORS credential mode changes need a process restart.
 	app.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(_ string) bool {
-			return true
+		AllowOriginsFunc: func(origin string) bool {
+			return matchHTTPAllowOrigin(config.App.HTTP.CORS.AllowOrigins, origin)
 		},
 		AllowMethods: []string{fiber.MethodGet, fiber.MethodPost, fiber.MethodPut, fiber.MethodDelete, fiber.MethodPatch, fiber.MethodOptions},
 		AllowHeaders: []string{
@@ -109,13 +117,13 @@ func newHTTPServer() *fiber.App {
 			"X-AccessToken",
 			"X-Request-ID",
 		},
-		AllowCredentials: true,
+		AllowCredentials: corsAllowCredentials(config.App.HTTP.CORS.AllowOrigins),
 	}))
 	// limiter — static assets and health probes are excluded because each page
 	// load issues 10+ /static/* requests that would exhaust the API quota.
 	app.Use(limiter.New(limiter.Config{
-		Max:               200,
-		Expiration:        10 * time.Second,
+		Max:               httpRateLimitMax(),
+		Expiration:        httpRateLimitExpiration(),
 		LimiterMiddleware: limiter.SlidingWindow{},
 		Next:              shouldSkipRateLimit,
 	}))
@@ -157,6 +165,54 @@ func newHTTPServer() *fiber.App {
 	return app
 }
 
+// httpRateLimitMax returns the configured global rate limit max, or the default.
+func httpRateLimitMax() int {
+	if config.App.HTTP.RateLimit.Max > 0 {
+		return config.App.HTTP.RateLimit.Max
+	}
+	return defaultRateLimitMax
+}
+
+// httpRateLimitExpiration returns the configured rate limit window, or the default.
+func httpRateLimitExpiration() time.Duration {
+	if config.App.HTTP.RateLimit.Expiration > 0 {
+		return config.App.HTTP.RateLimit.Expiration
+	}
+	return defaultRateLimitExpiration
+}
+
+// matchHTTPAllowOrigin reports whether origin is permitted by the CORS whitelist.
+// An empty whitelist never matches. A sole "*" entry allows any non-empty origin.
+func matchHTTPAllowOrigin(allowed []string, origin string) bool {
+	if origin == "" || len(allowed) == 0 {
+		return false
+	}
+	if corsAllowsAnyOrigin(allowed) {
+		return true
+	}
+	origin = strings.ToLower(origin)
+	for _, val := range allowed {
+		if strings.ToLower(val) == origin {
+			return true
+		}
+	}
+	return false
+}
+
+// corsAllowsAnyOrigin reports whether the whitelist is the open "*" entry.
+func corsAllowsAnyOrigin(allowed []string) bool {
+	return len(allowed) == 1 && allowed[0] == "*"
+}
+
+// corsAllowCredentials reports whether Access-Control-Allow-Credentials should be set.
+// Requires a non-empty explicit Origin whitelist; "*" never enables credentials.
+func corsAllowCredentials(allowed []string) bool {
+	if len(allowed) == 0 || corsAllowsAnyOrigin(allowed) {
+		return false
+	}
+	return true
+}
+
 // shouldSkipRateLimit returns true for paths that should not count toward the
 // global HTTP rate limiter (static assets, health probes, metrics scraping).
 func shouldSkipRateLimit(c fiber.Ctx) bool {
@@ -168,6 +224,7 @@ func shouldSkipRateLimit(c fiber.Ctx) bool {
 		healthcheck.ReadinessEndpoint,
 		healthcheck.StartupEndpoint,
 		"/",
+		"/metrics",
 		"/service/user/metrics",
 	}
 	return utils.Contains(skipPaths, c.Path())
@@ -175,11 +232,13 @@ func shouldSkipRateLimit(c fiber.Ctx) bool {
 
 // securityHeadersMiddleware adds security-related HTTP response headers.
 // CSP allows inline styles needed by the Tailwind CSS browser runtime
-// and daisyui.
+// and daisyui. HSTS is sent when http.tls_behind_proxy or web cookie_secure is true.
 func securityHeadersMiddleware(c fiber.Ctx) error {
 	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
 	c.Set(fiber.HeaderXFrameOptions, "DENY")
-	c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
+	if config.App.ShouldSendHSTS() {
+		c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
+	}
 	if !strings.HasPrefix(c.Path(), "/swagger/") {
 		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self'")
 	}

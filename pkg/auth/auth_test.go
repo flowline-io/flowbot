@@ -16,8 +16,11 @@ func TestHasScope(t *testing.T) {
 		want   bool
 	}{
 		{name: "admin has all", scopes: []string{ScopeAdmin}, target: ScopeHubAppsRead, want: true},
+		{name: "admin has metrics", scopes: []string{ScopeAdmin}, target: ScopeAdminMetrics, want: true},
+		{name: "admin:metrics exact match", scopes: []string{ScopeAdminMetrics}, target: ScopeAdminMetrics, want: true},
 		{name: "exact match", scopes: []string{ScopeHubAppsRead}, target: ScopeHubAppsRead, want: true},
 		{name: "different scope", scopes: []string{ScopeHubAppsStatus}, target: ScopeHubAppsRead, want: false},
+		{name: "metrics scope does not grant hub", scopes: []string{ScopeAdminMetrics}, target: ScopeHubAppsRead, want: false},
 		{name: "empty scopes", scopes: []string{}, target: ScopeHubAppsRead, want: false},
 		{name: "empty required always true", scopes: []string{}, target: "", want: true},
 		{name: "legacy bookmark scope satisfies karakeep", scopes: []string{"service:bookmark:read"}, target: ScopeServiceKarakeepRead, want: true},

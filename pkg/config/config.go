@@ -40,6 +40,9 @@ type Type struct {
 	// Can be overridden from the command line, see option --api_path.
 	ApiPath string `json:"api_path" yaml:"api_path" mapstructure:"api_path"`
 
+	// HTTP boundary settings (CORS, rate limit, HSTS).
+	HTTP HTTPConfig `json:"http" yaml:"http" mapstructure:"http"`
+
 	// Configs for subsystems
 	Store StoreType    `json:"store_config" yaml:"store_config" mapstructure:"store_config"`
 	Media *mediaConfig `json:"media" yaml:"media" mapstructure:"media"`
@@ -402,10 +405,39 @@ type Executor struct {
 }
 
 type Metrics struct {
-	// Enabled
+	// Enabled controls push to the remote metrics endpoint (VictoriaMetrics / Prometheus push).
 	Enabled bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
-	// Metrics endpoint
+	// Endpoint is the remote push URL when Enabled is true.
 	Endpoint string `json:"endpoint" yaml:"endpoint" mapstructure:"endpoint"`
+	// BearerToken is an optional dedicated scrape secret for GET /metrics.
+	// When set, Authorization: Bearer <token> (or X-AccessToken) matching this value is accepted.
+	// Otherwise a valid access token with admin:metrics (or admin:*) scope is required.
+	BearerToken string `json:"bearer_token" yaml:"bearer_token" mapstructure:"bearer_token"`
+}
+
+// HTTPConfig holds HTTP boundary hardening settings.
+type HTTPConfig struct {
+	// CORS configures cross-origin resource sharing. Empty allow_origins disables CORS reflection.
+	CORS HTTPCORSConfig `json:"cors" yaml:"cors" mapstructure:"cors"`
+	// RateLimit configures the global HTTP request rate limiter.
+	RateLimit HTTPRateLimitConfig `json:"rate_limit" yaml:"rate_limit" mapstructure:"rate_limit"`
+	// TLSBehindProxy enables HSTS when true (HTTPS or TLS-terminating reverse proxy / frp).
+	// HSTS is also sent when modules.web.auth.cookie_secure is enabled (see ShouldSendHSTS).
+	TLSBehindProxy bool `json:"tls_behind_proxy" yaml:"tls_behind_proxy" mapstructure:"tls_behind_proxy"`
+}
+
+// HTTPCORSConfig holds CORS allow-origin whitelist settings.
+type HTTPCORSConfig struct {
+	// AllowOrigins is the Origin whitelist. Empty means no Origin is reflected (same-origin Web UI does not need CORS).
+	AllowOrigins []string `json:"allow_origins" yaml:"allow_origins" mapstructure:"allow_origins"`
+}
+
+// HTTPRateLimitConfig holds global HTTP rate limiter settings.
+type HTTPRateLimitConfig struct {
+	// Max is the maximum requests per Expiration window (default 200 when unset or <= 0).
+	Max int `json:"max" yaml:"max" mapstructure:"max"`
+	// Expiration is the sliding window duration (default 10s when unset or <= 0).
+	Expiration time.Duration `json:"expiration" yaml:"expiration" mapstructure:"expiration"`
 }
 
 type Search struct {

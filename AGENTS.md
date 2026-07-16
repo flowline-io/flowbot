@@ -92,6 +92,8 @@ Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`)
 - `redis.password` must be NON-empty (validator `required,min=1`), so Redis is run with `--requirepass flowbot`.
 - Platform `required_if=Enabled true` is **not** uniform: Discord requires app/client/bot credentials; Tailchat requires `api_url`. Slack and Telegram do **not** fail validation with empty tokens — still set unused platforms to `enabled: false` in Cloud.
 - Prefer `metrics.enabled: false` when VictoriaMetrics is not running; leaving it on is harmless except push errors.
+- `GET /metrics` requires `metrics.bearer_token` or an access token with `admin:metrics` / `admin:*` scope.
+- `http.cors.allow_origins` defaults empty (no CORS reflection); `["*"]` never enables credentials. HSTS is sent when `http.tls_behind_proxy` or `modules.web.auth.cookie_secure` is true.
 - Local DSN: `store_config.adapters.postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
 
 ### Run / build / lint / test

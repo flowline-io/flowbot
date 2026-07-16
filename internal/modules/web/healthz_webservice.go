@@ -26,6 +26,10 @@ var healthzWebserviceRules = []webservice.Rule{
 
 // healthzPage renders the system health dashboard.
 func healthzPage(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+
 	hctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
