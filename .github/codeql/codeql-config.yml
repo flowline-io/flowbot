@@ -1,0 +1,5 @@
+name: Flowbot CodeQL
+
+# Third-party vendored assets (matches .oxlintrc.json ignorePatterns).
+paths-ignore:
+  - public/vendor/**
