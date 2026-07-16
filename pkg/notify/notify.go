@@ -2,6 +2,7 @@ package notify
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"regexp"
@@ -16,6 +17,8 @@ import (
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
+
+const notifyConfigKeyPrefix = "notify:"
 
 var (
 	handlers   map[string]Notifyer
@@ -372,6 +375,43 @@ func buildNotifyMessage(result *notifytmpl.RenderResult, payload map[string]any)
 	return msg
 }
 
+// UserNotifyChannels returns channel names configured for the user under notify:<channel> keys.
+func UserNotifyChannels(ctx context.Context, uid types.Uid) ([]string, error) {
+	if store.Database == nil {
+		return nil, nil
+	}
+	items, err := store.Database.ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
+	if err != nil {
+		return nil, err
+	}
+	keys := make([]string, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		keys = append(keys, item.Key)
+	}
+	return channelsFromNotifyConfigKeys(keys), nil
+}
+
+// channelsFromNotifyConfigKeys extracts channel names from notify:<channel> config keys.
+func channelsFromNotifyConfigKeys(keys []string) []string {
+	channels := make([]string, 0, len(keys))
+	seen := make(map[string]struct{}, len(keys))
+	for _, key := range keys {
+		ch := strings.TrimPrefix(key, notifyConfigKeyPrefix)
+		if ch == "" || ch == key {
+			continue
+		}
+		if _, ok := seen[ch]; ok {
+			continue
+		}
+		seen[ch] = struct{}{}
+		channels = append(channels, ch)
+	}
+	return channels
+}
+
 // sendToUserChannel looks up the user's channel configuration and sends the message.
 func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel string, msg Message) error {
 	if uid.IsZero() {
@@ -379,9 +419,13 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel s
 		return nil
 	}
 
-	kv, err := store.Database.ConfigGet(ctx, uid, "", fmt.Sprintf("notify:%s", channel))
+	kv, err := store.Database.ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
 	if err != nil {
-		flog.Warn("[notify] channel %s not configured for user %s", channel, uid)
+		if errors.Is(err, types.ErrNotFound) {
+			flog.Debug("[notify] channel %s not configured for user %s", channel, uid)
+			return nil
+		}
+		flog.Warn("[notify] failed to load channel %s for user %s: %v", channel, uid, err)
 		return nil
 	}
 	templateURI, ok := kv.String("value")

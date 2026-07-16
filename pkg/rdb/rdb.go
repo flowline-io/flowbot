@@ -3,6 +3,7 @@ package rdb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -90,10 +91,18 @@ func Shutdown(ctx context.Context) {
 	defer cancel()
 
 	if _, err := Client.Ping(ctx).Result(); err != nil {
-		flog.Warn("redis connection already lost: %v", err)
+		if errors.Is(err, redis.ErrClosed) {
+			flog.Debug("redis connection already lost: %v", err)
+		} else {
+			flog.Warn("redis connection already lost: %v", err)
+		}
 	}
 
 	if err := Client.Close(); err != nil {
+		if errors.Is(err, redis.ErrClosed) {
+			flog.Debug("redis connection already closed: %v", err)
+			return
+		}
 		flog.Error(fmt.Errorf("failed to close redis connection: %w", err))
 		return
 	}

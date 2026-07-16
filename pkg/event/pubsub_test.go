@@ -1,8 +1,11 @@
 package event
 
 import (
+	"context"
 	"testing"
 
+	"github.com/alicebob/miniredis/v2"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -152,6 +155,30 @@ func TestBotEventStruct(t *testing.T) {
 			assert.Equal(t, tt.wantUID, tt.event.Uid)
 			assert.Equal(t, tt.wantTopic, tt.event.Topic)
 			assert.Equal(t, tt.wantMsg, tt.event.Param["message"])
+		})
+	}
+}
+
+func TestSharedRedisWithoutClose(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "close is no-op and underlying client stays open"},
+		{name: "repeated close remains no-op"},
+		{name: "ping still works after wrapper close"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			mr := miniredis.RunT(t)
+			client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+			t.Cleanup(func() { _ = client.Close() })
+
+			wrapped := sharedRedisWithoutClose{UniversalClient: client}
+			require.NoError(t, wrapped.Close())
+			require.NoError(t, wrapped.Close())
+			require.NoError(t, client.Ping(context.Background()).Err())
 		})
 	}
 }

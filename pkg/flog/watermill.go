@@ -23,15 +23,9 @@ func (*watermillLogger) Error(msg string, err error, fields watermill.LogFields)
 	t.Msg(msg)
 }
 
-func (*watermillLogger) Info(msg string, fields watermill.LogFields) {
-	t := l.Info()
-	if mustCaller() {
-		t = t.Caller(1)
-	}
-	if fields != nil {
-		addWatermillFieldsData(t, fields)
-	}
-	t.Msg(msg)
+func (*watermillLogger) Info(_ string, _ watermill.LogFields) {
+	// Discard Watermill Info (handler wiring / subscribe chatter). Errors still
+	// go through Error; Debug/Trace remain available when log.level=debug.
 }
 
 func (*watermillLogger) Debug(msg string, fields watermill.LogFields) {

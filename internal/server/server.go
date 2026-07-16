@@ -55,7 +55,7 @@ func serveFiberListener(app *fiber.App, ln net.Listener, shutdowner fx.Shutdowne
 		// startup hooks finish, which would stop the HTTP server shortly after boot.
 		serveErr := app.Listener(ln, fiber.ListenConfig{
 			DisableStartupMessage: true,
-			EnablePrintRoutes:     true,
+			EnablePrintRoutes:     false,
 		})
 		if shouldIgnoreServeError(serveErr, stopping) {
 			return

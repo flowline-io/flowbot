@@ -210,4 +210,17 @@ func TestShutdown(t *testing.T) {
 		_, err := Client.Ping(context.Background()).Result()
 		require.Error(t, err)
 	})
+
+	t.Run("already closed client does not panic", func(t *testing.T) {
+		prev := Client
+		t.Cleanup(func() { Client = prev })
+
+		mr := miniredis.RunT(t)
+		Client = redis.NewClient(&redis.Options{Addr: mr.Addr()})
+		require.NoError(t, Client.Close())
+
+		require.NotPanics(t, func() {
+			Shutdown(context.Background())
+		})
+	})
 }

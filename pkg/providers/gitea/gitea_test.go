@@ -1,6 +1,8 @@
 package gitea
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -190,4 +192,56 @@ func TestGitea_Constructor(t *testing.T) {
 		assert.Equal(t, "test_token", g.token)
 		assert.Nil(t, g.c) // Client not initialized
 	})
+}
+
+func TestNewGitea(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		statusCode int
+		body       string
+		wantErr    bool
+	}{
+		{
+			name:       "creates client without SetDebugMode against version endpoint",
+			statusCode: http.StatusOK,
+			body:       `{"version":"1.21.0"}`,
+			wantErr:    false,
+		},
+		{
+			name:       "returns error when version endpoint fails",
+			statusCode: http.StatusUnauthorized,
+			body:       `{"message":"unauthorized"}`,
+			wantErr:    true,
+		},
+		{
+			name:       "returns error on server error",
+			statusCode: http.StatusInternalServerError,
+			body:       `{"message":"boom"}`,
+			wantErr:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/api/v1/version", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(tt.statusCode)
+				_, _ = w.Write([]byte(tt.body))
+			}))
+			t.Cleanup(srv.Close)
+
+			g, err := NewGitea(srv.URL, "token")
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Nil(t, g)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, g)
+			assert.Equal(t, "token", g.token)
+			assert.NotNil(t, g.c)
+		})
+	}
 }

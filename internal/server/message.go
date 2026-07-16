@@ -84,25 +84,36 @@ func groupIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e 
 // This function will send a message to all users in the database.
 // If an error occurs, it will be logged and the function will continue to the next user.
 func notifyAll(message string) {
-	// send message
 	users, err := store.Database.GetUsers(context.Background())
 	if err != nil {
 		flog.Error(fmt.Errorf("notify error %w", err))
 		return
 	}
 
+	skipped := 0
+	sent := 0
 	for _, item := range users {
-		ctx := types.Context{
-			AsUser: types.Uid(item.Flag),
+		uid := types.Uid(item.Flag)
+		ctx := types.Context{AsUser: uid}
+		channels, chErr := notify.UserNotifyChannels(ctx.Context(), uid)
+		if chErr != nil {
+			flog.Error(fmt.Errorf("notify list channels error %w", chErr))
+			continue
 		}
-		err = notify.GatewaySend(ctx.Context(), types.Uid(item.Flag), "agent.status", []string{"slack", "ntfy"}, map[string]any{
+		if len(channels) == 0 {
+			skipped++
+			continue
+		}
+		err = notify.GatewaySend(ctx.Context(), uid, "agent.status", channels, map[string]any{
 			"message": message,
 		})
 		if err != nil {
 			flog.Error(fmt.Errorf("notify error %w", err))
 			continue
 		}
+		sent++
 	}
+	flog.Debug("[notify] online broadcast done sent=%d skipped=%d total=%d", sent, skipped, len(users))
 }
 
 // onlineStatus handles MessageEvent protocol event and updates user online status.

@@ -1,11 +1,13 @@
 package notify
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -373,6 +375,70 @@ func TestList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.run(t)
+		})
+	}
+}
+
+func TestChannelsFromNotifyConfigKeys(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		keys []string
+		want []string
+	}{
+		{
+			name: "extracts slack and ntfy channels",
+			keys: []string{"notify:slack", "notify:ntfy"},
+			want: []string{"slack", "ntfy"},
+		},
+		{
+			name: "skips keys without notify prefix",
+			keys: []string{"other:slack", "notify:pushover"},
+			want: []string{"pushover"},
+		},
+		{
+			name: "deduplicates channels",
+			keys: []string{"notify:slack", "notify:slack"},
+			want: []string{"slack"},
+		},
+		{
+			name: "empty and bare prefix yield empty",
+			keys: []string{"", "notify:", "notify"},
+			want: []string{},
+		},
+		{
+			name: "nil keys yield empty",
+			keys: nil,
+			want: []string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, channelsFromNotifyConfigKeys(tt.keys))
+		})
+	}
+}
+
+func TestUserNotifyChannels_NilDatabase(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "nil store returns empty channels"},
+		{name: "nil store returns no error"},
+		{name: "nil store is safe to call"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			prev := store.Database
+			store.Database = nil
+			t.Cleanup(func() { store.Database = prev })
+
+			channels, err := UserNotifyChannels(context.Background(), types.Uid("user1"))
+			require.NoError(t, err)
+			assert.Nil(t, channels)
 		})
 	}
 }

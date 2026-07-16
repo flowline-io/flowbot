@@ -25,11 +25,23 @@ import (
 
 var logger = flog.WatermillLogger
 
+// sharedRedisWithoutClose wraps the shared Redis client so watermill-redisstream
+// Close() does not shut down the process-wide connection pool. Ownership of Close
+// remains with pkg/rdb.
+type sharedRedisWithoutClose struct {
+	redis.UniversalClient
+}
+
+// Close is a no-op; the shared Redis client is closed by rdb.Shutdown.
+func (sharedRedisWithoutClose) Close() error {
+	return nil
+}
+
 // NewSubscriber creates a Watermill Redis Stream subscriber using the shared Redis client.
 func NewSubscriber(lc fx.Lifecycle, client *redis.Client) (message.Subscriber, error) {
 	subscriber, err := redisstream.NewSubscriber(
 		redisstream.SubscriberConfig{
-			Client:       client,
+			Client:       sharedRedisWithoutClose{UniversalClient: client},
 			Unmarshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,
@@ -57,7 +69,7 @@ var Publisher message.Publisher
 func NewPublisher(lc fx.Lifecycle, client *redis.Client) (message.Publisher, error) {
 	pub, err := redisstream.NewPublisher(
 		redisstream.PublisherConfig{
-			Client:     client,
+			Client:     sharedRedisWithoutClose{UniversalClient: client},
 			Marshaller: redisstream.DefaultMarshallerUnmarshaller{},
 		},
 		logger,

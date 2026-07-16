@@ -7,7 +7,6 @@ import (
 
 	"code.gitea.io/sdk/gitea"
 
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/providers"
 )
@@ -32,19 +31,14 @@ func GetClient() (*Gitea, error) {
 }
 
 func NewGitea(endpoint, token string) (*Gitea, error) {
-	var err error
+	// Do not enable gitea.SetDebugMode from global log.level: the SDK prints
+	// raw HTTP dumps via fmt.Printf and bypasses flog.
 	v := &Gitea{token: token}
-	if config.App.Log.Level == flog.DebugLevel {
-		v.c, err = gitea.NewClient(endpoint, gitea.SetToken(token), gitea.SetDebugMode())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		v.c, err = gitea.NewClient(endpoint, gitea.SetToken(token))
-		if err != nil {
-			return nil, err
-		}
+	c, err := gitea.NewClient(endpoint, gitea.SetToken(token))
+	if err != nil {
+		return nil, err
 	}
+	v.c = c
 	return v, nil
 }
 
