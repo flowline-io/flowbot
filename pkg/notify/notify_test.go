@@ -421,7 +421,11 @@ func TestChannelsFromNotifyConfigKeys(t *testing.T) {
 }
 
 func TestUserNotifyChannels_NilDatabase(t *testing.T) {
-	t.Parallel()
+	// Mutates global store.Database; must not run in parallel with other tests.
+	prev := store.Database
+	store.Database = nil
+	t.Cleanup(func() { store.Database = prev })
+
 	tests := []struct {
 		name string
 	}{
@@ -431,11 +435,6 @@ func TestUserNotifyChannels_NilDatabase(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			prev := store.Database
-			store.Database = nil
-			t.Cleanup(func() { store.Database = prev })
-
 			channels, err := UserNotifyChannels(context.Background(), types.Uid("user1"))
 			require.NoError(t, err)
 			assert.Nil(t, channels)
