@@ -310,7 +310,7 @@ func TestCheckLifecyclePermission(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := checkLifecyclePermission(tt.perm, tt.operation)
+			got := homelab.AllowsLifecycle(tt.perm, tt.operation)
 			assert.Equal(t, tt.want, got)
 		})
 	}

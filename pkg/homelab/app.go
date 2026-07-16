@@ -96,3 +96,26 @@ type Permissions struct {
 	Update  bool
 	Exec    bool
 }
+
+// AllowsLifecycle reports whether operation is permitted by config permissions.
+// Known operations: status, logs, start, stop, restart, pull, update.
+func AllowsLifecycle(perm Permissions, operation string) bool {
+	switch operation {
+	case "status":
+		return perm.Status
+	case "logs":
+		return perm.Logs
+	case "start":
+		return perm.Start
+	case "stop":
+		return perm.Stop
+	case "restart":
+		return perm.Restart
+	case "pull":
+		return perm.Pull
+	case "update":
+		return perm.Update
+	default:
+		return false
+	}
+}

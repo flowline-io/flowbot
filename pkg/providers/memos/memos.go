@@ -21,7 +21,18 @@ const (
 	EndpointKey = "endpoint"
 	// TokenKey is the config key for the personal access token or access token.
 	TokenKey = "token"
+	// WebhookTokenKey is the config key for the inbound webhook Bearer token.
+	WebhookTokenKey = "webhook_token"
 )
+
+// GetWebhookToken reads the webhook Bearer token from the memos provider config.
+func GetWebhookToken() string {
+	tok, err := providers.GetConfig(ID, WebhookTokenKey)
+	if err != nil {
+		return ""
+	}
+	return tok.String()
+}
 
 // Memos wraps the Memos REST API client.
 type Memos struct {

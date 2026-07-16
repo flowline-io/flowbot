@@ -2224,6 +2224,9 @@ func (a *adapter) ListTokens(ctx context.Context) ([]model.TokenItem, error) {
 }
 
 func (a *adapter) CreateToken(ctx context.Context, uid types.Uid, expiresAt time.Time, scopes []string) (string, error) {
+	if len(scopes) == 0 {
+		return "", fmt.Errorf("postgres: create token: %w", types.Errorf(types.ErrInvalidArgument, "at least one scope is required"))
+	}
 	token, err := auth.NewToken()
 	if err != nil {
 		return "", fmt.Errorf("postgres: create token: %w", err)

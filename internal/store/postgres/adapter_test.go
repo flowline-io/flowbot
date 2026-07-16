@@ -107,6 +107,20 @@ func TestCreateToken(t *testing.T) {
 			scopes:    []string{"hub:apps:read"},
 			wantErr:   false,
 		},
+		{
+			name:      "rejects empty scopes",
+			uid:       types.Uid("user:noscope"),
+			expiresAt: time.Now().Add(24 * time.Hour),
+			scopes:    nil,
+			wantErr:   true,
+		},
+		{
+			name:      "rejects empty scope slice",
+			uid:       types.Uid("user:empty"),
+			expiresAt: time.Now().Add(24 * time.Hour),
+			scopes:    []string{},
+			wantErr:   true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

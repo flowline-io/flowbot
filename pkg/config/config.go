@@ -347,6 +347,9 @@ type Tailchat struct {
 	AppID string `json:"app_id" yaml:"app_id" mapstructure:"app_id"`
 	// Tailchat app secret
 	AppSecret string `json:"app_secret" yaml:"app_secret" mapstructure:"app_secret"`
+	// WebhookToken is the shared secret required on inbound /platform/tailchat callbacks
+	// via the X-Tailchat-Token header. When Tailchat is enabled, an empty token rejects all requests.
+	WebhookToken string `json:"webhook_token" yaml:"webhook_token" mapstructure:"webhook_token"`
 }
 
 type ExecutorLimits struct {

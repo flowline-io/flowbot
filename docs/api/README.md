@@ -82,13 +82,17 @@ Business capabilities (notify, bookmark, kanban, reader, memo, note, forge, gith
 | `/oauth/:provider/:flag`  | ALL      | OAuth callbacks          |
 | POST /webhook/provider/\* | POST     | Provider webhook handler |
 | `/platform/:platform`     | ALL      | Platform callbacks       |
-| `/form`                   | POST     | Form submissions         |
+| `/form`                   | POST     | Form submissions (access token or `x-signature` / `?sig=`) |
 | `/p/:id`                  | GET      | Page rendering           |
 | `/agent`                  | POST     | Agent data endpoint      |
 | GET /page/:id/:flag       | GET      | Dynamic page rendering   |
 | `/hub/apps*`              | GET/POST | Hub management REST API  |
 | `/hub/capabilities*`      | GET      | Capability listing       |
 | `/hub/health`             | GET      | Hub health check         |
+
+Form POST requires either a valid access token (with scopes) or the form signature issued at create time (`Extra.signature`, also embedded as `?sig=` on the form link / `x-signature` field).
+
+Provider webhooks under `/webhook/provider/*` reject deliveries when the provider webhook secret/token is not configured (including Memos `vendors.memos.webhook_token`). Tailchat inbound callbacks require `platform.tailchat.webhook_token` and header `X-Tailchat-Token`.
 
 ### Bot Webservice Routes
 

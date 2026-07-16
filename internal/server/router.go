@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -170,6 +171,14 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("error form state")
 	}
 
+	if err := authorizeFormSubmit(ctx, formData); err != nil {
+		return err
+	}
+
+	// Bind identity to the stored form record (ignore client-supplied uid/topic for auth context).
+	uid = formData.UID
+	topic = formData.Topic
+
 	formMsg, botHandler, err := getFormBotHandler(formData.Schema, formId)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
@@ -216,6 +225,64 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 	}
 
 	return ctx.JSON(protocol.NewSuccessResponse("ok"))
+}
+
+// authorizeFormSubmit accepts either a valid scoped access token or the form signature field.
+func authorizeFormSubmit(ctx fiber.Ctx, formData gen.Form) error {
+	if formAccessTokenAuthorized(formSubmitAccessToken(ctx)) {
+		return nil
+	}
+	sig := ctx.FormValue("x-signature")
+	if sig == "" {
+		sig = ctx.Query("sig")
+	}
+	extra := types.KV(formData.Extra)
+	expected, _ := (&extra).String("signature")
+	if expected == "" || sig == "" || !secureTokenEqual(sig, expected) {
+		return protocol.ErrNotAuthorized.New("form requires access token or valid signature")
+	}
+	return nil
+}
+
+// formAccessTokenAuthorized reports whether raw is a non-expired token with at least one scope.
+func formAccessTokenAuthorized(raw string) bool {
+	if raw == "" {
+		return false
+	}
+	p, err := route.LookupAccessToken(context.Background(), raw)
+	if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
+		return false
+	}
+	paramKV := types.KV(p.Params)
+	uidStr, _ := paramKV.String("uid")
+	if types.Uid(uidStr).IsZero() {
+		return false
+	}
+	rawScopes, _ := paramKV["scopes"]
+	var scopes []string
+	switch v := rawScopes.(type) {
+	case []any:
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				scopes = append(scopes, s)
+			}
+		}
+	case []string:
+		scopes = v
+	}
+	return auth.HasAnyScope(scopes)
+}
+
+// formSubmitAccessToken extracts a bearer/cookie access token for form POST auth.
+func formSubmitAccessToken(ctx fiber.Ctx) string {
+	if v := ctx.Cookies("accessToken"); v != "" {
+		return v
+	}
+	var r http.Request
+	if err := fasthttpadaptor.ConvertRequest(ctx.RequestCtx(), &r, true); err != nil {
+		return auth.ExtractBearerToken(ctx.Get(fiber.HeaderAuthorization))
+	}
+	return route.GetAccessToken(&r)
 }
 
 func parseFormFieldValues(fields []types.FormField, pf map[string][]string, ctx fiber.Ctx) types.KV {

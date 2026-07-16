@@ -30,34 +30,46 @@ func TestVerifySignature(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name    string
+		token   string
 		headers map[string]string
-		body    []byte
 		wantErr bool
 	}{
 		{
-			name:    "always succeeds with empty headers",
+			name:    "empty token config rejects",
+			token:   "",
+			headers: map[string]string{"Authorization": "Bearer secret"},
+			wantErr: true,
+		},
+		{
+			name:    "missing Authorization header",
+			token:   "secret",
 			headers: map[string]string{},
-			body:    []byte(`{"activityType":"memos.memo.created"}`),
+			wantErr: true,
+		},
+		{
+			name:    "invalid Bearer token",
+			token:   "secret",
+			headers: map[string]string{"Authorization": "Bearer wrong"},
+			wantErr: true,
+		},
+		{
+			name:    "valid Bearer token",
+			token:   "secret",
+			headers: map[string]string{"Authorization": "Bearer secret"},
 			wantErr: false,
 		},
 		{
-			name:    "always succeeds with arbitrary headers",
-			headers: map[string]string{"X-Something": "value"},
-			body:    []byte(`{"activityType":"memos.memo.created"}`),
-			wantErr: false,
-		},
-		{
-			name:    "always succeeds with empty body",
-			headers: nil,
-			body:    nil,
-			wantErr: false,
+			name:    "non-bearer auth format rejected",
+			token:   "secret",
+			headers: map[string]string{"Authorization": "Token secret"},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			w := NewWebhook()
-			err := w.VerifySignature(tt.headers, tt.body)
+			w := &Webhook{getToken: func() string { return tt.token }}
+			err := w.VerifySignature(tt.headers, []byte(`{}`))
 			if tt.wantErr {
 				assert.Error(t, err)
 			} else {

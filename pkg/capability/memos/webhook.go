@@ -11,13 +11,20 @@ import (
 )
 
 // Webhook implements capability.WebhookConverter for Memos.
-// The Memos webhook sends JSON payloads without authentication headers,
-// so VerifySignature is a no-op by default.
-type Webhook struct{}
+// It validates a shared Bearer token (vendors.memos.webhook_token). Memos may not
+// send auth headers natively; configure a reverse proxy or webhook gateway to attach
+// Authorization: Bearer <token>, or use a Memos build that supports signing secrets
+// forwarded as Bearer.
+type Webhook struct {
+	getToken func() string
+}
 
-// NewWebhook creates a Webhook for the Memos provider.
+// NewWebhook creates a Webhook that reads the Bearer token from provider config
+// lazily at verification time.
 func NewWebhook() *Webhook {
-	return &Webhook{}
+	return &Webhook{
+		getToken: provider.GetWebhookToken,
+	}
 }
 
 // Compile-time interface check.
@@ -29,11 +36,25 @@ func (*Webhook) WebhookPath() string {
 	return "memos/events"
 }
 
-// VerifySignature validates the incoming webhook request.
-// Memos does not send authentication headers, so this is a no-op
-// that always succeeds. Users who need authentication should place
-// a reverse proxy between Memos and the webhook receiver.
-func (*Webhook) VerifySignature(_ map[string]string, _ []byte) error {
+// VerifySignature validates the Bearer token from the Authorization header.
+// An empty webhook_token config rejects all deliveries (same as other providers).
+func (w *Webhook) VerifySignature(headers map[string]string, _ []byte) error {
+	token := w.getToken()
+	if token == "" {
+		return types.Errorf(types.ErrUnauthorized, "webhook token not configured")
+	}
+	auth, ok := headers["Authorization"]
+	if !ok {
+		return types.Errorf(types.ErrUnauthorized, "missing Authorization header")
+	}
+	const prefix = "Bearer "
+	if !strings.HasPrefix(auth, prefix) {
+		return types.Errorf(types.ErrUnauthorized, "invalid Authorization header format")
+	}
+	provided := auth[len(prefix):]
+	if provided != token {
+		return types.Errorf(types.ErrUnauthorized, "invalid Bearer token")
+	}
 	return nil
 }
 

@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
 
 	"github.com/flowline-io/flowbot/pkg/providers"
@@ -226,6 +227,12 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 
 	var extra = make(types.KV)
+	sig, err := auth.NewToken()
+	if err != nil {
+		flog.Error(err)
+		return types.TextMsg{Text: "store form error"}
+	}
+	extra["signature"] = sig
 
 	err = store.Database.FormSet(ctx.Context(), formId, gen.Form{
 		FormID: formId,
@@ -243,7 +250,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 	return types.LinkMsg{
 		Title: fmt.Sprintf("%s Form[%s]", formMsg.Title, formId),
-		Url:   fmt.Sprintf("%s/form/%s", types.AppUrl(), formId),
+		Url:   fmt.Sprintf("%s/form/%s?sig=%s", types.AppUrl(), formId, sig),
 	}
 }
 

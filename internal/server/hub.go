@@ -156,7 +156,7 @@ func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation strin
 		return app, types.Errorf(types.ErrForbidden, "insufficient scope: %s", scope)
 	}
 	perm := homelab.DefaultRegistry.Permissions()
-	if !checkLifecyclePermission(perm, operation) {
+	if !homelab.AllowsLifecycle(perm, operation) {
 		c.writeLifecycleAudit(ctx.Context(), name, "hub.apps."+operation, "rejected", "config permission denied")
 		return app, types.Errorf(types.ErrForbidden, "%s not allowed by config for app %s", operation, name)
 	}
@@ -178,26 +178,5 @@ func (c *Controller) writeLifecycleAudit(ctx context.Context, appName, action, r
 		_ = c.auditor.RecordFailure(ctx, entry, fmt.Errorf("%s", errMsg))
 	case "rejected":
 		_ = c.auditor.RecordRejected(ctx, entry, errMsg)
-	}
-}
-
-func checkLifecyclePermission(perm homelab.Permissions, operation string) bool {
-	switch operation {
-	case "status":
-		return perm.Status
-	case "logs":
-		return perm.Logs
-	case "start":
-		return perm.Start
-	case "stop":
-		return perm.Stop
-	case "restart":
-		return perm.Restart
-	case "pull":
-		return perm.Pull
-	case "update":
-		return perm.Update
-	default:
-		return false
 	}
 }

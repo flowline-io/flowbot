@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
@@ -330,6 +331,59 @@ func TestHubCapabilitiesUnauthenticated(t *testing.T) {
 				}
 			} else if resp.StatusCode != http.StatusSeeOther {
 				t.Errorf("want status %d (redirect), got %d", http.StatusSeeOther, resp.StatusCode)
+			}
+		})
+	}
+}
+
+func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
+	tests := []struct {
+		name       string
+		action     string
+		perms      homelab.Permissions
+		wantStatus int
+	}{
+		{
+			name:       "start denied when Start false",
+			action:     "start",
+			perms:      homelab.Permissions{},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:       "stop denied when Stop false",
+			action:     "stop",
+			perms:      homelab.Permissions{Start: true},
+			wantStatus: http.StatusForbidden,
+		},
+		{
+			name:       "restart denied when Restart false",
+			action:     "restart",
+			perms:      homelab.Permissions{Start: true, Stop: true},
+			wantStatus: http.StatusForbidden,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() {
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+				homelab.DefaultRegistry.SetPermissions(homelab.Permissions{})
+			}()
+			homelab.DefaultRegistry.SetPermissions(tt.perms)
+			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "perm-app"}})
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/hub/perm-app/"+tt.action, http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != tt.wantStatus {
+				body, _ := io.ReadAll(resp.Body)
+				t.Errorf("want status %d, got %d body=%s", tt.wantStatus, resp.StatusCode, body)
 			}
 		})
 	}

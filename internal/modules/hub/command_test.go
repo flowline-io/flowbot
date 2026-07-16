@@ -480,7 +480,7 @@ func TestCheckLifecyclePermission(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, checkLifecyclePermission(tt.perm, tt.action))
+			assert.Equal(t, tt.want, homelab.AllowsLifecycle(tt.perm, tt.action))
 		})
 	}
 }

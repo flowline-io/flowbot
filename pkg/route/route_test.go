@@ -436,7 +436,7 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			SetAuditor(tt.auditor)
 			app := newTestApp()
-			app.Get("/noauth", authorizeWithLevel(NoAuth, func(c fiber.Ctx) error {
+			app.Get("/noauth", authorizeWithLevel(NoAuth, "example", "GET", func(c fiber.Ctx) error {
 				return c.SendString("ok")
 			}))
 			hreq := httptest.NewRequest("GET", "/noauth", http.NoBody)
@@ -448,6 +448,85 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 				require.True(t, ok)
 				assert.Empty(t, m.entries)
 			}
+		})
+	}
+}
+
+func TestAuthorize_RejectsEmptyScopes(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		scopes any
+		want   int
+	}{
+		{name: "nil scopes rejected", scopes: nil, want: 401},
+		{name: "empty slice rejected", scopes: []string{}, want: 401},
+		{name: "admin scope accepted", scopes: []string{"admin:*"}, want: 200},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			orig := store.Database
+			store.Database = postgres.NewSQLiteTestAdapter(t)
+			t.Cleanup(func() { store.Database = orig })
+
+			raw := "fb_empty_scope_" + strings.ReplaceAll(tt.name, " ", "_")
+			params := types.KV{"uid": "user-1"}
+			if tt.scopes != nil {
+				params["scopes"] = tt.scopes
+			}
+			require.NoError(t, store.Database.ParameterSet(context.Background(), auth.HashToken(raw), params, time.Now().Add(time.Hour)))
+
+			app := newTestApp()
+			app.Get("/test", Authorize(func(c fiber.Ctx) error {
+				return c.SendString("ok")
+			}))
+			hreq := httptest.NewRequest("GET", "/test", http.NoBody)
+			hreq.Header.Set("X-AccessToken", raw)
+			resp, err := app.Test(hreq)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, resp.StatusCode)
+		})
+	}
+}
+
+func TestRequireServiceScope(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		scopes []string
+		group  string
+		method string
+		want   int
+	}{
+		{name: "karakeep read allows GET", scopes: []string{auth.ScopeServiceKarakeepRead}, group: "karakeep", method: "GET", want: 200},
+		{name: "karakeep read denies POST", scopes: []string{auth.ScopeServiceKarakeepRead}, group: "karakeep", method: "POST", want: 403},
+		{name: "admin allows POST", scopes: []string{auth.ScopeAdmin}, group: "karakeep", method: "POST", want: 200},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			orig := store.Database
+			store.Database = postgres.NewSQLiteTestAdapter(t)
+			t.Cleanup(func() { store.Database = orig })
+
+			raw := "fb_svc_scope_" + strings.ReplaceAll(tt.name, " ", "_")
+			require.NoError(t, store.Database.ParameterSet(context.Background(), auth.HashToken(raw), types.KV{
+				"uid": "user-1", "scopes": tt.scopes,
+			}, time.Now().Add(time.Hour)))
+
+			app := newTestApp()
+			handler := Authorize(RequireServiceScope(tt.group, tt.method, func(c fiber.Ctx) error {
+				return c.SendString("ok")
+			}))
+			if tt.method == "POST" {
+				app.Post("/test", handler)
+			} else {
+				app.Get("/test", handler)
+			}
+			hreq := httptest.NewRequest(tt.method, "/test", http.NoBody)
+			hreq.Header.Set("X-AccessToken", raw)
+			resp, err := app.Test(hreq)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, resp.StatusCode)
 		})
 	}
 }

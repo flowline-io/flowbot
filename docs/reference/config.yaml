@@ -346,6 +346,8 @@ platform:
     api_url: ""
     app_id: ""
     app_secret: ""
+    # Shared secret for inbound /platform/tailchat (header X-Tailchat-Token). Required when enabled.
+    webhook_token: ""
 
   # Telegram platform configuration
   telegram:
@@ -432,6 +434,12 @@ vendors:
     endpoint: ""
     api_key: ""
     webhook_secret: ""
+  # Memos notes (API token + inbound webhook Bearer token)
+  memos:
+    endpoint: ""
+    token: ""
+    # Required for /webhook/provider/memos/events — empty rejects all deliveries
+    webhook_token: ""
   # Firefly III configuration
   fireflyiii:
     endpoint: "http://127.0.0.1:8283/api"

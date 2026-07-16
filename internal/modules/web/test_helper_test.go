@@ -85,9 +85,13 @@ func (s *testStore) ParameterGet(ctx context.Context, flag string) (gen.Paramete
 		return s.paramGetFn(ctx, flag)
 	}
 	return gen.Parameter{
-		ID:        1,
-		Flag:      flag,
-		Params:    map[string]any{"uid": "testuser", "topic": "test"},
+		ID:   1,
+		Flag: flag,
+		Params: map[string]any{
+			"uid":    "testuser",
+			"topic":  "test",
+			"scopes": []string{"admin:*"},
+		},
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

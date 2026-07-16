@@ -337,7 +337,8 @@ func TestPlatformConfigs(t *testing.T) {
 
 	t.Run("Tailchat", func(t *testing.T) {
 		t.Parallel()
-		tailchat := Tailchat{Enabled: true, ApiURL: "https://api.tailchat.com", AppID: "T123", AppSecret: "secret"}
+		tailchat := Tailchat{Enabled: true, ApiURL: "https://api.tailchat.com", AppID: "T123", AppSecret: "secret", WebhookToken: "wh-token"}
+		assert.Equal(t, "wh-token", tailchat.WebhookToken)
 		assert.True(t, tailchat.Enabled)
 		assert.Equal(t, "https://api.tailchat.com", tailchat.ApiURL)
 	})

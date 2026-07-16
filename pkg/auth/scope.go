@@ -1,5 +1,7 @@
 package auth
 
+import "strings"
+
 // ScopeInfo describes an available scope for token creation.
 type ScopeInfo struct {
 	Value       string
@@ -100,6 +102,71 @@ func HasScope(scopes []string, required string) bool {
 		}
 		if canonicalScope(item) == want {
 			return true
+		}
+	}
+	return false
+}
+
+// HasAnyScope reports whether scopes is non-empty after trimming blank entries.
+func HasAnyScope(scopes []string) bool {
+	for _, s := range scopes {
+		if strings.TrimSpace(s) != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// ServiceScope builds the canonical service:{group}:{action} scope string.
+func ServiceScope(group, action string) string {
+	return "service:" + group + ":" + action
+}
+
+// isWriteHTTPMethod reports whether method mutates state.
+func isWriteHTTPMethod(method string) bool {
+	switch strings.ToUpper(method) {
+	case "POST", "PUT", "PATCH", "DELETE":
+		return true
+	default:
+		return false
+	}
+}
+
+// MinimumServiceScope returns the default minimum scope for /service/{group} routes.
+// Web pipeline routes map to pipeline:*; hub module routes map to hub:capabilities:read;
+// provider modules use service:{group}:read|write.
+func MinimumServiceScope(group, method string) string {
+	switch group {
+	case "web":
+		if isWriteHTTPMethod(method) {
+			return ScopePipelineRun
+		}
+		return ScopePipelineRead
+	case "hub":
+		return ScopeHubCapabilitiesRead
+	default:
+		if isWriteHTTPMethod(method) {
+			return ServiceScope(group, "write")
+		}
+		return ServiceScope(group, "read")
+	}
+}
+
+// HasMinimumServiceScope reports whether scopes satisfy the default /service/{group} gate.
+// Write scopes satisfy read for the same provider group; pipeline:run satisfies pipeline:read.
+func HasMinimumServiceScope(scopes []string, group, method string) bool {
+	required := MinimumServiceScope(group, method)
+	if HasScope(scopes, required) {
+		return true
+	}
+	if !isWriteHTTPMethod(method) {
+		switch group {
+		case "web":
+			return HasScope(scopes, ScopePipelineRun)
+		case "hub":
+			return false
+		default:
+			return HasScope(scopes, ServiceScope(group, "write"))
 		}
 	}
 	return false

@@ -365,22 +365,9 @@ func checkLifecycleOp(name, operation string) (homelab.App, error) {
 	}
 
 	perm := homelab.DefaultRegistry.Permissions()
-	if !checkLifecyclePermission(perm, operation) {
+	if !homelab.AllowsLifecycle(perm, operation) {
 		return app, types.Errorf(types.ErrForbidden, "%s not allowed by config for app %s", operation, name)
 	}
 
 	return app, nil
-}
-
-func checkLifecyclePermission(perm homelab.Permissions, operation string) bool {
-	switch operation {
-	case "start":
-		return perm.Start
-	case "stop":
-		return perm.Stop
-	case "restart":
-		return perm.Restart
-	default:
-		return false
-	}
 }

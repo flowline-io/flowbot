@@ -25,7 +25,8 @@ templ TokenForm(errors map[string]string) {
 			<div class="text-error text-xs">{ errors["expires"] }</div>
 		</td>
 		<td>
-			<div class="flex flex-col gap-0.5">
+			<div class="flex flex-col gap-0.5" data-testid="token-form-scopes" aria-required="true">
+				<span class="text-xs text-base-content/70">Select at least one scope (required)</span>
 				for _, s := range auth.AllScopes() {
 					<label class="flex items-center gap-1 text-xs cursor-pointer">
 						<input type="checkbox" name="scopes" value={ s.Value }

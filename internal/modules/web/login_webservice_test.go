@@ -46,7 +46,7 @@ func TestLoginPage(t *testing.T) {
 				return gen.Parameter{
 					ID:        1,
 					Flag:      flag,
-					Params:    map[string]any{"uid": "testuser", "topic": "test"},
+					Params:    map[string]any{"uid": "testuser", "topic": "test", "scopes": []string{"admin:*"}},
 					ExpiredAt: time.Now().Add(-time.Hour),
 				}, nil
 			},
@@ -456,7 +456,6 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 		})
 	}
 }
-
 
 func TestLoginSubmitStoresHashedToken(t *testing.T) {
 	tests := []struct {

@@ -159,6 +159,28 @@ func TestPermissionsZeroValue(t *testing.T) {
 	}
 }
 
+func TestAllowsLifecycle(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		perm      Permissions
+		operation string
+		want      bool
+	}{
+		{name: "start allowed", perm: Permissions{Start: true}, operation: "start", want: true},
+		{name: "start denied", perm: Permissions{}, operation: "start", want: false},
+		{name: "pull allowed", perm: Permissions{Pull: true}, operation: "pull", want: true},
+		{name: "update denied when only start", perm: Permissions{Start: true}, operation: "update", want: false},
+		{name: "unknown operation denied", perm: Permissions{Start: true}, operation: "exec", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, AllowsLifecycle(tt.perm, tt.operation))
+		})
+	}
+}
+
 func TestConfigDefaults(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

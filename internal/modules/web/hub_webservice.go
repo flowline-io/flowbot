@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -178,6 +179,14 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 		return c.Status(http.StatusNotFound).SendString("app not found")
 	}
 
+	scope := lifecycleScope(operation)
+	if scope != "" && !route.ScopeHandler(c, scope) {
+		return c.Status(http.StatusForbidden).SendString("insufficient scope: " + scope)
+	}
+	if !homelab.AllowsLifecycle(homelab.DefaultRegistry.Permissions(), operation) {
+		return c.Status(http.StatusForbidden).SendString(operation + " not allowed by config")
+	}
+
 	if err := fn(c.Context(), app); err != nil {
 		if errors.Is(err, types.ErrNotImplemented) {
 			return c.Status(http.StatusNotImplemented).SendString(operation + " not available")
@@ -191,6 +200,24 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 	}
 	c.Type("html")
 	return pages.HubAppStatusBadge(status).Render(c.Context(), c.Response().BodyWriter())
+}
+
+// lifecycleScope maps a lifecycle operation to the matching hub:apps:* scope.
+func lifecycleScope(operation string) string {
+	switch operation {
+	case "start":
+		return auth.ScopeHubAppsStart
+	case "stop":
+		return auth.ScopeHubAppsStop
+	case "restart":
+		return auth.ScopeHubAppsRestart
+	case "pull":
+		return auth.ScopeHubAppsPull
+	case "update":
+		return auth.ScopeHubAppsUpdate
+	default:
+		return ""
+	}
 }
 
 // loadUpdatedAts loads updated timestamps from the store and formats them.

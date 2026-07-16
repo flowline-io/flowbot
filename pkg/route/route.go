@@ -24,17 +24,18 @@ const prefix = "service"
 func WebService(app *fiber.App, group string, rs ...*Router) {
 	path := "/" + prefix + "/" + group
 	for _, router := range rs {
+		handler := authorizeWithLevel(router.AuthLevel, group, router.Method, router.Function)
 		switch router.Method {
 		case "GET":
-			app.Get(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
+			app.Get(path+router.Path, handler)
 		case "POST":
-			app.Post(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
+			app.Post(path+router.Path, handler)
 		case "PUT":
-			app.Put(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
+			app.Put(path+router.Path, handler)
 		case "PATCH":
-			app.Patch(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
+			app.Patch(path+router.Path, handler)
 		case "DELETE":
-			app.Delete(path+router.Path, authorizeWithLevel(router.AuthLevel, router.Function))
+			app.Delete(path+router.Path, handler)
 		default:
 			continue
 		}
@@ -102,15 +103,16 @@ const (
 	accessTokenKey = "accessToken"
 )
 
-func authorizeWithLevel(authLevel AuthLevel, handler fiber.Handler) fiber.Handler {
+func authorizeWithLevel(authLevel AuthLevel, group, method string, handler fiber.Handler) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		if authLevel == NoAuth {
 			return handler(ctx)
 		}
-		return Authorize(handler)(ctx)
+		return Authorize(RequireServiceScope(group, method, handler))(ctx)
 	}
 }
 
+// Authorize validates the access token and rejects tokens with no scopes.
 func Authorize(handler fiber.Handler) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
 		accessToken, err := resolveAccessToken(ctx)
@@ -135,6 +137,10 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 		}
 
 		scopes := parseScopes(paramKV)
+		if !auth.HasAnyScope(scopes) {
+			auditAuthReject(ctx, "auth.token.validate.fail", "token has no scopes")
+			return protocol.ErrNotAuthorized.New("token has no scopes")
+		}
 		throttledUpdateLastUsed(paramKV, p.Flag, p.ExpiredAt)
 
 		ctx.Locals(requestContextKey, &RequestContext{
@@ -144,6 +150,19 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 			Scopes: scopes,
 		})
 
+		return handler(ctx)
+	}
+}
+
+// RequireServiceScope enforces the default minimum scope for /service/{group} routes.
+func RequireServiceScope(group, method string, handler fiber.Handler) fiber.Handler {
+	required := auth.MinimumServiceScope(group, method)
+	return func(ctx fiber.Ctx) error {
+		scopes := GetScopes(ctx)
+		if !auth.HasMinimumServiceScope(scopes, group, method) {
+			auditScopeDeny(ctx, required)
+			return protocol.ErrAccessDenied.New("insufficient scope: " + required)
+		}
 		return handler(ctx)
 	}
 }

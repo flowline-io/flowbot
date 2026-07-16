@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -104,6 +105,9 @@ func isAuthenticated(ctx fiber.Ctx) bool {
 		case []string:
 			scopes = v
 		}
+	}
+	if !auth.HasAnyScope(scopes) {
+		return false
 	}
 	ctx.Locals("route:ctx", &route.RequestContext{
 		UID:    uid,
