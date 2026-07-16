@@ -95,7 +95,7 @@ Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`)
 - Local DSN: `store_config.adapters.postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
 
 ### Run / build / lint / test
-- Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (default creds `admin`/`admin` from `modules.web.auth`).
+- Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (creds from `modules.web.auth`; reference config uses `admin` / `flowbot-dev-pass`, or set `password_hash`).
 - Lint (`go tool task lint`) includes a JS step (`oxlint ./public`); `oxlint` is installed globally via npm. If missing, run `npm install -g oxlint` (npm prefix must point inside the nvm node dir, e.g. `npm config set prefix "$HOME/.nvm/versions/node/v22.22.2"`, and that bin dir must be on PATH).
 - Unit tests (`go tool task test`) pass without Docker and use the running Redis.
 - `go tool task test:specs` (BDD) needs Docker/testcontainers, which is NOT installed here; install Docker first if you must run them.

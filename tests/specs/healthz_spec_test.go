@@ -19,7 +19,7 @@ var _ = Describe("Health Dashboard /healthz", Label("health", "web"), func() {
 
 	BeforeEach(func() {
 		origDB = store.Database
-		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"admin"}}`)
+		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
 	})

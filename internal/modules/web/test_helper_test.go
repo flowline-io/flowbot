@@ -150,6 +150,7 @@ func (s *testStore) GetNotifyChannelRaw(_ context.Context, id int64) (model.Noti
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
 	store.Database = ts
+	// Intentionally bypasses validateAuthConfig (Init); weak creds are for login-path unit tests only.
 	handler = moduleHandler{
 		authConfig: AuthConfig{Username: "admin", Password: "admin"},
 	}

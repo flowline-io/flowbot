@@ -49,7 +49,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		origDB = store.Database
 		store.Database = &homelabWebAdapter{ent: EntClient}
 
-		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"admin"}}`)
+		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
 

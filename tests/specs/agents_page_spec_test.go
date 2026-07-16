@@ -142,7 +142,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 		}
 		store.Database = adapter
 
-		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"admin"}}`)
+		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
 

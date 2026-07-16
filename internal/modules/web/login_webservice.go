@@ -82,7 +82,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 		return pages.LoginForm(next, blocked).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 
-	if username == "" || username != cfg.Username || password != cfg.Password {
+	if username == "" || !cfg.verifyCredentials(username, password) {
 		msg := recordLoginFailure(ctx)
 		ctx.Type("html")
 		return pages.LoginForm(next, msg).Render(context.Background(), ctx.Response().BodyWriter())

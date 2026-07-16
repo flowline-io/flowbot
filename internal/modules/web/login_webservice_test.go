@@ -11,6 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/auth"
@@ -186,6 +188,68 @@ func TestLoginSubmit(t *testing.T) {
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
 			}
+			if tt.wantHXRedirect != "" {
+				got := resp.Header.Get("HX-Redirect")
+				if got != tt.wantHXRedirect {
+					t.Errorf("want HX-Redirect %q, got %q", tt.wantHXRedirect, got)
+				}
+			}
+			assertCookie(t, resp, tt.wantCookieSet)
+			if tt.wantContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				if !strings.Contains(string(body), tt.wantContains) {
+					t.Errorf("want body containing %q, got %q", tt.wantContains, string(body))
+				}
+			}
+		})
+	}
+}
+
+func TestLoginSubmitWithPasswordHash(t *testing.T) {
+	hash, err := bcrypt.GenerateFromPassword([]byte("correct-horse-battery"), bcrypt.MinCost)
+	if err != nil {
+		t.Fatalf("generate hash: %v", err)
+	}
+	tests := []struct {
+		name           string
+		password       string
+		wantHXRedirect string
+		wantContains   string
+		wantCookieSet  bool
+	}{
+		{
+			name:           "matching password succeeds",
+			password:       "correct-horse-battery",
+			wantHXRedirect: "/service/web/configs",
+			wantCookieSet:  true,
+		},
+		{
+			name:          "wrong password fails",
+			password:      "wrong-password",
+			wantContains:  "Invalid username or password",
+			wantCookieSet: false,
+		},
+		{
+			name:          "empty password fails",
+			password:      "",
+			wantContains:  "Invalid username or password",
+			wantCookieSet: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			handler.authConfig = AuthConfig{Username: "admin", PasswordHash: string(hash)}
+			config.Auth = handler.authConfig
+
+			form := url.Values{}
+			form.Set("username", "admin")
+			form.Set("password", tt.password)
+			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
 			if tt.wantHXRedirect != "" {
 				got := resp.Header.Get("HX-Redirect")
 				if got != tt.wantHXRedirect {

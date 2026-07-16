@@ -340,7 +340,10 @@ modules:
     enabled: true
     auth:
       username: admin
-      password: admin
+      # Dev plaintext example only — change before any real deployment (min 12 chars).
+      # Prefer password_hash (bcrypt cost >= 10) in production.
+      password: "flowbot-dev-pass"
+      # password_hash: "$2a$10$..."
       # Set Secure on accessToken cookie (default true for HTTPS / frp deployments)
       cookie_secure: true
       # Brute force protection for login

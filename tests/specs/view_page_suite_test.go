@@ -64,7 +64,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 		store.Database = &viewPageAdapter{ent: EntClient, db: origDB}
 		pageStore = store.NewPageDataStore(EntClient)
 
-		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"admin"}}`)
+		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf) // ignore "already initialized" on subsequent calls
 		webmod.MountForE2E(App)
 	})
@@ -272,7 +272,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 	Describe("POST /service/web/login", func() {
 		Context("with valid credentials", func() {
 			It("authenticates and redirects to home", func() {
-				formData := "username=admin&password=admin"
+				formData := "username=admin&password=flowbot-dev-pass"
 				req := MakeRequest(http.MethodPost, "/service/web/login", []byte(formData))
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 				resp, err := App.Test(req)

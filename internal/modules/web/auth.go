@@ -14,9 +14,11 @@ import (
 )
 
 // AuthConfig holds web login authentication credentials read from the module config.
+// Configure either Password (development plaintext) or PasswordHash (bcrypt, production).
 type AuthConfig struct {
 	Username     string           `json:"username"`
 	Password     string           `json:"password"`
+	PasswordHash string           `json:"password_hash"`
 	CookieSecure *bool            `json:"cookie_secure"`
 	BruteForce   BruteForceConfig `json:"brute_force"`
 }

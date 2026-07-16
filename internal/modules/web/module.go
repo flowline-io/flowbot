@@ -53,6 +53,9 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		flog.Info("module %s disabled", Name)
 		return nil
 	}
+	if err := validateAuthConfig(config.Auth); err != nil {
+		return err
+	}
 	handler.initialized = true
 	handler.authConfig = config.Auth
 	return nil
