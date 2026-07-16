@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
@@ -19,6 +20,21 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/config"
 )
+
+// tracingConfigMu serializes mutations of config.App.Tracing across parallel tests.
+var tracingConfigMu sync.Mutex
+
+// withTracingConfig temporarily replaces config.App.Tracing under a package mutex.
+func withTracingConfig(t *testing.T, cfg config.Tracing) {
+	t.Helper()
+	tracingConfigMu.Lock()
+	orig := config.App.Tracing
+	config.App.Tracing = cfg
+	t.Cleanup(func() {
+		config.App.Tracing = orig
+		tracingConfigMu.Unlock()
+	})
+}
 
 type testLifecycle struct {
 	hooks []fx.Hook
@@ -174,9 +190,7 @@ func TestNewTracerProviderDisabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			orig := config.App.Tracing
-			t.Cleanup(func() { config.App.Tracing = orig })
-			config.App.Tracing = config.Tracing{Enabled: false}
+			withTracingConfig(t, config.Tracing{Enabled: false})
 
 			lc := &testLifecycle{}
 			tp, err := NewTracerProvider(lc)

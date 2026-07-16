@@ -120,7 +120,7 @@ func TestInitRegisteredCommand(t *testing.T) {
 	defer func() { os.Args = originalArgs }()
 
 	called := false
-	uniqueName := fmt.Sprintf("registered_init_%d", os.Getpid())
+	uniqueName := fmt.Sprintf("registered_init_%d_%d", os.Getpid(), registerSeq.Add(1))
 	Register(uniqueName, func() { called = true })
 
 	os.Args = []string{uniqueName}

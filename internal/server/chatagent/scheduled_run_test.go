@@ -20,7 +20,10 @@ func setupEphemeralRunTestDB(t *testing.T) store.Adapter {
 	t.Helper()
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	t.Cleanup(func() {
+		WaitForSessionTitleGenerationForTest()
+		store.Database = origDB
+	})
 	return store.Database
 }
 

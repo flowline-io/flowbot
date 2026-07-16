@@ -191,11 +191,6 @@ func memoUpdateCommand() *cobra.Command {
 			}
 			name := args[0]
 
-			c, err := utils.NewClient(cmd)
-			if err != nil {
-				return err
-			}
-
 			req := &client.UpdateMemoRequest{}
 			hasUpdate := false
 
@@ -217,6 +212,11 @@ func memoUpdateCommand() *cobra.Command {
 
 			if !hasUpdate {
 				return fmt.Errorf("at least one of --content, --visibility, or --pinned must be provided")
+			}
+
+			c, err := utils.NewClient(cmd)
+			if err != nil {
+				return err
 			}
 
 			memo, err := c.Memo.Update(cmd.Context(), name, req)

@@ -3,7 +3,6 @@ package notify
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -430,9 +429,7 @@ func TestChannelsFromNotifyConfigKeys(t *testing.T) {
 
 func TestUserNotifyChannels_NilDatabase(t *testing.T) {
 	// Mutates global store.Database; must not run in parallel with other tests.
-	prev := store.Database
-	store.Database = nil
-	t.Cleanup(func() { store.Database = prev })
+	replaceDatabaseForTest(t, nil)
 
 	tests := []struct {
 		name string
@@ -458,6 +455,21 @@ func testNotifyTemplate() config.NotifyTemplate {
 		DefaultFormat:   "markdown",
 		DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
 	}
+}
+
+// replaceDatabaseForTest swaps store.Database under databaseMu and waits for recordAsync on cleanup.
+func replaceDatabaseForTest(t *testing.T, db store.Adapter) {
+	t.Helper()
+	databaseMu.Lock()
+	prev := store.Database
+	store.Database = db
+	databaseMu.Unlock()
+	t.Cleanup(func() {
+		WaitForRecordAsyncForTest()
+		databaseMu.Lock()
+		store.Database = prev
+		databaseMu.Unlock()
+	})
 }
 
 func setupNotifyTestEnv(t *testing.T, templates []config.NotifyTemplate, rules []config.NotifyRule, redisStore *cache.RedisStore) {
@@ -716,14 +728,12 @@ func TestGatewaySend(t *testing.T) {
 }
 
 func TestSendToUserChannel(t *testing.T) {
-	prevDB := store.Database
 	ns := &notifyTestStore{
 		configs: map[string]types.KV{
 			"notify:slack": {"value": "testuserchannelsend://chan/tok"},
 		},
 	}
-	store.Database = ns
-	t.Cleanup(func() { store.Database = prevDB })
+	replaceDatabaseForTest(t, ns)
 
 	uid := types.Uid("user-send-test")
 	ctx := context.Background()
@@ -761,11 +771,9 @@ func TestSendToUserChannel(t *testing.T) {
 }
 
 func TestUserNotifyChannels_WithStore(t *testing.T) {
-	prevDB := store.Database
-	store.Database = &notifyTestStore{
+	replaceDatabaseForTest(t, &notifyTestStore{
 		listKeys: []string{"notify:slack", "notify:ntfy"},
-	}
-	t.Cleanup(func() { store.Database = prevDB })
+	})
 
 	uid := types.Uid("user-channels-test")
 	ctx := context.Background()
@@ -800,13 +808,10 @@ func TestGetNotifyStore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			prev := store.Database
-			t.Cleanup(func() { store.Database = prev })
-
 			if tt.setupNil {
-				store.Database = nil
+				replaceDatabaseForTest(t, nil)
 			} else {
-				store.Database = postgres.NewSQLiteTestAdapter(t)
+				replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
 			}
 			ns := GetNotifyStore()
 			if tt.wantNil {
@@ -819,9 +824,7 @@ func TestGetNotifyStore(t *testing.T) {
 }
 
 func TestRecordAsync_NilStore(t *testing.T) {
-	prev := store.Database
-	store.Database = nil
-	t.Cleanup(func() { store.Database = prev })
+	replaceDatabaseForTest(t, nil)
 
 	tests := []struct {
 		name string
@@ -836,7 +839,7 @@ func TestRecordAsync_NilStore(t *testing.T) {
 			assert.NotPanics(t, func() {
 				recordAsync(types.Uid("u"), "slack", "tpl", "sum", "success", "", map[string]any{"k": "v"})
 			})
-			time.Sleep(50 * time.Millisecond)
+			WaitForRecordAsyncForTest()
 		})
 	}
 }

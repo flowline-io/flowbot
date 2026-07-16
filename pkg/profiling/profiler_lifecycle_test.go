@@ -2,6 +2,7 @@ package profiling
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/grafana/pyroscope-go"
@@ -12,12 +13,27 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
+// profilingConfigMu serializes mutations of config.App.Profiling across parallel tests.
+var profilingConfigMu sync.Mutex
+
 type testLifecycle struct {
 	hooks []fx.Hook
 }
 
 func (lc *testLifecycle) Append(h fx.Hook) {
 	lc.hooks = append(lc.hooks, h)
+}
+
+// withProfilingConfig temporarily replaces config.App.Profiling under a package mutex.
+func withProfilingConfig(t *testing.T, cfg config.Profiling) {
+	t.Helper()
+	profilingConfigMu.Lock()
+	orig := config.App.Profiling
+	config.App.Profiling = cfg
+	t.Cleanup(func() {
+		config.App.Profiling = orig
+		profilingConfigMu.Unlock()
+	})
 }
 
 func TestNewProfilerDisabled(t *testing.T) {
@@ -32,9 +48,7 @@ func TestNewProfilerDisabled(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			orig := config.App.Profiling
-			t.Cleanup(func() { config.App.Profiling = orig })
-			config.App.Profiling = config.Profiling{Enabled: false}
+			withProfilingConfig(t, config.Profiling{Enabled: false})
 
 			lc := &testLifecycle{}
 			err := NewProfiler(lc)
@@ -46,15 +60,13 @@ func TestNewProfilerDisabled(t *testing.T) {
 
 func TestNewProfilerEnabledRegistersHooks(t *testing.T) {
 	t.Parallel()
-	orig := config.App.Profiling
-	t.Cleanup(func() { config.App.Profiling = orig })
-	config.App.Profiling = config.Profiling{
+	withProfilingConfig(t, config.Profiling{
 		Enabled:       true,
 		ServerAddress: "http://127.0.0.1:1",
 		ServiceName:   "flowbot-test",
 		Environment:   "test",
 		ProfileTypes:  []string{"cpu"},
-	}
+	})
 
 	lc := &testLifecycle{}
 	err := NewProfiler(lc)
@@ -67,12 +79,10 @@ func TestNewProfilerEnabledRegistersHooks(t *testing.T) {
 
 func TestNewProfilerEnabledDefaults(t *testing.T) {
 	t.Parallel()
-	orig := config.App.Profiling
-	t.Cleanup(func() { config.App.Profiling = orig })
-	config.App.Profiling = config.Profiling{
+	withProfilingConfig(t, config.Profiling{
 		Enabled:       true,
 		ServerAddress: "http://127.0.0.1:1",
-	}
+	})
 
 	lc := &testLifecycle{}
 	err := NewProfiler(lc)

@@ -63,25 +63,10 @@ func lockSessionTitleWrite(sessionID string) func() {
 }
 
 // maybeGenerateSessionTitle starts an async LLM title generation when the session has no title yet.
+// All store.Database access runs inside the WaitGroup so WaitForSessionTitleGenerationForTest
+// covers the full critical section (avoids racing test cleanup that swaps the global adapter).
 func maybeGenerateSessionTitle(sessionID, userText, reply string) {
-	if store.Database == nil {
-		return
-	}
-	sess, err := store.Database.GetChatSession(context.Background(), sessionID)
-	if err != nil {
-		flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
-		return
-	}
-	if strings.TrimSpace(sess.Title) != "" {
-		return
-	}
 	if _, loaded := sessionTitleInflight.LoadOrStore(sessionID, struct{}{}); loaded {
-		return
-	}
-	_, chatModel, _, _, err := agentLoopConfig()
-	if err != nil {
-		sessionTitleInflight.Delete(sessionID)
-		flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
 		return
 	}
 	sessionTitleLLMMu.RLock()
@@ -90,6 +75,23 @@ func maybeGenerateSessionTitle(sessionID, userText, reply string) {
 	sessionTitleLLMMu.RUnlock()
 	sessionTitleGenWG.Go(func() {
 		defer sessionTitleInflight.Delete(sessionID)
+
+		if store.Database == nil {
+			return
+		}
+		sess, err := store.Database.GetChatSession(context.Background(), sessionID)
+		if err != nil {
+			flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
+			return
+		}
+		if strings.TrimSpace(sess.Title) != "" {
+			return
+		}
+		_, chatModel, _, _, err := agentLoopConfig()
+		if err != nil {
+			flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
+			return
+		}
 		generateSessionTitleAsync(sessionID, userText, reply, chatModel, modelResolver, llmGen)
 	})
 }

@@ -23,6 +23,11 @@ const notifyConfigKeyPrefix = "notify:"
 var (
 	handlers   map[string]Notifyer
 	handlersMu sync.RWMutex
+
+	// databaseMu serializes notify package reads of store.Database against test writers.
+	databaseMu sync.RWMutex
+	// recordAsyncWG tracks in-flight recordAsync goroutines for test teardown.
+	recordAsyncWG sync.WaitGroup
 )
 
 const (
@@ -375,12 +380,20 @@ func buildNotifyMessage(result *notifytmpl.RenderResult, payload map[string]any)
 	return msg
 }
 
+// loadDatabase returns the current store.Database under a read lock.
+func loadDatabase() store.Adapter {
+	databaseMu.RLock()
+	defer databaseMu.RUnlock()
+	return store.Database
+}
+
 // UserNotifyChannels returns channel names configured for the user under notify:<channel> keys.
 func UserNotifyChannels(ctx context.Context, uid types.Uid) ([]string, error) {
-	if store.Database == nil {
+	db := loadDatabase()
+	if db == nil {
 		return nil, nil
 	}
-	items, err := store.Database.ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
+	items, err := db.ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -419,7 +432,11 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel s
 		return nil
 	}
 
-	kv, err := store.Database.ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
+	db := loadDatabase()
+	if db == nil {
+		return nil
+	}
+	kv, err := db.ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			flog.Debug("[notify] channel %s not configured for user %s", channel, uid)
@@ -442,14 +459,20 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel s
 // GetNotifyStore returns the NotifyStore from the global database adapter,
 // or nil if the store is not available.
 func GetNotifyStore() *store.NotifyStore {
-	if store.Database == nil || store.Database.GetDB() == nil {
+	db := loadDatabase()
+	if db == nil || db.GetDB() == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
+	client, ok := db.GetDB().(*store.Client)
 	if !ok {
 		return nil
 	}
 	return store.NewNotifyStore(client)
+}
+
+// WaitForRecordAsyncForTest blocks until all in-flight recordAsync goroutines finish.
+func WaitForRecordAsyncForTest() {
+	recordAsyncWG.Wait()
 }
 
 // recordAsync writes a notification delivery record in a goroutine with a 2s timeout.
@@ -458,7 +481,9 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 	// Shallow-copy payload to avoid data race if caller mutates the map after returning.
 	payloadCopy := make(map[string]any, len(payload))
 	maps.Copy(payloadCopy, payload)
+	recordAsyncWG.Add(1)
 	go func() {
+		defer recordAsyncWG.Done()
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 

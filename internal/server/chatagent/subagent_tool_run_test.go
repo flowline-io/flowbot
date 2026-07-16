@@ -107,4 +107,3 @@ func subagentToolResultText(result msg.ToolResultMessage) string {
 	}
 	return out.String()
 }
-
