@@ -92,6 +92,23 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 			wantBodyContains: "",
 		},
 		{
+			name:        "token without scopes redirects to login",
+			cookieToken: "no-scopes-token",
+			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				if flag != auth.HashToken("no-scopes-token") {
+					return gen.Parameter{}, types.ErrNotFound
+				}
+				return gen.Parameter{
+					ID:        4,
+					Flag:      flag,
+					Params:    map[string]any{"uid": "user-admin", "topic": "web"},
+					ExpiredAt: time.Now().Add(time.Hour),
+				}, nil
+			},
+			wantStatus:       http.StatusSeeOther,
+			wantBodyContains: "",
+		},
+		{
 			name:        "legacy plaintext token migrates and allows access",
 			cookieToken: "legacy-plain-token",
 			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {

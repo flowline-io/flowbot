@@ -35,9 +35,13 @@ func (a *homelabWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *homelabWebAdapter) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:        1,
-		Flag:      "bdd-homelab",
-		Params:    map[string]any{"uid": "bdd-homelab-uid", "topic": "test"},
+		ID:   1,
+		Flag: "bdd-homelab",
+		Params: map[string]any{
+			"uid":    "bdd-homelab-uid",
+			"topic":  "test",
+			"scopes": []string{"admin:*"},
+		},
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

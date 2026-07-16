@@ -38,9 +38,13 @@ func (a *viewPageAdapter) GetDB() any                       { return a.ent }
 
 func (a *viewPageAdapter) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:        1,
-		Flag:      "bdd-test",
-		Params:    map[string]any{"uid": "testuser", "topic": "test"},
+		ID:   1,
+		Flag: "bdd-test",
+		Params: map[string]any{
+			"uid":    "testuser",
+			"topic":  "test",
+			"scopes": []string{"admin:*"},
+		},
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

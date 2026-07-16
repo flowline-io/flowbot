@@ -25,7 +25,14 @@ func TestHubAppsPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
-			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			oldApps := homelab.DefaultRegistry.List()
+			homelab.DefaultRegistry.Replace(nil)
+			defer func() {
+				homelab.DefaultRegistry.Replace(oldApps)
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+			}()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
@@ -54,7 +61,14 @@ func TestHubAppsList(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
-			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			oldApps := homelab.DefaultRegistry.List()
+			homelab.DefaultRegistry.Replace(nil)
+			defer func() {
+				homelab.DefaultRegistry.Replace(oldApps)
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+			}()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
@@ -365,11 +379,14 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
+			oldApps := homelab.DefaultRegistry.List()
+			oldPerms := homelab.DefaultRegistry.Permissions()
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
 				config = configType{}
-				homelab.DefaultRegistry.SetPermissions(homelab.Permissions{})
+				homelab.DefaultRegistry.Replace(oldApps)
+				homelab.DefaultRegistry.SetPermissions(oldPerms)
 			}()
 			homelab.DefaultRegistry.SetPermissions(tt.perms)
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "perm-app"}})

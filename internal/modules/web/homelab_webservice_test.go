@@ -24,7 +24,14 @@ func TestHomelabRegistryPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
-			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			oldApps := homelab.DefaultRegistry.List()
+			homelab.DefaultRegistry.Replace(nil)
+			defer func() {
+				homelab.DefaultRegistry.Replace(oldApps)
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+			}()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
 			resp, _ := app.Test(req)
