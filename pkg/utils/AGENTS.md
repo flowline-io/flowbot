@@ -17,6 +17,7 @@ utils/
 - Prefer a co-located `*_test.go` for each non-trivial `.go` file (platform-tagged `reexec/command_*.go` may share package-level tests).
 - Use `utils.CheckSingleton()` for thread-safe single init.
 - Use `utils.SignalHandler()` to obtain the signal channel (blocks on SIGTERM/SIGINT; also watches SIGHUP).
+- Markdown for browser display: `MarkdownToSafeHTML` (not raw `MarkdownToHTML` + `templ.Raw`).
 
 ## Commands
 

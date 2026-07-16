@@ -231,8 +231,12 @@ func shouldSkipRateLimit(c fiber.Ctx) bool {
 }
 
 // securityHeadersMiddleware adds security-related HTTP response headers.
-// CSP allows inline styles needed by the Tailwind CSS browser runtime
-// and daisyui. HSTS is sent when http.tls_behind_proxy or web cookie_secure is true.
+//
+// CSP currently allows 'unsafe-inline' and 'unsafe-eval' because the UI ships
+// Tailwind CSS browser runtime + Alpine.js (and daisyUI themes) which need them.
+// Keep this relaxed policy short-term; tighten after migrating to prebuilt CSS
+// (no tailwind-browser) and dropping runtime Alpine eval requirements.
+// See docs/developer-guide/README.md (Security / CSP).
 func securityHeadersMiddleware(c fiber.Ctx) error {
 	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
 	c.Set(fiber.HeaderXFrameOptions, "DENY")

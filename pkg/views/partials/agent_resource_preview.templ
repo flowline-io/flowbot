@@ -41,6 +41,7 @@ templ AgentResourcePreview(title, bodyHTML string, truncated bool) {
 				<p class="text-warning text-sm">Content truncated for preview.</p>
 			}
 			<div>
+				// bodyHTML must already be sanitized (utils.MarkdownToSafeHTML or html-escaped pre).
 				@templ.Raw(bodyHTML)
 			</div>
 		</div>

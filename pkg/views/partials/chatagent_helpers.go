@@ -247,12 +247,11 @@ func RenderChatAgentMarkdownHTML(text string) string {
 	if trimmed == "" {
 		return ""
 	}
-	html, err := utils.MarkdownToHTML([]byte(trimmed))
+	html, err := utils.MarkdownToSafeHTML([]byte(trimmed))
 	if err != nil {
 		return "<pre class=\"whitespace-pre-wrap font-sans text-sm\">" + htmlEscapeChat(trimmed) + "</pre>"
 	}
-	safe := string(chatAgentMarkdownSanitizer().SanitizeBytes(html))
-	return enhanceChatAgentMarkdownHTML(safe)
+	return enhanceChatAgentMarkdownHTML(string(html))
 }
 
 func enhanceChatAgentMarkdownHTML(html string) string {

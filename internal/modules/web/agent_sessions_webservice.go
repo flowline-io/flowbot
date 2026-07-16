@@ -113,8 +113,10 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 	}
 	bodyHTML := content.Content
 	if content.ContentType == "text/markdown" {
-		if html, mdErr := utils.MarkdownToHTML([]byte(content.Content)); mdErr == nil {
+		if html, mdErr := utils.MarkdownToSafeHTML([]byte(content.Content)); mdErr == nil {
 			bodyHTML = string(html)
+		} else {
+			bodyHTML = "<pre class=\"whitespace-pre-wrap font-mono text-sm\">" + htmlEscape(content.Content) + "</pre>"
 		}
 	} else {
 		bodyHTML = "<pre class=\"whitespace-pre-wrap font-mono text-sm\">" + htmlEscape(content.Content) + "</pre>"

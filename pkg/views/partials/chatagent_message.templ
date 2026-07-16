@@ -15,6 +15,7 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 			</summary>
 			if msg.HTML != "" {
 				<div class="chatagent-thinking-body chatagent-markdown markdown-body mt-2" data-testid="chatagent-message-body">
+					// msg.HTML comes from FormatChatAgentMessageHTML / RenderChatAgentMarkdownHTML (sanitized).
 					@templ.Raw(msg.HTML)
 				</div>
 			} else {
@@ -28,6 +29,7 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 			data-testid={ "chatagent-message-" + msg.Role }>
 			if msg.Role == "assistant" && msg.HTML != "" && !streaming {
 				<div class="chat-bubble bg-base-100 border border-base-300 chatagent-markdown markdown-body text-sm max-w-[92%]" data-testid="chatagent-message-body">
+					// msg.HTML comes from FormatChatAgentMessageHTML / RenderChatAgentMarkdownHTML (sanitized).
 					@templ.Raw(msg.HTML)
 					if msg.TurnDurationMs > 0 || msg.RunDurationMs > 0 {
 						<div class="mt-2 pt-2 border-t border-base-300/60 text-xs text-base-content/50 chatagent-duration" data-testid="chatagent-message-duration">

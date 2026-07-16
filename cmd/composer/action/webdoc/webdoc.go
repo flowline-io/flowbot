@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/goccy/go-yaml"
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/pkg/utils"
@@ -354,16 +353,15 @@ func convertFile(srcDir, outDir string, info *docPageInfo, activeIndex int, allP
 
 	_, content := parseFrontMatter(input)
 
-	htmlBody, err := utils.MarkdownToHTML(content)
+	htmlBody, err := utils.MarkdownToSafeHTML(content)
 	if err != nil {
 		return fmt.Errorf("rendering %s: %w", info.SourcePath, err)
 	}
-	htmlBody = bluemonday.UGCPolicy().SanitizeBytes(htmlBody)
 
 	htmlBody = mdLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1.html$2"`))
 	htmlBody = readmeLinkRegex.ReplaceAll(htmlBody, []byte(`href="$1$2"`))
 
-	safeContent := template.HTML(htmlBody) // #nosec G203 -- content sanitized by bluemonday above
+	safeContent := template.HTML(htmlBody) // #nosec G203 -- content sanitized by utils.MarkdownToSafeHTML above
 
 	outFile := relPathToOut(info.SourcePath)
 	absOut := filepath.Join(outDir, outFile)

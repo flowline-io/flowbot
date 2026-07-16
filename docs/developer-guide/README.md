@@ -48,6 +48,27 @@ go tool task gosec     # security scan
 go tool task check     # all security & quality
 ```
 
+#### XSS / Markdown HTML
+
+User- or agent-controlled markdown rendered in the browser must go through
+`pkg/utils.MarkdownToSafeHTML` (goldmark + `bluemonday.UGCPolicy()` with KaTeX
+extensions). Do not pass unsanitized output to `templ.Raw` or `template.HTML`.
+`html.WithUnsafe()` inside `MarkdownToHTML` only preserves markdown-embedded HTML
+during conversion; sanitization is mandatory afterward.
+
+Known `templ.Raw` call sites (all require pre-sanitized HTML):
+
+- `pkg/views/partials/agent_resource_preview.templ` — agent resource preview
+- `pkg/views/partials/chatagent_message.templ` — chatagent assistant/thinking HTML
+
+#### Content-Security-Policy (CSP)
+
+HTTP CSP currently keeps `'unsafe-inline'` and `'unsafe-eval'` for `style-src` /
+`script-src` because the Web UI uses Tailwind CSS browser runtime and Alpine.js.
+This is an intentional short-term trade-off. After migrating to prebuilt CSS
+(no `tailwind-browser`) and removing Alpine eval needs, tighten CSP by dropping
+those keywords.
+
 ### Testing
 
 ```bash

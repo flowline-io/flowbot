@@ -97,6 +97,7 @@ Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`)
 - `vendors.memos.webhook_token` is required for Memos webhooks; empty config rejects deliveries like other providers.
 - Prefer `metrics.enabled: false` when VictoriaMetrics is not running; leaving it on is harmless except push errors.
 - `http.cors.allow_origins` defaults empty (no CORS reflection); `["*"]` never enables credentials. HSTS is sent when `http.tls_behind_proxy` or `modules.web.auth.cookie_secure` is true.
+- CSP keeps `unsafe-inline` / `unsafe-eval` short-term (Tailwind browser + Alpine); tighten after prebuilt CSS migration — see docs/developer-guide/README.md.
 - Local DSN: `store_config.adapters.postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
 
 ### Run / build / lint / test

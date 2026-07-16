@@ -309,6 +309,7 @@ Rules:
 - Never inline complex JavaScript in templates — put it in `public/js/`.
 - Never skip `data-testid` on interactive elements.
 - Never use `<script>` tags in partial templates — scripts belong in `base.templ` or `public/js/`.
+- Never pass unsanitized HTML to `templ.Raw` — markdown must use `utils.MarkdownToSafeHTML` (or escaped plain text) first.
 - Never hardcode URLs in templates — use `templ.URL()` for dynamic paths.
 - Never call provider clients directly from web handlers — use `capability.Invoke`.
 - Never render error pages as full HTML for HTMX requests — return error fragments or set `HX-Retarget`.
