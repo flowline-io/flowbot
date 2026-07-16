@@ -1868,17 +1868,19 @@ func (a *adapter) OAuthSet(ctx context.Context, oauthModel gen.OAuth) error {
 		}
 		_, err = u.Save(ctx)
 	} else {
+		extra := map[string]any(oauthModel.Extra)
+		if extra == nil {
+			extra = map[string]any{}
+		}
 		c := a.client.OAuth.Create().
 			SetUID(oauthModel.UID).
 			SetTopic(oauthModel.Topic).
 			SetName(oauthModel.Name).
 			SetType(oauthModel.Type).
 			SetToken(oauthModel.Token).
+			SetExtra(extra).
 			SetCreatedAt(oauthModel.CreatedAt).
 			SetUpdatedAt(oauthModel.UpdatedAt)
-		if oauthModel.Extra != nil {
-			c = c.SetExtra(map[string]any(oauthModel.Extra))
-		}
 		if oauthModel.RefreshToken != "" {
 			c = c.SetRefreshToken(oauthModel.RefreshToken)
 		}

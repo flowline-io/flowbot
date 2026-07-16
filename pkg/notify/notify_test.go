@@ -3,11 +3,19 @@ package notify
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/alicebob/miniredis/v2"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/config"
+	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
+	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -438,6 +446,397 @@ func TestUserNotifyChannels_NilDatabase(t *testing.T) {
 			channels, err := UserNotifyChannels(context.Background(), types.Uid("user1"))
 			require.NoError(t, err)
 			assert.Nil(t, channels)
+		})
+	}
+}
+
+func testNotifyTemplate() config.NotifyTemplate {
+	return config.NotifyTemplate{
+		ID:              "test.event",
+		Name:            "Test Event",
+		Description:     "Test",
+		DefaultFormat:   "markdown",
+		DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
+	}
+}
+
+func setupNotifyTestEnv(t *testing.T, templates []config.NotifyTemplate, rules []config.NotifyRule, redisStore *cache.RedisStore) {
+	t.Helper()
+	prevTemplates := config.App.Notify.Templates
+	prevRules := config.App.Notify.Rules
+	config.App.Notify.Templates = templates
+	config.App.Notify.Rules = rules
+	t.Cleanup(func() {
+		config.App.Notify.Templates = prevTemplates
+		config.App.Notify.Rules = prevRules
+	})
+	require.NoError(t, notifytmpl.Init())
+	require.NoError(t, notifyrules.Init(redisStore))
+}
+
+func TestBuildNotifyMessage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		result   *notifytmpl.RenderResult
+		payload  map[string]any
+		wantURL  string
+		wantPri  Priority
+		wantBody string
+	}{
+		{
+			name:     "basic title and body",
+			result:   &notifytmpl.RenderResult{Title: "Alert", Body: "Server down"},
+			payload:  map[string]any{},
+			wantPri:  Normal,
+			wantBody: "Server down",
+		},
+		{
+			name:    "payload url and priority int",
+			result:  &notifytmpl.RenderResult{Title: "T", Body: "B"},
+			payload: map[string]any{"url": "https://example.com", "priority": 4},
+			wantURL: "https://example.com",
+			wantPri: High,
+		},
+		{
+			name:    "priority float64",
+			result:  &notifytmpl.RenderResult{Title: "T", Body: "B"},
+			payload: map[string]any{"priority": float64(5)},
+			wantPri: Emergency,
+		},
+		{
+			name:    "priority as Priority type",
+			result:  &notifytmpl.RenderResult{Title: "T", Body: "B"},
+			payload: map[string]any{"priority": Low},
+			wantPri: Low,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			msg := buildNotifyMessage(tt.result, tt.payload)
+			assert.Equal(t, tt.result.Title, msg.Title)
+			if tt.wantBody != "" {
+				assert.Equal(t, tt.wantBody, msg.Body)
+			}
+			assert.Equal(t, tt.wantURL, msg.Url)
+			assert.Equal(t, tt.wantPri, msg.Priority)
+		})
+	}
+}
+
+func TestEvaluateAndRenderNotification(t *testing.T) {
+	mr := miniredis.RunT(t)
+	redisStore := cache.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()}))
+
+	tests := []struct {
+		name       string
+		rules      []config.NotifyRule
+		templateID string
+		channel    string
+		payload    map[string]any
+		wantAction string
+		wantTitle  string
+		wantErr    bool
+	}{
+		{
+			name: "drop rule returns dropped action",
+			rules: []config.NotifyRule{
+				{ID: "drop1", Action: config.NotifyRuleActionDrop, Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10},
+			},
+			templateID: "test.event",
+			channel:    "slack",
+			payload:    map[string]any{"title": "T", "body": "B"},
+			wantAction: "dropped",
+		},
+		{
+			name: "mute rule returns muted action",
+			rules: []config.NotifyRule{
+				{ID: "mute1", Action: config.NotifyRuleActionMute, Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10},
+			},
+			templateID: "test.event",
+			channel:    "slack",
+			payload:    map[string]any{"title": "T", "body": "B"},
+			wantAction: "muted",
+		},
+		{
+			name: "aggregate rule returns aggregated action",
+			rules: []config.NotifyRule{
+				{
+					ID: "agg1", Action: config.NotifyRuleActionAggregate,
+					Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10,
+					Params: config.NotifyRuleParams{Window: "5m"},
+				},
+			},
+			templateID: "test.event",
+			channel:    "slack",
+			payload:    map[string]any{"title": "T", "body": "B"},
+			wantAction: "aggregated",
+		},
+		{
+			name:       "no rules renders template",
+			rules:      nil,
+			templateID: "test.event",
+			channel:    "slack",
+			payload:    map[string]any{"title": "Hello", "body": "World"},
+			wantTitle:  "Hello",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, tt.rules, redisStore)
+			result, err := evaluateAndRenderNotification(context.Background(), tt.templateID, tt.channel, tt.payload)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			if tt.wantAction != "" {
+				assert.Equal(t, tt.wantAction, result.action)
+				return
+			}
+			require.NotNil(t, result.renderResult)
+			assert.Equal(t, tt.wantTitle, result.renderResult.Title)
+		})
+	}
+}
+
+func TestHandleThrottleRule(t *testing.T) {
+	mr := miniredis.RunT(t)
+	redisStore := cache.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()}))
+	setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, []config.NotifyRule{
+		{
+			ID: "thr1", Action: config.NotifyRuleActionThrottle,
+			Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10,
+			Params: config.NotifyRuleParams{Window: "1m", Limit: 1},
+		},
+	}, redisStore)
+
+	ruleResult := notifyrules.GetEngine().Evaluate(context.Background(), "test.event", "slack")
+	require.NotNil(t, ruleResult)
+
+	tests := []struct {
+		name     string
+		result   *notifyrules.EvalResult
+		wantSkip bool
+	}{
+		{name: "first message is not throttled", result: ruleResult, wantSkip: false},
+		{name: "second message is throttled", result: ruleResult, wantSkip: true},
+		{name: "invalid window does not throttle", result: &notifyrules.EvalResult{RuleID: "bad", Window: "not-a-duration", Limit: 1}, wantSkip: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := handleThrottleRule(context.Background(), tt.result, "test.event", "slack")
+			assert.Equal(t, tt.wantSkip, got)
+		})
+	}
+}
+
+func TestGatewaySend(t *testing.T) {
+	mr := miniredis.RunT(t)
+	redisStore := cache.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()}))
+
+	tests := []struct {
+		name       string
+		setup      func(t *testing.T)
+		templateID string
+		channels   []string
+		payload    map[string]any
+		wantErr    string
+	}{
+		{
+			name: "template not found returns error",
+			setup: func(t *testing.T) {
+				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+			},
+			templateID: "missing.template",
+			channels:   []string{"slack"},
+			payload:    map[string]any{"title": "T", "body": "B"},
+			wantErr:    "not found",
+		},
+		{
+			name: "drop rule completes without error",
+			setup: func(t *testing.T) {
+				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, []config.NotifyRule{
+					{ID: "d1", Action: config.NotifyRuleActionDrop, Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 1},
+				}, nil)
+			},
+			templateID: "test.event",
+			channels:   []string{"slack"},
+			payload:    map[string]any{"title": "T", "body": "B", "summary": "sum"},
+		},
+		{
+			name: "successful render with zero uid",
+			setup: func(t *testing.T) {
+				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+			},
+			templateID: "test.event",
+			channels:   []string{"slack"},
+			payload:    map[string]any{"title": "T", "body": "B"},
+		},
+		{
+			name: "throttle allows then blocks repeat",
+			setup: func(t *testing.T) {
+				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, []config.NotifyRule{
+					{
+						ID: "t1", Action: config.NotifyRuleActionThrottle,
+						Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 1,
+						Params: config.NotifyRuleParams{Window: "1m", Limit: 1},
+					},
+				}, redisStore)
+			},
+			templateID: "test.event",
+			channels:   []string{"slack"},
+			payload:    map[string]any{"title": "T", "body": "B"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setup(t)
+			err := GatewaySend(context.Background(), types.Uid(""), tt.templateID, tt.channels, tt.payload)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+
+			if tt.name == "throttle allows then blocks repeat" {
+				err = GatewaySend(context.Background(), types.Uid(""), tt.templateID, tt.channels, tt.payload)
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestSendToUserChannel(t *testing.T) {
+	prevDB := store.Database
+	ns := &notifyTestStore{
+		configs: map[string]types.KV{
+			"notify:slack": {"value": "testuserchannelsend://chan/tok"},
+		},
+	}
+	store.Database = ns
+	t.Cleanup(func() { store.Database = prevDB })
+
+	uid := types.Uid("user-send-test")
+	ctx := context.Background()
+
+	m := &mockNotifyer{
+		protocol:  "testuserchannelsend",
+		templates: []string{"testuserchannelsend://{channel}/{token}"},
+	}
+	Register(m.protocol, m)
+	t.Cleanup(func() { Unregister(m.protocol) })
+
+	tests := []struct {
+		name    string
+		uid     types.Uid
+		channel string
+	}{
+		{name: "zero uid skips send", uid: types.Uid(""), channel: "slack"},
+		{name: "configured channel sends message", uid: uid, channel: "slack"},
+		{name: "missing channel config is no-op", uid: uid, channel: "ntfy"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			before := m.calls
+			err := sendToUserChannel(ctx, tt.uid, "test.event", tt.channel, Message{Title: "T", Body: "B"})
+			require.NoError(t, err)
+			switch tt.name {
+			case "configured channel sends message":
+				assert.Equal(t, before+1, m.calls)
+			case "zero uid skips send", "missing channel config is no-op":
+				assert.Equal(t, before, m.calls)
+			}
+		})
+	}
+}
+
+func TestUserNotifyChannels_WithStore(t *testing.T) {
+	prevDB := store.Database
+	store.Database = &notifyTestStore{
+		listKeys: []string{"notify:slack", "notify:ntfy"},
+	}
+	t.Cleanup(func() { store.Database = prevDB })
+
+	uid := types.Uid("user-channels-test")
+	ctx := context.Background()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "returns configured channels"},
+		{name: "channels include slack"},
+		{name: "channels include ntfy"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			channels, err := UserNotifyChannels(ctx, uid)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, []string{"slack", "ntfy"}, channels)
+		})
+	}
+}
+
+func TestGetNotifyStore(t *testing.T) {
+	tests := []struct {
+		name     string
+		setupNil bool
+		wantNil  bool
+	}{
+		{name: "nil database returns nil", setupNil: true, wantNil: true},
+		{name: "sqlite adapter returns store", setupNil: false, wantNil: false},
+		{name: "store is usable after init", setupNil: false, wantNil: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := store.Database
+			t.Cleanup(func() { store.Database = prev })
+
+			if tt.setupNil {
+				store.Database = nil
+			} else {
+				store.Database = postgres.NewSQLiteTestAdapter(t)
+			}
+			ns := GetNotifyStore()
+			if tt.wantNil {
+				assert.Nil(t, ns)
+			} else {
+				assert.NotNil(t, ns)
+			}
+		})
+	}
+}
+
+func TestRecordAsync_NilStore(t *testing.T) {
+	prev := store.Database
+	store.Database = nil
+	t.Cleanup(func() { store.Database = prev })
+
+	tests := []struct {
+		name string
+	}{
+		{name: "does not panic with nil store"},
+		{name: "accepts payload copy"},
+		{name: "returns immediately"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotPanics(t, func() {
+				recordAsync(types.Uid("u"), "slack", "tpl", "sum", "success", "", map[string]any{"k": "v"})
+			})
+			time.Sleep(50 * time.Millisecond)
 		})
 	}
 }

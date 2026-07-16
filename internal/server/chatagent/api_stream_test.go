@@ -65,6 +65,51 @@ func TestBufioSSEWriter_WriteEvent(t *testing.T) {
 	}
 }
 
+func TestDrainPublisherSSE(t *testing.T) {
+	tests := []struct {
+		name      string
+		events    []chatagent.StreamEvent
+		wantCount int
+		wantTerm  bool
+	}{
+		{
+			name: "drains buffered events",
+			events: []chatagent.StreamEvent{
+				{Type: chatagent.EventTypeDelta, Text: "a"},
+				{Type: chatagent.EventTypeDelta, Text: "b"},
+			},
+			wantCount: 2,
+		},
+		{
+			name:      "empty publisher is no-op",
+			events:    nil,
+			wantCount: 0,
+		},
+		{
+			name: "terminal event stops drain",
+			events: []chatagent.StreamEvent{
+				{Type: chatagent.EventTypeDone, Text: "ok"},
+			},
+			wantCount: 1,
+			wantTerm:  true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pub := chatagent.NewChannelPublisher(8)
+			for _, ev := range tt.events {
+				require.NoError(t, pub.Publish(ev))
+			}
+			captured := &captureSSE{}
+			chatagent.DrainPublisherSSE(captured, pub)
+			assert.Len(t, captured.events, tt.wantCount)
+			if tt.wantTerm {
+				assert.Equal(t, chatagent.EventTypeDone, captured.events[len(captured.events)-1].Type)
+			}
+		})
+	}
+}
+
 func TestStreamAPIRun_InFlight(t *testing.T) {
 	sessionID := "sess-inflight"
 	pub := chatagent.NewChannelPublisher(4)

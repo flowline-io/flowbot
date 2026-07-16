@@ -339,8 +339,14 @@ func TestAdapter_HealthCheck(t *testing.T) {
 			want:   true,
 		},
 		{
-			name:   "unhealthy on provider error",
-			client: &fakeClient{getCurrentUserErr: assert.AnError},
+			name:    "provider error wraps ErrProvider",
+			client:  &fakeClient{getCurrentUserErr: assert.AnError},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name:   "nil user is unhealthy",
+			client: &fakeClient{},
 			want:   false,
 		},
 	}

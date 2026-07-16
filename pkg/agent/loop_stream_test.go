@@ -66,6 +66,51 @@ func TestRunLoop_StreamingEvents(t *testing.T) {
 	}
 }
 
+func TestRunLoop_ReasoningStream(t *testing.T) {
+	tests := []struct {
+		name          string
+		reasoning     []string
+		wantReasoning bool
+	}{
+		{name: "emits reasoning deltas", reasoning: []string{"think", "ing"}, wantReasoning: true},
+		{name: "empty reasoning skipped", reasoning: nil, wantReasoning: false},
+		{name: "single reasoning chunk", reasoning: []string{"plan"}, wantReasoning: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			model := agentllm.NewFakeModel(agentllm.ResponseScript{
+				ReasoningChunks: tt.reasoning,
+				Content:         "answer",
+			})
+			stream := agentevent.NewStream(32)
+			var reasoningUpdates int
+			stream.Subscribe(func(ev agentevent.Event) error {
+				if ev.ReasoningDelta != "" {
+					reasoningUpdates++
+				}
+				return nil
+			})
+
+			cfg := agent.DefaultConfig()
+			cfg.ModelName = "deepseek-v4-chat"
+			cfg.MaxSteps = 3
+
+			_, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
+				agent.NewUserMessage("reason"),
+			}, &agent.Context{}, cfg, agent.LoopDeps{Model: model}, stream)
+			require.NoError(t, err)
+
+			if tt.wantReasoning {
+				assert.Positive(t, reasoningUpdates)
+				return
+			}
+			assert.Zero(t, reasoningUpdates)
+		})
+	}
+}
+
 func TestRunLoop_StreamingCancelled(t *testing.T) {
 	tests := []struct {
 		name string

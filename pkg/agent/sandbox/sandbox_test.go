@@ -169,6 +169,26 @@ func TestEnvHostFilesystem(t *testing.T) {
 	}
 }
 
+func TestEnvExecCanceled(t *testing.T) {
+	t.Parallel()
+	runner := &mockRunner{err: context.Canceled}
+	e := sandbox.New(sandbox.Config{Image: "img", Workspace: "/ws"}, env.Default(), runner)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	got := e.Exec(ctx, env.ExecOptions{Command: "sleep 1", Timeout: ctx})
+	require.False(t, got.IsOk())
+	assert.Equal(t, "aborted", got.ErrorValue().Code())
+}
+
+func TestEnvExecWorkdirEscape(t *testing.T) {
+	t.Parallel()
+	runner := &mockRunner{cap: env.Capture{ExitCode: 0}}
+	e := sandbox.New(sandbox.Config{Image: "img", Workspace: "/ws"}, env.Default(), runner)
+	got := e.Exec(context.Background(), env.ExecOptions{Command: "pwd", Dir: "/outside"})
+	require.True(t, got.IsOk())
+	assert.Equal(t, "/ws", runner.last.WorkDir)
+}
+
 func TestEnvExecTimeout(t *testing.T) {
 	t.Parallel()
 	runner := &mockRunner{err: context.DeadlineExceeded}

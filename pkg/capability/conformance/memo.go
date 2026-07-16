@@ -229,10 +229,9 @@ func RunMemoConformance(t *testing.T, factory MemoServiceFactory) {
 	})
 
 	t.Run("health check provider error", func(t *testing.T) {
-		svc := factory(t, MemoConfig{HealthErr: assert.AnError, HealthOk: false})
-		ok, err := svc.HealthCheck(t.Context())
-		require.NoError(t, err)
-		assert.False(t, ok)
+		svc := factory(t, MemoConfig{HealthErr: assert.AnError})
+		_, err := svc.HealthCheck(t.Context())
+		RequireProviderError(t, err)
 	})
 
 	t.Run("list raw events success", func(t *testing.T) {

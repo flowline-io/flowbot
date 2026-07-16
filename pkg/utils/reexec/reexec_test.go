@@ -115,6 +115,19 @@ func TestNaiveSelf(t *testing.T) {
 }
 
 // TestInit tests the Init function behavior
+func TestInitRegisteredCommand(t *testing.T) {
+	originalArgs := os.Args
+	defer func() { os.Args = originalArgs }()
+
+	called := false
+	uniqueName := fmt.Sprintf("registered_init_%d", os.Getpid())
+	Register(uniqueName, func() { called = true })
+
+	os.Args = []string{uniqueName}
+	require.True(t, Init())
+	assert.True(t, called)
+}
+
 func TestInit(t *testing.T) {
 	// Save original os.Args
 	originalArgs := os.Args

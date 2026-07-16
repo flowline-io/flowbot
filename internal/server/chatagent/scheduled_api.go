@@ -83,6 +83,7 @@ func ListScheduledTasksForUID(ctx context.Context, uid types.Uid, states []strin
 }
 
 // GetScheduledTaskForUID loads one task when owned by uid.
+// Cancelled tasks are treated as not found so callers cannot resume them via get.
 func GetScheduledTaskForUID(ctx context.Context, uid types.Uid, taskID string) (*ScheduledTaskView, error) {
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
@@ -90,6 +91,9 @@ func GetScheduledTaskForUID(ctx context.Context, uid types.Uid, taskID string) (
 	row, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String())
 	if err != nil {
 		return nil, err
+	}
+	if row.State == string(schema.ChatScheduledTaskStateCancelled) {
+		return nil, types.ErrNotFound
 	}
 	view := taskViewFromRow(row)
 	return &view, nil

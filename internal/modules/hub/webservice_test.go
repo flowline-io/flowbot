@@ -7,10 +7,12 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/samber/oops"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
@@ -29,8 +31,17 @@ func errorHandler(ctx fiber.Ctx, err error) error {
 	if err == nil {
 		return nil
 	}
-	code, _ := mapDomainErrors(err)
-	return ctx.Status(code).SendString(err.Error())
+	if code, ok := mapDomainErrors(err); ok {
+		return ctx.Status(code).SendString(err.Error())
+	}
+	var e oops.OopsError
+	if errors.As(err, &e) {
+		if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
+			return ctx.Status(fiber.StatusUnauthorized).SendString(err.Error())
+		}
+		return ctx.Status(fiber.StatusBadRequest).SendString(err.Error())
+	}
+	return ctx.Status(fiber.StatusInternalServerError).SendString(err.Error())
 }
 
 func TestQueryByTag_Validation(t *testing.T) {

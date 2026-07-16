@@ -2,6 +2,8 @@ package rdb
 
 import (
 	"context"
+	"net"
+	"strconv"
 	"testing"
 	"time"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/pkg/config"
 )
@@ -223,4 +226,56 @@ func TestShutdown(t *testing.T) {
 			Shutdown(context.Background())
 		})
 	})
+}
+
+type testLifecycle struct {
+	hooks []fx.Hook
+}
+
+func (lc *testLifecycle) Append(h fx.Hook) {
+	lc.hooks = append(lc.hooks, h)
+}
+
+func TestNewClient(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "connects to miniredis and registers shutdown hook"},
+		{name: "ping succeeds against running redis"},
+		{name: "lifecycle onStop shuts down client"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := Client
+			t.Cleanup(func() { Client = prev })
+
+			mr := miniredis.RunT(t)
+			_, portStr, err := net.SplitHostPort(mr.Addr())
+			require.NoError(t, err)
+			port, err := strconv.Atoi(portStr)
+			require.NoError(t, err)
+
+			orig := config.App.Redis
+			t.Cleanup(func() { config.App.Redis = orig })
+			config.App.Redis = config.Redis{
+				Host:     "127.0.0.1",
+				Port:     port,
+				Password: "",
+				DB:       0,
+			}
+
+			lc := &testLifecycle{}
+			client, err := NewClient(lc, &config.Type{})
+			require.NoError(t, err)
+			require.NotNil(t, client)
+			require.Len(t, lc.hooks, 1)
+
+			pong, err := client.Ping(context.Background()).Result()
+			require.NoError(t, err)
+			assert.Equal(t, "PONG", pong)
+
+			require.NoError(t, lc.hooks[0].OnStop(context.Background()))
+		})
+	}
 }

@@ -112,6 +112,40 @@ func TestPipelineCollector_LabelsSanitized(t *testing.T) {
 	})
 }
 
+func TestPipelineCollector_CronMetrics(t *testing.T) {
+	cronExec := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "pipeline_cron_exec_total",
+			Help: "Cron executions by pipeline and status",
+		},
+		[]string{"pipeline", "status"},
+	)
+	cronDuration := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "pipeline_cron_duration_seconds",
+			Help:    "Cron duration distribution",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"pipeline"},
+	)
+	c := &PipelineCollector{cronExecTotal: cronExec, cronDuration: cronDuration}
+
+	c.IncCronExec("nightly-sync", "done")
+	c.IncCronExec("nightly-sync", "done")
+	c.IncCronExec("nightly-sync", "failed")
+	c.ObserveCronDuration("nightly-sync", 12.5)
+	c.ObserveCronDuration("nightly-sync", 8.0)
+
+	expected := `
+# HELP pipeline_cron_exec_total Cron executions by pipeline and status
+# TYPE pipeline_cron_exec_total counter
+pipeline_cron_exec_total{pipeline="nightly-sync",status="done"} 2
+pipeline_cron_exec_total{pipeline="nightly-sync",status="failed"} 1
+`
+	err := testutil.CollectAndCompare(cronExec, strings.NewReader(expected), "pipeline_cron_exec_total")
+	assert.NoError(t, err)
+}
+
 func TestPipelineCollector_NoopMethodsDontPanic(t *testing.T) {
 	c := NewPipelineCollector(nil)
 	tests := []struct {
@@ -125,6 +159,8 @@ func TestPipelineCollector_NoopMethodsDontPanic(t *testing.T) {
 		{name: "IncStepRetry", fn: func() { c.IncStepRetry("p", "s") }},
 		{name: "IncResume", fn: func() { c.IncResume("p") }},
 		{name: "IncCronSkip", fn: func() { c.IncCronSkip("p") }},
+		{name: "IncCronExec", fn: func() { c.IncCronExec("p", "done") }},
+		{name: "ObserveCronDuration", fn: func() { c.ObserveCronDuration("p", 1.0) }},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

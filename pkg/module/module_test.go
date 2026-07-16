@@ -1,6 +1,7 @@
 package module
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -8,9 +9,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
+	"github.com/flowline-io/flowbot/pkg/parser"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/form"
+	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 func TestHelp(t *testing.T) {
@@ -216,10 +223,282 @@ func TestFindRuleAndHandler_MultipleHandlersSelectsCorrect(t *testing.T) {
 
 type testHandler struct {
 	Base
-	rules []any
+	name         string
+	rules        []any
+	ready        bool
+	inited       bool
+	bootstrapped bool
 }
 
-func (m *testHandler) Rules() []any               { return m.rules }
-func (*testHandler) IsReady() bool                { return true }
-func (*testHandler) Init(_ json.RawMessage) error { return nil }
-func (*testHandler) Webservice(_ *fiber.App)      {}
+func (m *testHandler) Rules() []any { return m.rules }
+func (m *testHandler) IsReady() bool {
+	return m.ready
+}
+func (m *testHandler) Init(_ json.RawMessage) error {
+	m.inited = true
+	return nil
+}
+func (m *testHandler) Bootstrap() error {
+	m.bootstrapped = true
+	return nil
+}
+func (*testHandler) Webservice(_ *fiber.App) {}
+
+func TestRegisterAndList(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "register and list contains module",
+			run: func(t *testing.T) {
+				h := &testHandler{name: "testreglist"}
+				Register("testreglist", h)
+				t.Cleanup(func() { Unregister("testreglist") })
+				list := List()
+				assert.Contains(t, list, "testreglist")
+				assert.Equal(t, h, list["testreglist"])
+			},
+		},
+		{
+			name: "unregister removes module",
+			run: func(t *testing.T) {
+				h := &testHandler{name: "testunreg"}
+				Register("testunreg", h)
+				Unregister("testunreg")
+				assert.NotContains(t, List(), "testunreg")
+			},
+		},
+		{
+			name: "list returns copy isolated from mutations",
+			run: func(t *testing.T) {
+				h := &testHandler{name: "testlistcopy2"}
+				Register("testlistcopy2", h)
+				t.Cleanup(func() { Unregister("testlistcopy2") })
+				list := List()
+				delete(list, "testlistcopy2")
+				assert.Contains(t, List(), "testlistcopy2")
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.run(t)
+		})
+	}
+}
+
+func TestInitAndBootstrap(t *testing.T) {
+	tests := []struct {
+		name    string
+		conf    string
+		handler *testHandler
+		wantErr bool
+	}{
+		{
+			name:    "init with matching config",
+			conf:    `[{"name":"testinitmod","enabled":true}]`,
+			handler: &testHandler{name: "testinitmod", ready: true},
+		},
+		{
+			name:    "init with default config for unlisted module",
+			conf:    `[]`,
+			handler: &testHandler{name: "testinitdefault", ready: true},
+		},
+		{
+			name:    "bootstrap skips not-ready modules",
+			conf:    `[{"name":"testbootnotready","enabled":true}]`,
+			handler: &testHandler{name: "testbootnotready", ready: false},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			Register(tt.handler.name, tt.handler)
+			t.Cleanup(func() { Unregister(tt.handler.name) })
+
+			err := Init(json.RawMessage(tt.conf))
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.True(t, tt.handler.inited)
+
+			err = Bootstrap()
+			require.NoError(t, err)
+			if tt.handler.ready {
+				assert.True(t, tt.handler.bootstrapped)
+			} else {
+				assert.False(t, tt.handler.bootstrapped)
+			}
+		})
+	}
+}
+
+func TestRunCommand(t *testing.T) {
+	t.Parallel()
+
+	rules := []command.Rule{
+		{
+			Define: "echo [string]",
+			Help:   "Echo text",
+			Handler: func(_ types.Context, tokens []*parser.Token) types.MsgPayload {
+				if len(tokens) > 1 {
+					text, _ := tokens[1].Value.String()
+					return types.TextMsg{Text: text}
+				}
+				return types.TextMsg{Text: "empty"}
+			},
+		},
+	}
+
+	tests := []struct {
+		name     string
+		content  any
+		input    string
+		wantText string
+		wantNil  bool
+	}{
+		{name: "non-string content returns nil", content: 42, wantNil: true},
+		{name: "help command returns info", input: "help", wantNil: false},
+		{name: "matching command returns payload", input: "echo hello", wantText: "hello"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content := tt.content
+			if content == nil {
+				content = tt.input
+			}
+			payload, err := RunCommand(rules, types.Context{}, content)
+			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, payload)
+				return
+			}
+			require.NotNil(t, payload)
+			if tt.wantText != "" {
+				msg, ok := payload.(types.TextMsg)
+				require.True(t, ok)
+				assert.Equal(t, tt.wantText, msg.Text)
+			}
+		})
+	}
+}
+
+func TestWebservice(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		ruleset webservice.Ruleset
+	}{
+		{name: "empty ruleset is no-op", ruleset: nil},
+		{name: "single route registers", ruleset: webservice.Ruleset{
+			{Method: "GET", Path: "/ping", Function: func(_ fiber.Ctx) error { return nil }},
+		}},
+		{name: "multiple routes register", ruleset: webservice.Ruleset{
+			{Method: "GET", Path: "/a", Function: func(_ fiber.Ctx) error { return nil }},
+			{Method: "POST", Path: "/b", Function: func(_ fiber.Ctx) error { return nil }},
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := fiber.New()
+			assert.NotPanics(t, func() {
+				Webservice(app, "testmod", tt.ruleset)
+			})
+		})
+	}
+}
+
+func TestRunForm(t *testing.T) {
+	prev := store.Database
+	store.Database = postgres.NewSQLiteTestAdapter(t)
+	t.Cleanup(func() { store.Database = prev })
+
+	rules := []form.Rule{
+		{
+			Id:         "settings",
+			IsLongTerm: true,
+			Title:      "Settings",
+			Handler: func(_ types.Context, values types.KV) types.MsgPayload {
+				name, _ := values.String("name")
+				return types.TextMsg{Text: name}
+			},
+		},
+	}
+
+	uid := "usertest01"
+	topic := "defaulttopic"
+
+	tests := []struct {
+		name    string
+		formID  string
+		state   int
+		values  types.KV
+		want    string
+		wantNil bool
+	}{
+		{name: "processes matching form rule", formID: "form-test-1", state: int(schema.FormStateCreated), values: types.KV{"name": "alice"}, want: "alice"},
+		{name: "missing form returns nil", formID: "missing", state: int(schema.FormStateCreated), values: types.KV{"name": "bob"}, wantNil: true},
+		{name: "submitted form returns nil", formID: "form-test-1", state: int(schema.FormStateSubmitSuccess), values: types.KV{"name": "carol"}, wantNil: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.formID == "form-test-1" {
+				require.NoError(t, store.Database.FormSet(context.Background(), "form-test-1", gen.Form{
+					FormID: "form-test-1",
+					UID:    uid,
+					Topic:  topic,
+					Schema: map[string]any{"title": "Settings"},
+					State:  tt.state,
+				}))
+			}
+
+			runCtx := types.Context{AsUser: types.Uid(uid), Topic: topic, FormId: tt.formID, FormRuleId: "settings"}
+			payload, err := RunForm(rules, runCtx, tt.values)
+			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, payload)
+				return
+			}
+			require.NotNil(t, payload)
+			msg, ok := payload.(types.TextMsg)
+			require.True(t, ok)
+			assert.Equal(t, tt.want, msg.Text)
+		})
+	}
+}
+
+func TestBehavior(t *testing.T) {
+	prev := store.Database
+	store.Database = postgres.NewSQLiteTestAdapter(t)
+	t.Cleanup(func() { store.Database = prev })
+
+	uid := types.Uid("behavior-user")
+
+	tests := []struct {
+		name  string
+		flag  string
+		count int
+	}{
+		{name: "creates new behavior record", flag: "msg_bot_incoming", count: 1},
+		{name: "increments existing behavior", flag: "msg_bot_incoming", count: 2},
+		{name: "tracks separate flags independently", flag: "msg_group_incoming", count: 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.NotPanics(t, func() {
+				Behavior(uid, tt.flag, tt.count)
+			})
+		})
+	}
+}

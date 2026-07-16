@@ -154,11 +154,11 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	if err := ctx.Err(); err != nil {
 		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
-	_, err := a.client.GetCurrentUser(ctx)
+	user, err := a.client.GetCurrentUser(ctx)
 	if err != nil {
-		return false, nil
+		return false, types.WrapError(types.ErrProvider, "memos health check failed", err)
 	}
-	return true, nil
+	return user != nil, nil
 }
 
 // ListRawEvents lists memos as raw events for polling support.

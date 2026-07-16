@@ -58,6 +58,88 @@ func TestValidateAbilityToolConfig(t *testing.T) {
 	}
 }
 
+func TestAbilityToolHelpers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		invoke     chatagent.AbilityInvoker
+		args       map[string]any
+		wantSubstr string
+		wantCode   string
+	}{
+		{
+			name: "serializes data payload",
+			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*capability.InvokeResult, error) {
+				return &capability.InvokeResult{Data: map[string]any{"count": 2}}, nil
+			},
+			args:       map[string]any{"limit": 2},
+			wantSubstr: `"count"`,
+		},
+		{
+			name: "nested params forwarded",
+			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, params map[string]any) (*capability.InvokeResult, error) {
+				if params["q"] != "x" {
+					return nil, types.Errorf(types.ErrInvalidArgument, "bad params")
+				}
+				return &capability.InvokeResult{Text: "ok"}, nil
+			},
+			args:       map[string]any{"params": map[string]any{"q": "x"}},
+			wantSubstr: "ok",
+		},
+		{
+			name: "timeout maps safely",
+			invoke: func(_ context.Context, _ hub.CapabilityType, _ string, _ map[string]any) (*capability.InvokeResult, error) {
+				return nil, types.ErrTimeout
+			},
+			wantCode: "timeout",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			toolItem, err := chatagent.NewAbilityTool(config.AbilityToolConfig{
+				Name: "memo_list", Capability: "memos", Operation: "list", Readonly: true,
+			}, tt.invoke)
+			require.NoError(t, err)
+			result, err := toolItem.Execute(context.Background(), "call-1", tt.args, nil)
+			require.NoError(t, err)
+			text := abilityToolResultText(result)
+			if tt.wantCode != "" {
+				assert.Contains(t, text, tt.wantCode)
+				return
+			}
+			assert.Contains(t, text, tt.wantSubstr)
+		})
+	}
+}
+
+func TestAbilityToolMetadata(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		description string
+		wantDesc    string
+	}{
+		{name: "uses configured description", description: "List memos", wantDesc: "List memos"},
+		{name: "default description when empty", description: "", wantDesc: "Readonly ability call memos.list"},
+		{name: "trims description whitespace", description: "  fetch items  ", wantDesc: "fetch items"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			toolItem, err := chatagent.NewAbilityTool(config.AbilityToolConfig{
+				Name: "memo_list", Description: tt.description, Capability: "memos", Operation: "list", Readonly: true,
+			}, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantDesc, toolItem.Description())
+			params := toolItem.Parameters()
+			assert.Equal(t, "object", params["type"])
+		})
+	}
+}
+
 func TestAbilityToolExecute(t *testing.T) {
 	t.Parallel()
 

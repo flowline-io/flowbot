@@ -182,14 +182,14 @@ func TestRunParallelFailFast(t *testing.T) {
 		MaxConcurrency: 2,
 		Pipeline:       []string{"failer", "mapper"},
 		Tasks: []types.WorkflowTask{
-			{ID: "failer", Action: "shell:exit 1"},
+			{ID: "failer", Action: "mapper:", Params: types.KV{"bad": "{{if}"}},
 			{ID: "mapper", Action: "mapper:", Params: types.KV{"out": "should-complete-or-be-cancelled"}},
 		},
 	}
 	runner := NewRunner()
 	err := runner.Execute(context.Background(), wf, nil, "")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "step failer failed")
+	assert.Contains(t, err.Error(), "resolve params step failer")
 }
 
 func TestRunParallelEdgeCases(t *testing.T) {

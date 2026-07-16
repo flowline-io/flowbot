@@ -63,6 +63,7 @@ func WorkflowTaskToTask(wt types.WorkflowTask) (*types.Task, error) {
 	info := ParseAction(wt.Action)
 
 	task := &types.Task{
+		ID:  wt.ID,
 		Run: wt.Action,
 		Env: make(map[string]string),
 	}

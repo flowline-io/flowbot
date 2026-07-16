@@ -1,7 +1,6 @@
 package memos
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -47,8 +46,6 @@ func newFakeClientFromConformanceConfig(cfg conformance.MemoConfig) *fakeClient 
 	}
 	if cfg.HealthOk {
 		c.getCurrentUser = &provider.User{Name: "users/1", Username: "admin"}
-	} else if cfg.HealthErr == nil {
-		c.getCurrentUserErr = errors.New("health check failed")
 	}
 	if cfg.RawItems != nil {
 		items := make([]map[string]any, len(cfg.RawItems))

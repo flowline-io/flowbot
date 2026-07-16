@@ -24,6 +24,15 @@ func TestSerializeConversation(t *testing.T) {
 		{name: "display only custom skipped", msgs: []agent.AgentMessage{
 			agent.CustomMessage{DisplayOnly: true, Parts: []agent.ContentPart{agent.TextPart{Text: "hidden"}}},
 		}, want: ""},
+		{name: "tool result serialized", msgs: []agent.AgentMessage{
+			agent.ToolResultMessage{Parts: []agent.ContentPart{agent.TextPart{Text: "tool output"}}},
+		}, want: "[Tool result]: tool output"},
+		{name: "branch summary serialized", msgs: []agent.AgentMessage{
+			agent.BranchSummaryMessage{Summary: "prior branch"},
+		}, want: "[User]: prior branch"},
+		{name: "compaction summary serialized", msgs: []agent.AgentMessage{
+			agent.CompactionSummaryMessage{Summary: "compacted history"},
+		}, want: "[User]: compacted history"},
 	}
 
 	for _, tt := range tests {

@@ -327,6 +327,76 @@ func TestEngineGetTemplateID(t *testing.T) {
 	}
 }
 
+func TestEngineListAndHasTemplate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		templates   []config.NotifyTemplate
+		checkID     string
+		wantHas     bool
+		wantIDCount int
+	}{
+		{
+			name: "lists loaded templates",
+			templates: []config.NotifyTemplate{
+				{ID: "a.created", Name: "A", DefaultFormat: "markdown", DefaultTemplate: "a"},
+				{ID: "b.created", Name: "B", DefaultFormat: "markdown", DefaultTemplate: "b"},
+			},
+			checkID:     "a.created",
+			wantHas:     true,
+			wantIDCount: 2,
+		},
+		{
+			name: "missing template returns false",
+			templates: []config.NotifyTemplate{
+				{ID: "a.created", Name: "A", DefaultFormat: "markdown", DefaultTemplate: "a"},
+			},
+			checkID:     "missing",
+			wantHas:     false,
+			wantIDCount: 1,
+		},
+		{
+			name:        "empty engine",
+			templates:   nil,
+			checkID:     "any",
+			wantHas:     false,
+			wantIDCount: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := New()
+			require.NoError(t, e.LoadConfig(tt.templates))
+			assert.Equal(t, tt.wantHas, e.HasTemplate(tt.checkID))
+			assert.Len(t, e.ListTemplateIDs(), tt.wantIDCount)
+		})
+	}
+}
+
+func TestEventTime(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		input any
+		want  string
+	}{
+		{name: "string time passes through", input: "2026-07-16T00:00:00Z", want: "2026-07-16T00:00:00Z"},
+		{name: "non-string returns empty", input: 123, want: ""},
+		{name: "nil returns empty", input: nil, want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, eventTime(tt.input))
+		})
+	}
+}
+
 func TestEngineConditionalBodyPrefix(t *testing.T) {
 	t.Run("urgent flag prefixes body with URGENT", func(t *testing.T) {
 		t.Parallel()

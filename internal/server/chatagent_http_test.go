@@ -313,6 +313,151 @@ func TestChatAgentHTTPGetPermissionsSessionOwner(t *testing.T) {
 	}
 }
 
+func TestChatAgentHTTPPermissionsMutations(t *testing.T) {
+	origDB := store.Database
+	origCfg := config.App.ChatAgent
+	store.Database = &testStoreAdapter{}
+	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App.ChatAgent = origCfg
+		chatagent.ResetPermissionCacheForTest()
+		chatagent.ResetPermissionSessionsForTest()
+	})
+
+	h := newChatAgentHTTP()
+	app := fiber.New()
+	app.Put("/chatagent/permissions", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.putPermissions(c)
+	})
+	app.Delete("/chatagent/permissions", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.deletePermissions(c)
+	})
+
+	tests := []struct {
+		name       string
+		method     string
+		body       string
+		wantStatus int
+	}{
+		{name: "put valid permissions", method: http.MethodPut, body: `{"bash":{"default":"deny"}}`, wantStatus: fiber.StatusOK},
+		{name: "put invalid permissions", method: http.MethodPut, body: `{"bash":"allow"}`, wantStatus: fiber.StatusBadRequest},
+		{name: "delete permissions", method: http.MethodDelete, body: "", wantStatus: fiber.StatusOK},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var body io.Reader = http.NoBody
+			if tt.body != "" {
+				body = strings.NewReader(tt.body)
+			}
+			req := httptest.NewRequest(tt.method, "/chatagent/permissions", body)
+			if tt.body != "" {
+				req.Header.Set("Content-Type", "application/json")
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestChatAgentHTTPClearPermissionGrants(t *testing.T) {
+	origDB := store.Database
+	origCfg := config.App.ChatAgent
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-grants": {Flag: "sess-grants", UID: "user-1", State: int(schema.ChatSessionActive)},
+		"sess-other":  {Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
+	}
+	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App.ChatAgent = origCfg
+		testChatSessions = map[string]*gen.ChatSession{}
+		chatagent.ResetPermissionSessionsForTest()
+	})
+
+	h := newChatAgentHTTP()
+	app := fiber.New()
+	app.Delete("/chatagent/sessions/:id/permission-grants", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.clearPermissionGrants(c)
+	})
+
+	tests := []struct {
+		name       string
+		sessionID  string
+		wantStatus int
+	}{
+		{name: "clears own session grants", sessionID: "sess-grants", wantStatus: fiber.StatusNoContent},
+		{name: "foreign session forbidden", sessionID: "sess-other", wantStatus: fiber.StatusForbidden},
+		{name: "missing session not found", sessionID: "missing", wantStatus: fiber.StatusNotFound},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodDelete, "/chatagent/sessions/"+tt.sessionID+"/permission-grants", http.NoBody)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
+func TestChatAgentHTTPCancelRun(t *testing.T) {
+	origDB := store.Database
+	origCfg := config.App.ChatAgent
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-1":     {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
+		"sess-other": {Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
+	}
+	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App.ChatAgent = origCfg
+		testChatSessions = map[string]*gen.ChatSession{}
+	})
+
+	h := newChatAgentHTTP()
+	app := fiber.New()
+	app.Post("/chatagent/sessions/:id/cancel", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.cancelRun(c)
+	})
+
+	tests := []struct {
+		name       string
+		sessionID  string
+		wantStatus int
+	}{
+		{name: "cancel own session", sessionID: "sess-1", wantStatus: fiber.StatusNoContent},
+		{name: "foreign session forbidden", sessionID: "sess-other", wantStatus: fiber.StatusForbidden},
+		{name: "missing session not found", sessionID: "missing", wantStatus: fiber.StatusNotFound},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/chatagent/sessions/"+tt.sessionID+"/cancel", http.NoBody)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+		})
+	}
+}
+
 func TestListUserActiveSessions(t *testing.T) {
 	now := time.Now().UTC()
 	origDB := store.Database

@@ -83,7 +83,9 @@ func (e *Engine) FlushAggregation(ctx context.Context, ruleID, eventType, channe
 	return payloads, nil
 }
 
-// ScanExpiredAggregates finds aggregate timer keys that have expired and returns their rule/channel info.
+// ScanExpiredAggregates finds aggregation buffers whose timer key has expired.
+// Timer keys use a TTL equal to the aggregation window; once they disappear the
+// corresponding buffer is ready to flush.
 func (e *Engine) ScanExpiredAggregates(ctx context.Context) ([]AggregateKey, error) {
 	if e.store == nil {
 		return nil, nil
@@ -91,20 +93,23 @@ func (e *Engine) ScanExpiredAggregates(ctx context.Context) ([]AggregateKey, err
 
 	var keys []AggregateKey
 
-	results, err := e.store.ScanKeys(ctx, "notify:agg:timer:*", 100)
+	results, err := e.store.ScanKeys(ctx, "notify:agg:buffer:*", 100)
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan aggregate timers: %w", err)
+		return nil, fmt.Errorf("failed to scan aggregate buffers: %w", err)
 	}
 
 	for _, key := range results {
-		exists, err := e.store.ExistsRaw(ctx, key)
+		aggKey, ok := parseAggregateKey(key)
+		if !ok {
+			continue
+		}
+		timerKey := cache.NewKey("notify", "agg:timer", aggKey.RuleID+":"+aggKey.EventType+":"+aggKey.Channel).String()
+		exists, err := e.store.ExistsRaw(ctx, timerKey)
 		if err != nil {
 			continue
 		}
 		if !exists {
-			if aggKey, ok := parseAggregateKey(key); ok {
-				keys = append(keys, aggKey)
-			}
+			keys = append(keys, aggKey)
 		}
 	}
 

@@ -1,7 +1,12 @@
 package metrics
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/flowline-io/flowbot/pkg/stats"
 )
@@ -55,4 +60,52 @@ func TestNewEventSourceCollector(t *testing.T) {
 		c2.IncWebhookTotal("gitlab/events", "200")
 		c1.IncWebhookEvents("github/events")
 	})
+}
+
+func TestEventSourceCollector_CounterMetrics(t *testing.T) {
+	pollTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{Name: "event_source_poll_total_test"},
+		[]string{"resource", "status"},
+	)
+	webhookTotal := prometheus.NewCounterVec(
+		prometheus.CounterOpts{Name: "event_source_webhook_total_test"},
+		[]string{"resource", "status"},
+	)
+	pollEvents := prometheus.NewCounterVec(
+		prometheus.CounterOpts{Name: "event_source_poll_events_total_test"},
+		[]string{"resource", "event_type"},
+	)
+	pollError := prometheus.NewCounterVec(
+		prometheus.CounterOpts{Name: "event_source_poll_error_total_test"},
+		[]string{"resource"},
+	)
+	stateFlush := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{Name: "event_source_state_flush_duration_seconds_test", Buckets: prometheus.DefBuckets},
+		[]string{"operation"},
+	)
+	c := &EventSourceCollector{
+		pollTotal:      pollTotal,
+		webhookTotal:   webhookTotal,
+		pollEvents:     pollEvents,
+		pollErrorTotal: pollError,
+		stateFlushDur:  stateFlush,
+	}
+
+	c.IncPollTotal("rss/feed", "success")
+	c.IncPollTotal("rss/feed", "error")
+	c.IncPollEvents("rss/feed", "item.created")
+	c.IncWebhookTotal("github/hooks", "202")
+	c.IncWebhookEvents("github/hooks")
+	c.IncPollError("rss/feed")
+	c.ObservePollDuration("rss/feed", 0.3)
+	c.ObserveStateFlushDuration(0.1)
+
+	expected := `
+# HELP event_source_poll_total_test
+# TYPE event_source_poll_total_test counter
+event_source_poll_total_test{resource="rss_feed",status="error"} 1
+event_source_poll_total_test{resource="rss_feed",status="success"} 1
+`
+	err := testutil.CollectAndCompare(pollTotal, strings.NewReader(expected), "event_source_poll_total_test")
+	assert.NoError(t, err)
 }
