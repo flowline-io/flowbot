@@ -272,7 +272,8 @@ func GetRequestContext(ctx fiber.Ctx) *RequestContext {
 	return rc
 }
 
-// GetAccessToken extracts the API key from an HTTP request.
+// GetAccessToken extracts the API key from Cookie, X-AccessToken, or Authorization Bearer.
+// Query and form parameters are intentionally ignored to avoid token leakage via URLs/logs.
 func GetAccessToken(req *http.Request) string {
 	apikey := req.Header.Get("X-AccessToken")
 	if apikey != "" {
@@ -283,18 +284,10 @@ func GetAccessToken(req *http.Request) string {
 	if apikey != "" {
 		return apikey
 	}
-	apikey = req.URL.Query().Get(accessTokenKey)
-	if apikey != "" {
-		return apikey
-	}
-	apikey = req.FormValue(accessTokenKey)
-	if apikey != "" {
-		return apikey
-	}
 	if c, err := req.Cookie(accessTokenKey); err == nil {
-		apikey = c.Value
+		return c.Value
 	}
-	return apikey
+	return ""
 }
 
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {

@@ -280,11 +280,12 @@ Rules:
 
 ## Authentication
 
-- Cookie-based: `accessToken` HTTP-only cookie.
+- Cookie-based: `accessToken` HttpOnly + SameSite=Lax cookie; `Secure` via `modules.web.auth.cookie_secure` (default true).
+- API tokens: `X-AccessToken` or `Authorization: Bearer` (query/form `accessToken` is not accepted).
 - `authenticateWeb()` / `isAuthenticated()` read the cookie, look up the token in store, populate `route.RequestContext`.
 - Routes typically combine `route.WithNotAuth()` (skip scope middleware) with an explicit `authenticateWeb(ctx)` call in the handler; unauthenticated users redirect to `/service/web/login`.
 - Login accepts username/password from `flowbot.yaml` → `modules.web.auth`.
-- Token stored via `store.Database.ParameterSet()`, expires in 24h.
+- Token stored hashed via `store.Database.ParameterSet(auth.HashToken(raw), ...)`, expires in 24h; logout deletes the hash entry.
 
 ## Store Access
 

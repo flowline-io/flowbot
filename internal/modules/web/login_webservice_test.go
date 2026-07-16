@@ -330,6 +330,71 @@ func TestLogout(t *testing.T) {
 	}
 }
 
+func TestLoginSubmitCookieAttributes(t *testing.T) {
+	tests := []struct {
+		name         string
+		cookieSecure *bool
+		wantSecure   bool
+	}{
+		{
+			name:       "defaults Secure true when cookie_secure omitted",
+			wantSecure: true,
+		},
+		{
+			name:         "Secure true when cookie_secure true",
+			cookieSecure: boolPtr(true),
+			wantSecure:   true,
+		},
+		{
+			name:         "Secure false when cookie_secure false",
+			cookieSecure: boolPtr(false),
+			wantSecure:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			authCfg := AuthConfig{Username: "admin", Password: "admin", CookieSecure: tt.cookieSecure}
+			handler.authConfig = authCfg
+			config.Auth = authCfg
+
+			form := url.Values{}
+			form.Set("username", "admin")
+			form.Set("password", "admin")
+			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+
+			var cookie *http.Cookie
+			for _, c := range resp.Cookies() {
+				if c.Name == "accessToken" {
+					cookie = c
+					break
+				}
+			}
+			if cookie == nil {
+				t.Fatal("expected accessToken cookie")
+			}
+			if !cookie.HttpOnly {
+				t.Error("expected HttpOnly cookie")
+			}
+			if cookie.SameSite != http.SameSiteLaxMode {
+				t.Errorf("want SameSite=Lax, got %v", cookie.SameSite)
+			}
+			if cookie.Secure != tt.wantSecure {
+				t.Errorf("want Secure=%v, got %v", tt.wantSecure, cookie.Secure)
+			}
+		})
+	}
+}
+
+func boolPtr(v bool) *bool { return &v }
+
 func TestLoginSubmitStoresHashedToken(t *testing.T) {
 	tests := []struct {
 		name string

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -337,6 +338,74 @@ func TestCheckAccessToken_Hashed(t *testing.T) {
 			if tt.wantOK {
 				assert.Equal(t, tt.wantUID, uid)
 			}
+		})
+	}
+}
+
+func TestGetAccessToken(t *testing.T) {
+	tests := []struct {
+		name string
+		req  func() *http.Request
+		want string
+	}{
+		{
+			name: "reads X-AccessToken header",
+			req: func() *http.Request {
+				r := httptest.NewRequest(http.MethodGet, "/api", http.NoBody)
+				r.Header.Set("X-AccessToken", "header-token")
+				return r
+			},
+			want: "header-token",
+		},
+		{
+			name: "reads Authorization Bearer token",
+			req: func() *http.Request {
+				r := httptest.NewRequest(http.MethodGet, "/api", http.NoBody)
+				r.Header.Set("Authorization", "Bearer bearer-token")
+				return r
+			},
+			want: "bearer-token",
+		},
+		{
+			name: "reads accessToken cookie",
+			req: func() *http.Request {
+				r := httptest.NewRequest(http.MethodGet, "/api", http.NoBody)
+				r.AddCookie(&http.Cookie{Name: "accessToken", Value: "cookie-token"})
+				return r
+			},
+			want: "cookie-token",
+		},
+		{
+			name: "ignores query accessToken",
+			req: func() *http.Request {
+				return httptest.NewRequest(http.MethodGet, "/api?accessToken=query-token", http.NoBody)
+			},
+			want: "",
+		},
+		{
+			name: "ignores form accessToken",
+			req: func() *http.Request {
+				r := httptest.NewRequest(http.MethodPost, "/api", strings.NewReader("accessToken=form-token"))
+				r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				return r
+			},
+			want: "",
+		},
+		{
+			name: "header takes precedence over cookie",
+			req: func() *http.Request {
+				r := httptest.NewRequest(http.MethodGet, "/api", http.NoBody)
+				r.Header.Set("X-AccessToken", "header-wins")
+				r.AddCookie(&http.Cookie{Name: "accessToken", Value: "cookie-ignored"})
+				return r
+			},
+			want: "header-wins",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetAccessToken(tt.req())
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

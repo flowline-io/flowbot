@@ -108,14 +108,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		return pages.LoginForm(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
 	}
-	ctx.Cookie(&fiber.Cookie{
-		Name:     "accessToken",
-		Value:    token,
-		HTTPOnly: true,
-		SameSite: "Lax",
-		Path:     "/",
-		MaxAge:   86400,
-	})
+	setAccessTokenCookie(ctx, token, 86400, time.Time{})
 	if next == "" || !strings.HasPrefix(next, "/") || strings.Contains(next, "//") || strings.Contains(next, ":") {
 		next = "/service/web/configs"
 	}
@@ -130,14 +123,25 @@ func logout(ctx fiber.Ctx) error {
 			flog.Error(fmt.Errorf("failed to delete token on logout: %w", err))
 		}
 	}
-	ctx.Cookie(&fiber.Cookie{
-		Name:     "accessToken",
-		Value:    "deleted",
-		Expires:  time.Unix(0, 0),
-		HTTPOnly: true,
-		SameSite: "Lax",
-		Path:     "/",
-	})
+	setAccessTokenCookie(ctx, "deleted", 0, time.Unix(0, 0))
 	ctx.Set("HX-Redirect", "/service/web/login")
 	return nil
+}
+
+// setAccessTokenCookie writes the accessToken cookie with HttpOnly, SameSite=Lax,
+// and Secure controlled by modules.web.auth.cookie_secure.
+func setAccessTokenCookie(ctx fiber.Ctx, value string, maxAge int, expires time.Time) {
+	c := &fiber.Cookie{
+		Name:     "accessToken",
+		Value:    value,
+		HTTPOnly: true,
+		SameSite: "Lax",
+		Secure:   authConfig().cookieSecureEnabled(),
+		Path:     "/",
+		MaxAge:   maxAge,
+	}
+	if !expires.IsZero() {
+		c.Expires = expires
+	}
+	ctx.Cookie(c)
 }

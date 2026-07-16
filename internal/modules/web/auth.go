@@ -15,9 +15,19 @@ import (
 
 // AuthConfig holds web login authentication credentials read from the module config.
 type AuthConfig struct {
-	Username   string           `json:"username"`
-	Password   string           `json:"password"`
-	BruteForce BruteForceConfig `json:"brute_force"`
+	Username     string           `json:"username"`
+	Password     string           `json:"password"`
+	CookieSecure *bool            `json:"cookie_secure"`
+	BruteForce   BruteForceConfig `json:"brute_force"`
+}
+
+// cookieSecureEnabled reports whether the accessToken cookie should set Secure.
+// Defaults to true when cookie_secure is omitted (HTTPS / frp deployments).
+func (a AuthConfig) cookieSecureEnabled() bool {
+	if a.CookieSecure == nil {
+		return true
+	}
+	return *a.CookieSecure
 }
 
 // BruteForceConfig holds brute force protection settings for the login endpoint.
