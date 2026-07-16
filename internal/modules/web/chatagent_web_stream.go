@@ -32,8 +32,7 @@ func streamWebSessionEvents(ctx fiber.Ctx, sessionID string) error {
 				if !ok {
 					return
 				}
-				switch ev.Type {
-				case chatagent.EventTypeConfirm, chatagent.EventTypeConfirmResolved, chatagent.EventTypeCanceled, chatagent.EventTypeModeChange:
+				if chatagent.IsObserverStreamEvent(ev.Type) {
 					if sse.WriteEvent(ev) {
 						return
 					}

@@ -4,7 +4,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
-	"github.com/flowline-io/flowbot/version"
 )
 
 templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) {
@@ -15,7 +14,7 @@ templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partia
 				@partials.ChatAgentSessionList(items, nextCursor, endpoints)
 			}
 		</div>
-		<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
+		@partials.ChatAgentComposerScripts()
 	}
 }
 
@@ -24,6 +23,6 @@ templ AgentChatPage(session model.AgentSession, messages []model.AgentChatMessag
 		<div class="chatagent-page flex flex-col flex-1 min-h-0 overflow-hidden">
 			@partials.ChatAgentThread(session, messages, endpoints)
 		</div>
-		<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
+		@partials.ChatAgentThreadScripts()
 	}
 }

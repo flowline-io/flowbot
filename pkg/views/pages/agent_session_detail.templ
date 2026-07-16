@@ -4,7 +4,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
-	"github.com/flowline-io/flowbot/version"
 )
 
 templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan) {
@@ -65,6 +64,6 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		@partials.AgentSessionPlansCard(session.Flag, plans)
 		<h2 class="text-lg font-semibold mb-3">Entries</h2>
 		@partials.AgentSessionEntriesTable(entries)
-		<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
+		@partials.ChatAgentApprovalScripts()
 	}
 }

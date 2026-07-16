@@ -19,6 +19,18 @@ const (
 	EventTypeError           = "error"
 )
 
+// IsObserverStreamEvent reports whether eventType is forwarded on session
+// /events subscribers (REST and Web share this filter). Primary turn tokens
+// (delta/tool/done) are delivered on the messages send SSE, not /events.
+func IsObserverStreamEvent(eventType string) bool {
+	switch eventType {
+	case EventTypeConfirm, EventTypeConfirmResolved, EventTypeCanceled, EventTypeModeChange:
+		return true
+	default:
+		return false
+	}
+}
+
 // StreamEvent is one SSE payload emitted to Chat Agent HTTP clients.
 type StreamEvent struct {
 	Type string `json:"type"`

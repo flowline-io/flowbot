@@ -4,6 +4,10 @@ Core agent engine implementing Observe-Think-Act loops, tool orchestration, sess
 
 Full documentation: [docs/agent/](../../docs/agent/README.md) (architecture, developer guide, PlantUML).
 
+Product layer note:
+
+- The Flowbot chat assistant product orchestration lives in `internal/server/chatagent` (REST/Web/platform sinks, store binding, scheduled tasks). `pkg/agent` remains the reusable engine; do not move store/http/platform logic into this package.
+
 ## Structure
 
 ```

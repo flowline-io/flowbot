@@ -1,0 +1,27 @@
+package partials
+
+import "github.com/flowline-io/flowbot/version"
+
+// ChatAgentComposerScripts loads JS for the agents home composer (create session).
+templ ChatAgentComposerScripts() {
+	<script src={ "/static/js/chatagent-util.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
+}
+
+// ChatAgentApprovalScripts loads JS for standalone approval panels (e.g. session detail).
+templ ChatAgentApprovalScripts() {
+	<script src={ "/static/js/chatagent-util.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-approval.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
+}
+
+// ChatAgentThreadScripts loads the full chat thread stack (SSE, markdown, stream UI).
+templ ChatAgentThreadScripts() {
+	<script src={ "/static/js/chatagent-util.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-sse.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-markdown.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-context.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-approval.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-thread.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
+}

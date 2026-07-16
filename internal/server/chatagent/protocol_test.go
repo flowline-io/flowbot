@@ -7,6 +7,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestIsObserverStreamEvent(t *testing.T) {
+	tests := []struct {
+		name      string
+		eventType string
+		want      bool
+	}{
+		{name: "confirm is observer", eventType: EventTypeConfirm, want: true},
+		{name: "confirm_resolved is observer", eventType: EventTypeConfirmResolved, want: true},
+		{name: "canceled is observer", eventType: EventTypeCanceled, want: true},
+		{name: "mode_change is observer", eventType: EventTypeModeChange, want: true},
+		{name: "delta is not observer", eventType: EventTypeDelta, want: false},
+		{name: "done is not observer", eventType: EventTypeDone, want: false},
+		{name: "tool is not observer", eventType: EventTypeTool, want: false},
+		{name: "empty type is not observer", eventType: "", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, IsObserverStreamEvent(tt.eventType))
+		})
+	}
+}
+
 func TestMarshalStreamEvent(t *testing.T) {
 	tests := []struct {
 		name    string

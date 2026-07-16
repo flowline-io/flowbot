@@ -189,7 +189,7 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 | `public/js/pipeline-run-live.js` | Live pipeline run viewer |
 | `public/js/event-filters.js` | Event timeline filter controls |
 | `public/js/homelab-registry.js` | Homelab registry interactions |
-| `public/js/chatagent-chat.js` | Chatagent chat UI |
+| `public/js/chatagent-*.js` | Chatagent chat UI (namespaced, split modules) |
 | `public/js/chatagent-permissions.js` | Chatagent permissions UI |
 | `public/js/token-usage.js` | Token usage charts |
 | `public/vendor/katex/` | KaTeX math rendering (chatagent markdown) |
@@ -206,6 +206,21 @@ All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and
 - Test IDs use `data-testid="kebab-case"` on interactive elements.
 - Generated `*_templ.go` files are regenerated via `go tool templ generate` (or `go tool task` targets that invoke it). Never edit generated files.
 - Always regenerate after changing `.templ` files.
+
+## Chatagent JavaScript guardrails
+
+The chatagent UI scripts are split into multiple files under `public/js/chatagent-*.js` and share a single global namespace:
+
+- `window.FlowbotChatAgent = window.FlowbotChatAgent || {}`
+
+Rules:
+
+- Do not re-introduce a monolithic `public/js/chatagent-chat.js` that contains all logic.
+- Keep cross-file APIs on `FlowbotChatAgent` only (no implicit globals).
+- Pages that use chatagent must load the scripts **in dependency order** via `pkg/views/partials/chatagent_scripts.templ`:
+  - `ChatAgentComposerScripts` — `util → chat` (agents home composer)
+  - `ChatAgentApprovalScripts` — `util → approval → chat` (session detail approval panel)
+  - `ChatAgentThreadScripts` — full stack `util → sse → markdown → context → approval → thread → chat` (chat thread page)
 
 ## Route Conventions
 

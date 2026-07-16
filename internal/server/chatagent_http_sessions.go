@@ -206,8 +206,7 @@ func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
 				if !ok {
 					return
 				}
-				switch ev.Type {
-				case chatagent.EventTypeConfirm, chatagent.EventTypeConfirmResolved, chatagent.EventTypeCanceled, chatagent.EventTypeModeChange:
+				if chatagent.IsObserverStreamEvent(ev.Type) {
 					if writeChatAgentSSE(w, ev) {
 						return
 					}
