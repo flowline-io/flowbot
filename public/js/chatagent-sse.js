@@ -3,14 +3,14 @@
 
   var ns = (window.FlowbotChatAgent = window.FlowbotChatAgent || {});
 
-  ns.flushSSEBuffer = function(buffer, onEvent) {
+  ns.flushSSEBuffer = function (buffer, onEvent) {
     if (!buffer) {
       return '';
     }
     return ns.parseSSEChunk(buffer, onEvent);
-  }
+  };
 
-  ns.parseSSEChunk = function(buffer, onEvent) {
+  ns.parseSSEChunk = function (buffer, onEvent) {
     var parts = buffer.split('\n\n');
     var rest = parts.pop() || '';
     parts.forEach(function (frame) {
@@ -27,5 +27,5 @@
       }
     });
     return rest;
-  }
+  };
 })();

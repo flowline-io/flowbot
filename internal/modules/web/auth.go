@@ -69,7 +69,7 @@ func isAuthenticated(ctx fiber.Ctx) bool {
 	if token == "" {
 		return false
 	}
-	p, err := store.Database.ParameterGet(context.Background(), token)
+	p, err := route.LookupAccessToken(context.Background(), token)
 	if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
 		return false
 	}

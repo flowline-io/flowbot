@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -23,9 +24,12 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 		wantBodyContains string
 	}{
 		{
-			name:        "valid token allows access to configs",
+			name:        "valid hashed token allows access to configs",
 			cookieToken: "valid-token",
 			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				if flag != auth.HashToken("valid-token") {
+					return gen.Parameter{}, types.ErrNotFound
+				}
 				return gen.Parameter{
 					ID:        1,
 					Flag:      flag,
@@ -55,6 +59,9 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 			name:        "expired token redirects to login",
 			cookieToken: "expired-token",
 			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				if flag != auth.HashToken("expired-token") {
+					return gen.Parameter{}, types.ErrNotFound
+				}
 				return gen.Parameter{
 					ID:        2,
 					Flag:      flag,
@@ -64,6 +71,23 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 			},
 			wantStatus:       http.StatusSeeOther,
 			wantBodyContains: "",
+		},
+		{
+			name:        "legacy plaintext token migrates and allows access",
+			cookieToken: "legacy-plain-token",
+			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				if flag == "legacy-plain-token" {
+					return gen.Parameter{
+						ID:        3,
+						Flag:      flag,
+						Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+						ExpiredAt: time.Now().Add(time.Hour),
+					}, nil
+				}
+				return gen.Parameter{}, types.ErrNotFound
+			},
+			wantStatus:       http.StatusOK,
+			wantBodyContains: "Configs",
 		},
 	}
 	for _, tt := range tests {

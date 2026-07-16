@@ -30,7 +30,11 @@
 
   var markdownBubbleClass =
     'chat-bubble bg-base-100 border border-base-300 chatagent-markdown markdown-body text-sm max-w-[92%]';
-  ns.createStreamingMarkdownRenderer = function(threadRoot, getBodyEl, options) {
+  ns.createStreamingMarkdownRenderer = function (
+    threadRoot,
+    getBodyEl,
+    options,
+  ) {
     options = options || {};
     var renderedClass = options.renderedClass || markdownBubbleClass;
     var plainClass =
@@ -151,5 +155,5 @@
         latestSeq += 1;
       },
     };
-  }
+  };
 })();

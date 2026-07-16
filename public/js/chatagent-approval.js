@@ -14,7 +14,7 @@
     return label;
   }
 
-  ns.initApproval = function(panel) {
+  ns.initApproval = function (panel) {
     if (!panel) {
       return null;
     }
@@ -246,5 +246,5 @@
 
     connect();
     return { handleStreamEvent: resolveConfirmEvent };
-  }
+  };
 })();

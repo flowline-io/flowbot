@@ -13,6 +13,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -268,12 +269,14 @@ func TestLogout(t *testing.T) {
 		cookieToken string
 		wantStatus  int
 		wantDel     bool
+		wantDelHash bool
 	}{
 		{
-			name:        "logout with cookie sets HX-Redirect",
+			name:        "logout with cookie deletes hash and plaintext keys",
 			cookieToken: "token-to-delete",
 			wantStatus:  http.StatusOK,
 			wantDel:     true,
+			wantDelHash: true,
 		},
 		{
 			name:        "logout without cookie still sets HX-Redirect",
@@ -286,14 +289,15 @@ func TestLogout(t *testing.T) {
 			cookieToken: "error-token",
 			wantStatus:  http.StatusOK,
 			wantDel:     true,
+			wantDelHash: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp()
-			deletedFlag := ""
+			deleted := map[string]bool{}
 			ts.paramDelFn = func(_ context.Context, flag string) error {
-				deletedFlag = flag
+				deleted[flag] = true
 				if flag == "error-token" {
 					return fmt.Errorf("db error")
 				}
@@ -313,11 +317,63 @@ func TestLogout(t *testing.T) {
 			if hxRedirect != "/service/web/login" {
 				t.Errorf("want HX-Redirect /service/web/login, got %q", hxRedirect)
 			}
-			if tt.wantDel && deletedFlag == "" {
-				t.Error("expected ParameterDelete to be called")
+			if tt.wantDel && !deleted[tt.cookieToken] {
+				t.Error("expected ParameterDelete for plaintext key")
 			}
-			if !tt.wantDel && deletedFlag != "" {
+			if tt.wantDelHash && !deleted[auth.HashToken(tt.cookieToken)] {
+				t.Error("expected ParameterDelete for hashed key")
+			}
+			if !tt.wantDel && len(deleted) != 0 {
 				t.Error("expected ParameterDelete NOT to be called for empty cookie")
+			}
+		})
+	}
+}
+
+func TestLoginSubmitStoresHashedToken(t *testing.T) {
+	tests := []struct {
+		name string
+	}{
+		{name: "stores sha256 hash flag"},
+		{name: "stores hash not raw cookie value"},
+		{name: "hash flag length is 64"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			var storedFlag string
+			ts.paramSetFn = func(_ context.Context, flag string, _ types.KV, _ time.Time) error {
+				storedFlag = flag
+				return nil
+			}
+			form := url.Values{}
+			form.Set("username", "admin")
+			form.Set("password", "admin")
+			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			resp, _ := app.Test(req)
+			defer resp.Body.Close()
+			if storedFlag == "" {
+				t.Fatal("expected ParameterSet to be called")
+			}
+			if len(storedFlag) != 64 {
+				t.Errorf("want hash flag length 64, got %d (%q)", len(storedFlag), storedFlag)
+			}
+			var cookieVal string
+			for _, c := range resp.Cookies() {
+				if c.Name == "accessToken" {
+					cookieVal = c.Value
+				}
+			}
+			if cookieVal == "" {
+				t.Fatal("expected accessToken cookie")
+			}
+			if storedFlag == cookieVal {
+				t.Error("stored flag must not be the raw cookie token")
+			}
+			if storedFlag != auth.HashToken(cookieVal) {
+				t.Errorf("stored flag %q != HashToken(cookie)", storedFlag)
 			}
 		})
 	}

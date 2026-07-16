@@ -130,7 +130,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 
 	now := time.Now()
 	item := model.TokenItem{
-		Token:     token,
+		Token:     auth.HashToken(token),
 		UID:       types.Uid(uidVal),
 		Scopes:    scopes,
 		CreatedAt: now,

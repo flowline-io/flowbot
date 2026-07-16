@@ -69,7 +69,8 @@
 
     var startedAt = Date.now();
     var timer = setInterval(function () {
-      durationEl.textContent = ' · ' + ns.formatDuration(Date.now() - startedAt);
+      durationEl.textContent =
+        ' · ' + ns.formatDuration(Date.now() - startedAt);
     }, 100);
 
     return {
@@ -296,7 +297,13 @@
     ns.showError(el, message);
   }
 
-  ns.streamMessage = function (messagesURL, text, threadRoot, onDone, approval) {
+  ns.streamMessage = function (
+    messagesURL,
+    text,
+    threadRoot,
+    onDone,
+    approval,
+  ) {
     var messagesEl = threadRoot.querySelector('#chatagent-messages');
     var errorEl = threadRoot.querySelector('#chatagent-thread-error');
     var cancelURL = threadRoot.getAttribute('data-cancel-url') || '';
@@ -518,5 +525,5 @@
         });
       }
     }
-  }
+  };
 })();

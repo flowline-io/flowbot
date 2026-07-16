@@ -2173,7 +2173,6 @@ func (a *adapter) ParameterDelete(ctx context.Context, flag string) error {
 
 func (a *adapter) ListTokens(ctx context.Context) ([]model.TokenItem, error) {
 	rows, err := a.client.Parameter.Query().
-		Where(parameter.FlagHasPrefix("fb_")).
 		Order(gen.Desc(parameter.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
@@ -2184,6 +2183,9 @@ func (a *adapter) ListTokens(ctx context.Context) ([]model.TokenItem, error) {
 	result := make([]model.TokenItem, 0, len(rows))
 	for _, r := range rows {
 		paramsKV := types.KV(r.Params)
+		if _, hasScopes := paramsKV["scopes"]; !hasScopes {
+			continue
+		}
 		if r.ExpiredAt.Before(cutoff) {
 			if _, hasUsed := paramsKV["last_used_at"]; !hasUsed {
 				continue
@@ -2232,7 +2234,7 @@ func (a *adapter) CreateToken(ctx context.Context, uid types.Uid, expiresAt time
 	}
 	now := time.Now()
 	_, err = a.client.Parameter.Create().
-		SetFlag(token).
+		SetFlag(auth.HashToken(token)).
 		SetParams(map[string]any(params)).
 		SetExpiredAt(expiresAt).
 		SetCreatedAt(now).

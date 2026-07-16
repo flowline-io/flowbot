@@ -312,9 +312,12 @@ func TestPlatformCallback_UnknownPlatform(t *testing.T) {
 func TestAgentData_NoAuth(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
+		name       string
+		wantStatus int
 	}{
-		{name: "agent data without auth returns error"},
+		{name: "agent data without auth returns unauthorized", wantStatus: http.StatusUnauthorized},
+		{name: "agent data with empty body still unauthorized", wantStatus: http.StatusUnauthorized},
+		{name: "agent data missing token is rejected", wantStatus: http.StatusUnauthorized},
 	}
 
 	for _, tt := range tests {
@@ -329,8 +332,7 @@ func TestAgentData_NoAuth(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			resp, err := app.Test(req)
 			require.NoError(t, err)
-			// Without store.Database initialized, the handler panics (recovered → 400 via error handler)
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
 	}
 }

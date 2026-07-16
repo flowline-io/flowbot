@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -68,7 +69,7 @@ func TestListTokens(t *testing.T) {
 			if tt.wantLen > 0 {
 				for _, item := range items {
 					assert.NotEmpty(t, item.Token)
-					assert.Contains(t, item.Token, "fb_")
+					assert.Len(t, item.Token, 64)
 					assert.NotEmpty(t, item.UID)
 				}
 			}
@@ -122,6 +123,7 @@ func TestCreateToken(t *testing.T) {
 			items, err := a.ListTokens(context.Background())
 			require.NoError(t, err)
 			assert.Len(t, items, 1)
+			assert.Equal(t, auth.HashToken(token), items[0].Token)
 			assert.Equal(t, tt.uid, items[0].UID)
 			assert.Equal(t, tt.scopes, items[0].Scopes)
 		})
@@ -141,7 +143,7 @@ func TestRevokeToken(t *testing.T) {
 			seed: func(t *testing.T, a *adapter) string {
 				token, err := a.CreateToken(context.Background(), types.Uid("user:revoke"), time.Now().Add(24*time.Hour), []string{"admin:*"})
 				require.NoError(t, err)
-				return token
+				return auth.HashToken(token)
 			},
 			wantErr: false,
 		},
@@ -158,9 +160,10 @@ func TestRevokeToken(t *testing.T) {
 			seed: func(t *testing.T, a *adapter) string {
 				token, err := a.CreateToken(context.Background(), types.Uid("user:twice"), time.Now().Add(24*time.Hour), []string{"hub:apps:read"})
 				require.NoError(t, err)
-				err = a.RevokeToken(context.Background(), token)
+				flag := auth.HashToken(token)
+				err = a.RevokeToken(context.Background(), flag)
 				require.NoError(t, err)
-				return token
+				return flag
 			},
 			wantErr: true,
 			errIs:   types.ErrNotFound,

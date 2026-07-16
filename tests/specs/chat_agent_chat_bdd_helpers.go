@@ -43,7 +43,7 @@ func createChatAgentAccessToken(ctx context.Context, uid types.Uid) string {
 		"scopes": []string{auth.ScopeChatAgentChat},
 	}
 	expiredAt := time.Now().Add(24 * time.Hour)
-	Expect(store.Database.ParameterSet(ctx, token, params, expiredAt)).To(Succeed())
+	Expect(store.Database.ParameterSet(ctx, auth.HashToken(token), params, expiredAt)).To(Succeed())
 	return token
 }
 

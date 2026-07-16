@@ -103,7 +103,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 		"scopes": []string{"admin:*"},
 	}
 	expiredAt := time.Now().Add(24 * time.Hour)
-	if err := store.Database.ParameterSet(context.Background(), token, params, expiredAt); err != nil {
+	if err := store.Database.ParameterSet(context.Background(), auth.HashToken(token), params, expiredAt); err != nil {
 		flog.Error(fmt.Errorf("failed to store token: %w", err))
 		ctx.Type("html")
 		return pages.LoginForm(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
@@ -126,7 +126,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 func logout(ctx fiber.Ctx) error {
 	token := ctx.Cookies("accessToken")
 	if token != "" {
-		if err := store.Database.ParameterDelete(context.Background(), token); err != nil {
+		if err := route.DeleteAccessToken(context.Background(), token); err != nil {
 			flog.Error(fmt.Errorf("failed to delete token on logout: %w", err))
 		}
 	}

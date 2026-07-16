@@ -131,7 +131,7 @@ func tokenCreateAction(cmd *cobra.Command, _ []string) error {
 
 	_, err = db.Exec(
 		"INSERT INTO parameter (flag, params, created_at, updated_at, expired_at) VALUES ($1, $2, $3, $4, $5)",
-		token, params, time.Now(), time.Now(), expiredAt,
+		auth.HashToken(token), params, time.Now(), time.Now(), expiredAt,
 	)
 	if err != nil {
 		return fmt.Errorf("create token record: %w", err)

@@ -3,6 +3,7 @@ package route
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
@@ -116,7 +118,7 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 			return err
 		}
 
-		p, err := store.Database.ParameterGet(context.Background(), accessToken)
+		p, err := LookupAccessToken(context.Background(), accessToken)
 		if err != nil || p.ID <= 0 || store.ParameterIsExpired(p) {
 			auditAuthReject(ctx, "auth.token.validate.fail", "invalid or expired")
 			return protocol.ErrNotAuthorized.New("parameter error")
@@ -133,7 +135,7 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 		}
 
 		scopes := parseScopes(paramKV)
-		throttledUpdateLastUsed(paramKV, accessToken, p.ExpiredAt)
+		throttledUpdateLastUsed(paramKV, p.Flag, p.ExpiredAt)
 
 		ctx.Locals(requestContextKey, &RequestContext{
 			UID:    uid,
@@ -144,6 +146,47 @@ func Authorize(handler fiber.Handler) fiber.Handler {
 
 		return handler(ctx)
 	}
+}
+
+// LookupAccessToken resolves an access token parameter by SHA-256 hash key.
+// Legacy plaintext rows are migrated to the hash key on first successful lookup.
+func LookupAccessToken(ctx context.Context, raw string) (gen.Parameter, error) {
+	if raw == "" {
+		return gen.Parameter{}, types.ErrNotFound
+	}
+	hashed := auth.HashToken(raw)
+	p, err := store.Database.ParameterGet(ctx, hashed)
+	if err == nil {
+		return p, nil
+	}
+	if !errors.Is(err, types.ErrNotFound) {
+		return gen.Parameter{}, err
+	}
+
+	p, err = store.Database.ParameterGet(ctx, raw)
+	if err != nil {
+		return gen.Parameter{}, err
+	}
+
+	params := types.KV(p.Params)
+	if setErr := store.Database.ParameterSet(ctx, hashed, params, p.ExpiredAt); setErr != nil {
+		return gen.Parameter{}, setErr
+	}
+	_ = store.Database.ParameterDelete(ctx, raw)
+	p.Flag = hashed
+	return p, nil
+}
+
+// DeleteAccessToken removes both the hashed and legacy plaintext parameter rows for raw.
+func DeleteAccessToken(ctx context.Context, raw string) error {
+	if raw == "" {
+		return nil
+	}
+	hashed := auth.HashToken(raw)
+	if err := store.Database.ParameterDelete(ctx, hashed); err != nil {
+		return err
+	}
+	return store.Database.ParameterDelete(ctx, raw)
 }
 
 // resolveAccessToken extracts the access token from cookies or the HTTP request.
@@ -190,11 +233,11 @@ func parseScopes(paramKV types.KV) []string {
 }
 
 // throttledUpdateLastUsed updates last_used_at in params with a 60s throttle
-// to avoid a database write on every request.
-func throttledUpdateLastUsed(paramKV types.KV, token string, expiredAt time.Time) {
+// to avoid a database write on every request. tokenFlag must be the storage key (hash).
+func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string, expiredAt time.Time) {
 	if shouldUpdateLastUsed(paramKV) {
 		paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-		_ = store.Database.ParameterSet(context.Background(), token, paramKV, expiredAt)
+		_ = store.Database.ParameterSet(context.Background(), tokenFlag, paramKV, expiredAt)
 	}
 }
 
@@ -255,7 +298,7 @@ func GetAccessToken(req *http.Request) string {
 }
 
 func CheckAccessToken(accessToken string) (uid types.Uid, isValid bool) {
-	p, err := store.Database.ParameterGet(context.Background(), accessToken)
+	p, err := LookupAccessToken(context.Background(), accessToken)
 	if err != nil {
 		return
 	}

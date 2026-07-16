@@ -188,7 +188,7 @@
     });
   }
 
-  ns.initContextControl = function(threadRoot) {
+  ns.initContextControl = function (threadRoot) {
     var contextURL = threadRoot.getAttribute('data-context-url') || '';
     var ringWrap = threadRoot.querySelector('.chatagent-context-ring-wrap');
     var popover = threadRoot.querySelector('.chatagent-context-popover');
@@ -340,9 +340,9 @@
 
     contextControls.set(threadRoot, control);
     return control;
-  }
+  };
 
-  ns.getContextControl = function(threadRoot) {
+  ns.getContextControl = function (threadRoot) {
     return contextControls.get(threadRoot) || null;
-  }
+  };
 })();
