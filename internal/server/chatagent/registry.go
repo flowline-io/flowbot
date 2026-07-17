@@ -149,9 +149,11 @@ func WorkspaceFromConfig() (coding.Workspace, error) {
 		maxOutput = 8192
 	}
 	return coding.Workspace{
-		Root:      abs,
-		Timeout:   timeout,
-		MaxOutput: maxOutput,
+		Root:                 abs,
+		Timeout:              timeout,
+		MaxOutput:            maxOutput,
+		WebSearchSearxURL:    strings.TrimSpace(cfg.WebSearch.SearxURL),
+		WebSearchBraveAPIKey: strings.TrimSpace(cfg.WebSearch.BraveAPIKey),
 	}, nil
 }
 

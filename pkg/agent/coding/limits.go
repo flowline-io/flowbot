@@ -20,6 +20,8 @@ const (
 	MaxRunCodeBytes = 256 << 10
 	// MaxWebSearchQueryBytes rejects web_search queries above this length.
 	MaxWebSearchQueryBytes = 512
+	// MaxWebSearchResults caps organic results returned by web_search.
+	MaxWebSearchResults = 8
 
 	// MaxListDirEntries caps list_dir result entries.
 	MaxListDirEntries = 500

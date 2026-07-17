@@ -19,6 +19,10 @@ type Workspace struct {
 	Timeout time.Duration
 	// MaxOutput truncates tool stdout/stderr beyond this byte count.
 	MaxOutput int
+	// WebSearchSearxURL is an optional SearXNG-compatible JSON search endpoint.
+	WebSearchSearxURL string
+	// WebSearchBraveAPIKey enables Brave Search when non-empty.
+	WebSearchBraveAPIKey string
 }
 
 // ResolvePath maps a relative or absolute path into the workspace root.

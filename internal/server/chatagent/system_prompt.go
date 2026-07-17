@@ -55,7 +55,7 @@ func DefaultToolSnippets() map[string]string {
 		"read_file":            "Read a text file from the workspace by relative path",
 		"write_file":           "Write or overwrite a text file in the workspace, creating parent dirs as needed",
 		"apply_patch":          "Apply an incremental multi-file patch (add/update/delete) inside the workspace",
-		"web_search":           "Look up concise facts via DuckDuckGo; may return no results for niche queries",
+		"web_search":           "Search the web for titles, URLs, and snippets",
 		"web_fetch":            "Fetch text content from an http(s) URL (not localhost)",
 		"run_code":             "Execute a Python or shell code snippet in the workspace",
 		"read_skill":           "Load full skill instructions or an auxiliary file via optional path",

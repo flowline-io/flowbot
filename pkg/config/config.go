@@ -614,6 +614,17 @@ type ChatAgentConfig struct {
 	AbilityTools []AbilityToolConfig `json:"ability_tools" yaml:"ability_tools" mapstructure:"ability_tools"`
 	// Sandbox configures optional Docker isolation for shell and code tools.
 	Sandbox ChatAgentSandboxConfig `json:"sandbox" yaml:"sandbox" mapstructure:"sandbox"`
+	// WebSearch configures backends for the web_search tool.
+	WebSearch ChatAgentWebSearchConfig `json:"web_search" yaml:"web_search" mapstructure:"web_search"`
+}
+
+// ChatAgentWebSearchConfig configures web_search tool backends.
+type ChatAgentWebSearchConfig struct {
+	// SearxURL is a SearXNG-compatible search endpoint (e.g. http://127.0.0.1:8080/search).
+	// When set, web_search uses ?q=&format=json and prefers this over DuckDuckGo.
+	SearxURL string `json:"searx_url" yaml:"searx_url" mapstructure:"searx_url"`
+	// BraveAPIKey enables the Brave Search API when non-empty.
+	BraveAPIKey string `json:"brave_api_key" yaml:"brave_api_key" mapstructure:"brave_api_key"`
 }
 
 // LLMRetryConfig configures transient LLM call retries.

@@ -123,30 +123,98 @@ func TestRunTerminalTool_Execute(t *testing.T) {
 }
 
 func TestWebSearchTool_Execute(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"Heading":"Go","AbstractText":"Go is a programming language.","RelatedTopics":[{"Text":"Golang docs"}]}`))
+	htmlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write([]byte(`
+<a class="result__a" href="https://example.com/go">Go language</a>
+<a class="result__snippet">An open-source programming language.</a>
+`))
 	}))
-	defer server.Close()
+	defer htmlServer.Close()
 
 	tests := []struct {
 		name      string
 		query     string
 		wantError bool
+		wantText  string
 	}{
-		{name: "valid query", query: "golang", wantError: false},
+		{name: "valid query returns organic hit", query: "golang", wantError: false, wantText: "Go language"},
 		{name: "empty query", query: "  ", wantError: true},
-		{name: "whitespace trimmed", query: " go ", wantError: false},
+		{name: "whitespace trimmed", query: " go ", wantError: false, wantText: "example.com/go"},
 	}
 
-	tool := coding.WebSearchTool{HTTPClient: server.Client(), BaseURL: server.URL}
+	tool := coding.WebSearchTool{HTTPClient: htmlServer.Client(), BaseURL: htmlServer.URL}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := tool.Execute(context.Background(), "id", map[string]any{"query": tt.query}, nil)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantError, result.IsError)
+			if tt.wantText != "" {
+				assert.Contains(t, textFromResult(t, result), tt.wantText)
+			}
 		})
 	}
+}
+
+func TestWebSearchTool_SearxPreferred(t *testing.T) {
+	t.Parallel()
+	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "amd 9070gre", r.URL.Query().Get("q"))
+		assert.Equal(t, "json", r.URL.Query().Get("format"))
+		_, _ = w.Write([]byte(`{"results":[{"title":"RX 9070 GRE","url":"https://shop.example/9070","content":"Price CNY 4599"}]}`))
+	}))
+	defer searx.Close()
+
+	htmlBlocked := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		t.Fatal("duckduckgo html should not be called when searx is configured")
+	}))
+	defer htmlBlocked.Close()
+
+	tool := coding.WebSearchTool{
+		HTTPClient: searx.Client(),
+		BaseURL:    htmlBlocked.URL,
+		SearxURL:   searx.URL,
+	}
+	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "amd 9070gre"}, nil)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+	text := textFromResult(t, result)
+	assert.Contains(t, text, "RX 9070 GRE")
+	assert.Contains(t, text, "4599")
+}
+
+func TestWebSearchTool_BraveAPI(t *testing.T) {
+	t.Parallel()
+	brave := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "secret", r.Header.Get("X-Subscription-Token"))
+		_, _ = w.Write([]byte(`{"web":{"results":[{"title":"Brave hit","url":"https://brave.example","description":"snippet"}]}}`))
+	}))
+	defer brave.Close()
+
+	tool := coding.WebSearchTool{
+		HTTPClient:   brave.Client(),
+		BraveAPIKey:  "secret",
+		BraveBaseURL: brave.URL,
+	}
+	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "test"}, nil)
+	require.NoError(t, err)
+	require.False(t, result.IsError)
+	assert.Contains(t, textFromResult(t, result), "Brave hit")
+}
+
+func TestWebSearchTool_CaptchaReturnsHint(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`<form id="challenge-form" action="//duckduckgo.com/anomaly.js"></form>`))
+	}))
+	defer server.Close()
+
+	tool := coding.WebSearchTool{HTTPClient: server.Client(), BaseURL: server.URL}
+	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "price"}, nil)
+	require.NoError(t, err)
+	require.True(t, result.IsError)
+	assert.Contains(t, textFromResult(t, result), "searx_url")
 }
 
 func TestRunCodeTool_Execute(t *testing.T) {

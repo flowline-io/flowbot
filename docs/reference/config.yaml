@@ -217,6 +217,9 @@ chat_agent:
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest
     # network: none
     # memory: 512m
+  # web_search:
+  #   searx_url: "http://127.0.0.1:8080/search"  # SearXNG JSON API (?q=&format=json); preferred when set
+  #   brave_api_key: ""                          # Brave Search API key; used when searx_url is empty
 
 # Flowbot instance configuration
 flowbot:
