@@ -11,7 +11,7 @@ templ AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string
 					<input type="text" name="flag" value={ item.Flag }
 						data-testid="agent-skill-flag"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "flag") }
-						placeholder="homelab-bookmark"
+						placeholder="karakeep"
 						if !isNew {
 							readonly="readonly"
 						}
@@ -23,7 +23,7 @@ templ AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string
 					<input type="text" name="name" value={ item.Name }
 						data-testid="agent-skill-name"
 						class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
-						placeholder="homelab-bookmark"
+						placeholder="karakeep"
 					/>
 					<p class="text-xs text-base-content/50 mt-1">Used by read_skill and shown in the agent prompt (independent of Flag).</p>
 					<div class="text-error text-xs">{ errors["name"] }</div>

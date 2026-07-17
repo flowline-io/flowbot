@@ -16,9 +16,9 @@ func TestReadSkillTool_Execute(t *testing.T) {
 	origDB := store.Database
 	store.Database = &testStoreAdapter{}
 	testAgentSkills = map[string]*gen.AgentSkill{
-		"homelab-bookmark": {
-			Flag:        "homelab-bookmark",
-			Name:        "homelab-bookmark",
+		"karakeep": {
+			Flag:        "karakeep",
+			Name:        "karakeep",
 			Description: "Bookmark skill",
 			Content:     "# Bookmark\nUse flowbot bookmark list",
 			Enabled:     true,
@@ -33,9 +33,9 @@ func TestReadSkillTool_Execute(t *testing.T) {
 		},
 	}
 	testAgentSkillFiles = map[string]map[string]*gen.AgentSkillFile{
-		"homelab-bookmark": {
+		"karakeep": {
 			"reference.md": {
-				SkillFlag: "homelab-bookmark",
+				SkillFlag: "karakeep",
 				Path:      "reference.md",
 				Content:   "Reference body",
 			},
@@ -54,9 +54,9 @@ func TestReadSkillTool_Execute(t *testing.T) {
 		wantError bool
 		wantText  string
 	}{
-		{name: "loads skill", args: map[string]any{"name": "homelab-bookmark"}, wantText: "Use flowbot bookmark list"},
-		{name: "loads skill file", args: map[string]any{"name": "homelab-bookmark", "path": "reference.md"}, wantText: "Reference body"},
-		{name: "missing skill file", args: map[string]any{"name": "homelab-bookmark", "path": "missing.md"}, wantError: true},
+		{name: "loads skill", args: map[string]any{"name": "karakeep"}, wantText: "Use flowbot bookmark list"},
+		{name: "loads skill file", args: map[string]any{"name": "karakeep", "path": "reference.md"}, wantText: "Reference body"},
+		{name: "missing skill file", args: map[string]any{"name": "karakeep", "path": "missing.md"}, wantError: true},
 		{name: "missing skill", args: map[string]any{"name": "missing"}, wantError: true},
 		{name: "hidden skill", args: map[string]any{"name": "hidden"}, wantError: true},
 		{name: "empty name", args: map[string]any{"name": "  "}, wantError: true},

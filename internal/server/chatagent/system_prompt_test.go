@@ -81,14 +81,14 @@ func TestBuildSystemPrompt(t *testing.T) {
 			options: chatagent.BuildSystemPromptOptions{
 				CWD: root,
 				Skills: []chatagent.Skill{{
-					Name:        "homelab-bookmark",
+					Name:        "karakeep",
 					Description: "Manage bookmarks",
-					Location:    "skill://homelab-bookmark",
+					Location:    "skill://karakeep",
 				}},
 			},
 			wantParts: []string{
 				"<available_skills>",
-				"homelab-bookmark",
+				"karakeep",
 				"- read_skill:",
 			},
 		},

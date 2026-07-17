@@ -278,21 +278,21 @@ func TestAgentSkillByFlagAndDelete(t *testing.T) {
 			name: "get by flag returns stored skill",
 			setup: func(ctx context.Context, a *adapter) string {
 				require.NoError(t, a.CreateAgentSkill(ctx, &gen.AgentSkill{
-					Flag:        "homelab-bookmark",
-					Name:        "homelab-bookmark",
+					Flag:        "karakeep",
+					Name:        "karakeep",
 					Description: "Bookmark skill",
 					Content:     "# Bookmark",
 					Source:      "global",
 					Enabled:     true,
 				}))
-				return "homelab-bookmark"
+				return "karakeep"
 			},
 			action: func(ctx context.Context, a *adapter, flag string) error {
 				row, err := a.GetAgentSkillByFlag(ctx, flag)
 				if err != nil {
 					return err
 				}
-				if row.Name != "homelab-bookmark" {
+				if row.Name != "karakeep" {
 					return types.Errorf(types.ErrInternal, "unexpected name %q", row.Name)
 				}
 				return nil

@@ -2,6 +2,7 @@ package chatagent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"path/filepath"
@@ -14,6 +15,58 @@ import (
 )
 
 const skillLocationPrefix = "skill://"
+
+// legacySkillNames maps deprecated skill names/flags to hub.CapabilityType IDs.
+// Kept for this release so existing DB rows and allowlists still resolve.
+var legacySkillNames = map[string]string{
+	"homelab-bookmark": "karakeep",
+	"homelab-kanban":   "kanboard",
+	"homelab-reader":   "miniflux",
+}
+
+// CanonicalSkillName returns the Cap ID form of a skill name.
+// Unknown names are returned unchanged.
+func CanonicalSkillName(name string) string {
+	name = strings.TrimSpace(name)
+	if mapped, ok := legacySkillNames[name]; ok {
+		return mapped
+	}
+	return name
+}
+
+// skillNameCandidates returns lookup order for a requested skill name
+// (requested, canonical Cap ID, and reverse legacy aliases).
+func skillNameCandidates(name string) []string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil
+	}
+	seen := map[string]struct{}{name: {}}
+	out := []string{name}
+	add := func(s string) {
+		if s == "" {
+			return
+		}
+		if _, ok := seen[s]; ok {
+			return
+		}
+		seen[s] = struct{}{}
+		out = append(out, s)
+	}
+	add(CanonicalSkillName(name))
+	for old, neu := range legacySkillNames {
+		if neu == name || neu == CanonicalSkillName(name) {
+			add(old)
+		}
+	}
+	return out
+}
+
+// skillNamesMatch reports whether a stored skill name matches an allowlist entry,
+// including legacy homelab-* aliases.
+func skillNamesMatch(skillName, allowedName string) bool {
+	return CanonicalSkillName(skillName) == CanonicalSkillName(allowedName)
+}
 
 // Skill is a prompt-visible agent skill loaded from storage.
 type Skill struct {
@@ -61,7 +114,7 @@ func GetSkillContent(ctx context.Context, name string) (SkillContent, error) {
 	if store.Database == nil {
 		return SkillContent{}, fmt.Errorf("skill store unavailable")
 	}
-	row, err := store.Database.GetAgentSkillByName(ctx, name)
+	row, err := getAgentSkillByName(ctx, name)
 	if err != nil {
 		return SkillContent{}, err
 	}
@@ -89,7 +142,7 @@ func GetSkillFile(ctx context.Context, name, filePath string) (SkillContent, err
 	if err != nil {
 		return SkillContent{}, err
 	}
-	row, err := store.Database.GetAgentSkillByName(ctx, name)
+	row, err := getAgentSkillByName(ctx, name)
 	if err != nil {
 		return SkillContent{}, err
 	}
@@ -105,6 +158,25 @@ func GetSkillFile(ctx context.Context, name, filePath string) (SkillContent, err
 		Content: file.Content,
 		BaseDir: row.BaseDir,
 	}, nil
+}
+
+// getAgentSkillByName loads a skill by name, trying Cap ID and legacy aliases.
+func getAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error) {
+	var lastErr error
+	for _, candidate := range skillNameCandidates(name) {
+		row, err := store.Database.GetAgentSkillByName(ctx, candidate)
+		if err == nil {
+			return row, nil
+		}
+		lastErr = err
+		if !errors.Is(err, types.ErrNotFound) {
+			return nil, err
+		}
+	}
+	if lastErr == nil {
+		return nil, types.ErrNotFound
+	}
+	return nil, lastErr
 }
 
 func skillFromRow(row *gen.AgentSkill) Skill {
@@ -206,8 +278,11 @@ func FilterSkillsByNames(skills []Skill, allowlist []string) []Skill {
 	}
 	filtered := make([]Skill, 0, len(allowlist))
 	for _, skill := range skills {
-		if _, ok := allowed[skill.Name]; ok {
-			filtered = append(filtered, skill)
+		for allowedName := range allowed {
+			if skillNamesMatch(skill.Name, allowedName) {
+				filtered = append(filtered, skill)
+				break
+			}
 		}
 	}
 	return filtered

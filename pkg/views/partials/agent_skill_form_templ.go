@@ -79,7 +79,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" placeholder=\"homelab-bookmark\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" placeholder=\"karakeep\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -137,7 +137,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"homelab-bookmark\"><p class=\"text-xs text-base-content/50 mt-1\">Used by read_skill and shown in the agent prompt (independent of Flag).</p><div class=\"text-error text-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"karakeep\"><p class=\"text-xs text-base-content/50 mt-1\">Used by read_skill and shown in the agent prompt (independent of Flag).</p><div class=\"text-error text-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

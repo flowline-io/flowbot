@@ -1,5 +1,7 @@
 // Package skills generates SKILL.md files for CLI-invokable capabilities.
 // Operations and flags are extracted dynamically from cmd/cli/command code.
+// Output follows the Agent Skills open standard (agentskills.io): lean SKILL.md
+// with progressive disclosure into references/cli.md.
 package skills
 
 import (
@@ -13,87 +15,76 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/flowline-io/flowbot/cmd/cli/command"
+	"github.com/flowline-io/flowbot/pkg/hub"
 )
 
-// skillTemplate is the SKILL.md template following the docs/skill_spec.md format.
+// maxDescriptionLen is the agentskills.io limit for the description frontmatter field.
+const maxDescriptionLen = 1024
+
+// skillTemplate is the lean SKILL.md body (instructions + workflows).
+// Full CLI reference lives in references/cli.md for progressive disclosure.
 const skillTemplate = `---
 name: {{.Name}}
-description: >
-  {{.Description}}
-  Make sure to use this skill whenever the user mentions {{.Keywords}}.
+description: >-
+  {{.TriggerDescription}}
+compatibility: Requires flowbot CLI, network access to a Flowbot server
+metadata:
+  capability: {{.Name}}
+  cli_root: {{.CLIRoot}}
 ---
 
-# Flowbot {{.Title}}
+# {{.Title}}
 
-{{.Description}}
+Use ` + "`" + `flowbot {{.CLIRoot}}` + "`" + ` for capability ` + "`" + `{{.Name}}` + "`" + `. Prefer the workflows below; load [references/cli.md](references/cli.md) only when you need a flag or subcommand not covered here.
 
-## Prerequisites
+## Setup
 
-- The ` + "`" + `flowbot` + "`" + ` CLI must be installed and logged in (` + "`" + `flowbot login` + "`" + `).
-- The Flowbot server must be running and reachable.
-- Global flags: ` + "`" + `--server-url` + "`" + ` (server address), ` + "`" + `--profile` + "`" + ` (config profile), ` + "`" + `--debug` + "`" + ` (enable debug logging).
+1. Ensure CLI auth: ` + "`" + `flowbot login` + "`" + `
+2. Set server via ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or ` + "`" + `--server-url` + "`" + `; optional ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `
+3. Prefer ` + "`" + `-o json` + "`" + ` when parsing results programmatically
 
-## Global Flags Reference
-
-| Flag | Shorthand | Type | Description |
-|------|-----------|------|-------------|
-| ` + "`" + `--server-url` + "`" + ` | | string | Flowbot server URL (or set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` env var) |
-| ` + "`" + `--profile` + "`" + ` | | string | Configuration profile name |
-| ` + "`" + `--debug` + "`" + ` | ` + "`" + `-d` + "`" + ` | bool | Enable debug mode |
-
-## Common Output Options
-
-Most commands support ` + "`" + `--output` + "`" + ` / ` + "`" + `-o` + "`" + ` to choose between ` + "`" + `table` + "`" + ` (default, human-readable) and ` + "`" + `json` + "`" + ` (structured) output.
-
-## Operations
-{{- range .Operations}}
-
-### {{.Title}}
-
-**Command:** ` + "`" + `{{.CLI}}` + "`" + `
-{{- if .Description}}
-{{.Description}}
-{{- end}}
-{{- if .Args}}
-
-**Positional Arguments:**{{- range .Args}}
-- ` + "`" + `<{{.}}>` + "`" + `{{- end}}
-{{- end}}
-{{- if .Flags}}
-
-| Flag | Shorthand | Type | Required | Description |
-|------|-----------|------|----------|-------------|
-{{- range .Flags}}
-| ` + "`" + `--{{.Name}}` + "`" + ` | {{if .Shorthand}}` + "`" + `-{{.Shorthand}}` + "`" + `{{end}} | {{.Type}} | {{if .Required}}yes{{else}}no{{end}} | {{.Description}} |
-{{- end}}
-{{- end}}
-{{- if .Examples}}
-
-**Examples:**
-{{- range .Examples}}
-- ` + "`" + `{{.}}` + "`" + `
-{{- end}}
-{{- end}}
-
----
-{{- end}}
-
-## Common Workflows
+## Workflows
 {{- range .Workflows}}
 
 ### {{.Title}}
 
 {{.Description}}
-{{range .Steps}}
-{{.Step}}. ` + "`" + `{{.Command}}` + "`" + `
+{{- range .Steps}}
+{{.Step}}. {{if .Command}}` + "`" + `{{.Command}}` + "`" + `{{else}}{{.Note}}{{end}}
 {{- end}}
-{{end}}
+{{- end}}
 
 ## Troubleshooting
 
-- **"not logged in"**: Run ` + "`" + `flowbot login` + "`" + ` first.
-- **"server URL is required"**: Set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` env var or use ` + "`" + `--server-url` + "`" + ` flag.
-- **Empty results**: Check the server is running and you have access to the requested resources.
+| Error | Fix |
+|-------|-----|
+| not logged in | ` + "`" + `flowbot login` + "`" + ` |
+| server URL is required | set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or pass ` + "`" + `--server-url` + "`" + ` |
+| empty results | confirm server health and capability access scopes |
+`
+
+// cliReferenceTemplate is the on-demand CLI command reference.
+const cliReferenceTemplate = `# {{.Title}} CLI reference
+
+Capability ` + "`" + `{{.Name}}` + "`" + `. Root command: ` + "`" + `flowbot {{.CLIRoot}}` + "`" + `.
+
+Global flags: ` + "`" + `--server-url` + "`" + `, ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `. Most commands accept ` + "`" + `-o table|json` + "`" + ` (omitted below).
+
+## Commands
+{{- range .Operations}}
+
+### {{.Title}}
+
+` + "`" + `{{.CLI}}` + "`" + `
+{{- if .Description}}
+
+{{.Description}}
+{{- end}}
+{{- if .Flags}}
+
+{{formatFlags .Flags}}
+{{- end}}
+{{- end}}
 `
 
 // flagSpec describes a CLI flag extracted from pflag.Flag.
@@ -110,15 +101,15 @@ type opSpec struct {
 	Title       string
 	CLI         string
 	Description string
-	Args        []string
 	Flags       []flagSpec
-	Examples    []string
 }
 
 // workflowStep is a single step in a workflow.
+// Set Command for a CLI invocation (rendered in backticks) or Note for prose.
 type workflowStep struct {
 	Step    int
 	Command string
+	Note    string
 }
 
 // workflowSpec describes a multi-step workflow.
@@ -129,6 +120,7 @@ type workflowSpec struct {
 }
 
 // metaSpec holds contextual information not derivable from CLI command structs.
+// Name must be the hub.CapabilityType string (provider ID), not the CLI domain name.
 type metaSpec struct {
 	Name        string
 	Title       string
@@ -138,14 +130,16 @@ type metaSpec struct {
 	CommandFn   func() *cobra.Command
 }
 
-// metaSpecs defines all capabilities with their CLI command factories.
+// metaSpecs maps each CLI-invokable capability to its skill metadata.
+// Skill Name equals hub.CapabilityType; CLI paths still use domain commands
+// (e.g. capability "karakeep" is invoked as "flowbot bookmark ...").
 var metaSpecs = []metaSpec{
 	{
-		Name:        "homelab-bookmark",
-		Title:       "Bookmark",
+		Name:        string(hub.CapKarakeep),
+		Title:       "Karakeep",
 		CommandFn:   command.BookmarkCommand,
-		Description: "Manage bookmarks via the Flowbot CLI. Create, list, search, archive, and tag bookmarks stored in the Flowbot server.",
-		Keywords:    "bookmarks, saving URLs, link collection, web clippings, reading list, tagging URLs, URL archiving, checking saved links",
+		Description: "Create, list, search, archive, and delete bookmarks via flowbot bookmark.",
+		Keywords:    "bookmarks, karakeep, saved URLs, reading list, link archiving, web clippings",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Save a URL from a chat message",
@@ -153,7 +147,7 @@ var metaSpecs = []metaSpec{
 				Steps: []workflowStep{
 					{Step: 1, Command: "flowbot bookmark check-url -u <url>"},
 					{Step: 2, Command: "flowbot bookmark create -u <url>"},
-					{Step: 3, Command: "Report back with the bookmark details including the assigned ID."},
+					{Step: 3, Note: "Report back with the bookmark details including the assigned ID."},
 				},
 			},
 			{
@@ -162,17 +156,17 @@ var metaSpecs = []metaSpec{
 				Steps: []workflowStep{
 					{Step: 1, Command: "flowbot bookmark search -q \"<keywords>\" --limit 10"},
 					{Step: 2, Command: "flowbot bookmark get <id>"},
-					{Step: 3, Command: "Present the bookmark details to the user."},
+					{Step: 3, Note: "Present the bookmark details to the user."},
 				},
 			},
 		},
 	},
 	{
-		Name:        "homelab-kanban",
-		Title:       "Kanban",
+		Name:        string(hub.CapKanboard),
+		Title:       "Kanboard",
 		CommandFn:   command.KanbanCommand,
-		Description: "Manage kanban boards and tasks via the Flowbot CLI. Create, update, move, and search tasks. Manage subtasks with time tracking, tags, columns, and metadata.",
-		Keywords:    "kanban, task management, project management, kanban board, todo list, task tracking, issue tracking, subtasks, time tracking, moving cards, board columns, task tags",
+		Description: "Manage kanban boards, tasks, subtasks, timers, tags, and metadata via flowbot kanban.",
+		Keywords:    "kanban, kanboard, tasks, todo, subtasks, time tracking, board columns, moving cards",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Create a task with subtasks",
@@ -191,17 +185,17 @@ var metaSpecs = []metaSpec{
 					{Step: 1, Command: "flowbot kanban list -s active"},
 					{Step: 2, Command: "flowbot kanban get <task_id>"},
 					{Step: 3, Command: "flowbot kanban subtask list <task_id>"},
-					{Step: 4, Command: "Summarize task status, subtask completion, and suggest next actions."},
+					{Step: 4, Note: "Summarize task status, subtask completion, and suggest next actions."},
 				},
 			},
 		},
 	},
 	{
-		Name:        "homelab-reader",
-		Title:       "Reader",
+		Name:        string(hub.CapMiniflux),
+		Title:       "Miniflux",
 		CommandFn:   command.ReaderCommand,
-		Description: "Manage RSS and Atom feed subscriptions via the Flowbot CLI. Add feeds, list entries, mark items read/unread, star entries, and manage feed lifecycle.",
-		Keywords:    "RSS feeds, RSS reader, feed reader, news feeds, Atom feeds, subscribing to blogs, reading feeds, feed management, marking read, starring articles",
+		Description: "Subscribe to RSS/Atom feeds and manage entries via flowbot reader.",
+		Keywords:    "RSS, Atom, miniflux, feed reader, unread entries, starring articles, feed subscriptions",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Subscribe to a new feed",
@@ -210,7 +204,7 @@ var metaSpecs = []metaSpec{
 					{Step: 1, Command: "flowbot reader create -u <feed_url>"},
 					{Step: 2, Command: "flowbot reader refresh <feed_id>"},
 					{Step: 3, Command: "flowbot reader feed-entries <feed_id> -n 5"},
-					{Step: 4, Command: "Report the latest entries to the user."},
+					{Step: 4, Note: "Report the latest entries to the user."},
 				},
 			},
 			{
@@ -218,8 +212,88 @@ var metaSpecs = []metaSpec{
 				Description: "When a user wants to see what's new across all feeds:",
 				Steps: []workflowStep{
 					{Step: 1, Command: "flowbot reader entries -s unread -n 20"},
-					{Step: 2, Command: "Present the entries in a readable format."},
-					{Step: 3, Command: "If the user wants to mark as read: flowbot reader update-entries -i <ids> -s read"},
+					{Step: 2, Note: "Present the entries in a readable format."},
+					{Step: 3, Note: "If the user wants to mark as read, run: flowbot reader update-entries -i <ids> -s read"},
+				},
+			},
+		},
+	},
+	{
+		Name:        string(hub.CapMemos),
+		Title:       "Memos",
+		CommandFn:   command.MemoCommand,
+		Description: "Create, list, update, and delete memos via flowbot memo.",
+		Keywords:    "memos, memo notes, scratchpad, quick notes, jotting",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Capture a quick note",
+				Description: "When a user wants to save a short memo:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot memo create -c \"<content>\""},
+					{Step: 2, Note: "Report back with the memo name."},
+				},
+			},
+			{
+				Title:       "Review recent memos",
+				Description: "When a user wants to browse or open memos:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot memo list --limit 20"},
+					{Step: 2, Command: "flowbot memo get <name>"},
+					{Step: 3, Note: "Present the memo content to the user."},
+				},
+			},
+		},
+	},
+	{
+		Name:        string(hub.CapGitea),
+		Title:       "Gitea",
+		CommandFn:   command.ForgeCommand,
+		Description: "Inspect forge users, repos, issues, diffs, and files via flowbot forge.",
+		Keywords:    "gitea, forge, repositories, issues, commit diffs, source files, code review",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Inspect a repository issue",
+				Description: "When a user asks about a forge issue:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot forge issues <owner> -s open -n 10"},
+					{Step: 2, Command: "flowbot forge issue <owner> <repo> <index>"},
+					{Step: 3, Note: "Summarize the issue for the user."},
+				},
+			},
+			{
+				Title:       "Review a commit change",
+				Description: "When a user wants to inspect a commit:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot forge diff <owner> <repo> <commit-id>"},
+					{Step: 2, Command: "flowbot forge file <owner> <repo> <commit-id> <file-path>"},
+					{Step: 3, Note: "Explain the relevant changes."},
+				},
+			},
+		},
+	},
+	{
+		Name:        string(hub.CapGithub),
+		Title:       "GitHub",
+		CommandFn:   command.GithubCommand,
+		Description: "Inspect GitHub users, repos, issues, notifications, releases, diffs, and files via flowbot github.",
+		Keywords:    "github, repositories, issues, notifications, releases, pull requests, commit diffs",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Triage open issues",
+				Description: "When a user wants to review GitHub issues:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot github issues <owner> -s open -n 10"},
+					{Step: 2, Command: "flowbot github issue <owner> <repo> <number>"},
+					{Step: 3, Note: "Summarize the issue for the user."},
+				},
+			},
+			{
+				Title:       "Check notifications and releases",
+				Description: "When a user wants an activity overview:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot github notifications -n 20"},
+					{Step: 2, Command: "flowbot github releases <owner> <repo> -n 5"},
+					{Step: 3, Note: "Present a concise summary."},
 				},
 			},
 		},
@@ -229,6 +303,10 @@ var metaSpecs = []metaSpec{
 // extractOperations walks a *cobra.Command tree recursively and returns all
 // leaf-level operations with their full CLI path, flags, and metadata.
 func extractOperations(cmd *cobra.Command, pathPrefix string) []opSpec {
+	if skipCommand(cmd) {
+		return nil
+	}
+
 	var ops []opSpec
 
 	if !cmd.HasSubCommands() {
@@ -242,15 +320,17 @@ func extractOperations(cmd *cobra.Command, pathPrefix string) []opSpec {
 		}
 		argsUsage := extractArgsFromUse(cmd.Use)
 		op := opSpec{
-			Title:       zeroDefault(cmd.Short, cmd.Name()),
+			Title:       firstNonEmpty(cmd.Short, cmd.Name()),
 			CLI:         buildCLIString(cliPath, argsUsage, flags),
 			Description: strings.TrimSpace(cmd.Long),
-			Args:        parseArgs(argsUsage),
 			Flags:       flags,
 		}
 		ops = append(ops, op)
 	} else {
 		for _, sub := range cmd.Commands() {
+			if skipCommand(sub) {
+				continue
+			}
 			subPath := pathPrefix
 			if subPath == "" {
 				subPath = cmd.Name() + " " + sub.Name()
@@ -262,6 +342,17 @@ func extractOperations(cmd *cobra.Command, pathPrefix string) []opSpec {
 	}
 
 	return ops
+}
+
+// skipCommand reports whether cmd should be omitted from generated skill docs.
+func skipCommand(cmd *cobra.Command) bool {
+	if cmd == nil {
+		return true
+	}
+	if cmd.Hidden || cmd.Name() == "help" || cmd.IsAdditionalHelpTopicCommand() {
+		return true
+	}
+	return false
 }
 
 // extractFlags converts *pflag.FlagSet into []flagSpec.
@@ -293,12 +384,19 @@ func extractFlags(flagSet *pflag.FlagSet) []flagSpec {
 }
 
 // extractArgsFromUse extracts positional argument placeholders from cobra's Use string.
-// Returns a space-separated string like "<id>" or "<task_id> <subtask_id>".
+// Keeps required (<...>), optional ([...]), and variadic (<...>)... tokens; skips [flags].
+// Returns a space-separated string like "<id>", "<task_id> [name]", or "<task_id> <name=value>...".
 func extractArgsFromUse(use string) string {
 	parts := strings.Fields(use)
+	if len(parts) <= 1 {
+		return ""
+	}
 	var args []string
-	for _, p := range parts {
-		if strings.HasPrefix(p, "<") && strings.HasSuffix(p, ">") {
+	for _, p := range parts[1:] {
+		if p == "[flags]" {
+			continue
+		}
+		if strings.HasPrefix(p, "<") || strings.HasPrefix(p, "[") {
 			args = append(args, p)
 		}
 	}
@@ -333,81 +431,166 @@ func buildCLIString(path string, argsUsage string, flags []flagSpec) string {
 	return cmd.String()
 }
 
-// parseArgs splits an ArgsUsage string like "<id>" or "<task_id> <subtask_id>"
-// into individual arg names.
-func parseArgs(argsUsage string) []string {
+// splitArgTokens splits an argsUsage string into display tokens without altering brackets.
+func splitArgTokens(argsUsage string) []string {
 	if argsUsage == "" {
 		return nil
 	}
-	raw := strings.ReplaceAll(argsUsage, "<", "")
-	raw = strings.ReplaceAll(raw, ">", "")
-	parts := strings.Fields(raw)
+	parts := strings.Fields(argsUsage)
 	if len(parts) == 0 {
 		return nil
 	}
 	return parts
 }
 
-// zeroDefault returns a if non-empty, otherwise b.
-func zeroDefault(a, b string) string {
+// firstNonEmpty returns a if non-empty, otherwise b.
+func firstNonEmpty(a, b string) string {
 	if a != "" {
 		return a
 	}
 	return b
 }
 
+// buildTriggerDescription builds the agentskills description (WHAT + WHEN), capped at maxDescriptionLen runes.
+func buildTriggerDescription(what, keywords string) string {
+	what = strings.TrimSpace(what)
+	keywords = strings.TrimSpace(keywords)
+	var b strings.Builder
+	_, _ = b.WriteString(what)
+	if keywords != "" {
+		if !strings.HasSuffix(what, ".") {
+			_, _ = b.WriteString(".")
+		}
+		_, _ = b.WriteString(" Use when the user mentions ")
+		_, _ = b.WriteString(keywords)
+		_, _ = b.WriteString(".")
+	}
+	desc := b.String()
+	runes := []rune(desc)
+	if len(runes) <= maxDescriptionLen {
+		return desc
+	}
+	return string(runes[:maxDescriptionLen-3]) + "..."
+}
+
+// formatFlagsCompact renders flags as a single dense line for reference docs.
+func formatFlagsCompact(flags []flagSpec) string {
+	if len(flags) == 0 {
+		return ""
+	}
+	parts := make([]string, 0, len(flags))
+	for _, f := range flags {
+		var s strings.Builder
+		_, _ = s.WriteString("`--")
+		_, _ = s.WriteString(f.Name)
+		_, _ = s.WriteString("`")
+		if f.Shorthand != "" {
+			_, _ = s.WriteString(" (`-")
+			_, _ = s.WriteString(f.Shorthand)
+			_, _ = s.WriteString("`)")
+		}
+		_, _ = s.WriteString(" ")
+		_, _ = s.WriteString(f.Type)
+		if f.Required {
+			_, _ = s.WriteString(", required")
+		}
+		if f.Description != "" {
+			_, _ = s.WriteString(" — ")
+			_, _ = s.WriteString(f.Description)
+		}
+		parts = append(parts, s.String())
+	}
+	return "Flags: " + strings.Join(parts, "; ")
+}
+
+// skillData is the template context shared by SKILL.md and references/cli.md.
+type skillData struct {
+	Name               string
+	Title              string
+	CLIRoot            string
+	TriggerDescription string
+	Operations         []opSpec
+	Workflows          []workflowSpec
+}
+
+// newTemplateFuncs returns template helpers used by skill generators.
+func newTemplateFuncs() template.FuncMap {
+	return template.FuncMap{
+		"formatFlags": formatFlagsCompact,
+	}
+}
+
+// generateSkill writes SKILL.md and references/cli.md for one capability.
+func generateSkill(meta metaSpec, outputDir string, skillTmpl, refTmpl *template.Template) error {
+	dirPath := filepath.Join(outputDir, meta.Name)
+	if err := os.MkdirAll(filepath.Join(dirPath, "references"), 0o750); err != nil {
+		return fmt.Errorf("create directory %s: %w", dirPath, err)
+	}
+
+	rootCmd := meta.CommandFn()
+	cliRoot := rootCmd.Name()
+	data := skillData{
+		Name:               meta.Name,
+		Title:              meta.Title,
+		CLIRoot:            cliRoot,
+		TriggerDescription: buildTriggerDescription(meta.Description, meta.Keywords),
+		Operations:         extractOperations(rootCmd, cliRoot),
+		Workflows:          meta.Workflows,
+	}
+
+	skillPath := filepath.Join(dirPath, "SKILL.md")
+	if err := executeTemplateFile(skillTmpl, skillPath, data); err != nil {
+		return fmt.Errorf("write %s: %w", skillPath, err)
+	}
+
+	refPath := filepath.Join(dirPath, "references", "cli.md")
+	if err := executeTemplateFile(refTmpl, refPath, data); err != nil {
+		return fmt.Errorf("write %s: %w", refPath, err)
+	}
+
+	_, _ = fmt.Printf("  generated: %s\n", skillPath)
+	_, _ = fmt.Printf("  generated: %s\n", refPath)
+	return nil
+}
+
+// executeTemplateFile creates path and executes tmpl with data.
+func executeTemplateFile(tmpl *template.Template, path string, data skillData) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	execErr := tmpl.Execute(f, data)
+	closeErr := f.Close()
+	if execErr != nil {
+		return execErr
+	}
+	return closeErr
+}
+
 // SkillsAction generates SKILL.md files for all CLI-invokable capabilities.
 func SkillsAction(cmd *cobra.Command, _ []string) error {
-	outputDir, _ := cmd.Flags().GetString("output")
+	outputDir, err := cmd.Flags().GetString("output")
+	if err != nil {
+		return fmt.Errorf("get output flag: %w", err)
+	}
 	if outputDir == "" {
 		outputDir = "./docs/skills"
 	}
 
-	tmpl, err := template.New("skill").Parse(skillTemplate)
+	funcs := newTemplateFuncs()
+	skillTmpl, err := template.New("skill").Funcs(funcs).Parse(skillTemplate)
 	if err != nil {
 		return fmt.Errorf("parse skill template: %w", err)
 	}
+	refTmpl, err := template.New("cli_ref").Funcs(funcs).Parse(cliReferenceTemplate)
+	if err != nil {
+		return fmt.Errorf("parse cli reference template: %w", err)
+	}
 
 	for _, meta := range metaSpecs {
-		dirPath := filepath.Join(outputDir, meta.Name)
-		if err := os.MkdirAll(dirPath, 0o755); err != nil {
-			return fmt.Errorf("create directory %s: %w", dirPath, err)
+		if err := generateSkill(meta, outputDir, skillTmpl, refTmpl); err != nil {
+			return err
 		}
-
-		rootCmd := meta.CommandFn()
-		operations := extractOperations(rootCmd, rootCmd.Name())
-
-		data := struct {
-			Name        string
-			Title       string
-			Description string
-			Keywords    string
-			Operations  []opSpec
-			Workflows   []workflowSpec
-		}{
-			Name:        meta.Name,
-			Title:       meta.Title,
-			Description: meta.Description,
-			Keywords:    meta.Keywords,
-			Operations:  operations,
-			Workflows:   meta.Workflows,
-		}
-
-		filePath := filepath.Join(dirPath, "SKILL.md")
-		f, err := os.Create(filePath)
-		if err != nil {
-			return fmt.Errorf("create file %s: %w", filePath, err)
-		}
-
-		if err := tmpl.Execute(f, data); err != nil {
-			_ = f.Close()
-			return fmt.Errorf("execute template for %s: %w", meta.Name, err)
-		}
-		if err := f.Close(); err != nil {
-			return fmt.Errorf("close file %s: %w", filePath, err)
-		}
-
-		_, _ = fmt.Printf("  generated: %s\n", filePath)
 	}
 
 	_, _ = fmt.Println("SKILL.md files generated successfully")
