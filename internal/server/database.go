@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/fx"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -27,6 +28,10 @@ func newDatabaseAdapter(lc fx.Lifecycle, _ *config.Type) (store.Adapter, error) 
 	// migrate
 	if err := store.Migrate(); err != nil {
 		return nil, fmt.Errorf("failed to migrate DB, %w", err)
+	}
+
+	if err := chatagent.ImportBundledSkills(context.Background()); err != nil {
+		return nil, fmt.Errorf("failed to import bundled skills: %w", err)
 	}
 
 	lc.Append(fx.Hook{

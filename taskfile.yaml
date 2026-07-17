@@ -187,7 +187,7 @@ tasks:
       - go tool swag fmt -g cmd/main.go
 
   skills:
-    desc: Generate SKILLS.md to cmd/cli
+    desc: Generate SKILL.md under docs/skills (server imports them on startup)
     cmds:
       - go run ./cmd/composer skills
 

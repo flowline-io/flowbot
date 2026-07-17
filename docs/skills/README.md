@@ -119,6 +119,21 @@ When you add a new CLI command tree for a capability, register it in
 `metaSpecs` in `cmd/composer/action/skills/skills.go` (Name = capability ID)
 and re-run the generator.
 
+### Import into the database
+
+The server binary embeds `docs/skills` (package `skills`) and **upserts** them
+into `agent_skills` / `agent_skill_files` on every startup (after DB migrate in
+`cmd` → `server.newDatabaseAdapter`). `source` is set to `bundled`. Existing
+`enabled` / `disable_model_invocation` values are preserved on update.
+
+Flow:
+
+1. `go tool task skills` — regenerate markdown under `docs/skills/`
+2. Rebuild/restart the server (`go tool task run`) — auto-import into Postgres
+3. Chat agent loads skills from DB via `read_skill` / system prompt
+
+No manual Web UI paste or composer `--sync-db` step is required for bundled skills.
+
 ## Adding a New Skill
 
 1. Implement the CLI command tree in `cmd/cli/command/` following existing
