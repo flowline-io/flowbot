@@ -130,7 +130,7 @@ jobs:
           IMAGE="ghcr.io/flowline-io/flowbot-agent-sandbox:${{ steps.smoketag.outputs.value }}"
           docker pull "$IMAGE"
           docker run --rm "$IMAGE" bash -lc \
-            'git --version && go version && node --version && python3 --version'
+            'git --version && go version && node --version && python3 --version && flowbot version'
           if [[ "${{ matrix.target }}" == "playwright" ]]; then
             docker run --rm "$IMAGE" bash -lc 'npx playwright --version'
           fi

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,9 +23,22 @@ import (
 )
 
 const (
-	defaultImage        = "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"
-	defaultStopWait     = 5 * time.Second
-	maxLoggedCommandLen = 200
+	defaultImage            = "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"
+	defaultStopWait         = 5 * time.Second
+	maxLoggedCommandLen     = 200
+	containerCLIConfigPath  = "/home/agent/.config/flowbot"
+	envFlowbotServerURL     = "FLOWBOT_SERVER_URL"
+	envFlowbotToken         = "FLOWBOT_TOKEN"
+	hostDockerInternal      = "host.docker.internal"
+	cliConfigTempDirPattern = "flowbot-sandbox-cli-*"
+	cliTokenFileName        = "token"
+	cliServerURLFileName    = "server_url"
+	// sandboxAgentUID/GID match the agent user in deployments/agent-sandbox/Dockerfile.
+	sandboxAgentUID = 1000
+	sandboxAgentGID = 1000
+	// cliConfigWorldReadable is used when chown to the sandbox agent fails (e.g. non-root host).
+	cliConfigWorldReadable = 0o644
+	cliConfigOwnerOnly     = 0o600
 )
 
 // Config configures Docker sandbox execution.
@@ -37,6 +51,10 @@ type Config struct {
 	Memory string
 	// Workspace is the host workspace path bind-mounted at the same path inside the container.
 	Workspace string
+	// ServerURL is the Flowbot API URL injected for the flowbot CLI inside the container.
+	ServerURL string
+	// AccessToken is the Hub access token injected for the flowbot CLI inside the container.
+	AccessToken string
 }
 
 // ConfigFromChatAgent builds sandbox Config from chat agent settings.
@@ -46,10 +64,12 @@ func ConfigFromChatAgent(cfg config.ChatAgentSandboxConfig, workspace string) Co
 		image = defaultImage
 	}
 	return Config{
-		Image:     image,
-		Network:   strings.TrimSpace(cfg.Network),
-		Memory:    strings.TrimSpace(cfg.Memory),
-		Workspace: strings.TrimSpace(workspace),
+		Image:       image,
+		Network:     strings.TrimSpace(cfg.Network),
+		Memory:      strings.TrimSpace(cfg.Memory),
+		Workspace:   strings.TrimSpace(workspace),
+		ServerURL:   strings.TrimSpace(cfg.ServerURL),
+		AccessToken: strings.TrimSpace(cfg.AccessToken),
 	}
 }
 
@@ -60,13 +80,18 @@ type Runner interface {
 
 // RunOptions configures one sandbox command invocation.
 type RunOptions struct {
-	Image     string
-	Network   string
-	Memory    string
-	Workspace string
-	WorkDir   string
-	Command   string
-	Argv      []string
+	Image       string
+	Network     string
+	Memory      string
+	Workspace   string
+	WorkDir     string
+	Command     string
+	Argv        []string
+	ServerURL   string
+	AccessToken string
+	// CLIConfigDir is a host directory bind-mounted read-only at containerCLIConfigPath.
+	// When empty and AccessToken is set, DockerRunner materializes a temporary directory.
+	CLIConfigDir string
 }
 
 // Env implements env.ExecutionEnv with host filesystem ops and sandboxed Exec.
@@ -84,8 +109,12 @@ func New(cfg Config, host env.ExecutionEnv, runner Runner) *Env {
 	if runner == nil {
 		runner = DockerRunner{}
 	}
-	flog.Info("[sandbox] env ready workspace=%s image=%s network=%s memory=%s",
-		cfg.Workspace, cfg.Image, cfg.Network, cfg.Memory)
+	creds := "none"
+	if cfg.AccessToken != "" {
+		creds = "injected"
+	}
+	flog.Info("[sandbox] env ready workspace=%s image=%s network=%s memory=%s cli_creds=%s",
+		cfg.Workspace, cfg.Image, cfg.Network, cfg.Memory, creds)
 	return &Env{cfg: cfg, host: host, runner: runner}
 }
 
@@ -129,16 +158,18 @@ func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.
 		}
 	}
 	runOpts := RunOptions{
-		Image:     e.cfg.Image,
-		Network:   e.cfg.Network,
-		Memory:    e.cfg.Memory,
-		Workspace: e.cfg.Workspace,
-		WorkDir:   workDir,
-		Command:   opts.Command,
-		Argv:      append([]string(nil), opts.Argv...),
+		Image:       e.cfg.Image,
+		Network:     e.cfg.Network,
+		Memory:      e.cfg.Memory,
+		Workspace:   e.cfg.Workspace,
+		WorkDir:     workDir,
+		Command:     opts.Command,
+		Argv:        append([]string(nil), opts.Argv...),
+		ServerURL:   e.cfg.ServerURL,
+		AccessToken: e.cfg.AccessToken,
 	}
-	flog.Info("[sandbox] exec start workspace=%s workdir=%s %s",
-		e.cfg.Workspace, workDir, summarizeCommand(runOpts))
+	flog.Info("[sandbox] exec start workspace=%s workdir=%s cli_creds=%s %s",
+		e.cfg.Workspace, workDir, cliCredsLabel(runOpts.AccessToken), summarizeCommand(runOpts))
 	capture, err := e.runner.Run(runCtx, runOpts)
 	if err != nil {
 		code := "spawn_error"
@@ -178,6 +209,18 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	if err != nil {
 		return env.Capture{}, err
 	}
+
+	cleanup := func() {}
+	if opts.AccessToken != "" && opts.CLIConfigDir == "" {
+		dir, matErr := materializeCLIConfig(opts.ServerURL, opts.AccessToken)
+		if matErr != nil {
+			return env.Capture{}, matErr
+		}
+		opts.CLIConfigDir = dir
+		cleanup = func() { _ = os.RemoveAll(dir) }
+	}
+	defer cleanup()
+
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return env.Capture{}, err
@@ -192,12 +235,13 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	if workDir == "" {
 		workDir = containerWorkspacePath(opts.Workspace)
 	}
-	flog.Info("[sandbox] container create image=%s workspace=%s workdir=%s %s",
-		opts.Image, opts.Workspace, workDir, summarizeCommand(opts))
+	flog.Info("[sandbox] container create image=%s workspace=%s workdir=%s cli_creds=%s %s",
+		opts.Image, opts.Workspace, workDir, cliCredsLabel(opts.AccessToken), summarizeCommand(opts))
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image:      opts.Image,
 		Cmd:        cmd,
 		WorkingDir: workDir,
+		Env:        buildContainerEnv(opts),
 		Tty:        false,
 	}, hostConfig, nil, nil, "")
 	if err != nil {
@@ -228,6 +272,10 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 	hostConfig := &container.HostConfig{
 		Binds: []string{fmt.Sprintf("%s:%s", opts.Workspace, containerPath)},
 	}
+	if opts.CLIConfigDir != "" {
+		hostConfig.Binds = append(hostConfig.Binds,
+			fmt.Sprintf("%s:%s:ro", opts.CLIConfigDir, containerCLIConfigPath))
+	}
 	if opts.Network != "" {
 		hostConfig.NetworkMode = container.NetworkMode(opts.Network)
 	}
@@ -238,7 +286,102 @@ func buildHostConfig(opts RunOptions) (*container.HostConfig, error) {
 		}
 		hostConfig.Resources.Memory = n
 	}
+	if needsHostGateway(opts.ServerURL) {
+		hostConfig.ExtraHosts = []string{hostDockerInternal + ":host-gateway"}
+	}
 	return hostConfig, nil
+}
+
+// materializeCLIConfig writes CLI token/server_url files into a temporary host directory
+// outside the agent workspace so tools cannot read credentials from the workspace mount.
+// Files are made readable by the sandbox agent user (uid/gid 1000).
+func materializeCLIConfig(serverURL, token string) (string, error) {
+	dir, err := os.MkdirTemp("", cliConfigTempDirPattern)
+	if err != nil {
+		return "", fmt.Errorf("sandbox: create cli config dir: %w", err)
+	}
+	cleanupOnErr := true
+	defer func() {
+		if cleanupOnErr {
+			_ = os.RemoveAll(dir)
+		}
+	}()
+	if token != "" {
+		path := filepath.Join(dir, cliTokenFileName)
+		if err := os.WriteFile(path, []byte(token), cliConfigOwnerOnly); err != nil {
+			return "", fmt.Errorf("sandbox: write token: %w", err)
+		}
+		if err := ensureSandboxAgentReadable(path); err != nil {
+			return "", err
+		}
+	}
+	if serverURL != "" {
+		path := filepath.Join(dir, cliServerURLFileName)
+		if err := os.WriteFile(path, []byte(serverURL), cliConfigOwnerOnly); err != nil {
+			return "", fmt.Errorf("sandbox: write server_url: %w", err)
+		}
+		if err := ensureSandboxAgentReadable(path); err != nil {
+			return "", err
+		}
+	}
+	if err := ensureSandboxAgentReadable(dir); err != nil {
+		return "", err
+	}
+	cleanupOnErr = false
+	return dir, nil
+}
+
+// ensureSandboxAgentReadable makes path readable by the sandbox container user (uid 1000).
+// Prefer chown to the agent user with owner-only mode; if chown fails (non-root / Windows),
+// fall back to world-readable mode for the ephemeral temp file.
+func ensureSandboxAgentReadable(path string) error {
+	if err := os.Chown(path, sandboxAgentUID, sandboxAgentGID); err != nil {
+		if chmodErr := os.Chmod(path, cliConfigWorldReadable); chmodErr != nil {
+			return fmt.Errorf("sandbox: make cli config readable (chown: %v; chmod: %w)", err, chmodErr)
+		}
+		return nil
+	}
+	if err := os.Chmod(path, cliConfigOwnerOnly); err != nil {
+		return fmt.Errorf("sandbox: chmod cli config: %w", err)
+	}
+	return nil
+}
+
+// buildContainerEnv returns Docker Env entries for the flowbot CLI.
+func buildContainerEnv(opts RunOptions) []string {
+	if opts.AccessToken == "" {
+		return nil
+	}
+	var out []string
+	if opts.ServerURL != "" {
+		out = append(out, envFlowbotServerURL+"="+opts.ServerURL)
+	}
+	out = append(out, envFlowbotToken+"="+opts.AccessToken)
+	return out
+}
+
+// needsHostGateway reports whether ExtraHosts should map host.docker.internal to the host gateway.
+func needsHostGateway(serverURL string) bool {
+	serverURL = strings.TrimSpace(serverURL)
+	if serverURL == "" {
+		return false
+	}
+	u, err := url.Parse(serverURL)
+	if err != nil {
+		return strings.Contains(serverURL, hostDockerInternal)
+	}
+	host := u.Hostname()
+	if host == "" {
+		return strings.Contains(serverURL, hostDockerInternal)
+	}
+	return host == hostDockerInternal
+}
+
+func cliCredsLabel(accessToken string) string {
+	if accessToken != "" {
+		return "injected"
+	}
+	return "none"
 }
 
 func waitAndCollectLogs(ctx context.Context, cli *client.Client, id, workspace, workDir string) (env.Capture, error) {

@@ -30,20 +30,35 @@ func TestConfigFromChatAgent(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		cfg  config.ChatAgentSandboxConfig
-		want string
+		name      string
+		cfg       config.ChatAgentSandboxConfig
+		wantImage string
+		wantURL   string
+		wantToken string
 	}{
-		{name: "default image", cfg: config.ChatAgentSandboxConfig{}, want: "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"},
-		{name: "custom image", cfg: config.ChatAgentSandboxConfig{Image: "custom:1"}, want: "custom:1"},
-		{name: "blank image uses default", cfg: config.ChatAgentSandboxConfig{Image: "  "}, want: "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"},
+		{name: "default image", cfg: config.ChatAgentSandboxConfig{}, wantImage: "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"},
+		{name: "custom image", cfg: config.ChatAgentSandboxConfig{Image: "custom:1"}, wantImage: "custom:1"},
+		{name: "blank image uses default", cfg: config.ChatAgentSandboxConfig{Image: "  "}, wantImage: "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"},
+		{
+			name: "cli credentials trimmed",
+			cfg: config.ChatAgentSandboxConfig{
+				Image:       "img:1",
+				ServerURL:   "  http://host.docker.internal:6060  ",
+				AccessToken: "  secret-token  ",
+			},
+			wantImage: "img:1",
+			wantURL:   "http://host.docker.internal:6060",
+			wantToken: "secret-token",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := sandbox.ConfigFromChatAgent(tt.cfg, "/ws")
-			assert.Equal(t, tt.want, got.Image)
+			assert.Equal(t, tt.wantImage, got.Image)
 			assert.Equal(t, "/ws", got.Workspace)
+			assert.Equal(t, tt.wantURL, got.ServerURL)
+			assert.Equal(t, tt.wantToken, got.AccessToken)
 		})
 	}
 }
@@ -199,4 +214,34 @@ func TestEnvExecTimeout(t *testing.T) {
 	got := e.Exec(ctx, env.ExecOptions{Command: "sleep 1", Timeout: ctx})
 	require.False(t, got.IsOk())
 	assert.Equal(t, "timeout", got.ErrorValue().Code())
+}
+
+func TestEnvExecForwardsCLICredentials(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		serverURL   string
+		accessToken string
+	}{
+		{name: "forwards both", serverURL: "http://host.docker.internal:6060", accessToken: "tok"},
+		{name: "forwards empty when unset", serverURL: "", accessToken: ""},
+		{name: "forwards token without url", serverURL: "", accessToken: "tok-only"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			runner := &mockRunner{cap: env.Capture{ExitCode: 0}}
+			e := sandbox.New(sandbox.Config{
+				Image:       "img",
+				Workspace:   "/ws",
+				ServerURL:   tt.serverURL,
+				AccessToken: tt.accessToken,
+			}, env.Default(), runner)
+			got := e.Exec(context.Background(), env.ExecOptions{Command: "flowbot version"})
+			require.True(t, got.IsOk())
+			assert.Equal(t, tt.serverURL, runner.last.ServerURL)
+			assert.Equal(t, tt.accessToken, runner.last.AccessToken)
+		})
+	}
 }

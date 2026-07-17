@@ -42,7 +42,8 @@ Cmd --> Tasks
 note right of BaseImg
   Pre-installed:
   git, Go, Node, Python,
-  ripgrep, jq, build tools
+  ripgrep, jq, build tools,
+  flowbot CLI (latest release)
 end note
 
 note right of PWImg

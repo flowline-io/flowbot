@@ -3,6 +3,33 @@
 
 ARG GO_VERSION=1.26.3
 ARG NODE_MAJOR=22
+ARG CLI_VERSION=latest
+
+# Download flowbot CLI from GitHub releases (latest tag by default).
+FROM ubuntu:24.04 AS cli-builder
+
+ARG CLI_VERSION=latest
+ARG CLI_REPO=flowline-io/flowbot
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /out \
+    && ASSET="flowbot-cli_linux_amd64" \
+    && if [ "${CLI_VERSION}" = "latest" ]; then \
+         BASE="https://github.com/${CLI_REPO}/releases/latest/download"; \
+       else \
+         BASE="https://github.com/${CLI_REPO}/releases/download/${CLI_VERSION}"; \
+       fi \
+    && curl -fsSL --retry 3 --retry-delay 2 -o /out/flowbot "${BASE}/${ASSET}" \
+    && curl -fsSL --retry 3 --retry-delay 2 -o /tmp/checksums.txt "${BASE}/flowbot_checksums.txt" \
+    && EXPECTED="$(awk -v asset="${ASSET}" '$2 == asset {print $1}' /tmp/checksums.txt)" \
+    && ACTUAL="$(sha256sum /out/flowbot | awk '{print $1}')" \
+    && test -n "${EXPECTED}" \
+    && test "${EXPECTED}" = "${ACTUAL}" \
+    && chmod 755 /out/flowbot
 
 FROM ubuntu:24.04 AS base
 
@@ -64,6 +91,8 @@ RUN set -eux; \
     fi; \
     echo 'agent ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/agent; \
     chmod 0440 /etc/sudoers.d/agent
+
+COPY --from=cli-builder /out/flowbot /usr/local/bin/flowbot
 
 WORKDIR /opt/app
 

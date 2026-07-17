@@ -73,12 +73,78 @@ func TestNewClientWithEnvServerURL(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Setenv("HOME", tmpDir)
 			t.Setenv("FLOWBOT_SERVER_URL", "https://env.flowbot.example.com")
+			t.Setenv("FLOWBOT_TOKEN", "")
 
 			cmd := newTestCmd("", "", false)
 			c, err := NewClient(cmd)
 			require.Error(t, err) // still fails because no token
 			require.Nil(t, c)
 			require.Contains(t, err.Error(), "not logged in")
+		})
+	}
+}
+
+func TestNewClientWithEnvToken(t *testing.T) {
+	tests := []struct {
+		name      string
+		envToken  string
+		fileToken string
+		wantOK    bool
+		wantSub   string
+		wantToken string
+	}{
+		{
+			name:      "env token preferred over file",
+			envToken:  "env-token",
+			fileToken: "file-token",
+			wantOK:    true,
+			wantToken: "env-token",
+		},
+		{
+			name:      "file token used when env empty",
+			envToken:  "",
+			fileToken: "file-token",
+			wantOK:    true,
+			wantToken: "file-token",
+		},
+		{
+			name:     "both empty returns not logged in",
+			envToken: "",
+			wantOK:   false,
+			wantSub:  "not logged in",
+		},
+		{
+			name:      "env token alone succeeds",
+			envToken:  "env-only-token",
+			wantOK:    true,
+			wantToken: "env-only-token",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Setenv("HOME", tmpDir)
+			t.Setenv("FLOWBOT_TOKEN", tt.envToken)
+
+			cfgDir := filepath.Join(tmpDir, ".config", "flowbot")
+			require.NoError(t, os.MkdirAll(cfgDir, 0750))
+			if tt.fileToken != "" {
+				require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "token"), []byte(tt.fileToken), 0600))
+			}
+			require.NoError(t, os.WriteFile(filepath.Join(cfgDir, "server_url"), []byte("https://s.example.com"), 0600))
+
+			cmd := newTestCmd("", "", false)
+			c, err := NewClient(cmd)
+			if !tt.wantOK {
+				require.Error(t, err)
+				require.Nil(t, c)
+				require.Contains(t, err.Error(), tt.wantSub)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, c)
+			require.Equal(t, tt.wantToken, c.AccessToken())
 		})
 	}
 }

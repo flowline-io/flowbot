@@ -653,6 +653,12 @@ type ChatAgentSandboxConfig struct {
 	Network string `json:"network" yaml:"network" mapstructure:"network"`
 	// Memory limits container memory (e.g. "512m"); empty uses Docker defaults.
 	Memory string `json:"memory" yaml:"memory" mapstructure:"memory"`
+	// ServerURL is the Flowbot API URL reachable from inside the sandbox container.
+	// Injected as FLOWBOT_SERVER_URL and written to the mounted CLI config.
+	ServerURL string `json:"server_url" yaml:"server_url" mapstructure:"server_url"`
+	// AccessToken is a dedicated Hub access token for the flowbot CLI inside the sandbox.
+	// When empty, credentials are not injected. Injected as FLOWBOT_TOKEN and a mounted token file.
+	AccessToken string `json:"access_token" yaml:"access_token" mapstructure:"access_token"`
 }
 
 type Model struct {

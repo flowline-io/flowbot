@@ -84,6 +84,11 @@ func NewClient(serverURL, token string) *Client {
 	return c
 }
 
+// AccessToken returns the access token used for API authentication.
+func (c *Client) AccessToken() string {
+	return c.token
+}
+
 // BaseURL returns the configured Flowbot server URL.
 func (c *Client) BaseURL() string {
 	return c.baseURL

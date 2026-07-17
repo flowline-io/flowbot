@@ -215,16 +215,29 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 			compaction.ReservedTokens(),
 			compaction.KeepRecentBudget(),
 		),
-		fmt.Sprintf("sandbox=%t:%s:%s:%s",
+		fmt.Sprintf("sandbox=%t:%s:%s:%s:%s:%s",
 			sandbox.Enabled,
 			strings.TrimSpace(sandbox.Image),
 			strings.TrimSpace(sandbox.Network),
 			strings.TrimSpace(sandbox.Memory),
+			strings.TrimSpace(sandbox.ServerURL),
+			sandboxAccessTokenFingerprint(sandbox.AccessToken),
 		),
 		promptConfigHash(workspace.Root),
 	}
 	sum := sha256.Sum256([]byte(strings.Join(parts, "\x1f")))
 	return hex.EncodeToString(sum[:]), nil
+}
+
+// sandboxAccessTokenFingerprint returns a short digest of the sandbox access token for config hashing.
+// The raw token is never included in the preimage string that is joined for logging-adjacent use.
+func sandboxAccessTokenFingerprint(token string) string {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return ""
+	}
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:8])
 }
 
 func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHarness, error) {

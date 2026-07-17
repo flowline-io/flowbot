@@ -11,6 +11,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
+// NewClient builds an API client from CLI flags, environment variables, and stored config.
+// Server URL resolution order: --server-url, FLOWBOT_SERVER_URL, then stored server_url.
+// Token resolution order: FLOWBOT_TOKEN, then stored token file.
 func NewClient(cmd *cobra.Command) (*client.Client, error) {
 	profile, _ := cmd.Flags().GetString("profile")
 
@@ -29,12 +32,16 @@ func NewClient(cmd *cobra.Command) (*client.Client, error) {
 		serverURL = stored
 	}
 
-	token, err := store.LoadToken(profile)
-	if err != nil {
-		return nil, fmt.Errorf("load token: %w", err)
+	token := os.Getenv("FLOWBOT_TOKEN")
+	if token == "" {
+		var err error
+		token, err = store.LoadToken(profile)
+		if err != nil {
+			return nil, fmt.Errorf("load token: %w", err)
+		}
 	}
 	if token == "" {
-		return nil, fmt.Errorf("not logged in (use 'flowbot login' first)")
+		return nil, fmt.Errorf("not logged in (use 'flowbot login' first, or set FLOWBOT_TOKEN)")
 	}
 
 	cl := client.NewClient(serverURL, token)
