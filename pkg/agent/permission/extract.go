@@ -11,9 +11,14 @@ import (
 // Tool names used by the chat agent coding toolkit.
 const (
 	ToolRunTerminal         = "run_terminal"
+	ToolListDir             = "list_dir"
+	ToolGlobFiles           = "glob_files"
+	ToolGrepFiles           = "grep_files"
 	ToolReadFile            = "read_file"
 	ToolWriteFile           = "write_file"
+	ToolApplyPatch          = "apply_patch"
 	ToolWebSearch           = "web_search"
+	ToolWebFetch            = "web_fetch"
 	ToolRunCode             = "run_code"
 	ToolReadSkill           = "read_skill"
 	ToolTask                = "task"
@@ -29,11 +34,11 @@ func PermissionKeyForTool(tool string) string {
 	switch tool {
 	case ToolRunTerminal, ToolRunCode:
 		return "bash"
-	case ToolReadFile:
+	case ToolReadFile, ToolListDir, ToolGlobFiles, ToolGrepFiles:
 		return "read"
-	case ToolWriteFile:
+	case ToolWriteFile, ToolApplyPatch:
 		return "edit"
-	case ToolWebSearch:
+	case ToolWebSearch, ToolWebFetch:
 		return "websearch"
 	case ToolReadSkill:
 		return "skill"
@@ -85,21 +90,36 @@ func ExtractInputs(req Request) ExtractedInputs {
 func extractToolPrimary(req Request) (string, ParseBashCommand, []string) {
 	switch req.Tool {
 	case ToolRunTerminal:
-		cmd := strings.TrimSpace(fmt.Sprint(req.Args["command"]))
-		bash := AnalyzeBashCommand(cmd)
-		primary := bash.Prefix
-		if bash.Complex || cmd != "" {
-			primary = cmd
-		}
-		return primary, bash, extractPathsFromCommand(cmd, req.WorkspaceRoot)
+		return extractRunTerminalPrimary(req)
 	case ToolRunCode:
 		lang := strings.TrimSpace(fmt.Sprint(req.Args["language"]))
 		primary := "run " + lang
 		return primary, ParseBashCommand{Prefix: primary}, nil
-	case ToolReadFile, ToolWriteFile:
+	case ToolReadFile, ToolWriteFile, ToolListDir, ToolGlobFiles, ToolGrepFiles:
 		return strings.TrimSpace(fmt.Sprint(req.Args["path"])), ParseBashCommand{}, nil
+	case ToolApplyPatch:
+		return firstPatchPath(fmt.Sprint(req.Args["patch"])), ParseBashCommand{}, nil
 	case ToolWebSearch:
 		return strings.TrimSpace(fmt.Sprint(req.Args["query"])), ParseBashCommand{}, nil
+	case ToolWebFetch:
+		return strings.TrimSpace(fmt.Sprint(req.Args["url"])), ParseBashCommand{}, nil
+	default:
+		return extractProductToolPrimary(req)
+	}
+}
+
+func extractRunTerminalPrimary(req Request) (string, ParseBashCommand, []string) {
+	cmd := strings.TrimSpace(fmt.Sprint(req.Args["command"]))
+	bash := AnalyzeBashCommand(cmd)
+	primary := bash.Prefix
+	if bash.Complex || cmd != "" {
+		primary = cmd
+	}
+	return primary, bash, extractPathsFromCommand(cmd, req.WorkspaceRoot)
+}
+
+func extractProductToolPrimary(req Request) (string, ParseBashCommand, []string) {
+	switch req.Tool {
 	case ToolReadSkill:
 		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil
 	case ToolTask:
@@ -186,4 +206,16 @@ func isUnderRoot(root, target string) bool {
 		return false
 	}
 	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+func firstPatchPath(patch string) string {
+	for line := range strings.SplitSeq(patch, "\n") {
+		line = strings.TrimSpace(strings.TrimPrefix(line, "\r"))
+		for _, prefix := range []string{"*** Add File: ", "*** Update File: ", "*** Delete File: "} {
+			if after, ok := strings.CutPrefix(line, prefix); ok {
+				return strings.TrimSpace(after)
+			}
+		}
+	}
+	return ""
 }

@@ -17,12 +17,17 @@ func TestIsReadOnlyTool(t *testing.T) {
 		want bool
 	}{
 		{name: "read_file allowed", tool: "read_file", want: true},
+		{name: "list_dir allowed", tool: "list_dir", want: true},
+		{name: "glob_files allowed", tool: "glob_files", want: true},
+		{name: "grep_files allowed", tool: "grep_files", want: true},
 		{name: "web_search allowed", tool: "web_search", want: true},
+		{name: "web_fetch allowed", tool: "web_fetch", want: true},
 		{name: "read_skill allowed", tool: "read_skill", want: true},
 		{name: "list_scheduled_tasks allowed", tool: "list_scheduled_tasks", want: true},
 		{name: "update_memory not unconditionally read-only", tool: "update_memory", want: false},
 		{name: "task blocked in plan mode", tool: "task", want: false},
 		{name: "write_file blocked", tool: "write_file", want: false},
+		{name: "apply_patch blocked", tool: "apply_patch", want: false},
 		{name: "run_terminal blocked", tool: "run_terminal", want: false},
 		{name: "run_code blocked", tool: "run_code", want: false},
 	}
@@ -40,7 +45,10 @@ func TestReadOnlyToolNames(t *testing.T) {
 	}{
 		{
 			name: "contains read-only set",
-			want: []string{"read_file", "web_search", "read_skill", "list_scheduled_tasks", "update_memory"},
+			want: []string{
+				"list_dir", "glob_files", "grep_files", "read_file",
+				"web_search", "web_fetch", "read_skill", "list_scheduled_tasks", "update_memory",
+			},
 		},
 	}
 	for _, tt := range tests {

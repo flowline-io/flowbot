@@ -33,7 +33,7 @@ agent/
 ├── permission/           # Tool permission evaluation, forms, session/scheduled policies
 ├── memory/               # Agent memory store
 ├── subagent/             # Subagent orchestration
-├── coding/               # Code execution tools (run_code, read/write_file, web_search, terminal, workspace)
+├── coding/               # Code execution tools (run_code, read/write/list/glob/grep/patch, web_search/fetch, terminal, workspace)
 ├── sandbox/              # Opt-in Docker ExecutionEnv for shell/code
 ├── eval/                 # FakeModel harness eval scenarios
 └── example/echo/         # Reference echo tool

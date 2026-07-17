@@ -48,10 +48,15 @@ type BuildSystemPromptOptions struct {
 // DefaultToolSnippets returns one-line tool descriptions for the chat assistant.
 func DefaultToolSnippets() map[string]string {
 	return map[string]string{
-		"run_terminal":         "Run shell commands inside the workspace (ls, git, build, test, etc.)",
+		"run_terminal":         "Run shell commands inside the workspace (git, build, test, etc.)",
+		"list_dir":             "List files and directories under a workspace path",
+		"glob_files":           "Find files by glob pattern (supports **); returns relative paths",
+		"grep_files":           "Search file contents with a regular expression",
 		"read_file":            "Read a text file from the workspace by relative path",
 		"write_file":           "Write or overwrite a text file in the workspace, creating parent dirs as needed",
+		"apply_patch":          "Apply an incremental multi-file patch (add/update/delete) inside the workspace",
 		"web_search":           "Look up concise facts via DuckDuckGo; may return no results for niche queries",
+		"web_fetch":            "Fetch text content from an http(s) URL (not localhost)",
 		"run_code":             "Execute a Python or shell code snippet in the workspace",
 		"read_skill":           "Load full skill instructions or an auxiliary file via optional path",
 		"task":                 "Delegate a self-contained task to a specialized subagent that runs in isolation",
@@ -208,7 +213,6 @@ func formatToolsList(tools []string, snippets map[string]string) string {
 func formatGuidelines(tools, extra []string, language string) string {
 	set := make(map[string]struct{})
 	list := make([]string, 0, 12)
-
 	add := func(item string) {
 		item = strings.TrimSpace(item)
 		if item == "" {
@@ -220,16 +224,43 @@ func formatGuidelines(tools, extra []string, language string) string {
 		set[item] = struct{}{}
 		list = append(list, item)
 	}
+	has := func(name string) bool { return slices.Contains(tools, name) }
 
-	has := func(name string) bool {
-		return slices.Contains(tools, name)
+	addCodingGuidelines(add, has)
+	addProductGuidelines(add, has)
+	for _, item := range extra {
+		add(item)
 	}
+	add("Be concise in your responses")
+	add("Show file paths clearly when working with files; reference workspace files as file://relative/path in markdown links")
+	add("Never access paths outside the workspace sandbox")
+	add(fmt.Sprintf("Answer in %s unless the user requests another language", language))
 
-	if has("run_terminal") && !has("web_search") {
-		add("Use run_terminal for file listing and repository inspection (ls, find, git status)")
+	lines := make([]string, len(list))
+	for i, item := range list {
+		lines[i] = "- " + item
+	}
+	return strings.Join(lines, "\n")
+}
+
+func addCodingGuidelines(add func(string), has func(string) bool) {
+	if has("list_dir") {
+		add("Use list_dir to inspect workspace directories")
+	}
+	if has("glob_files") {
+		add("Use glob_files to find files by path pattern (for example **/*.go)")
+	}
+	if has("grep_files") {
+		add("Use grep_files to search file contents with regular expressions")
+	}
+	if has("run_terminal") && !has("list_dir") && !has("web_search") {
+		add("Use run_terminal for repository inspection (git status) and builds")
 	}
 	if has("read_file") {
 		add("Read files with read_file before editing unfamiliar content")
+	}
+	if has("apply_patch") {
+		add("Prefer apply_patch for incremental edits; use write_file for new files or full rewrites")
 	}
 	if has("write_file") {
 		add("Prefer minimal, focused edits; preserve existing style and conventions")
@@ -237,6 +268,12 @@ func formatGuidelines(tools, extra []string, language string) string {
 	if has("web_search") {
 		add("Use web_search for library docs or facts not present in the workspace")
 	}
+	if has("web_fetch") {
+		add("Use web_fetch to read a specific http(s) URL after you have a concrete link")
+	}
+}
+
+func addProductGuidelines(add func(string), has func(string) bool) {
 	if has("read_skill") {
 		add("Use read_skill to load specialized instructions when a task matches an available skill")
 	}
@@ -251,21 +288,6 @@ func formatGuidelines(tools, extra []string, language string) string {
 		add("Use list_scheduled_tasks to find task_id before update_scheduled_task or cancel_scheduled_task")
 		add("Use update_scheduled_task state=paused or state=active to pause and resume recurring or one-shot tasks")
 	}
-
-	for _, item := range extra {
-		add(item)
-	}
-
-	add("Be concise in your responses")
-	add("Show file paths clearly when working with files; reference workspace files as file://relative/path in markdown links")
-	add("Never access paths outside the workspace sandbox")
-	add(fmt.Sprintf("Answer in %s unless the user requests another language", language))
-
-	lines := make([]string, len(list))
-	for i, item := range list {
-		lines[i] = "- " + item
-	}
-	return strings.Join(lines, "\n")
 }
 
 func planModePromptSection() string {

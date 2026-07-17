@@ -26,12 +26,21 @@ type ExecOptions struct {
 	Timeout context.Context
 }
 
+// DirEntry describes one filesystem entry from ReadDir.
+type DirEntry struct {
+	// Name is the entry basename.
+	Name string
+	// IsDir reports whether the entry is a directory.
+	IsDir bool
+}
+
 // ExecutionEnv performs filesystem and shell operations without throwing untyped errors.
 type ExecutionEnv interface {
 	ReadFile(ctx context.Context, path string) result.Result[[]byte, result.FileError]
 	WriteFile(ctx context.Context, path string, data []byte, perm os.FileMode) result.Result[struct{}, result.FileError]
 	MkdirAll(ctx context.Context, path string, perm os.FileMode) result.Result[struct{}, result.FileError]
 	Remove(ctx context.Context, path string) result.Result[struct{}, result.FileError]
+	ReadDir(ctx context.Context, path string) result.Result[[]DirEntry, result.FileError]
 	Exec(ctx context.Context, opts ExecOptions) result.Result[Capture, result.ExecutionError]
 }
 

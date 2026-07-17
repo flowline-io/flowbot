@@ -1,6 +1,8 @@
 package coding_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
@@ -34,6 +36,18 @@ func TestWorkspace_ResolvePath(t *testing.T) {
 			assert.Contains(t, gotResult.Value(), root)
 		})
 	}
+}
+
+func TestWorkspace_ResolvePathBlocksOutboundSymlink(t *testing.T) {
+	outside := t.TempDir()
+	root := t.TempDir()
+	link := filepath.Join(root, "out")
+	if err := os.Symlink(outside, link); err != nil {
+		t.Skipf("symlink not supported: %v", err)
+	}
+	ws := coding.Workspace{Root: root}
+	got := ws.ResolvePath(filepath.Join("out", "secret.txt"))
+	assert.False(t, got.IsOk())
 }
 
 func TestWorkspace_TruncateOutput(t *testing.T) {

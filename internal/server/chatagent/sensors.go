@@ -19,7 +19,7 @@ import (
 func registerPathSensors(reg *hooks.Registry) {
 	hooks.OnToolResult(reg, func(_ context.Context, event hooks.ToolResultEvent) (*hooks.ToolResultResult, error) {
 		switch event.ToolCall.Name {
-		case "write_file", "read_file", "run_code":
+		case "write_file", "read_file", "run_code", "list_dir", "glob_files", "grep_files", "apply_patch":
 		default:
 			return nil, nil
 		}
@@ -30,21 +30,18 @@ func registerPathSensors(reg *hooks.Registry) {
 		if workspaceRoot == "" {
 			return nil, nil
 		}
-		pathArg := pathArgFromTool(event.ToolCall.Name, event.Args)
-		if pathArg == "" {
+		paths := pathArgsFromTool(event.ToolCall.Name, event.Args)
+		if len(paths) == 0 {
 			return nil, nil
 		}
 		ws := coding.Workspace{Root: workspaceRoot}
-		if resolved := ws.ResolvePath(pathArg); resolved.IsOk() {
-			absRoot, err := filepath.Abs(workspaceRoot)
-			if err == nil {
-				if !strings.HasPrefix(strings.ToLower(resolved.Value()), strings.ToLower(absRoot)) {
-					return pathSensorError(event.ToolCall.Name, pathArg), nil
-				}
+		for _, pathArg := range paths {
+			if resolved := ws.ResolvePath(pathArg); resolved.IsOk() {
+				continue
 			}
-			return nil, nil
+			return pathSensorError(event.ToolCall.Name, pathArg), nil
 		}
-		return pathSensorError(event.ToolCall.Name, pathArg), nil
+		return nil, nil
 	})
 }
 
@@ -61,23 +58,54 @@ func pathSensorError(toolName, pathArg string) *hooks.ToolResultResult {
 	}
 }
 
-func pathArgFromTool(name string, args map[string]any) string {
+func pathArgsFromTool(name string, args map[string]any) []string {
 	if args == nil {
-		return ""
+		return nil
 	}
 	switch name {
-	case "write_file", "read_file":
-		return strings.TrimSpace(fmt.Sprint(args["path"]))
+	case "write_file", "read_file", "list_dir", "glob_files", "grep_files":
+		path := normalizeSensorPath(fmt.Sprint(args["path"]))
+		if path == "" {
+			switch name {
+			case "list_dir", "glob_files", "grep_files":
+				return []string{"."}
+			default:
+				return nil
+			}
+		}
+		return []string{path}
+	case "apply_patch":
+		return coding.PatchFilePaths(fmt.Sprint(args["patch"]))
 	case "run_code":
-		filename := strings.TrimSpace(fmt.Sprint(args["filename"]))
+		filename := normalizeSensorPath(fmt.Sprint(args["filename"]))
 		if filename == "" {
 			language := strings.ToLower(strings.TrimSpace(fmt.Sprint(args["language"])))
 			filename = defaultRunCodeFilename(language)
 		}
-		return filepath.Join(".flowbot-run", filename)
+		return []string{filepath.Join(".flowbot-run", filename)}
 	default:
+		return nil
+	}
+}
+
+func normalizeSensorPath(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" || path == "<nil>" {
 		return ""
 	}
+	if after, ok := strings.CutPrefix(path, "file://"); ok {
+		path = after
+	}
+	return path
+}
+
+// pathArgFromTool returns the primary path argument for sensors that need a single path.
+func pathArgFromTool(name string, args map[string]any) string {
+	paths := pathArgsFromTool(name, args)
+	if len(paths) == 0 {
+		return ""
+	}
+	return paths[0]
 }
 
 func defaultRunCodeFilename(language string) string {

@@ -62,6 +62,61 @@ func TestOSExecutionEnvReadFile(t *testing.T) {
 	}
 }
 
+func TestOSExecutionEnvReadDir(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		setup    func(t *testing.T) string
+		wantOk   bool
+		wantCode string
+		wantLen  int
+	}{
+		{
+			name: "lists directory entries",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				dir := t.TempDir()
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "a.txt"), []byte("a"), 0o644))
+				require.NoError(t, os.Mkdir(filepath.Join(dir, "sub"), 0o755))
+				return dir
+			},
+			wantOk:  true,
+			wantLen: 2,
+		},
+		{
+			name: "not found",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				return filepath.Join(t.TempDir(), "missing")
+			},
+			wantOk:   false,
+			wantCode: "not_found",
+		},
+		{
+			name: "empty directory",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				return t.TempDir()
+			},
+			wantOk:  true,
+			wantLen: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			path := tt.setup(t)
+			got := env.Default().ReadDir(context.Background(), path)
+			assert.Equal(t, tt.wantOk, got.IsOk())
+			if !tt.wantOk {
+				assert.Equal(t, tt.wantCode, got.ErrorValue().Code())
+				return
+			}
+			assert.Len(t, got.Value(), tt.wantLen)
+		})
+	}
+}
+
 func TestOSExecutionEnvExec(t *testing.T) {
 	t.Parallel()
 

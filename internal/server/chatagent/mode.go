@@ -22,7 +22,7 @@ const (
 // IsReadOnlyTool reports whether name is allowed in plan mode.
 func IsReadOnlyTool(name string) bool {
 	switch name {
-	case "read_file", "web_search", "read_skill", listScheduleToolName:
+	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName:
 		return true
 	default:
 		return slices.Contains(AbilityToolNames(), name)
@@ -31,7 +31,10 @@ func IsReadOnlyTool(name string) bool {
 
 // ReadOnlyToolNames returns the active tool set for plan mode.
 func ReadOnlyToolNames() []string {
-	names := []string{"read_file", "web_search", "read_skill", listScheduleToolName, updateMemoryToolName}
+	names := []string{
+		"list_dir", "glob_files", "grep_files", "read_file",
+		"web_search", "web_fetch", "read_skill", listScheduleToolName, updateMemoryToolName,
+	}
 	return append(names, AbilityToolNames()...)
 }
 

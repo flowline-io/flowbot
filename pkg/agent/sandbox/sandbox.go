@@ -109,6 +109,11 @@ func (e *Env) Remove(ctx context.Context, path string) result.Result[struct{}, r
 	return e.host.Remove(ctx, path)
 }
 
+// ReadDir lists directory entries on the host filesystem.
+func (e *Env) ReadDir(ctx context.Context, path string) result.Result[[]env.DirEntry, result.FileError] {
+	return e.host.ReadDir(ctx, path)
+}
+
 // Exec runs the command inside a sandbox container with the workspace mounted.
 func (e *Env) Exec(ctx context.Context, opts env.ExecOptions) result.Result[env.Capture, result.ExecutionError] {
 	runCtx := ctx

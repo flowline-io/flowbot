@@ -15,19 +15,24 @@ func TestActiveToolNames(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "returns five default tools"},
+		{name: "returns ten default tools"},
 		{name: "includes run_terminal"},
-		{name: "includes web_search"},
+		{name: "includes web_fetch"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			names := coding.ActiveToolNames()
-			require.Len(t, names, 5)
+			require.Len(t, names, 10)
 			assert.Contains(t, names, "run_terminal")
+			assert.Contains(t, names, "list_dir")
+			assert.Contains(t, names, "glob_files")
+			assert.Contains(t, names, "grep_files")
 			assert.Contains(t, names, "read_file")
 			assert.Contains(t, names, "write_file")
+			assert.Contains(t, names, "apply_patch")
 			assert.Contains(t, names, "web_search")
+			assert.Contains(t, names, "web_fetch")
 			assert.Contains(t, names, "run_code")
 		})
 	}

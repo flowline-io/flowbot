@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/bytedance/sonic"
 
@@ -62,13 +61,18 @@ func (t WebSearchTool) Execute(ctx context.Context, id string, args map[string]a
 	if query == "" {
 		return toolError(id, t.Name(), "query is required"), nil
 	}
+	if len(query) > MaxWebSearchQueryBytes {
+		return tool.ErrorResult(id, t.Name(), "invalid_args",
+			fmt.Sprintf("query exceeds %d bytes", MaxWebSearchQueryBytes),
+			"shorten the search query"), nil
+	}
 	if onUpdate != nil {
 		_ = onUpdate("searching...")
 	}
 
 	client := t.HTTPClient
 	if client == nil {
-		client = &http.Client{Timeout: 15 * time.Second}
+		client = &http.Client{Timeout: DefaultHTTPTimeout}
 	}
 
 	base := t.BaseURL
@@ -97,7 +101,7 @@ func (t WebSearchTool) Execute(ctx context.Context, id string, args map[string]a
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, int64(MaxFetchBytes)+1))
 	if err != nil {
 		return toolError(id, t.Name(), fmt.Sprintf("read response: %v", err)), nil
 	}
@@ -113,7 +117,7 @@ func (t WebSearchTool) Execute(ctx context.Context, id string, args map[string]a
 	text := formatDDGResult(parsed)
 	limit := t.MaxOutput
 	if limit <= 0 {
-		limit = 8192
+		limit = DefaultMaxOutput
 	}
 	if len(text) > limit {
 		text = text[:limit] + "\n...(truncated)"

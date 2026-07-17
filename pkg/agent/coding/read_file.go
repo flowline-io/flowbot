@@ -62,7 +62,14 @@ func (t ReadFileTool) Execute(ctx context.Context, id string, args map[string]an
 		return toolError(id, t.Name(), env.FormatFileError(readResult.ErrorValue())), nil
 	}
 
-	content := string(readResult.Value())
+	data := readResult.Value()
+	if len(data) > MaxReadFileBytes {
+		return tool.ErrorResult(id, t.Name(), "invalid_args",
+			fmt.Sprintf("file exceeds %d bytes", MaxReadFileBytes),
+			"file is too large to load; split it or use a smaller file"), nil
+	}
+
+	content := string(data)
 	offset := intArg(args, "offset")
 	limit := intArg(args, "limit")
 	if offset > 0 || limit > 0 {

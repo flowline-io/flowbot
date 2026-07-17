@@ -12,9 +12,14 @@ func RegisterAll(registry *tool.Registry, ws Workspace, executionEnv env.Executi
 	}
 	tools := []tool.Tool{
 		RunTerminalTool{Workspace: ws, Env: executionEnv},
+		ListDirTool{Workspace: ws, Env: executionEnv},
+		GlobFilesTool{Workspace: ws, Env: executionEnv},
+		GrepFilesTool{Workspace: ws, Env: executionEnv},
 		ReadFileTool{Workspace: ws, Env: executionEnv},
 		WriteFileTool{Workspace: ws, Env: executionEnv},
+		ApplyPatchTool{Workspace: ws, Env: executionEnv},
 		WebSearchTool{MaxOutput: ws.MaxOutput},
+		WebFetchTool{MaxOutput: ws.MaxOutput},
 		RunCodeTool{Workspace: ws, Env: executionEnv},
 	}
 	for _, item := range tools {
@@ -29,9 +34,14 @@ func RegisterAll(registry *tool.Registry, ws Workspace, executionEnv env.Executi
 func ActiveToolNames() []string {
 	return []string{
 		"run_terminal",
+		"list_dir",
+		"glob_files",
+		"grep_files",
 		"read_file",
 		"write_file",
+		"apply_patch",
 		"web_search",
+		"web_fetch",
 		"run_code",
 	}
 }

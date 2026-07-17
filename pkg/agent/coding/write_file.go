@@ -45,10 +45,19 @@ func (WriteFileTool) Parameters() map[string]any {
 // Execute writes the requested file.
 func (t WriteFileTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	path := normalizeWorkspacePath(fmt.Sprint(args["path"]))
-	if path == "" {
+	if path == "" || path == "<nil>" {
 		return tool.ErrorResult(id, t.Name(), "invalid_args", "path is required", "provide a relative path inside the workspace"), nil
 	}
-	content := fmt.Sprint(args["content"])
+	contentVal, ok := args["content"]
+	if !ok || contentVal == nil {
+		return tool.ErrorResult(id, t.Name(), "invalid_args", "content is required", "provide the text content to write"), nil
+	}
+	content := fmt.Sprint(contentVal)
+	if len(content) > MaxWriteFileBytes {
+		return tool.ErrorResult(id, t.Name(), "invalid_args",
+			fmt.Sprintf("content exceeds %d bytes", MaxWriteFileBytes),
+			"reduce the content size or split into smaller writes"), nil
+	}
 
 	resolvedResult := t.Workspace.ResolvePath(path)
 	if !resolvedResult.IsOk() {

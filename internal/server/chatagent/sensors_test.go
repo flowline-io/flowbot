@@ -96,6 +96,9 @@ func TestRegisterHooksPathSensor(t *testing.T) {
 	}{
 		{name: "inside workspace", toolName: "write_file", args: map[string]any{"path": "ok.go"}, wantError: false},
 		{name: "escape path", toolName: "write_file", args: map[string]any{"path": "../../etc/passwd"}, wantError: true},
+		{name: "list_dir default path ok", toolName: "list_dir", args: map[string]any{}, wantError: false},
+		{name: "glob_files nil path ok", toolName: "glob_files", args: map[string]any{"pattern": "*.go"}, wantError: false},
+		{name: "grep_files missing path ok", toolName: "grep_files", args: map[string]any{"pattern": "x"}, wantError: false},
 		{name: "run_code default filename inside", toolName: "run_code", args: map[string]any{"language": "python", "code": "print(1)"}, wantError: false},
 		{name: "run_code escape filename", toolName: "run_code", args: map[string]any{"language": "python", "code": "x", "filename": "../../etc/passwd.py"}, wantError: true},
 		{name: "other tool ignored", toolName: "echo", args: map[string]any{"path": "../../x"}, wantError: false},

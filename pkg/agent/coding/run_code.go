@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 )
-
-const defaultShellTimeout = 60 * time.Second
 
 // RunCodeTool executes source code by writing a temporary file and invoking an interpreter.
 type RunCodeTool struct {
@@ -58,6 +55,9 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 	if language == "" || strings.TrimSpace(code) == "" {
 		return tool.ErrorResult(id, t.Name(), "invalid_args", "language and code are required", "provide language (python|shell) and non-empty code"), nil
 	}
+	if len(code) > MaxRunCodeBytes {
+		return tool.ErrorResult(id, t.Name(), "invalid_args", fmt.Sprintf("code exceeds %d bytes", MaxRunCodeBytes), "reduce the code size"), nil
+	}
 	if onUpdate != nil {
 		_ = onUpdate("executing code...")
 	}
@@ -94,7 +94,7 @@ func (t RunCodeTool) Execute(ctx context.Context, id string, args map[string]any
 
 	timeout := t.Workspace.Timeout
 	if timeout <= 0 {
-		timeout = defaultShellTimeout
+		timeout = DefaultShellTimeout
 	}
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()

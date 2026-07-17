@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"strings"
 )
 
 // ReasonConfirmRequiredPlatform is returned when ActionAsk cannot be resolved without a ConfirmGate.
@@ -176,12 +177,20 @@ func handlePermissionAsk(
 }
 
 func detectExternalPath(event hooks.ToolCallEvent, workspaceRoot string) bool {
+	ws := coding.Workspace{Root: workspaceRoot}
 	switch event.ToolCall.Name {
-	case permission.ToolReadFile, permission.ToolWriteFile:
-		path := fmt.Sprint(event.Args["path"])
-		ws := coding.Workspace{Root: workspaceRoot}
-		if !ws.ResolvePath(path).IsOk() {
-			return true
+	case permission.ToolReadFile, permission.ToolWriteFile,
+		permission.ToolListDir, permission.ToolGlobFiles, permission.ToolGrepFiles:
+		path := strings.TrimSpace(fmt.Sprint(event.Args["path"]))
+		if path == "" || path == "<nil>" {
+			return false
+		}
+		return !ws.ResolvePath(path).IsOk()
+	case permission.ToolApplyPatch:
+		for _, path := range coding.PatchFilePaths(fmt.Sprint(event.Args["patch"])) {
+			if !ws.ResolvePath(path).IsOk() {
+				return true
+			}
 		}
 	}
 	return false

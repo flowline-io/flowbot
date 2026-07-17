@@ -49,6 +49,19 @@ func (OSExecutionEnv) Remove(_ context.Context, path string) result.Result[struc
 	return result.Ok[struct{}, result.FileError](struct{}{})
 }
 
+// ReadDir lists directory entries.
+func (OSExecutionEnv) ReadDir(_ context.Context, path string) result.Result[[]DirEntry, result.FileError] {
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		return result.Err[[]DirEntry, result.FileError](toFileError(path, err))
+	}
+	out := make([]DirEntry, 0, len(entries))
+	for _, entry := range entries {
+		out = append(out, DirEntry{Name: entry.Name(), IsDir: entry.IsDir()})
+	}
+	return result.Ok[[]DirEntry, result.FileError](out)
+}
+
 // Exec runs a shell command or direct argv invocation and captures output.
 func (OSExecutionEnv) Exec(ctx context.Context, opts ExecOptions) result.Result[Capture, result.ExecutionError] {
 	runCtx := ctx

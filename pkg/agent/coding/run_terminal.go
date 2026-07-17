@@ -55,7 +55,7 @@ func (t RunTerminalTool) Execute(ctx context.Context, id string, args map[string
 
 	timeout := t.Workspace.Timeout
 	if timeout <= 0 {
-		timeout = defaultShellTimeout
+		timeout = DefaultShellTimeout
 	}
 	runCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()

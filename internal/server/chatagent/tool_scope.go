@@ -66,11 +66,11 @@ func scheduleToolNameSet() map[string]bool {
 // ToolGroupOf returns the group for a known tool name.
 func ToolGroupOf(name string) string {
 	switch name {
-	case "read_file", "write_file":
+	case "read_file", "write_file", "list_dir", "apply_patch":
 		return ToolGroupFS
 	case "run_terminal", "run_code":
 		return ToolGroupShell
-	case "web_search":
+	case "web_search", "web_fetch", "glob_files", "grep_files":
 		return ToolGroupSearch
 	case taskToolName:
 		return ToolGroupSubagent

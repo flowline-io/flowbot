@@ -18,9 +18,14 @@ func TestToolMetadata(t *testing.T) {
 		Parameters() map[string]any
 	}{
 		coding.RunTerminalTool{Workspace: ws},
+		coding.ListDirTool{Workspace: ws},
+		coding.GlobFilesTool{Workspace: ws},
+		coding.GrepFilesTool{Workspace: ws},
 		coding.ReadFileTool{Workspace: ws},
 		coding.WriteFileTool{Workspace: ws},
+		coding.ApplyPatchTool{Workspace: ws},
 		coding.WebSearchTool{},
+		coding.WebFetchTool{},
 		coding.RunCodeTool{Workspace: ws},
 	}
 

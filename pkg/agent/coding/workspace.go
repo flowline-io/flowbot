@@ -41,17 +41,35 @@ func (w Workspace) ResolvePath(path string) result.Result[string, result.FileErr
 	if err != nil {
 		return result.Err[string, result.FileError](result.NewFileError("path_escape", "resolve path", err))
 	}
-	evaluated, err := filepath.EvalSymlinks(abs)
+	evaluated, err := evalPathWithinRoot(abs)
 	if err != nil {
-		if !os.IsNotExist(err) {
-			return result.Err[string, result.FileError](result.NewFileError("io_error", "eval symlinks", err))
-		}
-		evaluated = abs
+		return result.Err[string, result.FileError](result.NewFileError("io_error", "eval symlinks", err))
 	}
 	if !isWithinRoot(root, evaluated) {
 		return result.Err[string, result.FileError](result.NewFileError("path_escape", fmt.Sprintf("path %q escapes workspace", path), nil))
 	}
 	return result.Ok[string, result.FileError](evaluated)
+}
+
+// evalPathWithinRoot resolves symlinks for the longest existing path prefix so
+// outbound symlink parents cannot sneak past IsNotExist fallbacks.
+func evalPathWithinRoot(abs string) (string, error) {
+	evaluated, err := filepath.EvalSymlinks(abs)
+	if err == nil {
+		return evaluated, nil
+	}
+	if !os.IsNotExist(err) {
+		return "", err
+	}
+	dir := filepath.Dir(abs)
+	if dir == abs {
+		return abs, nil
+	}
+	parent, err := evalPathWithinRoot(dir)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(parent, filepath.Base(abs)), nil
 }
 
 func (w Workspace) absRoot() result.Result[string, result.FileError] {
@@ -95,7 +113,7 @@ func isWithinRoot(root, target string) bool {
 func (w Workspace) TruncateOutput(text string) string {
 	limit := w.MaxOutput
 	if limit <= 0 {
-		limit = 8192
+		limit = DefaultMaxOutput
 	}
 	if len(text) <= limit {
 		return text

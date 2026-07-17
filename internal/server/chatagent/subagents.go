@@ -83,7 +83,7 @@ var defaultSubagents = []*gen.AgentSubagent{
 			"tools, including reading and modifying project files when needed. Work in isolation, make reasonable " +
 			"assumptions, and return a concise, self-contained summary of what you found or did. Do not ask " +
 			"follow-up questions.",
-		Tools:   []string{"read_file", "write_file", "web_search", "run_terminal", "run_code"},
+		Tools:   []string{"list_dir", "glob_files", "grep_files", "read_file", "write_file", "apply_patch", "web_search", "web_fetch", "run_terminal", "run_code"},
 		Source:  "builtin",
 		Enabled: true,
 	},
@@ -91,11 +91,11 @@ var defaultSubagents = []*gen.AgentSubagent{
 		Flag:        "explore",
 		Name:        "explore",
 		Description: "Fast read-only subagent for codebase navigation, locating implementations, and understanding complex logic",
-		SystemPrompt: "You are an explore subagent operating in read-only mode. Use read_file and web_search to " +
+		SystemPrompt: "You are an explore subagent operating in read-only mode. Use list_dir, glob_files, grep_files, read_file, web_search, and web_fetch to " +
 			"navigate the codebase, locate where features are implemented, and explain how complex logic works. " +
 			"Never modify files or access write-capable tools. Return a concise, self-contained summary with " +
 			"file paths and relevant excerpts.",
-		Tools:   []string{"read_file", "web_search"},
+		Tools:   []string{"list_dir", "glob_files", "grep_files", "read_file", "web_search", "web_fetch"},
 		Source:  "builtin",
 		Enabled: true,
 	},
@@ -103,12 +103,12 @@ var defaultSubagents = []*gen.AgentSubagent{
 		Flag:        "scout",
 		Name:        "scout",
 		Description: "Research subagent for external docs, APIs, GitHub, and dependency investigation beyond the training cutoff",
-		SystemPrompt: "You are a scout subagent focused on external information retrieval. Use web_search to find " +
+		SystemPrompt: "You are a scout subagent focused on external information retrieval. Use web_search and web_fetch to find " +
 			"official documentation, GitHub repositories, and current API usage. Use run_terminal to clone or " +
 			"fetch external dependencies when needed, and read_file to inspect retrieved content. Cross-reference " +
 			"sources, verify facts against the latest docs, and return a concise, self-contained summary with " +
 			"links and actionable findings.",
-		Tools:   []string{"web_search", "run_terminal", "read_file"},
+		Tools:   []string{"web_search", "web_fetch", "run_terminal", "read_file"},
 		Source:  "builtin",
 		Enabled: true,
 	},

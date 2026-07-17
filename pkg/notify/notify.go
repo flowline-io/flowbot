@@ -481,9 +481,7 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 	// Shallow-copy payload to avoid data race if caller mutates the map after returning.
 	payloadCopy := make(map[string]any, len(payload))
 	maps.Copy(payloadCopy, payload)
-	recordAsyncWG.Add(1)
-	go func() {
-		defer recordAsyncWG.Done()
+	recordAsyncWG.Go(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 
@@ -499,5 +497,5 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 		if err := ns.DeleteOldest(ctx, uid.String(), defaultKeepRecords); err != nil {
 			flog.Warn("[notify] failed to cleanup old notifications: %v", err)
 		}
-	}()
+	})
 }
