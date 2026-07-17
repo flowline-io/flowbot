@@ -177,12 +177,12 @@ func parseSkillMarkdown(raw string) (skillFrontmatter, string, error) {
 	}
 	rest := strings.TrimPrefix(trimmed, delim)
 	rest = strings.TrimLeft(rest, "\r\n")
-	end := strings.Index(rest, "\n"+delim)
-	if end < 0 {
+	before, after, ok := strings.Cut(rest, "\n"+delim)
+	if !ok {
 		return skillFrontmatter{}, "", fmt.Errorf("unterminated YAML frontmatter")
 	}
-	yamlBlock := rest[:end]
-	body := strings.TrimLeft(rest[end+len("\n"+delim):], "\r\n")
+	yamlBlock := before
+	body := strings.TrimLeft(after, "\r\n")
 
 	var fm skillFrontmatter
 	if err := yaml.Unmarshal([]byte(yamlBlock), &fm); err != nil {
