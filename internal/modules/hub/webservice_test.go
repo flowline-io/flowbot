@@ -138,6 +138,44 @@ func TestGithubWebserviceRules_Structure(t *testing.T) {
 	}
 }
 
+func TestNoteWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, noteWebserviceRules)
+			},
+		},
+		{
+			name: "should contain CRUD endpoints",
+			test: func(t *testing.T) {
+				t.Parallel()
+				paths := make(map[string]bool)
+				for _, r := range noteWebserviceRules {
+					paths[r.Path] = true
+				}
+				for _, expected := range []string{
+					"/",
+					"/:id",
+					"/search",
+					"/health",
+					"/:id/content",
+				} {
+					assert.True(t, paths[expected], "expected path %q in note webservice rules", expected)
+				}
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
 func TestForgeGetRepo_Validation(t *testing.T) {
 	tests := []struct {
 		name       string
