@@ -37,9 +37,6 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 			return nil, err
 		}
 	}
-	if _, err := RegisterAbilityTools(registry, config.App.ChatAgent.AbilityTools, nil); err != nil {
-		return nil, err
-	}
 	memTool, err := NewUpdateMemoryTool()
 	if err != nil {
 		return nil, err
@@ -74,14 +71,13 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 	return registry, nil
 }
 
-// ActiveToolNames returns the default active tool names for the chat assistant,
-// including configured readonly ability tools.
+// ActiveToolNames returns the default active tool names for the chat assistant.
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, "read_skill", taskToolName)
 	names = append(names, scheduleToolNames()...)
 	names = append(names, updateMemoryToolName)
-	return append(names, AbilityToolNames()...)
+	return names
 }
 
 // BaseToolNamesForRun returns the active tool set for one run.
@@ -105,20 +101,6 @@ func omitToolName(names []string, drop string) []string {
 		}
 	}
 	return out
-}
-
-// AbilityToolNames returns configured ability tool names.
-func AbilityToolNames() []string {
-	entries := config.App.ChatAgent.AbilityTools
-	names := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		name := strings.TrimSpace(entry.Name)
-		if name == "" {
-			continue
-		}
-		names = append(names, name)
-	}
-	return names
 }
 
 // WorkspaceFromConfig resolves workspace settings from application config.

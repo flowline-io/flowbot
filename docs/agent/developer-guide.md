@@ -409,6 +409,6 @@ Already wired in product layers:
 
 - REST/SSE chat agent in `internal/server` (`/chatagent/*`)
 - Pipeline `agent.run` steps (`capability: agent`, `operation: run`) with template-rendered `prompt` and ephemeral sessions
-- `chat_agent` YAML → `agent.Config` (models, retry, sensors, ability_tools, sandbox)
+- `chat_agent` YAML → `agent.Config` (models, retry, sensors, sandbox)
 - Compaction via `pkg/agent/ctxmgr` and `harness.Options.ContextManager`
-- LLM retry, agent metrics/OTel, path sensors, progress artifact, ability tools, opt-in sandbox
+- LLM retry, agent metrics/OTel, path sensors, progress artifact, opt-in sandbox

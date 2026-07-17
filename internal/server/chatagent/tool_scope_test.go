@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -73,39 +72,6 @@ func TestApplyToolScope(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.wantSchedule, hasList)
-		})
-	}
-}
-
-func TestApplyToolScopeKeepsAbilityTools(t *testing.T) {
-	t.Parallel()
-	chatagent.LockAppConfigForTest(t)
-
-	prev := config.App.ChatAgent.AbilityTools
-	t.Cleanup(func() { config.App.ChatAgent.AbilityTools = prev })
-	config.App.ChatAgent.AbilityTools = []config.AbilityToolConfig{{
-		Name: "list_bookmarks", Capability: "karakeep", Operation: "list", Readonly: true,
-	}}
-
-	tests := []struct {
-		name string
-		mode string
-		text string
-	}{
-		{name: "normal keeps ability", mode: chatagent.ModeNormal, text: "read a file"},
-		{name: "plan keeps ability", mode: chatagent.ModePlan, text: "research"},
-		{name: "schedule intent keeps ability", mode: chatagent.ModeNormal, text: "please schedule a daily reminder"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got := chatagent.ApplyToolScope(chatagent.ToolScopeInput{
-				Mode:      tt.mode,
-				Kind:      chatagent.RunKindInteractive,
-				UserText:  tt.text,
-				AllActive: chatagent.ActiveToolNames(),
-			})
-			assert.True(t, slices.Contains(got, "list_bookmarks"))
 		})
 	}
 }

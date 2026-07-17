@@ -203,15 +203,6 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 	}
 	compaction := config.App.ChatAgent.Compaction
 	sandbox := config.App.ChatAgent.Sandbox
-	abilityParts := make([]string, 0, len(config.App.ChatAgent.AbilityTools))
-	for _, entry := range config.App.ChatAgent.AbilityTools {
-		abilityParts = append(abilityParts, fmt.Sprintf("%s:%s:%s:%t",
-			strings.TrimSpace(entry.Name),
-			strings.TrimSpace(entry.Capability),
-			strings.TrimSpace(entry.Operation),
-			entry.Readonly,
-		))
-	}
 	parts := []string{
 		workspace.Root,
 		chatModel,
@@ -230,7 +221,6 @@ func harnessConfigHash(workspace coding.Workspace) (string, error) {
 			strings.TrimSpace(sandbox.Network),
 			strings.TrimSpace(sandbox.Memory),
 		),
-		"ability=" + strings.Join(abilityParts, ","),
 		promptConfigHash(workspace.Root),
 	}
 	sum := sha256.Sum256([]byte(strings.Join(parts, "\x1f")))

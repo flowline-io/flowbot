@@ -87,7 +87,6 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-04 | Harness pool TTL / config hash refresh | `harness_pool.go` | Evict on close/abort | harness-related tests |
 | O-05 | Session title generation | `title.go` | LLM disabled for tests | `title_test.go`, BDD title wait helpers |
 | O-06 | Manual + automatic compaction | `CompactSession`, ctxmgr | | compaction / context tests |
-| O-07 | Ability tools from config | `ability_tools.go` | Readonly allowlist | `ability_tools_test.go` |
 | O-08 | Pipeline agent step (ephemeral) | `pipeline_run.go` / `RunPipelineAgent` | Tools/skills allowlist; memory default off | `pipeline_run_test.go`, `ephemeral_run_test.go` |
 | O-09 | Scheduled autonomous run + delivery | `scheduled_run.go`, scheduler | Isolated session; permission policy | `chat_agent_scheduled_task_spec_test.go`, scheduled_* tests |
 | O-10 | Skills tool / memory tool / subagent task tool | registry + tools | Allowlists for subagents | skills/memory/subagent tests |

@@ -255,39 +255,6 @@ func TestValidate_Conditional(t *testing.T) {
 			wantErr: "chat_agent.chat_model",
 		},
 		{
-			name: "ability tool requires readonly",
-			mutate: func(c *Type) {
-				c.ChatAgent = ChatAgentConfig{
-					AbilityTools: []AbilityToolConfig{{
-						Name: "memo_list", Capability: "memos", Operation: "list", Readonly: false,
-					}},
-				}
-			},
-			wantErr: "readonly must be true",
-		},
-		{
-			name: "ability tool requires capability",
-			mutate: func(c *Type) {
-				c.ChatAgent = ChatAgentConfig{
-					AbilityTools: []AbilityToolConfig{{
-						Name: "memo_list", Operation: "list", Readonly: true,
-					}},
-				}
-			},
-			wantErr: "capability is required",
-		},
-		{
-			name: "ability tool readonly ok",
-			mutate: func(c *Type) {
-				c.ChatAgent = ChatAgentConfig{
-					AbilityTools: []AbilityToolConfig{{
-						Name: "memo_list", Capability: "memos", Operation: "list", Readonly: true,
-					}},
-				}
-			},
-			noErr: true,
-		},
-		{
 			name: "model missing provider",
 			mutate: func(c *Type) {
 				c.Models = []Model{

@@ -180,7 +180,7 @@ func (t *Type) validateModels(errs ValidationErrors, modelNames map[string]bool)
 func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bool) ValidationErrors {
 	chat := t.ChatAgent.ChatModel
 	if chat == "" {
-		return t.validateChatAgentExtras(errs)
+		return errs
 	}
 	if len(modelNames) > 0 && !modelNames[chat] {
 		errs = append(errs, fmt.Errorf(
@@ -205,38 +205,6 @@ func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bo
 					chat, chatProvider, tool, toolProvider,
 				))
 			}
-		}
-	}
-	return t.validateChatAgentExtras(errs)
-}
-
-func (t *Type) validateChatAgentExtras(errs ValidationErrors) ValidationErrors {
-	for i, entry := range t.ChatAgent.AbilityTools {
-		name := strings.TrimSpace(entry.Name)
-		if name == "" {
-			errs = append(errs, fmt.Errorf(
-				"chat_agent.ability_tools[%d]: name is required. Fix: set name for each ability_tools entry in flowbot.yaml",
-				i,
-			))
-			name = fmt.Sprintf("#%d", i)
-		}
-		if strings.TrimSpace(entry.Capability) == "" {
-			errs = append(errs, fmt.Errorf(
-				"chat_agent.ability_tools[%s]: capability is required. Fix: set capability in flowbot.yaml",
-				name,
-			))
-		}
-		if strings.TrimSpace(entry.Operation) == "" {
-			errs = append(errs, fmt.Errorf(
-				"chat_agent.ability_tools[%s]: operation is required. Fix: set operation in flowbot.yaml",
-				name,
-			))
-		}
-		if !entry.Readonly {
-			errs = append(errs, fmt.Errorf(
-				"chat_agent.ability_tools[%s]: readonly must be true. Fix: set readonly: true (only readonly ability tools are supported)",
-				name,
-			))
 		}
 	}
 	return errs

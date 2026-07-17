@@ -610,8 +610,6 @@ type ChatAgentConfig struct {
 	LLMRetry LLMRetryConfig `json:"llm_retry" yaml:"llm_retry" mapstructure:"llm_retry"`
 	// Sensors configures post-tool computational sensors.
 	Sensors ChatAgentSensorsConfig `json:"sensors" yaml:"sensors" mapstructure:"sensors"`
-	// AbilityTools registers readonly ability operations as agent tools.
-	AbilityTools []AbilityToolConfig `json:"ability_tools" yaml:"ability_tools" mapstructure:"ability_tools"`
 	// Sandbox configures optional Docker isolation for shell and code tools.
 	Sandbox ChatAgentSandboxConfig `json:"sandbox" yaml:"sandbox" mapstructure:"sandbox"`
 	// WebSearch configures backends for the web_search tool.
@@ -643,20 +641,6 @@ type LLMRetryConfig struct {
 type ChatAgentSensorsConfig struct {
 	// LintOnWrite enables observation-only lint logging after writing Go files.
 	LintOnWrite bool `json:"lint_on_write" yaml:"lint_on_write" mapstructure:"lint_on_write"`
-}
-
-// AbilityToolConfig exposes a readonly ability operation as an agent tool.
-type AbilityToolConfig struct {
-	// Name is the tool name exposed to the model.
-	Name string `json:"name" yaml:"name" mapstructure:"name"`
-	// Description is shown to the model.
-	Description string `json:"description" yaml:"description" mapstructure:"description"`
-	// Capability is the ability capability name.
-	Capability string `json:"capability" yaml:"capability" mapstructure:"capability"`
-	// Operation is the ability operation name.
-	Operation string `json:"operation" yaml:"operation" mapstructure:"operation"`
-	// Readonly must be true; non-readonly tools are rejected at startup.
-	Readonly bool `json:"readonly" yaml:"readonly" mapstructure:"readonly"`
 }
 
 // ChatAgentSandboxConfig configures Docker isolation for shell and code tools.

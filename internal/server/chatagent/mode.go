@@ -3,7 +3,6 @@ package chatagent
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -25,17 +24,16 @@ func IsReadOnlyTool(name string) bool {
 	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName:
 		return true
 	default:
-		return slices.Contains(AbilityToolNames(), name)
+		return false
 	}
 }
 
 // ReadOnlyToolNames returns the active tool set for plan mode.
 func ReadOnlyToolNames() []string {
-	names := []string{
+	return []string{
 		"list_dir", "glob_files", "grep_files", "read_file",
 		"web_search", "web_fetch", "read_skill", listScheduleToolName, updateMemoryToolName,
 	}
-	return append(names, AbilityToolNames()...)
 }
 
 // ValidSessionMode reports whether mode is a supported session mode value.

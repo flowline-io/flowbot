@@ -211,7 +211,6 @@ chat_agent:
     # multiplier: 2.0
   sensors:
     lint_on_write: false         # observation-only lint log after write_file of *.go
-  ability_tools: []              # each entry requires readonly: true
   sandbox:
     enabled: false
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest
