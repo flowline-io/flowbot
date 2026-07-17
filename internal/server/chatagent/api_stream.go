@@ -75,12 +75,14 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 
 	runDone := make(chan error, 1)
 	go func() {
+		var runErr error
 		defer func() {
 			cancel()
 			UnbindRunCancel(sessionID)
 			ClearAPIRunState(sessionID, runState)
+			runDone <- runErr
 		}()
-		runDone <- svc.RunAPI(runCtx, RunRequest{
+		runErr = svc.RunAPI(runCtx, RunRequest{
 			SessionID: sessionID,
 			Text:      text,
 		}, &APIRunOptions{
@@ -90,39 +92,40 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 		publisher.Close()
 	}()
 
+	writeStreamEventsUntilRunDone(w, publisher, runDone)
+}
+
+// writeStreamEventsUntilRunDone forwards publisher events to w until the publisher closes,
+// then waits for runDone. Callers must Close the publisher before sending on runDone so this
+// loop cannot block forever draining an open channel. Waiting until both complete avoids racing
+// HTTP/test cleanup with post-Done work (title generation, ClearAPIRunState) and ensures errors
+// are still written when the publisher closes with no events (e.g. empty message).
+func writeStreamEventsUntilRunDone(w SSEWriter, publisher *ChannelPublisher, runDone <-chan error) {
+	terminal := false
 	for {
-		select {
-		case ev, ok := <-publisher.Events():
-			if !ok {
-				return
-			}
-			if w.WriteEvent(ev) {
-				return
-			}
-		case runErr := <-runDone:
-			for {
-				ev, ok := <-publisher.Events()
-				if !ok {
-					break
-				}
-				if w.WriteEvent(ev) {
-					return
-				}
-			}
-			if runErr != nil {
-				if errors.Is(runErr, context.Canceled) {
-					_ = w.WriteEvent(StreamEvent{
-						Type:    EventTypeCanceled,
-						Message: "run canceled by user",
-					})
-					return
-				}
-				_ = w.WriteEvent(StreamEvent{
-					Type:    EventTypeError,
-					Message: runErr.Error(),
-				})
-			}
-			return
+		ev, ok := <-publisher.Events()
+		if !ok {
+			break
 		}
+		if terminal {
+			continue
+		}
+		terminal = w.WriteEvent(ev)
 	}
+
+	runErr := <-runDone
+	if terminal || runErr == nil {
+		return
+	}
+	if errors.Is(runErr, context.Canceled) {
+		_ = w.WriteEvent(StreamEvent{
+			Type:    EventTypeCanceled,
+			Message: "run canceled by user",
+		})
+		return
+	}
+	_ = w.WriteEvent(StreamEvent{
+		Type:    EventTypeError,
+		Message: runErr.Error(),
+	})
 }
