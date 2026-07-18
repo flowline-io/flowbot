@@ -50,14 +50,16 @@ func TestHomePageAuth(t *testing.T) {
 
 func TestHomeDashboardPartial(t *testing.T) {
 	tests := []struct {
-		name         string
-		cookie       string
-		wantStatus   int
-		wantContains string
+		name            string
+		cookie          string
+		wantStatus      int
+		wantContains    string
+		wantNotContains string
 	}{
 		{name: "unauthenticated redirects", wantStatus: http.StatusSeeOther},
 		{name: "authenticated returns summary", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-dashboard-summary"},
 		{name: "authenticated returns checklist when empty", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-setup-checklist"},
+		{name: "authenticated omits quick links from dashboard partial", cookie: "valid-test-token", wantStatus: http.StatusOK, wantNotContains: "home-quick-links"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -71,9 +73,14 @@ func TestHomeDashboardPartial(t *testing.T) {
 			require.NoError(t, err)
 			defer resp.Body.Close()
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
-			if tt.wantContains != "" {
+			if tt.wantContains != "" || tt.wantNotContains != "" {
 				body, _ := io.ReadAll(resp.Body)
-				assert.Contains(t, string(body), tt.wantContains)
+				if tt.wantContains != "" {
+					assert.Contains(t, string(body), tt.wantContains)
+				}
+				if tt.wantNotContains != "" {
+					assert.NotContains(t, string(body), tt.wantNotContains)
+				}
 			}
 		})
 	}
