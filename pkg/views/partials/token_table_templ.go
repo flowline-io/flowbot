@@ -31,7 +31,7 @@ func TokenTable(items []model.TokenItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\"><div id=\"tokens-table\" data-testid=\"token-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">UID</th><th class=\"text-xs uppercase\">Token</th><th class=\"text-xs uppercase\">Created</th><th class=\"text-xs uppercase\">Last Used</th><th class=\"text-xs uppercase\">Expires</th><th class=\"text-xs uppercase\">Scopes</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"tokens-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\"><div id=\"tokens-table\" data-testid=\"token-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">UID</th><th class=\"text-xs font-medium text-base-content/55\">Token</th><th class=\"text-xs font-medium text-base-content/55\">Created</th><th class=\"text-xs font-medium text-base-content/55\">Last Used</th><th class=\"text-xs font-medium text-base-content/55\">Expires</th><th class=\"text-xs font-medium text-base-content/55\">Scopes</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> <tbody id=\"tokens-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

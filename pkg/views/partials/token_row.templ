@@ -20,11 +20,18 @@ templ TokenRow(item model.TokenItem) {
 		</td>
 		<td class="text-base-content/50">{ item.ExpiredAt.Format("2006-01-02 15:04") }</td>
 		<td>
-			<div class="flex flex-wrap gap-1">
-				for _, s := range item.Scopes {
-					<span class="badge badge-sm badge-outline">{ scopeBadge(s) }</span>
-				}
-			</div>
+			if len(item.Scopes) == 0 {
+				<span class="text-base-content/30 text-xs">—</span>
+			} else {
+				<p class="text-xs font-mono text-base-content/70 m-0 break-all">
+					for i, s := range item.Scopes {
+						if i > 0 {
+							<span class="text-base-content/40"> · </span>
+						}
+						<span>{ scopeBadge(s) }</span>
+					}
+				</p>
+			}
 		</td>
 		<td>
 			<button hx-delete={ tokenRevokeURL(item) }

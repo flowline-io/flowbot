@@ -31,7 +31,7 @@ func NotifyTemplatesTable(templates []model.NotifyTemplate) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-templates-table\" data-testid=\"notify-templates-table\" class=\"card bg-base-100 shadow-sm\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">ID</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Format</th><th class=\"text-xs uppercase\">Overrides</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"notify-templates-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-templates-table\" data-testid=\"notify-templates-table\" class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">ID</th><th class=\"text-xs font-medium text-base-content/55\">Name</th><th class=\"text-xs font-medium text-base-content/55\">Format</th><th class=\"text-xs font-medium text-base-content/55\">Overrides</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> <tbody id=\"notify-templates-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

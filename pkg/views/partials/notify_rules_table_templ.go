@@ -31,7 +31,7 @@ func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-rules-table\" data-testid=\"notify-rules-table\" class=\"card bg-base-100 shadow-sm\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Priority</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Action</th><th class=\"text-xs uppercase\">Event</th><th class=\"text-xs uppercase\">Channel</th><th class=\"text-xs uppercase\">Status</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"notify-rules-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-rules-table\" data-testid=\"notify-rules-table\" class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">Priority</th><th class=\"text-xs font-medium text-base-content/55\">Name</th><th class=\"text-xs font-medium text-base-content/55\">Action</th><th class=\"text-xs font-medium text-base-content/55\">Event</th><th class=\"text-xs font-medium text-base-content/55\">Channel</th><th class=\"text-xs font-medium text-base-content/55\">Status</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> <tbody id=\"notify-rules-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

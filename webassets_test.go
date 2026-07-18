@@ -70,3 +70,32 @@ func TestFaviconSVGEmbedded(t *testing.T) {
 		})
 	}
 }
+
+func TestIBMPlexSansFontsEmbedded(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		path string
+	}{
+		{name: "regular 400", path: "fonts/ibm-plex-sans-latin-400-normal.woff2"},
+		{name: "medium 500", path: "fonts/ibm-plex-sans-latin-500-normal.woff2"},
+		{name: "semibold 600", path: "fonts/ibm-plex-sans-latin-600-normal.woff2"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			f, err := SubFS.Open(tt.path)
+			if err != nil {
+				t.Fatalf("SubFS.Open(%q) error = %v", tt.path, err)
+			}
+			defer f.Close()
+			data, err := io.ReadAll(f)
+			if err != nil {
+				t.Fatalf("ReadAll() error = %v", err)
+			}
+			if len(data) < 1000 {
+				t.Fatalf("font %q too small: %d bytes", tt.path, len(data))
+			}
+		})
+	}
+}

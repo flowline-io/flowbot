@@ -2,12 +2,12 @@
   'use strict';
 
   var palette = [
+    '#0f766e',
     '#0d9488',
-    '#3b82f6',
-    '#8b5cf6',
+    '#5eead4',
+    '#64748b',
     '#f59e0b',
     '#ef4444',
-    '#06b6d4',
   ];
 
   function formatAxis(value) {

@@ -16,7 +16,7 @@
 
   var CONTEXT_CATEGORY_COLORS = {
     system_prompt: '#9ca3af',
-    system_tools: '#a78bfa',
+    system_tools: '#0d9488',
     skills: '#fb923c',
     messages: '#b4534a',
     autocompact_buffer: '#64748b',

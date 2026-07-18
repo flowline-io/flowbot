@@ -1,26 +1,165 @@
+/* IBM Plex Sans — self-hosted latin subsets (no Google Fonts CDN) */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/ibm-plex-sans-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/static/fonts/ibm-plex-sans-latin-500-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/static/fonts/ibm-plex-sans-latin-600-normal.woff2') format('woff2');
+}
+
 /* Prevent horizontal overflow from wide navbar content on small screens */
 body {
   overflow-x: hidden;
   font-family:
-    'Segoe UI', 'Helvetica Neue', 'Noto Sans', ui-sans-serif, sans-serif;
+    'IBM Plex Sans', 'Segoe UI', 'Helvetica Neue', 'Noto Sans', ui-sans-serif,
+    sans-serif;
   font-feature-settings:
     'kern' 1,
     'liga' 1;
 }
 
 .flowbot-shell {
-  --flowbot-brand: oklch(0.55 0.1 180);
+  --flowbot-brand: #0f766e;
+  --flowbot-radius: 0.375rem;
+  --flowbot-radius-box: 0.5rem;
+  --flowbot-shadow: 0 1px 2px oklch(0 0 0 / 0.04);
+  --flowbot-focus-ring: 0 0 0 1px var(--color-primary, #0f766e);
 }
 
 /* Prefer teal primary when DaisyUI theme exposes CSS variables */
 [data-theme='light'] {
   --color-primary: #0f766e;
   --color-primary-content: #ecfdf5;
+  --color-secondary: #134e4a;
+  --color-secondary-content: #f0fdfa;
+  --color-accent: #0d9488;
+  --color-accent-content: #f0fdfa;
 }
 
 [data-theme='dark'] {
   --color-primary: #2dd4bf;
   --color-primary-content: #042f2e;
+  --color-secondary: #5eead4;
+  --color-secondary-content: #042f2e;
+  --color-accent: #14b8a6;
+  --color-accent-content: #042f2e;
+}
+
+/* Status / metadata chips — smaller radius than DaisyUI pill badges */
+.flowbot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.25;
+  border: 1px solid transparent;
+}
+
+.flowbot-chip-success {
+  background: color-mix(
+    in oklab,
+    var(--color-success, #16a34a) 14%,
+    transparent
+  );
+  color: var(--color-success, #16a34a);
+  border-color: color-mix(
+    in oklab,
+    var(--color-success, #16a34a) 28%,
+    transparent
+  );
+}
+
+.flowbot-chip-error {
+  background: color-mix(in oklab, var(--color-error, #dc2626) 14%, transparent);
+  color: var(--color-error, #dc2626);
+  border-color: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 28%,
+    transparent
+  );
+}
+
+.flowbot-chip-warning {
+  background: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 14%,
+    transparent
+  );
+  color: var(--color-warning, #d97706);
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 28%,
+    transparent
+  );
+}
+
+.flowbot-chip-muted {
+  background: color-mix(
+    in oklab,
+    var(--color-base-content, #111) 6%,
+    transparent
+  );
+  color: color-mix(in oklab, var(--color-base-content, #111) 65%, transparent);
+  border-color: color-mix(
+    in oklab,
+    var(--color-base-content, #111) 12%,
+    transparent
+  );
+}
+
+.flowbot-chip-primary {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    transparent
+  );
+  color: var(--color-primary, #0f766e);
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 28%,
+    transparent
+  );
+}
+
+/* Bordered surface instead of card+shadow wrappers */
+.flowbot-surface {
+  background: var(--color-base-100, #fff);
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+}
+
+/* Segmented join controls: square corners, no pill look */
+.flowbot-shell .join .join-item.btn {
+  border-radius: 0;
+}
+
+.flowbot-shell .join .join-item.btn:first-child {
+  border-top-left-radius: var(--flowbot-radius, 0.375rem);
+  border-bottom-left-radius: var(--flowbot-radius, 0.375rem);
+}
+
+.flowbot-shell .join .join-item.btn:last-child {
+  border-top-right-radius: var(--flowbot-radius, 0.375rem);
+  border-bottom-right-radius: var(--flowbot-radius, 0.375rem);
 }
 
 /* Chat agent full-height layout: single scroll in messages pane only */
@@ -89,8 +228,11 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-page .chatagent-input-wrap:focus-within {
-  border-color: var(--color-primary, #4f46e5);
-  box-shadow: 0 0 0 1px var(--color-primary, #4f46e5);
+  border-color: var(--color-primary, #0f766e);
+  box-shadow: var(
+    --flowbot-focus-ring,
+    0 0 0 1px var(--color-primary, #0f766e)
+  );
 }
 
 .chatagent-page .chatagent-context-ring-wrap {
@@ -120,7 +262,7 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-page .chatagent-context-ring-progress {
-  stroke: #4338ca;
+  stroke: var(--color-primary, #0f766e);
   transition: stroke-dashoffset 0.2s ease;
 }
 
@@ -133,7 +275,7 @@ body:has(.chatagent-page) > main {
 }
 
 .chatagent-page .chatagent-context-ring:hover .chatagent-context-ring-progress {
-  stroke: #3730a3;
+  stroke: color-mix(in oklab, var(--color-primary, #0f766e) 85%, #000);
 }
 
 .chatagent-page .chatagent-context-popover {
@@ -557,10 +699,10 @@ body:has(.chatagent-page) > main {
 
 .agents-composer-box {
   background: oklch(var(--b1));
-  border: 1.5px solid oklch(var(--bc) / 0.35);
-  border-radius: 1rem;
+  border: 1px solid oklch(var(--bc) / 0.2);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
   padding: 1rem 1rem 0.75rem;
-  box-shadow: 0 1px 3px oklch(0 0 0 / 0.08);
+  box-shadow: var(--flowbot-shadow, 0 1px 2px oklch(0 0 0 / 0.04));
 }
 
 .agents-composer-input {
@@ -600,10 +742,10 @@ body:has(.chatagent-page) > main {
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  border-radius: 9999px;
+  border-radius: var(--flowbot-radius, 0.375rem);
   border: 0;
-  background: oklch(var(--bc));
-  color: oklch(var(--b1));
+  background: var(--color-primary, oklch(var(--bc)));
+  color: var(--color-primary-content, oklch(var(--b1)));
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -627,8 +769,7 @@ body:has(.chatagent-page) > main {
 .agents-session-list-label {
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: oklch(var(--bc) / 0.45);
 }
 
@@ -671,25 +812,28 @@ body:has(.chatagent-page) > main {
 }
 
 .agents-session-thumb-active {
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, oklch(0.65 0.18 250) 55%, transparent),
-    0 0 0 2px color-mix(in oklab, oklch(0.75 0.15 55) 35%, transparent);
+  box-shadow: 0 0 0 1px
+    color-mix(in oklab, var(--color-primary, #0f766e) 55%, transparent);
 }
 
 .agents-session-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
   font-size: 0.65rem;
   font-weight: 600;
   line-height: 1.2;
 }
 
 .agents-session-badge-active {
-  background: #f3e8ff;
-  color: #6b21a8;
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    transparent
+  );
+  color: var(--color-primary, #0f766e);
 }
 
 .agents-session-badge-closed {
@@ -733,6 +877,10 @@ body:has(.chatagent-page) > main {
 }
 
 [data-theme='dark'] .agents-session-badge-active {
-  background: oklch(45% 0.12 300 / 0.35);
-  color: oklch(85% 0.08 300);
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #2dd4bf) 22%,
+    transparent
+  );
+  color: var(--color-primary, #2dd4bf);
 }

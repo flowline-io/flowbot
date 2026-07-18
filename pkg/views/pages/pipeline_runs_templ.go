@@ -90,7 +90,7 @@ func PipelineRunsPage(name string, runs []*gen.PipelineRun) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\"><div class=\"card bg-base-100 shadow-sm mb-6 animate-pulse\"><div class=\"card-body p-6\"><div class=\"h-64 bg-base-200 rounded\"></div></div></div></div><div id=\"pipeline-runs-container\" data-testid=\"pipeline-runs-container\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\"><div class=\"flowbot-surface mb-6 animate-pulse p-6\"><div class=\"h-64 bg-base-200 rounded\"></div></div></div><div id=\"pipeline-runs-container\" data-testid=\"pipeline-runs-container\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

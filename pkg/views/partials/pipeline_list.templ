@@ -11,7 +11,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 				)
 			</div>
 	} else {
-		<div class="card bg-base-100 shadow-sm" data-testid="pipeline-table">
+		<div class="flowbot-surface" data-testid="pipeline-table">
 			<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
@@ -30,12 +30,12 @@ templ PipelineListTable(entries []PipelineListEntry) {
 								<a href={ templ.URL(PipelineWebPath(entry.Definition.Name)) } class="link link-hover">{ entry.Definition.Name }</a>
 							</td>
 							<td>
-								if entry.Definition.Status == "published" {
-									<span class="badge badge-success">
+				if entry.Definition.Status == "published" {
+									<span class="flowbot-chip flowbot-chip-success">
 										Published
 									</span>
 								} else {
-									<span class="badge badge-ghost">Draft</span>
+									<span class="flowbot-chip flowbot-chip-muted">Draft</span>
 								}
 							</td>
 							<td>

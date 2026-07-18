@@ -8,7 +8,7 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 		hx-trigger="every 10s"
 		hx-swap="outerHTML"
 		data-testid="hub-apps-table">
-		<div class="card bg-base-100 shadow-sm">
+		<div class="flowbot-surface">
 			<div class="overflow-x-auto">
 				<table class="table">
 					<thead>
@@ -39,11 +39,9 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 										@HubAppStatusBadge(a.Status)
 									</td>
 									<td>
-										<div class="flex flex-wrap gap-1">
-											for _, cap := range a.Capabilities {
-												<span class="badge badge-outline badge-xs">{ cap.Capability }</span>
-											}
-										</div>
+										if len(a.Capabilities) > 0 {
+											<p class="text-xs text-base-content/60 m-0 truncate" title={ capsLabel(a.Capabilities) }>{ capsLabel(a.Capabilities) }</p>
+										}
 									</td>
 									<td class="text-base-content/50 text-xs">
 										if ts, ok := updatedAts[a.Name]; ok {
@@ -63,14 +61,14 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 templ HubAppStatusBadge(status homelab.AppStatus) {
 	switch status {
 	case "running":
-		<span class="badge badge-success" data-testid="status-badge">online</span>
+		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">online</span>
 	case "stopped":
-		<span class="badge badge-ghost" data-testid="status-badge">offline</span>
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">offline</span>
 	case "partial":
-		<span class="badge badge-warning" data-testid="status-badge">warning</span>
+		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">warning</span>
 	case "unknown":
-		<span class="badge badge-ghost" data-testid="status-badge">unknown</span>
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">unknown</span>
 	default:
-		<span class="badge badge-error" data-testid="status-badge">error</span>
+		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">error</span>
 	}
 }

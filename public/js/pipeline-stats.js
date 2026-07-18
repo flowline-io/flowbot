@@ -4,7 +4,7 @@
   var colors = {
     primary:
       getComputedStyle(document.documentElement).getPropertyValue('--p') ||
-      '#3b82f6',
+      '#0f766e',
     success: '#22c55e',
     error: '#ef4444',
     warning: '#f59e0b',

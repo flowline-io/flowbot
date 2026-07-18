@@ -4,6 +4,7 @@ package pages
 import (
 	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions homelab.Permissions) {
@@ -11,10 +12,10 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 		<div class="mb-4">
 			<a href="/service/web/hub" class="btn btn-ghost btn-sm">&larr; Back to Apps</a>
 		</div>
-		<div class="card bg-base-100 shadow-sm mb-6">
-			<div class="card-body">
-				<h1 class="card-title text-2xl">{ app.Name }</h1>
-				<div id="status-area" data-testid="status-area">
+		<div class="flowbot-surface mb-6">
+			<div class="p-6">
+				<h1 class="text-2xl font-semibold tracking-tight m-0">{ app.Name }</h1>
+				<div id="status-area" data-testid="status-area" class="mt-2">
 					@HubAppStatusBadge(status)
 					<span class="ml-2 text-sm text-base-content/50">Health: { string(app.Health) }</span>
 				</div>
@@ -24,14 +25,10 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 						<div>Compose: <code class="text-xs">{ app.ComposeFile }</code></div>
 					}
 				</div>
-				if len(app.Capabilities) > 0 {
-					<div class="flex flex-wrap gap-1 mt-2">
-						for _, cap := range app.Capabilities {
-							<span class="badge badge-outline">{ cap.Capability }</span>
-						}
-					</div>
+				if label := partials.CapsLabel(app.Capabilities); label != "" {
+					<p class="text-xs text-base-content/60 m-0 mt-2 truncate" title={ label }>{ label }</p>
 				}
-				<div class="card-actions mt-4" data-testid="action-buttons">
+				<div class="flex flex-wrap gap-2 mt-4" data-testid="action-buttons">
 					if permissions.Start {
 						<button hx-post={ templ.URL("/service/web/hub/" + app.Name + "/start") }
 							hx-target="#status-area"
@@ -93,9 +90,9 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 				</div>
 			</div>
 		</div>
-		<div class="card bg-base-100 shadow-sm">
-			<div class="card-body">
-				<h2 class="card-title text-lg">Logs</h2>
+		<div class="flowbot-surface">
+			<div class="p-6">
+				<h2 class="text-lg font-semibold tracking-tight mb-3">Logs</h2>
 				<pre id="log-panel"
 					data-url={ templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100") }
 					class="bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto"
@@ -128,14 +125,14 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 templ HubAppStatusBadge(status homelab.AppStatus) {
 	switch status {
 	case "running":
-		<span class="badge badge-success" data-testid="status-badge">online</span>
+		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">online</span>
 	case "stopped":
-		<span class="badge badge-ghost" data-testid="status-badge">offline</span>
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">offline</span>
 	case "partial":
-		<span class="badge badge-warning" data-testid="status-badge">warning</span>
+		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">warning</span>
 	case "unknown":
-		<span class="badge badge-ghost" data-testid="status-badge">unknown</span>
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">unknown</span>
 	default:
-		<span class="badge badge-error" data-testid="status-badge">error</span>
+		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">error</span>
 	}
 }

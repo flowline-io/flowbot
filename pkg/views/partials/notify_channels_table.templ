@@ -5,16 +5,16 @@ import "github.com/flowline-io/flowbot/pkg/types/model"
 templ NotifyChannelsTable(channels []model.NotifyChannel) {
 	<div id="notify-channels-table"
 		data-testid="notify-channels-table"
-		class="card bg-base-100 shadow-sm">
+		class="flowbot-surface">
 		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
-					<th class="text-xs uppercase">Name</th>
-					<th class="text-xs uppercase">Protocol</th>
-					<th class="text-xs uppercase">URI</th>
-					<th class="text-xs uppercase">Status</th>
-					<th class="text-xs uppercase">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">Name</th>
+					<th class="text-xs font-medium text-base-content/55">Protocol</th>
+					<th class="text-xs font-medium text-base-content/55">URI</th>
+					<th class="text-xs font-medium text-base-content/55">Status</th>
+					<th class="text-xs font-medium text-base-content/55">Actions</th>
 				</tr>
 				</thead>
 				<tbody id="notify-channels-rows">

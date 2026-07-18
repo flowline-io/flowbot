@@ -5,16 +5,16 @@ import "github.com/flowline-io/flowbot/pkg/types/model"
 templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 	<div id="notify-templates-table"
 		data-testid="notify-templates-table"
-		class="card bg-base-100 shadow-sm">
+		class="flowbot-surface">
 		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
-					<th class="text-xs uppercase">ID</th>
-					<th class="text-xs uppercase">Name</th>
-					<th class="text-xs uppercase">Format</th>
-					<th class="text-xs uppercase">Overrides</th>
-					<th class="text-xs uppercase">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">ID</th>
+					<th class="text-xs font-medium text-base-content/55">Name</th>
+					<th class="text-xs font-medium text-base-content/55">Format</th>
+					<th class="text-xs font-medium text-base-content/55">Overrides</th>
+					<th class="text-xs font-medium text-base-content/55">Actions</th>
 				</tr>
 				</thead>
 				<tbody id="notify-templates-rows">

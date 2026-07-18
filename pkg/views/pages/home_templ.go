@@ -50,12 +50,12 @@ func HomePage(d partials.HomeDashboard) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"flex items-center justify-between mb-6\"><div><h1 class=\"text-2xl font-bold text-base-content m-0\">Home</h1><p class=\"text-sm text-base-content/60 m-0 mt-1\">Operational overview for this Flowbot instance.</p></div></div><div hx-get=\"/service/web/home/dashboard\" hx-trigger=\"load\" hx-swap=\"innerHTML\" data-testid=\"home-dashboard-loader\"><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"flex items-center justify-between mb-6\"><div><h1 class=\"text-2xl font-semibold tracking-tight text-base-content m-0\">Home</h1><p class=\"text-sm text-base-content/60 m-0 mt-1\">Operational overview for this Flowbot instance.</p></div></div><div hx-get=\"/service/web/home/dashboard\" hx-trigger=\"load\" hx-swap=\"innerHTML\" data-testid=\"home-dashboard-loader\"><div class=\"grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5 mb-8 pb-6 border-b border-base-300 animate-pulse\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for i := 0; i < 4; i++ {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"card bg-base-100 border border-base-300 shadow-sm animate-pulse\"><div class=\"card-body p-4\"><div class=\"h-3 w-24 bg-base-200 rounded mb-3\"></div><div class=\"h-8 w-16 bg-base-200 rounded\"></div></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div><div class=\"h-3 w-24 bg-base-300 rounded mb-3\"></div><div class=\"h-8 w-16 bg-base-300 rounded\"></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -68,7 +68,7 @@ func HomePage(d partials.HomeDashboard) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <div hx-get=\"/service/web/home/token-usage?range=7d&groupBy=model\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\" data-testid=\"token-usage-loader\"><div class=\"card bg-base-100 shadow-sm mb-6 animate-pulse\"><div class=\"card-body p-6\"><div class=\"h-64 bg-base-200 rounded\"></div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " <div hx-get=\"/service/web/home/token-usage?range=7d&groupBy=model\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\" data-testid=\"token-usage-loader\"><div class=\"flowbot-surface mb-6 animate-pulse p-6\"><div class=\"h-64 bg-base-200 rounded\"></div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -38,7 +38,7 @@ func TokenUsage(stats *types.TokenUsageStats) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"token-usage-container\" class=\"card bg-base-100 shadow-sm mb-6\" data-testid=\"token-usage-container\"><div class=\"card-body p-4 sm:p-6\"><div class=\"flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2\"><div><h2 class=\"text-xl font-bold text-base-content\">Token Usage</h2><p class=\"text-sm text-base-content/60\">Your usage per day across this period</p></div><div id=\"token-usage-filter-fields\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"token-usage-container\" class=\"flowbot-surface mb-6\" data-testid=\"token-usage-container\"><div class=\"p-4 sm:p-6\"><div class=\"flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2\"><div><h2 class=\"text-xl font-semibold tracking-tight text-base-content\">Token Usage</h2><p class=\"text-sm text-base-content/60\">Your usage per day across this period</p></div><div id=\"token-usage-filter-fields\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -339,40 +339,40 @@ func TokenUsage(stats *types.TokenUsageStats) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" hx-target=\"#token-usage-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-last-month\">Last month</button></div></div><div class=\"grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4\" data-testid=\"token-usage-summary\"><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3 border border-base-200\"><div class=\"stat-title text-xs\">Total Tokens</div><div class=\"stat-value text-2xl text-primary\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" hx-target=\"#token-usage-container\" hx-swap=\"outerHTML\" data-testid=\"btn-range-last-month\">Last month</button></div></div><div class=\"grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4\" data-testid=\"token-usage-summary\"><div class=\"border border-base-300 rounded-box px-4 py-3\"><div class=\"text-xs text-base-content/55\">Total Tokens</div><div class=\"text-2xl font-semibold text-primary mt-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(formatTokenCount(stats.Summary.TotalTokens))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 110, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 110, Col: 104}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3 border border-base-200\"><div class=\"stat-title text-xs\">Prompt Tokens</div><div class=\"stat-value text-2xl text-base-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div><div class=\"border border-base-300 rounded-box px-4 py-3\"><div class=\"text-xs text-base-content/55\">Prompt Tokens</div><div class=\"text-2xl font-semibold text-base-content mt-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(formatTokenCount(stats.Summary.PromptTokens))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 114, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 114, Col: 110}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div></div><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3 border border-base-200\"><div class=\"stat-title text-xs\">Completion Tokens</div><div class=\"stat-value text-2xl text-base-content\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div></div><div class=\"border border-base-300 rounded-box px-4 py-3\"><div class=\"text-xs text-base-content/55\">Completion Tokens</div><div class=\"text-2xl font-semibold text-base-content mt-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(formatTokenCount(stats.Summary.CompletionTokens))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 118, Col: 106}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 118, Col: 114}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -393,7 +393,7 @@ func TokenUsage(stats *types.TokenUsageStats) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"card bg-base-100 border border-base-200\" data-testid=\"token-usage-chart-card\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Cumulative Tokens</h3><div class=\"relative w-full\" style=\"height:280px\" data-testid=\"token-usage-chart-wrap\"><div id=\"token-usage-today-marker\" class=\"pointer-events-none absolute top-0 bottom-8 w-px border-l border-dashed border-base-content/30 hidden\" data-testid=\"token-usage-today-marker\"></div><span id=\"token-usage-today-label\" class=\"pointer-events-none absolute text-xs text-base-content/50 hidden\" data-testid=\"token-usage-today-label\">Today</span><canvas id=\"token-usage-chart\" data-stats=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"border border-base-300 rounded-box\" data-testid=\"token-usage-chart-card\"><div class=\"p-4\"><h3 class=\"text-sm font-medium text-base-content/70 m-0 mb-2\">Cumulative Tokens</h3><div class=\"relative w-full\" style=\"height:280px\" data-testid=\"token-usage-chart-wrap\"><div id=\"token-usage-today-marker\" class=\"pointer-events-none absolute top-0 bottom-8 w-px border-l border-dashed border-base-content/30 hidden\" data-testid=\"token-usage-today-marker\"></div><span id=\"token-usage-today-label\" class=\"pointer-events-none absolute text-xs text-base-content/50 hidden\" data-testid=\"token-usage-today-label\">Today</span><canvas id=\"token-usage-chart\" data-stats=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

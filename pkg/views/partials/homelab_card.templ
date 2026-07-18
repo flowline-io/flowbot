@@ -51,17 +51,35 @@ func capsText(caps []homelab.AppCapability) string {
 	return strings.Join(items, ",")
 }
 
+// CapsLabel joins capability names with a middle-dot separator for compact display.
+func CapsLabel(caps []homelab.AppCapability) string {
+	if len(caps) == 0 {
+		return ""
+	}
+	names := make([]string, 0, len(caps))
+	for _, c := range caps {
+		if c.Capability != "" {
+			names = append(names, c.Capability)
+		}
+	}
+	return strings.Join(names, " · ")
+}
+
+func capsLabel(caps []homelab.AppCapability) string {
+	return CapsLabel(caps)
+}
+
 templ HomelabCard(app homelab.App) {
-	<div class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
+	<div class="flowbot-surface hover:border-primary/40 transition-colors"
 		data-app-name={ app.Name }
 		data-app-caps={ capsText(app.Capabilities) }
 		data-testid={ "homelab-card-" + app.Name }
 		x-show="appMatches($el)"
 		x-data>
-		<div class="card-body p-4">
+		<div class="p-4">
 			<div class="flex items-center gap-3">
 				<div class={ "avatar placeholder " + avatarColorName(app.Name) }>
-					<div class="w-10 rounded-full text-white">
+					<div class="w-10 rounded-md text-white">
 						<span class="text-lg font-semibold">{ avatarLetter(app.Name) }</span>
 					</div>
 				</div>
@@ -82,14 +100,10 @@ templ HomelabCard(app homelab.App) {
 					}
 				</div>
 			</div>
-			<div class="flex items-center gap-2 mt-3">
+			<div class="flex items-center gap-2 mt-3 min-w-0">
 				@HomelabStatusBadge(app.Status)
-				if len(app.Capabilities) > 0 {
-					<div class="flex flex-wrap gap-1 ml-auto">
-						for _, cap := range app.Capabilities {
-							<span class="badge badge-outline badge-xs">{ cap.Capability }</span>
-						}
-					</div>
+				if label := capsLabel(app.Capabilities); label != "" {
+					<p class="text-xs text-base-content/55 m-0 ml-auto truncate" title={ label }>{ label }</p>
 				}
 			</div>
 		</div>
@@ -99,14 +113,14 @@ templ HomelabCard(app homelab.App) {
 templ HomelabStatusBadge(status homelab.AppStatus) {
 	switch status {
 	case homelab.AppStatusRunning:
-		<span class="badge badge-success badge-sm" data-testid="status-badge">online</span>
+		<span class="flowbot-chip flowbot-chip-success" data-testid="status-badge">online</span>
 	case homelab.AppStatusStopped:
-		<span class="badge badge-ghost badge-sm" data-testid="status-badge">offline</span>
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">offline</span>
 	case homelab.AppStatusPartial:
-		<span class="badge badge-warning badge-sm" data-testid="status-badge">warning</span>
+		<span class="flowbot-chip flowbot-chip-warning" data-testid="status-badge">warning</span>
 	case homelab.AppStatusUnknown:
-		<span class="badge badge-ghost badge-sm" data-testid="status-badge">unknown</span>
+		<span class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">unknown</span>
 	default:
-		<span class="badge badge-error badge-sm" data-testid="status-badge">error</span>
+		<span class="flowbot-chip flowbot-chip-error" data-testid="status-badge">error</span>
 	}
 }

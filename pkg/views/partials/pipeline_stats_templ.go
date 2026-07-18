@@ -44,40 +44,40 @@ func PipelineStats(name string, stats *types.PipelineStats) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if name == "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4\" data-testid=\"pipeline-stats-summary\"><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3\"><div class=\"stat-title text-xs\">Total Pipelines</div><div class=\"stat-value text-2xl text-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4\" data-testid=\"pipeline-stats-summary\"><div class=\"border border-base-300 rounded-box px-4 py-3\"><div class=\"text-xs text-base-content/55\">Total Pipelines</div><div class=\"text-2xl font-semibold text-primary mt-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(stats.Summary.TotalPipelines))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 19, Col: 93}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 19, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3\"><div class=\"stat-title text-xs\">Successful Runs</div><div class=\"stat-value text-2xl text-success\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><div class=\"border border-base-300 rounded-box px-4 py-3\"><div class=\"text-xs text-base-content/55\">Successful Runs</div><div class=\"text-2xl font-semibold text-success mt-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(stats.Summary.SuccessfulRuns))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 23, Col: 93}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 23, Col: 101}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div><div class=\"stat bg-base-100 shadow-sm rounded-box px-4 py-3\"><div class=\"stat-title text-xs\">Failed Runs</div><div class=\"stat-value text-2xl text-error\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div><div class=\"border border-base-300 rounded-box px-4 py-3\"><div class=\"text-xs text-base-content/55\">Failed Runs</div><div class=\"text-2xl font-semibold text-error mt-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(stats.Summary.FailedRuns))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 27, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_stats.templ`, Line: 27, Col: 95}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -166,7 +166,7 @@ func PipelineStats(name string, stats *types.PipelineStats) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-month\">month</button></div></div><!-- Charts --><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6\"><div class=\"lg:col-span-2 card bg-base-100 shadow-sm\" data-testid=\"chart-success-rate\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Success Rate Trend</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-success-rate\" data-stats=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" hx-target=\"#pipeline-stats-container\" hx-swap=\"outerHTML\" data-testid=\"btn-groupby-month\">month</button></div></div><!-- Charts --><div class=\"grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6\"><div class=\"lg:col-span-2 flowbot-surface\" data-testid=\"chart-success-rate\"><div class=\"p-4\"><h3 class=\"text-sm font-medium text-base-content/70 m-0 mb-2\">Success Rate Trend</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-success-rate\" data-stats=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -179,7 +179,7 @@ func PipelineStats(name string, stats *types.PipelineStats) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-chart-type=\"line\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-duration\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Duration Distribution</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-duration\" data-chart-type=\"bar\"></canvas></div></div></div><div class=\"card bg-base-100 shadow-sm\" data-testid=\"chart-trigger\"><div class=\"card-body p-4\"><h3 class=\"card-title text-sm text-base-content/70\">Trigger Sources</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-trigger\" data-chart-type=\"doughnut\"></canvas></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-chart-type=\"line\"></canvas></div></div></div><div class=\"flowbot-surface\" data-testid=\"chart-duration\"><div class=\"p-4\"><h3 class=\"text-sm font-medium text-base-content/70 m-0 mb-2\">Duration Distribution</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-duration\" data-chart-type=\"bar\"></canvas></div></div></div><div class=\"flowbot-surface\" data-testid=\"chart-trigger\"><div class=\"p-4\"><h3 class=\"text-sm font-medium text-base-content/70 m-0 mb-2\">Trigger Sources</h3><div class=\"relative w-full\" style=\"height:256px\"><canvas id=\"chart-trigger\" data-chart-type=\"doughnut\"></canvas></div></div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

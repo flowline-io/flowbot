@@ -23,13 +23,13 @@ templ Base(title string) {
 		<script src="/static/js/confirm.js" defer></script>
 	</head>
 	<body class="bg-base-200 min-h-screen flowbot-shell">
-		<nav class="navbar bg-base-100 shadow-sm px-2 sm:px-4 border-b border-base-300">
+		<nav class="navbar bg-base-100 px-2 sm:px-4 border-b border-base-300">
 			<div class="navbar-start min-w-0 gap-0">
 				<div class="dropdown lg:hidden">
 					<div tabindex="0" role="button" data-testid="nav-mobile-menu" class="btn btn-ghost btn-square" aria-label="Open navigation menu">
 						<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
 					</div>
-					<ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box z-[100] mt-3 w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 shadow-lg border border-base-300">
+					<ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box z-[100] mt-3 w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 border border-base-300">
 						<li class="menu-title">Agent</li>
 						<li><a href="/service/web/agents">Agents</a></li>
 						<li><a href="/service/web/agent-skills">Skills</a></li>
@@ -54,7 +54,7 @@ templ Base(title string) {
 				</div>
 				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate gap-2" aria-label="Flowbot home">
 					@partials.BrandMark("w-6 h-6 shrink-0 text-primary")
-					<span>Flowbot</span>
+					<span class="font-semibold tracking-tight">Flowbot</span>
 				</a>
 			</div>
 			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
@@ -142,7 +142,7 @@ templ Base(title string) {
 				</button>
 			</div>
 		</nav>
-		<main class="max-w-7xl mx-auto px-4 py-8">
+		<main class="max-w-7xl mx-auto px-4 py-6">
 			{ children... }
 		</main>
 		<div id="toast-container" class="toast toast-end z-[9999]" data-testid="toast-container"></div>

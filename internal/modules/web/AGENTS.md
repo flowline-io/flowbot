@@ -266,9 +266,12 @@ Rules:
 - Delivery: Local vendor files in `public/vendor/`, embedded via `webassets.go`, served at `/static/vendor/*`
 - No CDN references; no local build step required
 - Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage). Default picker shows light/dark; advanced DaisyUI themes remain available under Advanced.
-- Brand tokens: teal primary aligned with favicon (`#0F766E` / `#2DD4BF`); body font stack in `public/css/custom.css`
-- Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.SubFS`
-- Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, etc.
+- Brand: teal primary aligned with favicon (`#0F766E` light / `#2DD4BF` dark). Never hardcode violet/indigo/purple for brand or charts.
+- Typography: self-hosted IBM Plex Sans (`public/fonts/`, weights 400/500/600) via `custom.css` `@font-face`. Do not add Google Fonts CDN.
+- Surfaces: prefer `.flowbot-surface` (border only) over `card` + `shadow-sm` wrappers for tables and panels. Cards are for interactive containers only.
+- Chips vs badges: status uses `.flowbot-chip` (small radius). Metadata (scopes, capability names, ports) uses plain/mono text — no flex-wrap pill walls.
+- Custom CSS: `public/css/custom.css` for tokens (`.flowbot-shell`), chips, agents/chatagent styles; served via embedded `webassets.SubFS`
+- Component classes: Use `btn`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, etc.
 - Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
 - Page-specific JS: load via `partials.TokenUsageScripts` / `PipelineStatsScripts` / `EventFilterScripts` / `HomelabRegistryScripts` — do not re-add heavy scripts to `base.templ`
 

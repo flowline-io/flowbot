@@ -3,20 +3,20 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/hub"
 
 templ CapabilityCard(d hub.Descriptor) {
-	<div class="card bg-base-100 shadow-sm" data-testid={ "capability-card-" + string(d.Type) }>
-		<div class="card-body p-4">
+	<div class="flowbot-surface" data-testid={ "capability-card-" + string(d.Type) }>
+		<div class="p-4">
 			<div x-data="{ expanded: false }">
 				<div class="cursor-pointer" @click="expanded = !expanded">
-					<div class="flex items-center justify-between">
-						<div class="flex items-center gap-2">
-							<span class="badge badge-primary badge-sm">{ string(d.Type) }</span>
-							<span class="text-sm font-medium text-base-content">{ d.App }</span>
+					<div class="flex items-center justify-between gap-2">
+						<div class="flex items-center gap-2 min-w-0">
+							<span class="flowbot-chip flowbot-chip-primary shrink-0">{ string(d.Type) }</span>
+							<span class="text-sm font-medium text-base-content truncate">{ d.App }</span>
 						</div>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-2 shrink-0">
 							if d.Healthy {
-								<span class="badge badge-success badge-xs"></span>
+								<span class="flowbot-chip flowbot-chip-success" aria-label="healthy">ok</span>
 							} else {
-								<span class="badge badge-warning badge-xs"></span>
+								<span class="flowbot-chip flowbot-chip-warning" aria-label="unhealthy">warn</span>
 							}
 						</div>
 					</div>
@@ -42,28 +42,37 @@ templ CapabilityCard(d hub.Descriptor) {
 									<div class="text-xs text-base-content/70 mt-0.5">{ op.Description }</div>
 								}
 								if len(op.Input) > 0 {
-									<div class="text-xs text-base-content/50 mt-1">Input:</div>
-									<div class="flex flex-wrap gap-1 mt-0.5">
-										for _, p := range op.Input {
-											<span class="badge badge-ghost badge-xs">{ p.Name }: { p.Type }</span>
+									<div class="text-xs text-base-content/50 mt-1">Input</div>
+									<p class="text-xs font-mono text-base-content/70 m-0 mt-0.5 break-all">
+										for i, p := range op.Input {
+											if i > 0 {
+												<span class="text-base-content/40"> · </span>
+											}
+											<span>{ p.Name }: { p.Type }</span>
 										}
-									</div>
+									</p>
 								}
 								if len(op.Output) > 0 {
-									<div class="text-xs text-base-content/50 mt-1">Output:</div>
-									<div class="flex flex-wrap gap-1 mt-0.5">
-										for _, p := range op.Output {
-											<span class="badge badge-ghost badge-xs">{ p.Name }: { p.Type }</span>
+									<div class="text-xs text-base-content/50 mt-1">Output</div>
+									<p class="text-xs font-mono text-base-content/70 m-0 mt-0.5 break-all">
+										for i, p := range op.Output {
+											if i > 0 {
+												<span class="text-base-content/40"> · </span>
+											}
+											<span>{ p.Name }: { p.Type }</span>
 										}
-									</div>
+									</p>
 								}
 								if len(op.Scopes) > 0 {
-									<div class="text-xs text-base-content/50 mt-1">Scopes:</div>
-									<div class="flex flex-wrap gap-1 mt-0.5">
-										for _, s := range op.Scopes {
-											<span class="badge badge-outline badge-xs">{ s }</span>
+									<div class="text-xs text-base-content/50 mt-1">Scopes</div>
+									<p class="text-xs font-mono text-base-content/70 m-0 mt-0.5 break-all">
+										for i, s := range op.Scopes {
+											if i > 0 {
+												<span class="text-base-content/40"> · </span>
+											}
+											<span>{ s }</span>
 										}
-									</div>
+									</p>
 								}
 							</div>
 						}

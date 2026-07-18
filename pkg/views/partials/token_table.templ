@@ -3,18 +3,18 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ TokenTable(items []model.TokenItem) {
-	<div class="card bg-base-100 shadow-sm">
+	<div class="flowbot-surface">
 		<div id="tokens-table" data-testid="token-table" class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
-					<th class="text-xs uppercase">UID</th>
-					<th class="text-xs uppercase">Token</th>
-					<th class="text-xs uppercase">Created</th>
-					<th class="text-xs uppercase">Last Used</th>
-					<th class="text-xs uppercase">Expires</th>
-					<th class="text-xs uppercase">Scopes</th>
-					<th class="text-xs uppercase">Actions</th>
+					<th class="text-xs font-medium text-base-content/55">UID</th>
+					<th class="text-xs font-medium text-base-content/55">Token</th>
+					<th class="text-xs font-medium text-base-content/55">Created</th>
+					<th class="text-xs font-medium text-base-content/55">Last Used</th>
+					<th class="text-xs font-medium text-base-content/55">Expires</th>
+					<th class="text-xs font-medium text-base-content/55">Scopes</th>
+					<th class="text-xs font-medium text-base-content/55">Actions</th>
 				</tr>
 				</thead>
 				<tbody id="tokens-rows">
