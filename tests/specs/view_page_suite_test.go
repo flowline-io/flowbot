@@ -288,6 +288,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 				formData := "username=admin&password=flowbot-dev-pass"
 				req := MakeRequest(http.MethodPost, "/service/web/login", []byte(formData))
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -304,6 +305,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 				formData := "username=wrong&password=wrong"
 				req := MakeRequest(http.MethodPost, "/service/web/login", []byte(formData))
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
