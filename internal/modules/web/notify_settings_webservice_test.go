@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -40,6 +41,166 @@ func TestNotifySettingsPageUnauthenticated(t *testing.T) {
 			body, _ := io.ReadAll(resp.Body)
 			if len(body) > 0 && strings.Contains(string(body), "Notify Settings") {
 				t.Error("unauthenticated request should not render notify settings page")
+			}
+		})
+	}
+}
+
+func TestNotifyChannelCreate(t *testing.T) {
+	tests := []struct {
+		name       string
+		form       url.Values
+		wantStatus int
+		wantURI    string
+		wantErrSub string
+	}{
+		{
+			name: "creates channel with slack uri",
+			form: url.Values{
+				"name":     {"alerts"},
+				"protocol": {"slack"},
+				"uri":      {"slack://T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"},
+			},
+			wantStatus: http.StatusOK,
+			wantURI:    "slack://T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+		},
+		{
+			name: "rejects missing uri",
+			form: url.Values{
+				"name":     {"alerts"},
+				"protocol": {"slack"},
+				"uri":      {""},
+			},
+			wantStatus: http.StatusOK,
+			wantErrSub: "URI is required",
+		},
+		{
+			name: "rejects missing name",
+			form: url.Values{
+				"name":     {""},
+				"protocol": {"slack"},
+				"uri":      {"slack://T00/B00/xxx"},
+			},
+			wantStatus: http.StatusOK,
+			wantErrSub: "Name is required",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notify-settings/channels", strings.NewReader(tt.form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if tt.wantErrSub != "" {
+				if !strings.Contains(string(body), tt.wantErrSub) {
+					t.Errorf("want body containing %q, got %q", tt.wantErrSub, string(body))
+				}
+				return
+			}
+			if len(ts.notifyChannels) != 1 {
+				t.Fatalf("want 1 channel stored, got %d", len(ts.notifyChannels))
+			}
+			for _, ch := range ts.notifyChannels {
+				if ch.URI != tt.wantURI {
+					t.Errorf("want uri %q, got %q", tt.wantURI, ch.URI)
+				}
+			}
+		})
+	}
+}
+
+func TestNotifyChannelUpdate(t *testing.T) {
+	tests := []struct {
+		name       string
+		form       url.Values
+		wantStatus int
+		wantURI    string
+		wantErrSub string
+	}{
+		{
+			name: "accepts filled slack uri on update",
+			form: url.Values{
+				"name":     {"alerts"},
+				"protocol": {"slack"},
+				"uri":      {"slack://T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"},
+				"enabled":  {"on"},
+			},
+			wantStatus: http.StatusOK,
+			wantURI:    "slack://T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+		},
+		{
+			name: "empty uri keeps existing secret",
+			form: url.Values{
+				"name":     {"alerts"},
+				"protocol": {"slack"},
+				"uri":      {""},
+				"enabled":  {"on"},
+			},
+			wantStatus: http.StatusOK,
+			wantURI:    "slack://KEEP/EXISTING/SECRET",
+		},
+		{
+			name: "rejects missing name",
+			form: url.Values{
+				"name":     {""},
+				"protocol": {"slack"},
+				"uri":      {"slack://T00/B00/xxx"},
+			},
+			wantStatus: http.StatusOK,
+			wantErrSub: "Name is required",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			ts.notifyChannels = map[int64]model.NotifyChannel{
+				1: {
+					ID:       1,
+					Name:     "alerts",
+					Protocol: "slack",
+					URI:      "slack://KEEP/EXISTING/SECRET",
+					Enabled:  true,
+				},
+			}
+
+			req := httptest.NewRequest(http.MethodPut, "/service/web/notify-settings/channels/1", strings.NewReader(tt.form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if tt.wantErrSub != "" {
+				if !strings.Contains(string(body), tt.wantErrSub) {
+					t.Errorf("want body containing %q, got %q", tt.wantErrSub, string(body))
+				}
+				return
+			}
+			if strings.Contains(string(body), "URI is required") {
+				t.Fatalf("update unexpectedly rejected URI: %s", string(body))
+			}
+			ch := ts.notifyChannels[1]
+			if ch.URI != tt.wantURI {
+				t.Errorf("want uri %q, got %q", tt.wantURI, ch.URI)
 			}
 		})
 	}

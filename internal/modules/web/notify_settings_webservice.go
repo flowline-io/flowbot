@@ -82,14 +82,14 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 	if len(errs) > 0 {
 		protocols := getProtocolsList()
 		ctx.Type("html")
-		return partials.NotifyChannelForm(model.NotifyChannel{Name: name, Protocol: protocol}, true, errs, protocols).
+		return partials.NotifyChannelForm(model.NotifyChannel{Name: name, Protocol: protocol, URI: uri}, true, errs, protocols).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	id, err := store.Database.CreateNotifyChannel(ctx.Context(), name, protocol, uri)
 	if err != nil {
 		protocols := getProtocolsList()
 		ctx.Type("html")
-		return partials.NotifyChannelForm(model.NotifyChannel{Name: name, Protocol: protocol}, true,
+		return partials.NotifyChannelForm(model.NotifyChannel{Name: name, Protocol: protocol, URI: uri}, true,
 			map[string]string{"_save": err.Error()}, protocols).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
@@ -132,7 +132,11 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 	protocol := ctx.FormValue("protocol")
 	uri := ctx.FormValue("uri")
 	enabled := ctx.FormValue("enabled") == "on"
-	errs := validateChannelForm(name, protocol, "")
+	// Empty URI keeps the existing secret; only validate name/protocol when URI is omitted.
+	errs := validateChannelForm(name, protocol, uri)
+	if uri == "" {
+		delete(errs, "uri")
+	}
 	if len(errs) > 0 {
 		protocols := getProtocolsList()
 		ctx.Type("html")

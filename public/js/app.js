@@ -13,15 +13,18 @@ function showToast(message, type) {
   var item = document.createElement('div');
   item.className = 'toast-item toast-' + type;
   item.textContent = message;
+  item.setAttribute('role', 'status');
 
   container.appendChild(item);
 
+  // Errors often include longer diagnostics; give more reading time.
+  var ttl = type === 'error' ? 8000 : 4000;
   setTimeout(function () {
     item.classList.add('toast-removing');
     setTimeout(function () {
       if (item.parentNode) item.parentNode.removeChild(item);
     }, 300);
-  }, 4000);
+  }, ttl);
 }
 
 // Bridge HTMX HX-Trigger {"showToast": {...}} events to the toast UI.

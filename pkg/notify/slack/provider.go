@@ -4,6 +4,7 @@ package slack
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"resty.dev/v3"
@@ -49,33 +50,54 @@ func doSend(tokens types.KV, message notify.Message, client *resty.Client, baseU
 
 	client.SetTimeout(time.Minute)
 
-	resp, err := client.R().SetBody(map[string]any{
-		"text": message.Title,
-		"blocks": []map[string]any{
-			{
-				"type": "section",
-				"text": map[string]any{
-					"type": "mrkdwn",
-					"text": message.Body,
-				},
-			},
-			{
-				"type": "section",
-				"text": map[string]any{
-					"type": "mrkdwn",
-					"text": message.Url,
-				},
+	bodyText := strings.TrimSpace(message.Body)
+	if bodyText == "" {
+		bodyText = strings.TrimSpace(message.Title)
+	}
+	if bodyText == "" {
+		bodyText = "Notification"
+	}
+
+	blocks := []map[string]any{
+		{
+			"type": "section",
+			"text": map[string]any{
+				"type": "mrkdwn",
+				"text": bodyText,
 			},
 		},
-	}).Post(url)
+	}
+	if message.Url != "" {
+		blocks = append(blocks, map[string]any{
+			"type": "section",
+			"text": map[string]any{
+				"type": "mrkdwn",
+				"text": message.Url,
+			},
+		})
+	}
+
+	payload := map[string]any{
+		"text":   message.Title,
+		"blocks": blocks,
+	}
+	if botname != "" {
+		payload["username"] = botname
+	}
+
+	resp, err := client.R().SetBody(payload).Post(url)
 	if err != nil {
 		flog.Error(fmt.Errorf("[slack] send failed: %w", err))
 		return fmt.Errorf("slack: %w", err)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		flog.Error(fmt.Errorf("[slack] send failed: non-200 response %d", resp.StatusCode()))
-		return fmt.Errorf("slack: non-200 response %d", resp.StatusCode())
+		respBody := strings.TrimSpace(resp.String())
+		flog.Error(fmt.Errorf("[slack] send failed: non-200 response %d body=%s", resp.StatusCode(), respBody))
+		if respBody == "" {
+			return fmt.Errorf("slack: non-200 response %d", resp.StatusCode())
+		}
+		return fmt.Errorf("slack: non-200 response %d: %s", resp.StatusCode(), respBody)
 	}
 
 	flog.Debug("[slack] sent notification: %s", message.Title)

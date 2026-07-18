@@ -151,6 +151,46 @@ func (s *testStore) GetNotifyChannelRaw(_ context.Context, id int64) (model.Noti
 	return ch, nil
 }
 
+// GetNotifyChannel returns a channel by ID (URI may be masked by real adapters).
+func (s *testStore) GetNotifyChannel(ctx context.Context, id int64) (model.NotifyChannel, error) {
+	return s.GetNotifyChannelRaw(ctx, id)
+}
+
+// CreateNotifyChannel stores a new notify channel in the test map.
+func (s *testStore) CreateNotifyChannel(_ context.Context, name, protocol, uri string) (int64, error) {
+	if s.notifyChannels == nil {
+		s.notifyChannels = map[int64]model.NotifyChannel{}
+	}
+	id := int64(len(s.notifyChannels) + 1)
+	s.notifyChannels[id] = model.NotifyChannel{
+		ID:       id,
+		Name:     name,
+		Protocol: protocol,
+		URI:      uri,
+		Enabled:  true,
+	}
+	return id, nil
+}
+
+// UpdateNotifyChannel updates an existing notify channel; empty uri keeps the previous value.
+func (s *testStore) UpdateNotifyChannel(_ context.Context, id int64, name, protocol, uri string, enabled bool) error {
+	if s.notifyChannels == nil {
+		return types.ErrNotFound
+	}
+	ch, ok := s.notifyChannels[id]
+	if !ok {
+		return types.ErrNotFound
+	}
+	ch.Name = name
+	ch.Protocol = protocol
+	ch.Enabled = enabled
+	if uri != "" {
+		ch.URI = uri
+	}
+	s.notifyChannels[id] = ch
+	return nil
+}
+
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
 	store.Database = ts

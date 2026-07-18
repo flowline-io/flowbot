@@ -135,7 +135,7 @@ templ Base(title string) {
 		<main class="max-w-7xl mx-auto px-4 py-8">
 			{ children... }
 		</main>
-		<div id="toast-container" class="toast toast-end" data-testid="toast-container"></div>
+		<div id="toast-container" class="toast toast-end z-[9999]" data-testid="toast-container"></div>
 		@partials.ConfirmModal()
 		<style>
 			.htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
