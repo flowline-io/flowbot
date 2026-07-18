@@ -82,14 +82,14 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/service/web/login\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"login-form\" class=\"card bg-base-100 w-96 shadow-sm max-w-sm mx-auto mt-20\"><div class=\"card-body !p-6\"><h1 class=\"card-title justify-center text-base-content mb-6\">Flowbot</h1><input type=\"hidden\" name=\"next\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/service/web/login\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"login-form\" class=\"card bg-base-100 w-96 shadow-sm max-w-sm mx-auto mt-20\"><div class=\"card-body !p-6\"><div class=\"flex flex-col items-center gap-3 mb-6\"><img src=\"/static/favicon.svg\" alt=\"\" width=\"48\" height=\"48\" class=\"rounded-xl\"><h1 class=\"card-title justify-center text-base-content m-0\">Flowbot</h1></div><input type=\"hidden\" name=\"next\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(nextURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 22, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 25, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
@@ -107,7 +107,7 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 36, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 39, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {

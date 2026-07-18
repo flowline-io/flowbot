@@ -1,0 +1,13 @@
+package partials
+
+// BrandMark renders the Flowbot logomark (central hub with three flow nodes).
+// Uses currentColor so it adapts to DaisyUI themes.
+templ BrandMark(class string) {
+	<svg xmlns="http://www.w3.org/2000/svg" class={ class } viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<path d="M12 7v3.75M12 12.75l4 2.4M12 12.75l-4 2.4" stroke="currentColor" stroke-width="1.85" stroke-linecap="round"/>
+		<circle cx="12" cy="5.5" r="2.15" fill="currentColor"/>
+		<circle cx="17.3" cy="16.3" r="2.15" fill="currentColor"/>
+		<circle cx="6.7" cy="16.3" r="2.15" fill="currentColor"/>
+		<circle cx="12" cy="12" r="2.4" fill="currentColor"/>
+	</svg>
+}

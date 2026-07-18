@@ -10,6 +10,7 @@ templ Base(title string) {
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>{ title }</title>
+		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
 		<script>(function(){var t=localStorage.getItem('flowbot-theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script>
 		<link href="/static/vendor/daisyui.css" rel="stylesheet" type="text/css" />
 		<link href="/static/vendor/themes.css" rel="stylesheet" type="text/css" />
@@ -56,7 +57,10 @@ templ Base(title string) {
 						<li><a href="/service/web/configs">Configs</a></li>
 					</ul>
 				</div>
-				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate">Flowbot</a>
+				<a href="/service/web/home" class="btn btn-ghost text-lg sm:text-xl normal-case px-2 truncate gap-2" aria-label="Flowbot home">
+					@partials.BrandMark("w-6 h-6 shrink-0 text-primary")
+					<span>Flowbot</span>
+				</a>
 			</div>
 			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
 				<div class="hidden lg:flex items-center gap-1">

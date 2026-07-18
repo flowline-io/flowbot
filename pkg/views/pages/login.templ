@@ -18,7 +18,10 @@ templ LoginForm(nextURL string, errorMsg string) {
 		data-testid="login-form"
 		class="card bg-base-100 w-96 shadow-sm max-w-sm mx-auto mt-20">
 		<div class="card-body !p-6">
-		<h1 class="card-title justify-center text-base-content mb-6">Flowbot</h1>
+		<div class="flex flex-col items-center gap-3 mb-6">
+			<img src="/static/favicon.svg" alt="" width="48" height="48" class="rounded-xl"/>
+			<h1 class="card-title justify-center text-base-content m-0">Flowbot</h1>
+		</div>
 		<input type="hidden" name="next" value={ nextURL }/>
 		<div class="mb-4">
 			<label for="username" class="block text-sm font-medium mb-1">Username</label>
