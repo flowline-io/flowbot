@@ -158,3 +158,48 @@ func TestHomelabRegistryRescan(t *testing.T) {
 		})
 	}
 }
+
+func TestHomelabRegistryPageShowsRuntimeStatus(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       homelab.AppStatus
+		wantContains string
+	}{
+		{name: "running shows online", status: homelab.AppStatusRunning, wantContains: "online"},
+		{name: "stopped shows offline", status: homelab.AppStatusStopped, wantContains: "offline"},
+		{name: "unknown shows unknown not error label", status: homelab.AppStatusUnknown, wantContains: ">unknown<"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			oldApps := homelab.DefaultRegistry.List()
+			prevRuntime := homelab.DefaultRuntime
+			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "homelab-status-app", Status: homelab.AppStatusUnknown}})
+			homelab.DefaultRuntime = stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+				"homelab-status-app": tt.status,
+			}}
+			defer func() {
+				homelab.DefaultRegistry.Replace(oldApps)
+				homelab.DefaultRuntime = prevRuntime
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+			}()
+
+			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("want status 200, got %d", resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantContains) {
+				t.Errorf("want body containing %q", tt.wantContains)
+			}
+		})
+	}
+}

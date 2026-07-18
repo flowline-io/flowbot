@@ -43,7 +43,7 @@ func hubAppsPage(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	apps := homelab.DefaultRegistry.List()
+	apps := enrichAppStatuses(c.Context(), homelab.DefaultRegistry.List())
 	updatedAts := loadUpdatedAts(c.Context())
 	c.Type("html")
 	return pages.HubAppsPage(apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
@@ -54,7 +54,7 @@ func hubAppsList(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	apps := homelab.DefaultRegistry.List()
+	apps := enrichAppStatuses(c.Context(), homelab.DefaultRegistry.List())
 	updatedAts := loadUpdatedAts(c.Context())
 	c.Type("html")
 	return partials.HubAppsTable(apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
@@ -242,6 +242,24 @@ func loadUpdatedAts(ctx context.Context) map[string]string {
 		m[info.Name] = info.UpdatedAt.Format("2006-01-02 15:04")
 	}
 	return m
+}
+
+// enrichAppStatuses copies apps and fills Status from DefaultRuntime when available.
+func enrichAppStatuses(ctx context.Context, apps []homelab.App) []homelab.App {
+	if len(apps) == 0 {
+		return apps
+	}
+	out := make([]homelab.App, len(apps))
+	copy(out, apps)
+	for i := range out {
+		status, err := homelab.DefaultRuntime.Status(ctx, out[i])
+		if err != nil {
+			flog.Warn("hub: status lookup failed for %s: %v", out[i].Name, err)
+			continue
+		}
+		out[i].Status = status
+	}
+	return out
 }
 
 // hubCapabilitiesPage renders the full capabilities browser page.

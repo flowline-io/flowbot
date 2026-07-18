@@ -164,7 +164,9 @@ templ HomelabDetailStatusBadge(status homelab.AppStatus) {
 		<span class="badge badge-ghost" data-testid="status-badge">offline</span>
 	case homelab.AppStatusPartial:
 		<span class="badge badge-warning" data-testid="status-badge">warning</span>
+	case homelab.AppStatusUnknown:
+		<span class="badge badge-ghost" data-testid="status-badge">unknown</span>
 	default:
-		<span class="badge badge-error" data-testid="status-badge">unknown</span>
+		<span class="badge badge-error" data-testid="status-badge">error</span>
 	}
 }

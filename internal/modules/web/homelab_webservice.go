@@ -23,7 +23,7 @@ func homelabRegistryPage(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	apps := homelab.DefaultRegistry.List()
+	apps := enrichAppStatuses(c.Context(), homelab.DefaultRegistry.List())
 	updatedAts := loadUpdatedAts(c.Context())
 	scannedAt := latestScannedAt(updatedAts)
 	c.Type("html")

@@ -21,11 +21,35 @@ func TestParseComposePSStatus(t *testing.T) {
 		{name: "all exited", output: `[{"State":"exited"},{"State":"dead"}]`, want: AppStatusStopped},
 		{name: "invalid json is unknown", output: `{not json`, want: AppStatusUnknown},
 		{name: "unknown state is unknown", output: `[{"State":"created"}]`, want: AppStatusUnknown},
+		{name: "ndjson all running", output: "{\"State\":\"running\"}\n{\"State\":\"running\"}\n", want: AppStatusRunning},
+		{name: "ndjson mixed running and exited", output: "{\"State\":\"running\"}\n{\"State\":\"exited\"}\n", want: AppStatusPartial},
+		{name: "ndjson single exited", output: `{"State":"exited"}`, want: AppStatusStopped},
+		{name: "ndjson blank lines ignored", output: "\n{\"State\":\"running\"}\n\n", want: AppStatusRunning},
+		{name: "ndjson invalid line is unknown", output: "{\"State\":\"running\"}\n{not json\n", want: AppStatusUnknown},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assert.Equal(t, tt.want, parseComposePSStatus(tt.output))
+		})
+	}
+}
+
+func TestComposeFileName(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "empty defaults to docker-compose.yaml", in: "", want: "docker-compose.yaml"},
+		{name: "basename preserved", in: "compose.yaml", want: "compose.yaml"},
+		{name: "absolute path uses basename", in: "/apps/atuin/docker-compose.yaml", want: "docker-compose.yaml"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, composeFileName(tt.in))
 		})
 	}
 }

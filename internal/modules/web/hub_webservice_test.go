@@ -1,6 +1,8 @@
 package web
 
 import (
+	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -401,6 +403,133 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 			if resp.StatusCode != tt.wantStatus {
 				body, _ := io.ReadAll(resp.Body)
 				t.Errorf("want status %d, got %d body=%s", tt.wantStatus, resp.StatusCode, body)
+			}
+		})
+	}
+}
+
+type stubHubRuntime struct {
+	statusByName map[string]homelab.AppStatus
+	errByName    map[string]error
+}
+
+func (s stubHubRuntime) Status(_ context.Context, app homelab.App) (homelab.AppStatus, error) {
+	if err, ok := s.errByName[app.Name]; ok {
+		return homelab.AppStatusUnknown, err
+	}
+	if status, ok := s.statusByName[app.Name]; ok {
+		return status, nil
+	}
+	return homelab.AppStatusUnknown, nil
+}
+
+func (stubHubRuntime) Logs(context.Context, homelab.App, int) ([]string, error) {
+	return nil, nil
+}
+func (stubHubRuntime) Start(context.Context, homelab.App) error   { return nil }
+func (stubHubRuntime) Stop(context.Context, homelab.App) error    { return nil }
+func (stubHubRuntime) Restart(context.Context, homelab.App) error { return nil }
+func (stubHubRuntime) Pull(context.Context, homelab.App) error    { return nil }
+func (stubHubRuntime) Update(context.Context, homelab.App) error  { return nil }
+
+func TestEnrichAppStatuses(t *testing.T) {
+	tests := []struct {
+		name         string
+		apps         []homelab.App
+		runtime      stubHubRuntime
+		wantStatuses []homelab.AppStatus
+	}{
+		{
+			name: "fills live runtime statuses",
+			apps: []homelab.App{
+				{Name: "atuin", Status: homelab.AppStatusUnknown},
+				{Name: "caddy", Status: homelab.AppStatusUnknown},
+			},
+			runtime: stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+				"atuin": homelab.AppStatusRunning,
+				"caddy": homelab.AppStatusStopped,
+			}},
+			wantStatuses: []homelab.AppStatus{homelab.AppStatusRunning, homelab.AppStatusStopped},
+		},
+		{
+			name: "keeps previous status when runtime errors",
+			apps: []homelab.App{
+				{Name: "broken", Status: homelab.AppStatusUnknown},
+			},
+			runtime: stubHubRuntime{errByName: map[string]error{
+				"broken": errors.New("docker unavailable"),
+			}},
+			wantStatuses: []homelab.AppStatus{homelab.AppStatusUnknown},
+		},
+		{
+			name:         "empty input returns empty",
+			apps:         nil,
+			runtime:      stubHubRuntime{},
+			wantStatuses: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := homelab.DefaultRuntime
+			homelab.DefaultRuntime = tt.runtime
+			defer func() { homelab.DefaultRuntime = prev }()
+
+			got := enrichAppStatuses(context.Background(), tt.apps)
+			if len(got) != len(tt.wantStatuses) {
+				t.Fatalf("want %d apps, got %d", len(tt.wantStatuses), len(got))
+			}
+			for i, want := range tt.wantStatuses {
+				if got[i].Status != want {
+					t.Errorf("app %d status: want %q, got %q", i, want, got[i].Status)
+				}
+			}
+		})
+	}
+}
+
+func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       homelab.AppStatus
+		wantContains string
+	}{
+		{name: "running shows online", status: homelab.AppStatusRunning, wantContains: "online"},
+		{name: "stopped shows offline", status: homelab.AppStatusStopped, wantContains: "offline"},
+		{name: "unknown shows unknown not error", status: homelab.AppStatusUnknown, wantContains: ">unknown<"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			oldApps := homelab.DefaultRegistry.List()
+			prevRuntime := homelab.DefaultRuntime
+			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "status-app", Status: homelab.AppStatusUnknown}})
+			homelab.DefaultRuntime = stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+				"status-app": tt.status,
+			}}
+			defer func() {
+				homelab.DefaultRegistry.Replace(oldApps)
+				homelab.DefaultRuntime = prevRuntime
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+			}()
+
+			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/list", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("want status 200, got %d", resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantContains) {
+				t.Errorf("want body containing %q, got %s", tt.wantContains, body)
+			}
+			if tt.status == homelab.AppStatusUnknown && strings.Contains(string(body), ">error<") {
+				t.Errorf("unknown status must not render as error badge")
 			}
 		})
 	}

@@ -19,14 +19,15 @@ type composePSEntry struct {
 }
 
 // parseComposePSStatus parses docker compose ps --format json output into an AppStatus.
+// Compose v2.21+ emits JSON Lines (one object per line); older versions emit a JSON array.
 func parseComposePSStatus(output string) AppStatus {
 	trimmed := strings.TrimSpace(output)
 	if trimmed == "" || trimmed == "[]" || trimmed == "null" {
 		return AppStatusStopped
 	}
 
-	var entries []composePSEntry
-	if err := sonic.Unmarshal([]byte(trimmed), &entries); err != nil {
+	entries, ok := parseComposePSEntries(trimmed)
+	if !ok {
 		return AppStatusUnknown
 	}
 
@@ -51,6 +52,35 @@ func parseComposePSStatus(output string) AppStatus {
 		return AppStatusStopped
 	}
 	return AppStatusUnknown
+}
+
+// parseComposePSEntries decodes compose ps JSON array or JSON Lines into entries.
+func parseComposePSEntries(trimmed string) ([]composePSEntry, bool) {
+	if strings.HasPrefix(trimmed, "[") {
+		var entries []composePSEntry
+		if err := sonic.Unmarshal([]byte(trimmed), &entries); err != nil {
+			return nil, false
+		}
+		return entries, true
+	}
+
+	lines := strings.Split(trimmed, "\n")
+	entries := make([]composePSEntry, 0, len(lines))
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		var entry composePSEntry
+		if err := sonic.Unmarshal([]byte(line), &entry); err != nil {
+			return nil, false
+		}
+		entries = append(entries, entry)
+	}
+	if len(entries) == 0 {
+		return nil, false
+	}
+	return entries, true
 }
 
 // DockerComposeRuntime executes docker compose commands locally using the
@@ -93,10 +123,7 @@ func (r *DockerComposeRuntime) composeEnv() []string {
 }
 
 func (r *DockerComposeRuntime) composeCmd(ctx context.Context, app App, args ...string) *exec.Cmd {
-	composeFile := app.ComposeFile
-	if composeFile == "" {
-		composeFile = "docker-compose.yaml"
-	}
+	composeFile := composeFileName(app.ComposeFile)
 	cmdArgs := []string{"compose", "-f", composeFile}
 	cmdArgs = append(cmdArgs, args...)
 	cmd := exec.CommandContext(ctx, "docker", cmdArgs...)

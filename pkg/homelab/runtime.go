@@ -2,6 +2,7 @@ package homelab
 
 import (
 	"context"
+	"path/filepath"
 
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -78,4 +79,13 @@ func notImplemented(ctx context.Context, operation string) error {
 		return types.WrapError(types.ErrTimeout, "homelab operation canceled", err)
 	}
 	return types.Errorf(types.ErrNotImplemented, "homelab runtime %s is not implemented", operation)
+}
+
+// composeFileName returns the compose file basename used with docker compose -f.
+// Scanner may store an absolute path; commands always run with Dir set to the app path.
+func composeFileName(composeFile string) string {
+	if composeFile == "" {
+		return "docker-compose.yaml"
+	}
+	return filepath.Base(composeFile)
 }

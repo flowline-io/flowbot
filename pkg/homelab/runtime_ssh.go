@@ -112,10 +112,7 @@ func (r *SSHRuntime) runRemote(ctx context.Context, app App, args ...string) (st
 	}
 	defer session.Close()
 
-	composeFile := app.ComposeFile
-	if composeFile == "" {
-		composeFile = "docker-compose.yaml"
-	}
+	composeFile := composeFileName(app.ComposeFile)
 	cmdArgs := append([]string{"compose", "-f", shellQuote(composeFile)}, args...)
 	cmdStr := "docker " + strings.Join(cmdArgs, " ")
 	if app.Path != "" {
