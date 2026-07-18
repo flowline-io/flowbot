@@ -420,6 +420,8 @@ type Adapter interface {
 	CreateNotifyChannel(ctx context.Context, name, protocol, uri string) (int64, error)
 	GetNotifyChannel(ctx context.Context, id int64) (model.NotifyChannel, error)    // returns masked URI
 	GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error) // returns raw URI (internal use only)
+	// GetNotifyChannelByNameRaw returns a channel by unique name with raw URI (internal send path).
+	GetNotifyChannelByNameRaw(ctx context.Context, name string) (model.NotifyChannel, error)
 	ListNotifyChannels(ctx context.Context, opts ListNotifyChannelOptions) ([]model.NotifyChannel, error)
 	UpdateNotifyChannel(ctx context.Context, id int64, name, protocol, uri string, enabled bool) error
 	DeleteNotifyChannel(ctx context.Context, id int64) error
@@ -1107,7 +1109,8 @@ func (s *PipelineStore) RecordResourceLink(ctx context.Context, link *gen.Resour
 }
 
 // CreateDefinition creates a new pipeline definition with initial yaml_draft and version 1.
-func (s *PipelineStore) CreateDefinition(ctx context.Context, name, description string) error {
+// createdBy is the Web UI user UID that created the pipeline (may be empty in tests).
+func (s *PipelineStore) CreateDefinition(ctx context.Context, name, description, createdBy string) error {
 	if s == nil || s.client == nil {
 		return nil
 	}
@@ -1119,6 +1122,7 @@ func (s *PipelineStore) CreateDefinition(ctx context.Context, name, description 
 		SetNillableYamlPublished(nil).
 		SetVersion(1).
 		SetStatus("draft").
+		SetCreatedBy(strings.TrimSpace(createdBy)).
 		SetCreatedAt(now).
 		SetUpdatedAt(now).
 		Save(ctx)
@@ -1127,6 +1131,29 @@ func (s *PipelineStore) CreateDefinition(ctx context.Context, name, description 
 			return fmt.Errorf("pipeline %q %w", name, types.ErrAlreadyExists)
 		}
 		return err
+	}
+	return nil
+}
+
+// EnsureDefinitionCreatedBy sets created_by when it is currently empty.
+// Used to backfill owner UID for pipelines created before the field existed.
+func (s *PipelineStore) EnsureDefinitionCreatedBy(ctx context.Context, name, createdBy string) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	createdBy = strings.TrimSpace(createdBy)
+	if createdBy == "" {
+		return nil
+	}
+	_, err := s.client.PipelineDefinition.Update().
+		Where(
+			pipelinedefinition.Name(name),
+			pipelinedefinition.CreatedByEQ(""),
+		).
+		SetCreatedBy(createdBy).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("ensure pipeline created_by: %w", err)
 	}
 	return nil
 }
@@ -1404,6 +1431,7 @@ func (s *PipelineStore) ListPublishedDefinitions(ctx context.Context) ([]pipelin
 			Name:        row.Name,
 			Description: row.Description,
 			YAML:        yamlContent,
+			CreatedBy:   row.CreatedBy,
 			UpdatedAt:   row.UpdatedAt,
 		})
 	}

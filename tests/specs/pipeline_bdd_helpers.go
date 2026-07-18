@@ -42,7 +42,7 @@ func mountPipelineRoutes(app *fiber.App) {
 		if body.Name == "" {
 			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "name is required"})
 		}
-		if err := pipeStore.CreateDefinition(context.Background(), body.Name, body.Description); err != nil {
+		if err := pipeStore.CreateDefinition(context.Background(), body.Name, body.Description, ""); err != nil {
 			return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 		c.Response().Header.Set("HX-Redirect", "/service/web/pipelines/"+body.Name)

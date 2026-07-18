@@ -212,6 +212,8 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	)
 	defer span.End()
 
+	applyDefinitionUID(def, &event)
+
 	runStart := time.Now()
 
 	e.auditPipelineEvent(ctx, def.Name, "pipeline.start", event.EventID, event.EventType)
@@ -248,7 +250,7 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	if e.pipelineMetrics != nil {
 		status := "done"
 		if finalErr != nil {
-			status = "cancel"
+			_, status = terminalStatusFromError(finalErr)
 		}
 		e.pipelineMetrics.IncRunTotal(def.Name, status)
 		e.pipelineMetrics.ObserveRunDuration(def.Name, status, time.Since(runStart).Seconds())
@@ -341,7 +343,7 @@ func (e *Engine) executeStep(ctx context.Context, rc *RenderContext, step Step, 
 
 	if retryErr != nil {
 		stepErr := formatStepError(step.Name, retryErr, attempt)
-		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr.Error(), attempt, stepStart)
+		e.recordStepFailure(ctx, stepRunID, pipelineName, step.Name, string(step.Capability), retryErr, attempt, stepStart)
 		if e.callback != nil {
 			e.callback.OnStepError(ctx, runID, pipelineName, stepIndex, step.Name, stepErr, time.Since(stepStart).Milliseconds())
 		}
@@ -363,10 +365,23 @@ func injectTags(rc *RenderContext, renderedParams map[string]any) {
 	renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
 }
 
-// InjectAgentRunDefaults applies default uid and memory_scope for agent.run steps.
+// InjectAgentRunDefaults applies default uid and memory_scope for agent.run and notify.send steps.
 func InjectAgentRunDefaults(step Step, renderedParams map[string]any, rc *RenderContext, pipelineName string) {
 	injectAgentRunMemoryScope(step, renderedParams, pipelineName)
-	injectAgentRunUID(step, renderedParams, rc)
+	injectEventUID(step, renderedParams, rc)
+}
+
+// applyDefinitionUID sets event.UID from the pipeline definition when the trigger event has no UID.
+func applyDefinitionUID(def Definition, event *types.DataEvent) {
+	if event == nil {
+		return
+	}
+	if strings.TrimSpace(event.UID) != "" {
+		return
+	}
+	if uid := strings.TrimSpace(def.UID); uid != "" {
+		event.UID = uid
+	}
 }
 
 func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelineName string) {
@@ -384,8 +399,9 @@ func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelin
 	renderedParams["memory_scope"] = pipelineName
 }
 
-func injectAgentRunUID(step Step, renderedParams map[string]any, rc *RenderContext) {
-	if step.Capability != hub.CapAgent || step.Operation != capability.OpAgentRun {
+// injectEventUID copies Event.UID into step params for agent.run and notify.send when unset.
+func injectEventUID(step Step, renderedParams map[string]any, rc *RenderContext) {
+	if !stepNeedsEventUID(step) {
 		return
 	}
 	if renderedParams == nil || rc == nil {
@@ -401,6 +417,18 @@ func injectAgentRunUID(step Step, renderedParams map[string]any, rc *RenderConte
 		return
 	}
 	renderedParams["uid"] = uid
+}
+
+// stepNeedsEventUID reports whether the step should receive a default uid from the event.
+func stepNeedsEventUID(step Step) bool {
+	switch {
+	case step.Capability == hub.CapAgent && step.Operation == capability.OpAgentRun:
+		return true
+	case step.Capability == hub.CapNotify && step.Operation == "send":
+		return true
+	default:
+		return false
+	}
 }
 
 // saveResourceLink records a resource link when a capability step reports a created resource.
@@ -509,7 +537,8 @@ func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, 
 	status := int(schema.PipelineDone)
 	errMsg := ""
 	if failed {
-		status = int(schema.PipelineCancel)
+		st, _ := terminalStatusFromError(finalErr)
+		status = int(st)
 		if finalErr != nil {
 			errMsg = finalErr.Error()
 		}
@@ -517,6 +546,15 @@ func (e *Engine) finishRunRecord(ctx context.Context, runID int64, failed bool, 
 	if err := e.store.UpdateRunStatus(ctx, runID, status, errMsg); err != nil {
 		flog.Error(fmt.Errorf("update run %d status: %w", runID, err))
 	}
+}
+
+// terminalStatusFromError maps a terminal run/step error to persistence status and metrics label.
+// Context cancellation and deadline exceeded are recorded as cancelled; all other errors as failed.
+func terminalStatusFromError(err error) (schema.PipelineState, string) {
+	if err != nil && (errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
+		return schema.PipelineCancel, "cancel"
+	}
+	return schema.PipelineFailed, "failed"
 }
 
 func (e *Engine) auditPipelineEvent(ctx context.Context, pipelineName, action, eventID, eventType string) {
@@ -589,9 +627,14 @@ func (e *Engine) recordStepSuccess(ctx context.Context, stepRunID int64, pipelin
 	e.recordStepMetrics(pipelineName, stepName, capName, "done", time.Since(stepStart).Seconds(), attempt)
 }
 
-func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelineName, stepName, capName, errMsg string, attempt int, stepStart time.Time) {
-	e.updateStepRunRecord(ctx, stepRunID, int(schema.PipelineCancel), nil, errMsg, attempt)
-	e.recordStepMetrics(pipelineName, stepName, capName, "cancel", time.Since(stepStart).Seconds(), attempt)
+func (e *Engine) recordStepFailure(ctx context.Context, stepRunID int64, pipelineName, stepName, capName string, err error, attempt int, stepStart time.Time) {
+	status, metricStatus := terminalStatusFromError(err)
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+	e.updateStepRunRecord(ctx, stepRunID, int(status), nil, errMsg, attempt)
+	e.recordStepMetrics(pipelineName, stepName, capName, metricStatus, time.Since(stepStart).Seconds(), attempt)
 }
 
 func extractResult(res *capability.InvokeResult) map[string]any {
@@ -754,7 +797,7 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	if e.pipelineMetrics != nil {
 		status := "done"
 		if err != nil {
-			status = "cancel"
+			_, status = terminalStatusFromError(err)
 		}
 		e.pipelineMetrics.IncCronExec(def.Name, status)
 		e.pipelineMetrics.ObserveCronDuration(def.Name, e.clock.Now().Sub(start).Seconds())

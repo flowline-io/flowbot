@@ -31,7 +31,9 @@ type DefinitionRecord struct {
 	Name        string
 	Description string
 	YAML        string
-	UpdatedAt   time.Time
+	// CreatedBy is the Web UI user UID that created the pipeline.
+	CreatedBy string
+	UpdatedAt time.Time
 }
 
 // DefinitionReader is the interface for loading published definitions from a store.

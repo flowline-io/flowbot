@@ -35,6 +35,8 @@ const (
 	PayloadKeySummary = "summary"
 	// defaultKeepRecords is the number of notification records to retain per user.
 	defaultKeepRecords = 200
+	// systemNotifyUID is used when recording notifications without a user subject (e.g. cron pipelines).
+	systemNotifyUID = "system"
 )
 
 // Register adds a Notifyer to the global registry.
@@ -216,7 +218,8 @@ func lookupNotifyer(protocol string) (Notifyer, bool) {
 
 // GatewaySend is the central notification gateway entry point.
 // It renders a notification template and dispatches the message to the specified channels.
-// If uid is not zero, it looks up the user's channel configuration from the store.
+// Channels are resolved from the global NotifyChannel registry first; when a UID is set,
+// per-user notify:<channel> config is used as a fallback.
 // Rules (throttle, mute, aggregate) are applied before sending (when rule engine is initialized).
 func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels []string, payload map[string]any) error {
 	engine := notifytmpl.GetEngine()
@@ -255,7 +258,7 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 
 		msg := buildNotifyMessage(eval.renderResult, payload)
 
-		if err := sendToUserChannel(ctx, uid, templateID, channel, msg); err != nil {
+		if err := dispatchChannel(ctx, uid, channel, msg); err != nil {
 			errs = append(errs, err)
 			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), payload)
 		} else {
@@ -425,29 +428,61 @@ func channelsFromNotifyConfigKeys(keys []string) []string {
 	return channels
 }
 
-// sendToUserChannel looks up the user's channel configuration and sends the message.
-func sendToUserChannel(ctx context.Context, uid types.Uid, templateID, channel string, msg Message) error {
-	if uid.IsZero() {
-		flog.Warn("[notify] no user UID for notification %s, channel %s", templateID, channel)
+// dispatchChannel sends a rendered message to a named channel.
+// It prefers the global NotifyChannel registry (settings UI), then falls back to
+// per-user notify:<channel> config when a UID is present.
+func dispatchChannel(ctx context.Context, uid types.Uid, channel string, msg Message) error {
+	if err := sendGlobalChannel(ctx, channel, msg); err != nil {
+		if !errors.Is(err, types.ErrNotFound) {
+			return err
+		}
+	} else {
 		return nil
+	}
+	return sendToUserChannel(ctx, uid, channel, msg)
+}
+
+// sendGlobalChannel looks up a channel by name in the global notify_channels table and sends.
+func sendGlobalChannel(ctx context.Context, channel string, msg Message) error {
+	db := loadDatabase()
+	if db == nil {
+		return types.ErrNotFound
+	}
+	ch, err := db.GetNotifyChannelByNameRaw(ctx, channel)
+	if err != nil {
+		return err
+	}
+	if !ch.Enabled {
+		return types.Errorf(types.ErrInvalidArgument, "channel %s is disabled", channel)
+	}
+	if err := SendToProtocol(ch.Protocol, ch.URI, msg); err != nil {
+		flog.Warn("[notify] failed to send to global channel %s: %v", channel, err)
+		return err
+	}
+	return nil
+}
+
+// sendToUserChannel looks up the user's channel configuration and sends the message.
+func sendToUserChannel(ctx context.Context, uid types.Uid, channel string, msg Message) error {
+	if uid.IsZero() {
+		return types.Errorf(types.ErrNotFound, "channel %s not found", channel)
 	}
 
 	db := loadDatabase()
 	if db == nil {
-		return nil
+		return types.Errorf(types.ErrNotFound, "channel %s not found", channel)
 	}
 	kv, err := db.ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			flog.Debug("[notify] channel %s not configured for user %s", channel, uid)
-			return nil
+			return types.Errorf(types.ErrNotFound, "channel %s not configured for user", channel)
 		}
 		flog.Warn("[notify] failed to load channel %s for user %s: %v", channel, uid, err)
-		return nil
+		return err
 	}
 	templateURI, ok := kv.String("value")
-	if !ok {
-		return nil
+	if !ok || templateURI == "" {
+		return types.Errorf(types.ErrNotFound, "channel %s not configured for user", channel)
 	}
 	if err := Send(templateURI, msg); err != nil {
 		flog.Warn("[notify] failed to send to channel %s: %v", channel, err)
@@ -489,12 +524,16 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 		if ns == nil {
 			return
 		}
-		if _, err := ns.Record(ctx, uid.String(), channel, templateID, summary, status, errMsg, payloadCopy); err != nil {
+		recordUID := uid.String()
+		if uid.IsZero() {
+			recordUID = systemNotifyUID
+		}
+		if _, err := ns.Record(ctx, recordUID, channel, templateID, summary, status, errMsg, payloadCopy); err != nil {
 			flog.Warn("[notify] failed to record notification: %v", err)
 			return
 		}
 		// Rolling window cleanup (best-effort, keep last N per user)
-		if err := ns.DeleteOldest(ctx, uid.String(), defaultKeepRecords); err != nil {
+		if err := ns.DeleteOldest(ctx, recordUID, defaultKeepRecords); err != nil {
 			flog.Warn("[notify] failed to cleanup old notifications: %v", err)
 		}
 	})

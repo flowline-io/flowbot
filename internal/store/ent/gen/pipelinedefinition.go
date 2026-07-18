@@ -29,6 +29,8 @@ type PipelineDefinition struct {
 	Version int `json:"version,omitempty"`
 	// Status holds the value of the "status" field.
 	Status pipelinedefinition.Status `json:"status,omitempty"`
+	// CreatedBy holds the value of the "created_by" field.
+	CreatedBy string `json:"created_by,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -43,7 +45,7 @@ func (*PipelineDefinition) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case pipelinedefinition.FieldID, pipelinedefinition.FieldVersion:
 			values[i] = new(sql.NullInt64)
-		case pipelinedefinition.FieldName, pipelinedefinition.FieldDescription, pipelinedefinition.FieldYamlDraft, pipelinedefinition.FieldYamlPublished, pipelinedefinition.FieldStatus:
+		case pipelinedefinition.FieldName, pipelinedefinition.FieldDescription, pipelinedefinition.FieldYamlDraft, pipelinedefinition.FieldYamlPublished, pipelinedefinition.FieldStatus, pipelinedefinition.FieldCreatedBy:
 			values[i] = new(sql.NullString)
 		case pipelinedefinition.FieldCreatedAt, pipelinedefinition.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -104,6 +106,12 @@ func (_m *PipelineDefinition) assignValues(columns []string, values []any) error
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				_m.Status = pipelinedefinition.Status(value.String)
+			}
+		case pipelinedefinition.FieldCreatedBy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field created_by", values[i])
+			} else if value.Valid {
+				_m.CreatedBy = value.String
 			}
 		case pipelinedefinition.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -172,6 +180,9 @@ func (_m *PipelineDefinition) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("created_by=")
+	builder.WriteString(_m.CreatedBy)
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

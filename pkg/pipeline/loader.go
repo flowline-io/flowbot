@@ -20,9 +20,12 @@ type Definition struct {
 	Description string
 	Enabled     bool
 	Resumable   bool
-	Trigger     Trigger
-	Steps       []Step
-	ParentName  string
+	// UID is the Web UI creator of this pipeline (from pipeline_definitions.created_by).
+	// Applied to events when the trigger does not carry a UID (cron/webhook).
+	UID        string
+	Trigger    Trigger
+	Steps      []Step
+	ParentName string
 }
 
 type Trigger struct {
@@ -344,7 +347,12 @@ func LoadFromDB(ctx context.Context, reader DefinitionReader) ([]Definition, err
 		if err != nil {
 			return nil, fmt.Errorf("parse %s: %w", rec.Name, err)
 		}
-		allDefs = append(allDefs, ExpandDefinitions([]EditorDefinition{*ed})...)
+		defs := ExpandDefinitions([]EditorDefinition{*ed})
+		createdBy := strings.TrimSpace(rec.CreatedBy)
+		for i := range defs {
+			defs[i].UID = createdBy
+		}
+		allDefs = append(allDefs, defs...)
 	}
 	return allDefs, nil
 }

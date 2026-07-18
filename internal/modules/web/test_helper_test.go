@@ -157,6 +157,19 @@ func (s *testStore) GetNotifyChannel(ctx context.Context, id int64) (model.Notif
 	return s.GetNotifyChannelRaw(ctx, id)
 }
 
+// GetNotifyChannelByNameRaw returns a channel by name with its raw URI.
+func (s *testStore) GetNotifyChannelByNameRaw(_ context.Context, name string) (model.NotifyChannel, error) {
+	if s.notifyChannelErr != nil {
+		return model.NotifyChannel{}, s.notifyChannelErr
+	}
+	for _, ch := range s.notifyChannels {
+		if ch.Name == name {
+			return ch, nil
+		}
+	}
+	return model.NotifyChannel{}, types.ErrNotFound
+}
+
 // CreateNotifyChannel stores a new notify channel in the test map.
 func (s *testStore) CreateNotifyChannel(_ context.Context, name, protocol, uri string) (int64, error) {
 	if s.notifyChannels == nil {

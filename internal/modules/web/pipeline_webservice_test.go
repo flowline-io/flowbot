@@ -70,7 +70,7 @@ func TestTestPipelineStepAgentMultiStepOutput(t *testing.T) {
 
 	ctx := context.Background()
 	ps := store.NewPipelineStore(client)
-	require.NoError(t, ps.CreateDefinition(ctx, "agent-chain-test", ""))
+	require.NoError(t, ps.CreateDefinition(ctx, "agent-chain-test", "", ""))
 	yamlDraft := `name: agent-chain-test
 steps:
   - name: summarize
@@ -127,7 +127,7 @@ func TestTestPipelineStepRejectsWhitespaceAgentPrompt(t *testing.T) {
 
 	ctx := context.Background()
 	ps := store.NewPipelineStore(client)
-	require.NoError(t, ps.CreateDefinition(ctx, "agent-empty-prompt", ""))
+	require.NoError(t, ps.CreateDefinition(ctx, "agent-empty-prompt", "", ""))
 	require.NoError(t, client.PipelineDefinition.Update().
 		SetYamlDraft(`name: agent-empty-prompt
 steps:
@@ -158,7 +158,7 @@ func TestSetPipelineEnabledPauseAndResume(t *testing.T) {
 
 	ctx := context.Background()
 	ps := store.NewPipelineStore(client)
-	require.NoError(t, ps.CreateDefinition(ctx, "pause-test", ""))
+	require.NoError(t, ps.CreateDefinition(ctx, "pause-test", "", ""))
 	yaml := "name: pause-test\nenabled: true\ntriggers: []\nsteps: []"
 	_, err := ps.UpdateDefinitionDraft(ctx, "pause-test", yaml, 1)
 	require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestSetPipelineEnabledRejectsDraftPipeline(t *testing.T) {
 
 	ctx := context.Background()
 	ps := store.NewPipelineStore(client)
-	require.NoError(t, ps.CreateDefinition(ctx, "draft-pause", ""))
+	require.NoError(t, ps.CreateDefinition(ctx, "draft-pause", "", ""))
 
 	body := bytes.NewBufferString(`{"enabled":false}`)
 	req := httptest.NewRequest(http.MethodPut, "/service/web/pipelines/draft-pause/enabled", body)
@@ -281,7 +281,7 @@ func TestPipelineEditorPageChineseName(t *testing.T) {
 
 	ctx := context.Background()
 	name := "演示1"
-	require.NoError(t, store.NewPipelineStore(client).CreateDefinition(ctx, name, ""))
+	require.NoError(t, store.NewPipelineStore(client).CreateDefinition(ctx, name, "", ""))
 
 	req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+url.PathEscape(name), http.NoBody)
 	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})

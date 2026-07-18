@@ -71,11 +71,14 @@ func TestRegister_SendHasInputParams(t *testing.T) {
 	}
 	assert.Equal(t, OpSend, sendOp.Name)
 	assert.Equal(t, "Send a notification using a template", sendOp.Description)
-	assert.Len(t, sendOp.Input, 3)
+	assert.Len(t, sendOp.Input, 4)
 	assert.Equal(t, "template_id", sendOp.Input[0].Name)
 	assert.True(t, sendOp.Input[0].Required)
 	assert.Equal(t, "channels", sendOp.Input[1].Name)
 	assert.True(t, sendOp.Input[1].Required)
 	assert.Equal(t, "payload", sendOp.Input[2].Name)
+	assert.False(t, sendOp.Input[2].Required)
+	assert.Equal(t, "uid", sendOp.Input[3].Name)
+	assert.False(t, sendOp.Input[3].Required)
 	assert.False(t, sendOp.Input[2].Required)
 }

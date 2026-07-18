@@ -1203,12 +1203,16 @@ func init() {
 	pipelinedefinitionDescVersion := pipelinedefinitionFields[5].Descriptor()
 	// pipelinedefinition.DefaultVersion holds the default value on creation for the version field.
 	pipelinedefinition.DefaultVersion = pipelinedefinitionDescVersion.Default.(int)
+	// pipelinedefinitionDescCreatedBy is the schema descriptor for created_by field.
+	pipelinedefinitionDescCreatedBy := pipelinedefinitionFields[7].Descriptor()
+	// pipelinedefinition.DefaultCreatedBy holds the default value on creation for the created_by field.
+	pipelinedefinition.DefaultCreatedBy = pipelinedefinitionDescCreatedBy.Default.(string)
 	// pipelinedefinitionDescCreatedAt is the schema descriptor for created_at field.
-	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[7].Descriptor()
+	pipelinedefinitionDescCreatedAt := pipelinedefinitionFields[8].Descriptor()
 	// pipelinedefinition.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pipelinedefinition.DefaultCreatedAt = pipelinedefinitionDescCreatedAt.Default.(func() time.Time)
 	// pipelinedefinitionDescUpdatedAt is the schema descriptor for updated_at field.
-	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[8].Descriptor()
+	pipelinedefinitionDescUpdatedAt := pipelinedefinitionFields[9].Descriptor()
 	// pipelinedefinition.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	pipelinedefinition.DefaultUpdatedAt = pipelinedefinitionDescUpdatedAt.Default.(func() time.Time)
 	// pipelinedefinition.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

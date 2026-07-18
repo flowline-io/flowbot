@@ -131,6 +131,20 @@ func (_u *PipelineDefinitionUpdate) SetNillableStatus(v *pipelinedefinition.Stat
 	return _u
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (_u *PipelineDefinitionUpdate) SetCreatedBy(v string) *PipelineDefinitionUpdate {
+	_u.mutation.SetCreatedBy(v)
+	return _u
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdate) SetNillableCreatedBy(v *string) *PipelineDefinitionUpdate {
+	if v != nil {
+		_u.SetCreatedBy(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *PipelineDefinitionUpdate) SetUpdatedAt(v time.Time) *PipelineDefinitionUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -231,6 +245,9 @@ func (_u *PipelineDefinitionUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(pipelinedefinition.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CreatedBy(); ok {
+		_spec.SetField(pipelinedefinition.FieldCreatedBy, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldUpdatedAt, field.TypeTime, value)
@@ -354,6 +371,20 @@ func (_u *PipelineDefinitionUpdateOne) SetStatus(v pipelinedefinition.Status) *P
 func (_u *PipelineDefinitionUpdateOne) SetNillableStatus(v *pipelinedefinition.Status) *PipelineDefinitionUpdateOne {
 	if v != nil {
 		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (_u *PipelineDefinitionUpdateOne) SetCreatedBy(v string) *PipelineDefinitionUpdateOne {
+	_u.mutation.SetCreatedBy(v)
+	return _u
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_u *PipelineDefinitionUpdateOne) SetNillableCreatedBy(v *string) *PipelineDefinitionUpdateOne {
+	if v != nil {
+		_u.SetCreatedBy(*v)
 	}
 	return _u
 }
@@ -488,6 +519,9 @@ func (_u *PipelineDefinitionUpdateOne) sqlSave(ctx context.Context) (_node *Pipe
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(pipelinedefinition.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.CreatedBy(); ok {
+		_spec.SetField(pipelinedefinition.FieldCreatedBy, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldUpdatedAt, field.TypeTime, value)

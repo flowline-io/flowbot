@@ -108,7 +108,7 @@ func createPipeline(c fiber.Ctx) error {
 		))
 	}
 	s := getPipelineDefStore()
-	if err := s.CreateDefinition(context.Background(), name, description); err != nil {
+	if err := s.CreateDefinition(context.Background(), name, description, getUID(c)); err != nil {
 		if errors.Is(err, types.ErrAlreadyExists) {
 			c.Response().Header.Set("HX-Retarget", "#create-form")
 			c.Response().Header.Set("HX-Reswap", "beforebegin")
@@ -178,6 +178,10 @@ func publishPipeline(c fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{
 			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": "YAML validation failed: " + err.Error()},
 		})
+	}
+	// Backfill owner for pipelines created before created_by existed.
+	if err := s.EnsureDefinitionCreatedBy(context.Background(), name, getUID(c)); err != nil {
+		flog.Error(fmt.Errorf("ensure pipeline created_by before publish: %w", err))
 	}
 
 	def, err = s.PublishDefinition(context.Background(), name, body.Version)

@@ -7,14 +7,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // notifyTestStore stubs config lookups for notify gateway tests.
 type notifyTestStore struct {
 	store.Adapter
-	configs  map[string]types.KV
-	listKeys []string
-	dbClient *store.Client
+	configs          map[string]types.KV
+	listKeys         []string
+	dbClient         *store.Client
+	globalChannels   map[string]model.NotifyChannel
+	globalChannelErr error
 }
 
 func (s *notifyTestStore) ConfigGet(_ context.Context, _ types.Uid, _, key string) (types.KV, error) {
@@ -36,4 +39,18 @@ func (s *notifyTestStore) ListConfigByPrefix(_ context.Context, _ types.Uid, _, 
 
 func (s *notifyTestStore) GetDB() any {
 	return s.dbClient
+}
+
+func (s *notifyTestStore) GetNotifyChannelByNameRaw(_ context.Context, name string) (model.NotifyChannel, error) {
+	if s.globalChannelErr != nil {
+		return model.NotifyChannel{}, s.globalChannelErr
+	}
+	if s.globalChannels == nil {
+		return model.NotifyChannel{}, types.ErrNotFound
+	}
+	ch, ok := s.globalChannels[name]
+	if !ok {
+		return model.NotifyChannel{}, types.ErrNotFound
+	}
+	return ch, nil
 }

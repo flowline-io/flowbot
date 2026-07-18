@@ -647,6 +647,9 @@ func (*testStoreAdapter) GetNotifyChannel(context.Context, int64) (model.NotifyC
 func (*testStoreAdapter) GetNotifyChannelRaw(context.Context, int64) (model.NotifyChannel, error) {
 	return model.NotifyChannel{}, nil
 }
+func (*testStoreAdapter) GetNotifyChannelByNameRaw(context.Context, string) (model.NotifyChannel, error) {
+	return model.NotifyChannel{}, types.ErrNotFound
+}
 func (*testStoreAdapter) ListNotifyChannels(context.Context, store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
 	return nil, nil
 }

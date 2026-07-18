@@ -27559,6 +27559,7 @@ type PipelineDefinitionMutation struct {
 	version        *int
 	addversion     *int
 	status         *pipelinedefinition.Status
+	created_by     *string
 	created_at     *time.Time
 	updated_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -27933,6 +27934,42 @@ func (m *PipelineDefinitionMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (m *PipelineDefinitionMutation) SetCreatedBy(s string) {
+	m.created_by = &s
+}
+
+// CreatedBy returns the value of the "created_by" field in the mutation.
+func (m *PipelineDefinitionMutation) CreatedBy() (r string, exists bool) {
+	v := m.created_by
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedBy returns the old "created_by" field's value of the PipelineDefinition entity.
+// If the PipelineDefinition object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PipelineDefinitionMutation) OldCreatedBy(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedBy is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedBy requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedBy: %w", err)
+	}
+	return oldValue.CreatedBy, nil
+}
+
+// ResetCreatedBy resets all changes to the "created_by" field.
+func (m *PipelineDefinitionMutation) ResetCreatedBy() {
+	m.created_by = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *PipelineDefinitionMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -28039,7 +28076,7 @@ func (m *PipelineDefinitionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PipelineDefinitionMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.name != nil {
 		fields = append(fields, pipelinedefinition.FieldName)
 	}
@@ -28057,6 +28094,9 @@ func (m *PipelineDefinitionMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, pipelinedefinition.FieldStatus)
+	}
+	if m.created_by != nil {
+		fields = append(fields, pipelinedefinition.FieldCreatedBy)
 	}
 	if m.created_at != nil {
 		fields = append(fields, pipelinedefinition.FieldCreatedAt)
@@ -28084,6 +28124,8 @@ func (m *PipelineDefinitionMutation) Field(name string) (ent.Value, bool) {
 		return m.Version()
 	case pipelinedefinition.FieldStatus:
 		return m.Status()
+	case pipelinedefinition.FieldCreatedBy:
+		return m.CreatedBy()
 	case pipelinedefinition.FieldCreatedAt:
 		return m.CreatedAt()
 	case pipelinedefinition.FieldUpdatedAt:
@@ -28109,6 +28151,8 @@ func (m *PipelineDefinitionMutation) OldField(ctx context.Context, name string) 
 		return m.OldVersion(ctx)
 	case pipelinedefinition.FieldStatus:
 		return m.OldStatus(ctx)
+	case pipelinedefinition.FieldCreatedBy:
+		return m.OldCreatedBy(ctx)
 	case pipelinedefinition.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case pipelinedefinition.FieldUpdatedAt:
@@ -28163,6 +28207,13 @@ func (m *PipelineDefinitionMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
+		return nil
+	case pipelinedefinition.FieldCreatedBy:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedBy(v)
 		return nil
 	case pipelinedefinition.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -28274,6 +28325,9 @@ func (m *PipelineDefinitionMutation) ResetField(name string) error {
 		return nil
 	case pipelinedefinition.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case pipelinedefinition.FieldCreatedBy:
+		m.ResetCreatedBy()
 		return nil
 	case pipelinedefinition.FieldCreatedAt:
 		m.ResetCreatedAt()

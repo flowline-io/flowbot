@@ -3,6 +3,8 @@ package pipeline
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -705,6 +707,7 @@ steps:
 		name        string
 		reader      DefinitionReader
 		wantLen     int
+		wantUID     string
 		wantErr     bool
 		errContains string
 	}{
@@ -714,11 +717,12 @@ steps:
 			wantLen: 0,
 		},
 		{
-			name: "loads published definitions",
+			name: "loads published definitions with creator uid",
 			reader: &mockDefinitionReader{records: []DefinitionRecord{
-				{Name: "db-pl", YAML: yamlDef},
+				{Name: "db-pl", YAML: yamlDef, CreatedBy: "user-admin"},
 			}},
 			wantLen: 1,
+			wantUID: "user-admin",
 		},
 		{
 			name:        "reader error propagates",
@@ -748,6 +752,10 @@ steps:
 			}
 			require.NoError(t, err)
 			assert.Len(t, defs, tt.wantLen)
+			if tt.wantUID != "" {
+				require.NotEmpty(t, defs)
+				assert.Equal(t, tt.wantUID, defs[0].UID)
+			}
 		})
 	}
 }
@@ -784,13 +792,92 @@ func TestEngine_CreateRunRecordError(t *testing.T) {
 
 func TestEngine_FinishRunRecord(t *testing.T) {
 	t.Parallel()
-	store := newMockPipelineStore()
-	e := NewEngine(nil, store, nil, noopPC, noopEC)
-	defer e.Stop()
-	run, err := store.CreateRun(context.Background(), "pl", "e1", "t", "event")
-	require.NoError(t, err)
-	e.finishRunRecord(context.Background(), run.ID, true, errors.New("failed"))
-	assert.Equal(t, int(schema.PipelineCancel), store.runs[run.ID].Status)
+	tests := []struct {
+		name       string
+		failed     bool
+		finalErr   error
+		wantStatus int
+	}{
+		{
+			name:       "success marks done",
+			failed:     false,
+			finalErr:   nil,
+			wantStatus: int(schema.PipelineDone),
+		},
+		{
+			name:       "business failure marks failed",
+			failed:     true,
+			finalErr:   errors.New("template test not found"),
+			wantStatus: int(schema.PipelineFailed),
+		},
+		{
+			name:       "context canceled marks cancelled",
+			failed:     true,
+			finalErr:   context.Canceled,
+			wantStatus: int(schema.PipelineCancel),
+		},
+		{
+			name:       "deadline exceeded marks cancelled",
+			failed:     true,
+			finalErr:   context.DeadlineExceeded,
+			wantStatus: int(schema.PipelineCancel),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			store := newMockPipelineStore()
+			e := NewEngine(nil, store, nil, noopPC, noopEC)
+			defer e.Stop()
+			run, err := store.CreateRun(context.Background(), "pl", "e1", "t", "event")
+			require.NoError(t, err)
+			e.finishRunRecord(context.Background(), run.ID, tt.failed, tt.finalErr)
+			assert.Equal(t, tt.wantStatus, store.runs[run.ID].Status)
+		})
+	}
+}
+
+func TestTerminalStatusFromError(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name            string
+		err             error
+		wantStatus      schema.PipelineState
+		wantMetricLabel string
+	}{
+		{
+			name:            "nil error is failed",
+			err:             nil,
+			wantStatus:      schema.PipelineFailed,
+			wantMetricLabel: "failed",
+		},
+		{
+			name:            "business error is failed",
+			err:             errors.New("template test not found"),
+			wantStatus:      schema.PipelineFailed,
+			wantMetricLabel: "failed",
+		},
+		{
+			name:            "context canceled is cancelled",
+			err:             context.Canceled,
+			wantStatus:      schema.PipelineCancel,
+			wantMetricLabel: "cancel",
+		},
+		{
+			name:            "wrapped deadline exceeded is cancelled",
+			err:             fmt.Errorf("step message cancelled: %w", context.DeadlineExceeded),
+			wantStatus:      schema.PipelineCancel,
+			wantMetricLabel: "cancel",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			gotStatus, gotLabel := terminalStatusFromError(tt.err)
+			assert.Equal(t, tt.wantStatus, gotStatus)
+			assert.Equal(t, tt.wantMetricLabel, gotLabel)
+		})
+	}
 }
 
 func TestEngine_EmitRunStartComplete(t *testing.T) {
@@ -817,21 +904,53 @@ func TestEngine_EmitRunStartComplete(t *testing.T) {
 
 func TestEngine_ExecuteStepFailureRecordsMetrics(t *testing.T) {
 	t.Parallel()
-	registerExampleInvoker(t, "fail-op", func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
-		return nil, errors.New("invoke failed")
-	})
-	store := newMockPipelineStore()
-	pc := metrics.NewPipelineCollector(nil)
-	def := Definition{
-		Name: "fail-pl", Enabled: true, Trigger: Trigger{Event: "e1"},
-		Steps: []Step{{Name: "bad", Capability: hub.CapExample, Operation: "fail-op"}},
+	tests := []struct {
+		name       string
+		invokeErr  error
+		wantStatus int
+	}{
+		{
+			name:       "business failure marks step failed",
+			invokeErr:  errors.New("invoke failed"),
+			wantStatus: int(schema.PipelineFailed),
+		},
+		{
+			name:       "context canceled marks step cancelled",
+			invokeErr:  context.Canceled,
+			wantStatus: int(schema.PipelineCancel),
+		},
+		{
+			name:       "deadline exceeded marks step cancelled",
+			invokeErr:  context.DeadlineExceeded,
+			wantStatus: int(schema.PipelineCancel),
+		},
 	}
-	e := NewEngine([]Definition{def}, store, nil, pc, noopEC)
-	defer e.Stop()
-	err := e.executePipeline(context.Background(), def, types.DataEvent{EventID: "e1", EventType: "e1"}, "event")
-	require.Error(t, err)
-	for _, sr := range store.stepRuns {
-		assert.Equal(t, int(schema.PipelineCancel), sr.Status)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			op := "fail-op-" + strings.ReplaceAll(tt.name, " ", "-")
+			registerExampleInvoker(t, op, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+				return nil, tt.invokeErr
+			})
+			store := newMockPipelineStore()
+			pc := metrics.NewPipelineCollector(nil)
+			def := Definition{
+				Name: "fail-pl", Enabled: true, Trigger: Trigger{Event: "e1"},
+				Steps: []Step{{Name: "bad", Capability: hub.CapExample, Operation: op}},
+			}
+			e := NewEngine([]Definition{def}, store, nil, pc, noopEC)
+			defer e.Stop()
+			err := e.executePipeline(context.Background(), def, types.DataEvent{EventID: "e1", EventType: "e1"}, "event")
+			require.Error(t, err)
+			require.NotEmpty(t, store.stepRuns)
+			for _, sr := range store.stepRuns {
+				assert.Equal(t, tt.wantStatus, sr.Status)
+			}
+			require.Len(t, store.runs, 1)
+			for _, run := range store.runs {
+				assert.Equal(t, tt.wantStatus, run.Status)
+			}
+		})
 	}
 }
 

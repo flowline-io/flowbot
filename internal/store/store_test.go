@@ -355,24 +355,28 @@ func TestPipelineDefinitionStore_CreateAndGet(t *testing.T) {
 		name         string
 		pipelineName string
 		description  string
+		createdBy    string
 		wantErr      bool
 	}{
 		{
-			name:         "happy path - create pipeline",
+			name:         "happy path - create pipeline with creator",
 			pipelineName: "test-pipeline",
 			description:  "A test pipeline",
+			createdBy:    "user-admin",
 			wantErr:      false,
 		},
 		{
 			name:         "empty description is ok",
 			pipelineName: "no-desc-pipeline",
 			description:  "",
+			createdBy:    "",
 			wantErr:      false,
 		},
 		{
 			name:         "duplicate name returns error",
 			pipelineName: "test-pipeline",
 			description:  "duplicate",
+			createdBy:    "user-other",
 			wantErr:      true,
 		},
 	}
@@ -380,7 +384,7 @@ func TestPipelineDefinitionStore_CreateAndGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := context.Background()
-			err := store.CreateDefinition(ctx, tt.pipelineName, tt.description)
+			err := store.CreateDefinition(ctx, tt.pipelineName, tt.description, tt.createdBy)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -391,6 +395,7 @@ func TestPipelineDefinitionStore_CreateAndGet(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, tt.pipelineName, def.Name)
 			assert.Equal(t, tt.description, def.Description)
+			assert.Equal(t, tt.createdBy, def.CreatedBy)
 			assert.Empty(t, def.YamlDraft)
 			assert.Equal(t, 1, def.Version)
 		})
@@ -403,7 +408,7 @@ func TestPipelineDefinitionStore_CreateChineseName(t *testing.T) {
 	ctx := context.Background()
 
 	name := "数据同步"
-	err := store.CreateDefinition(ctx, name, "中文描述")
+	err := store.CreateDefinition(ctx, name, "中文描述", "")
 	require.NoError(t, err)
 
 	def, err := store.GetDefinitionByName(ctx, name)
@@ -412,12 +417,68 @@ func TestPipelineDefinitionStore_CreateChineseName(t *testing.T) {
 	assert.Equal(t, "中文描述", def.Description)
 }
 
+func TestPipelineDefinitionStore_EnsureDefinitionCreatedBy(t *testing.T) {
+	client := getTestClient(t)
+	ps := NewPipelineStore(client)
+	ctx := context.Background()
+
+	tests := []struct {
+		name      string
+		setup     func(t *testing.T) string
+		createdBy string
+		want      string
+	}{
+		{
+			name: "backfills empty created_by",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				name := "ensure-empty"
+				require.NoError(t, ps.CreateDefinition(ctx, name, "", ""))
+				return name
+			},
+			createdBy: "user-admin",
+			want:      "user-admin",
+		},
+		{
+			name: "keeps existing created_by",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				name := "ensure-existing"
+				require.NoError(t, ps.CreateDefinition(ctx, name, "", "user-owner"))
+				return name
+			},
+			createdBy: "user-other",
+			want:      "user-owner",
+		},
+		{
+			name: "empty createdBy is no-op",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				name := "ensure-noop"
+				require.NoError(t, ps.CreateDefinition(ctx, name, "", ""))
+				return name
+			},
+			createdBy: "",
+			want:      "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			name := tt.setup(t)
+			require.NoError(t, ps.EnsureDefinitionCreatedBy(ctx, name, tt.createdBy))
+			def, err := ps.GetDefinitionByName(ctx, name)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, def.CreatedBy)
+		})
+	}
+}
+
 func TestPipelineDefinitionStore_UpdateDraftConcurrency(t *testing.T) {
 	client := getTestClient(t)
 	store := NewPipelineStore(client)
 
 	ctx := context.Background()
-	err := store.CreateDefinition(ctx, "concurrent-test", "")
+	err := store.CreateDefinition(ctx, "concurrent-test", "", "")
 	require.NoError(t, err)
 
 	// Update with version 1 — should succeed, version becomes 2
@@ -440,7 +501,7 @@ func TestPipelineDefinitionStore_PublishAndListPublished(t *testing.T) {
 	store := NewPipelineStore(client)
 
 	ctx := context.Background()
-	require.NoError(t, store.CreateDefinition(ctx, "pub-test", "desc"))
+	require.NoError(t, store.CreateDefinition(ctx, "pub-test", "desc", ""))
 
 	// Set draft then publish with version 1
 	_, err := store.UpdateDefinitionDraft(ctx, "pub-test", "name: pub-test\ntriggers: []\nsteps: []", 1)
@@ -467,7 +528,7 @@ func TestPipelineDefinitionStore_SetDefinitionEnabled(t *testing.T) {
 	store := NewPipelineStore(client)
 
 	ctx := context.Background()
-	require.NoError(t, store.CreateDefinition(ctx, "toggle-test", "desc"))
+	require.NoError(t, store.CreateDefinition(ctx, "toggle-test", "desc", ""))
 
 	yaml := `name: toggle-test
 enabled: true
@@ -500,7 +561,7 @@ steps: []`
 	require.Len(t, resumedDef.Triggers, 1)
 	assert.True(t, resumedDef.Triggers[0].Enabled)
 
-	require.NoError(t, store.CreateDefinition(ctx, "draft-only", ""))
+	require.NoError(t, store.CreateDefinition(ctx, "draft-only", "", ""))
 	_, err = store.SetDefinitionEnabled(ctx, "draft-only", false)
 	require.Error(t, err)
 	require.ErrorIs(t, err, types.ErrInvalidArgument)
@@ -511,9 +572,9 @@ func TestPipelineDefinitionStore_ListAndDelete(t *testing.T) {
 	store := NewPipelineStore(client)
 
 	ctx := context.Background()
-	require.NoError(t, store.CreateDefinition(ctx, "list-1", ""))
-	require.NoError(t, store.CreateDefinition(ctx, "list-2", ""))
-	require.NoError(t, store.CreateDefinition(ctx, "list-3", ""))
+	require.NoError(t, store.CreateDefinition(ctx, "list-1", "", ""))
+	require.NoError(t, store.CreateDefinition(ctx, "list-2", "", ""))
+	require.NoError(t, store.CreateDefinition(ctx, "list-3", "", ""))
 
 	// List returns all 3
 	defs, err := store.ListDefinitions(ctx)
@@ -1602,7 +1663,7 @@ func TestPipelineStore_Versions(t *testing.T) {
 
 			switch tt.name {
 			case "publish creates version snapshot":
-				err := store.CreateDefinition(ctx, "vtest-pub1", "")
+				err := store.CreateDefinition(ctx, "vtest-pub1", "", "")
 				require.NoError(t, err)
 
 				_, err = client.PipelineDefinition.Update().
@@ -1621,7 +1682,7 @@ func TestPipelineStore_Versions(t *testing.T) {
 				assert.Equal(t, "name: vtest-pub1\nsteps: []", vers[0].Yaml)
 
 			case "publish twice stores two versions":
-				err := store.CreateDefinition(ctx, "vtest-pub2", "")
+				err := store.CreateDefinition(ctx, "vtest-pub2", "", "")
 				require.NoError(t, err)
 
 				_, err = client.PipelineDefinition.Update().
@@ -1651,7 +1712,7 @@ func TestPipelineStore_Versions(t *testing.T) {
 				assert.Equal(t, "name: v1\nsteps: []", vers[1].Yaml)
 
 			case "ListDefinitionVersions ordered newest first":
-				err := store.CreateDefinition(ctx, "vtest-order", "")
+				err := store.CreateDefinition(ctx, "vtest-order", "", "")
 				require.NoError(t, err)
 
 				for i := range 3 {
@@ -1675,7 +1736,7 @@ func TestPipelineStore_Versions(t *testing.T) {
 				assert.Equal(t, 2, vers[2].Version)
 
 			case "GetDefinitionVersion returns correct YAML":
-				err := store.CreateDefinition(ctx, "vtest-get", "")
+				err := store.CreateDefinition(ctx, "vtest-get", "", "")
 				require.NoError(t, err)
 
 				_, err = client.PipelineDefinition.Update().
@@ -1693,14 +1754,14 @@ func TestPipelineStore_Versions(t *testing.T) {
 				assert.Equal(t, "name: vtest-get\nsteps:\n  - name: s1", ver.Yaml)
 
 			case "GetDefinitionVersion not found returns ErrNotFound":
-				err := store.CreateDefinition(ctx, "vtest-nf", "")
+				err := store.CreateDefinition(ctx, "vtest-nf", "", "")
 				require.NoError(t, err)
 
 				_, err = store.GetDefinitionVersion(ctx, "vtest-nf", 99)
 				require.ErrorIs(t, err, types.ErrNotFound)
 
 			case "ListDefinitionVersions empty for never-published pipeline":
-				err := store.CreateDefinition(ctx, "vtest-empty", "")
+				err := store.CreateDefinition(ctx, "vtest-empty", "", "")
 				require.NoError(t, err)
 
 				vers, err := store.ListDefinitionVersions(ctx, "vtest-empty")

@@ -79,6 +79,11 @@ func Version(v int) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldEQ(FieldVersion, v))
 }
 
+// CreatedBy applies equality check predicate on the "created_by" field. It's identical to CreatedByEQ.
+func CreatedBy(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldCreatedBy, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldEQ(FieldCreatedAt, v))
@@ -427,6 +432,71 @@ func StatusIn(vs ...Status) predicate.PipelineDefinition {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.PipelineDefinition {
 	return predicate.PipelineDefinition(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// CreatedByEQ applies the EQ predicate on the "created_by" field.
+func CreatedByEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEQ(FieldCreatedBy, v))
+}
+
+// CreatedByNEQ applies the NEQ predicate on the "created_by" field.
+func CreatedByNEQ(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNEQ(FieldCreatedBy, v))
+}
+
+// CreatedByIn applies the In predicate on the "created_by" field.
+func CreatedByIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldIn(FieldCreatedBy, vs...))
+}
+
+// CreatedByNotIn applies the NotIn predicate on the "created_by" field.
+func CreatedByNotIn(vs ...string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldNotIn(FieldCreatedBy, vs...))
+}
+
+// CreatedByGT applies the GT predicate on the "created_by" field.
+func CreatedByGT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGT(FieldCreatedBy, v))
+}
+
+// CreatedByGTE applies the GTE predicate on the "created_by" field.
+func CreatedByGTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldGTE(FieldCreatedBy, v))
+}
+
+// CreatedByLT applies the LT predicate on the "created_by" field.
+func CreatedByLT(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLT(FieldCreatedBy, v))
+}
+
+// CreatedByLTE applies the LTE predicate on the "created_by" field.
+func CreatedByLTE(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldLTE(FieldCreatedBy, v))
+}
+
+// CreatedByContains applies the Contains predicate on the "created_by" field.
+func CreatedByContains(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContains(FieldCreatedBy, v))
+}
+
+// CreatedByHasPrefix applies the HasPrefix predicate on the "created_by" field.
+func CreatedByHasPrefix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasPrefix(FieldCreatedBy, v))
+}
+
+// CreatedByHasSuffix applies the HasSuffix predicate on the "created_by" field.
+func CreatedByHasSuffix(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldHasSuffix(FieldCreatedBy, v))
+}
+
+// CreatedByEqualFold applies the EqualFold predicate on the "created_by" field.
+func CreatedByEqualFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldEqualFold(FieldCreatedBy, v))
+}
+
+// CreatedByContainsFold applies the ContainsFold predicate on the "created_by" field.
+func CreatedByContainsFold(v string) predicate.PipelineDefinition {
+	return predicate.PipelineDefinition(sql.FieldContainsFold(FieldCreatedBy, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

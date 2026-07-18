@@ -16,6 +16,7 @@ import (
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestParseSchema(t *testing.T) {
@@ -683,13 +684,40 @@ func TestGatewaySend(t *testing.T) {
 			payload:    map[string]any{"title": "T", "body": "B", "summary": "sum"},
 		},
 		{
-			name: "successful render with zero uid",
+			name: "sends via global channel without uid",
 			setup: func(t *testing.T) {
 				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+				m := &mockNotifyer{
+					protocol:  "testgatewaysend",
+					templates: []string{"testgatewaysend://{channel}/{token}"},
+				}
+				Register(m.protocol, m)
+				t.Cleanup(func() { Unregister(m.protocol) })
+				replaceDatabaseForTest(t, &notifyTestStore{
+					globalChannels: map[string]model.NotifyChannel{
+						"slack": {
+							Name:     "slack",
+							Protocol: "testgatewaysend",
+							URI:      "testgatewaysend://chan/tok",
+							Enabled:  true,
+						},
+					},
+				})
 			},
 			templateID: "test.event",
 			channels:   []string{"slack"},
 			payload:    map[string]any{"title": "T", "body": "B"},
+		},
+		{
+			name: "missing channel without uid returns error",
+			setup: func(t *testing.T) {
+				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+				replaceDatabaseForTest(t, &notifyTestStore{})
+			},
+			templateID: "test.event",
+			channels:   []string{"slack"},
+			payload:    map[string]any{"title": "T", "body": "B"},
+			wantErr:    "not found",
 		},
 		{
 			name: "throttle allows then blocks repeat",
@@ -701,6 +729,22 @@ func TestGatewaySend(t *testing.T) {
 						Params: config.NotifyRuleParams{Window: "1m", Limit: 1},
 					},
 				}, redisStore)
+				m := &mockNotifyer{
+					protocol:  "testgatewaythrottle",
+					templates: []string{"testgatewaythrottle://{channel}/{token}"},
+				}
+				Register(m.protocol, m)
+				t.Cleanup(func() { Unregister(m.protocol) })
+				replaceDatabaseForTest(t, &notifyTestStore{
+					globalChannels: map[string]model.NotifyChannel{
+						"slack": {
+							Name:     "slack",
+							Protocol: "testgatewaythrottle",
+							URI:      "testgatewaythrottle://chan/tok",
+							Enabled:  true,
+						},
+					},
+				})
 			},
 			templateID: "test.event",
 			channels:   []string{"slack"},
@@ -746,26 +790,115 @@ func TestSendToUserChannel(t *testing.T) {
 	t.Cleanup(func() { Unregister(m.protocol) })
 
 	tests := []struct {
-		name    string
-		uid     types.Uid
-		channel string
+		name      string
+		uid       types.Uid
+		channel   string
+		wantErr   bool
+		wantCalls int
 	}{
-		{name: "zero uid skips send", uid: types.Uid(""), channel: "slack"},
-		{name: "configured channel sends message", uid: uid, channel: "slack"},
-		{name: "missing channel config is no-op", uid: uid, channel: "ntfy"},
+		{name: "zero uid returns not found", uid: types.Uid(""), channel: "slack", wantErr: true, wantCalls: 0},
+		{name: "configured channel sends message", uid: uid, channel: "slack", wantErr: false, wantCalls: 1},
+		{name: "missing channel config returns not found", uid: uid, channel: "ntfy", wantErr: true, wantCalls: 0},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			before := m.calls
-			err := sendToUserChannel(ctx, tt.uid, "test.event", tt.channel, Message{Title: "T", Body: "B"})
-			require.NoError(t, err)
-			switch tt.name {
-			case "configured channel sends message":
-				assert.Equal(t, before+1, m.calls)
-			case "zero uid skips send", "missing channel config is no-op":
-				assert.Equal(t, before, m.calls)
+			err := sendToUserChannel(ctx, tt.uid, tt.channel, Message{Title: "T", Body: "B"})
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
+			assert.Equal(t, before+tt.wantCalls, m.calls)
+		})
+	}
+}
+
+func TestDispatchChannel(t *testing.T) {
+	t.Parallel()
+	m := &mockNotifyer{
+		protocol:  "testdispatchglobal",
+		templates: []string{"testdispatchglobal://{channel}/{token}"},
+	}
+	Register(m.protocol, m)
+	t.Cleanup(func() { Unregister(m.protocol) })
+
+	tests := []struct {
+		name      string
+		store     *notifyTestStore
+		uid       types.Uid
+		channel   string
+		wantErr   bool
+		wantCalls int
+	}{
+		{
+			name: "global channel sends without uid",
+			store: &notifyTestStore{
+				globalChannels: map[string]model.NotifyChannel{
+					"testing": {
+						Name:     "testing",
+						Protocol: "testdispatchglobal",
+						URI:      "testdispatchglobal://chan/tok",
+						Enabled:  true,
+					},
+				},
+			},
+			uid:       types.Uid(""),
+			channel:   "testing",
+			wantErr:   false,
+			wantCalls: 1,
+		},
+		{
+			name: "disabled global channel returns error",
+			store: &notifyTestStore{
+				globalChannels: map[string]model.NotifyChannel{
+					"testing": {
+						Name:     "testing",
+						Protocol: "testdispatchglobal",
+						URI:      "testdispatchglobal://chan/tok",
+						Enabled:  false,
+					},
+				},
+			},
+			uid:       types.Uid(""),
+			channel:   "testing",
+			wantErr:   true,
+			wantCalls: 0,
+		},
+		{
+			name: "falls back to user config when global missing",
+			store: &notifyTestStore{
+				configs: map[string]types.KV{
+					"notify:slack": {"value": "testdispatchglobal://chan/tok"},
+				},
+			},
+			uid:       types.Uid("user-1"),
+			channel:   "slack",
+			wantErr:   false,
+			wantCalls: 1,
+		},
+		{
+			name:      "missing global and user channel returns error",
+			store:     &notifyTestStore{},
+			uid:       types.Uid(""),
+			channel:   "missing",
+			wantErr:   true,
+			wantCalls: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			replaceDatabaseForTest(t, tt.store)
+			before := m.calls
+			err := dispatchChannel(context.Background(), tt.uid, tt.channel, Message{Title: "T", Body: "B"})
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, before+tt.wantCalls, m.calls)
 		})
 	}
 }

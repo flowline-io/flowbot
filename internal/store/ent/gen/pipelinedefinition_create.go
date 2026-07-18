@@ -98,6 +98,20 @@ func (_c *PipelineDefinitionCreate) SetNillableStatus(v *pipelinedefinition.Stat
 	return _c
 }
 
+// SetCreatedBy sets the "created_by" field.
+func (_c *PipelineDefinitionCreate) SetCreatedBy(v string) *PipelineDefinitionCreate {
+	_c.mutation.SetCreatedBy(v)
+	return _c
+}
+
+// SetNillableCreatedBy sets the "created_by" field if the given value is not nil.
+func (_c *PipelineDefinitionCreate) SetNillableCreatedBy(v *string) *PipelineDefinitionCreate {
+	if v != nil {
+		_c.SetCreatedBy(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *PipelineDefinitionCreate) SetCreatedAt(v time.Time) *PipelineDefinitionCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -183,6 +197,10 @@ func (_c *PipelineDefinitionCreate) defaults() {
 		v := pipelinedefinition.DefaultStatus
 		_c.mutation.SetStatus(v)
 	}
+	if _, ok := _c.mutation.CreatedBy(); !ok {
+		v := pipelinedefinition.DefaultCreatedBy
+		_c.mutation.SetCreatedBy(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := pipelinedefinition.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -216,6 +234,9 @@ func (_c *PipelineDefinitionCreate) check() error {
 		if err := pipelinedefinition.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`gen: validator failed for field "PipelineDefinition.status": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.CreatedBy(); !ok {
+		return &ValidationError{Name: "created_by", err: errors.New(`gen: missing required field "PipelineDefinition.created_by"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "PipelineDefinition.created_at"`)}
@@ -279,6 +300,10 @@ func (_c *PipelineDefinitionCreate) createSpec() (*PipelineDefinition, *sqlgraph
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(pipelinedefinition.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.CreatedBy(); ok {
+		_spec.SetField(pipelinedefinition.FieldCreatedBy, field.TypeString, value)
+		_node.CreatedBy = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(pipelinedefinition.FieldCreatedAt, field.TypeTime, value)
@@ -427,6 +452,18 @@ func (u *PipelineDefinitionUpsert) SetStatus(v pipelinedefinition.Status) *Pipel
 // UpdateStatus sets the "status" field to the value that was provided on create.
 func (u *PipelineDefinitionUpsert) UpdateStatus() *PipelineDefinitionUpsert {
 	u.SetExcluded(pipelinedefinition.FieldStatus)
+	return u
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *PipelineDefinitionUpsert) SetCreatedBy(v string) *PipelineDefinitionUpsert {
+	u.Set(pipelinedefinition.FieldCreatedBy, v)
+	return u
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsert) UpdateCreatedBy() *PipelineDefinitionUpsert {
+	u.SetExcluded(pipelinedefinition.FieldCreatedBy)
 	return u
 }
 
@@ -595,6 +632,20 @@ func (u *PipelineDefinitionUpsertOne) SetStatus(v pipelinedefinition.Status) *Pi
 func (u *PipelineDefinitionUpsertOne) UpdateStatus() *PipelineDefinitionUpsertOne {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *PipelineDefinitionUpsertOne) SetCreatedBy(v string) *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertOne) UpdateCreatedBy() *PipelineDefinitionUpsertOne {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateCreatedBy()
 	})
 }
 
@@ -931,6 +982,20 @@ func (u *PipelineDefinitionUpsertBulk) SetStatus(v pipelinedefinition.Status) *P
 func (u *PipelineDefinitionUpsertBulk) UpdateStatus() *PipelineDefinitionUpsertBulk {
 	return u.Update(func(s *PipelineDefinitionUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetCreatedBy sets the "created_by" field.
+func (u *PipelineDefinitionUpsertBulk) SetCreatedBy(v string) *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.SetCreatedBy(v)
+	})
+}
+
+// UpdateCreatedBy sets the "created_by" field to the value that was provided on create.
+func (u *PipelineDefinitionUpsertBulk) UpdateCreatedBy() *PipelineDefinitionUpsertBulk {
+	return u.Update(func(s *PipelineDefinitionUpsert) {
+		s.UpdateCreatedBy()
 	})
 }
 

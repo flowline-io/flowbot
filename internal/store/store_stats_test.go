@@ -130,8 +130,8 @@ func TestPipelineStats_Summary(t *testing.T) {
 	ctx := context.Background()
 	now := time.Now()
 
-	require.NoError(t, s.CreateDefinition(ctx, "summary-a", ""))
-	require.NoError(t, s.CreateDefinition(ctx, "summary-b", ""))
+	require.NoError(t, s.CreateDefinition(ctx, "summary-a", "", ""))
+	require.NoError(t, s.CreateDefinition(ctx, "summary-b", "", ""))
 
 	statuses := []int{
 		int(schema.PipelineDone),

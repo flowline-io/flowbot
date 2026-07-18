@@ -26,6 +26,7 @@ func Register() error {
 					{Name: "template_id", Type: "string", Required: true, Description: "Template ID to render"},
 					{Name: "channels", Type: "[]string", Required: true, Description: "Channels to send to"},
 					{Name: "payload", Type: "map[string]any", Required: false, Description: "Template data payload"},
+					{Name: "uid", Type: "string", Required: false, Description: "Owner UID for notification records; pipeline injects Event.UID when omitted"},
 				},
 				Handler: sendInvoker,
 			},

@@ -984,6 +984,7 @@ var (
 		{Name: "yaml_published", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "version", Type: field.TypeInt, Default: 1},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"draft", "published"}, Default: "draft"},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

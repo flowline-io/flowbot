@@ -222,6 +222,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 				context.Background(),
 				name,
 				desc,
+				"",
 			)
 			Expect(err).NotTo(HaveOccurred())
 		})

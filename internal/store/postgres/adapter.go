@@ -2748,6 +2748,25 @@ func (a *adapter) GetNotifyChannelRaw(ctx context.Context, id int64) (model.Noti
 	}, nil
 }
 
+func (a *adapter) GetNotifyChannelByNameRaw(ctx context.Context, name string) (model.NotifyChannel, error) {
+	ch, err := a.client.NotifyChannel.Query().Where(notifychannel.NameEQ(name)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyChannel{}, types.ErrNotFound
+		}
+		return model.NotifyChannel{}, fmt.Errorf("postgres: get notify channel by name raw: %w", err)
+	}
+	return model.NotifyChannel{
+		ID:        ch.ID,
+		Name:      ch.Name,
+		Protocol:  ch.Protocol,
+		URI:       ch.URI,
+		Enabled:   ch.Enabled,
+		CreatedAt: ch.CreatedAt,
+		UpdatedAt: ch.UpdatedAt,
+	}, nil
+}
+
 func (a *adapter) ListNotifyChannels(ctx context.Context, opts store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
 	q := a.client.NotifyChannel.Query()
 	if opts.Protocol != "" {

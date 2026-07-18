@@ -24,6 +24,8 @@ func (PipelineDefinition) Fields() []ent.Field {
 		field.Text("yaml_published").Optional().Nillable(),
 		field.Int("version").Default(1),
 		field.Enum("status").Values("draft", "published").Default("draft"),
+		// CreatedBy is the Web UI user UID that created this pipeline (e.g. user-admin).
+		field.String("created_by").Default(""),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
