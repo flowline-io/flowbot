@@ -166,42 +166,63 @@ func hasTemplateForRule(item model.NotifyRule, templateIDs []string) bool {
 func ruleActionSummary(item model.NotifyRule) string {
 	switch item.Action {
 	case "mute":
-		if item.Condition == "" {
-			return ""
-		}
-		return truncateString(item.Condition, 48)
+		return muteRuleActionSummary(item.Condition)
 	case "throttle":
-		p := parseRuleParamsFields(item.ParamsJSON)
-		if p.Window == "" && p.Limit == "" {
-			return ""
-		}
-		parts := make([]string, 0, 2)
-		if p.Window != "" {
-			parts = append(parts, "window "+p.Window)
-		}
-		if p.Limit != "" {
-			parts = append(parts, "limit "+p.Limit)
-		}
-		return strings.Join(parts, " · ")
+		return throttleRuleActionSummary(item.ParamsJSON)
 	case "aggregate":
-		p := parseRuleParamsFields(item.ParamsJSON)
-		if p.Window == "" && p.DigestTemplateID == "" && !p.DelayedSend {
-			return ""
-		}
-		parts := make([]string, 0, 3)
-		if p.Window != "" {
-			parts = append(parts, "window "+p.Window)
-		}
-		if p.DigestTemplateID != "" {
-			parts = append(parts, "digest "+p.DigestTemplateID)
-		}
-		if p.DelayedSend {
-			parts = append(parts, "delayed")
-		}
-		return strings.Join(parts, " · ")
+		return aggregateRuleActionSummary(item.ParamsJSON)
 	default:
 		return ""
 	}
+}
+
+// muteRuleActionSummary summarizes a mute rule's condition expression.
+func muteRuleActionSummary(condition string) string {
+	if condition == "" {
+		return ""
+	}
+	return truncateString(condition, 48)
+}
+
+// throttleRuleActionSummary summarizes throttle window and limit params.
+func throttleRuleActionSummary(paramsJSON string) string {
+	p := parseRuleParamsFields(paramsJSON)
+	return joinRuleSummaryParts(
+		labeledRuleSummaryPart("window", p.Window),
+		labeledRuleSummaryPart("limit", p.Limit),
+	)
+}
+
+// aggregateRuleActionSummary summarizes aggregate window, digest, and delay params.
+func aggregateRuleActionSummary(paramsJSON string) string {
+	p := parseRuleParamsFields(paramsJSON)
+	parts := []string{
+		labeledRuleSummaryPart("window", p.Window),
+		labeledRuleSummaryPart("digest", p.DigestTemplateID),
+	}
+	if p.DelayedSend {
+		parts = append(parts, "delayed")
+	}
+	return joinRuleSummaryParts(parts...)
+}
+
+// labeledRuleSummaryPart formats "label value" when value is non-empty.
+func labeledRuleSummaryPart(label, value string) string {
+	if value == "" {
+		return ""
+	}
+	return label + " " + value
+}
+
+// joinRuleSummaryParts joins non-empty summary fragments with a middle dot separator.
+func joinRuleSummaryParts(parts ...string) string {
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if part != "" {
+			out = append(out, part)
+		}
+	}
+	return strings.Join(out, " · ")
 }
 
 // ruleParamsFields holds structured rule parameter fields for the graphical form.

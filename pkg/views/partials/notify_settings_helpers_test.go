@@ -33,9 +33,19 @@ func TestRuleActionSummary(t *testing.T) {
 			want: "",
 		},
 		{
+			name: "mute empty condition",
+			item: model.NotifyRule{Action: "mute", Condition: ""},
+			want: "",
+		},
+		{
 			name: "throttle empty params",
 			item: model.NotifyRule{Action: "throttle", ParamsJSON: ""},
 			want: "",
+		},
+		{
+			name: "aggregate window only",
+			item: model.NotifyRule{Action: "aggregate", ParamsJSON: `{"window":"15m"}`},
+			want: "window 15m",
 		},
 	}
 	for _, tt := range tests {
