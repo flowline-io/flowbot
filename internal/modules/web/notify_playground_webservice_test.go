@@ -19,8 +19,7 @@ import (
 )
 
 func TestValidatePlaygroundRequest(t *testing.T) {
-	t.Parallel()
-
+	// Subtests mutate global pkgconfig.App.Notify.Templates; do not run in parallel.
 	tests := []struct {
 		name      string
 		req       playgroundRequest
@@ -53,13 +52,20 @@ func TestValidatePlaygroundRequest(t *testing.T) {
 			wantField: "payload_json",
 			wantSub:   "Invalid JSON",
 		},
+		{
+			name:      "unknown template",
+			req:       playgroundRequest{Mode: "template", ChannelID: 1, TemplateID: "missing", PayloadJSON: "{}"},
+			templates: []pkgconfig.NotifyTemplate{{ID: "a.created", DefaultTemplate: "x"}},
+			wantField: "template_id",
+			wantSub:   "Unknown template",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			orig := pkgconfig.App.Notify.Templates
 			pkgconfig.App.Notify.Templates = tt.templates
-			t.Cleanup(func() { pkgconfig.App.Notify.Templates = nil })
+			t.Cleanup(func() { pkgconfig.App.Notify.Templates = orig })
 			errs := validatePlaygroundRequest(tt.req)
 			assert.Contains(t, errs[tt.wantField], tt.wantSub)
 		})
