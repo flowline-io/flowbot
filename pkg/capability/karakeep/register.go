@@ -90,6 +90,10 @@ func Register(app string, svc Service) error {
 				Input:   []hub.ParamDef{{Name: "url", Type: "string", Required: true, Description: "URL to check"}},
 				Handler: invokeCheckURL(svc),
 			},
+			{
+				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceBookmarkRead},
+				Handler: invokeHealth(svc),
+			},
 		},
 	})
 }
@@ -229,5 +233,15 @@ func invokeCheckURL(svc Service) capability.Invoker {
 			return nil, err
 		}
 		return &capability.InvokeResult{Data: map[string]any{"exists": exists, "id": id}}, nil
+	}
+}
+
+func invokeHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		ok, err := svc.HealthCheck(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: ok}, nil
 	}
 }

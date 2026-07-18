@@ -43,7 +43,7 @@ func TestRegister_Operations(t *testing.T) {
 	}{
 		{"has send operation", OpSend},
 		{"has digest operation", OpDigest},
-		{"operations present", OpSend},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {
@@ -54,7 +54,7 @@ func TestRegister_Operations(t *testing.T) {
 			assert.Contains(t, opNames, tt.op)
 		})
 	}
-	assert.Len(t, desc.Operations, 2)
+	assert.Len(t, desc.Operations, 3)
 }
 
 func TestRegister_SendHasInputParams(t *testing.T) {

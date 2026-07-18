@@ -17,6 +17,7 @@ func Register(app string, svc Service) error {
 		Description: "DevOps aggregator for beszel, uptimekuma, traefik, grafana, wakapi, and dozzle",
 		Instance:    svc,
 		Ops: []capability.OpDef{
+			{Name: OpHealth, Description: "Aggregate health of configured devops backends", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeHealth(svc)},
 			{Name: OpStatus, Description: "Configured devops backends", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeStatus(svc)},
 			{Name: OpBeszelListSystems, Description: "List Beszel systems", Scopes: []string{auth.ScopeServiceDevopsRead}, Handler: invokeBeszelListSystems(svc)},
 			{
@@ -74,6 +75,16 @@ func invokeStatus(svc Service) capability.Invoker {
 			return nil, err
 		}
 		return &capability.InvokeResult{Data: data}, nil
+	}
+}
+
+func invokeHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		ok, err := svc.HealthCheck(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: ok}, nil
 	}
 }
 

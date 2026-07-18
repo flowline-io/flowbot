@@ -14,6 +14,8 @@ import (
 )
 
 type fakeClient struct {
+	me           *provider.User
+	meErr        error
 	tasks        []*provider.Task
 	tasksErr     error
 	task         *provider.Task
@@ -32,6 +34,16 @@ type fakeClient struct {
 	columnsErr   error
 	searchTasks  []*provider.Task
 	searchErr    error
+}
+
+func (f *fakeClient) GetMe(_ context.Context) (*provider.User, error) {
+	if f.meErr != nil {
+		return nil, f.meErr
+	}
+	if f.me == nil {
+		return &provider.User{ID: 1, Username: "admin"}, nil
+	}
+	return f.me, nil
 }
 
 func (f *fakeClient) GetAllTasks(_ context.Context, _ int, _ provider.StatusId) ([]*provider.Task, error) {
@@ -306,6 +318,40 @@ func TestCheckClientWithNilClient(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestAdapter_HealthCheck(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		client  *fakeClient
+		wantOK  bool
+		wantErr bool
+	}{
+		{name: "healthy", client: &fakeClient{me: &provider.User{ID: 1, Username: "admin"}}, wantOK: true},
+		{name: "provider error", client: &fakeClient{meErr: assert.AnError}, wantErr: true},
+		{name: "canceled context", client: &fakeClient{}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := NewWithClient(tt.client)
+			ctx := t.Context()
+			if tt.name == "canceled context" {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+			ok, err := a.HealthCheck(ctx)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.False(t, ok)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantOK, ok)
 		})
 	}
 }

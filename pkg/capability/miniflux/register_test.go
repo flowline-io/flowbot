@@ -26,6 +26,7 @@ func (*mockReaderService) MarkEntryRead(_ context.Context, _ int64) error   { re
 func (*mockReaderService) MarkEntryUnread(_ context.Context, _ int64) error { return nil }
 func (*mockReaderService) StarEntry(_ context.Context, _ int64) error       { return nil }
 func (*mockReaderService) UnstarEntry(_ context.Context, _ int64) error     { return nil }
+func (*mockReaderService) HealthCheck(_ context.Context) (bool, error)      { return true, nil }
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
@@ -57,7 +58,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapMiniflux, desc.Type)
 	assert.Equal(t, "miniflux", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 7)
+	assert.Len(t, desc.Operations, 8)
 	assert.Len(t, desc.Events, 4)
 
 	tests := []struct {
@@ -69,6 +70,7 @@ func TestRegister_Operations(t *testing.T) {
 		{"has list_entries operation", OpListEntries},
 		{"has mark_entry_read operation", OpMarkEntryRead},
 		{"has star_entry operation", OpStarEntry},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {

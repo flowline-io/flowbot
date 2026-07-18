@@ -211,7 +211,7 @@ func TestAdapter_AboutUserHealth(t *testing.T) {
 			run: func(t *testing.T) {
 				svc := NewWithClient(&fakeClient{aboutErr: assert.AnError})
 				ok, err := svc.HealthCheck(context.Background())
-				require.NoError(t, err)
+				require.Error(t, err)
 				assert.False(t, ok)
 			},
 		},

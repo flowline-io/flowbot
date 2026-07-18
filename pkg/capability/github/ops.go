@@ -10,4 +10,5 @@ const (
 	OpGetFileContent    = "get_file_content"
 	OpListNotifications = "list_notifications"
 	OpListReleases      = "list_releases"
+	OpHealth            = "health"
 )

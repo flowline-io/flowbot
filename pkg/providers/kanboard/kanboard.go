@@ -95,6 +95,16 @@ func (v *Kanboard) Close() error {
 	return v.c.Close()
 }
 
+// GetMe returns the currently authenticated Kanboard user via JSON-RPC getMe.
+func (v *Kanboard) GetMe(ctx context.Context) (user *User, err error) {
+	err = v.c.CallResult(ctx, "getMe", nil, &user)
+	if err != nil {
+		err = fmt.Errorf("failed to get me, %w", err)
+		return
+	}
+	return
+}
+
 func (v *Kanboard) CreateTask(ctx context.Context, task *Task) (taskId int64, err error) {
 	err = v.c.CallResult(ctx, "createTask", task, &taskId)
 	if err != nil {

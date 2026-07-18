@@ -38,6 +38,7 @@ func (*fakeNotePollerService) Search(_ context.Context, _ string) (*capability.L
 func (*fakeNotePollerService) GetAppInfo(_ context.Context) (*capability.Note, error) {
 	return nil, nil
 }
+func (*fakeNotePollerService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 func (f *fakeNotePollerService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
 	return f.items, f.cursor, f.err
 }

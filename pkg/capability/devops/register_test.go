@@ -43,6 +43,7 @@ func TestRegister_Operations(t *testing.T) {
 		name string
 		op   string
 	}{
+		{name: "health", op: OpHealth},
 		{name: "status", op: OpStatus},
 		{name: "beszel list", op: OpBeszelListSystems},
 		{name: "grafana health", op: OpGrafanaHealth},

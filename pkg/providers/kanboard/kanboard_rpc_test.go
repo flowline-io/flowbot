@@ -200,6 +200,47 @@ func TestKanboard_CreateTask(t *testing.T) {
 	}
 }
 
+func TestKanboard_GetMe(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		user    *User
+		wantErr bool
+	}{
+		{name: "returns authenticated user", user: &User{ID: 1, Username: "admin", Role: "app-admin"}},
+		{name: "empty user", user: &User{}},
+		{name: "rpc failure", wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var srv *httptest.Server
+			if tt.wantErr {
+				srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					_, _ = w.Write([]byte(`{"jsonrpc":"2.0","error":{"code":-32000,"message":"unauthorized"},"id":1}`))
+				}))
+			} else {
+				srv = newKanboardRPCServer(t, map[string]func(json.RawMessage) any{
+					"getMe": func(_ json.RawMessage) any { return tt.user },
+				})
+			}
+			defer srv.Close()
+
+			kb, err := NewKanboard(srv.URL, "u", "p")
+			require.NoError(t, err)
+
+			user, err := kb.GetMe(context.Background())
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.user.Username, user.Username)
+			assert.Equal(t, tt.user.ID, user.ID)
+		})
+	}
+}
+
 func TestKanboard_GetTask(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

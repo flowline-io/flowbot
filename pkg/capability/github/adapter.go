@@ -64,6 +64,18 @@ func (a *Adapter) GetUser(ctx context.Context) (*capability.ForgeUser, error) {
 	return toForgeUser(user), nil
 }
 
+// HealthCheck reports whether the GitHub backend is reachable by querying the authenticated user.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	user, err := a.client.GetAuthenticatedUser()
+	if err != nil {
+		return false, types.WrapError(types.ErrProvider, "github health check failed", err)
+	}
+	return user != nil, nil
+}
+
 // GetUserByLogin returns a GitHub user's profile by login name from the GitHub API.
 func (a *Adapter) GetUserByLogin(ctx context.Context, login string) (*capability.ForgeUser, error) {
 	if err := ctx.Err(); err != nil {

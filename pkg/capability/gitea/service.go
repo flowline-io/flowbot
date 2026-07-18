@@ -17,4 +17,5 @@ type Service interface {
 	GetIssue(ctx context.Context, owner, repo string, index int64) (*capability.ForgeIssue, error)
 	GetCommitDiff(ctx context.Context, owner, repo, commitID string) (*capability.ForgeCommitDiff, error)
 	GetFileContent(ctx context.Context, owner, repo, commitID, filePath string, lineStart, lineCount int) ([]byte, error)
+	HealthCheck(ctx context.Context) (bool, error)
 }

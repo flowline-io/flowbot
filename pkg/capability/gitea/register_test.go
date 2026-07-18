@@ -29,6 +29,7 @@ func (*mockForgeService) GetCommitDiff(_ context.Context, _, _, _ string) (*capa
 func (*mockForgeService) GetFileContent(_ context.Context, _, _, _, _ string, _, _ int) ([]byte, error) {
 	return nil, nil
 }
+func (*mockForgeService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
@@ -60,7 +61,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapGitea, desc.Type)
 	assert.Equal(t, "gitea", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 6)
+	assert.Len(t, desc.Operations, 7)
 	assert.Len(t, desc.Events, 5)
 
 	tests := []struct {
@@ -73,6 +74,7 @@ func TestRegister_Operations(t *testing.T) {
 		{"has get_issue operation", OpGetIssue},
 		{"has get_commit_diff operation", OpGetCommitDiff},
 		{"has get_file_content operation", OpGetFileContent},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {

@@ -38,6 +38,7 @@ type SearchDevicesInput struct {
 
 // Service defines the devops aggregator capability contract.
 type Service interface {
+	HealthCheck(ctx context.Context) (bool, error)
 	Status(ctx context.Context) (*capability.DevopsStatus, error)
 
 	BeszelListSystems(ctx context.Context) (*capability.ListResult[capability.DevopsSystem], error)

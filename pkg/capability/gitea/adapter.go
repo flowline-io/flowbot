@@ -73,6 +73,18 @@ func (a *Adapter) GetUser(ctx context.Context) (*capability.ForgeUser, error) {
 	return toForgeUser(user), nil
 }
 
+// HealthCheck reports whether the Gitea backend is reachable by querying the authenticated user.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	user, err := a.client.GetMyUserInfo()
+	if err != nil {
+		return false, types.WrapError(types.ErrProvider, "gitea health check failed", err)
+	}
+	return user != nil, nil
+}
+
 // GetRepo returns a single repository by owner and name from the Gitea API.
 func (a *Adapter) GetRepo(ctx context.Context, owner, repo string) (*capability.ForgeRepo, error) {
 	if err := ctx.Err(); err != nil {

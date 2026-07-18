@@ -32,4 +32,5 @@ type Service interface {
 	CompleteTask(ctx context.Context, id int) error
 	GetColumns(ctx context.Context, projectID int) ([]map[string]any, error)
 	SearchTasks(ctx context.Context, q *SearchQuery) (*capability.ListResult[capability.Task], error)
+	HealthCheck(ctx context.Context) (bool, error)
 }

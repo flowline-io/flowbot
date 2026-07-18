@@ -226,6 +226,18 @@ func (a *Adapter) GetAppInfo(ctx context.Context) (*capability.Note, error) {
 	}, nil
 }
 
+// HealthCheck reports whether the Trilium backend is reachable by querying app info.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	info, err := a.client.GetAppInfo(ctx)
+	if err != nil {
+		return false, types.WrapError(types.ErrProvider, "trilium health check failed", err)
+	}
+	return info != nil, nil
+}
+
 // ListRawEvents lists notes as raw events for polling support.
 func (a *Adapter) ListRawEvents(ctx context.Context, cursor string) ([]any, string, error) {
 	if err := ctx.Err(); err != nil {

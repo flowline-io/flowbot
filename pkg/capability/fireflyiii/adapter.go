@@ -110,14 +110,13 @@ func (a *Adapter) CurrentUser(ctx context.Context) (*capability.FinanceUser, err
 }
 
 // HealthCheck reports whether the Firefly III backend is reachable.
-// Provider failures are treated as unhealthy (false, nil), not as invoke errors.
 func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	if err := ctx.Err(); err != nil {
 		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
 	_, err := a.client.About()
 	if err != nil {
-		return false, nil
+		return false, types.WrapError(types.ErrProvider, "fireflyiii health check failed", err)
 	}
 	return true, nil
 }

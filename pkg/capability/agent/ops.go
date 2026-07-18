@@ -1,5 +1,6 @@
 package agent
 
 const (
-	OpRun = "run"
+	OpRun    = "run"
+	OpHealth = "health"
 )

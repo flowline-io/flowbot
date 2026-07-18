@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -141,4 +142,39 @@ func TestRunInvokerRejectsInvalidToolsType(t *testing.T) {
 		"tools":  "read_file",
 	})
 	require.Error(t, err)
+}
+
+func TestHealthInvoker(t *testing.T) {
+	prev := config.App.ChatAgent
+	t.Cleanup(func() {
+		config.App.ChatAgent = prev
+		SetRunner(nil)
+	})
+
+	tests := []struct {
+		name      string
+		chatModel string
+		runner    Runner
+		wantOK    bool
+		wantErr   bool
+	}{
+		{name: "healthy with runner", runner: &stubRunner{}, wantOK: true},
+		{name: "healthy with chat model", chatModel: "gpt-test", wantOK: true},
+		{name: "unconfigured", wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config.App.ChatAgent.ChatModel = tt.chatModel
+			SetRunner(tt.runner)
+			res, err := healthInvoker(context.Background(), nil)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			ok, isBool := res.Data.(bool)
+			require.True(t, isBool)
+			assert.Equal(t, tt.wantOK, ok)
+		})
+	}
 }

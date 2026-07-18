@@ -34,6 +34,7 @@ func (*mockBookmarkService) DetachTags(_ context.Context, _ string, _ []string) 
 func (*mockBookmarkService) CheckURL(_ context.Context, _ string) (bool, string, error) {
 	return false, "", nil
 }
+func (*mockBookmarkService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
@@ -65,7 +66,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapKarakeep, desc.Type)
 	assert.Equal(t, "karakeep", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 9)
+	assert.Len(t, desc.Operations, 10)
 	assert.Len(t, desc.Events, 4)
 
 	tests := []struct {
@@ -81,6 +82,7 @@ func TestRegister_Operations(t *testing.T) {
 		{"has attach_tags operation", OpAttachTags},
 		{"has detach_tags operation", OpDetachTags},
 		{"has check_url operation", OpCheckURL},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {

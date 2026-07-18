@@ -57,6 +57,9 @@ func NewDozzle(endpoint, username, password, token string) *Dozzle {
 
 // Health reports whether Dozzle /healthcheck returns 2xx.
 func (d *Dozzle) Health(ctx context.Context) error {
+	if d == nil || d.c == nil {
+		return fmt.Errorf("dozzle: not configured")
+	}
 	resp, err := d.c.R().SetContext(ctx).Get("/healthcheck")
 	if err != nil {
 		return fmt.Errorf("dozzle health: %w", err)

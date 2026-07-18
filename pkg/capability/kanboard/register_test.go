@@ -34,6 +34,7 @@ func (*mockService) GetColumns(_ context.Context, _ int) ([]map[string]any, erro
 func (*mockService) SearchTasks(_ context.Context, _ *SearchQuery) (*capability.ListResult[capability.Task], error) {
 	return nil, nil
 }
+func (*mockService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 
 func TestStringListParam_StringSlice(t *testing.T) {
 	t.Parallel()
@@ -209,7 +210,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapKanboard, desc.Type)
 	assert.Equal(t, "kanboard", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 9)
+	assert.Len(t, desc.Operations, 10)
 	assert.Len(t, desc.Events, 5)
 
 	tests := []struct {
@@ -221,6 +222,7 @@ func TestRegister_Operations(t *testing.T) {
 		{"has create_task operation", OpCreateTask},
 		{"has move_task operation", OpMoveTask},
 		{"has complete_task operation", OpCompleteTask},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {

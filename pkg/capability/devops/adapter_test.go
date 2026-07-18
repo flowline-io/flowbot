@@ -111,6 +111,7 @@ func TestNewWithClients(t *testing.T) {
 		{name: "beszel only", clients: Clients{Beszel: &stubBeszel{}}, wantNil: false},
 		{name: "dozzle only", clients: Clients{Dozzle: &stubDozzle{}}, wantNil: false},
 		{name: "netalertx only", clients: Clients{Netalertx: &stubNetalertx{}}, wantNil: false},
+		{name: "typed nil grafana alone is nil adapter", clients: Clients{Grafana: (*grafana.Grafana)(nil)}, wantNil: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -253,4 +254,53 @@ func TestAdapter_DozzleHealth(t *testing.T) {
 		require.Len(t, got.Items, 1)
 		assert.Equal(t, "Router", got.Items[0].Name)
 	})
+}
+
+func TestAdapter_HealthCheck(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		clients Clients
+		wantOK  bool
+		wantErr bool
+	}{
+		{name: "dozzle healthy", clients: Clients{Dozzle: &stubDozzle{}}, wantOK: true},
+		{name: "dozzle unhealthy", clients: Clients{Dozzle: &stubDozzle{err: assert.AnError}}, wantErr: true},
+		{name: "no health backends", clients: Clients{Beszel: &stubBeszel{}}, wantErr: true},
+		{
+			name: "typed nil grafana skipped when dozzle healthy",
+			clients: Clients{
+				Dozzle:  &stubDozzle{},
+				Grafana: (*grafana.Grafana)(nil),
+			},
+			wantOK: true,
+		},
+		{
+			name: "typed nil grafana alone yields no health backends",
+			clients: Clients{
+				Grafana: (*grafana.Grafana)(nil),
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := NewWithClients(tt.clients)
+			if svc == nil {
+				if tt.wantErr {
+					return
+				}
+				t.Fatal("expected non-nil service")
+			}
+			ok, err := svc.HealthCheck(context.Background())
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.False(t, ok)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantOK, ok)
+		})
+	}
 }

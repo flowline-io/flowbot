@@ -51,6 +51,9 @@ func NewUptimeKuma(endpoint, token string) *UptimeKuma {
 
 // Health reports whether the /metrics endpoint is reachable with a 2xx status.
 func (i *UptimeKuma) Health(ctx context.Context) error {
+	if i == nil || i.c == nil {
+		return fmt.Errorf("uptimekuma: not configured")
+	}
 	resp, err := i.c.R().SetContext(ctx).Get("/metrics")
 	if err != nil {
 		return fmt.Errorf("uptimekuma health: %w", err)

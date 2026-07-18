@@ -1,8 +1,10 @@
 package karakeep
 
 import (
+	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/capability"
@@ -127,4 +129,38 @@ func decodeTestCursor(t *testing.T, adapter *Adapter, cursor string) capability.
 	payload, err := capability.DecodeCursor(adapter.cursorSecret, cursor, adapter.now())
 	require.NoError(t, err)
 	return payload
+}
+
+func TestAdapter_HealthCheck(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		client  *fakeClient
+		wantOK  bool
+		wantErr bool
+	}{
+		{name: "healthy", client: &fakeClient{}, wantOK: true},
+		{name: "provider error", client: &fakeClient{listErr: assert.AnError}, wantErr: true},
+		{name: "canceled context", client: &fakeClient{}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := NewWithClient(tt.client)
+			ctx := t.Context()
+			if tt.name == "canceled context" {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+			ok, err := a.HealthCheck(ctx)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.False(t, ok)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantOK, ok)
+		})
+	}
 }

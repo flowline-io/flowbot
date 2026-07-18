@@ -3,6 +3,7 @@ package devops
 
 import (
 	"context"
+	"reflect"
 
 	dto "github.com/prometheus/client_model/go"
 
@@ -82,14 +83,29 @@ type Clients struct {
 // New creates an Adapter from configured providers.
 // Returns nil when no devops provider is configured.
 func New() Service {
-	c := Clients{
-		Beszel:     beszel.GetClient(),
-		Uptimekuma: uptimekuma.GetClient(),
-		Traefik:    traefik.GetClient(),
-		Grafana:    grafana.GetClient(),
-		Wakapi:     wakapi.GetClient(),
-		Dozzle:     dozzle.GetClient(),
-		Netalertx:  netalertx.GetClient(),
+	c := Clients{}
+	// Assign only non-nil clients so interface fields stay true-nil
+	// (a typed nil *T stored in an interface is not == nil).
+	if v := beszel.GetClient(); v != nil {
+		c.Beszel = v
+	}
+	if v := uptimekuma.GetClient(); v != nil {
+		c.Uptimekuma = v
+	}
+	if v := traefik.GetClient(); v != nil {
+		c.Traefik = v
+	}
+	if v := grafana.GetClient(); v != nil {
+		c.Grafana = v
+	}
+	if v := wakapi.GetClient(); v != nil {
+		c.Wakapi = v
+	}
+	if v := dozzle.GetClient(); v != nil {
+		c.Dozzle = v
+	}
+	if v := netalertx.GetClient(); v != nil {
+		c.Netalertx = v
 	}
 	return NewWithClients(c)
 }
@@ -97,6 +113,14 @@ func New() Service {
 // NewWithClients creates an Adapter from explicit clients (for tests).
 // Returns nil when every client is nil.
 func NewWithClients(c Clients) Service {
+	c.Beszel = nilIfTypedNil(c.Beszel)
+	c.Uptimekuma = nilIfTypedNil(c.Uptimekuma)
+	c.Traefik = nilIfTypedNil(c.Traefik)
+	c.Grafana = nilIfTypedNil(c.Grafana)
+	c.Wakapi = nilIfTypedNil(c.Wakapi)
+	c.Dozzle = nilIfTypedNil(c.Dozzle)
+	c.Netalertx = nilIfTypedNil(c.Netalertx)
+
 	if c.Beszel == nil && c.Uptimekuma == nil && c.Traefik == nil &&
 		c.Grafana == nil && c.Wakapi == nil && c.Dozzle == nil && c.Netalertx == nil {
 		return nil
@@ -110,6 +134,31 @@ func NewWithClients(c Clients) Service {
 		dozzle:     c.Dozzle,
 		netalertx:  c.Netalertx,
 	}
+}
+
+// nilIfTypedNil converts a typed-nil pointer held in an interface to a true nil interface.
+func nilIfTypedNil[T any](v T) T {
+	rv := reflect.ValueOf(&v).Elem()
+	if !rv.IsValid() {
+		return v
+	}
+	// T is an interface type (beszelClient, grafanaClient, …).
+	if rv.Kind() != reflect.Interface {
+		return v
+	}
+	if rv.IsNil() {
+		var zero T
+		return zero
+	}
+	elem := rv.Elem()
+	switch elem.Kind() {
+	case reflect.Pointer, reflect.Map, reflect.Slice, reflect.Func, reflect.Chan, reflect.Interface:
+		if elem.IsNil() {
+			var zero T
+			return zero
+		}
+	}
+	return v
 }
 
 func notConfigured(id string) error {
@@ -132,6 +181,43 @@ func (a *Adapter) Status(ctx context.Context) (*capability.DevopsStatus, error) 
 			"netalertx":  a.netalertx != nil,
 		},
 	}, nil
+}
+
+// HealthCheck probes configured backends that expose a health endpoint.
+// Returns true when at least one such backend is configured and all of them succeed.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	probed := 0
+	if a.uptimekuma != nil {
+		probed++
+		if err := a.uptimekuma.Health(ctx); err != nil {
+			return false, wrapProviderErr("uptimekuma health check failed", err)
+		}
+	}
+	if a.grafana != nil {
+		probed++
+		if _, err := a.grafana.Health(ctx); err != nil {
+			return false, wrapProviderErr("grafana health check failed", err)
+		}
+	}
+	if a.dozzle != nil {
+		probed++
+		if err := a.dozzle.Health(ctx); err != nil {
+			return false, wrapProviderErr("dozzle health check failed", err)
+		}
+	}
+	if a.netalertx != nil {
+		probed++
+		if err := a.netalertx.Health(ctx); err != nil {
+			return false, wrapProviderErr("netalertx health check failed", err)
+		}
+	}
+	if probed == 0 {
+		return false, types.Errorf(types.ErrProvider, "no devops health backends configured")
+	}
+	return true, nil
 }
 
 // BeszelListSystems lists Beszel systems.

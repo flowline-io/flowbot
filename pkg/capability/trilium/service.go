@@ -21,4 +21,5 @@ type Service interface {
 	Search(ctx context.Context, query string) (*capability.ListResult[capability.Note], error)
 	GetAppInfo(ctx context.Context) (*capability.Note, error)
 	ListRawEvents(ctx context.Context, cursor string) ([]any, string, error)
+	HealthCheck(ctx context.Context) (bool, error)
 }

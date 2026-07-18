@@ -27,4 +27,5 @@ type Service interface {
 	GetFileContent(ctx context.Context, owner, repo, commitID, filePath string, lineStart, lineCount int) ([]byte, error)
 	ListNotifications(ctx context.Context, q *PageQuery) (*capability.ListResult[capability.Notification], error)
 	ListReleases(ctx context.Context, owner, repo string, q *PageQuery) (*capability.ListResult[capability.Release], error)
+	HealthCheck(ctx context.Context) (bool, error)
 }

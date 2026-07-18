@@ -33,6 +33,7 @@ func (*mockNoteService) GetAppInfo(_ context.Context) (*capability.Note, error) 
 func (*mockNoteService) ListRawEvents(_ context.Context, _ string) ([]any, string, error) {
 	return nil, "", nil
 }
+func (*mockNoteService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
@@ -64,7 +65,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapTrilium, desc.Type)
 	assert.Equal(t, "trilium", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 9)
+	assert.Len(t, desc.Operations, 10)
 
 	tests := []struct {
 		name string
@@ -79,6 +80,7 @@ func TestRegister_Operations(t *testing.T) {
 		{"has set_content operation", OpSetContent},
 		{"has search operation", OpSearch},
 		{"has get_app_info operation", OpGetAppInfo},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {

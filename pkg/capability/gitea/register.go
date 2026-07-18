@@ -81,6 +81,10 @@ func Register(app string, svc Service) error {
 				},
 				Handler: invokeGetFileContent(svc),
 			},
+			{
+				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceForgeRead},
+				Handler: invokeHealth(svc),
+			},
 		},
 	})
 }
@@ -200,6 +204,16 @@ func invokeGetFileContent(svc Service) capability.Invoker {
 			return nil, err
 		}
 		return &capability.InvokeResult{Data: string(content), Text: filePath}, nil
+	}
+}
+
+func invokeHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		ok, err := svc.HealthCheck(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: ok}, nil
 	}
 }
 

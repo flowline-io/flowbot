@@ -496,6 +496,44 @@ func TestAdapter_GetAppInfo(t *testing.T) {
 	}
 }
 
+func TestAdapter_HealthCheck(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		client  *fakeClient
+		wantOK  bool
+		wantErr bool
+	}{
+		{
+			name: "healthy",
+			client: &fakeClient{appInfoResp: &provider.AppInfo{AppVersion: "0.63.7"}},
+			wantOK: true,
+		},
+		{name: "provider error", client: &fakeClient{appInfoErr: assert.AnError}, wantErr: true},
+		{name: "canceled context", client: &fakeClient{appInfoResp: &provider.AppInfo{}}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := NewWithClient(tt.client)
+			ctx := context.Background()
+			if tt.name == "canceled context" {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+			ok, err := a.HealthCheck(ctx)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.False(t, ok)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantOK, ok)
+		})
+	}
+}
+
 func TestAdapter_ListRawEvents(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

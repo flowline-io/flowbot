@@ -1,6 +1,7 @@
 package devops
 
 const (
+	OpHealth                  = "health"
 	OpStatus                  = "status"
 	OpBeszelListSystems       = "beszel_list_systems"
 	OpBeszelGetSystem         = "beszel_get_system"

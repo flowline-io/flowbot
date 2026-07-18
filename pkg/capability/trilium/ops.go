@@ -10,4 +10,5 @@ const (
 	OpSetContent = "set_content"
 	OpSearch     = "search"
 	OpGetAppInfo = "get_app_info"
+	OpHealth     = "health"
 )

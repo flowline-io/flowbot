@@ -7,4 +7,5 @@ const (
 	OpGetIssue       = "get_issue"
 	OpGetCommitDiff  = "get_commit_diff"
 	OpGetFileContent = "get_file_content"
+	OpHealth         = "health"
 )

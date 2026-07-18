@@ -77,6 +77,10 @@ func Register() error {
 				},
 				Handler: runInvoker,
 			},
+			{
+				Name: OpHealth, Description: "Health check",
+				Handler: healthInvoker,
+			},
 		},
 	})
 }
@@ -135,4 +139,11 @@ func runInvoker(ctx context.Context, params map[string]any) (*capability.InvokeR
 		},
 		Text: result.Reply,
 	}, nil
+}
+
+func healthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+	if config.ChatAgentEnabled() || getRunner() != nil {
+		return &capability.InvokeResult{Data: true}, nil
+	}
+	return nil, types.Errorf(types.ErrUnavailable, "agent is not configured")
 }

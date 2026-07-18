@@ -149,3 +149,12 @@ type Tag struct {
 	Name      string `json:"name,omitempty"`
 	ProjectID string `json:"project_id,omitempty"`
 }
+
+// User is the authenticated Kanboard user returned by getMe.
+type User struct {
+	ID       int    `json:"id,omitempty"`
+	Username string `json:"username,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Email    string `json:"email,omitempty"`
+	Role     string `json:"role,omitempty"`
+}

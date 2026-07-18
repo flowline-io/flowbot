@@ -8,4 +8,5 @@ const (
 	OpMarkEntryUnread = "mark_entry_unread"
 	OpStarEntry       = "star_entry"
 	OpUnstarEntry     = "unstar_entry"
+	OpHealth          = "health"
 )

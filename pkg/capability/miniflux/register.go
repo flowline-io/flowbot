@@ -72,6 +72,10 @@ func Register(app string, svc Service) error {
 				Input:   []hub.ParamDef{{Name: "id", Type: "int64", Required: true, Description: "Entry ID"}},
 				Handler: invokeUnstarEntry(svc),
 			},
+			{
+				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceReaderRead},
+				Handler: invokeHealth(svc),
+			},
 		},
 	})
 }
@@ -172,5 +176,15 @@ func invokeUnstarEntry(svc Service) capability.Invoker {
 			return nil, err
 		}
 		return &capability.InvokeResult{Text: "entry unstarred"}, nil
+	}
+}
+
+func invokeHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		ok, err := svc.HealthCheck(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: ok}, nil
 	}
 }

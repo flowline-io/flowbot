@@ -206,6 +206,18 @@ func (a *Adapter) CheckURL(ctx context.Context, url string) (bool, string, error
 	return true, *id, nil
 }
 
+// HealthCheck reports whether the Karakeep backend is reachable by listing a single bookmark page.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	_, err := a.client.GetAllBookmarks(&provider.BookmarksQuery{Limit: 1})
+	if err != nil {
+		return false, types.WrapError(types.ErrProvider, "karakeep health check failed", err)
+	}
+	return true, nil
+}
+
 func (a *Adapter) providerCursor(cursor string) (string, error) {
 	if cursor == "" {
 		return "", nil

@@ -16,6 +16,7 @@ import (
 var defaultCursorSecret = []byte("flowbot-ability-kanban-kanboard-cursor-v1")
 
 type client interface {
+	GetMe(ctx context.Context) (*provider.User, error)
 	GetAllTasks(ctx context.Context, projectID int, status provider.StatusId) ([]*provider.Task, error)
 	GetTask(ctx context.Context, taskID int) (*provider.Task, error)
 	CreateTask(ctx context.Context, task *provider.Task) (int64, error)
@@ -254,6 +255,18 @@ func (a *Adapter) SearchTasks(ctx context.Context, q *SearchQuery) (*capability.
 		items = append(items, toAbilityTask(t))
 	}
 	return paginateSlice(items, q.Page, a.cursorSecret, a.now(), "kanboard", "kanboard"), nil
+}
+
+// HealthCheck reports whether the Kanboard backend is reachable by calling getMe.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	user, err := a.client.GetMe(ctx)
+	if err != nil {
+		return false, types.WrapError(types.ErrProvider, "kanboard health check failed", err)
+	}
+	return user != nil, nil
 }
 
 func toAbilityTask(t *provider.Task) *capability.Task {

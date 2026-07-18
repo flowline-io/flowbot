@@ -44,13 +44,17 @@ func (f *fakeClient) TorrentRemove(_ context.Context, ids []int64) error {
 
 var _ client = (*fakeClient)(nil)
 
-func ptrInt64(v int64) *int64 { return &v }
+//go:fix inline
+func ptrInt64(v int64) *int64 { return new(v) }
 
-func ptrString(v string) *string { return &v }
+//go:fix inline
+func ptrString(v string) *string { return new(v) }
 
-func ptrStatus(v transmissionrpc.TorrentStatus) *transmissionrpc.TorrentStatus { return &v }
+//go:fix inline
+func ptrStatus(v transmissionrpc.TorrentStatus) *transmissionrpc.TorrentStatus { return new(v) }
 
-func ptrFloat64(v float64) *float64 { return &v }
+//go:fix inline
+func ptrFloat64(v float64) *float64 { return new(v) }
 
 func TestAdapter_AddTorrent(t *testing.T) {
 	t.Parallel()
@@ -67,7 +71,7 @@ func TestAdapter_AddTorrent(t *testing.T) {
 			client: &fakeClient{
 				addResp: transmissionrpc.Torrent{
 					ID:   ptrInt64(7),
-					Name: ptrString("ubuntu.iso"),
+					Name: new("ubuntu.iso"),
 				},
 			},
 			input:  AddTorrentInput{URL: "magnet:?xt=urn:btih:abc"},
@@ -119,9 +123,9 @@ func TestAdapter_ListStopRemoveHealth(t *testing.T) {
 				svc := NewWithClient(&fakeClient{
 					listResp: []transmissionrpc.Torrent{{
 						ID:           ptrInt64(1),
-						Name:         ptrString("a"),
+						Name:         new("a"),
 						Status:       ptrStatus(transmissionrpc.TorrentStatusDownload),
-						PercentDone:  ptrFloat64(0.5),
+						PercentDone:  new(0.5),
 						RateDownload: ptrInt64(1024),
 					}},
 				})
@@ -184,7 +188,7 @@ func TestAdapter_ListStopRemoveHealth(t *testing.T) {
 			run: func(t *testing.T) {
 				svc := NewWithClient(&fakeClient{listErr: assert.AnError})
 				ok, err := svc.HealthCheck(context.Background())
-				require.NoError(t, err)
+				require.Error(t, err)
 				assert.False(t, ok)
 			},
 		},
@@ -232,7 +236,7 @@ func TestAdapter_CompileTimeTypes(t *testing.T) {
 			run: func(t *testing.T) {
 				var item *capability.Torrent
 				svc := NewWithClient(&fakeClient{
-					addResp: transmissionrpc.Torrent{ID: ptrInt64(3), Name: ptrString("x")},
+					addResp: transmissionrpc.Torrent{ID: ptrInt64(3), Name: new("x")},
 				})
 				got, err := svc.AddTorrent(context.Background(), AddTorrentInput{URL: "magnet:?xt=urn:btih:x"})
 				require.NoError(t, err)

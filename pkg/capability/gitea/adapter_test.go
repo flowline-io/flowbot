@@ -1,6 +1,7 @@
 package gitea
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -93,6 +94,40 @@ func TestAdapter_GetUser(t *testing.T) {
 			}
 			require.NoError(t, err)
 			assert.NotNil(t, user)
+		})
+	}
+}
+
+func TestAdapter_HealthCheck(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		client  *fakeClient
+		wantOK  bool
+		wantErr bool
+	}{
+		{name: "healthy", client: &fakeClient{user: &giteasdk.User{ID: 1, UserName: "u"}}, wantOK: true},
+		{name: "provider error", client: &fakeClient{userErr: errors.New("down")}, wantErr: true},
+		{name: "canceled context", client: &fakeClient{}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			a := NewWithClient(tt.client)
+			ctx := t.Context()
+			if tt.name == "canceled context" {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithCancel(ctx)
+				cancel()
+			}
+			ok, err := a.HealthCheck(ctx)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.False(t, ok)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantOK, ok)
 		})
 	}
 }

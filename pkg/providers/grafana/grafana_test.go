@@ -41,6 +41,8 @@ func TestGrafana_Health(t *testing.T) {
 		name       string
 		statusCode int
 		body       Health
+		nilRecv    bool
+		nilHTTP    bool
 		wantErr    bool
 	}{
 		{
@@ -58,20 +60,30 @@ func TestGrafana_Health(t *testing.T) {
 			statusCode: http.StatusUnauthorized,
 			wantErr:    true,
 		},
+		{name: "nil receiver", nilRecv: true, wantErr: true},
+		{name: "nil http client", nilHTTP: true, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				assert.Equal(t, "/api/health", r.URL.Path)
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(tt.statusCode)
-				if tt.statusCode == http.StatusOK {
-					_ = sonic.ConfigDefault.NewEncoder(w).Encode(tt.body)
-				}
-			}))
-			defer server.Close()
-			client := NewGrafana(server.URL, "tok")
+			var client *Grafana
+			switch {
+			case tt.nilRecv:
+				client = nil
+			case tt.nilHTTP:
+				client = &Grafana{}
+			default:
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(t, "/api/health", r.URL.Path)
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(tt.statusCode)
+					if tt.statusCode == http.StatusOK {
+						_ = sonic.ConfigDefault.NewEncoder(w).Encode(tt.body)
+					}
+				}))
+				defer server.Close()
+				client = NewGrafana(server.URL, "tok")
+			}
 			got, err := client.Health(context.Background())
 			if tt.wantErr {
 				assert.Error(t, err)

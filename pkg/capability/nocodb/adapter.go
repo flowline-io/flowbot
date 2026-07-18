@@ -4,6 +4,7 @@ package nocodb
 import (
 	"context"
 	"fmt"
+	"maps"
 	"net/http"
 	"strconv"
 
@@ -202,9 +203,7 @@ func (a *Adapter) UpdateRecord(ctx context.Context, in UpdateRecordInput) (*capa
 		return nil, types.Errorf(types.ErrInvalidArgument, "fields are required")
 	}
 	body := make(map[string]any, len(in.Fields)+1)
-	for k, v := range in.Fields {
-		body[k] = v
-	}
+	maps.Copy(body, in.Fields)
 	body["Id"] = in.RecordID
 	rec, err := a.client.UpdateRecord(ctx, in.TableID, body)
 	if err != nil {

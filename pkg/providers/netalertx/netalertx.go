@@ -51,6 +51,9 @@ func NewNetAlertX(endpoint, token string) *NetAlertX {
 
 // Health reports whether the devices totals endpoint is reachable.
 func (n *NetAlertX) Health(ctx context.Context) error {
+	if n == nil || n.c == nil {
+		return fmt.Errorf("netalertx: not configured")
+	}
 	resp, err := n.c.R().SetContext(ctx).Get("/devices/totals")
 	if err != nil {
 		return fmt.Errorf("netalertx health: %w", err)

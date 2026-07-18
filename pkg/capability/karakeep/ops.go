@@ -11,4 +11,5 @@ const (
 	OpAttachTags = "attach_tags"
 	OpDetachTags = "detach_tags"
 	OpCheckURL   = "check_url"
+	OpHealth     = "health"
 )

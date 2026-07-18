@@ -21,4 +21,5 @@ type Service interface {
 	MarkEntryUnread(ctx context.Context, id int64) error
 	StarEntry(ctx context.Context, id int64) error
 	UnstarEntry(ctx context.Context, id int64) error
+	HealthCheck(ctx context.Context) (bool, error)
 }

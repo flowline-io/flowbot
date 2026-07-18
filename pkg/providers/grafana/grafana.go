@@ -51,6 +51,9 @@ func NewGrafana(endpoint, token string) *Grafana {
 
 // Health returns Grafana instance health.
 func (g *Grafana) Health(ctx context.Context) (*Health, error) {
+	if g == nil || g.c == nil {
+		return nil, fmt.Errorf("grafana: not configured")
+	}
 	resp, err := g.c.R().SetContext(ctx).Get("/api/health")
 	if err != nil {
 		return nil, fmt.Errorf("grafana health: %w", err)

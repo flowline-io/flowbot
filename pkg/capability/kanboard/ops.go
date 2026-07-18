@@ -10,4 +10,5 @@ const (
 	OpCompleteTask = "complete_task"
 	OpGetColumns   = "get_columns"
 	OpSearchTasks  = "search_tasks"
+	OpHealth       = "health"
 )

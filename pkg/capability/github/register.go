@@ -103,6 +103,10 @@ func Register(app string, svc Service) error {
 				},
 				Handler: invokeListReleases(svc),
 			},
+			{
+				Name: OpHealth, Description: "Health check", Scopes: []string{auth.ScopeServiceForgeRead},
+				Handler: invokeHealth(svc),
+			},
 		},
 	})
 }
@@ -272,6 +276,16 @@ func invokeListReleases(svc Service) capability.Invoker {
 			result = &capability.ListResult[capability.Release]{Items: []*capability.Release{}, Page: &capability.PageInfo{}}
 		}
 		return &capability.InvokeResult{Operation: OpListReleases, Data: result.Items, Page: result.Page}, nil
+	}
+}
+
+func invokeHealth(svc Service) capability.Invoker {
+	return func(ctx context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+		ok, err := svc.HealthCheck(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return &capability.InvokeResult{Data: ok}, nil
 	}
 }
 

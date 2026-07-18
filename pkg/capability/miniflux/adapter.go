@@ -186,6 +186,18 @@ func (*Adapter) UnstarEntry(ctx context.Context, _ int64) error {
 	return types.Errorf(types.ErrNotImplemented, "miniflux unstar entry is not implemented via this adapter")
 }
 
+// HealthCheck reports whether the Miniflux backend is reachable by listing feeds.
+func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
+	if err := ctx.Err(); err != nil {
+		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
+	}
+	_, err := a.client.GetFeeds()
+	if err != nil {
+		return false, types.WrapError(types.ErrProvider, "miniflux health check failed", err)
+	}
+	return true, nil
+}
+
 func (a *Adapter) decodeCursor(page capability.PageRequest) (int, int, error) {
 	limit := normalizedLimit(page.Limit)
 	if page.Cursor == "" {

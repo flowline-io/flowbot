@@ -23,4 +23,5 @@ type Service interface {
 	AttachTags(ctx context.Context, id string, tags []string) error
 	DetachTags(ctx context.Context, id string, tags []string) error
 	CheckURL(ctx context.Context, url string) (exists bool, id string, err error)
+	HealthCheck(ctx context.Context) (bool, error)
 }

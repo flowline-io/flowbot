@@ -38,6 +38,7 @@ func (*mockGithubService) ListNotifications(_ context.Context, _ *PageQuery) (*c
 func (*mockGithubService) ListReleases(_ context.Context, _, _ string, _ *PageQuery) (*capability.ListResult[capability.Release], error) {
 	return nil, nil
 }
+func (*mockGithubService) HealthCheck(_ context.Context) (bool, error) { return true, nil }
 
 func TestRegister(t *testing.T) {
 	tests := []struct {
@@ -69,7 +70,7 @@ func TestRegister_Operations(t *testing.T) {
 	assert.Equal(t, hub.CapGithub, desc.Type)
 	assert.Equal(t, "github", desc.App)
 	assert.True(t, desc.Healthy)
-	assert.Len(t, desc.Operations, 9)
+	assert.Len(t, desc.Operations, 10)
 	assert.Len(t, desc.Events, 1)
 
 	tests := []struct {
@@ -85,6 +86,7 @@ func TestRegister_Operations(t *testing.T) {
 		{"has get_file_content operation", OpGetFileContent},
 		{"has list_notifications operation", OpListNotifications},
 		{"has list_releases operation", OpListReleases},
+		{"has health operation", OpHealth},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {

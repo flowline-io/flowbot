@@ -99,14 +99,13 @@ func (a *Adapter) RemoveTorrents(ctx context.Context, in RemoveTorrentsInput) er
 }
 
 // HealthCheck reports whether the Transmission backend is reachable.
-// Provider failures are treated as unhealthy (false, nil), not as invoke errors.
 func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	if err := ctx.Err(); err != nil {
 		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
 	_, err := a.client.TorrentGetAll(ctx)
 	if err != nil {
-		return false, nil
+		return false, types.WrapError(types.ErrProvider, "transmission health check failed", err)
 	}
 	return true, nil
 }
