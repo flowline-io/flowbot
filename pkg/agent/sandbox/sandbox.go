@@ -39,6 +39,9 @@ const (
 	// cliConfigWorldReadable is used when chown to the sandbox agent fails (e.g. non-root host).
 	cliConfigWorldReadable = 0o644
 	cliConfigOwnerOnly     = 0o600
+	// Directory modes must include the execute bit so the agent can traverse into the config dir.
+	cliConfigDirWorldAccessible = 0o755
+	cliConfigDirOwnerOnly       = 0o700
 )
 
 // Config configures Docker sandbox execution.
@@ -333,15 +336,26 @@ func materializeCLIConfig(serverURL, token string) (string, error) {
 
 // ensureSandboxAgentReadable makes path readable by the sandbox container user (uid 1000).
 // Prefer chown to the agent user with owner-only mode; if chown fails (non-root / Windows),
-// fall back to world-readable mode for the ephemeral temp file.
+// fall back to world-accessible mode for the ephemeral temp path.
+// Directories use modes with the execute bit so the agent can traverse into them.
 func ensureSandboxAgentReadable(path string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("sandbox: stat cli config: %w", err)
+	}
+	ownerOnly := os.FileMode(cliConfigOwnerOnly)
+	worldAccessible := os.FileMode(cliConfigWorldReadable)
+	if info.IsDir() {
+		ownerOnly = cliConfigDirOwnerOnly
+		worldAccessible = cliConfigDirWorldAccessible
+	}
 	if err := os.Chown(path, sandboxAgentUID, sandboxAgentGID); err != nil {
-		if chmodErr := os.Chmod(path, cliConfigWorldReadable); chmodErr != nil {
+		if chmodErr := os.Chmod(path, worldAccessible); chmodErr != nil {
 			return fmt.Errorf("sandbox: make cli config readable (chown: %v; chmod: %w)", err, chmodErr)
 		}
 		return nil
 	}
-	if err := os.Chmod(path, cliConfigOwnerOnly); err != nil {
+	if err := os.Chmod(path, ownerOnly); err != nil {
 		return fmt.Errorf("sandbox: chmod cli config: %w", err)
 	}
 	return nil

@@ -157,6 +157,7 @@ func TestMaterializeCLIConfig(t *testing.T) {
 			dir, err := materializeCLIConfig(tt.serverURL, tt.token)
 			require.NoError(t, err)
 			t.Cleanup(func() { _ = os.RemoveAll(dir) })
+			assertAgentReadable(t, dir)
 
 			tokenPath := filepath.Join(dir, cliTokenFileName)
 			urlPath := filepath.Join(dir, cliServerURLFileName)
@@ -187,6 +188,12 @@ func assertAgentReadable(t *testing.T, path string) {
 	info, err := os.Stat(path)
 	require.NoError(t, err)
 	perm := info.Mode().Perm()
+	if info.IsDir() {
+		// Directories need an execute bit to be traversable; owner-only or world-accessible.
+		assert.True(t, perm == cliConfigDirOwnerOnly || perm&0o001 != 0 || perm&0o010 != 0,
+			"dir %s mode %o should be traversable by sandbox agent", path, perm)
+		return
+	}
 	// After ensureSandboxAgentReadable: either owner-only (chown succeeded) or world-readable fallback.
 	assert.True(t, perm == cliConfigOwnerOnly || perm&0o004 != 0 || perm&0o040 != 0,
 		"path %s mode %o should be readable by sandbox agent", path, perm)
@@ -198,7 +205,7 @@ func TestEnsureSandboxAgentReadable(t *testing.T) {
 		name string
 	}{
 		{name: "file becomes readable after ensure"},
-		{name: "directory becomes readable after ensure"},
+		{name: "directory remains traversable after ensure"},
 		{name: "idempotent second ensure"},
 	}
 	for _, tt := range tests {
@@ -206,14 +213,22 @@ func TestEnsureSandboxAgentReadable(t *testing.T) {
 			t.Parallel()
 			dir := t.TempDir()
 			path := filepath.Join(dir, "secret")
+			var nested string
 			if strings.Contains(tt.name, "directory") {
 				path = filepath.Join(dir, "subdir")
 				require.NoError(t, os.Mkdir(path, 0o700))
+				nested = filepath.Join(path, "nested")
+				require.NoError(t, os.WriteFile(nested, []byte("x"), 0o600))
 			} else {
 				require.NoError(t, os.WriteFile(path, []byte("x"), 0o600))
 			}
 			require.NoError(t, ensureSandboxAgentReadable(path))
 			assertAgentReadable(t, path)
+			if nested != "" {
+				data, readErr := os.ReadFile(nested)
+				require.NoError(t, readErr, "directory must stay traversable after ensure")
+				assert.Equal(t, "x", string(data))
+			}
 			if strings.Contains(tt.name, "idempotent") {
 				require.NoError(t, ensureSandboxAgentReadable(path))
 				assertAgentReadable(t, path)
