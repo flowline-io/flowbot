@@ -237,6 +237,31 @@ func TestEnsureSandboxAgentReadable(t *testing.T) {
 	}
 }
 
+func TestBuildContainerConfig(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		opts    RunOptions
+		cmd     []string
+		workDir string
+	}{
+		{name: "labels sandbox component", opts: RunOptions{Image: "img:1"}, cmd: []string{"true"}, workDir: "/ws"},
+		{name: "preserves image", opts: RunOptions{Image: "custom:2"}, cmd: []string{"echo"}, workDir: "/tmp"},
+		{name: "preserves workdir", opts: RunOptions{Image: "img:1"}, cmd: []string{"pwd"}, workDir: "/ws/sub"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := buildContainerConfig(tt.opts, tt.cmd, tt.workDir)
+			require.NotNil(t, got)
+			assert.Equal(t, tt.opts.Image, got.Image)
+			assert.Equal(t, []string(tt.cmd), []string(got.Cmd))
+			assert.Equal(t, tt.workDir, got.WorkingDir)
+			assert.Equal(t, labelComponentSandbox, got.Labels[labelComponentKey])
+		})
+	}
+}
+
 func TestBuildContainerEnv(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

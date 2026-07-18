@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/errdefs"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
@@ -25,6 +26,7 @@ import (
 const (
 	defaultImage            = "ghcr.io/flowline-io/flowbot-agent-sandbox:latest"
 	defaultStopWait         = 5 * time.Second
+	defaultCreateWait       = 2 * time.Minute
 	maxLoggedCommandLen     = 200
 	containerCLIConfigPath  = "/home/agent/.config/flowbot"
 	envFlowbotServerURL     = "FLOWBOT_SERVER_URL"
@@ -33,6 +35,8 @@ const (
 	cliConfigTempDirPattern = "flowbot-sandbox-cli-*"
 	cliTokenFileName        = "token"
 	cliServerURLFileName    = "server_url"
+	labelComponentKey       = "flowbot.component"
+	labelComponentSandbox   = "agent-sandbox"
 	// sandboxAgentUID/GID match the agent user in deployments/agent-sandbox/Dockerfile.
 	sandboxAgentUID = 1000
 	sandboxAgentGID = 1000
@@ -240,13 +244,11 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	}
 	flog.Info("[sandbox] container create image=%s workspace=%s workdir=%s cli_creds=%s %s",
 		opts.Image, opts.Workspace, workDir, cliCredsLabel(opts.AccessToken), summarizeCommand(opts))
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image:      opts.Image,
-		Cmd:        cmd,
-		WorkingDir: workDir,
-		Env:        buildContainerEnv(opts),
-		Tty:        false,
-	}, hostConfig, nil, nil, "")
+	// Create must not be cancelled mid-flight or Docker can leave Status=created orphans
+	// while the client returns an error without an ID to clean up.
+	createCtx, createCancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCreateWait)
+	defer createCancel()
+	resp, err := cli.ContainerCreate(createCtx, buildContainerConfig(opts, cmd, workDir), hostConfig, nil, nil, "")
 	if err != nil {
 		flog.Info("[sandbox] container create failed image=%s workspace=%s err=%s",
 			opts.Image, opts.Workspace, err.Error())
@@ -254,10 +256,37 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	}
 	id := resp.ID
 	flog.Info("[sandbox] container created id=%s image=%s workdir=%s", id, opts.Image, workDir)
-	defer func() {
-		_ = cli.ContainerRemove(context.Background(), id, container.RemoveOptions{Force: true})
-	}()
+	defer removeSandboxContainer(cli, id)
+	if err := ctx.Err(); err != nil {
+		return env.Capture{}, err
+	}
 	return waitAndCollectLogs(ctx, cli, id, opts.Workspace, workDir)
+}
+
+// buildContainerConfig builds the container config for a sandbox exec.
+func buildContainerConfig(opts RunOptions, cmd []string, workDir string) *container.Config {
+	return &container.Config{
+		Image:      opts.Image,
+		Cmd:        cmd,
+		WorkingDir: workDir,
+		Env:        buildContainerEnv(opts),
+		Tty:        false,
+		Labels: map[string]string{
+			labelComponentKey: labelComponentSandbox,
+		},
+	}
+}
+
+// removeSandboxContainer force-removes a sandbox container using a detached timeout context.
+func removeSandboxContainer(cli *client.Client, id string) {
+	rctx, cancel := context.WithTimeout(context.Background(), defaultStopWait)
+	defer cancel()
+	if err := cli.ContainerRemove(rctx, id, container.RemoveOptions{Force: true, RemoveVolumes: true}); err != nil {
+		if errdefs.IsNotFound(err) {
+			return
+		}
+		flog.Warn("[sandbox] container remove failed id=%s err=%s", id, err.Error())
+	}
 }
 
 func validateRunOptions(opts RunOptions) error {
@@ -412,9 +441,10 @@ func waitAndCollectLogs(ctx context.Context, cli *client.Client, id, workspace, 
 	case status := <-statusCh:
 		exitCode = status.StatusCode
 	case <-ctx.Done():
+		// Caller defer force-removes; stop first so a running container can exit cleanly.
 		stopCtx, cancel := context.WithTimeout(context.Background(), defaultStopWait)
 		defer cancel()
-		_ = cli.ContainerRemove(stopCtx, id, container.RemoveOptions{Force: true})
+		_ = cli.ContainerStop(stopCtx, id, container.StopOptions{})
 		return env.Capture{}, ctx.Err()
 	}
 	logs, err := cli.ContainerLogs(ctx, id, container.LogsOptions{ShowStdout: true, ShowStderr: true})

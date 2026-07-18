@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/bytedance/sonic"
+	"github.com/containerd/errdefs"
 	cliopts "github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
@@ -210,8 +211,12 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	cc := buildContainerConfig(t, workdir.Target, env)
 	nc := buildNetworkConfig(t)
 
+	// Create must complete even if the caller cancels; a cancelled create can leave
+	// Status=created orphans without an ID returned to the client.
+	createCtx, createCancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Minute)
+	defer createCancel()
 	resp, err := d.client.ContainerCreate(
-		ctx, &cc, &hc, &nc, nil, "")
+		createCtx, &cc, &hc, &nc, nil, "")
 	if err != nil {
 		flog.Error(fmt.Errorf("error creating container using image %s: %w", t.Image, err))
 		return err
@@ -227,6 +232,10 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 			flog.Error(fmt.Errorf("container-id: %s, error removing container upon completion, %w", resp.ID, err))
 		}
 	}()
+
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 
 	if err := d.initWorkdir(ctx, resp.ID, t); err != nil {
 		return fmt.Errorf("error initializing container, %w", err)
@@ -338,6 +347,9 @@ func buildContainerConfig(t *types.Task, workdirTarget string, env []string) con
 		Env:        env,
 		Cmd:        cmd,
 		Entrypoint: entrypoint,
+		Labels: map[string]string{
+			"flowbot.component": "executor-docker",
+		},
 	}
 	if len(t.Files) > 0 {
 		cc.WorkingDir = workdirTarget
@@ -533,11 +545,14 @@ func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
 		return nil
 	}
 	flog.Info("Attempting to stop and remove container %v", containerID)
-	return d.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
+	err := d.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
 		RemoveVolumes: true,
-		RemoveLinks:   false,
 		Force:         true,
 	})
+	if err != nil && errdefs.IsNotFound(err) {
+		return nil
+	}
+	return err
 }
 
 func (d *Runtime) HealthCheck(ctx context.Context) error {
