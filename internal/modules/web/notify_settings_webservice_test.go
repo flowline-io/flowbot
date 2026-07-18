@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
@@ -295,48 +295,44 @@ func TestNotifyChannelUpdate(t *testing.T) {
 func TestNotifyTemplatesTable(t *testing.T) {
 	tests := []struct {
 		name       string
-		templates  []pkgconfig.NotifyTemplate
+		templates  map[int64]model.NotifyTemplate
 		wantStatus int
 		wantSub    string
 		wantAbsent string
 	}{
 		{
-			name: "renders loaded templates",
-			templates: []pkgconfig.NotifyTemplate{
-				{ID: "bookmark.created", Name: "New bookmark", Description: "on create", DefaultFormat: "markdown", DefaultTemplate: "**hi**"},
+			name: "renders loaded templates with edit controls",
+			templates: map[int64]model.NotifyTemplate{
+				1: {ID: 1, TemplateID: "bookmark.created", Name: "New bookmark", Description: "on create", DefaultFormat: "markdown", DefaultTemplate: "**hi**", OverridesJSON: "[]"},
 			},
 			wantStatus: http.StatusOK,
-			wantSub:    "bookmark.created",
+			wantSub:    "data-testid=\"template-edit\"",
 		},
 		{
 			name:       "empty templates shows placeholder",
-			templates:  nil,
+			templates:  map[int64]model.NotifyTemplate{},
 			wantStatus: http.StatusOK,
 			wantSub:    "No notification templates",
 		},
 		{
-			name: "does not expose edit controls",
-			templates: []pkgconfig.NotifyTemplate{
-				{ID: "agent.status", Name: "Agent", DefaultFormat: "markdown", DefaultTemplate: "{{ .status }}"},
+			name: "exposes delete controls",
+			templates: map[int64]model.NotifyTemplate{
+				1: {ID: 1, TemplateID: "agent.status", Name: "Agent", DefaultFormat: "markdown", DefaultTemplate: "{{ .status }}", OverridesJSON: "[]"},
 			},
 			wantStatus: http.StatusOK,
-			wantSub:    "agent.status",
-			wantAbsent: "data-testid=\"template-edit\"",
+			wantSub:    "data-testid=\"template-delete\"",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, ts := setupTestApp()
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
 				config = configType{}
-				pkgconfig.App.Notify.Templates = nil
-				notifytmpl.ResetForTest()
 			}()
-			pkgconfig.App.Notify.Templates = tt.templates
-			require.NoError(t, notifytmpl.Init())
+			ts.notifyTemplates = tt.templates
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/templates/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
@@ -360,7 +356,7 @@ func TestNotifyTemplatesTable(t *testing.T) {
 	}
 }
 
-func TestNotifyRulesTableReadOnly(t *testing.T) {
+func TestNotifyRulesTable(t *testing.T) {
 	tests := []struct {
 		name       string
 		rules      map[int64]model.NotifyRule
@@ -369,29 +365,26 @@ func TestNotifyRulesTableReadOnly(t *testing.T) {
 		wantAbsent string
 	}{
 		{
-			name: "renders rule fields",
+			name: "renders rule fields with edit controls",
 			rules: map[int64]model.NotifyRule{
 				1: {ID: 1, RuleID: "night_mute", Name: "Night mute", Action: "mute", EventPattern: "*", ChannelPattern: "*", Priority: 100, Enabled: true},
 			},
 			wantStatus: http.StatusOK,
-			wantSub:    "night_mute",
-			wantAbsent: "data-testid=\"rule-edit\"",
+			wantSub:    "data-testid=\"rule-edit\"",
 		},
 		{
 			name:       "empty rules shows placeholder",
 			rules:      map[int64]model.NotifyRule{},
 			wantStatus: http.StatusOK,
 			wantSub:    "No notification rules",
-			wantAbsent: "data-testid=\"rule-edit\"",
 		},
 		{
-			name: "does not expose delete controls",
+			name: "exposes delete controls",
 			rules: map[int64]model.NotifyRule{
 				1: {ID: 1, RuleID: "drop_test", Name: "Drop", Action: "drop", EventPattern: "test.*", ChannelPattern: "*", Priority: 1, Enabled: false},
 			},
 			wantStatus: http.StatusOK,
-			wantSub:    "drop_test",
-			wantAbsent: "data-testid=\"rule-delete\"",
+			wantSub:    "data-testid=\"rule-delete\"",
 		},
 	}
 
@@ -418,6 +411,177 @@ func TestNotifyRulesTableReadOnly(t *testing.T) {
 			}
 			if tt.wantAbsent != "" && strings.Contains(string(body), tt.wantAbsent) {
 				t.Errorf("body should not contain %q", tt.wantAbsent)
+			}
+		})
+	}
+}
+
+func TestNotifyTemplateCreate(t *testing.T) {
+	tests := []struct {
+		name       string
+		form       url.Values
+		wantStatus int
+		wantSub    string
+		wantOOB    bool
+	}{
+		{
+			name: "creates template and clears empty state",
+			form: url.Values{
+				"template_id":      {"bookmark.created"},
+				"name":             {"Bookmark"},
+				"default_format":   {"markdown"},
+				"default_template": {"**hi** {{ .url }}"},
+				"overrides_json":   {"[]"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "bookmark.created",
+			wantOOB:    true,
+		},
+		{
+			name: "rejects missing template id",
+			form: url.Values{
+				"name":             {"Bookmark"},
+				"default_format":   {"markdown"},
+				"default_template": {"hi"},
+				"overrides_json":   {"[]"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "Template ID is required",
+		},
+		{
+			name: "rejects invalid overrides json",
+			form: url.Values{
+				"template_id":      {"x"},
+				"name":             {"X"},
+				"default_format":   {"markdown"},
+				"default_template": {"hi"},
+				"overrides_json":   {"{bad"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "Invalid JSON",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() {
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+				notifytmpl.ResetForTest()
+			}()
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/templates", strings.NewReader(tt.form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			bodyStr := string(body)
+			if !strings.Contains(bodyStr, tt.wantSub) {
+				t.Errorf("want body containing %q, got %q", tt.wantSub, bodyStr)
+			}
+			if tt.wantOOB {
+				if !strings.Contains(bodyStr, `hx-swap-oob="delete"`) {
+					t.Errorf("want empty-state oob delete, got %q", bodyStr)
+				}
+				if len(ts.notifyTemplates) != 1 {
+					t.Errorf("want 1 template stored, got %d", len(ts.notifyTemplates))
+				}
+			}
+		})
+	}
+}
+
+func TestNotifyRuleCreate(t *testing.T) {
+	tests := []struct {
+		name       string
+		form       url.Values
+		wantStatus int
+		wantSub    string
+		wantStored bool
+	}{
+		{
+			name: "creates enabled rule",
+			form: url.Values{
+				"rule_id":         {"night_mute"},
+				"name":            {"Night mute"},
+				"action":          {"drop"},
+				"event_pattern":   {"*"},
+				"channel_pattern": {"*"},
+				"priority":        {"10"},
+				"enabled":         {"on"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "night_mute",
+			wantStored: true,
+		},
+		{
+			name: "rejects missing rule id",
+			form: url.Values{
+				"name":            {"Night mute"},
+				"action":          {"drop"},
+				"event_pattern":   {"*"},
+				"channel_pattern": {"*"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "Rule ID is required",
+		},
+		{
+			name: "creates disabled rule without loading into engine list filter",
+			form: url.Values{
+				"rule_id":         {"disabled_drop"},
+				"name":            {"Disabled"},
+				"action":          {"drop"},
+				"event_pattern":   {"*"},
+				"channel_pattern": {"*"},
+				"priority":        {"1"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "disabled_drop",
+			wantStored: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() {
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+			}()
+			require.NoError(t, notifyrules.Init(nil, nil))
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/rules", strings.NewReader(tt.form.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantSub) {
+				t.Errorf("want body containing %q, got %q", tt.wantSub, string(body))
+			}
+			if tt.wantStored && len(ts.notifyRules) != 1 {
+				t.Errorf("want 1 rule stored, got %d", len(ts.notifyRules))
+			}
+			if !tt.wantStored && len(ts.notifyRules) != 0 {
+				t.Errorf("want no rules stored, got %d", len(ts.notifyRules))
 			}
 		})
 	}

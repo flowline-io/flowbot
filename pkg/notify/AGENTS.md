@@ -98,18 +98,20 @@ See `types.go` for the full interface definition.
 
 ## Template Engine
 
-- Compiles `config.NotifyTemplate` entries using Go `text/template` + Sprig functions
+- Compiles `notify.Template` / `manifest.Template` entries using Go `text/template` + Sprig functions
 - Supports per-channel template overrides (e.g. `telegram` gets HTML, `slack` gets Markdown)
 - Title auto-extracted from first line of body (strips Markdown headings)
 - Custom functions: `eventTime(t)`, `shorten(s, maxLen)`
+- Templates are loaded from PostgreSQL (`notify_templates`) at startup / after UI CRUD — not from YAML
 - See `template/` sub-package for full details
 
 ## Rule Engine
 
-- Evaluates `config.NotifyRule` entries in priority order (highest first)
+- Evaluates `notify.Rule` / `manifest.Rule` entries in priority order (highest first)
 - Pattern matching: `*` (all), exact match, prefix (`infra.*`), suffix (`*.created`)
 - Time conditions: `time.hour >= 23`, with `||` and `&&` boolean operators
 - Actions: `drop`, `mute`, `throttle` (Redis INCR+TTL), `aggregate` (Redis List buffer + timer)
+- Rules are loaded from PostgreSQL (`notify_rules`) at startup / after UI CRUD — not from YAML
 - See `rules/` sub-package for full details
 
 ## Testing

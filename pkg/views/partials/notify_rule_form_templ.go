@@ -524,7 +524,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var35 string
-			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue(notifyRuleDeleteURL(item))
+			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue(notifyRuleUpdateURL(item))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/notify_rule_form.templ`, Line: 104, Col: 41}
 			}
@@ -537,7 +537,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, " hx-target=\"closest tr\" hx-swap=\"outerHTML\" hx-include=\"[name='name'], [name='rule_id'], [name='action'], [name='event_pattern'], [name='channel_pattern'], [name='condition'], [name='priority'], [name='params_json'], [name='enabled']\" data-testid=\"rule-save\" class=\"btn btn-primary btn-sm\">Save</button> <button type=\"button\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, " hx-target=\"closest tr\" hx-swap=\"outerHTML\" hx-include=\"closest tr\" data-testid=\"rule-save\" class=\"btn btn-primary btn-sm\">Save</button> <button type=\"button\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

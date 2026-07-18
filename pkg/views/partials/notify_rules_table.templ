@@ -3,10 +3,10 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
-	<div class="card bg-base-100 shadow-sm">
-		<div id="notify-rules-table"
-			data-testid="notify-rules-table"
-			class="overflow-x-auto">
+	<div id="notify-rules-table"
+		data-testid="notify-rules-table"
+		class="card bg-base-100 shadow-sm">
+		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
@@ -16,21 +16,20 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
 					<th class="text-xs uppercase">Event</th>
 					<th class="text-xs uppercase">Channel</th>
 					<th class="text-xs uppercase">Status</th>
+					<th class="text-xs uppercase">Actions</th>
 				</tr>
 				</thead>
-				if len(rules) == 0 {
-					<tbody id="notify-rules-rows">
-						<tr id="notify-rules-empty">
-							<td colspan="6" class="text-center text-base-content/50">No notification rules configured.</td>
-						</tr>
-					</tbody>
-				} else {
-					for _, rule := range rules {
-						@NotifyRuleRow(rule, templateIDs)
-					}
+				<tbody id="notify-rules-rows">
+				for _, rule := range rules {
+					@NotifyRuleRow(rule, templateIDs)
 				}
+				if len(rules) == 0 {
+					<tr id="notify-rules-empty">
+						<td colspan="7" class="text-center text-base-content/50">No notification rules configured.</td>
+					</tr>
+				}
+				</tbody>
 			</table>
 		</div>
-		<p class="text-xs text-base-content/50 px-4 pb-3">Rules are shown read-only.</p>
 	</div>
 }

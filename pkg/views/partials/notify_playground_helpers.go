@@ -3,7 +3,7 @@ package partials
 import (
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -32,7 +32,7 @@ type NotifyPlaygroundResultParams struct {
 // NotifyPlaygroundParams is the view model for the Notifications playground tab.
 type NotifyPlaygroundParams struct {
 	Channels  []model.NotifyChannel
-	Templates []config.NotifyTemplate
+	Templates []notify.Template
 	Form      NotifyPlaygroundForm
 	Errors    map[string]string
 	Result    *NotifyPlaygroundResultParams

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 func TestExtractTemplateFields(t *testing.T) {
@@ -48,15 +48,15 @@ func TestSamplePayloadJSON(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		tmpl    config.NotifyTemplate
+		tmpl    manifest.Template
 		wantSub []string
 	}{
 		{
 			name: "includes fields from default and overrides",
-			tmpl: config.NotifyTemplate{
+			tmpl: manifest.Template{
 				ID:              "bookmark.created",
 				DefaultTemplate: `{{ .url }} {{ .title }}`,
-				Overrides: []config.NotifyOverride{
+				Overrides: []manifest.Override{
 					{Channel: "telegram", Template: `{{ .extra }}`},
 				},
 			},
@@ -64,7 +64,7 @@ func TestSamplePayloadJSON(t *testing.T) {
 		},
 		{
 			name: "always includes summary",
-			tmpl: config.NotifyTemplate{
+			tmpl: manifest.Template{
 				ID:              "agent.status",
 				DefaultTemplate: `{{ .status }}`,
 			},
@@ -72,7 +72,7 @@ func TestSamplePayloadJSON(t *testing.T) {
 		},
 		{
 			name: "empty body still has summary",
-			tmpl: config.NotifyTemplate{
+			tmpl: manifest.Template{
 				ID:              "plain",
 				DefaultTemplate: "static text",
 			},

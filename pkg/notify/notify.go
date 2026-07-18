@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
@@ -286,17 +285,17 @@ func evaluateAndRenderNotification(ctx context.Context, templateID, channel stri
 		ruleResult := ruleEngine.Evaluate(ctx, templateID, channel)
 		if ruleResult != nil {
 			switch ruleResult.Action {
-			case config.NotifyRuleActionDrop:
+			case RuleActionDrop:
 				flog.Info("[notify] message dropped by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
 				return &evalResult{action: "dropped"}, nil
-			case config.NotifyRuleActionMute:
+			case RuleActionMute:
 				flog.Info("[notify] message muted by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
 				return &evalResult{action: "muted"}, nil
-			case config.NotifyRuleActionThrottle:
+			case RuleActionThrottle:
 				if handleThrottleRule(ctx, ruleResult, templateID, channel) {
 					return &evalResult{action: "throttled"}, nil
 				}
-			case config.NotifyRuleActionAggregate:
+			case RuleActionAggregate:
 				if handleAggregateRule(ctx, ruleResult, templateID, channel, payload) {
 					return &evalResult{action: "aggregated"}, nil
 				}

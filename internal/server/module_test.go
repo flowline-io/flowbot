@@ -677,7 +677,20 @@ func (*testStoreAdapter) UpdateNotifyRule(context.Context, int64, model.NotifyRu
 	return nil
 }
 func (*testStoreAdapter) DeleteNotifyRule(context.Context, int64) error { return nil }
-func (*testStoreAdapter) MaskNotifyURI(string, string) string           { return "" }
+func (*testStoreAdapter) CreateNotifyTemplate(context.Context, model.NotifyTemplate) (int64, error) {
+	return 0, nil
+}
+func (*testStoreAdapter) GetNotifyTemplate(context.Context, int64) (model.NotifyTemplate, error) {
+	return model.NotifyTemplate{}, nil
+}
+func (*testStoreAdapter) ListNotifyTemplates(context.Context, store.ListNotifyTemplateOptions) ([]model.NotifyTemplate, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) UpdateNotifyTemplate(context.Context, int64, model.NotifyTemplate) error {
+	return nil
+}
+func (*testStoreAdapter) DeleteNotifyTemplate(context.Context, int64) error { return nil }
+func (*testStoreAdapter) MaskNotifyURI(string, string) string               { return "" }
 func (*testStoreAdapter) CreateToken(_ context.Context, _ types.Uid, _ time.Time, _ []string) (string, error) {
 	return "", nil
 }

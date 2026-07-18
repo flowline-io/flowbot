@@ -505,7 +505,7 @@ func TestAdapter_HealthCheck(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "healthy",
+			name:   "healthy",
 			client: &fakeClient{appInfoResp: &provider.AppInfo{AppVersion: "0.63.7"}},
 			wantOK: true,
 		},

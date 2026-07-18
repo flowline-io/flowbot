@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 func newTestRedisStore(t *testing.T) *cache.RedisStore {
@@ -251,9 +251,9 @@ func TestScanExpiredAggregates_NilStore(t *testing.T) {
 func TestReload(t *testing.T) {
 	t.Parallel()
 	engine := New(nil)
-	err := engine.Reload(context.Background(), func(_ context.Context) ([]config.NotifyRule, error) {
-		return []config.NotifyRule{
-			{ID: "r1", Action: config.NotifyRuleActionDrop, Match: config.NotifyRuleMatch{Event: "*", Channel: "*"}, Priority: 1},
+	err := engine.Reload(context.Background(), func(_ context.Context) ([]manifest.Rule, error) {
+		return []manifest.Rule{
+			{ID: "r1", Action: manifest.RuleActionDrop, Match: manifest.RuleMatch{Event: "*", Channel: "*"}, Priority: 1},
 		}, nil
 	})
 	require.NoError(t, err)
@@ -264,13 +264,10 @@ func TestReload(t *testing.T) {
 }
 
 func TestGetEngine_AfterInit(t *testing.T) {
-	prevRules := config.App.Notify.Rules
-	config.App.Notify.Rules = []config.NotifyRule{
-		{ID: "init_test", Action: config.NotifyRuleActionDrop, Match: config.NotifyRuleMatch{Event: "x", Channel: "*"}, Priority: 1},
+	rules := []manifest.Rule{
+		{ID: "init_test", Action: manifest.RuleActionDrop, Match: manifest.RuleMatch{Event: "x", Channel: "*"}, Priority: 1},
 	}
-	t.Cleanup(func() { config.App.Notify.Rules = prevRules })
-
-	require.NoError(t, Init(newTestRedisStore(t)))
+	require.NoError(t, Init(newTestRedisStore(t), rules))
 	engine := GetEngine()
 	require.NotNil(t, engine)
 	result := engine.Evaluate(context.Background(), "x", "slack")

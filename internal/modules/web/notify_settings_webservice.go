@@ -3,12 +3,13 @@ package web
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
@@ -28,6 +29,11 @@ var notifySettingsWebserviceRules = []webservice.Rule{
 	webservice.Delete("/notifications/channels/:id", notifyChannelDelete, route.WithNotAuth()),
 	webservice.Post("/notifications/channels/:id/test", notifyChannelTest, route.WithNotAuth()),
 	webservice.Get("/notifications/templates/list", notifyTemplatesTable, route.WithNotAuth()),
+	webservice.Get("/notifications/templates/new", notifyTemplateNewForm, route.WithNotAuth()),
+	webservice.Post("/notifications/templates", notifyTemplateCreate, route.WithNotAuth()),
+	webservice.Get("/notifications/templates/:id/edit", notifyTemplateEditForm, route.WithNotAuth()),
+	webservice.Put("/notifications/templates/:id", notifyTemplateUpdate, route.WithNotAuth()),
+	webservice.Delete("/notifications/templates/:id", notifyTemplateDelete, route.WithNotAuth()),
 	webservice.Get("/notifications/rules/list", notifyRulesTable, route.WithNotAuth()),
 	webservice.Get("/notifications/rules/new", notifyRuleNewForm, route.WithNotAuth()),
 	webservice.Post("/notifications/rules", notifyRuleCreate, route.WithNotAuth()),
@@ -113,7 +119,11 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Channel created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	return partials.NotifyChannelRow(ch).Render(ctx.Context(), ctx.Response().BodyWriter())
+	if err := partials.NotifyChannelRow(ch).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+		return err
+	}
+	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-channels-empty" hx-swap-oob="delete"></tr>`))
+	return nil
 }
 
 func notifyChannelEditForm(ctx fiber.Ctx) error {
@@ -220,16 +230,120 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 }
 
 // ---------------------------------------------------------------------------
-// Template handlers (read-only)
+// Template handlers
 // ---------------------------------------------------------------------------
 
 func notifyTemplatesTable(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	templates := getTemplates()
+	templates, err := store.Database.ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
+	if err != nil {
+		ctx.Type("html")
+		return partials.EmptyState("Failed to load templates").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
 	ctx.Type("html")
 	return partials.NotifyTemplatesTable(templates).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func notifyTemplateNewForm(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	ctx.Type("html")
+	return partials.NotifyTemplateForm(model.NotifyTemplate{DefaultFormat: "markdown", OverridesJSON: "[]"}, true, nil).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func notifyTemplateCreate(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	tmpl := parseTemplateForm(ctx)
+	errs := validateTemplateForm(tmpl)
+	if len(errs) > 0 {
+		ctx.Type("html")
+		return partials.NotifyTemplateForm(tmpl, true, errs).
+			Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	id, err := store.Database.CreateNotifyTemplate(ctx.Context(), tmpl)
+	if err != nil {
+		ctx.Type("html")
+		return partials.NotifyTemplateForm(tmpl, true, map[string]string{"_save": err.Error()}).
+			Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	reloadTemplateEngine(ctx.Context())
+	row, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	if err != nil {
+		ctx.Type("html")
+		return partials.EmptyState("Template created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	ctx.Type("html")
+	if err := partials.NotifyTemplateRow(row).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+		return err
+	}
+	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-templates-empty" hx-swap-oob="delete"></tr>`))
+	return nil
+}
+
+func notifyTemplateEditForm(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	id, err := parseID(ctx)
+	if err != nil {
+		return err
+	}
+	tmpl, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	if err != nil {
+		return notFound(ctx)
+	}
+	ctx.Type("html")
+	return partials.NotifyTemplateForm(tmpl, false, nil).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func notifyTemplateUpdate(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	id, err := parseID(ctx)
+	if err != nil {
+		return err
+	}
+	tmpl := parseTemplateForm(ctx)
+	tmpl.ID = id
+	errs := validateTemplateForm(tmpl)
+	if len(errs) > 0 {
+		ctx.Type("html")
+		return partials.NotifyTemplateForm(tmpl, false, errs).
+			Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	if err := store.Database.UpdateNotifyTemplate(ctx.Context(), id, tmpl); err != nil {
+		return storeError(ctx, err)
+	}
+	reloadTemplateEngine(ctx.Context())
+	row, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	if err != nil {
+		return notFound(ctx)
+	}
+	ctx.Type("html")
+	return partials.NotifyTemplateRow(row).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func notifyTemplateDelete(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	id, err := parseID(ctx)
+	if err != nil {
+		return err
+	}
+	if err := store.Database.DeleteNotifyTemplate(ctx.Context(), id); err != nil {
+		return storeError(ctx, err)
+	}
+	reloadTemplateEngine(ctx.Context())
+	return ctx.SendString("")
 }
 
 // ---------------------------------------------------------------------------
@@ -256,7 +370,7 @@ func notifyRuleNewForm(ctx fiber.Ctx) error {
 	}
 	templateIDs := getTemplateIDs()
 	ctx.Type("html")
-	return partials.NotifyRuleForm(model.NotifyRule{}, true, nil, templateIDs).
+	return partials.NotifyRuleForm(model.NotifyRule{Enabled: true, EventPattern: "*", ChannelPattern: "*"}, true, nil, templateIDs).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -285,7 +399,11 @@ func notifyRuleCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Rule created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	return partials.NotifyRuleRow(r, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter())
+	if err := partials.NotifyRuleRow(r, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+		return err
+	}
+	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-rules-empty" hx-swap-oob="delete"></tr>`))
+	return nil
 }
 
 func notifyRuleEditForm(ctx fiber.Ctx) error {
@@ -410,12 +528,63 @@ func getTemplateIDs() []string {
 	return []string{}
 }
 
-// getTemplates returns notify template manifests from the engine, falling back to config.
-func getTemplates() []pkgconfig.NotifyTemplate {
+// getTemplates returns notify template manifests from the engine.
+func getTemplates() []notifypkg.Template {
 	if eng := notifytmpl.GetEngine(); eng != nil {
 		return eng.ListTemplates()
 	}
-	return pkgconfig.App.Notify.Templates
+	return []notifypkg.Template{}
+}
+
+func parseTemplateForm(ctx fiber.Ctx) model.NotifyTemplate {
+	overridesJSON := strings.TrimSpace(ctx.FormValue("overrides_json"))
+	if overridesJSON == "" {
+		overridesJSON = "[]"
+	}
+	return model.NotifyTemplate{
+		TemplateID:      strings.TrimSpace(ctx.FormValue("template_id")),
+		Name:            strings.TrimSpace(ctx.FormValue("name")),
+		Description:     strings.TrimSpace(ctx.FormValue("description")),
+		DefaultFormat:   strings.TrimSpace(ctx.FormValue("default_format")),
+		DefaultTemplate: ctx.FormValue("default_template"),
+		OverridesJSON:   overridesJSON,
+	}
+}
+
+func validateTemplateForm(tmpl model.NotifyTemplate) map[string]string {
+	errs := map[string]string{}
+	if tmpl.TemplateID == "" {
+		errs["template_id"] = "Template ID is required"
+	}
+	if tmpl.Name == "" {
+		errs["name"] = "Name is required"
+	}
+	if tmpl.DefaultFormat == "" {
+		errs["default_format"] = "Format is required"
+	}
+	if tmpl.DefaultTemplate == "" {
+		errs["default_template"] = "Template body is required"
+	}
+	var overrides []notifypkg.Override
+	if err := sonic.Unmarshal([]byte(tmpl.OverridesJSON), &overrides); err != nil {
+		errs["overrides_json"] = "Invalid JSON: " + err.Error()
+		return errs
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+	engine := notifytmpl.New()
+	if err := engine.LoadConfig([]notifypkg.Template{{
+		ID:              tmpl.TemplateID,
+		Name:            tmpl.Name,
+		Description:     tmpl.Description,
+		DefaultFormat:   tmpl.DefaultFormat,
+		DefaultTemplate: tmpl.DefaultTemplate,
+		Overrides:       overrides,
+	}}); err != nil {
+		errs["default_template"] = "Template compile error: " + err.Error()
+	}
+	return errs
 }
 
 func parseRuleForm(ctx fiber.Ctx) model.NotifyRule {
@@ -507,7 +676,7 @@ func validateAggregateParams(params map[string]any, errs *map[string]string) {
 		(*errs)["params_json"] = "Window is required"
 		return
 	}
-	if tid, ok := params["digest_tpl_id"].(string); ok && tid != "" {
+	if tid, ok := params["digest_template_id"].(string); ok && tid != "" {
 		if eng := notifytmpl.GetEngine(); eng != nil && !eng.HasTemplate(tid) {
 			(*errs)["params_json"] = "Unknown template: " + tid
 		}
@@ -515,25 +684,33 @@ func validateAggregateParams(params map[string]any, errs *map[string]string) {
 }
 
 func reloadRulesEngine(ctx context.Context) {
+	eng := notifyrules.GetEngine()
+	if eng == nil {
+		return
+	}
 	enabled := true
 	rules, err := store.Database.ListNotifyRules(ctx, store.ListNotifyRuleOptions{Enabled: &enabled})
 	if err != nil {
+		flog.Warn("reload notify rules: list failed: %v", err)
 		return
 	}
-	configRules := make([]pkgconfig.NotifyRule, 0, len(rules))
+	manifestRules := make([]notifypkg.Rule, 0, len(rules))
 	for _, r := range rules {
 		var cond string
 		if r.Condition != "" {
 			cond = r.Condition
 		}
-		var params pkgconfig.NotifyRuleParams
+		var params notifypkg.RuleParams
 		if r.ParamsJSON != "" {
-			_ = sonic.Unmarshal([]byte(r.ParamsJSON), &params)
+			if err := sonic.Unmarshal([]byte(r.ParamsJSON), &params); err != nil {
+				flog.Warn("reload notify rules: skip %s: invalid params JSON: %v", r.RuleID, err)
+				continue
+			}
 		}
-		configRules = append(configRules, pkgconfig.NotifyRule{
+		manifestRules = append(manifestRules, notifypkg.Rule{
 			ID:     r.RuleID,
-			Action: pkgconfig.NotifyRuleAction(r.Action),
-			Match: pkgconfig.NotifyRuleMatch{
+			Action: notifypkg.RuleAction(r.Action),
+			Match: notifypkg.RuleMatch{
 				Event:   r.EventPattern,
 				Channel: r.ChannelPattern,
 			},
@@ -542,5 +719,36 @@ func reloadRulesEngine(ctx context.Context) {
 			Params:    params,
 		})
 	}
-	_ = notifyrules.GetEngine().LoadConfig(configRules)
+	if err := eng.LoadConfig(manifestRules); err != nil {
+		flog.Warn("reload notify rules: LoadConfig failed: %v", err)
+	}
+}
+
+func reloadTemplateEngine(ctx context.Context) {
+	rows, err := store.Database.ListNotifyTemplates(ctx, store.ListNotifyTemplateOptions{})
+	if err != nil {
+		flog.Warn("reload notify templates: list failed: %v", err)
+		return
+	}
+	templates := make([]notifypkg.Template, 0, len(rows))
+	for _, row := range rows {
+		var overrides []notifypkg.Override
+		if row.OverridesJSON != "" && row.OverridesJSON != "[]" {
+			if err := sonic.Unmarshal([]byte(row.OverridesJSON), &overrides); err != nil {
+				flog.Warn("reload notify templates: template %s has invalid overrides, using empty: %v", row.TemplateID, err)
+				overrides = nil
+			}
+		}
+		templates = append(templates, notifypkg.Template{
+			ID:              row.TemplateID,
+			Name:            row.Name,
+			Description:     row.Description,
+			DefaultFormat:   row.DefaultFormat,
+			DefaultTemplate: row.DefaultTemplate,
+			Overrides:       overrides,
+		})
+	}
+	if err := notifytmpl.Init(templates); err != nil {
+		flog.Warn("reload notify templates: Init failed: %v", err)
+	}
 }

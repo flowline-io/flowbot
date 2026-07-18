@@ -38,6 +38,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -1069,6 +1070,44 @@ func init() {
 	notifyrule.DefaultUpdatedAt = notifyruleDescUpdatedAt.Default.(func() time.Time)
 	// notifyrule.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	notifyrule.UpdateDefaultUpdatedAt = notifyruleDescUpdatedAt.UpdateDefault.(func() time.Time)
+	notifytemplateFields := schema.NotifyTemplate{}.Fields()
+	_ = notifytemplateFields
+	// notifytemplateDescTemplateID is the schema descriptor for template_id field.
+	notifytemplateDescTemplateID := notifytemplateFields[1].Descriptor()
+	// notifytemplate.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
+	notifytemplate.TemplateIDValidator = notifytemplateDescTemplateID.Validators[0].(func(string) error)
+	// notifytemplateDescName is the schema descriptor for name field.
+	notifytemplateDescName := notifytemplateFields[2].Descriptor()
+	// notifytemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	notifytemplate.NameValidator = notifytemplateDescName.Validators[0].(func(string) error)
+	// notifytemplateDescDescription is the schema descriptor for description field.
+	notifytemplateDescDescription := notifytemplateFields[3].Descriptor()
+	// notifytemplate.DefaultDescription holds the default value on creation for the description field.
+	notifytemplate.DefaultDescription = notifytemplateDescDescription.Default.(string)
+	// notifytemplateDescDefaultFormat is the schema descriptor for default_format field.
+	notifytemplateDescDefaultFormat := notifytemplateFields[4].Descriptor()
+	// notifytemplate.DefaultDefaultFormat holds the default value on creation for the default_format field.
+	notifytemplate.DefaultDefaultFormat = notifytemplateDescDefaultFormat.Default.(string)
+	// notifytemplate.DefaultFormatValidator is a validator for the "default_format" field. It is called by the builders before save.
+	notifytemplate.DefaultFormatValidator = notifytemplateDescDefaultFormat.Validators[0].(func(string) error)
+	// notifytemplateDescDefaultTemplate is the schema descriptor for default_template field.
+	notifytemplateDescDefaultTemplate := notifytemplateFields[5].Descriptor()
+	// notifytemplate.DefaultTemplateValidator is a validator for the "default_template" field. It is called by the builders before save.
+	notifytemplate.DefaultTemplateValidator = notifytemplateDescDefaultTemplate.Validators[0].(func(string) error)
+	// notifytemplateDescOverrides is the schema descriptor for overrides field.
+	notifytemplateDescOverrides := notifytemplateFields[6].Descriptor()
+	// notifytemplate.DefaultOverrides holds the default value on creation for the overrides field.
+	notifytemplate.DefaultOverrides = notifytemplateDescOverrides.Default.([]schema.NotifyTemplateOverride)
+	// notifytemplateDescCreatedAt is the schema descriptor for created_at field.
+	notifytemplateDescCreatedAt := notifytemplateFields[7].Descriptor()
+	// notifytemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
+	notifytemplate.DefaultCreatedAt = notifytemplateDescCreatedAt.Default.(func() time.Time)
+	// notifytemplateDescUpdatedAt is the schema descriptor for updated_at field.
+	notifytemplateDescUpdatedAt := notifytemplateFields[8].Descriptor()
+	// notifytemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	notifytemplate.DefaultUpdatedAt = notifytemplateDescUpdatedAt.Default.(func() time.Time)
+	// notifytemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	notifytemplate.UpdateDefaultUpdatedAt = notifytemplateDescUpdatedAt.UpdateDefault.(func() time.Time)
 	oauthFields := schema.OAuth{}.Fields()
 	_ = oauthFields
 	// oauthDescUID is the schema descriptor for uid field.

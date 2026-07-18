@@ -105,6 +105,9 @@ type NotifyChannel func(*sql.Selector)
 // NotifyRule is the predicate function for notifyrule builders.
 type NotifyRule func(*sql.Selector)
 
+// NotifyTemplate is the predicate function for notifytemplate builders.
+type NotifyTemplate func(*sql.Selector)
+
 // OAuth is the predicate function for oauth builders.
 type OAuth func(*sql.Selector)
 

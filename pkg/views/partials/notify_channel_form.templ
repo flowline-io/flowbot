@@ -54,7 +54,7 @@ templ NotifyChannelForm(item model.NotifyChannel, isNew bool, errors map[string]
 					if isNew {
 						hx-post="/service/web/notifications/channels"
 					} else {
-						hx-put={ notifyChannelDeleteURL(item) }
+						hx-put={ notifyChannelUpdateURL(item) }
 					}
 					hx-target="closest tr"
 					hx-swap="outerHTML"

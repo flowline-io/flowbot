@@ -271,7 +271,7 @@ func NotifyChannelForm(item model.NotifyChannel, isNew bool, errors map[string]s
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(notifyChannelDeleteURL(item))
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(notifyChannelUpdateURL(item))
 			if templ_7745c5c3_Err != nil {
 				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/notify_channel_form.templ`, Line: 57, Col: 43}
 			}

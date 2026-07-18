@@ -22,6 +22,10 @@ func notifyChannelDeleteURL(item model.NotifyChannel) string {
 	return fmt.Sprintf("/service/web/notifications/channels/%d", item.ID)
 }
 
+func notifyChannelUpdateURL(item model.NotifyChannel) string {
+	return notifyChannelDeleteURL(item)
+}
+
 func notifyChannelTestURL(item model.NotifyChannel) string {
 	return fmt.Sprintf("/service/web/notifications/channels/%d/test", item.ID)
 }
@@ -36,6 +40,10 @@ func notifyRuleEditURL(item model.NotifyRule) string {
 
 func notifyRuleDeleteURL(item model.NotifyRule) string {
 	return fmt.Sprintf("/service/web/notifications/rules/%d", item.ID)
+}
+
+func notifyRuleUpdateURL(item model.NotifyRule) string {
+	return notifyRuleDeleteURL(item)
 }
 
 func notifyChannelFormID(item model.NotifyChannel, isNew bool) string {
@@ -58,6 +66,44 @@ func notifyChannelCancelURL() string {
 
 func notifyRuleCancelURL() string {
 	return "/service/web/notifications/rules/list"
+}
+
+func notifyTemplateRowID(item model.NotifyTemplate) string {
+	return fmt.Sprintf("notify-template-%d", item.ID)
+}
+
+func notifyTemplateEditURL(item model.NotifyTemplate) string {
+	return fmt.Sprintf("/service/web/notifications/templates/%d/edit", item.ID)
+}
+
+func notifyTemplateDeleteURL(item model.NotifyTemplate) string {
+	return fmt.Sprintf("/service/web/notifications/templates/%d", item.ID)
+}
+
+func notifyTemplateUpdateURL(item model.NotifyTemplate) string {
+	return notifyTemplateDeleteURL(item)
+}
+
+func notifyTemplateFormID(item model.NotifyTemplate, isNew bool) string {
+	if isNew {
+		return "notify-template-form-new"
+	}
+	return "notify-template-form-" + notifyTemplateRowID(item)
+}
+
+func notifyTemplateCancelURL() string {
+	return "/service/web/notifications/templates/list"
+}
+
+func notifyTemplateOverrideCount(item model.NotifyTemplate) int {
+	if item.OverridesJSON == "" || item.OverridesJSON == "[]" {
+		return 0
+	}
+	var overrides []any
+	if sonic.Unmarshal([]byte(item.OverridesJSON), &overrides) != nil {
+		return 0
+	}
+	return len(overrides)
 }
 
 func actionBadgeClass(action string) string {
@@ -108,7 +154,7 @@ func hasTemplateForRule(item model.NotifyRule, templateIDs []string) bool {
 	if sonic.Unmarshal([]byte(item.ParamsJSON), &params) != nil {
 		return true // can't parse - don't flag as stale
 	}
-	tid, ok := params["digest_tpl_id"].(string)
+	tid, ok := params["digest_template_id"].(string)
 	if !ok || tid == "" {
 		return true
 	}

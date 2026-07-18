@@ -3,10 +3,10 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ NotifyChannelsTable(channels []model.NotifyChannel) {
-	<div class="card bg-base-100 shadow-sm">
-		<div id="notify-channels-table"
-			data-testid="notify-channels-table"
-			class="overflow-x-auto">
+	<div id="notify-channels-table"
+		data-testid="notify-channels-table"
+		class="card bg-base-100 shadow-sm">
+		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>

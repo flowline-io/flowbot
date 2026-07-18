@@ -39,6 +39,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/parameter"
@@ -3044,6 +3045,119 @@ func nilString(s string) *string {
 		return nil
 	}
 	return &s
+}
+
+// ---------------------------------------------------------------------------
+// NotifyTemplate CRUD
+// ---------------------------------------------------------------------------
+
+func (a *adapter) CreateNotifyTemplate(ctx context.Context, tmpl model.NotifyTemplate) (int64, error) {
+	overrides, err := parseNotifyTemplateOverrides(tmpl.OverridesJSON)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: create notify template overrides parse: %w", err)
+	}
+	row, err := a.client.NotifyTemplate.Create().
+		SetTemplateID(tmpl.TemplateID).
+		SetName(tmpl.Name).
+		SetDescription(tmpl.Description).
+		SetDefaultFormat(tmpl.DefaultFormat).
+		SetDefaultTemplate(tmpl.DefaultTemplate).
+		SetOverrides(overrides).
+		SetCreatedAt(time.Now()).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: create notify template: %w", err)
+	}
+	return row.ID, nil
+}
+
+func (a *adapter) GetNotifyTemplate(ctx context.Context, id int64) (model.NotifyTemplate, error) {
+	row, err := a.client.NotifyTemplate.Query().Where(notifytemplate.IDEQ(id)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyTemplate{}, types.ErrNotFound
+		}
+		return model.NotifyTemplate{}, fmt.Errorf("postgres: get notify template: %w", err)
+	}
+	return notifyTemplateToModel(row), nil
+}
+
+func (a *adapter) ListNotifyTemplates(ctx context.Context, _ store.ListNotifyTemplateOptions) ([]model.NotifyTemplate, error) {
+	rows, err := a.client.NotifyTemplate.Query().Order(gen.Asc(notifytemplate.FieldTemplateID)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list notify templates: %w", err)
+	}
+	result := make([]model.NotifyTemplate, len(rows))
+	for i, row := range rows {
+		result[i] = notifyTemplateToModel(row)
+	}
+	return result, nil
+}
+
+func (a *adapter) UpdateNotifyTemplate(ctx context.Context, id int64, tmpl model.NotifyTemplate) error {
+	overrides, err := parseNotifyTemplateOverrides(tmpl.OverridesJSON)
+	if err != nil {
+		return fmt.Errorf("postgres: update notify template overrides parse: %w", err)
+	}
+	n, err := a.client.NotifyTemplate.Update().Where(notifytemplate.IDEQ(id)).
+		SetTemplateID(tmpl.TemplateID).
+		SetName(tmpl.Name).
+		SetDescription(tmpl.Description).
+		SetDefaultFormat(tmpl.DefaultFormat).
+		SetDefaultTemplate(tmpl.DefaultTemplate).
+		SetOverrides(overrides).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update notify template: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteNotifyTemplate(ctx context.Context, id int64) error {
+	_, err := a.client.NotifyTemplate.Delete().Where(notifytemplate.IDEQ(id)).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete notify template: %w", err)
+	}
+	return nil
+}
+
+func parseNotifyTemplateOverrides(overridesJSON string) ([]schema.NotifyTemplateOverride, error) {
+	if overridesJSON == "" {
+		return []schema.NotifyTemplateOverride{}, nil
+	}
+	var overrides []schema.NotifyTemplateOverride
+	if err := sonic.Unmarshal([]byte(overridesJSON), &overrides); err != nil {
+		return nil, err
+	}
+	if overrides == nil {
+		overrides = []schema.NotifyTemplateOverride{}
+	}
+	return overrides, nil
+}
+
+func notifyTemplateToModel(row *gen.NotifyTemplate) model.NotifyTemplate {
+	overridesJSON := "[]"
+	if len(row.Overrides) > 0 {
+		if s, err := sonic.MarshalString(row.Overrides); err == nil {
+			overridesJSON = s
+		}
+	}
+	return model.NotifyTemplate{
+		ID:              row.ID,
+		TemplateID:      row.TemplateID,
+		Name:            row.Name,
+		Description:     row.Description,
+		DefaultFormat:   row.DefaultFormat,
+		DefaultTemplate: row.DefaultTemplate,
+		OverridesJSON:   overridesJSON,
+		CreatedAt:       row.CreatedAt,
+		UpdatedAt:       row.UpdatedAt,
+	}
 }
 
 // ---------------------------------------------------------------------------

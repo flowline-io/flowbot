@@ -1,0 +1,93 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string]string) {
+	<tr id={ notifyTemplateFormID(item, isNew) }>
+		<td colspan="5" class="p-4 bg-base-200/40">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+				<div>
+					<label class="text-xs uppercase text-base-content/50">Template ID</label>
+					<input type="text" name="template_id" value={ item.TemplateID }
+						data-testid="template-id"
+						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "template_id") }
+						placeholder="e.g. bookmark.created"
+					/>
+					<div class="text-error text-xs">{ errors["template_id"] }</div>
+				</div>
+				<div>
+					<label class="text-xs uppercase text-base-content/50">Name</label>
+					<input type="text" name="name" value={ item.Name }
+						data-testid="template-name"
+						class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
+						placeholder="Display name"
+					/>
+					<div class="text-error text-xs">{ errors["name"] }</div>
+				</div>
+				<div>
+					<label class="text-xs uppercase text-base-content/50">Format</label>
+					<select name="default_format"
+						data-testid="template-format"
+						class={ "select select-bordered select-sm w-full " + fieldError(errors, "default_format") }>
+						<option value="markdown" if item.DefaultFormat == "markdown" || item.DefaultFormat == "" { selected }>markdown</option>
+						<option value="html" if item.DefaultFormat == "html" { selected }>html</option>
+						<option value="text" if item.DefaultFormat == "text" { selected }>text</option>
+					</select>
+					<div class="text-error text-xs">{ errors["default_format"] }</div>
+				</div>
+				<div>
+					<label class="text-xs uppercase text-base-content/50">Description</label>
+					<input type="text" name="description" value={ item.Description }
+						data-testid="template-description"
+						class="input input-bordered input-sm w-full"
+						placeholder="Optional description"
+					/>
+				</div>
+			</div>
+			<div class="mb-3">
+				<label class="text-xs uppercase text-base-content/50">Default template</label>
+				<textarea name="default_template" rows="6"
+					data-testid="template-body"
+					class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "default_template") }
+					placeholder="Go text/template body with Sprig functions"
+				>{ item.DefaultTemplate }</textarea>
+				<div class="text-error text-xs">{ errors["default_template"] }</div>
+			</div>
+			<div class="mb-3">
+				<label class="text-xs uppercase text-base-content/50">Overrides JSON</label>
+				<textarea name="overrides_json" rows="4"
+					data-testid="template-overrides"
+					class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "overrides_json") }
+					placeholder='[{"channel":"telegram","format":"html","template":"<b>{{ .title }}</b>"}]'
+				>{ item.OverridesJSON }</textarea>
+				<div class="text-error text-xs">{ errors["overrides_json"] }</div>
+			</div>
+			<div class="flex gap-1">
+				<button type="button"
+					if isNew {
+						hx-post="/service/web/notifications/templates"
+					} else {
+						hx-put={ notifyTemplateUpdateURL(item) }
+					}
+					hx-target="closest tr"
+					hx-swap="outerHTML"
+					hx-include="closest tr"
+					data-testid="template-save"
+					class="btn btn-primary btn-sm">
+					Save
+				</button>
+				<button type="button"
+					hx-get={ notifyTemplateCancelURL() }
+					hx-target="#notify-templates-table"
+					hx-swap="outerHTML"
+					data-testid="template-cancel"
+					class="btn btn-ghost btn-sm">
+					Cancel
+				</button>
+			</div>
+			if errors["_save"] != "" {
+				<div class="text-error text-xs mt-1">{ errors["_save"] }</div>
+			}
+		</td>
+	</tr>
+}

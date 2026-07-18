@@ -872,6 +872,31 @@ var (
 			},
 		},
 	}
+	// NotifyTemplatesColumns holds the columns for the "notify_templates" table.
+	NotifyTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "template_id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "default_format", Type: field.TypeString, Default: "markdown"},
+		{Name: "default_template", Type: field.TypeString, Size: 2147483647},
+		{Name: "overrides", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// NotifyTemplatesTable holds the schema information for the "notify_templates" table.
+	NotifyTemplatesTable = &schema.Table{
+		Name:       "notify_templates",
+		Columns:    NotifyTemplatesColumns,
+		PrimaryKey: []*schema.Column{NotifyTemplatesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "notifytemplate_template_id",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyTemplatesColumns[1]},
+			},
+		},
+	}
 	// OauthColumns holds the columns for the "oauth" table.
 	OauthColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1416,6 +1441,7 @@ var (
 		NotificationRecordsTable,
 		NotifyChannelsTable,
 		NotifyRulesTable,
+		NotifyTemplatesTable,
 		OauthTable,
 		PagesTable,
 		PageDataTable,
@@ -1538,6 +1564,9 @@ func init() {
 	}
 	NotifyRulesTable.Annotation = &entsql.Annotation{
 		Table: "notify_rules",
+	}
+	NotifyTemplatesTable.Annotation = &entsql.Annotation{
+		Table: "notify_templates",
 	}
 	OauthTable.Annotation = &entsql.Annotation{
 		Table: "oauth",

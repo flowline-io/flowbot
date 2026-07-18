@@ -10,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/route"
@@ -217,13 +216,13 @@ func defaultPlaygroundPayloadJSON() string {
 	return "{\n  \"summary\": \"playground\"\n}"
 }
 
-func findPlaygroundTemplate(id string) (pkgconfig.NotifyTemplate, bool) {
+func findPlaygroundTemplate(id string) (notifypkg.Template, bool) {
 	for _, tmpl := range getTemplates() {
 		if tmpl.ID == id {
 			return tmpl, true
 		}
 	}
-	return pkgconfig.NotifyTemplate{}, false
+	return notifypkg.Template{}, false
 }
 
 func parsePlaygroundForm(ctx fiber.Ctx) playgroundRequest {
@@ -292,11 +291,6 @@ func validatePlaygroundRequest(req playgroundRequest) map[string]string {
 func playgroundTemplateExists(id string) bool {
 	if eng := notifytmpl.GetEngine(); eng != nil {
 		return eng.HasTemplate(id)
-	}
-	for _, t := range pkgconfig.App.Notify.Templates {
-		if t.ID == id {
-			return true
-		}
 	}
 	return false
 }

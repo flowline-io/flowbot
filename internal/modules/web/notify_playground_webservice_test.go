@@ -12,25 +12,24 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestValidatePlaygroundRequest(t *testing.T) {
-	// Subtests mutate global pkgconfig.App.Notify.Templates; do not run in parallel.
+	// Subtests mutate the global template engine; do not run in parallel.
 	tests := []struct {
 		name      string
 		req       playgroundRequest
-		templates []pkgconfig.NotifyTemplate
+		templates []notifypkg.Template
 		wantField string
 		wantSub   string
 	}{
 		{
 			name:      "missing channel",
 			req:       playgroundRequest{Mode: "template", TemplateID: "a.created", PayloadJSON: "{}"},
-			templates: []pkgconfig.NotifyTemplate{{ID: "a.created", DefaultTemplate: "x"}},
+			templates: []notifypkg.Template{{ID: "a.created", DefaultTemplate: "x"}},
 			wantField: "channel_id",
 			wantSub:   "Channel is required",
 		},
@@ -55,7 +54,7 @@ func TestValidatePlaygroundRequest(t *testing.T) {
 		{
 			name:      "unknown template",
 			req:       playgroundRequest{Mode: "template", ChannelID: 1, TemplateID: "missing", PayloadJSON: "{}"},
-			templates: []pkgconfig.NotifyTemplate{{ID: "a.created", DefaultTemplate: "x"}},
+			templates: []notifypkg.Template{{ID: "a.created", DefaultTemplate: "x"}},
 			wantField: "template_id",
 			wantSub:   "Unknown template",
 		},
@@ -63,9 +62,11 @@ func TestValidatePlaygroundRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := pkgconfig.App.Notify.Templates
-			pkgconfig.App.Notify.Templates = tt.templates
-			t.Cleanup(func() { pkgconfig.App.Notify.Templates = orig })
+			notifytmpl.ResetForTest()
+			if tt.templates != nil {
+				require.NoError(t, notifytmpl.Init(tt.templates))
+			}
+			t.Cleanup(notifytmpl.ResetForTest)
 			errs := validatePlaygroundRequest(tt.req)
 			assert.Contains(t, errs[tt.wantField], tt.wantSub)
 		})
@@ -203,7 +204,7 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 	tests := []struct {
 		name       string
 		templateID string
-		templates  []pkgconfig.NotifyTemplate
+		templates  []notifypkg.Template
 		wantSub    string
 	}{
 		{
@@ -214,7 +215,7 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 		{
 			name:       "known template returns extracted fields",
 			templateID: "bookmark.created",
-			templates: []pkgconfig.NotifyTemplate{
+			templates: []notifypkg.Template{
 				{ID: "bookmark.created", DefaultTemplate: `{{ .url }} {{ .title }}`},
 			},
 			wantSub: "https://example.com",
@@ -222,7 +223,7 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 		{
 			name:       "unknown template falls back to default",
 			templateID: "missing.id",
-			templates:  []pkgconfig.NotifyTemplate{{ID: "other", DefaultTemplate: `{{ .x }}`}},
+			templates:  []notifypkg.Template{{ID: "other", DefaultTemplate: `{{ .x }}`}},
 			wantSub:    "playground",
 		},
 	}
@@ -234,11 +235,9 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 				store.Database = nil
 				handler = moduleHandler{}
 				config = configType{}
-				pkgconfig.App.Notify.Templates = nil
 				notifytmpl.ResetForTest()
 			}()
-			pkgconfig.App.Notify.Templates = tt.templates
-			require.NoError(t, notifytmpl.Init())
+			require.NoError(t, notifytmpl.Init(tt.templates))
 
 			path := "/service/web/notifications/playground/sample-payload"
 			if tt.templateID != "" {

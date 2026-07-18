@@ -282,33 +282,8 @@ homelab:
 # Pipeline definitions are loaded from a separate pipelines.yaml file.
 # See docs/reference/pipelines.yaml for the pipeline schema and examples.
 
-# Notification gateway configuration
-notify:
-  # Notification message templates indexed by ID
-  templates: []
-    # - id: ""
-    #   name: ""
-    #   description: ""
-    #   default_format: "markdown"
-    #   default_template: ""
-    #   overrides:
-    #     - channel: ""
-    #       format: ""
-    #       template: ""
-  # Notification filtering and aggregation rules
-  rules: []
-    # - id: ""
-    #   action: "throttle" # throttle, aggregate, mute, drop
-    #   match:
-    #     event: ""
-    #     channel: ""
-    #   condition: ""
-    #   priority: 0
-    #   params:
-    #     window: "60s"
-    #     limit: 5
-    #     digest_template_id: ""
-    #     delayed_send: false
+# Notification templates and rules are managed via the Notifications UI
+# (/service/web/notifications) and persisted in PostgreSQL. See docs/user-guide/notification-gateway.md.
 
 # OpenTelemetry distributed tracing configuration
 tracing:

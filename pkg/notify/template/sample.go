@@ -7,7 +7,7 @@ import (
 
 	"github.com/bytedance/sonic"
 
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 var templateFieldPattern = regexp.MustCompile(`\.([A-Za-z_][A-Za-z0-9_]*)`)
@@ -33,7 +33,7 @@ func ExtractTemplateFields(tmplStr string) []string {
 }
 
 // SamplePayload builds a sample payload map from a notify template's body and overrides.
-func SamplePayload(tmpl config.NotifyTemplate) map[string]any {
+func SamplePayload(tmpl manifest.Template) map[string]any {
 	fields := ExtractTemplateFields(tmpl.DefaultTemplate)
 	for _, o := range tmpl.Overrides {
 		for _, f := range ExtractTemplateFields(o.Template) {
@@ -59,7 +59,7 @@ func SamplePayload(tmpl config.NotifyTemplate) map[string]any {
 }
 
 // SamplePayloadJSON returns pretty-printed JSON for SamplePayload.
-func SamplePayloadJSON(tmpl config.NotifyTemplate) (string, error) {
+func SamplePayloadJSON(tmpl manifest.Template) (string, error) {
 	payload := SamplePayload(tmpl)
 	b, err := sonic.MarshalIndent(payload, "", "  ")
 	if err != nil {

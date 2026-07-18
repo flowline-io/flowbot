@@ -114,37 +114,39 @@ The template engine renders notification messages using Go `text/template` with 
 
 ### Template Schema
 
-Templates are defined in `flowbot.yaml` under the `notify.templates` key:
+Templates are managed in the Notifications UI (`/service/web/notifications` → Templates tab)
+and persisted in PostgreSQL (`notify_templates`). They are loaded at startup and hot-reloaded after CRUD.
+
+Example fields (same shape as the UI form / JSON overrides):
 
 ```yaml
-notify:
-  templates:
-    - id: bookmark.created
-      name: "New Bookmark Notification"
-      description: "Triggered when a bookmark is successfully created"
-      default_format: markdown
-      default_template: |
-        **New Bookmark Saved**
-        **URL:** {{ .url | default "N/A" }}
-        {{ if .title }}**Title:** {{ .title }}{{ end }}
-      overrides:
-        - channel: telegram
-          format: html
-          template: |
-            <b>New Bookmark Saved</b>
-            <b>URL:</b> <a href="{{ .url }}">{{ .url }}</a>
+# Illustrative shape only — not loaded from flowbot.yaml
+id: bookmark.created
+name: "New Bookmark Notification"
+description: "Triggered when a bookmark is successfully created"
+default_format: markdown
+default_template: |
+  **New Bookmark Saved**
+  **URL:** {{ .url | default "N/A" }}
+  {{ if .title }}**Title:** {{ .title }}{{ end }}
+overrides:
+  - channel: telegram
+    format: html
+    template: |
+      <b>New Bookmark Saved</b>
+      <b>URL:</b> <a href="{{ .url }}">{{ .url }}</a>
 ```
 
 ### Field Reference
 
-| Field              | Type   | Required | Description                                           |
-| ------------------ | ------ | -------- | ----------------------------------------------------- | --------------- |
-| `id`               | string | yes      | Unique template identifier (e.g., `bookmark.created`) |
-| `name`             | string | yes      | Human-readable display name                           |
-| `description`      | string | no       | Text describing when this template is used            |
-| `default_format`   | string | yes      | Output format: `markdown` or `html`                   |
-| `default_template` | string | yes      | Sprig template body (YAML `                           | ` block scalar) |
-| `overrides`        | array  | no       | Per-channel template overrides                        |
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `id` | string | yes | Unique template identifier (e.g., `bookmark.created`) |
+| `name` | string | yes | Human-readable display name |
+| `description` | string | no | Text describing when this template is used |
+| `default_format` | string | yes | Output format: `markdown` or `html` |
+| `default_template` | string | yes | Sprig template body |
+| `overrides` | array | no | Per-channel template overrides |
 
 ### Override Fields
 
@@ -203,20 +205,21 @@ All [Sprig string functions](https://masterminds.github.io/sprig/strings.html), 
 
 ## Rule Engine
 
-Rules are evaluated before any notification is sent. They are defined in `flowbot.yaml` under `notify.rules` and processed in priority order (higher priority first).
+Rules are evaluated before any notification is sent. They are managed in the Notifications UI
+(`/service/web/notifications` → Rules tab), persisted in PostgreSQL (`notify_rules`), and
+processed in priority order (higher priority first).
 
 ### Rule Schema
 
 ```yaml
-notify:
-  rules:
-    - id: "night_mute"
-      action: mute
-      match:
-        event: "*"
-        channel: "*"
-      condition: "time.hour >= 23 || time.hour < 8"
-      priority: 100
+# Illustrative shape only — not loaded from flowbot.yaml
+id: "night_mute"
+action: mute
+match:
+  event: "*"
+  channel: "*"
+condition: "time.hour >= 23 || time.hour < 8"
+priority: 100
 ```
 
 ### Rule Fields
@@ -364,26 +367,14 @@ At 1 AM: night_mute condition is true, all notifications are silenced regardless
 
 ### Minimum Setup
 
-1. Add templates to `flowbot.yaml`:
+1. Create templates in the Notifications UI (`/service/web/notifications` → Templates), for example:
+   - ID: `bookmark.created`
+   - Format: `markdown`
+   - Body: `**New Bookmark**\n{{ .url }}`
 
-```yaml
-notify:
-  templates:
-    - id: bookmark.created
-      name: "Bookmark Created"
-      default_format: markdown
-      default_template: |
-        **New Bookmark**
-        {{ .url }}
-```
+2. Optionally add rules on the Rules tab (mute / throttle / aggregate / drop).
 
-2. Add optional rules:
-
-```yaml
-rules: [] # or add rules as needed
-```
-
-3. Configure at least one notification channel per user via the `notify config` chat command:
+3. Configure at least one notification channel on the Channels tab (or via the `notify config` chat command):
 
 ```
 /notify config
@@ -394,11 +385,13 @@ template: slack://tokenA/tokenB/tokenC
 
 ### Full Configuration Reference
 
-See [reference/notify.yaml](../reference/notify.yaml) for a complete template and rule configuration example.
+See [reference/notify.yaml](../reference/notify.yaml) (deprecated YAML note) and this guide for template/rule field shapes.
+Templates and rules live in the database, not in `flowbot.yaml`.
 
 ## Predefined Templates
 
-The following templates are built into the reference configuration. Add them to your `flowbot.yaml` to enable notifications for common events.
+The following template IDs are commonly used by modules and pipelines.
+Create matching rows in the Notifications UI (or seed `notify_templates`) to enable them.
 
 | Template ID           | Trigger                      | Key Payload Fields                                           |
 | --------------------- | ---------------------------- | ------------------------------------------------------------ |

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 func TestMatchPattern(t *testing.T) {
@@ -42,10 +42,10 @@ func TestMatchPattern(t *testing.T) {
 func TestEngineEvaluate(t *testing.T) {
 	tests := []struct {
 		name       string
-		rules      []config.NotifyRule
+		rules      []manifest.Rule
 		eventType  string
 		channel    string
-		wantAction config.NotifyRuleAction
+		wantAction manifest.RuleAction
 		wantWindow string
 		wantLimit  int
 		wantMuted  bool
@@ -53,84 +53,84 @@ func TestEngineEvaluate(t *testing.T) {
 	}{
 		{
 			name: "infra throttle rule matches infra.host.down",
-			rules: []config.NotifyRule{
+			rules: []manifest.Rule{
 				{
 					ID:        "night_mute",
-					Action:    config.NotifyRuleActionMute,
-					Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
+					Action:    manifest.RuleActionMute,
+					Match:     manifest.RuleMatch{Event: "*", Channel: "*"},
 					Condition: "time.hour >= 25",
 					Priority:  100,
 				},
 				{
 					ID:       "infra_throttle",
-					Action:   config.NotifyRuleActionThrottle,
-					Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+					Action:   manifest.RuleActionThrottle,
+					Match:    manifest.RuleMatch{Event: "infra.*", Channel: "*"},
 					Priority: 50,
-					Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+					Params:   manifest.RuleParams{Window: "5m", Limit: 1},
 				},
 				{
 					ID:       "drop_rule",
-					Action:   config.NotifyRuleActionDrop,
-					Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+					Action:   manifest.RuleActionDrop,
+					Match:    manifest.RuleMatch{Event: "test.drop", Channel: "*"},
 					Priority: 10,
 				},
 			},
 			eventType:  "infra.host.down",
 			channel:    "slack",
-			wantAction: config.NotifyRuleActionThrottle,
+			wantAction: manifest.RuleActionThrottle,
 			wantWindow: "5m",
 			wantLimit:  1,
 			wantMuted:  false,
 		},
 		{
 			name: "drop rule matches test.drop",
-			rules: []config.NotifyRule{
+			rules: []manifest.Rule{
 				{
 					ID:        "night_mute",
-					Action:    config.NotifyRuleActionMute,
-					Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
+					Action:    manifest.RuleActionMute,
+					Match:     manifest.RuleMatch{Event: "*", Channel: "*"},
 					Condition: "time.hour >= 25",
 					Priority:  100,
 				},
 				{
 					ID:       "infra_throttle",
-					Action:   config.NotifyRuleActionThrottle,
-					Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+					Action:   manifest.RuleActionThrottle,
+					Match:    manifest.RuleMatch{Event: "infra.*", Channel: "*"},
 					Priority: 50,
-					Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+					Params:   manifest.RuleParams{Window: "5m", Limit: 1},
 				},
 				{
 					ID:       "drop_rule",
-					Action:   config.NotifyRuleActionDrop,
-					Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+					Action:   manifest.RuleActionDrop,
+					Match:    manifest.RuleMatch{Event: "test.drop", Channel: "*"},
 					Priority: 10,
 				},
 			},
 			eventType:  "test.drop",
 			channel:    "slack",
-			wantAction: config.NotifyRuleActionDrop,
+			wantAction: manifest.RuleActionDrop,
 		},
 		{
 			name: "no match for unlisted event",
-			rules: []config.NotifyRule{
+			rules: []manifest.Rule{
 				{
 					ID:        "night_mute",
-					Action:    config.NotifyRuleActionMute,
-					Match:     config.NotifyRuleMatch{Event: "*", Channel: "*"},
+					Action:    manifest.RuleActionMute,
+					Match:     manifest.RuleMatch{Event: "*", Channel: "*"},
 					Condition: "time.hour >= 25",
 					Priority:  100,
 				},
 				{
 					ID:       "infra_throttle",
-					Action:   config.NotifyRuleActionThrottle,
-					Match:    config.NotifyRuleMatch{Event: "infra.*", Channel: "*"},
+					Action:   manifest.RuleActionThrottle,
+					Match:    manifest.RuleMatch{Event: "infra.*", Channel: "*"},
 					Priority: 50,
-					Params:   config.NotifyRuleParams{Window: "5m", Limit: 1},
+					Params:   manifest.RuleParams{Window: "5m", Limit: 1},
 				},
 				{
 					ID:       "drop_rule",
-					Action:   config.NotifyRuleActionDrop,
-					Match:    config.NotifyRuleMatch{Event: "test.drop", Channel: "*"},
+					Action:   manifest.RuleActionDrop,
+					Match:    manifest.RuleMatch{Event: "test.drop", Channel: "*"},
 					Priority: 10,
 				},
 			},
@@ -140,11 +140,11 @@ func TestEngineEvaluate(t *testing.T) {
 		},
 		{
 			name: "no match when event and channel differ",
-			rules: []config.NotifyRule{
+			rules: []manifest.Rule{
 				{
 					ID:       "specific_rule",
-					Action:   config.NotifyRuleActionDrop,
-					Match:    config.NotifyRuleMatch{Event: "specific.event", Channel: "slack"},
+					Action:   manifest.RuleActionDrop,
+					Match:    manifest.RuleMatch{Event: "specific.event", Channel: "slack"},
 					Priority: 10,
 				},
 			},
@@ -154,25 +154,25 @@ func TestEngineEvaluate(t *testing.T) {
 		},
 		{
 			name: "channel-specific rule matches correct channel",
-			rules: []config.NotifyRule{
+			rules: []manifest.Rule{
 				{
 					ID:       "slack_only",
-					Action:   config.NotifyRuleActionDrop,
-					Match:    config.NotifyRuleMatch{Event: "*", Channel: "slack"},
+					Action:   manifest.RuleActionDrop,
+					Match:    manifest.RuleMatch{Event: "*", Channel: "slack"},
 					Priority: 10,
 				},
 			},
 			eventType:  "any.event",
 			channel:    "slack",
-			wantAction: config.NotifyRuleActionDrop,
+			wantAction: manifest.RuleActionDrop,
 		},
 		{
 			name: "channel-specific rule does not match different channel",
-			rules: []config.NotifyRule{
+			rules: []manifest.Rule{
 				{
 					ID:       "slack_only",
-					Action:   config.NotifyRuleActionDrop,
-					Match:    config.NotifyRuleMatch{Event: "*", Channel: "slack"},
+					Action:   manifest.RuleActionDrop,
+					Match:    manifest.RuleMatch{Event: "*", Channel: "slack"},
 					Priority: 10,
 				},
 			},

@@ -225,7 +225,7 @@ func TestValidateThrottleAndAggregateParams(t *testing.T) {
 	}{
 		{name: "throttle missing window", params: map[string]any{"limit": float64(1)}, wantSubstr: "Window is required"},
 		{name: "throttle invalid limit", params: map[string]any{"window": "1m", "limit": float64(0)}, wantSubstr: "Limit must be > 0"},
-		{name: "aggregate missing window", params: map[string]any{"digest_tpl_id": "digest"}, wantSubstr: "Window is required", agg: true},
+		{name: "aggregate missing window", params: map[string]any{"digest_template_id": "digest"}, wantSubstr: "Window is required", agg: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 // globalEngine is the singleton template engine used by the notification gateway.
@@ -14,11 +14,11 @@ var globalEngine struct {
 	engine *Engine
 }
 
-// Init loads templates from configuration into the global engine.
-// It is safe to call multiple times (on config reload).
-func Init() error {
+// Init loads templates into the global engine.
+// It is safe to call multiple times (on reload after CRUD).
+func Init(templates []manifest.Template) error {
 	engine := New()
-	if err := engine.LoadConfig(config.App.Notify.Templates); err != nil {
+	if err := engine.LoadConfig(templates); err != nil {
 		return fmt.Errorf("failed to load notify templates: %w", err)
 	}
 
@@ -26,7 +26,7 @@ func Init() error {
 	globalEngine.engine = engine
 	globalEngine.mu.Unlock()
 
-	flog.Info("notify template engine: loaded %d templates", len(config.App.Notify.Templates))
+	flog.Info("notify template engine: loaded %d templates", len(templates))
 	return nil
 }
 

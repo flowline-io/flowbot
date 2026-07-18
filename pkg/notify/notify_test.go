@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/config"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -448,8 +447,8 @@ func TestUserNotifyChannels_NilDatabase(t *testing.T) {
 	}
 }
 
-func testNotifyTemplate() config.NotifyTemplate {
-	return config.NotifyTemplate{
+func testNotifyTemplate() Template {
+	return Template{
 		ID:              "test.event",
 		Name:            "Test Event",
 		Description:     "Test",
@@ -473,18 +472,13 @@ func replaceDatabaseForTest(t *testing.T, db store.Adapter) {
 	})
 }
 
-func setupNotifyTestEnv(t *testing.T, templates []config.NotifyTemplate, rules []config.NotifyRule, redisStore *cache.RedisStore) {
+func setupNotifyTestEnv(t *testing.T, templates []Template, rules []Rule, redisStore *cache.RedisStore) {
 	t.Helper()
-	prevTemplates := config.App.Notify.Templates
-	prevRules := config.App.Notify.Rules
-	config.App.Notify.Templates = templates
-	config.App.Notify.Rules = rules
+	require.NoError(t, notifytmpl.Init(templates))
+	require.NoError(t, notifyrules.Init(redisStore, rules))
 	t.Cleanup(func() {
-		config.App.Notify.Templates = prevTemplates
-		config.App.Notify.Rules = prevRules
+		notifytmpl.ResetForTest()
 	})
-	require.NoError(t, notifytmpl.Init())
-	require.NoError(t, notifyrules.Init(redisStore))
 }
 
 func TestBuildNotifyMessage(t *testing.T) {
@@ -546,7 +540,7 @@ func TestEvaluateAndRenderNotification(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		rules      []config.NotifyRule
+		rules      []Rule
 		templateID string
 		channel    string
 		payload    map[string]any
@@ -556,8 +550,8 @@ func TestEvaluateAndRenderNotification(t *testing.T) {
 	}{
 		{
 			name: "drop rule returns dropped action",
-			rules: []config.NotifyRule{
-				{ID: "drop1", Action: config.NotifyRuleActionDrop, Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10},
+			rules: []Rule{
+				{ID: "drop1", Action: RuleActionDrop, Match: RuleMatch{Event: "test.event", Channel: "*"}, Priority: 10},
 			},
 			templateID: "test.event",
 			channel:    "slack",
@@ -566,8 +560,8 @@ func TestEvaluateAndRenderNotification(t *testing.T) {
 		},
 		{
 			name: "mute rule returns muted action",
-			rules: []config.NotifyRule{
-				{ID: "mute1", Action: config.NotifyRuleActionMute, Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10},
+			rules: []Rule{
+				{ID: "mute1", Action: RuleActionMute, Match: RuleMatch{Event: "test.event", Channel: "*"}, Priority: 10},
 			},
 			templateID: "test.event",
 			channel:    "slack",
@@ -576,11 +570,11 @@ func TestEvaluateAndRenderNotification(t *testing.T) {
 		},
 		{
 			name: "aggregate rule returns aggregated action",
-			rules: []config.NotifyRule{
+			rules: []Rule{
 				{
-					ID: "agg1", Action: config.NotifyRuleActionAggregate,
-					Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10,
-					Params: config.NotifyRuleParams{Window: "5m"},
+					ID: "agg1", Action: RuleActionAggregate,
+					Match: RuleMatch{Event: "test.event", Channel: "*"}, Priority: 10,
+					Params: RuleParams{Window: "5m"},
 				},
 			},
 			templateID: "test.event",
@@ -600,7 +594,7 @@ func TestEvaluateAndRenderNotification(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, tt.rules, redisStore)
+			setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, tt.rules, redisStore)
 			result, err := evaluateAndRenderNotification(context.Background(), tt.templateID, tt.channel, tt.payload)
 			if tt.wantErr {
 				require.Error(t, err)
@@ -621,11 +615,11 @@ func TestEvaluateAndRenderNotification(t *testing.T) {
 func TestHandleThrottleRule(t *testing.T) {
 	mr := miniredis.RunT(t)
 	redisStore := cache.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()}))
-	setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, []config.NotifyRule{
+	setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, []Rule{
 		{
-			ID: "thr1", Action: config.NotifyRuleActionThrottle,
-			Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 10,
-			Params: config.NotifyRuleParams{Window: "1m", Limit: 1},
+			ID: "thr1", Action: RuleActionThrottle,
+			Match: RuleMatch{Event: "test.event", Channel: "*"}, Priority: 10,
+			Params: RuleParams{Window: "1m", Limit: 1},
 		},
 	}, redisStore)
 
@@ -665,7 +659,7 @@ func TestGatewaySend(t *testing.T) {
 		{
 			name: "template not found returns error",
 			setup: func(t *testing.T) {
-				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, nil, nil)
 			},
 			templateID: "missing.template",
 			channels:   []string{"slack"},
@@ -675,8 +669,8 @@ func TestGatewaySend(t *testing.T) {
 		{
 			name: "drop rule completes without error",
 			setup: func(t *testing.T) {
-				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, []config.NotifyRule{
-					{ID: "d1", Action: config.NotifyRuleActionDrop, Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 1},
+				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, []Rule{
+					{ID: "d1", Action: RuleActionDrop, Match: RuleMatch{Event: "test.event", Channel: "*"}, Priority: 1},
 				}, nil)
 			},
 			templateID: "test.event",
@@ -686,7 +680,7 @@ func TestGatewaySend(t *testing.T) {
 		{
 			name: "sends via global channel without uid",
 			setup: func(t *testing.T) {
-				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, nil, nil)
 				m := &mockNotifyer{
 					protocol:  "testgatewaysend",
 					templates: []string{"testgatewaysend://{channel}/{token}"},
@@ -711,7 +705,7 @@ func TestGatewaySend(t *testing.T) {
 		{
 			name: "missing channel without uid returns error",
 			setup: func(t *testing.T) {
-				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, nil, nil)
+				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, nil, nil)
 				replaceDatabaseForTest(t, &notifyTestStore{})
 			},
 			templateID: "test.event",
@@ -722,11 +716,11 @@ func TestGatewaySend(t *testing.T) {
 		{
 			name: "throttle allows then blocks repeat",
 			setup: func(t *testing.T) {
-				setupNotifyTestEnv(t, []config.NotifyTemplate{testNotifyTemplate()}, []config.NotifyRule{
+				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, []Rule{
 					{
-						ID: "t1", Action: config.NotifyRuleActionThrottle,
-						Match: config.NotifyRuleMatch{Event: "test.event", Channel: "*"}, Priority: 1,
-						Params: config.NotifyRuleParams{Window: "1m", Limit: 1},
+						ID: "t1", Action: RuleActionThrottle,
+						Match: RuleMatch{Event: "test.event", Channel: "*"}, Priority: 1,
+						Params: RuleParams{Window: "1m", Limit: 1},
 					},
 				}, redisStore)
 				m := &mockNotifyer{

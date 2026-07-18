@@ -47,6 +47,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -140,6 +141,8 @@ type Client struct {
 	NotifyChannel *NotifyChannelClient
 	// NotifyRule is the client for interacting with the NotifyRule builders.
 	NotifyRule *NotifyRuleClient
+	// NotifyTemplate is the client for interacting with the NotifyTemplate builders.
+	NotifyTemplate *NotifyTemplateClient
 	// OAuth is the client for interacting with the OAuth builders.
 	OAuth *OAuthClient
 	// Page is the client for interacting with the Page builders.
@@ -224,6 +227,7 @@ func (c *Client) init() {
 	c.NotificationRecord = NewNotificationRecordClient(c.config)
 	c.NotifyChannel = NewNotifyChannelClient(c.config)
 	c.NotifyRule = NewNotifyRuleClient(c.config)
+	c.NotifyTemplate = NewNotifyTemplateClient(c.config)
 	c.OAuth = NewOAuthClient(c.config)
 	c.Page = NewPageClient(c.config)
 	c.PageData = NewPageDataClient(c.config)
@@ -369,6 +373,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NotificationRecord:        NewNotificationRecordClient(cfg),
 		NotifyChannel:             NewNotifyChannelClient(cfg),
 		NotifyRule:                NewNotifyRuleClient(cfg),
+		NotifyTemplate:            NewNotifyTemplateClient(cfg),
 		OAuth:                     NewOAuthClient(cfg),
 		Page:                      NewPageClient(cfg),
 		PageData:                  NewPageDataClient(cfg),
@@ -441,6 +446,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NotificationRecord:        NewNotificationRecordClient(cfg),
 		NotifyChannel:             NewNotifyChannelClient(cfg),
 		NotifyRule:                NewNotifyRuleClient(cfg),
+		NotifyTemplate:            NewNotifyTemplateClient(cfg),
 		OAuth:                     NewOAuthClient(cfg),
 		Page:                      NewPageClient(cfg),
 		PageData:                  NewPageDataClient(cfg),
@@ -496,11 +502,12 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ChatSession, c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
 		c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
-		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
-		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
+		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
+		c.WorkflowStepRun,
 	} {
 		n.Use(hooks...)
 	}
@@ -516,11 +523,12 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ChatSession, c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter,
 		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
 		c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.OAuth, c.Page,
-		c.PageData, c.Parameter, c.PipelineDefinition, c.PipelineDefinitionVersion,
-		c.PipelineRun, c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
-		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
-		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
+		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
+		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
+		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
+		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
+		c.WorkflowStepRun,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -595,6 +603,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.NotifyChannel.mutate(ctx, m)
 	case *NotifyRuleMutation:
 		return c.NotifyRule.mutate(ctx, m)
+	case *NotifyTemplateMutation:
+		return c.NotifyTemplate.mutate(ctx, m)
 	case *OAuthMutation:
 		return c.OAuth.mutate(ctx, m)
 	case *PageMutation:
@@ -5029,6 +5039,139 @@ func (c *NotifyRuleClient) mutate(ctx context.Context, m *NotifyRuleMutation) (V
 	}
 }
 
+// NotifyTemplateClient is a client for the NotifyTemplate schema.
+type NotifyTemplateClient struct {
+	config
+}
+
+// NewNotifyTemplateClient returns a client for the NotifyTemplate from the given config.
+func NewNotifyTemplateClient(c config) *NotifyTemplateClient {
+	return &NotifyTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `notifytemplate.Hooks(f(g(h())))`.
+func (c *NotifyTemplateClient) Use(hooks ...Hook) {
+	c.hooks.NotifyTemplate = append(c.hooks.NotifyTemplate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `notifytemplate.Intercept(f(g(h())))`.
+func (c *NotifyTemplateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NotifyTemplate = append(c.inters.NotifyTemplate, interceptors...)
+}
+
+// Create returns a builder for creating a NotifyTemplate entity.
+func (c *NotifyTemplateClient) Create() *NotifyTemplateCreate {
+	mutation := newNotifyTemplateMutation(c.config, OpCreate)
+	return &NotifyTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NotifyTemplate entities.
+func (c *NotifyTemplateClient) CreateBulk(builders ...*NotifyTemplateCreate) *NotifyTemplateCreateBulk {
+	return &NotifyTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NotifyTemplateClient) MapCreateBulk(slice any, setFunc func(*NotifyTemplateCreate, int)) *NotifyTemplateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NotifyTemplateCreateBulk{err: fmt.Errorf("calling to NotifyTemplateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NotifyTemplateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NotifyTemplateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NotifyTemplate.
+func (c *NotifyTemplateClient) Update() *NotifyTemplateUpdate {
+	mutation := newNotifyTemplateMutation(c.config, OpUpdate)
+	return &NotifyTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NotifyTemplateClient) UpdateOne(_m *NotifyTemplate) *NotifyTemplateUpdateOne {
+	mutation := newNotifyTemplateMutation(c.config, OpUpdateOne, withNotifyTemplate(_m))
+	return &NotifyTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NotifyTemplateClient) UpdateOneID(id int64) *NotifyTemplateUpdateOne {
+	mutation := newNotifyTemplateMutation(c.config, OpUpdateOne, withNotifyTemplateID(id))
+	return &NotifyTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NotifyTemplate.
+func (c *NotifyTemplateClient) Delete() *NotifyTemplateDelete {
+	mutation := newNotifyTemplateMutation(c.config, OpDelete)
+	return &NotifyTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NotifyTemplateClient) DeleteOne(_m *NotifyTemplate) *NotifyTemplateDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NotifyTemplateClient) DeleteOneID(id int64) *NotifyTemplateDeleteOne {
+	builder := c.Delete().Where(notifytemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NotifyTemplateDeleteOne{builder}
+}
+
+// Query returns a query builder for NotifyTemplate.
+func (c *NotifyTemplateClient) Query() *NotifyTemplateQuery {
+	return &NotifyTemplateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNotifyTemplate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NotifyTemplate entity by its id.
+func (c *NotifyTemplateClient) Get(ctx context.Context, id int64) (*NotifyTemplate, error) {
+	return c.Query().Where(notifytemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NotifyTemplateClient) GetX(ctx context.Context, id int64) *NotifyTemplate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *NotifyTemplateClient) Hooks() []Hook {
+	return c.hooks.NotifyTemplate
+}
+
+// Interceptors returns the client interceptors.
+func (c *NotifyTemplateClient) Interceptors() []Interceptor {
+	return c.inters.NotifyTemplate
+}
+
+func (c *NotifyTemplateClient) mutate(ctx context.Context, m *NotifyTemplateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NotifyTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NotifyTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NotifyTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NotifyTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown NotifyTemplate mutation op: %q", m.Op())
+	}
+}
+
 // OAuthClient is a client for the OAuth schema.
 type OAuthClient struct {
 	config
@@ -7697,11 +7840,11 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
-		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
-		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
-		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
-		WorkflowStepRun []ent.Hook
+		Message, NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth,
+		Page, PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
+		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
+		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
+		User, WorkflowRun, WorkflowStepRun []ent.Hook
 	}
 	inters struct {
 		Agent, AgentPlan, AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask,
@@ -7709,10 +7852,10 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		Message, NotificationRecord, NotifyChannel, NotifyRule, OAuth, Page, PageData,
-		Parameter, PipelineDefinition, PipelineDefinitionVersion, PipelineRun,
-		PipelineStepRun, Platform, PlatformBot, PlatformChannel, PlatformChannelUser,
-		PlatformUser, PollingState, ResourceLink, Topic, Url, User, WorkflowRun,
-		WorkflowStepRun []ent.Interceptor
+		Message, NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth,
+		Page, PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
+		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
+		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
+		User, WorkflowRun, WorkflowStepRun []ent.Interceptor
 	}
 )

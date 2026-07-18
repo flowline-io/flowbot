@@ -40,6 +40,15 @@ templ NotifySettingsPage(activeTab string) {
 				}
 			/>
 			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notifications/templates/new"
+						hx-target="#notify-templates-rows"
+						hx-swap="afterbegin"
+						data-testid="templates-new"
+						class="btn btn-primary btn-sm">
+						New Template
+					</button>
+				</div>
 				<div hx-get="/service/web/notifications/templates/list"
 					hx-trigger="load once"
 					hx-swap="outerHTML">
@@ -53,6 +62,15 @@ templ NotifySettingsPage(activeTab string) {
 				}
 			/>
 			<div class="tab-content p-4">
+				<div class="flex justify-end mb-3">
+					<button hx-get="/service/web/notifications/rules/new"
+						hx-target="#notify-rules-rows"
+						hx-swap="afterbegin"
+						data-testid="rules-new"
+						class="btn btn-primary btn-sm">
+						New Rule
+					</button>
+				</div>
 				<div hx-get="/service/web/notifications/rules/list"
 					hx-trigger="load once"
 					hx-swap="outerHTML">

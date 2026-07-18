@@ -101,11 +101,11 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 						if isNew {
 							hx-post="/service/web/notifications/rules"
 						} else {
-							hx-put={ notifyRuleDeleteURL(item) }
+							hx-put={ notifyRuleUpdateURL(item) }
 						}
 						hx-target="closest tr"
 						hx-swap="outerHTML"
-						hx-include="[name='name'], [name='rule_id'], [name='action'], [name='event_pattern'], [name='channel_pattern'], [name='condition'], [name='priority'], [name='params_json'], [name='enabled']"
+						hx-include="closest tr"
 						data-testid="rule-save"
 						class="btn btn-primary btn-sm">
 						Save

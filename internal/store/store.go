@@ -194,6 +194,9 @@ type ListNotifyRuleOptions struct {
 	Enabled *bool // nil = all, true = enabled only, false = disabled only
 }
 
+// ListNotifyTemplateOptions holds filtering options for listing notification templates.
+type ListNotifyTemplateOptions struct{}
+
 // ListChatSessionsOptions holds pagination for listing chat agent sessions.
 type ListChatSessionsOptions struct {
 	Limit  int    // max 100, default 20
@@ -434,6 +437,13 @@ type Adapter interface {
 	ListNotifyRules(ctx context.Context, opts ListNotifyRuleOptions) ([]model.NotifyRule, error)
 	UpdateNotifyRule(ctx context.Context, id int64, rule model.NotifyRule) error
 	DeleteNotifyRule(ctx context.Context, id int64) error
+
+	// NotifyTemplate CRUD
+	CreateNotifyTemplate(ctx context.Context, tmpl model.NotifyTemplate) (int64, error)
+	GetNotifyTemplate(ctx context.Context, id int64) (model.NotifyTemplate, error)
+	ListNotifyTemplates(ctx context.Context, opts ListNotifyTemplateOptions) ([]model.NotifyTemplate, error)
+	UpdateNotifyTemplate(ctx context.Context, id int64, tmpl model.NotifyTemplate) error
+	DeleteNotifyTemplate(ctx context.Context, id int64) error
 
 	// Notify URI masking
 	MaskNotifyURI(protocol, uri string) string

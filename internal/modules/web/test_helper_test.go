@@ -58,6 +58,7 @@ type testStore struct {
 	notifyChannels            map[int64]model.NotifyChannel
 	notifyChannelErr          error
 	notifyRules               map[int64]model.NotifyRule
+	notifyTemplates           map[int64]model.NotifyTemplate
 }
 
 func (s *testStore) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {
@@ -230,6 +231,123 @@ func (s *testStore) ListNotifyRules(_ context.Context, opts store.ListNotifyRule
 		out = append(out, rule)
 	}
 	return out, nil
+}
+
+// CreateNotifyRule stores a notification rule for tests.
+func (s *testStore) CreateNotifyRule(_ context.Context, rule model.NotifyRule) (int64, error) {
+	if s.notifyRules == nil {
+		s.notifyRules = make(map[int64]model.NotifyRule)
+	}
+	id := int64(len(s.notifyRules) + 1)
+	rule.ID = id
+	s.notifyRules[id] = rule
+	return id, nil
+}
+
+// GetNotifyRule returns a notification rule by id.
+func (s *testStore) GetNotifyRule(_ context.Context, id int64) (model.NotifyRule, error) {
+	if s.notifyRules == nil {
+		return model.NotifyRule{}, types.ErrNotFound
+	}
+	rule, ok := s.notifyRules[id]
+	if !ok {
+		return model.NotifyRule{}, types.ErrNotFound
+	}
+	return rule, nil
+}
+
+// UpdateNotifyRule updates a notification rule in the test map.
+func (s *testStore) UpdateNotifyRule(_ context.Context, id int64, rule model.NotifyRule) error {
+	if s.notifyRules == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.notifyRules[id]; !ok {
+		return types.ErrNotFound
+	}
+	rule.ID = id
+	s.notifyRules[id] = rule
+	return nil
+}
+
+// DeleteNotifyRule removes a notification rule from the test map.
+func (s *testStore) DeleteNotifyRule(_ context.Context, id int64) error {
+	if s.notifyRules == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.notifyRules[id]; !ok {
+		return types.ErrNotFound
+	}
+	delete(s.notifyRules, id)
+	return nil
+}
+
+// DeleteNotifyChannel removes a notification channel from the test map.
+func (s *testStore) DeleteNotifyChannel(_ context.Context, id int64) error {
+	if s.notifyChannels == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.notifyChannels[id]; !ok {
+		return types.ErrNotFound
+	}
+	delete(s.notifyChannels, id)
+	return nil
+}
+
+// CreateNotifyTemplate stores a notification template for tests.
+func (s *testStore) CreateNotifyTemplate(_ context.Context, tmpl model.NotifyTemplate) (int64, error) {
+	if s.notifyTemplates == nil {
+		s.notifyTemplates = make(map[int64]model.NotifyTemplate)
+	}
+	id := int64(len(s.notifyTemplates) + 1)
+	tmpl.ID = id
+	s.notifyTemplates[id] = tmpl
+	return id, nil
+}
+
+// GetNotifyTemplate returns a notification template by id.
+func (s *testStore) GetNotifyTemplate(_ context.Context, id int64) (model.NotifyTemplate, error) {
+	if s.notifyTemplates == nil {
+		return model.NotifyTemplate{}, types.ErrNotFound
+	}
+	tmpl, ok := s.notifyTemplates[id]
+	if !ok {
+		return model.NotifyTemplate{}, types.ErrNotFound
+	}
+	return tmpl, nil
+}
+
+// ListNotifyTemplates returns seeded notification templates for tests.
+func (s *testStore) ListNotifyTemplates(_ context.Context, _ store.ListNotifyTemplateOptions) ([]model.NotifyTemplate, error) {
+	out := make([]model.NotifyTemplate, 0, len(s.notifyTemplates))
+	for _, tmpl := range s.notifyTemplates {
+		out = append(out, tmpl)
+	}
+	return out, nil
+}
+
+// UpdateNotifyTemplate updates a notification template in the test map.
+func (s *testStore) UpdateNotifyTemplate(_ context.Context, id int64, tmpl model.NotifyTemplate) error {
+	if s.notifyTemplates == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.notifyTemplates[id]; !ok {
+		return types.ErrNotFound
+	}
+	tmpl.ID = id
+	s.notifyTemplates[id] = tmpl
+	return nil
+}
+
+// DeleteNotifyTemplate removes a notification template from the test map.
+func (s *testStore) DeleteNotifyTemplate(_ context.Context, id int64) error {
+	if s.notifyTemplates == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.notifyTemplates[id]; !ok {
+		return types.ErrNotFound
+	}
+	delete(s.notifyTemplates, id)
+	return nil
 }
 
 func setupTestApp() (*fiber.App, *testStore) {

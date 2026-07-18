@@ -10,7 +10,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 // Engine renders notification templates for different channels using Sprig functions.
@@ -19,7 +19,7 @@ type Engine struct {
 }
 
 type templateEntry struct {
-	manifest *config.NotifyTemplate
+	manifest *manifest.Template
 	compiled map[string]*template.Template // keyed by channel ("" for default)
 }
 
@@ -30,8 +30,8 @@ func New() *Engine {
 	}
 }
 
-// LoadConfig loads templates from notify configuration and compiles all templates.
-func (e *Engine) LoadConfig(templates []config.NotifyTemplate) error {
+// LoadConfig loads templates and compiles all templates.
+func (e *Engine) LoadConfig(templates []manifest.Template) error {
 	for i := range templates {
 		tmpl := &templates[i]
 		entry := &templateEntry{
@@ -149,15 +149,15 @@ func (e *Engine) ListTemplateIDs() []string {
 }
 
 // ListTemplates returns all registered template manifests sorted by ID.
-func (e *Engine) ListTemplates() []config.NotifyTemplate {
-	out := make([]config.NotifyTemplate, 0, len(e.templates))
+func (e *Engine) ListTemplates() []manifest.Template {
+	out := make([]manifest.Template, 0, len(e.templates))
 	for _, entry := range e.templates {
 		if entry.manifest == nil {
 			continue
 		}
 		out = append(out, *entry.manifest)
 	}
-	slices.SortFunc(out, func(a, b config.NotifyTemplate) int {
+	slices.SortFunc(out, func(a, b manifest.Template) int {
 		return strings.Compare(a.ID, b.ID)
 	})
 	return out

@@ -1,12 +1,12 @@
 package partials
 
-import "github.com/flowline-io/flowbot/pkg/config"
+import "github.com/flowline-io/flowbot/pkg/types/model"
 
-templ NotifyTemplatesTable(templates []config.NotifyTemplate) {
-	<div class="card bg-base-100 shadow-sm">
-		<div id="notify-templates-table"
-			data-testid="notify-templates-table"
-			class="overflow-x-auto">
+templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
+	<div id="notify-templates-table"
+		data-testid="notify-templates-table"
+		class="card bg-base-100 shadow-sm">
+		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
@@ -14,21 +14,20 @@ templ NotifyTemplatesTable(templates []config.NotifyTemplate) {
 					<th class="text-xs uppercase">Name</th>
 					<th class="text-xs uppercase">Format</th>
 					<th class="text-xs uppercase">Overrides</th>
+					<th class="text-xs uppercase">Actions</th>
 				</tr>
 				</thead>
-				if len(templates) == 0 {
-					<tbody id="notify-templates-rows">
-						<tr id="notify-templates-empty" data-testid="notify-templates-empty">
-							<td colspan="4" class="text-center text-base-content/50">No notification templates configured.</td>
-						</tr>
-					</tbody>
-				} else {
-					for _, tmpl := range templates {
-						@NotifyTemplateRow(tmpl)
-					}
+				<tbody id="notify-templates-rows">
+				for _, tmpl := range templates {
+					@NotifyTemplateRow(tmpl)
 				}
+				if len(templates) == 0 {
+					<tr id="notify-templates-empty" data-testid="notify-templates-empty">
+						<td colspan="5" class="text-center text-base-content/50">No notification templates configured.</td>
+					</tr>
+				}
+				</tbody>
 			</table>
 		</div>
-		<p class="text-xs text-base-content/50 px-4 pb-3">Templates are loaded from configuration (read-only).</p>
 	</div>
 }

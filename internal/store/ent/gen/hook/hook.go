@@ -405,6 +405,18 @@ func (f NotifyRuleFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.NotifyRuleMutation", m)
 }
 
+// The NotifyTemplateFunc type is an adapter to allow the use of ordinary
+// function as NotifyTemplate mutator.
+type NotifyTemplateFunc func(context.Context, *gen.NotifyTemplateMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NotifyTemplateFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.NotifyTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.NotifyTemplateMutation", m)
+}
+
 // The OAuthFunc type is an adapter to allow the use of ordinary
 // function as OAuth mutator.
 type OAuthFunc func(context.Context, *gen.OAuthMutation) (gen.Value, error)

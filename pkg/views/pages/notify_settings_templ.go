@@ -67,7 +67,7 @@ func NotifySettingsPage(activeTab string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "><div class=\"tab-content p-4\"><div hx-get=\"/service/web/notifications/templates/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Rules\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/templates/new\" hx-target=\"#notify-templates-rows\" hx-swap=\"afterbegin\" data-testid=\"templates-new\" class=\"btn btn-primary btn-sm\">New Template</button></div><div hx-get=\"/service/web/notifications/templates/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Rules\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -77,7 +77,7 @@ func NotifySettingsPage(activeTab string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "><div class=\"tab-content p-4\"><div hx-get=\"/service/web/notifications/rules/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"History\" data-testid=\"tab-history\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/rules/new\" hx-target=\"#notify-rules-rows\" hx-swap=\"afterbegin\" data-testid=\"rules-new\" class=\"btn btn-primary btn-sm\">New Rule</button></div><div hx-get=\"/service/web/notifications/rules/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"History\" data-testid=\"tab-history\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

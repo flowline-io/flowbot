@@ -44,6 +44,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifychannel"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifyrule"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/notifytemplate"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/oauth"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/page"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
@@ -65,6 +66,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 )
 
 const (
@@ -109,6 +111,7 @@ const (
 	TypeNotificationRecord        = "NotificationRecord"
 	TypeNotifyChannel             = "NotifyChannel"
 	TypeNotifyRule                = "NotifyRule"
+	TypeNotifyTemplate            = "NotifyTemplate"
 	TypeOAuth                     = "OAuth"
 	TypePage                      = "Page"
 	TypePageData                  = "PageData"
@@ -24526,6 +24529,754 @@ func (m *NotifyRuleMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *NotifyRuleMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown NotifyRule edge %s", name)
+}
+
+// NotifyTemplateMutation represents an operation that mutates the NotifyTemplate nodes in the graph.
+type NotifyTemplateMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *int64
+	template_id      *string
+	name             *string
+	description      *string
+	default_format   *string
+	default_template *string
+	overrides        *[]schema.NotifyTemplateOverride
+	appendoverrides  []schema.NotifyTemplateOverride
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	done             bool
+	oldValue         func(context.Context) (*NotifyTemplate, error)
+	predicates       []predicate.NotifyTemplate
+}
+
+var _ ent.Mutation = (*NotifyTemplateMutation)(nil)
+
+// notifytemplateOption allows management of the mutation configuration using functional options.
+type notifytemplateOption func(*NotifyTemplateMutation)
+
+// newNotifyTemplateMutation creates new mutation for the NotifyTemplate entity.
+func newNotifyTemplateMutation(c config, op Op, opts ...notifytemplateOption) *NotifyTemplateMutation {
+	m := &NotifyTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeNotifyTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withNotifyTemplateID sets the ID field of the mutation.
+func withNotifyTemplateID(id int64) notifytemplateOption {
+	return func(m *NotifyTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *NotifyTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*NotifyTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().NotifyTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withNotifyTemplate sets the old NotifyTemplate of the mutation.
+func withNotifyTemplate(node *NotifyTemplate) notifytemplateOption {
+	return func(m *NotifyTemplateMutation) {
+		m.oldValue = func(context.Context) (*NotifyTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m NotifyTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m NotifyTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of NotifyTemplate entities.
+func (m *NotifyTemplateMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *NotifyTemplateMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *NotifyTemplateMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().NotifyTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTemplateID sets the "template_id" field.
+func (m *NotifyTemplateMutation) SetTemplateID(s string) {
+	m.template_id = &s
+}
+
+// TemplateID returns the value of the "template_id" field in the mutation.
+func (m *NotifyTemplateMutation) TemplateID() (r string, exists bool) {
+	v := m.template_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateID returns the old "template_id" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldTemplateID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateID: %w", err)
+	}
+	return oldValue.TemplateID, nil
+}
+
+// ResetTemplateID resets all changes to the "template_id" field.
+func (m *NotifyTemplateMutation) ResetTemplateID() {
+	m.template_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *NotifyTemplateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *NotifyTemplateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *NotifyTemplateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *NotifyTemplateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *NotifyTemplateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *NotifyTemplateMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[notifytemplate.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *NotifyTemplateMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[notifytemplate.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *NotifyTemplateMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, notifytemplate.FieldDescription)
+}
+
+// SetDefaultFormat sets the "default_format" field.
+func (m *NotifyTemplateMutation) SetDefaultFormat(s string) {
+	m.default_format = &s
+}
+
+// DefaultFormat returns the value of the "default_format" field in the mutation.
+func (m *NotifyTemplateMutation) DefaultFormat() (r string, exists bool) {
+	v := m.default_format
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultFormat returns the old "default_format" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldDefaultFormat(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultFormat is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultFormat requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultFormat: %w", err)
+	}
+	return oldValue.DefaultFormat, nil
+}
+
+// ResetDefaultFormat resets all changes to the "default_format" field.
+func (m *NotifyTemplateMutation) ResetDefaultFormat() {
+	m.default_format = nil
+}
+
+// SetDefaultTemplate sets the "default_template" field.
+func (m *NotifyTemplateMutation) SetDefaultTemplate(s string) {
+	m.default_template = &s
+}
+
+// DefaultTemplate returns the value of the "default_template" field in the mutation.
+func (m *NotifyTemplateMutation) DefaultTemplate() (r string, exists bool) {
+	v := m.default_template
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDefaultTemplate returns the old "default_template" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldDefaultTemplate(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDefaultTemplate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDefaultTemplate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDefaultTemplate: %w", err)
+	}
+	return oldValue.DefaultTemplate, nil
+}
+
+// ResetDefaultTemplate resets all changes to the "default_template" field.
+func (m *NotifyTemplateMutation) ResetDefaultTemplate() {
+	m.default_template = nil
+}
+
+// SetOverrides sets the "overrides" field.
+func (m *NotifyTemplateMutation) SetOverrides(sto []schema.NotifyTemplateOverride) {
+	m.overrides = &sto
+	m.appendoverrides = nil
+}
+
+// Overrides returns the value of the "overrides" field in the mutation.
+func (m *NotifyTemplateMutation) Overrides() (r []schema.NotifyTemplateOverride, exists bool) {
+	v := m.overrides
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOverrides returns the old "overrides" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldOverrides(ctx context.Context) (v []schema.NotifyTemplateOverride, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOverrides is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOverrides requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOverrides: %w", err)
+	}
+	return oldValue.Overrides, nil
+}
+
+// AppendOverrides adds sto to the "overrides" field.
+func (m *NotifyTemplateMutation) AppendOverrides(sto []schema.NotifyTemplateOverride) {
+	m.appendoverrides = append(m.appendoverrides, sto...)
+}
+
+// AppendedOverrides returns the list of values that were appended to the "overrides" field in this mutation.
+func (m *NotifyTemplateMutation) AppendedOverrides() ([]schema.NotifyTemplateOverride, bool) {
+	if len(m.appendoverrides) == 0 {
+		return nil, false
+	}
+	return m.appendoverrides, true
+}
+
+// ResetOverrides resets all changes to the "overrides" field.
+func (m *NotifyTemplateMutation) ResetOverrides() {
+	m.overrides = nil
+	m.appendoverrides = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *NotifyTemplateMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *NotifyTemplateMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *NotifyTemplateMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *NotifyTemplateMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *NotifyTemplateMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *NotifyTemplateMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the NotifyTemplateMutation builder.
+func (m *NotifyTemplateMutation) Where(ps ...predicate.NotifyTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the NotifyTemplateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *NotifyTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.NotifyTemplate, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *NotifyTemplateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *NotifyTemplateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (NotifyTemplate).
+func (m *NotifyTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *NotifyTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.template_id != nil {
+		fields = append(fields, notifytemplate.FieldTemplateID)
+	}
+	if m.name != nil {
+		fields = append(fields, notifytemplate.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, notifytemplate.FieldDescription)
+	}
+	if m.default_format != nil {
+		fields = append(fields, notifytemplate.FieldDefaultFormat)
+	}
+	if m.default_template != nil {
+		fields = append(fields, notifytemplate.FieldDefaultTemplate)
+	}
+	if m.overrides != nil {
+		fields = append(fields, notifytemplate.FieldOverrides)
+	}
+	if m.created_at != nil {
+		fields = append(fields, notifytemplate.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, notifytemplate.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *NotifyTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case notifytemplate.FieldTemplateID:
+		return m.TemplateID()
+	case notifytemplate.FieldName:
+		return m.Name()
+	case notifytemplate.FieldDescription:
+		return m.Description()
+	case notifytemplate.FieldDefaultFormat:
+		return m.DefaultFormat()
+	case notifytemplate.FieldDefaultTemplate:
+		return m.DefaultTemplate()
+	case notifytemplate.FieldOverrides:
+		return m.Overrides()
+	case notifytemplate.FieldCreatedAt:
+		return m.CreatedAt()
+	case notifytemplate.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *NotifyTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case notifytemplate.FieldTemplateID:
+		return m.OldTemplateID(ctx)
+	case notifytemplate.FieldName:
+		return m.OldName(ctx)
+	case notifytemplate.FieldDescription:
+		return m.OldDescription(ctx)
+	case notifytemplate.FieldDefaultFormat:
+		return m.OldDefaultFormat(ctx)
+	case notifytemplate.FieldDefaultTemplate:
+		return m.OldDefaultTemplate(ctx)
+	case notifytemplate.FieldOverrides:
+		return m.OldOverrides(ctx)
+	case notifytemplate.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case notifytemplate.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown NotifyTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotifyTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case notifytemplate.FieldTemplateID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateID(v)
+		return nil
+	case notifytemplate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case notifytemplate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case notifytemplate.FieldDefaultFormat:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultFormat(v)
+		return nil
+	case notifytemplate.FieldDefaultTemplate:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDefaultTemplate(v)
+		return nil
+	case notifytemplate.FieldOverrides:
+		v, ok := value.([]schema.NotifyTemplateOverride)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOverrides(v)
+		return nil
+	case notifytemplate.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case notifytemplate.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown NotifyTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *NotifyTemplateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *NotifyTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *NotifyTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown NotifyTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *NotifyTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(notifytemplate.FieldDescription) {
+		fields = append(fields, notifytemplate.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *NotifyTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *NotifyTemplateMutation) ClearField(name string) error {
+	switch name {
+	case notifytemplate.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown NotifyTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *NotifyTemplateMutation) ResetField(name string) error {
+	switch name {
+	case notifytemplate.FieldTemplateID:
+		m.ResetTemplateID()
+		return nil
+	case notifytemplate.FieldName:
+		m.ResetName()
+		return nil
+	case notifytemplate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case notifytemplate.FieldDefaultFormat:
+		m.ResetDefaultFormat()
+		return nil
+	case notifytemplate.FieldDefaultTemplate:
+		m.ResetDefaultTemplate()
+		return nil
+	case notifytemplate.FieldOverrides:
+		m.ResetOverrides()
+		return nil
+	case notifytemplate.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case notifytemplate.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown NotifyTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *NotifyTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *NotifyTemplateMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *NotifyTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *NotifyTemplateMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *NotifyTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *NotifyTemplateMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *NotifyTemplateMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown NotifyTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *NotifyTemplateMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown NotifyTemplate edge %s", name)
 }
 
 // OAuthMutation represents an operation that mutates the OAuth nodes in the graph.

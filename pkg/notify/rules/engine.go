@@ -9,15 +9,15 @@ import (
 	"sync"
 
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 // Engine evaluates notification rules to determine whether a message should be sent,
 // throttled, aggregated, or dropped.
 type Engine struct {
 	mu    sync.RWMutex
-	rules []config.NotifyRule
+	rules []manifest.Rule
 	store *cache.RedisStore
 }
 
@@ -27,10 +27,10 @@ var globalEngine struct {
 	engine *Engine
 }
 
-// Init initializes the global rule engine with configuration and a RedisStore.
-func Init(store *cache.RedisStore) error {
+// Init initializes the global rule engine with the given rules and a RedisStore.
+func Init(store *cache.RedisStore, rules []manifest.Rule) error {
 	engine := New(store)
-	if err := engine.LoadConfig(config.App.Notify.Rules); err != nil {
+	if err := engine.LoadConfig(rules); err != nil {
 		return err
 	}
 
@@ -38,7 +38,7 @@ func Init(store *cache.RedisStore) error {
 	globalEngine.engine = engine
 	globalEngine.mu.Unlock()
 
-	flog.Info("notify rules engine: loaded %d rules", len(config.App.Notify.Rules))
+	flog.Info("notify rules engine: loaded %d rules", len(rules))
 	return nil
 }
 
@@ -57,14 +57,14 @@ func New(store *cache.RedisStore) *Engine {
 }
 
 // LoadConfig loads and sorts rules from configuration.
-func (e *Engine) LoadConfig(rules []config.NotifyRule) error {
+func (e *Engine) LoadConfig(rules []manifest.Rule) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
 	// sort by priority descending (higher priority first)
-	sorted := make([]config.NotifyRule, len(rules))
+	sorted := make([]manifest.Rule, len(rules))
 	copy(sorted, rules)
-	slices.SortFunc(sorted, func(a, b config.NotifyRule) int {
+	slices.SortFunc(sorted, func(a, b manifest.Rule) int {
 		return b.Priority - a.Priority
 	})
 
@@ -74,7 +74,7 @@ func (e *Engine) LoadConfig(rules []config.NotifyRule) error {
 
 // Reload refreshes the rule list from the database.
 // Called after rule CRUD operations to enable hot-reload without restart.
-func (e *Engine) Reload(ctx context.Context, loader func(context.Context) ([]config.NotifyRule, error)) error {
+func (e *Engine) Reload(ctx context.Context, loader func(context.Context) ([]manifest.Rule, error)) error {
 	rules, err := loader(ctx)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (e *Engine) Reload(ctx context.Context, loader func(context.Context) ([]con
 
 // EvalResult represents the outcome of rule evaluation.
 type EvalResult struct {
-	Action config.NotifyRuleAction
+	Action manifest.RuleAction
 	RuleID string
 	Window string
 	Limit  int

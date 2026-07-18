@@ -78,6 +78,8 @@ type Tx struct {
 	NotifyChannel *NotifyChannelClient
 	// NotifyRule is the client for interacting with the NotifyRule builders.
 	NotifyRule *NotifyRuleClient
+	// NotifyTemplate is the client for interacting with the NotifyTemplate builders.
+	NotifyTemplate *NotifyTemplateClient
 	// OAuth is the client for interacting with the OAuth builders.
 	OAuth *OAuthClient
 	// Page is the client for interacting with the Page builders.
@@ -282,6 +284,7 @@ func (tx *Tx) init() {
 	tx.NotificationRecord = NewNotificationRecordClient(tx.config)
 	tx.NotifyChannel = NewNotifyChannelClient(tx.config)
 	tx.NotifyRule = NewNotifyRuleClient(tx.config)
+	tx.NotifyTemplate = NewNotifyTemplateClient(tx.config)
 	tx.OAuth = NewOAuthClient(tx.config)
 	tx.Page = NewPageClient(tx.config)
 	tx.PageData = NewPageDataClient(tx.config)

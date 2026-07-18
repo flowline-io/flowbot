@@ -31,24 +31,23 @@ func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\"><div id=\"notify-rules-table\" data-testid=\"notify-rules-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Priority</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Action</th><th class=\"text-xs uppercase\">Event</th><th class=\"text-xs uppercase\">Channel</th><th class=\"text-xs uppercase\">Status</th></tr></thead> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-rules-table\" data-testid=\"notify-rules-table\" class=\"card bg-base-100 shadow-sm\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Priority</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Action</th><th class=\"text-xs uppercase\">Event</th><th class=\"text-xs uppercase\">Channel</th><th class=\"text-xs uppercase\">Status</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"notify-rules-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(rules) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tbody id=\"notify-rules-rows\"><tr id=\"notify-rules-empty\"><td colspan=\"6\" class=\"text-center text-base-content/50\">No notification rules configured.</td></tr></tbody>")
+		for _, rule := range rules {
+			templ_7745c5c3_Err = NotifyRuleRow(rule, templateIDs).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else {
-			for _, rule := range rules {
-				templ_7745c5c3_Err = NotifyRuleRow(rule, templateIDs).Render(ctx, templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
+		}
+		if len(rules) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"notify-rules-empty\"><td colspan=\"7\" class=\"text-center text-base-content/50\">No notification rules configured.</td></tr>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</table></div><p class=\"text-xs text-base-content/50 px-4 pb-3\">Rules are shown read-only.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</tbody></table></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

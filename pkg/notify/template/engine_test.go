@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/notify/manifest"
 )
 
 func TestEngineRender(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
-		templates  []config.NotifyTemplate
+		templates  []manifest.Template
 		templateID string
 		channel    string
 		data       map[string]any
@@ -25,7 +25,7 @@ func TestEngineRender(t *testing.T) {
 	}{
 		{
 			name: "basic markdown template",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{
 					ID:              "test.event",
 					Name:            "Test Event",
@@ -46,7 +46,7 @@ func TestEngineRender(t *testing.T) {
 		},
 		{
 			name: "sprig functions",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{
 					ID:              "sprig.test",
 					Name:            "Sprig Test",
@@ -67,7 +67,7 @@ func TestEngineRender(t *testing.T) {
 		},
 		{
 			name: "title extraction from markdown heading",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{
 					ID:              "title.test",
 					Name:            "Title Test",
@@ -85,7 +85,7 @@ func TestEngineRender(t *testing.T) {
 		},
 		{
 			name: "conditional template urgent true",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{
 					ID:              "conditional.test",
 					Name:            "Conditional Test",
@@ -104,7 +104,7 @@ func TestEngineRender(t *testing.T) {
 		},
 		{
 			name: "conditional template urgent false",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{
 					ID:              "conditional.test",
 					Name:            "Conditional Test",
@@ -149,14 +149,14 @@ func TestEngineRender(t *testing.T) {
 
 func TestEngineChannelOverride(t *testing.T) {
 	t.Parallel()
-	templates := []config.NotifyTemplate{
+	templates := []manifest.Template{
 		{
 			ID:              "test.event",
 			Name:            "Test Event",
 			Description:     "A test notification",
 			DefaultFormat:   "markdown",
 			DefaultTemplate: "**{{ .title }}**\n{{ .body }}",
-			Overrides: []config.NotifyOverride{
+			Overrides: []manifest.Override{
 				{
 					Channel:  "telegram",
 					Format:   "html",
@@ -227,7 +227,7 @@ func TestEngineShorten(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			e := New()
-			err := e.LoadConfig([]config.NotifyTemplate{
+			err := e.LoadConfig([]manifest.Template{
 				{
 					ID:              "shorten.test",
 					Name:            "Shorten Test",
@@ -279,7 +279,7 @@ func TestEngineLoadConfigError(t *testing.T) {
 	t.Run("bad template parse error", func(t *testing.T) {
 		t.Parallel()
 		e := New()
-		err := e.LoadConfig([]config.NotifyTemplate{
+		err := e.LoadConfig([]manifest.Template{
 			{
 				ID:              "bad.template",
 				Name:            "Bad Template",
@@ -307,7 +307,7 @@ func TestEngineGetTemplateID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			e := New()
-			err := e.LoadConfig([]config.NotifyTemplate{
+			err := e.LoadConfig([]manifest.Template{
 				{
 					ID:              "bookmark.created",
 					Name:            "Bookmark Created",
@@ -332,14 +332,14 @@ func TestEngineListAndHasTemplate(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		templates   []config.NotifyTemplate
+		templates   []manifest.Template
 		checkID     string
 		wantHas     bool
 		wantIDCount int
 	}{
 		{
 			name: "lists loaded templates",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{ID: "a.created", Name: "A", DefaultFormat: "markdown", DefaultTemplate: "a"},
 				{ID: "b.created", Name: "B", DefaultFormat: "markdown", DefaultTemplate: "b"},
 			},
@@ -349,7 +349,7 @@ func TestEngineListAndHasTemplate(t *testing.T) {
 		},
 		{
 			name: "missing template returns false",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{ID: "a.created", Name: "A", DefaultFormat: "markdown", DefaultTemplate: "a"},
 			},
 			checkID:     "missing",
@@ -381,12 +381,12 @@ func TestEngineListTemplates(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		templates []config.NotifyTemplate
+		templates []manifest.Template
 		wantIDs   []string
 	}{
 		{
 			name: "returns manifests sorted by id",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{ID: "z.last", Name: "Z", DefaultFormat: "markdown", DefaultTemplate: "z"},
 				{ID: "a.first", Name: "A", Description: "first", DefaultFormat: "html", DefaultTemplate: "a"},
 			},
@@ -394,10 +394,10 @@ func TestEngineListTemplates(t *testing.T) {
 		},
 		{
 			name: "preserves overrides on listed manifests",
-			templates: []config.NotifyTemplate{
+			templates: []manifest.Template{
 				{
 					ID: "with.override", Name: "O", DefaultFormat: "markdown", DefaultTemplate: "body",
-					Overrides: []config.NotifyOverride{{Channel: "telegram", Format: "html", Template: "<b>x</b>"}},
+					Overrides: []manifest.Override{{Channel: "telegram", Format: "html", Template: "<b>x</b>"}},
 				},
 			},
 			wantIDs: []string{"with.override"},
@@ -510,7 +510,7 @@ func TestEngineConditionalBodyPrefix(t *testing.T) {
 	t.Run("urgent flag prefixes body with URGENT", func(t *testing.T) {
 		t.Parallel()
 		e := New()
-		err := e.LoadConfig([]config.NotifyTemplate{
+		err := e.LoadConfig([]manifest.Template{
 			{
 				ID:              "conditional.test",
 				Name:            "Conditional Test",
@@ -533,7 +533,7 @@ func TestEngineRenderExtractTitle(t *testing.T) {
 	t.Run("markdown heading becomes plain title", func(t *testing.T) {
 		t.Parallel()
 		e := New()
-		err := e.LoadConfig([]config.NotifyTemplate{
+		err := e.LoadConfig([]manifest.Template{
 			{
 				ID:              "title.test",
 				Name:            "Title Test",
