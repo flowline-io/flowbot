@@ -1,0 +1,16 @@
+// Package pages provides full-page Templ views.
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ ClipsPage(items []partials.ClipListItem) {
+	@layout.Base("Clips — Flowbot") {
+		<div class="flex items-center justify-between mb-6">
+			<h1 class="text-2xl font-bold text-base-content" data-testid="clips-page-title">Clips</h1>
+		</div>
+		@partials.ClipsTable(items)
+	}
+}

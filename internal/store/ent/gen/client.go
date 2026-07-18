@@ -31,6 +31,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -109,6 +110,8 @@ type Client struct {
 	ChatSession *ChatSessionClient
 	// ChatSessionEntry is the client for interacting with the ChatSessionEntry builders.
 	ChatSessionEntry *ChatSessionEntryClient
+	// Clip is the client for interacting with the Clip builders.
+	Clip *ClipClient
 	// ConfigData is the client for interacting with the ConfigData builders.
 	ConfigData *ConfigDataClient
 	// Connection is the client for interacting with the Connection builders.
@@ -211,6 +214,7 @@ func (c *Client) init() {
 	c.ChatScheduledTaskRun = NewChatScheduledTaskRunClient(c.config)
 	c.ChatSession = NewChatSessionClient(c.config)
 	c.ChatSessionEntry = NewChatSessionEntryClient(c.config)
+	c.Clip = NewClipClient(c.config)
 	c.ConfigData = NewConfigDataClient(c.config)
 	c.Connection = NewConnectionClient(c.config)
 	c.Counter = NewCounterClient(c.config)
@@ -357,6 +361,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ChatScheduledTaskRun:      NewChatScheduledTaskRunClient(cfg),
 		ChatSession:               NewChatSessionClient(cfg),
 		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
+		Clip:                      NewClipClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
 		Connection:                NewConnectionClient(cfg),
 		Counter:                   NewCounterClient(cfg),
@@ -430,6 +435,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ChatScheduledTaskRun:      NewChatScheduledTaskRunClient(cfg),
 		ChatSession:               NewChatSessionClient(cfg),
 		ChatSessionEntry:          NewChatSessionEntryClient(cfg),
+		Clip:                      NewClipClient(cfg),
 		ConfigData:                NewConfigDataClient(cfg),
 		Connection:                NewConnectionClient(cfg),
 		Counter:                   NewCounterClient(cfg),
@@ -499,9 +505,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Agent, c.AgentPlan, c.AgentSkill, c.AgentSkillFile, c.AgentSubagent,
 		c.AgentSubagentTask, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun,
-		c.ChatSession, c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter,
-		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
+		c.ChatSession, c.ChatSessionEntry, c.Clip, c.ConfigData, c.Connection,
+		c.Counter, c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption,
+		c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
 		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
 		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
 		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
@@ -520,9 +526,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Agent, c.AgentPlan, c.AgentSkill, c.AgentSkillFile, c.AgentSubagent,
 		c.AgentSubagentTask, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
 		c.CapabilityBinding, c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun,
-		c.ChatSession, c.ChatSessionEntry, c.ConfigData, c.Connection, c.Counter,
-		c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption, c.EventOutbox,
-		c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
+		c.ChatSession, c.ChatSessionEntry, c.Clip, c.ConfigData, c.Connection,
+		c.Counter, c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption,
+		c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
 		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
 		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
 		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
@@ -571,6 +577,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ChatSession.mutate(ctx, m)
 	case *ChatSessionEntryMutation:
 		return c.ChatSessionEntry.mutate(ctx, m)
+	case *ClipMutation:
+		return c.Clip.mutate(ctx, m)
 	case *ConfigDataMutation:
 		return c.ConfigData.mutate(ctx, m)
 	case *ConnectionMutation:
@@ -2908,6 +2916,139 @@ func (c *ChatSessionEntryClient) mutate(ctx context.Context, m *ChatSessionEntry
 		return (&ChatSessionEntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown ChatSessionEntry mutation op: %q", m.Op())
+	}
+}
+
+// ClipClient is a client for the Clip schema.
+type ClipClient struct {
+	config
+}
+
+// NewClipClient returns a client for the Clip from the given config.
+func NewClipClient(c config) *ClipClient {
+	return &ClipClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `clip.Hooks(f(g(h())))`.
+func (c *ClipClient) Use(hooks ...Hook) {
+	c.hooks.Clip = append(c.hooks.Clip, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `clip.Intercept(f(g(h())))`.
+func (c *ClipClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Clip = append(c.inters.Clip, interceptors...)
+}
+
+// Create returns a builder for creating a Clip entity.
+func (c *ClipClient) Create() *ClipCreate {
+	mutation := newClipMutation(c.config, OpCreate)
+	return &ClipCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Clip entities.
+func (c *ClipClient) CreateBulk(builders ...*ClipCreate) *ClipCreateBulk {
+	return &ClipCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ClipClient) MapCreateBulk(slice any, setFunc func(*ClipCreate, int)) *ClipCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ClipCreateBulk{err: fmt.Errorf("calling to ClipClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ClipCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ClipCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Clip.
+func (c *ClipClient) Update() *ClipUpdate {
+	mutation := newClipMutation(c.config, OpUpdate)
+	return &ClipUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ClipClient) UpdateOne(_m *Clip) *ClipUpdateOne {
+	mutation := newClipMutation(c.config, OpUpdateOne, withClip(_m))
+	return &ClipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ClipClient) UpdateOneID(id int64) *ClipUpdateOne {
+	mutation := newClipMutation(c.config, OpUpdateOne, withClipID(id))
+	return &ClipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Clip.
+func (c *ClipClient) Delete() *ClipDelete {
+	mutation := newClipMutation(c.config, OpDelete)
+	return &ClipDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ClipClient) DeleteOne(_m *Clip) *ClipDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ClipClient) DeleteOneID(id int64) *ClipDeleteOne {
+	builder := c.Delete().Where(clip.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ClipDeleteOne{builder}
+}
+
+// Query returns a query builder for Clip.
+func (c *ClipClient) Query() *ClipQuery {
+	return &ClipQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeClip},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Clip entity by its id.
+func (c *ClipClient) Get(ctx context.Context, id int64) (*Clip, error) {
+	return c.Query().Where(clip.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ClipClient) GetX(ctx context.Context, id int64) *Clip {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ClipClient) Hooks() []Hook {
+	return c.hooks.Clip
+}
+
+// Interceptors returns the client interceptors.
+func (c *ClipClient) Interceptors() []Interceptor {
+	return c.inters.Clip
+}
+
+func (c *ClipClient) mutate(ctx context.Context, m *ClipMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ClipCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ClipUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ClipUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ClipDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown Clip mutation op: %q", m.Op())
 	}
 }
 
@@ -7837,7 +7978,7 @@ type (
 	hooks struct {
 		Agent, AgentPlan, AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask,
 		App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry,
+		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
 		Message, NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth,
@@ -7849,7 +7990,7 @@ type (
 	inters struct {
 		Agent, AgentPlan, AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask,
 		App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry,
+		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
 		Message, NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth,

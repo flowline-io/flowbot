@@ -23,6 +23,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pagedata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinitionversion"
@@ -2421,6 +2422,65 @@ func matchesField(entityID, appName, capability, lowerQuery string) bool {
 // ParameterIsExpired checks whether the given access token parameter has expired.
 func ParameterIsExpired(p gen.Parameter) bool {
 	return p.ExpiredAt.Before(time.Now())
+}
+
+// ---------------------------------------------------------------------------
+// ClipStore
+// ---------------------------------------------------------------------------
+
+// ClipStore persists shareable markdown clips keyed by short slugs.
+type ClipStore struct {
+	client *gen.Client
+}
+
+// NewClipStore creates a ClipStore with the given ent client.
+func NewClipStore(client *gen.Client) *ClipStore {
+	return &ClipStore{client: client}
+}
+
+// CreateClip inserts a new clip row.
+func (s *ClipStore) CreateClip(ctx context.Context, slug, title, description, content, createdBy string) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	_, err := s.client.Clip.Create().
+		SetSlug(slug).
+		SetTitle(title).
+		SetDescription(description).
+		SetContent(content).
+		SetCreatedBy(createdBy).
+		Save(ctx)
+	return err
+}
+
+// GetClipBySlug retrieves a clip by slug. Returns nil if not found.
+func (s *ClipStore) GetClipBySlug(ctx context.Context, slug string) (*gen.Clip, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	row, err := s.client.Clip.Query().
+		Where(clip.SlugEQ(slug)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// ListClips returns clips ordered by created_at descending.
+// When limit <= 0, all clips are returned.
+func (s *ClipStore) ListClips(ctx context.Context, limit int) ([]*gen.Clip, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	q := s.client.Clip.Query().Order(gen.Desc(clip.FieldCreatedAt))
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	return q.All(ctx)
 }
 
 // ---------------------------------------------------------------------------

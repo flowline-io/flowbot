@@ -89,6 +89,7 @@ func (moduleHandler) Bootstrap() error {
 // Webservice mounts web module routes on the fiber app.
 func (moduleHandler) Webservice(app *fiber.App) {
 	app.Get("/static/*", static.New("", static.Config{FS: webassets.SubFS}))
+	app.Get("/c/:slug", clipPage)
 	app.Use("/service/web", csrfMiddleware)
 	for _, rules := range allWebserviceRules {
 		module.Webservice(app, Name, rules)

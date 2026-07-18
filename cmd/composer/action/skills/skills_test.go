@@ -533,6 +533,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 			string(hub.CapTrilium):      {},
 			string(hub.CapNotify):       {},
 			string(hub.CapAgent):        {},
+			string(hub.CapClip):         {},
 			string(hub.CapExample):      {},
 		}
 		for _, m := range metaSpecs {

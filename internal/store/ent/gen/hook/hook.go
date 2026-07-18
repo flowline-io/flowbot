@@ -213,6 +213,18 @@ func (f ChatSessionEntryFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ChatSessionEntryMutation", m)
 }
 
+// The ClipFunc type is an adapter to allow the use of ordinary
+// function as Clip mutator.
+type ClipFunc func(context.Context, *gen.ClipMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ClipFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.ClipMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.ClipMutation", m)
+}
+
 // The ConfigDataFunc type is an adapter to allow the use of ordinary
 // function as ConfigData mutator.
 type ConfigDataFunc func(context.Context, *gen.ConfigDataMutation) (gen.Value, error)

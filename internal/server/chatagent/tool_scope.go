@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/agent/clip"
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 )
 
@@ -72,6 +73,8 @@ func ToolGroupOf(name string) string {
 		return ToolGroupShell
 	case "web_search", "web_fetch", "glob_files", "grep_files":
 		return ToolGroupSearch
+	case clip.CreateToolName, clip.GetToolName:
+		return ToolGroupCore
 	case taskToolName:
 		return ToolGroupSubagent
 	case scheduleToolName, updateScheduleToolName, listScheduleToolName, cancelScheduleToolName:

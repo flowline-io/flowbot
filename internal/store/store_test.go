@@ -706,6 +706,118 @@ func TestPollingStateStore_Update(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// ClipStore tests
+// ---------------------------------------------------------------------------
+
+func TestClipStore_CreateAndGet(t *testing.T) {
+	client := getTestClient(t)
+	store := NewClipStore(client)
+	ctx := context.Background()
+
+	err := store.CreateClip(ctx, "KhpG3Hab", "Title", "Desc", "# hello\n\nworld", "tester")
+	require.NoError(t, err)
+
+	tests := []struct {
+		name    string
+		slug    string
+		wantNil bool
+		wantErr bool
+	}{
+		{name: "retrieve existing clip", slug: "KhpG3Hab", wantNil: false},
+		{name: "retrieve non-existent clip", slug: "missing01", wantNil: true},
+		{name: "retrieve with empty slug", slug: "", wantNil: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			row, err := store.GetClipBySlug(ctx, tt.slug)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, row)
+				return
+			}
+			require.NotNil(t, row)
+			assert.Equal(t, "KhpG3Hab", row.Slug)
+			assert.Equal(t, "Title", row.Title)
+			assert.Equal(t, "Desc", row.Description)
+			assert.Equal(t, "# hello\n\nworld", row.Content)
+			assert.Equal(t, "tester", row.CreatedBy)
+		})
+	}
+}
+
+func TestClipStore_CreateDuplicateSlug(t *testing.T) {
+	client := getTestClient(t)
+	store := NewClipStore(client)
+	ctx := context.Background()
+
+	err := store.CreateClip(ctx, "dupSlug1", "A", "d", "content-a", "u1")
+	require.NoError(t, err)
+
+	err = store.CreateClip(ctx, "dupSlug1", "B", "d", "content-b", "u2")
+	require.Error(t, err)
+}
+
+func TestClipStore_ListClips(t *testing.T) {
+	client := getTestClient(t)
+	store := NewClipStore(client)
+	ctx := context.Background()
+
+	require.NoError(t, store.CreateClip(ctx, "slugAAA1", "A", "d", "c1", "u"))
+	require.NoError(t, store.CreateClip(ctx, "slugBBB1", "B", "d", "c2", "u"))
+
+	tests := []struct {
+		name    string
+		limit   int
+		wantLen int
+	}{
+		{name: "list all", limit: 0, wantLen: 2},
+		{name: "limit one", limit: 1, wantLen: 1},
+		{name: "limit above count", limit: 100, wantLen: 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rows, err := store.ListClips(ctx, tt.limit)
+			require.NoError(t, err)
+			assert.Len(t, rows, tt.wantLen)
+			slugs := make(map[string]bool, len(rows))
+			for _, row := range rows {
+				slugs[row.Slug] = true
+			}
+			if tt.wantLen == 2 {
+				assert.True(t, slugs["slugAAA1"])
+				assert.True(t, slugs["slugBBB1"])
+			}
+		})
+	}
+}
+
+func TestClipStore_NilSafe(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		store *ClipStore
+	}{
+		{name: "nil store", store: nil},
+		{name: "nil client", store: &ClipStore{}},
+		{name: "zero store", store: NewClipStore(nil)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := tt.store.CreateClip(context.Background(), "x", "t", "d", "c", "")
+			require.NoError(t, err)
+			row, err := tt.store.GetClipBySlug(context.Background(), "x")
+			require.NoError(t, err)
+			assert.Nil(t, row)
+		})
+	}
+}
+
+// ---------------------------------------------------------------------------
 // PageDataStore tests
 // ---------------------------------------------------------------------------
 

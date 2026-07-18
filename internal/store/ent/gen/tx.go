@@ -46,6 +46,8 @@ type Tx struct {
 	ChatSession *ChatSessionClient
 	// ChatSessionEntry is the client for interacting with the ChatSessionEntry builders.
 	ChatSessionEntry *ChatSessionEntryClient
+	// Clip is the client for interacting with the Clip builders.
+	Clip *ClipClient
 	// ConfigData is the client for interacting with the ConfigData builders.
 	ConfigData *ConfigDataClient
 	// Connection is the client for interacting with the Connection builders.
@@ -268,6 +270,7 @@ func (tx *Tx) init() {
 	tx.ChatScheduledTaskRun = NewChatScheduledTaskRunClient(tx.config)
 	tx.ChatSession = NewChatSessionClient(tx.config)
 	tx.ChatSessionEntry = NewChatSessionEntryClient(tx.config)
+	tx.Clip = NewClipClient(tx.config)
 	tx.ConfigData = NewConfigDataClient(tx.config)
 	tx.Connection = NewConnectionClient(tx.config)
 	tx.Counter = NewCounterClient(tx.config)

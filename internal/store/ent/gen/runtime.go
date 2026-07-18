@@ -22,6 +22,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -592,6 +593,32 @@ func init() {
 	chatsessionentryDescCreatedAt := chatsessionentryFields[6].Descriptor()
 	// chatsessionentry.DefaultCreatedAt holds the default value on creation for the created_at field.
 	chatsessionentry.DefaultCreatedAt = chatsessionentryDescCreatedAt.Default.(func() time.Time)
+	clipFields := schema.Clip{}.Fields()
+	_ = clipFields
+	// clipDescSlug is the schema descriptor for slug field.
+	clipDescSlug := clipFields[1].Descriptor()
+	// clip.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	clip.SlugValidator = clipDescSlug.Validators[0].(func(string) error)
+	// clipDescTitle is the schema descriptor for title field.
+	clipDescTitle := clipFields[2].Descriptor()
+	// clip.DefaultTitle holds the default value on creation for the title field.
+	clip.DefaultTitle = clipDescTitle.Default.(string)
+	// clipDescDescription is the schema descriptor for description field.
+	clipDescDescription := clipFields[3].Descriptor()
+	// clip.DefaultDescription holds the default value on creation for the description field.
+	clip.DefaultDescription = clipDescDescription.Default.(string)
+	// clipDescContent is the schema descriptor for content field.
+	clipDescContent := clipFields[4].Descriptor()
+	// clip.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	clip.ContentValidator = clipDescContent.Validators[0].(func(string) error)
+	// clipDescCreatedBy is the schema descriptor for created_by field.
+	clipDescCreatedBy := clipFields[5].Descriptor()
+	// clip.DefaultCreatedBy holds the default value on creation for the created_by field.
+	clip.DefaultCreatedBy = clipDescCreatedBy.Default.(string)
+	// clipDescCreatedAt is the schema descriptor for created_at field.
+	clipDescCreatedAt := clipFields[6].Descriptor()
+	// clip.DefaultCreatedAt holds the default value on creation for the created_at field.
+	clip.DefaultCreatedAt = clipDescCreatedAt.Default.(func() time.Time)
 	configdataFields := schema.ConfigData{}.Fields()
 	_ = configdataFields
 	// configdataDescUID is the schema descriptor for uid field.

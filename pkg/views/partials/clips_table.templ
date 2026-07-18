@@ -1,0 +1,61 @@
+package partials
+
+import "time"
+
+// ClipListItem is one row in the web clips list table.
+type ClipListItem struct {
+	// Slug is the public short identifier.
+	Slug string
+	// Title is the clip title.
+	Title string
+	// Description is the short preview text.
+	Description string
+	// CreatedBy is the optional creator identifier.
+	CreatedBy string
+	// CreatedAt is when the clip was created.
+	CreatedAt time.Time
+	// URL is the public reader path (/c/{slug}).
+	URL string
+}
+
+templ ClipsTable(items []ClipListItem) {
+	<div id="clips-table" class="flowbot-surface" data-testid="clips-table">
+		<div class="overflow-x-auto">
+			<table class="table">
+				<thead>
+					<tr>
+						<th class="text-xs font-medium text-base-content/55">Title</th>
+						<th class="text-xs font-medium text-base-content/55">Slug</th>
+						<th class="text-xs font-medium text-base-content/55">Description</th>
+						<th class="text-xs font-medium text-base-content/55">Created</th>
+						<th class="text-xs font-medium text-base-content/55">By</th>
+					</tr>
+				</thead>
+				<tbody id="clips-rows">
+					for _, item := range items {
+						@ClipRow(item)
+					}
+					if len(items) == 0 {
+						<tr id="clips-empty">
+							<td colspan="5" class="text-center text-base-content/50" data-testid="clips-empty">No clips yet.</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}
+
+templ ClipRow(item ClipListItem) {
+	<tr data-testid="clip-row">
+		<td>
+			<a href={ templ.URL(item.URL) } class="link link-primary font-medium" data-testid="clip-row-title" target="_blank" rel="noopener noreferrer">
+				{ item.Title }
+			</a>
+		</td>
+		<td class="font-mono text-sm" data-testid="clip-row-slug">{ item.Slug }</td>
+		<td class="text-sm text-base-content/70 max-w-md truncate" data-testid="clip-row-description">{ item.Description }</td>
+		<td class="text-sm whitespace-nowrap" data-testid="clip-row-created">{ formatClipListTime(item.CreatedAt) }</td>
+		<td class="text-sm" data-testid="clip-row-created-by">{ item.CreatedBy }</td>
+	</tr>
+}

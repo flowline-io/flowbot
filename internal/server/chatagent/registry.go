@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/flowline-io/flowbot/pkg/agent/clip"
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
@@ -22,6 +23,9 @@ const agentName = "chat"
 func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
 	if err := coding.RegisterAll(registry, ws, executionEnvForWorkspace(ws)); err != nil {
+		return nil, err
+	}
+	if err := clip.Register(registry, config.App.Flowbot.URL); err != nil {
 		return nil, err
 	}
 	if err := registry.Register(ReadSkillTool{}); err != nil {
@@ -74,6 +78,7 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 // ActiveToolNames returns the default active tool names for the chat assistant.
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
+	names = append(names, clip.ActiveToolNames()...)
 	names = append(names, "read_skill", taskToolName)
 	names = append(names, scheduleToolNames()...)
 	names = append(names, updateMemoryToolName)

@@ -1,0 +1,38 @@
+package layout
+
+import (
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+	"github.com/flowline-io/flowbot/version"
+)
+
+// Clip is a fixed light-shell layout for public clip pages (no ops nav, no theme toggle).
+templ Clip(title string, description string, actions templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<title>{ title }</title>
+		<meta name="description" content={ description }/>
+		<meta property="og:title" content={ title }/>
+		<meta property="og:description" content={ description }/>
+		<meta property="og:type" content="article"/>
+		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
+		<link href="/static/css/clip.css" rel="stylesheet"/>
+		<script src={ "/static/js/clip-copy.js?v=" + version.Buildtags } defer></script>
+	</head>
+	<body class="clip-shell">
+		<header class="clip-header">
+			<span class="clip-brand" data-testid="clip-brand" aria-label="Flowbot">
+				@partials.BrandMark("clip-brand-mark")
+			</span>
+			<div class="clip-header-actions">
+				@actions
+			</div>
+		</header>
+		<main class="clip-main">
+			{ children... }
+		</main>
+	</body>
+	</html>
+}

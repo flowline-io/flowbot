@@ -57,6 +57,9 @@ type ChatSession func(*sql.Selector)
 // ChatSessionEntry is the predicate function for chatsessionentry builders.
 type ChatSessionEntry func(*sql.Selector)
 
+// Clip is the predicate function for clip builders.
+type Clip func(*sql.Selector)
+
 // ConfigData is the predicate function for configdata builders.
 type ConfigData func(*sql.Selector)
 

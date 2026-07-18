@@ -433,6 +433,22 @@ var (
 			},
 		},
 	}
+	// ClipsColumns holds the columns for the "clips" table.
+	ClipsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "slug", Type: field.TypeString, Unique: true},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "description", Type: field.TypeString, Default: ""},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_by", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// ClipsTable holds the schema information for the "clips" table.
+	ClipsTable = &schema.Table{
+		Name:       "clips",
+		Columns:    ClipsColumns,
+		PrimaryKey: []*schema.Column{ClipsColumns[0]},
+	}
 	// ConfigsColumns holds the columns for the "configs" table.
 	ConfigsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1425,6 +1441,7 @@ var (
 		ChatScheduledTaskRunsTable,
 		ChatSessionsTable,
 		ChatSessionEntriesTable,
+		ClipsTable,
 		ConfigsTable,
 		ConnectionsTable,
 		CountersTable,
@@ -1516,6 +1533,9 @@ func init() {
 	}
 	ChatSessionEntriesTable.Annotation = &entsql.Annotation{
 		Table: "chat_session_entries",
+	}
+	ClipsTable.Annotation = &entsql.Annotation{
+		Table: "clips",
 	}
 	ConfigsTable.Annotation = &entsql.Annotation{
 		Table: "configs",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/agent/clip"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -21,7 +22,7 @@ const (
 // IsReadOnlyTool reports whether name is allowed in plan mode.
 func IsReadOnlyTool(name string) bool {
 	switch name {
-	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName:
+	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName, clip.GetToolName:
 		return true
 	default:
 		return false
@@ -33,6 +34,7 @@ func ReadOnlyToolNames() []string {
 	return []string{
 		"list_dir", "glob_files", "grep_files", "read_file",
 		"web_search", "web_fetch", "read_skill", listScheduleToolName, updateMemoryToolName,
+		clip.GetToolName,
 	}
 }
 

@@ -1,0 +1,85 @@
+// Package pages provides full-page Templ views.
+package pages
+
+import (
+	"time"
+
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+)
+
+// ClipPageData carries fields for the clip reader page.
+type ClipPageData struct {
+	// Slug is the public short identifier.
+	Slug string
+	// Title is the display and Open Graph title.
+	Title string
+	// Description is the preview text for meta tags and gated view.
+	Description string
+	// CreatedAt is when the clip was created.
+	CreatedAt time.Time
+	// WordCount is a rough word count of the markdown body.
+	WordCount int
+	// Authed is true when the visitor has a valid web session cookie.
+	Authed bool
+	// BodyHTML is sanitized HTML rendered from markdown (authed only).
+	BodyHTML string
+	// ContentMD is the raw markdown used by Copy MD.
+	ContentMD string
+	// LoginURL is the web login URL with next redirect.
+	LoginURL string
+	// NotFound marks a missing clip.
+	NotFound bool
+}
+
+// ClipPage renders a shareable markdown clip with gated body for anonymous visitors.
+templ ClipPage(d ClipPageData) {
+	@layout.Clip(clipPageTitle(d), d.Description, clipHeaderActions(d)) {
+		if d.NotFound {
+			<section class="clip-article" data-testid="clip-not-found">
+				<h1 class="clip-title">Clip not found</h1>
+				<p class="clip-meta">This clip does not exist or was removed.</p>
+			</section>
+		} else {
+			<section class="clip-article" data-testid="clip-page">
+				<h1 class="clip-title" data-testid="clip-title">{ d.Title }</h1>
+				<p class="clip-meta" data-testid="clip-meta">
+					{ formatClipMeta(d.CreatedAt, d.WordCount) }
+				</p>
+				if d.Authed {
+					<article class="clip-markdown" data-testid="clip-body">
+						@templ.Raw(d.BodyHTML)
+					</article>
+				} else {
+					<div class="clip-gated" data-testid="clip-gated">
+						<p class="clip-description" data-testid="clip-description">{ d.Description }</p>
+						<p class="clip-gated-hint">Sign in with your Flowbot account to view the full markdown.</p>
+					</div>
+				}
+				<footer class="clip-footer" data-testid="clip-footer">
+					<span class="clip-footer-slug">slug: { d.Slug }</span>
+				</footer>
+			</section>
+		}
+	}
+}
+
+// clipHeaderActions renders Copy MD or Log in controls in the clip top bar.
+templ clipHeaderActions(d ClipPageData) {
+	if d.NotFound {
+		<span></span>
+	} else if d.Authed {
+		<button
+			type="button"
+			class="clip-btn clip-btn-secondary"
+			data-testid="clip-copy-md"
+			data-clip-copy
+			data-clip-markdown={ d.ContentMD }
+		>
+			Copy MD
+		</button>
+	} else {
+		<a class="clip-btn clip-btn-primary" href={ templ.URL(d.LoginURL) } data-testid="clip-login">
+			Log in to read
+		</a>
+	}
+}

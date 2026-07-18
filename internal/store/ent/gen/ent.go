@@ -29,6 +29,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatscheduledtaskrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsession"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/chatsessionentry"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/clip"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/configdata"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/connection"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/counter"
@@ -143,6 +144,7 @@ func checkColumn(t, c string) error {
 			chatscheduledtaskrun.Table:      chatscheduledtaskrun.ValidColumn,
 			chatsession.Table:               chatsession.ValidColumn,
 			chatsessionentry.Table:          chatsessionentry.ValidColumn,
+			clip.Table:                      clip.ValidColumn,
 			configdata.Table:                configdata.ValidColumn,
 			connection.Table:                connection.ValidColumn,
 			counter.Table:                   counter.ValidColumn,

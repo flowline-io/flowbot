@@ -24,6 +24,8 @@ func TestIsReadOnlyTool(t *testing.T) {
 		{name: "web_fetch allowed", tool: "web_fetch", want: true},
 		{name: "read_skill allowed", tool: "read_skill", want: true},
 		{name: "list_scheduled_tasks allowed", tool: "list_scheduled_tasks", want: true},
+		{name: "get_clip allowed", tool: "get_clip", want: true},
+		{name: "create_clip blocked", tool: "create_clip", want: false},
 		{name: "update_memory not unconditionally read-only", tool: "update_memory", want: false},
 		{name: "task blocked in plan mode", tool: "task", want: false},
 		{name: "write_file blocked", tool: "write_file", want: false},
@@ -48,6 +50,7 @@ func TestReadOnlyToolNames(t *testing.T) {
 			want: []string{
 				"list_dir", "glob_files", "grep_files", "read_file",
 				"web_search", "web_fetch", "read_skill", "list_scheduled_tasks", "update_memory",
+				"get_clip",
 			},
 		},
 	}

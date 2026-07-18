@@ -19,6 +19,7 @@ const (
 	CapExample      CapabilityType = "example"
 	CapNotify       CapabilityType = "notify"
 	CapAgent        CapabilityType = "agent"
+	CapClip         CapabilityType = "clip"
 )
 
 // EventDef describes an event that a capability emits.
