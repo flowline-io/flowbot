@@ -20,8 +20,19 @@
     skills: '#fb923c',
     messages: '#b4534a',
     autocompact_buffer: '#64748b',
-    free_space: '#1f2937',
+    // Resolved from --chatagent-context-free so free space matches light/dark.
+    free_space: '',
   };
+
+  function contextCategoryColor(id) {
+    if (id === 'free_space') {
+      var free = getComputedStyle(document.documentElement)
+        .getPropertyValue('--chatagent-context-free')
+        .trim();
+      return free || 'transparent';
+    }
+    return CONTEXT_CATEGORY_COLORS[id] || '#6b7280';
+  }
 
   var CONTEXT_BAR_ORDER = [
     'system_prompt',
@@ -126,7 +137,7 @@
       seg.className = 'chatagent-context-bar-segment';
       seg.setAttribute('data-category', id);
       seg.style.width = cat.percent + '%';
-      seg.style.backgroundColor = CONTEXT_CATEGORY_COLORS[id] || '#6b7280';
+      seg.style.backgroundColor = contextCategoryColor(id);
       barEl.appendChild(seg);
     });
 
@@ -147,7 +158,7 @@
 
       var swatch = document.createElement('span');
       swatch.className = 'chatagent-context-swatch';
-      swatch.style.backgroundColor = CONTEXT_CATEGORY_COLORS[id] || '#6b7280';
+      swatch.style.backgroundColor = contextCategoryColor(id);
 
       var label = document.createElement('span');
       label.textContent = CONTEXT_CATEGORY_LABELS[id] || cat.label || id;

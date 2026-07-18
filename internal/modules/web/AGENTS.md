@@ -260,20 +260,54 @@ Rules:
 - Trigger cards and step cards are templ partials rendered with Alpine directives (`:class`, `@click`, `x-text`).
 - Alpine.js loaded from local vendor: `/static/vendor/alpine.min.js`.
 
+## Visual design (ops console)
+
+Product goal: a refined **homelab ops console**, not a marketing landing page and not a generic DaisyUI admin scaffold. Brand seeds: favicon, `BrandMark`, teal primary. Do not copy the marketing site (`docs/website/` abyss/cyan) into the app UI.
+
+### Direction
+
+| Axis | Rule |
+|------|------|
+| Color | Teal is the only brand accent. Semantic colors only for status (`success` / `warning` / `error`). **Never** hardcode violet / indigo / purple for brand, focus rings, session Active, or Chart.js / context palettes. |
+| Surfaces | Prefer border partitions or a single surface. Use `.flowbot-surface` for tables and panels. Reserve DaisyUI `card` + heavy shadow for interactive containers only. Hierarchy comes from border, spacing, and type weight — not decorative gradients, noise textures, or glassmorphism. |
+| Radius | Prefer square-ish radii (`--flowbot-radius` ≈ `0.375rem`, `--flowbot-radius-box` ≈ `0.5rem`). Status uses `.flowbot-chip` (small radius). Avoid `rounded-full` pills for badges/metadata (toggles OK; letter avatars use `rounded-md`). |
+| Typography | Self-hosted **IBM Plex Sans** in `public/fonts/` (woff2 latin subsets, weights 400 / 500 / 600) via `custom.css` `@font-face`. Body 400/500, titles 600 + `tracking-tight`. No Google Fonts CDN. Avoid all-caps `uppercase tracking-wide` metric labels. |
+| Shadow | At most one light shadow (`--flowbot-shadow`). No dual-color glow rings. |
+| Theme | Polish **light** and **dark** only. Advanced DaisyUI novelty themes may remain in the picker but are not the product visual language. Overlays (e.g. Context Usage popover) must use `base-*` / content tokens — never hardcode a dark-only panel. |
+
+### Tokens and files
+
+- Shell tokens live under `.flowbot-shell` in `public/css/custom.css` (`--flowbot-brand`, radius, shadow, focus ring, `--chatagent-context-free`). Do not invent a parallel surface palette that fights DaisyUI `base-100/200/300`.
+- Override DaisyUI `light` / `dark` **primary**, **secondary**, and **accent** to teal family so defaults are not pink/purple.
+- Chart / context JS palettes: teal + neutral greys + semantic colors only (`public/js/token-usage.js`, `pipeline-stats.js`, `chatagent-context.js`).
+
+### Components
+
+- **Chips vs badges**: status → `.flowbot-chip` (+ `flowbot-chip-success|error|warning|muted|primary`). Metadata (scopes, capability names, ports) → plain or `font-mono` text joined with ` · `, truncated when needed — **no** flex-wrap badge walls.
+- **Empty states**: simple copy + optional primary CTA; no centered large card shell.
+- **Join / range tabs**: keep segmented controls; square corners via `.flowbot-shell .join` rules (not pill `rounded-full`).
+- **Navbar**: border-bottom emphasis over drop shadow; brand mark + “Flowbot” with `font-semibold tracking-tight`.
+- **Agents composer**: square-ish send button (not circular ChatGPT-style). Active session styles use teal, not purple.
+- **Avatars**: rounded square letter marks aligned with favicon tile radius language.
+
+### Anti-patterns
+
+- Full-bleed marketing heroes, illustration empty states, multi-layer shadows, purple-to-indigo gradients
+- Every block wrapped in `card bg-base-100 shadow-sm`
+- Hardcoded hex for theme surfaces/text (use `var(--color-*)` / DaisyUI tokens)
+- Mixing `docs/website/` visual language into `/service/web`
+
 ## CSS / DaisyUI
 
 - Framework: [DaisyUI v5](https://daisyui.com) (built on Tailwind CSS v4)
 - Delivery: Local vendor files in `public/vendor/`, embedded via `webassets.go`, served at `/static/vendor/*`
 - No CDN references; no local build step required
 - Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage). Default picker shows light/dark; advanced DaisyUI themes remain available under Advanced.
-- Brand: teal primary aligned with favicon (`#0F766E` light / `#2DD4BF` dark). Never hardcode violet/indigo/purple for brand or charts.
-- Typography: self-hosted IBM Plex Sans (`public/fonts/`, weights 400/500/600) via `custom.css` `@font-face`. Do not add Google Fonts CDN.
-- Surfaces: prefer `.flowbot-surface` (border only) over `card` + `shadow-sm` wrappers for tables and panels. Cards are for interactive containers only.
-- Chips vs badges: status uses `.flowbot-chip` (small radius). Metadata (scopes, capability names, ports) uses plain/mono text — no flex-wrap pill walls.
-- Custom CSS: `public/css/custom.css` for tokens (`.flowbot-shell`), chips, agents/chatagent styles; served via embedded `webassets.SubFS`
-- Component classes: Use `btn`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, etc.
+- Custom CSS: `public/css/custom.css` for tokens, chips, surfaces, agents/chatagent styles; served via embedded `webassets.SubFS`
+- Component classes: Use `btn`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, `.flowbot-surface`, `.flowbot-chip`, etc.
 - Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
 - Page-specific JS: load via `partials.TokenUsageScripts` / `PipelineStatsScripts` / `EventFilterScripts` / `HomelabRegistryScripts` — do not re-add heavy scripts to `base.templ`
+- Fonts: `public/fonts/` (IBM Plex Sans); see Visual design above
 
 ## Static Assets
 
