@@ -281,7 +281,8 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 				defer resp.Body.Close()
 
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
-				Expect(string(ReadBody(resp))).To(ContainSubstring("Only failed notifications can be retried"))
+				Expect(resp.Header.Get("HX-Trigger")).To(ContainSubstring("Only failed notifications can be retried"))
+				Expect(string(ReadBody(resp))).To(ContainSubstring("notifications-table"))
 			})
 
 			It("rejects wrong user record", func() {
