@@ -43,6 +43,7 @@ func main() {
 		command.FireflyiiiCommand(),
 		command.TransmissionCommand(),
 		command.NocodbCommand(),
+		command.DevopsCommand(),
 		command.ConfigCommand(),
 		command.VersionCommand(version.Buildtags),
 	)

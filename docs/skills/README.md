@@ -25,6 +25,7 @@ via `read_skill` with the `path` argument.
 | `fireflyiii`   | `fireflyiii` | Create transactions and check Firefly III health     |
 | `transmission` | `transmission` | Add, list, stop, and remove Transmission torrents  |
 | `nocodb`       | `nocodb`   | Discover bases/tables and CRUD NocoDB records          |
+| `devops`       | `devops`   | Query beszel, uptimekuma, traefik, grafana, wakapi, dozzle |
 | `gitea`        | `forge`    | Inspect forge repos, issues, diffs, and files          |
 | `github`       | `github`   | Inspect GitHub repos, issues, notifications, releases  |
 
@@ -56,6 +57,9 @@ docs/skills/
 ├── nocodb/
 │   ├── SKILL.md
 │   └── references/cli.md
+├── devops/
+│   ├── SKILL.md
+│   └── references/cli.md
 ├── gitea/
 │   ├── SKILL.md
 │   └── references/cli.md
@@ -66,7 +70,7 @@ docs/skills/
 ```
 
 Capabilities without a CLI tree (`notify`, `agent`, `example`) are
-not generated as skills.
+not generated as skills. The `devops` skill is the multi-provider aggregator Cap ID.
 
 ## How Skills Work with AI Assistants
 
@@ -108,6 +112,7 @@ ln -sf "$(pwd)/docs/skills/trilium"  .claude/skills/trilium
 ln -sf "$(pwd)/docs/skills/fireflyiii" .claude/skills/fireflyiii
 ln -sf "$(pwd)/docs/skills/transmission" .claude/skills/transmission
 ln -sf "$(pwd)/docs/skills/nocodb" .claude/skills/nocodb
+ln -sf "$(pwd)/docs/skills/devops" .claude/skills/devops
 ln -sf "$(pwd)/docs/skills/gitea"    .claude/skills/gitea
 ln -sf "$(pwd)/docs/skills/github"   .claude/skills/github
 ```
@@ -125,6 +130,7 @@ ln -sf "$(pwd)/docs/skills/trilium"  ~/.claude/skills/trilium
 ln -sf "$(pwd)/docs/skills/fireflyiii" ~/.claude/skills/fireflyiii
 ln -sf "$(pwd)/docs/skills/transmission" ~/.claude/skills/transmission
 ln -sf "$(pwd)/docs/skills/nocodb" ~/.claude/skills/nocodb
+ln -sf "$(pwd)/docs/skills/devops" ~/.claude/skills/devops
 ln -sf "$(pwd)/docs/skills/gitea"    ~/.claude/skills/gitea
 ln -sf "$(pwd)/docs/skills/github"   ~/.claude/skills/github
 ```

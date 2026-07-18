@@ -458,6 +458,35 @@ vendors:
   uptimekuma:
     endpoint: "http://127.0.0.1:8002"
     token: ""
+  # Beszel host monitoring (PocketBase); prefer token, else email+password
+  beszel:
+    endpoint: ""
+    token: ""
+    email: ""
+    password: ""
+  # Traefik API (optional Basic auth)
+  traefik:
+    endpoint: ""
+    username: ""
+    password: ""
+  # Grafana HTTP API
+  grafana:
+    endpoint: ""
+    token: ""
+  # Wakapi coding stats
+  wakapi:
+    endpoint: ""
+    api_key: ""
+  # Dozzle Docker logs (health/version only)
+  dozzle:
+    endpoint: ""
+    username: ""
+    password: ""
+    token: ""
+  # NetAlertX network device monitoring (Bearer API token)
+  netalertx:
+    endpoint: ""
+    token: ""
   # Drone configuration
   drone:
     endpoint: ""

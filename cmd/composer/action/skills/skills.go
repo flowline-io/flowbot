@@ -352,6 +352,43 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:        string(hub.CapDevops),
+		Title:       "DevOps",
+		CommandFn:   command.DevopsCommand,
+		Description: "Query devops backends (beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx) via flowbot devops.",
+		Keywords:    "devops, beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, prometheus, loki, tempo, pyroscope, alloy, monitoring, infrastructure",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Check which backends are configured",
+				Description: "When a user asks what devops tools are available:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot devops status"},
+					{Step: 2, Note: "Only call subcommands for backends reported as configured."},
+				},
+			},
+			{
+				Title:       "Inspect monitoring and routing",
+				Description: "When a user wants a quick infrastructure snapshot:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot devops beszel systems"},
+					{Step: 2, Command: "flowbot devops uptimekuma health"},
+					{Step: 3, Command: "flowbot devops traefik routers"},
+					{Step: 4, Command: "flowbot devops grafana health"},
+					{Step: 5, Command: "flowbot devops netalertx totals"},
+				},
+			},
+			{
+				Title:       "Query observability backends via Grafana",
+				Description: "When a user wants metrics, logs, traces, or profiles:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot devops grafana datasources"},
+					{Step: 2, Command: "flowbot devops grafana query --backend prometheus --expr 'up'"},
+					{Step: 3, Note: "Use backend alloy|loki|tempo|pyroscope with the matching expression language; prefer -o json for parsing."},
+				},
+			},
+		},
+	},
+	{
 		Name:        string(hub.CapGitea),
 		Title:       "Gitea",
 		CommandFn:   command.ForgeCommand,

@@ -4,6 +4,7 @@ package server
 import (
 	"errors"
 
+	"github.com/flowline-io/flowbot/pkg/capability/devops"
 	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
 	"github.com/flowline-io/flowbot/pkg/capability/github"
@@ -29,6 +30,7 @@ func initCapabilityHub() error {
 		nocodb.Register("nocodb", nocodb.New()),
 		gitea.Register("gitea", gitea.New()),
 		github.Register("github", github.New()),
+		devops.Register("devops", devops.New()),
 	)
 	if err != nil {
 		return err

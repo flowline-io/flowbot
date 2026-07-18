@@ -13,8 +13,9 @@ const (
 	CapGitea    = "gitea"
 	CapGithub   = "github"
 	CapExample  = "example"
+	CapDevops   = "devops"
 
-	// Discovery-only capabilities (no pkg/capability implementation yet).
+	// Discovery-only capabilities (no 1:1 pkg/capability/<provider> package).
 	CapArchive      = "archive"
 	CapFinance      = "finance"
 	CapInfra        = "infra"

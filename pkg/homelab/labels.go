@@ -33,6 +33,7 @@ var knownCapabilities = map[string]string{
 	"gitea":    CapGitea,
 	"github":   CapGithub,
 	"example":  CapExample,
+	"devops":   CapDevops,
 	// Discovery-only
 	"archive":       CapArchive,
 	"finance":       CapFinance,

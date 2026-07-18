@@ -1003,6 +1003,67 @@ func TestNocodbRunEHandlers(t *testing.T) {
 	}
 }
 
+func TestDevopsRunEHandlers(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmd        func() *cobra.Command
+		handler    http.HandlerFunc
+		args       []string
+		wantSubstr string
+	}{
+		{
+			name: "devops status success",
+			cmd:  devopsStatusCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/devops/status", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"backends":{"beszel":true,"grafana":false}}}`)))
+			},
+			wantSubstr: "beszel",
+		},
+		{
+			name: "devops beszel systems success",
+			cmd:  devopsBeszelSystemsCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/devops/beszel/systems", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"1","name":"host-a","status":"up"}]}`)))
+			},
+			wantSubstr: "host-a",
+		},
+		{
+			name: "devops grafana health success",
+			cmd:  devopsGrafanaHealthCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/devops/grafana/health", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"database":"ok","version":"11.0.0"}}`)))
+			},
+			wantSubstr: "11.0.0",
+		},
+		{
+			name: "devops dozzle health success",
+			cmd:  devopsDozzleHealthCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/devops/dozzle/health", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"healthy":true,"version":"v8"}}`)))
+			},
+			wantSubstr: "healthy",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.handler != nil {
+				setupMockCLI(t, tt.handler)
+			}
+			cmd := tt.cmd()
+			out := runCommand(t, cmd, tt.args...)
+			assert.Contains(t, out, tt.wantSubstr)
+		})
+	}
+}
+
 func TestHubRunEHandlers(t *testing.T) {
 	tests := []struct {
 		name       string

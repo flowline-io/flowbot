@@ -229,6 +229,127 @@ type NocoRecord struct {
 	Fields map[string]any `json:"fields,omitzero"`
 }
 
+// DevopsStatus reports which devops backends are configured.
+type DevopsStatus struct {
+	Backends map[string]bool `json:"backends"`
+}
+
+// DevopsSystem is a Beszel monitored host.
+type DevopsSystem struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Status string `json:"status,omitzero"`
+	Host   string `json:"host,omitzero"`
+}
+
+// DevopsRouter is a Traefik HTTP router.
+type DevopsRouter struct {
+	Name    string `json:"name"`
+	Rule    string `json:"rule,omitzero"`
+	Service string `json:"service,omitzero"`
+	Status  string `json:"status,omitzero"`
+}
+
+// DevopsService is a Traefik HTTP service.
+type DevopsService struct {
+	Name   string `json:"name"`
+	Type   string `json:"type,omitzero"`
+	Status string `json:"status,omitzero"`
+}
+
+// DevopsTraefikOverview is Traefik overview counts.
+type DevopsTraefikOverview struct {
+	HTTPRouters  int `json:"http_routers"`
+	HTTPServices int `json:"http_services"`
+}
+
+// DevopsGrafanaHealth is Grafana instance health.
+type DevopsGrafanaHealth struct {
+	Database string `json:"database,omitzero"`
+	Version  string `json:"version,omitzero"`
+}
+
+// DevopsDatasource is a Grafana data source.
+type DevopsDatasource struct {
+	ID   int64  `json:"id"`
+	UID  string `json:"uid,omitzero"`
+	Name string `json:"name"`
+	Type string `json:"type,omitzero"`
+}
+
+// DevopsDashboard is a Grafana dashboard search hit.
+type DevopsDashboard struct {
+	UID   string `json:"uid"`
+	Title string `json:"title"`
+	URL   string `json:"url,omitzero"`
+}
+
+// DevopsWakapiSummary is a coding-stats summary.
+type DevopsWakapiSummary struct {
+	TotalSeconds int64 `json:"total_seconds"`
+}
+
+// DevopsWakapiProject is a Wakapi tracked project.
+type DevopsWakapiProject struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// DevopsMetricFamily summarizes one Prometheus metric family from Uptime Kuma.
+type DevopsMetricFamily struct {
+	Name  string `json:"name"`
+	Help  string `json:"help,omitzero"`
+	Count int    `json:"sample_count"`
+}
+
+// DevopsDozzleInfo is Dozzle health/version info.
+type DevopsDozzleInfo struct {
+	Healthy bool   `json:"healthy"`
+	Version string `json:"version,omitzero"`
+}
+
+// DevopsNetalertxDevice is a NetAlertX network device.
+type DevopsNetalertxDevice struct {
+	Name   string `json:"name"`
+	MAC    string `json:"mac,omitzero"`
+	IP     string `json:"ip,omitzero"`
+	Type   string `json:"type,omitzero"`
+	Status string `json:"status,omitzero"`
+	Vendor string `json:"vendor,omitzero"`
+}
+
+// DevopsNetalertxTotals holds NetAlertX device category counts.
+type DevopsNetalertxTotals struct {
+	All       int `json:"all"`
+	Connected int `json:"connected"`
+	Favorites int `json:"favorites"`
+	New       int `json:"new"`
+	Down      int `json:"down"`
+	Archived  int `json:"archived"`
+}
+
+// DevopsGrafanaQueryResult is a Grafana datasource query response summary.
+type DevopsGrafanaQueryResult struct {
+	Backend        string                    `json:"backend"`
+	DatasourceUID  string                    `json:"datasource_uid"`
+	DatasourceType string                    `json:"datasource_type"`
+	Frames         []DevopsGrafanaQueryFrame `json:"frames,omitzero"`
+}
+
+// DevopsGrafanaQueryFrame summarizes one data frame from a Grafana query.
+type DevopsGrafanaQueryFrame struct {
+	Name   string                    `json:"name,omitzero"`
+	RefID  string                    `json:"ref_id,omitzero"`
+	Fields []DevopsGrafanaQueryField `json:"fields,omitzero"`
+}
+
+// DevopsGrafanaQueryField summarizes a frame field.
+type DevopsGrafanaQueryField struct {
+	Name   string `json:"name"`
+	Type   string `json:"type,omitzero"`
+	Values any    `json:"values,omitzero"`
+}
+
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`

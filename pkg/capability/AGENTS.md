@@ -14,6 +14,7 @@ capability/
 │   ├── adapter.go, webhook.go, poller.go
 │   └── *_test.go
 ├── karakeep/, miniflux/, kanboard/, trilium/, memos/, fireflyiii/, transmission/, nocodb/, gitea/, github/
+├── devops/                        # Multi-provider aggregator (sole CapType≠provider exception)
 ├── notify/, agent/                # Internal capabilities (no provider)
 └── conformance/
 ```
@@ -45,5 +46,6 @@ capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit":
 - Modules never import `pkg/providers/*` — use `capability.Invoke`.
 - Adapters never call hub/pipeline/emit DataEvent directly.
 - CapType == provider ID for provider-backed capabilities.
+- **Exception:** `devops` (`hub.CapDevops`) aggregates `beszel`, `uptimekuma`, `traefik`, `grafana`, `wakapi`, `dozzle`, and `netalertx` under one CapType / `/service/devops/*` / `service:devops:*`. Op names use underscores (e.g. `beszel_list_systems`) so pipeline `capability:type.op` parsing stays unambiguous. Do not add other multi-provider CapTypes without an explicit architecture decision.
 - Domain event names (`bookmark.created`) stay stable; set `DataEvent.Capability` to the provider ID.
 - Reference `pkg/capability/example/` for new capabilities.

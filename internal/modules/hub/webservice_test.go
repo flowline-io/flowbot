@@ -310,6 +310,65 @@ func TestNocodbWebserviceRules_Structure(t *testing.T) {
 	}
 }
 
+func TestDevopsWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, devopsWebserviceRules)
+			},
+		},
+		{
+			name: "should contain devops endpoints",
+			test: func(t *testing.T) {
+				t.Parallel()
+				paths := make(map[string]bool)
+				for _, r := range devopsWebserviceRules {
+					paths[r.Path] = true
+				}
+				for _, expected := range []string{
+					"/status",
+					"/beszel/systems",
+					"/beszel/systems/:id",
+					"/uptimekuma/health",
+					"/uptimekuma/metrics",
+					"/traefik/overview",
+					"/traefik/routers",
+					"/traefik/services",
+					"/grafana/health",
+					"/grafana/datasources",
+					"/grafana/dashboards",
+					"/grafana/query",
+					"/wakapi/summary",
+					"/wakapi/projects",
+					"/dozzle/health",
+					"/netalertx/health",
+					"/netalertx/devices",
+					"/netalertx/totals",
+					"/netalertx/devices/search",
+				} {
+					assert.True(t, paths[expected], "expected path %q in devops webservice rules", expected)
+				}
+			},
+		},
+		{
+			name: "should have nineteen rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.Len(t, devopsWebserviceRules, 19)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
 func TestForgeGetRepo_Validation(t *testing.T) {
 	tests := []struct {
 		name       string

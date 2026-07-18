@@ -15,6 +15,7 @@ const (
 	CapNocodb       CapabilityType = "nocodb"
 	CapGitea        CapabilityType = "gitea"
 	CapGithub       CapabilityType = "github"
+	CapDevops       CapabilityType = "devops"
 	CapExample      CapabilityType = "example"
 	CapNotify       CapabilityType = "notify"
 	CapAgent        CapabilityType = "agent"

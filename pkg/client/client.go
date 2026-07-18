@@ -53,6 +53,7 @@ type Client struct {
 	Fireflyiii   *FireflyiiiClient
 	Transmission *TransmissionClient
 	Nocodb       *NocodbClient
+	Devops       *DevopsClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -90,6 +91,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Fireflyiii = &FireflyiiiClient{c: c}
 	c.Transmission = &TransmissionClient{c: c}
 	c.Nocodb = &NocodbClient{c: c}
+	c.Devops = &DevopsClient{c: c}
 
 	return c
 }

@@ -43,6 +43,8 @@ const (
 	ScopeServiceGiteaWrite        = "service:gitea:write"
 	ScopeServiceGithubRead        = "service:github:read"
 	ScopeServiceGithubWrite       = "service:github:write"
+	ScopeServiceDevopsRead        = "service:devops:read"
+	ScopeServiceDevopsWrite       = "service:devops:write" // reserved for future mutations
 	ScopeServiceExampleRead       = "service:example:read"
 	ScopeServiceExampleWrite      = "service:example:write"
 
@@ -85,6 +87,7 @@ var legacyScopeStrings = map[string]string{
 	"service:memo:write":     ScopeServiceMemosWrite,
 	"service:forge:read":     ScopeServiceGiteaRead,
 	"service:forge:write":    ScopeServiceGiteaWrite,
+	"service:infra:read":     ScopeServiceDevopsRead,
 }
 
 // canonicalScope returns the provider-scoped form of a scope string.
@@ -213,6 +216,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceGiteaWrite, Description: "write gitea"},
 		{Value: ScopeServiceGithubRead, Description: "read github"},
 		{Value: ScopeServiceGithubWrite, Description: "write github"},
+		{Value: ScopeServiceDevopsRead, Description: "read devops"},
+		{Value: ScopeServiceDevopsWrite, Description: "write devops"},
 		{Value: ScopeServiceExampleRead, Description: "read example"},
 		{Value: ScopeServiceExampleWrite, Description: "write example"},
 		{Value: ScopePipelineRead, Description: "read pipelines"},

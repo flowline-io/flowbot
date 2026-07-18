@@ -12,13 +12,51 @@ Global flags: `--server-url`, `--profile`, `--debug` / `-d`. Most commands accep
 
 List NocoDB bases visible to the configured API token (first page)
 
-### List tables
+### Check NocoDB backend health
 
-`flowbot nocodb tables --base-id <base-id>`
+`flowbot nocodb health`
 
-List tables belonging to a NocoDB base (first page)
+Check whether the NocoDB backend is reachable
 
-Flags: `--base-id` string, required — Base ID
+### Create a record
+
+`flowbot nocodb records create --fields <fields> --table-id <table-id>`
+
+Create a NocoDB record with JSON field values
+
+Flags: `--fields` string, required — JSON object of field values, e.g. {"Name":"Alice"}; `--table-id` string, required — Table ID
+
+### Delete a record
+
+`flowbot nocodb records delete --record-id <record-id> --table-id <table-id>`
+
+Delete a NocoDB record by ID
+
+Flags: `--record-id` string, required — Record ID; `--table-id` string, required — Table ID
+
+### Get a record
+
+`flowbot nocodb records get --record-id <record-id> --table-id <table-id>`
+
+Get a single NocoDB record by ID
+
+Flags: `--record-id` string, required — Record ID; `--table-id` string, required — Table ID
+
+### List records
+
+`flowbot nocodb records list --table-id <table-id> [flags]`
+
+List records in a NocoDB table
+
+Flags: `--fields` string — Comma-separated field names; `--limit` int — Max records to return; `--offset` int — Record offset; `--sort` string — Sort expression; `--table-id` string, required — Table ID; `--where` string — NocoDB where filter
+
+### Update a record
+
+`flowbot nocodb records update --fields <fields> --record-id <record-id> --table-id <table-id>`
+
+Update a NocoDB record with JSON field values
+
+Flags: `--fields` string, required — JSON object of field values, e.g. {"Name":"Bob"}; `--record-id` string, required — Record ID; `--table-id` string, required — Table ID
 
 ### Get table metadata
 
@@ -28,57 +66,10 @@ Get NocoDB table metadata including columns
 
 Flags: `--table-id` string, required — Table ID
 
-### List records
+### List tables in a base
 
-`flowbot nocodb records list --table-id <table-id>`
+`flowbot nocodb tables --base-id <base-id>`
 
-List records in a NocoDB table (first page; use `--limit` / `--offset` for paging)
+List tables belonging to a NocoDB base (first page)
 
-Flags:
-
-- `--table-id` string, required — Table ID
-- `--limit` int — Max records to return (max 1000)
-- `--offset` int — Record offset
-- `--where` string — NocoDB where filter
-- `--sort` string — Sort expression
-- `--fields` string — Comma-separated field names
-
-Record IDs use the default NocoDB `Id` primary key.
-
-### Get a record
-
-`flowbot nocodb records get --table-id <table-id> --record-id <record-id>`
-
-Get a single NocoDB record by ID
-
-Flags: `--table-id` string, required; `--record-id` string, required
-
-### Create a record
-
-`flowbot nocodb records create --table-id <table-id> --fields '{"Name":"Alice"}'`
-
-Create a NocoDB record with JSON field values
-
-Flags: `--table-id` string, required; `--fields` string, required — JSON object
-
-### Update a record
-
-`flowbot nocodb records update --table-id <table-id> --record-id <record-id> --fields '{"Name":"Bob"}'`
-
-Update a NocoDB record with JSON field values
-
-Flags: `--table-id` string, required; `--record-id` string, required; `--fields` string, required
-
-### Delete a record
-
-`flowbot nocodb records delete --table-id <table-id> --record-id <record-id>`
-
-Delete a NocoDB record by ID
-
-Flags: `--table-id` string, required; `--record-id` string, required
-
-### Check NocoDB backend health
-
-`flowbot nocodb health`
-
-Check whether the NocoDB backend is reachable
+Flags: `--base-id` string, required — Base ID

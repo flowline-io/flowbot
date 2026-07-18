@@ -494,6 +494,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 		{name: "fireflyiii", skill: "fireflyiii", wantCap: string(hub.CapFireflyiii), wantTitle: "Firefly III", wantCLI: "fireflyiii"},
 		{name: "transmission", skill: "transmission", wantCap: string(hub.CapTransmission), wantTitle: "Transmission", wantCLI: "transmission"},
 		{name: "nocodb", skill: "nocodb", wantCap: string(hub.CapNocodb), wantTitle: "NocoDB", wantCLI: "nocodb"},
+		{name: "devops", skill: "devops", wantCap: string(hub.CapDevops), wantTitle: "DevOps", wantCLI: "devops"},
 		{name: "gitea", skill: "gitea", wantCap: string(hub.CapGitea), wantTitle: "Gitea", wantCLI: "forge"},
 		{name: "github", skill: "github", wantCap: string(hub.CapGithub), wantTitle: "GitHub", wantCLI: "github"},
 	}
@@ -526,6 +527,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 			string(hub.CapFireflyiii):   {},
 			string(hub.CapTransmission): {},
 			string(hub.CapNocodb):       {},
+			string(hub.CapDevops):       {},
 			string(hub.CapGitea):        {},
 			string(hub.CapGithub):       {},
 			string(hub.CapTrilium):      {},

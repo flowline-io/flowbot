@@ -18,9 +18,6 @@ Use `flowbot nocodb` for capability `nocodb`. Prefer the workflows below; load [
 2. Set server via `FLOWBOT_SERVER_URL` or `--server-url`; optional `--profile`, `--debug` / `-d`
 3. Prefer `-o json` when parsing results programmatically
 
-List APIs return the first page from NocoDB; check `page.has_more` / raise `--limit` / `--offset` when needed.
-Record ops assume the default NocoDB `Id` primary key (numeric IDs are preferred).
-
 ## Workflows
 
 ### Discover bases and tables
@@ -36,7 +33,7 @@ When a user needs to find which base or table to use:
 When a user wants to inspect or change rows in a table:
 1. `flowbot nocodb records list --table-id <table-id>`
 2. `flowbot nocodb records create --table-id <table-id> --fields '{"Title":"value"}'`
-3. Use update/delete only with an explicit record-id; prefer `-o json` when parsing results.
+3. Use update/delete only with an explicit record-id; prefer -o json when parsing results.
 
 ## Troubleshooting
 

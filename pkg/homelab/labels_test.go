@@ -274,6 +274,7 @@ func TestParseLabels_AllCapabilities(t *testing.T) {
 		{"kanban", CapKanboard},
 		{"finance", CapFinance},
 		{"infra", CapInfra},
+		{"devops", CapDevops},
 		{"shell_history", CapShellHistory},
 		{"karakeep", CapKarakeep},
 		{"miniflux", CapMiniflux},

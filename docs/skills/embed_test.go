@@ -23,6 +23,7 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 		{name: "fireflyiii", dir: "fireflyiii"},
 		{name: "transmission", dir: "transmission"},
 		{name: "nocodb", dir: "nocodb"},
+		{name: "devops", dir: "devops"},
 		{name: "gitea", dir: "gitea"},
 		{name: "github", dir: "github"},
 	}

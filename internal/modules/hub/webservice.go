@@ -11,6 +11,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/capability/devops"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
@@ -1787,6 +1788,165 @@ func parseQueryInt(s string) int64 {
 		v = v*10 + int64(c-'0')
 	}
 	return v
+}
+
+// --- DevOps routes (registered under /service/devops) ---
+
+var devopsWebserviceRules = []webservice.Rule{
+	webservice.Get("/status", devopsStatus),
+	webservice.Get("/beszel/systems", devopsBeszelListSystems),
+	webservice.Get("/beszel/systems/:id", devopsBeszelGetSystem),
+	webservice.Get("/uptimekuma/health", devopsUptimekumaHealth),
+	webservice.Get("/uptimekuma/metrics", devopsUptimekumaMetrics),
+	webservice.Get("/traefik/overview", devopsTraefikOverview),
+	webservice.Get("/traefik/routers", devopsTraefikListRouters),
+	webservice.Get("/traefik/services", devopsTraefikListServices),
+	webservice.Get("/grafana/health", devopsGrafanaHealth),
+	webservice.Get("/grafana/datasources", devopsGrafanaListDatasources),
+	webservice.Get("/grafana/dashboards", devopsGrafanaSearchDashboards),
+	webservice.Post("/grafana/query", devopsGrafanaQuery),
+	webservice.Get("/wakapi/summary", devopsWakapiSummary),
+	webservice.Get("/wakapi/projects", devopsWakapiListProjects),
+	webservice.Get("/dozzle/health", devopsDozzleHealth),
+	webservice.Get("/netalertx/health", devopsNetalertxHealth),
+	webservice.Get("/netalertx/devices", devopsNetalertxListDevices),
+	webservice.Get("/netalertx/totals", devopsNetalertxTotals),
+	webservice.Post("/netalertx/devices/search", devopsNetalertxSearchDevices),
+}
+
+func devopsStatus(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpStatus, map[string]any{})
+}
+
+func devopsBeszelListSystems(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpBeszelListSystems, map[string]any{})
+}
+
+func devopsBeszelGetSystem(ctx fiber.Ctx) error {
+	id := ctx.Params("id")
+	if id == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeDevops(ctx, devops.OpBeszelGetSystem, map[string]any{"id": id})
+}
+
+func devopsUptimekumaHealth(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpUptimekumaHealth, map[string]any{})
+}
+
+func devopsUptimekumaMetrics(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpUptimekumaMetrics, map[string]any{})
+}
+
+func devopsTraefikOverview(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpTraefikOverview, map[string]any{})
+}
+
+func devopsTraefikListRouters(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpTraefikListRouters, map[string]any{})
+}
+
+func devopsTraefikListServices(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpTraefikListServices, map[string]any{})
+}
+
+func devopsGrafanaHealth(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpGrafanaHealth, map[string]any{})
+}
+
+func devopsGrafanaListDatasources(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpGrafanaListDatasources, map[string]any{})
+}
+
+func devopsGrafanaSearchDashboards(ctx fiber.Ctx) error {
+	params := map[string]any{}
+	if q := ctx.Query("query"); q != "" {
+		params["query"] = q
+	}
+	return invokeDevops(ctx, devops.OpGrafanaSearchDashboards, params)
+}
+
+func devopsGrafanaQuery(ctx fiber.Ctx) error {
+	var body struct {
+		Backend       string `json:"backend"`
+		Expr          string `json:"expr"`
+		DatasourceUID string `json:"datasource_uid"`
+		From          string `json:"from"`
+		To            string `json:"to"`
+		MaxLines      int    `json:"max_lines"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode grafana query request", err)
+	}
+	if body.Backend == "" {
+		return types.Errorf(types.ErrInvalidArgument, "backend is required")
+	}
+	if body.Expr == "" {
+		return types.Errorf(types.ErrInvalidArgument, "expr is required")
+	}
+	params := map[string]any{"backend": body.Backend, "expr": body.Expr}
+	if body.DatasourceUID != "" {
+		params["datasource_uid"] = body.DatasourceUID
+	}
+	if body.From != "" {
+		params["from"] = body.From
+	}
+	if body.To != "" {
+		params["to"] = body.To
+	}
+	if body.MaxLines > 0 {
+		params["max_lines"] = body.MaxLines
+	}
+	return invokeDevops(ctx, devops.OpGrafanaQuery, params)
+}
+
+func devopsWakapiSummary(ctx fiber.Ctx) error {
+	params := map[string]any{}
+	if interval := ctx.Query("interval"); interval != "" {
+		params["interval"] = interval
+	}
+	return invokeDevops(ctx, devops.OpWakapiSummary, params)
+}
+
+func devopsWakapiListProjects(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpWakapiListProjects, map[string]any{})
+}
+
+func devopsDozzleHealth(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpDozzleHealth, map[string]any{})
+}
+
+func devopsNetalertxHealth(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpNetalertxHealth, map[string]any{})
+}
+
+func devopsNetalertxListDevices(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpNetalertxListDevices, map[string]any{})
+}
+
+func devopsNetalertxTotals(ctx fiber.Ctx) error {
+	return invokeDevops(ctx, devops.OpNetalertxTotals, map[string]any{})
+}
+
+func devopsNetalertxSearchDevices(ctx fiber.Ctx) error {
+	var body struct {
+		Query string `json:"query"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode netalertx search request", err)
+	}
+	if body.Query == "" {
+		return types.Errorf(types.ErrInvalidArgument, "query is required")
+	}
+	return invokeDevops(ctx, devops.OpNetalertxSearchDevices, map[string]any{"query": body.Query})
+}
+
+func invokeDevops(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapDevops, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
 var _ types.MsgPayload
