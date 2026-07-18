@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -110,7 +111,7 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 		protocols := getProtocolsList()
 		ctx.Type("html")
 		return partials.NotifyChannelForm(model.NotifyChannel{Name: name, Protocol: protocol, URI: uri}, true,
-			map[string]string{"_save": err.Error()}, protocols).
+			notifyFormErrorsFromStore(err), protocols).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ch, err := store.Database.GetNotifyChannel(ctx.Context(), id)
@@ -168,6 +169,12 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if err := store.Database.UpdateNotifyChannel(ctx.Context(), id, name, protocol, uri, enabled); err != nil {
+		if fieldErrs := mapNotifyChannelUniqueError(err); len(fieldErrs) > 0 {
+			protocols := getProtocolsList()
+			ctx.Type("html")
+			return partials.NotifyChannelForm(model.NotifyChannel{ID: id, Name: name, Protocol: protocol}, false, fieldErrs, protocols).
+				Render(ctx.Context(), ctx.Response().BodyWriter())
+		}
 		return storeError(ctx, err)
 	}
 	ch, err := store.Database.GetNotifyChannel(ctx.Context(), id)
@@ -269,7 +276,7 @@ func notifyTemplateCreate(ctx fiber.Ctx) error {
 	id, err := store.Database.CreateNotifyTemplate(ctx.Context(), tmpl)
 	if err != nil {
 		ctx.Type("html")
-		return partials.NotifyTemplateForm(tmpl, true, map[string]string{"_save": err.Error()}).
+		return partials.NotifyTemplateForm(tmpl, true, notifyFormErrorsFromStore(err)).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	reloadTemplateEngine(ctx.Context())
@@ -320,6 +327,11 @@ func notifyTemplateUpdate(ctx fiber.Ctx) error {
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if err := store.Database.UpdateNotifyTemplate(ctx.Context(), id, tmpl); err != nil {
+		if fieldErrs := mapNotifyTemplateUniqueError(err); len(fieldErrs) > 0 {
+			ctx.Type("html")
+			return partials.NotifyTemplateForm(tmpl, false, fieldErrs).
+				Render(ctx.Context(), ctx.Response().BodyWriter())
+		}
 		return storeError(ctx, err)
 	}
 	reloadTemplateEngine(ctx.Context())
@@ -389,7 +401,7 @@ func notifyRuleCreate(ctx fiber.Ctx) error {
 	id, err := store.Database.CreateNotifyRule(ctx.Context(), rule)
 	if err != nil {
 		ctx.Type("html")
-		return partials.NotifyRuleForm(rule, true, map[string]string{"_save": err.Error()}, templateIDs).
+		return partials.NotifyRuleForm(rule, true, notifyFormErrorsFromStore(err), templateIDs).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	reloadRulesEngine(ctx.Context())
@@ -441,6 +453,12 @@ func notifyRuleUpdate(ctx fiber.Ctx) error {
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	if err := store.Database.UpdateNotifyRule(ctx.Context(), id, rule); err != nil {
+		if fieldErrs := mapNotifyRuleUniqueError(err); len(fieldErrs) > 0 {
+			rule.ID = id
+			ctx.Type("html")
+			return partials.NotifyRuleForm(rule, false, fieldErrs, templateIDs).
+				Render(ctx.Context(), ctx.Response().BodyWriter())
+		}
 		return storeError(ctx, err)
 	}
 	reloadRulesEngine(ctx.Context())
@@ -509,8 +527,59 @@ func notFound(ctx fiber.Ctx) error {
 }
 
 func storeError(ctx fiber.Ctx, err error) error {
+	flog.Error(fmt.Errorf("notify settings store: %w", err))
 	ctx.Type("html")
-	return partials.EmptyState(err.Error()).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.EmptyState("Operation failed").Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+// notifyFormErrorsFromStore maps a store error to user-facing form field errors.
+// Unique constraint violations become field messages; other errors are logged and
+// returned as a generic save failure without leaking SQL details.
+func notifyFormErrorsFromStore(err error) map[string]string {
+	if fieldErrs := mapNotifyChannelUniqueError(err); len(fieldErrs) > 0 {
+		return fieldErrs
+	}
+	if fieldErrs := mapNotifyTemplateUniqueError(err); len(fieldErrs) > 0 {
+		return fieldErrs
+	}
+	if fieldErrs := mapNotifyRuleUniqueError(err); len(fieldErrs) > 0 {
+		return fieldErrs
+	}
+	flog.Error(fmt.Errorf("notify settings save: %w", err))
+	return map[string]string{"_save": "Failed to save"}
+}
+
+// mapNotifyChannelUniqueError maps unique constraint failures on notify channels.
+func mapNotifyChannelUniqueError(err error) map[string]string {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "notify_channels_name_key") {
+		return map[string]string{"name": "Name already exists"}
+	}
+	return nil
+}
+
+// mapNotifyTemplateUniqueError maps unique constraint failures on notify templates.
+func mapNotifyTemplateUniqueError(err error) map[string]string {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "notify_templates_template_id_key") {
+		return map[string]string{"template_id": "Template ID already exists"}
+	}
+	return nil
+}
+
+// mapNotifyRuleUniqueError maps unique constraint failures on notify rules.
+func mapNotifyRuleUniqueError(err error) map[string]string {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "notify_rules_rule_id_key") {
+		return map[string]string{"rule_id": "Rule ID already exists"}
+	}
+	return nil
 }
 
 func getProtocolsList() []string {
@@ -590,16 +659,51 @@ func validateTemplateForm(tmpl model.NotifyTemplate) map[string]string {
 func parseRuleForm(ctx fiber.Ctx) model.NotifyRule {
 	prio, _ := strconv.Atoi(ctx.FormValue("priority"))
 	enabled := ctx.FormValue("enabled") == "on"
+	action := ctx.FormValue("action")
 	return model.NotifyRule{
 		RuleID:         ctx.FormValue("rule_id"),
 		Name:           ctx.FormValue("name"),
-		Action:         ctx.FormValue("action"),
+		Action:         action,
 		EventPattern:   ctx.FormValue("event_pattern"),
 		ChannelPattern: ctx.FormValue("channel_pattern"),
 		Condition:      ctx.FormValue("condition"),
 		Priority:       prio,
-		ParamsJSON:     ctx.FormValue("params_json"),
+		ParamsJSON:     buildRuleParamsJSON(action, ctx),
 		Enabled:        enabled,
+	}
+}
+
+// buildRuleParamsJSON builds ParamsJSON from structured action form fields.
+func buildRuleParamsJSON(action string, ctx fiber.Ctx) string {
+	switch action {
+	case "throttle":
+		limit, _ := strconv.Atoi(strings.TrimSpace(ctx.FormValue("param_limit")))
+		payload := map[string]any{
+			"window": strings.TrimSpace(ctx.FormValue("param_window")),
+			"limit":  limit,
+		}
+		s, err := sonic.MarshalString(payload)
+		if err != nil {
+			return ""
+		}
+		return s
+	case "aggregate":
+		payload := map[string]any{
+			"window": strings.TrimSpace(ctx.FormValue("param_window")),
+		}
+		if tid := strings.TrimSpace(ctx.FormValue("param_digest_template_id")); tid != "" {
+			payload["digest_template_id"] = tid
+		}
+		if ctx.FormValue("param_delayed_send") == "on" {
+			payload["delayed_send"] = true
+		}
+		s, err := sonic.MarshalString(payload)
+		if err != nil {
+			return ""
+		}
+		return s
+	default:
+		return ""
 	}
 }
 
@@ -644,12 +748,22 @@ func validateRuleForm(rule model.NotifyRule) map[string]string {
 }
 
 func validateNotifyRuleParams(rule model.NotifyRule, errs *map[string]string) {
+	switch rule.Action {
+	case "throttle", "aggregate":
+		// continue
+	default:
+		return
+	}
 	if rule.ParamsJSON == "" {
+		(*errs)["window"] = "Window is required"
+		if rule.Action == "throttle" {
+			(*errs)["limit"] = "Limit is required"
+		}
 		return
 	}
 	var params map[string]any
 	if err := sonic.Unmarshal([]byte(rule.ParamsJSON), &params); err != nil {
-		(*errs)["params_json"] = "Invalid JSON: " + err.Error()
+		(*errs)["window"] = "Invalid parameters"
 		return
 	}
 	switch rule.Action {
@@ -662,23 +776,25 @@ func validateNotifyRuleParams(rule model.NotifyRule, errs *map[string]string) {
 
 func validateThrottleParams(params map[string]any, errs *map[string]string) {
 	if w, ok := params["window"].(string); !ok || w == "" {
-		(*errs)["params_json"] = "Window is required"
+		(*errs)["window"] = "Window is required"
 	}
 	if l, ok := params["limit"]; !ok {
-		(*errs)["params_json"] = "Limit is required"
+		(*errs)["limit"] = "Limit is required"
 	} else if v, ok := l.(float64); ok && v <= 0 {
-		(*errs)["params_json"] = "Limit must be > 0"
+		(*errs)["limit"] = "Limit must be > 0"
+	} else if v, ok := l.(int); ok && v <= 0 {
+		(*errs)["limit"] = "Limit must be > 0"
 	}
 }
 
 func validateAggregateParams(params map[string]any, errs *map[string]string) {
 	if w, ok := params["window"].(string); !ok || w == "" {
-		(*errs)["params_json"] = "Window is required"
+		(*errs)["window"] = "Window is required"
 		return
 	}
 	if tid, ok := params["digest_template_id"].(string); ok && tid != "" {
 		if eng := notifytmpl.GetEngine(); eng != nil && !eng.HasTemplate(tid) {
-			(*errs)["params_json"] = "Unknown template: " + tid
+			(*errs)["digest_template_id"] = "Unknown template: " + tid
 		}
 	}
 }

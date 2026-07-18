@@ -7,6 +7,7 @@ import (
 )
 
 templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string, templateIDs []string) {
+	{{ params := parseRuleParamsFields(item.ParamsJSON) }}
 	<tr id={ notifyRuleFormID(item, isNew) } x-data={ "{ action: '" + item.Action + "' }" }>
 		<td>
 			<input type="number" name="priority" value={ fmt.Sprintf("%d", item.Priority) }
@@ -67,9 +68,10 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				<span class="text-xs">Enabled</span>
 			</label>
 		</td>
-		<td>
-			<div class="flex flex-col gap-1">
-				<div x-show="action === 'mute'">
+		<td class="min-w-56">
+			<div class="flex flex-col gap-2">
+				<div x-show="action === 'mute'" class="flex flex-col gap-1">
+					<label class="text-xs uppercase text-base-content/50">Condition</label>
 					<input type="text" name="condition" value={ item.Condition }
 						data-testid="rule-condition"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "condition") }
@@ -77,25 +79,56 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 					/>
 					<div class="text-error text-xs">{ errors["condition"] }</div>
 				</div>
-				<div x-show="action === 'throttle' || action === 'aggregate'">
-					<textarea name="params_json" rows="3"
-						data-testid="rule-params"
-						class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "params_json") }
-						placeholder='{"window": "5m", "limit": 1}'
-					>{ item.ParamsJSON }</textarea>
-					if errors["params_json"] != "" {
-						<div class="text-error text-xs">{ errors["params_json"] }</div>
-				} else if item.Action == "aggregate" && len(templateIDs) > 0 {
-					<div class="text-xs text-base-content/50 mt-1">Available templates:
-					for i, tid := range templateIDs {
-						if i > 0 {
-							, 
-						}
-						{ tid }
-					}
-					</div>
-					}
+
+				<div x-show="action === 'throttle' || action === 'aggregate'" class="flex flex-col gap-1">
+					<label class="text-xs uppercase text-base-content/50">Window</label>
+					<input type="text" name="param_window" value={ ruleFormWindow(params) }
+						data-testid="rule-param-window"
+						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "window") }
+						placeholder="5m"
+					/>
+					<div class="text-error text-xs">{ errors["window"] }</div>
 				</div>
+
+				<div x-show="action === 'throttle'" class="flex flex-col gap-1">
+					<label class="text-xs uppercase text-base-content/50">Limit</label>
+					<input type="number" name="param_limit" value={ ruleFormLimit(params) }
+						data-testid="rule-param-limit"
+						class={ "input input-bordered input-sm w-full " + fieldError(errors, "limit") }
+						min="1"
+						placeholder="1"
+					/>
+					<div class="text-error text-xs">{ errors["limit"] }</div>
+				</div>
+
+				<div x-show="action === 'aggregate'" class="flex flex-col gap-1">
+					<label class="text-xs uppercase text-base-content/50">Digest template</label>
+					<select name="param_digest_template_id"
+						data-testid="rule-param-digest"
+						class={ "select select-bordered select-sm w-full " + fieldError(errors, "digest_template_id") }>
+						<option value="">None</option>
+						for _, tid := range templateIDs {
+							<option value={ tid } if params.DigestTemplateID == tid { selected }>{ tid }</option>
+						}
+					</select>
+					<div class="text-error text-xs">{ errors["digest_template_id"] }</div>
+					<label class="flex items-center gap-1 cursor-pointer mt-1">
+						<input type="checkbox" name="param_delayed_send"
+							data-testid="rule-param-delayed"
+							if params.DelayedSend { checked }
+							class="checkbox checkbox-sm"/>
+						<span class="text-xs">Delayed send</span>
+					</label>
+				</div>
+
+				<div x-show="action === 'drop'" class="text-xs text-base-content/50" data-testid="rule-drop-hint">
+					No additional parameters.
+				</div>
+
+				<div x-show="!action" class="text-xs text-base-content/50">
+					Select an action to configure.
+				</div>
+
 				<div class="flex gap-1 mt-1">
 					<button type="button"
 						if isNew {

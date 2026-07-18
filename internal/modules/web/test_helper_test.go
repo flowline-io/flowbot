@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -237,6 +238,11 @@ func (s *testStore) ListNotifyRules(_ context.Context, opts store.ListNotifyRule
 func (s *testStore) CreateNotifyRule(_ context.Context, rule model.NotifyRule) (int64, error) {
 	if s.notifyRules == nil {
 		s.notifyRules = make(map[int64]model.NotifyRule)
+	}
+	for _, existing := range s.notifyRules {
+		if existing.RuleID == rule.RuleID {
+			return 0, errors.New(`postgres: create notify rule: gen: constraint failed: ERROR: duplicate key value violates unique constraint "notify_rules_rule_id_key" (SQLSTATE 23505)`)
+		}
 	}
 	id := int64(len(s.notifyRules) + 1)
 	rule.ID = id

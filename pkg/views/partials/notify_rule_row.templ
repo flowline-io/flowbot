@@ -29,7 +29,12 @@ templ NotifyRuleRow(item model.NotifyRule, templateIDs []string) {
 				}
 			</div>
 		</td>
-		<td><span class={ actionBadgeClass(item.Action) }>{ item.Action }</span></td>
+		<td>
+			<span class={ actionBadgeClass(item.Action) }>{ item.Action }</span>
+			if summary := ruleActionSummary(item); summary != "" {
+				<div class="text-xs text-base-content/50 mt-1 font-mono whitespace-pre-wrap" data-testid={ "rule-action-params-" + item.RuleID }>{ summary }</div>
+			}
+		</td>
 		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.EventPattern, 30) }</td>
 		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.ChannelPattern, 30) }</td>
 		<td>

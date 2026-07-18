@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"slices"
+	"strings"
 
 	"github.com/bytedance/sonic"
 
@@ -159,4 +160,102 @@ func hasTemplateForRule(item model.NotifyRule, templateIDs []string) bool {
 		return true
 	}
 	return slices.Contains(templateIDs, tid)
+}
+
+// ruleActionSummary returns a short human-readable summary of action parameters for list display.
+func ruleActionSummary(item model.NotifyRule) string {
+	switch item.Action {
+	case "mute":
+		if item.Condition == "" {
+			return ""
+		}
+		return truncateString(item.Condition, 48)
+	case "throttle":
+		p := parseRuleParamsFields(item.ParamsJSON)
+		if p.Window == "" && p.Limit == "" {
+			return ""
+		}
+		parts := make([]string, 0, 2)
+		if p.Window != "" {
+			parts = append(parts, "window "+p.Window)
+		}
+		if p.Limit != "" {
+			parts = append(parts, "limit "+p.Limit)
+		}
+		return strings.Join(parts, " · ")
+	case "aggregate":
+		p := parseRuleParamsFields(item.ParamsJSON)
+		if p.Window == "" && p.DigestTemplateID == "" && !p.DelayedSend {
+			return ""
+		}
+		parts := make([]string, 0, 3)
+		if p.Window != "" {
+			parts = append(parts, "window "+p.Window)
+		}
+		if p.DigestTemplateID != "" {
+			parts = append(parts, "digest "+p.DigestTemplateID)
+		}
+		if p.DelayedSend {
+			parts = append(parts, "delayed")
+		}
+		return strings.Join(parts, " · ")
+	default:
+		return ""
+	}
+}
+
+// ruleParamsFields holds structured rule parameter fields for the graphical form.
+type ruleParamsFields struct {
+	Window           string
+	Limit            string
+	DigestTemplateID string
+	DelayedSend      bool
+}
+
+// parseRuleParamsFields extracts display fields from a rule's ParamsJSON.
+func parseRuleParamsFields(paramsJSON string) ruleParamsFields {
+	out := ruleParamsFields{}
+	if paramsJSON == "" {
+		return out
+	}
+	var params map[string]any
+	if err := sonic.Unmarshal([]byte(paramsJSON), &params); err != nil {
+		return out
+	}
+	if w, ok := params["window"].(string); ok && w != "" {
+		out.Window = w
+	}
+	switch v := params["limit"].(type) {
+	case float64:
+		out.Limit = fmt.Sprintf("%d", int(v))
+	case int:
+		out.Limit = fmt.Sprintf("%d", v)
+	case string:
+		if v != "" {
+			out.Limit = v
+		}
+	}
+	if tid, ok := params["digest_template_id"].(string); ok {
+		out.DigestTemplateID = tid
+	}
+	if d, ok := params["delayed_send"].(bool); ok {
+		out.DelayedSend = d
+	}
+	return out
+}
+
+// ruleFormWindow returns the window value for the rule form, with a sensible default.
+func ruleFormWindow(p ruleParamsFields) string {
+	if p.Window == "" {
+		return "5m"
+	}
+	return p.Window
+}
+
+// ruleFormLimit returns the limit value for the rule form, with a sensible default.
+func ruleFormLimit(p ruleParamsFields) string {
+	if p.Limit == "" {
+		return "1"
+	}
+	return p.Limit
 }

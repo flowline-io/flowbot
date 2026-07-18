@@ -220,12 +220,13 @@ func TestValidateThrottleAndAggregateParams(t *testing.T) {
 	tests := []struct {
 		name       string
 		params     map[string]any
+		wantKey    string
 		wantSubstr string
 		agg        bool
 	}{
-		{name: "throttle missing window", params: map[string]any{"limit": float64(1)}, wantSubstr: "Window is required"},
-		{name: "throttle invalid limit", params: map[string]any{"window": "1m", "limit": float64(0)}, wantSubstr: "Limit must be > 0"},
-		{name: "aggregate missing window", params: map[string]any{"digest_template_id": "digest"}, wantSubstr: "Window is required", agg: true},
+		{name: "throttle missing window", params: map[string]any{"limit": float64(1)}, wantKey: "window", wantSubstr: "Window is required"},
+		{name: "throttle invalid limit", params: map[string]any{"window": "1m", "limit": float64(0)}, wantKey: "limit", wantSubstr: "Limit must be > 0"},
+		{name: "aggregate missing window", params: map[string]any{"digest_template_id": "digest"}, wantKey: "window", wantSubstr: "Window is required", agg: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -236,7 +237,7 @@ func TestValidateThrottleAndAggregateParams(t *testing.T) {
 			} else {
 				validateThrottleParams(tt.params, &errs)
 			}
-			assert.Contains(t, errs["params_json"], tt.wantSubstr)
+			assert.Contains(t, errs[tt.wantKey], tt.wantSubstr)
 		})
 	}
 }
@@ -413,6 +414,57 @@ func TestValidateRuleForm(t *testing.T) {
 				return
 			}
 			assert.Contains(t, errs[tt.wantField], tt.wantSub)
+		})
+	}
+}
+
+func TestNotifyFormErrorsFromStore(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		err       error
+		wantField string
+		wantSub   string
+		wantRaw   bool
+	}{
+		{
+			name:      "rule id unique constraint",
+			err:       errors.New(`postgres: create notify rule: gen: constraint failed: ERROR: duplicate key value violates unique constraint "notify_rules_rule_id_key" (SQLSTATE 23505)`),
+			wantField: "rule_id",
+			wantSub:   "Rule ID already exists",
+		},
+		{
+			name:      "channel name unique constraint",
+			err:       errors.New(`postgres: create notify channel: gen: constraint failed: ERROR: duplicate key value violates unique constraint "notify_channels_name_key" (SQLSTATE 23505)`),
+			wantField: "name",
+			wantSub:   "Name already exists",
+		},
+		{
+			name:      "template id unique constraint",
+			err:       errors.New(`postgres: create notify template: gen: constraint failed: ERROR: duplicate key value violates unique constraint "notify_templates_template_id_key" (SQLSTATE 23505)`),
+			wantField: "template_id",
+			wantSub:   "Template ID already exists",
+		},
+		{
+			name:      "generic store error hides raw sql",
+			err:       errors.New(`postgres: create notify rule: gen: constraint failed: ERROR: something else (SQLSTATE 23505)`),
+			wantField: "_save",
+			wantSub:   "Failed to save",
+			wantRaw:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			errs := notifyFormErrorsFromStore(tt.err)
+			require.Contains(t, errs, tt.wantField)
+			assert.Contains(t, errs[tt.wantField], tt.wantSub)
+			if tt.wantRaw {
+				for _, msg := range errs {
+					assert.NotContains(t, msg, "SQLSTATE")
+					assert.NotContains(t, msg, "constraint failed")
+				}
+			}
 		})
 	}
 }

@@ -504,10 +504,12 @@ func TestNotifyTemplateCreate(t *testing.T) {
 func TestNotifyRuleCreate(t *testing.T) {
 	tests := []struct {
 		name       string
+		seed       map[int64]model.NotifyRule
 		form       url.Values
 		wantStatus int
 		wantSub    string
 		wantStored bool
+		wantNoSub  string
 	}{
 		{
 			name: "creates enabled rule",
@@ -525,6 +527,23 @@ func TestNotifyRuleCreate(t *testing.T) {
 			wantStored: true,
 		},
 		{
+			name: "creates throttle rule from structured params",
+			form: url.Values{
+				"rule_id":         {"infra_throttle"},
+				"name":            {"Infra throttle"},
+				"action":          {"throttle"},
+				"event_pattern":   {"infra.*"},
+				"channel_pattern": {"*"},
+				"priority":        {"5"},
+				"enabled":         {"on"},
+				"param_window":    {"5m"},
+				"param_limit":     {"1"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "infra_throttle",
+			wantStored: true,
+		},
+		{
 			name: "rejects missing rule id",
 			form: url.Values{
 				"name":            {"Night mute"},
@@ -534,6 +553,37 @@ func TestNotifyRuleCreate(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 			wantSub:    "Rule ID is required",
+		},
+		{
+			name: "rejects duplicate rule id without raw sql",
+			seed: map[int64]model.NotifyRule{
+				1: {ID: 1, RuleID: "night_mute", Name: "Existing", Action: "drop", EventPattern: "*", ChannelPattern: "*"},
+			},
+			form: url.Values{
+				"rule_id":         {"night_mute"},
+				"name":            {"Night mute again"},
+				"action":          {"drop"},
+				"event_pattern":   {"*"},
+				"channel_pattern": {"*"},
+				"priority":        {"1"},
+				"enabled":         {"on"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "Rule ID already exists",
+			wantNoSub:  "SQLSTATE",
+		},
+		{
+			name: "rejects throttle without window",
+			form: url.Values{
+				"rule_id":         {"bad_throttle"},
+				"name":            {"Bad"},
+				"action":          {"throttle"},
+				"event_pattern":   {"*"},
+				"channel_pattern": {"*"},
+				"param_limit":     {"1"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "Window is required",
 		},
 		{
 			name: "creates disabled rule without loading into engine list filter",
@@ -560,30 +610,46 @@ func TestNotifyRuleCreate(t *testing.T) {
 				config = configType{}
 			}()
 			require.NoError(t, notifyrules.Init(nil, nil))
+			if tt.seed != nil {
+				ts.notifyRules = tt.seed
+			}
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/rules", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			resp, err := app.Test(req)
-			if err != nil {
-				t.Fatalf("app.Test: %v", err)
-			}
+			require.NoError(t, err)
 			defer resp.Body.Close()
 
-			if resp.StatusCode != tt.wantStatus {
-				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
-			}
 			body, _ := io.ReadAll(resp.Body)
-			if !strings.Contains(string(body), tt.wantSub) {
-				t.Errorf("want body containing %q, got %q", tt.wantSub, string(body))
-			}
-			if tt.wantStored && len(ts.notifyRules) != 1 {
-				t.Errorf("want 1 rule stored, got %d", len(ts.notifyRules))
-			}
-			if !tt.wantStored && len(ts.notifyRules) != 0 {
-				t.Errorf("want no rules stored, got %d", len(ts.notifyRules))
-			}
+			assertNotifyRuleCreateResult(t, tt.name, tt.wantStatus, tt.wantSub, tt.wantNoSub, tt.wantStored, len(tt.seed), resp.StatusCode, string(body), ts.notifyRules)
 		})
+	}
+}
+
+// assertNotifyRuleCreateResult checks create-rule HTTP response body and store state.
+func assertNotifyRuleCreateResult(t *testing.T, name string, wantStatus int, wantSub, wantNoSub string, wantStored bool, seeded int, status int, body string, rules map[int64]model.NotifyRule) {
+	t.Helper()
+	if status != wantStatus {
+		t.Errorf("want status %d, got %d", wantStatus, status)
+	}
+	if !strings.Contains(body, wantSub) {
+		t.Errorf("want body containing %q, got %q", wantSub, body)
+	}
+	if wantNoSub != "" && strings.Contains(body, wantNoSub) {
+		t.Errorf("body must not contain %q, got %q", wantNoSub, body)
+	}
+	if wantStored && len(rules) != seeded+1 {
+		t.Errorf("want %d rule stored, got %d", seeded+1, len(rules))
+	}
+	if !wantStored && len(rules) != seeded {
+		t.Errorf("want %d rules stored, got %d", seeded, len(rules))
+	}
+	if name == "creates throttle rule from structured params" {
+		rule := rules[1]
+		if !strings.Contains(rule.ParamsJSON, `"window":"5m"`) || !strings.Contains(rule.ParamsJSON, `"limit":1`) {
+			t.Errorf("want structured params JSON, got %q", rule.ParamsJSON)
+		}
 	}
 }
 
