@@ -269,6 +269,51 @@ func TestChatSessionEntryCRUD(t *testing.T) {
 			},
 		},
 		{
+			name: "list entries by sessions returns matching rows",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(ctx, &gen.ChatSession{
+					Flag: "sess-a", UID: "user:batch", State: int(schema.ChatSessionActive),
+				}))
+				require.NoError(t, a.CreateChatSession(ctx, &gen.ChatSession{
+					Flag: "sess-b", UID: "user:batch", State: int(schema.ChatSessionActive),
+				}))
+				require.NoError(t, a.CreateChatSessionEntry(ctx, &gen.ChatSessionEntry{
+					Flag: "a1", SessionID: "sess-a", EntryType: "message",
+					Payload: map[string]any{"role": "user"},
+				}))
+				require.NoError(t, a.CreateChatSessionEntry(ctx, &gen.ChatSessionEntry{
+					Flag: "b1", SessionID: "sess-b", EntryType: "message",
+					Payload: map[string]any{"role": "assistant"},
+				}))
+
+				rows, err := a.ListChatSessionEntriesBySessions(ctx, []string{"sess-a", "sess-b"})
+				require.NoError(t, err)
+				require.Len(t, rows, 2)
+				ids := map[string]string{}
+				for _, row := range rows {
+					ids[row.Flag] = row.SessionID
+				}
+				assert.Equal(t, "sess-a", ids["a1"])
+				assert.Equal(t, "sess-b", ids["b1"])
+			},
+		},
+		{
+			name: "list entries by sessions empty ids",
+			run: func(t *testing.T, a *adapter) {
+				rows, err := a.ListChatSessionEntriesBySessions(ctx, nil)
+				require.NoError(t, err)
+				assert.Nil(t, rows)
+			},
+		},
+		{
+			name: "list entries by sessions unknown session",
+			run: func(t *testing.T, a *adapter) {
+				rows, err := a.ListChatSessionEntriesBySessions(ctx, []string{"missing-sess"})
+				require.NoError(t, err)
+				assert.Empty(t, rows)
+			},
+		},
+		{
 			name: "update mode leaf title and close session",
 			run: func(t *testing.T, a *adapter) {
 				require.NoError(t, a.CreateChatSession(ctx, &gen.ChatSession{

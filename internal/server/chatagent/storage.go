@@ -72,6 +72,8 @@ func (s *DBStorage) recordLLMUsage(ctx context.Context, entry session.TreeEntry)
 }
 
 // GetBranch returns the ordered path from root to the requested leaf.
+// Entries are loaded once via ListEntries, then walked in memory to avoid
+// one DB round-trip per node on the active branch.
 func (s *DBStorage) GetBranch(ctx context.Context, leafID string) ([]session.TreeEntry, error) {
 	if leafID == "" {
 		var err error
@@ -83,7 +85,11 @@ func (s *DBStorage) GetBranch(ctx context.Context, leafID string) ([]session.Tre
 			return nil, nil
 		}
 	}
-	return walkBranchFromLeaf(ctx, s.sessionID, leafID, store.Database.GetChatSessionEntryInSession)
+	entries, err := s.ListEntries(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return walkBranchFromEntries(entries, leafID)
 }
 
 // GetLeafID returns the current leaf pointer for the session.
@@ -117,30 +123,27 @@ func (s *DBStorage) ListEntries(ctx context.Context) ([]session.TreeEntry, error
 	return entries, nil
 }
 
-type sessionEntryGetter func(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error)
-
-func walkBranchFromLeaf(
-	ctx context.Context,
-	sessionID, leafID string,
-	getEntry sessionEntryGetter,
-) ([]session.TreeEntry, error) {
+// walkBranchFromEntries returns the ordered path from root to leafID using an
+// in-memory index of already-loaded session entries.
+func walkBranchFromEntries(entries []session.TreeEntry, leafID string) ([]session.TreeEntry, error) {
 	if leafID == "" {
 		return nil, nil
+	}
+
+	byID := make(map[string]session.TreeEntry, len(entries))
+	for _, entry := range entries {
+		byID[entry.ID] = entry
 	}
 
 	path := make([]session.TreeEntry, 0, 16)
 	currentID := leafID
 	for currentID != "" {
-		row, err := getEntry(ctx, sessionID, currentID)
-		if err != nil {
-			return nil, fmt.Errorf("chatagent storage: load entry %q: %w", currentID, err)
-		}
-		entry, err := rowToTreeEntry(row)
-		if err != nil {
-			return nil, err
+		entry, ok := byID[currentID]
+		if !ok {
+			return nil, fmt.Errorf("chatagent storage: load entry %q: %w", currentID, types.ErrNotFound)
 		}
 		path = append([]session.TreeEntry{entry}, path...)
-		currentID = row.ParentID
+		currentID = entry.ParentID
 	}
 	return path, nil
 }
@@ -150,5 +153,14 @@ func rowToTreeEntry(row *gen.ChatSessionEntry) (session.TreeEntry, error) {
 	if err != nil {
 		return session.TreeEntry{}, fmt.Errorf("chatagent storage: marshal payload: %w", err)
 	}
-	return session.UnmarshalEntry(payload)
+	entry, err := session.UnmarshalEntry(payload)
+	if err != nil {
+		return session.TreeEntry{}, err
+	}
+	// Prefer DB columns for tree links; payload keys may use alternate spellings.
+	if row.Flag != "" {
+		entry.ID = row.Flag
+	}
+	entry.ParentID = row.ParentID
+	return entry, nil
 }

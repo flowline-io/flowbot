@@ -872,6 +872,20 @@ func (a *adapter) ListChatSessionEntries(ctx context.Context, sessionID string) 
 	return rows, nil
 }
 
+func (a *adapter) ListChatSessionEntriesBySessions(ctx context.Context, sessionIDs []string) ([]*gen.ChatSessionEntry, error) {
+	if len(sessionIDs) == 0 {
+		return nil, nil
+	}
+	rows, err := a.client.ChatSessionEntry.Query().
+		Where(chatsessionentry.SessionIDIn(sessionIDs...)).
+		Order(gen.Asc(chatsessionentry.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list chat session entries by sessions: %w", err)
+	}
+	return rows, nil
+}
+
 func (a *adapter) GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error) {
 	row, err := a.client.ChatSessionEntry.Query().
 		Where(chatsessionentry.FlagEQ(flag)).

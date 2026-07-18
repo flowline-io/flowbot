@@ -278,6 +278,13 @@ func (*testStoreAdapter) AppendChatSessionEntry(_ context.Context, entry *gen.Ch
 func (*testStoreAdapter) ListChatSessionEntries(_ context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {
 	return append([]*gen.ChatSessionEntry(nil), testChatSessionEntries[sessionID]...), nil
 }
+func (*testStoreAdapter) ListChatSessionEntriesBySessions(_ context.Context, sessionIDs []string) ([]*gen.ChatSessionEntry, error) {
+	out := make([]*gen.ChatSessionEntry, 0)
+	for _, sessionID := range sessionIDs {
+		out = append(out, testChatSessionEntries[sessionID]...)
+	}
+	return out, nil
+}
 func (*testStoreAdapter) GetChatSessionEntry(_ context.Context, flag string) (*gen.ChatSessionEntry, error) {
 	for _, rows := range testChatSessionEntries {
 		for _, row := range rows {

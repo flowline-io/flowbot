@@ -118,6 +118,20 @@ func (s *testStore) ListChatSessionEntries(_ context.Context, sessionID string) 
 	return s.chatSessionEntries[sessionID], nil
 }
 
+func (s *testStore) ListChatSessionEntriesBySessions(_ context.Context, sessionIDs []string) ([]*gen.ChatSessionEntry, error) {
+	if s.chatSessionEntriesErr != nil {
+		return nil, s.chatSessionEntriesErr
+	}
+	if s.chatSessionEntries == nil || len(sessionIDs) == 0 {
+		return nil, nil
+	}
+	out := make([]*gen.ChatSessionEntry, 0)
+	for _, sessionID := range sessionIDs {
+		out = append(out, s.chatSessionEntries[sessionID]...)
+	}
+	return out, nil
+}
+
 func (s *testStore) GetChatSessionEntryInSession(_ context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error) {
 	entries, ok := s.chatSessionEntries[sessionID]
 	if !ok {

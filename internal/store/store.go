@@ -303,6 +303,8 @@ type Adapter interface {
 	CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
 	AppendChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
 	ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error)
+	// ListChatSessionEntriesBySessions returns entries for the given session flags ordered by created_at.
+	ListChatSessionEntriesBySessions(ctx context.Context, sessionIDs []string) ([]*gen.ChatSessionEntry, error)
 	GetChatSessionEntry(ctx context.Context, flag string) (*gen.ChatSessionEntry, error)
 	GetChatSessionEntryInSession(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error)
 

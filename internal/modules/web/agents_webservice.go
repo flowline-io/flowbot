@@ -401,13 +401,18 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSess
 	if err != nil {
 		return nil, "", err
 	}
+	leafBySession := make(map[string]string, len(rows))
 	items := make([]model.AgentSession, 0, len(rows))
 	for _, row := range rows {
-		item := mapAgentSession(row)
-		if total, err := chatagent.SumSessionRunDurationMs(ctx.Context(), row.Flag); err == nil {
-			item.TotalDurationMs = total
+		items = append(items, mapAgentSession(row))
+		leafBySession[row.Flag] = row.LeafID
+	}
+	if len(leafBySession) > 0 {
+		if durations, err := chatagent.SumSessionsRunDurationMs(ctx.Context(), leafBySession); err == nil {
+			for i := range items {
+				items[i].TotalDurationMs = durations[items[i].Flag]
+			}
 		}
-		items = append(items, item)
 	}
 	return items, nextCursor, nil
 }

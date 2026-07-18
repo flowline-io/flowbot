@@ -116,6 +116,16 @@ func (a *agentsWebAdapter) ListChatSessionEntries(ctx context.Context, sessionID
 		All(ctx)
 }
 
+func (a *agentsWebAdapter) ListChatSessionEntriesBySessions(ctx context.Context, sessionIDs []string) ([]*gen.ChatSessionEntry, error) {
+	if len(sessionIDs) == 0 {
+		return nil, nil
+	}
+	return a.ent.ChatSessionEntry.Query().
+		Where(chatsessionentry.SessionIDIn(sessionIDs...)).
+		Order(gen.Asc(chatsessionentry.FieldCreatedAt)).
+		All(ctx)
+}
+
 var _ = Describe("Agents UI", Label("module", "web"), func() {
 	var (
 		origDB          store.Adapter
