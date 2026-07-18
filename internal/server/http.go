@@ -19,6 +19,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/samber/oops"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	tracepkg "github.com/flowline-io/flowbot/pkg/trace"
@@ -29,7 +30,24 @@ import (
 const (
 	defaultRateLimitMax        = 200
 	defaultRateLimitExpiration = 10 * time.Second
+	// minHTTPWriteTimeout keeps ordinary short responses bounded when RunTimeout is tiny.
+	minHTTPWriteTimeout = 90 * time.Second
+	// httpWriteTimeoutSlack covers Done flush / title work after the agent turn budget.
+	httpWriteTimeoutSlack = time.Minute
 )
+
+// httpWriteTimeout returns the Fiber WriteTimeout covering long-lived chatagent SSE streams.
+func httpWriteTimeout() time.Duration {
+	runTimeout := config.App.ChatAgent.RunTimeout
+	if runTimeout <= 0 {
+		runTimeout = chatagent.DefaultRunTimeout
+	}
+	timeout := runTimeout + httpWriteTimeoutSlack
+	if timeout < minHTTPWriteTimeout {
+		return minHTTPWriteTimeout
+	}
+	return timeout
+}
 
 var (
 	sharedApp   *fiber.App
@@ -47,11 +65,13 @@ func sharedAppPtr() *fiber.App {
 func newHTTPServer() *fiber.App {
 	// Set up HTTP server.
 	app := fiber.New(fiber.Config{
-		JSONDecoder:  sonic.Unmarshal,
-		JSONEncoder:  sonic.Marshal,
-		ReadTimeout:  10 * time.Second,
-		IdleTimeout:  30 * time.Second,
-		WriteTimeout: 90 * time.Second,
+		JSONDecoder: sonic.Unmarshal,
+		JSONEncoder: sonic.Marshal,
+		ReadTimeout: 10 * time.Second,
+		IdleTimeout: 30 * time.Second,
+		// Chat agent SSE turns can run up to RunTimeout; a fixed 90s WriteTimeout
+		// closed chunked responses mid-stream (browser ERR_INCOMPLETE_CHUNKED_ENCODING).
+		WriteTimeout: httpWriteTimeout(),
 		// Params/headers share fasthttp buffers unless Immutable is set. SSE
 		// handlers keep those strings alive after the request ctx is recycled
 		// (e.g. concurrent /agents/render-markdown calls), which otherwise

@@ -314,6 +314,7 @@
     var toolCards = {};
     var lastTurnDurationMs = 0;
     var lastRunDurationMs = 0;
+    var sawDone = false;
     function syncAssistantDuration() {
       applyAssistantDuration(
         assistantBody,
@@ -425,6 +426,7 @@
             return;
           }
           if (ev.type === 'done') {
+            sawDone = true;
             if (ev.text) {
               assistantText = ev.text;
             }
@@ -514,7 +516,24 @@
         });
       })
       .catch(function (err) {
-        showThreadError(errorEl, err.message || 'Request failed');
+        var msg = (err && err.message) || 'Request failed';
+        // Incomplete chunked SSE (e.g. server write timeout) often surfaces as a
+        // TypeError/network error after the turn already persisted server-side.
+        var networkLost =
+          !sawDone &&
+          (err.name === 'TypeError' ||
+            /network|fetch|load failed|incomplete/i.test(msg));
+        if (networkLost) {
+          showThreadError(
+            errorEl,
+            'Connection lost while streaming. Reloading saved messages…',
+          );
+          setTimeout(function () {
+            window.location.reload();
+          }, 1200);
+          return;
+        }
+        showThreadError(errorEl, msg);
       })
       .finally(function () {
         ns.setRunning(false, threadRoot);

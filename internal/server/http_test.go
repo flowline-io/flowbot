@@ -5,14 +5,49 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
+
+func TestHTTPWriteTimeout(t *testing.T) {
+	tests := []struct {
+		name       string
+		runTimeout time.Duration
+		want       time.Duration
+	}{
+		{
+			name:       "uses default run timeout when unset",
+			runTimeout: 0,
+			want:       chatagent.DefaultRunTimeout + httpWriteTimeoutSlack,
+		},
+		{
+			name:       "covers configured run timeout plus slack",
+			runTimeout: 3 * time.Minute,
+			want:       3*time.Minute + httpWriteTimeoutSlack,
+		},
+		{
+			name:       "enforces minimum when run timeout is tiny",
+			runTimeout: time.Second,
+			want:       minHTTPWriteTimeout,
+		},
+	}
+	prev := config.App.ChatAgent.RunTimeout
+	t.Cleanup(func() { config.App.ChatAgent.RunTimeout = prev })
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config.App.ChatAgent.RunTimeout = tt.runTimeout
+			assert.Equal(t, tt.want, httpWriteTimeout())
+		})
+	}
+}
 
 func TestNewHTTPServer_CreatesValidApp(t *testing.T) {
 	t.Parallel()
