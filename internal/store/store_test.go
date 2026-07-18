@@ -1883,3 +1883,75 @@ func TestPipelineStore_Versions(t *testing.T) {
 		})
 	}
 }
+
+func TestPipelineStore_LatestRunStartedAtByParentNames(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+	}{
+		{name: "empty names returns empty map"},
+		{name: "returns latest started_at for exact and compound names"},
+		{name: "omits pipelines with no runs"},
+		{name: "nil store returns empty map"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+
+			switch tt.name {
+			case "empty names returns empty map":
+				client := getTestClient(t)
+				ps := NewPipelineStore(client)
+				got, err := ps.LatestRunStartedAtByParentNames(ctx, nil)
+				require.NoError(t, err)
+				assert.Empty(t, got)
+
+			case "returns latest started_at for exact and compound names":
+				client := getTestClient(t)
+				ps := NewPipelineStore(client)
+				older := time.Date(2026, 1, 1, 10, 0, 0, 0, time.UTC)
+				newer := time.Date(2026, 1, 2, 12, 0, 0, 0, time.UTC)
+				newest := time.Date(2026, 1, 3, 15, 0, 0, 0, time.UTC)
+
+				runA1, err := ps.CreateRun(ctx, "pipe-a", "evt-a1", "t", "event")
+				require.NoError(t, err)
+				_, err = client.PipelineRun.UpdateOneID(runA1.ID).SetStartedAt(older).Save(ctx)
+				require.NoError(t, err)
+
+				runA2, err := ps.CreateRun(ctx, "pipe-a__trigger_event_0", "evt-a2", "t", "event")
+				require.NoError(t, err)
+				_, err = client.PipelineRun.UpdateOneID(runA2.ID).SetStartedAt(newest).Save(ctx)
+				require.NoError(t, err)
+
+				runB1, err := ps.CreateRun(ctx, "pipe-b", "evt-b1", "t", "event")
+				require.NoError(t, err)
+				_, err = client.PipelineRun.UpdateOneID(runB1.ID).SetStartedAt(newer).Save(ctx)
+				require.NoError(t, err)
+
+				got, err := ps.LatestRunStartedAtByParentNames(ctx, []string{"pipe-a", "pipe-b", "pipe-c"})
+				require.NoError(t, err)
+				require.Contains(t, got, "pipe-a")
+				require.Contains(t, got, "pipe-b")
+				assert.True(t, got["pipe-a"].UTC().Equal(newest))
+				assert.True(t, got["pipe-b"].UTC().Equal(newer))
+				_, hasC := got["pipe-c"]
+				assert.False(t, hasC)
+
+			case "omits pipelines with no runs":
+				client := getTestClient(t)
+				ps := NewPipelineStore(client)
+				got, err := ps.LatestRunStartedAtByParentNames(ctx, []string{"never-run"})
+				require.NoError(t, err)
+				assert.Empty(t, got)
+
+			case "nil store returns empty map":
+				var ps *PipelineStore
+				got, err := ps.LatestRunStartedAtByParentNames(ctx, []string{"x"})
+				require.NoError(t, err)
+				assert.Empty(t, got)
+			}
+		})
+	}
+}

@@ -2,6 +2,7 @@ package partials
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,12 +16,15 @@ func TestBuildPipelineListEntries(t *testing.T) {
 	draftYAML := "name: draft\nenabled: true\nsteps: []"
 	published := pipelinedefinition.Status("published")
 	draft := pipelinedefinition.Status("draft")
+	lastRun := time.Date(2026, 7, 18, 14, 22, 0, 0, time.UTC)
 
 	tests := []struct {
-		name      string
-		defs      []*gen.PipelineDefinition
-		wantCount int
-		wantFirst bool
+		name        string
+		defs        []*gen.PipelineDefinition
+		lastRunAt   map[string]time.Time
+		wantCount   int
+		wantFirst   bool
+		wantLastRun *time.Time
 	}{
 		{
 			name:      "empty list",
@@ -28,25 +32,28 @@ func TestBuildPipelineListEntries(t *testing.T) {
 			wantCount: 0,
 		},
 		{
-			name: "draft uses draft yaml",
+			name: "draft uses draft yaml and has no last run",
 			defs: []*gen.PipelineDefinition{{
 				Name:      "draft-only",
 				Status:    draft,
 				YamlDraft: draftYAML,
 			}},
-			wantCount: 1,
-			wantFirst: true,
+			wantCount:   1,
+			wantFirst:   true,
+			wantLastRun: nil,
 		},
 		{
-			name: "published uses published yaml",
+			name: "published uses published yaml and attaches last run",
 			defs: []*gen.PipelineDefinition{{
 				Name:          "paused",
 				Status:        published,
 				YamlDraft:     draftYAML,
 				YamlPublished: &publishedYAML,
 			}},
-			wantCount: 1,
-			wantFirst: false,
+			lastRunAt:   map[string]time.Time{"paused": lastRun},
+			wantCount:   1,
+			wantFirst:   false,
+			wantLastRun: &lastRun,
 		},
 		{
 			name: "multiple entries preserve order",
@@ -60,12 +67,38 @@ func TestBuildPipelineListEntries(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := BuildPipelineListEntries(tt.defs)
+			got := BuildPipelineListEntries(tt.defs, tt.lastRunAt)
 			require.Len(t, got, tt.wantCount)
 			if tt.wantCount == 0 {
 				return
 			}
 			assert.Equal(t, tt.wantFirst, got[0].Enabled)
+			if tt.wantLastRun == nil {
+				assert.Nil(t, got[0].LastRunAt)
+			} else {
+				require.NotNil(t, got[0].LastRunAt)
+				assert.True(t, got[0].LastRunAt.Equal(*tt.wantLastRun))
+			}
+		})
+	}
+}
+
+func TestPipelineLastRunOrDash(t *testing.T) {
+	t.Parallel()
+	ts := time.Date(2026, 7, 18, 14, 22, 0, 0, time.UTC)
+	tests := []struct {
+		name  string
+		value *time.Time
+		want  string
+	}{
+		{name: "nil", value: nil, want: "—"},
+		{name: "zero", value: &time.Time{}, want: "—"},
+		{name: "formatted", value: &ts, want: "2026-07-18 14:22"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, PipelineLastRunOrDash(tt.value))
 		})
 	}
 }

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 func TestPipelineListPageIncludesStatsScripts(t *testing.T) {
@@ -44,7 +44,7 @@ func TestPipelineListPageIncludesStatsScripts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var buf bytes.Buffer
-			err := pages.PipelineListPage([]*gen.PipelineDefinition{}).Render(context.Background(), &buf)
+			err := pages.PipelineListPage([]partials.PipelineListEntry{}).Render(context.Background(), &buf)
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}

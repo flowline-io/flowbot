@@ -1376,6 +1376,60 @@ func (s *PipelineStore) GetRunsByParentName(ctx context.Context, parentName stri
 		All(ctx)
 }
 
+// LatestRunStartedAtByParentNames returns the latest started_at for each parent pipeline name.
+// Matches exact pipeline_name and compound trigger names (name__trigger_*).
+// Names without runs are omitted from the result.
+func (s *PipelineStore) LatestRunStartedAtByParentNames(ctx context.Context, names []string) (map[string]time.Time, error) {
+	result := make(map[string]time.Time)
+	if s == nil || s.client == nil || len(names) == 0 {
+		return result, nil
+	}
+	preds := make([]predicate.PipelineRun, 0, len(names))
+	for _, name := range names {
+		if name == "" {
+			continue
+		}
+		preds = append(preds, pipelineRunByParentName(name))
+	}
+	if len(preds) == 0 {
+		return result, nil
+	}
+	runs, err := s.client.PipelineRun.Query().
+		Where(pipelinerun.Or(preds...)).
+		Select(pipelinerun.FieldPipelineName, pipelinerun.FieldStartedAt).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("latest run started_at by parent names: %w", err)
+	}
+	for _, run := range runs {
+		parent := matchParentPipelineName(run.PipelineName, names)
+		if parent == "" {
+			continue
+		}
+		if prev, ok := result[parent]; !ok || run.StartedAt.After(prev) {
+			result[parent] = run.StartedAt
+		}
+	}
+	return result, nil
+}
+
+// matchParentPipelineName maps a run pipeline_name back to a parent definition name.
+func matchParentPipelineName(runName string, parents []string) string {
+	best := ""
+	for _, parent := range parents {
+		if parent == "" {
+			continue
+		}
+		if runName == parent {
+			return parent
+		}
+		if strings.HasPrefix(runName, parent+"__trigger_") && len(parent) > len(best) {
+			best = parent
+		}
+	}
+	return best
+}
+
 // GetStepRunsByRunID returns all step runs for a given pipeline run, ordered by ID.
 func (s *PipelineStore) GetStepRunsByRunID(ctx context.Context, runID int64) ([]*gen.PipelineStepRun, error) {
 	if s == nil || s.client == nil {

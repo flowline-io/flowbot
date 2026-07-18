@@ -1,12 +1,11 @@
 package pages
 
 import (
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ PipelineListPage(defs []*gen.PipelineDefinition) {
+templ PipelineListPage(entries []partials.PipelineListEntry) {
 	@layout.Base("Pipelines") {
 		@partials.PipelineStatsScripts()
 		<div class="max-w-4xl mx-auto">
@@ -25,7 +24,7 @@ templ PipelineListPage(defs []*gen.PipelineDefinition) {
 				</div>
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">
-				@partials.PipelineListTable(partials.BuildPipelineListEntries(defs))
+				@partials.PipelineListTable(entries)
 			</div>
 		</div>
 		<dialog id="create-modal" class="modal" data-testid="create-modal">

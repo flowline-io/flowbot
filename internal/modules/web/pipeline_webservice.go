@@ -17,6 +17,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -72,8 +73,12 @@ func pipelineListPage(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
+	entries, err := buildPipelineListEntries(context.Background(), s, defs)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
+	}
 	c.Type("html")
-	return pages.PipelineListPage(defs).Render(context.Background(), c.Response().BodyWriter())
+	return pages.PipelineListPage(entries).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func pipelineListTable(c fiber.Ctx) error {
@@ -82,8 +87,27 @@ func pipelineListTable(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
+	entries, err := buildPipelineListEntries(context.Background(), s, defs)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
+	}
 	c.Type("html")
-	return partials.PipelineListTable(partials.BuildPipelineListEntries(defs)).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
+}
+
+// buildPipelineListEntries loads last-run timestamps and builds pipeline list rows.
+func buildPipelineListEntries(ctx context.Context, s *store.PipelineStore, defs []*gen.PipelineDefinition) ([]partials.PipelineListEntry, error) {
+	names := make([]string, 0, len(defs))
+	for _, def := range defs {
+		if def != nil {
+			names = append(names, def.Name)
+		}
+	}
+	lastRuns, err := s.LatestRunStartedAtByParentNames(ctx, names)
+	if err != nil {
+		return nil, err
+	}
+	return partials.BuildPipelineListEntries(defs, lastRuns), nil
 }
 
 func pipelineEditorPage(c fiber.Ctx) error {
@@ -237,8 +261,12 @@ func setPipelineEnabled(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
+	entries, err := buildPipelineListEntries(context.Background(), s, defs)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
+	}
 	c.Type("html")
-	return partials.PipelineListTable(partials.BuildPipelineListEntries(defs)).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func deletePipeline(c fiber.Ctx) error {
@@ -263,8 +291,12 @@ func deletePipeline(c fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list pipelines: %v", err)
 	}
+	entries, err := buildPipelineListEntries(context.Background(), s, defs)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list pipeline last runs: %v", err)
+	}
 	c.Type("html")
-	return partials.PipelineListTable(partials.BuildPipelineListEntries(defs)).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
 }
 
 func getPipelineYaml(c fiber.Ctx) error {
