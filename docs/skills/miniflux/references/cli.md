@@ -20,7 +20,7 @@ Flags: `--category` (`-c`) int64 — Category ID; `--url` (`-u`) string, require
 
 Display RSS entries from Flowbot server
 
-Flags: `--limit` (`-n`) int — Maximum number of entries; `--offset` int — Pagination offset; `--starred` bool — Starred entries only; `--status` (`-s`) string — Status filter (read, unread, removed)
+Flags: `--feed` (`-f`) int64 — Filter by feed ID; `--limit` (`-n`) int — Maximum number of entries; `--status` (`-s`) string — Status filter (read, unread, removed)
 
 ### Get entries for a feed
 
@@ -28,7 +28,7 @@ Flags: `--limit` (`-n`) int — Maximum number of entries; `--offset` int — Pa
 
 Display RSS entries for a specific feed
 
-Flags: `--limit` (`-n`) int — Maximum number of entries; `--offset` int — Pagination offset; `--starred` bool — Starred entries only; `--status` (`-s`) string — Status filter (read, unread, removed)
+Flags: `--limit` (`-n`) int — Maximum number of entries; `--status` (`-s`) string — Status filter (read, unread, removed)
 
 ### Get a feed by ID
 
@@ -41,20 +41,6 @@ Display details of a specific RSS feed
 `flowbot reader list`
 
 Display all RSS feeds from Flowbot server
-
-### Refresh a feed
-
-`flowbot reader refresh <id>`
-
-Trigger a refresh of a specific RSS feed
-
-### Update a feed
-
-`flowbot reader update <id> [flags]`
-
-Modify an existing RSS feed
-
-Flags: `--disable` bool — Disable the feed; `--enable` bool — Enable the feed; `--title` (`-t`) string — New title; `--url` (`-u`) string — New feed URL
 
 ### Update entries status
 

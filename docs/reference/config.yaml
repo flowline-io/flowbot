@@ -441,6 +441,7 @@ vendors:
     webhook_secret: ""
   # Memos notes (API token + inbound webhook Bearer token)
   memos:
+    # Instance origin only (e.g. http://127.0.0.1:5230); provider appends /api/v1/...
     endpoint: ""
     token: ""
     # Required for /webhook/provider/memos/events — empty rejects all deliveries

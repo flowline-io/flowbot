@@ -50,7 +50,7 @@ Display details of a specific bookmark
 
 Display bookmarks from the Flowbot server
 
-Flags: `--limit` (`-n`) int — Maximum number of bookmarks
+Flags: `--cursor` (`-c`) string — Pagination cursor; `--limit` (`-n`) int — Maximum number of bookmarks
 
 ### Search bookmarks
 
