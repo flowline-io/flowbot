@@ -324,6 +324,34 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:        string(hub.CapNocodb),
+		Title:       "NocoDB",
+		CommandFn:   command.NocodbCommand,
+		Description: "Discover NocoDB bases/tables and create, list, update, or delete records via flowbot nocodb.",
+		Keywords:    "nocodb, base, table, record, spreadsheet, database, airtable",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Discover bases and tables",
+				Description: "When a user needs to find which base or table to use:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot nocodb bases"},
+					{Step: 2, Command: "flowbot nocodb tables --base-id <base-id>"},
+					{Step: 3, Command: "flowbot nocodb table --table-id <table-id>"},
+					{Step: 4, Note: "Summarize available tables and column titles before writing records."},
+				},
+			},
+			{
+				Title:       "Read and write records",
+				Description: "When a user wants to inspect or change rows in a table:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot nocodb records list --table-id <table-id>"},
+					{Step: 2, Command: "flowbot nocodb records create --table-id <table-id> --fields '{\"Title\":\"value\"}'"},
+					{Step: 3, Note: "Use update/delete only with an explicit record-id; prefer -o json when parsing results."},
+				},
+			},
+		},
+	},
+	{
 		Name:        string(hub.CapGitea),
 		Title:       "Gitea",
 		CommandFn:   command.ForgeCommand,

@@ -450,6 +450,10 @@ vendors:
   fireflyiii:
     endpoint: "http://127.0.0.1:8283/api"
     token: ""
+  # NocoDB configuration
+  nocodb:
+    endpoint: ""
+    token: ""
   # Uptime Kuma configuration
   uptimekuma:
     endpoint: "http://127.0.0.1:8002"

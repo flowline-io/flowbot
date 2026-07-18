@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability/karakeep"
 	"github.com/flowline-io/flowbot/pkg/capability/memos"
 	"github.com/flowline-io/flowbot/pkg/capability/miniflux"
+	"github.com/flowline-io/flowbot/pkg/capability/nocodb"
 	"github.com/flowline-io/flowbot/pkg/capability/transmission"
 	"github.com/flowline-io/flowbot/pkg/capability/trilium"
 	"github.com/flowline-io/flowbot/pkg/hub"
@@ -25,6 +26,7 @@ func initCapabilityHub() error {
 		memos.Register("memos", memos.New()),
 		fireflyiii.Register("fireflyiii", fireflyiii.New()),
 		transmission.Register("transmission", transmission.New()),
+		nocodb.Register("nocodb", nocodb.New()),
 		gitea.Register("gitea", gitea.New()),
 		github.Register("github", github.New()),
 	)

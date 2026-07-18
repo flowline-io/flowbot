@@ -202,6 +202,33 @@ type Torrent struct {
 	ErrorString  string  `json:"error_string,omitzero"`
 }
 
+// NocoBase represents a NocoDB base/project.
+type NocoBase struct {
+	ID    string `json:"id"`
+	Title string `json:"title,omitzero"`
+}
+
+// NocoColumn represents a NocoDB table column.
+type NocoColumn struct {
+	ID    string `json:"id"`
+	Title string `json:"title,omitzero"`
+	Type  string `json:"type,omitzero"`
+}
+
+// NocoTable represents a NocoDB table with optional columns.
+type NocoTable struct {
+	ID      string       `json:"id"`
+	Title   string       `json:"title,omitzero"`
+	BaseID  string       `json:"base_id,omitzero"`
+	Columns []NocoColumn `json:"columns,omitzero"`
+}
+
+// NocoRecord represents a NocoDB table row.
+type NocoRecord struct {
+	ID     string         `json:"id"`
+	Fields map[string]any `json:"fields,omitzero"`
+}
+
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`

@@ -52,6 +52,7 @@ type Client struct {
 	Trilium      *TriliumClient
 	Fireflyiii   *FireflyiiiClient
 	Transmission *TransmissionClient
+	Nocodb       *NocodbClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -62,6 +63,8 @@ func NewClient(serverURL, token string) *Client {
 	rc.SetHeader("X-AccessToken", token)
 	rc.SetHeader("Content-Type", "application/json")
 	rc.SetTimeout(30 * time.Second)
+	// Some Flowbot service routes accept a JSON body on DELETE (e.g. nocodb records).
+	rc.SetMethodDeleteAllowPayload(true)
 
 	c := &Client{
 		baseURL: serverURL,
@@ -86,6 +89,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Trilium = &TriliumClient{c: c}
 	c.Fireflyiii = &FireflyiiiClient{c: c}
 	c.Transmission = &TransmissionClient{c: c}
+	c.Nocodb = &NocodbClient{c: c}
 
 	return c
 }

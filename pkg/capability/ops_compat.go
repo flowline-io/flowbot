@@ -55,6 +55,16 @@ const (
 	OpTorrentRemove = "remove"
 	OpTorrentHealth = "health"
 
+	OpNocoListBases    = "list_bases"
+	OpNocoListTables   = "list_tables"
+	OpNocoGetTable     = "get_table"
+	OpNocoListRecords  = "list_records"
+	OpNocoGetRecord    = "get_record"
+	OpNocoCreateRecord = "create_record"
+	OpNocoUpdateRecord = "update_record"
+	OpNocoDeleteRecord = "delete_record"
+	OpNocoHealth       = "health"
+
 	OpGithubGetUser           = "get_user"
 	OpGithubGetUserByLogin    = "get_user_by_login"
 	OpGithubGetRepo           = "get_repo"

@@ -939,6 +939,70 @@ func TestTransmissionRunEHandlers(t *testing.T) {
 	}
 }
 
+func TestNocodbRunEHandlers(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmd        func() *cobra.Command
+		handler    http.HandlerFunc
+		args       []string
+		wantSubstr string
+	}{
+		{
+			name: "nocodb bases success",
+			cmd:  nocodbBasesCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/nocodb/bases", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"b1","title":"Home"}]}`)))
+			},
+			wantSubstr: "Home",
+		},
+		{
+			name: "nocodb tables success",
+			cmd:  nocodbTablesCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/nocodb/bases/b1/tables", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"t1","title":"Tasks"}]}`)))
+			},
+			args:       []string{"--base-id", "b1"},
+			wantSubstr: "Tasks",
+		},
+		{
+			name: "nocodb records create success",
+			cmd:  nocodbRecordsCreateCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				assert.Equal(t, "/service/nocodb/tables/t1/records", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"9","fields":{"Name":"Alice"}}}`)))
+			},
+			args:       []string{"--table-id", "t1", "--fields", `{"Name":"Alice"}`},
+			wantSubstr: "Record created: 9",
+		},
+		{
+			name: "nocodb health healthy",
+			cmd:  nocodbHealthCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/nocodb/health", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":true}`)))
+			},
+			wantSubstr: "NocoDB backend is healthy",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.handler != nil {
+				setupMockCLI(t, tt.handler)
+			}
+			cmd := tt.cmd()
+			out := runCommand(t, cmd, tt.args...)
+			assert.Contains(t, out, tt.wantSubstr)
+		})
+	}
+}
+
 func TestHubRunEHandlers(t *testing.T) {
 	tests := []struct {
 		name       string

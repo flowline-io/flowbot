@@ -64,6 +64,7 @@ func TestNewClient(t *testing.T) {
 			assert.NotNil(t, c.Trilium)
 			assert.NotNil(t, c.Fireflyiii)
 			assert.NotNil(t, c.Transmission)
+			assert.NotNil(t, c.Nocodb)
 		})
 	}
 }

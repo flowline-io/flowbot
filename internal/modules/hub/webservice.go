@@ -1184,6 +1184,151 @@ func invokeTransmission(ctx fiber.Ctx, operation string, params map[string]any) 
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
+// --- NocoDB routes (registered under /service/nocodb) ---
+
+var nocodbWebserviceRules = []webservice.Rule{
+	webservice.Get("/bases", listNocodbBases),
+	webservice.Get("/bases/:baseId/tables", listNocodbTables),
+	webservice.Get("/tables/:tableId", getNocodbTable),
+	webservice.Get("/tables/:tableId/records", listNocodbRecords),
+	webservice.Get("/tables/:tableId/records/:recordId", getNocodbRecord),
+	webservice.Post("/tables/:tableId/records", createNocodbRecord),
+	webservice.Patch("/tables/:tableId/records", updateNocodbRecord),
+	webservice.Delete("/tables/:tableId/records", deleteNocodbRecord),
+	webservice.Get("/health", nocodbHealth),
+}
+
+func listNocodbBases(ctx fiber.Ctx) error {
+	return invokeNocodb(ctx, capability.OpNocoListBases, map[string]any{})
+}
+
+func listNocodbTables(ctx fiber.Ctx) error {
+	baseID := ctx.Params("baseId")
+	if baseID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "base_id is required")
+	}
+	return invokeNocodb(ctx, capability.OpNocoListTables, map[string]any{"base_id": baseID})
+}
+
+func getNocodbTable(ctx fiber.Ctx) error {
+	tableID := ctx.Params("tableId")
+	if tableID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "table_id is required")
+	}
+	return invokeNocodb(ctx, capability.OpNocoGetTable, map[string]any{"table_id": tableID})
+}
+
+func listNocodbRecords(ctx fiber.Ctx) error {
+	tableID := ctx.Params("tableId")
+	if tableID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "table_id is required")
+	}
+	params := map[string]any{"table_id": tableID}
+	if v := ctx.Query("limit"); v != "" {
+		params["limit"] = v
+	}
+	if v := ctx.Query("offset"); v != "" {
+		params["offset"] = v
+	}
+	if v := ctx.Query("where"); v != "" {
+		params["where"] = v
+	}
+	if v := ctx.Query("sort"); v != "" {
+		params["sort"] = v
+	}
+	if v := ctx.Query("fields"); v != "" {
+		params["fields"] = v
+	}
+	return invokeNocodb(ctx, capability.OpNocoListRecords, params)
+}
+
+func getNocodbRecord(ctx fiber.Ctx) error {
+	tableID := ctx.Params("tableId")
+	recordID := ctx.Params("recordId")
+	if tableID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "table_id is required")
+	}
+	if recordID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "record_id is required")
+	}
+	return invokeNocodb(ctx, capability.OpNocoGetRecord, map[string]any{
+		"table_id": tableID, "record_id": recordID,
+	})
+}
+
+func createNocodbRecord(ctx fiber.Ctx) error {
+	tableID := ctx.Params("tableId")
+	if tableID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "table_id is required")
+	}
+	var body struct {
+		Fields map[string]any `json:"fields"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode nocodb create request", err)
+	}
+	if len(body.Fields) == 0 {
+		return types.Errorf(types.ErrInvalidArgument, "fields are required")
+	}
+	return invokeNocodb(ctx, capability.OpNocoCreateRecord, map[string]any{
+		"table_id": tableID, "fields": body.Fields,
+	})
+}
+
+func updateNocodbRecord(ctx fiber.Ctx) error {
+	tableID := ctx.Params("tableId")
+	if tableID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "table_id is required")
+	}
+	var body struct {
+		ID     string         `json:"id"`
+		Fields map[string]any `json:"fields"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode nocodb update request", err)
+	}
+	if body.ID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	if len(body.Fields) == 0 {
+		return types.Errorf(types.ErrInvalidArgument, "fields are required")
+	}
+	return invokeNocodb(ctx, capability.OpNocoUpdateRecord, map[string]any{
+		"table_id": tableID, "record_id": body.ID, "fields": body.Fields,
+	})
+}
+
+func deleteNocodbRecord(ctx fiber.Ctx) error {
+	tableID := ctx.Params("tableId")
+	if tableID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "table_id is required")
+	}
+	var body struct {
+		ID string `json:"id"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode nocodb delete request", err)
+	}
+	if body.ID == "" {
+		return types.Errorf(types.ErrInvalidArgument, "id is required")
+	}
+	return invokeNocodb(ctx, capability.OpNocoDeleteRecord, map[string]any{
+		"table_id": tableID, "record_id": body.ID,
+	})
+}
+
+func nocodbHealth(ctx fiber.Ctx) error {
+	return invokeNocodb(ctx, capability.OpNocoHealth, map[string]any{})
+}
+
+func invokeNocodb(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapNocodb, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
 // --- Miniflux routes (registered under /service/miniflux) ---
 
 type createFeedRequest struct {
