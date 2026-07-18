@@ -115,6 +115,24 @@ func TestMarkdownToSafeHTML(t *testing.T) {
 			wantSubstr: []string{"x"},
 			wantAbsent: []string{"javascript:", "alert(1)"},
 		},
+		{
+			name:       "external markdown link opens in new tab",
+			source:     "[docs](https://example.com/path)\n",
+			wantSubstr: []string{`href="https://example.com/path"`, `target="_blank"`, `noopener`},
+			wantAbsent: []string{"javascript:"},
+		},
+		{
+			name:       "autolink opens in new tab",
+			source:     "Visit https://example.com now.\n",
+			wantSubstr: []string{`href="https://example.com"`, `target="_blank"`, `noopener`},
+			wantAbsent: []string{"javascript:"},
+		},
+		{
+			name:       "relative link stays same tab",
+			source:     "[local](/service/web/agents)\n",
+			wantSubstr: []string{`href="/service/web/agents"`},
+			wantAbsent: []string{`target="_blank"`},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

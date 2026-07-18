@@ -54,6 +54,9 @@ func MarkdownToHTML(source []byte) ([]byte, error) {
 func MarkdownSanitizePolicy() *bluemonday.Policy {
 	markdownSanitizeOnce.Do(func() {
 		p := bluemonday.UGCPolicy()
+		// External http(s) links open in a new tab; bluemonday also injects rel=noopener.
+		p.AllowAttrs("target").Matching(regexp.MustCompile(`^_blank$`)).OnElements("a")
+		p.AddTargetBlankToFullyQualifiedLinks(true)
 		p.AllowElements(
 			"math", "semantics", "mrow", "msup", "msub", "msubsup", "mfrac", "msqrt", "mroot",
 			"mi", "mn", "mo", "mtext", "mspace", "mstyle", "annotation", "mpadded", "mphantom",

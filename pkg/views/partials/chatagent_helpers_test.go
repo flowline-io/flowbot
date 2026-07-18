@@ -203,6 +203,11 @@ func TestRenderChatAgentMarkdownHTML(t *testing.T) {
 			wantSubstr: []string{"chatagent-md-table-wrap", "katex", "katex-html"},
 			wantAbsent: []string{"$10^0 = 1$"},
 		},
+		{
+			name:       "external link opens in new tab",
+			text:       "See [site](https://example.com) for details.",
+			wantSubstr: []string{`href="https://example.com"`, `target="_blank"`, `noopener`},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
