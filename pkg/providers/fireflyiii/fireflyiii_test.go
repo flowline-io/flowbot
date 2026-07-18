@@ -107,7 +107,10 @@ func TestFireflyIII_CurrentUser(t *testing.T) {
 		result, err := client.CurrentUser()
 
 		require.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NotNil(t, result)
+		assert.Equal(t, "1", result.Id)
+		assert.Equal(t, "user@example.com", result.Attributes.Email)
+		assert.Equal(t, "owner", result.Attributes.Role)
 	})
 }
 
@@ -265,10 +268,26 @@ func TestConvertResponseData(t *testing.T) {
 
 func TestNewFireflyIII(t *testing.T) {
 	t.Parallel()
-	t.Run("constructor creates client", func(t *testing.T) {
-		t.Parallel()
-		client := NewFireflyIII("https://firefly.example.com", "my-token")
-		assert.NotNil(t, client)
-		assert.NotNil(t, client.c)
-	})
+	tests := []struct {
+		name     string
+		endpoint string
+		token    string
+		wantNil  bool
+	}{
+		{name: "constructor creates client", endpoint: "https://firefly.example.com", token: "my-token"},
+		{name: "empty endpoint returns nil", endpoint: "", token: "my-token", wantNil: true},
+		{name: "endpoint with empty token", endpoint: "https://firefly.example.com", token: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			client := NewFireflyIII(tt.endpoint, tt.token)
+			if tt.wantNil {
+				assert.Nil(t, client)
+				return
+			}
+			require.NotNil(t, client)
+			assert.NotNil(t, client.c)
+		})
+	}
 }

@@ -13,7 +13,7 @@ capability/
 │   ├── service.go, ops.go, register.go
 │   ├── adapter.go, webhook.go, poller.go
 │   └── *_test.go
-├── karakeep/, miniflux/, kanboard/, trilium/, memos/, gitea/, github/
+├── karakeep/, miniflux/, kanboard/, trilium/, memos/, fireflyiii/, gitea/, github/
 ├── notify/, agent/                # Internal capabilities (no provider)
 └── conformance/
 ```

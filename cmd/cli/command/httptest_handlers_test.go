@@ -789,6 +789,81 @@ func TestTriliumUpdateAndContentRunE(t *testing.T) {
 	}
 }
 
+func TestFireflyiiiRunEHandlers(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmd        func() *cobra.Command
+		handler    http.HandlerFunc
+		args       []string
+		wantSubstr string
+		wantErr    bool
+	}{
+		{
+			name: "fireflyiii create success",
+			cmd:  fireflyiiiCreateCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				assert.Equal(t, "/service/fireflyiii/transactions", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"42","description":"Food","amount":"10.00"}}`)))
+			},
+			args: []string{
+				"--type", "withdrawal",
+				"--date", "2026-07-18",
+				"--amount", "10.00",
+				"--description", "Food",
+				"--source-name", "Cash",
+				"--destination-name", "Store",
+			},
+			wantSubstr: "Transaction created: 42",
+		},
+		{
+			name: "fireflyiii about success",
+			cmd:  fireflyiiiAboutCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/fireflyiii/about", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"version":"6.0.0","os":"Linux"}}`)))
+			},
+			wantSubstr: "Version:     6.0.0",
+		},
+		{
+			name: "fireflyiii user success",
+			cmd:  fireflyiiiUserCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/fireflyiii/user", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"1","email":"a@b.c","role":"owner"}}`)))
+			},
+			wantSubstr: "Email: a@b.c",
+		},
+		{
+			name: "fireflyiii health healthy",
+			cmd:  fireflyiiiHealthCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/fireflyiii/health", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":true}`)))
+			},
+			wantSubstr: "Firefly III backend is healthy",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.handler != nil {
+				setupMockCLI(t, tt.handler)
+			}
+			cmd := tt.cmd()
+			if tt.wantErr {
+				runCommandExpectError(t, cmd, "required", tt.args...)
+				return
+			}
+			out := runCommand(t, cmd, tt.args...)
+			assert.Contains(t, out, tt.wantSubstr)
+		})
+	}
+}
+
 func TestHubRunEHandlers(t *testing.T) {
 	tests := []struct {
 		name       string

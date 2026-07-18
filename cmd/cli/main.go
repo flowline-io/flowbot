@@ -40,6 +40,7 @@ func main() {
 		command.GithubCommand(),
 		command.MemoCommand(),
 		command.TriliumCommand(),
+		command.FireflyiiiCommand(),
 		command.ConfigCommand(),
 		command.VersionCommand(version.Buildtags),
 	)

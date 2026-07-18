@@ -20,6 +20,7 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 		{name: "miniflux", dir: "miniflux"},
 		{name: "memos", dir: "memos"},
 		{name: "trilium", dir: "trilium"},
+		{name: "fireflyiii", dir: "fireflyiii"},
 		{name: "gitea", dir: "gitea"},
 		{name: "github", dir: "github"},
 	}

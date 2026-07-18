@@ -1036,6 +1036,83 @@ func invokeMemo(ctx fiber.Ctx, operation string, params map[string]any) error {
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
+// --- Firefly III routes (registered under /service/fireflyiii) ---
+
+var fireflyiiiWebserviceRules = []webservice.Rule{
+	webservice.Post("/transactions", createFireflyTransaction),
+	webservice.Get("/about", getFireflyAbout),
+	webservice.Get("/user", getFireflyCurrentUser),
+	webservice.Get("/health", fireflyHealth),
+}
+
+func createFireflyTransaction(ctx fiber.Ctx) error {
+	var body struct {
+		Type            string `json:"type"`
+		Date            string `json:"date"`
+		Amount          string `json:"amount"`
+		Description     string `json:"description"`
+		SourceID        string `json:"source_id"`
+		SourceName      string `json:"source_name"`
+		DestinationID   string `json:"destination_id"`
+		DestinationName string `json:"destination_name"`
+		CategoryName    string `json:"category_name"`
+		Notes           string `json:"notes"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode fireflyiii transaction request", err)
+	}
+	if body.Type == "" {
+		return types.Errorf(types.ErrInvalidArgument, "type is required")
+	}
+	if body.Date == "" {
+		return types.Errorf(types.ErrInvalidArgument, "date is required")
+	}
+	if body.Amount == "" {
+		return types.Errorf(types.ErrInvalidArgument, "amount is required")
+	}
+	if body.Description == "" {
+		return types.Errorf(types.ErrInvalidArgument, "description is required")
+	}
+	if body.SourceID == "" && body.SourceName == "" {
+		return types.Errorf(types.ErrInvalidArgument, "source_id or source_name is required")
+	}
+	if body.DestinationID == "" && body.DestinationName == "" {
+		return types.Errorf(types.ErrInvalidArgument, "destination_id or destination_name is required")
+	}
+	return invokeFireflyiii(ctx, capability.OpFinanceCreateTransaction, map[string]any{
+		"type":             body.Type,
+		"date":             body.Date,
+		"amount":           body.Amount,
+		"description":      body.Description,
+		"source_id":        body.SourceID,
+		"source_name":      body.SourceName,
+		"destination_id":   body.DestinationID,
+		"destination_name": body.DestinationName,
+		"category_name":    body.CategoryName,
+		"notes":            body.Notes,
+	})
+}
+
+func getFireflyAbout(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceAbout, map[string]any{})
+}
+
+func getFireflyCurrentUser(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceCurrentUser, map[string]any{})
+}
+
+func fireflyHealth(ctx fiber.Ctx) error {
+	return invokeFireflyiii(ctx, capability.OpFinanceHealth, map[string]any{})
+}
+
+func invokeFireflyiii(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapFireflyiii, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
 // --- Miniflux routes (registered under /service/miniflux) ---
 
 type createFeedRequest struct {

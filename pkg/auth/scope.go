@@ -23,22 +23,24 @@ const (
 	ScopeHubCapabilitiesRead = "hub:capabilities:read"
 	ScopeHubHealthRead       = "hub:health:read"
 
-	ScopeServiceKarakeepRead  = "service:karakeep:read"
-	ScopeServiceKarakeepWrite = "service:karakeep:write"
-	ScopeServiceMinifluxRead  = "service:miniflux:read"
-	ScopeServiceMinifluxWrite = "service:miniflux:write"
-	ScopeServiceKanboardRead  = "service:kanboard:read"
-	ScopeServiceKanboardWrite = "service:kanboard:write"
-	ScopeServiceTriliumRead   = "service:trilium:read"
-	ScopeServiceTriliumWrite  = "service:trilium:write"
-	ScopeServiceMemosRead     = "service:memos:read"
-	ScopeServiceMemosWrite    = "service:memos:write"
-	ScopeServiceGiteaRead     = "service:gitea:read"
-	ScopeServiceGiteaWrite    = "service:gitea:write"
-	ScopeServiceGithubRead    = "service:github:read"
-	ScopeServiceGithubWrite   = "service:github:write"
-	ScopeServiceExampleRead   = "service:example:read"
-	ScopeServiceExampleWrite  = "service:example:write"
+	ScopeServiceKarakeepRead    = "service:karakeep:read"
+	ScopeServiceKarakeepWrite   = "service:karakeep:write"
+	ScopeServiceMinifluxRead    = "service:miniflux:read"
+	ScopeServiceMinifluxWrite   = "service:miniflux:write"
+	ScopeServiceKanboardRead    = "service:kanboard:read"
+	ScopeServiceKanboardWrite   = "service:kanboard:write"
+	ScopeServiceTriliumRead     = "service:trilium:read"
+	ScopeServiceTriliumWrite    = "service:trilium:write"
+	ScopeServiceMemosRead       = "service:memos:read"
+	ScopeServiceMemosWrite      = "service:memos:write"
+	ScopeServiceFireflyiiiRead  = "service:fireflyiii:read"
+	ScopeServiceFireflyiiiWrite = "service:fireflyiii:write"
+	ScopeServiceGiteaRead       = "service:gitea:read"
+	ScopeServiceGiteaWrite      = "service:gitea:write"
+	ScopeServiceGithubRead      = "service:github:read"
+	ScopeServiceGithubWrite     = "service:github:write"
+	ScopeServiceExampleRead     = "service:example:read"
+	ScopeServiceExampleWrite    = "service:example:write"
 
 	// Legacy Go constant aliases (same string as provider scopes). Prefer provider-scoped constants.
 	ScopeServiceBookmarkRead  = ScopeServiceKarakeepRead
@@ -197,6 +199,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceTriliumWrite, Description: "write trilium"},
 		{Value: ScopeServiceMemosRead, Description: "read memos"},
 		{Value: ScopeServiceMemosWrite, Description: "write memos"},
+		{Value: ScopeServiceFireflyiiiRead, Description: "read fireflyiii"},
+		{Value: ScopeServiceFireflyiiiWrite, Description: "write fireflyiii"},
 		{Value: ScopeServiceGiteaRead, Description: "read gitea"},
 		{Value: ScopeServiceGiteaWrite, Description: "write gitea"},
 		{Value: ScopeServiceGithubRead, Description: "read github"},

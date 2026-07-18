@@ -158,6 +158,37 @@ type Note struct {
 	UtcDateCreated  string   `json:"utc_date_created,omitzero"`
 	UtcDateModified string   `json:"utc_date_modified,omitzero"`
 }
+
+// Transaction represents a finance transaction from Firefly III.
+type Transaction struct {
+	ID              string `json:"id"`
+	Type            string `json:"type,omitzero"`
+	Amount          string `json:"amount,omitzero"`
+	Description     string `json:"description,omitzero"`
+	Date            string `json:"date,omitzero"`
+	CurrencyCode    string `json:"currency_code,omitzero"`
+	SourceName      string `json:"source_name,omitzero"`
+	DestinationName string `json:"destination_name,omitzero"`
+	CategoryName    string `json:"category_name,omitzero"`
+	Notes           string `json:"notes,omitzero"`
+}
+
+// FinanceAbout holds Firefly III instance metadata.
+type FinanceAbout struct {
+	Version    string `json:"version"`
+	APIVersion string `json:"api_version,omitzero"`
+	PHPVersion string `json:"php_version,omitzero"`
+	OS         string `json:"os,omitzero"`
+	Driver     string `json:"driver,omitzero"`
+}
+
+// FinanceUser holds the authenticated Firefly III user.
+type FinanceUser struct {
+	ID    string `json:"id"`
+	Email string `json:"email,omitzero"`
+	Role  string `json:"role,omitzero"`
+}
+
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`

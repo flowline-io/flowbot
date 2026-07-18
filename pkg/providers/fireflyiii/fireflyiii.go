@@ -24,11 +24,18 @@ type FireflyIII struct {
 func GetClient() *FireflyIII {
 	endpoint, _ := providers.GetConfig(ID, EndpointKey)
 	tokenKey, _ := providers.GetConfig(ID, TokenKey)
-
+	if endpoint.String() == "" {
+		return nil
+	}
 	return NewFireflyIII(endpoint.String(), tokenKey.String())
 }
 
+// NewFireflyIII creates a Firefly III client with the given endpoint and token.
+// If endpoint is empty, it returns nil.
 func NewFireflyIII(endpoint, token string) *FireflyIII {
+	if endpoint == "" {
+		return nil
+	}
 	v := &FireflyIII{}
 
 	v.c = utils.DefaultRestyClient()
@@ -53,8 +60,8 @@ func (i *FireflyIII) About() (*About, error) {
 	return ConvertResponseData[About](result, resp.StatusCode())
 }
 
-// CurrentUser Returns the currently authenticated user.
-func (i *FireflyIII) CurrentUser() (*About, error) {
+// CurrentUser returns the currently authenticated user.
+func (i *FireflyIII) CurrentUser() (*User, error) {
 	resp, err := i.c.R().
 		SetResult(&Response{}).
 		Get("/v1/about/user")
@@ -66,7 +73,7 @@ func (i *FireflyIII) CurrentUser() (*About, error) {
 	if !ok {
 		return nil, fmt.Errorf("unexpected response type from fireflyiii")
 	}
-	return ConvertResponseData[About](result, resp.StatusCode())
+	return ConvertResponseData[User](result, resp.StatusCode())
 }
 
 // CreateTransaction Creates a new transaction.

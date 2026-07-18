@@ -146,20 +146,20 @@ type TransactionRecord struct {
 	Date              string `json:"date"`
 	Amount            string `json:"amount"`
 	Description       string `json:"description"`
-	SourceId          string `json:"source_id"`
-	SourceName        string `json:"source_name"`
-	DestinationId     int    `json:"destination_id"`
-	DestinationName   string `json:"destination_name"`
-	CategoryName      string `json:"category_name"`
-	InterestDate      string `json:"interest_date"`
-	BookDate          string `json:"book_date"`
-	ProcessDate       string `json:"process_date"`
-	DueDate           string `json:"due_date"`
-	PaymentDate       string `json:"payment_date"`
-	InvoiceDate       string `json:"invoice_date"`
-	InternalReference string `json:"internal_reference"`
-	Notes             string `json:"notes"`
-	ExternalUrl       string `json:"external_url"`
+	SourceId          string `json:"source_id,omitempty"`
+	SourceName        string `json:"source_name,omitempty"`
+	DestinationId     string `json:"destination_id,omitempty"`
+	DestinationName   string `json:"destination_name,omitempty"`
+	CategoryName      string `json:"category_name,omitempty"`
+	InterestDate      string `json:"interest_date,omitempty"`
+	BookDate          string `json:"book_date,omitempty"`
+	ProcessDate       string `json:"process_date,omitempty"`
+	DueDate           string `json:"due_date,omitempty"`
+	PaymentDate       string `json:"payment_date,omitempty"`
+	InvoiceDate       string `json:"invoice_date,omitempty"`
+	InternalReference string `json:"internal_reference,omitempty"`
+	Notes             string `json:"notes,omitempty"`
+	ExternalUrl       string `json:"external_url,omitempty"`
 }
 
 type TransactionType string

@@ -77,7 +77,7 @@ Provider-backed capabilities use the provider ID as the capability name. Domain 
 | **notify**   | Internal          | Multi-channel dispatch (Slack, Pushover, ntfy, …)  |
 | **agent**    | Internal          | Chat / Cloud Agent loop (`pkg/agent/`)             |
 
-Providers without a capability package yet (discovery / client only): archivebox, fireflyiii, adguard, uptimekuma, drone, dropbox, email, n8n, slash, transmission, slack (OAuth).
+Providers without a capability package yet (discovery / client only): archivebox, adguard, uptimekuma, drone, dropbox, email, n8n, slash, transmission, slack (OAuth).
 
 All capabilities share the same invocation pattern:
 

@@ -272,6 +272,32 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:        string(hub.CapFireflyiii),
+		Title:       "Firefly III",
+		CommandFn:   command.FireflyiiiCommand,
+		Description: "Create Firefly III transactions and inspect instance health via flowbot fireflyiii.",
+		Keywords:    "fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Record an expense",
+				Description: "When a user wants to log a withdrawal or purchase:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot fireflyiii create -t withdrawal --date <YYYY-MM-DD> -a <amount> -m \"<description>\" --source-name \"<account>\" --destination-name \"<payee>\""},
+					{Step: 2, Note: "Report back with the transaction ID. Source and destination must each use --*-id or --*-name."},
+				},
+			},
+			{
+				Title:       "Check Firefly III connectivity",
+				Description: "When verifying the finance backend:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot fireflyiii health"},
+					{Step: 2, Command: "flowbot fireflyiii about"},
+					{Step: 3, Note: "Summarize version and health status."},
+				},
+			},
+		},
+	},
+	{
 		Name:        string(hub.CapGitea),
 		Title:       "Gitea",
 		CommandFn:   command.ForgeCommand,

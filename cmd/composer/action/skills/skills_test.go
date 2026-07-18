@@ -491,6 +491,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 		{name: "miniflux", skill: "miniflux", wantCap: string(hub.CapMiniflux), wantTitle: "Miniflux", wantCLI: "reader"},
 		{name: "memos", skill: "memos", wantCap: string(hub.CapMemos), wantTitle: "Memos", wantCLI: "memo"},
 		{name: "trilium", skill: "trilium", wantCap: string(hub.CapTrilium), wantTitle: "Trilium", wantCLI: "trilium"},
+		{name: "fireflyiii", skill: "fireflyiii", wantCap: string(hub.CapFireflyiii), wantTitle: "Firefly III", wantCLI: "fireflyiii"},
 		{name: "gitea", skill: "gitea", wantCap: string(hub.CapGitea), wantTitle: "Gitea", wantCLI: "forge"},
 		{name: "github", skill: "github", wantCap: string(hub.CapGithub), wantTitle: "GitHub", wantCLI: "github"},
 	}
@@ -516,16 +517,17 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 	t.Run("every metaSpec name is a known capability id", func(t *testing.T) {
 		t.Parallel()
 		known := map[string]struct{}{
-			string(hub.CapKarakeep): {},
-			string(hub.CapKanboard): {},
-			string(hub.CapMiniflux): {},
-			string(hub.CapMemos):    {},
-			string(hub.CapGitea):    {},
-			string(hub.CapGithub):   {},
-			string(hub.CapTrilium):  {},
-			string(hub.CapNotify):   {},
-			string(hub.CapAgent):    {},
-			string(hub.CapExample):  {},
+			string(hub.CapKarakeep):   {},
+			string(hub.CapKanboard):   {},
+			string(hub.CapMiniflux):   {},
+			string(hub.CapMemos):      {},
+			string(hub.CapFireflyiii): {},
+			string(hub.CapGitea):      {},
+			string(hub.CapGithub):     {},
+			string(hub.CapTrilium):    {},
+			string(hub.CapNotify):     {},
+			string(hub.CapAgent):      {},
+			string(hub.CapExample):    {},
 		}
 		for _, m := range metaSpecs {
 			_, ok := known[m.Name]

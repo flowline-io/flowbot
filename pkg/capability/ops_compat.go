@@ -45,6 +45,9 @@ const (
 	OpKanbanSearchTasks  = "search_tasks"
 
 	OpFinanceCreateTransaction = "create_transaction"
+	OpFinanceAbout             = "about"
+	OpFinanceCurrentUser       = "current_user"
+	OpFinanceHealth            = "health"
 
 	OpGithubGetUser           = "get_user"
 	OpGithubGetUserByLogin    = "get_user_by_login"

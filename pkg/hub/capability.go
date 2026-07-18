@@ -5,16 +5,17 @@ package hub
 type CapabilityType string
 
 const (
-	CapKarakeep CapabilityType = "karakeep"
-	CapMiniflux CapabilityType = "miniflux"
-	CapKanboard CapabilityType = "kanboard"
-	CapTrilium  CapabilityType = "trilium"
-	CapMemos    CapabilityType = "memos"
-	CapGitea    CapabilityType = "gitea"
-	CapGithub   CapabilityType = "github"
-	CapExample  CapabilityType = "example"
-	CapNotify   CapabilityType = "notify"
-	CapAgent    CapabilityType = "agent"
+	CapKarakeep   CapabilityType = "karakeep"
+	CapMiniflux   CapabilityType = "miniflux"
+	CapKanboard   CapabilityType = "kanboard"
+	CapTrilium    CapabilityType = "trilium"
+	CapMemos      CapabilityType = "memos"
+	CapFireflyiii CapabilityType = "fireflyiii"
+	CapGitea      CapabilityType = "gitea"
+	CapGithub     CapabilityType = "github"
+	CapExample    CapabilityType = "example"
+	CapNotify     CapabilityType = "notify"
+	CapAgent      CapabilityType = "agent"
 )
 
 // EventDef describes an event that a capability emits.

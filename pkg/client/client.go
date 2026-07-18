@@ -36,20 +36,21 @@ type Client struct {
 	debugErrorHookSet bool
 
 	// Resource clients
-	Kanban   *KanbanClient
-	Bookmark *BookmarkClient
-	Reader   *ReaderClient
-	User     *UserClient
-	Search   *SearchClient
-	Dev      *DevClient
-	Server   *ServerClient
-	Hub      *HubClient
-	Pipeline *PipelineClient
-	Workflow *WorkflowClient
-	Forge    *ForgeClient
-	Github   *GithubClient
-	Memo     *MemoClient
-	Trilium  *TriliumClient
+	Kanban     *KanbanClient
+	Bookmark   *BookmarkClient
+	Reader     *ReaderClient
+	User       *UserClient
+	Search     *SearchClient
+	Dev        *DevClient
+	Server     *ServerClient
+	Hub        *HubClient
+	Pipeline   *PipelineClient
+	Workflow   *WorkflowClient
+	Forge      *ForgeClient
+	Github     *GithubClient
+	Memo       *MemoClient
+	Trilium    *TriliumClient
+	Fireflyiii *FireflyiiiClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -82,6 +83,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Github = &GithubClient{c: c}
 	c.Memo = &MemoClient{c: c}
 	c.Trilium = &TriliumClient{c: c}
+	c.Fireflyiii = &FireflyiiiClient{c: c}
 
 	return c
 }

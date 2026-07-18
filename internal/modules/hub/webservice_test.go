@@ -176,6 +176,50 @@ func TestNoteWebserviceRules_Structure(t *testing.T) {
 	}
 }
 
+func TestFireflyiiiWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, fireflyiiiWebserviceRules)
+			},
+		},
+		{
+			name: "should contain finance endpoints",
+			test: func(t *testing.T) {
+				t.Parallel()
+				paths := make(map[string]bool)
+				for _, r := range fireflyiiiWebserviceRules {
+					paths[r.Path] = true
+				}
+				for _, expected := range []string{
+					"/transactions",
+					"/about",
+					"/user",
+					"/health",
+				} {
+					assert.True(t, paths[expected], "expected path %q in fireflyiii webservice rules", expected)
+				}
+			},
+		},
+		{
+			name: "rules length is four",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.Len(t, fireflyiiiWebserviceRules, 4)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
 func TestForgeGetRepo_Validation(t *testing.T) {
 	tests := []struct {
 		name       string

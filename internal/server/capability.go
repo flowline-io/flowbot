@@ -4,6 +4,7 @@ package server
 import (
 	"errors"
 
+	"github.com/flowline-io/flowbot/pkg/capability/fireflyiii"
 	"github.com/flowline-io/flowbot/pkg/capability/gitea"
 	"github.com/flowline-io/flowbot/pkg/capability/github"
 	"github.com/flowline-io/flowbot/pkg/capability/kanboard"
@@ -21,6 +22,7 @@ func initCapabilityHub() error {
 		kanboard.Register("kanboard", kanboard.New()),
 		trilium.Register("trilium", trilium.New()),
 		memos.Register("memos", memos.New()),
+		fireflyiii.Register("fireflyiii", fireflyiii.New()),
 		gitea.Register("gitea", gitea.New()),
 		github.Register("github", github.New()),
 	)
