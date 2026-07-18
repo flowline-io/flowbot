@@ -84,7 +84,23 @@ templ PipelineEditorPage(name string) {
 			<div x-show="!loading && errors.length > 0"
 				class="alert alert-error mb-4 text-sm"
 				data-testid="error-summary">
-				<span x-text="errors.length"></span> node(s) contain errors. Publish is disabled.
+				<div>
+					<p class="font-medium">
+						<span x-text="errors.length"></span> error(s). Publish is disabled.
+					</p>
+					<ul class="mt-2 list-disc list-inside space-y-1">
+						<template x-for="(err, errIdx) in errors" :key="errIdx">
+							<li>
+								<button type="button"
+									class="text-left underline-offset-2 hover:underline"
+									:class="err.node.index >= 0 ? 'cursor-pointer' : 'cursor-default'"
+									@click="focusError(err)"
+									data-testid="error-summary-item"
+									x-text="formatErrorMessage(err)"></button>
+							</li>
+						</template>
+					</ul>
+				</div>
 			</div>
 
 			<!-- Code View -->
@@ -97,8 +113,14 @@ templ PipelineEditorPage(name string) {
 			<!-- Visual View -->
 			<div x-show="!loading && !codeView">
 				<!-- Trigger Zone -->
-				<div class="border-2 border-dashed border-primary/30 bg-primary/5 rounded-box p-4 mb-6" data-testid="trigger-zone">
+				<div class="border-2 border-dashed bg-primary/5 rounded-box p-4 mb-6"
+					:class="hasTriggerZoneError() ? 'border-error' : 'border-primary/30'"
+					data-testid="trigger-zone">
 					<h3 class="text-sm font-medium text-primary mb-3">Trigger Conditions (any enabled trigger starts the pipeline)</h3>
+					<p x-show="hasTriggerZoneError()"
+						class="text-xs text-error mb-3"
+						data-testid="trigger-zone-error"
+						x-text="getTriggerZoneErrorMessage()"></p>
 					<template x-for="(t, idx) in triggers" :key="idx">
 						<div>
 						<div x-show="idx > 0" class="text-center text-xs text-base-content/30 my-3">- OR -</div>

@@ -1202,7 +1202,9 @@
 
       getTriggerErrorClass(idx) {
         return this.errors.some(
-          (e) => e.node.type === 'trigger' && e.node.index === idx,
+          (e) =>
+            e.node.type === 'trigger' &&
+            (e.node.index === idx || e.node.index === -1),
         )
           ? 'border-red-400'
           : '';
@@ -1213,6 +1215,52 @@
         )
           ? 'border-red-400'
           : '';
+      },
+
+      getNodeErrorMessages(type, idx) {
+        return this.errors
+          .filter((e) => e.node.type === type && e.node.index === idx)
+          .map((e) => e.message);
+      },
+
+      hasTriggerZoneError() {
+        return this.errors.some(
+          (e) => e.node.type === 'trigger' && e.node.index === -1,
+        );
+      },
+
+      getTriggerZoneErrorMessage() {
+        const err = this.errors.find(
+          (e) => e.node.type === 'trigger' && e.node.index === -1,
+        );
+        return err ? err.message : '';
+      },
+
+      formatErrorMessage(err) {
+        const { type, index } = err.node;
+        if (index < 0) {
+          return err.message;
+        }
+        if (type === 'step') {
+          const name = this.steps[index]?.name || 'Step ' + (index + 1);
+          return name + ': ' + err.message;
+        }
+        if (type === 'trigger') {
+          return 'Trigger ' + (index + 1) + ': ' + err.message;
+        }
+        return err.message;
+      },
+
+      focusError(err) {
+        if (!err?.node || err.node.index < 0) {
+          return;
+        }
+        this.selectNode(err.node.type, err.node.index);
+      },
+
+      onTriggerEnabledChange() {
+        this.markDirty();
+        this.validate();
       },
 
       toggleCodeView() {
