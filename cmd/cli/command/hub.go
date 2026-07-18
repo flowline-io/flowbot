@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
@@ -56,23 +55,17 @@ func hubAppsListCommand() *cobra.Command {
 			}
 
 			if len(apps) == 0 {
-				_, _ = fmt.Println("No apps registered")
-				return nil
+				return PrintEmptyList(cmd, "No apps registered")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(apps, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal apps: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-24s %-12s %-12s\n", "NAME", "STATUS", "HEALTH")
-				_, _ = fmt.Printf("%s\n", strings.Repeat("-", 50))
-				for _, a := range apps {
-					_, _ = fmt.Printf("%-24s %-12s %-12s\n", a.Name, a.Status, a.Health)
-				}
+				return PrintJSON(apps)
+			}
+			_, _ = fmt.Printf("%-24s %-12s %-12s\n", "NAME", "STATUS", "HEALTH")
+			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 50))
+			for _, a := range apps {
+				_, _ = fmt.Printf("%-24s %-12s %-12s\n", a.Name, a.Status, a.Health)
 			}
 
 			return nil
@@ -105,15 +98,10 @@ func hubAppsStatusCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(status, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal status: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("App:    %s\n", status.Name)
-				_, _ = fmt.Printf("Status: %s\n", status.Status)
+				return PrintJSON(status)
 			}
+			_, _ = fmt.Printf("App:    %s\n", status.Name)
+			_, _ = fmt.Printf("Status: %s\n", status.Status)
 
 			return nil
 		},
@@ -199,27 +187,21 @@ func hubCapabilitiesCommand() *cobra.Command {
 			}
 
 			if len(caps) == 0 {
-				_, _ = fmt.Println("No capabilities registered")
-				return nil
+				return PrintEmptyList(cmd, "No capabilities registered")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(caps, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal capabilities: %w", err)
+				return PrintJSON(caps)
+			}
+			_, _ = fmt.Printf("%-18s %-14s %s\n", "CAPABILITY", "APP", "HEALTHY")
+			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 48))
+			for _, c := range caps {
+				healthy := "no"
+				if c.Healthy {
+					healthy = "yes"
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-18s %-14s %s\n", "CAPABILITY", "APP", "HEALTHY")
-				_, _ = fmt.Printf("%s\n", strings.Repeat("-", 48))
-				for _, c := range caps {
-					healthy := "no"
-					if c.Healthy {
-						healthy = "yes"
-					}
-					_, _ = fmt.Printf("%-18s %-14s %s\n", c.Type, c.App, healthy)
-				}
+				_, _ = fmt.Printf("%-18s %-14s %s\n", c.Type, c.App, healthy)
 			}
 
 			return nil
@@ -247,33 +229,28 @@ func hubHealthCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(health, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal health: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("Hub Status: %s\n", health.Status)
-				if health.Timestamp != "" {
-					_, _ = fmt.Printf("Timestamp: %s\n", health.Timestamp)
+				return PrintJSON(health)
+			}
+			_, _ = fmt.Printf("Hub Status: %s\n", health.Status)
+			if health.Timestamp != "" {
+				_, _ = fmt.Printf("Timestamp: %s\n", health.Timestamp)
+			}
+			_, _ = fmt.Println()
+
+			if len(health.Details) > 0 {
+				_, _ = fmt.Printf("Capabilities:\n")
+				for _, d := range health.Details {
+					_, _ = fmt.Printf("  %-18s (app: %s) [%s]\n",
+						d.Capability, d.App, d.Status)
 				}
 				_, _ = fmt.Println()
+			}
 
-				if len(health.Details) > 0 {
-					_, _ = fmt.Printf("Capabilities:\n")
-					for _, d := range health.Details {
-						_, _ = fmt.Printf("  %-18s (app: %s) [%s]\n",
-							d.Capability, d.App, d.Status)
-					}
-					_, _ = fmt.Println()
-				}
-
-				if len(health.AppStatuses) > 0 {
-					_, _ = fmt.Printf("Apps:\n")
-					for _, a := range health.AppStatuses {
-						_, _ = fmt.Printf("  %-24s status: %-12s health: %s\n",
-							a.Name, a.Status, a.Health)
-					}
+			if len(health.AppStatuses) > 0 {
+				_, _ = fmt.Printf("Apps:\n")
+				for _, a := range health.AppStatuses {
+					_, _ = fmt.Printf("  %-24s status: %-12s health: %s\n",
+						a.Name, a.Status, a.Health)
 				}
 			}
 

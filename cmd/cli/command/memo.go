@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
@@ -84,39 +83,33 @@ func memoListCommand() *cobra.Command {
 			}
 
 			if len(result.Items) == 0 {
-				_, _ = fmt.Println("No memos found")
-				return nil
+				return PrintEmptyList(cmd, "No memos found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(result.Items, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal memos: %w", err)
+				return PrintJSON(result.Items)
+			}
+			for _, m := range result.Items {
+				pinned := ""
+				if m.Pinned {
+					pinned = " [pinned]"
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				for _, m := range result.Items {
-					pinned := ""
-					if m.Pinned {
-						pinned = " [pinned]"
-					}
-					snippet := m.Snippet
-					if snippet == "" {
-						snippet = truncate(m.Content, 80)
-					}
-					_, _ = fmt.Printf("[%s]%s %s\n", m.Name, pinned, snippet)
-					if !m.CreateTime.IsZero() {
-						_, _ = fmt.Printf("  Created: %s\n", m.CreateTime.Format(time.RFC3339))
-					}
-					if m.Visibility != "" {
-						_, _ = fmt.Printf("  Visibility: %s\n", m.Visibility)
-					}
-					_, _ = fmt.Println()
+				snippet := m.Snippet
+				if snippet == "" {
+					snippet = truncate(m.Content, 80)
 				}
-				if result.Page.NextCursor != "" {
-					_, _ = fmt.Printf("--- Next cursor: %s\n", result.Page.NextCursor)
+				_, _ = fmt.Printf("[%s]%s %s\n", m.Name, pinned, snippet)
+				if !m.CreateTime.IsZero() {
+					_, _ = fmt.Printf("  Created: %s\n", m.CreateTime.Format(time.RFC3339))
 				}
+				if m.Visibility != "" {
+					_, _ = fmt.Printf("  Visibility: %s\n", m.Visibility)
+				}
+				_, _ = fmt.Println()
+			}
+			if result.Page.NextCursor != "" {
+				_, _ = fmt.Printf("--- Next cursor: %s\n", result.Page.NextCursor)
 			}
 
 			return nil
@@ -150,27 +143,22 @@ func memoGetCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(memo, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal memo: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("Name:       %s\n", memo.Name)
-				_, _ = fmt.Printf("Content:    %s\n", memo.Content)
-				_, _ = fmt.Printf("State:      %s\n", memo.State)
-				_, _ = fmt.Printf("Visibility: %s\n", memo.Visibility)
-				_, _ = fmt.Printf("Pinned:     %v\n", memo.Pinned)
-				_, _ = fmt.Printf("Creator:    %s\n", memo.Creator)
-				if !memo.CreateTime.IsZero() {
-					_, _ = fmt.Printf("Created:    %s\n", memo.CreateTime.Format(time.RFC3339))
-				}
-				if !memo.UpdateTime.IsZero() {
-					_, _ = fmt.Printf("Updated:    %s\n", memo.UpdateTime.Format(time.RFC3339))
-				}
-				if len(memo.Tags) > 0 {
-					_, _ = fmt.Printf("Tags:       %v\n", memo.Tags)
-				}
+				return PrintJSON(memo)
+			}
+			_, _ = fmt.Printf("Name:       %s\n", memo.Name)
+			_, _ = fmt.Printf("Content:    %s\n", memo.Content)
+			_, _ = fmt.Printf("State:      %s\n", memo.State)
+			_, _ = fmt.Printf("Visibility: %s\n", memo.Visibility)
+			_, _ = fmt.Printf("Pinned:     %v\n", memo.Pinned)
+			_, _ = fmt.Printf("Creator:    %s\n", memo.Creator)
+			if !memo.CreateTime.IsZero() {
+				_, _ = fmt.Printf("Created:    %s\n", memo.CreateTime.Format(time.RFC3339))
+			}
+			if !memo.UpdateTime.IsZero() {
+				_, _ = fmt.Printf("Updated:    %s\n", memo.UpdateTime.Format(time.RFC3339))
+			}
+			if len(memo.Tags) > 0 {
+				_, _ = fmt.Printf("Tags:       %v\n", memo.Tags)
 			}
 
 			return nil

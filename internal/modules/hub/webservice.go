@@ -1441,7 +1441,7 @@ func createFeed(ctx fiber.Ctx) error {
 }
 
 func listEntries(ctx fiber.Ctx) error {
-	params := map[string]any{}
+	params := pageParams(ctx)
 	if v := ctx.Query("status"); v != "" {
 		params["status"] = v
 	}

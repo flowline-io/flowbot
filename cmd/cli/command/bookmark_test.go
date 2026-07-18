@@ -81,6 +81,10 @@ func TestBookmarkListCommand(t *testing.T) {
 			limit := listCmd.Flags().Lookup("limit")
 			require.NotNil(t, limit)
 			require.Equal(t, "n", limit.Shorthand)
+
+			cursor := listCmd.Flags().Lookup("cursor")
+			require.NotNil(t, cursor)
+			require.Equal(t, "c", cursor.Shorthand)
 		})
 	}
 }

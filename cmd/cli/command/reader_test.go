@@ -27,11 +27,11 @@ func TestReaderCommand(t *testing.T) {
 			require.Contains(t, subNames, "list")
 			require.Contains(t, subNames, "get")
 			require.Contains(t, subNames, "create")
-			require.Contains(t, subNames, "update")
-			require.Contains(t, subNames, "refresh")
 			require.Contains(t, subNames, "entries")
 			require.Contains(t, subNames, "update-entries")
 			require.Contains(t, subNames, "feed-entries")
+			require.NotContains(t, subNames, "update")
+			require.NotContains(t, subNames, "refresh")
 		})
 	}
 }

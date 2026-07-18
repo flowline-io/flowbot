@@ -326,7 +326,7 @@ func TestKanbanUpdate(t *testing.T) {
 			req:  KanbanUpdateRequest{Title: "Updated", Description: "new desc"},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"success":true}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":1,"title":"Updated"}}`))
 			},
 		},
 		{
@@ -379,7 +379,7 @@ func TestKanbanUpdate(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.True(t, result.Success)
+			assert.Equal(t, "Updated", result.Title)
 		})
 	}
 }
@@ -462,7 +462,7 @@ func TestKanbanMove(t *testing.T) {
 			req:  KanbanMoveRequest{ColumnID: 2, Position: 1},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"success":true}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":1,"title":"Moved","column_id":2}}`))
 			},
 		},
 		{
@@ -605,7 +605,8 @@ func TestKanbanSearch(t *testing.T) {
 			name:      "search finds results",
 			projectID: 1,
 			query:     "bug",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Contains(t, r.URL.RawQuery, "q=bug")
 				w.Header().Set("Content-Type", "application/json")
 				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":5,"title":"fix bug in login"}]}`))
 			},

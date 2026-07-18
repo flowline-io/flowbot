@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
@@ -22,8 +22,6 @@ func ReaderCommand() *cobra.Command {
 		readerFeedListCommand(),
 		readerFeedGetCommand(),
 		readerFeedCreateCommand(),
-		readerFeedUpdateCommand(),
-		readerFeedRefreshCommand(),
 		readerEntryListCommand(),
 		readerEntryUpdateCommand(),
 		readerFeedEntriesCommand(),
@@ -48,35 +46,32 @@ func readerFeedListCommand() *cobra.Command {
 			}
 
 			if len(feeds) == 0 {
-				_, _ = fmt.Println("No feeds found")
-				return nil
+				return PrintEmptyList(cmd, "No feeds found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(feeds, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal feeds: %w", err)
+				return PrintJSON(feeds)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-40s %-15s\n", "ID", "TITLE", "FEED URL", "CATEGORY")
+			_, _ = fmt.Println(strings.Repeat("-", 95))
+			for _, f := range feeds {
+				if f == nil {
+					continue
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-8s %-30s %-40s %-10s\n", "ID", "TITLE", "FEED URL", "STATUS")
-				_, _ = fmt.Println(strings.Repeat("-", 90))
-				for _, f := range feeds {
-					title := f.Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					feedURL := f.FeedURL
-					if len(feedURL) > 38 {
-						feedURL = feedURL[:35] + "..."
-					}
-					status := "active"
-					if f.Disabled {
-						status = "disabled"
-					}
-					_, _ = fmt.Printf("%-8d %-30s %-40s %-10s\n", f.ID, title, feedURL, status)
+				title := f.Title
+				if len(title) > 28 {
+					title = title[:25] + "..."
 				}
+				feedURL := f.FeedURL
+				if len(feedURL) > 38 {
+					feedURL = feedURL[:35] + "..."
+				}
+				category := f.Category
+				if category == "" {
+					category = "-"
+				}
+				_, _ = fmt.Printf("%-8d %-30s %-40s %-15s\n", f.ID, title, feedURL, category)
 			}
 
 			return nil
@@ -112,19 +107,13 @@ func readerFeedGetCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(feed, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal feed: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("ID:          %d\n", feed.ID)
-				_, _ = fmt.Printf("Title:       %s\n", feed.Title)
-				_, _ = fmt.Printf("Feed URL:    %s\n", feed.FeedURL)
-				_, _ = fmt.Printf("Site URL:    %s\n", feed.SiteURL)
-				_, _ = fmt.Printf("Disabled:    %v\n", feed.Disabled)
-				_, _ = fmt.Printf("Checked At:  %v\n", feed.CheckedAt)
+				return PrintJSON(feed)
 			}
+			_, _ = fmt.Printf("ID:          %d\n", feed.ID)
+			_, _ = fmt.Printf("Title:       %s\n", feed.Title)
+			_, _ = fmt.Printf("Feed URL:    %s\n", feed.FeedURL)
+			_, _ = fmt.Printf("Site URL:    %s\n", feed.SiteURL)
+			_, _ = fmt.Printf("Category:    %s\n", feed.Category)
 
 			return nil
 		},
@@ -158,96 +147,15 @@ func readerFeedCreateCommand() *cobra.Command {
 			}
 
 			_, _ = fmt.Printf("Feed created: ID=%d\n", result.ID)
+			if result.Title != "" {
+				_, _ = fmt.Printf("Title: %s\n", result.Title)
+			}
 			return nil
 		},
 	}
 	cmd.Flags().StringP("url", "u", "", "Feed URL")
 	_ = cmd.MarkFlagRequired("url")
 	cmd.Flags().Int64P("category", "c", 0, "Category ID")
-	return cmd
-}
-
-func readerFeedUpdateCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update <id>",
-		Short: "Update a feed",
-		Long:  "Modify an existing RSS feed",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return fmt.Errorf("feed ID is required")
-			}
-			id, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid feed ID: %w", err)
-			}
-
-			c, err := utils.NewClient(cmd)
-			if err != nil {
-				return err
-			}
-
-			req := &client.UpdateFeedRequest{}
-			if title, _ := cmd.Flags().GetString("title"); title != "" {
-				req.Title = title
-			}
-			if urlStr, _ := cmd.Flags().GetString("url"); urlStr != "" {
-				req.FeedURL = urlStr
-			}
-			disable, _ := cmd.Flags().GetBool("disable")
-			enable, _ := cmd.Flags().GetBool("enable")
-			if disable {
-				disabled := true
-				req.Disabled = &disabled
-			}
-			if enable {
-				disabled := false
-				req.Disabled = &disabled
-			}
-
-			feed, err := c.Reader.UpdateFeed(cmd.Context(), id, req)
-			if err != nil {
-				return fmt.Errorf("update feed: %w", err)
-			}
-
-			_, _ = fmt.Printf("Feed updated: %s\n", feed.Title)
-			return nil
-		},
-	}
-	cmd.Flags().StringP("title", "t", "", "New title")
-	cmd.Flags().StringP("url", "u", "", "New feed URL")
-	cmd.Flags().Bool("disable", false, "Disable the feed")
-	cmd.Flags().Bool("enable", false, "Enable the feed")
-	return cmd
-}
-
-func readerFeedRefreshCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "refresh <id>",
-		Short: "Refresh a feed",
-		Long:  "Trigger a refresh of a specific RSS feed",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return fmt.Errorf("feed ID is required")
-			}
-			id, err := strconv.ParseInt(args[0], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid feed ID: %w", err)
-			}
-
-			c, err := utils.NewClient(cmd)
-			if err != nil {
-				return err
-			}
-
-			_, err = c.Reader.RefreshFeed(cmd.Context(), id)
-			if err != nil {
-				return fmt.Errorf("refresh feed: %w", err)
-			}
-
-			_, _ = fmt.Printf("Feed refreshed: ID=%d\n", id)
-			return nil
-		},
-	}
 	return cmd
 }
 
@@ -264,58 +172,26 @@ func readerEntryListCommand() *cobra.Command {
 
 			status, _ := cmd.Flags().GetString("status")
 			limit, _ := cmd.Flags().GetInt("limit")
-			offset, _ := cmd.Flags().GetInt("offset")
-			starred, _ := cmd.Flags().GetBool("starred")
+			feedID, _ := cmd.Flags().GetInt64("feed")
 
 			query := &client.ListEntriesQuery{
-				Status:  status,
-				Limit:   limit,
-				Offset:  offset,
-				Starred: starred,
+				Status: status,
+				Limit:  limit,
+				FeedID: feedID,
 			}
 
-			result, err := c.Reader.ListEntries(cmd.Context(), query)
+			entries, err := c.Reader.ListEntries(cmd.Context(), query)
 			if err != nil {
 				return fmt.Errorf("list entries: %w", err)
 			}
 
-			if len(result.Entries) == 0 {
-				_, _ = fmt.Println("No entries found")
-				return nil
-			}
-
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				data, err := sonic.MarshalIndent(result.Entries, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal entries: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("Total: %d entries\n\n", result.Total)
-				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "STATUS", "STARRED")
-				_, _ = fmt.Println(strings.Repeat("-", 65))
-				for _, e := range result.Entries {
-					title := e.Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					starred := "no"
-					if e.Starred {
-						starred = "yes"
-					}
-					_, _ = fmt.Printf("%-8d %-30s %-15s %-10s\n", e.ID, title, e.Status, starred)
-				}
-			}
-
-			return nil
+			return printReaderEntries(cmd, entries)
 		},
 	}
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().StringP("status", "s", "", "Status filter (read, unread, removed)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of entries")
-	cmd.Flags().Int("offset", 0, "Pagination offset")
-	cmd.Flags().Bool("starred", false, "Starred entries only")
+	cmd.Flags().Int64P("feed", "f", 0, "Filter by feed ID")
 	return cmd
 }
 
@@ -375,57 +251,50 @@ func readerFeedEntriesCommand() *cobra.Command {
 
 			status, _ := cmd.Flags().GetString("status")
 			limit, _ := cmd.Flags().GetInt("limit")
-			offset, _ := cmd.Flags().GetInt("offset")
-			starred, _ := cmd.Flags().GetBool("starred")
 
 			query := &client.GetFeedEntriesQuery{
-				Status:  status,
-				Limit:   limit,
-				Offset:  offset,
-				Starred: starred,
+				Status: status,
+				Limit:  limit,
 			}
 
-			result, err := c.Reader.GetFeedEntries(cmd.Context(), feedID, query)
+			entries, err := c.Reader.GetFeedEntries(cmd.Context(), feedID, query)
 			if err != nil {
 				return fmt.Errorf("get feed entries: %w", err)
 			}
 
-			if len(result.Entries) == 0 {
-				_, _ = fmt.Println("No entries found")
-				return nil
-			}
-
-			output, _ := cmd.Flags().GetString("output")
-			if output == "json" {
-				data, err := sonic.MarshalIndent(result.Entries, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal entries: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("Total: %d entries for feed %d\n\n", result.Total, feedID)
-				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "STATUS", "STARRED")
-				_, _ = fmt.Println(strings.Repeat("-", 65))
-				for _, e := range result.Entries {
-					title := e.Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					starred := "no"
-					if e.Starred {
-						starred = "yes"
-					}
-					_, _ = fmt.Printf("%-8d %-30s %-15s %-10s\n", e.ID, title, e.Status, starred)
-				}
-			}
-
-			return nil
+			return printReaderEntries(cmd, entries)
 		},
 	}
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().StringP("status", "s", "", "Status filter (read, unread, removed)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of entries")
-	cmd.Flags().Int("offset", 0, "Pagination offset")
-	cmd.Flags().Bool("starred", false, "Starred entries only")
 	return cmd
+}
+
+func printReaderEntries(cmd *cobra.Command, entries []*capability.Entry) error {
+	if len(entries) == 0 {
+		return PrintEmptyList(cmd, "No entries found")
+	}
+
+	if IsJSON(cmd) {
+		return PrintJSON(entries)
+	}
+
+	_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "STATUS", "STARRED")
+	_, _ = fmt.Println(strings.Repeat("-", 65))
+	for _, e := range entries {
+		if e == nil {
+			continue
+		}
+		title := e.Title
+		if len(title) > 28 {
+			title = title[:25] + "..."
+		}
+		starred := "no"
+		if e.Starred {
+			starred = "yes"
+		}
+		_, _ = fmt.Printf("%-8d %-30s %-15s %-10s\n", e.ID, title, e.Status, starred)
+	}
+	return nil
 }

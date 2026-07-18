@@ -95,7 +95,7 @@ func TestBookmarkCreateRunE(t *testing.T) {
 				assert.Equal(t, http.MethodPost, r.Method)
 				assert.Equal(t, "/service/karakeep", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"id":"bm-1","title":"Example","content":{"url":"https://example.com"}}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"bm-1","title":"Example","url":"https://example.com"}}`)))
 			},
 			args:       []string{"--url", "https://example.com"},
 			wantSubstr: "Bookmark created",
@@ -144,7 +144,7 @@ func TestBookmarkListRunE(t *testing.T) {
 			name: "list bookmarks table output",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarks":[{"id":"bm-1","title":"Demo","content":{"url":"https://example.com"}}]}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-1","title":"Demo","url":"https://example.com"}],"page":{"limit":20,"has_more":false}}`)))
 			},
 			wantSubstr: "[bm-1]",
 		},
@@ -152,18 +152,37 @@ func TestBookmarkListRunE(t *testing.T) {
 			name: "list bookmarks empty",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarks":[]}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":[],"page":{"limit":20,"has_more":false}}`)))
 			},
 			wantSubstr: "No bookmarks found",
+		},
+		{
+			name: "list bookmarks empty json",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[],"page":{"limit":20,"has_more":false}}`)))
+			},
+			args:       []string{"--output", "json"},
+			wantSubstr: "[]",
 		},
 		{
 			name: "list bookmarks json output",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarks":[{"id":"bm-2","content":{"url":"https://flowbot.io"}}]}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-2","url":"https://flowbot.io"}],"page":{"limit":20,"has_more":false}}`)))
 			},
 			args:       []string{"--output", "json"},
 			wantSubstr: `"id": "bm-2"`,
+		},
+		{
+			name: "list bookmarks passes cursor and shows next",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Contains(t, r.URL.RawQuery, "cursor=page-2")
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-3","title":"Paged","url":"https://example.com"}],"page":{"limit":20,"has_more":true,"next_cursor":"page-3"}}`)))
+			},
+			args:       []string{"--cursor", "page-2"},
+			wantSubstr: "--- Next cursor: page-3",
 		},
 	}
 	for _, tt := range tests {
@@ -188,7 +207,7 @@ func TestBookmarkGetRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/service/karakeep/bm-9", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"id":"bm-9","title":"Saved","content":{"url":"https://example.com"}}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"bm-9","title":"Saved","url":"https://example.com"}}`)))
 			},
 			args:       []string{"bm-9"},
 			wantSubstr: "ID:          bm-9",
@@ -201,7 +220,7 @@ func TestBookmarkGetRunE(t *testing.T) {
 			name: "get bookmark json output",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"id":"bm-3","content":{"url":"https://a.test"}}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"bm-3","url":"https://a.test"}}`)))
 			},
 			args:       []string{"bm-3", "--output", "json"},
 			wantSubstr: `"id": "bm-3"`,
@@ -234,7 +253,7 @@ func TestBookmarkCheckURLRunE(t *testing.T) {
 			name: "url already bookmarked",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarkId":"bm-5"}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"exists":true,"id":"bm-5"}}`)))
 			},
 			args:       []string{"--url", "https://example.com/page"},
 			wantSubstr: "URL is bookmarked",
@@ -243,7 +262,7 @@ func TestBookmarkCheckURLRunE(t *testing.T) {
 			name: "url not bookmarked",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"exists":false,"id":""}}`)))
 			},
 			args:       []string{"--url", "https://example.com/new"},
 			wantSubstr: "URL is not bookmarked",
@@ -253,7 +272,7 @@ func TestBookmarkCheckURLRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Contains(t, r.URL.RawQuery, "url=")
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"exists":false,"id":""}}`)))
 			},
 			args:       []string{"--url", "https://example.com/q?x=1"},
 			wantSubstr: "not bookmarked",
@@ -280,7 +299,7 @@ func TestBookmarkSearchRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Contains(t, r.URL.RawQuery, "q=go")
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarks":[{"id":"bm-1","title":"Go tips","content":{"url":"https://go.dev"}}]}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-1","title":"Go tips","url":"https://go.dev"}],"page":{"limit":20,"has_more":false}}`)))
 			},
 			args:       []string{"--query", "go"},
 			wantSubstr: "Found 1 bookmark",
@@ -289,7 +308,7 @@ func TestBookmarkSearchRunE(t *testing.T) {
 			name: "search empty results",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarks":[]}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":[],"page":{"limit":20,"has_more":false}}`)))
 			},
 			args:       []string{"--query", "missing"},
 			wantSubstr: "No bookmarks found",
@@ -298,10 +317,20 @@ func TestBookmarkSearchRunE(t *testing.T) {
 			name: "search json output",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"bookmarks":[{"id":"bm-7","content":{"url":"https://x.test"}}]}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-7","url":"https://x.test"}],"page":{"limit":20,"has_more":false}}`)))
 			},
 			args:       []string{"--query", "x", "--output", "json"},
 			wantSubstr: `"id": "bm-7"`,
+		},
+		{
+			name: "search shows next cursor",
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Contains(t, r.URL.RawQuery, "cursor=s1")
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"bm-8","title":"More","url":"https://y.test"}],"page":{"limit":20,"has_more":true,"next_cursor":"s2"}}`)))
+			},
+			args:       []string{"--query", "more", "--cursor", "s1"},
+			wantSubstr: "--- Next cursor: s2",
 		},
 	}
 	for _, tt := range tests {
@@ -324,7 +353,7 @@ func TestBookmarkDeleteRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, http.MethodPatch, r.Method)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"archived":true}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"archived":true}}`)))
 			},
 			wantSubstr: "Bookmark archived: bm-del",
 		},
@@ -332,7 +361,7 @@ func TestBookmarkDeleteRunE(t *testing.T) {
 			name: "delete archives via patch",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"archived":true}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"archived":true}}`)))
 			},
 			wantSubstr: "Bookmark archived",
 		},
@@ -340,7 +369,7 @@ func TestBookmarkDeleteRunE(t *testing.T) {
 			name: "delete yes flag required path",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"archived":true}`)))
+				_, _ = w.Write([]byte(okJSON(`{"data":{"archived":true}}`)))
 			},
 			wantSubstr: "bm-yes",
 		},
@@ -371,7 +400,7 @@ func TestKanbanListRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Contains(t, r.URL.RawQuery, "project_id=1")
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`[{"id":1,"title":"Task A","column_title":"Todo","is_active":1}]`)))
+				_, _ = w.Write([]byte(okJSON(`[{"id":1,"title":"Task A","column_id":2,"project_id":1}]`)))
 			},
 			wantSubstr: "Task A",
 		},
@@ -389,7 +418,7 @@ func TestKanbanListRunE(t *testing.T) {
 			name: "list tasks json output",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`[{"id":2,"title":"Task B","is_active":1}]`)))
+				_, _ = w.Write([]byte(okJSON(`[{"id":2,"title":"Task B","column_id":1,"project_id":1}]`)))
 			},
 			args:       []string{"--output", "json"},
 			wantSubstr: `"title": "Task B"`,
@@ -417,7 +446,7 @@ func TestKanbanGetRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/service/kanboard/42", r.URL.Path)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"id":42,"title":"Fix bug","is_active":1,"date_creation":1704067200}`)))
+				_, _ = w.Write([]byte(okJSON(`{"id":42,"title":"Fix bug","project_id":1,"column_id":2}`)))
 			},
 			args:       []string{"42"},
 			wantSubstr: "Title:       Fix bug",
@@ -819,7 +848,7 @@ func TestKanbanUpdateDeleteMoveRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, http.MethodPatch, r.Method)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"success":true}`)))
+				_, _ = w.Write([]byte(okJSON(`{"id":7,"title":"Updated","project_id":1,"column_id":1}`)))
 			},
 			args:       []string{"7", "--title", "Updated"},
 			wantSubstr: "Task updated: 7",
@@ -841,7 +870,7 @@ func TestKanbanUpdateDeleteMoveRunE(t *testing.T) {
 			handler: func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, http.MethodPost, r.Method)
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(okJSON(`{"success":true}`)))
+				_, _ = w.Write([]byte(okJSON(`{"id":9,"title":"Moved","column_id":3,"project_id":1}`)))
 			},
 			args:       []string{"9", "--column", "3"},
 			wantSubstr: "Task moved: 9 -> column 3",
@@ -880,22 +909,22 @@ func TestBookmarkArchiveRunE(t *testing.T) {
 		{
 			name:       "archive unarchived bookmark",
 			id:         "bm-1",
-			getBody:    okJSON(`{"id":"bm-1","archived":false,"content":{"url":"https://example.com"}}`),
-			patchBody:  okJSON(`{"archived":true}`),
+			getBody:    okJSON(`{"data":{"id":"bm-1","archived":false,"url":"https://example.com"}}`),
+			patchBody:  okJSON(`{"data":{"archived":true}}`),
 			wantSubstr: "Bookmark archived: bm-1",
 		},
 		{
 			name:       "archive toggles archived bookmark",
 			id:         "bm-2",
-			getBody:    okJSON(`{"id":"bm-2","archived":true,"content":{"url":"https://example.com"}}`),
-			patchBody:  okJSON(`{"archived":false}`),
+			getBody:    okJSON(`{"data":{"id":"bm-2","archived":true,"url":"https://example.com"}}`),
+			patchBody:  okJSON(`{"data":{"archived":false}}`),
 			wantSubstr: "Bookmark unarchived: bm-2",
 		},
 		{
 			name:       "archive yes skips prompt",
 			id:         "bm-3",
-			getBody:    okJSON(`{"id":"bm-3","archived":false,"content":{"url":"https://x.test"}}`),
-			patchBody:  okJSON(`{"archived":true}`),
+			getBody:    okJSON(`{"data":{"id":"bm-3","archived":false,"url":"https://x.test"}}`),
+			patchBody:  okJSON(`{"data":{"archived":true}}`),
 			wantSubstr: "Bookmark archived: bm-3",
 		},
 	}

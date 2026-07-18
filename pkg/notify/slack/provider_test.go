@@ -101,7 +101,7 @@ func TestDoSend(t *testing.T) {
 			wantBlocks: 1,
 		},
 		{
-			name: "empty tokens",
+			name:   "empty tokens",
 			tokens: types.KV{},
 			message: notify.Message{
 				Title: "Test",
@@ -116,9 +116,9 @@ func TestDoSend(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
-				mu          sync.Mutex
-				gotBody     []byte
-				gotMethod   string
+				mu        sync.Mutex
+				gotBody   []byte
+				gotMethod string
 			)
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				body, err := io.ReadAll(r.Body)

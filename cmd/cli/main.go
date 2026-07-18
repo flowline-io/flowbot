@@ -18,9 +18,10 @@ const (
 
 func main() {
 	rootCmd := &cobra.Command{
-		Use:          appName,
-		Short:        appUsage,
-		SilenceUsage: true,
+		Use:           appName,
+		Short:         appUsage,
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 
 	rootCmd.PersistentFlags().String("profile", "", "Configuration profile name (e.g. dev)")
@@ -42,8 +43,13 @@ func main() {
 		command.VersionCommand(version.Buildtags),
 	)
 
-	if err := rootCmd.Execute(); err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+	cmd, err := rootCmd.ExecuteC()
+	if err != nil {
+		if command.IsJSON(cmd) {
+			command.PrintJSONError(err)
+		} else {
+			_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		}
 		os.Exit(1)
 	}
 }

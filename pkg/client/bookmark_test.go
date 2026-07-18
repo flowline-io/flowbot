@@ -27,7 +27,7 @@ func TestBookmarkList(t *testing.T) {
 			query: nil,
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarks":[{"id":"b1"},{"id":"b2"}]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":[{"id":"b1"},{"id":"b2"}],"page":{"limit":20,"has_more":false}}}`))
 			},
 			wantCount: 2,
 			wantErr:   false,
@@ -37,7 +37,7 @@ func TestBookmarkList(t *testing.T) {
 			query: &ListBookmarksQuery{Limit: 10, Cursor: "abc"},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarks":[{"id":"b1"}]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":[{"id":"b1"}],"page":{"limit":10,"has_more":true,"next_cursor":"next"}}}`))
 			},
 			wantCount: 1,
 			wantErr:   false,
@@ -47,7 +47,7 @@ func TestBookmarkList(t *testing.T) {
 			query: &ListBookmarksQuery{Limit: 10, Archived: true},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarks":[]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":[],"page":{"limit":10,"has_more":false}}}`))
 			},
 			wantCount: 0,
 			wantErr:   false,
@@ -99,8 +99,8 @@ func TestBookmarkList(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			require.NotNil(t, result.Bookmarks)
-			assert.Len(t, result.Bookmarks, tt.wantCount)
+			require.NotNil(t, result.Items)
+			assert.Len(t, result.Items, tt.wantCount)
 		})
 	}
 }
@@ -118,7 +118,7 @@ func TestBookmarkGet(t *testing.T) {
 			name: "bookmark found",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":"b1","title":"test"}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":{"id":"b1","title":"test","url":"https://example.com"}}}`))
 			},
 			wantID: "b1",
 		},
@@ -162,7 +162,7 @@ func TestBookmarkGet(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tt.wantID, result.Id)
+			assert.Equal(t, tt.wantID, result.ID)
 		})
 	}
 }
@@ -181,7 +181,7 @@ func TestBookmarkCreate(t *testing.T) {
 			url:  "https://example.com",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":"new-b1","title":"Example"}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":{"id":"new-b1","title":"Example","url":"https://example.com"}}}`))
 			},
 			wantErr: false,
 		},
@@ -248,14 +248,14 @@ func TestBookmarkArchive(t *testing.T) {
 			name: "archive success",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"archived":true}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":{"archived":true}}}`))
 			},
 		},
 		{
 			name: "unarchive success",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"archived":false}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":{"archived":false}}}`))
 			},
 		},
 		{
@@ -306,7 +306,7 @@ func TestBookmarkAttachTags(t *testing.T) {
 			tags: []string{"tag1", "tag2"},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"attached":["tag1","tag2"]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"text":"tags attached"}}`))
 			},
 		},
 		{
@@ -347,7 +347,7 @@ func TestBookmarkAttachTags(t *testing.T) {
 			defer server.Close()
 
 			c := NewClient(server.URL, "token")
-			result, err := c.Bookmark.AttachTags(context.Background(), "b1", tt.tags)
+			err := c.Bookmark.AttachTags(context.Background(), "b1", tt.tags)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -357,7 +357,6 @@ func TestBookmarkAttachTags(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			require.NotNil(t, result)
 		})
 	}
 }
@@ -376,7 +375,7 @@ func TestBookmarkDetachTags(t *testing.T) {
 			tags: []string{"tag1"},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"detached":["tag1"]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"text":"tags detached"}}`))
 			},
 		},
 		{
@@ -410,7 +409,7 @@ func TestBookmarkDetachTags(t *testing.T) {
 			defer server.Close()
 
 			c := NewClient(server.URL, "token")
-			result, err := c.Bookmark.DetachTags(context.Background(), "b1", tt.tags)
+			err := c.Bookmark.DetachTags(context.Background(), "b1", tt.tags)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -420,7 +419,6 @@ func TestBookmarkDetachTags(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			require.NotNil(t, result)
 		})
 	}
 }
@@ -431,6 +429,8 @@ func TestBookmarkCheckUrl(t *testing.T) {
 		name       string
 		url        string
 		handler    http.HandlerFunc
+		wantExists bool
+		wantID     string
 		wantErr    bool
 		errContain string
 	}{
@@ -439,16 +439,19 @@ func TestBookmarkCheckUrl(t *testing.T) {
 			url:  "https://example.com",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarkId":"b-existing"}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":{"exists":true,"id":"b-existing"}}}`))
 			},
+			wantExists: true,
+			wantID:     "b-existing",
 		},
 		{
 			name: "url does not exist",
 			url:  "https://new.example.com",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarkId":null}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":{"exists":false,"id":""}}}`))
 			},
+			wantExists: false,
 		},
 		{
 			name:       "empty url",
@@ -491,6 +494,8 @@ func TestBookmarkCheckUrl(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
+			assert.Equal(t, tt.wantExists, result.Exists)
+			assert.Equal(t, tt.wantID, result.ID)
 		})
 	}
 }
@@ -509,7 +514,7 @@ func TestBookmarkSearch(t *testing.T) {
 			query: &SearchBookmarksQuery{Q: "test", Limit: 10},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarks":[{"id":"b1","title":"test bookmark"}]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":[{"id":"b1","title":"test bookmark","url":"https://example.com"}],"page":{"limit":10,"has_more":false}}}`))
 			},
 		},
 		{
@@ -523,7 +528,7 @@ func TestBookmarkSearch(t *testing.T) {
 			query: nil,
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"bookmarks":[]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"data":[],"page":{"limit":20,"has_more":false}}}`))
 			},
 			wantErr: false,
 		},

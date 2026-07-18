@@ -3,7 +3,10 @@ package client
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strconv"
 
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
@@ -15,36 +18,36 @@ type KanbanClient struct {
 
 // List returns all kanban tasks for the given project and status.
 // Use kanboard.Active (1) for active tasks or kanboard.Inactive (0) for closed tasks.
-func (k *KanbanClient) List(ctx context.Context, projectID int, status kanboard.StatusId) ([]kanboard.Task, error) {
+func (k *KanbanClient) List(ctx context.Context, projectID int, status kanboard.StatusId) ([]*capability.Task, error) {
 	if projectID <= 0 {
 		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
 	}
 
-	var result []kanboard.Task
+	var result []*capability.Task
 	path := fmt.Sprintf("/service/kanboard?project_id=%d&status_id=%d", projectID, status)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
 
 // ListAll returns all kanban tasks for the given project regardless of status.
-func (k *KanbanClient) ListAll(ctx context.Context, projectID int) ([]kanboard.Task, error) {
+func (k *KanbanClient) ListAll(ctx context.Context, projectID int) ([]*capability.Task, error) {
 	if projectID <= 0 {
 		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
 	}
 
-	var result []kanboard.Task
+	var result []*capability.Task
 	path := fmt.Sprintf("/service/kanboard?project_id=%d", projectID)
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }
 
 // Get returns a single kanban task by ID.
-func (k *KanbanClient) Get(ctx context.Context, id int) (*kanboard.Task, error) {
+func (k *KanbanClient) Get(ctx context.Context, id int) (*capability.Task, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("id must be positive, got %d", id)
 	}
 
-	var result kanboard.Task
+	var result capability.Task
 	path := fmt.Sprintf("/service/kanboard/%d", id)
 	err := k.c.Get(ctx, path, &result)
 	if err != nil {
@@ -61,18 +64,13 @@ type KanbanCreateRequest struct {
 	ColumnID    int    `json:"column_id,omitempty"`
 }
 
-// KanbanCreateResult contains the result of creating a kanban task.
-type KanbanCreateResult struct {
-	ID int64 `json:"id"`
-}
-
 // Create creates a new kanban task.
-func (k *KanbanClient) Create(ctx context.Context, req KanbanCreateRequest) (*KanbanCreateResult, error) {
+func (k *KanbanClient) Create(ctx context.Context, req KanbanCreateRequest) (*capability.Task, error) {
 	if err := validateCreateRequest(&req); err != nil {
 		return nil, err
 	}
 
-	var result KanbanCreateResult
+	var result capability.Task
 	err := k.c.Post(ctx, "/service/kanboard", req, &result)
 	if err != nil {
 		return nil, err
@@ -105,7 +103,7 @@ type KanbanUpdateResult struct {
 }
 
 // Update updates an existing kanban task.
-func (k *KanbanClient) Update(ctx context.Context, id int, req KanbanUpdateRequest) (*KanbanUpdateResult, error) {
+func (k *KanbanClient) Update(ctx context.Context, id int, req KanbanUpdateRequest) (*capability.Task, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("id must be positive, got %d", id)
 	}
@@ -113,7 +111,7 @@ func (k *KanbanClient) Update(ctx context.Context, id int, req KanbanUpdateReque
 		return nil, err
 	}
 
-	var result KanbanUpdateResult
+	var result capability.Task
 	path := fmt.Sprintf("/service/kanboard/%d", id)
 	err := k.c.Patch(ctx, path, req, &result)
 	if err != nil {
@@ -155,13 +153,8 @@ type KanbanMoveRequest struct {
 	ProjectID  int `json:"project_id,omitempty"`
 }
 
-// KanbanMoveResult contains the result of moving a kanban task.
-type KanbanMoveResult struct {
-	Success bool `json:"success"`
-}
-
 // Move moves a kanban task to a different column and/or position.
-func (k *KanbanClient) Move(ctx context.Context, id int, req KanbanMoveRequest) (*KanbanMoveResult, error) {
+func (k *KanbanClient) Move(ctx context.Context, id int, req KanbanMoveRequest) (*capability.Task, error) {
 	if id <= 0 {
 		return nil, fmt.Errorf("id must be positive, got %d", id)
 	}
@@ -169,7 +162,7 @@ func (k *KanbanClient) Move(ctx context.Context, id int, req KanbanMoveRequest) 
 		return nil, err
 	}
 
-	var result KanbanMoveResult
+	var result capability.Task
 	path := fmt.Sprintf("/service/kanboard/%d/move", id)
 	err := k.c.Post(ctx, path, req, &result)
 	if err != nil {
@@ -212,13 +205,8 @@ func (k *KanbanClient) ListColumns(ctx context.Context, projectID int) ([]Kanban
 	return result, err
 }
 
-// KanbanSearchResult contains the result of searching kanban tasks.
-type KanbanSearchResult struct {
-	Tasks []kanboard.Task `json:"tasks"`
-}
-
 // Search searches kanban tasks by query.
-func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) ([]kanboard.Task, error) {
+func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) ([]*capability.Task, error) {
 	if projectID <= 0 {
 		return nil, fmt.Errorf("project_id must be positive, got %d", projectID)
 	}
@@ -226,8 +214,11 @@ func (k *KanbanClient) Search(ctx context.Context, projectID int, query string) 
 		return nil, fmt.Errorf("query is required")
 	}
 
-	var result []kanboard.Task
-	path := fmt.Sprintf("/service/kanboard/search?project_id=%d&query=%s", projectID, query)
+	var result []*capability.Task
+	path := "/service/kanboard/search?" + url.Values{
+		"project_id": {strconv.Itoa(projectID)},
+		"q":          {query},
+	}.Encode()
 	err := k.c.Get(ctx, path, &result)
 	return result, err
 }

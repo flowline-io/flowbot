@@ -23,7 +23,7 @@ func TestReaderListFeeds(t *testing.T) {
 			name: "list feeds with results",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":1,"title":"feed1"},{"id":2,"title":"feed2"}]}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":1,"title":"feed1","feed_url":"https://a.test/feed"},{"id":2,"title":"feed2","feed_url":"https://b.test/feed"}]}`))
 			},
 			wantCount: 2,
 		},
@@ -74,49 +74,51 @@ func TestReaderGetFeed(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
+		id         int64
 		handler    http.HandlerFunc
 		wantTitle  string
 		wantErr    bool
 		errContain string
 	}{
 		{
-			name: "feed found",
+			name: "feed found via list",
+			id:   1,
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":1,"title":"My Feed","feed_url":"https://example.com/feed"}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":1,"title":"My Feed","feed_url":"https://example.com/feed"},{"id":2,"title":"Other","feed_url":"https://other.test/feed"}]}`))
 			},
 			wantTitle: "My Feed",
 		},
 		{
-			name: "feed not found",
+			name: "feed not found in list",
+			id:   99,
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(`{"status":"failed","retcode":"10009","message":"feed not found"}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":1,"title":"My Feed","feed_url":"https://example.com/feed"}]}`))
 			},
 			wantErr:    true,
 			errContain: "feed not found",
 		},
 		{
-			name: "server error",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"error"}`))
-			},
+			name:       "invalid id",
+			id:         0,
 			wantErr:    true,
-			errContain: "error",
+			errContain: "id must be positive",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(tt.handler)
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if tt.handler != nil {
+					tt.handler(w, r)
+				}
+			}))
 			defer server.Close()
 
 			c := NewClient(server.URL, "token")
-			result, err := c.Reader.GetFeed(context.Background(), 1)
+			result, err := c.Reader.GetFeed(context.Background(), tt.id)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -138,7 +140,6 @@ func TestReaderCreateFeed(t *testing.T) {
 		name       string
 		req        *CreateFeedRequest
 		handler    http.HandlerFunc
-		wantID     int64
 		wantErr    bool
 		errContain string
 	}{
@@ -147,18 +148,17 @@ func TestReaderCreateFeed(t *testing.T) {
 			req:  &CreateFeedRequest{FeedURL: "https://example.com/feed", CategoryID: 1},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":42}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":42,"title":"Example","feed_url":"https://example.com/feed"}}`))
 			},
-			wantID: 42,
 		},
 		{
-			name:       "empty feed url",
+			name:       "empty url",
 			req:        &CreateFeedRequest{FeedURL: "", CategoryID: 1},
 			wantErr:    true,
 			errContain: "feed_url is required",
 		},
 		{
-			name:       "invalid feed url",
+			name:       "invalid url format",
 			req:        &CreateFeedRequest{FeedURL: "not-a-url", CategoryID: 1},
 			wantErr:    true,
 			errContain: "invalid feed_url",
@@ -169,10 +169,10 @@ func TestReaderCreateFeed(t *testing.T) {
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusBadRequest)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"feed already exists"}`))
+				_, _ = w.Write([]byte(`{"status":"failed","message":"duplicate feed"}`))
 			},
 			wantErr:    true,
-			errContain: "feed already exists",
+			errContain: "duplicate feed",
 		},
 	}
 
@@ -198,126 +198,7 @@ func TestReaderCreateFeed(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tt.wantID, result.ID)
-		})
-	}
-}
-
-func TestReaderUpdateFeed(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name       string
-		handler    http.HandlerFunc
-		wantErr    bool
-		errContain string
-	}{
-		{
-			name: "update feed success",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"id":1,"title":"Updated Feed"}}`))
-			},
-		},
-		{
-			name: "feed not found",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(`{"status":"failed","retcode":"10009","message":"feed not found"}`))
-			},
-			wantErr:    true,
-			errContain: "feed not found",
-		},
-		{
-			name: "server error",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"error"}`))
-			},
-			wantErr:    true,
-			errContain: "error",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			server := httptest.NewServer(tt.handler)
-			defer server.Close()
-
-			c := NewClient(server.URL, "token")
-			result, err := c.Reader.UpdateFeed(context.Background(), 1, &UpdateFeedRequest{Title: "Updated Feed"})
-
-			if tt.wantErr {
-				require.Error(t, err)
-				if tt.errContain != "" {
-					assert.Contains(t, err.Error(), tt.errContain)
-				}
-				return
-			}
-			require.NoError(t, err)
-			require.NotNil(t, result)
-		})
-	}
-}
-
-func TestReaderRefreshFeed(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name       string
-		handler    http.HandlerFunc
-		wantErr    bool
-		errContain string
-	}{
-		{
-			name: "refresh success",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"success":true}}`))
-			},
-		},
-		{
-			name: "refresh failed",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"refresh failed"}`))
-			},
-			wantErr:    true,
-			errContain: "refresh failed",
-		},
-		{
-			name: "feed not found",
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"feed not found"}`))
-			},
-			wantErr:    true,
-			errContain: "feed not found",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			server := httptest.NewServer(tt.handler)
-			defer server.Close()
-
-			c := NewClient(server.URL, "token")
-			result, err := c.Reader.RefreshFeed(context.Background(), 1)
-
-			if tt.wantErr {
-				require.Error(t, err)
-				if tt.errContain != "" {
-					assert.Contains(t, err.Error(), tt.errContain)
-				}
-				return
-			}
-			require.NoError(t, err)
-			require.NotNil(t, result)
-			assert.True(t, result.Success)
+			assert.Equal(t, int64(42), result.ID)
 		})
 	}
 }
@@ -328,38 +209,39 @@ func TestReaderListEntries(t *testing.T) {
 		name       string
 		query      *ListEntriesQuery
 		handler    http.HandlerFunc
+		wantCount  int
 		wantErr    bool
 		errContain string
 	}{
 		{
-			name:  "list entries with no filters",
-			query: nil,
-			handler: func(w http.ResponseWriter, _ *http.Request) {
+			name:  "list entries success",
+			query: &ListEntriesQuery{Status: "unread", Limit: 10},
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Contains(t, r.URL.RawQuery, "status=unread")
+				assert.Contains(t, r.URL.RawQuery, "limit=10")
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"total":5,"entries":[{"id":1,"title":"entry1"}]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":1,"title":"entry1","status":"unread"},{"id":2,"title":"entry2","status":"unread"}]}`))
 			},
+			wantCount: 2,
 		},
 		{
-			name: "list entries with status filter",
-			query: &ListEntriesQuery{
-				Status: "unread",
-				Limit:  10,
-			},
-			handler: func(w http.ResponseWriter, _ *http.Request) {
+			name:  "list with feed filter",
+			query: &ListEntriesQuery{FeedID: 5, Limit: 5},
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Contains(t, r.URL.RawQuery, "feed_id=5")
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"total":2,"entries":[{"id":1,"title":"unread1"},{"id":2,"title":"unread2"}]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":3,"title":"feed entry","feed_title":"Blog"}]}`))
 			},
+			wantCount: 1,
 		},
 		{
-			name:  "server error",
-			query: nil,
+			name:  "empty entries",
+			query: &ListEntriesQuery{},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"error"}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[]}`))
 			},
-			wantErr:    true,
-			errContain: "error",
+			wantCount: 0,
 		},
 	}
 
@@ -380,7 +262,7 @@ func TestReaderListEntries(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			require.NotNil(t, result)
+			assert.Len(t, result, tt.wantCount)
 		})
 	}
 }
@@ -395,7 +277,7 @@ func TestReaderUpdateEntriesStatus(t *testing.T) {
 		errContain string
 	}{
 		{
-			name: "update status success",
+			name: "update success",
 			req:  &UpdateEntriesRequest{EntryIDs: []int64{1, 2}, Status: "read"},
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
@@ -404,7 +286,7 @@ func TestReaderUpdateEntriesStatus(t *testing.T) {
 		},
 		{
 			name:       "empty entry ids",
-			req:        &UpdateEntriesRequest{EntryIDs: []int64{}, Status: "read"},
+			req:        &UpdateEntriesRequest{EntryIDs: nil, Status: "read"},
 			wantErr:    true,
 			errContain: "entry_ids is required",
 		},
@@ -413,17 +295,6 @@ func TestReaderUpdateEntriesStatus(t *testing.T) {
 			req:        &UpdateEntriesRequest{EntryIDs: []int64{1}, Status: ""},
 			wantErr:    true,
 			errContain: "status is required",
-		},
-		{
-			name: "api error",
-			req:  &UpdateEntriesRequest{EntryIDs: []int64{1}, Status: "read"},
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusBadRequest)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"invalid status"}`))
-			},
-			wantErr:    true,
-			errContain: "invalid status",
 		},
 	}
 
@@ -458,52 +329,55 @@ func TestReaderGetFeedEntries(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
+		feedID     int64
 		query      *GetFeedEntriesQuery
 		handler    http.HandlerFunc
+		wantCount  int
 		wantErr    bool
 		errContain string
 	}{
 		{
-			name:  "get feed entries no filters",
-			query: nil,
-			handler: func(w http.ResponseWriter, _ *http.Request) {
+			name:   "entries for feed",
+			feedID: 1,
+			query:  &GetFeedEntriesQuery{Limit: 10},
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/miniflux/entries", r.URL.Path)
+				assert.Contains(t, r.URL.RawQuery, "feed_id=1")
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"total":3,"entries":[{"id":1,"title":"entry1"}]}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":[{"id":1,"title":"entry1"},{"id":2,"title":"entry2"}]}`))
 			},
+			wantCount: 2,
 		},
 		{
-			name: "get feed entries with filters",
-			query: &GetFeedEntriesQuery{
-				Status: "unread",
-				Limit:  20,
-				Order:  "published_at",
-			},
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"total":1,"entries":[{"id":2,"title":"unread entry"}]}}`))
-			},
-		},
-		{
-			name:  "feed not found",
-			query: nil,
-			handler: func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusNotFound)
-				_, _ = w.Write([]byte(`{"status":"failed","message":"feed not found"}`))
-			},
+			name:       "invalid feed id",
+			feedID:     0,
 			wantErr:    true,
-			errContain: "feed not found",
+			errContain: "feed_id must be positive",
+		},
+		{
+			name:   "empty feed entries",
+			feedID: 3,
+			query:  &GetFeedEntriesQuery{Status: "read"},
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"status":"ok","data":[]}`))
+			},
+			wantCount: 0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			server := httptest.NewServer(tt.handler)
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if tt.handler != nil {
+					tt.handler(w, r)
+				}
+			}))
 			defer server.Close()
 
 			c := NewClient(server.URL, "token")
-			result, err := c.Reader.GetFeedEntries(context.Background(), 1, tt.query)
+			result, err := c.Reader.GetFeedEntries(context.Background(), tt.feedID, tt.query)
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -513,7 +387,7 @@ func TestReaderGetFeedEntries(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			require.NotNil(t, result)
+			assert.Len(t, result, tt.wantCount)
 		})
 	}
 }

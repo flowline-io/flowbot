@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/client"
 )
 
@@ -48,11 +48,7 @@ func bookmarkCreateCommand() *cobra.Command {
 				return fmt.Errorf("create bookmark: %w", err)
 			}
 
-			title := ""
-			if bookmark.Title != nil {
-				title = *bookmark.Title
-			}
-			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", title, bookmark.Id)
+			_, _ = fmt.Printf("Bookmark created: %s (%s)\n", bookmark.Title, bookmark.ID)
 			return nil
 		},
 	}
@@ -73,8 +69,10 @@ func bookmarkListCommand() *cobra.Command {
 			}
 
 			limit, _ := cmd.Flags().GetInt("limit")
+			cursor, _ := cmd.Flags().GetString("cursor")
 			query := &client.ListBookmarksQuery{
-				Limit: limit,
+				Limit:  limit,
+				Cursor: cursor,
 			}
 
 			result, err := c.Bookmark.List(cmd.Context(), query)
@@ -82,48 +80,22 @@ func bookmarkListCommand() *cobra.Command {
 				return fmt.Errorf("list bookmarks: %w", err)
 			}
 
-			if len(result.Bookmarks) == 0 {
-				_, _ = fmt.Println("No bookmarks found")
-				return nil
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No bookmarks found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(result.Bookmarks, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal bookmarks: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				for _, b := range result.Bookmarks {
-					var status []string
-					if b.Archived {
-						status = append(status, "archived")
-					}
-					if b.Favourited {
-						status = append(status, "favourited")
-					}
-					if b.TaggingStatus != nil && *b.TaggingStatus != "" {
-						status = append(status, *b.TaggingStatus)
-					}
-
-					statusStr := "-"
-					if len(status) > 0 {
-						statusStr = strings.Join(status, ", ")
-					}
-
-					_, _ = fmt.Printf("[%s] %s\n", b.Id, b.GetTitle())
-					_, _ = fmt.Printf("  URL:    %s\n", b.Content.Url)
-					_, _ = fmt.Printf("  Status: %s\n", statusStr)
-					_, _ = fmt.Println()
-				}
+				return PrintJSON(result.Items)
 			}
-
+			printBookmarkItems(result.Items)
+			printNextCursor(result.Page.NextCursor)
 			return nil
 		},
 	}
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	cmd.Flags().IntP("limit", "n", 20, "Maximum number of bookmarks")
+	cmd.Flags().StringP("cursor", "c", "", "Pagination cursor")
 	return cmd
 }
 
@@ -150,35 +122,16 @@ func bookmarkGetCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(bookmark, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal bookmark: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				createdAt := bookmark.CreatedAt
-				if t, err := time.Parse(time.RFC3339, bookmark.CreatedAt); err == nil {
-					createdAt = t.Format(time.RFC3339)
-				}
-				title := ""
-				if bookmark.Title != nil {
-					title = *bookmark.Title
-				}
-				description := ""
-				if bookmark.Summary != nil {
-					description = *bookmark.Summary
-				}
-				_, _ = fmt.Printf("ID:          %s\n", bookmark.Id)
-				_, _ = fmt.Printf("Title:       %s\n", title)
-				_, _ = fmt.Printf("URL:         %s\n", bookmark.Content.Url)
-				_, _ = fmt.Printf("Description: %s\n", description)
-				tagNames := make([]string, 0, len(bookmark.Tags))
-				for _, tag := range bookmark.Tags {
-					tagNames = append(tagNames, tag.Name)
-				}
-				_, _ = fmt.Printf("Tags:        %v\n", tagNames)
-				_, _ = fmt.Printf("Archived:    %v\n", bookmark.Archived)
-				_, _ = fmt.Printf("Created:     %s\n", createdAt)
+				return PrintJSON(bookmark)
+			}
+			_, _ = fmt.Printf("ID:          %s\n", bookmark.ID)
+			_, _ = fmt.Printf("Title:       %s\n", bookmark.Title)
+			_, _ = fmt.Printf("URL:         %s\n", bookmark.URL)
+			_, _ = fmt.Printf("Description: %s\n", bookmark.Summary)
+			_, _ = fmt.Printf("Tags:        %v\n", bookmark.Tags)
+			_, _ = fmt.Printf("Archived:    %v\n", bookmark.Archived)
+			if !bookmark.CreatedAt.IsZero() {
+				_, _ = fmt.Printf("Created:     %s\n", bookmark.CreatedAt.Format(time.RFC3339))
 			}
 
 			return nil
@@ -306,8 +259,8 @@ func bookmarkCheckUrlCommand() *cobra.Command {
 				return fmt.Errorf("check URL: %w", err)
 			}
 
-			if result.BookmarkId != nil {
-				_, _ = fmt.Printf("URL is bookmarked: %s (ID: %s)\n", urlStr, *result.BookmarkId)
+			if result.Exists && result.ID != "" {
+				_, _ = fmt.Printf("URL is bookmarked: %s (ID: %s)\n", urlStr, result.ID)
 			} else {
 				_, _ = fmt.Printf("URL is not bookmarked: %s\n", urlStr)
 			}
@@ -349,41 +302,17 @@ func bookmarkSearchCommand() *cobra.Command {
 				return fmt.Errorf("search bookmarks: %w", err)
 			}
 
-			if len(result.Bookmarks) == 0 {
-				_, _ = fmt.Println("No bookmarks found")
-				return nil
+			if len(result.Items) == 0 {
+				return PrintEmptyList(cmd, "No bookmarks found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(result.Bookmarks, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal bookmarks: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("Found %d bookmark(s):\n\n", len(result.Bookmarks))
-				for _, b := range result.Bookmarks {
-					var status []string
-					if b.Archived {
-						status = append(status, "archived")
-					}
-					if b.Favourited {
-						status = append(status, "favourited")
-					}
-
-					statusStr := "-"
-					if len(status) > 0 {
-						statusStr = strings.Join(status, ", ")
-					}
-
-					_, _ = fmt.Printf("[%s] %s\n", b.Id, b.GetTitle())
-					_, _ = fmt.Printf("  URL:    %s\n", b.Content.Url)
-					_, _ = fmt.Printf("  Status: %s\n", statusStr)
-					_, _ = fmt.Println()
-				}
+				return PrintJSON(result.Items)
 			}
-
+			_, _ = fmt.Printf("Found %d bookmark(s):\n\n", len(result.Items))
+			printBookmarkItems(result.Items)
+			printNextCursor(result.Page.NextCursor)
 			return nil
 		},
 	}
@@ -395,4 +324,39 @@ func bookmarkSearchCommand() *cobra.Command {
 	cmd.Flags().BoolP("include-content", "i", false, "Include full content in results")
 	cmd.Flags().StringP("output", "o", "table", "Output format (table, json)")
 	return cmd
+}
+
+func printBookmarkItems(items []*capability.Bookmark) {
+	for _, b := range items {
+		if b == nil {
+			continue
+		}
+		var status []string
+		if b.Archived {
+			status = append(status, "archived")
+		}
+		if b.Favourited {
+			status = append(status, "favourited")
+		}
+
+		statusStr := "-"
+		if len(status) > 0 {
+			statusStr = strings.Join(status, ", ")
+		}
+
+		title := b.Title
+		if title == "" {
+			title = b.URL
+		}
+		_, _ = fmt.Printf("[%s] %s\n", b.ID, title)
+		_, _ = fmt.Printf("  URL:    %s\n", b.URL)
+		_, _ = fmt.Printf("  Status: %s\n", statusStr)
+		_, _ = fmt.Println()
+	}
+}
+
+func printNextCursor(cursor string) {
+	if cursor != "" {
+		_, _ = fmt.Printf("--- Next cursor: %s\n", cursor)
+	}
 }

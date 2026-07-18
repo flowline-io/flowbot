@@ -6,8 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	rssClient "miniflux.app/v2/client"
-
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/validate"
 )
 
@@ -16,25 +15,29 @@ type ReaderClient struct {
 	c *Client
 }
 
-// ListFeedsQuery contains query parameters for listing feeds.
-type ListFeedsQuery struct{}
-
 // ListFeeds returns all feeds.
-func (r *ReaderClient) ListFeeds(ctx context.Context) (rssClient.Feeds, error) {
-	var result rssClient.Feeds
+func (r *ReaderClient) ListFeeds(ctx context.Context) ([]*capability.Feed, error) {
+	var result []*capability.Feed
 	err := r.c.Get(ctx, "/service/miniflux", &result)
 	return result, err
 }
 
-// GetFeed returns a single feed by ID.
-func (r *ReaderClient) GetFeed(ctx context.Context, id int64) (*rssClient.Feed, error) {
-	var result rssClient.Feed
-	path := fmt.Sprintf("/service/miniflux/%d", id)
-	err := r.c.Get(ctx, path, &result)
+// GetFeed returns a single feed by ID by listing feeds and filtering.
+// The server does not expose a dedicated get-feed endpoint.
+func (r *ReaderClient) GetFeed(ctx context.Context, id int64) (*capability.Feed, error) {
+	if id <= 0 {
+		return nil, fmt.Errorf("id must be positive, got %d", id)
+	}
+	feeds, err := r.ListFeeds(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	for _, feed := range feeds {
+		if feed != nil && feed.ID == id {
+			return feed, nil
+		}
+	}
+	return nil, &APIError{StatusCode: 404, Message: "feed not found"}
 }
 
 // CreateFeedRequest contains parameters for creating a feed.
@@ -43,13 +46,11 @@ type CreateFeedRequest struct {
 	CategoryID int64  `json:"category_id"`
 }
 
-// CreateFeedResult contains the result of creating a feed.
-type CreateFeedResult struct {
-	ID int64 `json:"id"`
-}
-
 // CreateFeed creates a new feed.
-func (r *ReaderClient) CreateFeed(ctx context.Context, req *CreateFeedRequest) (*CreateFeedResult, error) {
+func (r *ReaderClient) CreateFeed(ctx context.Context, req *CreateFeedRequest) (*capability.Feed, error) {
+	if req == nil {
+		return nil, fmt.Errorf("feed_url is required")
+	}
 	if req.FeedURL == "" {
 		return nil, fmt.Errorf("feed_url is required")
 	}
@@ -57,61 +58,8 @@ func (r *ReaderClient) CreateFeed(ctx context.Context, req *CreateFeedRequest) (
 		return nil, fmt.Errorf("invalid feed_url: %w", err)
 	}
 
-	var result CreateFeedResult
+	var result capability.Feed
 	err := r.c.Post(ctx, "/service/miniflux", req, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-// UpdateFeedRequest contains parameters for updating a feed.
-type UpdateFeedRequest struct {
-	Title                       string `json:"title,omitempty"`
-	FeedURL                     string `json:"feed_url,omitempty"`
-	SiteURL                     string `json:"site_url,omitempty"`
-	ScraperRules                string `json:"scraper_rules,omitempty"`
-	RewriteRules                string `json:"rewrite_rules,omitempty"`
-	UrlRewriteRules             string `json:"urlrewrite_rules,omitempty"`
-	BlocklistRules              string `json:"blocklist_rules,omitempty"`
-	KeeplistRules               string `json:"keeplist_rules,omitempty"`
-	BlockFilterEntryRules       string `json:"block_filter_entry_rules,omitempty"`
-	KeepFilterEntryRules        string `json:"keep_filter_entry_rules,omitempty"`
-	UserAgent                   string `json:"user_agent,omitempty"`
-	Cookie                      string `json:"cookie,omitempty"`
-	Username                    string `json:"username,omitempty"`
-	Password                    string `json:"password,omitempty"`
-	Crawler                     *bool  `json:"crawler,omitempty"`
-	IgnoreHTTPCache             *bool  `json:"ignore_http_cache,omitempty"`
-	AllowSelfSignedCertificates *bool  `json:"allow_self_signed_certificates,omitempty"`
-	FetchViaProxy               *bool  `json:"fetch_via_proxy,omitempty"`
-	IgnoreEntryUpdates          *bool  `json:"ignore_entry_updates,omitempty"`
-	DisableHTTP2                *bool  `json:"disable_http2,omitempty"`
-	HideGlobally                *bool  `json:"hide_globally,omitempty"`
-	Disabled                    *bool  `json:"disabled,omitempty"`
-}
-
-// UpdateFeed updates an existing feed.
-func (r *ReaderClient) UpdateFeed(ctx context.Context, id int64, req *UpdateFeedRequest) (*rssClient.Feed, error) {
-	var result rssClient.Feed
-	path := fmt.Sprintf("/service/miniflux/%d", id)
-	err := r.c.Patch(ctx, path, req, &result)
-	if err != nil {
-		return nil, err
-	}
-	return &result, nil
-}
-
-// RefreshFeedResult contains the result of refreshing a feed.
-type RefreshFeedResult struct {
-	Success bool `json:"success"`
-}
-
-// RefreshFeed triggers a refresh of a feed.
-func (r *ReaderClient) RefreshFeed(ctx context.Context, id int64) (*RefreshFeedResult, error) {
-	var result RefreshFeedResult
-	path := fmt.Sprintf("/service/miniflux/%d/refresh", id)
-	err := r.c.Post(ctx, path, nil, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -120,18 +68,14 @@ func (r *ReaderClient) RefreshFeed(ctx context.Context, id int64) (*RefreshFeedR
 
 // ListEntriesQuery contains query parameters for listing entries.
 type ListEntriesQuery struct {
-	Status     string
-	Limit      int
-	Offset     int
-	Order      string
-	Direction  string
-	Starred    bool
-	FeedID     int64
-	CategoryID int64
+	Status string
+	Limit  int
+	Cursor string
+	FeedID int64
 }
 
 // ListEntries returns entries with optional filtering.
-func (r *ReaderClient) ListEntries(ctx context.Context, query *ListEntriesQuery) (*rssClient.EntryResultSet, error) {
+func (r *ReaderClient) ListEntries(ctx context.Context, query *ListEntriesQuery) ([]*capability.Entry, error) {
 	path := "/service/miniflux/entries"
 	params := url.Values{}
 
@@ -142,23 +86,11 @@ func (r *ReaderClient) ListEntries(ctx context.Context, query *ListEntriesQuery)
 		if query.Limit > 0 {
 			params.Set("limit", strconv.Itoa(query.Limit))
 		}
-		if query.Offset > 0 {
-			params.Set("offset", strconv.Itoa(query.Offset))
-		}
-		if query.Order != "" {
-			params.Set("order", query.Order)
-		}
-		if query.Direction != "" {
-			params.Set("direction", query.Direction)
-		}
-		if query.Starred {
-			params.Set("starred", "true")
+		if query.Cursor != "" {
+			params.Set("cursor", query.Cursor)
 		}
 		if query.FeedID > 0 {
 			params.Set("feed_id", strconv.FormatInt(query.FeedID, 10))
-		}
-		if query.CategoryID > 0 {
-			params.Set("category_id", strconv.FormatInt(query.CategoryID, 10))
 		}
 	}
 
@@ -166,9 +98,9 @@ func (r *ReaderClient) ListEntries(ctx context.Context, query *ListEntriesQuery)
 		path = path + "?" + params.Encode()
 	}
 
-	var result rssClient.EntryResultSet
+	var result []*capability.Entry
 	err := r.c.Get(ctx, path, &result)
-	return &result, err
+	return result, err
 }
 
 // UpdateEntriesRequest contains parameters for updating entries status.
@@ -184,7 +116,7 @@ type UpdateEntriesResult struct {
 
 // UpdateEntriesStatus updates the status of multiple entries.
 func (r *ReaderClient) UpdateEntriesStatus(ctx context.Context, req *UpdateEntriesRequest) (*UpdateEntriesResult, error) {
-	if len(req.EntryIDs) == 0 {
+	if req == nil || len(req.EntryIDs) == 0 {
 		return nil, fmt.Errorf("entry_ids is required")
 	}
 	if req.Status == "" {
@@ -201,45 +133,21 @@ func (r *ReaderClient) UpdateEntriesStatus(ctx context.Context, req *UpdateEntri
 
 // GetFeedEntriesQuery contains query parameters for getting feed entries.
 type GetFeedEntriesQuery struct {
-	Status    string
-	Limit     int
-	Offset    int
-	Order     string
-	Direction string
-	Starred   bool
+	Status string
+	Limit  int
+	Cursor string
 }
 
-// GetFeedEntries returns entries for a specific feed.
-func (r *ReaderClient) GetFeedEntries(ctx context.Context, feedID int64, query *GetFeedEntriesQuery) (*rssClient.EntryResultSet, error) {
-	path := fmt.Sprintf("/service/miniflux/%d/entries", feedID)
-	params := url.Values{}
-
+// GetFeedEntries returns entries for a specific feed via the shared entries endpoint.
+func (r *ReaderClient) GetFeedEntries(ctx context.Context, feedID int64, query *GetFeedEntriesQuery) ([]*capability.Entry, error) {
+	if feedID <= 0 {
+		return nil, fmt.Errorf("feed_id must be positive, got %d", feedID)
+	}
+	listQuery := &ListEntriesQuery{FeedID: feedID}
 	if query != nil {
-		if query.Status != "" {
-			params.Set("status", query.Status)
-		}
-		if query.Limit > 0 {
-			params.Set("limit", strconv.Itoa(query.Limit))
-		}
-		if query.Offset > 0 {
-			params.Set("offset", strconv.Itoa(query.Offset))
-		}
-		if query.Order != "" {
-			params.Set("order", query.Order)
-		}
-		if query.Direction != "" {
-			params.Set("direction", query.Direction)
-		}
-		if query.Starred {
-			params.Set("starred", "true")
-		}
+		listQuery.Status = query.Status
+		listQuery.Limit = query.Limit
+		listQuery.Cursor = query.Cursor
 	}
-
-	if len(params) > 0 {
-		path = path + "?" + params.Encode()
-	}
-
-	var result rssClient.EntryResultSet
-	err := r.c.Get(ctx, path, &result)
-	return &result, err
+	return r.ListEntries(ctx, listQuery)
 }

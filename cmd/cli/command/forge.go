@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
@@ -46,17 +45,12 @@ func forgeUserCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(user, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal user: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("ID:        %d\n", user.ID)
-				_, _ = fmt.Printf("Username:  %s\n", user.UserName)
-				_, _ = fmt.Printf("Email:     %s\n", user.Email)
-				_, _ = fmt.Printf("Avatar:    %s\n", user.AvatarURL)
+				return PrintJSON(user)
 			}
+			_, _ = fmt.Printf("ID:        %d\n", user.ID)
+			_, _ = fmt.Printf("Username:  %s\n", user.UserName)
+			_, _ = fmt.Printf("Email:     %s\n", user.Email)
+			_, _ = fmt.Printf("Avatar:    %s\n", user.AvatarURL)
 
 			return nil
 		},
@@ -84,21 +78,16 @@ func forgeRepoCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(repo, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal repo: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("ID:          %d\n", repo.ID)
-				_, _ = fmt.Printf("Name:        %s\n", repo.Name)
-				_, _ = fmt.Printf("Full Name:   %s\n", repo.FullName)
-				_, _ = fmt.Printf("Description: %s\n", repo.Description)
-				_, _ = fmt.Printf("Private:     %v\n", repo.Private)
-				_, _ = fmt.Printf("HTML URL:    %s\n", repo.HTMLURL)
-				_, _ = fmt.Printf("Clone URL:   %s\n", repo.CloneURL)
-				_, _ = fmt.Printf("Owner:       %s\n", repo.Owner)
+				return PrintJSON(repo)
 			}
+			_, _ = fmt.Printf("ID:          %d\n", repo.ID)
+			_, _ = fmt.Printf("Name:        %s\n", repo.Name)
+			_, _ = fmt.Printf("Full Name:   %s\n", repo.FullName)
+			_, _ = fmt.Printf("Description: %s\n", repo.Description)
+			_, _ = fmt.Printf("Private:     %v\n", repo.Private)
+			_, _ = fmt.Printf("HTML URL:    %s\n", repo.HTMLURL)
+			_, _ = fmt.Printf("Clone URL:   %s\n", repo.CloneURL)
+			_, _ = fmt.Printf("Owner:       %s\n", repo.Owner)
 
 			return nil
 		},
@@ -135,27 +124,21 @@ func forgeIssuesCommand() *cobra.Command {
 			}
 
 			if len(issues) == 0 {
-				_, _ = fmt.Println("No issues found")
-				return nil
+				return PrintEmptyList(cmd, "No issues found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(issues, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal issues: %w", err)
+				return PrintJSON(issues)
+			}
+			_, _ = fmt.Printf("%-6s %-30s %-10s %-10s\n", "NUMBER", "TITLE", "STATE", "AUTHOR")
+			_, _ = fmt.Println("---------------------------------------------------------------")
+			for _, iss := range issues {
+				title := iss.Title
+				if len(title) > 28 {
+					title = title[:25] + "..."
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-6s %-30s %-10s %-10s\n", "NUMBER", "TITLE", "STATE", "AUTHOR")
-				_, _ = fmt.Println("---------------------------------------------------------------")
-				for _, iss := range issues {
-					title := iss.Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					_, _ = fmt.Printf("%-6d %-30s %-10s %-10s\n", iss.Index, title, iss.State, iss.Author)
-				}
+				_, _ = fmt.Printf("%-6d %-30s %-10s %-10s\n", iss.Index, title, iss.State, iss.Author)
 			}
 
 			return nil
@@ -192,20 +175,15 @@ func forgeIssueCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(issue, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal issue: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("ID:       %d\n", issue.ID)
-				_, _ = fmt.Printf("Number:   #%d\n", issue.Index)
-				_, _ = fmt.Printf("Title:    %s\n", issue.Title)
-				_, _ = fmt.Printf("State:    %s\n", issue.State)
-				_, _ = fmt.Printf("Author:   %s\n", issue.Author)
-				_, _ = fmt.Printf("URL:      %s\n", issue.HTMLURL)
-				_, _ = fmt.Printf("Body:\n%s\n", issue.Body)
+				return PrintJSON(issue)
 			}
+			_, _ = fmt.Printf("ID:       %d\n", issue.ID)
+			_, _ = fmt.Printf("Number:   #%d\n", issue.Index)
+			_, _ = fmt.Printf("Title:    %s\n", issue.Title)
+			_, _ = fmt.Printf("State:    %s\n", issue.State)
+			_, _ = fmt.Printf("Author:   %s\n", issue.Author)
+			_, _ = fmt.Printf("URL:      %s\n", issue.HTMLURL)
+			_, _ = fmt.Printf("Body:\n%s\n", issue.Body)
 
 			return nil
 		},
@@ -233,17 +211,12 @@ func forgeDiffCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(diff, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal diff: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("Commit:  %s\n", diff.CommitID)
-				_, _ = fmt.Printf("Message: %s\n", diff.CommitMessage)
-				_, _ = fmt.Printf("Files:   %v\n", diff.Files)
-				_, _ = fmt.Printf("\n%s\n", diff.DiffContent)
+				return PrintJSON(diff)
 			}
+			_, _ = fmt.Printf("Commit:  %s\n", diff.CommitID)
+			_, _ = fmt.Printf("Message: %s\n", diff.CommitMessage)
+			_, _ = fmt.Printf("Files:   %v\n", diff.Files)
+			_, _ = fmt.Printf("\n%s\n", diff.DiffContent)
 
 			return nil
 		},

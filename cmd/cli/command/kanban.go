@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
+	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/client"
 	"github.com/flowline-io/flowbot/pkg/providers/kanboard"
 )
@@ -51,7 +51,7 @@ func kanbanListCommand() *cobra.Command {
 			projectId, _ := cmd.Flags().GetInt("project")
 			status, _ := cmd.Flags().GetString("status")
 
-			var tasks []kanboard.Task
+			var tasks []*capability.Task
 			if status == "all" {
 				tasks, err = c.Kanban.ListAll(cmd.Context(), projectId)
 			} else {
@@ -66,36 +66,24 @@ func kanbanListCommand() *cobra.Command {
 			}
 
 			if len(tasks) == 0 {
-				_, _ = fmt.Println("No kanban tasks found")
-				return nil
+				return PrintEmptyList(cmd, "No kanban tasks found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(tasks, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal kanban tasks: %w", err)
+				return PrintJSON(tasks)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-12s %-12s\n", "ID", "TITLE", "COLUMN", "PROJECT")
+			_, _ = fmt.Println(strings.Repeat("-", 65))
+			for _, task := range tasks {
+				if task == nil {
+					continue
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "COLUMN", "STATUS")
-				_, _ = fmt.Println(strings.Repeat("-", 65))
-				for i := range tasks {
-					id := strconv.Itoa(tasks[i].ID)
-					title := tasks[i].Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					column := tasks[i].ColumnTitle
-					if len(column) > 13 {
-						column = column[:10] + "..."
-					}
-					statusStr := "active"
-					if tasks[i].IsActive == 0 {
-						statusStr = "closed"
-					}
-					_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", id, title, column, statusStr)
+				title := task.Title
+				if len(title) > 28 {
+					title = title[:25] + "..."
 				}
+				_, _ = fmt.Printf("%-8d %-30s %-12d %-12d\n", task.ID, title, task.ColumnID, task.ProjectID)
 			}
 
 			return nil
@@ -133,22 +121,15 @@ func kanbanGetCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(task, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal kanban task: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("ID:          %d\n", task.ID)
-				_, _ = fmt.Printf("Title:       %s\n", task.Title)
-				_, _ = fmt.Printf("Description: %s\n", task.Description)
-				_, _ = fmt.Printf("Project:     %s\n", task.ProjectName)
-				_, _ = fmt.Printf("Column:      %s\n", task.ColumnTitle)
-				_, _ = fmt.Printf("Priority:    %d\n", task.Priority)
-				_, _ = fmt.Printf("Status:      %s\n", map[int]string{0: "inactive", 1: "active"}[task.IsActive])
-				_, _ = fmt.Printf("Created:     %s\n", formatTimestamp(task.DateCreation))
-				_, _ = fmt.Printf("Updated:     %s\n", formatTimestamp(task.DateModification))
+				return PrintJSON(task)
 			}
+			_, _ = fmt.Printf("ID:          %d\n", task.ID)
+			_, _ = fmt.Printf("Title:       %s\n", task.Title)
+			_, _ = fmt.Printf("Description: %s\n", task.Description)
+			_, _ = fmt.Printf("Project ID:  %d\n", task.ProjectID)
+			_, _ = fmt.Printf("Column ID:   %d\n", task.ColumnID)
+			_, _ = fmt.Printf("Tags:        %v\n", task.Tags)
+			_, _ = fmt.Printf("Reference:   %s\n", task.Reference)
 
 			return nil
 		},
@@ -351,36 +332,24 @@ func kanbanSearchCommand() *cobra.Command {
 			}
 
 			if len(tasks) == 0 {
-				_, _ = fmt.Println("No tasks found")
-				return nil
+				return PrintEmptyList(cmd, "No tasks found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(tasks, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal tasks: %w", err)
+				return PrintJSON(tasks)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-12s %-12s\n", "ID", "TITLE", "COLUMN", "PROJECT")
+			_, _ = fmt.Println(strings.Repeat("-", 65))
+			for _, task := range tasks {
+				if task == nil {
+					continue
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", "ID", "TITLE", "COLUMN", "STATUS")
-				_, _ = fmt.Println(strings.Repeat("-", 65))
-				for i := range tasks {
-					id := strconv.Itoa(tasks[i].ID)
-					title := tasks[i].Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					column := tasks[i].ColumnTitle
-					if len(column) > 13 {
-						column = column[:10] + "..."
-					}
-					statusStr := "active"
-					if tasks[i].IsActive == 0 {
-						statusStr = "closed"
-					}
-					_, _ = fmt.Printf("%-8s %-30s %-15s %-10s\n", id, title, column, statusStr)
+				title := task.Title
+				if len(title) > 28 {
+					title = title[:25] + "..."
 				}
+				_, _ = fmt.Printf("%-8d %-30s %-12d %-12d\n", task.ID, title, task.ColumnID, task.ProjectID)
 			}
 
 			return nil
@@ -436,11 +405,7 @@ func kanbanMetadataGetCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("get metadata: %w", err)
 				}
-				data, err := sonic.MarshalIndent(metadata, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal metadata: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
+				return PrintJSON(metadata)
 			}
 
 			return nil
@@ -596,31 +561,25 @@ func kanbanSubtaskListCommand() *cobra.Command {
 			}
 
 			if len(subtasks) == 0 {
-				_, _ = fmt.Println("No subtasks found for this task")
-				return nil
+				return PrintEmptyList(cmd, "No subtasks found for this task")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(subtasks, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal subtasks: %w", err)
+				return PrintJSON(subtasks)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", "ID", "TITLE", "STATUS", "ESTIMATED", "SPENT")
+			_, _ = fmt.Println(strings.Repeat("-", 80))
+			for _, s := range subtasks {
+				title := s.Title
+				if len(title) > 28 {
+					title = title[:25] + "..."
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", "ID", "TITLE", "STATUS", "ESTIMATED", "SPENT")
-				_, _ = fmt.Println(strings.Repeat("-", 80))
-				for _, s := range subtasks {
-					title := s.Title
-					if len(title) > 28 {
-						title = title[:25] + "..."
-					}
-					status := s.StatusName
-					if status == "" {
-						status = "Todo"
-					}
-					_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", s.ID, title, status, s.TimeEstimated, s.TimeSpent)
+				status := s.StatusName
+				if status == "" {
+					status = "Todo"
 				}
+				_, _ = fmt.Printf("%-8s %-30s %-10s %-12s %-12s\n", s.ID, title, status, s.TimeEstimated, s.TimeSpent)
 			}
 
 			return nil
@@ -660,21 +619,16 @@ func kanbanSubtaskGetCommand() *cobra.Command {
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(subtask, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal subtask: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("ID:          %s\n", subtask.ID)
-				_, _ = fmt.Printf("Title:       %s\n", subtask.Title)
-				_, _ = fmt.Printf("Task ID:     %s\n", subtask.TaskID)
-				_, _ = fmt.Printf("Status:      %s\n", subtask.StatusName)
-				_, _ = fmt.Printf("Time Estimated: %v\n", subtask.TimeEstimated)
-				_, _ = fmt.Printf("Time Spent:  %v\n", subtask.TimeSpent)
-				if subtask.Username != "" {
-					_, _ = fmt.Printf("Assignee:    %s\n", subtask.Username)
-				}
+				return PrintJSON(subtask)
+			}
+			_, _ = fmt.Printf("ID:          %s\n", subtask.ID)
+			_, _ = fmt.Printf("Title:       %s\n", subtask.Title)
+			_, _ = fmt.Printf("Task ID:     %s\n", subtask.TaskID)
+			_, _ = fmt.Printf("Status:      %s\n", subtask.StatusName)
+			_, _ = fmt.Printf("Time Estimated: %v\n", subtask.TimeEstimated)
+			_, _ = fmt.Printf("Time Spent:  %v\n", subtask.TimeSpent)
+			if subtask.Username != "" {
+				_, _ = fmt.Printf("Assignee:    %s\n", subtask.Username)
 			}
 
 			return nil
@@ -1063,27 +1017,21 @@ func kanbanTagListCommand() *cobra.Command {
 			}
 
 			if len(tags) == 0 {
-				_, _ = fmt.Println("No tags found")
-				return nil
+				return PrintEmptyList(cmd, "No tags found")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(tags, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal tags: %w", err)
+				return PrintJSON(tags)
+			}
+			_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
+			_, _ = fmt.Println(strings.Repeat("-", 50))
+			for _, t := range tags {
+				name := t.Name
+				if len(name) > 28 {
+					name = name[:25] + "..."
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-8s %-30s %-10s\n", "ID", "NAME", "PROJECT")
-				_, _ = fmt.Println(strings.Repeat("-", 50))
-				for _, t := range tags {
-					name := t.Name
-					if len(name) > 28 {
-						name = name[:25] + "..."
-					}
-					_, _ = fmt.Printf("%-8s %-30s %-10s\n", t.ID, name, t.ProjectID)
-				}
+				_, _ = fmt.Printf("%-8s %-30s %-10s\n", t.ID, name, t.ProjectID)
 			}
 
 			return nil
@@ -1256,23 +1204,17 @@ func kanbanTagTaskGetCommand() *cobra.Command {
 			}
 
 			if len(tags) == 0 {
-				_, _ = fmt.Println("No tags assigned to this task")
-				return nil
+				return PrintEmptyList(cmd, "No tags assigned to this task")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(tags, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal tags: %w", err)
-				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-8s %-30s\n", "ID", "NAME")
-				_, _ = fmt.Println(strings.Repeat("-", 40))
-				for id, name := range tags {
-					_, _ = fmt.Printf("%-8s %-30s\n", id, name)
-				}
+				return PrintJSON(tags)
+			}
+			_, _ = fmt.Printf("%-8s %-30s\n", "ID", "NAME")
+			_, _ = fmt.Println(strings.Repeat("-", 40))
+			for id, name := range tags {
+				_, _ = fmt.Printf("%-8s %-30s\n", id, name)
 			}
 
 			return nil

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bytedance/sonic"
 	"github.com/spf13/cobra"
 
 	"github.com/flowline-io/flowbot/cmd/cli/utils"
@@ -40,27 +39,21 @@ func pipelineListCommand() *cobra.Command {
 			}
 
 			if len(result.Pipelines) == 0 {
-				_, _ = fmt.Println("No pipelines configured")
-				return nil
+				return PrintEmptyList(cmd, "No pipelines configured")
 			}
 
 			output, _ := cmd.Flags().GetString("output")
 			if output == "json" {
-				data, err := sonic.MarshalIndent(result.Pipelines, "", "  ")
-				if err != nil {
-					return fmt.Errorf("marshal pipelines: %w", err)
+				return PrintJSON(result.Pipelines)
+			}
+			_, _ = fmt.Printf("%-32s %-10s %s\n", "NAME", "ENABLED", "TRIGGER")
+			_, _ = fmt.Printf("%s\n", strings.Repeat("-", 60))
+			for _, p := range result.Pipelines {
+				enabled := "no"
+				if p.Enabled {
+					enabled = "yes"
 				}
-				_, _ = fmt.Println(string(data))
-			} else {
-				_, _ = fmt.Printf("%-32s %-10s %s\n", "NAME", "ENABLED", "TRIGGER")
-				_, _ = fmt.Printf("%s\n", strings.Repeat("-", 60))
-				for _, p := range result.Pipelines {
-					enabled := "no"
-					if p.Enabled {
-						enabled = "yes"
-					}
-					_, _ = fmt.Printf("%-32s %-10s %s\n", p.Name, enabled, p.Trigger.Event)
-				}
+				_, _ = fmt.Printf("%-32s %-10s %s\n", p.Name, enabled, p.Trigger.Event)
 			}
 
 			return nil
