@@ -36,3 +36,10 @@ func GetEngine() *Engine {
 	defer globalEngine.mu.RUnlock()
 	return globalEngine.engine
 }
+
+// ResetForTest clears the global template engine. Intended for tests only.
+func ResetForTest() {
+	globalEngine.mu.Lock()
+	globalEngine.engine = nil
+	globalEngine.mu.Unlock()
+}

@@ -514,7 +514,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 			return templ_7745c5c3_Err
 		}
 		if isNew {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, " hx-post=\"/service/web/notify-settings/rules\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, " hx-post=\"/service/web/notifications/rules\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

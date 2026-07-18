@@ -1,0 +1,210 @@
+package partials
+
+import "fmt"
+
+templ NotifyPlayground(p NotifyPlaygroundParams) {
+	<div id="notify-playground" data-testid="notify-playground" class="space-y-4"
+		x-data={ playgroundAlpineData(p.Form.Mode) }>
+		<div class="card bg-base-100 shadow-sm">
+			<div class="card-body gap-4">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<div>
+						<h2 class="card-title text-base">Playground</h2>
+						<p class="text-sm text-base-content/60">Preview and manually send a notification to an enabled channel.</p>
+					</div>
+					<div class="join">
+						<button type="button" class="btn btn-sm join-item"
+							:class="mode === 'template' ? 'btn-primary' : 'btn-ghost'"
+							@click="mode = 'template'"
+							data-testid="playground-mode-template">
+							Template
+						</button>
+						<button type="button" class="btn btn-sm join-item"
+							:class="mode === 'custom' ? 'btn-primary' : 'btn-ghost'"
+							@click="mode = 'custom'"
+							data-testid="playground-mode-custom">
+							Custom
+						</button>
+					</div>
+				</div>
+
+				if p.Errors["_form"] != "" {
+					<div class="alert alert-error text-sm" data-testid="playground-form-error">{ p.Errors["_form"] }</div>
+				}
+
+				<form id="playground-form" class="grid gap-4 md:grid-cols-2">
+					<input type="hidden" name="mode" :value="mode"/>
+
+					<div class="form-control">
+						<label class="label"><span class="label-text">Channel</span></label>
+						<select name="channel_id" data-testid="playground-channel"
+							class={ "select select-bordered select-sm w-full " + playgroundFieldError(p.Errors, "channel_id") }>
+							<option value="">Select channel...</option>
+							for _, ch := range p.Channels {
+								<option value={ fmt.Sprintf("%d", ch.ID) }
+									if p.Form.ChannelID == ch.ID {
+										selected
+									}>
+									{ ch.Name } ({ ch.Protocol })
+								</option>
+							}
+						</select>
+						if p.Errors["channel_id"] != "" {
+							<div class="label"><span class="label-text-alt text-error">{ p.Errors["channel_id"] }</span></div>
+						}
+						if len(p.Channels) == 0 {
+							<div class="label"><span class="label-text-alt text-warning">No enabled channels. Add one in the Channels tab.</span></div>
+						}
+					</div>
+
+					<div class="form-control">
+						<label class="label"><span class="label-text">Priority</span></label>
+						<select name="priority" data-testid="playground-priority" class="select select-bordered select-sm w-full">
+							<option value="low" if p.Form.Priority == "low" { selected }>Low</option>
+							<option value="moderate" if p.Form.Priority == "moderate" { selected }>Moderate</option>
+							<option value="normal" if p.Form.Priority == "normal" || p.Form.Priority == "" { selected }>Normal</option>
+							<option value="high" if p.Form.Priority == "high" { selected }>High</option>
+							<option value="emergency" if p.Form.Priority == "emergency" { selected }>Emergency</option>
+						</select>
+					</div>
+
+					<div class="form-control md:col-span-2" x-show="mode === 'template'" x-cloak>
+						<label class="label"><span class="label-text">Template</span></label>
+						<select name="template_id" data-testid="playground-template"
+							hx-get="/service/web/notifications/playground/sample-payload"
+							hx-trigger="change"
+							hx-target="#playground-payload-field"
+							hx-swap="outerHTML"
+							hx-include="this"
+							class={ "select select-bordered select-sm w-full " + playgroundFieldError(p.Errors, "template_id") }>
+							<option value="">Select template...</option>
+							for _, tmpl := range p.Templates {
+								<option value={ tmpl.ID }
+									if p.Form.TemplateID == tmpl.ID {
+										selected
+									}>
+									if tmpl.Name != "" {
+										{ tmpl.ID + " — " + tmpl.Name }
+									} else {
+										{ tmpl.ID }
+									}
+								</option>
+							}
+						</select>
+						if p.Errors["template_id"] != "" {
+							<div class="label"><span class="label-text-alt text-error">{ p.Errors["template_id"] }</span></div>
+						}
+					</div>
+
+					<div class="form-control md:col-span-2" x-show="mode === 'custom'" x-cloak>
+						<label class="label"><span class="label-text">Custom template</span></label>
+						<textarea name="custom_template" rows="6"
+							data-testid="playground-custom-template"
+							class={ "textarea textarea-bordered font-mono text-xs w-full " + playgroundFieldError(p.Errors, "custom_template") }
+							placeholder={"**Title**\nHello {{ .name }}"}>{ p.Form.CustomTemplate }</textarea>
+						if p.Errors["custom_template"] != "" {
+							<div class="label"><span class="label-text-alt text-error">{ p.Errors["custom_template"] }</span></div>
+						}
+						<div class="mt-2">
+							<label class="label"><span class="label-text">Format</span></label>
+							<select name="format" data-testid="playground-format" class="select select-bordered select-sm w-full max-w-xs">
+								<option value="markdown" if p.Form.Format == "markdown" || p.Form.Format == "" { selected }>markdown</option>
+								<option value="html" if p.Form.Format == "html" { selected }>html</option>
+								<option value="text" if p.Form.Format == "text" { selected }>text</option>
+							</select>
+						</div>
+					</div>
+
+					@NotifyPlaygroundPayloadField(p.Form.PayloadJSON, p.Errors["payload_json"])
+
+					<div class="form-control md:col-span-2">
+						<label class="label"><span class="label-text">URL (optional)</span></label>
+						<input type="text" name="url" value={ p.Form.URL }
+							data-testid="playground-url"
+							class="input input-bordered input-sm w-full"
+							placeholder="https://example.com"/>
+					</div>
+
+					<div class="md:col-span-2 flex flex-wrap gap-2 justify-end">
+						<button type="button"
+							hx-post="/service/web/notifications/playground/preview"
+							hx-target="#notify-playground"
+							hx-swap="outerHTML"
+							hx-include="#playground-form"
+							data-testid="playground-preview"
+							class="btn btn-ghost btn-sm">
+							Preview
+						</button>
+						<button type="button"
+							hx-post="/service/web/notifications/playground/send"
+							hx-target="#notify-playground"
+							hx-swap="outerHTML"
+							hx-include="#playground-form"
+							data-testid="playground-send"
+							class="btn btn-primary btn-sm">
+							Send
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		if p.Result != nil {
+			@NotifyPlaygroundResult(*p.Result)
+		}
+	</div>
+}
+
+templ NotifyPlaygroundPayloadField(payloadJSON, errMsg string) {
+	<div id="playground-payload-field" class="form-control md:col-span-2" data-testid="playground-payload-field">
+		<label class="label"><span class="label-text">Payload JSON</span></label>
+		<textarea name="payload_json" rows="6"
+			data-testid="playground-payload"
+			class={ "textarea textarea-bordered font-mono text-xs w-full " + playgroundPayloadErrorClass(errMsg) }
+			placeholder="{}">{ payloadJSON }</textarea>
+		if errMsg != "" {
+			<div class="label"><span class="label-text-alt text-error">{ errMsg }</span></div>
+		}
+	</div>
+}
+
+templ NotifyPlaygroundResult(p NotifyPlaygroundResultParams) {
+	<div id="playground-result" data-testid="playground-result" class="card bg-base-100 shadow-sm">
+		<div class="card-body gap-3">
+			<div class="flex items-center gap-2">
+				<h3 class="font-medium">
+					if p.Preview {
+						Preview
+					} else if p.Success {
+						Sent
+					} else if p.Error != "" {
+						Failed
+					} else {
+						Result
+					}
+				</h3>
+				if p.Format != "" {
+					<span class="badge badge-outline badge-sm">{ p.Format }</span>
+				}
+				if p.Success {
+					<span class="badge badge-success badge-sm">success</span>
+				}
+			</div>
+			if p.Error != "" {
+				<div class="alert alert-error text-sm" data-testid="playground-result-error">{ p.Error }</div>
+			}
+			if p.Title != "" {
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Title</div>
+					<div class="text-sm font-medium" data-testid="playground-result-title">{ p.Title }</div>
+				</div>
+			}
+			if p.Body != "" {
+				<div>
+					<div class="text-xs uppercase text-base-content/50 mb-1">Body</div>
+					<pre class="bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto" data-testid="playground-result-body">{ p.Body }</pre>
+				</div>
+			}
+		</div>
+	</div>
+}

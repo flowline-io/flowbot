@@ -7,37 +7,40 @@ import (
 )
 
 templ NotifyRuleRow(item model.NotifyRule, templateIDs []string) {
-	<tr id={ notifyRuleRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
-		<td class="text-base-content/70 text-center">{ fmt.Sprintf("%d", item.Priority) }</td>
-		<td class="text-base-content font-medium">
-			{ item.Name }
-			if item.Action == "aggregate" && item.ParamsJSON != "" && !hasTemplateForRule(item, templateIDs) {
-				<span class="tooltip" data-tip="Template not found in current config" data-testid="rule-stale-template">&#9888;</span>
-			}
-		</td>
-		<td><span class={ actionBadgeClass(item.Action) }>{ item.Action }</span></td>
-		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.EventPattern, 30) }</td>
-		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.ChannelPattern, 30) }</td>
-		<td>
-			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
-		</td>
-		<td>
-			<div class="flex gap-1">
-				<button hx-get={ notifyRuleEditURL(item) }
-					data-testid="rule-edit"
-					class="btn btn-ghost btn-xs text-primary">
-					Edit
+	<tbody id={ notifyRuleRowID(item) } x-data="{ expanded: false }">
+		<tr class="hover">
+			<td class="text-base-content/70 text-center">{ fmt.Sprintf("%d", item.Priority) }</td>
+			<td class="text-base-content font-medium">
+				<button type="button" class="link link-hover text-left" @click="expanded = !expanded"
+					data-testid={ "rule-expand-" + item.RuleID }>
+					{ item.Name }
 				</button>
-				<button hx-delete={ notifyRuleDeleteURL(item) }
-					data-confirm="Delete this rule?"
-					data-confirm-title="Delete Rule"
-					data-confirm-btn="Delete"
-					data-confirm-class="btn-error"
-					data-testid="rule-delete"
-					class="btn btn-ghost btn-xs text-error">
-					Delete
-				</button>
-			</div>
-		</td>
-	</tr>
+				if item.Action == "aggregate" && item.ParamsJSON != "" && !hasTemplateForRule(item, templateIDs) {
+					<span class="tooltip" data-tip="Template not found in current config" data-testid="rule-stale-template">&#9888;</span>
+				}
+				<div class="text-xs text-base-content/50 font-mono mt-0.5">{ item.RuleID }</div>
+			</td>
+			<td><span class={ actionBadgeClass(item.Action) }>{ item.Action }</span></td>
+			<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.EventPattern, 30) }</td>
+			<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.ChannelPattern, 30) }</td>
+			<td>
+				<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+			</td>
+		</tr>
+		<tr x-show="expanded" x-cloak class="bg-base-200/40">
+			<td colspan="6" class="p-4">
+				if item.Condition != "" {
+					<div class="text-xs uppercase text-base-content/50 mb-1">Condition</div>
+					<pre class="bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto mb-3">{ item.Condition }</pre>
+				}
+				if item.ParamsJSON != "" {
+					<div class="text-xs uppercase text-base-content/50 mb-1">Params</div>
+					<pre class="bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto">{ item.ParamsJSON }</pre>
+				}
+				if item.Condition == "" && item.ParamsJSON == "" {
+					<div class="text-sm text-base-content/50">No condition or params.</div>
+				}
+			</td>
+		</tr>
+	</tbody>
 }

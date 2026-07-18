@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-// NotifyRule represents a notification routing rule for UI display and editing.
+// NotifyRule represents a notification routing rule for UI display.
 type NotifyRule struct {
 	ID             int64     `json:"id"`
 	RuleID         string    `json:"rule_id"`

@@ -99,7 +99,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				<div class="flex gap-1 mt-1">
 					<button type="button"
 						if isNew {
-							hx-post="/service/web/notify-settings/rules"
+							hx-post="/service/web/notifications/rules"
 						} else {
 							hx-put={ notifyRuleDeleteURL(item) }
 						}

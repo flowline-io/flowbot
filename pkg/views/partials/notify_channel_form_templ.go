@@ -261,7 +261,7 @@ func NotifyChannelForm(item model.NotifyChannel, isNew bool, errors map[string]s
 			return templ_7745c5c3_Err
 		}
 		if isNew {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " hx-post=\"/service/web/notify-settings/channels\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, " hx-post=\"/service/web/notifications/channels\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

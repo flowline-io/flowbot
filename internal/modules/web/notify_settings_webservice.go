@@ -20,28 +20,42 @@ import (
 )
 
 var notifySettingsWebserviceRules = []webservice.Rule{
-	webservice.Get("/notify-settings", notifySettingsPage, route.WithNotAuth()),
-	webservice.Get("/notify-settings/channels/list", notifyChannelsTable, route.WithNotAuth()),
-	webservice.Get("/notify-settings/channels/new", notifyChannelNewForm, route.WithNotAuth()),
-	webservice.Post("/notify-settings/channels", notifyChannelCreate, route.WithNotAuth()),
-	webservice.Get("/notify-settings/channels/:id/edit", notifyChannelEditForm, route.WithNotAuth()),
-	webservice.Put("/notify-settings/channels/:id", notifyChannelUpdate, route.WithNotAuth()),
-	webservice.Delete("/notify-settings/channels/:id", notifyChannelDelete, route.WithNotAuth()),
-	webservice.Post("/notify-settings/channels/:id/test", notifyChannelTest, route.WithNotAuth()),
-	webservice.Get("/notify-settings/rules/list", notifyRulesTable, route.WithNotAuth()),
-	webservice.Get("/notify-settings/rules/new", notifyRuleNewForm, route.WithNotAuth()),
-	webservice.Post("/notify-settings/rules", notifyRuleCreate, route.WithNotAuth()),
-	webservice.Get("/notify-settings/rules/:id/edit", notifyRuleEditForm, route.WithNotAuth()),
-	webservice.Put("/notify-settings/rules/:id", notifyRuleUpdate, route.WithNotAuth()),
-	webservice.Delete("/notify-settings/rules/:id", notifyRuleDelete, route.WithNotAuth()),
+	webservice.Get("/notifications/channels/list", notifyChannelsTable, route.WithNotAuth()),
+	webservice.Get("/notifications/channels/new", notifyChannelNewForm, route.WithNotAuth()),
+	webservice.Post("/notifications/channels", notifyChannelCreate, route.WithNotAuth()),
+	webservice.Get("/notifications/channels/:id/edit", notifyChannelEditForm, route.WithNotAuth()),
+	webservice.Put("/notifications/channels/:id", notifyChannelUpdate, route.WithNotAuth()),
+	webservice.Delete("/notifications/channels/:id", notifyChannelDelete, route.WithNotAuth()),
+	webservice.Post("/notifications/channels/:id/test", notifyChannelTest, route.WithNotAuth()),
+	webservice.Get("/notifications/templates/list", notifyTemplatesTable, route.WithNotAuth()),
+	webservice.Get("/notifications/rules/list", notifyRulesTable, route.WithNotAuth()),
+	webservice.Get("/notifications/rules/new", notifyRuleNewForm, route.WithNotAuth()),
+	webservice.Post("/notifications/rules", notifyRuleCreate, route.WithNotAuth()),
+	webservice.Get("/notifications/rules/:id/edit", notifyRuleEditForm, route.WithNotAuth()),
+	webservice.Put("/notifications/rules/:id", notifyRuleUpdate, route.WithNotAuth()),
+	webservice.Delete("/notifications/rules/:id", notifyRuleDelete, route.WithNotAuth()),
 }
 
 func notifySettingsPage(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
+	tab := normalizeNotifySettingsTab(ctx.Query("tab"))
 	ctx.Type("html")
-	return pages.NotifySettingsPage().Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.NotifySettingsPage(tab).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+// normalizeNotifySettingsTab returns a known tab id or the default channels tab.
+func normalizeNotifySettingsTab(tab string) string {
+	switch tab {
+	case "templates", "rules", "history", "playground":
+		return tab
+	case "notifications":
+		// Legacy query value; History tab holds delivery records.
+		return "history"
+	default:
+		return "channels"
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -203,6 +217,19 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", nil)
 	}
 	return ctx.SendString("")
+}
+
+// ---------------------------------------------------------------------------
+// Template handlers (read-only)
+// ---------------------------------------------------------------------------
+
+func notifyTemplatesTable(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	templates := getTemplates()
+	ctx.Type("html")
+	return partials.NotifyTemplatesTable(templates).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // ---------------------------------------------------------------------------
@@ -383,6 +410,14 @@ func getTemplateIDs() []string {
 	return []string{}
 }
 
+// getTemplates returns notify template manifests from the engine, falling back to config.
+func getTemplates() []pkgconfig.NotifyTemplate {
+	if eng := notifytmpl.GetEngine(); eng != nil {
+		return eng.ListTemplates()
+	}
+	return pkgconfig.App.Notify.Templates
+}
+
 func parseRuleForm(ctx fiber.Ctx) model.NotifyRule {
 	prio, _ := strconv.Atoi(ctx.FormValue("priority"))
 	enabled := ctx.FormValue("enabled") == "on"
@@ -470,6 +505,7 @@ func validateThrottleParams(params map[string]any, errs *map[string]string) {
 func validateAggregateParams(params map[string]any, errs *map[string]string) {
 	if w, ok := params["window"].(string); !ok || w == "" {
 		(*errs)["params_json"] = "Window is required"
+		return
 	}
 	if tid, ok := params["digest_tpl_id"].(string); ok && tid != "" {
 		if eng := notifytmpl.GetEngine(); eng != nil && !eng.HasTemplate(tid) {

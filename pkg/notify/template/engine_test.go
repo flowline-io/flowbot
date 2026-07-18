@@ -376,6 +376,115 @@ func TestEngineListAndHasTemplate(t *testing.T) {
 	}
 }
 
+func TestEngineListTemplates(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		templates []config.NotifyTemplate
+		wantIDs   []string
+	}{
+		{
+			name: "returns manifests sorted by id",
+			templates: []config.NotifyTemplate{
+				{ID: "z.last", Name: "Z", DefaultFormat: "markdown", DefaultTemplate: "z"},
+				{ID: "a.first", Name: "A", Description: "first", DefaultFormat: "html", DefaultTemplate: "a"},
+			},
+			wantIDs: []string{"a.first", "z.last"},
+		},
+		{
+			name: "preserves overrides on listed manifests",
+			templates: []config.NotifyTemplate{
+				{
+					ID: "with.override", Name: "O", DefaultFormat: "markdown", DefaultTemplate: "body",
+					Overrides: []config.NotifyOverride{{Channel: "telegram", Format: "html", Template: "<b>x</b>"}},
+				},
+			},
+			wantIDs: []string{"with.override"},
+		},
+		{
+			name:      "empty engine returns empty slice",
+			templates: nil,
+			wantIDs:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := New()
+			require.NoError(t, e.LoadConfig(tt.templates))
+			got := e.ListTemplates()
+			require.Len(t, got, len(tt.wantIDs))
+			for i, id := range tt.wantIDs {
+				assert.Equal(t, id, got[i].ID)
+			}
+			if len(tt.templates) == 1 && len(tt.templates[0].Overrides) > 0 {
+				require.Len(t, got[0].Overrides, 1)
+				assert.Equal(t, "telegram", got[0].Overrides[0].Channel)
+			}
+		})
+	}
+}
+
+func TestRenderString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		tmpl      string
+		format    string
+		data      map[string]any
+		wantTitle string
+		wantBody  string
+		wantErr   bool
+	}{
+		{
+			name:      "renders markdown with sprig",
+			tmpl:      "**Hello {{ .name | upper }}**\nBody line",
+			format:    "markdown",
+			data:      map[string]any{"name": "world"},
+			wantTitle: "Hello WORLD",
+			wantBody:  "**Hello WORLD**\nBody line",
+		},
+		{
+			name:      "defaults empty format to markdown",
+			tmpl:      "Only title",
+			format:    "",
+			data:      nil,
+			wantTitle: "Only title",
+			wantBody:  "Only title",
+		},
+		{
+			name:    "invalid template returns error",
+			tmpl:    "{{ .name ",
+			format:  "markdown",
+			data:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := RenderString(tt.tmpl, tt.format, tt.data)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			assert.Equal(t, tt.wantTitle, got.Title)
+			assert.Equal(t, tt.wantBody, got.Body)
+			if tt.format == "" {
+				assert.Equal(t, "markdown", got.Format)
+			} else {
+				assert.Equal(t, tt.format, got.Format)
+			}
+		})
+	}
+}
+
 func TestEventTime(t *testing.T) {
 	t.Parallel()
 

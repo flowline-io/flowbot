@@ -57,6 +57,7 @@ type testStore struct {
 	dbClient                  *store.Client // in-memory SQLite client for view handler tests
 	notifyChannels            map[int64]model.NotifyChannel
 	notifyChannelErr          error
+	notifyRules               map[int64]model.NotifyRule
 }
 
 func (s *testStore) ListConfigs(_ context.Context, _ store.ListConfigOptions) ([]model.ConfigItem, error) {
@@ -202,6 +203,18 @@ func (s *testStore) ListNotifyChannels(_ context.Context, opts store.ListNotifyC
 			continue
 		}
 		out = append(out, ch)
+	}
+	return out, nil
+}
+
+// ListNotifyRules returns seeded notification rules for tests.
+func (s *testStore) ListNotifyRules(_ context.Context, opts store.ListNotifyRuleOptions) ([]model.NotifyRule, error) {
+	out := make([]model.NotifyRule, 0, len(s.notifyRules))
+	for _, rule := range s.notifyRules {
+		if opts.Enabled != nil && rule.Enabled != *opts.Enabled {
+			continue
+		}
+		out = append(out, rule)
 	}
 	return out, nil
 }

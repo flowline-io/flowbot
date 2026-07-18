@@ -8,7 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/flowline-io/flowbot/internal/store"
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -27,7 +31,7 @@ func TestNotifySettingsPageUnauthenticated(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
-			req := httptest.NewRequest(http.MethodGet, "/service/web/notify-settings", http.NoBody)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications", http.NoBody)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -41,6 +45,88 @@ func TestNotifySettingsPageUnauthenticated(t *testing.T) {
 			body, _ := io.ReadAll(resp.Body)
 			if len(body) > 0 && strings.Contains(string(body), "Notify Settings") {
 				t.Error("unauthenticated request should not render notify settings page")
+			}
+		})
+	}
+}
+
+func TestNormalizeNotifySettingsTab(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		tab  string
+		want string
+	}{
+		{name: "empty defaults to channels", tab: "", want: "channels"},
+		{name: "history tab", tab: "history", want: "history"},
+		{name: "playground tab", tab: "playground", want: "playground"},
+		{name: "legacy notifications maps to history", tab: "notifications", want: "history"},
+		{name: "unknown falls back to channels", tab: "nope", want: "channels"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := normalizeNotifySettingsTab(tt.tab); got != tt.want {
+				t.Errorf("normalizeNotifySettingsTab(%q)=%q, want %q", tt.tab, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNotificationsPageRenders(t *testing.T) {
+	tests := []struct {
+		name       string
+		authed     bool
+		query      string
+		wantStatus int
+		wantSub    string
+	}{
+		{
+			name:       "authenticated renders notifications page",
+			authed:     true,
+			wantStatus: http.StatusOK,
+			wantSub:    "Notifications",
+		},
+		{
+			name:       "history tab selected",
+			authed:     true,
+			query:      "?tab=history",
+			wantStatus: http.StatusOK,
+			wantSub:    "tab-history",
+		},
+		{
+			name:       "unauthenticated redirects to login",
+			authed:     false,
+			wantStatus: http.StatusSeeOther,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications"+tt.query, http.NoBody)
+			if tt.authed {
+				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			}
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			if !tt.authed {
+				if !strings.Contains(resp.Header.Get("Location"), "/service/web/login") {
+					t.Errorf("want login redirect, got %q", resp.Header.Get("Location"))
+				}
+				return
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if tt.wantSub != "" && !strings.Contains(string(body), tt.wantSub) {
+				t.Errorf("want body containing %q, got %q", tt.wantSub, string(body))
 			}
 		})
 	}
@@ -90,7 +176,7 @@ func TestNotifyChannelCreate(t *testing.T) {
 			app, ts := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
-			req := httptest.NewRequest(http.MethodPost, "/service/web/notify-settings/channels", strings.NewReader(tt.form.Encode()))
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			resp, err := app.Test(req)
@@ -176,7 +262,7 @@ func TestNotifyChannelUpdate(t *testing.T) {
 				},
 			}
 
-			req := httptest.NewRequest(http.MethodPut, "/service/web/notify-settings/channels/1", strings.NewReader(tt.form.Encode()))
+			req := httptest.NewRequest(http.MethodPut, "/service/web/notifications/channels/1", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			resp, err := app.Test(req)
@@ -201,6 +287,137 @@ func TestNotifyChannelUpdate(t *testing.T) {
 			ch := ts.notifyChannels[1]
 			if ch.URI != tt.wantURI {
 				t.Errorf("want uri %q, got %q", tt.wantURI, ch.URI)
+			}
+		})
+	}
+}
+
+func TestNotifyTemplatesTable(t *testing.T) {
+	tests := []struct {
+		name       string
+		templates  []pkgconfig.NotifyTemplate
+		wantStatus int
+		wantSub    string
+		wantAbsent string
+	}{
+		{
+			name: "renders loaded templates",
+			templates: []pkgconfig.NotifyTemplate{
+				{ID: "bookmark.created", Name: "New bookmark", Description: "on create", DefaultFormat: "markdown", DefaultTemplate: "**hi**"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "bookmark.created",
+		},
+		{
+			name:       "empty templates shows placeholder",
+			templates:  nil,
+			wantStatus: http.StatusOK,
+			wantSub:    "No notification templates",
+		},
+		{
+			name: "does not expose edit controls",
+			templates: []pkgconfig.NotifyTemplate{
+				{ID: "agent.status", Name: "Agent", DefaultFormat: "markdown", DefaultTemplate: "{{ .status }}"},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "agent.status",
+			wantAbsent: "data-testid=\"template-edit\"",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() {
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+				pkgconfig.App.Notify.Templates = nil
+				notifytmpl.ResetForTest()
+			}()
+			pkgconfig.App.Notify.Templates = tt.templates
+			require.NoError(t, notifytmpl.Init())
+
+			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/templates/list", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantSub) {
+				t.Errorf("want body containing %q, got %q", tt.wantSub, string(body))
+			}
+			if tt.wantAbsent != "" && strings.Contains(string(body), tt.wantAbsent) {
+				t.Errorf("body should not contain %q", tt.wantAbsent)
+			}
+		})
+	}
+}
+
+func TestNotifyRulesTableReadOnly(t *testing.T) {
+	tests := []struct {
+		name       string
+		rules      map[int64]model.NotifyRule
+		wantStatus int
+		wantSub    string
+		wantAbsent string
+	}{
+		{
+			name: "renders rule fields",
+			rules: map[int64]model.NotifyRule{
+				1: {ID: 1, RuleID: "night_mute", Name: "Night mute", Action: "mute", EventPattern: "*", ChannelPattern: "*", Priority: 100, Enabled: true},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "night_mute",
+			wantAbsent: "data-testid=\"rule-edit\"",
+		},
+		{
+			name:       "empty rules shows placeholder",
+			rules:      map[int64]model.NotifyRule{},
+			wantStatus: http.StatusOK,
+			wantSub:    "No notification rules",
+			wantAbsent: "data-testid=\"rule-edit\"",
+		},
+		{
+			name: "does not expose delete controls",
+			rules: map[int64]model.NotifyRule{
+				1: {ID: 1, RuleID: "drop_test", Name: "Drop", Action: "drop", EventPattern: "test.*", ChannelPattern: "*", Priority: 1, Enabled: false},
+			},
+			wantStatus: http.StatusOK,
+			wantSub:    "drop_test",
+			wantAbsent: "data-testid=\"rule-delete\"",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			ts.notifyRules = tt.rules
+
+			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/rules/list", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.wantStatus {
+				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
+			}
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), tt.wantSub) {
+				t.Errorf("want body containing %q, got %q", tt.wantSub, string(body))
+			}
+			if tt.wantAbsent != "" && strings.Contains(string(body), tt.wantAbsent) {
+				t.Errorf("body should not contain %q", tt.wantAbsent)
 			}
 		})
 	}
@@ -267,7 +484,7 @@ func TestNotifyChannelTest(t *testing.T) {
 				ts.notifyChannels = map[int64]model.NotifyChannel{tt.channel.ID: *tt.channel}
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/service/web/notify-settings/channels/"+tt.channelID+"/test", http.NoBody)
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+tt.channelID+"/test", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			resp, err := app.Test(req)
 			if err != nil {

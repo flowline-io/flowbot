@@ -16,9 +16,18 @@ type Notifyer interface {
 // Retry for these records re-runs the channel probe instead of GatewaySend.
 const ConnectivityTestTemplateID = "test"
 
+// PlaygroundTemplateID is the template ID written by the Notifications playground
+// when sending with a custom (ad-hoc) template body.
+const PlaygroundTemplateID = "playground"
+
 // IsConnectivityTestTemplate reports whether templateID identifies a connectivity-test record.
 func IsConnectivityTestTemplate(templateID string) bool {
 	return templateID == ConnectivityTestTemplateID
+}
+
+// IsPlaygroundTemplate reports whether templateID identifies a playground custom-send record.
+func IsPlaygroundTemplate(templateID string) bool {
+	return templateID == PlaygroundTemplateID
 }
 
 type Priority int32

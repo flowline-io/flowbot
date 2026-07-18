@@ -8,9 +8,9 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/flowline-io/flowbot/pkg/types/model"
+import "github.com/flowline-io/flowbot/pkg/config"
 
-func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) templ.Component {
+func NotifyTemplatesTable(templates []config.NotifyTemplate) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -31,24 +31,24 @@ func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\"><div id=\"notify-rules-table\" data-testid=\"notify-rules-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Priority</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Action</th><th class=\"text-xs uppercase\">Event</th><th class=\"text-xs uppercase\">Channel</th><th class=\"text-xs uppercase\">Status</th></tr></thead> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\"><div id=\"notify-templates-table\" data-testid=\"notify-templates-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">ID</th><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Format</th><th class=\"text-xs uppercase\">Overrides</th></tr></thead> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if len(rules) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tbody id=\"notify-rules-rows\"><tr id=\"notify-rules-empty\"><td colspan=\"6\" class=\"text-center text-base-content/50\">No notification rules configured.</td></tr></tbody>")
+		if len(templates) == 0 {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tbody id=\"notify-templates-rows\"><tr id=\"notify-templates-empty\" data-testid=\"notify-templates-empty\"><td colspan=\"4\" class=\"text-center text-base-content/50\">No notification templates configured.</td></tr></tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			for _, rule := range rules {
-				templ_7745c5c3_Err = NotifyRuleRow(rule, templateIDs).Render(ctx, templ_7745c5c3_Buffer)
+			for _, tmpl := range templates {
+				templ_7745c5c3_Err = NotifyTemplateRow(tmpl).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</table></div><p class=\"text-xs text-base-content/50 px-4 pb-3\">Rules are shown read-only.</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</table></div><p class=\"text-xs text-base-content/50 px-4 pb-3\">Templates are loaded from configuration (read-only).</p></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

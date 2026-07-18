@@ -3,17 +3,23 @@ package pages
 
 import "github.com/flowline-io/flowbot/pkg/views/layout"
 
-templ NotifySettingsPage() {
-	@layout.Base("Notification Settings — Flowbot") {
+// NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
+// activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
+templ NotifySettingsPage(activeTab string) {
+	@layout.Base("Notifications — Flowbot") {
 		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">Notification Settings</h1>
+			<h1 class="text-2xl font-bold text-base-content" data-testid="notifications-heading">Notifications</h1>
 		</div>
 
 		<div role="tablist" class="tabs tabs-bordered mb-4">
-			<input type="radio" name="notify-tabs" class="tab" aria-label="Channels" checked="checked"/>
+			<input type="radio" name="notify-tabs" class="tab" aria-label="Channels"
+				if activeTab == "" || activeTab == "channels" {
+					checked="checked"
+				}
+			/>
 			<div class="tab-content p-4">
 				<div class="flex justify-end mb-3">
-					<button hx-get="/service/web/notify-settings/channels/new"
+					<button hx-get="/service/web/notifications/channels/new"
 						hx-target="#notify-channels-rows"
 						hx-swap="afterbegin"
 						data-testid="channels-new"
@@ -21,28 +27,63 @@ templ NotifySettingsPage() {
 						New Channel
 					</button>
 				</div>
-				<div hx-get="/service/web/notify-settings/channels/list"
+				<div hx-get="/service/web/notifications/channels/list"
 					hx-trigger="load"
 					hx-swap="outerHTML">
 					<div class="skeleton h-32 w-full"></div>
 				</div>
 			</div>
 
-			<input type="radio" name="notify-tabs" class="tab" aria-label="Rules"/>
+			<input type="radio" name="notify-tabs" class="tab" aria-label="Templates"
+				if activeTab == "templates" {
+					checked="checked"
+				}
+			/>
 			<div class="tab-content p-4">
-				<div class="flex justify-end mb-3">
-					<button hx-get="/service/web/notify-settings/rules/new"
-						hx-target="#notify-rules-rows"
-						hx-swap="afterbegin"
-						data-testid="rules-new"
-						class="btn btn-primary btn-sm">
-						New Rule
-					</button>
-				</div>
-				<div hx-get="/service/web/notify-settings/rules/list"
+				<div hx-get="/service/web/notifications/templates/list"
 					hx-trigger="load once"
 					hx-swap="outerHTML">
 					<div class="skeleton h-32 w-full"></div>
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label="Rules"
+				if activeTab == "rules" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div hx-get="/service/web/notifications/rules/list"
+					hx-trigger="load once"
+					hx-swap="outerHTML">
+					<div class="skeleton h-32 w-full"></div>
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label="History" data-testid="tab-history"
+				if activeTab == "history" || activeTab == "notifications" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div id="notifications-content"
+					hx-get="/service/web/notifications/list"
+					hx-trigger="load once"
+					hx-swap="innerHTML">
+					<div class="skeleton h-32 w-full"></div>
+				</div>
+			</div>
+
+			<input type="radio" name="notify-tabs" class="tab" aria-label="Playground" data-testid="tab-playground"
+				if activeTab == "playground" {
+					checked="checked"
+				}
+			/>
+			<div class="tab-content p-4">
+				<div hx-get="/service/web/notifications/playground"
+					hx-trigger="load once"
+					hx-swap="outerHTML">
+					<div class="skeleton h-48 w-full"></div>
 				</div>
 			</div>
 		</div>

@@ -149,7 +149,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 
 	Describe("GET /notifications", func() {
 		Context("with valid auth token", func() {
-			It("returns the notifications page with records", func() {
+			It("returns the notifications page", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/notifications", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
 				resp, err := App.Test(req)
@@ -158,7 +158,8 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 
 				Expect(resp.StatusCode).To(Equal(http.StatusOK))
 				body := string(ReadBody(resp))
-				Expect(body).To(ContainSubstring("Test notification sent"))
+				Expect(body).To(ContainSubstring("Notifications"))
+				Expect(body).To(ContainSubstring(`hx-get="/service/web/notifications/list"`))
 			})
 		})
 
@@ -171,6 +172,23 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 
 				Expect(resp.StatusCode).To(Equal(http.StatusSeeOther))
 				Expect(resp.Header.Get("Location")).To(ContainSubstring("/service/web/login"))
+			})
+		})
+	})
+
+	Describe("GET /notifications?tab=history", func() {
+		Context("with valid auth token", func() {
+			It("renders notifications page with history tab", func() {
+				req := MakeRequest(http.MethodGet, "/service/web/notifications?tab=history", nil)
+				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				resp, err := App.Test(req)
+				Expect(err).NotTo(HaveOccurred())
+				defer resp.Body.Close()
+
+				Expect(resp.StatusCode).To(Equal(http.StatusOK))
+				body := string(ReadBody(resp))
+				Expect(body).To(ContainSubstring("Notifications"))
+				Expect(body).To(ContainSubstring(`hx-get="/service/web/notifications/list"`))
 			})
 		})
 	})

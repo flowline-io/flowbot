@@ -4,6 +4,7 @@ package template
 
 import (
 	"bytes"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -103,6 +104,31 @@ func (e *Engine) Render(templateID, channel string, data map[string]any) (*Rende
 	}, nil
 }
 
+// RenderString compiles and renders an ad-hoc template string (playground / custom body).
+// Empty format defaults to markdown. Title is taken from the first line of the body.
+func RenderString(tmplStr, format string, data map[string]any) (*RenderResult, error) {
+	if format == "" {
+		format = "markdown"
+	}
+	compiled, err := compileTemplate(tmplStr, format)
+	if err != nil {
+		return nil, err
+	}
+	if data == nil {
+		data = map[string]any{}
+	}
+	var buf bytes.Buffer
+	if err := compiled.Execute(&buf, data); err != nil {
+		return nil, err
+	}
+	body := buf.String()
+	return &RenderResult{
+		Title:  extractTitle(body),
+		Body:   body,
+		Format: format,
+	}, nil
+}
+
 // GetTemplateID returns the template ID for a given event type.
 // This is a convenience mapping that can be extended.
 func (e *Engine) GetTemplateID(eventType string) string {
@@ -120,6 +146,21 @@ func (e *Engine) ListTemplateIDs() []string {
 		ids = append(ids, id)
 	}
 	return ids
+}
+
+// ListTemplates returns all registered template manifests sorted by ID.
+func (e *Engine) ListTemplates() []config.NotifyTemplate {
+	out := make([]config.NotifyTemplate, 0, len(e.templates))
+	for _, entry := range e.templates {
+		if entry.manifest == nil {
+			continue
+		}
+		out = append(out, *entry.manifest)
+	}
+	slices.SortFunc(out, func(a, b config.NotifyTemplate) int {
+		return strings.Compare(a.ID, b.ID)
+	})
+	return out
 }
 
 // HasTemplate returns true if the given template ID exists in the engine.

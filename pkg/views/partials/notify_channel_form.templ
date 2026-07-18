@@ -52,7 +52,7 @@ templ NotifyChannelForm(item model.NotifyChannel, isNew bool, errors map[string]
 			<div class="flex gap-1">
 				<button type="button"
 					if isNew {
-						hx-post="/service/web/notify-settings/channels"
+						hx-post="/service/web/notifications/channels"
 					} else {
 						hx-put={ notifyChannelDeleteURL(item) }
 					}

@@ -15,43 +15,13 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
-	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 var notificationWebserviceRules = []webservice.Rule{
-	webservice.Get("/notifications", notificationsPage, route.WithNotAuth()),
+	webservice.Get("/notifications", notifySettingsPage, route.WithNotAuth()),
 	webservice.Get("/notifications/list", notificationsTable, route.WithNotAuth()),
 	webservice.Post("/notifications/:id/retry", retryNotification, route.WithNotAuth()),
-}
-
-func notificationsPage(ctx fiber.Ctx) error {
-	if err := authenticateWeb(ctx); err != nil {
-		return err
-	}
-	uid := getUID(ctx)
-	if uid == "" {
-		ctx.Type("html")
-		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
-	}
-
-	ns := notifypkg.GetNotifyStore()
-	if ns == nil {
-		ctx.Type("html")
-		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
-	}
-
-	records, nextCursor, err := ns.ListRecords(ctx.Context(), uid, store.ListNotifyRecordsOptions{Limit: 20})
-	if err != nil {
-		ctx.Type("html")
-		return partials.EmptyState("Failed to load notifications").Render(ctx.Context(), ctx.Response().BodyWriter())
-	}
-
-	ctx.Type("html")
-	return pages.NotificationsPage(pages.NotificationsPageParams{
-		Records:    records,
-		NextCursor: nextCursor,
-	}).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notificationsTable(ctx fiber.Ctx) error {

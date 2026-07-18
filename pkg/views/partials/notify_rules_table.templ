@@ -16,20 +16,21 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
 					<th class="text-xs uppercase">Event</th>
 					<th class="text-xs uppercase">Channel</th>
 					<th class="text-xs uppercase">Status</th>
-					<th class="text-xs uppercase">Actions</th>
 				</tr>
 				</thead>
-				<tbody id="notify-rules-rows">
-				for _, rule := range rules {
-					@NotifyRuleRow(rule, templateIDs)
-				}
 				if len(rules) == 0 {
-					<tr id="notify-rules-empty">
-						<td colspan="7" class="text-center text-base-content/50">No notification rules configured.</td>
-					</tr>
+					<tbody id="notify-rules-rows">
+						<tr id="notify-rules-empty">
+							<td colspan="6" class="text-center text-base-content/50">No notification rules configured.</td>
+						</tr>
+					</tbody>
+				} else {
+					for _, rule := range rules {
+						@NotifyRuleRow(rule, templateIDs)
+					}
 				}
-				</tbody>
 			</table>
 		</div>
+		<p class="text-xs text-base-content/50 px-4 pb-3">Rules are shown read-only.</p>
 	</div>
 }

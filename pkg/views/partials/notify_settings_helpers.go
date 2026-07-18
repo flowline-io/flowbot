@@ -15,15 +15,15 @@ func notifyChannelRowID(item model.NotifyChannel) string {
 }
 
 func notifyChannelEditURL(item model.NotifyChannel) string {
-	return fmt.Sprintf("/service/web/notify-settings/channels/%d/edit", item.ID)
+	return fmt.Sprintf("/service/web/notifications/channels/%d/edit", item.ID)
 }
 
 func notifyChannelDeleteURL(item model.NotifyChannel) string {
-	return fmt.Sprintf("/service/web/notify-settings/channels/%d", item.ID)
+	return fmt.Sprintf("/service/web/notifications/channels/%d", item.ID)
 }
 
 func notifyChannelTestURL(item model.NotifyChannel) string {
-	return fmt.Sprintf("/service/web/notify-settings/channels/%d/test", item.ID)
+	return fmt.Sprintf("/service/web/notifications/channels/%d/test", item.ID)
 }
 
 func notifyRuleRowID(item model.NotifyRule) string {
@@ -31,11 +31,11 @@ func notifyRuleRowID(item model.NotifyRule) string {
 }
 
 func notifyRuleEditURL(item model.NotifyRule) string {
-	return fmt.Sprintf("/service/web/notify-settings/rules/%d/edit", item.ID)
+	return fmt.Sprintf("/service/web/notifications/rules/%d/edit", item.ID)
 }
 
 func notifyRuleDeleteURL(item model.NotifyRule) string {
-	return fmt.Sprintf("/service/web/notify-settings/rules/%d", item.ID)
+	return fmt.Sprintf("/service/web/notifications/rules/%d", item.ID)
 }
 
 func notifyChannelFormID(item model.NotifyChannel, isNew bool) string {
@@ -53,11 +53,11 @@ func notifyRuleFormID(item model.NotifyRule, isNew bool) string {
 }
 
 func notifyChannelCancelURL() string {
-	return "/service/web/notify-settings/channels/list"
+	return "/service/web/notifications/channels/list"
 }
 
 func notifyRuleCancelURL() string {
-	return "/service/web/notify-settings/rules/list"
+	return "/service/web/notifications/rules/list"
 }
 
 func actionBadgeClass(action string) string {

@@ -1,0 +1,44 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/config"
+)
+
+templ NotifyTemplateRow(item config.NotifyTemplate) {
+	<tbody x-data="{ expanded: false }" data-testid={ "notify-template-" + item.ID }>
+		<tr class="hover">
+			<td class="font-mono text-sm text-base-content">
+				<button type="button" class="link link-hover text-left" @click="expanded = !expanded"
+					data-testid={ "template-expand-" + item.ID }>
+					{ item.ID }
+				</button>
+			</td>
+			<td class="text-base-content font-medium">{ item.Name }</td>
+			<td><span class="badge badge-outline badge-sm">{ item.DefaultFormat }</span></td>
+			<td class="text-base-content/70">{ fmt.Sprintf("%d", len(item.Overrides)) }</td>
+		</tr>
+		<tr x-show="expanded" x-cloak class="bg-base-200/40">
+			<td colspan="4" class="p-4">
+				if item.Description != "" {
+					<div class="text-sm text-base-content/70 mb-3">{ item.Description }</div>
+				}
+				<div class="text-xs uppercase text-base-content/50 mb-1">Default template</div>
+				<pre class="bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto mb-3">{ item.DefaultTemplate }</pre>
+				if len(item.Overrides) > 0 {
+					<div class="text-xs uppercase text-base-content/50 mb-2">Channel overrides</div>
+					for _, o := range item.Overrides {
+						<div class="mb-3 last:mb-0 border border-base-300 rounded p-3">
+							<div class="flex gap-2 items-center mb-2">
+								<span class="badge badge-primary badge-sm">{ o.Channel }</span>
+								<span class="badge badge-outline badge-sm">{ o.Format }</span>
+							</div>
+							<pre class="bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto">{ o.Template }</pre>
+						</div>
+					}
+				}
+			</td>
+		</tr>
+	</tbody>
+}
