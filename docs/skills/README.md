@@ -21,6 +21,7 @@ via `read_skill` with the `path` argument.
 | `kanboard`     | `kanban`   | Manage kanban boards, tasks, and subtasks              |
 | `miniflux`     | `reader`   | Subscribe to RSS/Atom feeds, read entries, mark status |
 | `memos`        | `memo`     | Create, list, update, and delete memos                 |
+| `trilium`      | `trilium`  | Create, list, search, update, and delete trilium notes |
 | `gitea`        | `forge`    | Inspect forge repos, issues, diffs, and files          |
 | `github`       | `github`   | Inspect GitHub repos, issues, notifications, releases  |
 
@@ -40,6 +41,9 @@ docs/skills/
 ├── memos/
 │   ├── SKILL.md
 │   └── references/cli.md
+├── trilium/
+│   ├── SKILL.md
+│   └── references/cli.md
 ├── gitea/
 │   ├── SKILL.md
 │   └── references/cli.md
@@ -49,7 +53,7 @@ docs/skills/
 └── README.md          (you are here)
 ```
 
-Capabilities without a CLI tree (`trilium`, `notify`, `agent`, `example`) are
+Capabilities without a CLI tree (`notify`, `agent`, `example`) are
 not generated as skills.
 
 ## How Skills Work with AI Assistants
@@ -88,6 +92,7 @@ ln -sf "$(pwd)/docs/skills/karakeep" .claude/skills/karakeep
 ln -sf "$(pwd)/docs/skills/kanboard" .claude/skills/kanboard
 ln -sf "$(pwd)/docs/skills/miniflux" .claude/skills/miniflux
 ln -sf "$(pwd)/docs/skills/memos"    .claude/skills/memos
+ln -sf "$(pwd)/docs/skills/trilium"  .claude/skills/trilium
 ln -sf "$(pwd)/docs/skills/gitea"    .claude/skills/gitea
 ln -sf "$(pwd)/docs/skills/github"   .claude/skills/github
 ```
@@ -101,6 +106,7 @@ ln -sf "$(pwd)/docs/skills/karakeep" ~/.claude/skills/karakeep
 ln -sf "$(pwd)/docs/skills/kanboard" ~/.claude/skills/kanboard
 ln -sf "$(pwd)/docs/skills/miniflux" ~/.claude/skills/miniflux
 ln -sf "$(pwd)/docs/skills/memos"    ~/.claude/skills/memos
+ln -sf "$(pwd)/docs/skills/trilium"  ~/.claude/skills/trilium
 ln -sf "$(pwd)/docs/skills/gitea"    ~/.claude/skills/gitea
 ln -sf "$(pwd)/docs/skills/github"   ~/.claude/skills/github
 ```

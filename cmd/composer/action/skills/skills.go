@@ -245,6 +245,33 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:        string(hub.CapTrilium),
+		Title:       "Trilium",
+		CommandFn:   command.TriliumCommand,
+		Description: "Create, list, search, update, and delete trilium notes via flowbot trilium.",
+		Keywords:    "trilium, notes, knowledge base, note tree, personal wiki",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Create a note under a parent",
+				Description: "When a user wants to add a new trilium note:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot trilium create -t \"<title>\" -c \"<content>\" -p <parent_note_id>"},
+					{Step: 2, Note: "Report back with the note ID."},
+				},
+			},
+			{
+				Title:       "Find and read a note",
+				Description: "When a user wants to search and open trilium notes:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot trilium search -q \"<keywords>\""},
+					{Step: 2, Command: "flowbot trilium get <id>"},
+					{Step: 3, Command: "flowbot trilium content get <id>"},
+					{Step: 4, Note: "Present the note content to the user."},
+				},
+			},
+		},
+	},
+	{
 		Name:        string(hub.CapGitea),
 		Title:       "Gitea",
 		CommandFn:   command.ForgeCommand,

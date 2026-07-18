@@ -462,6 +462,10 @@ vendors:
   n8n:
     endpoint: ""
     api_key: ""
+  # trilium configuration
+  trilium:
+    endpoint: ""
+    token: ""
 
 # Ability invocation configuration
 ability:

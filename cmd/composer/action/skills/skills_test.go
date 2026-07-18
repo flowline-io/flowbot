@@ -490,6 +490,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 		{name: "kanboard", skill: "kanboard", wantCap: string(hub.CapKanboard), wantTitle: "Kanboard", wantCLI: "kanban"},
 		{name: "miniflux", skill: "miniflux", wantCap: string(hub.CapMiniflux), wantTitle: "Miniflux", wantCLI: "reader"},
 		{name: "memos", skill: "memos", wantCap: string(hub.CapMemos), wantTitle: "Memos", wantCLI: "memo"},
+		{name: "trilium", skill: "trilium", wantCap: string(hub.CapTrilium), wantTitle: "Trilium", wantCLI: "trilium"},
 		{name: "gitea", skill: "gitea", wantCap: string(hub.CapGitea), wantTitle: "Gitea", wantCLI: "forge"},
 		{name: "github", skill: "github", wantCap: string(hub.CapGithub), wantTitle: "GitHub", wantCLI: "github"},
 	}

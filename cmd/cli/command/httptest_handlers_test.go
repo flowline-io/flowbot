@@ -618,6 +618,177 @@ func TestMemoRunEHandlers(t *testing.T) {
 	}
 }
 
+func TestTriliumRunEHandlers(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmd        func() *cobra.Command
+		handler    http.HandlerFunc
+		args       []string
+		wantSubstr string
+		wantErr    bool
+	}{
+		{
+			name: "trilium create success",
+			cmd:  triliumCreateCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"n1","title":"Hello"}}`)))
+			},
+			args:       []string{"--title", "Hello"},
+			wantSubstr: "Note created: n1",
+		},
+		{
+			name: "trilium list table output",
+			cmd:  triliumListCommand,
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"n2","title":"Snippet"}],"page":{"limit":20,"has_more":false}}`)))
+			},
+			wantSubstr: "[n2] Snippet",
+		},
+		{
+			name: "trilium list empty",
+			cmd:  triliumListCommand,
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[],"page":{"limit":20,"has_more":false}}`)))
+			},
+			wantSubstr: "No notes found",
+		},
+		{
+			name: "trilium get success",
+			cmd:  triliumGetCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/trilium/n3", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"n3","title":"Body","type":"text"}}`)))
+			},
+			args:       []string{"n3"},
+			wantSubstr: "ID:       n3",
+		},
+		{
+			name: "trilium search success",
+			cmd:  triliumSearchCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/trilium/search", r.URL.Path)
+				assert.Equal(t, "todo", r.URL.Query().Get("q"))
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":"n4","title":"Todo note"}]}`)))
+			},
+			args:       []string{"--query", "todo"},
+			wantSubstr: "[n4] Todo note",
+		},
+		{
+			name: "trilium health healthy",
+			cmd:  triliumHealthCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/trilium/health", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"home","title":"Trilium Notes 0.63","type":"app_info"}}`)))
+			},
+			wantSubstr: "Trilium backend is healthy",
+		},
+		{
+			name: "trilium delete with yes",
+			cmd:  triliumDeleteCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodDelete, r.Method)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"status":"ok"}`))
+			},
+			args:       []string{"--yes", "n9"},
+			wantSubstr: "Note deleted: n9",
+		},
+		{
+			name:    "trilium get missing id",
+			cmd:     triliumGetCommand,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.handler != nil {
+				setupMockCLI(t, tt.handler)
+			}
+			cmd := tt.cmd()
+			if tt.wantErr {
+				runCommandExpectError(t, cmd, "required", tt.args...)
+				return
+			}
+			out := runCommand(t, cmd, tt.args...)
+			assert.Contains(t, out, tt.wantSubstr)
+		})
+	}
+}
+
+func TestTriliumUpdateAndContentRunE(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmd        func() *cobra.Command
+		handler    http.HandlerFunc
+		args       []string
+		wantSubstr string
+		wantErr    bool
+		errSubstr  string
+	}{
+		{
+			name: "update note title",
+			cmd:  triliumUpdateCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPatch, r.Method)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":"n4","title":"Updated"}}`)))
+			},
+			args:       []string{"n4", "--title", "Updated"},
+			wantSubstr: "Note updated: n4",
+		},
+		{
+			name:      "update missing fields",
+			cmd:       triliumUpdateCommand,
+			args:      []string{"n4"},
+			wantErr:   true,
+			errSubstr: "at least one of",
+		},
+		{
+			name: "content get success",
+			cmd:  triliumContentGetCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/trilium/n5/content", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":"full body"}`)))
+			},
+			args:       []string{"n5"},
+			wantSubstr: "full body",
+		},
+		{
+			name: "content set success",
+			cmd:  triliumContentSetCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPut, r.Method)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(`{"status":"ok"}`))
+			},
+			args:       []string{"n5", "--content", "new body"},
+			wantSubstr: "Note content updated: n5",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.handler != nil {
+				setupMockCLI(t, tt.handler)
+			}
+			cmd := tt.cmd()
+			if tt.wantErr {
+				runCommandExpectError(t, cmd, tt.errSubstr, tt.args...)
+				return
+			}
+			out := runCommand(t, cmd, tt.args...)
+			assert.Contains(t, out, tt.wantSubstr)
+		})
+	}
+}
+
 func TestHubRunEHandlers(t *testing.T) {
 	tests := []struct {
 		name       string

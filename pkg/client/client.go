@@ -49,6 +49,7 @@ type Client struct {
 	Forge    *ForgeClient
 	Github   *GithubClient
 	Memo     *MemoClient
+	Trilium  *TriliumClient
 }
 
 // NewClient creates a new client with the given server URL and access token.
@@ -80,6 +81,7 @@ func NewClient(serverURL, token string) *Client {
 	c.Forge = &ForgeClient{c: c}
 	c.Github = &GithubClient{c: c}
 	c.Memo = &MemoClient{c: c}
+	c.Trilium = &TriliumClient{c: c}
 
 	return c
 }

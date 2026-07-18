@@ -58,6 +58,10 @@ func TestNewClient(t *testing.T) {
 			assert.NotNil(t, c.Hub)
 			assert.NotNil(t, c.Pipeline)
 			assert.NotNil(t, c.Workflow)
+			assert.NotNil(t, c.Forge)
+			assert.NotNil(t, c.Github)
+			assert.NotNil(t, c.Memo)
+			assert.NotNil(t, c.Trilium)
 		})
 	}
 }

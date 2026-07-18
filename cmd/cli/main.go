@@ -39,6 +39,7 @@ func main() {
 		command.ForgeCommand(),
 		command.GithubCommand(),
 		command.MemoCommand(),
+		command.TriliumCommand(),
 		command.ConfigCommand(),
 		command.VersionCommand(version.Buildtags),
 	)
