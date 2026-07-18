@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"net/url"
 	"strings"
 
@@ -8,12 +9,12 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 func renderError(ctx fiber.Ctx, msg string) error {
 	ctx.Type("html")
-	_, err := ctx.WriteString(`<div class="text-red-500 text-sm py-2">` + msg + `</div>`)
-	return err
+	return partials.FormError(msg).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func getUID(ctx fiber.Ctx) string {

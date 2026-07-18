@@ -2,10 +2,14 @@ package partials
 
 templ PipelineListTable(entries []PipelineListEntry) {
 	if len(entries) == 0 {
-		<div class="text-center py-12 text-base-content/30" data-testid="pipeline-empty">
-			<p class="text-lg">No pipelines yet.</p>
-			<p class="text-sm mt-2">Create your first pipeline to get started.</p>
-		</div>
+			<div class="text-center py-12" data-testid="pipeline-empty">
+				@EmptyStateCTA(
+					"No pipelines yet",
+					"Use New Pipeline to create your first automation.",
+					"",
+					"",
+				)
+			</div>
 	} else {
 		<div class="card bg-base-100 shadow-sm" data-testid="pipeline-table">
 			<div class="overflow-x-auto">

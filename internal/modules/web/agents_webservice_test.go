@@ -104,6 +104,7 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				resp, err := app.Test(req)
 				require.NoError(t, err)
 				defer resp.Body.Close()
@@ -162,6 +163,7 @@ func TestAgentsListShowsTotalDuration(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
 		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -188,6 +190,7 @@ func TestAgentsListExcludesClosedSessions(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
 		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -219,6 +222,7 @@ func TestAgentsListLoadMoreAppendsRows(t *testing.T) {
 
 		firstReq := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
 		firstReq.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(firstReq)
 		firstResp, err := app.Test(firstReq)
 		require.NoError(t, err)
 		defer firstResp.Body.Close()
@@ -230,6 +234,7 @@ func TestAgentsListLoadMoreAppendsRows(t *testing.T) {
 
 		secondReq := httptest.NewRequest(http.MethodGet, "/service/web/agents/list?cursor=2", http.NoBody)
 		secondReq.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(secondReq)
 		secondResp, err := app.Test(secondReq)
 		require.NoError(t, err)
 		defer secondResp.Body.Close()
@@ -281,6 +286,7 @@ func TestAgentsCloseSession(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodDelete, "/service/web/agents/"+tt.sessionID, http.NoBody)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				resp, err := app.Test(req)
 				require.NoError(t, err)
 				defer resp.Body.Close()
@@ -307,6 +313,7 @@ func TestAgentChatPageShowsCloseButton(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/"+sessionID, http.NoBody)
 		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -352,6 +359,7 @@ func TestAgentsCreateSession(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/agents", http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -438,6 +446,7 @@ func TestAgentChatContext(t *testing.T) {
 				req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 				if tt.auth {
 					req.Header.Set("Cookie", "accessToken=test-token")
+					AttachCSRFForTest(req)
 				}
 				resp, err := app.Test(req)
 				require.NoError(t, err)
@@ -509,6 +518,7 @@ func TestAgentChatPageOwner(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				resp, err := app.Test(req)
 				require.NoError(t, err)
 				defer resp.Body.Close()
@@ -553,6 +563,7 @@ func TestAgentChatSendMessageValidation(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodPost, "/service/web/agents/"+sessionID+"/messages", strings.NewReader(tt.body))
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				req.Header.Set("Content-Type", "application/json")
 				resp, err := app.Test(req)
 				require.NoError(t, err)
@@ -598,6 +609,7 @@ func TestAgentRenderMarkdown(t *testing.T) {
 				app := setupAuthenticatedApp(t, &testStore{})
 				req := httptest.NewRequest(http.MethodPost, "/service/web/agents/render-markdown", strings.NewReader(tt.body))
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				req.Header.Set("Content-Type", "application/json")
 				resp, err := app.Test(req)
 				require.NoError(t, err)
@@ -684,6 +696,7 @@ func TestAgentChatPageKeepsSessionIDOutOfRenderMarkdownPath(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodGet, "/service/web/agents/"+tt.sessionID, http.NoBody)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				resp, err := app.Test(req)
 				require.NoError(t, err)
 				defer resp.Body.Close()
@@ -789,6 +802,7 @@ func TestAgentChatConfirmNotFound(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodPost, "/service/web/agents/"+sessionID+"/confirm", strings.NewReader(tt.body(gateID)))
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				req.Header.Set("Content-Type", "application/json")
 				resp, err := app.Test(req)
 				require.NoError(t, err)
@@ -808,6 +822,7 @@ func TestAgentsCreateReturnsJSON(t *testing.T) {
 		app := setupAuthenticatedApp(t, ts)
 		req := httptest.NewRequest(http.MethodPost, "/service/web/agents", bytes.NewReader(nil))
 		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
 		resp, err := app.Test(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()

@@ -1,0 +1,30 @@
+package partials
+
+// ChartScripts loads Chart.js for dashboard charts.
+templ ChartScripts() {
+	<script src="/static/vendor/chart.js.min.js" defer></script>
+}
+
+// TokenUsageScripts loads home token usage chart helpers.
+templ TokenUsageScripts() {
+	@ChartScripts()
+	<script src="/static/js/token-usage.js" defer></script>
+}
+
+// PipelineStatsScripts loads pipeline stats chart helpers.
+templ PipelineStatsScripts() {
+	@ChartScripts()
+	<script src="/static/js/pipeline-stats.js" defer></script>
+}
+
+// EventFilterScripts loads event timeline filter controls.
+// Loaded synchronously (no defer) so Alpine.data registers before alpine:init.
+templ EventFilterScripts() {
+	<script src="/static/js/event-filters.js"></script>
+}
+
+// HomelabRegistryScripts loads homelab registry interactions.
+// Loaded synchronously (no defer) so Alpine.data registers before alpine:init.
+templ HomelabRegistryScripts() {
+	<script src="/static/js/homelab-registry.js"></script>
+}

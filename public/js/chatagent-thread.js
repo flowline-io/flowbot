@@ -348,14 +348,17 @@
     ns.setRunning(true, threadRoot);
     appendUserMessage(messagesEl, text);
 
-    fetch(messagesURL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-      },
-      body: JSON.stringify({ text: text }),
+    flowbotCSRFHeadersAsync({
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
     })
+      .then(function (headers) {
+        return fetch(messagesURL, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ text: text }),
+        });
+      })
       .then(function (res) {
         if (res.status === 409) {
           throw new Error('A run is already in progress.');
@@ -521,7 +524,11 @@
       var cancelBtn = threadRoot.querySelector('#chatagent-cancel-run');
       if (cancelBtn) {
         cancelBtn.addEventListener('click', function () {
-          fetch(cancelURL, { method: 'POST' }).catch(function () {});
+          flowbotCSRFHeadersAsync().then(function (headers) {
+            fetch(cancelURL, { method: 'POST', headers: headers }).catch(
+              function () {},
+            );
+          });
         });
       }
     }

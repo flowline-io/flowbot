@@ -276,6 +276,7 @@ func TestAgentSubagentTasksTableAuthenticated(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/agent-subagents/tasks", http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -358,6 +359,7 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/agent-subagents", strings.NewReader(body))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -414,6 +416,7 @@ func TestAgentSubagentDeleteAuthenticated(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodDelete, "/service/web/agent-subagents/"+tt.flag, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -456,6 +459,7 @@ func TestAgentSubagentCreateInvalidatesPromptCache(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/agent-subagents", strings.NewReader(body))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()

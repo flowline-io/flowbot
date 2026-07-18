@@ -130,6 +130,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("returns the events page with tabs and data", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -148,6 +149,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 
 				req := MakeRequest(http.MethodGet, "/service/web/events", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: userAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -175,6 +177,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("returns the data events table fragment", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events/data-events", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -189,6 +192,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("filters by source query parameter", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events/data-events?source=test-agent", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -206,6 +210,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("returns the webhook logs table fragment", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events/webhook-logs", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -224,6 +229,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("returns payload detail for a regular event", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events/payload/"+seedEvents[0].EventID, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -236,6 +242,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("returns payload detail for a webhook event", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events/payload/"+seedEvents[1].EventID, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -249,6 +256,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			It("returns not-found for a non-existent eventID", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/events/payload/bdd-no-such-event", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adminAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()

@@ -35,7 +35,7 @@ func TestConfigsPage(t *testing.T) {
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -67,7 +67,7 @@ func TestListConfigs(t *testing.T) {
 			ts.configs = tt.storeConfigs
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/list", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -125,7 +125,7 @@ func TestDeleteConfig(t *testing.T) {
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodDelete, "/service/web/configs/u1/t1/k1", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -158,7 +158,7 @@ func TestGetConfig(t *testing.T) {
 			ts.getConfigFn = tt.getFn
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/u1/t1/k1", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -200,7 +200,7 @@ func TestNewConfigFormIncludesCleanup(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/new", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -312,7 +312,7 @@ func TestCreateConfig(t *testing.T) {
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/configs", strings.NewReader(tt.body))
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -401,7 +401,7 @@ func TestUpdateConfig(t *testing.T) {
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPut, tt.path, strings.NewReader(tt.body))
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()

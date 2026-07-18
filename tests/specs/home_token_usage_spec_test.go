@@ -80,6 +80,7 @@ var _ = Describe("Home Token Usage /home/token-usage", Label("home", "web"), fun
 		It("returns 200 with token usage container when authenticated", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/home/token-usage?range=7d&groupBy=model", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-home-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()

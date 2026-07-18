@@ -16,12 +16,14 @@ import (
 
 func TestHomePageAuth(t *testing.T) {
 	tests := []struct {
-		name       string
-		cookie     string
-		wantStatus int
+		name         string
+		cookie       string
+		wantStatus   int
+		wantContains string
 	}{
 		{name: "unauthenticated redirects to login", wantStatus: http.StatusSeeOther},
-		{name: "authenticated renders home", cookie: "valid-test-token", wantStatus: http.StatusOK},
+		{name: "authenticated renders home shell", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-dashboard-loader"},
+		{name: "authenticated shows quick links", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-quick-links"},
 	}
 
 	for _, tt := range tests {
@@ -32,11 +34,78 @@ func TestHomePageAuth(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/service/web/home", http.NoBody)
 			if tt.cookie != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookie})
+				AttachCSRFForTest(req)
 			}
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.wantContains)
+			}
+		})
+	}
+}
+
+func TestHomeDashboardPartial(t *testing.T) {
+	tests := []struct {
+		name         string
+		cookie       string
+		wantStatus   int
+		wantContains string
+	}{
+		{name: "unauthenticated redirects", wantStatus: http.StatusSeeOther},
+		{name: "authenticated returns summary", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-dashboard-summary"},
+		{name: "authenticated returns checklist when empty", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-setup-checklist"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodGet, "/service/web/home/dashboard", http.NoBody)
+			if tt.cookie != "" {
+				addWebAuth(req)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.wantContains)
+			}
+		})
+	}
+}
+
+func TestSessionBadge(t *testing.T) {
+	tests := []struct {
+		name         string
+		cookie       string
+		wantStatus   int
+		wantContains string
+	}{
+		{name: "unauthenticated redirects", wantStatus: http.StatusSeeOther},
+		{name: "authenticated renders username", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "session-badge"},
+		{name: "authenticated shows testuser", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "testuser"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			req := httptest.NewRequest(http.MethodGet, "/service/web/session-badge", http.NoBody)
+			if tt.cookie != "" {
+				addWebAuth(req)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantContains != "" {
+				body, _ := io.ReadAll(resp.Body)
+				assert.Contains(t, string(body), tt.wantContains)
+			}
 		})
 	}
 }
@@ -89,6 +158,7 @@ func TestHomeTokenUsage(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			if tt.cookie != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookie})
+				AttachCSRFForTest(req)
 			}
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -114,7 +184,7 @@ func TestHomeTokenUsageJSON(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/service/web/home/token-usage?range=7d", http.NoBody)
 	req.Header.Set("Accept", "application/json")
-	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+	addWebAuth(req)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()

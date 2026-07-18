@@ -21,6 +21,7 @@ var loginWebserviceRules = []webservice.Rule{
 	webservice.Get("/login", loginPage, route.WithNotAuth()),
 	webservice.Post("/login", loginSubmit, route.WithNotAuth()),
 	webservice.Post("/logout", logout, route.WithNotAuth()),
+	webservice.Get("/csrf-token", csrfTokenJSON, route.WithNotAuth()),
 }
 
 const (
@@ -31,7 +32,7 @@ const (
 
 func loginPage(ctx fiber.Ctx) error {
 	if isAuthenticated(ctx) {
-		next := ctx.Query("next", "/service/web/configs")
+		next := ctx.Query("next", "/service/web/home")
 		return ctx.Redirect().To(next)
 	}
 	next := ctx.Query("next", "")
@@ -110,7 +111,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 	}
 	setAccessTokenCookie(ctx, token, 86400, time.Time{})
 	if next == "" || !strings.HasPrefix(next, "/") || strings.Contains(next, "//") || strings.Contains(next, ":") {
-		next = "/service/web/configs"
+		next = "/service/web/home"
 	}
 	ctx.Set("HX-Redirect", next)
 	return nil

@@ -1,9 +1,21 @@
 package partials
 
+// EmptyState renders a centered empty placeholder with a short message.
 templ EmptyState(message string) {
-	<div class="card bg-base-100 shadow-sm">
-		<div class="p-6 text-center text-base-content/50">
-			{ message }
+	@EmptyStateCTA(message, "", "", "")
+}
+
+// EmptyStateCTA renders an empty placeholder with optional primary action.
+templ EmptyStateCTA(message string, detail string, href string, cta string) {
+	<div class="card bg-base-100 border border-base-300 shadow-sm" data-testid="empty-state">
+		<div class="p-8 text-center max-w-md mx-auto">
+			<p class="text-base-content/70 font-medium m-0">{ message }</p>
+			if detail != "" {
+				<p class="text-sm text-base-content/50 m-0 mt-2">{ detail }</p>
+			}
+			if href != "" && cta != "" {
+				<a href={ href } class="btn btn-primary btn-sm mt-4" data-testid="empty-state-cta">{ cta }</a>
+			}
 		</div>
 	</div>
 }

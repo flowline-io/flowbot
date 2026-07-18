@@ -162,6 +162,7 @@ var _ = Describe("Agent Scheduled Tasks UI", Label("module", "web"), func() {
 		It("renders the scheduled tasks list page", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/agent-scheduled-tasks", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agent-scheduled-tasks-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -178,6 +179,7 @@ var _ = Describe("Agent Scheduled Tasks UI", Label("module", "web"), func() {
 		It("renders scheduled task detail with runs", func() {
 			req := MakeRequest(http.MethodGet, fmt.Sprintf("/service/web/agent-scheduled-tasks/%s", taskID), nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agent-scheduled-tasks-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()

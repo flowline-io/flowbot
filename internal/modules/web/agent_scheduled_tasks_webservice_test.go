@@ -147,6 +147,7 @@ func TestListScheduledTaskModels(t *testing.T) {
 				req := httptest.NewRequest(http.MethodGet, "/service/web/agent-scheduled-tasks/list", http.NoBody)
 				if tt.wantErr != types.ErrUnauthorized {
 					req.Header.Set("Cookie", "accessToken=test-token")
+					AttachCSRFForTest(req)
 				}
 				resp, err := app.Test(req)
 				require.NoError(t, err)
@@ -234,6 +235,7 @@ func TestAgentScheduledTasksListAuthenticated(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				resp, err := app.Test(req)
 				require.NoError(t, err)
 				defer resp.Body.Close()
@@ -319,6 +321,7 @@ func TestAgentScheduledTaskDetailAuthenticated(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				resp, err := app.Test(req)
 				require.NoError(t, err)
 				defer resp.Body.Close()
@@ -385,6 +388,7 @@ func TestAgentScheduledTaskSetStateAuthenticated(t *testing.T) {
 
 				req := httptest.NewRequest(http.MethodPut, tt.path, strings.NewReader(tt.body))
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 				resp, err := app.Test(req)
 				require.NoError(t, err)

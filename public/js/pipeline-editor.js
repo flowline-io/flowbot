@@ -1299,7 +1299,7 @@
         try {
           const resp = await fetch(this.pipelineURL(), {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: flowbotCSRFHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ yaml, version: this.version }),
           });
           if (resp.status === 409) {
@@ -1328,7 +1328,7 @@
         try {
           const resp = await fetch(this.pipelineURL('/publish'), {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: flowbotCSRFHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({ version: this.version }),
           });
           if (resp.status === 409) {
@@ -1370,7 +1370,7 @@
         try {
           const resp = await fetch(this.pipelineURL('/test'), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: flowbotCSRFHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
               trigger_source: this.testTriggerSource,
               mock_payload: JSON.parse(this.testMockPayload || '{}'),
@@ -1705,7 +1705,7 @@
         try {
           const resp = await fetch('/service/web/agent-memory/content', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: flowbotCSRFHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
               scope: this.name,
               file: this.memorySelectedFile || 'MEMORIES.md',

@@ -187,6 +187,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 		It("renders the agents page with composer and sessions", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/agents", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agents-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -214,6 +215,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 		It("creates a session and chat page is reachable", func() {
 			req := MakeRequest(http.MethodPost, "/service/web/agents", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agents-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -226,6 +228,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 
 			detailReq := MakeRequest(http.MethodGet, fmt.Sprintf("/service/web/agents/%s", newID), nil)
 			detailReq.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agents-token"})
+			webmod.AttachCSRFForTest(detailReq)
 			detailResp, err := App.Test(detailReq)
 			Expect(err).NotTo(HaveOccurred())
 			defer detailResp.Body.Close()
@@ -244,6 +247,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 		It("returns context usage breakdown json", func() {
 			req := MakeRequest(http.MethodGet, fmt.Sprintf("/service/web/agents/%s/context", sessionID), nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agents-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()

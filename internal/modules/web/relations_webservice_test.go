@@ -41,7 +41,7 @@ func TestRelationsPage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/relations", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
@@ -127,7 +127,7 @@ func TestRelationsTree(t *testing.T) {
 				url += "?node=" + tt.nodeParam
 			}
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
@@ -204,7 +204,7 @@ func TestRelationsSearch(t *testing.T) {
 			}
 			url := "/service/web/relations/search?q=" + tt.query
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
@@ -248,7 +248,7 @@ func TestRelationsDetail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/relations/detail?"+tt.query, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)

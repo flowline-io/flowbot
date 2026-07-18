@@ -136,6 +136,7 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", http.NoBody)
 			if tt.cookieToken != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
+				AttachCSRFForTest(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()

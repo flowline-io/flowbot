@@ -23,7 +23,7 @@ node "Host Machine (Linux)" as Host {
       [Pipeline Engine] as PipelineEngine
       [Modules] as BotModules
       [LLM Agents] as LLMAgents
-      [PWA Frontend (WASM)] as PWA
+      [Web UI (templ + HTMX)] as WebUI
     }
 
     ' --- PostgreSQL ---

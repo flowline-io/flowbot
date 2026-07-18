@@ -1,0 +1,8 @@
+package partials
+
+// FormError renders a consistent inline error fragment for HTMX form failures.
+templ FormError(message string) {
+	<div class="alert alert-error text-sm py-2" role="alert" data-testid="form-error">
+		<span>{ message }</span>
+	</div>
+}

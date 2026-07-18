@@ -126,6 +126,9 @@
   }
 
   function initAll() {
+    if (typeof Chart === 'undefined') {
+      return;
+    }
     document
       .querySelectorAll('#pipeline-stats-container canvas[data-chart-type]')
       .forEach(initChart);

@@ -173,6 +173,7 @@ func TestRetryNotificationConnectivityTest(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/"+strconv.FormatInt(recID, 10)+"/retry", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()

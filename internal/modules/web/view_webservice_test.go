@@ -55,6 +55,7 @@ func TestViewPage_Render(t *testing.T) {
 			url := "/service/web/view/" + tt.token
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -92,6 +93,7 @@ func TestViewPage_ExpiredPage(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/service/web/view/"+token, http.NoBody)
 	req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
+	AttachCSRFForTest(req)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()
@@ -140,6 +142,7 @@ func TestCreateView(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/view", strings.NewReader(tt.body))
 			req.Header.Set("Content-Type", "application/json")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -188,6 +191,7 @@ func TestDeleteView(t *testing.T) {
 			url := "/service/web/view/" + tt.token
 			req := httptest.NewRequest(http.MethodDelete, url, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "test-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()

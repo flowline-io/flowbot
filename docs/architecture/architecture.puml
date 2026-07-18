@@ -150,8 +150,13 @@ package "Cross-Cutting Packages" as CrossCutting #ECEFF1 {
 }
 
 ' =============================================================================
-' Frontend
+' Frontend (SSR Web UI)
 ' =============================================================================
+package "pkg/views + internal/modules/web — SSR UI" as FrontendLayer #F3E5F5 {
+  [templ pages/partials] as TemplViews
+  [HTMX + Alpine.js] as HTMXAlpine
+  [DaisyUI / Tailwind runtime] as DaisyUI
+}
 
 ' =============================================================================
 ' Storage
@@ -258,7 +263,9 @@ Router --> Media : file storage
 ' =============================================================================
 ' Frontend
 ' =============================================================================
-Frontend --> Router : API calls (WASM)
-FormBuilder --> Pages
+Users --> TemplViews : HTTPS /service/web/*
+TemplViews --> Router : HTMX / form mutations
+HTMXAlpine --> TemplViews : partial updates
+DaisyUI --> TemplViews : styles
 
 @enduml

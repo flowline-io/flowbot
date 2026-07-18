@@ -383,7 +383,12 @@ func TokenUsage(stats *types.TokenUsageStats) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(stats.Series) == 0 {
-			templ_7745c5c3_Err = EmptyState("No usage recorded yet. Start a conversation in Agents to see stats here.").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = EmptyStateCTA(
+				"No usage recorded yet",
+				"Start a conversation in Agents to see token stats here.",
+				"/service/web/agents",
+				"Open Agents",
+			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -395,7 +400,7 @@ func TokenUsage(stats *types.TokenUsageStats) templ.Component {
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.ResolveAttributeValue(tokenUsageJSON(stats))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 131, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 136, Col: 42}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var27)
 			if templ_7745c5c3_Err != nil {
@@ -413,7 +418,7 @@ func TokenUsage(stats *types.TokenUsageStats) templ.Component {
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(series.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 136, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/token_usage.templ`, Line: 141, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {

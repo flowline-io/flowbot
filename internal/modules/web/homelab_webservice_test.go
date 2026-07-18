@@ -33,7 +33,7 @@ func TestHomelabRegistryPage(t *testing.T) {
 				config = configType{}
 			}()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -62,7 +62,7 @@ func TestHomelabRegistryDetailPageNotFound(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab/"+tt.appName, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -88,7 +88,7 @@ func TestHomelabRegistryUnauthenticated(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated pages render with valid token" {
-				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+				addWebAuth(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -143,7 +143,7 @@ func TestHomelabRegistryRescan(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/homelab/rescan", http.NoBody)
 			if tt.withAuth {
-				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+				addWebAuth(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -187,7 +187,7 @@ func TestHomelabRegistryPageShowsRuntimeStatus(t *testing.T) {
 			}()
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)

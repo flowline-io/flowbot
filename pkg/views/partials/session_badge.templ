@@ -1,0 +1,11 @@
+package partials
+
+// SessionBadge renders the signed-in operator identity for the navbar.
+templ SessionBadge(username string, expiresLabel string) {
+	<div class="hidden sm:flex flex-col items-end leading-tight px-2" data-testid="session-badge">
+		<span class="text-xs font-medium text-base-content truncate max-w-[10rem]" data-testid="session-username">{ username }</span>
+		if expiresLabel != "" {
+			<span class="text-[10px] text-base-content/50" data-testid="session-expires">{ expiresLabel }</span>
+		}
+	</div>
+}

@@ -114,7 +114,12 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(apps) == 0 {
-			templ_7745c5c3_Err = EmptyState("No apps discovered. Configure homelab.apps_dir in flowbot.yaml.").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = EmptyStateCTA(
+				"No apps discovered",
+				"Configure homelab.apps_dir in flowbot.yaml, then rescan the registry.",
+				"/service/web/homelab",
+				"Open Registry",
+			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

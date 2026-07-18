@@ -36,7 +36,7 @@ func TestHubAppsPage(t *testing.T) {
 				config = configType{}
 			}()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -72,7 +72,7 @@ func TestHubAppsList(t *testing.T) {
 				config = configType{}
 			}()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/list", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -102,7 +102,7 @@ func TestHubAppDetailPageNotFound(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/"+tt.appName, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -130,7 +130,7 @@ func TestHubAppActionNotFound(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/hub/test-app/"+tt.action, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusNotFound {
@@ -155,7 +155,7 @@ func TestHubAppLogsSSENotFound(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/"+tt.appName+"/logs/stream", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -181,7 +181,7 @@ func TestHubAppsUnauthenticated(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated pages render with valid token" {
-				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+				addWebAuth(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -211,7 +211,7 @@ func TestHubCapabilitiesPage(t *testing.T) {
 			app, _ := setupTestApp()
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/capabilities", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -244,7 +244,7 @@ func TestHubCapabilitiesGrid(t *testing.T) {
 				url = "/service/web/capabilities/grid?type=bookmark"
 			}
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -307,7 +307,7 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 			}
 
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -337,7 +337,7 @@ func TestHubCapabilitiesUnauthenticated(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated capabilities page renders OK" {
-				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+				addWebAuth(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -394,7 +394,7 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "perm-app"}})
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/hub/perm-app/"+tt.action, http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -515,7 +515,7 @@ func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
 			}()
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/list", http.NoBody)
-			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-test-token"})
+			addWebAuth(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)

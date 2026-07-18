@@ -273,6 +273,7 @@ func TestAgentSessionsListAuthenticated(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -337,6 +338,7 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -395,6 +397,7 @@ func TestAgentSessionEntryPayloadAuthenticated(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()

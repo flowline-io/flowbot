@@ -8,6 +8,7 @@ import (
 
 templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
 	@layout.Base("Runs: " + name) {
+		@partials.PipelineStatsScripts()
 		<div class="max-w-4xl mx-auto">
 			<div class="flex items-center justify-between mb-6">
 				<h1 class="text-xl font-semibold text-base-content">

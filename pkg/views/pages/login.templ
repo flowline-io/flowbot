@@ -1,10 +1,9 @@
-// Package pages provides full-page Templ views.
 package pages
 
 import "github.com/flowline-io/flowbot/pkg/views/layout"
 
 templ LoginPage(nextURL string, errorMsg string) {
-	@layout.Base("Flowbot — Login") {
+	@layout.Auth("Flowbot — Login") {
 		@LoginForm(nextURL, errorMsg)
 	}
 }
@@ -16,12 +15,9 @@ templ LoginForm(nextURL string, errorMsg string) {
 		hx-target="this"
 		hx-swap="outerHTML"
 		data-testid="login-form"
-		class="card bg-base-100 w-96 shadow-sm max-w-sm mx-auto mt-20">
+		class="card bg-base-100 w-full max-w-sm shadow-sm border border-base-300">
 		<div class="card-body !p-6">
-		<div class="flex flex-col items-center gap-3 mb-6">
-			<img src="/static/favicon.svg" alt="" width="48" height="48" class="rounded-xl"/>
-			<h1 class="card-title justify-center text-base-content m-0">Flowbot</h1>
-		</div>
+		<h1 class="text-lg font-semibold text-base-content mb-4">Sign in</h1>
 		<input type="hidden" name="next" value={ nextURL }/>
 		<div class="mb-4">
 			<label for="username" class="block text-sm font-medium mb-1">Username</label>

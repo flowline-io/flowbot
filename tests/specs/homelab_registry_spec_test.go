@@ -108,6 +108,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		It("renders the registry page with app cards", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/homelab", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-homelab-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -124,6 +125,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 
 			req := MakeRequest(http.MethodGet, "/service/web/homelab", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-homelab-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -139,6 +141,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		It("renders detail page with services and endpoints", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/homelab/gitea", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-homelab-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -154,6 +157,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		It("returns 404 for unknown app", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/homelab/nonexistent", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-homelab-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -166,6 +170,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		It("returns HX-Redirect header", func() {
 			req := MakeRequest(http.MethodPost, "/service/web/homelab/rescan", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-homelab-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()

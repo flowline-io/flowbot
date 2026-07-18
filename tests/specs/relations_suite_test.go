@@ -138,6 +138,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 			It("returns the relations page with search input", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/relations", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -170,6 +171,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 			It("returns a placeholder message", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/relations/tree", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -183,6 +185,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 			It("returns 400 with error message", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/relations/tree?node=bad-format", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -197,6 +200,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 				nodeParam := "gitea|repo|repo-entity-1"
 				req := MakeRequest(http.MethodGet, "/service/web/relations/tree?node="+nodeParam, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -216,6 +220,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 			It("returns empty body", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/relations/search", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -230,6 +235,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 			It("finds matching resource nodes", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/relations/search?q=gitea", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -259,6 +265,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 
 				req := MakeRequest(http.MethodGet, "/service/web/relations/detail?"+q, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: adapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()

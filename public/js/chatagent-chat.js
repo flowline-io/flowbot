@@ -61,7 +61,10 @@
       }
       ns.showError(errorEl, '');
       startBtn.disabled = true;
-      fetch(createURL, { method: 'POST' })
+      flowbotCSRFHeadersAsync()
+        .then(function (headers) {
+          return fetch(createURL, { method: 'POST', headers: headers });
+        })
         .then(function (res) {
           if (!res.ok) {
             return res
@@ -130,7 +133,10 @@
         if (closeBtn) {
           closeBtn.disabled = true;
         }
-        fetch(closeURL, { method: 'DELETE' })
+        flowbotCSRFHeadersAsync()
+          .then(function (headers) {
+            return fetch(closeURL, { method: 'DELETE', headers: headers });
+          })
           .then(function (res) {
             if (!res.ok) {
               return res

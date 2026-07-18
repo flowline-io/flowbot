@@ -1,0 +1,105 @@
+package partials
+
+templ HomeDashboardBlock(d HomeDashboard) {
+	@HomeDashboardSummary(d)
+	@HomeSetupChecklist(d.Checklist)
+	@HomeQuickLinksSection(HomeQuickLinks())
+}
+
+templ HomeDashboardSummary(d HomeDashboard) {
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" data-testid="home-dashboard-summary">
+		<div class="card bg-base-100 border border-base-300 shadow-sm">
+			<div class="card-body p-4">
+				<p class="text-xs uppercase tracking-wide text-base-content/50 m-0">Pipelines (7d)</p>
+				<p class="text-2xl font-semibold m-0 mt-1" data-testid="home-stat-pipelines">{ d.PipelineTotal }</p>
+				<p class="text-sm text-base-content/60 m-0 mt-1">
+					<span class="text-success">{ d.PipelineOK } ok</span>
+					<span class="mx-1">·</span>
+					if d.PipelineFailed > 0 {
+						<span class="text-error">{ d.PipelineFailed } failed</span>
+					} else {
+						<span>{ d.PipelineFailed } failed</span>
+					}
+				</p>
+			</div>
+		</div>
+		<div class="card bg-base-100 border border-base-300 shadow-sm">
+			<div class="card-body p-4">
+				<p class="text-xs uppercase tracking-wide text-base-content/50 m-0">Events (24h)</p>
+				<p class="text-2xl font-semibold m-0 mt-1" data-testid="home-stat-events">{ d.Events24h }</p>
+				<a href="/service/web/events" class="link link-hover text-sm mt-1">View timeline</a>
+			</div>
+		</div>
+		<div class="card bg-base-100 border border-base-300 shadow-sm">
+			<div class="card-body p-4">
+				<p class="text-xs uppercase tracking-wide text-base-content/50 m-0">Infrastructure</p>
+				<p class="text-sm m-0 mt-2" data-testid="home-stat-infra">
+					if d.PostgresOK {
+						<span class="badge badge-sm badge-success mr-1">PostgreSQL</span>
+					} else {
+						<span class="badge badge-sm badge-error mr-1">PostgreSQL</span>
+					}
+					if d.RedisOK {
+						<span class="badge badge-sm badge-success mr-1">Redis</span>
+					} else {
+						<span class="badge badge-sm badge-error mr-1">Redis</span>
+					}
+				</p>
+				<a href="/service/web/healthz" class="link link-hover text-sm mt-2">Full health check</a>
+			</div>
+		</div>
+		<div class="card bg-base-100 border border-base-300 shadow-sm">
+			<div class="card-body p-4">
+				<p class="text-xs uppercase tracking-wide text-base-content/50 m-0">Hub apps</p>
+				<p class="text-2xl font-semibold m-0 mt-1" data-testid="home-stat-hub">{ d.HubAppsRunning }/{ d.HubAppsTotal }</p>
+				<p class="text-sm text-base-content/60 m-0 mt-1">running</p>
+			</div>
+		</div>
+	</div>
+}
+
+templ HomeSetupChecklist(items []HomeChecklistItem) {
+	if len(items) == 0 {
+		<div></div>
+	} else {
+		<div class="card bg-base-100 border border-base-300 shadow-sm mb-8" data-testid="home-setup-checklist">
+			<div class="card-body p-6">
+				<h2 class="text-lg font-semibold m-0 mb-1">Get started</h2>
+				<p class="text-sm text-base-content/60 m-0 mb-4">Complete these steps to put this instance to work.</p>
+				<ul class="space-y-3 m-0 p-0 list-none">
+					for _, item := range items {
+						<li class="flex flex-wrap items-start justify-between gap-3 border-b border-base-200 last:border-0 pb-3 last:pb-0" data-testid={ item.TestID }>
+							<div class="min-w-0">
+								<p class="font-medium m-0 flex items-center gap-2">
+									if item.Done {
+										<span class="badge badge-success badge-sm">Done</span>
+									} else {
+										<span class="badge badge-ghost badge-sm">Todo</span>
+									}
+									{ item.Title }
+								</p>
+								<p class="text-sm text-base-content/60 m-0 mt-1">{ item.Detail }</p>
+							</div>
+							if !item.Done && item.Href != "" {
+								<a href={ item.Href } class="btn btn-sm btn-primary">{ item.CTA }</a>
+							}
+						</li>
+					}
+				</ul>
+			</div>
+		</div>
+	}
+}
+
+templ HomeQuickLinksSection(links []HomeQuickLink) {
+	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" data-testid="home-quick-links">
+		for _, link := range links {
+			<a href={ link.Href } class="card bg-base-100 border border-base-300 shadow-sm hover:border-primary transition-colors" data-testid={ link.TestID }>
+				<div class="card-body p-4">
+					<p class="font-semibold m-0">{ link.Title }</p>
+					<p class="text-sm text-base-content/60 m-0 mt-1">{ link.Detail }</p>
+				</div>
+			</a>
+		}
+	</div>
+}

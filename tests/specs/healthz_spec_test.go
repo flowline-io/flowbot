@@ -85,6 +85,7 @@ var _ = Describe("Health Dashboard /healthz", Label("health", "web"), func() {
 		It("returns 200 and renders all four metric sections when authenticated", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/healthz", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-healthz-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -106,6 +107,7 @@ var _ = Describe("Health Dashboard /healthz", Label("health", "web"), func() {
 		It("has HTMX auto-refresh attributes on the status section", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/healthz", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-healthz-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -120,6 +122,7 @@ var _ = Describe("Health Dashboard /healthz", Label("health", "web"), func() {
 		It("renders partial status when requested via HTMX", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/healthz", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-healthz-token"})
+			webmod.AttachCSRFForTest(req)
 			req.Header.Set("HX-Request", "true")
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())

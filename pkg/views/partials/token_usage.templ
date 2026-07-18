@@ -119,7 +119,12 @@ templ TokenUsage(stats *types.TokenUsageStats) {
 				</div>
 			</div>
 			if len(stats.Series) == 0 {
-				@EmptyState("No usage recorded yet. Start a conversation in Agents to see stats here.")
+				@EmptyStateCTA(
+					"No usage recorded yet",
+					"Start a conversation in Agents to see token stats here.",
+					"/service/web/agents",
+					"Open Agents",
+				)
 			} else {
 				<div class="card bg-base-100 border border-base-200" data-testid="token-usage-chart-card">
 					<div class="card-body p-4">

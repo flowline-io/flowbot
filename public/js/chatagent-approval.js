@@ -162,19 +162,22 @@
         return;
       }
       submitting = true;
-      fetch(confirmURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: pending.id,
-          approved: approved,
-          mode: mode,
-          pattern:
-            approved && mode === 'always'
-              ? pending.suggested_pattern || ''
-              : '',
-        }),
-      })
+      flowbotCSRFHeadersAsync({ 'Content-Type': 'application/json' })
+        .then(function (headers) {
+          return fetch(confirmURL, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              id: pending.id,
+              approved: approved,
+              mode: mode,
+              pattern:
+                approved && mode === 'always'
+                  ? pending.suggested_pattern || ''
+                  : '',
+            }),
+          });
+        })
         .then(function (res) {
           if (res.status === 204) {
             submitting = false;

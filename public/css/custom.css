@@ -1,6 +1,26 @@
 /* Prevent horizontal overflow from wide navbar content on small screens */
 body {
   overflow-x: hidden;
+  font-family:
+    'Segoe UI', 'Helvetica Neue', 'Noto Sans', ui-sans-serif, sans-serif;
+  font-feature-settings:
+    'kern' 1,
+    'liga' 1;
+}
+
+.flowbot-shell {
+  --flowbot-brand: oklch(0.55 0.1 180);
+}
+
+/* Prefer teal primary when DaisyUI theme exposes CSS variables */
+[data-theme='light'] {
+  --color-primary: #0f766e;
+  --color-primary-content: #ecfdf5;
+}
+
+[data-theme='dark'] {
+  --color-primary: #2dd4bf;
+  --color-primary-content: #042f2e;
 }
 
 /* Chat agent full-height layout: single scroll in messages pane only */

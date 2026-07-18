@@ -190,6 +190,7 @@ func TestNotifyPlaygroundPreviewValidation(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/playground/preview", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -245,6 +246,7 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 			}
 			req := httptest.NewRequest(http.MethodGet, path, http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()

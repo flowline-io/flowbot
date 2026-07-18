@@ -51,7 +51,12 @@ templ HomelabGrid(apps []homelab.App, scannedAt string) {
 			}
 		</div>
 		if len(apps) == 0 {
-			@EmptyState("No apps discovered. Configure homelab.apps_dir in flowbot.yaml.")
+			@EmptyStateCTA(
+				"No apps discovered",
+				"Configure homelab.apps_dir in flowbot.yaml, then rescan the registry.",
+				"/service/web/homelab",
+				"Open Registry",
+			)
 		} else {
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
 				data-testid="homelab-card-grid">

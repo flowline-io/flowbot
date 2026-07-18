@@ -152,6 +152,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 			It("returns the notifications page", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/notifications", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -181,6 +182,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 			It("renders notifications page with history tab", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/notifications?tab=history", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -198,6 +200,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 			It("returns the notification table fragment with user records", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/notifications/list", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -234,6 +237,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 
 				req := MakeRequest(http.MethodGet, "/service/web/notifications/list", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -253,6 +257,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 
 				req := MakeRequest(http.MethodGet, "/service/web/notifications/list", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: otherUserAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -272,6 +277,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 			It("rejects invalid ID format", func() {
 				req := MakeRequest(http.MethodPost, "/service/web/notifications/abc/retry", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -283,6 +289,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 			It("returns not-found for non-existent record", func() {
 				req := MakeRequest(http.MethodPost, "/service/web/notifications/99999/retry", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -294,6 +301,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 			It("rejects non-failed record", func() {
 				req := MakeRequest(http.MethodPost, "/service/web/notifications/"+strconv.FormatInt(sentRecordID, 10)+"/retry", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -307,6 +315,7 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 				store.Database = notifyAdapter
 				req := MakeRequest(http.MethodPost, "/service/web/notifications/"+strconv.FormatInt(otherFailedRecID, 10)+"/retry", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: notifyAdapter.uid})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()

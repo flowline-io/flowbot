@@ -53,6 +53,7 @@ func TestHealthzPage(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/service/web/healthz", http.NoBody)
 			if tt.cookie != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookie})
+				AttachCSRFForTest(req)
 			}
 			if tt.hxRequest != "" {
 				req.Header.Set("HX-Request", tt.hxRequest)

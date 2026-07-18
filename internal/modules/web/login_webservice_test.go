@@ -37,7 +37,7 @@ func TestLoginPage(t *testing.T) {
 			name:         "with valid cookie redirects to configs",
 			cookieToken:  "valid-token",
 			wantStatus:   http.StatusSeeOther,
-			wantLocation: "/service/web/configs",
+			wantLocation: "/service/web/home",
 		},
 		{
 			name:        "with expired token renders login form",
@@ -64,6 +64,7 @@ func TestLoginPage(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
 			if tt.cookieToken != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
+				AttachCSRFForTest(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -119,7 +120,7 @@ func TestLoginSubmit(t *testing.T) {
 			username:       "admin",
 			password:       "admin",
 			wantStatus:     http.StatusOK,
-			wantHXRedirect: "/service/web/configs",
+			wantHXRedirect: "/service/web/home",
 			wantCookieSet:  true,
 		},
 		{
@@ -153,7 +154,7 @@ func TestLoginSubmit(t *testing.T) {
 			password:       "admin",
 			nextVal:        "https://evil.com",
 			wantStatus:     http.StatusOK,
-			wantHXRedirect: "/service/web/configs",
+			wantHXRedirect: "/service/web/home",
 			wantCookieSet:  true,
 		},
 		{
@@ -183,6 +184,7 @@ func TestLoginSubmit(t *testing.T) {
 			}
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -220,7 +222,7 @@ func TestLoginSubmitWithPasswordHash(t *testing.T) {
 		{
 			name:           "matching password succeeds",
 			password:       "correct-horse-battery",
-			wantHXRedirect: "/service/web/configs",
+			wantHXRedirect: "/service/web/home",
 			wantCookieSet:  true,
 		},
 		{
@@ -248,6 +250,7 @@ func TestLoginSubmitWithPasswordHash(t *testing.T) {
 			form.Set("password", tt.password)
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantHXRedirect != "" {
@@ -311,6 +314,7 @@ func TestLoginSubmitReturnsFragmentOnError(t *testing.T) {
 			form.Set("password", tt.password)
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			body, _ := io.ReadAll(resp.Body)
@@ -371,6 +375,7 @@ func TestLogout(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/logout", http.NoBody)
 			if tt.cookieToken != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
+				AttachCSRFForTest(req)
 			}
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
@@ -428,6 +433,7 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 			form.Set("password", "admin")
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatal(err)
@@ -479,6 +485,7 @@ func TestLoginSubmitStoresHashedToken(t *testing.T) {
 			form.Set("password", "admin")
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if storedFlag == "" {
@@ -550,6 +557,7 @@ func TestLoginSubmitRateLimitLocked(t *testing.T) {
 			form.Set("password", "wrong")
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
@@ -577,7 +585,7 @@ func TestLoginSubmitSuccessClearsRateLimit(t *testing.T) {
 				m.setAttempts("0.0.0.0", 4)
 			},
 			wantStatus:     http.StatusOK,
-			wantHXRedirect: "/service/web/configs",
+			wantHXRedirect: "/service/web/home",
 			wantCookieSet:  true,
 		},
 		{
@@ -586,13 +594,13 @@ func TestLoginSubmitSuccessClearsRateLimit(t *testing.T) {
 				m.setAttempts("0.0.0.0", 1)
 			},
 			wantStatus:     http.StatusOK,
-			wantHXRedirect: "/service/web/configs",
+			wantHXRedirect: "/service/web/home",
 			wantCookieSet:  true,
 		},
 		{
 			name:           "success with clean state works normally",
 			wantStatus:     http.StatusOK,
-			wantHXRedirect: "/service/web/configs",
+			wantHXRedirect: "/service/web/home",
 			wantCookieSet:  true,
 		},
 	}
@@ -608,6 +616,7 @@ func TestLoginSubmitSuccessClearsRateLimit(t *testing.T) {
 			form.Set("password", "admin")
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			AttachCSRFForTest(req)
 			resp, _ := app.Test(req)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {

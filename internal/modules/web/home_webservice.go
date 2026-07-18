@@ -10,6 +10,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/cache"
+	"github.com/flowline-io/flowbot/pkg/homelab"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -19,7 +21,9 @@ import (
 
 var homeWebserviceRules = []webservice.Rule{
 	webservice.Get("/home", homePage, route.WithNotAuth()),
+	webservice.Get("/home/dashboard", homeDashboardPartial, route.WithNotAuth()),
 	webservice.Get("/home/token-usage", homeTokenUsage, route.WithNotAuth()),
+	webservice.Get("/session-badge", sessionBadge, route.WithNotAuth()),
 }
 
 func homePage(ctx fiber.Ctx) error {
@@ -27,7 +31,113 @@ func homePage(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	return pages.HomePage().Render(context.Background(), ctx.Response().BodyWriter())
+	// Render shell immediately; heavy stats load via HTMX to keep first paint fast.
+	return pages.HomePage(partials.HomeDashboard{}).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+func homeDashboardPartial(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	ctx.Type("html")
+	d := buildHomeDashboard(ctx.Context())
+	return partials.HomeDashboardBlock(d).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+// buildHomeDashboard assembles summary stats and an optional setup checklist for Home.
+// Intentionally avoids gatherHealthzData (per-capability probes) and runtime Status fan-out.
+func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
+	d := partials.HomeDashboard{}
+
+	pingCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
+	defer cancel()
+	if store.Database != nil && store.Database.IsOpen() {
+		_, err := store.Database.Ping(pingCtx)
+		d.PostgresOK = err == nil
+	}
+	if rs := cache.DefaultRedisStore(); rs != nil {
+		_, err := rs.Ping(pingCtx)
+		d.RedisOK = err == nil
+	}
+
+	if store.Database != nil {
+		if client, ok := store.Database.GetDB().(*store.Client); ok && client != nil {
+			ps := store.NewPipelineStore(client)
+			since7d := time.Now().Add(-7 * 24 * time.Hour)
+			if stats, err := ps.PipelineStats(ctx, "", since7d, "day"); err == nil && stats != nil {
+				d.PipelineTotal = stats.Summary.TotalPipelines
+				d.PipelineOK = stats.Summary.SuccessfulRuns
+				d.PipelineFailed = stats.Summary.FailedRuns
+			}
+			es := store.NewEventStore(client)
+			since24h := time.Now().Add(-24 * time.Hour)
+			if n, err := es.CountDataEvents(ctx, store.ListDataEventsOptions{TimeStart: &since24h}); err == nil {
+				d.Events24h = n
+			}
+		}
+	}
+
+	apps := homelab.DefaultRegistry.List()
+	d.HubAppsTotal = len(apps)
+	for _, a := range apps {
+		if a.Status == homelab.AppStatusRunning {
+			d.HubAppsRunning++
+		}
+	}
+
+	d.Checklist = buildHomeChecklist(ctx, d)
+	return d
+}
+
+func buildHomeChecklist(ctx context.Context, d partials.HomeDashboard) []partials.HomeChecklistItem {
+	hasPipelines := d.PipelineTotal > 0
+	hasSkills := false
+	hasChannels := false
+	if store.Database != nil {
+		if skills, err := store.Database.ListAgentSkills(ctx, false); err == nil && len(skills) > 0 {
+			hasSkills = true
+		}
+		if channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{}); err == nil && len(channels) > 0 {
+			hasChannels = true
+		}
+	}
+	items := []partials.HomeChecklistItem{
+		{
+			Done:   hasPipelines,
+			Title:  "Create a pipeline",
+			Detail: "Automate reactions to data events.",
+			Href:   "/service/web/pipelines",
+			CTA:    "Open Pipelines",
+			TestID: "home-check-pipelines",
+		},
+		{
+			Done:   hasSkills,
+			Title:  "Configure agent skills",
+			Detail: "Give chat agents the tools they need.",
+			Href:   "/service/web/agent-skills",
+			CTA:    "Open Skills",
+			TestID: "home-check-skills",
+		},
+		{
+			Done:   hasChannels,
+			Title:  "Add a notification channel",
+			Detail: "Deliver alerts when something needs attention.",
+			Href:   "/service/web/notifications?tab=channels",
+			CTA:    "Open Notifications",
+			TestID: "home-check-channels",
+		},
+	}
+	allDone := true
+	for _, it := range items {
+		if !it.Done {
+			allDone = false
+			break
+		}
+	}
+	if allDone {
+		return nil
+	}
+	return items
 }
 
 func homeTokenUsage(c fiber.Ctx) error {
@@ -80,4 +190,32 @@ func invalidTokenUsageRequest(c fiber.Ctx, err error) error {
 		return c.Status(http.StatusBadRequest).SendString(err.Error())
 	}
 	return c.Status(http.StatusBadRequest).SendString(err.Error())
+}
+
+// sessionBadge renders a compact navbar identity fragment for the current web session.
+func sessionBadge(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	rc := route.GetRequestContext(ctx)
+	username := "operator"
+	if rc != nil {
+		if uid := strings.TrimPrefix(rc.UID.String(), "user-"); uid != "" {
+			username = uid
+		}
+	}
+	expires := ""
+	token := ctx.Cookies("accessToken")
+	if token != "" {
+		if p, err := route.LookupAccessToken(context.Background(), token); err == nil && p.ID > 0 && !p.ExpiredAt.IsZero() {
+			remaining := time.Until(p.ExpiredAt).Round(time.Minute)
+			if remaining > 0 {
+				expires = remaining.String() + " left"
+			} else {
+				expires = "expired"
+			}
+		}
+	}
+	ctx.Type("html")
+	return partials.SessionBadge(username, expires).Render(context.Background(), ctx.Response().BodyWriter())
 }

@@ -183,6 +183,7 @@ var _ = Describe("Agent Sessions UI", Label("module", "web"), func() {
 		It("renders the sessions list page", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/agent-sessions", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agent-sessions-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -208,6 +209,7 @@ var _ = Describe("Agent Sessions UI", Label("module", "web"), func() {
 		It("renders session detail with entries", func() {
 			req := MakeRequest(http.MethodGet, fmt.Sprintf("/service/web/agent-sessions/%s", sessionID), nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agent-sessions-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()
@@ -222,6 +224,7 @@ var _ = Describe("Agent Sessions UI", Label("module", "web"), func() {
 		It("returns 404 for unknown session", func() {
 			req := MakeRequest(http.MethodGet, "/service/web/agent-sessions/bdd-no-such-session", nil)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-agent-sessions-token"})
+			webmod.AttachCSRFForTest(req)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			defer resp.Body.Close()

@@ -49,6 +49,7 @@ func TestAgentMemoryWebserviceCRUD(t *testing.T) {
 				}
 				req := httptest.NewRequest(tt.method, tt.path, body)
 				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
 				if tt.body != "" {
 					req.Header.Set("Content-Type", "application/json")
 				}
@@ -84,6 +85,7 @@ func TestAgentMemoryWebserviceRequiresWorkspace(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "/service/web/agent-memory/files?scope=test", http.NoBody)
 	req.Header.Set("Cookie", "accessToken=test-token")
+	AttachCSRFForTest(req)
 	resp, err := app.Test(req)
 	require.NoError(t, err)
 	defer resp.Body.Close()

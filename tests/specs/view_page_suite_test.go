@@ -87,6 +87,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 				})
 				req := JSONRequest(http.MethodPost, "/service/web/view", body)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -106,6 +107,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 				})
 				req := JSONRequest(http.MethodPost, "/service/web/view", body)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -119,6 +121,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			It("returns 400 with error", func() {
 				req := JSONRequest(http.MethodPost, "/service/web/view", []byte(`not-json`))
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -138,6 +141,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 				})
 				req := JSONRequest(http.MethodPost, "/service/web/view", body)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -166,6 +170,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			It("renders the page with content", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/view/"+token, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -181,6 +186,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			It("shows the expired page message", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/view/bdd-no-such-token", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -208,6 +214,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			It("shows the expired page message", func() {
 				req := MakeRequest(http.MethodGet, "/service/web/view/"+token, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -248,6 +255,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			It("returns 204 and page becomes unavailable", func() {
 				req := MakeRequest(http.MethodDelete, "/service/web/view/"+token, nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()
@@ -264,6 +272,7 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 			It("returns 404", func() {
 				req := MakeRequest(http.MethodDelete, "/service/web/view/bdd-no-such-token-for-delete", nil)
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "bdd-test-token"})
+				webmod.AttachCSRFForTest(req)
 				resp, err := App.Test(req)
 				Expect(err).NotTo(HaveOccurred())
 				defer resp.Body.Close()

@@ -108,6 +108,7 @@ func TestNotificationsPageRenders(t *testing.T) {
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications"+tt.query, http.NoBody)
 			if tt.authed {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+				AttachCSRFForTest(req)
 			}
 			resp, err := app.Test(req)
 			if err != nil {
@@ -179,6 +180,7 @@ func TestNotifyChannelCreate(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -265,6 +267,7 @@ func TestNotifyChannelUpdate(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPut, "/service/web/notifications/channels/1", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -336,6 +339,7 @@ func TestNotifyTemplatesTable(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/templates/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -396,6 +400,7 @@ func TestNotifyRulesTable(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/rules/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -475,6 +480,7 @@ func TestNotifyTemplateCreate(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/templates", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
@@ -617,6 +623,7 @@ func TestNotifyRuleCreate(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/rules", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			defer resp.Body.Close()
@@ -716,6 +723,7 @@ func TestNotifyChannelTest(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+tt.channelID+"/test", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)

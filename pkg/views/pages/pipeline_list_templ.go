@@ -47,7 +47,11 @@ func PipelineListPage(defs []*gen.PipelineDefinition) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-4xl mx-auto\"><div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-semibold text-base-content\">Pipelines</h1><button type=\"button\" onclick=\"document.getElementById('create-modal').showModal()\" data-testid=\"btn-new-pipeline\" class=\"btn btn-primary\">+ New Pipeline</button></div><div hx-get=\"/service/web/pipelines/stats?groupBy=day\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\"><div class=\"card bg-base-100 shadow-sm mb-6 animate-pulse\"><div class=\"card-body p-6\"><div class=\"h-64 bg-base-200 rounded\"></div></div></div></div><div id=\"pipeline-list-container\" data-testid=\"pipeline-list-container\">")
+			templ_7745c5c3_Err = partials.PipelineStatsScripts().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"max-w-4xl mx-auto\"><div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-semibold text-base-content\">Pipelines</h1><button type=\"button\" onclick=\"document.getElementById('create-modal').showModal()\" data-testid=\"btn-new-pipeline\" class=\"btn btn-primary\">+ New Pipeline</button></div><div hx-get=\"/service/web/pipelines/stats?groupBy=day\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\"><div class=\"card bg-base-100 shadow-sm mb-6 animate-pulse\"><div class=\"card-body p-6\"><div class=\"h-64 bg-base-200 rounded\"></div></div></div></div><div id=\"pipeline-list-container\" data-testid=\"pipeline-list-container\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

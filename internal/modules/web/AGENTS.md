@@ -265,10 +265,12 @@ Rules:
 - Framework: [DaisyUI v5](https://daisyui.com) (built on Tailwind CSS v4)
 - Delivery: Local vendor files in `public/vendor/`, embedded via `webassets.go`, served at `/static/vendor/*`
 - No CDN references; no local build step required
-- Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage)
+- Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage). Default picker shows light/dark; advanced DaisyUI themes remain available under Advanced.
+- Brand tokens: teal primary aligned with favicon (`#0F766E` / `#2DD4BF`); body font stack in `public/css/custom.css`
 - Custom CSS: `public/css/custom.css` for ad-hoc styles (e.g. `.var-pill`), served via embedded `webassets.SubFS`
 - Component classes: Use `btn`, `card`, `badge`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, etc.
 - Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
+- Page-specific JS: load via `partials.TokenUsageScripts` / `PipelineStatsScripts` / `EventFilterScripts` / `HomelabRegistryScripts` — do not re-add heavy scripts to `base.templ`
 
 ## Static Assets
 
@@ -281,11 +283,13 @@ Rules:
 ## Authentication
 
 - Cookie-based: `accessToken` HttpOnly + SameSite=Lax cookie; `Secure` via `modules.web.auth.cookie_secure` (default true).
+- CSRF (double-submit): non-HttpOnly `csrfToken` cookie issued on safe `/service/web` requests; mutations with a session cookie (or `POST /login`) must send matching `X-CSRF-Token` header or `csrf_token` form field. HTMX/fetch helpers in `public/js/app.js` attach the header automatically.
 - API tokens: `X-AccessToken` or `Authorization: Bearer` (query/form `accessToken` is not accepted).
 - `authenticateWeb()` / `isAuthenticated()` read the cookie, look up the token in store, populate `route.RequestContext`.
 - Routes typically combine `route.WithNotAuth()` (skip scope middleware) with an explicit `authenticateWeb(ctx)` call in the handler; unauthenticated users redirect to `/service/web/login`.
 - Login accepts credentials from `flowbot.yaml` → `modules.web.auth` (`password` plaintext for dev, or `password_hash` bcrypt for production). Init rejects empty/weak defaults and short plaintext passwords.
 - Token stored hashed via `store.Database.ParameterSet(auth.HashToken(raw), ...)`, expires in 24h; logout deletes the hash entry.
+- Unit/BDD helpers: `AttachCSRFForTest(req)` / `addWebAuth(req)` for state-changing requests.
 
 ## Store Access
 
