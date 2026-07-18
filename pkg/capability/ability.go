@@ -189,6 +189,19 @@ type FinanceUser struct {
 	Role  string `json:"role,omitzero"`
 }
 
+// Torrent represents a BitTorrent download managed by Transmission.
+type Torrent struct {
+	ID           int64   `json:"id"`
+	Name         string  `json:"name,omitzero"`
+	Status       string  `json:"status,omitzero"`
+	PercentDone  float64 `json:"percent_done,omitzero"`
+	RateDownload int64   `json:"rate_download,omitzero"`
+	RateUpload   int64   `json:"rate_upload,omitzero"`
+	DownloadDir  string  `json:"download_dir,omitzero"`
+	HashString   string  `json:"hash_string,omitzero"`
+	ErrorString  string  `json:"error_string,omitzero"`
+}
+
 type InvokeResult struct {
 	Capability hub.CapabilityType `json:"capability"`
 	Operation  string             `json:"operation"`

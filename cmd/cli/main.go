@@ -41,6 +41,7 @@ func main() {
 		command.MemoCommand(),
 		command.TriliumCommand(),
 		command.FireflyiiiCommand(),
+		command.TransmissionCommand(),
 		command.ConfigCommand(),
 		command.VersionCommand(version.Buildtags),
 	)

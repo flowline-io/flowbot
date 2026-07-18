@@ -49,6 +49,12 @@ const (
 	OpFinanceCurrentUser       = "current_user"
 	OpFinanceHealth            = "health"
 
+	OpTorrentAdd    = "add"
+	OpTorrentList   = "list"
+	OpTorrentStop   = "stop"
+	OpTorrentRemove = "remove"
+	OpTorrentHealth = "health"
+
 	OpGithubGetUser           = "get_user"
 	OpGithubGetUserByLogin    = "get_user_by_login"
 	OpGithubGetRepo           = "get_repo"

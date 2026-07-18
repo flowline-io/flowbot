@@ -864,6 +864,81 @@ func TestFireflyiiiRunEHandlers(t *testing.T) {
 	}
 }
 
+func TestTransmissionRunEHandlers(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmd        func() *cobra.Command
+		handler    http.HandlerFunc
+		args       []string
+		wantSubstr string
+	}{
+		{
+			name: "transmission add success",
+			cmd:  transmissionAddCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, http.MethodPost, r.Method)
+				assert.Equal(t, "/service/transmission/torrents", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"id":7,"name":"ubuntu.iso"}}`)))
+			},
+			args:       []string{"--url", "magnet:?xt=urn:btih:abc"},
+			wantSubstr: "Torrent added: 7",
+		},
+		{
+			name: "transmission list success",
+			cmd:  transmissionListCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/transmission/torrents", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":[{"id":1,"name":"a","status":"downloading","percent_done":0.5}]}`)))
+			},
+			wantSubstr: "downloading",
+		},
+		{
+			name: "transmission stop success",
+			cmd:  transmissionStopCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/transmission/torrents/stop", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"stopped":1}}`)))
+			},
+			args:       []string{"--ids", "1"},
+			wantSubstr: "Stopped 1 torrent(s)",
+		},
+		{
+			name: "transmission remove success",
+			cmd:  transmissionRemoveCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/transmission/torrents/remove", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":{"removed":1}}`)))
+			},
+			args:       []string{"--ids", "9"},
+			wantSubstr: "Removed 1 torrent(s)",
+		},
+		{
+			name: "transmission health healthy",
+			cmd:  transmissionHealthCommand,
+			handler: func(w http.ResponseWriter, r *http.Request) {
+				assert.Equal(t, "/service/transmission/health", r.URL.Path)
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = w.Write([]byte(okJSON(`{"data":true}`)))
+			},
+			wantSubstr: "Transmission backend is healthy",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.handler != nil {
+				setupMockCLI(t, tt.handler)
+			}
+			cmd := tt.cmd()
+			out := runCommand(t, cmd, tt.args...)
+			assert.Contains(t, out, tt.wantSubstr)
+		})
+	}
+}
+
 func TestHubRunEHandlers(t *testing.T) {
 	tests := []struct {
 		name       string

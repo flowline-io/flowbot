@@ -208,10 +208,54 @@ func TestFireflyiiiWebserviceRules_Structure(t *testing.T) {
 			},
 		},
 		{
-			name: "rules length is four",
+			name: "should have four rules",
 			test: func(t *testing.T) {
 				t.Parallel()
 				assert.Len(t, fireflyiiiWebserviceRules, 4)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
+	}
+}
+
+func TestTransmissionWebserviceRules_Structure(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		test func(t *testing.T)
+	}{
+		{
+			name: "should not be empty",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.NotEmpty(t, transmissionWebserviceRules)
+			},
+		},
+		{
+			name: "should contain torrent endpoints",
+			test: func(t *testing.T) {
+				t.Parallel()
+				paths := make(map[string]bool)
+				for _, r := range transmissionWebserviceRules {
+					paths[r.Path] = true
+				}
+				for _, expected := range []string{
+					"/torrents",
+					"/torrents/stop",
+					"/torrents/remove",
+					"/health",
+				} {
+					assert.True(t, paths[expected], "expected path %q in transmission webservice rules", expected)
+				}
+			},
+		},
+		{
+			name: "should have five rules",
+			test: func(t *testing.T) {
+				t.Parallel()
+				assert.Len(t, transmissionWebserviceRules, 5)
 			},
 		},
 	}

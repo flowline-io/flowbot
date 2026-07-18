@@ -113,6 +113,7 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, "github", githubWebserviceRules)
 	module.Webservice(app, "memos", memoWebserviceRules)
 	module.Webservice(app, "fireflyiii", fireflyiiiWebserviceRules)
+	module.Webservice(app, "transmission", transmissionWebserviceRules)
 }
 
 func (moduleHandler) Rules() []any {

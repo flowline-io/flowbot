@@ -13,17 +13,21 @@ func TestNewTransmission(t *testing.T) {
 	tests := []struct {
 		name     string
 		endpoint string
+		wantNil  bool
 		wantErr  bool
 	}{
 		{
 			name:     "creates client with valid http endpoint",
 			endpoint: "http://localhost:9091/transmission/rpc",
-			wantErr:  false,
 		},
 		{
 			name:     "creates client with valid https endpoint",
 			endpoint: "https://transmission.example.com/transmission/rpc",
-			wantErr:  false,
+		},
+		{
+			name:     "empty endpoint returns nil",
+			endpoint: "",
+			wantNil:  true,
 		},
 		{
 			name:     "fails with invalid endpoint",
@@ -44,6 +48,10 @@ func TestNewTransmission(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, v)
+				return
+			}
 			require.NotNil(t, v, "NewTransmission returned nil struct")
 			assert.NotNil(t, v.c, "NewTransmission rpc client should not be nil")
 		})

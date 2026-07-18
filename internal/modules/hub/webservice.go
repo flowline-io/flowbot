@@ -1113,6 +1113,77 @@ func invokeFireflyiii(ctx fiber.Ctx, operation string, params map[string]any) er
 	return ctx.JSON(protocol.NewSuccessResponse(res))
 }
 
+// --- Transmission routes (registered under /service/transmission) ---
+
+var transmissionWebserviceRules = []webservice.Rule{
+	webservice.Post("/torrents", addTransmissionTorrent),
+	webservice.Get("/torrents", listTransmissionTorrents),
+	webservice.Post("/torrents/stop", stopTransmissionTorrents),
+	webservice.Post("/torrents/remove", removeTransmissionTorrents),
+	webservice.Get("/health", transmissionHealth),
+}
+
+func addTransmissionTorrent(ctx fiber.Ctx) error {
+	var body struct {
+		URL string `json:"url"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode transmission torrent request", err)
+	}
+	if body.URL == "" {
+		return types.Errorf(types.ErrInvalidArgument, "url is required")
+	}
+	return invokeTransmission(ctx, capability.OpTorrentAdd, map[string]any{
+		"url": body.URL,
+	})
+}
+
+func listTransmissionTorrents(ctx fiber.Ctx) error {
+	return invokeTransmission(ctx, capability.OpTorrentList, map[string]any{})
+}
+
+func stopTransmissionTorrents(ctx fiber.Ctx) error {
+	var body struct {
+		IDs []int64 `json:"ids"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode transmission stop request", err)
+	}
+	if len(body.IDs) == 0 {
+		return types.Errorf(types.ErrInvalidArgument, "ids is required")
+	}
+	return invokeTransmission(ctx, capability.OpTorrentStop, map[string]any{
+		"ids": body.IDs,
+	})
+}
+
+func removeTransmissionTorrents(ctx fiber.Ctx) error {
+	var body struct {
+		IDs []int64 `json:"ids"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return types.WrapError(types.ErrInvalidArgument, "decode transmission remove request", err)
+	}
+	if len(body.IDs) == 0 {
+		return types.Errorf(types.ErrInvalidArgument, "ids is required")
+	}
+	return invokeTransmission(ctx, capability.OpTorrentRemove, map[string]any{
+		"ids": body.IDs,
+	})
+}
+
+func transmissionHealth(ctx fiber.Ctx) error {
+	return invokeTransmission(ctx, capability.OpTorrentHealth, map[string]any{})
+}
+
+func invokeTransmission(ctx fiber.Ctx, operation string, params map[string]any) error {
+	res, err := capability.Invoke(context.Background(), hub.CapTransmission, operation, params)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(res))
+}
+
 // --- Miniflux routes (registered under /service/miniflux) ---
 
 type createFeedRequest struct {

@@ -23,6 +23,7 @@ via `read_skill` with the `path` argument.
 | `memos`        | `memo`     | Create, list, update, and delete memos                 |
 | `trilium`      | `trilium`  | Create, list, search, update, and delete trilium notes |
 | `fireflyiii`   | `fireflyiii` | Create transactions and check Firefly III health     |
+| `transmission` | `transmission` | Add, list, stop, and remove Transmission torrents  |
 | `gitea`        | `forge`    | Inspect forge repos, issues, diffs, and files          |
 | `github`       | `github`   | Inspect GitHub repos, issues, notifications, releases  |
 
@@ -46,6 +47,9 @@ docs/skills/
 │   ├── SKILL.md
 │   └── references/cli.md
 ├── fireflyiii/
+│   ├── SKILL.md
+│   └── references/cli.md
+├── transmission/
 │   ├── SKILL.md
 │   └── references/cli.md
 ├── gitea/
@@ -98,6 +102,7 @@ ln -sf "$(pwd)/docs/skills/miniflux" .claude/skills/miniflux
 ln -sf "$(pwd)/docs/skills/memos"    .claude/skills/memos
 ln -sf "$(pwd)/docs/skills/trilium"  .claude/skills/trilium
 ln -sf "$(pwd)/docs/skills/fireflyiii" .claude/skills/fireflyiii
+ln -sf "$(pwd)/docs/skills/transmission" .claude/skills/transmission
 ln -sf "$(pwd)/docs/skills/gitea"    .claude/skills/gitea
 ln -sf "$(pwd)/docs/skills/github"   .claude/skills/github
 ```
@@ -113,6 +118,7 @@ ln -sf "$(pwd)/docs/skills/miniflux" ~/.claude/skills/miniflux
 ln -sf "$(pwd)/docs/skills/memos"    ~/.claude/skills/memos
 ln -sf "$(pwd)/docs/skills/trilium"  ~/.claude/skills/trilium
 ln -sf "$(pwd)/docs/skills/fireflyiii" ~/.claude/skills/fireflyiii
+ln -sf "$(pwd)/docs/skills/transmission" ~/.claude/skills/transmission
 ln -sf "$(pwd)/docs/skills/gitea"    ~/.claude/skills/gitea
 ln -sf "$(pwd)/docs/skills/github"   ~/.claude/skills/github
 ```

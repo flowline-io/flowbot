@@ -298,6 +298,32 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
+		Name:        string(hub.CapTransmission),
+		Title:       "Transmission",
+		CommandFn:   command.TransmissionCommand,
+		Description: "Add, list, stop, and remove Transmission torrents via flowbot transmission.",
+		Keywords:    "transmission, torrent, magnet, download, bittorrent, seed",
+		Workflows: []workflowSpec{
+			{
+				Title:       "Add a torrent",
+				Description: "When a user wants to download a magnet link or torrent URL:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot transmission add -u \"<magnet-or-http-url>\""},
+					{Step: 2, Note: "Report back with the torrent ID and name."},
+				},
+			},
+			{
+				Title:       "Inspect and control downloads",
+				Description: "When a user asks about current downloads or wants to stop/remove one:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot transmission list"},
+					{Step: 2, Command: "flowbot transmission stop --ids <id>"},
+					{Step: 3, Note: "Use remove only when the user confirms the torrent should be deleted from Transmission."},
+				},
+			},
+		},
+	},
+	{
 		Name:        string(hub.CapGitea),
 		Title:       "Gitea",
 		CommandFn:   command.ForgeCommand,

@@ -24,13 +24,21 @@ type Transmission struct {
 	c *transmissionrpc.Client
 }
 
+// GetClient returns a Transmission client from YAML config.
+// Returns nil, nil when the endpoint is not configured.
 func GetClient() (*Transmission, error) {
 	endpoint, _ := providers.GetConfig(ID, EndpointKey)
-
+	if endpoint.String() == "" {
+		return nil, nil
+	}
 	return NewTransmission(endpoint.String())
 }
 
+// NewTransmission creates a Transmission client for the given RPC endpoint.
 func NewTransmission(endpoint string) (*Transmission, error) {
+	if endpoint == "" {
+		return nil, nil
+	}
 	v := &Transmission{}
 
 	e, err := url.Parse(endpoint)

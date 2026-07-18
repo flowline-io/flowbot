@@ -23,6 +23,7 @@ func TestAllLeafCommandsHaveRunE(t *testing.T) {
 		{name: "memo", fn: MemoCommand},
 		{name: "trilium", fn: TriliumCommand},
 		{name: "fireflyiii", fn: FireflyiiiCommand},
+		{name: "transmission", fn: TransmissionCommand},
 		{name: "config", fn: ConfigCommand},
 		{name: "version", fn: func() *cobra.Command { return VersionCommand("test") }},
 	}

@@ -56,10 +56,11 @@ func TestGetClient(t *testing.T) {
 	tests := []struct {
 		name    string
 		configs json.RawMessage
+		wantNil bool
 		wantErr bool
 	}{
-		{name: "empty endpoint still constructs client", configs: json.RawMessage(`{}`), wantErr: false},
-		{name: "configured endpoint", configs: json.RawMessage(`{"transmission":{"endpoint":"http://127.0.0.1:9091/transmission/rpc"}}`), wantErr: false},
+		{name: "empty endpoint returns nil", configs: json.RawMessage(`{}`), wantNil: true},
+		{name: "configured endpoint", configs: json.RawMessage(`{"transmission":{"endpoint":"http://127.0.0.1:9091/transmission/rpc"}}`)},
 		{name: "invalid endpoint", configs: json.RawMessage(`{"transmission":{"endpoint":"://bad"}}`), wantErr: true},
 	}
 	for _, tt := range tests {
@@ -71,6 +72,10 @@ func TestGetClient(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+			if tt.wantNil {
+				assert.Nil(t, c)
+				return
+			}
 			require.NotNil(t, c)
 		})
 	}
