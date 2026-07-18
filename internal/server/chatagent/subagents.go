@@ -3,6 +3,7 @@ package chatagent
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -72,6 +73,85 @@ func subagentFromRow(row *gen.AgentSubagent) Subagent {
 	}
 }
 
+// LegacyBuiltinSystemPrompts maps builtin flag -> known pre-rewrite system prompts.
+// Rows still carrying these values are migrated once; customized rows are left alone.
+var LegacyBuiltinSystemPrompts = map[string][]string{
+	"general": {
+		"You are a general-purpose subagent. Complete the delegated task end to end using the available " +
+			"tools, including reading and modifying project files when needed. Work in isolation, make reasonable " +
+			"assumptions, and return a concise, self-contained summary of what you found or did. Do not ask " +
+			"follow-up questions.",
+	},
+	"explore": {
+		"You are an explore subagent operating in read-only mode. Use list_dir, glob_files, grep_files, read_file, web_search, and web_fetch to " +
+			"navigate the codebase, locate where features are implemented, and explain how complex logic works. " +
+			"Never modify files or access write-capable tools. Return a concise, self-contained summary with " +
+			"file paths and relevant excerpts.",
+	},
+	"scout": {
+		"You are a scout subagent focused on external information retrieval. Use web_search and web_fetch to find " +
+			"official documentation, GitHub repositories, and current API usage. Use run_terminal to clone or " +
+			"fetch external dependencies when needed, and read_file to inspect retrieved content. Cross-reference " +
+			"sources, verify facts against the latest docs, and return a concise, self-contained summary with " +
+			"links and actionable findings.",
+	},
+}
+
+// LegacyBuiltinDescriptions maps builtin flag -> known pre-rewrite descriptions.
+var LegacyBuiltinDescriptions = map[string][]string{
+	"general": {"General-purpose subagent for complex research and multi-step tasks; can read and modify project files"},
+	"explore": {"Fast read-only subagent for codebase navigation, locating implementations, and understanding complex logic"},
+	"scout":   {"Research subagent for external docs, APIs, GitHub, and dependency investigation beyond the training cutoff"},
+}
+
+// BuiltinSubagentFields holds prompt fields considered for builtin migration.
+type BuiltinSubagentFields struct {
+	Source       string
+	Flag         string
+	SystemPrompt string
+	Description  string
+}
+
+// MigrateBuiltinSubagentFields returns updated prompt fields when the row still
+// carries a known legacy builtin prompt or description. Unchanged fields are returned as-is.
+func MigrateBuiltinSubagentFields(in BuiltinSubagentFields) (BuiltinSubagentFields, bool) {
+	out := in
+	if in.Source != "builtin" {
+		return out, false
+	}
+	def := defaultSubagentByFlag(in.Flag)
+	if def == nil {
+		return out, false
+	}
+	changed := false
+	if in.SystemPrompt != def.SystemPrompt && slices.Contains(LegacyBuiltinSystemPrompts[in.Flag], in.SystemPrompt) {
+		out.SystemPrompt = def.SystemPrompt
+		changed = true
+	}
+	if in.Description != def.Description && slices.Contains(LegacyBuiltinDescriptions[in.Flag], in.Description) {
+		out.Description = def.Description
+		changed = true
+	}
+	return out, changed
+}
+
+// isMigratableBuiltinRow reports whether a store row is a known builtin seed candidate.
+func isMigratableBuiltinRow(row *gen.AgentSubagent) bool {
+	if row == nil || row.Source != "builtin" {
+		return false
+	}
+	return defaultSubagentByFlag(row.Flag) != nil
+}
+
+func defaultSubagentByFlag(flag string) *gen.AgentSubagent {
+	for _, item := range defaultSubagents {
+		if item.Flag == flag {
+			return item
+		}
+	}
+	return nil
+}
+
 // defaultSubagents are seeded once when no subagent definitions exist, so the
 // task tool is usable out of the box.
 var defaultSubagents = []*gen.AgentSubagent{
@@ -79,10 +159,16 @@ var defaultSubagents = []*gen.AgentSubagent{
 		Flag:        "general",
 		Name:        "general",
 		Description: "General-purpose subagent for complex research and multi-step tasks; can read and modify project files",
-		SystemPrompt: "You are a general-purpose subagent. Complete the delegated task end to end using the available " +
-			"tools, including reading and modifying project files when needed. Work in isolation, make reasonable " +
-			"assumptions, and return a concise, self-contained summary of what you found or did. Do not ask " +
-			"follow-up questions.",
+		SystemPrompt: `## Role
+You are a general-purpose subagent. Complete the delegated task end to end in isolation.
+
+## Constraints
+- Use only the tools available to you, including reading and modifying project files when needed.
+- Make reasonable assumptions; do not ask follow-up questions.
+- Prefer tools over guessing file contents, command output, or external facts.
+
+## Output
+Return a concise, self-contained summary of what you found or did, including key file paths.`,
 		Tools:   []string{"list_dir", "glob_files", "grep_files", "read_file", "write_file", "apply_patch", "web_search", "web_fetch", "run_terminal", "run_code"},
 		Source:  "builtin",
 		Enabled: true,
@@ -91,10 +177,16 @@ var defaultSubagents = []*gen.AgentSubagent{
 		Flag:        "explore",
 		Name:        "explore",
 		Description: "Fast read-only subagent for codebase navigation, locating implementations, and understanding complex logic",
-		SystemPrompt: "You are an explore subagent operating in read-only mode. Use list_dir, glob_files, grep_files, read_file, web_search, and web_fetch to " +
-			"navigate the codebase, locate where features are implemented, and explain how complex logic works. " +
-			"Never modify files or access write-capable tools. Return a concise, self-contained summary with " +
-			"file paths and relevant excerpts.",
+		SystemPrompt: `## Role
+You are an explore subagent operating in read-only mode. Navigate the codebase, locate implementations, and explain complex logic.
+
+## Constraints
+- Use only read-oriented tools (list_dir, glob_files, grep_files, read_file, web_search, web_fetch).
+- Never modify files or attempt write-capable tools.
+- Prefer tools over guessing file contents or architecture.
+
+## Output
+Return a concise, self-contained summary with file paths and relevant excerpts.`,
 		Tools:   []string{"list_dir", "glob_files", "grep_files", "read_file", "web_search", "web_fetch"},
 		Source:  "builtin",
 		Enabled: true,
@@ -103,19 +195,24 @@ var defaultSubagents = []*gen.AgentSubagent{
 		Flag:        "scout",
 		Name:        "scout",
 		Description: "Research subagent for external docs, APIs, GitHub, and dependency investigation beyond the training cutoff",
-		SystemPrompt: "You are a scout subagent focused on external information retrieval. Use web_search and web_fetch to find " +
-			"official documentation, GitHub repositories, and current API usage. Use run_terminal to clone or " +
-			"fetch external dependencies when needed, and read_file to inspect retrieved content. Cross-reference " +
-			"sources, verify facts against the latest docs, and return a concise, self-contained summary with " +
-			"links and actionable findings.",
+		SystemPrompt: `## Role
+You are a scout subagent focused on external information retrieval beyond the training cutoff.
+
+## Constraints
+- Prefer web_search and web_fetch for official docs, GitHub, and current API usage.
+- Use run_terminal to clone or fetch external dependencies when needed, and read_file to inspect retrieved content.
+- Cross-reference sources; do not invent citations or API details.
+
+## Output
+Return a concise, self-contained summary with links and actionable findings.`,
 		Tools:   []string{"web_search", "web_fetch", "run_terminal", "read_file"},
 		Source:  "builtin",
 		Enabled: true,
 	},
 }
 
-// SeedDefaultSubagents inserts built-in subagent definitions when none exist yet.
-// It is a best-effort startup helper and never overwrites user-managed rows.
+// SeedDefaultSubagents inserts built-in subagent definitions when none exist yet,
+// and migrates legacy builtin prompts when they still match known shipped defaults.
 func SeedDefaultSubagents(ctx context.Context) error {
 	if store.Database == nil {
 		return nil
@@ -124,21 +221,52 @@ func SeedDefaultSubagents(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("list agent subagents: %w", err)
 	}
-	if len(existing) > 0 {
+	if len(existing) == 0 {
+		now := time.Now().UTC()
+		for _, item := range defaultSubagents {
+			row := *item
+			row.CreatedAt = now
+			row.UpdatedAt = now
+			if err := store.Database.CreateAgentSubagent(ctx, &row); err != nil {
+				flog.Warn("[chat-agent] seed subagent %s: %v", row.Flag, err)
+				continue
+			}
+			flog.Info("[chat-agent] seeded default subagent %s", row.Flag)
+		}
+		InvalidatePromptCache()
 		return nil
 	}
-	now := time.Now().UTC()
-	for _, item := range defaultSubagents {
-		row := *item
-		row.CreatedAt = now
-		row.UpdatedAt = now
-		if err := store.Database.CreateAgentSubagent(ctx, &row); err != nil {
-			flog.Warn("[chat-agent] seed subagent %s: %v", row.Flag, err)
+	return syncBuiltinSubagentPrompts(ctx, existing)
+}
+
+func syncBuiltinSubagentPrompts(ctx context.Context, existing []*gen.AgentSubagent) error {
+	updated := false
+	for _, row := range existing {
+		if !isMigratableBuiltinRow(row) {
 			continue
 		}
-		flog.Info("[chat-agent] seeded default subagent %s", row.Flag)
+		migrated, changed := MigrateBuiltinSubagentFields(BuiltinSubagentFields{
+			Source:       row.Source,
+			Flag:         row.Flag,
+			SystemPrompt: row.SystemPrompt,
+			Description:  row.Description,
+		})
+		if !changed {
+			continue
+		}
+		next := *row
+		next.SystemPrompt = migrated.SystemPrompt
+		next.Description = migrated.Description
+		if err := store.Database.UpdateAgentSubagent(ctx, &next); err != nil {
+			flog.Warn("[chat-agent] migrate builtin subagent %s: %v", row.Flag, err)
+			continue
+		}
+		flog.Info("[chat-agent] migrated builtin subagent prompt %s", row.Flag)
+		updated = true
 	}
-	InvalidatePromptCache()
+	if updated {
+		InvalidatePromptCache()
+	}
 	return nil
 }
 

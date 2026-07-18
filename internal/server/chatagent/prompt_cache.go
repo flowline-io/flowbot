@@ -170,10 +170,9 @@ func buildPlanModeSystemPrompt(ctx context.Context, ws coding.Workspace) string 
 		subagents = nil
 	}
 	contextFiles := loadContextFiles(ws.Root, cfg.ContextFiles)
-	guidelines := append(append([]string(nil), cfg.PromptGuidelines...), planModeGuidelines()...)
 	return BuildSystemPrompt(BuildSystemPromptOptions{
 		CustomPrompt:       cfg.SystemPrompt,
-		PromptGuidelines:   guidelines,
+		PromptGuidelines:   append([]string(nil), cfg.PromptGuidelines...),
 		AppendSystemPrompt: cfg.AppendSystemPrompt,
 		CWD:                ws.Root,
 		ContextFiles:       contextFiles,

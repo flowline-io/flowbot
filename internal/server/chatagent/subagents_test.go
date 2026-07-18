@@ -105,6 +105,125 @@ func TestTaskToolSchema(t *testing.T) {
 	assert.ElementsMatch(t, []string{"subagent_type", "description", "prompt"}, required)
 }
 
+func TestMigrateBuiltinSubagentFields(t *testing.T) {
+	legacyGeneral := chatagent.LegacyBuiltinSystemPrompts["general"][0]
+	legacyGeneralDesc := chatagent.LegacyBuiltinDescriptions["general"][0]
+	legacyExplore := chatagent.LegacyBuiltinSystemPrompts["explore"][0]
+	legacyExploreDesc := chatagent.LegacyBuiltinDescriptions["explore"][0]
+	legacyScout := chatagent.LegacyBuiltinSystemPrompts["scout"][0]
+	legacyScoutDesc := chatagent.LegacyBuiltinDescriptions["scout"][0]
+
+	tests := []struct {
+		name        string
+		in          chatagent.BuiltinSubagentFields
+		wantChanged bool
+		wantPrompt  string
+		wantDesc    string
+	}{
+		{
+			name: "legacy builtin prompt and description migrate",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "builtin",
+				Flag:         "general",
+				SystemPrompt: legacyGeneral,
+				Description:  legacyGeneralDesc,
+			},
+			wantChanged: true,
+			wantPrompt:  "## Role",
+			wantDesc:    legacyGeneralDesc,
+		},
+		{
+			name: "customized builtin prompt is skipped",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "builtin",
+				Flag:         "general",
+				SystemPrompt: "Custom operator prompt",
+				Description:  "Custom description",
+			},
+			wantChanged: false,
+			wantPrompt:  "Custom operator prompt",
+			wantDesc:    "Custom description",
+		},
+		{
+			name: "non-builtin source is skipped",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "user",
+				Flag:         "general",
+				SystemPrompt: legacyGeneral,
+				Description:  legacyGeneralDesc,
+			},
+			wantChanged: false,
+			wantPrompt:  legacyGeneral,
+			wantDesc:    legacyGeneralDesc,
+		},
+		{
+			name: "unknown builtin flag is skipped",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "builtin",
+				Flag:         "custom-flag",
+				SystemPrompt: legacyGeneral,
+				Description:  legacyGeneralDesc,
+			},
+			wantChanged: false,
+			wantPrompt:  legacyGeneral,
+			wantDesc:    legacyGeneralDesc,
+		},
+		{
+			name: "already migrated prompt is skipped",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "builtin",
+				Flag:         "general",
+				SystemPrompt: "already-new-prompt",
+				Description:  legacyGeneralDesc,
+			},
+			wantChanged: false,
+			wantPrompt:  "already-new-prompt",
+			wantDesc:    legacyGeneralDesc,
+		},
+		{
+			name: "legacy explore prompt migrates",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "builtin",
+				Flag:         "explore",
+				SystemPrompt: legacyExplore,
+				Description:  legacyExploreDesc,
+			},
+			wantChanged: true,
+			wantPrompt:  "## Role",
+			wantDesc:    legacyExploreDesc,
+		},
+		{
+			name: "legacy scout prompt migrates",
+			in: chatagent.BuiltinSubagentFields{
+				Source:       "builtin",
+				Flag:         "scout",
+				SystemPrompt: legacyScout,
+				Description:  legacyScoutDesc,
+			},
+			wantChanged: true,
+			wantPrompt:  "## Role",
+			wantDesc:    legacyScoutDesc,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, changed := chatagent.MigrateBuiltinSubagentFields(tt.in)
+			assert.Equal(t, tt.wantChanged, changed)
+			if tt.wantChanged {
+				assert.Contains(t, got.SystemPrompt, tt.wantPrompt)
+				assert.Equal(t, tt.wantDesc, got.Description)
+				again, againChanged := chatagent.MigrateBuiltinSubagentFields(got)
+				assert.False(t, againChanged)
+				assert.Equal(t, got, again)
+				return
+			}
+			assert.Equal(t, tt.wantPrompt, got.SystemPrompt)
+			assert.Equal(t, tt.wantDesc, got.Description)
+		})
+	}
+}
+
 func toolResultText(result msg.ToolResultMessage) string {
 	var out strings.Builder
 	for _, part := range result.Parts {

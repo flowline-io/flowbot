@@ -23,33 +23,52 @@ func TestBuildSystemPrompt(t *testing.T) {
 	config.App.Flowbot.Language = "Chinese"
 
 	tests := []struct {
-		name       string
-		options    chatagent.BuildSystemPromptOptions
-		wantParts  []string
-		wantAbsent []string
+		name              string
+		options           chatagent.BuildSystemPromptOptions
+		wantParts         []string
+		wantAbsent        []string
+		wantCount         map[string]int
+		wantHardRulesLast bool
 	}{
 		{
-			name: "default prompt includes tools and workspace",
+			name: "default prompt uses operating manual structure",
 			options: chatagent.BuildSystemPromptOptions{
 				CWD: root,
 			},
 			wantParts: []string{
-				"agent harness",
-				"Agent harness:",
-				"Observe-Think-Act loop",
-				"Harness behavior you should expect:",
-				"Available tools:",
+				"## Identity",
+				"## Constraints",
+				"## Workflow",
+				"## Output",
+				"## Available tools",
 				"- read_file:",
 				"- run_terminal:",
+				"Instruction priority:",
+				"untrusted data",
+				`"chat" starts a session`,
+				`"end" closes it`,
 				"Current working directory:",
 				strings.ReplaceAll(root, "\\", "/"),
 				"Response language: Chinese",
+				"Hard rules:",
+				"follow Response language",
+				"workspace sandbox",
 				"<project_context>",
 				"Project rules",
 			},
+			wantAbsent: []string{
+				"Agent harness:",
+				"Observe-Think-Act loop",
+				"Harness behavior you should expect:",
+				"Use list_dir to inspect workspace directories",
+				"Use grep_files to search file contents",
+				"Use web_search for library docs",
+				"answer in Chinese unless the user requests another language",
+			},
+			wantHardRulesLast: true,
 		},
 		{
-			name: "custom prompt preserves append and context",
+			name: "custom prompt preserves append context and hard-rule pin",
 			options: chatagent.BuildSystemPromptOptions{
 				CustomPrompt:       "You are a specialist.",
 				AppendSystemPrompt: "Always cite file paths.",
@@ -59,8 +78,12 @@ func TestBuildSystemPrompt(t *testing.T) {
 				"You are a specialist.",
 				"Always cite file paths.",
 				"Project rules",
+				"Hard rules:",
+				"Response language: Chinese",
+				"follow Response language",
 			},
-			wantAbsent: []string{"Available tools:"},
+			wantAbsent:        []string{"## Available tools"},
+			wantHardRulesLast: true,
 		},
 		{
 			name: "extra guidelines are deduplicated",
@@ -68,12 +91,15 @@ func TestBuildSystemPrompt(t *testing.T) {
 				CWD: root,
 				PromptGuidelines: []string{
 					"Run tests after edits",
-					"Be concise in your responses",
+					"Prefer apply_patch for incremental edits; use write_file for new files or full rewrites",
 				},
 			},
 			wantParts: []string{
 				"- Run tests after edits",
-				"- Be concise in your responses",
+				"- Prefer apply_patch for incremental edits; use write_file for new files or full rewrites",
+			},
+			wantCount: map[string]int{
+				"- Prefer apply_patch for incremental edits; use write_file for new files or full rewrites": 1,
 			},
 		},
 		{
@@ -93,14 +119,14 @@ func TestBuildSystemPrompt(t *testing.T) {
 			},
 		},
 		{
-			name: "plan mode prompt shows read-only tools and guidelines",
+			name: "plan mode prompt shows read-only tools without duplicated constraints",
 			options: chatagent.BuildSystemPromptOptions{
 				CWD:           root,
 				Mode:          chatagent.ModePlan,
 				SelectedTools: chatagent.ReadOnlyToolNames(),
 			},
 			wantParts: []string{
-				"Plan mode:",
+				"## Plan mode",
 				"Do not modify files",
 				"- read_file:",
 				"- web_search:",
@@ -109,6 +135,9 @@ func TestBuildSystemPrompt(t *testing.T) {
 				"- write_file:",
 				"- run_terminal:",
 				"- run_code:",
+			},
+			wantCount: map[string]int{
+				"Do not modify files": 1,
 			},
 		},
 		{
@@ -121,7 +150,7 @@ func TestBuildSystemPrompt(t *testing.T) {
 				"- run_terminal:",
 			},
 			wantAbsent: []string{
-				"Plan mode:",
+				"## Plan mode",
 			},
 		},
 	}
@@ -134,6 +163,16 @@ func TestBuildSystemPrompt(t *testing.T) {
 			}
 			for _, part := range tt.wantAbsent {
 				assert.NotContains(t, got, part)
+			}
+			for part, want := range tt.wantCount {
+				assert.Equal(t, want, strings.Count(got, part), "count for %q", part)
+			}
+			if tt.wantHardRulesLast {
+				trimmed := strings.TrimSpace(got)
+				lines := strings.Split(trimmed, "\n")
+				require.NotEmpty(t, lines)
+				assert.True(t, strings.HasPrefix(lines[len(lines)-1], "Hard rules:"),
+					"last line should be Hard rules pin, got %q", lines[len(lines)-1])
 			}
 		})
 	}
