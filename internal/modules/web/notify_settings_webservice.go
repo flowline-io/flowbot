@@ -193,14 +193,14 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		setShowToast(ctx, "error", "Connection failed: "+err.Error())
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
-			_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "Test connectivity", "failed", err.Error(), nil)
+			_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), nil)
 		}
 		return ctx.SendString("")
 	}
 	setShowToast(ctx, "success", "Connection successful")
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
-		_, _ = ns.Record(ctx.Context(), uid, ch.Name, "test", "Test connectivity", "success", "", nil)
+		_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", nil)
 	}
 	return ctx.SendString("")
 }

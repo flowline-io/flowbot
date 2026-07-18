@@ -42,7 +42,7 @@ templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
 							if string(r.Status) == "failed" {
 								<button class="btn btn-xs btn-outline btn-error"
 									hx-post={ templ.URL("/service/web/notifications/" + strconv.FormatInt(r.ID, 10) + "/retry") }
-									hx-target={ "#notify-row-" + strconv.FormatInt(r.ID, 10) }
+									hx-target="#notifications-table"
 									hx-swap="outerHTML"
 									hx-disabled-elt="this"
 									title="Retries go through normal delivery. Rate limits still apply."

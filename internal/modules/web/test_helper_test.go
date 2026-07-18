@@ -191,6 +191,21 @@ func (s *testStore) UpdateNotifyChannel(_ context.Context, id int64, name, proto
 	return nil
 }
 
+// ListNotifyChannels returns channels from the test map.
+func (s *testStore) ListNotifyChannels(_ context.Context, opts store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
+	out := make([]model.NotifyChannel, 0, len(s.notifyChannels))
+	for _, ch := range s.notifyChannels {
+		if opts.Protocol != "" && ch.Protocol != opts.Protocol {
+			continue
+		}
+		if opts.Enabled != nil && ch.Enabled != *opts.Enabled {
+			continue
+		}
+		out = append(out, ch)
+	}
+	return out, nil
+}
+
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
 	store.Database = ts

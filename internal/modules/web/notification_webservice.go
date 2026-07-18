@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"maps"
 	"strconv"
 	"time"
@@ -12,6 +13,7 @@ import (
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -117,8 +119,17 @@ func retryNotification(ctx fiber.Ctx) error {
 		return ctx.SendString("Not your notification")
 	}
 	if string(rec.Status) != "failed" {
-		ctx.Type("html")
-		return partials.EmptyState("Only failed notifications can be retried").Render(ctx.Context(), ctx.Response().BodyWriter())
+		setShowToast(ctx, "error", "Only failed notifications can be retried")
+		return renderNotificationsTable(ctx, ns, uid)
+	}
+
+	if notifypkg.IsConnectivityTestTemplate(rec.TemplateID) {
+		if err := retryConnectivityTest(ctx.Context(), ns, uid, rec.Channel); err != nil {
+			setShowToast(ctx, "error", "Retry failed: "+err.Error())
+			return renderNotificationsTable(ctx, ns, uid)
+		}
+		setShowToast(ctx, "success", "Connectivity retest succeeded")
+		return renderNotificationsTable(ctx, ns, uid)
 	}
 
 	payload := make(map[string]any)
@@ -128,20 +139,69 @@ func retryNotification(ctx fiber.Ctx) error {
 
 	notifyUid := types.Uid(rec.UID)
 	if err := notifypkg.GatewaySend(context.Background(), notifyUid, rec.TemplateID, []string{rec.Channel}, payload); err != nil {
-		ctx.Type("html")
-		return partials.EmptyState("Retry failed: "+err.Error()).Render(ctx.Context(), ctx.Response().BodyWriter())
+		setShowToast(ctx, "error", "Retry failed: "+err.Error())
+		return renderNotificationsTable(ctx, ns, uid)
 	}
 
 	// Wait briefly for the async record goroutine to persist the retry outcome
 	time.Sleep(50 * time.Millisecond)
+	setShowToast(ctx, "success", "Notification retried")
+	return renderNotificationsTable(ctx, ns, uid)
+}
 
+// renderNotificationsTable reloads and renders the notifications table fragment.
+func renderNotificationsTable(ctx fiber.Ctx, ns *store.NotifyStore, uid string) error {
 	records, nextCursor, listErr := ns.ListRecords(context.Background(), uid, store.ListNotifyRecordsOptions{Limit: 20})
 	if listErr != nil {
-		ctx.Type("html")
-		return partials.EmptyState("Retried but failed to reload").Render(ctx.Context(), ctx.Response().BodyWriter())
+		setShowToast(ctx, "error", "Retried but failed to reload")
+		return ctx.SendString("")
 	}
-
 	ctx.Type("html")
 	return partials.NotificationsTable(records, nextCursor).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+// retryConnectivityTest re-runs a channel connectivity probe for the named channel.
+func retryConnectivityTest(ctx context.Context, ns *store.NotifyStore, uid, channelName string) error {
+	ch, err := lookupNotifyChannelRawByName(ctx, channelName)
+	if err != nil {
+		return err
+	}
+	notifyMsg := notifypkg.Message{
+		Title:    "Test Notification",
+		Body:     "Connectivity test from Flowbot",
+		Priority: notifypkg.Low,
+	}
+	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
+		if ns != nil {
+			_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), nil)
+		}
+		return err
+	}
+	if ns != nil {
+		_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", nil)
+	}
+	return nil
+}
+
+// lookupNotifyChannelRawByName finds a notify channel by name and returns its raw URI.
+func lookupNotifyChannelRawByName(ctx context.Context, name string) (model.NotifyChannel, error) {
+	if store.Database == nil {
+		return model.NotifyChannel{}, fmt.Errorf("channel %q not found", name)
+	}
+	channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{})
+	if err != nil {
+		return model.NotifyChannel{}, err
+	}
+	for _, ch := range channels {
+		if ch.Name != name {
+			continue
+		}
+		raw, err := store.Database.GetNotifyChannelRaw(ctx, ch.ID)
+		if err != nil {
+			return model.NotifyChannel{}, err
+		}
+		return raw, nil
+	}
+	return model.NotifyChannel{}, fmt.Errorf("channel %q not found", name)
 }

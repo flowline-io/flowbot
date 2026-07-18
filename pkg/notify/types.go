@@ -12,6 +12,15 @@ type Notifyer interface {
 	Send(tokens types.KV, message Message) error
 }
 
+// ConnectivityTestTemplateID is the template ID written by web UI channel connectivity tests.
+// Retry for these records re-runs the channel probe instead of GatewaySend.
+const ConnectivityTestTemplateID = "test"
+
+// IsConnectivityTestTemplate reports whether templateID identifies a connectivity-test record.
+func IsConnectivityTestTemplate(templateID string) bool {
+	return templateID == ConnectivityTestTemplateID
+}
+
 type Priority int32
 
 const (
