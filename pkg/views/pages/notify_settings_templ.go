@@ -7,11 +7,10 @@ package pages
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-	"github.com/flowline-io/flowbot/pkg/views/layout"
-)
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
+
+import "github.com/flowline-io/flowbot/pkg/views/layout"
 
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.

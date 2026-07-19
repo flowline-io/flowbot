@@ -7,7 +7,7 @@ Homelab Data Hub & Capability Orchestration Center.
 * Prioritize code correctness and clarity. Speed and efficiency are secondary priorities unless otherwise specified.
 * Prefer implementing functionality in existing files unless it is a new logical component. Avoid creating many small files.
 * Do not write organizational or comments that summarize the code. Comments should only be written in order to explain "why" the code is written in some way in the case there is a reason that is tricky / non-obvious.
-* Go 1.26.3+, PostgreSQL, Redis required
+* Go 1.26.5+, PostgreSQL, Redis required
 * Do not use emojis
 * Run lint and test after modifying code
 * Text in English: comments, docs, commit messages

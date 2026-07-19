@@ -37,7 +37,7 @@ Versions are pinned in [`deployments/agent-sandbox/Dockerfile`](../../deployment
 | Base OS | Ubuntu 24.04 | Required for Playwright and browser/computer-use tooling |
 | git | distro package | Required for Cloud Agent clone workflows |
 | sudo | NOPASSWD for `agent` | Privileged setup steps when orchestrator needs them |
-| Go | 1.26.3 (official tarball) | Matches [`go.mod`](../../go.mod) |
+| Go | 1.26.5 (official tarball) | Matches [`go.mod`](../../go.mod) |
 | Node.js | 22.x LTS (NodeSource) | Matches CI `node-version: lts/*` |
 | oxfmt / oxlint | npm global | Matches Flowbot JS lint/format tooling |
 | Python | 3.x (distro) | `python` symlinked to `python3`; pip and venv included |

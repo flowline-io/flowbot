@@ -1,7 +1,7 @@
 # flowbot-agent-sandbox: ephemeral Cloud Agent base image.
 # Do not COPY project sources; the orchestrator mounts /workspace at runtime.
 
-ARG GO_VERSION=1.26.3
+ARG GO_VERSION=1.26.5
 ARG NODE_MAJOR=22
 ARG CLI_VERSION=latest
 

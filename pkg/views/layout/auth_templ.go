@@ -5,11 +5,10 @@ package layout
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import (
-	"github.com/a-h/templ"
-	templruntime "github.com/a-h/templ/runtime"
-	"github.com/flowline-io/flowbot/pkg/views/partials"
-)
+import "github.com/a-h/templ"
+import templruntime "github.com/a-h/templ/runtime"
+
+import "github.com/flowline-io/flowbot/pkg/views/partials"
 
 // Auth is a minimal HTML shell for unauthenticated pages (no app navigation).
 func Auth(title string) templ.Component {
