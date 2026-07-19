@@ -10,7 +10,7 @@ cd flowbot
 go tool task build
 ```
 
-For detailed deployment options (binary, Docker, systemd), see [Developer Guide / Deployment](../developer-guide/deployment.md).
+For detailed deployment options (binary, Docker, systemd), see [Self-hosting](../self-hosting.md) and [Developer Guide / Deployment](../developer-guide/deployment.md).
 
 ## Configuration
 

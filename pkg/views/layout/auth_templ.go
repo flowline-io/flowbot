@@ -45,7 +45,7 @@ func Auth(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"icon\" href=\"/static/favicon.svg\" type=\"image/svg+xml\"><script>(function(){var t=localStorage.getItem('flowbot-theme');if(t)document.documentElement.setAttribute('data-theme',t);})()</script><link href=\"/static/vendor/daisyui.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/vendor/themes.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/css/custom.css\" rel=\"stylesheet\"><script src=\"/static/vendor/htmx.min.js\"></script><script src=\"/static/vendor/tailwind-browser.min.js\"></script><script src=\"/static/js/app.js\"></script><script src=\"/static/vendor/alpine.min.js\" defer></script></head><body class=\"bg-base-200 min-h-screen flex flex-col items-center justify-center px-4 py-10 flowbot-shell\"><div class=\"w-full max-w-sm mb-10 flex flex-col items-center gap-3\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><link rel=\"icon\" href=\"/static/favicon.svg\" type=\"image/svg+xml\"><script src=\"/static/js/theme-init.js\"></script><link href=\"/static/css/app.css\" rel=\"stylesheet\" type=\"text/css\"><link href=\"/static/css/custom.css\" rel=\"stylesheet\"><script src=\"/static/vendor/htmx.min.js\"></script><script src=\"/static/js/app.js\"></script><script src=\"/static/vendor/alpine.csp.min.js\" defer></script></head><body class=\"bg-base-200 min-h-screen flex flex-col items-center justify-center px-4 py-10 flowbot-shell\"><div class=\"w-full max-w-sm mb-10 flex flex-col items-center gap-3\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

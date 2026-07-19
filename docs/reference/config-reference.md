@@ -13,6 +13,10 @@ This directory contains configuration templates and examples for Flowbot.
 
 Loading **rejects** legacy keys (`store_config`, `redis.host` / `port` / `password` / `db`) with a migration hint. There is no dual-read compatibility.
 
+### Environment substitution
+
+String values in `flowbot.yaml` may use `${VAR}` / `$VAR` placeholders. They are expanded from the process environment at load (and on config reload). Prefer this for secrets in Docker Compose.
+
 ### Semantic change: web login brute force
 
 Omitting `modules.web.auth.brute_force` used to disable lockout. It now **defaults to enabled**. Set `brute_force.enabled: false` to turn it off.

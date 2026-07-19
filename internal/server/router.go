@@ -58,7 +58,7 @@ func handleRoutes(a *fiber.App, ctl *Controller) {
 	// common
 	a.Get("/", func(_ fiber.Ctx) error { return nil })
 	a.Get(healthcheck.LivenessEndpoint, healthcheck.New())
-	a.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
+	a.Get(healthcheck.ReadinessEndpoint, readinessHandler)
 	a.Get(healthcheck.StartupEndpoint, healthcheck.New())
 	a.All("/oauth/:provider/:flag", ctl.storeOAuth)
 	// metrics - expose prometheus metrics for scraping (bearer_token or admin:metrics scope)
@@ -408,7 +408,7 @@ func (c *Controller) platformCallback(ctx fiber.Ctx) error {
 	case slack.ID:
 		err = c.driver.HttpServer(ctx)
 	default:
-		return protocol.ErrNotFound.New("platform not found")
+		return protocol.ErrNotFound.Public("platform not found").New("platform not found")
 	}
 	if err != nil {
 		var e oops.OopsError

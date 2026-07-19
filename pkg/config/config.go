@@ -102,6 +102,15 @@ type Type struct {
 
 	// Plugin system configuration
 	Plugins *plugintypes.PluginConfig `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
+
+	// Retention controls optional automatic cleanup of durable history tables.
+	Retention RetentionConfig `json:"retention" yaml:"retention" mapstructure:"retention"`
+}
+
+// RetentionConfig configures optional TTL cleanup for durable rows.
+type RetentionConfig struct {
+	// DataEventsDays deletes data_events older than this many days when > 0. Zero disables.
+	DataEventsDays int `json:"data_events_days" yaml:"data_events_days" mapstructure:"data_events_days"`
 }
 
 // Tracing configures OpenTelemetry distributed tracing.
@@ -393,6 +402,9 @@ type HTTPConfig struct {
 	// TLSBehindProxy enables HSTS when true (HTTPS or TLS-terminating reverse proxy / frp).
 	// HSTS is also sent when modules.web.auth.cookie_secure is enabled (see ShouldSendHSTS).
 	TLSBehindProxy bool `json:"tls_behind_proxy" yaml:"tls_behind_proxy" mapstructure:"tls_behind_proxy"`
+	// TrustedProxies lists proxy IPs or CIDRs whose X-Forwarded-For (and related) headers
+	// are trusted for client IP resolution (login rate limit, etc.). Empty disables header trust.
+	TrustedProxies []string `json:"trusted_proxies" yaml:"trusted_proxies" mapstructure:"trusted_proxies"`
 }
 
 // HTTPCORSConfig holds CORS allow-origin whitelist settings.
@@ -652,6 +664,9 @@ func Load(path ...string) error {
 	if err != nil {
 		return fmt.Errorf("read config file: %w", err)
 	}
+	if err := expandConfigFileEnv(viper.ConfigFileUsed()); err != nil {
+		return fmt.Errorf("expand config env: %w", err)
+	}
 	err = viper.Unmarshal(&App)
 	if err != nil {
 		return fmt.Errorf("unmarshal config: %w", err)
@@ -661,6 +676,20 @@ func Load(path ...string) error {
 	}
 	App.Normalize()
 	return nil
+}
+
+// expandConfigFileEnv re-reads the config file with ${VAR} / $VAR substituted from the
+// process environment so secrets need not be committed in plaintext YAML.
+func expandConfigFileEnv(path string) error {
+	if path == "" {
+		return nil
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	expanded := os.ExpandEnv(string(raw))
+	return viper.ReadConfig(strings.NewReader(expanded))
 }
 
 // loadPipelines reads pipeline definitions from a standalone YAML file.
@@ -741,7 +770,11 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 			viper.OnConfigChange(func(e fsnotify.Event) {
 				log.Printf("Config file changed: %s\n", e.String())
 
-				// Reload
+				// Reload with env expansion
+				if err := expandConfigFileEnv(viper.ConfigFileUsed()); err != nil {
+					log.Printf("[config] Failed to expand config env: %v", err)
+					return
+				}
 				err := viper.Unmarshal(&App)
 				if err != nil {
 					log.Printf("[config] Failed to unmarshal config: %v", err)

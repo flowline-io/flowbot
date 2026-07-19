@@ -1,0 +1,56 @@
+# Flowbot self-hosted stack (PostgreSQL + Redis + Flowbot).
+# Copy docs/reference/config.yaml to ./flowbot.yaml and set credentials before start.
+# See docs/self-hosting.md.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: flowbot
+      POSTGRES_PASSWORD: flowbot
+      POSTGRES_DB: flowbot
+    volumes:
+      - flowbot-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowbot -d flowbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "flowbot", "--save", ""]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "flowbot", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  flowbot:
+    image: ghcr.io/flowline-io/flowbot:latest
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "6060:6060"
+    environment:
+      REDIS_PASSWORD: flowbot
+      WEB_PASSWORD: flowbot-dev-pass
+    volumes:
+      - ./flowbot.yaml:/opt/app/flowbot.yaml:ro
+      - flowbot-uploads:/opt/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:6060/livez"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+volumes:
+  flowbot-pg:
+  flowbot-uploads:

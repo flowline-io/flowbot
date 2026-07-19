@@ -1,6 +1,36 @@
 // Alpine.js shared data stores and utilities
 document.addEventListener('alpine:init', () => {
   Alpine.store('toasts', []);
+
+  Alpine.data('themePicker', () => ({
+    theme: 'light',
+    open: false,
+    themes: [
+      { id: 'light', label: 'Light' },
+      { id: 'dark', label: 'Dark' },
+    ],
+    advanced: [
+      { id: 'cupcake', label: 'Cupcake' },
+      { id: 'synthwave', label: 'Synthwave' },
+      { id: 'cyberpunk', label: 'Cyberpunk' },
+      { id: 'forest', label: 'Forest' },
+      { id: 'dracula', label: 'Dracula' },
+      { id: 'nord', label: 'Nord' },
+    ],
+    setTheme(name) {
+      document.documentElement.setAttribute('data-theme', name);
+      localStorage.setItem('flowbot-theme', name);
+      this.theme = name;
+      this.open = false;
+    },
+    toggleLightDark() {
+      this.setTheme(this.theme === 'light' ? 'dark' : 'light');
+    },
+    init() {
+      this.theme =
+        document.documentElement.getAttribute('data-theme') || 'light';
+    },
+  }));
 });
 
 // Toast notification system - used by pipeline-editor.js and other components

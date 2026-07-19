@@ -109,14 +109,19 @@ func (a *Adapter) Create(ctx context.Context, url string) (*capability.Bookmark,
 	return toBookmark(item), nil
 }
 
-func (*Adapter) Delete(ctx context.Context, id string) error {
+func (a *Adapter) Delete(ctx context.Context, id string) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "bookmark delete canceled", err)
 	}
 	if id == "" {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	return types.Errorf(types.ErrNotImplemented, "karakeep bookmark delete is not implemented")
+	// Karakeep hard-delete is not exposed; archive matches CLI "delete" semantics.
+	_, err := a.client.ArchiveBookmark(id)
+	if err != nil {
+		return types.WrapError(types.ErrProvider, "karakeep delete bookmark", err)
+	}
+	return nil
 }
 
 func (a *Adapter) Archive(ctx context.Context, id string) (bool, error) {

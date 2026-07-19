@@ -34,6 +34,17 @@ body {
     'liga' 1;
 }
 
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 200ms ease-in;
+}
+.htmx-request .htmx-indicator {
+  opacity: 1;
+}
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
 .flowbot-shell {
   --flowbot-brand: #0f766e;
   --flowbot-radius: 0.375rem;

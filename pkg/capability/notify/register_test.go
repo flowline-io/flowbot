@@ -42,8 +42,8 @@ func TestRegister_Operations(t *testing.T) {
 		op   string
 	}{
 		{"has send operation", OpSend},
-		{"has digest operation", OpDigest},
 		{"has health operation", OpHealth},
+		{"does not advertise removed digest", "send"},
 	}
 	opNames := make([]string, len(desc.Operations))
 	for i, op := range desc.Operations {
@@ -51,10 +51,14 @@ func TestRegister_Operations(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "does not advertise removed digest" {
+				assert.NotContains(t, opNames, "digest")
+				return
+			}
 			assert.Contains(t, opNames, tt.op)
 		})
 	}
-	assert.Len(t, desc.Operations, 3)
+	assert.Len(t, desc.Operations, 2)
 }
 
 func TestRegister_SendHasInputParams(t *testing.T) {

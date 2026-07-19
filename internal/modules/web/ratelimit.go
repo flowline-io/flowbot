@@ -58,10 +58,7 @@ func (l *loginRateLimiter) Allow(ctx context.Context, ip string) (delay time.Dur
 		flog.Debug("login rate limiter allow getint64 error: %v", err)
 	}
 	if count >= l.maxAttempts {
-		shift := min(count, int64(63))
-		if shift < 0 {
-			shift = 0
-		}
+		shift := max(min(count, int64(63)), 0)
 		seconds := int64(1) << shift
 		delay = time.Duration(min(seconds, int64(l.maxDelay.Seconds()))) * time.Second
 	}

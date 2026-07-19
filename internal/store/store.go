@@ -874,6 +874,137 @@ func (s *EventStore) GetDataEventByEventID(ctx context.Context, eventID string) 
 	return e, nil
 }
 
+// DeleteDataEventsOlderThan deletes data_events with created_at before cutoff
+// and related history (pipeline step runs, pipeline runs, event consumptions,
+// event outbox rows, and resource links that reference those events).
+// Returns the number of deleted data_events rows.
+func (s *EventStore) DeleteDataEventsOlderThan(ctx context.Context, cutoff time.Time) (int, error) {
+	if s == nil || s.client == nil {
+		return 0, nil
+	}
+	const batchSize = 500
+	total := 0
+	for {
+		n, err := s.deleteDataEventsBatch(ctx, cutoff, batchSize)
+		if err != nil {
+			return total, err
+		}
+		total += n
+		if n < batchSize {
+			return total, nil
+		}
+	}
+}
+
+// deleteDataEventsBatch purges up to limit old data_events and their dependents
+// in a single transaction.
+func (s *EventStore) deleteDataEventsBatch(ctx context.Context, cutoff time.Time, limit int) (int, error) {
+	events, err := s.client.DataEvent.Query().
+		Where(dataevent.CreatedAtLT(cutoff)).
+		Order(dataevent.ByCreatedAt()).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("list old data events: %w", err)
+	}
+	if len(events) == 0 {
+		return 0, nil
+	}
+
+	eventIDs := make([]string, len(events))
+	eventPKs := make([]int64, len(events))
+	for i, e := range events {
+		eventIDs[i] = e.EventID
+		eventPKs[i] = e.ID
+	}
+
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("begin retention tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if err := purgeEventHistory(ctx, tx, eventIDs); err != nil {
+		return 0, err
+	}
+
+	n, err := tx.DataEvent.Delete().
+		Where(dataevent.IDIn(eventPKs...)).
+		Exec(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("delete old data events: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit retention tx: %w", err)
+	}
+	committed = true
+	return n, nil
+}
+
+// purgeEventHistory removes pipeline and delivery rows that reference eventIDs.
+func purgeEventHistory(ctx context.Context, tx *gen.Tx, eventIDs []string) error {
+	runs, err := tx.PipelineRun.Query().
+		Where(pipelinerun.EventIDIn(eventIDs...)).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("list pipeline runs for retention: %w", err)
+	}
+	if err := purgePipelineRuns(ctx, tx, runs); err != nil {
+		return err
+	}
+	if _, err := tx.ResourceLink.Delete().
+		Where(resourcelink.Or(
+			resourcelink.SourceEventIDIn(eventIDs...),
+			resourcelink.TargetEventIDIn(eventIDs...),
+		)).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("delete resource links by event: %w", err)
+	}
+	if _, err := tx.EventConsumption.Delete().
+		Where(eventconsumption.EventIDIn(eventIDs...)).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("delete event consumptions: %w", err)
+	}
+	if _, err := tx.EventOutbox.Delete().
+		Where(eventoutbox.EventIDIn(eventIDs...)).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("delete event outbox: %w", err)
+	}
+	return nil
+}
+
+// purgePipelineRuns deletes step runs, resource links, and pipeline runs for the given runs.
+func purgePipelineRuns(ctx context.Context, tx *gen.Tx, runs []*gen.PipelineRun) error {
+	if len(runs) == 0 {
+		return nil
+	}
+	runIDs := make([]int64, len(runs))
+	for i, r := range runs {
+		runIDs[i] = r.ID
+	}
+	if _, err := tx.PipelineStepRun.Delete().
+		Where(pipelinesteprun.PipelineRunIDIn(runIDs...)).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("delete pipeline step runs: %w", err)
+	}
+	if _, err := tx.ResourceLink.Delete().
+		Where(resourcelink.PipelineRunIDIn(runIDs...)).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("delete resource links by run: %w", err)
+	}
+	if _, err := tx.PipelineRun.Delete().
+		Where(pipelinerun.IDIn(runIDs...)).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("delete pipeline runs: %w", err)
+	}
+	return nil
+}
+
 // GetPipelineRunsForEvents batch-looks up pipeline runs for the given event IDs.
 // Returns a map of eventID -> []PipelineRunInfo.
 func (s *EventStore) GetPipelineRunsForEvents(ctx context.Context, eventIDs []string) (map[string][]PipelineRunInfo, error) {
@@ -2384,13 +2515,21 @@ func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, cap
 // SearchNodes returns distinct (app, capability, entity_id) tuples from
 // resource_links where source_entity_id, target_entity_id, source_app,
 // target_app, source_capability, or target_capability contains the query.
-// The cursor parameter is reserved for future use; not implemented in MVP.
-func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, _ string) ([]schema.ResourceRef, string, error) {
+// cursor is a decimal offset into the deduplicated result stream; empty starts at 0.
+func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limit int, cursor string) ([]schema.ResourceRef, string, error) {
 	if s == nil || s.client == nil || query == "" {
 		return nil, "", nil
 	}
 	if limit <= 0 || limit > 50 {
 		limit = 20
+	}
+	offset := 0
+	if cursor != "" {
+		n, err := strconv.Atoi(cursor)
+		if err != nil || n < 0 {
+			return nil, "", fmt.Errorf("search nodes: invalid cursor")
+		}
+		offset = n
 	}
 
 	// Fetch candidate links using Ent-safe case-insensitive predicates.
@@ -2406,7 +2545,7 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 			),
 		).
 		Order(resourcelink.ByCreatedAt(sql.OrderDesc())).
-		Limit(limit * 2). // over-fetch to allow in-memory dedup
+		Limit((offset + limit + 1) * 2). // over-fetch to allow in-memory dedup + cursor window
 		All(ctx)
 	if err != nil {
 		return nil, "", fmt.Errorf("search nodes: %w", err)
@@ -2422,12 +2561,17 @@ func (s *ResourceChainStore) SearchNodes(ctx context.Context, query string, limi
 		addTargetResult(rl, lowerQuery, seen, &results)
 	}
 
-	// apply limit after dedup
-	if len(results) > limit {
-		results = results[:limit]
+	if offset > len(results) {
+		return nil, "", nil
+	}
+	window := results[offset:]
+	nextCursor := ""
+	if len(window) > limit {
+		window = window[:limit]
+		nextCursor = strconv.Itoa(offset + limit)
 	}
 
-	return results, "", nil
+	return window, nextCursor, nil
 }
 
 // addSourceResult adds the source side of a resource link to results

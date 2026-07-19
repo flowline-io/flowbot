@@ -8,6 +8,7 @@ import (
 	"go.uber.org/fx"
 
 	storepkg "github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
@@ -40,7 +41,8 @@ func initPageDataCleanup(lc fx.Lifecycle) {
 	})
 }
 
-// runCleanup performs a single cleanup pass for expired page_data rows.
+// runCleanup performs a single cleanup pass for expired page_data rows and
+// optional data_events retention (including related pipeline history).
 func runCleanup() {
 	if storepkg.Database == nil || storepkg.Database.GetDB() == nil {
 		return
@@ -59,5 +61,17 @@ func runCleanup() {
 		flog.Err(fmt.Errorf("page_data cleanup: %w", err))
 	} else if count > 0 {
 		flog.Info("page_data cleanup: deleted %d expired rows", count)
+	}
+
+	days := config.App.Retention.DataEventsDays
+	if days <= 0 {
+		return
+	}
+	events := storepkg.NewEventStore(client)
+	n, err := events.DeleteDataEventsOlderThan(ctx, time.Now().AddDate(0, 0, -days))
+	if err != nil {
+		flog.Err(fmt.Errorf("data_events retention: %w", err))
+	} else if n > 0 {
+		flog.Info("data_events retention: deleted %d rows older than %d days", n, days)
 	}
 }

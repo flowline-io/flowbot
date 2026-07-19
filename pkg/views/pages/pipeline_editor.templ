@@ -10,7 +10,7 @@ templ PipelineEditorPage(name string) {
 		<script src="/static/vendor/js-yaml.min.js"></script>
 		<script src="/static/vendor/diff.min.js"></script>
 		<script src="/static/js/pipeline-editor.js"></script>
-		<div x-data="pipelineEditor()" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
+		<div x-data="pipelineEditor" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
 			<!-- Loading skeleton -->
 			<div x-show="loading" class="space-y-4" data-testid="pipeline-loading">
 				<div class="skeleton h-12 w-full rounded-box"></div>

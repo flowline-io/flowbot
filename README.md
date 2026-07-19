@@ -63,6 +63,8 @@ See [architecture diagrams](docs/architecture/README.md) for PlantUML component,
 
 ## Capabilities
 
+### Supported (full Capability layer)
+
 Provider-backed capabilities use the provider ID as the capability name. Domain event names (e.g. `bookmark.created`) stay stable for orchestration.
 
 | Capability   | Kind              | Notes                                              |
@@ -76,20 +78,25 @@ Provider-backed capabilities use the provider ID as the capability name. Domain 
 | **transmission** | Provider      | REST, CLI, Chat, Workflow                          |
 | **gitea**    | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
 | **github**   | Provider          | REST, CLI, Chat, Workflow, Webhook                 |
+| **nocodb**   | Provider          | REST, CLI, Chat, Workflow                          |
+| **devops**   | Aggregator        | Multi-provider ops (beszel, uptimekuma, …)         |
+| **clip**     | Provider          | REST, CLI, Chat, Workflow                          |
 | **notify**   | Internal          | Multi-channel dispatch (Slack, Pushover, ntfy, …)  |
 | **agent**    | Internal          | Chat / Cloud Agent loop (`pkg/agent/`)             |
 
-Providers without a capability package yet (discovery / client only): archivebox, adguard, uptimekuma, drone, dropbox, email, n8n, slash, slack (OAuth).
+### Discovery / client only
 
-All capabilities share the same invocation pattern:
+These packages live under `pkg/providers/` for Homelab discovery or OAuth/client helpers. They are **not** full Capability integrations (no `capability.Invoke` service surface):
+
+archivebox, adguard, uptimekuma, drone, dropbox, email, n8n, slash, slack (OAuth), grafana, beszel, dozzle, netalertx, wakapi, traefik, …
+
+All supported capabilities share the same invocation pattern:
 
 ```go
 result, err := capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit": 20})
 ```
 
 Standard errors, unified pagination, provider adapters behind `pkg/capability/<provider>/`.
-
-See [UPGRADE-capability-1to1.md](docs/migrations/UPGRADE-capability-1to1.md) when migrating from domain CapTypes (`bookmark`, `reader`, …).
 
 ## Pipeline & Workflow
 
@@ -159,6 +166,18 @@ go tool task run
 Health probes: `/livez`, `/readyz`, `/startupz`. Web UI: `/service/web/login`.
 
 ### Docker
+
+Single-node compose (PostgreSQL + Redis + Flowbot):
+
+```bash
+cp docs/reference/config.yaml deployments/flowbot.yaml
+# Edit deployments/flowbot.yaml (DSN, redis URL, web auth)
+cd deployments && docker compose up -d --build
+```
+
+See [Self-hosting](docs/self-hosting.md) for reverse-proxy, backups, and security checklist.
+
+Or build the image alone:
 
 ```bash
 docker build -f deployments/Dockerfile -t flowbot .

@@ -14,9 +14,10 @@ import (
 
 func ReaderCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reader",
-		Short: "Work with RSS feeds",
-		Long:  "Manage RSS feeds via Flowbot server",
+		Use:     "reader",
+		Aliases: []string{"miniflux"},
+		Short:   "Work with RSS feeds",
+		Long:    "Manage RSS feeds via Flowbot server (alias: miniflux)",
 	}
 	cmd.AddCommand(
 		readerFeedListCommand(),

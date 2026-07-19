@@ -66,7 +66,7 @@ func PipelineRunLivePage(p PipelineRunLiveParams) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/js/pipeline-run-live.js\"></script> <div class=\"max-w-6xl mx-auto\" x-data=\"pipelineRunLive()\" x-init=\"init()\" data-testid=\"live-dashboard\"><!-- Header --><div class=\"flex items-center justify-between mb-4\"><div><h1 class=\"text-xl font-semibold text-base-content\">Live: <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/js/pipeline-run-live.js\"></script> <div class=\"max-w-6xl mx-auto\" x-data=\"pipelineRunLive\" x-init=\"init()\" data-testid=\"live-dashboard\"><!-- Header --><div class=\"flex items-center justify-between mb-4\"><div><h1 class=\"text-xl font-semibold text-base-content\">Live: <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

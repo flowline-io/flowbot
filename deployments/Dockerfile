@@ -41,4 +41,7 @@ LABEL org.opencontainers.image.title="flowbot" \
       org.opencontainers.image.revision=${VCS_REF} \
       org.opencontainers.image.licenses="GPL-3.0"
 
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
+  CMD wget -qO- http://127.0.0.1:6060/livez || exit 1
+
 ENTRYPOINT exec /opt/app/flowbot

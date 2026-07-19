@@ -23,8 +23,8 @@ func TestAuthLayout(t *testing.T) {
 		},
 		{
 			name:         "loads core assets",
-			wantContains: []string{"htmx.min.js", "app.js", "daisyui.css"},
-			wantAbsent:   []string{"pipeline-editor.js", "chart.js.min.js"},
+			wantContains: []string{"htmx.min.js", "app.js", "app.css", "alpine.csp.min.js"},
+			wantAbsent:   []string{"pipeline-editor.js", "chart.js.min.js", "tailwind-browser", "daisyui.css"},
 		},
 		{
 			name:         "english lang",

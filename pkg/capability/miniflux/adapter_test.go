@@ -20,6 +20,10 @@ type fakeClient struct {
 	entriesErr    error
 	markReadErr   error
 	markUnreadErr error
+	starErr       error
+	unstarErr     error
+	starredIDs    []int64
+	unstarredIDs  []int64
 }
 
 func (f *fakeClient) GetFeeds() (rssClient.Feeds, error) {
@@ -57,6 +61,15 @@ func (f *fakeClient) UpdateEntries(_ []int64, status string) error {
 		return f.markUnreadErr
 	}
 	return nil
+}
+
+func (f *fakeClient) UpdateEntriesStarred(entryIDs []int64, starred bool) error {
+	if starred {
+		f.starredIDs = append(f.starredIDs, entryIDs...)
+		return f.starErr
+	}
+	f.unstarredIDs = append(f.unstarredIDs, entryIDs...)
+	return f.unstarErr
 }
 
 func TestListFeedsConvertsFeeds(t *testing.T) {
@@ -182,44 +195,60 @@ func TestCreateFeedReturnsFeed(t *testing.T) {
 	}
 }
 
-func TestStarEntryReturnsNotImplemented(t *testing.T) {
+func TestStarEntry(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name    string
 		entryID int64
+		starErr error
+		wantErr string
 	}{
-		{"star entry returns not implemented error", 1},
-		{"star entry on nonexistent entry id returns not implemented", 99999},
-		{"star entry with negative id returns not implemented", -1},
+		{name: "stars entry via client", entryID: 1},
+		{name: "propagates provider star error", entryID: 2, starErr: fmt.Errorf("upstream"), wantErr: "miniflux star entry"},
+		{name: "stars another entry id", entryID: 42},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{})
+			fc := &fakeClient{starErr: tt.starErr}
+			adapter := NewWithClient(fc)
 			err := adapter.StarEntry(t.Context(), tt.entryID)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "not implemented")
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			assert.Contains(t, fc.starredIDs, tt.entryID)
 		})
 	}
 }
 
-func TestUnstarEntryReturnsNotImplemented(t *testing.T) {
+func TestUnstarEntry(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name    string
-		entryID int64
+		name      string
+		entryID   int64
+		unstarErr error
+		wantErr   string
 	}{
-		{"unstar entry returns not implemented error", 1},
-		{"unstar entry on nonexistent entry id returns not implemented", 99999},
-		{"unstar entry with zero id returns not implemented", 0},
+		{name: "unstars entry via client", entryID: 1},
+		{name: "propagates provider unstar error", entryID: 2, unstarErr: fmt.Errorf("upstream"), wantErr: "miniflux unstar entry"},
+		{name: "unstars another entry id", entryID: 7},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			adapter := NewWithClient(&fakeClient{})
+			fc := &fakeClient{unstarErr: tt.unstarErr}
+			adapter := NewWithClient(fc)
 			err := adapter.UnstarEntry(t.Context(), tt.entryID)
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "not implemented")
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			assert.Contains(t, fc.unstarredIDs, tt.entryID)
 		})
 	}
 }

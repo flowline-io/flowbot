@@ -111,6 +111,7 @@ func RunServer(
 		},
 		OnStop: func(ctx context.Context) error {
 			stopping.Store(true)
+			setHTTPStopping(true)
 
 			ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 			defer cancel()

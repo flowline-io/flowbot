@@ -2,6 +2,8 @@ package server
 
 import (
 	"errors"
+	"fmt"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -63,6 +65,7 @@ func sharedAppPtr() *fiber.App {
 }
 
 func newHTTPServer() *fiber.App {
+	trustedProxies := config.App.HTTP.TrustedProxies
 	// Set up HTTP server.
 	app := fiber.New(fiber.Config{
 		JSONDecoder: sonic.Unmarshal,
@@ -77,6 +80,12 @@ func newHTTPServer() *fiber.App {
 		// (e.g. concurrent /agents/render-markdown calls), which otherwise
 		// corrupts session IDs mid-run.
 		Immutable: true,
+		// Trust X-Forwarded-For only when trusted_proxies is configured.
+		ProxyHeader: fiber.HeaderXForwardedFor,
+		TrustProxy:  len(trustedProxies) > 0,
+		TrustProxyConfig: fiber.TrustProxyConfig{
+			Proxies: trustedProxies,
+		},
 
 		// validator
 		StructValidator: &structValidator{validate: validator.New()},
@@ -86,6 +95,7 @@ func newHTTPServer() *fiber.App {
 				return nil
 			}
 			if status, ok := domainErrorStatus(err); ok {
+				flog.Error(err)
 				return ctx.Status(status).
 					JSON(protocol.NewFailedResponse(err))
 			}
@@ -107,16 +117,23 @@ func newHTTPServer() *fiber.App {
 					return ctx.Status(fiber.StatusUnauthorized).
 						JSON(protocol.NewFailedResponse(e))
 				}
+				flog.Error(err)
 				return ctx.Status(fiber.StatusBadRequest).
 					JSON(protocol.NewFailedResponse(e))
 			}
 
+			flog.Error(err)
 			return ctx.Status(fiber.StatusInternalServerError).
 				JSON(protocol.NewFailedResponse(protocol.ErrInternalServerError.Wrap(err)))
 		},
 	})
-	// recover
-	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
+	// recover — log stacks server-side; never rely on client-visible panic detail
+	app.Use(recover.New(recover.Config{
+		EnableStackTrace: true,
+		StackTraceHandler: func(_ fiber.Ctx, r any) {
+			flog.Error(fmt.Errorf("panic recovered: %v\n%s", r, debug.Stack()))
+		},
+	}))
 	// requestid
 	app.Use(requestid.New())
 	// trace
@@ -252,11 +269,8 @@ func shouldSkipRateLimit(c fiber.Ctx) bool {
 
 // securityHeadersMiddleware adds security-related HTTP response headers.
 //
-// CSP currently allows 'unsafe-inline' and 'unsafe-eval' because the UI ships
-// Tailwind CSS browser runtime + Alpine.js (and daisyUI themes) which need them.
-// Keep this relaxed policy short-term; tighten after migrating to prebuilt CSS
-// (no tailwind-browser) and dropping runtime Alpine eval requirements.
-// See docs/developer-guide/README.md (Security / CSP).
+// CSP: scripts are self + unsafe-inline (legacy onclick / remaining attribute handlers);
+// no 'unsafe-eval' after Tailwind prebuild + Alpine CSP. Prefer removing unsafe-inline next.
 func securityHeadersMiddleware(c fiber.Ctx) error {
 	c.Set(fiber.HeaderXContentTypeOptions, "nosniff")
 	c.Set(fiber.HeaderXFrameOptions, "DENY")
@@ -264,7 +278,7 @@ func securityHeadersMiddleware(c fiber.Ctx) error {
 		c.Set(fiber.HeaderStrictTransportSecurity, "max-age=31536000; includeSubDomains")
 	}
 	if !strings.HasPrefix(c.Path(), "/swagger/") {
-		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self'")
+		c.Set("Content-Security-Policy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'")
 	}
 	return c.Next()
 }

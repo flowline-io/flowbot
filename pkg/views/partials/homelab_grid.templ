@@ -22,7 +22,7 @@ func uniqueCapTypes(apps []homelab.App) []string {
 }
 
 templ HomelabGrid(apps []homelab.App, scannedAt string) {
-	<div id="homelab-registry" x-data="homelabRegistry()"
+	<div id="homelab-registry" x-data="homelabRegistry"
 		data-testid="homelab-registry">
 		<div class="flex items-end gap-2 mb-4 flex-wrap">
 			<div class="form-control flex-1 min-w-48">

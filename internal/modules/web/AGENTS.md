@@ -161,7 +161,7 @@ pkg/views/
 | Templates | [templ](https://templ.guide) v0.3 | Server-side HTML rendering, type-safe Go templates |
 | Interactivity | [HTMX 2.x](https://htmx.org) | Partial page updates, form submissions, click-to-load |
 | SPA components | [Alpine.js 3.x](https://alpinejs.dev) | Pipeline editor (visual/code modes, undo/redo, drawer), theme toggle |
-| CSS | [DaisyUI v5](https://daisyui.com) | Component CSS (built on Tailwind CSS v4) |
+| CSS | [DaisyUI v5](https://daisyui.com) + Tailwind utilities | Committed `public/css/app.css` + Alpine CSP (`alpine.csp.min.js`); no `node_modules` |
 | Charts | [Chart.js](https://www.chartjs.org) | Pipeline stats and data visualizations |
 | YAML handling | [js-yaml](https://github.com/nodeca/js-yaml) | YAML-to-JSON conversion in pipeline editor |
 | Diff viewing | [diff](https://github.com/kpdecker/jsdiff) | Pipeline definition diff display |
@@ -169,19 +169,18 @@ pkg/views/
 
 ## Frontend Dependencies
 
-All JavaScript and CSS dependencies are vendored locally in `public/vendor/` and served via `/static/vendor/*` paths. No CDN references in production.
+All JavaScript and CSS dependencies are vendored under `public/` and served via `/static/*`. No project-local `node_modules` and no CDN at runtime.
 
 | File | Purpose |
 |------|---------|
-| `public/vendor/daisyui.css` | DaisyUI v5 component styles |
-| `public/vendor/themes.css` | DaisyUI theme definitions |
-| `public/vendor/tailwind-browser.min.js` | Tailwind CSS v4 (browser runtime) |
+| `public/css/app.css` | Committed Tailwind utilities + DaisyUI themes (static; not built via npm in-repo) |
+| `public/css/custom.css` | Ad-hoc Flowbot tokens / shell styles |
+| `public/vendor/alpine.csp.min.js` | Alpine.js CSP build (no `unsafe-eval`) |
 | `public/vendor/htmx.min.js` | HTMX 2.x |
-| `public/vendor/alpine.min.js` | Alpine.js 3.x |
 | `public/vendor/chart.js.min.js` | Chart.js |
 | `public/vendor/js-yaml.min.js` | YAML parser (pipeline editor) |
 | `public/vendor/diff.min.js` | Text diff library (pipeline diff) |
-| `public/css/custom.css` | Ad-hoc custom styles |
+| `public/vendor/daisyui.css` / `themes.css` | Optional reference copies (`scripts/vendor.sh`) |
 | `public/js/app.js` | Application bootstrap |
 | `public/js/confirm.js` | Global confirmation dialog |
 | `public/js/pipeline-editor.js` | Pipeline editor (Alpine.js component) |
@@ -299,16 +298,11 @@ Product goal: a refined **homelab ops console**, not a marketing landing page an
 
 ## CSS / DaisyUI
 
-- Framework: [DaisyUI v5](https://daisyui.com) (built on Tailwind CSS v4)
-- Delivery: Local vendor files in `public/vendor/`, embedded via `webassets.go`, served at `/static/vendor/*`
-- No CDN references; no local build step required
-- Theme: `data-theme="light"` on `<html>`, with runtime theme switcher (Alpine.js, persisted to localStorage). Default picker shows light/dark; advanced DaisyUI themes remain available under Advanced.
-- Custom CSS: `public/css/custom.css` for tokens, chips, surfaces, agents/chatagent styles; served via embedded `webassets.SubFS`
-- Component classes: Use `btn`, `table`, `navbar`, `alert`, `input`, `select`, `textarea`, `modal`, `dropdown`, `toast`, `.flowbot-surface`, `.flowbot-chip`, etc.
-- Color tokens: `base-100/200/300` (surfaces), `base-content` (text), `primary` (actions), `error/success/warning` (states)
-- Page-specific JS: load via `partials.TokenUsageScripts` / `PipelineStatsScripts` / `EventFilterScripts` / `HomelabRegistryScripts` — do not re-add heavy scripts to `base.templ`
-- Fonts: `public/fonts/` (IBM Plex Sans); see Visual design above
-
+- Framework: [DaisyUI v5](https://daisyui.com) utilities via committed `public/css/app.css`
+- Delivery: static files under `public/` (embedded); **no** in-repo npm/`node_modules` CSS build
+- Alpine: CSP build at `/static/vendor/alpine.csp.min.js` (refresh via `scripts/vendor.sh`)
+- Custom CSS: `public/css/custom.css` for tokens, chips, surfaces
+- Do not load `tailwind-browser.min.js` in layouts
 ## Static Assets
 
 - Directory: `public/` (embedded via `//go:embed all:public` in `webassets.go`).

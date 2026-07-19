@@ -44,6 +44,8 @@ func PrintEmptyList(cmd *cobra.Command, tableMsg string) error {
 }
 
 // PrintJSONError writes a protocol-shaped failed response as JSON to stdout.
+// HTTP API responses stay client-safe via NewFailedResponse; local CLI errors
+// surface err.Error() so operators see actionable diagnostics on the console.
 func PrintJSONError(err error) {
 	resp := protocol.NewFailedResponse(err)
 	var apiErr *client.APIError
@@ -54,6 +56,8 @@ func PrintJSONError(err error) {
 		if apiErr.RetCode != "" {
 			resp.RetCode = apiErr.RetCode
 		}
+	} else if err != nil && (resp.Message == "" || resp.Message == "Unknown Error") {
+		resp.Message = err.Error()
 	}
 	data, mErr := sonic.MarshalIndent(resp, "", "  ")
 	if mErr != nil {

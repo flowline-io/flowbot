@@ -92,31 +92,23 @@ templ HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions ho
 		</div>
 		<div class="flowbot-surface">
 			<div class="p-6">
-				<h2 class="text-lg font-semibold tracking-tight mb-3">Logs</h2>
-				<pre id="log-panel"
-					data-url={ templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100") }
-					class="bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto"
-					data-testid="log-panel">
-					Loading logs...
-				</pre>
-				<script>
-					(function() {
-						var panel = document.getElementById('log-panel');
-						var url = panel.getAttribute('data-url');
-						var es = new EventSource(url);
-						panel.textContent = '';
-						es.onmessage = function(e) {
-							panel.appendChild(document.createTextNode(e.data + '\n'));
-							panel.scrollTop = panel.scrollHeight;
-						};
-						es.onerror = function() {
-							if (es.readyState === EventSource.CLOSED) {
-								panel.appendChild(document.createTextNode('\n-- Log stream ended --'));
-								es.close();
-							}
-						};
-					})();
-				</script>
+				if permissions.Logs {
+					<h2 class="text-lg font-semibold tracking-tight mb-3">Logs</h2>
+					<pre id="log-panel"
+						data-url={ templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100") }
+						class="bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto"
+						data-testid="log-panel">
+						Loading logs...
+					</pre>
+					<script src="/static/js/hub-app-logs.js"></script>
+				} else {
+					<h2 class="text-lg font-semibold tracking-tight mb-3">Logs</h2>
+					<p class="text-sm text-base-content/60 m-0" data-testid="logs-unavailable">
+						Log streaming is unavailable. Enable <code class="text-xs">homelab.permissions.logs</code> and set
+						<code class="text-xs">homelab.runtime.mode</code> to <code class="text-xs">docker_socket</code> or
+						<code class="text-xs">ssh</code>.
+					</p>
+				}
 			</div>
 		</div>
 	}

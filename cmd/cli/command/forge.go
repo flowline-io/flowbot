@@ -12,9 +12,10 @@ import (
 
 func ForgeCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "forge",
-		Short: "Work with software forges",
-		Long:  "Access forge resources via Flowbot server",
+		Use:     "forge",
+		Aliases: []string{"gitea"},
+		Short:   "Work with software forges",
+		Long:    "Access forge resources via Flowbot server (alias: gitea)",
 	}
 	cmd.AddCommand(
 		forgeUserCommand(),

@@ -222,7 +222,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/service",
 	Schemes:          []string{"http"},
 	Title:            "Flowbot API",
-	Description:      "Flowbot Chatbot API",
+	Description:      "Flowbot Homelab Data Hub HTTP API (partial OpenAPI; see docs/api/README.md)",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

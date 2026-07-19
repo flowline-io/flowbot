@@ -42,13 +42,23 @@ func loginPage(ctx fiber.Ctx) error {
 
 // checkLoginRateLimit checks the rate limiter for the current IP.
 // Returns an empty string if the request is allowed, or an error message if blocked.
+// When the IP is over the soft threshold, a progressive delay is applied before continuing.
 func checkLoginRateLimit(ctx fiber.Ctx) string {
 	if loginLimiter == nil {
 		return ""
 	}
-	_, locked := loginLimiter.Allow(ctx.Context(), ctx.IP())
+	delay, locked := loginLimiter.Allow(ctx.Context(), ctx.IP())
 	if locked {
 		return msgAccountLocked
+	}
+	if delay > 0 {
+		timer := time.NewTimer(delay)
+		defer timer.Stop()
+		select {
+		case <-ctx.Context().Done():
+			return msgAccountLocked
+		case <-timer.C:
+		}
 	}
 	return ""
 }

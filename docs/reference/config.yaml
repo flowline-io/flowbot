@@ -17,6 +17,12 @@ listen: ":6060"
 #     max: 200
 #     expiration: 10s
 #   tls_behind_proxy: false
+#   # Trust X-Forwarded-For only from these proxy IPs/CIDRs (login rate limit, etc.).
+#   trusted_proxies:
+#     - 127.0.0.1/32
+#
+# retention:
+#   data_events_days: 90  # 0 / omit = keep forever; also purges related pipeline/outbox history
 
 # Media uploads — omit to disable. Zero max_size/gc_* use code defaults (100MiB/60s/100).
 # media:

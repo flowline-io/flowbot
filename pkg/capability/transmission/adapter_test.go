@@ -70,7 +70,7 @@ func TestAdapter_AddTorrent(t *testing.T) {
 			name: "add success",
 			client: &fakeClient{
 				addResp: transmissionrpc.Torrent{
-					ID:   ptrInt64(7),
+					ID:   new(int64(7)),
 					Name: new("ubuntu.iso"),
 				},
 			},
@@ -122,11 +122,11 @@ func TestAdapter_ListStopRemoveHealth(t *testing.T) {
 			run: func(t *testing.T) {
 				svc := NewWithClient(&fakeClient{
 					listResp: []transmissionrpc.Torrent{{
-						ID:           ptrInt64(1),
+						ID:           new(int64(1)),
 						Name:         new("a"),
-						Status:       ptrStatus(transmissionrpc.TorrentStatusDownload),
+						Status:       new(transmissionrpc.TorrentStatusDownload),
 						PercentDone:  new(0.5),
-						RateDownload: ptrInt64(1024),
+						RateDownload: new(int64(1024)),
 					}},
 				})
 				items, err := svc.ListTorrents(context.Background())
@@ -236,7 +236,7 @@ func TestAdapter_CompileTimeTypes(t *testing.T) {
 			run: func(t *testing.T) {
 				var item *capability.Torrent
 				svc := NewWithClient(&fakeClient{
-					addResp: transmissionrpc.Torrent{ID: ptrInt64(3), Name: new("x")},
+					addResp: transmissionrpc.Torrent{ID: new(int64(3)), Name: new("x")},
 				})
 				got, err := svc.AddTorrent(context.Background(), AddTorrentInput{URL: "magnet:?xt=urn:btih:x"})
 				require.NoError(t, err)

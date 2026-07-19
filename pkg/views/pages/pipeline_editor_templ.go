@@ -46,14 +46,14 @@ func PipelineEditorPage(name string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/vendor/js-yaml.min.js\"></script> <script src=\"/static/vendor/diff.min.js\"></script> <script src=\"/static/js/pipeline-editor.js\"></script> <div x-data=\"pipelineEditor()\" x-init=\"init()\" data-pipeline-name=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/vendor/js-yaml.min.js\"></script> <script src=\"/static/vendor/diff.min.js\"></script> <script src=\"/static/js/pipeline-editor.js\"></script> <div x-data=\"pipelineEditor\" x-init=\"init()\" data-pipeline-name=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 13, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_editor.templ`, Line: 13, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {

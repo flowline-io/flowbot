@@ -16,9 +16,10 @@ import (
 
 func KanbanCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "kanban",
-		Short: "Work with kanban boards",
-		Long:  "Manage kanban boards via Flowbot server",
+		Use:     "kanban",
+		Aliases: []string{"kanboard"},
+		Short:   "Work with kanban boards",
+		Long:    "Manage kanban boards via Flowbot server (alias: kanboard)",
 	}
 	cmd.AddCommand(
 		kanbanListCommand(),

@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	"github.com/samber/oops"
+
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type ResponseStatus string
@@ -184,6 +186,10 @@ func NewSuccessResponse(data any) Response {
 	}
 }
 
+// NewFailedResponse builds a client-safe failed Response.
+// Domain types.Error Message values are returned (intentional API text).
+// oops.Public() is used for protocol builders. Plain/unknown errors stay opaque;
+// callers should log the original error before or after converting.
 func NewFailedResponse(err error) Response {
 	if err == nil {
 		return Response{
@@ -192,11 +198,26 @@ func NewFailedResponse(err error) Response {
 			Message: "Unknown Error",
 		}
 	}
+	var te *types.Error
+	if errors.As(err, &te) {
+		message := te.Message
+		if message == "" && te.Kind != nil {
+			message = te.Kind.Error()
+		}
+		if message == "" {
+			message = "Unknown Error"
+		}
+		return Response{
+			Status:  Failed,
+			RetCode: domainRetCode(te),
+			Message: message,
+		}
+	}
 	var e oops.OopsError
 	if errors.As(err, &e) {
 		message := e.Public()
-		if e.Error() != "" {
-			message = fmt.Sprintf("%s (%s)", e.Public(), e.Error())
+		if message == "" {
+			message = "Unknown Error"
 		}
 		return Response{
 			Status:  Failed,
@@ -208,6 +229,37 @@ func NewFailedResponse(err error) Response {
 	return Response{
 		Status:  Failed,
 		RetCode: "10000",
-		Message: err.Error(),
+		Message: "Unknown Error",
+	}
+}
+
+// domainRetCode maps a types.Error kind to a stable protocol retcode string.
+func domainRetCode(te *types.Error) string {
+	if te == nil {
+		return "10000"
+	}
+	switch {
+	case errors.Is(te.Kind, types.ErrInvalidArgument):
+		return "10001"
+	case errors.Is(te.Kind, types.ErrUnauthorized):
+		return "60005"
+	case errors.Is(te.Kind, types.ErrForbidden):
+		return "60007"
+	case errors.Is(te.Kind, types.ErrNotFound):
+		return "10009"
+	case errors.Is(te.Kind, types.ErrAlreadyExists), errors.Is(te.Kind, types.ErrConflict):
+		return "10010"
+	case errors.Is(te.Kind, types.ErrRateLimited):
+		return "10011"
+	case errors.Is(te.Kind, types.ErrUnavailable):
+		return "10012"
+	case errors.Is(te.Kind, types.ErrTimeout):
+		return "10013"
+	case errors.Is(te.Kind, types.ErrNotImplemented):
+		return "10002"
+	case errors.Is(te.Kind, types.ErrProvider):
+		return "10014"
+	default:
+		return "10000"
 	}
 }

@@ -31,10 +31,6 @@ func Register() error {
 				Handler: sendInvoker,
 			},
 			{
-				Name: OpDigest, Description: "Send an aggregated digest notification", Mutation: true,
-				Handler: digestInvoker,
-			},
-			{
 				Name: OpHealth, Description: "Health check",
 				Handler: healthInvoker,
 			},
@@ -96,10 +92,6 @@ func sendInvoker(ctx context.Context, params map[string]any) (*capability.Invoke
 		Data: map[string]any{"sent": true},
 		Text: "notification sent",
 	}, nil
-}
-
-func digestInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
-	return nil, types.Errorf(types.ErrUnavailable, "notify digest is not implemented")
 }
 
 func healthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {

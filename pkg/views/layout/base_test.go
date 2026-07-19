@@ -23,9 +23,14 @@ func TestBaseLayout(t *testing.T) {
 			body: templ.NopComponent,
 			check: func(t *testing.T, html string) {
 				t.Helper()
-				for _, want := range []string{"htmx.min.js", "app.js", "alpine.min.js", "daisyui.css"} {
+				for _, want := range []string{"htmx.min.js", "app.js", "alpine.csp.min.js", "app.css", "theme-init.js"} {
 					if !strings.Contains(html, want) {
 						t.Fatalf("want %q in body", want)
+					}
+				}
+				for _, absent := range []string{"tailwind-browser", "daisyui.css"} {
+					if strings.Contains(html, absent) {
+						t.Fatalf("did not want %q in body", absent)
 					}
 				}
 			},
@@ -36,12 +41,12 @@ func TestBaseLayout(t *testing.T) {
 			check: func(t *testing.T, html string) {
 				t.Helper()
 				pageScript := strings.Index(html, `src="/static/js/homelab-registry.js"`)
-				alpine := strings.Index(html, "alpine.min.js")
+				alpine := strings.Index(html, "alpine.csp.min.js")
 				if pageScript < 0 || alpine < 0 {
 					t.Fatalf("missing scripts: homelab-registry=%d alpine=%d", pageScript, alpine)
 				}
 				if alpine < pageScript {
-					t.Fatalf("alpine.min.js must appear after homelab-registry.js so alpine:init handlers register first")
+					t.Fatalf("alpine.csp.min.js must appear after homelab-registry.js so alpine:init handlers register first")
 				}
 				if strings.Contains(html, `homelab-registry.js" defer`) {
 					t.Fatal("homelab-registry.js must load synchronously so Alpine.data registers before alpine:init")

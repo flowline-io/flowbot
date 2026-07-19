@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/dataevent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
@@ -51,6 +52,15 @@ func TestEventStore_NilSafe(t *testing.T) {
 				runs, err := s.GetPipelineRunsForEvents(context.Background(), []string{"e1"})
 				require.NoError(t, err)
 				assert.Nil(t, runs)
+			},
+		},
+		{
+			name: "DeleteDataEventsOlderThan nil store",
+			run: func(t *testing.T, s *EventStore) {
+				t.Helper()
+				n, err := s.DeleteDataEventsOlderThan(context.Background(), time.Now())
+				require.NoError(t, err)
+				assert.Equal(t, 0, n)
 			},
 		},
 	}
@@ -410,4 +420,116 @@ func TestPipelineStore_GetIncompleteRuns(t *testing.T) {
 	runs, err := store.GetIncompleteRuns(ctx)
 	require.NoError(t, err)
 	assert.NotEmpty(t, runs)
+}
+
+func TestEventStore_DeleteDataEventsOlderThan(t *testing.T) {
+	t.Parallel()
+
+	cutoff := time.Now().Add(-24 * time.Hour)
+	oldAt := cutoff.Add(-time.Hour)
+	freshAt := time.Now()
+
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T, client *gen.Client, events *EventStore, pipes *PipelineStore)
+		wantDel int
+		assert  func(t *testing.T, client *gen.Client)
+	}{
+		{
+			name: "cascades related history for old events",
+			setup: func(t *testing.T, client *gen.Client, events *EventStore, pipes *PipelineStore) {
+				t.Helper()
+				ctx := context.Background()
+				_, err := client.DataEvent.Create().
+					SetEventID("old-evt").
+					SetEventType("bookmark.created").
+					SetSource("karakeep").
+					SetCreatedAt(oldAt).
+					Save(ctx)
+				require.NoError(t, err)
+				require.NoError(t, events.AppendEventOutbox(ctx, types.DataEvent{EventID: "old-evt"}))
+				require.NoError(t, pipes.RecordConsumption(ctx, "engine", "old-evt"))
+				run, err := pipes.CreateRun(ctx, "pipe", "old-evt", "bookmark.created", "event")
+				require.NoError(t, err)
+				_, err = pipes.CreateStepRun(ctx, run.ID, "step1", "bookmark", "create", nil, 1)
+				require.NoError(t, err)
+				require.NoError(t, pipes.RecordResourceLink(ctx, &gen.ResourceLink{
+					SourceEventID: "old-evt",
+					TargetEventID: "old-evt-out",
+					PipelineRunID: run.ID,
+					PipelineName:  "pipe",
+				}))
+				_, err = client.DataEvent.Create().
+					SetEventID("fresh-evt").
+					SetEventType("bookmark.created").
+					SetSource("karakeep").
+					SetCreatedAt(freshAt).
+					Save(ctx)
+				require.NoError(t, err)
+			},
+			wantDel: 1,
+			assert: func(t *testing.T, client *gen.Client) {
+				t.Helper()
+				ctx := context.Background()
+				assert.Equal(t, 0, client.DataEvent.Query().Where(dataevent.EventID("old-evt")).CountX(ctx))
+				assert.Equal(t, 1, client.DataEvent.Query().Where(dataevent.EventID("fresh-evt")).CountX(ctx))
+				assert.Equal(t, 0, client.PipelineRun.Query().CountX(ctx))
+				assert.Equal(t, 0, client.PipelineStepRun.Query().CountX(ctx))
+				assert.Equal(t, 0, client.EventOutbox.Query().CountX(ctx))
+				assert.Equal(t, 0, client.EventConsumption.Query().CountX(ctx))
+				assert.Equal(t, 0, client.ResourceLink.Query().CountX(ctx))
+			},
+		},
+		{
+			name: "noop when nothing older than cutoff",
+			setup: func(t *testing.T, client *gen.Client, _ *EventStore, _ *PipelineStore) {
+				t.Helper()
+				_, err := client.DataEvent.Create().
+					SetEventID("only-fresh").
+					SetEventType("issue.created").
+					SetSource("gitea").
+					SetCreatedAt(freshAt).
+					Save(context.Background())
+				require.NoError(t, err)
+			},
+			wantDel: 0,
+			assert: func(t *testing.T, client *gen.Client) {
+				t.Helper()
+				assert.Equal(t, 1, client.DataEvent.Query().CountX(context.Background()))
+			},
+		},
+		{
+			name: "deletes old event without dependents",
+			setup: func(t *testing.T, client *gen.Client, _ *EventStore, _ *PipelineStore) {
+				t.Helper()
+				_, err := client.DataEvent.Create().
+					SetEventID("orphan-old").
+					SetEventType("bookmark.created").
+					SetSource("karakeep").
+					SetCreatedAt(oldAt).
+					Save(context.Background())
+				require.NoError(t, err)
+			},
+			wantDel: 1,
+			assert: func(t *testing.T, client *gen.Client) {
+				t.Helper()
+				assert.Equal(t, 0, client.DataEvent.Query().CountX(context.Background()))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			client := sqlitetest.OpenClient(t, t.Name())
+			events := NewEventStore(client)
+			pipes := NewPipelineStore(client)
+			tt.setup(t, client, events, pipes)
+
+			n, err := events.DeleteDataEventsOlderThan(context.Background(), cutoff)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantDel, n)
+			tt.assert(t, client)
+		})
+	}
 }

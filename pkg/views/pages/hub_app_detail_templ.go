@@ -280,20 +280,35 @@ func HubAppDetailPage(app homelab.App, status homelab.AppStatus, permissions hom
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div></div><div class=\"flowbot-surface\"><div class=\"p-6\"><h2 class=\"text-lg font-semibold tracking-tight mb-3\">Logs</h2><pre id=\"log-panel\" data-url=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div></div><div class=\"flowbot-surface\"><div class=\"p-6\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100"))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/hub_app_detail.templ`, Line: 97, Col: 83}
+			if permissions.Logs {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<h2 class=\"text-lg font-semibold tracking-tight mb-3\">Logs</h2><pre id=\"log-panel\" data-url=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var16 string
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/hub/" + app.Name + "/logs/stream?tail=100"))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/hub_app_detail.templ`, Line: 98, Col: 84}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto\" data-testid=\"log-panel\">Loading logs...</pre><script src=\"/static/js/hub-app-logs.js\"></script>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<h2 class=\"text-lg font-semibold tracking-tight mb-3\">Logs</h2><p class=\"text-sm text-base-content/60 m-0\" data-testid=\"logs-unavailable\">Log streaming is unavailable. Enable <code class=\"text-xs\">homelab.permissions.logs</code> and set <code class=\"text-xs\">homelab.runtime.mode</code> to <code class=\"text-xs\">docker_socket</code> or <code class=\"text-xs\">ssh</code>.</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" class=\"bg-neutral text-neutral-content rounded-lg p-4 text-xs font-mono h-96 overflow-y-auto\" data-testid=\"log-panel\">Loading logs...</pre><script>\r\n\t\t\t\t\t(function() {\r\n\t\t\t\t\t\tvar panel = document.getElementById('log-panel');\r\n\t\t\t\t\t\tvar url = panel.getAttribute('data-url');\r\n\t\t\t\t\t\tvar es = new EventSource(url);\r\n\t\t\t\t\t\tpanel.textContent = '';\r\n\t\t\t\t\t\tes.onmessage = function(e) {\r\n\t\t\t\t\t\t\tpanel.appendChild(document.createTextNode(e.data + '\\n'));\r\n\t\t\t\t\t\t\tpanel.scrollTop = panel.scrollHeight;\r\n\t\t\t\t\t\t};\r\n\t\t\t\t\t\tes.onerror = function() {\r\n\t\t\t\t\t\t\tif (es.readyState === EventSource.CLOSED) {\r\n\t\t\t\t\t\t\t\tpanel.appendChild(document.createTextNode('\\n-- Log stream ended --'));\r\n\t\t\t\t\t\t\t\tes.close();\r\n\t\t\t\t\t\t\t}\r\n\t\t\t\t\t\t};\r\n\t\t\t\t\t})();\r\n\t\t\t\t</script></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -330,27 +345,27 @@ func HubAppStatusBadge(status homelab.AppStatus) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		switch status {
 		case "running":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<span class=\"flowbot-chip flowbot-chip-success\" data-testid=\"status-badge\">online</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"flowbot-chip flowbot-chip-success\" data-testid=\"status-badge\">online</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "stopped":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<span class=\"flowbot-chip flowbot-chip-muted\" data-testid=\"status-badge\">offline</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"flowbot-chip flowbot-chip-muted\" data-testid=\"status-badge\">offline</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "partial":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<span class=\"flowbot-chip flowbot-chip-warning\" data-testid=\"status-badge\">warning</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<span class=\"flowbot-chip flowbot-chip-warning\" data-testid=\"status-badge\">warning</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "unknown":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<span class=\"flowbot-chip flowbot-chip-muted\" data-testid=\"status-badge\">unknown</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<span class=\"flowbot-chip flowbot-chip-muted\" data-testid=\"status-badge\">unknown</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		default:
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<span class=\"flowbot-chip flowbot-chip-error\" data-testid=\"status-badge\">error</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<span class=\"flowbot-chip flowbot-chip-error\" data-testid=\"status-badge\">error</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

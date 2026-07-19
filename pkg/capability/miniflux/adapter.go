@@ -19,6 +19,7 @@ type client interface {
 	CreateFeed(req *rssClient.FeedCreationRequest) (int64, error)
 	GetEntries(filter *rssClient.Filter) (*rssClient.EntryResultSet, error)
 	UpdateEntries(entryIDs []int64, status string) error
+	UpdateEntriesStarred(entryIDs []int64, starred bool) error
 }
 
 type Adapter struct {
@@ -172,18 +173,24 @@ func (a *Adapter) MarkEntryUnread(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (*Adapter) StarEntry(ctx context.Context, _ int64) error {
+func (a *Adapter) StarEntry(ctx context.Context, id int64) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "reader star entry canceled", err)
 	}
-	return types.Errorf(types.ErrNotImplemented, "miniflux star entry is not implemented via this adapter")
+	if err := a.client.UpdateEntriesStarred([]int64{id}, true); err != nil {
+		return types.WrapError(types.ErrProvider, "miniflux star entry", err)
+	}
+	return nil
 }
 
-func (*Adapter) UnstarEntry(ctx context.Context, _ int64) error {
+func (a *Adapter) UnstarEntry(ctx context.Context, id int64) error {
 	if err := ctx.Err(); err != nil {
 		return types.WrapError(types.ErrTimeout, "reader unstar entry canceled", err)
 	}
-	return types.Errorf(types.ErrNotImplemented, "miniflux unstar entry is not implemented via this adapter")
+	if err := a.client.UpdateEntriesStarred([]int64{id}, false); err != nil {
+		return types.WrapError(types.ErrProvider, "miniflux unstar entry", err)
+	}
+	return nil
 }
 
 // HealthCheck reports whether the Miniflux backend is reachable by listing feeds.

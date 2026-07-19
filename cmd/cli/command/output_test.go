@@ -107,6 +107,8 @@ func TestPrintJSONErrorShape(t *testing.T) {
 				if apiErr.RetCode != "" {
 					resp.RetCode = apiErr.RetCode
 				}
+			} else if tt.err != nil && (resp.Message == "" || resp.Message == "Unknown Error") {
+				resp.Message = tt.err.Error()
 			}
 			assert.Equal(t, protocol.Failed, resp.Status)
 			assert.Equal(t, tt.wantMsg, resp.Message)

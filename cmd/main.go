@@ -15,7 +15,7 @@ import (
 
 // @title						Flowbot API
 // @version					1.0
-// @description				Flowbot Chatbot API
+// @description				Flowbot Homelab Data Hub HTTP API (partial OpenAPI; see docs/api/README.md)
 // @license.name				GPL 3.0
 // @license.url				https://github.com/flowline-io/flowbot/blob/master/LICENSE
 // @host						localhost:6060

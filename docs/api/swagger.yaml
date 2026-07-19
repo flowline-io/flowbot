@@ -34,7 +34,10 @@ definitions:
 host: localhost:6060
 info:
   contact: {}
-  description: Flowbot Chatbot API
+  description: |-
+    Flowbot Homelab Data Hub HTTP API (partial OpenAPI coverage).
+    Prefer docs/api/README.md and the user guide for the full surface.
+    Swagger lists only annotated example/stub routes; it is not a complete contract.
   license:
     name: GPL 3.0
     url: https://github.com/flowline-io/flowbot/blob/master/LICENSE

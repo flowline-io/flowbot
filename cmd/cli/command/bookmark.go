@@ -15,9 +15,10 @@ import (
 
 func BookmarkCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bookmark",
-		Short: "Work with bookmarks",
-		Long:  "Manage bookmarks via Flowbot server",
+		Use:     "bookmark",
+		Aliases: []string{"karakeep"},
+		Short:   "Work with bookmarks",
+		Long:    "Manage bookmarks via Flowbot server (alias: karakeep)",
 	}
 	cmd.AddCommand(
 		bookmarkCreateCommand(),

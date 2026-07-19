@@ -28,7 +28,7 @@ type PipelineRunLiveParams struct {
 templ PipelineRunLivePage(p PipelineRunLiveParams) {
 	@layout.Base("Live: " + p.PipelineName) {
 		<script src="/static/js/pipeline-run-live.js"></script>
-		<div class="max-w-6xl mx-auto" x-data="pipelineRunLive()" x-init="init()" data-testid="live-dashboard">
+		<div class="max-w-6xl mx-auto" x-data="pipelineRunLive" x-init="init()" data-testid="live-dashboard">
 			<!-- Header -->
 			<div class="flex items-center justify-between mb-4">
 				<div>

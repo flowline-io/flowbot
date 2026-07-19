@@ -61,14 +61,6 @@ Known `templ.Raw` call sites (all require pre-sanitized HTML):
 - `pkg/views/partials/agent_resource_preview.templ` — agent resource preview
 - `pkg/views/partials/chatagent_message.templ` — chatagent assistant/thinking HTML
 
-#### Content-Security-Policy (CSP)
-
-HTTP CSP currently keeps `'unsafe-inline'` and `'unsafe-eval'` for `style-src` /
-`script-src` because the Web UI uses Tailwind CSS browser runtime and Alpine.js.
-This is an intentional short-term trade-off. After migrating to prebuilt CSS
-(no `tailwind-browser`) and removing Alpine eval needs, tighten CSP by dropping
-those keywords.
-
 ### Testing
 
 ```bash

@@ -110,6 +110,15 @@ func (v *Miniflux) UpdateEntries(entryIDs []int64, status string) error {
 	return nil
 }
 
+// UpdateEntriesStarred updates the starred state for the given entry IDs.
+func (v *Miniflux) UpdateEntriesStarred(entryIDs []int64, starred bool) error {
+	err := v.c.UpdateEntriesStarred(entryIDs, starred)
+	if err != nil {
+		return fmt.Errorf("failed to update entries starred: %w", err)
+	}
+	return nil
+}
+
 func (v *Miniflux) GetFeedEntries(feedID int64, filter *rssClient.Filter) (*rssClient.EntryResultSet, error) {
 	entries, err := v.c.FeedEntries(feedID, filter)
 	if err != nil {

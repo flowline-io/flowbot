@@ -50,7 +50,7 @@ func HomelabGrid(apps []homelab.App, scannedAt string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"homelab-registry\" x-data=\"homelabRegistry()\" data-testid=\"homelab-registry\"><div class=\"flex items-end gap-2 mb-4 flex-wrap\"><div class=\"form-control flex-1 min-w-48\"><input type=\"search\" class=\"input input-bordered input-sm\" placeholder=\"Search apps...\" x-model=\"search\" data-testid=\"homelab-search\"></div><select class=\"select select-bordered select-sm\" x-model=\"filterCapability\" data-testid=\"homelab-capability-filter\"><option value=\"\">All Capabilities</option> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"homelab-registry\" x-data=\"homelabRegistry\" data-testid=\"homelab-registry\"><div class=\"flex items-end gap-2 mb-4 flex-wrap\"><div class=\"form-control flex-1 min-w-48\"><input type=\"search\" class=\"input input-bordered input-sm\" placeholder=\"Search apps...\" x-model=\"search\" data-testid=\"homelab-search\"></div><select class=\"select select-bordered select-sm\" x-model=\"filterCapability\" data-testid=\"homelab-capability-filter\"><option value=\"\">All Capabilities</option> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
