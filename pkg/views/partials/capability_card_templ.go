@@ -140,7 +140,7 @@ func CapabilityCard(d hub.Descriptor) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"text-xs text-base-content/50 mt-2 flex items-center gap-1\"><span x-text=\"expanded ? '\\u25B2' : '\\u25BC'\"></span> <span>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div class=\"text-xs text-base-content/50 mt-2 flex items-center gap-1\"><span x-text=\"expanded ? '▲' : '▼'\"></span> <span>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

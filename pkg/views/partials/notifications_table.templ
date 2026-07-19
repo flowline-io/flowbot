@@ -33,7 +33,7 @@ templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
 				<tbody id="notifications-rows">
 				for _, r := range records {
 					<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }>
-						<td class="text-xs whitespace-nowrap">{ r.CreatedAt.Format("15:04:05") }</td>
+						<td class="text-xs whitespace-nowrap">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
 						<td><span class="flowbot-chip flowbot-chip-muted">{ r.Channel }</span></td>
 						<td class="text-xs font-mono">{ r.TemplateID }</td>
 						<td class="text-xs max-w-48 truncate" title={ r.Summary }>{ r.Summary }</td>

@@ -27,7 +27,7 @@ templ CapabilityCard(d hub.Descriptor) {
 						<div class="text-xs text-base-content/70 mt-1 truncate" title={ d.Description }>{ d.Description }</div>
 					}
 					<div class="text-xs text-base-content/50 mt-2 flex items-center gap-1">
-						<span x-text="expanded ? '\u25B2' : '\u25BC'"></span>
+						<span x-text="expanded ? '▲' : '▼'"></span>
 						<span>{ len(d.Operations) } Operations</span>
 					</div>
 				</div>
