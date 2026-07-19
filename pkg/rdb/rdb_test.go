@@ -2,8 +2,7 @@ package rdb
 
 import (
 	"context"
-	"net"
-	"strconv"
+	"fmt"
 	"testing"
 	"time"
 
@@ -36,14 +35,13 @@ func TestRedisOptions(t *testing.T) {
 		wantPoolTimeout     time.Duration
 		wantConnMaxIdleTime time.Duration
 		wantConnMaxLifetime time.Duration
+		wantPass            string
+		wantErr             bool
 	}{
 		{
 			name: "all pool fields set explicitly",
 			cfg: config.Redis{
-				Host:            "redis.example.com",
-				Port:            6379,
-				DB:              2,
-				Password:        "secret",
+				URL:             "redis://:secret@redis.example.com:6379/2",
 				PoolSize:        20,
 				MinIdleConns:    5,
 				MaxRetries:      5,
@@ -71,16 +69,14 @@ func TestRedisOptions(t *testing.T) {
 			wantPoolTimeout:     10 * time.Second,
 			wantConnMaxIdleTime: 10 * time.Minute,
 			wantConnMaxLifetime: 1 * time.Hour,
+			wantPass:            "secret",
 		},
 		{
 			name: "zero pool config uses go-redis defaults",
 			cfg: config.Redis{
-				Host:     "localhost",
-				Port:     6379,
-				DB:       0,
-				Password: "",
+				URL: "redis://127.0.0.1:6379/0",
 			},
-			wantAddr:            "localhost:6379",
+			wantAddr:            "127.0.0.1:6379",
 			wantDB:              0,
 			wantPool:            0,
 			wantMinIdle:         0,
@@ -94,14 +90,12 @@ func TestRedisOptions(t *testing.T) {
 			wantPoolTimeout:     0,
 			wantConnMaxIdleTime: 0,
 			wantConnMaxLifetime: 0,
+			wantPass:            "",
 		},
 		{
 			name: "zero read and write timeout falls back to 60s",
 			cfg: config.Redis{
-				Host:         "127.0.0.1",
-				Port:         6380,
-				DB:           1,
-				Password:     "pwd",
+				URL:          "redis://:pwd@127.0.0.1:6380/1",
 				ReadTimeout:  0,
 				WriteTimeout: 0,
 			},
@@ -119,14 +113,12 @@ func TestRedisOptions(t *testing.T) {
 			wantPoolTimeout:     0,
 			wantConnMaxIdleTime: 0,
 			wantConnMaxLifetime: 0,
+			wantPass:            "pwd",
 		},
 		{
 			name: "partial pool config with subset of fields",
 			cfg: config.Redis{
-				Host:            "10.0.0.1",
-				Port:            6379,
-				DB:              3,
-				Password:        "pass",
+				URL:             "redis://:pass@10.0.0.1:6379/3",
 				PoolSize:        50,
 				MinIdleConns:    10,
 				ConnMaxLifetime: 30 * time.Minute,
@@ -145,13 +137,24 @@ func TestRedisOptions(t *testing.T) {
 			wantPoolTimeout:     0,
 			wantConnMaxIdleTime: 0,
 			wantConnMaxLifetime: 30 * time.Minute,
+			wantPass:            "pass",
+		},
+		{
+			name:    "empty url errors",
+			cfg:     config.Redis{},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			opts := redisOptions(tt.cfg)
+			opts, err := redisOptions(tt.cfg)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
 
 			assert.Equal(t, tt.wantAddr, opts.Addr)
 			assert.Equal(t, tt.wantDB, opts.DB)
@@ -167,7 +170,7 @@ func TestRedisOptions(t *testing.T) {
 			assert.Equal(t, tt.wantPoolTimeout, opts.PoolTimeout)
 			assert.Equal(t, tt.wantConnMaxIdleTime, opts.ConnMaxIdleTime)
 			assert.Equal(t, tt.wantConnMaxLifetime, opts.ConnMaxLifetime)
-			assert.Equal(t, tt.cfg.Password, opts.Password)
+			assert.Equal(t, tt.wantPass, opts.Password)
 		})
 	}
 }
@@ -193,7 +196,6 @@ func TestShutdown(t *testing.T) {
 		require.NotPanics(t, func() {
 			Shutdown(context.Background())
 		})
-		// After Shutdown, Ping should fail since Close was called.
 		_, err := Client.Ping(context.Background()).Result()
 		require.Error(t, err)
 	})
@@ -204,12 +206,11 @@ func TestShutdown(t *testing.T) {
 
 		mr := miniredis.RunT(t)
 		Client = redis.NewClient(&redis.Options{Addr: mr.Addr()})
-		mr.Close() // make Redis unreachable
+		mr.Close()
 
 		require.NotPanics(t, func() {
 			Shutdown(context.Background())
 		})
-		// Client.Close was called, so Ping should fail.
 		_, err := Client.Ping(context.Background()).Result()
 		require.Error(t, err)
 	})
@@ -251,18 +252,11 @@ func TestNewClient(t *testing.T) {
 			t.Cleanup(func() { Client = prev })
 
 			mr := miniredis.RunT(t)
-			_, portStr, err := net.SplitHostPort(mr.Addr())
-			require.NoError(t, err)
-			port, err := strconv.Atoi(portStr)
-			require.NoError(t, err)
 
 			orig := config.App.Redis
 			t.Cleanup(func() { config.App.Redis = orig })
 			config.App.Redis = config.Redis{
-				Host:     "127.0.0.1",
-				Port:     port,
-				Password: "",
-				DB:       0,
+				URL: fmt.Sprintf("redis://%s/0", mr.Addr()),
 			}
 
 			lc := &testLifecycle{}

@@ -56,8 +56,10 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	if err := validateAuthConfig(config.Auth); err != nil {
 		return err
 	}
+	config.Auth.BruteForce.applyDefaults()
 	handler.initialized = true
 	handler.authConfig = config.Auth
+	wireLoginRateLimiter()
 	return nil
 }
 

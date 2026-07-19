@@ -31,14 +31,9 @@ const (
 
 // configType holds the database connection section from flowbot.yaml.
 type configType struct {
-	StoreConfig struct {
-		UseAdapter string `json:"use_adapter" yaml:"use_adapter"`
-		Adapters   struct {
-			Postgres struct {
-				DSN string `json:"dsn" yaml:"dsn"`
-			} `json:"postgres" yaml:"postgres"`
-		} `json:"adapters" yaml:"adapters"`
-	} `json:"store_config" yaml:"store_config"`
+	Postgres struct {
+		DSN string `json:"dsn" yaml:"dsn"`
+	} `json:"postgres" yaml:"postgres"`
 }
 
 // AdminCommand returns the admin command group with management subcommands.
@@ -159,14 +154,11 @@ func loadDSN(path string) (string, error) {
 		return "", fmt.Errorf("parse config: %w", err)
 	}
 
-	if cfg.StoreConfig.UseAdapter != "postgres" {
-		return "", fmt.Errorf("unsupported adapter: %s", cfg.StoreConfig.UseAdapter)
-	}
-	if cfg.StoreConfig.Adapters.Postgres.DSN == "" {
+	if cfg.Postgres.DSN == "" {
 		return "", fmt.Errorf("postgres DSN is empty")
 	}
 
-	return cfg.StoreConfig.Adapters.Postgres.DSN, nil
+	return cfg.Postgres.DSN, nil
 }
 
 // selectScopes prints available scopes and reads user selection from stdin.

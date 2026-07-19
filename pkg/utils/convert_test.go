@@ -11,10 +11,10 @@ import (
 func TestIntToUint32(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name    string
-		in      int
-		want    uint32
-		wantOK  bool
+		name   string
+		in     int
+		want   uint32
+		wantOK bool
 	}{
 		{name: "zero", in: 0, want: 0, wantOK: true},
 		{name: "max uint32", in: math.MaxUint32, want: math.MaxUint32, wantOK: true},

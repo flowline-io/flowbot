@@ -8,21 +8,16 @@ import (
 )
 
 func validConfig() Type {
-	return Type{
+	cfg := Type{
 		Redis: Redis{
-			Host:     "127.0.0.1",
-			Port:     6379,
-			Password: "secret",
+			URL: "redis://:secret@127.0.0.1:6379/0",
 		},
-		Store: StoreType{
-			UseAdapter: "postgres",
-			Adapters: map[string]any{
-				"postgres": map[string]any{
-					"dsn": "postgres://user:pass@localhost/flowbot?sslmode=disable",
-				},
-			},
+		Postgres: PostgresConfig{
+			DSN: "postgres://user:pass@localhost/flowbot?sslmode=disable",
 		},
 	}
+	cfg.Normalize()
+	return cfg
 }
 
 func TestValidate_Required(t *testing.T) {
@@ -34,45 +29,24 @@ func TestValidate_Required(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name:    "missing redis host",
-			mutate:  func(c *Type) { c.Redis.Host = "" },
-			wantErr: "redis.Host",
+			name:    "missing redis url",
+			mutate:  func(c *Type) { c.Redis.URL = "" },
+			wantErr: "redis.URL",
 		},
 		{
-			name:    "missing redis password",
-			mutate:  func(c *Type) { c.Redis.Password = "" },
-			wantErr: "redis.Password",
+			name:    "missing redis password in url",
+			mutate:  func(c *Type) { c.Redis.URL = "redis://127.0.0.1:6379/0" },
+			wantErr: "password must not be empty",
 		},
 		{
-			name:    "redis port zero",
-			mutate:  func(c *Type) { c.Redis.Port = 0 },
-			wantErr: "redis.Port",
+			name:    "invalid redis url",
+			mutate:  func(c *Type) { c.Redis.URL = "://bad" },
+			wantErr: "redis.url: invalid URL",
 		},
 		{
-			name:    "redis port too high",
-			mutate:  func(c *Type) { c.Redis.Port = 99999 },
-			wantErr: "redis.Port",
-		},
-		{
-			name:    "missing store adapter name",
-			mutate:  func(c *Type) { c.Store.UseAdapter = "" },
-			wantErr: "store.use_adapter",
-		},
-		{
-			name: "use_adapter not found in adapters map",
-			mutate: func(c *Type) {
-				c.Store.UseAdapter = "mysql"
-			},
-			wantErr: "not found",
-		},
-		{
-			name: "missing DSN",
-			mutate: func(c *Type) {
-				c.Store.Adapters = map[string]any{
-					"postgres": map[string]any{},
-				}
-			},
-			wantErr: "dsn",
+			name:    "missing postgres dsn",
+			mutate:  func(c *Type) { c.Postgres.DSN = "" },
+			wantErr: "postgres.DSN",
 		},
 	}
 	for _, tt := range tests {
@@ -310,7 +284,7 @@ func TestValidate_Conditional(t *testing.T) {
 	}
 }
 
-func TestValidate_Accumulated(t *testing.T) {
+func TestValidate_Accumulates(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -320,27 +294,24 @@ func TestValidate_Accumulated(t *testing.T) {
 		minNewlines  int
 	}{
 		{
-			name:         "redis host empty only",
-			mutate:       func(c *Type) { c.Redis.Host = "" },
-			wantContains: []string{"redis.Host"},
+			name:         "redis url empty only",
+			mutate:       func(c *Type) { c.Redis.URL = "" },
+			wantContains: []string{"redis.URL"},
 		},
 		{
 			name: "dsn empty only",
 			mutate: func(c *Type) {
-				c.Store.Adapters = map[string]any{
-					"postgres": map[string]any{},
-				}
+				c.Postgres.DSN = ""
 			},
-			wantContains: []string{"dsn"},
+			wantContains: []string{"postgres.DSN"},
 		},
 		{
 			name: "both empty",
 			mutate: func(c *Type) {
-				c.Redis.Host = ""
-				c.Store.UseAdapter = ""
-				c.Store.Adapters = nil
+				c.Redis.URL = ""
+				c.Postgres.DSN = ""
 			},
-			wantContains: []string{"redis.Host", "store.use_adapter"},
+			wantContains: []string{"redis.URL", "postgres.DSN"},
 			minNewlines:  1,
 		},
 	}
@@ -422,27 +393,21 @@ func TestReachabilityCheck_RedisUnreachable(t *testing.T) {
 		{
 			name: "unreachable host",
 			mutate: func(c *Type) {
-				c.Redis.Host = "255.255.255.255"
-				c.Redis.Port = 9999
-				c.Redis.Password = "nope"
+				c.Redis.URL = "redis://:nope@255.255.255.255:9999/0"
 			},
 			wantErr: "redis",
 		},
 		{
 			name: "wrong port",
 			mutate: func(c *Type) {
-				c.Redis.Host = "127.0.0.1"
-				c.Redis.Port = 9999
-				c.Redis.Password = "secret"
+				c.Redis.URL = "redis://:secret@127.0.0.1:9999/0"
 			},
 			wantErr: "redis",
 		},
 		{
 			name: "unreachable subnet",
 			mutate: func(c *Type) {
-				c.Redis.Host = "10.255.255.255"
-				c.Redis.Port = 6379
-				c.Redis.Password = "secret"
+				c.Redis.URL = "redis://:secret@10.255.255.255:6379/0"
 			},
 			wantErr: "redis",
 		},
@@ -474,33 +439,21 @@ func TestReachabilityCheck_PostgresUnreachable(t *testing.T) {
 		{
 			name: "unreachable host",
 			mutate: func(c *Type) {
-				c.Store.Adapters = map[string]any{
-					"postgres": map[string]any{
-						"dsn": "postgres://nonexistent:bad@255.255.255.255:9999/fake?sslmode=disable",
-					},
-				}
+				c.Postgres.DSN = "postgres://nonexistent:bad@255.255.255.255:9999/fake?sslmode=disable"
 			},
 			wantErr: "postgres",
 		},
 		{
 			name: "invalid DSN",
 			mutate: func(c *Type) {
-				c.Store.Adapters = map[string]any{
-					"postgres": map[string]any{
-						"dsn": "not-a-valid-dsn",
-					},
-				}
+				c.Postgres.DSN = "not-a-valid-dsn"
 			},
 			wantErr: "postgres",
 		},
 		{
 			name: "connection refused",
 			mutate: func(c *Type) {
-				c.Store.Adapters = map[string]any{
-					"postgres": map[string]any{
-						"dsn": "postgres://user:pass@127.0.0.1:5433/flowbot?sslmode=disable",
-					},
-				}
+				c.Postgres.DSN = "postgres://user:pass@127.0.0.1:5433/flowbot?sslmode=disable"
 			},
 			wantErr: "postgres",
 		},

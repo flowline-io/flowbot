@@ -43,11 +43,15 @@ type Type struct {
 	// HTTP boundary settings (CORS, rate limit, HSTS).
 	HTTP HTTPConfig `json:"http" yaml:"http" mapstructure:"http"`
 
-	// Configs for subsystems
-	Store StoreType    `json:"store_config" yaml:"store_config" mapstructure:"store_config"`
+	// Postgres is the primary database configuration (YAML key: postgres).
+	Postgres PostgresConfig `json:"postgres" yaml:"postgres" mapstructure:"postgres"`
+	// Store is the normalized internal store view populated by Normalize from Postgres.
+	// It is not read from YAML.
+	Store StoreType `json:"-" yaml:"-" mapstructure:"-"`
+	// Media large-file storage configuration (optional; omit to disable uploads).
 	Media *mediaConfig `json:"media" yaml:"media" mapstructure:"media"`
 
-	// Redis
+	// Redis connection configuration.
 	Redis Redis `json:"redis" yaml:"redis" mapstructure:"redis"`
 
 	// Log
@@ -128,20 +132,50 @@ type Profiling struct {
 	ProfileTypes []string `json:"profile_types" yaml:"profile_types" mapstructure:"profile_types"`
 }
 
+const (
+	defaultMediaMaxSize     int64 = 104857600 // 100 MiB
+	defaultMediaGcPeriod          = 60
+	defaultMediaGcBlockSize       = 100
+)
+
 // Large file handler config.
 type mediaConfig struct {
 	// The name of the handler to use for file uploads.
 	UseHandler string `json:"use_handler" yaml:"use_handler" mapstructure:"use_handler"`
-	// Maximum allowed size of an uploaded file
+	// Maximum allowed size of an uploaded file (0 = default 100 MiB).
 	MaxFileUploadSize int64 `json:"max_size" yaml:"max_size" mapstructure:"max_size"`
-	// Garbage collection timeout
+	// Garbage collection period in seconds (0 = default 60).
 	GcPeriod int `json:"gc_period" yaml:"gc_period" mapstructure:"gc_period"`
-	// Number of entries to delete in one pass
+	// Number of entries to delete in one pass (0 = default 100).
 	GcBlockSize int `json:"gc_block_size" yaml:"gc_block_size" mapstructure:"gc_block_size"`
 	// Individual handler config params to pass to handlers unchanged.
 	Handlers map[string]any `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
 }
 
+// PostgresConfig holds PostgreSQL connection and optional pool overrides.
+type PostgresConfig struct {
+	// DSN is the PostgreSQL connection string.
+	DSN string `json:"dsn" yaml:"dsn" mapstructure:"dsn" validate:"required,min=1"`
+	// MaxResults caps query result sets (0 = adapter default).
+	MaxResults int `json:"max_results,omitempty" yaml:"max_results,omitempty" mapstructure:"max_results"`
+	// MaxOpenConns is the maximum open connections (0 = pool default).
+	MaxOpenConns int `json:"max_open_conns,omitempty" yaml:"max_open_conns,omitempty" mapstructure:"max_open_conns"`
+	// MaxIdleConns is the maximum idle connections (0 = pool default).
+	MaxIdleConns int `json:"max_idle_conns,omitempty" yaml:"max_idle_conns,omitempty" mapstructure:"max_idle_conns"`
+	// ConnMaxLifetime is connection max lifetime in seconds (0 = pool default).
+	ConnMaxLifetime int `json:"conn_max_lifetime,omitempty" yaml:"conn_max_lifetime,omitempty" mapstructure:"conn_max_lifetime"`
+	// ConnMaxIdleTime is idle connection max lifetime in seconds (0 = pool default).
+	ConnMaxIdleTime int `json:"conn_max_idle_time,omitempty" yaml:"conn_max_idle_time,omitempty" mapstructure:"conn_max_idle_time"`
+	// SQLTimeout is the ping/query timeout in seconds (0 = adapter default).
+	SQLTimeout int `json:"sql_timeout,omitempty" yaml:"sql_timeout,omitempty" mapstructure:"sql_timeout"`
+	// HealthCheckInterval is pool health check interval in seconds.
+	HealthCheckInterval int `json:"pool_health_check_interval,omitempty" yaml:"pool_health_check_interval,omitempty" mapstructure:"pool_health_check_interval"`
+	// HealthCheckTimeout is pool health check timeout in seconds.
+	HealthCheckTimeout int `json:"pool_health_check_timeout,omitempty" yaml:"pool_health_check_timeout,omitempty" mapstructure:"pool_health_check_timeout"`
+}
+
+// StoreType is the normalized store adapter view used by internal/store.
+// It is not loaded from YAML; call Normalize after unmarshaling Postgres.
 type StoreType struct {
 	// Maximum number of results to return from adapter.
 	MaxResults int `json:"max_results" yaml:"max_results" mapstructure:"max_results"`
@@ -194,14 +228,9 @@ type LogRotation struct {
 
 // Redis stores connection and pool configuration for the Redis client.
 type Redis struct {
-	// Redis host
-	Host string `json:"host" yaml:"host" mapstructure:"host" validate:"required,min=1"`
-	// Redis port
-	Port int `json:"port" yaml:"port" mapstructure:"port" validate:"required,gte=1,lte=65535"`
-	// Redis database
-	DB int `json:"db" yaml:"db" mapstructure:"db"`
-	// Redis password
-	Password string `json:"password" yaml:"pass" mapstructure:"password" validate:"required,min=1"`
+	// URL is the Redis connection URI, e.g. redis://:password@127.0.0.1:6379/0.
+	// Password must be non-empty (validated separately from struct tags).
+	URL string `json:"url" yaml:"url" mapstructure:"url" validate:"required,min=1"`
 	// Maximum number of connections in the pool (0 = go-redis default: 10*GOMAXPROCS)
 	PoolSize int `json:"pool_size" yaml:"pool_size" mapstructure:"pool_size"`
 	// Minimum number of idle connections maintained in the pool (0 = default: none)
@@ -627,6 +656,10 @@ func Load(path ...string) error {
 	if err != nil {
 		return fmt.Errorf("unmarshal config: %w", err)
 	}
+	if err := RejectLegacyKeys(viper.AllSettings()); err != nil {
+		return fmt.Errorf("legacy config keys:\n%w", err)
+	}
+	App.Normalize()
 	return nil
 }
 
@@ -714,6 +747,11 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 					log.Printf("[config] Failed to unmarshal config: %v", err)
 					return
 				}
+				if err := RejectLegacyKeys(viper.AllSettings()); err != nil {
+					log.Printf("[config] Reloaded config has legacy keys, keeping previous: %v", err)
+					return
+				}
+				App.Normalize()
 				// Validate reloaded config, warn if invalid but don't crash
 				if err := App.Validate(); err != nil {
 					log.Printf("[config] Reloaded config is invalid, keeping previous: %v", err)

@@ -145,7 +145,7 @@ Composable task DAGs in YAML. Each task uses an action prefix:
 git clone https://github.com/flowline-io/flowbot.git
 cd flowbot
 cp docs/reference/config.yaml flowbot.yaml
-# Edit flowbot.yaml — set store_config.adapters.postgres.dsn and redis.password
+# Edit flowbot.yaml — set postgres.dsn and redis.url
 go tool task build
 ./bin/flowbot
 ```
@@ -232,15 +232,10 @@ Auth: `X-AccessToken` header or OAuth 2.0. Service routes require minimum scopes
 
 ```yaml
 listen: ":6060"
-store_config:
-  use_adapter: postgres
-  adapters:
-    postgres:
-      dsn: "postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable"
+postgres:
+  dsn: "postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable"
 redis:
-  host: 127.0.0.1
-  port: 6379
-  password: "flowbot"   # required (non-empty)
+  url: "redis://:flowbot@127.0.0.1:6379/0"
 platform:
   slack:
     enabled: false

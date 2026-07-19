@@ -89,7 +89,7 @@ Ent auto-migrates on server startup, so no manual migration step is needed.
 
 ### Config (`flowbot.yaml`, gitignored, already present at repo root)
 Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`) when deriving config from `docs/reference/config.yaml`:
-- `redis.password` must be NON-empty (validator `required,min=1`), so Redis is run with `--requirepass flowbot`.
+- `redis.url` must include a non-empty password (e.g. `redis://:flowbot@127.0.0.1:6379/0`), so Redis is run with `--requirepass flowbot`.
 - Platform `required_if=Enabled true` is **not** uniform: Discord requires app/client/bot credentials; Tailchat requires `api_url`. Slack and Telegram do **not** fail validation with empty tokens — still set unused platforms to `enabled: false` in Cloud.
 - `GET /metrics` requires `metrics.bearer_token` or an access token with `admin:metrics` / `admin:*` scope.
 - `/service/{capability}/*` (after Authorize) requires a minimum scope (`service:{capability}:read|write`, or `pipeline:*` for `/service/web/pipelines`, or `hub:capabilities:read` for `/service/hub`). Tokens with empty scopes are rejected. Web login still issues `admin:*`.
@@ -98,7 +98,9 @@ Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`)
 - Prefer `metrics.enabled: false` when VictoriaMetrics is not running; leaving it on is harmless except push errors.
 - `http.cors.allow_origins` defaults empty (no CORS reflection); `["*"]` never enables credentials. HSTS is sent when `http.tls_behind_proxy` or `modules.web.auth.cookie_secure` is true.
 - CSP keeps `unsafe-inline` / `unsafe-eval` short-term (Tailwind browser + Alpine); tighten after prebuilt CSS migration — see docs/developer-guide/README.md.
-- Local DSN: `store_config.adapters.postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
+- Local DSN: `postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.
+- Redis: `redis.url` → `redis://:flowbot@127.0.0.1:6379/0` (password required in URL).
+- Legacy keys `store_config` and `redis.host`/`port`/`password`/`db` are rejected at load with a migration hint.
 
 ### Run / build / lint / test
 - Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (creds from `modules.web.auth`; reference config uses `admin` / `flowbot-dev-pass`, or set `password_hash`).

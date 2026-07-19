@@ -110,11 +110,8 @@ go tool task templ   # Generate templ Go code
 ## Configuration
 
 ```yaml
-store_config:
-  use_adapter: postgres
-  adapters:
-    postgres:
-      dsn: "postgres://user:password@localhost:5432/flowbot?sslmode=disable"
+postgres:
+  dsn: "postgres://user:password@localhost:5432/flowbot?sslmode=disable"
 ```
 
 ## Backup

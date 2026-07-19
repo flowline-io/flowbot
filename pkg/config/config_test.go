@@ -140,46 +140,31 @@ func TestRedis(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		redis    Redis
-		wantHost string
-		wantPort int
-		wantDB   int
-		wantPass string
+		name    string
+		redis   Redis
+		wantURL string
 	}{
 		{
-			name:     "full config",
-			redis:    Redis{Host: "localhost", Port: 6379, DB: 0, Password: "secret"},
-			wantHost: "localhost",
-			wantPort: 6379,
-			wantDB:   0,
-			wantPass: "secret",
+			name:    "full url",
+			redis:   Redis{URL: "redis://:secret@localhost:6379/0"},
+			wantURL: "redis://:secret@localhost:6379/0",
 		},
 		{
-			name:     "remote redis with different db",
-			redis:    Redis{Host: "redis.example.com", Port: 6380, DB: 1, Password: ""},
-			wantHost: "redis.example.com",
-			wantPort: 6380,
-			wantDB:   1,
-			wantPass: "",
+			name:    "remote redis with db",
+			redis:   Redis{URL: "redis://:x@redis.example.com:6380/1"},
+			wantURL: "redis://:x@redis.example.com:6380/1",
 		},
 		{
-			name:     "zero value config",
-			redis:    Redis{},
-			wantHost: "",
-			wantPort: 0,
-			wantDB:   0,
-			wantPass: "",
+			name:    "zero value config",
+			redis:   Redis{},
+			wantURL: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			assert.Equal(t, tt.wantHost, tt.redis.Host)
-			assert.Equal(t, tt.wantPort, tt.redis.Port)
-			assert.Equal(t, tt.wantDB, tt.redis.DB)
-			assert.Equal(t, tt.wantPass, tt.redis.Password)
+			assert.Equal(t, tt.wantURL, tt.redis.URL)
 		})
 	}
 }
@@ -254,8 +239,7 @@ func TestRedisPoolConfig(t *testing.T) {
 		{
 			name: "zero pool config uses defaults",
 			redis: Redis{
-				Host: "localhost",
-				Port: 6379,
+				URL: "redis://localhost:6379/0",
 			},
 			wantPoolSize:        0,
 			wantMinIdle:         0,
@@ -531,8 +515,9 @@ func TestTypeJSONMarshaling(t *testing.T) {
 		t.Parallel()
 		cfg := Type{
 			Listen: ":9090", ApiPath: "/v1/",
-			Store: StoreType{MaxResults: 50, UseAdapter: "mysql"},
+			Postgres: PostgresConfig{DSN: "postgres://u:p@localhost/db", MaxResults: 50},
 		}
+		cfg.Normalize()
 
 		data, err := sonic.Marshal(cfg)
 		require.NoError(t, err)
@@ -544,6 +529,8 @@ func TestTypeJSONMarshaling(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, ":9090", unmarshaled.Listen)
 		assert.Equal(t, "/v1/", unmarshaled.ApiPath)
+		assert.Equal(t, 50, unmarshaled.Postgres.MaxResults)
+		unmarshaled.Normalize()
 		assert.Equal(t, 50, unmarshaled.Store.MaxResults)
 	})
 }

@@ -60,7 +60,7 @@ func openAdapter(jsonConfig config.StoreType) error {
 				adp = v
 			}
 		} else {
-			return errors.New("store: db adapter is not specified. Please set `store_config.use_adapter` in `flowbot.json`")
+			return errors.New("store: db adapter is not specified. Please set postgres.dsn in flowbot.yaml")
 		}
 	}
 

@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"net/url"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -36,11 +36,12 @@ func (ve ValidationErrors) Error() string {
 // Validate performs pure field validation on the config struct. It accumulates
 // all errors before returning so the user can fix everything in one pass.
 // This method does not perform any I/O (no network connections).
+// Call Normalize() before Validate when loading from YAML.
 func (t *Type) Validate() error {
 	var errs ValidationErrors
 
 	errs = t.validateStructTags(errs)
-	errs = t.validateStore(errs)
+	errs = t.validateRedisURL(errs)
 	errs = t.validateDurations(errs)
 
 	// Listen host:port
@@ -64,6 +65,9 @@ func (t *Type) Validate() error {
 func (t *Type) validateStructTags(errs ValidationErrors) ValidationErrors {
 	if err := validate.Validate.Struct(t.Redis); err != nil {
 		errs = appendTagErrors(errs, err, "redis")
+	}
+	if err := validate.Validate.Struct(t.Postgres); err != nil {
+		errs = appendTagErrors(errs, err, "postgres")
 	}
 	if err := validate.Validate.Struct(t.Log); err != nil {
 		errs = appendTagErrors(errs, err, "log")
@@ -97,28 +101,24 @@ func (t *Type) validateStructTags(errs ValidationErrors) ValidationErrors {
 	return errs
 }
 
-// validateStore checks the store adapter configuration.
-func (t *Type) validateStore(errs ValidationErrors) ValidationErrors {
-	if t.Store.UseAdapter == "" {
-		errs = append(errs, fmt.Errorf("store.use_adapter: must not be empty. Fix: set store_config.use_adapter in flowbot.yaml"))
+// validateRedisURL checks that redis.url parses and includes a non-empty password.
+func (t *Type) validateRedisURL(errs ValidationErrors) ValidationErrors {
+	if t.Redis.URL == "" {
+		// Struct tag already reports required; avoid duplicate empty-password noise.
 		return errs
 	}
-
-	adapterMap := t.Store.Adapters
-	if adapterMap == nil || len(adapterMap) == 0 {
-		errs = append(errs, fmt.Errorf("store.adapters: must contain adapter %q. Fix: set store_config.adapters.%s in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
+	opts, err := redis.ParseURL(t.Redis.URL)
+	if err != nil {
+		errs = append(errs, fmt.Errorf(
+			"redis.url: invalid URL %q: %v. Fix: set redis.url (e.g. redis://:PASSWORD@127.0.0.1:6379/0) in flowbot.yaml",
+			t.Redis.URL, err,
+		))
 		return errs
 	}
-
-	adapterCfg, ok := adapterMap[t.Store.UseAdapter]
-	if !ok {
-		errs = append(errs, fmt.Errorf("store.adapters: adapter %q not found in adapters map. Fix: set store_config.adapters.%s in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
-		return errs
-	}
-
-	dsn := extractDSN(adapterCfg)
-	if dsn == "" {
-		errs = append(errs, fmt.Errorf("store.adapters.%s.dsn: must not be empty. Fix: set store_config.adapters.%s.dsn in flowbot.yaml", t.Store.UseAdapter, t.Store.UseAdapter))
+	if opts.Password == "" {
+		errs = append(errs, fmt.Errorf(
+			"redis.url: password must not be empty. Fix: include a password in redis.url (e.g. redis://:PASSWORD@HOST:PORT/DB) in flowbot.yaml",
+		))
 	}
 	return errs
 }
@@ -210,19 +210,6 @@ func (t *Type) validateChatAgent(errs ValidationErrors, modelNames map[string]bo
 	return errs
 }
 
-// extractDSN extracts the DSN string from an adapter config stored as `any`.
-func extractDSN(cfg any) string {
-	m, ok := cfg.(map[string]any)
-	if !ok {
-		return ""
-	}
-	dsn, ok := m["dsn"].(string)
-	if !ok {
-		return ""
-	}
-	return dsn
-}
-
 // appendTagErrors converts go-playground validator errors into ValidationErrors
 // with a field path prefix and fix suggestion.
 func appendTagErrors(errs ValidationErrors, err error, prefix string) ValidationErrors {
@@ -242,39 +229,39 @@ func appendTagErrors(errs ValidationErrors, err error, prefix string) Validation
 func (t *Type) ReachabilityCheck(ctx context.Context) error {
 	var errs ValidationErrors
 
-	adapterMap := t.Store.Adapters
-	if adapterMap != nil && t.Store.UseAdapter != "" {
-		if adapterCfg, ok := adapterMap[t.Store.UseAdapter]; ok {
-			dsn := extractDSN(adapterCfg)
-			if dsn != "" {
-				dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-				db, err := sql.Open("pgx", dsn)
-				if err != nil {
-					errs = append(errs, fmt.Errorf("postgres: cannot open connection: %w. Fix: verify DSN in store_config.adapters.%s.dsn", err, t.Store.UseAdapter))
-				} else {
-					if err := db.PingContext(dbCtx); err != nil {
-						errs = append(errs, fmt.Errorf("postgres: ping failed: %w. Fix: verify PostgreSQL is running and reachable", err))
-					}
-					_ = db.Close()
-				}
-				cancel()
+	if t.Postgres.DSN != "" {
+		dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		db, err := sql.Open("pgx", t.Postgres.DSN)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("postgres: cannot open connection: %w. Fix: verify DSN in postgres.dsn", err))
+		} else {
+			if err := db.PingContext(dbCtx); err != nil {
+				errs = append(errs, fmt.Errorf("postgres: ping failed: %w. Fix: verify PostgreSQL is running and reachable", err))
 			}
+			_ = db.Close()
 		}
+		cancel()
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:         net.JoinHostPort(t.Redis.Host, strconv.Itoa(t.Redis.Port)),
-		Password:     t.Redis.Password,
-		DB:           t.Redis.DB,
-		DialTimeout:  3 * time.Second,
-		ReadTimeout:  3 * time.Second,
-		WriteTimeout: 3 * time.Second,
-	})
-	defer rdb.Close()
-	redisCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
-	if err := rdb.Ping(redisCtx).Err(); err != nil {
-		errs = append(errs, fmt.Errorf("redis: ping failed: %w. Fix: verify Redis is running at %s", err, net.JoinHostPort(t.Redis.Host, strconv.Itoa(t.Redis.Port))))
+	opts, err := redis.ParseURL(t.Redis.URL)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("redis: invalid url: %w. Fix: set redis.url in flowbot.yaml", err))
+	} else {
+		opts.DialTimeout = 3 * time.Second
+		opts.ReadTimeout = 3 * time.Second
+		opts.WriteTimeout = 3 * time.Second
+		rdb := redis.NewClient(opts)
+		redisCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		if err := rdb.Ping(redisCtx).Err(); err != nil {
+			u, parseErr := url.Parse(t.Redis.URL)
+			addr := t.Redis.URL
+			if parseErr == nil {
+				addr = u.Host
+			}
+			errs = append(errs, fmt.Errorf("redis: ping failed: %w. Fix: verify Redis is running at %s", err, addr))
+		}
+		_ = rdb.Close()
+		cancel()
 	}
 
 	if len(errs) > 0 {

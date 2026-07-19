@@ -131,6 +131,7 @@ var _ = SynchronizedBeforeSuite(
 		// Initialize store.Database so that application code (e.g. chatagent) that
 		// depends on the global store adapter works correctly in tests.
 		pgConf := map[string]any{"dsn": PGDSN}
+		config.App.Postgres = config.PostgresConfig{DSN: PGDSN}
 		config.App.Store = config.StoreType{
 			UseAdapter: "postgres",
 			Adapters:   map[string]any{"postgres": pgConf},

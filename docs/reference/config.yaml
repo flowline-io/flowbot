@@ -1,166 +1,85 @@
 ---
+# Flowbot config template.
+# Daily path is short (listen + postgres + redis + modules.web.auth).
+# platform/vendors blocks below remain exhaustive stubs; pool/media/http knobs are
+# optional (see docs/reference/config-reference.md).
+
 # Server listening address and port
 listen: ":6060"
-# API path prefix
-api_path: "/"
+# API path prefix (default "/")
+# api_path: "/"
 
-# HTTP boundary hardening (CORS, rate limit, HSTS)
-http:
-  # CORS Origin whitelist. Empty = do not reflect any Origin (same-origin Web UI / frp does not need CORS).
-  cors:
-    allow_origins: []
-  # Global HTTP rate limiter (login brute_force is separate under modules.web.auth)
-  rate_limit:
-    max: 200
-    expiration: 10s
-  # Set true when serving HTTPS or behind a TLS-terminating proxy (enables HSTS).
-  # HSTS is also enabled when modules.web.auth.cookie_secure is true (default).
-  tls_behind_proxy: false
+# HTTP boundary hardening — entire block optional (rate limit defaults: 200 / 10s).
+# http:
+#   cors:
+#     allow_origins: []
+#   rate_limit:
+#     max: 200
+#     expiration: 10s
+#   tls_behind_proxy: false
 
-media:
-  # Media storage handler type: fs(filesystem) or minio
-  use_handler: fs
-  # Maximum upload file size in bytes, default 100MB
-  max_size: 104857600
-  # Garbage collection period in seconds
-  gc_period: 60
-  # Block size for each garbage collection cycle
-  gc_block_size: 100
-  handlers:
-    # File system storage configuration
-    fs:
-      # Upload directory path
-      upload_dir: uploads
-    # MinIO object storage configuration
-    minio:
-      access_key_id: your_s3_access_key_id
-      secret_access_key: your_s3_secret_access_key
-      region: s3 region, like us-east-2
-      bucket: your_s3_bucket_name
-      disable_ssl: true
-      force_path_style: false
-      endpoint: "127.0.0.1:9000"
-      cors_origins:
-        - "*"
-      serve_url: "http://127.0.0.1:9000"
+# Media uploads — omit to disable. Zero max_size/gc_* use code defaults (100MiB/60s/100).
+# media:
+#   use_handler: fs
+#   handlers:
+#     fs:
+#       upload_dir: uploads
+#   # use_handler: minio
+#   # handlers:
+#   #   minio:
+#   #     access_key_id: ...
+#   #     secret_access_key: ...
+#   #     endpoint: "127.0.0.1:9000"
+#   #     bucket: ...
+#   #     serve_url: "http://127.0.0.1:9000"
 
-store_config:
-  # Maximum number of query results
-  max_results: 1024
-  # Data storage adapter type
-  use_adapter: postgres
-  adapters:
-    # PostgreSQL database configuration
-    postgres:
-      dsn: postgres://username:password@localhost/flowbot?sslmode=disable
-      max_open_conns: 64
-      max_idle_conns: 64
-      conn_max_lifetime: 300
-      sql_timeout: 10
-      conn_max_idle_time: 60
-      pool_health_check_interval: 30
-      pool_health_check_timeout: 5
+# PostgreSQL (required). Pool overrides optional — see config-reference.md.
+postgres:
+  dsn: postgres://username:password@localhost/flowbot?sslmode=disable
+  # max_results: 1024
+  # max_open_conns: 25
+  # max_idle_conns: 5
+  # conn_max_lifetime: 300
+  # sql_timeout: 10
+  # conn_max_idle_time: 60
+  # pool_health_check_interval: 30
+  # pool_health_check_timeout: 5
 
-# Redis configuration
+# Redis (required). Password must be non-empty in the URL.
 redis:
-  host: 127.0.0.1
-  port: 6379
-  db: 0
-  password:
-  # Connection pool configuration (all optional — zero means go-redis default)
-  # pool_size: 20            # max connections (default: 10*GOMAXPROCS)
-  # min_idle_conns: 5        # min idle connections (default: 0)
-  # max_retries: 3           # max retries on failure (default: 3)
-  # min_retry_backoff: 8ms   # min backoff between retries (default: 8ms)
-  # max_retry_backoff: 512ms # max backoff between retries (default: 512ms)
-  # dial_timeout: 5s         # timeout for new connections (default: 5s)
-  # read_timeout: 60s        # socket read timeout (default: 60s)
-  # write_timeout: 60s       # socket write timeout (default: 60s)
-  # pool_timeout: 61s        # wait timeout for pool connection (default: read_timeout + 1s)
-  # conn_max_idle_time: 30m  # max idle time before closing (default: 30min)
-  # conn_max_lifetime: 0     # max connection lifetime, 0 = no limit
-  # pool_fifo: false         # FIFO instead of LIFO pool ordering
+  url: "redis://:flowbot@127.0.0.1:6379/0"
+  # pool_size: 20
+  # min_idle_conns: 5
+  # max_retries: 3
+  # dial_timeout: 5s
+  # read_timeout: 60s
+  # write_timeout: 60s
 
-# Logging configuration
+# Logging — omit for info / console defaults.
 log:
-  # Log level: debug, info, warn, error, fatal, panic
   level: info
-  # Enable caller (file:line) info at all levels (always on at debug level)
-  caller: false
-  # Enable full stack traces on error logs
-  stackTrace: false
-  # Write JSON to stdout instead of human-readable console format
-  jsonOutput: false
-  # Enable file logging (writes to XDG config home by default)
-  fileLog: false
-  # Override default log file path
-  # fileLogPath: /var/log/flowbot/flowbot.log
-  # Per-module log levels
-  # moduleLevel:
-  #   pipeline: debug
-  #   workflow: debug
-  # Burst sampling for high-frequency log points
-  # sampling:
-  #   burst: 5
-  #   period: 1
-  # Log file rotation
-  # rotation:
-  #   maxSize: 100
-  #   maxAge: 30
-  #   maxBackups: 10
-  #   compress: true
+  # caller: false
+  # stackTrace: false
+  # jsonOutput: false
+  # fileLog: false
 
-# Executor configuration
-executor:
-  # executor type: docker
-  type: "docker"
-  # Resource limits
-  limits:
-    cpus: ""
-    memory: ""
-  mounts:
-    bind:
-      allowed: true
-  docker:
-    config: ""
-  shell:
-    cmd:
-      - ""
-      - ""
-    uid: ""
-    gid: ""
-  machine:
-    host: ""
-    port: 0
-    username: ""
-    password: ""
-    host_key: ""
+# Executor — optional; expand when using docker/shell/machine runtimes.
+# executor:
+#   type: "docker"
 
-# Metrics configuration
+# Metrics — prefer false unless VictoriaMetrics (or similar) is running.
 metrics:
-  enabled: true
-  endpoint: "http://127.0.0.1:8428"
-  # Optional dedicated scrape secret for GET /metrics (Authorization: Bearer ...).
-  # If empty, require a valid access token with admin:metrics (or admin:*) scope.
-  bearer_token: ""
+  enabled: false
+  # endpoint: "http://127.0.0.1:8428"
+  # bearer_token: ""
 
-# Pyroscope continuous profiling configuration
+# Pyroscope continuous profiling — enable only when needed.
 profiling:
   enabled: false
-  server_address: "http://127.0.0.1:4040"
-  service_name: "flowbot"
-  environment: "development"
-  profile_types:
-    - "cpu"
-    - "alloc_objects"
-    - "alloc_space"
-    - "inuse_objects"
-    - "inuse_space"
-    - "goroutines"
-    - "mutex_count"
-    - "mutex_duration"
-    - "block_count"
-    - "block_duration"
+  # server_address: "http://127.0.0.1:4040"
+  # service_name: "flowbot"
+  # environment: "development"
+  # profile_types: [cpu, alloc_objects, alloc_space, inuse_objects, inuse_space, goroutines]
 
 # Search URL base map
 search:
@@ -343,19 +262,9 @@ modules:
       # Prefer password_hash (bcrypt cost >= 10) in production.
       password: "flowbot-dev-pass"
       # password_hash: "$2a$10$..."
-      # Set Secure on accessToken cookie (default true for HTTPS / frp deployments)
-      cookie_secure: true
-      # Brute force protection for login
-      brute_force:
-        enabled: true
-        max_attempts: 5          # progressive delay starts at this count
-        lockout_attempts: 10     # full lockout after this many failures
-        lockout_duration: 15m    # how long the lockout lasts
-        window_duration: 15m     # sliding window for counting attempts
-  # Reference / demo module — keep disabled unless intentionally testing adapters
-  - name: example
-    enabled: false
-    environment: ""
+      # cookie_secure defaults to true; brute_force defaults to enabled (omit both).
+      # brute_force:
+      #   enabled: false   # set false only to disable login lockout
 
 # Third-party service configuration
 vendors:
@@ -475,10 +384,8 @@ vendors:
     endpoint: ""
     token: ""
 
-# Ability invocation configuration
-ability:
-  event_pool:
-    # Max concurrent event emission workers (0 = ants default)
-    size: 0
-    # Idle worker eviction duration
-    expiry_duration: "30s"
+# Ability invocation — omit for defaults.
+# ability:
+#   event_pool:
+#     size: 0
+#     expiry_duration: "30s"

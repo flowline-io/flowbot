@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
-	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/extra/redisotel/v9"
@@ -24,12 +22,16 @@ var Client *redis.Client
 // Connection pool parameters use go-redis defaults when set to zero, except ReadTimeout
 // and WriteTimeout which fall back to 60s for backward compatibility.
 func NewClient(lc fx.Lifecycle, _ *config.Type) (*redis.Client, error) {
-	Client = redis.NewClient(redisOptions(config.App.Redis))
+	opts, err := redisOptions(config.App.Redis)
+	if err != nil {
+		return nil, fmt.Errorf("redis options: %w", err)
+	}
+	Client = redis.NewClient(opts)
 	if err := redisotel.InstrumentTracing(Client); err != nil {
 		return nil, fmt.Errorf("failed to instrument redis with tracing: %w", err)
 	}
 	s := Client.Ping(context.Background())
-	_, err := s.Result()
+	_, err = s.Result()
 	if err != nil {
 		return nil, fmt.Errorf("redis server error %w", err)
 	}
@@ -47,9 +49,17 @@ func NewClient(lc fx.Lifecycle, _ *config.Type) (*redis.Client, error) {
 	return Client, nil
 }
 
-// redisOptions builds a go-redis Options from the config, applying fallback defaults
-// for ReadTimeout and WriteTimeout when they are zero.
-func redisOptions(cfg config.Redis) *redis.Options {
+// redisOptions builds go-redis Options from redis.url plus optional pool overrides.
+// ReadTimeout and WriteTimeout fall back to 60s when zero.
+func redisOptions(cfg config.Redis) (*redis.Options, error) {
+	if cfg.URL == "" {
+		return nil, fmt.Errorf("redis.url is empty")
+	}
+	opts, err := redis.ParseURL(cfg.URL)
+	if err != nil {
+		return nil, fmt.Errorf("parse redis.url: %w", err)
+	}
+
 	readTimeout := cfg.ReadTimeout
 	if readTimeout == 0 {
 		readTimeout = 60 * time.Second
@@ -59,23 +69,20 @@ func redisOptions(cfg config.Redis) *redis.Options {
 		writeTimeout = 60 * time.Second
 	}
 
-	return &redis.Options{
-		Addr:            net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
-		Password:        cfg.Password,
-		DB:              cfg.DB,
-		PoolSize:        cfg.PoolSize,
-		MinIdleConns:    cfg.MinIdleConns,
-		MaxRetries:      cfg.MaxRetries,
-		MinRetryBackoff: cfg.MinRetryBackoff,
-		MaxRetryBackoff: cfg.MaxRetryBackoff,
-		DialTimeout:     cfg.DialTimeout,
-		ReadTimeout:     readTimeout,
-		WriteTimeout:    writeTimeout,
-		PoolTimeout:     cfg.PoolTimeout,
-		ConnMaxIdleTime: cfg.ConnMaxIdleTime,
-		ConnMaxLifetime: cfg.ConnMaxLifetime,
-		PoolFIFO:        cfg.PoolFIFO,
-	}
+	opts.PoolSize = cfg.PoolSize
+	opts.MinIdleConns = cfg.MinIdleConns
+	opts.MaxRetries = cfg.MaxRetries
+	opts.MinRetryBackoff = cfg.MinRetryBackoff
+	opts.MaxRetryBackoff = cfg.MaxRetryBackoff
+	opts.DialTimeout = cfg.DialTimeout
+	opts.ReadTimeout = readTimeout
+	opts.WriteTimeout = writeTimeout
+	opts.PoolTimeout = cfg.PoolTimeout
+	opts.ConnMaxIdleTime = cfg.ConnMaxIdleTime
+	opts.ConnMaxLifetime = cfg.ConnMaxLifetime
+	opts.PoolFIFO = cfg.PoolFIFO
+
+	return opts, nil
 }
 
 // Shutdown gracefully closes the Redis client with a 5-second timeout.
