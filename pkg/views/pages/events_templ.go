@@ -56,7 +56,29 @@ func EventsPage(p EventsPageParams) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div x-data=\"eventFilters\" class=\"container mx-auto p-4\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				return nil
+			})
+			templ_7745c5c3_Err = partials.PageHeader("Events", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " <div x-data=\"eventFilters\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -69,7 +91,7 @@ func EventsPage(p EventsPageParams) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"mb-4\"><div role=\"tablist\" class=\"tabs tabs-lifted\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'data-events' ? 'tab-active' : ''\" x-on:click=\"switchTab('data-events')\" data-testid=\"tab-data-events\">Data Events</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'webhook-logs' ? 'tab-active' : ''\" x-on:click=\"switchTab('webhook-logs')\" data-testid=\"tab-webhook-logs\">Webhook Logs</button></div></div><div id=\"events-table-container\" hx-get=\"/service/web/events/filtered-events?tab=data-events\" hx-trigger=\"load\" hx-swap=\"innerHTML\" data-testid=\"events-table-container\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"mb-4\"><div role=\"tablist\" class=\"tabs tabs-lifted\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'data-events' ? 'tab-active' : ''\" x-on:click=\"switchTab('data-events')\" data-testid=\"tab-data-events\">Data Events</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'webhook-logs' ? 'tab-active' : ''\" x-on:click=\"switchTab('webhook-logs')\" data-testid=\"tab-webhook-logs\">Webhook Logs</button></div></div><div id=\"events-table-container\" hx-get=\"/service/web/events/filtered-events?tab=data-events\" hx-trigger=\"load\" hx-swap=\"innerHTML\" data-testid=\"events-table-container\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -77,7 +99,7 @@ func EventsPage(p EventsPageParams) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -8,8 +8,7 @@ import (
 
 templ AgentScheduledTasksPage(items []model.AgentScheduledTask) {
 	@layout.Base("Scheduled Tasks — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">Scheduled Tasks</h1>
+		@partials.PageHeader("Scheduled Tasks", "") {
 			<button hx-get="/service/web/agent-scheduled-tasks/list"
 				hx-target="#agent-scheduled-tasks-table"
 				hx-swap="outerHTML"
@@ -17,7 +16,7 @@ templ AgentScheduledTasksPage(items []model.AgentScheduledTask) {
 				class="btn btn-ghost btn-sm">
 				Refresh
 			</button>
-		</div>
+		}
 		@partials.AgentScheduledTaskTable(items)
 	}
 }

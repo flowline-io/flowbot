@@ -34,7 +34,7 @@ func AgentSessionPlansCard(sessionID string, plans []model.AgentPlan) templ.Comp
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(plans) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm mb-6\" data-testid=\"agent-session-plans\"><div class=\"card-body\"><h2 class=\"card-title text-lg\">Plans</h2><ul class=\"space-y-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface mb-6\" data-testid=\"agent-session-plans\"><div class=\"card-body\"><h2 class=\"text-lg font-semibold tracking-tight m-0\">Plans</h2><ul class=\"space-y-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -165,7 +165,7 @@ func AgentResourcePreview(title, bodyHTML string, truncated bool) templ.Componen
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"card bg-base-200 shadow-inner\" data-testid=\"agent-resource-preview\"><div class=\"card-body prose prose-sm max-w-none\"><h3 class=\"text-base font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"flowbot-surface bg-base-200\" data-testid=\"agent-resource-preview\"><div class=\"p-4 prose prose-sm max-w-none\"><h3 class=\"text-base font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

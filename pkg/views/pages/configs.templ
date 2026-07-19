@@ -9,25 +9,22 @@ import (
 
 templ ConfigsPage(items []model.ConfigItem) {
 	@layout.Base("Configs — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">Configs</h1>
-			<div class="flex gap-2">
-				<button hx-get="/service/web/configs/list"
-					hx-target="#configs-table"
-					hx-swap="outerHTML"
-					data-testid="configs-refresh"
-					class="btn btn-ghost btn-sm">
-					Refresh
-				</button>
-				<button hx-get="/service/web/configs/new"
-					hx-target="#configs-rows"
-					hx-swap="afterbegin"
-					data-testid="configs-new"
-					class="btn btn-primary btn-sm">
-					New Config
-				</button>
-			</div>
-		</div>
+		@partials.PageHeader("Configs", "") {
+			<button hx-get="/service/web/configs/list"
+				hx-target="#configs-table"
+				hx-swap="outerHTML"
+				data-testid="configs-refresh"
+				class="btn btn-ghost btn-sm">
+				Refresh
+			</button>
+			<button hx-get="/service/web/configs/new"
+				hx-target="#configs-rows"
+				hx-swap="afterbegin"
+				data-testid="configs-new"
+				class="btn btn-primary btn-sm">
+				New Config
+			</button>
+		}
 		@partials.ConfigTable(items)
 	}
 }

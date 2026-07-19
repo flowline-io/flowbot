@@ -40,12 +40,12 @@ func RelationDetail(p RelationDetailParams) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm sticky top-4\"><div class=\"card-body p-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface sticky top-4\"><div class=\"card-body p-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if p.Type == "node" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h3 class=\"card-title text-sm\">Resource Node</h3><div class=\"mt-2 space-y-1 text-sm\"><div><span class=\"font-medium\">Capability:</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<h3 class=\"text-sm font-semibold tracking-tight m-0\">Resource Node</h3><div class=\"mt-2 space-y-1 text-sm\"><div><span class=\"font-medium\">Capability:</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -89,7 +89,7 @@ func RelationDetail(p RelationDetailParams) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else if p.Type == "edge" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<h3 class=\"card-title text-sm\">Relation Edge</h3><div class=\"mt-2 space-y-1 text-sm\"><div><span class=\"font-medium\">Pipeline:</span> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<h3 class=\"text-sm font-semibold tracking-tight m-0\">Relation Edge</h3><div class=\"mt-2 space-y-1 text-sm\"><div><span class=\"font-medium\">Pipeline:</span> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

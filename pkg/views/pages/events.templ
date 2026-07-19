@@ -14,7 +14,9 @@ type EventsPageParams struct {
 templ EventsPage(p EventsPageParams) {
 	@layout.Base("Events") {
 		@partials.EventFilterScripts()
-		<div x-data="eventFilters" class="container mx-auto p-4">
+		@partials.PageHeader("Events", "") {
+		}
+		<div x-data="eventFilters">
 			@partials.FilterBar(partials.FilterBarParams{
 				Tab:           "data-events",
 				Sources:       p.Sources,

@@ -6,10 +6,10 @@
   --clip-border: #e5e7eb;
   --clip-code-bg: #f3f4f6;
   --clip-code-fg: #b45309;
-  --clip-primary: #2563eb;
-  --clip-primary-fg: #ffffff;
-  --clip-secondary-bg: #eff6ff;
-  --clip-secondary-fg: #1e3a8a;
+  --clip-primary: #0f766e;
+  --clip-primary-fg: #ecfdf5;
+  --clip-secondary-bg: #f0fdfa;
+  --clip-secondary-fg: #134e4a;
 
   margin: 0;
   min-height: 100vh;

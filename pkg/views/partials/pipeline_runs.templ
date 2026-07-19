@@ -11,11 +11,11 @@ import (
 
 templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 	if len(runs) == 0 {
-		<div class="text-center py-12 text-base-content/30" data-testid="runs-empty">
-			<p>No runs recorded yet.</p>
+		<div class="py-12" data-testid="runs-empty">
+			@EmptyState("No runs recorded yet.")
 		</div>
 	} else {
-		<div class="card bg-base-100 shadow-sm" data-testid="runs-table">
+		<div class="flowbot-surface" data-testid="runs-table">
 			<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
@@ -148,13 +148,13 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 func runsStatusClass(status int) string {
 	switch status {
 	case 2:
-		return "badge badge-success"
+		return "flowbot-chip flowbot-chip-success"
 	case 4:
-		return "badge badge-error"
+		return "flowbot-chip flowbot-chip-error"
 	case 3:
-		return "badge badge-warning"
+		return "flowbot-chip flowbot-chip-warning"
 	default:
-		return "badge badge-ghost"
+		return "flowbot-chip flowbot-chip-muted"
 	}
 }
 

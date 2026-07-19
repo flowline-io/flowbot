@@ -18,10 +18,10 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		<div class="flex items-center justify-between mb-5 gap-2 shrink-0 px-1">
 			<div>
 				if session.Title != "" {
-					<h1 class="text-2xl font-bold text-base-content">{ session.Title }</h1>
+					<h1 class="text-2xl font-semibold tracking-tight text-base-content">{ session.Title }</h1>
 					<p class="font-mono text-sm text-base-content/60">{ session.Flag }</p>
 				} else {
-					<h1 class="text-2xl font-bold font-mono text-base-content">{ session.Flag }</h1>
+					<h1 class="text-2xl font-semibold tracking-tight font-mono text-base-content">{ session.Flag }</h1>
 				}
 			</div>
 			<div class="flex gap-2">

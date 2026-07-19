@@ -33,7 +33,7 @@ func AgentSessionTable(items []model.AgentSession, nextCursor string) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"agent-sessions-table\" data-testid=\"agent-sessions-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Title</th><th class=\"text-xs uppercase\">Session ID</th><th class=\"text-xs uppercase\">UID</th><th class=\"text-xs uppercase text-center\">State</th><th class=\"text-xs uppercase\">Leaf ID</th><th class=\"text-xs uppercase\">Updated</th><th class=\"text-xs uppercase\">Created</th></tr></thead> <tbody id=\"agent-sessions-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"agent-sessions-table\" data-testid=\"agent-sessions-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Title</th><th class=\"text-xs text-base-content/55\">Session ID</th><th class=\"text-xs text-base-content/55\">UID</th><th class=\"text-xs text-base-content/55 text-center\">State</th><th class=\"text-xs text-base-content/55\">Leaf ID</th><th class=\"text-xs text-base-content/55\">Updated</th><th class=\"text-xs text-base-content/55\">Created</th></tr></thead> <tbody id=\"agent-sessions-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

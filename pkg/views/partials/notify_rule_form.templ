@@ -71,7 +71,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 		<td class="min-w-56">
 			<div class="flex flex-col gap-2">
 				<div x-show="action === 'mute'" class="flex flex-col gap-1">
-					<label class="text-xs uppercase text-base-content/50">Condition</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Condition</label>
 					<input type="text" name="condition" value={ item.Condition }
 						data-testid="rule-condition"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "condition") }
@@ -81,7 +81,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				</div>
 
 				<div x-show="action === 'throttle' || action === 'aggregate'" class="flex flex-col gap-1">
-					<label class="text-xs uppercase text-base-content/50">Window</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Window</label>
 					<input type="text" name="param_window" value={ ruleFormWindow(params) }
 						data-testid="rule-param-window"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "window") }
@@ -91,7 +91,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				</div>
 
 				<div x-show="action === 'throttle'" class="flex flex-col gap-1">
-					<label class="text-xs uppercase text-base-content/50">Limit</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Limit</label>
 					<input type="number" name="param_limit" value={ ruleFormLimit(params) }
 						data-testid="rule-param-limit"
 						class={ "input input-bordered input-sm w-full " + fieldError(errors, "limit") }
@@ -102,7 +102,7 @@ templ NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string
 				</div>
 
 				<div x-show="action === 'aggregate'" class="flex flex-col gap-1">
-					<label class="text-xs uppercase text-base-content/50">Digest template</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Digest template</label>
 					<select name="param_digest_template_id"
 						data-testid="rule-param-digest"
 						class={ "select select-bordered select-sm w-full " + fieldError(errors, "digest_template_id") }>

@@ -29,7 +29,7 @@ func HealthzStatus(data HealthzData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"healthz-status\" data-testid=\"healthz-status\" hx-get=\"/service/web/healthz\" hx-trigger=\"every 30s\" hx-swap=\"outerHTML\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6 mb-6\"><!-- DB Latency --><div class=\"card bg-base-100 shadow-sm\" data-testid=\"healthz-db-latency\"><div class=\"card-body\"><h2 class=\"card-title text-base\">Database Latency</h2><div class=\"grid grid-cols-2 gap-4\"><div class=\"stat\"><div class=\"stat-title text-xs\">PostgreSQL</div><div class=\"stat-value text-lg\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"healthz-status\" data-testid=\"healthz-status\" hx-get=\"/service/web/healthz\" hx-trigger=\"every 30s\" hx-swap=\"outerHTML\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6 mb-6\"><!-- DB Latency --><div class=\"flowbot-surface\" data-testid=\"healthz-db-latency\"><div class=\"card-body\"><h2 class=\"text-base font-semibold tracking-tight m-0 mb-2\">Database Latency</h2><div class=\"grid grid-cols-2 gap-4\"><div class=\"stat\"><div class=\"stat-title text-xs\">PostgreSQL</div><div class=\"stat-value text-lg\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -99,7 +99,7 @@ func HealthzStatus(data HealthzData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div></div></div></div><!-- Runtime --><div class=\"card bg-base-100 shadow-sm\" data-testid=\"healthz-runtime\"><div class=\"card-body\"><h2 class=\"card-title text-base\">Runtime</h2><div class=\"grid grid-cols-3 gap-4\"><div class=\"stat\"><div class=\"stat-title text-xs\">Goroutines</div><div class=\"stat-value text-lg\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</div></div></div></div></div><!-- Runtime --><div class=\"flowbot-surface\" data-testid=\"healthz-runtime\"><div class=\"card-body\"><h2 class=\"text-base font-semibold tracking-tight m-0 mb-2\">Runtime</h2><div class=\"grid grid-cols-3 gap-4\"><div class=\"stat\"><div class=\"stat-title text-xs\">Goroutines</div><div class=\"stat-value text-lg\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -177,7 +177,7 @@ func HealthzStatus(data HealthzData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div></div></div></div></div><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6 mb-6\"><!-- Capability Status --><div class=\"card bg-base-100 shadow-sm\" data-testid=\"healthz-capabilities\"><div class=\"card-body\"><h2 class=\"card-title text-base\">Capability Status</h2><div class=\"overflow-x-auto max-h-64 overflow-y-auto\"><table class=\"table table-sm\"><thead><tr><th>Capability</th><th>Status</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div></div></div></div></div></div><div class=\"grid grid-cols-1 md:grid-cols-2 gap-6 mb-6\"><!-- Capability Status --><div class=\"flowbot-surface\" data-testid=\"healthz-capabilities\"><div class=\"card-body\"><h2 class=\"text-base font-semibold tracking-tight m-0 mb-2\">Capability Status</h2><div class=\"overflow-x-auto max-h-64 overflow-y-auto\"><table class=\"table table-sm\"><thead><tr><th>Capability</th><th>Status</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -200,29 +200,29 @@ func HealthzStatus(data HealthzData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if cap.Status == "healthy" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"badge badge-success badge-sm\">healthy</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<span class=\"flowbot-chip flowbot-chip-success\">healthy</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else if cap.Status == "timeout" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"badge badge-warning badge-sm\">timeout</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<span class=\"flowbot-chip flowbot-chip-warning\">timeout</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else if cap.Status == "na" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"badge badge-ghost badge-sm\">n/a</span>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<span class=\"flowbot-chip flowbot-chip-muted\">n/a</span>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"badge badge-error badge-sm\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<span class=\"flowbot-chip flowbot-chip-error\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(cap.Status)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/healthz_status.templ`, Line: 112, Col: 62}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/healthz_status.templ`, Line: 112, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -263,7 +263,7 @@ func HealthzStatus(data HealthzData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</tbody></table></div></div></div><!-- Recent Errors --><div class=\"card bg-base-100 shadow-sm\" data-testid=\"healthz-errors\"><div class=\"card-body\"><h2 class=\"card-title text-base\">Recent Errors</h2><div class=\"overflow-x-auto max-h-64 overflow-y-auto\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</tbody></table></div></div></div><!-- Recent Errors --><div class=\"flowbot-surface\" data-testid=\"healthz-errors\"><div class=\"card-body\"><h2 class=\"text-base font-semibold tracking-tight m-0 mb-2\">Recent Errors</h2><div class=\"overflow-x-auto max-h-64 overflow-y-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

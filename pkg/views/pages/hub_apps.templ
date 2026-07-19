@@ -9,10 +9,9 @@ import (
 
 templ HubAppsPage(apps []homelab.App, updatedAts map[string]string) {
 	@layout.Base("Apps — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">Apps</h1>
+		@partials.PageHeader("Apps", "") {
 			<a href="/service/web/capabilities" class="btn btn-ghost btn-sm" data-testid="hub-apps-to-capabilities">Capabilities</a>
-		</div>
+		}
 		@partials.HubAppsTable(apps, updatedAts)
 	}
 }

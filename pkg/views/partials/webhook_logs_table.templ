@@ -41,18 +41,18 @@ func webhookPath(e *gen.DataEvent) string {
 
 templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) {
 	<div id="events-table-container">
-		<div class="card bg-base-100 shadow-sm" id="webhook-logs-table" data-testid="webhook-logs-table">
+		<div class="flowbot-surface" id="webhook-logs-table" data-testid="webhook-logs-table">
 			<div class="overflow-x-auto">
 				<table class="table">
 				<thead>
 				<tr>
-					<th class="text-xs uppercase">Time</th>
-					<th class="text-xs uppercase">Event Type</th>
-					<th class="text-xs uppercase">Source</th>
-					<th class="text-xs uppercase">Path</th>
-					<th class="text-xs uppercase">Method</th>
-					<th class="text-xs uppercase">Status</th>
-					<th class="text-xs uppercase">Pipeline</th>
+					<th class="text-xs text-base-content/55">Time</th>
+					<th class="text-xs text-base-content/55">Event Type</th>
+					<th class="text-xs text-base-content/55">Source</th>
+					<th class="text-xs text-base-content/55">Path</th>
+					<th class="text-xs text-base-content/55">Method</th>
+					<th class="text-xs text-base-content/55">Status</th>
+					<th class="text-xs text-base-content/55">Pipeline</th>
 				</tr>
 				</thead>
 					<tbody>
@@ -64,11 +64,11 @@ templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pa
 								hx-target={ "#wh-detail-" + e.EventID }
 								hx-swap="innerHTML show:top">
 							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("15:04:05") }</td>
-							<td><span class="badge badge-ghost badge-xs">{ e.EventType }</span></td>
+							<td><span class="flowbot-chip flowbot-chip-muted">{ e.EventType }</span></td>
 							<td class="text-xs">{ webhookSourceDisplay(e) }</td>
 								<td class="text-xs font-mono">{ webhookPath(e) }</td>
-								<td><span class="badge badge-sm">{ webhookMethod(e) }</span></td>
-								<td><span class="badge badge-success badge-sm">202</span></td>
+								<td><span class="flowbot-chip flowbot-chip-muted">{ webhookMethod(e) }</span></td>
+								<td><span class="flowbot-chip flowbot-chip-success">202</span></td>
 								<td class="text-xs">
 								if eventPipelineName(e.EventID, runMap) != "" {
 									{ eventPipelineName(e.EventID, runMap) }

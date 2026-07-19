@@ -225,7 +225,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<td colspan=\"8\" class=\"bg-base-200/50\"><div class=\"p-4 space-y-4\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4 text-sm\"><div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Subagent</div><div class=\"font-medium\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<td colspan=\"8\" class=\"bg-base-200/50\"><div class=\"p-4 space-y-4\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4 text-sm\"><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Subagent</div><div class=\"font-medium\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -238,7 +238,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div><div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Status</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Status</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -273,7 +273,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span></div><div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Session</div><div class=\"font-mono text-xs break-all\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span></div><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Session</div><div class=\"font-mono text-xs break-all\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -286,7 +286,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div></div><div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Depth</div><div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "</div></div><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Depth</div><div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -299,7 +299,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div></div><div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Description</div><div class=\"text-sm\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</div></div></div><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Description</div><div class=\"text-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -312,7 +312,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div></div><div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Prompt</div><pre class=\"textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</div></div><div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Prompt</div><pre class=\"textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -330,7 +330,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if item.Result != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Result</div><pre class=\"textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Result</div><pre class=\"textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap max-h-48 overflow-y-auto\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -349,7 +349,7 @@ func AgentSubagentTaskDetail(item model.AgentSubagentTask) templ.Component {
 			}
 		}
 		if item.ErrorText != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Error</div><pre class=\"textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap text-error max-h-48 overflow-y-auto\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Error</div><pre class=\"textarea textarea-bordered w-full font-mono text-xs whitespace-pre-wrap text-error max-h-48 overflow-y-auto\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

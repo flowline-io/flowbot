@@ -13,7 +13,7 @@ templ RelationEdgeBadge(edge schema.ResourceEdge, direction string) {
 		hx-swap="innerHTML"
 		data-testid="relation-edge-badge"
 	>
-		<span class={ "badge badge-sm", templ.KV("badge-primary", direction == "downstream"), templ.KV("badge-accent", direction == "upstream") }>
+		<span class={ "flowbot-chip", templ.KV("flowbot-chip-primary", direction == "downstream"), templ.KV("flowbot-chip-muted", direction == "upstream") }>
 			{ edge.PipelineName }
 		</span>
 		<span class="text-xs text-base-content/40">

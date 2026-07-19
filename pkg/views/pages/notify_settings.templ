@@ -10,9 +10,8 @@ import (
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
 templ NotifySettingsPage(activeTab string) {
 	@layout.Base("Notifications — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content" data-testid="notifications-heading">Notifications</h1>
-		</div>
+		@partials.PageHeader("Notifications", "") {
+		}
 
 		<div role="tablist" class="tabs tabs-bordered mb-4">
 			<input type="radio" name="notify-tabs" class="tab" aria-label="Channels"

@@ -20,11 +20,11 @@ templ NotifyRuleRow(item model.NotifyRule, templateIDs []string) {
 			<div class="text-xs text-base-content/50 font-mono mt-0.5">{ item.RuleID }</div>
 			<div x-show="expanded" x-cloak class="mt-2 text-xs">
 				if item.Condition != "" {
-					<div class="text-xs uppercase text-base-content/50 mb-1">Condition</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Condition</div>
 					<pre class="bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto mb-2">{ item.Condition }</pre>
 				}
 				if item.ParamsJSON != "" {
-					<div class="text-xs uppercase text-base-content/50 mb-1">Params</div>
+					<div class="text-xs text-base-content/55 text-base-content/50 mb-1">Params</div>
 					<pre class="bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto">{ item.ParamsJSON }</pre>
 				}
 			</div>

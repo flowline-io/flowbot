@@ -7,7 +7,7 @@ templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[strin
 		<td colspan="5" class="p-4 bg-base-200/40">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
 				<div>
-					<label class="text-xs uppercase text-base-content/50">Template ID</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Template ID</label>
 					<input type="text" name="template_id" value={ item.TemplateID }
 						data-testid="template-id"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "template_id") }
@@ -16,7 +16,7 @@ templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[strin
 					<div class="text-error text-xs">{ errors["template_id"] }</div>
 				</div>
 				<div>
-					<label class="text-xs uppercase text-base-content/50">Name</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Name</label>
 					<input type="text" name="name" value={ item.Name }
 						data-testid="template-name"
 						class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
@@ -25,7 +25,7 @@ templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[strin
 					<div class="text-error text-xs">{ errors["name"] }</div>
 				</div>
 				<div>
-					<label class="text-xs uppercase text-base-content/50">Format</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Format</label>
 					<select name="default_format"
 						data-testid="template-format"
 						class={ "select select-bordered select-sm w-full " + fieldError(errors, "default_format") }>
@@ -36,7 +36,7 @@ templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[strin
 					<div class="text-error text-xs">{ errors["default_format"] }</div>
 				</div>
 				<div>
-					<label class="text-xs uppercase text-base-content/50">Description</label>
+					<label class="text-xs text-base-content/55 text-base-content/50">Description</label>
 					<input type="text" name="description" value={ item.Description }
 						data-testid="template-description"
 						class="input input-bordered input-sm w-full"
@@ -45,7 +45,7 @@ templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[strin
 				</div>
 			</div>
 			<div class="mb-3">
-				<label class="text-xs uppercase text-base-content/50">Default template</label>
+				<label class="text-xs text-base-content/55 text-base-content/50">Default template</label>
 				<textarea name="default_template" rows="6"
 					data-testid="template-body"
 					class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "default_template") }
@@ -54,7 +54,7 @@ templ NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[strin
 				<div class="text-error text-xs">{ errors["default_template"] }</div>
 			</div>
 			<div class="mb-3">
-				<label class="text-xs uppercase text-base-content/50">Overrides JSON</label>
+				<label class="text-xs text-base-content/55 text-base-content/50">Overrides JSON</label>
 				<textarea name="overrides_json" rows="4"
 					data-testid="template-overrides"
 					class={ "textarea textarea-bordered textarea-sm w-full font-mono " + fieldError(errors, "overrides_json") }

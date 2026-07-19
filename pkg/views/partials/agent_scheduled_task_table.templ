@@ -5,19 +5,19 @@ import (
 )
 
 templ AgentScheduledTaskTable(items []model.AgentScheduledTask) {
-	<div class="card bg-base-100 shadow-sm" id="agent-scheduled-tasks-table" data-testid="agent-scheduled-tasks-table">
+	<div class="flowbot-surface" id="agent-scheduled-tasks-table" data-testid="agent-scheduled-tasks-table">
 		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 					<tr>
-						<th class="text-xs uppercase">Name</th>
-						<th class="text-xs uppercase">Task ID</th>
-						<th class="text-xs uppercase">Kind</th>
-						<th class="text-xs uppercase">Schedule</th>
-						<th class="text-xs uppercase text-center">State</th>
-						<th class="text-xs uppercase">Next Run</th>
-						<th class="text-xs uppercase">Last Run</th>
-						<th class="text-xs uppercase">Updated</th>
+						<th class="text-xs text-base-content/55">Name</th>
+						<th class="text-xs text-base-content/55">Task ID</th>
+						<th class="text-xs text-base-content/55">Kind</th>
+						<th class="text-xs text-base-content/55">Schedule</th>
+						<th class="text-xs text-base-content/55 text-center">State</th>
+						<th class="text-xs text-base-content/55">Next Run</th>
+						<th class="text-xs text-base-content/55">Last Run</th>
+						<th class="text-xs text-base-content/55">Updated</th>
 					</tr>
 				</thead>
 				<tbody id="agent-scheduled-tasks-rows">

@@ -9,32 +9,32 @@ import (
 func statusBadgeClass(status string) string {
 	switch status {
 	case "success":
-		return "badge badge-success badge-sm"
+		return "flowbot-chip flowbot-chip-success"
 	case "failed":
-		return "badge badge-error badge-sm"
+		return "flowbot-chip flowbot-chip-error"
 	default:
-		return "badge badge-ghost badge-sm"
+		return "flowbot-chip flowbot-chip-muted"
 	}
 }
 
 templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
-	<div class="card bg-base-100 shadow-sm" id="notifications-table" data-testid="notifications-table">
+	<div class="flowbot-surface" id="notifications-table" data-testid="notifications-table">
 		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
-					<th class="text-xs uppercase">Time</th>
-					<th class="text-xs uppercase">Channel</th>
-					<th class="text-xs uppercase">Template</th>
-					<th class="text-xs uppercase">Summary</th>
-					<th class="text-xs uppercase">Status</th>
+					<th class="text-xs text-base-content/55">Time</th>
+					<th class="text-xs text-base-content/55">Channel</th>
+					<th class="text-xs text-base-content/55">Template</th>
+					<th class="text-xs text-base-content/55">Summary</th>
+					<th class="text-xs text-base-content/55">Status</th>
 				</tr>
 				</thead>
 				<tbody id="notifications-rows">
 				for _, r := range records {
 					<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }>
 						<td class="text-xs whitespace-nowrap">{ r.CreatedAt.Format("15:04:05") }</td>
-						<td><span class="badge badge-outline badge-xs">{ r.Channel }</span></td>
+						<td><span class="flowbot-chip flowbot-chip-muted">{ r.Channel }</span></td>
 						<td class="text-xs font-mono">{ r.TemplateID }</td>
 						<td class="text-xs max-w-48 truncate" title={ r.Summary }>{ r.Summary }</td>
 						<td class="flex items-center gap-1">

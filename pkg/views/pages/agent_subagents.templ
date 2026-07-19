@@ -9,8 +9,7 @@ import (
 templ AgentSubagentsPage(items []model.AgentSubagent) {
 	@layout.Base("Agent Subagents — Flowbot") {
 		<div x-data="{ tab: 'subagents' }">
-			<div class="flex items-center justify-between mb-6">
-				<h1 class="text-2xl font-bold text-base-content">Agent Subagents</h1>
+			@partials.PageHeader("Agent Subagents", "") {
 				<div class="flex gap-2" x-show="tab === 'subagents'">
 					<button hx-get="/service/web/agent-subagents/list"
 						hx-target="#agent-subagents-table"
@@ -36,7 +35,7 @@ templ AgentSubagentsPage(items []model.AgentSubagent) {
 						Refresh
 					</button>
 				</div>
-			</div>
+			}
 			<div role="tablist" class="tabs tabs-bordered mb-6">
 				<button role="tab"
 					class="tab"

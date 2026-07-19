@@ -9,8 +9,7 @@ import (
 
 templ TokensPage(items []model.TokenItem) {
 	@layout.Base("Tokens — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold">Tokens</h1>
+		@partials.PageHeader("Tokens", "") {
 			<button
 				hx-get="/service/web/tokens/new"
 				hx-target="#tokens-rows"
@@ -19,7 +18,7 @@ templ TokensPage(items []model.TokenItem) {
 				class="btn btn-primary btn-sm">
 				New Token
 			</button>
-		</div>
+		}
 		<div id="token-alert-container" class="mb-4"></div>
 		@partials.TokenTable(items)
 	}

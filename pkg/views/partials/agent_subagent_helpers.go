@@ -97,13 +97,13 @@ func agentSubagentTaskStatusLabel(status string) string {
 func agentSubagentTaskStatusBadgeClass(status string) string {
 	switch strings.TrimSpace(status) {
 	case "running":
-		return "badge badge-warning badge-sm"
+		return "flowbot-chip flowbot-chip-warning"
 	case "completed":
-		return "badge badge-success badge-sm"
+		return "flowbot-chip flowbot-chip-success"
 	case "failed":
-		return "badge badge-error badge-sm"
+		return "flowbot-chip flowbot-chip-error"
 	default:
-		return "badge badge-ghost badge-sm"
+		return "flowbot-chip flowbot-chip-muted"
 	}
 }
 

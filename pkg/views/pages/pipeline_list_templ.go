@@ -50,7 +50,33 @@ func PipelineListPage(entries []partials.PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"max-w-4xl mx-auto\"><div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-semibold text-base-content\">Pipelines</h1><button type=\"button\" onclick=\"document.getElementById('create-modal').showModal()\" data-testid=\"btn-new-pipeline\" class=\"btn btn-primary\">+ New Pipeline</button></div><div hx-get=\"/service/web/pipelines/stats?groupBy=day\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <div class=\"max-w-4xl mx-auto\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button type=\"button\" onclick=\"document.getElementById('create-modal').showModal()\" data-testid=\"btn-new-pipeline\" class=\"btn btn-primary\">+ New Pipeline</button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = partials.PageHeader("Pipelines", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div hx-get=\"/service/web/pipelines/stats?groupBy=day\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -58,7 +84,7 @@ func PipelineListPage(entries []partials.PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div><div id=\"pipeline-list-container\" data-testid=\"pipeline-list-container\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div id=\"pipeline-list-container\" data-testid=\"pipeline-list-container\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -66,7 +92,7 @@ func PipelineListPage(entries []partials.PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><dialog id=\"create-modal\" class=\"modal\" data-testid=\"create-modal\"><div class=\"modal-box\"><h3 class=\"text-lg font-medium text-base-content mb-4\">New Pipeline</h3><form id=\"create-form\" hx-post=\"/service/web/pipelines\" hx-target=\"body\" data-testid=\"create-form\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" name=\"name\" required minlength=\"1\" maxlength=\"128\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-pipeline\" title=\"Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit.\" data-testid=\"input-pipeline-name\"> <label class=\"label\"><span class=\"label-text\">Description (optional)</span></label> <input type=\"text\" name=\"description\" class=\"input input-bordered w-full mb-4\" placeholder=\"Brief description\" data-testid=\"input-pipeline-desc\"><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('create-modal').close()\" class=\"btn btn-ghost\" data-testid=\"btn-cancel-create\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\" data-testid=\"btn-submit-create\">Create</button></div></form></div></dialog>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><dialog id=\"create-modal\" class=\"modal\" data-testid=\"create-modal\"><div class=\"modal-box\"><h3 class=\"text-lg font-medium text-base-content mb-4\">New Pipeline</h3><form id=\"create-form\" hx-post=\"/service/web/pipelines\" hx-target=\"body\" data-testid=\"create-form\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" name=\"name\" required minlength=\"1\" maxlength=\"128\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-pipeline\" title=\"Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit.\" data-testid=\"input-pipeline-name\"> <label class=\"label\"><span class=\"label-text\">Description (optional)</span></label> <input type=\"text\" name=\"description\" class=\"input input-bordered w-full mb-4\" placeholder=\"Brief description\" data-testid=\"input-pipeline-desc\"><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('create-modal').close()\" class=\"btn btn-ghost\" data-testid=\"btn-cancel-create\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\" data-testid=\"btn-submit-create\">Create</button></div></form></div></dialog>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

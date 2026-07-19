@@ -44,7 +44,7 @@ func NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><td colspan=\"5\" class=\"p-4 bg-base-200/40\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-3 mb-3\"><div><label class=\"text-xs uppercase text-base-content/50\">Template ID</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><td colspan=\"5\" class=\"p-4 bg-base-200/40\"><div class=\"grid grid-cols-1 md:grid-cols-2 gap-3 mb-3\"><div><label class=\"text-xs text-base-content/55 text-base-content/50\">Template ID</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -92,7 +92,7 @@ func NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div><div><label class=\"text-xs uppercase text-base-content/50\">Name</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div><div><label class=\"text-xs text-base-content/55 text-base-content/50\">Name</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -140,7 +140,7 @@ func NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><div><label class=\"text-xs uppercase text-base-content/50\">Format</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><div><label class=\"text-xs text-base-content/55 text-base-content/50\">Format</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -205,7 +205,7 @@ func NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div></div><div><label class=\"text-xs uppercase text-base-content/50\">Description</label> <input type=\"text\" name=\"description\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</div></div><div><label class=\"text-xs text-base-content/55 text-base-content/50\">Description</label> <input type=\"text\" name=\"description\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -218,7 +218,7 @@ func NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" data-testid=\"template-description\" class=\"input input-bordered input-sm w-full\" placeholder=\"Optional description\"></div></div><div class=\"mb-3\"><label class=\"text-xs uppercase text-base-content/50\">Default template</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" data-testid=\"template-description\" class=\"input input-bordered input-sm w-full\" placeholder=\"Optional description\"></div></div><div class=\"mb-3\"><label class=\"text-xs text-base-content/55 text-base-content/50\">Default template</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -266,7 +266,7 @@ func NotifyTemplateForm(item model.NotifyTemplate, isNew bool, errors map[string
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div><div class=\"mb-3\"><label class=\"text-xs uppercase text-base-content/50\">Overrides JSON</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div><div class=\"mb-3\"><label class=\"text-xs text-base-content/55 text-base-content/50\">Overrides JSON</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

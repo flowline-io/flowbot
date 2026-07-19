@@ -6,21 +6,17 @@ import "github.com/flowline-io/flowbot/pkg/views/partials"
 templ ChatAgentPermissionsPage(data partials.PermissionFormPageData) {
 	@layout.Base("Chat Agent Permissions — Flowbot") {
 		<script src="/static/js/chatagent-permissions.js"></script>
-		<div class="mb-4">
+		@partials.PageHeader("Chat Agent Permissions", "Edit OpenCode-style permission rules stored for your user account.") {
 			<a href="/service/web/agent-sessions" class="btn btn-ghost btn-sm">← Back to Sessions</a>
-		</div>
-		<div class="card bg-base-100 shadow-sm">
+		}
+		<div class="flowbot-surface">
 			<div class="card-body">
-				<h1 class="card-title text-2xl">Chat Agent Permissions</h1>
-				<p class="text-sm text-base-content/70">Edit OpenCode-style permission rules stored for your user account.</p>
 				if data.Errors["_form"] != "" {
-					<div class="alert alert-error text-sm mt-4" data-testid="chatagent-permissions-form-error">
+					<div class="alert alert-error text-sm" data-testid="chatagent-permissions-form-error">
 						<span>{ data.Errors["_form"] }</span>
 					</div>
 				}
-				<div class="mt-4">
-					@partials.ChatAgentPermissionsForm(data)
-				</div>
+				@partials.ChatAgentPermissionsForm(data)
 			</div>
 		</div>
 	}

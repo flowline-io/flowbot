@@ -2,13 +2,13 @@ package partials
 
 templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints) {
 	<div id="chatagent-approval-panel"
-		class="chatagent-approval-panel shrink-0 card bg-base-100 shadow-sm mx-1 mb-2 hidden border border-warning/30"
+		class="chatagent-approval-panel shrink-0 flowbot-surface mx-1 mb-2 hidden border border-warning/30"
 		data-session-id={ sessionID }
 		data-confirm-url={ endpoints.ConfirmURL }
 		data-events-url={ endpoints.EventsURL }
 		data-testid="chatagent-approval-panel">
 		<div class="card-body">
-			<h2 class="card-title text-lg">Pending Tool Approval</h2>
+			<h2 class="text-lg font-semibold tracking-tight m-0">Pending Tool Approval</h2>
 			<p class="text-sm" id="chatagent-approval-summary"></p>
 			<p class="text-xs text-base-content/60" id="chatagent-approval-meta"></p>
 			<div class="flex gap-2 mt-2" id="chatagent-approval-actions">

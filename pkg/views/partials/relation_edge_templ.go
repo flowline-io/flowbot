@@ -51,7 +51,7 @@ func RelationEdgeBadge(edge schema.ResourceEdge, direction string) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 = []any{"badge badge-sm", templ.KV("badge-primary", direction == "downstream"), templ.KV("badge-accent", direction == "upstream")}
+		var templ_7745c5c3_Var3 = []any{"flowbot-chip", templ.KV("flowbot-chip-primary", direction == "downstream"), templ.KV("flowbot-chip-muted", direction == "upstream")}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var3...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

@@ -17,11 +17,11 @@ import (
 func statusBadgeClass(status string) string {
 	switch status {
 	case "success":
-		return "badge badge-success badge-sm"
+		return "flowbot-chip flowbot-chip-success"
 	case "failed":
-		return "badge badge-error badge-sm"
+		return "flowbot-chip flowbot-chip-error"
 	default:
-		return "badge badge-ghost badge-sm"
+		return "flowbot-chip flowbot-chip-muted"
 	}
 }
 
@@ -46,7 +46,7 @@ func NotificationsTable(records []*gen.NotificationRecord, nextCursor string) te
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"notifications-table\" data-testid=\"notifications-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Time</th><th class=\"text-xs uppercase\">Channel</th><th class=\"text-xs uppercase\">Template</th><th class=\"text-xs uppercase\">Summary</th><th class=\"text-xs uppercase\">Status</th></tr></thead> <tbody id=\"notifications-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"notifications-table\" data-testid=\"notifications-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Time</th><th class=\"text-xs text-base-content/55\">Channel</th><th class=\"text-xs text-base-content/55\">Template</th><th class=\"text-xs text-base-content/55\">Summary</th><th class=\"text-xs text-base-content/55\">Status</th></tr></thead> <tbody id=\"notifications-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -77,14 +77,14 @@ func NotificationsTable(records []*gen.NotificationRecord, nextCursor string) te
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</td><td><span class=\"badge badge-outline badge-xs\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</td><td><span class=\"flowbot-chip flowbot-chip-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(r.Channel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/notifications_table.templ`, Line: 37, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/notifications_table.templ`, Line: 37, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

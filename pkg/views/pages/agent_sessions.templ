@@ -8,8 +8,7 @@ import (
 
 templ AgentSessionsPage(items []model.AgentSession, nextCursor string) {
 	@layout.Base("Agent Sessions — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">Agent Sessions</h1>
+		@partials.PageHeader("Agent Sessions", "") {
 			<button hx-get="/service/web/agent-sessions/list"
 				hx-target="#agent-sessions-table"
 				hx-swap="outerHTML"
@@ -17,7 +16,7 @@ templ AgentSessionsPage(items []model.AgentSession, nextCursor string) {
 				class="btn btn-ghost btn-sm">
 				Refresh
 			</button>
-		</div>
+		}
 		@partials.AgentSessionTable(items, nextCursor)
 	}
 }

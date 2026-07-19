@@ -8,9 +8,9 @@ templ HealthzStatus(data HealthzData) {
 		hx-swap="outerHTML">
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 			<!-- DB Latency -->
-			<div class="card bg-base-100 shadow-sm" data-testid="healthz-db-latency">
+			<div class="flowbot-surface" data-testid="healthz-db-latency">
 				<div class="card-body">
-					<h2 class="card-title text-base">Database Latency</h2>
+					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Database Latency</h2>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="stat">
 							<div class="stat-title text-xs">PostgreSQL</div>
@@ -51,9 +51,9 @@ templ HealthzStatus(data HealthzData) {
 			</div>
 
 			<!-- Runtime -->
-			<div class="card bg-base-100 shadow-sm" data-testid="healthz-runtime">
+			<div class="flowbot-surface" data-testid="healthz-runtime">
 				<div class="card-body">
-					<h2 class="card-title text-base">Runtime</h2>
+					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Runtime</h2>
 					<div class="grid grid-cols-3 gap-4">
 						<div class="stat">
 							<div class="stat-title text-xs">Goroutines</div>
@@ -86,9 +86,9 @@ templ HealthzStatus(data HealthzData) {
 
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 			<!-- Capability Status -->
-			<div class="card bg-base-100 shadow-sm" data-testid="healthz-capabilities">
+			<div class="flowbot-surface" data-testid="healthz-capabilities">
 				<div class="card-body">
-					<h2 class="card-title text-base">Capability Status</h2>
+					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Capability Status</h2>
 					<div class="overflow-x-auto max-h-64 overflow-y-auto">
 						<table class="table table-sm">
 							<thead>
@@ -103,13 +103,13 @@ templ HealthzStatus(data HealthzData) {
 							<td class="font-medium">{ cap.Type }</td>
 							<td>
 								if cap.Status == "healthy" {
-									<span class="badge badge-success badge-sm">healthy</span>
+									<span class="flowbot-chip flowbot-chip-success">healthy</span>
 								} else if cap.Status == "timeout" {
-									<span class="badge badge-warning badge-sm">timeout</span>
+									<span class="flowbot-chip flowbot-chip-warning">timeout</span>
 								} else if cap.Status == "na" {
-									<span class="badge badge-ghost badge-sm">n/a</span>
+									<span class="flowbot-chip flowbot-chip-muted">n/a</span>
 								} else {
-									<span class="badge badge-error badge-sm">{ cap.Status }</span>
+									<span class="flowbot-chip flowbot-chip-error">{ cap.Status }</span>
 									if cap.Error != "" {
 										<span class="text-xs text-error ml-1">{ cap.Error }</span>
 									}
@@ -129,9 +129,9 @@ templ HealthzStatus(data HealthzData) {
 			</div>
 
 			<!-- Recent Errors -->
-			<div class="card bg-base-100 shadow-sm" data-testid="healthz-errors">
+			<div class="flowbot-surface" data-testid="healthz-errors">
 				<div class="card-body">
-					<h2 class="card-title text-base">Recent Errors</h2>
+					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Recent Errors</h2>
 					<div class="overflow-x-auto max-h-64 overflow-y-auto">
 						if len(data.Errors) == 0 {
 							<p class="text-base-content/50 text-sm">No recent errors</p>

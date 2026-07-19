@@ -374,7 +374,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " class=\"checkbox checkbox-sm\"> <span class=\"text-xs\">Enabled</span></label></td><td class=\"min-w-56\"><div class=\"flex flex-col gap-2\"><div x-show=\"action === 'mute'\" class=\"flex flex-col gap-1\"><label class=\"text-xs uppercase text-base-content/50\">Condition</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, " class=\"checkbox checkbox-sm\"> <span class=\"text-xs\">Enabled</span></label></td><td class=\"min-w-56\"><div class=\"flex flex-col gap-2\"><div x-show=\"action === 'mute'\" class=\"flex flex-col gap-1\"><label class=\"text-xs text-base-content/55 text-base-content/50\">Condition</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -422,7 +422,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div></div><div x-show=\"action === 'throttle' || action === 'aggregate'\" class=\"flex flex-col gap-1\"><label class=\"text-xs uppercase text-base-content/50\">Window</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</div></div><div x-show=\"action === 'throttle' || action === 'aggregate'\" class=\"flex flex-col gap-1\"><label class=\"text-xs text-base-content/55 text-base-content/50\">Window</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -470,7 +470,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div></div><div x-show=\"action === 'throttle'\" class=\"flex flex-col gap-1\"><label class=\"text-xs uppercase text-base-content/50\">Limit</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div></div><div x-show=\"action === 'throttle'\" class=\"flex flex-col gap-1\"><label class=\"text-xs text-base-content/55 text-base-content/50\">Limit</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -518,7 +518,7 @@ func NotifyRuleForm(item model.NotifyRule, isNew bool, errors map[string]string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</div></div><div x-show=\"action === 'aggregate'\" class=\"flex flex-col gap-1\"><label class=\"text-xs uppercase text-base-content/50\">Digest template</label> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</div></div><div x-show=\"action === 'aggregate'\" class=\"flex flex-col gap-1\"><label class=\"text-xs text-base-content/55 text-base-content/50\">Digest template</label> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

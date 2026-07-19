@@ -33,7 +33,7 @@ func AgentScheduledTaskRunsTable(items []model.AgentScheduledTaskRun) templ.Comp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" data-testid=\"agent-scheduled-task-runs-table\"><div class=\"card-body\"><h2 class=\"card-title text-lg\">Recent Runs</h2><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Run ID</th><th class=\"text-xs uppercase text-center\">State</th><th class=\"text-xs uppercase\">Run Session</th><th class=\"text-xs uppercase\">Started</th><th class=\"text-xs uppercase\">Finished</th><th class=\"text-xs uppercase\">Reply</th><th class=\"text-xs uppercase\">Error</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" data-testid=\"agent-scheduled-task-runs-table\"><div class=\"card-body\"><h2 class=\"text-lg font-semibold tracking-tight m-0 mb-3\">Recent Runs</h2><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Run ID</th><th class=\"text-xs text-base-content/55 text-center\">State</th><th class=\"text-xs text-base-content/55\">Run Session</th><th class=\"text-xs text-base-content/55\">Started</th><th class=\"text-xs text-base-content/55\">Finished</th><th class=\"text-xs text-base-content/55\">Reply</th><th class=\"text-xs text-base-content/55\">Error</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

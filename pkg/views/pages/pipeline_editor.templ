@@ -17,11 +17,11 @@ templ PipelineEditorPage(name string) {
 			</div>
 
 			<!-- Header -->
-			<div x-show="!loading" class="bg-base-100 border-b border-base-300 px-6 py-3 mb-4 rounded-t-box shadow-sm flex items-center justify-between">
-				<div class="flex items-center gap-4">
-					<h2 class="text-lg font-semibold text-base-content" x-text="name" data-testid="pipeline-title"></h2>
-					<span x-show="status === 'draft'" class="badge badge-ghost" data-testid="status-badge">Draft</span>
-					<span x-show="status === 'published'" class="badge badge-success" data-testid="status-badge">Published</span>
+			<div x-show="!loading" class="sticky top-0 z-20 -mx-4 px-4 py-3 mb-4 bg-base-100 border-b border-base-300 flex items-center justify-between gap-3">
+				<div class="flex items-center gap-3 min-w-0">
+					<h2 class="text-lg font-semibold tracking-tight text-base-content truncate m-0" x-text="name" data-testid="pipeline-title"></h2>
+					<span x-show="status === 'draft'" class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">Draft</span>
+					<span x-show="status === 'published'" class="flowbot-chip flowbot-chip-success" data-testid="status-badge">Published</span>
 				</div>
 				<div class="flex items-center gap-2">
 					<button type="button" @click="undo" :disabled="undoStack.length === 0"
@@ -141,7 +141,7 @@ templ PipelineEditorPage(name string) {
 							<div class="flex flex-col items-center py-1">
 								<div x-show="idx > 0" class="w-0.5 h-4 bg-base-300"></div>
 								<button type="button" @click="addStep(idx)" data-testid="btn-add-step"
-									class="w-8 h-8 rounded-full border-2 border-base-300 hover:border-primary flex items-center justify-center text-base-content/30 hover:text-primary bg-base-100 shadow-sm">+</button>
+									class="w-8 h-8 rounded-md border border-base-300 hover:border-primary flex items-center justify-center text-base-content/40 hover:text-primary bg-base-100">+</button>
 								<svg x-show="idx > 0" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-base-content/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
 								</svg>
@@ -152,7 +152,7 @@ templ PipelineEditorPage(name string) {
 					<div class="flex flex-col items-center py-1">
 						<div x-show="steps.length > 0" class="w-0.5 h-4 bg-base-300"></div>
 						<button type="button" @click="addStep(steps.length)" data-testid="btn-add-step-end"
-							class="w-8 h-8 rounded-full border-2 border-base-300 hover:border-primary flex items-center justify-center text-base-content/30 hover:text-primary bg-base-100 shadow-sm">+</button>
+							class="w-8 h-8 rounded-md border border-base-300 hover:border-primary flex items-center justify-center text-base-content/40 hover:text-primary bg-base-100">+</button>
 					</div>
 					<div x-show="steps.length === 0" class="text-center py-12 text-base-content/30" data-testid="steps-empty">
 						<p>No steps yet. Click + to add your first step.</p>
@@ -162,7 +162,7 @@ templ PipelineEditorPage(name string) {
 
 		<!-- Version History Sidebar -->
 		<div x-show="historyOpen"
-			class="fixed right-0 top-0 h-full w-80 bg-base-100 shadow-xl z-30 overflow-y-auto border-l border-base-300"
+			class="fixed right-0 top-0 h-full w-80 bg-base-100 z-30 overflow-y-auto border-l border-base-300"
 			data-testid="history-sidebar">
 			<div class="p-4">
 				<div class="flex items-center justify-between mb-4">
@@ -181,7 +181,7 @@ templ PipelineEditorPage(name string) {
 					<button type="button" @click="selectVersion(v)"
 						class="w-full text-left p-2 rounded-box hover:bg-base-200 mb-1 flex items-center justify-between"
 						data-testid="version-item">
-						<span class="badge badge-sm" x-text="'v' + v.version"></span>
+						<span class="flowbot-chip flowbot-chip-muted" x-text="'v' + v.version"></span>
 						<span class="text-xs text-base-content/30" x-text="relativeTime(v.created_at)"></span>
 					</button>
 				</template>
@@ -203,9 +203,9 @@ templ PipelineEditorPage(name string) {
 
 				<div x-show="diffResult" class="mt-4" data-testid="diff-result">
 					<div class="text-xs font-medium mb-2">
-						<span class="badge badge-sm" x-text="versionLabel(compareLeft)"></span>
+						<span class="flowbot-chip flowbot-chip-muted" x-text="versionLabel(compareLeft)"></span>
 						vs
-						<span class="badge badge-sm" x-text="versionLabel(compareRight)"></span>
+						<span class="flowbot-chip flowbot-chip-muted" x-text="versionLabel(compareRight)"></span>
 					</div>
 					<pre class="text-xs font-mono bg-base-200 rounded-box p-3 overflow-x-auto max-h-96"><template x-for="chunk in diffResult"><span :class="chunk.added ? 'bg-success/20 text-success' : (chunk.removed ? 'bg-error/20 text-error' : '')" x-text="chunk.text"></span></template></pre>
 				</div>
@@ -218,7 +218,7 @@ templ PipelineEditorPage(name string) {
 					<button type="button" @click="selectedVersion = null"
 						class="btn btn-ghost btn-sm mb-3">Back to list</button>
 					<div class="flex items-center gap-2 mb-2">
-						<span class="badge" x-text="selectedVersionLabel()"></span>
+						<span class="flowbot-chip flowbot-chip-muted" x-text="selectedVersionLabel()"></span>
 						<span class="text-xs text-base-content/30" x-text="relativeTime(selectedVersionCreatedAt())"></span>
 					</div>
 					<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
@@ -236,7 +236,7 @@ templ PipelineEditorPage(name string) {
 			<!-- Configuration Drawer -->
 			<div x-show="drawerOpen"
 				:class="drawerExpanded ? 'w-4/5' : 'w-2/5'"
-				class="fixed right-0 top-0 h-full bg-base-100 shadow-xl z-50 transition-all duration-200 overflow-y-auto"
+				class="fixed right-0 top-0 h-full bg-base-100 z-50 transition-all duration-200 overflow-y-auto border-l border-base-300"
 				@click.stop
 				data-testid="config-drawer">
 				<div class="p-6">
@@ -396,8 +396,8 @@ templ PipelineEditorPage(name string) {
 													<div class="flex items-center gap-2 mb-1">
 														<span class="text-sm font-mono font-medium" x-text="p.name"></span>
 														<span class="text-xs font-mono text-base-content/30 bg-base-200 rounded-box px-1.5 py-0.5" x-text="p.type"></span>
-														<span x-show="p.required" class="badge badge-error badge-xs">required</span>
-														<span x-show="!p.required" class="badge badge-ghost badge-xs">optional</span>
+														<span x-show="p.required" class="flowbot-chip flowbot-chip-error">required</span>
+														<span x-show="!p.required" class="flowbot-chip flowbot-chip-muted">optional</span>
 														<button type="button"
 															x-show="!p.required"
 															@click="clearStepParam(selectedStepIndex(), p.name)"
@@ -564,7 +564,7 @@ templ PipelineEditorPage(name string) {
 			<!-- Variable Picker Modal -->
 			<div x-show="variablePickerOpen" class="fixed inset-0 z-60 flex items-center justify-center"
 				@click.self="variablePickerOpen = false">
-				<div class="bg-base-100 rounded-box shadow-xl p-6 w-96 max-h-96 overflow-y-auto" data-testid="var-picker">
+				<div class="bg-base-100 rounded-box border border-base-300 p-6 w-96 max-h-96 overflow-y-auto" data-testid="var-picker">
 					<h4 class="font-medium text-base-content mb-3">Insert Variable</h4>
 					<div class="text-sm space-y-1">
 						<div class="text-xs text-base-content/30 uppercase mb-2">event data</div>

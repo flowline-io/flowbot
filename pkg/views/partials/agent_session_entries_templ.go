@@ -33,7 +33,7 @@ func AgentSessionEntriesTable(entries []model.AgentSessionEntry) templ.Component
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"agent-session-entries-table\" data-testid=\"agent-session-entries-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Time</th><th class=\"text-xs uppercase\">Entry ID</th><th class=\"text-xs uppercase\">Type</th><th class=\"text-xs uppercase\">Parent ID</th><th class=\"text-xs uppercase\">Payload</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"agent-session-entries-table\" data-testid=\"agent-session-entries-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Time</th><th class=\"text-xs text-base-content/55\">Entry ID</th><th class=\"text-xs text-base-content/55\">Type</th><th class=\"text-xs text-base-content/55\">Parent ID</th><th class=\"text-xs text-base-content/55\">Payload</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -5,7 +5,7 @@ import (
 )
 
 templ ViewPipelineRunContent(steps any) {
-	<div class="card bg-base-100 shadow-sm" data-testid="view-pipeline-run-content">
+	<div class="flowbot-surface" data-testid="view-pipeline-run-content">
 		if steps == nil {
 			<div class="card-body text-sm text-base-content/30">No step run data available.</div>
 		} else if stepList, ok := steps.([]*gen.PipelineStepRun); ok {

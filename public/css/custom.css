@@ -625,8 +625,8 @@ body:has(.chatagent-page) > main {
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+  box-shadow: var(--flowbot-shadow, 0 1px 2px oklch(0 0 0 / 0.04));
   font-size: 0.875rem;
   line-height: 1.4;
   width: 100%;
@@ -702,7 +702,11 @@ body:has(.chatagent-page) > main {
 
 /* Soften DaisyUI .skeleton (pipeline editor / legacy) — avoid solid base-300 blocks. */
 .flowbot-shell .skeleton {
-  background-color: color-mix(in oklab, var(--color-base-content) 5%, var(--color-base-100));
+  background-color: color-mix(
+    in oklab,
+    var(--color-base-content) 5%,
+    var(--color-base-100)
+  );
   background-image: linear-gradient(
     105deg,
     transparent 0% 40%,

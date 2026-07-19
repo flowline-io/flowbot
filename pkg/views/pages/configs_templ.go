@@ -49,7 +49,29 @@ func ConfigsPage(items []model.ConfigItem) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex items-center justify-between mb-6\"><h1 class=\"text-2xl font-bold text-base-content\">Configs</h1><div class=\"flex gap-2\"><button hx-get=\"/service/web/configs/list\" hx-target=\"#configs-table\" hx-swap=\"outerHTML\" data-testid=\"configs-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button> <button hx-get=\"/service/web/configs/new\" hx-target=\"#configs-rows\" hx-swap=\"afterbegin\" data-testid=\"configs-new\" class=\"btn btn-primary btn-sm\">New Config</button></div></div>")
+			templ_7745c5c3_Var3 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+				templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+				templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+				if !templ_7745c5c3_IsBuffer {
+					defer func() {
+						templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+						if templ_7745c5c3_Err == nil {
+							templ_7745c5c3_Err = templ_7745c5c3_BufErr
+						}
+					}()
+				}
+				ctx = templ.InitializeContext(ctx)
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/configs/list\" hx-target=\"#configs-table\" hx-swap=\"outerHTML\" data-testid=\"configs-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button> <button hx-get=\"/service/web/configs/new\" hx-target=\"#configs-rows\" hx-swap=\"afterbegin\" data-testid=\"configs-new\" class=\"btn btn-primary btn-sm\">New Config</button>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				return nil
+			})
+			templ_7745c5c3_Err = partials.PageHeader("Configs", "").Render(templ.WithChildren(ctx, templ_7745c5c3_Var3), templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

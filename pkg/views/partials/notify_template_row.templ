@@ -11,7 +11,7 @@ templ NotifyTemplateRow(item model.NotifyTemplate) {
 		data-testid={ "notify-template-" + item.TemplateID }>
 		<td class="font-mono text-sm text-base-content">{ item.TemplateID }</td>
 		<td class="text-base-content font-medium">{ item.Name }</td>
-		<td><span class="badge badge-outline badge-sm">{ item.DefaultFormat }</span></td>
+		<td><span class="flowbot-chip flowbot-chip-muted">{ item.DefaultFormat }</span></td>
 		<td class="text-base-content/70">{ fmt.Sprintf("%d", notifyTemplateOverrideCount(item)) }</td>
 		<td>
 			<div class="flex gap-1">

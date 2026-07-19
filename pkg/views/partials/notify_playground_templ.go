@@ -44,7 +44,7 @@ func NotifyPlayground(p NotifyPlaygroundParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div class=\"card bg-base-100 shadow-sm\"><div class=\"card-body gap-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div><h2 class=\"card-title text-base\">Playground</h2><p class=\"text-sm text-base-content/60\">Preview and manually send a notification to an enabled channel.</p></div><div class=\"join\"><button type=\"button\" class=\"btn btn-sm join-item\" :class=\"mode === 'template' ? 'btn-primary' : 'btn-ghost'\" @click=\"mode = 'template'\" data-testid=\"playground-mode-template\">Template</button> <button type=\"button\" class=\"btn btn-sm join-item\" :class=\"mode === 'custom' ? 'btn-primary' : 'btn-ghost'\" @click=\"mode = 'custom'\" data-testid=\"playground-mode-custom\">Custom</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div class=\"flowbot-surface\"><div class=\"card-body gap-4\"><div class=\"flex flex-wrap items-center justify-between gap-2\"><div><h2 class=\"text-base font-semibold tracking-tight m-0\">Playground</h2><p class=\"text-sm text-base-content/60\">Preview and manually send a notification to an enabled channel.</p></div><div class=\"join\"><button type=\"button\" class=\"btn btn-sm join-item\" :class=\"mode === 'template' ? 'btn-primary' : 'btn-ghost'\" @click=\"mode = 'template'\" data-testid=\"playground-mode-template\">Template</button> <button type=\"button\" class=\"btn btn-sm join-item\" :class=\"mode === 'custom' ? 'btn-primary' : 'btn-ghost'\" @click=\"mode = 'custom'\" data-testid=\"playground-mode-custom\">Custom</button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -578,7 +578,7 @@ func NotifyPlaygroundResult(p NotifyPlaygroundResultParams) templ.Component {
 			templ_7745c5c3_Var27 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div id=\"playground-result\" data-testid=\"playground-result\" class=\"card bg-base-100 shadow-sm\"><div class=\"card-body gap-3\"><div class=\"flex items-center gap-2\"><h3 class=\"font-medium\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "<div id=\"playground-result\" data-testid=\"playground-result\" class=\"flowbot-surface\"><div class=\"card-body gap-3\"><div class=\"flex items-center gap-2\"><h3 class=\"font-medium\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -608,14 +608,14 @@ func NotifyPlaygroundResult(p NotifyPlaygroundResultParams) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if p.Format != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<span class=\"badge badge-outline badge-sm\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 69, "<span class=\"flowbot-chip flowbot-chip-muted\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(p.Format)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/notify_playground.templ`, Line: 187, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/notify_playground.templ`, Line: 187, Col: 61}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -627,7 +627,7 @@ func NotifyPlaygroundResult(p NotifyPlaygroundResultParams) templ.Component {
 			}
 		}
 		if p.Success {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<span class=\"badge badge-success badge-sm\">success</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "<span class=\"flowbot-chip flowbot-chip-success\">success</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -656,7 +656,7 @@ func NotifyPlaygroundResult(p NotifyPlaygroundResultParams) templ.Component {
 			}
 		}
 		if p.Title != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Title</div><div class=\"text-sm font-medium\" data-testid=\"playground-result-title\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 75, "<div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Title</div><div class=\"text-sm font-medium\" data-testid=\"playground-result-title\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -675,7 +675,7 @@ func NotifyPlaygroundResult(p NotifyPlaygroundResultParams) templ.Component {
 			}
 		}
 		if p.Body != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<div><div class=\"text-xs uppercase text-base-content/50 mb-1\">Body</div><pre class=\"bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto\" data-testid=\"playground-result-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 77, "<div><div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Body</div><pre class=\"bg-base-300 rounded p-3 text-xs font-mono whitespace-pre-wrap overflow-x-auto\" data-testid=\"playground-result-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

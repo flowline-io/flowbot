@@ -8,12 +8,8 @@ import (
 templ HomePage(d partials.HomeDashboard) {
 	@layout.Base("Flowbot") {
 		@partials.TokenUsageScripts()
-		<div class="flex items-center justify-between mb-6">
-			<div>
-				<h1 class="text-2xl font-semibold tracking-tight text-base-content m-0">Home</h1>
-				<p class="text-sm text-base-content/60 m-0 mt-1">Operational overview for this Flowbot instance.</p>
-			</div>
-		</div>
+		@partials.PageHeader("Home", "Operational overview for this Flowbot instance.") {
+		}
 		<div data-testid="home-dashboard-loader">
 			@partials.HomeDashboardBlock(d)
 		</div>

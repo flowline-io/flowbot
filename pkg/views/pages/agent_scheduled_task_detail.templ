@@ -8,20 +8,18 @@ import (
 
 templ AgentScheduledTaskDetailPage(task model.AgentScheduledTask, runs []model.AgentScheduledTaskRun) {
 	@layout.Base(partials.AgentScheduledTaskPageTitle(task)) {
-		<div class="mb-4">
-			<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>
-		</div>
-		<div class="card bg-base-100 shadow-sm mb-6">
+		if task.Name != "" {
+			@partials.PageHeader(task.Name, task.TaskID) {
+				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>
+			}
+		} else {
+			@partials.PageHeader(task.TaskID, "") {
+				<a href="/service/web/agent-scheduled-tasks" class="btn btn-ghost btn-sm" data-testid="agent-scheduled-task-back">← Back to Scheduled Tasks</a>
+			}
+		}
+		<div class="flowbot-surface mb-6">
 			<div class="card-body">
-				<h1 class="card-title text-2xl">
-					if task.Name != "" {
-						{ task.Name }
-					} else {
-						{ task.TaskID }
-					}
-				</h1>
-				<p class="font-mono text-sm text-base-content/60">{ task.TaskID }</p>
-				<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-base-content/70 mt-2">
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-base-content/70">
 					<div>
 						@partials.AgentScheduledTaskStatePanel(task)
 					</div>

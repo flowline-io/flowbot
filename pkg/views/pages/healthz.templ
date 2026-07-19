@@ -7,12 +7,11 @@ import (
 
 templ HealthzPage(data partials.HealthzData) {
 	@layout.Base("Health — Flowbot") {
-		<div class="flex items-center justify-between mb-6">
-			<h1 class="text-2xl font-bold text-base-content">System Health</h1>
+		@partials.PageHeader("System Health", "Infrastructure status for this instance.") {
 			<span class="text-sm text-base-content/50">
 				Auto-refreshes every 30s
 			</span>
-		</div>
+		}
 		@partials.HealthzStatus(data)
 	}
 }

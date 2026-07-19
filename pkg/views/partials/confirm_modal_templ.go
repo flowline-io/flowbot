@@ -29,7 +29,7 @@ func ConfirmModal() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"confirm-modal\" class=\"modal\" data-testid=\"confirm-modal\"><div class=\"modal-box\"><h3 id=\"confirm-modal-title\" class=\"text-lg font-bold\"></h3><p id=\"confirm-modal-body\" class=\"py-4\"></p><div class=\"modal-action\"><button id=\"confirm-modal-cancel\" class=\"btn btn-ghost\" data-testid=\"confirm-modal-cancel\">Cancel</button> <button id=\"confirm-modal-confirm\" class=\"btn btn-error\" data-testid=\"confirm-modal-confirm\">Confirm</button></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"confirm-modal\" class=\"modal\" data-testid=\"confirm-modal\"><div class=\"modal-box\"><h3 id=\"confirm-modal-title\" class=\"text-lg font-semibold tracking-tight\"></h3><p id=\"confirm-modal-body\" class=\"py-4\"></p><div class=\"modal-action\"><button id=\"confirm-modal-cancel\" class=\"btn btn-ghost\" data-testid=\"confirm-modal-cancel\">Cancel</button> <button id=\"confirm-modal-confirm\" class=\"btn btn-error\" data-testid=\"confirm-modal-confirm\">Confirm</button></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

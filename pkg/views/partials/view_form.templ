@@ -3,7 +3,7 @@ package partials
 import "fmt"
 
 templ ViewFormContent(fields []any) {
-	<div class="card bg-base-100 shadow-sm" data-testid="view-form-content">
+	<div class="flowbot-surface" data-testid="view-form-content">
 		if len(fields) == 0 {
 			<div class="card-body text-sm text-base-content/30">No fields to display.</div>
 		} else {

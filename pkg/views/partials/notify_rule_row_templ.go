@@ -115,7 +115,7 @@ func NotifyRuleRow(item model.NotifyRule, templateIDs []string) templ.Component 
 			return templ_7745c5c3_Err
 		}
 		if item.Condition != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"text-xs uppercase text-base-content/50 mb-1\">Condition</div><pre class=\"bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto mb-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Condition</div><pre class=\"bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto mb-2\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -134,7 +134,7 @@ func NotifyRuleRow(item model.NotifyRule, templateIDs []string) templ.Component 
 			}
 		}
 		if item.ParamsJSON != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"text-xs uppercase text-base-content/50 mb-1\">Params</div><pre class=\"bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"text-xs text-base-content/55 text-base-content/50 mb-1\">Params</div><pre class=\"bg-base-300 rounded p-2 font-mono whitespace-pre-wrap overflow-x-auto\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

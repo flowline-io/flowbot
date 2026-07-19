@@ -292,12 +292,25 @@ Product goal: a refined **homelab ops console**, not a marketing landing page an
 
 ### Components
 
-- **Chips vs badges**: status → `.flowbot-chip` (+ `flowbot-chip-success|error|warning|muted|primary`). Metadata (scopes, capability names, ports) → plain or `font-mono` text joined with ` · `, truncated when needed — **no** flex-wrap badge walls.
-- **Empty states**: simple copy + optional primary CTA; no centered large card shell.
+- **Page header**: use `partials.PageHeader(title, subtitle)` — `text-2xl font-semibold tracking-tight` + optional subtitle; actions as children. Do not invent per-page `font-bold` / `card-title` page titles.
+- **Chips vs badges**: status → `.flowbot-chip` (+ `flowbot-chip-success|error|warning|muted|primary`). Metadata (scopes, capability names, ports) → plain or `font-mono` text joined with ` · `, truncated when needed — **no** flex-wrap badge walls. Do not use DaisyUI `badge-success|error|warning|ghost` for run/health/status.
+- **Empty states**: simple copy + optional primary CTA via `EmptyState` / `EmptyStateCTA`; no centered large card shell.
 - **Join / range tabs**: keep segmented controls; square corners via `.flowbot-shell .join` rules (not pill `rounded-full`).
-- **Navbar**: border-bottom emphasis over drop shadow; brand mark + “Flowbot” with `font-semibold tracking-tight`.
+- **Navbar**: border-bottom emphasis over drop shadow; brand mark + “Flowbot” with `font-semibold tracking-tight`; dropdown menus use `border border-base-300 shadow-sm`.
 - **Agents composer**: square-ish send button (not circular ChatGPT-style). Active session styles use teal, not purple.
 - **Avatars**: rounded square letter marks aligned with favicon tile radius language.
+- **Loading**: `partials.PanelSkeleton` (delayed soft spinner) for HTMX panel loads — not large gray DaisyUI skeleton slabs.
+
+### Visual Do / Don’t
+
+| Do | Don’t |
+|----|--------|
+| `.flowbot-surface` for tables/panels | `card bg-base-100 shadow-sm` list shells |
+| `.flowbot-chip-*` for status | `badge-success` / `badge-error` status |
+| `PageHeader` for page titles | Mixed `font-bold` / `card-title` / `text-xl` titles |
+| Teal brand + semantic status colors | Purple / indigo brand accents |
+| Clip primary aligned to `--flowbot-brand` | Clip blue `#2563eb` fork |
+| light / dark as product themes | Treating Advanced DaisyUI themes as product UI |
 
 ### Anti-patterns
 

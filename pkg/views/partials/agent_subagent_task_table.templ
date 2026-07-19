@@ -3,21 +3,21 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ AgentSubagentTaskTable(items []model.AgentSubagentTask) {
-	<div class="card bg-base-100 shadow-sm">
+	<div class="flowbot-surface">
 		<div id="agent-subagent-tasks-table"
 			data-testid="agent-subagent-tasks-table"
 			class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>
-					<th class="text-xs uppercase">ID</th>
-					<th class="text-xs uppercase">Subagent</th>
-					<th class="text-xs uppercase">Description</th>
-					<th class="text-xs uppercase">Session</th>
-					<th class="text-xs uppercase">Status</th>
-					<th class="text-xs uppercase">Started</th>
-					<th class="text-xs uppercase">Duration</th>
-					<th class="text-xs uppercase">Actions</th>
+					<th class="text-xs text-base-content/55">ID</th>
+					<th class="text-xs text-base-content/55">Subagent</th>
+					<th class="text-xs text-base-content/55">Description</th>
+					<th class="text-xs text-base-content/55">Session</th>
+					<th class="text-xs text-base-content/55">Status</th>
+					<th class="text-xs text-base-content/55">Started</th>
+					<th class="text-xs text-base-content/55">Duration</th>
+					<th class="text-xs text-base-content/55">Actions</th>
 				</tr>
 				</thead>
 				<tbody id="agent-subagent-tasks-rows">

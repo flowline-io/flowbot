@@ -1,7 +1,7 @@
 package partials
 
 templ ViewImageContent(url string, alt string) {
-	<div class="card bg-base-100 shadow-sm card-body" data-testid="view-image-content">
+	<div class="flowbot-surface card-body" data-testid="view-image-content">
 		<img src={ templ.URL(url) } alt={ alt } class="max-w-full h-auto rounded-box"/>
 	</div>
 }

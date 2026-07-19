@@ -54,7 +54,7 @@ templ ChatAgentPermissionsForm(data PermissionFormPageData) {
 										<div class="font-medium">{ field.Meta.Label }</div>
 										<div class="text-xs text-base-content/60">{ field.Meta.Description }</div>
 										if field.IsOverridden {
-											<span class="badge badge-warning badge-xs mt-1">Overridden</span>
+											<span class="flowbot-chip flowbot-chip-warning mt-1">Overridden</span>
 										}
 									</td>
 									<td>
@@ -90,14 +90,14 @@ templ ChatAgentPermissionsForm(data PermissionFormPageData) {
 			</p>
 			for _, field := range data.Fields {
 				if field.Meta.SupportsPatterns {
-					<div class="card bg-base-200/40 border border-base-300" data-testid={ "perm-pattern-" + field.Meta.Key }>
-						<div class="card-body p-4 space-y-3">
+					<div class="flowbot-surface bg-base-200/40" data-testid={ "perm-pattern-" + field.Meta.Key }>
+						<div class="p-4 space-y-3">
 							<div class="flex flex-wrap items-center gap-2">
 								<h3 class="font-medium">{ field.Meta.Label }</h3>
 								if field.IsOverridden {
-									<span class="badge badge-warning badge-xs">Overridden</span>
+									<span class="flowbot-chip flowbot-chip-warning">Overridden</span>
 								} else {
-									<span class="badge badge-ghost badge-xs">Inheriting default</span>
+									<span class="flowbot-chip flowbot-chip-muted">Inheriting default</span>
 								}
 							</div>
 							<p class="text-xs text-base-content/60">{ field.Meta.Description }</p>

@@ -12,17 +12,17 @@ type RelationDetailParams struct {
 }
 
 templ RelationDetail(p RelationDetailParams) {
-	<div class="card bg-base-100 shadow-sm sticky top-4">
+	<div class="flowbot-surface sticky top-4">
 		<div class="card-body p-4">
 			if p.Type == "node" {
-				<h3 class="card-title text-sm">Resource Node</h3>
+				<h3 class="text-sm font-semibold tracking-tight m-0">Resource Node</h3>
 				<div class="mt-2 space-y-1 text-sm">
 					<div><span class="font-medium">Capability:</span> { p.Node.Capability }</div>
 					<div><span class="font-medium">App:</span> { p.Node.App }</div>
 					<div><span class="font-medium">Entity ID:</span> <code class="text-xs">{ p.Node.EntityID }</code></div>
 				</div>
 			} else if p.Type == "edge" {
-				<h3 class="card-title text-sm">Relation Edge</h3>
+				<h3 class="text-sm font-semibold tracking-tight m-0">Relation Edge</h3>
 				<div class="mt-2 space-y-1 text-sm">
 					<div><span class="font-medium">Pipeline:</span> { p.Edge.PipelineName }</div>
 					<div><span class="font-medium">Source:</span> { p.Edge.SourceCapability } #{ p.Edge.SourceEntityID } ({ p.Edge.SourceApp })</div>

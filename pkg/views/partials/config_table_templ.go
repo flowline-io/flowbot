@@ -31,7 +31,7 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\"><div id=\"configs-table\" data-testid=\"configs-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">ID</th><th class=\"text-xs uppercase\">UID</th><th class=\"text-xs uppercase\">Topic</th><th class=\"text-xs uppercase\">Key</th><th class=\"text-xs uppercase\">Value</th><th class=\"text-xs uppercase\">Updated</th><th class=\"text-xs uppercase\">Actions</th></tr></thead> <tbody id=\"configs-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\"><div id=\"configs-table\" data-testid=\"configs-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">ID</th><th class=\"text-xs text-base-content/55\">UID</th><th class=\"text-xs text-base-content/55\">Topic</th><th class=\"text-xs text-base-content/55\">Key</th><th class=\"text-xs text-base-content/55\">Value</th><th class=\"text-xs text-base-content/55\">Updated</th><th class=\"text-xs text-base-content/55\">Actions</th></tr></thead> <tbody id=\"configs-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -42,12 +42,20 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			}
 		}
 		if len(items) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"configs-empty\"><td colspan=\"7\" class=\"text-center text-base-content/50\">No configs found.</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<tr id=\"configs-empty\"><td colspan=\"7\" class=\"p-0\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = EmptyState("No configs found.").Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</tbody></table></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</tbody></table></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
