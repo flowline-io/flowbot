@@ -175,6 +175,7 @@ func newHTTPServer() *fiber.App {
 				healthcheck.ReadinessEndpoint,
 				healthcheck.StartupEndpoint,
 				"/",
+				"/metrics",
 				"/service/user/metrics",
 			}
 			return utils.Contains(skipPaths, c.Path())
