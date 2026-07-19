@@ -184,7 +184,6 @@ tasks:
     desc: Generate Swagger API documentation
     cmds:
       - go tool swag init -g cmd/main.go -o ./docs/api
-      - go tool swag fmt -g cmd/main.go
 
   skills:
     desc: Generate SKILL.md under docs/skills (server imports them on startup)
@@ -209,11 +208,6 @@ tasks:
     desc: Create snapshot release
     cmds:
       - go tool goreleaser release --snapshot --clean
-
-  air:
-    desc: Run with live reload using air
-    cmds:
-      - air -c .air.toml
 
   fix:
     desc: Using go fix to modernize Go code

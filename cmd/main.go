@@ -6,6 +6,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server"
 	"github.com/flowline-io/flowbot/pkg/flog"
+
 	// Importing automaxprocs automatically adjusts GOMAXPROCS.
 	_ "go.uber.org/automaxprocs"
 	"go.uber.org/fx"

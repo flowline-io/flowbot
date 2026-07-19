@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"strings"
+
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
@@ -11,7 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"strings"
 )
 
 // ReasonConfirmRequiredPlatform is returned when ActionAsk cannot be resolved without a ConfirmGate.

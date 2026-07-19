@@ -41,11 +41,12 @@ const (
 	sandboxAgentUID = 1000
 	sandboxAgentGID = 1000
 	// cliConfigWorldReadable is used when chown to the sandbox agent fails (e.g. non-root host).
-	cliConfigWorldReadable = 0o644
-	cliConfigOwnerOnly     = 0o600
+	// Legacy octal literals (0644) are used instead of 0o644 so swag can evaluate these consts.
+	cliConfigWorldReadable = 0644
+	cliConfigOwnerOnly     = 0600
 	// Directory modes must include the execute bit so the agent can traverse into the config dir.
-	cliConfigDirWorldAccessible = 0o755
-	cliConfigDirOwnerOnly       = 0o700
+	cliConfigDirWorldAccessible = 0755
+	cliConfigDirOwnerOnly       = 0700
 )
 
 // Config configures Docker sandbox execution.

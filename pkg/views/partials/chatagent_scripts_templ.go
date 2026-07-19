@@ -5,10 +5,11 @@ package partials
 
 //lint:file-ignore SA4006 This context is only used if a nested component is present.
 
-import "github.com/a-h/templ"
-import templruntime "github.com/a-h/templ/runtime"
-
-import "github.com/flowline-io/flowbot/version"
+import (
+	"github.com/a-h/templ"
+	templruntime "github.com/a-h/templ/runtime"
+	"github.com/flowline-io/flowbot/version"
+)
 
 // ChatAgentComposerScripts loads JS for the agents home composer (create session).
 func ChatAgentComposerScripts() templ.Component {
