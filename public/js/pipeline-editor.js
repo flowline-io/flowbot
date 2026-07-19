@@ -162,7 +162,13 @@
         return this.triggers[idx] ?? null;
       },
 
-      // CSP-safe helpers: Alpine CSP parser rejects ?. / ?? / spread in templates.
+      // CSP-safe: expose as a getter property for x-for (prefer `in enabledTriggers`, not a call).
+      get enabledTriggers() {
+        return this.triggers.filter(function (tr) {
+          return tr.enabled;
+        });
+      },
+
       versionLabel(v) {
         if (!v || v.version == null) return '';
         return 'v' + v.version;
@@ -366,7 +372,23 @@
         return p?.type === 'map[string]any';
       },
 
+      // True when value is a pipeline {{...}} expression (not a schema default placeholder).
+      isPipelineExpr(value) {
+        return (
+          typeof value === 'string' &&
+          value.indexOf('{{') !== -1 &&
+          value.indexOf('}}') !== -1
+        );
+      },
+
+      numberParamPlaceholder(p) {
+        return p && p.required ? '0 or {{expr}}' : 'optional';
+      },
+
       isParamTemplateValue(value, type) {
+        if (this.isPipelineExpr(value)) {
+          return false;
+        }
         const def = this.typeDefaultValue(type);
         switch (type) {
           case 'string':
@@ -467,6 +489,9 @@
         if (value === undefined || value === null) {
           return true;
         }
+        if (this.isPipelineExpr(value)) {
+          return false;
+        }
         if (this.isParamTemplateValue(value, type)) {
           return true;
         }
@@ -495,6 +520,9 @@
       },
 
       coerceParamValue(value, type) {
+        if (this.isPipelineExpr(value)) {
+          return value;
+        }
         switch (type) {
           case 'int':
             return parseInt(value, 10);
@@ -563,7 +591,17 @@
         if (val === undefined || val === null || val === '') {
           return '';
         }
+        if (this.isPipelineExpr(val)) {
+          return String(val);
+        }
         if (this.isParamTemplateValue(val, pDef?.type || 'int')) {
+          return '';
+        }
+        if (typeof val === 'number' && Number.isFinite(val)) {
+          return String(val);
+        }
+        const num = Number(val);
+        if (Number.isNaN(num)) {
           return '';
         }
         return String(val);
@@ -574,6 +612,16 @@
         const paramType = type || pDef?.type || 'int';
         if (val === '' || val === null || val === undefined) {
           this.setStepParam(idx, name, '', paramType, pDef?.required ?? false);
+          return;
+        }
+        if (this.isPipelineExpr(val)) {
+          this.setStepParam(
+            idx,
+            name,
+            String(val),
+            paramType,
+            pDef?.required ?? false,
+          );
           return;
         }
         this.setStepParam(idx, name, val, paramType, pDef?.required ?? false);
@@ -714,6 +762,9 @@
       isParamValueMissing(val, type) {
         if (val === undefined || val === null) {
           return true;
+        }
+        if (this.isPipelineExpr(val)) {
+          return false;
         }
         if (this.isParamTemplateValue(val, type)) {
           return true;
@@ -1136,16 +1187,26 @@
         const template = '{{' + path + '}}';
 
         if (paramName) {
-          const current = this.getStepParamString(stepIdx, paramName);
+          const pDef = this.getParamDef(stepIdx, paramName);
+          const isNumber =
+            pDef && (pDef.type === 'int' || pDef.type === 'int64');
+          const current = isNumber
+            ? this.getStepParamNumber(stepIdx, paramName)
+            : this.getStepParamString(stepIdx, paramName);
           const input = document.querySelector(
             '[data-param-field="' + paramName + '"]',
           );
+          let next;
           if (input && typeof input.selectionStart === 'number') {
             const start = input.selectionStart;
             const end = input.selectionEnd;
-            const next =
+            next =
               current.substring(0, start) + template + current.substring(end);
-            this.setStepParamString(stepIdx, paramName, next);
+            if (isNumber) {
+              this.setStepParamNumber(stepIdx, paramName, next, pDef.type);
+            } else {
+              this.setStepParamString(stepIdx, paramName, next);
+            }
             setTimeout(() => {
               input.focus();
               input.setSelectionRange(
@@ -1154,7 +1215,12 @@
               );
             }, 50);
           } else {
-            this.setStepParamString(stepIdx, paramName, current + template);
+            next = current + template;
+            if (isNumber) {
+              this.setStepParamNumber(stepIdx, paramName, next, pDef.type);
+            } else {
+              this.setStepParamString(stepIdx, paramName, next);
+            }
           }
         } else {
           const step = this.steps[stepIdx];

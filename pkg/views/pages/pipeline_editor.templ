@@ -3,13 +3,14 @@ package pages
 import (
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
+	"github.com/flowline-io/flowbot/version"
 )
 
 templ PipelineEditorPage(name string) {
 	@layout.Base("Pipeline: " + name) {
 		<script src="/static/vendor/js-yaml.min.js"></script>
 		<script src="/static/vendor/diff.min.js"></script>
-		<script src="/static/js/pipeline-editor.js"></script>
+		<script src={ "/static/js/pipeline-editor.js?v=" + version.Buildtags }></script>
 		<div x-data="pipelineEditor" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
 			<!-- Soft loading cue (Alpine); avoid large gray skeleton slabs -->
 			<div x-show="loading" data-testid="pipeline-loading">
@@ -405,7 +406,7 @@ templ PipelineEditorPage(name string) {
 															:data-testid="'btn-clear-param-' + p.name">Clear</button>
 													</div>
 													<p x-show="p.description" class="text-xs text-base-content/50 mb-2" x-text="p.description"></p>
-													<div x-show="isParamTypeString(p)">
+													<template x-if="isParamTypeString(p)">
 														<div class="flex gap-2 items-start">
 															<textarea rows="3"
 																:value="getStepParamString(selectedStepIndex(), p.name)"
@@ -419,49 +420,62 @@ templ PipelineEditorPage(name string) {
 																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
 																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
 														</div>
-													</div>
-													<div x-show="isParamTypeNumber(p)">
-														<input type="number"
-															:value="getStepParamNumber(selectedStepIndex(), p.name)"
-															@input="setStepParamNumber(selectedStepIndex(), p.name, $event.target.value, p.type)"
-															class="input input-bordered input-sm w-full font-mono"
-															:placeholder="p.required ? '0' : 'optional'"
-															:data-param-field="p.name"
-															:data-testid="'param-field-' + p.name">
-													</div>
-													<div x-show="isParamTypeBool(p)">
-														<select
-															:value="getStepParamBoolMode(selectedStepIndex(), p.name)"
-															@change="setStepParamBoolMode(selectedStepIndex(), p.name, $event.target.value)"
-															class="select select-bordered select-sm w-full"
-															:data-param-field="p.name"
-															:data-testid="'param-field-' + p.name">
-															<option value="unset">Not set</option>
-															<option value="true">true</option>
-															<option value="false">false</option>
-														</select>
-													</div>
-													<div x-show="isParamTypeStringList(p)">
-														<textarea rows="3"
-															:value="getStepParamStringList(selectedStepIndex(), p.name)"
-															@input="setStepParamStringList(selectedStepIndex(), p.name, $event.target.value)"
-															class="textarea textarea-bordered textarea-sm w-full font-mono"
-															placeholder="comma-separated values"
-															:data-param-field="p.name"
-															:data-testid="'param-field-' + p.name"></textarea>
-													</div>
-													<div x-show="isParamTypeMap(p)">
-														<textarea rows="4"
-															:value="getStepParamMapJSON(selectedStepIndex(), p.name)"
-															@input="setStepParamMapJSON(selectedStepIndex(), p.name, $event.target.value)"
-															class="textarea textarea-bordered textarea-sm w-full font-mono"
-															:class="isParamFieldError(selectedStepIndex(), p.name) ? 'textarea-error' : ''"
-															placeholder="{}"
-															:data-param-field="p.name"
-															:data-testid="'param-field-' + p.name"></textarea>
-														<p x-show="isParamFieldError(selectedStepIndex(), p.name)"
-															class="text-xs text-error mt-1">Invalid JSON object</p>
-													</div>
+													</template>
+													<template x-if="isParamTypeNumber(p)">
+														<div class="flex gap-2 items-start">
+															<input type="text"
+																inputmode="numeric"
+																:value="getStepParamNumber(selectedStepIndex(), p.name)"
+																@input="setStepParamNumber(selectedStepIndex(), p.name, $event.target.value, p.type)"
+																class="input input-bordered input-sm w-full font-mono"
+																:placeholder="numberParamPlaceholder(p)"
+																:data-param-field="p.name"
+																:data-testid="'param-field-' + p.name">
+															<button type="button"
+																@click="openVariablePicker(selectedStepIndex(), p.name)"
+																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
+														</div>
+													</template>
+													<template x-if="isParamTypeBool(p)">
+														<div>
+															<select
+																:value="getStepParamBoolMode(selectedStepIndex(), p.name)"
+																@change="setStepParamBoolMode(selectedStepIndex(), p.name, $event.target.value)"
+																class="select select-bordered select-sm w-full"
+																:data-param-field="p.name"
+																:data-testid="'param-field-' + p.name">
+																<option value="unset">Not set</option>
+																<option value="true">true</option>
+																<option value="false">false</option>
+															</select>
+														</div>
+													</template>
+													<template x-if="isParamTypeStringList(p)">
+														<div>
+															<textarea rows="3"
+																:value="getStepParamStringList(selectedStepIndex(), p.name)"
+																@input="setStepParamStringList(selectedStepIndex(), p.name, $event.target.value)"
+																class="textarea textarea-bordered textarea-sm w-full font-mono"
+																placeholder="comma-separated values"
+																:data-param-field="p.name"
+																:data-testid="'param-field-' + p.name"></textarea>
+														</div>
+													</template>
+													<template x-if="isParamTypeMap(p)">
+														<div>
+															<textarea rows="4"
+																:value="getStepParamMapJSON(selectedStepIndex(), p.name)"
+																@input="setStepParamMapJSON(selectedStepIndex(), p.name, $event.target.value)"
+																class="textarea textarea-bordered textarea-sm w-full font-mono"
+																:class="isParamFieldError(selectedStepIndex(), p.name) ? 'textarea-error' : ''"
+																placeholder="{}"
+																:data-param-field="p.name"
+																:data-testid="'param-field-' + p.name"></textarea>
+															<p x-show="isParamFieldError(selectedStepIndex(), p.name)"
+																class="text-xs text-error mt-1">Invalid JSON object</p>
+														</div>
+													</template>
 												</div>
 											</template>
 										</div>
@@ -517,7 +531,7 @@ templ PipelineEditorPage(name string) {
 								<label class="block text-sm font-medium mb-1">Trigger Source</label>
 								<select x-model="testTriggerSource"
 									class="select select-bordered w-full mb-3" data-testid="test-trigger-select">
-									<template x-for="t in triggers.filter(tr => tr.enabled)" :key="t.type">
+									<template x-for="t in enabledTriggers" :key="t.type">
 										<option :value="t.type" x-text="t.type"></option>
 									</template>
 								</select>

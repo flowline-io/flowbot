@@ -267,7 +267,7 @@ Rules:
 - Undo/redo stack in Alpine state, persisted to server via `PUT /pipelines/:name`.
 - Trigger cards and step cards are templ partials rendered with Alpine directives (`:class`, `@click`, `x-text`).
 - Alpine.js loaded from local vendor: `/static/vendor/alpine.csp.min.js`.
-- **CSP-safe expressions only** in templates: no `?.`, `??`, object/array literals, or spread (`...`) inside `x-text` / `x-for` / `@click` attributes. Put that logic in `pipeline-editor.js` helpers instead.
+- **CSP-safe expressions only** in templates: no `?.`, `??`, arrow functions (`=>`), object/array literals, or spread (`...`) inside `x-text` / `x-for` / `@click` attributes. Put that logic in `pipeline-editor.js` helpers instead. Prefer **getter/data properties** for `x-for` sources (e.g. `x-for="t in enabledTriggers"`) over method calls when possible; load page Alpine scripts with `?v=` + `version.Buildtags` so browsers do not keep stale helpers.
 
 ## Visual design (ops console)
 
