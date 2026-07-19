@@ -18,7 +18,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 					<tr>
 						<th>Name</th>
 						<th>Status</th>
-						<th>Runtime</th>
+						<th class="text-center">Runtime</th>
 						<th>Last Run</th>
 						<th class="text-right">Actions</th>
 					</tr>
@@ -38,13 +38,9 @@ templ PipelineListTable(entries []PipelineListEntry) {
 									<span class="flowbot-chip flowbot-chip-muted">Draft</span>
 								}
 							</td>
-							<td>
+							<td class="text-center">
 								if PipelineIsPublished(entry.Definition) {
-									if entry.Enabled {
-										<span class="badge badge-success badge-outline" data-testid={ "pipeline-runtime-" + entry.Definition.Name }>Active</span>
-									} else {
-										<span class="badge badge-warning badge-outline" data-testid={ "pipeline-runtime-" + entry.Definition.Name }>Paused</span>
-									}
+									@StatusIcon(PipelineRuntimeStatusIcon(entry.Enabled), "pipeline-runtime-"+entry.Definition.Name)
 								} else {
 									<span class="text-base-content/30 text-xs">—</span>
 								}

@@ -10,18 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-// agentSessionStateBadgeClass returns DaisyUI badge classes for a display state label.
-func agentSessionStateBadgeClass(state string) string {
-	switch state {
-	case "Active":
-		return "badge badge-success badge-sm"
-	case "Closed":
-		return "badge badge-ghost badge-sm"
-	default:
-		return "badge badge-warning badge-sm"
-	}
-}
-
 // agentSessionDetailURL builds the detail page URL for a session flag.
 func agentSessionDetailURL(flag string) templ.SafeURL {
 	return templ.URL("/service/web/agent-sessions/" + flag)

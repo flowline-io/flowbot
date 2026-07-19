@@ -25,7 +25,7 @@ templ AgentSessionRow(item model.AgentSession) {
 			</a>
 		</td>
 		<td class="font-mono text-xs">{ item.UID }</td>
-		<td><span class={ agentSessionStateBadgeClass(item.State) }>{ item.State }</span></td>
+		<td class="text-center">@StatusIcon(SessionStateStatusIcon(item.State), "")</td>
 		<td class="font-mono text-xs max-w-32 truncate">
 			if item.LeafID != "" {
 				{ item.LeafID }

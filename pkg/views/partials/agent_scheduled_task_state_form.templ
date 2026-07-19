@@ -8,7 +8,9 @@ templ AgentScheduledTaskStatePanel(task model.AgentScheduledTask) {
 	<div id="agent-scheduled-task-state-panel" data-testid="agent-scheduled-task-state-panel">
 		<div>
 			<span class="text-base-content/50">State:</span>
-			<span class={ AgentScheduledTaskStateBadgeClass(task.State) + " ml-1" }>{ task.State }</span>
+			<span class="ml-1 inline-flex align-middle">
+				@StatusIcon(ScheduledTaskStateStatusIcon(task.State), "")
+			</span>
 		</div>
 		<form
 			class="flex flex-wrap items-end gap-2 mt-2"

@@ -37,8 +37,8 @@ templ NotifyRuleRow(item model.NotifyRule, templateIDs []string) {
 		</td>
 		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.EventPattern, 30) }</td>
 		<td class="text-base-content/70 font-mono text-sm">{ truncateString(item.ChannelPattern, 30) }</td>
-		<td>
-			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		<td class="text-center">
+			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
 		<td>
 			<div class="flex gap-1">

@@ -39,36 +39,6 @@ func AgentScheduledTaskPageTitle(task model.AgentScheduledTask) string {
 	return "Scheduled Task " + task.TaskID + " — Flowbot"
 }
 
-// AgentScheduledTaskStateBadgeClass returns DaisyUI badge classes for task state.
-func AgentScheduledTaskStateBadgeClass(state string) string {
-	switch state {
-	case "active":
-		return "badge badge-success badge-sm"
-	case "paused":
-		return "badge badge-warning badge-sm"
-	case "completed":
-		return "badge badge-info badge-sm"
-	case "failed", "cancelled", "missed":
-		return "badge badge-error badge-sm"
-	default:
-		return "badge badge-ghost badge-sm"
-	}
-}
-
-// AgentScheduledTaskRunStateBadgeClass returns DaisyUI badge classes for run state.
-func AgentScheduledTaskRunStateBadgeClass(state string) string {
-	switch state {
-	case "completed":
-		return "badge badge-success badge-sm"
-	case "running":
-		return "badge badge-warning badge-sm"
-	case "failed":
-		return "badge badge-error badge-sm"
-	default:
-		return "badge badge-ghost badge-sm"
-	}
-}
-
 // AgentScheduledTaskKindLabel returns a user-friendly label for schedule kind.
 func AgentScheduledTaskKindLabel(kind string) string {
 	switch kind {

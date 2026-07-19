@@ -122,13 +122,6 @@ func actionBadgeClass(action string) string {
 	}
 }
 
-func enabledBadgeClass(enabled bool) string {
-	if enabled {
-		return "badge badge-success"
-	}
-	return "badge badge-ghost"
-}
-
 func enabledText(enabled bool) string {
 	if enabled {
 		return "Enabled"

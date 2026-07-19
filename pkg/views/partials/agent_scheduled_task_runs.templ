@@ -13,7 +13,7 @@ templ AgentScheduledTaskRunsTable(items []model.AgentScheduledTaskRun) {
 					<thead>
 						<tr>
 							<th class="text-xs uppercase">Run ID</th>
-							<th class="text-xs uppercase">State</th>
+							<th class="text-xs uppercase text-center">State</th>
 							<th class="text-xs uppercase">Run Session</th>
 							<th class="text-xs uppercase">Started</th>
 							<th class="text-xs uppercase">Finished</th>
@@ -25,7 +25,7 @@ templ AgentScheduledTaskRunsTable(items []model.AgentScheduledTaskRun) {
 						for _, item := range items {
 							<tr class="hover">
 								<td class="font-mono text-xs">{ item.RunID }</td>
-								<td><span class={ AgentScheduledTaskRunStateBadgeClass(item.State) }>{ item.State }</span></td>
+								<td class="text-center">@StatusIcon(ScheduledTaskRunStateStatusIcon(item.State), "")</td>
 								<td class="font-mono text-xs">
 									if item.RunSessionID != "" {
 										<a href={ agentSessionDetailURL(item.RunSessionID) } class="link link-hover">{ item.RunSessionID }</a>

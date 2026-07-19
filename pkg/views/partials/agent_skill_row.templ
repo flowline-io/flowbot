@@ -9,8 +9,8 @@ templ AgentSkillRow(item model.AgentSkill) {
 		<td class="text-base-content font-mono text-sm">{ item.Flag }</td>
 		<td class="text-base-content font-medium">{ item.Name }</td>
 		<td class="text-base-content/70 max-w-xs truncate">{ agentSkillDescriptionPreview(item.Description) }</td>
-		<td>
-			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		<td class="text-center">
+			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
 		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
 		<td>

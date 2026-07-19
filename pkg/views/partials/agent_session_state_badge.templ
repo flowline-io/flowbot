@@ -1,5 +1,6 @@
 package partials
 
+// AgentSessionStateBadge renders a session lifecycle state as a tooltip icon.
 templ AgentSessionStateBadge(state string) {
-	<span class={ agentSessionStateBadgeClass(state) }>{ state }</span>
+	@StatusIcon(SessionStateStatusIcon(state), "")
 }

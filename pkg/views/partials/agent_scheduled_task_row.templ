@@ -26,7 +26,7 @@ templ AgentScheduledTaskRow(item model.AgentScheduledTask) {
 		</td>
 		<td>{ AgentScheduledTaskKindLabel(item.ScheduleKind) }</td>
 		<td class="font-mono text-xs">{ AgentScheduledTaskScheduleSummary(item) }</td>
-		<td><span class={ AgentScheduledTaskStateBadgeClass(item.State) }>{ item.State }</span></td>
+		<td class="text-center">@StatusIcon(ScheduledTaskStateStatusIcon(item.State), "")</td>
 		<td class="text-xs whitespace-nowrap">{ AgentScheduledTaskTimeOrDash(item.NextRunAt) }</td>
 		<td class="text-xs whitespace-nowrap">{ AgentScheduledTaskTimeOrDash(item.LastRunAt) }</td>
 		<td class="text-xs whitespace-nowrap">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>

@@ -13,8 +13,8 @@ templ NotifyChannelRow(item model.NotifyChannel) {
 			<span class="badge badge-outline">{ item.Protocol }</span>
 		</td>
 		<td class="text-base-content/50 font-mono text-xs max-w-xs truncate">{ item.URI }</td>
-		<td>
-			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		<td class="text-center">
+			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
 		<td>
 			<div class="flex gap-1">

@@ -10,8 +10,8 @@ templ AgentSubagentRow(item model.AgentSubagent) {
 		<td class="text-base-content font-medium">{ item.Name }</td>
 		<td class="text-base-content/70 max-w-xs truncate">{ agentSubagentDescriptionPreview(item.Description) }</td>
 		<td class="text-base-content/70 font-mono text-sm">{ agentSubagentModelLabel(item.Model) }</td>
-		<td>
-			<span class={ enabledBadgeClass(item.Enabled) }>{ enabledText(item.Enabled) }</span>
+		<td class="text-center">
+			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
 		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
 		<td>

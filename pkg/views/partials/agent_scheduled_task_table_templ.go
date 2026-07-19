@@ -33,7 +33,7 @@ func AgentScheduledTaskTable(items []model.AgentScheduledTask) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"agent-scheduled-tasks-table\" data-testid=\"agent-scheduled-tasks-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Task ID</th><th class=\"text-xs uppercase\">Kind</th><th class=\"text-xs uppercase\">Schedule</th><th class=\"text-xs uppercase\">State</th><th class=\"text-xs uppercase\">Next Run</th><th class=\"text-xs uppercase\">Last Run</th><th class=\"text-xs uppercase\">Updated</th></tr></thead> <tbody id=\"agent-scheduled-tasks-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-sm\" id=\"agent-scheduled-tasks-table\" data-testid=\"agent-scheduled-tasks-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs uppercase\">Name</th><th class=\"text-xs uppercase\">Task ID</th><th class=\"text-xs uppercase\">Kind</th><th class=\"text-xs uppercase\">Schedule</th><th class=\"text-xs uppercase text-center\">State</th><th class=\"text-xs uppercase\">Next Run</th><th class=\"text-xs uppercase\">Last Run</th><th class=\"text-xs uppercase\">Updated</th></tr></thead> <tbody id=\"agent-scheduled-tasks-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
