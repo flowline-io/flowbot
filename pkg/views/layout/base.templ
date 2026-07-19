@@ -109,13 +109,15 @@ templ Base(title string) {
 							<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
 						</button>
 						<ul x-show="open" x-cloak @click.outside="open = false" class="absolute right-0 top-full menu bg-base-100 rounded-box shadow-sm w-40 z-50 mt-1 p-1 border border-base-300">
-							<template x-for="t in themes" :key="t.id">
-								<li><button type="button" @click="setTheme(t.id)" :class="theme === t.id && 'active'" x-text="t.label"></button></li>
-							</template>
+							<li><button type="button" @click="setTheme('light')" :class="theme === 'light' ? 'active' : ''">Light</button></li>
+							<li><button type="button" @click="setTheme('dark')" :class="theme === 'dark' ? 'active' : ''">Dark</button></li>
 							<li class="menu-title text-xs pt-2">Advanced</li>
-							<template x-for="t in advanced" :key="t.id">
-								<li><button type="button" @click="setTheme(t.id)" :class="theme === t.id && 'active'" x-text="t.label"></button></li>
-							</template>
+							<li><button type="button" @click="setTheme('cupcake')" :class="theme === 'cupcake' ? 'active' : ''">Cupcake</button></li>
+							<li><button type="button" @click="setTheme('synthwave')" :class="theme === 'synthwave' ? 'active' : ''">Synthwave</button></li>
+							<li><button type="button" @click="setTheme('cyberpunk')" :class="theme === 'cyberpunk' ? 'active' : ''">Cyberpunk</button></li>
+							<li><button type="button" @click="setTheme('forest')" :class="theme === 'forest' ? 'active' : ''">Forest</button></li>
+							<li><button type="button" @click="setTheme('dracula')" :class="theme === 'dracula' ? 'active' : ''">Dracula</button></li>
+							<li><button type="button" @click="setTheme('nord')" :class="theme === 'nord' ? 'active' : ''">Nord</button></li>
 						</ul>
 					</div>
 				</div>

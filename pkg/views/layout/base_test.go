@@ -65,6 +65,31 @@ func TestBaseLayout(t *testing.T) {
 				}
 			},
 		},
+		{
+			name: "theme picker uses static CSP-safe bindings",
+			body: templ.NopComponent,
+			check: func(t *testing.T, html string) {
+				t.Helper()
+				for _, want := range []string{
+					`setTheme('light')`,
+					`:class="theme === 'light' ? 'active' : ''"`,
+					`setTheme('nord')`,
+				} {
+					if !strings.Contains(html, want) {
+						t.Fatalf("want %q in theme picker", want)
+					}
+				}
+				for _, absent := range []string{
+					`theme === t.id`,
+					`themeClass(t.id)`,
+					`x-for="t in themes"`,
+				} {
+					if strings.Contains(html, absent) {
+						t.Fatalf("CSP Alpine cannot use %q", absent)
+					}
+				}
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

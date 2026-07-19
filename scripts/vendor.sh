@@ -6,7 +6,7 @@ set -euo pipefail
 #
 # Pinned versions (update these to bump dependencies):
 HTMX_VERSION=2.0.4
-ALPINE_VERSION=3.14.9
+ALPINE_VERSION=3.15.12
 JS_YAML_VERSION=4.1.0
 DAISYUI_VERSION=5.0.9
 

@@ -5,18 +5,6 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('themePicker', () => ({
     theme: 'light',
     open: false,
-    themes: [
-      { id: 'light', label: 'Light' },
-      { id: 'dark', label: 'Dark' },
-    ],
-    advanced: [
-      { id: 'cupcake', label: 'Cupcake' },
-      { id: 'synthwave', label: 'Synthwave' },
-      { id: 'cyberpunk', label: 'Cyberpunk' },
-      { id: 'forest', label: 'Forest' },
-      { id: 'dracula', label: 'Dracula' },
-      { id: 'nord', label: 'Nord' },
-    ],
     setTheme(name) {
       document.documentElement.setAttribute('data-theme', name);
       localStorage.setItem('flowbot-theme', name);

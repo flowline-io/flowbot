@@ -15,7 +15,7 @@
 - Config `${ENV}` expansion for secrets; `http.trusted_proxies` for X-Forwarded-For trust.
 - `/readyz` probes PostgreSQL + Redis and fails during shutdown.
 - Optional `retention.data_events_days` cleanup (cascades related pipeline/outbox history); CLI aliases `karakeep`/`miniflux`/`kanboard`/`gitea`.
-- Prebuilt Tailwind/DaisyUI CSS committed as `public/css/app.css` (no in-repo npm/`node_modules`); Alpine CSP build (no CSP `unsafe-eval`).
+- Prebuilt Tailwind/DaisyUI CSS committed as `public/css/app.css` (no in-repo npm/`node_modules`); Alpine CSP `@alpinejs/csp` 3.15.12 (expression-capable CSP build, no `unsafe-eval`).
 
 ### Changed
 
