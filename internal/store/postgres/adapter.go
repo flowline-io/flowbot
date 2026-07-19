@@ -54,6 +54,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
@@ -2119,8 +2120,12 @@ func (a *adapter) BehaviorList(ctx context.Context, uid types.Uid) ([]*gen.Behav
 }
 
 func (a *adapter) BehaviorIncrease(ctx context.Context, uid types.Uid, flag string, number int) error {
+	delta, ok := utils.IntToInt32(number)
+	if !ok {
+		return fmt.Errorf("postgres: behaviorincrease: count delta out of range")
+	}
 	u := a.client.Behavior.Update().Where(behavior.UID(uid.String()), behavior.FlagEQ(flag))
-	u = u.AddCount(int32(number)).SetUpdatedAt(time.Now())
+	u = u.AddCount(delta).SetUpdatedAt(time.Now())
 	_, err := u.Save(ctx)
 	if err != nil {
 		if gen.IsNotFound(err) {
@@ -2418,9 +2423,13 @@ func (a *adapter) GetCounterByFlag(ctx context.Context, uid types.Uid, topic, fl
 }
 
 func (a *adapter) record(ctx context.Context, id, digit int64) error {
+	d, ok := utils.Int64ToInt32(digit)
+	if !ok {
+		return fmt.Errorf("postgres: counterrecord: digit out of range")
+	}
 	_, err := a.client.CounterRecord.Create().
 		SetCounterID(id).
-		SetDigit(int32(digit)).
+		SetDigit(d).
 		SetCreatedAt(time.Now()).
 		Save(ctx)
 	if err != nil {

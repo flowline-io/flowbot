@@ -129,6 +129,8 @@ func onlineStatus(msg protocol.Event) {
 	key := cache.NewKey("online", "user", med.UserId)
 	_, ok, _ = cacheStore.Get(ctx, key)
 	if !ok {
-		cacheStore.Set(ctx, key, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLSession)
+		if err := cacheStore.Set(ctx, key, strconv.FormatInt(time.Now().Unix(), 10), cache.TTLSession); err != nil {
+			flog.Debug("online status set: %v", err)
+		}
 	}
 }

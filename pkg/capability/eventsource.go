@@ -166,7 +166,9 @@ func (m *EventSourceManager) Stop(ctx context.Context) error {
 		}
 	}
 	if m.pool != nil {
-		m.pool.ReleaseTimeout(30 * time.Second)
+		if err := m.pool.ReleaseTimeout(30 * time.Second); err != nil {
+			flog.Warn("event_source: pool release: %v", err)
+		}
 	}
 	return nil
 }

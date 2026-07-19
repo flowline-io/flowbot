@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	wasi "github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
 
 	"github.com/flowline-io/flowbot/pkg/plugin"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // WasmRunner implements plugin.Runner using wazero for in-process wasm execution.
@@ -175,10 +177,14 @@ func (r *WasmRunner) Stop(ctx context.Context) error {
 	}
 
 	if mod := r.instance.Load(); mod != nil {
-		(*mod).Close(ctx)
+		if err := (*mod).Close(ctx); err != nil {
+			return fmt.Errorf("wasm stop: close instance: %w", err)
+		}
 	}
 	if r.compiled != nil {
-		r.compiled.Close(ctx)
+		if err := r.compiled.Close(ctx); err != nil {
+			return fmt.Errorf("wasm stop: close compiled module: %w", err)
+		}
 	}
 	return r.runtime.Close(ctx)
 }
@@ -308,5 +314,13 @@ func parseMemBytes(s string) (uint32, error) {
 	if err != nil {
 		return 0, fmt.Errorf("parse memory size %q: %w", s, err)
 	}
-	return uint32(v * mult), nil
+	if mult != 0 && v > math.MaxUint32/mult {
+		return 0, fmt.Errorf("parse memory size %q: overflow", s)
+	}
+	total := v * mult
+	out, ok := utils.Uint64ToUint32(total)
+	if !ok {
+		return 0, fmt.Errorf("parse memory size %q: overflow", s)
+	}
+	return out, nil
 }

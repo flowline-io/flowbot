@@ -19,6 +19,8 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/natefinch/lumberjack.v2"
+
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 var (
@@ -205,8 +207,12 @@ func Init(cfg Config) {
 		if period == 0 {
 			period = time.Second
 		}
+		burst, ok := utils.IntToUint32(cfg.Sampling.Burst)
+		if !ok {
+			burst = 1
+		}
 		sampled = l.Sample(&zerolog.BurstSampler{
-			Burst:  uint32(cfg.Sampling.Burst),
+			Burst:  burst,
 			Period: period,
 		})
 	} else {

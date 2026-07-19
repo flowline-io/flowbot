@@ -71,7 +71,9 @@ func (r *GrpcRunner) Load(_ context.Context, m *plugin.Manifest) (*plugin.Plugin
 
 	raw, err := rpcClient.Dispense("module")
 	if err != nil {
-		rpcClient.Close()
+		if closeErr := rpcClient.Close(); closeErr != nil {
+			return nil, fmt.Errorf("grpc load: dispense failed: %w (close: %v)", err, closeErr)
+		}
 		return nil, fmt.Errorf("grpc load: dispense failed: %w", err)
 	}
 

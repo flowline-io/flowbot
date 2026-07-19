@@ -24,6 +24,7 @@ flowbot-app.json
 /rules/
 /rules_bak/
 pipelines.yaml
+gosec-report.json
 
 # Data & Database
 *.sqlite3
@@ -61,4 +62,3 @@ opencode.jsonc
 
 # Build artifacts
 public/css/styles.css
-

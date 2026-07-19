@@ -7,6 +7,9 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/tetratelabs/wazero/api"
+
+	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // writeJSON writes JSON data to the wasm module's memory.
@@ -20,7 +23,10 @@ func writeJSON(ctx context.Context, mod api.Module, data any) (uint32, uint32, e
 
 // writeBytes writes raw bytes to the wasm module's memory.
 func writeBytes(ctx context.Context, mod api.Module, data []byte) (uint32, uint32, error) {
-	size := uint32(len(data))
+	size, ok := utils.IntToUint32(len(data))
+	if !ok {
+		return 0, 0, fmt.Errorf("payload too large: %d bytes", len(data))
+	}
 	if size == 0 {
 		return 0, 0, nil
 	}
@@ -29,7 +35,10 @@ func writeBytes(ctx context.Context, mod api.Module, data []byte) (uint32, uint3
 	if err != nil {
 		return 0, 0, fmt.Errorf("alloc: %w", err)
 	}
-	ptr := uint32(results[0])
+	ptr, ok := utils.Uint64ToUint32(results[0])
+	if !ok {
+		return 0, 0, fmt.Errorf("alloc returned out-of-range pointer")
+	}
 	if ptr == 0 {
 		return 0, 0, fmt.Errorf("alloc returned null pointer")
 	}
@@ -55,7 +64,9 @@ func readJSON(_ context.Context, mod api.Module, result uint64, target any) erro
 	freeFn := mod.ExportedFunction("free")
 	if freeFn != nil {
 		go func() {
-			freeFn.Call(context.Background(), uint64(ptr))
+			if _, err := freeFn.Call(context.Background(), uint64(ptr)); err != nil {
+				flog.Debug("wasm free: %v", err)
+			}
 		}()
 	}
 

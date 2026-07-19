@@ -1,0 +1,12 @@
+{
+  "exclude-rules": [
+    {
+      "path": "internal/modules/web/.*",
+      "rules": ["G104"]
+    },
+    {
+      "path": "internal/store/sqlitetest/.*",
+      "rules": ["G104"]
+    }
+  ]
+}

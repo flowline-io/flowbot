@@ -15,6 +15,7 @@ import (
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const notifyConfigKeyPrefix = "notify:"
@@ -373,9 +374,13 @@ func buildNotifyMessage(result *notifytmpl.RenderResult, payload map[string]any)
 		case Priority:
 			msg.Priority = v
 		case int:
-			msg.Priority = Priority(v)
+			if pri, ok := utils.IntToInt32(v); ok {
+				msg.Priority = Priority(pri)
+			}
 		case float64:
-			msg.Priority = Priority(int(v))
+			if pri, ok := utils.IntToInt32(int(v)); ok {
+				msg.Priority = Priority(pri)
+			}
 		}
 	}
 

@@ -268,6 +268,10 @@ func SettingMsg(ctx types.Context, id string) types.MsgPayload {
 }
 
 func Behavior(uid types.Uid, flag string, number int) {
+	count, ok := utils.IntToInt32(number)
+	if !ok {
+		return
+	}
 	b, err := store.Database.BehaviorGet(context.Background(), uid, flag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return
@@ -278,7 +282,7 @@ func Behavior(uid types.Uid, flag string, number int) {
 		_ = store.Database.BehaviorSet(context.Background(), gen.Behavior{
 			UID:   uid.String(),
 			Flag:  flag,
-			Count: int32(number),
+			Count: count,
 		})
 	}
 }

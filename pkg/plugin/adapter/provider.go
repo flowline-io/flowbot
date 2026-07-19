@@ -70,6 +70,8 @@ func (a *PluginProviderAdapter) GetAuthorizeURL(state string) string {
 	var resp struct {
 		URL string `json:"url"`
 	}
-	sonic.Unmarshal(result, &resp)
+	if err := sonic.Unmarshal(result, &resp); err != nil {
+		return ""
+	}
 	return resp.URL
 }

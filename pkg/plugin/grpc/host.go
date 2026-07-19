@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	pb "github.com/flowline-io/flowbot/pkg/plugin/grpc/proto"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // HostServer implements pb.HostServiceServer and delegates to a plugin.HostAPI.
@@ -69,8 +70,12 @@ func (h *HostServer) HTTPRequest(ctx context.Context, req *pb.HTTPCallRequest) (
 	if err != nil {
 		return &pb.HTTPCallResponse{Error: err.Error()}, nil
 	}
+	status, ok := utils.IntToInt32(resp.Status)
+	if !ok {
+		return &pb.HTTPCallResponse{Error: "http status out of range"}, nil
+	}
 	return &pb.HTTPCallResponse{
-		Status:  int32(resp.Status),
+		Status:  status,
 		Headers: resp.Headers,
 		Body:    resp.Body,
 	}, nil

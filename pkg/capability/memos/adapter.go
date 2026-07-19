@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability"
 	provider "github.com/flowline-io/flowbot/pkg/providers/memos"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // client defines the subset of provider.Memos methods used by this adapter.
@@ -51,8 +52,12 @@ func (a *Adapter) List(ctx context.Context, q *ListQuery) (*capability.ListResul
 	}
 	limit := normalizedLimit(q.Page.Limit)
 	cursor := q.Page.Cursor
+	pageSize, ok := utils.IntToInt32(limit)
+	if !ok {
+		return nil, types.WrapError(types.ErrInvalidArgument, "page size out of range", nil)
+	}
 	params := provider.ListMemosParams{
-		PageSize:  int32(limit),
+		PageSize:  pageSize,
 		PageToken: cursor,
 	}
 	resp, err := a.client.ListMemos(ctx, params)

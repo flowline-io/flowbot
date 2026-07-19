@@ -16,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
@@ -69,7 +70,10 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 	data.SysMem = memStats.Sys
 	data.NumGC = memStats.NumGC
 	if memStats.NumGC > 0 {
-		data.LastGCPause = time.Duration(memStats.PauseNs[(memStats.NumGC+255)%256])
+		pauseNs := memStats.PauseNs[(memStats.NumGC+255)%256]
+		if pause, ok := utils.Uint64ToInt64(pauseNs); ok {
+			data.LastGCPause = time.Duration(pause)
+		}
 	}
 
 	// Capability health checks

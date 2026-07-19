@@ -80,11 +80,17 @@ func (d *Driver) WebSocketClient() {
 				// ack all event types that require acknowledgment
 				switch evt.Type {
 				case socketmode.EventTypeEventsAPI:
-					client.Ack(*evt.Request)
+					if err := client.Ack(*evt.Request); err != nil {
+						flog.Debug("slack ack events_api: %v", err)
+					}
 				case socketmode.EventTypeInteractive:
-					client.Ack(*evt.Request)
+					if err := client.Ack(*evt.Request); err != nil {
+						flog.Debug("slack ack interactive: %v", err)
+					}
 				case socketmode.EventTypeSlashCommand:
-					client.Ack(*evt.Request)
+					if err := client.Ack(*evt.Request); err != nil {
+						flog.Debug("slack ack slash_command: %v", err)
+					}
 				}
 
 				// convert

@@ -10,6 +10,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 // HostBindings implements the host function imports for wasm plugins.
@@ -53,8 +54,12 @@ func (h *HostBindings) registerGetConfig(b wazero.HostModuleBuilder) {
 			if err != nil {
 				return 0
 			}
+			n, ok := utils.IntToUint32(len(val))
+			if !ok {
+				return 0
+			}
 			m.Memory().Write(outPtr, []byte(val))
-			return uint32(len(val))
+			return n
 		}).
 		Export("get_config")
 }
@@ -88,8 +93,12 @@ func (h *HostBindings) registerKVGet(b wazero.HostModuleBuilder) {
 			if err != nil {
 				return 0
 			}
+			n, ok := utils.IntToUint32(len(val))
+			if !ok {
+				return 0
+			}
 			m.Memory().Write(outPtr, val)
-			return uint32(len(val))
+			return n
 		}).
 		Export("kv_get")
 }
@@ -156,11 +165,12 @@ func (h *HostBindings) registerHTTPRequest(b wazero.HostModuleBuilder) {
 			if err != nil {
 				return 0
 			}
-			if uint32(len(respBytes)) > outMaxSize {
+			n, ok := utils.IntToUint32(len(respBytes))
+			if !ok || n > outMaxSize {
 				return 0
 			}
 			m.Memory().Write(outPtr, respBytes)
-			return uint32(len(respBytes))
+			return n
 		}).
 		Export("http_request")
 }

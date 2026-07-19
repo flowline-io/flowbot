@@ -26,11 +26,13 @@ var Modules = fx.Options(
 		return mgr
 	}),
 
-	fx.Invoke(func(mgr *manager.PluginManager, lc fx.Lifecycle) {
+	fx.Invoke(func(mgr *manager.PluginManager, lc fx.Lifecycle, log zerolog.Logger) {
 		lc.Append(fx.Hook{
 			OnStop: func(ctx context.Context) error {
 				for _, inst := range mgr.List() {
-					mgr.UnloadPlugin(ctx, inst.Identity)
+					if err := mgr.UnloadPlugin(ctx, inst.Identity); err != nil {
+						log.Error().Err(err).Str("plugin", inst.Identity).Msg("unload plugin failed")
+					}
 				}
 				return nil
 			},

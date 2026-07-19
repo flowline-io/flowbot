@@ -11,6 +11,7 @@ import (
 
 	"github.com/rs/zerolog"
 
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/plugin"
 	"github.com/flowline-io/flowbot/pkg/plugin/adapter"
@@ -213,7 +214,9 @@ func (m *PluginManager) ReloadPlugin(ctx context.Context, identity string, newMa
 
 	drainCtx, cancel := context.WithTimeout(ctx, m.config.DrainTimeout)
 	defer cancel()
-	old.Runner.Stop(drainCtx)
+	if err := old.Runner.Stop(drainCtx); err != nil {
+		flog.Warn("plugin hot-reload: stop old runner: %v", err)
+	}
 
 	m.mu.Lock()
 	m.instances[identity] = &PluginInstance{
@@ -277,7 +280,9 @@ func registerAdapters(identity string, manifest *plugin.Manifest, runner plugin.
 	}
 	for _, ab := range manifest.Provides.Abilities {
 		a := adapter.NewAbilityAdapter(runner, ab.Capability, ab.Operations)
-		a.Register()
+		if err := a.Register(); err != nil {
+			flog.Warn("plugin register ability %s: %v", ab.Capability, err)
+		}
 	}
 	if manifest.Provides.Provider != nil && manifest.Provides.Provider.OAuth {
 		provAdapter := adapter.NewProviderAdapter(runner, manifest.Provides.Provider.Name)

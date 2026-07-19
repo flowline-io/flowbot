@@ -88,7 +88,9 @@ func ShutdownEventPool() {
 	if ep == nil {
 		return
 	}
-	ep.pool.ReleaseTimeout(30 * time.Second)
+	if err := ep.pool.ReleaseTimeout(30 * time.Second); err != nil {
+		flog.Warn("ability: event pool release: %v", err)
+	}
 	flog.Info("ability: event pool released")
 }
 

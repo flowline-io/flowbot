@@ -118,7 +118,9 @@ func (a *PluginModuleAdapter) Rules() []any {
 		return nil
 	}
 	var rules []any
-	sonic.Unmarshal(result, &rules)
+	if err := sonic.Unmarshal(result, &rules); err != nil {
+		return nil
+	}
 	return rules
 }
 
