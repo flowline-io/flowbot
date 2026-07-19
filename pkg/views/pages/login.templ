@@ -18,15 +18,18 @@ templ LoginForm(nextURL string, errorMsg string) {
 		class="w-full max-w-sm border-t border-base-300 pt-6">
 		<h1 class="text-lg font-semibold text-base-content mb-5 tracking-tight">Sign in</h1>
 		<input type="hidden" name="next" value={ nextURL }/>
+		<div id="form-error" data-testid="form-error-slot"></div>
 		<div class="mb-4">
 			<label for="username" class="block text-sm font-medium mb-1.5">Username</label>
 			<input type="text" id="username" name="username" autocomplete="username"
+				required maxlength="128"
 				data-testid="login-username"
 				class="input input-bordered w-full"/>
 		</div>
 		<div class="mb-5">
 			<label for="password" class="block text-sm font-medium mb-1.5">Password</label>
 			<input type="password" id="password" name="password" autocomplete="current-password"
+				required maxlength="256"
 				data-testid="login-password"
 				class="input input-bordered w-full"/>
 		</div>

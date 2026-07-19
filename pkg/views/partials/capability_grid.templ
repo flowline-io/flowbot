@@ -8,7 +8,12 @@ templ CapabilityGrid(descriptors []hub.Descriptor, filtered bool) {
 			if filtered {
 				@EmptyState("No capabilities match these filters")
 			} else {
-				@EmptyState("No capabilities registered")
+				@EmptyStateCTA(
+					"No capabilities registered",
+					"Start Hub apps to expose capabilities here.",
+					"/service/web/hub",
+					"Open Hub",
+				)
 			}
 		} else {
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

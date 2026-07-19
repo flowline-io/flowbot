@@ -19,9 +19,7 @@ templ PipelineListPage(entries []partials.PipelineListEntry) {
 				</button>
 			</div>
 			<div hx-get="/service/web/pipelines/stats?groupBy=day" hx-trigger="revealed" hx-swap="outerHTML">
-				<div class="flowbot-surface mb-6 animate-pulse p-6">
-					<div class="h-64 bg-base-200 rounded"></div>
-				</div>
+				@partials.PanelSkeleton()
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">
 				@partials.PipelineListTable(entries)
@@ -31,6 +29,7 @@ templ PipelineListPage(entries []partials.PipelineListEntry) {
 			<div class="modal-box">
 				<h3 class="text-lg font-medium text-base-content mb-4">New Pipeline</h3>
 				<form id="create-form" hx-post="/service/web/pipelines" hx-target="body" data-testid="create-form">
+					<div id="form-error" data-testid="form-error-slot"></div>
 					<label class="label">
 						<span class="label-text">Name</span>
 					</label>

@@ -91,6 +91,7 @@ func TestDeleteConfig(t *testing.T) {
 		wantStatus int
 		wantEmpty  bool
 		wantBody   string
+		wantHX     string
 	}{
 		{
 			name:       "delete with remaining configs returns empty body",
@@ -106,14 +107,16 @@ func TestDeleteConfig(t *testing.T) {
 			wantBody:   `configs-empty`,
 		},
 		{
-			name:       "delete returns 500 on store error",
+			name:       "delete returns toast on store error",
 			delErr:     fmt.Errorf("db down"),
-			wantStatus: http.StatusInternalServerError,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "Failed to delete config",
 		},
 		{
-			name:       "delete non-existent returns 404",
+			name:       "delete missing returns toast",
 			delErr:     types.ErrNotFound,
-			wantStatus: http.StatusNotFound,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "Config not found",
 		},
 	}
 	for _, tt := range tests {
@@ -137,6 +140,9 @@ func TestDeleteConfig(t *testing.T) {
 			}
 			if tt.wantBody != "" && !strings.Contains(string(body), tt.wantBody) {
 				t.Errorf("want body containing %q, got %q", tt.wantBody, string(body))
+			}
+			if tt.wantHX != "" && !strings.Contains(resp.Header.Get("HX-Trigger"), tt.wantHX) {
+				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, resp.Header.Get("HX-Trigger"))
 			}
 		})
 	}
@@ -231,6 +237,7 @@ func TestCreateConfig(t *testing.T) {
 		wantStatus       int
 		wantBodyContains string
 		wantValue        types.KV
+		wantHX           string
 	}{
 		{
 			name:             "valid JSON object creates config successfully",
@@ -279,10 +286,11 @@ func TestCreateConfig(t *testing.T) {
 			wantBodyContains: "Key is required",
 		},
 		{
-			name:        "store error returns 500",
+			name:        "store error returns toast",
 			body:        "uid=u1&topic=t1&key=k1&value=%7B%7D",
 			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
-			wantStatus:  http.StatusInternalServerError,
+			wantStatus:  http.StatusNoContent,
+			wantHX:      "Failed to create config",
 		},
 		{
 			name:             "JSON string value auto-wraps into JSON object successfully",
@@ -325,6 +333,9 @@ func TestCreateConfig(t *testing.T) {
 					t.Errorf("want body containing %q, got %s", tt.wantBodyContains, string(body))
 				}
 			}
+			if tt.wantHX != "" && !strings.Contains(resp.Header.Get("HX-Trigger"), tt.wantHX) {
+				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, resp.Header.Get("HX-Trigger"))
+			}
 			if tt.wantValue != nil && !assert.ObjectsAreEqual(tt.wantValue, setValue) {
 				t.Errorf("want value %v, got %v", tt.wantValue, setValue)
 			}
@@ -342,6 +353,7 @@ func TestUpdateConfig(t *testing.T) {
 		wantStatus       int
 		wantBodyContains string
 		wantValue        types.KV
+		wantHX           string
 	}{
 		{
 			name:             "valid JSON object updates config successfully",
@@ -379,12 +391,13 @@ func TestUpdateConfig(t *testing.T) {
 			wantValue:        types.KV{},
 		},
 		{
-			name:        "store error returns 500",
+			name:        "store error returns toast",
 			path:        "/service/web/configs/u1/t1/k1",
 			body:        "value=%7B%7D",
 			getConfigFn: func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
 			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
-			wantStatus:  http.StatusInternalServerError,
+			wantStatus:  http.StatusNoContent,
+			wantHX:      "Failed to update config",
 		},
 	}
 	for _, tt := range tests {
@@ -413,6 +426,9 @@ func TestUpdateConfig(t *testing.T) {
 				if !strings.Contains(string(body), tt.wantBodyContains) {
 					t.Errorf("want body containing %q, got %s", tt.wantBodyContains, string(body))
 				}
+			}
+			if tt.wantHX != "" && !strings.Contains(resp.Header.Get("HX-Trigger"), tt.wantHX) {
+				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, resp.Header.Get("HX-Trigger"))
 			}
 			if tt.wantValue != nil && !assert.ObjectsAreEqual(tt.wantValue, setValue) {
 				t.Errorf("want value %v, got %v", tt.wantValue, setValue)

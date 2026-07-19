@@ -12,6 +12,7 @@ templ AgentSubagentForm(params model.AgentSubagentFormParams) {
 						data-testid="agent-subagent-flag"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(params.Errors, "flag") }
 						placeholder="code-reviewer"
+						required maxlength="128"
 						if !params.IsNew {
 							readonly="readonly"
 						}
@@ -24,6 +25,7 @@ templ AgentSubagentForm(params model.AgentSubagentFormParams) {
 						data-testid="agent-subagent-name"
 						class={ "input input-bordered input-sm w-full " + fieldError(params.Errors, "name") }
 						placeholder="code-reviewer"
+						required maxlength="128"
 					/>
 					<p class="text-xs text-base-content/50 mt-1">Referenced as subagent_type by the task tool and shown in the agent prompt.</p>
 					<div class="text-error text-xs">{ params.Errors["name"] }</div>

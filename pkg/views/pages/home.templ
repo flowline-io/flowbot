@@ -14,21 +14,12 @@ templ HomePage(d partials.HomeDashboard) {
 				<p class="text-sm text-base-content/60 m-0 mt-1">Operational overview for this Flowbot instance.</p>
 			</div>
 		</div>
-		<div hx-get="/service/web/home/dashboard" hx-trigger="load" hx-swap="innerHTML" data-testid="home-dashboard-loader">
-			<div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5 mb-8 pb-6 border-b border-base-300 animate-pulse">
-				for i := 0; i < 4; i++ {
-					<div>
-						<div class="h-3 w-24 bg-base-300 rounded mb-3"></div>
-						<div class="h-8 w-16 bg-base-300 rounded"></div>
-					</div>
-				}
-			</div>
+		<div data-testid="home-dashboard-loader">
+			@partials.HomeDashboardBlock(d)
 		</div>
 		@partials.HomeQuickLinksSection(partials.HomeQuickLinks())
 		<div hx-get="/service/web/home/token-usage?range=7d&groupBy=model" hx-trigger="revealed" hx-swap="outerHTML" data-testid="token-usage-loader">
-			<div class="flowbot-surface mb-6 animate-pulse p-6">
-				<div class="h-64 bg-base-200 rounded"></div>
-			</div>
+			@partials.PanelSkeleton()
 		</div>
 	}
 }

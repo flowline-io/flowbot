@@ -498,29 +498,6 @@ func parseID(ctx fiber.Ctx) (int64, error) {
 	return id, nil
 }
 
-// showToastTrigger builds an HX-Trigger payload for the web UI toast system.
-func showToastTrigger(toastType, message string) (string, error) {
-	payload, err := sonic.Marshal(map[string]any{
-		"showToast": map[string]string{
-			"type":    toastType,
-			"message": message,
-		},
-	})
-	if err != nil {
-		return "", err
-	}
-	return string(payload), nil
-}
-
-// setShowToast sets the HX-Trigger header so HTMX can fire a showToast event.
-func setShowToast(ctx fiber.Ctx, toastType, message string) {
-	trigger, err := showToastTrigger(toastType, message)
-	if err != nil {
-		return
-	}
-	ctx.Set("HX-Trigger", trigger)
-}
-
 func notFound(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	return partials.EmptyState("Not found").Render(ctx.Context(), ctx.Response().BodyWriter())

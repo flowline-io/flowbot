@@ -158,11 +158,9 @@ func tokensRevoke(ctx fiber.Ctx) error {
 	err = store.Database.RevokeToken(context.Background(), flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Token not found")
+			return toastError(ctx, "Token not found")
 		}
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to revoke token")
+		return toastError(ctx, "Failed to revoke token")
 	}
 	items, err := store.Database.ListTokens(context.Background())
 	if err == nil && len(items) == 0 {

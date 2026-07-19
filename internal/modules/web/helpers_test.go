@@ -213,6 +213,56 @@ func TestRenderError(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, string(body), "bad input")
 	assert.Contains(t, resp.Header.Get("Content-Type"), "text/html")
+	assert.Empty(t, resp.Header.Get("HX-Retarget"))
+}
+
+func TestRenderFormError(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		target string
+		want   string
+	}{
+		{name: "explicit form-error slot", target: "#form-error", want: "#form-error"},
+		{name: "empty target defaults", target: "", want: "#form-error"},
+		{name: "create form target", target: "#create-form", want: "#create-form"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := fiber.New()
+			app.Post("/", func(c fiber.Ctx) error {
+				c.Status(http.StatusUnprocessableEntity)
+				return renderFormError(c, tt.target, "Name is required")
+			})
+			req := httptest.NewRequest(http.MethodPost, "/", http.NoBody)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusUnprocessableEntity, resp.StatusCode)
+			assert.Equal(t, tt.want, resp.Header.Get("HX-Retarget"))
+			assert.Equal(t, "innerHTML", resp.Header.Get("HX-Reswap"))
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			assert.Contains(t, string(body), "Name is required")
+			assert.Contains(t, string(body), `data-testid="form-error"`)
+		})
+	}
+}
+
+func TestToastError(t *testing.T) {
+	t.Parallel()
+	app := fiber.New()
+	app.Delete("/", func(c fiber.Ctx) error {
+		return toastError(c, "Failed to delete")
+	})
+	req := httptest.NewRequest(http.MethodDelete, "/", http.NoBody)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	hx := resp.Header.Get("HX-Trigger")
+	assert.Contains(t, hx, "showToast")
+	assert.Contains(t, hx, "Failed to delete")
+	assert.Contains(t, hx, `"type":"error"`)
 }
 
 func TestValidateThrottleAndAggregateParams(t *testing.T) {

@@ -490,9 +490,10 @@ func TestAgentSkillDeleteAuthenticated(t *testing.T) {
 		flag       string
 		wantStatus int
 		wantEmpty  bool
+		wantHX     string
 	}{
 		{name: "deletes existing skill", flag: "demo-skill", wantStatus: http.StatusOK, wantEmpty: true},
-		{name: "returns not found for missing skill", flag: "missing", wantStatus: http.StatusNotFound},
+		{name: "returns toast for missing skill", flag: "missing", wantStatus: http.StatusNoContent, wantHX: "Agent skill not found"},
 		{name: "returns empty body on success", flag: "other-skill", wantStatus: http.StatusOK, wantEmpty: true},
 	}
 
@@ -526,6 +527,9 @@ func TestAgentSkillDeleteAuthenticated(t *testing.T) {
 			defer resp.Body.Close()
 
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantHX != "" {
+				assert.Contains(t, resp.Header.Get("HX-Trigger"), tt.wantHX)
+			}
 			if tt.wantEmpty {
 				_, ok := ts.agentSkills[tt.flag]
 				assert.False(t, ok)

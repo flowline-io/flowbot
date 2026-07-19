@@ -11,11 +11,9 @@ templ PipelineEditorPage(name string) {
 		<script src="/static/vendor/diff.min.js"></script>
 		<script src="/static/js/pipeline-editor.js"></script>
 		<div x-data="pipelineEditor" x-init="init()" data-pipeline-name={ name } data-testid="pipeline-editor">
-			<!-- Loading skeleton -->
-			<div x-show="loading" class="space-y-4" data-testid="pipeline-loading">
-				<div class="skeleton h-12 w-full rounded-box"></div>
-				<div class="skeleton h-32 w-full rounded-box"></div>
-				<div class="skeleton h-32 w-full rounded-box"></div>
+			<!-- Soft loading cue (Alpine); avoid large gray skeleton slabs -->
+			<div x-show="loading" data-testid="pipeline-loading">
+				@partials.PanelSkeleton()
 			</div>
 
 			<!-- Header -->
@@ -205,9 +203,9 @@ templ PipelineEditorPage(name string) {
 
 				<div x-show="diffResult" class="mt-4" data-testid="diff-result">
 					<div class="text-xs font-medium mb-2">
-						<span class="badge badge-sm" x-text="'v' + compareLeft?.version"></span>
+						<span class="badge badge-sm" x-text="versionLabel(compareLeft)"></span>
 						vs
-						<span class="badge badge-sm" x-text="'v' + compareRight?.version"></span>
+						<span class="badge badge-sm" x-text="versionLabel(compareRight)"></span>
 					</div>
 					<pre class="text-xs font-mono bg-base-200 rounded-box p-3 overflow-x-auto max-h-96"><template x-for="chunk in diffResult"><span :class="chunk.added ? 'bg-success/20 text-success' : (chunk.removed ? 'bg-error/20 text-error' : '')" x-text="chunk.text"></span></template></pre>
 				</div>
@@ -220,8 +218,8 @@ templ PipelineEditorPage(name string) {
 					<button type="button" @click="selectedVersion = null"
 						class="btn btn-ghost btn-sm mb-3">Back to list</button>
 					<div class="flex items-center gap-2 mb-2">
-						<span class="badge" x-text="'v' + selectedVersion?.version"></span>
-						<span class="text-xs text-base-content/30" x-text="relativeTime(selectedVersion?.created_at)"></span>
+						<span class="badge" x-text="selectedVersionLabel()"></span>
+						<span class="text-xs text-base-content/30" x-text="relativeTime(selectedVersionCreatedAt())"></span>
 					</div>
 					<div x-show="historyLoading" class="text-sm text-base-content/30">Loading...</div>
 					<pre x-show="!historyLoading && selectedVersionYaml"
@@ -347,7 +345,7 @@ templ PipelineEditorPage(name string) {
 									class="select select-bordered w-full mb-3"
 									data-testid="step-operation-select">
 									<option value="" disabled>Select operation...</option>
-									<template x-for="op in getOperationsFor(selectedStep()?.capability)" :key="op.name">
+									<template x-for="op in selectedStepOperations()" :key="op.name">
 										<option :value="op.name" x-text="op.name" :title="op.description"></option>
 									</template>
 								</select>
@@ -541,7 +539,7 @@ templ PipelineEditorPage(name string) {
 									</span>
 								</button>
 								<div x-show="testResults" data-testid="test-results" class="border-t border-base-300 pt-4">
-									<template x-if="testResults?.steps">
+									<template x-if="hasTestResultSteps()">
 									<template x-for="r in testResults.steps" :key="r.name">
 										<div class="mb-3 text-sm">
 											<div class="flex items-center gap-2">
@@ -576,16 +574,16 @@ templ PipelineEditorPage(name string) {
 						<button @click="insertVariable('event.entity_id')" class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">event.entity_id</button>
 						<button @click="insertVariable('event.source')" class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">event.source</button>
 						<button @click="insertVariable('event.capability')" class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">event.capability</button>
-						<template x-for="idx in [...Array(selectedStepIndex() ?? 0).keys()]" :key="idx">
+						<template x-for="idx in priorStepIndexes()" :key="idx">
 							<div x-show="steps[idx]">
-								<div class="text-xs text-base-content/30 uppercase mt-2 mb-1" x-text="'steps.' + steps[idx]?.name"></div>
-								<button @click={ "insertVariable('steps.' + steps[idx]?.name + '.id')" }
+								<div class="text-xs text-base-content/30 uppercase mt-2 mb-1" x-text="'steps.' + stepNameAt(idx)"></div>
+								<button type="button" @click="insertStepVariable(idx, 'id')"
 									class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">
-									<span x-text="'steps.' + steps[idx]?.name + '.id'"></span>
+									<span x-text="stepVarPath(idx, 'id')"></span>
 								</button>
-								<button @click={ "insertVariable('steps.' + steps[idx]?.name + '.result')" }
+								<button type="button" @click="insertStepVariable(idx, 'result')"
 									class="block w-full text-left px-2 py-1 hover:bg-primary/10 rounded text-base-content">
-									<span x-text="'steps.' + steps[idx]?.name + '.result'"></span>
+									<span x-text="stepVarPath(idx, 'result')"></span>
 								</button>
 							</div>
 						</template>

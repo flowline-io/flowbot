@@ -1,0 +1,10 @@
+package partials
+
+// PanelSkeleton renders a compact delayed loading cue for hx-trigger="load" panels.
+// Prefer this over DaisyUI gray skeleton slabs to avoid harsh flash on navigation.
+templ PanelSkeleton() {
+	<div class="flowbot-panel-loading" data-testid="panel-skeleton" aria-busy="true" aria-live="polite">
+		<span class="loading loading-spinner loading-sm text-primary/70" aria-hidden="true"></span>
+		<span class="text-sm">Loading…</span>
+	</div>
+}

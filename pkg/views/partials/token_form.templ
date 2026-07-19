@@ -8,7 +8,8 @@ templ TokenForm(errors map[string]string) {
 			<input type="text" name="uid"
 				data-testid="token-form-uid"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "uid") }
-				placeholder="user:name"/>
+				placeholder="user:name"
+				required maxlength="128"/>
 			<div class="text-error text-xs">{ errors["uid"] }</div>
 		</td>
 		<td></td>

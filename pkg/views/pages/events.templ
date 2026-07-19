@@ -40,9 +40,7 @@ templ EventsPage(p EventsPageParams) {
 				hx-trigger="load"
 				hx-swap="innerHTML"
 				data-testid="events-table-container">
-				<div class="flex justify-center p-8">
-					<span class="loading loading-spinner loading-lg"></span>
-				</div>
+				@partials.PanelSkeleton()
 			</div>
 		</div>
 	}

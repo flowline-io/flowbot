@@ -79,7 +79,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" placeholder=\"karakeep\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" placeholder=\"karakeep\" required maxlength=\"128\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,7 +96,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(errors["flag"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 19, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 20, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -118,7 +118,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 23, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 24, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -137,14 +137,14 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"karakeep\"><p class=\"text-xs text-base-content/50 mt-1\">Used by read_skill and shown in the agent prompt (independent of Flag).</p><div class=\"text-error text-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"karakeep\" required maxlength=\"128\"><p class=\"text-xs text-base-content/50 mt-1\">Used by read_skill and shown in the agent prompt (independent of Flag).</p><div class=\"text-error text-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(errors["name"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 29, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 31, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -166,7 +166,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 33, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 35, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
@@ -192,7 +192,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(errors["description"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 38, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 40, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -205,7 +205,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.BaseDir)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 42, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 44, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Source)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 50, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 52, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {
@@ -253,7 +253,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(item.Content)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 61, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 63, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -266,7 +266,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(errors["content"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 62, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 64, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -309,7 +309,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(agentSkillURL(item))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 91, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 93, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 			if templ_7745c5c3_Err != nil {
@@ -327,7 +327,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.ResolveAttributeValue(agentSkillCancelURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 101, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 103, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var22)
 		if templ_7745c5c3_Err != nil {
@@ -345,7 +345,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.ResolveAttributeValue(agentSkillFilesContainerID(item))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 110, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 112, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var23)
 			if templ_7745c5c3_Err != nil {
@@ -358,7 +358,7 @@ func AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string)
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.ResolveAttributeValue(agentSkillFilesListURL(item))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 112, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_skill_form.templ`, Line: 114, Col: 43}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
 			if templ_7745c5c3_Err != nil {

@@ -114,8 +114,7 @@ func createConfig(ctx fiber.Ctx) error {
 	}
 	err := store.Database.ConfigSet(context.Background(), types.Uid(uid), topic, key, value)
 	if err != nil {
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to create config")
+		return toastError(ctx, "Failed to create config")
 	}
 	ctx.Type("html")
 	// Remove empty-state row now that a config exists
@@ -161,8 +160,7 @@ func updateConfig(ctx fiber.Ctx) error {
 	}
 	err = store.Database.ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to update config")
+		return toastError(ctx, "Failed to update config")
 	}
 	ctx.Type("html")
 	return partials.ConfigRow(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
@@ -179,11 +177,9 @@ func deleteConfig(ctx fiber.Ctx) error {
 	err = store.Database.ConfigDelete(context.Background(), types.Uid(uid), topic, key)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Config not found")
+			return toastError(ctx, "Config not found")
 		}
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to delete config")
+		return toastError(ctx, "Failed to delete config")
 	}
 	// After deletion, show empty state if no configs remain
 	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{Limit: 1})

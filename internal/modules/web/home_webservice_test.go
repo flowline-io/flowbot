@@ -23,6 +23,7 @@ func TestHomePageAuth(t *testing.T) {
 	}{
 		{name: "unauthenticated redirects to login", wantStatus: http.StatusSeeOther},
 		{name: "authenticated renders home shell", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-dashboard-loader"},
+		{name: "authenticated SSR dashboard summary", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-dashboard-summary"},
 		{name: "authenticated shows quick links", cookie: "valid-test-token", wantStatus: http.StatusOK, wantContains: "home-quick-links"},
 	}
 

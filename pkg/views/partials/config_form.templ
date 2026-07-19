@@ -12,6 +12,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 				data-testid="config-uid"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "uid") }
 				placeholder="uid"
+				required maxlength="128"
 				if !isNew {
 					readonly="readonly"
 				}
@@ -23,6 +24,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 				data-testid="config-topic"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "topic") }
 				placeholder="topic"
+				required maxlength="128"
 				if !isNew {
 					readonly="readonly"
 				}
@@ -34,6 +36,7 @@ templ ConfigForm(item model.ConfigItem, isNew bool, errors map[string]string) {
 				data-testid="config-key"
 				class={ "input input-bordered input-sm w-full " + fieldError(errors, "key") }
 				placeholder="key"
+				required maxlength="128"
 				if !isNew {
 					readonly="readonly"
 				}

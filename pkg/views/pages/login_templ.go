@@ -93,7 +93,7 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1.5\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" data-testid=\"login-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-5\"><label for=\"password\" class=\"block text-sm font-medium mb-1.5\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"current-password\" data-testid=\"login-password\" class=\"input input-bordered w-full\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1.5\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" required maxlength=\"128\" data-testid=\"login-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-5\"><label for=\"password\" class=\"block text-sm font-medium mb-1.5\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"current-password\" required maxlength=\"256\" data-testid=\"login-password\" class=\"input input-bordered w-full\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -105,7 +105,7 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 34, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 37, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {

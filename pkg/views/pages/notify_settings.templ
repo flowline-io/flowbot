@@ -1,7 +1,10 @@
 // Package pages provides full-page Templ views.
 package pages
 
-import "github.com/flowline-io/flowbot/pkg/views/layout"
+import (
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
 
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
@@ -30,7 +33,7 @@ templ NotifySettingsPage(activeTab string) {
 				<div hx-get="/service/web/notifications/channels/list"
 					hx-trigger="load"
 					hx-swap="outerHTML">
-					<div class="skeleton h-32 w-full"></div>
+					@partials.PanelSkeleton()
 				</div>
 			</div>
 
@@ -52,7 +55,7 @@ templ NotifySettingsPage(activeTab string) {
 				<div hx-get="/service/web/notifications/templates/list"
 					hx-trigger="load once"
 					hx-swap="outerHTML">
-					<div class="skeleton h-32 w-full"></div>
+					@partials.PanelSkeleton()
 				</div>
 			</div>
 
@@ -74,7 +77,7 @@ templ NotifySettingsPage(activeTab string) {
 				<div hx-get="/service/web/notifications/rules/list"
 					hx-trigger="load once"
 					hx-swap="outerHTML">
-					<div class="skeleton h-32 w-full"></div>
+					@partials.PanelSkeleton()
 				</div>
 			</div>
 
@@ -88,7 +91,7 @@ templ NotifySettingsPage(activeTab string) {
 					hx-get="/service/web/notifications/list"
 					hx-trigger="load once"
 					hx-swap="innerHTML">
-					<div class="skeleton h-32 w-full"></div>
+					@partials.PanelSkeleton()
 				</div>
 			</div>
 
@@ -101,7 +104,7 @@ templ NotifySettingsPage(activeTab string) {
 				<div hx-get="/service/web/notifications/playground"
 					hx-trigger="load once"
 					hx-swap="outerHTML">
-					<div class="skeleton h-48 w-full"></div>
+					@partials.PanelSkeleton()
 				</div>
 			</div>
 		</div>

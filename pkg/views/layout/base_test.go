@@ -28,8 +28,8 @@ func TestBaseLayout(t *testing.T) {
 			},
 		},
 		{
-			name: "alpine script follows sync alpine data page scripts",
-			body: partials.HomelabRegistryScripts(),
+			name:  "alpine script follows sync alpine data page scripts",
+			body:  partials.HomelabRegistryScripts(),
 			check: assertAlpineFollowsPageScripts,
 		},
 		{

@@ -74,6 +74,9 @@
         this.loading = true;
         try {
           const resp = await fetch(this.pipelineURL('/yaml'));
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
           const data = await resp.json();
           this.version = data.version;
           this.status = data.status;
@@ -89,6 +92,9 @@
       async fetchAgentRunOptions() {
         try {
           const resp = await fetch('/service/web/pipelines/agent-run-options');
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
           const json = await resp.json();
           this.agentRunOptions = json.data || {
             tools: [],
@@ -96,12 +102,16 @@
           };
         } catch (e) {
           console.error('Failed to load agent run options:', e);
+          showToast('Failed to load agent run options', 'error');
         }
       },
 
       async fetchCapabilities() {
         try {
           const resp = await fetch('/service/web/pipelines/capabilities');
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
           const json = await resp.json();
           this.capabilities = json.data || [];
           const set = new Set();
@@ -116,6 +126,7 @@
           this.defaultTemplateSet = set;
         } catch (e) {
           console.error('Failed to load capabilities:', e);
+          showToast('Failed to load capabilities', 'error');
         }
       },
 
@@ -149,6 +160,59 @@
         const idx = this.selectedTriggerIndex();
         if (idx == null) return null;
         return this.triggers[idx] ?? null;
+      },
+
+      // CSP-safe helpers: Alpine CSP parser rejects ?. / ?? / spread in templates.
+      versionLabel(v) {
+        if (!v || v.version == null) return '';
+        return 'v' + v.version;
+      },
+
+      selectedVersionLabel() {
+        return this.versionLabel(this.selectedVersion);
+      },
+
+      selectedVersionCreatedAt() {
+        return this.selectedVersion ? this.selectedVersion.created_at : '';
+      },
+
+      selectedStepCapability() {
+        const step = this.selectedStep();
+        return step ? step.capability : '';
+      },
+
+      selectedStepOperations() {
+        return this.getOperationsFor(this.selectedStepCapability());
+      },
+
+      hasTestResultSteps() {
+        return !!(this.testResults && this.testResults.steps);
+      },
+
+      priorStepIndexes() {
+        const idx = this.selectedStepIndex();
+        const n = idx == null ? 0 : idx;
+        const out = [];
+        for (let i = 0; i < n; i++) {
+          out.push(i);
+        }
+        return out;
+      },
+
+      stepNameAt(idx) {
+        const step = this.steps[idx];
+        return step && step.name ? step.name : '';
+      },
+
+      stepVarPath(idx, suffix) {
+        const name = this.stepNameAt(idx);
+        if (!name) return '';
+        return 'steps.' + name + '.' + suffix;
+      },
+
+      insertStepVariable(idx, suffix) {
+        const path = this.stepVarPath(idx, suffix);
+        if (path) this.insertVariable(path);
       },
 
       validateSelectedNode() {
@@ -1309,6 +1373,9 @@
             );
             return;
           }
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
           const data = await resp.json();
           this.version = data.version;
           this.status = data.status;
@@ -1316,6 +1383,7 @@
           showToast('Draft saved', 'success');
         } catch (e) {
           console.error('Auto-save failed:', e);
+          showToast('Save failed. Your changes are not saved yet.', 'error');
         } finally {
           this.saving = false;
         }
@@ -1338,6 +1406,9 @@
             );
             return;
           }
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
           const data = await resp.json();
           this.version = data.version;
           this.status = 'published';
@@ -1355,10 +1426,14 @@
           const resp = await fetch(
             this.pipelineURL('/mock?source=' + this.testTriggerSource),
           );
+          if (!resp.ok) {
+            throw new Error('HTTP ' + resp.status);
+          }
           const data = await resp.json();
           this.testMockPayload = JSON.stringify(data.payload, null, 2);
         } catch (e) {
           console.error('Failed to load mock payload:', e);
+          showToast('Failed to load mock payload', 'error');
         }
       },
 
@@ -1539,12 +1614,14 @@
           var resp = await fetch(this.pipelineURL('/versions'));
           if (!resp.ok) {
             this.versions = [];
+            showToast('Failed to load versions', 'error');
             return;
           }
           this.versions = await resp.json();
         } catch (e) {
           console.error('Failed to load versions:', e);
           this.versions = [];
+          showToast('Failed to load versions', 'error');
         } finally {
           this.historyLoading = false;
         }
@@ -1568,13 +1645,16 @@
         } catch (e) {
           console.error('Failed to load version:', e);
           this.selectedVersionYaml = '';
+          showToast('Failed to load version', 'error');
         } finally {
           this.historyLoading = false;
         }
       },
 
       relativeTime(isoStr) {
+        if (!isoStr) return '';
         var d = new Date(isoStr);
+        if (isNaN(d.getTime())) return '';
         var now = new Date();
         var diff = now - d;
         var mins = Math.floor(diff / 60000);
@@ -1636,6 +1716,7 @@
         } catch (e) {
           console.error('Diff error:', e);
           this.diffResult = null;
+          showToast('Failed to compare versions', 'error');
         }
       },
 

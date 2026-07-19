@@ -31,8 +31,8 @@ func homePage(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	// Render shell immediately; heavy stats load via HTMX to keep first paint fast.
-	return pages.HomePage(partials.HomeDashboard{}).Render(context.Background(), ctx.Response().BodyWriter())
+	// Dashboard is cheap (short pings + store counts); SSR avoids HTMX skeleton flash.
+	return pages.HomePage(buildHomeDashboard(ctx.Context())).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func homeDashboardPartial(ctx fiber.Ctx) error {
@@ -91,17 +91,22 @@ func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 
 func buildHomeChecklist(ctx context.Context, d partials.HomeDashboard) []partials.HomeChecklistItem {
 	hasPipelines := d.PipelineTotal > 0
-	hasSkills := false
-	hasChannels := false
+	hasHub := d.HubAppsTotal > 0
+	hasAgentsReady := false
 	if store.Database != nil {
 		if skills, err := store.Database.ListAgentSkills(ctx, false); err == nil && len(skills) > 0 {
-			hasSkills = true
-		}
-		if channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{}); err == nil && len(channels) > 0 {
-			hasChannels = true
+			hasAgentsReady = true
 		}
 	}
 	items := []partials.HomeChecklistItem{
+		{
+			Done:   hasHub,
+			Title:  "Connect Hub apps",
+			Detail: "Start or register integrations this instance will orchestrate.",
+			Href:   "/service/web/hub",
+			CTA:    "Open Hub",
+			TestID: "home-check-hub",
+		},
 		{
 			Done:   hasPipelines,
 			Title:  "Create a pipeline",
@@ -111,20 +116,12 @@ func buildHomeChecklist(ctx context.Context, d partials.HomeDashboard) []partial
 			TestID: "home-check-pipelines",
 		},
 		{
-			Done:   hasSkills,
-			Title:  "Configure agent skills",
-			Detail: "Give chat agents the tools they need.",
-			Href:   "/service/web/agent-skills",
-			CTA:    "Open Skills",
-			TestID: "home-check-skills",
-		},
-		{
-			Done:   hasChannels,
-			Title:  "Add a notification channel",
-			Detail: "Deliver alerts when something needs attention.",
-			Href:   "/service/web/notifications?tab=channels",
-			CTA:    "Open Notifications",
-			TestID: "home-check-channels",
+			Done:   hasAgentsReady,
+			Title:  "Try Agents",
+			Detail: "Chat with an agent and configure skills when ready.",
+			Href:   "/service/web/agents",
+			CTA:    "Open Agents",
+			TestID: "home-check-agents",
 		},
 	}
 	allDone := true

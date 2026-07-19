@@ -243,10 +243,19 @@ Rules:
 - **Partial table refresh**: `hx-get="/service/web/.../list"` + `hx-target="#table-container"` + `hx-swap="outerHTML"`.
 - **Inline form injection**: `hx-get="/service/web/.../new"` + `hx-target="#rows-container"` + `hx-swap="afterbegin"`.
 - **OOB cleanup**: Return HTML fragments with `hx-swap-oob="delete"` from handler bodies (used for removing stale empty-state rows and form injection placeholders).
-- **Form errors**: Return error HTML fragment and set `HX-Retarget` + `HX-Reswap` headers to position error message before the form.
+- **Form errors**: Use `renderFormError(ctx, "#form-error", msg)` (sets `HX-Retarget` + `HX-Reswap: innerHTML`). Forms must include an empty `<div id="form-error" data-testid="form-error-slot"></div>`.
+- **Action-only errors**: Use `toastError(ctx, msg)` / `setShowToast` when there is no form slot (e.g. delete, test connection). Do not blindly retarget list/table swaps.
 - **Click-to-expand**: `hx-get="..." + hx-trigger="click" + hx-target="next tr..." + hx-swap="innerHTML show:top"`. Use inline `onclick` with `return false` to toggle collapse.
-- **Delete confirmation**: `hx-confirm="Are you sure?"` on button.
+- **Delete confirmation**: Prefer `data-confirm*` + `confirm.js` over bare `hx-confirm` when destructive.
 - HTMX loaded from local vendor: `/static/vendor/htmx.min.js`.
+
+## Error & loading conventions
+
+- User-visible failures must use toast (`showToast` / `HX-Trigger showToast`) or inline `FormError` — never `console.error` alone.
+- Intentionally silent failures (CSRF warm-up, cancel races) must be marked `intentionally silent` in a short comment.
+- Dual-channel client rule in `public/js/app.js`: HTML/`HX-Retarget` error bodies swap inline (no toast); network/`sendError`/`timeout` and non-HTML errors toast; `401` redirects to login with `next`.
+- Do not default every `renderError` to Retarget — that breaks DELETE/table refresh targets. Prefer explicit `renderFormError` or `toastError`.
+- Loading: use `partials.PanelSkeleton` (delayed soft spinner) inside `hx-trigger="load"` containers; button spinners keep `.htmx-indicator`. No global progress bar and no large DaisyUI gray skeleton slabs for panel loads.
 
 ## Alpine.js Usage (Pipeline Editor)
 
@@ -257,7 +266,8 @@ Rules:
 - YAML-to-visual synced via `onYamlChange()` (code → visual) and `toYaml()` (visual → code).
 - Undo/redo stack in Alpine state, persisted to server via `PUT /pipelines/:name`.
 - Trigger cards and step cards are templ partials rendered with Alpine directives (`:class`, `@click`, `x-text`).
-- Alpine.js loaded from local vendor: `/static/vendor/alpine.min.js`.
+- Alpine.js loaded from local vendor: `/static/vendor/alpine.csp.min.js`.
+- **CSP-safe expressions only** in templates: no `?.`, `??`, object/array literals, or spread (`...`) inside `x-text` / `x-for` / `@click` attributes. Put that logic in `pipeline-editor.js` helpers instead.
 
 ## Visual design (ops console)
 

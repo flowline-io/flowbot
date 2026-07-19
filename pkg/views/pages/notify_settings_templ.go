@@ -10,7 +10,10 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/flowline-io/flowbot/pkg/views/layout"
+import (
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
 
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
@@ -57,47 +60,87 @@ func NotifySettingsPage(activeTab string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/channels/new\" hx-target=\"#notify-channels-rows\" hx-swap=\"afterbegin\" data-testid=\"channels-new\" class=\"btn btn-primary btn-sm\">New Channel</button></div><div hx-get=\"/service/web/notifications/channels/list\" hx-trigger=\"load\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Templates\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/channels/new\" hx-target=\"#notify-channels-rows\" hx-swap=\"afterbegin\" data-testid=\"channels-new\" class=\"btn btn-primary btn-sm\">New Channel</button></div><div hx-get=\"/service/web/notifications/channels/list\" hx-trigger=\"load\" hx-swap=\"outerHTML\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Templates\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if activeTab == "templates" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " checked=\"checked\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/templates/new\" hx-target=\"#notify-templates-rows\" hx-swap=\"afterbegin\" data-testid=\"templates-new\" class=\"btn btn-primary btn-sm\">New Template</button></div><div hx-get=\"/service/web/notifications/templates/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Rules\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/templates/new\" hx-target=\"#notify-templates-rows\" hx-swap=\"afterbegin\" data-testid=\"templates-new\" class=\"btn btn-primary btn-sm\">New Template</button></div><div hx-get=\"/service/web/notifications/templates/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Rules\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if activeTab == "rules" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " checked=\"checked\"")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/rules/new\" hx-target=\"#notify-rules-rows\" hx-swap=\"afterbegin\" data-testid=\"rules-new\" class=\"btn btn-primary btn-sm\">New Rule</button></div><div hx-get=\"/service/web/notifications/rules/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"History\" data-testid=\"tab-history\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if activeTab == "history" || activeTab == "notifications" {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "><div class=\"tab-content p-4\"><div id=\"notifications-content\" hx-get=\"/service/web/notifications/list\" hx-trigger=\"load once\" hx-swap=\"innerHTML\"><div class=\"skeleton h-32 w-full\"></div></div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Playground\" data-testid=\"tab-playground\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/rules/new\" hx-target=\"#notify-rules-rows\" hx-swap=\"afterbegin\" data-testid=\"rules-new\" class=\"btn btn-primary btn-sm\">New Rule</button></div><div hx-get=\"/service/web/notifications/rules/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			if activeTab == "playground" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, " checked=\"checked\"")
+			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"History\" data-testid=\"tab-history\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if activeTab == "history" || activeTab == "notifications" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "><div class=\"tab-content p-4\"><div hx-get=\"/service/web/notifications/playground\" hx-trigger=\"load once\" hx-swap=\"outerHTML\"><div class=\"skeleton h-48 w-full\"></div></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "><div class=\"tab-content p-4\"><div id=\"notifications-content\" hx-get=\"/service/web/notifications/list\" hx-trigger=\"load once\" hx-swap=\"innerHTML\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Playground\" data-testid=\"tab-playground\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if activeTab == "playground" {
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " checked=\"checked\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "><div class=\"tab-content p-4\"><div hx-get=\"/service/web/notifications/playground\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

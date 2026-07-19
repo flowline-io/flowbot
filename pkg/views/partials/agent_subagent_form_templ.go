@@ -79,7 +79,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" placeholder=\"code-reviewer\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" placeholder=\"code-reviewer\" required maxlength=\"128\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -96,7 +96,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(params.Errors["flag"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 19, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 20, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -118,7 +118,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(params.Item.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 23, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 24, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 		if templ_7745c5c3_Err != nil {
@@ -137,14 +137,14 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"code-reviewer\"><p class=\"text-xs text-base-content/50 mt-1\">Referenced as subagent_type by the task tool and shown in the agent prompt.</p><div class=\"text-error text-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"code-reviewer\" required maxlength=\"128\"><p class=\"text-xs text-base-content/50 mt-1\">Referenced as subagent_type by the task tool and shown in the agent prompt.</p><div class=\"text-error text-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(params.Errors["name"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 29, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 31, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -166,7 +166,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(params.Item.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 33, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 35, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
 		if templ_7745c5c3_Err != nil {
@@ -192,7 +192,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(params.Errors["description"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 38, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 40, Col: 67}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -205,7 +205,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(params.Item.Model)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 42, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 44, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 		if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(params.Item.Source)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 50, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 52, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 		if templ_7745c5c3_Err != nil {
@@ -236,7 +236,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(toolName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 62, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 64, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 			if templ_7745c5c3_Err != nil {
@@ -249,7 +249,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue("agent-subagent-tool-" + toolName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 63, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 65, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
 			if templ_7745c5c3_Err != nil {
@@ -272,7 +272,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(toolName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 69, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 71, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +305,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue(skill.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 83, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 85, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
 				if templ_7745c5c3_Err != nil {
@@ -318,7 +318,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue("agent-subagent-skill-" + skill.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 84, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 86, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 				if templ_7745c5c3_Err != nil {
@@ -341,7 +341,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 				var templ_7745c5c3_Var22 string
 				templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(skill.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 91, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 93, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 				if templ_7745c5c3_Err != nil {
@@ -354,7 +354,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(agentSubagentDescriptionPreview(skill.Description))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 92, Col: 111}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 94, Col: 111}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -399,7 +399,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(params.Item.SystemPrompt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 104, Col: 104}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 106, Col: 104}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -412,7 +412,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(params.Errors["system_prompt"])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 105, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 107, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -445,7 +445,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 			var templ_7745c5c3_Var28 string
 			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.ResolveAttributeValue(agentSubagentURL(params.Item))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 124, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 126, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var28)
 			if templ_7745c5c3_Err != nil {
@@ -463,7 +463,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.ResolveAttributeValue(agentSubagentCancelURL())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 134, Col: 39}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/agent_subagent_form.templ`, Line: 136, Col: 39}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var29)
 		if templ_7745c5c3_Err != nil {

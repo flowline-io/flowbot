@@ -16,9 +16,7 @@ templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
 				</h1>
 			</div>
 			<div hx-get={ templ.URL("/service/web/pipelines/" + name + "/stats?groupBy=day") } hx-trigger="revealed" hx-swap="outerHTML">
-				<div class="flowbot-surface mb-6 animate-pulse p-6">
-					<div class="h-64 bg-base-200 rounded"></div>
-				</div>
+				@partials.PanelSkeleton()
 			</div>
 			<div id="pipeline-runs-container" data-testid="pipeline-runs-container">
 				@partials.PipelineRunsTable(name, runs)

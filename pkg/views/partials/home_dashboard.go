@@ -37,7 +37,7 @@ func HomeQuickLinks() []HomeQuickLink {
 	return []HomeQuickLink{
 		{Title: "Agents", Detail: "Chat and orchestrate", Href: "/service/web/agents", TestID: "home-link-agents"},
 		{Title: "Pipelines", Detail: "Automate event flows", Href: "/service/web/pipelines", TestID: "home-link-pipelines"},
+		{Title: "Hub", Detail: "Apps and capabilities", Href: "/service/web/hub", TestID: "home-link-hub"},
 		{Title: "Health", Detail: "Infrastructure status", Href: "/service/web/healthz", TestID: "home-link-healthz"},
-		{Title: "Notifications", Detail: "Channels and rules", Href: "/service/web/notifications", TestID: "home-link-notifications"},
 	}
 }

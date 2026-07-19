@@ -149,3 +149,63 @@ document.addEventListener('submit', function (evt) {
   input.value = tok;
   form.appendChild(input);
 });
+
+// Dual-channel HTMX errors: swap HTML / HX-Retarget fragments inline (no toast);
+// toast only for network failures and non-HTML error bodies.
+function flowbotLoginURL() {
+  var next = window.location.pathname + window.location.search;
+  return '/service/web/login?next=' + encodeURIComponent(next);
+}
+
+function flowbotRedirectToLogin() {
+  window.location.href = flowbotLoginURL();
+}
+
+function flowbotXHRHasHTMLBody(xhr) {
+  if (!xhr) return false;
+  var ct = (xhr.getResponseHeader('Content-Type') || '').toLowerCase();
+  return ct.indexOf('text/html') !== -1;
+}
+
+function flowbotXHRHasRetarget(xhr) {
+  if (!xhr) return false;
+  return !!(xhr.getResponseHeader('HX-Retarget') || '');
+}
+
+document.addEventListener('htmx:beforeSwap', function (evt) {
+  var xhr = evt.detail.xhr;
+  if (!xhr) return;
+  var status = xhr.status;
+  if (status >= 200 && status < 400) return;
+  if (status === 401) return;
+  if (flowbotXHRHasRetarget(xhr) || flowbotXHRHasHTMLBody(xhr)) {
+    evt.detail.shouldSwap = true;
+    evt.detail.isError = false;
+  }
+});
+
+document.addEventListener('htmx:responseError', function (evt) {
+  var xhr = evt.detail.xhr;
+  var status = xhr ? xhr.status : 0;
+  if (status === 401) {
+    flowbotRedirectToLogin();
+    return;
+  }
+  // Inline FormError / retargeted fragments are handled via beforeSwap (isError=false).
+  if (flowbotXHRHasRetarget(xhr) || flowbotXHRHasHTMLBody(xhr)) {
+    return;
+  }
+  var msg = 'Request failed';
+  if (status) {
+    msg += ' (' + status + ')';
+  }
+  showToast(msg, 'error');
+});
+
+document.addEventListener('htmx:sendError', function () {
+  showToast('Network error. Check your connection and try again.', 'error');
+});
+
+document.addEventListener('htmx:timeout', function () {
+  showToast('Request timed out. Please try again.', 'error');
+});

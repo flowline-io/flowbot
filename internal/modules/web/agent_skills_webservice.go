@@ -111,8 +111,7 @@ func agentSkillCreate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			return partials.AgentSkillForm(input, true, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to create agent skill")
+		return toastError(ctx, "Failed to create agent skill")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill created uid=%s flag=%s name=%s", getUID(ctx), row.Flag, row.Name)
@@ -186,15 +185,13 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 			ctx.Type("html")
 			return partials.AgentSkillForm(input, false, fieldErrs).Render(reqCtx, ctx.Response().BodyWriter())
 		}
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to update agent skill")
+		return toastError(ctx, "Failed to update agent skill")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill updated uid=%s flag=%s name=%s", getUID(ctx), flag, input.Name)
 	updated, err := loadAgentSkillModel(reqCtx, flag)
 	if err != nil {
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to load updated agent skill")
+		return toastError(ctx, "Failed to load updated agent skill")
 	}
 	ctx.Type("html")
 	return partials.AgentSkillRow(updated).Render(reqCtx, ctx.Response().BodyWriter())
@@ -211,11 +208,9 @@ func agentSkillDelete(ctx fiber.Ctx) error {
 	reqCtx := ctx.Context()
 	if err := store.Database.DeleteAgentSkill(reqCtx, flag); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
-			ctx.Status(http.StatusNotFound)
-			return renderError(ctx, "Agent skill not found")
+			return toastError(ctx, "Agent skill not found")
 		}
-		ctx.Status(http.StatusInternalServerError)
-		return renderError(ctx, "Failed to delete agent skill")
+		return toastError(ctx, "Failed to delete agent skill")
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill deleted uid=%s flag=%s", getUID(ctx), flag)

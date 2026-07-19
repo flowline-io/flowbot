@@ -12,6 +12,7 @@ templ AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string
 						data-testid="agent-skill-flag"
 						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "flag") }
 						placeholder="karakeep"
+						required maxlength="128"
 						if !isNew {
 							readonly="readonly"
 						}
@@ -24,6 +25,7 @@ templ AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string
 						data-testid="agent-skill-name"
 						class={ "input input-bordered input-sm w-full " + fieldError(errors, "name") }
 						placeholder="karakeep"
+						required maxlength="128"
 					/>
 					<p class="text-xs text-base-content/50 mt-1">Used by read_skill and shown in the agent prompt (independent of Flag).</p>
 					<div class="text-error text-xs">{ errors["name"] }</div>
