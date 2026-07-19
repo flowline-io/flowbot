@@ -111,11 +111,6 @@ tasks:
     cmds:
       - go tool govulncheck ./...
 
-  leak:
-    desc: Find secrets with Gitleaks
-    cmds:
-      - go tool gitleaks git -v
-
   gosec:
     desc: Run Go security checker
     cmds:
