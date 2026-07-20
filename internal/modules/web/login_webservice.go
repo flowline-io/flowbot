@@ -36,8 +36,25 @@ func loginPage(ctx fiber.Ctx) error {
 		return ctx.Redirect().To(next)
 	}
 	next := ctx.Query("next", "")
+	csrfTok, err := ensureCSRFCookie(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "csrf token error")
+	}
+	// Cloudflare and other CDNs must not cache the login HTML or CSRF cookie pairing breaks.
+	ctx.Set("Cache-Control", "no-store")
 	ctx.Type("html")
-	return pages.LoginPage(next, "").Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LoginPage(next, "", csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+// renderLoginForm writes the login form fragment with a fresh CSRF double-submit token.
+func renderLoginForm(ctx fiber.Ctx, next, errorMsg string) error {
+	csrfTok, err := ensureCSRFCookie(ctx)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "csrf token error")
+	}
+	ctx.Set("Cache-Control", "no-store")
+	ctx.Type("html")
+	return pages.LoginForm(next, errorMsg, csrfTok).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 // checkLoginRateLimit checks the rate limiter for the current IP.
@@ -89,14 +106,12 @@ func loginSubmit(ctx fiber.Ctx) error {
 	cfg := authConfig()
 
 	if blocked := checkLoginRateLimit(ctx); blocked != "" {
-		ctx.Type("html")
-		return pages.LoginForm(next, blocked).Render(context.Background(), ctx.Response().BodyWriter())
+		return renderLoginForm(ctx, next, blocked)
 	}
 
 	if username == "" || !cfg.verifyCredentials(username, password) {
 		msg := recordLoginFailure(ctx)
-		ctx.Type("html")
-		return pages.LoginForm(next, msg).Render(context.Background(), ctx.Response().BodyWriter())
+		return renderLoginForm(ctx, next, msg)
 	}
 
 	loginSuccessCleanup(ctx)
@@ -104,8 +119,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 	token, err := auth.NewToken()
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to generate token: %w", err))
-		ctx.Type("html")
-		return pages.LoginForm(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
+		return renderLoginForm(ctx, next, "Internal error")
 	}
 	uid := types.Uid("user-" + username)
 	params := types.KV{
@@ -116,8 +130,7 @@ func loginSubmit(ctx fiber.Ctx) error {
 	expiredAt := time.Now().Add(24 * time.Hour)
 	if err := store.Database.ParameterSet(context.Background(), auth.HashToken(token), params, expiredAt); err != nil {
 		flog.Error(fmt.Errorf("failed to store token: %w", err))
-		ctx.Type("html")
-		return pages.LoginForm(next, "Internal error").Render(context.Background(), ctx.Response().BodyWriter())
+		return renderLoginForm(ctx, next, "Internal error")
 	}
 	setAccessTokenCookie(ctx, token, 86400, time.Time{})
 	if next == "" || !strings.HasPrefix(next, "/") || strings.Contains(next, "//") || strings.Contains(next, ":") {

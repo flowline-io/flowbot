@@ -139,14 +139,14 @@ func initPipeline(
 		return fmt.Errorf("init event source manager: %w", err)
 	}
 
-	pipelineDefs := loadPipelineDefinitions(context.Background(), cfg)
+	pipelineDefs := loadPipelineDefinitions(context.Background())
 	engine, err := setupPipelineEngine(lc, pipelineDefs, auditor, pc, ec)
 	if err != nil {
 		return fmt.Errorf("setup pipeline engine: %w", err)
 	}
 
 	pipeline.SetReloadSource(func(ctx context.Context) ([]pipeline.Definition, error) {
-		return loadPipelineDefinitions(ctx, cfg), nil
+		return loadPipelineDefinitions(ctx), nil
 	}, engine)
 
 	if err := setupAbilityEmitter(cfg, ac); err != nil {
@@ -160,20 +160,20 @@ func initPipeline(
 	return nil
 }
 
-func loadPipelineDefinitions(ctx context.Context, cfg *config.Type) []pipeline.Definition {
-	pipelineDefs := pipeline.LoadConfig(cfg.Pipelines)
-	if store.Database != nil && store.Database.GetDB() != nil {
-		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			pipelineDefStore := store.NewPipelineStore(client)
-			dbDefs, err := pipeline.LoadFromDB(ctx, pipelineDefStore)
-			if err != nil {
-				flog.Error(fmt.Errorf("load pipeline defs from db: %w", err))
-			} else {
-				pipelineDefs = mergeDefinitions(pipelineDefs, dbDefs)
-			}
-		}
+func loadPipelineDefinitions(ctx context.Context) []pipeline.Definition {
+	if store.Database == nil || store.Database.GetDB() == nil {
+		return nil
 	}
-	return pipelineDefs
+	client, ok := store.Database.GetDB().(*store.Client)
+	if !ok {
+		return nil
+	}
+	dbDefs, err := pipeline.LoadFromDB(ctx, store.NewPipelineStore(client))
+	if err != nil {
+		flog.Error(fmt.Errorf("load pipeline defs from db: %w", err))
+		return nil
+	}
+	return dbDefs
 }
 
 func setupPipelineEngine(
@@ -375,24 +375,4 @@ func (a *pollingPersistenceAdapter) LoadAll(ctx context.Context) (map[string]cap
 
 func (a *pollingPersistenceAdapter) Save(ctx context.Context, resourceName, cursor string, knownHashes map[string]string) error {
 	return a.store.Save(ctx, resourceName, cursor, knownHashes)
-}
-
-func mergeDefinitions(fileDefs, dbDefs []pipeline.Definition) []pipeline.Definition {
-	if len(dbDefs) == 0 {
-		return fileDefs
-	}
-	seen := make(map[string]bool, len(dbDefs))
-	for _, d := range dbDefs {
-		seen[d.Name] = true
-	}
-	merged := make([]pipeline.Definition, 0, len(fileDefs)+len(dbDefs))
-	merged = append(merged, dbDefs...)
-	for _, d := range fileDefs {
-		if seen[d.Name] {
-			continue
-		}
-		merged = append(merged, d)
-		seen[d.Name] = true
-	}
-	return merged
 }

@@ -128,27 +128,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.addEventListener('htmx:configRequest', function (evt) {
   var tok = flowbotCSRFToken();
+  // Prefer server-rendered form field when document.cookie is unavailable (proxies / Secure mismatch).
+  if (!tok && evt.detail && evt.detail.elt) {
+    var el = evt.detail.elt;
+    var form =
+      el.tagName === 'FORM' ? el : el.closest ? el.closest('form') : null;
+    if (form) {
+      var field = form.querySelector('input[name="csrf_token"]');
+      if (field && field.value) {
+        tok = field.value;
+        window.flowbotCSRFCache = tok;
+      }
+    }
+  }
   if (tok) {
     evt.detail.headers['X-CSRF-Token'] = tok;
   }
 });
 
-document.addEventListener('submit', function (evt) {
-  var form = evt.target;
-  if (!form || form.tagName !== 'FORM') return;
-  var tok = flowbotCSRFToken();
-  if (!tok) return;
-  var existing = form.querySelector('input[name="csrf_token"]');
-  if (existing) {
-    existing.value = tok;
-    return;
-  }
-  var input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'csrf_token';
-  input.value = tok;
-  form.appendChild(input);
-});
+// Capture phase so the hidden field exists before HTMX serializes the form.
+document.addEventListener(
+  'submit',
+  function (evt) {
+    var form = evt.target;
+    if (!form || form.tagName !== 'FORM') return;
+    var tok = flowbotCSRFToken();
+    if (!tok) return;
+    var existing = form.querySelector('input[name="csrf_token"]');
+    if (existing) {
+      existing.value = tok;
+      return;
+    }
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'csrf_token';
+    input.value = tok;
+    form.appendChild(input);
+  },
+  true,
+);
 
 // Dual-channel HTMX errors: swap HTML / HX-Retarget fragments inline (no toast);
 // toast only for network failures and non-HTML error bodies.

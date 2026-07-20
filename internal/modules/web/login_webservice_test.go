@@ -34,6 +34,11 @@ func TestLoginPage(t *testing.T) {
 			wantContains: "Login",
 		},
 		{
+			name:         "login form embeds csrf_token field",
+			wantStatus:   http.StatusOK,
+			wantContains: `name="csrf_token"`,
+		},
+		{
 			name:         "with valid cookie redirects to configs",
 			cookieToken:  "valid-token",
 			wantStatus:   http.StatusSeeOther,
@@ -81,6 +86,21 @@ func TestLoginPage(t *testing.T) {
 				body, _ := io.ReadAll(resp.Body)
 				if !strings.Contains(string(body), tt.wantContains) {
 					t.Errorf("want body containing %q", tt.wantContains)
+				}
+			}
+			if tt.name == "login form embeds csrf_token field" {
+				if cc := resp.Header.Get("Cache-Control"); cc != "no-store" {
+					t.Errorf("want Cache-Control=no-store, got %q", cc)
+				}
+				foundCSRFCookie := false
+				for _, c := range resp.Cookies() {
+					if c.Name == csrfCookieName && len(c.Value) >= csrfMinLen {
+						foundCSRFCookie = true
+						break
+					}
+				}
+				if !foundCSRFCookie {
+					t.Error("expected csrfToken Set-Cookie on login page")
 				}
 			}
 		})

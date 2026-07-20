@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	goYaml "github.com/goccy/go-yaml"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/fx"
@@ -86,10 +85,6 @@ type Type struct {
 
 	// Homelab app registry and lifecycle configuration
 	Homelab Homelab `json:"homelab" yaml:"homelab" mapstructure:"homelab"`
-
-	// Pipeline definitions for cross-service event-driven automation.
-	// Populated at runtime from pipelines.yaml.
-	Pipelines []Pipeline `json:"pipelines" yaml:"-" mapstructure:"-"`
 
 	// OpenTelemetry tracing configuration
 	Tracing Tracing `json:"tracing" yaml:"tracing" mapstructure:"tracing"`
@@ -692,27 +687,6 @@ func expandConfigFileEnv(path string) error {
 	return viper.ReadConfig(strings.NewReader(expanded))
 }
 
-// loadPipelines reads pipeline definitions from a standalone YAML file.
-// It returns nil if the file does not exist, treating missing files as an empty pipeline set.
-func loadPipelines(path string) ([]Pipeline, error) {
-	if path == "" {
-		return nil, nil
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			log.Printf("[config] Pipelines file not found: %s, skipping", path)
-			return nil, nil
-		}
-		return nil, fmt.Errorf("read pipelines file: %w", err)
-	}
-	var pipelines []Pipeline
-	if err := goYaml.Unmarshal(data, &pipelines); err != nil {
-		return nil, fmt.Errorf("unmarshal pipelines: %w", err)
-	}
-	return pipelines, nil
-}
-
 func NewConfig(lc fx.Lifecycle) (*Type, error) {
 	executable, _ := os.Executable()
 
@@ -732,15 +706,6 @@ func NewConfig(lc fx.Lifecycle) (*Type, error) {
 	if err := Load(".", curwd); err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
-
-	// Load pipelines from separate file
-	pipelinesPath := utils.ToAbsolutePath(curwd, "pipelines.yaml")
-	log.Printf("Using pipelines config from '%s'\n", pipelinesPath)
-	pipelines, err := loadPipelines(pipelinesPath)
-	if err != nil {
-		return nil, fmt.Errorf("load pipelines: %w", err)
-	}
-	App.Pipelines = pipelines
 
 	// Configure root path for serving API calls.
 	if App.ApiPath == "" {

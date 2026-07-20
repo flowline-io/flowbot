@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/flowline-io/flowbot/pkg/views/layout"
 
-func LoginPage(nextURL string, errorMsg string) templ.Component {
+func LoginPage(nextURL string, errorMsg string, csrfToken string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,7 +43,7 @@ func LoginPage(nextURL string, errorMsg string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = LoginForm(nextURL, errorMsg).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = LoginForm(nextURL, errorMsg, csrfToken).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -59,7 +59,9 @@ func LoginPage(nextURL string, errorMsg string) templ.Component {
 
 // LoginForm renders the login form without the base layout.
 // Used for HTMX responses where only the form fragment should be swapped.
-func LoginForm(nextURL string, errorMsg string) templ.Component {
+// csrfToken is embedded so login works even when JS cannot attach X-CSRF-Token
+// (common behind Cloudflare Rocket Loader / WAF).
+func LoginForm(nextURL string, errorMsg string, csrfToken string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -87,36 +89,49 @@ func LoginForm(nextURL string, errorMsg string) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(nextURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 20, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 22, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1.5\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" required maxlength=\"128\" data-testid=\"login-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-5\"><label for=\"password\" class=\"block text-sm font-medium mb-1.5\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"current-password\" required maxlength=\"256\" data-testid=\"login-password\" class=\"input input-bordered w-full\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"> <input type=\"hidden\" name=\"csrf_token\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 23, Col: 58}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" data-testid=\"login-csrf\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1.5\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" required maxlength=\"128\" data-testid=\"login-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-5\"><label for=\"password\" class=\"block text-sm font-medium mb-1.5\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"current-password\" required maxlength=\"256\" data-testid=\"login-password\" class=\"input input-bordered w-full\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if errorMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<p class=\"text-error text-sm mb-4\" data-testid=\"login-error\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-error text-sm mb-4\" data-testid=\"login-error\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 37, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/login.templ`, Line: 40, Col: 74}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<button type=\"submit\" data-testid=\"login-submit\" class=\"btn btn-primary w-full\">Login</button></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button type=\"submit\" data-testid=\"login-submit\" class=\"btn btn-primary w-full\">Login</button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

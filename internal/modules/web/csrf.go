@@ -137,6 +137,7 @@ func csrfTokenJSON(ctx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, "csrf token error")
 	}
 	setCSRFCookie(ctx, token)
+	ctx.Set("Cache-Control", "no-store")
 	return ctx.JSON(fiber.Map{"token": token})
 }
 

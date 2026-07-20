@@ -2,11 +2,15 @@ package pipeline
 
 import (
 	"context"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// reloadTestMu serializes tests that mutate package-level reload source/engine.
+var reloadTestMu sync.Mutex
 
 func TestReloadDefinitions(t *testing.T) {
 	t.Parallel()
@@ -53,10 +57,13 @@ func TestReloadDefinitions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			reloadTestMu.Lock()
+			defer reloadTestMu.Unlock()
+
 			SetReloadSource(nil, nil)
 			source, engine := tt.setup(t)
 			SetReloadSource(source, engine)
-			t.Cleanup(func() { SetReloadSource(nil, nil) })
+			defer SetReloadSource(nil, nil)
 
 			err := ReloadDefinitions(context.Background())
 			if tt.wantErr {
