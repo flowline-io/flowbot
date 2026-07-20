@@ -146,5 +146,43 @@ func TestBuildPollingState_NilDatabase(t *testing.T) {
 	}
 }
 
+func TestResolveEmittedEventID(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		ref     capability.EventRef
+		want    string
+		wantGen bool
+	}{
+		{
+			name: "reuses provided event id",
+			ref:  capability.EventRef{EventID: "evt-fixed-1", EventType: "kanban.task.created"},
+			want: "evt-fixed-1",
+		},
+		{
+			name: "trims whitespace around provided event id",
+			ref:  capability.EventRef{EventID: "  evt-fixed-2  "},
+			want: "evt-fixed-2",
+		},
+		{
+			name:    "generates id when event id empty",
+			ref:     capability.EventRef{EventType: "kanban.task.created"},
+			wantGen: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := resolveEmittedEventID(tt.ref)
+			if tt.wantGen {
+				assert.NotEmpty(t, got)
+				assert.NotEqual(t, resolveEmittedEventID(tt.ref), got)
+				return
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 // verify pollingPersistenceAdapter implements capability.Persistence.
 var _ capability.Persistence = (*pollingPersistenceAdapter)(nil)

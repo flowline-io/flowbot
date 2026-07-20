@@ -63,7 +63,7 @@ templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pa
 								hx-trigger="click"
 								hx-target={ "#wh-detail-" + e.EventID }
 								hx-swap="innerHTML show:top">
-							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("15:04:05") }</td>
+							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("2006-01-02 15:04:05") }</td>
 							<td><span class="flowbot-chip flowbot-chip-muted">{ e.EventType }</span></td>
 							<td class="text-xs">{ webhookSourceDisplay(e) }</td>
 								<td class="text-xs font-mono">{ webhookPath(e) }</td>

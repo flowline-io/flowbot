@@ -54,7 +54,7 @@ func Register(app string, svc Service) error {
 					{Name: "tags", Type: "[]string", Required: false, Description: "Tags to assign"},
 					{Name: "reference", Type: "string", Required: false, Description: "Reference URL or text"},
 				},
-				Handler: invokeCreateTask(svc),
+				Handler: invokeCreateTask(svc, app),
 			},
 			{
 				Name: OpUpdateTask, Description: "Update a task", Scopes: []string{auth.ScopeServiceKanbanWrite}, Mutation: true,
@@ -145,7 +145,7 @@ func invokeGetTask(svc Service) capability.Invoker {
 	}
 }
 
-func invokeCreateTask(svc Service) capability.Invoker {
+func invokeCreateTask(svc Service, app string) capability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		req := CreateTaskRequest{}
 		req.Title, _ = capability.StringParam(params, "title")
@@ -164,12 +164,20 @@ func invokeCreateTask(svc Service) capability.Invoker {
 		if err != nil {
 			return nil, err
 		}
+		entityID := fmt.Sprintf("%d", item.ID)
+		eventID := types.Id()
 		return &capability.InvokeResult{
 			Data: item,
 			Text: "task created: " + item.Title,
+			Resource: &capability.ResourceMeta{
+				EventID:  eventID,
+				EntityID: entityID,
+				App:      app,
+			},
 			Events: []capability.EventRef{{
+				EventID:   eventID,
 				EventType: types.EventKanbanTaskCreated,
-				EntityID:  fmt.Sprintf("%d", item.ID),
+				EntityID:  entityID,
 			}},
 		}, nil
 	}

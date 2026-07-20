@@ -5,6 +5,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/capability"
 )
 
 func TestWebhookPath(t *testing.T) {
@@ -88,14 +90,29 @@ func TestVerifySignature(t *testing.T) {
 func TestConvert(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name    string
-		body    []byte
-		wantErr bool
+		name           string
+		body           []byte
+		wantErr        bool
+		wantVisibility string
 	}{
 		{
-			name:    "valid payload",
-			body:    []byte(`{"url":"https://example.com","activityType":"memos.memo.created","creator":"users/1","memo":{"name":"memos/1","content":"Hello","visibility":"PRIVATE"}}`),
-			wantErr: false,
+			name:           "valid payload with string visibility",
+			body:           []byte(`{"url":"https://example.com","activityType":"memos.memo.created","creator":"users/1","memo":{"name":"memos/1","content":"Hello","visibility":"PRIVATE"}}`),
+			wantErr:        false,
+			wantVisibility: "PRIVATE",
+		},
+		{
+			// Memos webhook uses encoding/json on protobuf Memo, so enums are numbers.
+			name:           "numeric visibility from memos webhook protobuf json",
+			body:           []byte(`{"url":"https://example.com","activityType":"memos.memo.created","creator":"users/1","memo":{"name":"memos/1","state":1,"content":"Hello","visibility":1,"property":{}}}`),
+			wantErr:        false,
+			wantVisibility: "PRIVATE",
+		},
+		{
+			name:           "numeric public visibility",
+			body:           []byte(`{"activityType":"memos.memo.updated","creator":"users/1","memo":{"name":"memos/2","visibility":3}}`),
+			wantErr:        false,
+			wantVisibility: "PUBLIC",
 		},
 		{
 			name:    "invalid JSON",
@@ -127,6 +144,11 @@ func TestConvert(t *testing.T) {
 			assert.NotEmpty(t, events[0].EventID)
 			assert.Equal(t, "memos_webhook", events[0].Source)
 			assert.Equal(t, "memos", events[0].Capability)
+			if tt.wantVisibility != "" {
+				memo, ok := events[0].Data["memo"].(*capability.Memo)
+				require.True(t, ok)
+				assert.Equal(t, tt.wantVisibility, memo.Visibility)
+			}
 		})
 	}
 }

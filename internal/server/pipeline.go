@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -228,7 +229,7 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) erro
 			return
 		}
 		for _, ref := range result.Events {
-			eventID := types.Id()
+			eventID := resolveEmittedEventID(ref)
 
 			dataEvent := types.DataEvent{
 				EventID:        eventID,
@@ -250,6 +251,14 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) erro
 	})
 
 	return nil
+}
+
+// resolveEmittedEventID returns EventRef.EventID when set, otherwise a newly generated ID.
+func resolveEmittedEventID(ref capability.EventRef) string {
+	if id := strings.TrimSpace(ref.EventID); id != "" {
+		return id
+	}
+	return types.Id()
 }
 
 func registerPipelineHandler(

@@ -1,10 +1,33 @@
 // Package memos implements the Memos provider for note-taking and knowledge management.
 package memos
 
-import "time"
+import (
+	"fmt"
+	"strconv"
+	"time"
+
+	"github.com/bytedance/sonic"
+)
 
 // MaxPageSize is the maximum number of items per page for list requests.
 const MaxPageSize = 100
+
+// visibilityNames maps protobuf Visibility enum numbers to symbolic names.
+// See usememos/memos proto/api/v1/memo_service.proto.
+var visibilityNames = map[int64]string{
+	0: "VISIBILITY_UNSPECIFIED",
+	1: "PRIVATE",
+	2: "PROTECTED",
+	3: "PUBLIC",
+}
+
+// stateNames maps protobuf State enum numbers to symbolic names.
+// See usememos/memos proto/api/v1/common.proto.
+var stateNames = map[int64]string{
+	0: "STATE_UNSPECIFIED",
+	1: "NORMAL",
+	2: "ARCHIVED",
+}
 
 // Memo represents a memo in the Memos API.
 type Memo struct {
@@ -24,6 +47,67 @@ type Memo struct {
 	Parent      *string        `json:"parent,omitempty"`
 	Snippet     string         `json:"snippet,omitempty"`
 	Location    *Location      `json:"location,omitempty"`
+}
+
+// UnmarshalJSON accepts both REST (protojson string enums) and webhook
+// (encoding/json numeric enums) payloads from Memos.
+func (m *Memo) UnmarshalJSON(data []byte) error {
+	type memoJSON Memo
+	aux := &struct {
+		State      *protoEnum `json:"state"`
+		Visibility *protoEnum `json:"visibility"`
+		*memoJSON
+	}{
+		memoJSON: (*memoJSON)(m),
+	}
+	if err := sonic.Unmarshal(data, aux); err != nil {
+		return err
+	}
+	if aux.State != nil {
+		m.State = aux.State.resolve(stateNames)
+	}
+	if aux.Visibility != nil {
+		m.Visibility = aux.Visibility.resolve(visibilityNames)
+	}
+	return nil
+}
+
+// protoEnum unmarshals a protobuf enum that may be a symbolic name or a number.
+type protoEnum struct {
+	name string
+	num  *int64
+}
+
+// UnmarshalJSON accepts a JSON string or number for a protobuf enum field.
+func (e *protoEnum) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 || string(data) == "null" {
+		return nil
+	}
+	var s string
+	if err := sonic.Unmarshal(data, &s); err == nil {
+		e.name = s
+		return nil
+	}
+	var n int64
+	if err := sonic.Unmarshal(data, &n); err == nil {
+		e.num = &n
+		return nil
+	}
+	return fmt.Errorf("protobuf enum: expected string or number, got %s", string(data))
+}
+
+// resolve returns the symbolic enum name, mapping known numeric values when needed.
+func (e *protoEnum) resolve(names map[int64]string) string {
+	if e == nil {
+		return ""
+	}
+	if e.num != nil {
+		if name, ok := names[*e.num]; ok {
+			return name
+		}
+		return strconv.FormatInt(*e.num, 10)
+	}
+	return e.name
 }
 
 // MemoProperty holds computed properties of a memo.

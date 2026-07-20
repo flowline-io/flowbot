@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 type mockService struct{}
@@ -176,6 +177,70 @@ func TestStringListParam_EmptyAnySlice(t *testing.T) {
 			v, ok := stringListParam(params, "tags")
 			assert.True(t, ok)
 			assert.Empty(t, v)
+		})
+	}
+}
+
+type createTaskStub struct {
+	mockService
+	task *capability.Task
+	err  error
+}
+
+func (s *createTaskStub) CreateTask(_ context.Context, _ CreateTaskRequest) (*capability.Task, error) {
+	return s.task, s.err
+}
+
+func TestInvokeCreateTask_ResourceMeta(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		app       string
+		task      *capability.Task
+		err       error
+		wantErr   bool
+		wantEntID string
+	}{
+		{
+			name:      "create task returns resource meta shared with event",
+			app:       "kanboard",
+			task:      &capability.Task{ID: 42, Title: "Read article"},
+			wantEntID: "42",
+		},
+		{
+			name:      "create task uses app from register",
+			app:       "homelab-kanban",
+			task:      &capability.Task{ID: 7, Title: "Todo"},
+			wantEntID: "7",
+		},
+		{
+			name:    "create task error propagates without resource",
+			app:     "kanboard",
+			err:     assert.AnError,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			stub := &createTaskStub{task: tt.task, err: tt.err}
+			invoker := invokeCreateTask(stub, tt.app)
+			result, err := invoker(context.Background(), map[string]any{"title": "x", "project_id": 1})
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Nil(t, result)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, result)
+			require.NotNil(t, result.Resource)
+			require.Len(t, result.Events, 1)
+			assert.Equal(t, tt.wantEntID, result.Resource.EntityID)
+			assert.Equal(t, tt.app, result.Resource.App)
+			assert.NotEmpty(t, result.Resource.EventID)
+			assert.Equal(t, result.Resource.EventID, result.Events[0].EventID)
+			assert.Equal(t, tt.wantEntID, result.Events[0].EntityID)
+			assert.Equal(t, types.EventKanbanTaskCreated, result.Events[0].EventType)
 		})
 	}
 }
