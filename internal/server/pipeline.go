@@ -261,6 +261,24 @@ func resolveEmittedEventID(ref capability.EventRef) string {
 	return types.Id()
 }
 
+// enrichDataEventApp fills DataEvent.App from hub when the converter left it empty.
+func enrichDataEventApp(ev *types.DataEvent) {
+	if ev == nil || strings.TrimSpace(ev.App) != "" {
+		return
+	}
+	capabilityName := strings.TrimSpace(ev.Capability)
+	if capabilityName == "" {
+		return
+	}
+	if desc, ok := hub.Default.Get(hub.CapabilityType(capabilityName)); ok {
+		if app := strings.TrimSpace(desc.App); app != "" {
+			ev.App = app
+			return
+		}
+	}
+	ev.App = capabilityName
+}
+
 func registerPipelineHandler(
 	router *message.Router,
 	subscriber message.Subscriber,
@@ -308,7 +326,9 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 				return nil
 			}
 			eventStore := store.NewEventStore(client)
-			for _, de := range events {
+			for i := range events {
+				enrichDataEventApp(&events[i])
+				de := events[i]
 				flog.Debug("event_source: storing event %s type=%s source=%s", de.EventID, de.EventType, de.Source)
 				if err := eventStore.AppendDataEvent(ctx, de); err != nil {
 					flog.Error(fmt.Errorf("event_source: AppendDataEvent failed: %w", err))

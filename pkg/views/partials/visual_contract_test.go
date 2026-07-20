@@ -138,6 +138,25 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 			want:   "flowbot-chip-muted",
 			absent: "badge-ghost",
 		},
+		{
+			name: "shows triggers and steps columns",
+			entries: []partials.PipelineListEntry{
+				{
+					Definition: &gen.PipelineDefinition{
+						Name:   "with-triggers",
+						Status: pipelinedefinition.StatusPublished,
+					},
+					Enabled:   true,
+					StepCount: 3,
+					Triggers: []partials.PipelineTriggerSummary{
+						{Type: "event", Label: "Event: bookmark.created", Enabled: true, Letter: "E"},
+						{Type: "cron", Label: "Cron: @daily", Enabled: true, Letter: "C"},
+					},
+				},
+			},
+			want:   "pipeline-triggers-with-triggers",
+			absent: "badge-success",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

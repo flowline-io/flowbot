@@ -442,8 +442,8 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 	link := &gen.ResourceLink{
 		SourceEventID:    rc.Event.EventID,
 		TargetEventID:    stepResource.EventID,
-		SourceApp:        rc.Event.App,
-		TargetApp:        stepResource.App,
+		SourceApp:        resolveResourceApp(rc.Event.App, rc.Event.Capability),
+		TargetApp:        resolveResourceApp(stepResource.App, string(step.Capability)),
 		SourceCapability: rc.Event.Capability,
 		TargetCapability: string(step.Capability),
 		SourceEntityID:   rc.Event.EntityID,
@@ -453,7 +453,27 @@ func (e *Engine) saveResourceLink(ctx context.Context, rc *RenderContext, step S
 	}
 	if err := e.store.RecordResourceLink(ctx, link); err != nil {
 		flog.Error(fmt.Errorf("record resource link pipeline %s: %w", pipelineName, err))
+		return
 	}
+	flog.Info("pipeline %s recorded resource link %s/%s -> %s/%s",
+		pipelineName, link.SourceCapability, link.SourceEntityID, link.TargetCapability, link.TargetEntityID)
+}
+
+// resolveResourceApp returns app when set; otherwise hub app for capability, else capability itself.
+func resolveResourceApp(app, capabilityName string) string {
+	if id := strings.TrimSpace(app); id != "" {
+		return id
+	}
+	capabilityName = strings.TrimSpace(capabilityName)
+	if capabilityName == "" {
+		return ""
+	}
+	if desc, ok := hub.Default.Get(hub.CapabilityType(capabilityName)); ok {
+		if id := strings.TrimSpace(desc.App); id != "" {
+			return id
+		}
+	}
+	return capabilityName
 }
 
 // formatStepError builds a descriptive error message from a step invoke failure.

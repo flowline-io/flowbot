@@ -13,6 +13,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestNewPipelineStepCallback(t *testing.T) {
@@ -180,6 +181,39 @@ func TestResolveEmittedEventID(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestEnrichDataEventApp(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		ev   types.DataEvent
+		want string
+	}{
+		{
+			name: "keeps existing app",
+			ev:   types.DataEvent{App: "homelab", Capability: "karakeep"},
+			want: "homelab",
+		},
+		{
+			name: "fills from capability when app empty",
+			ev:   types.DataEvent{Capability: "karakeep"},
+			want: "karakeep",
+		},
+		{
+			name: "leaves empty when capability missing",
+			ev:   types.DataEvent{},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ev := tt.ev
+			enrichDataEventApp(&ev)
+			assert.Equal(t, tt.want, ev.App)
 		})
 	}
 }

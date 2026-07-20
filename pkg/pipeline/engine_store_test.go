@@ -353,40 +353,94 @@ func TestEngine_ExecutePipelineWithStore(t *testing.T) {
 
 func TestEngine_SaveResourceLink(t *testing.T) {
 	t.Parallel()
-	registerExampleInvoker(t, "create", func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
-		return &capability.InvokeResult{
-			Capability: hub.CapExample,
-			Operation:  "create",
-			Data:       map[string]any{"id": "new-1"},
-			Resource: &capability.ResourceMeta{
-				EventID:  "target-ev",
-				EntityID: "ent-2",
-				App:      "target-app",
+	tests := []struct {
+		name          string
+		event         types.DataEvent
+		wantSourceApp string
+	}{
+		{
+			name: "records link with explicit source app",
+			event: types.DataEvent{
+				EventID: "src-ev", EventType: "item.created", EntityID: "src-ent", App: "src-app",
+				Capability: "source-cap",
 			},
-		}, nil
-	})
-
-	store := newMockPipelineStore()
-	def := Definition{
-		Name:    "link-pl",
-		Enabled: true,
-		Trigger: Trigger{Event: "item.created"},
-		Steps: []Step{
-			{Name: "create-item", Capability: hub.CapExample, Operation: "create"},
+			wantSourceApp: "src-app",
+		},
+		{
+			name: "falls back to capability when source app empty",
+			event: types.DataEvent{
+				EventID: "src-ev-2", EventType: "item.created", EntityID: "src-ent-2",
+				Capability: "karakeep",
+			},
+			wantSourceApp: "karakeep",
+		},
+		{
+			name: "falls back for blank app whitespace",
+			event: types.DataEvent{
+				EventID: "src-ev-3", EventType: "item.created", EntityID: "src-ent-3", App: "  ",
+				Capability: "kanboard",
+			},
+			wantSourceApp: "kanboard",
 		},
 	}
-	e := NewEngine([]Definition{def}, store, nil, noopPC, noopEC)
-	defer e.Stop()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			registerExampleInvoker(t, "create-"+tt.name, func(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+				return &capability.InvokeResult{
+					Capability: hub.CapExample,
+					Operation:  "create",
+					Data:       map[string]any{"id": "new-1"},
+					Resource: &capability.ResourceMeta{
+						EventID:  "target-" + tt.event.EventID,
+						EntityID: "ent-2",
+						App:      "target-app",
+					},
+				}, nil
+			})
 
-	event := types.DataEvent{
-		EventID: "src-ev", EventType: "item.created", EntityID: "src-ent", App: "src-app",
-		Capability: "source-cap",
+			store := newMockPipelineStore()
+			op := "create-" + tt.name
+			def := Definition{
+				Name:    "link-pl-" + tt.event.EventID,
+				Enabled: true,
+				Trigger: Trigger{Event: "item.created"},
+				Steps: []Step{
+					{Name: "create-item", Capability: hub.CapExample, Operation: op},
+				},
+			}
+			e := NewEngine([]Definition{def}, store, nil, noopPC, noopEC)
+			defer e.Stop()
+
+			err := e.executePipeline(context.Background(), def, tt.event, "event")
+			require.NoError(t, err)
+			require.Len(t, store.links, 1)
+			assert.Equal(t, tt.event.EventID, store.links[0].SourceEventID)
+			assert.Equal(t, "target-"+tt.event.EventID, store.links[0].TargetEventID)
+			assert.Equal(t, tt.wantSourceApp, store.links[0].SourceApp)
+			assert.Equal(t, "target-app", store.links[0].TargetApp)
+		})
 	}
-	err := e.executePipeline(context.Background(), def, event, "event")
-	require.NoError(t, err)
-	require.Len(t, store.links, 1)
-	assert.Equal(t, "src-ev", store.links[0].SourceEventID)
-	assert.Equal(t, "target-ev", store.links[0].TargetEventID)
+}
+
+func TestResolveResourceApp(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		app        string
+		capability string
+		want       string
+	}{
+		{name: "keeps explicit app", app: "homelab", capability: "karakeep", want: "homelab"},
+		{name: "falls back to capability", app: "", capability: "karakeep", want: "karakeep"},
+		{name: "trims app whitespace to capability", app: "  ", capability: "kanboard", want: "kanboard"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, resolveResourceApp(tt.app, tt.capability))
+		})
+	}
 }
 
 func TestEngine_ResumePipeline(t *testing.T) {

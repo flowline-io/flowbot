@@ -1,5 +1,21 @@
 package partials
 
+import "fmt"
+
+// PipelineTriggerIcon renders a compact letter badge for a configured pipeline trigger.
+templ PipelineTriggerIcon(tr PipelineTriggerSummary) {
+	<span
+		class={
+			"tooltip tooltip-top inline-flex items-center justify-center w-6 h-6 rounded text-xs font-bold",
+			templ.KV("bg-primary/10 text-primary", tr.Enabled),
+			templ.KV("bg-base-200 text-base-content/40", !tr.Enabled),
+		}
+		data-tip={ tr.Label }
+		aria-label={ tr.Label }
+		role="img"
+	>{ tr.Letter }</span>
+}
+
 templ PipelineListTable(entries []PipelineListEntry) {
 	if len(entries) == 0 {
 			<div class="text-center py-12" data-testid="pipeline-empty">
@@ -18,6 +34,8 @@ templ PipelineListTable(entries []PipelineListEntry) {
 					<tr>
 						<th>Name</th>
 						<th>Status</th>
+						<th>Triggers</th>
+						<th class="text-center">Steps</th>
 						<th class="text-center">Runtime</th>
 						<th>Last Run</th>
 						<th class="text-right">Actions</th>
@@ -38,6 +56,18 @@ templ PipelineListTable(entries []PipelineListEntry) {
 									<span class="flowbot-chip flowbot-chip-muted">Draft</span>
 								}
 							</td>
+							<td>
+								if len(entry.Triggers) == 0 {
+									<span class="text-base-content/30 text-xs">—</span>
+								} else {
+									<div class="flex items-center gap-1" data-testid={ "pipeline-triggers-" + entry.Definition.Name }>
+										for _, tr := range entry.Triggers {
+											@PipelineTriggerIcon(tr)
+										}
+									</div>
+								}
+							</td>
+							<td class="text-center tabular-nums text-sm" data-testid={ "pipeline-steps-" + entry.Definition.Name }>{ fmt.Sprintf("%d", entry.StepCount) }</td>
 							<td class="text-center">
 								if PipelineIsPublished(entry.Definition) {
 									@StatusIcon(PipelineRuntimeStatusIcon(entry.Enabled), "pipeline-runtime-"+entry.Definition.Name)
