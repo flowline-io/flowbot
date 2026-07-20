@@ -94,7 +94,7 @@ Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`)
 - `GET /metrics` requires `metrics.bearer_token` or an access token with `admin:metrics` / `admin:*` scope.
 - `/service/{capability}/*` (after Authorize) requires a minimum scope (`service:{capability}:read|write`, or `pipeline:*` for `/service/web/pipelines`, or `hub:capabilities:read` for `/service/hub`). Tokens with empty scopes are rejected. Web login still issues `admin:*`.
 - `platform.tailchat.webhook_token` is required when Tailchat is enabled (header `X-Tailchat-Token`).
-- `vendors.memos.webhook_token` is required for Memos webhooks; empty config rejects deliveries like other providers.
+- `vendors.memos.webhook_token` is required for Memos webhooks (`?token=` query); empty config rejects deliveries like other providers.
 - Prefer `metrics.enabled: false` when VictoriaMetrics is not running; leaving it on is harmless except push errors.
 - `http.cors.allow_origins` defaults empty (no CORS reflection); `["*"]` never enables credentials. HSTS is sent when `http.tls_behind_proxy` or `modules.web.auth.cookie_secure` is true.
 - Local DSN: `postgres.dsn` → `postgres://flowbot:flowbot@localhost/flowbot?sslmode=disable`.

@@ -41,7 +41,7 @@ Flowbot does not enforce a minimum or maximum length on secrets or tokens.
 | Miniflux | HMAC-SHA256 | `vendors.miniflux.webhook_secret` | `X-Miniflux-Signature: <hex>` |
 | example | HMAC-SHA256 | `vendors.example.webhook_secret` | `X-Signature: <hex>` |
 | Karakeep | Bearer token | `vendors.karakeep.webhook_token` | `Authorization: Bearer <token>` |
-| Memos | Bearer token | `vendors.memos.webhook_token` | `Authorization: Bearer <token>` |
+| Memos | Query token | `vendors.memos.webhook_token` | `?token=<token>` (read as `X-Query-Token`) |
 | Kanboard | Query token | `vendors.kanboard.webhook_token` | `?token=<token>` (read as `X-Query-Token`) |
 
 HMAC providers sign the raw request body with the configured secret and compare against the signature header using constant-time equality. Bearer and query-token providers compare the configured value directly (body is not signed).

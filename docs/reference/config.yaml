@@ -329,12 +329,12 @@ vendors:
     endpoint: ""
     api_key: ""
     webhook_secret: ""
-  # Memos notes (API token + inbound webhook Bearer token)
+  # Memos notes (API token + inbound webhook query token)
   memos:
     # Instance origin only (e.g. http://127.0.0.1:5230); provider appends /api/v1/...
     endpoint: ""
     token: ""
-    # Required for /webhook/provider/memos/events — empty rejects all deliveries
+    # Required for /webhook/provider/memos/events?token=TOKEN — empty rejects all deliveries
     webhook_token: ""
   # Firefly III configuration
   fireflyiii:

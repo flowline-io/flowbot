@@ -166,14 +166,14 @@ func TestConvert_KarakeepNativePayload(t *testing.T) {
 	t.Parallel()
 	// Real Karakeep webhook body shape from apps/workers/workers/webhookWorker.ts
 	tests := []struct {
-		name           string
-		body           string
-		wantEventType  string
-		wantOperation  string
-		wantEntityID   string
-		wantURL        string
+		name            string
+		body            string
+		wantEventType   string
+		wantOperation   string
+		wantEntityID    string
+		wantURL         string
 		wantIdempotency string
-		wantErr        bool
+		wantErr         bool
 	}{
 		{
 			name: "created operation maps to bookmark.created",

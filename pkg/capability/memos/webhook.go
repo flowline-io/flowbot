@@ -11,15 +11,14 @@ import (
 )
 
 // Webhook implements capability.WebhookConverter for Memos.
-// It validates a shared Bearer token (vendors.memos.webhook_token). Memos may not
-// send auth headers natively; configure a reverse proxy or webhook gateway to attach
-// Authorization: Bearer <token>, or use a Memos build that supports signing secrets
-// forwarded as Bearer.
+// It validates a shared token (vendors.memos.webhook_token) from the URL query
+// parameter. Memos can only attach credentials via the webhook URL, so configure
+// the endpoint as /webhook/provider/memos/events?token=<token>.
 type Webhook struct {
 	getToken func() string
 }
 
-// NewWebhook creates a Webhook that reads the Bearer token from provider config
+// NewWebhook creates a Webhook that reads the webhook token from provider config
 // lazily at verification time.
 func NewWebhook() *Webhook {
 	return &Webhook{
@@ -31,29 +30,26 @@ func NewWebhook() *Webhook {
 var _ capability.WebhookConverter = (*Webhook)(nil)
 
 // WebhookPath returns the URL path segment for Memos webhooks.
-// The full URL is /webhook/provider/memos/events.
+// The full URL is /webhook/provider/memos/events?token=TOKEN.
 func (*Webhook) WebhookPath() string {
 	return "memos/events"
 }
 
-// VerifySignature validates the Bearer token from the Authorization header.
+// VerifySignature validates the webhook token from the query parameter.
+// Memos passes the token as a URL query string parameter ?token=TOKEN.
+// The eventsource webhook handler injects query params as X-Query-* headers.
 // An empty webhook_token config rejects all deliveries (same as other providers).
 func (w *Webhook) VerifySignature(headers map[string]string, _ []byte) error {
 	token := w.getToken()
 	if token == "" {
 		return types.Errorf(types.ErrUnauthorized, "webhook token not configured")
 	}
-	auth, ok := headers["Authorization"]
+	provided, ok := headers["X-Query-Token"]
 	if !ok {
-		return types.Errorf(types.ErrUnauthorized, "missing Authorization header")
+		return types.Errorf(types.ErrUnauthorized, "missing token query parameter")
 	}
-	const prefix = "Bearer "
-	if !strings.HasPrefix(auth, prefix) {
-		return types.Errorf(types.ErrUnauthorized, "invalid Authorization header format")
-	}
-	provided := auth[len(prefix):]
 	if provided != token {
-		return types.Errorf(types.ErrUnauthorized, "invalid Bearer token")
+		return types.Errorf(types.ErrUnauthorized, "invalid token")
 	}
 	return nil
 }

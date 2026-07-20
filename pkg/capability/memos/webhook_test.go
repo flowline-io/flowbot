@@ -35,33 +35,39 @@ func TestVerifySignature(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name:    "valid token from query param",
+			token:   "secret",
+			headers: map[string]string{"X-Query-Token": "secret"},
+			wantErr: false,
+		},
+		{
 			name:    "empty token config rejects",
 			token:   "",
-			headers: map[string]string{"Authorization": "Bearer secret"},
+			headers: map[string]string{"X-Query-Token": "secret"},
 			wantErr: true,
 		},
 		{
-			name:    "missing Authorization header",
+			name:    "missing token query parameter",
 			token:   "secret",
 			headers: map[string]string{},
 			wantErr: true,
 		},
 		{
-			name:    "invalid Bearer token",
+			name:    "invalid token",
 			token:   "secret",
-			headers: map[string]string{"Authorization": "Bearer wrong"},
+			headers: map[string]string{"X-Query-Token": "wrong"},
 			wantErr: true,
 		},
 		{
-			name:    "valid Bearer token",
+			name:    "Authorization Bearer alone is not accepted",
 			token:   "secret",
 			headers: map[string]string{"Authorization": "Bearer secret"},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
-			name:    "non-bearer auth format rejected",
+			name:    "token in wrong query key rejected",
 			token:   "secret",
-			headers: map[string]string{"Authorization": "Token secret"},
+			headers: map[string]string{"X-Query-Key": "secret"},
 			wantErr: true,
 		},
 	}
