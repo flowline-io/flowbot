@@ -164,3 +164,32 @@ func TestAdapter_HealthCheck(t *testing.T) {
 		})
 	}
 }
+
+func TestToBookmark_CreatedAt(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		createdAt string
+		wantZero  bool
+	}{
+		{name: "valid RFC3339", createdAt: "2024-01-01T00:00:00Z", wantZero: false},
+		{name: "empty createdAt skips parse", createdAt: "", wantZero: true},
+		{name: "invalid createdAt yields zero time", createdAt: "not-a-time", wantZero: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := toBookmark(&provider.Bookmark{
+				Id:        "b-1",
+				CreatedAt: tt.createdAt,
+				Content:   provider.BookmarkContent{Url: "https://example.com"},
+			})
+			require.NotNil(t, got)
+			if tt.wantZero {
+				assert.True(t, got.CreatedAt.IsZero())
+			} else {
+				assert.False(t, got.CreatedAt.IsZero())
+			}
+		})
+	}
+}

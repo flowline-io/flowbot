@@ -43,6 +43,8 @@ const (
 	EventBookmarkUpdated  = "bookmark.updated"
 	EventBookmarkArchived = "bookmark.archived"
 	EventBookmarkDeleted  = "bookmark.deleted"
+	EventBookmarkCrawled  = "bookmark.crawled"
+	EventBookmarkAITagged = "bookmark.ai_tagged"
 
 	EventArchiveItemCreated = "archive.item.created"
 

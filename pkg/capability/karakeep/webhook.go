@@ -63,18 +63,58 @@ func (*Webhook) Convert(body []byte, _ map[string]string) ([]types.DataEvent, er
 	if err := sonic.Unmarshal(body, &payload); err != nil {
 		return nil, types.Errorf(types.ErrInvalidArgument, "invalid webhook payload: %v", err)
 	}
+	if payload.Operation == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "missing webhook operation")
+	}
+	if payload.BookmarkID == "" {
+		return nil, types.Errorf(types.ErrInvalidArgument, "missing webhook bookmarkId")
+	}
 
-	op := strings.TrimPrefix(payload.EventType, "bookmark.")
+	eventType := mapKarakeepOperation(payload.Operation)
+	idempotencyKey := payload.JobID
+	if idempotencyKey == "" {
+		idempotencyKey = payload.BookmarkID + ":" + payload.Operation
+	}
 
+	bookmark := &capability.Bookmark{
+		ID:  payload.BookmarkID,
+		URL: payload.URL,
+	}
 	ev := types.DataEvent{
 		EventID:        types.Id(),
-		EventType:      payload.EventType,
+		EventType:      eventType,
 		Source:         "karakeep_webhook",
 		Capability:     "karakeep",
-		Operation:      op,
-		EntityID:       payload.Data.Id,
-		IdempotencyKey: payload.Data.Id,
-		Data:           types.KV{"bookmark": toBookmark(&payload.Data), "event_type": payload.EventType},
+		Operation:      payload.Operation,
+		EntityID:       payload.BookmarkID,
+		IdempotencyKey: idempotencyKey,
+		Data: types.KV{
+			"bookmark":   bookmark,
+			"event_type": eventType,
+			"operation":  payload.Operation,
+			"job_id":     payload.JobID,
+			"user_id":    payload.UserID,
+			"type":       payload.Type,
+		},
 	}
 	return []types.DataEvent{ev}, nil
+}
+
+// mapKarakeepOperation maps Karakeep webhook operation values to domain event types.
+func mapKarakeepOperation(operation string) string {
+	switch operation {
+	case "created":
+		return types.EventBookmarkCreated
+	case "edited":
+		return types.EventBookmarkUpdated
+	case "deleted":
+		return types.EventBookmarkDeleted
+	case "crawled":
+		return types.EventBookmarkCrawled
+	case "ai tagged":
+		return types.EventBookmarkAITagged
+	default:
+		normalized := strings.ReplaceAll(operation, " ", "_")
+		return "bookmark." + normalized
+	}
 }

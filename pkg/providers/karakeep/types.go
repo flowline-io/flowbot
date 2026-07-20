@@ -5,10 +5,14 @@ const (
 )
 
 // WebhookPayload is the incoming Karakeep webhook request body.
+// Shape matches apps/workers/workers/webhookWorker.ts in karakeep-app/karakeep.
 type WebhookPayload struct {
-	EventType string   `json:"event_type"`
-	Timestamp string   `json:"timestamp"`
-	Data      Bookmark `json:"data"`
+	JobID      string `json:"jobId"`
+	BookmarkID string `json:"bookmarkId"`
+	UserID     string `json:"userId"`
+	URL        string `json:"url"`
+	Type       string `json:"type"`
+	Operation  string `json:"operation"`
 }
 
 type BookmarksResponse struct {

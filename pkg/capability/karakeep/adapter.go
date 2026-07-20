@@ -272,9 +272,14 @@ func toBookmark(item *provider.Bookmark) *capability.Bookmark {
 	if item == nil {
 		return nil
 	}
-	createdAt, err := time.Parse(time.RFC3339, item.CreatedAt)
-	if err != nil {
-		flog.Warn("karakeep adapter: parse bookmark created_at: %v", err)
+	var createdAt time.Time
+	if item.CreatedAt != "" {
+		parsed, err := time.Parse(time.RFC3339, item.CreatedAt)
+		if err != nil {
+			flog.Warn("karakeep adapter: parse bookmark created_at: %v", err)
+		} else {
+			createdAt = parsed
+		}
 	}
 	tags := make([]string, 0, len(item.Tags))
 	for _, tag := range item.Tags {

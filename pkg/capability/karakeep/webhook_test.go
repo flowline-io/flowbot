@@ -5,6 +5,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/pkg/capability"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestWebhookPath(t *testing.T) {
@@ -87,8 +90,8 @@ func TestConvert(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "valid payload",
-			body:    []byte(`{"event_type":"bookmark.created","data":{"id":"b-1","content":{"url":"https://example.com","type":"link"}},"timestamp":"2026-01-01T00:00:00Z"}`),
+			name:    "valid created payload",
+			body:    []byte(`{"jobId":"1","bookmarkId":"b-1","userId":"u-1","url":"https://example.com","type":"link","operation":"created"}`),
 			wantErr: false,
 		},
 		{
@@ -99,16 +102,16 @@ func TestConvert(t *testing.T) {
 		{
 			name:    "empty body",
 			body:    []byte(`{}`),
-			wantErr: false,
+			wantErr: true,
 		},
 		{
-			name:    "partial payload",
-			body:    []byte(`{"event_type":"bookmark.updated"}`),
-			wantErr: false,
+			name:    "missing bookmarkId",
+			body:    []byte(`{"operation":"created"}`),
+			wantErr: true,
 		},
 		{
-			name:    "unknown event type",
-			body:    []byte(`{"event_type":"bookmark.unknown","data":{"id":"b-1"}}`),
+			name:    "unknown operation still accepted",
+			body:    []byte(`{"jobId":"2","bookmarkId":"b-1","operation":"custom"}`),
 			wantErr: false,
 		},
 	}
@@ -122,12 +125,11 @@ func TestConvert(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			if len(tt.body) > 2 {
-				require.Len(t, events, 1)
-				assert.NotEmpty(t, events[0].EventID)
-				assert.Equal(t, "karakeep_webhook", events[0].Source)
-				assert.Equal(t, "karakeep", events[0].Capability)
-			}
+			require.Len(t, events, 1)
+			assert.NotEmpty(t, events[0].EventID)
+			assert.NotEmpty(t, events[0].EventType)
+			assert.Equal(t, "karakeep_webhook", events[0].Source)
+			assert.Equal(t, "karakeep", events[0].Capability)
 		})
 	}
 }
@@ -136,26 +138,151 @@ func TestConvert_EventType(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name      string
-		eventType string
-		wantOp    string
+		operation string
+		wantType  string
 	}{
-		{name: "created event", eventType: "bookmark.created", wantOp: "created"},
-		{name: "updated event", eventType: "bookmark.updated", wantOp: "updated"},
-		{name: "archived event", eventType: "bookmark.archived", wantOp: "archived"},
-		{name: "deleted event", eventType: "bookmark.deleted", wantOp: "deleted"},
+		{name: "created event", operation: "created", wantType: types.EventBookmarkCreated},
+		{name: "edited event", operation: "edited", wantType: types.EventBookmarkUpdated},
+		{name: "deleted event", operation: "deleted", wantType: types.EventBookmarkDeleted},
+		{name: "crawled event", operation: "crawled", wantType: types.EventBookmarkCrawled},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			w := NewWebhook()
-			payload := []byte(`{"event_type":"` + tt.eventType + `","data":{"id":"b-1"}}`)
+			payload := []byte(`{"jobId":"job-1","bookmarkId":"b-1","operation":"` + tt.operation + `"}`)
 			events, err := w.Convert(payload, nil)
 			require.NoError(t, err)
 			require.Len(t, events, 1)
-			assert.Equal(t, tt.eventType, events[0].EventType)
-			assert.Equal(t, tt.wantOp, events[0].Operation)
+			assert.Equal(t, tt.wantType, events[0].EventType)
+			assert.Equal(t, tt.operation, events[0].Operation)
 			assert.Equal(t, "b-1", events[0].EntityID)
-			assert.Equal(t, "b-1", events[0].IdempotencyKey)
+			assert.Equal(t, "job-1", events[0].IdempotencyKey)
+		})
+	}
+}
+
+func TestConvert_KarakeepNativePayload(t *testing.T) {
+	t.Parallel()
+	// Real Karakeep webhook body shape from apps/workers/workers/webhookWorker.ts
+	tests := []struct {
+		name           string
+		body           string
+		wantEventType  string
+		wantOperation  string
+		wantEntityID   string
+		wantURL        string
+		wantIdempotency string
+		wantErr        bool
+	}{
+		{
+			name: "created operation maps to bookmark.created",
+			body: `{
+				"jobId": "13653",
+				"bookmarkId": "pawysmwcza03qt48gzp9fte0",
+				"userId": "user-1",
+				"url": "https://example.com/post",
+				"type": "link",
+				"operation": "created"
+			}`,
+			wantEventType:   types.EventBookmarkCreated,
+			wantOperation:   "created",
+			wantEntityID:    "pawysmwcza03qt48gzp9fte0",
+			wantURL:         "https://example.com/post",
+			wantIdempotency: "13653",
+		},
+		{
+			name: "edited operation maps to bookmark.updated",
+			body: `{
+				"jobId": "job-2",
+				"bookmarkId": "bm-2",
+				"userId": "user-1",
+				"url": "https://example.com/edited",
+				"type": "link",
+				"operation": "edited"
+			}`,
+			wantEventType:   types.EventBookmarkUpdated,
+			wantOperation:   "edited",
+			wantEntityID:    "bm-2",
+			wantURL:         "https://example.com/edited",
+			wantIdempotency: "job-2",
+		},
+		{
+			name: "deleted operation maps to bookmark.deleted",
+			body: `{
+				"jobId": "job-3",
+				"bookmarkId": "bm-3",
+				"userId": "user-1",
+				"operation": "deleted"
+			}`,
+			wantEventType:   types.EventBookmarkDeleted,
+			wantOperation:   "deleted",
+			wantEntityID:    "bm-3",
+			wantIdempotency: "job-3",
+		},
+		{
+			name: "crawled operation maps to bookmark.crawled",
+			body: `{
+				"jobId": "job-4",
+				"bookmarkId": "bm-4",
+				"userId": "user-1",
+				"url": "https://example.com/crawled",
+				"type": "link",
+				"operation": "crawled"
+			}`,
+			wantEventType:   types.EventBookmarkCrawled,
+			wantOperation:   "crawled",
+			wantEntityID:    "bm-4",
+			wantURL:         "https://example.com/crawled",
+			wantIdempotency: "job-4",
+		},
+		{
+			name: "ai tagged operation maps to bookmark.ai_tagged",
+			body: `{
+				"jobId": "job-5",
+				"bookmarkId": "bm-5",
+				"userId": "user-1",
+				"url": "https://example.com/tagged",
+				"type": "link",
+				"operation": "ai tagged"
+			}`,
+			wantEventType:   types.EventBookmarkAITagged,
+			wantOperation:   "ai tagged",
+			wantEntityID:    "bm-5",
+			wantURL:         "https://example.com/tagged",
+			wantIdempotency: "job-5",
+		},
+		{
+			name:    "missing operation is rejected",
+			body:    `{"jobId":"job-6","bookmarkId":"bm-6"}`,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			w := NewWebhook()
+			events, err := w.Convert([]byte(tt.body), nil)
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Len(t, events, 1)
+			ev := events[0]
+			assert.Equal(t, tt.wantEventType, ev.EventType)
+			assert.NotEmpty(t, ev.EventType)
+			assert.Equal(t, tt.wantOperation, ev.Operation)
+			assert.Equal(t, tt.wantEntityID, ev.EntityID)
+			assert.Equal(t, tt.wantIdempotency, ev.IdempotencyKey)
+			assert.Equal(t, "karakeep_webhook", ev.Source)
+			assert.Equal(t, "karakeep", ev.Capability)
+			if tt.wantURL != "" {
+				bookmark, ok := ev.Data["bookmark"].(*capability.Bookmark)
+				require.True(t, ok)
+				assert.Equal(t, tt.wantURL, bookmark.URL)
+				assert.Equal(t, tt.wantEntityID, bookmark.ID)
+			}
 		})
 	}
 }
