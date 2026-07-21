@@ -51,7 +51,7 @@ func AgentsPage(items []model.AgentSession, nextCursor string, endpoints partial
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = partials.ChatAgentComposer(endpoints, "Ask Flowbot to build, fix bugs, explore", !chatEnabled).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = partials.ChatAgentComposer(endpoints, "Ask Flowbot to research, automate, orchestrate", !chatEnabled).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

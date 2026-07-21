@@ -9,7 +9,7 @@ import (
 templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partials.ChatAgentEndpoints, chatEnabled bool) {
 	@layout.Base("Agents — Flowbot") {
 		<div class="agents-home">
-			@partials.ChatAgentComposer(endpoints, "Ask Flowbot to build, fix bugs, explore", !chatEnabled)
+			@partials.ChatAgentComposer(endpoints, "Ask Flowbot to research, automate, orchestrate", !chatEnabled)
 			if chatEnabled {
 				@partials.ChatAgentSessionList(items, nextCursor, endpoints)
 			}
