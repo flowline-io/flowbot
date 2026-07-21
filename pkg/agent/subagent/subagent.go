@@ -7,11 +7,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/tmc/langchaingo/llms"
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/flowline-io/flowbot/pkg/agent"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
-	"github.com/tmc/langchaingo/llms"
+	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 )
 
 // ErrMaxDepth is returned when subagent nesting exceeds the configured delegation depth.
@@ -67,6 +70,11 @@ type ProgressFn func(update string)
 // assistant text. The run does not share the parent conversation and is not
 // persisted to any session tree, matching the mainstream subagent contract.
 func Run(ctx context.Context, def Definition, deps Deps, prompt string, onProgress ProgressFn) (Result, error) {
+	ctx, span := fbtrace.StartSpan(ctx, "agent.subagent",
+		attribute.String("agent.subagent.name", def.Name),
+	)
+	defer span.End()
+
 	maxDepth := deps.MaxDepth
 	if maxDepth <= 0 {
 		maxDepth = 1

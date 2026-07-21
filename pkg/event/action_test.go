@@ -10,6 +10,10 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
@@ -391,6 +395,75 @@ func TestActionFunctions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.NotNil(t, tt.fn)
+		})
+	}
+}
+
+func TestPublishWithTracePropagation(t *testing.T) {
+	tests := []struct {
+		name  string
+		topic string
+	}{
+		{name: "topic alpha propagates publish as receive parent", topic: "alpha.topic"},
+		{name: "topic beta propagates publish as receive parent", topic: "beta.topic"},
+		{name: "topic gamma propagates publish as receive parent", topic: "gamma.topic"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recorder := tracetest.NewSpanRecorder()
+			tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+			prevTP := otel.GetTracerProvider()
+			prevProp := otel.GetTextMapPropagator()
+			otel.SetTracerProvider(tp)
+			otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+				propagation.TraceContext{},
+				propagation.Baggage{},
+			))
+			t.Cleanup(func() {
+				_ = tp.Shutdown(context.Background())
+				otel.SetTracerProvider(prevTP)
+				otel.SetTextMapPropagator(prevProp)
+			})
+
+			pub := &mockPublisher{}
+			parentCtx, parent := tp.Tracer("test").Start(context.Background(), "parent")
+			defer parent.End()
+
+			err := publishWith(parentCtx, pub, tt.topic, map[string]string{"k": "v"})
+			require.NoError(t, err)
+			require.Len(t, pub.messages, 1)
+
+			msg := pub.messages[0]
+			require.NotEmpty(t, msg.Metadata.Get("traceparent"))
+			assert.Equal(t, tt.topic, msg.Metadata.Get("x-otel-topic"))
+
+			publishName := "event.publish " + tt.topic
+			var publishSpanID string
+			for _, s := range recorder.Ended() {
+				if s.Name() == publishName {
+					publishSpanID = s.SpanContext().SpanID().String()
+					break
+				}
+			}
+			require.NotEmpty(t, publishSpanID)
+
+			carrier := propagation.MapCarrier{}
+			for k, v := range msg.Metadata {
+				carrier.Set(k, v)
+			}
+			extracted := otel.GetTextMapPropagator().Extract(context.Background(), carrier)
+			recvName := "event.receive " + tt.topic
+			_, recv := tp.Tracer("watermill").Start(extracted, recvName)
+			recv.End()
+
+			var recvParent string
+			for _, s := range recorder.Ended() {
+				if s.Name() == recvName {
+					recvParent = s.Parent().SpanID().String()
+					break
+				}
+			}
+			assert.Equal(t, publishSpanID, recvParent)
 		})
 	}
 }

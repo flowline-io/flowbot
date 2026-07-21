@@ -810,7 +810,11 @@ func (e *Engine) executeCronJob(_ context.Context, def Definition) {
 	if timeout <= 0 {
 		timeout = 10 * time.Minute
 	}
-	execCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	cronCtx, cronSpan := trace.StartSpan(context.Background(), "pipeline.cron",
+		otelattr.String("pipeline.name", def.Name),
+	)
+	defer cronSpan.End()
+	execCtx, cancel := context.WithTimeout(cronCtx, timeout)
 	defer cancel()
 
 	err := e.executePipeline(execCtx, def, dataEvent, "cron")

@@ -137,7 +137,7 @@ func publishWith(ctx context.Context, pub message.Publisher, topic string, paylo
 		return fmt.Errorf("failed to new message: %w", err)
 	}
 
-	_, publishSpan := trace.StartSpan(ctx, "event.publish "+topic,
+	ctx, publishSpan := trace.StartSpan(ctx, "event.publish "+topic,
 		attribute.String("messaging.destination", topic),
 		attribute.String("messaging.message.id", msg.UUID),
 	)

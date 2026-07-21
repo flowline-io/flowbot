@@ -65,7 +65,7 @@ func NewTracerProvider(lc fx.Lifecycle) (*sdktrace.TracerProvider, error) {
 	}
 
 	sp := sdktrace.NewBatchSpanProcessor(exp,
-		sdktrace.WithBatchTimeout(5*time.Second),
+		sdktrace.WithBatchTimeout(1*time.Second),
 	)
 
 	tp := sdktrace.NewTracerProvider(

@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
@@ -20,6 +21,7 @@ import (
 var chatAgentService = chatagent.NewService()
 
 func runChatAgent(
+	parentCtx context.Context,
 	caller *platforms.Caller,
 	msg protocol.MessageEventData,
 	uid types.Uid,
@@ -32,8 +34,9 @@ func runChatAgent(
 	flog.Info("[chat-agent] run start uid=%s session=%s platform=%s topic=%s text_len=%d timeout=%s",
 		uid, sessionID, msg.Self.Platform, topic, len(msg.AltMessage), runTimeout)
 
-	// Detach from Watermill message context, which is canceled when the handler returns.
-	ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
+	// Detach from Watermill message context (canceled when the handler returns)
+	// while keeping the OTel SpanContext so the run stays on the same trace.
+	ctx, cancel := fbtrace.DetachWithTimeout(parentCtx, runTimeout)
 	defer cancel()
 	chatagent.BindRunCancel(sessionID, cancel)
 	defer chatagent.UnbindRunCancel(sessionID)

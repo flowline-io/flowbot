@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -16,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -134,8 +134,10 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 		dataEvent.Data["_webhook_path"] = string(c.Request().URI().Path())
 		dataEvent.Data["_webhook_status"] = fiber.StatusAccepted
 
+		asyncCtx, asyncSpan := fbtrace.StartSpan(c.Context(), "pipeline.webhook.async")
 		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+			defer asyncSpan.End()
+			ctx, cancel := fbtrace.DetachWithTimeout(asyncCtx, 10*time.Minute)
 			defer cancel()
 			if err := engine.ExecuteWebhook(ctx, def, dataEvent); err != nil {
 				flog.Error(fmt.Errorf("webhook pipeline %s: %w", def.Name, err))

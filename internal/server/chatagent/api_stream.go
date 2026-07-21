@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
+	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 )
 
 // SSEWriter writes chat agent stream events to an HTTP response body.
@@ -70,7 +72,7 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 
 	// Detach from the HTTP request context so closing the message SSE stream
 	// does not cancel a run that is still waiting for tool approval.
-	runCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), RunTimeout())
+	runCtx, cancel := fbtrace.DetachWithTimeout(ctx, RunTimeout())
 	BindRunCancel(sessionID, cancel)
 
 	runDone := make(chan error, 1)

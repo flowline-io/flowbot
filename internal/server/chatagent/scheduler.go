@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/flc1125/go-cron/v4"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/cronutil"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 )
 
 // TaskScheduler registers chat scheduled tasks with cron and one-shot timers.
@@ -271,7 +273,14 @@ func (s *TaskScheduler) runTask(taskID string) {
 	if task.State != string(schema.ChatScheduledTaskStateActive) {
 		return
 	}
-	executeScheduledTask(context.Background(), task)
+
+	runCtx, span := fbtrace.StartSpan(context.Background(), "chatagent.scheduled_task",
+		attribute.String("task.id", task.Flag),
+		attribute.String("task.name", task.Name),
+		attribute.String("session.id", task.SourceSessionID),
+	)
+	defer span.End()
+	executeScheduledTask(runCtx, task)
 }
 
 func (s *TaskScheduler) ensureTaskLock(taskID string) {

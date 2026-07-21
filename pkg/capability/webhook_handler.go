@@ -1,13 +1,13 @@
 package capability
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
+	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -51,12 +51,14 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 		sanitizedHeaders := sanitizeEventSourceHeaders(headers)
 		webhookMethod := string(c.Request().Header.Method())
 		webhookPath := string(c.Request().URI().Path())
+		reqCtx := c.Context()
 
 		if m.metrics != nil {
 			m.metrics.IncWebhookTotal(path, "202")
 			m.metrics.IncWebhookEvents(path)
 		}
 
+		prepared := make([]types.DataEvent, 0, len(events))
 		for _, ev := range events {
 			if ev.Data == nil {
 				ev.Data = make(types.KV)
@@ -69,15 +71,19 @@ func (m *EventSourceManager) WebhookHandler() fiber.Handler {
 			if len(body) > maxWebhookBodySize {
 				ev.Data["_webhook_body_truncated"] = true
 			}
-
-			m.poolSubmit(func() {
-				if m.emitter != nil {
-					if err := m.emitter(context.Background(), []types.DataEvent{ev}); err != nil {
-						flog.Error(fmt.Errorf("event_source: webhook %s emit failed: %w", path, err))
-					}
-				}
-			})
+			prepared = append(prepared, ev)
 		}
+
+		asyncCtx, asyncSpan := fbtrace.StartSpan(reqCtx, "event_source.webhook.async")
+		m.poolSubmit(func() {
+			defer asyncSpan.End()
+			emitCtx := fbtrace.DetachContext(asyncCtx)
+			if m.emitter != nil && len(prepared) > 0 {
+				if err := m.emitter(emitCtx, prepared); err != nil {
+					flog.Error(fmt.Errorf("event_source: webhook %s emit failed: %w", path, err))
+				}
+			}
+		})
 
 		return c.SendStatus(fiber.StatusAccepted)
 	}

@@ -1,6 +1,7 @@
 package karakeep
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -81,7 +82,7 @@ func TestKarakeep_GetAllBookmarks(t *testing.T) {
 			t.Parallel()
 			if tt.wantErr {
 				c := NewKarakeep("http://127.0.0.2:1", "key")
-				_, err := c.GetAllBookmarks(tt.query)
+				_, err := c.GetAllBookmarks(context.Background(), tt.query)
 				assert.Error(t, err)
 				return
 			}
@@ -98,7 +99,7 @@ func TestKarakeep_GetAllBookmarks(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "test-key")
-			resp, err := c.GetAllBookmarks(tt.query)
+			resp, err := c.GetAllBookmarks(context.Background(), tt.query)
 			require.NoError(t, err)
 			assert.Len(t, resp.Bookmarks, tt.wantLen)
 		})
@@ -122,7 +123,7 @@ func TestKarakeep_GetAllTags(t *testing.T) {
 			t.Parallel()
 			if tt.wantErr {
 				c := NewKarakeep("http://127.0.0.2:1", "key")
-				_, err := c.GetAllTags()
+				_, err := c.GetAllTags(context.Background())
 				assert.Error(t, err)
 				return
 			}
@@ -134,7 +135,7 @@ func TestKarakeep_GetAllTags(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "key")
-			tags, err := c.GetAllTags()
+			tags, err := c.GetAllTags(context.Background())
 			require.NoError(t, err)
 			assert.Len(t, tags, tt.wantLen)
 		})
@@ -159,7 +160,7 @@ func TestKarakeep_CreateBookmark(t *testing.T) {
 			t.Parallel()
 			if tt.wantErr {
 				c := NewKarakeep("http://127.0.0.2:1", "key")
-				_, err := c.CreateBookmark(tt.url)
+				_, err := c.CreateBookmark(context.Background(), tt.url)
 				assert.Error(t, err)
 				return
 			}
@@ -172,7 +173,7 @@ func TestKarakeep_CreateBookmark(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "key")
-			bm, err := c.CreateBookmark(tt.url)
+			bm, err := c.CreateBookmark(context.Background(), tt.url)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantID, bm.Id)
 		})
@@ -196,7 +197,7 @@ func TestKarakeep_GetBookmark(t *testing.T) {
 			t.Parallel()
 			if tt.wantErr {
 				c := NewKarakeep("http://127.0.0.2:1", "key")
-				_, err := c.GetBookmark(tt.id)
+				_, err := c.GetBookmark(context.Background(), tt.id)
 				assert.Error(t, err)
 				return
 			}
@@ -208,7 +209,7 @@ func TestKarakeep_GetBookmark(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "key")
-			bm, err := c.GetBookmark(tt.id)
+			bm, err := c.GetBookmark(context.Background(), tt.id)
 			require.NoError(t, err)
 			assert.Equal(t, tt.id, bm.Id)
 		})
@@ -233,7 +234,7 @@ func TestKarakeep_CheckUrlExists(t *testing.T) {
 			t.Parallel()
 			if tt.wantErr {
 				c := NewKarakeep("http://127.0.0.2:1", "key")
-				_, err := c.CheckUrlExists("https://example.com")
+				_, err := c.CheckUrlExists(context.Background(), "https://example.com")
 				assert.Error(t, err)
 				return
 			}
@@ -246,7 +247,7 @@ func TestKarakeep_CheckUrlExists(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "key")
-			id, err := c.CheckUrlExists("https://example.com")
+			id, err := c.CheckUrlExists(context.Background(), "https://example.com")
 			require.NoError(t, err)
 			if tt.wantNil {
 				assert.Nil(t, id)
@@ -274,7 +275,7 @@ func TestKarakeep_ArchiveBookmark(t *testing.T) {
 			t.Parallel()
 			if tt.wantErr {
 				c := NewKarakeep("http://127.0.0.2:1", "key")
-				_, err := c.ArchiveBookmark("bm1")
+				_, err := c.ArchiveBookmark(context.Background(), "bm1")
 				assert.Error(t, err)
 				return
 			}
@@ -287,7 +288,7 @@ func TestKarakeep_ArchiveBookmark(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "key")
-			ok, err := c.ArchiveBookmark("bm1")
+			ok, err := c.ArchiveBookmark(context.Background(), "bm1")
 			require.NoError(t, err)
 			assert.Equal(t, tt.archived, ok)
 		})
@@ -317,11 +318,11 @@ func TestKarakeep_AttachAndDetachTags(t *testing.T) {
 	defer srv.Close()
 
 	c := NewKarakeep(srv.URL, "key")
-	attached, err := c.AttachTagsToBookmark("bm1", []string{"go"})
+	attached, err := c.AttachTagsToBookmark(context.Background(), "bm1", []string{"go"})
 	require.NoError(t, err)
 	assert.Equal(t, []string{"go"}, attached)
 
-	detached, err := c.DetachTagsToBookmark("bm1", []string{"go"})
+	detached, err := c.DetachTagsToBookmark(context.Background(), "bm1", []string{"go"})
 	require.NoError(t, err)
 	assert.Equal(t, []string{"go"}, detached)
 }
@@ -352,7 +353,7 @@ func TestKarakeep_SearchBookmarks(t *testing.T) {
 			defer srv.Close()
 
 			c := NewKarakeep(srv.URL, "key")
-			resp, err := c.SearchBookmarks(tt.query)
+			resp, err := c.SearchBookmarks(context.Background(), tt.query)
 			require.NoError(t, err)
 			assert.Len(t, resp.Bookmarks, tt.wantLen)
 		})

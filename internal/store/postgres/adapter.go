@@ -10,8 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/XSAM/otelsql"
 	"github.com/bytedance/sonic"
 	_ "github.com/jackc/pgx/v5/stdlib" //revive:disable:blank-imports pgx driver registration
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	entsql "entgo.io/ent/dialect/sql"
 
@@ -113,7 +115,9 @@ func (a *adapter) Open(jsonConfig config.StoreType) error {
 		conf.SqlTimeout = 10
 	}
 
-	db, err := sql.Open("pgx", conf.DSN)
+	db, err := otelsql.Open("pgx", conf.DSN,
+		otelsql.WithAttributes(semconv.DBSystemPostgreSQL),
+	)
 	if err != nil {
 		return fmt.Errorf("postgres: open db: %w", err)
 	}

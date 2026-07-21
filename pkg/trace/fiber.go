@@ -48,20 +48,12 @@ func FiberMiddleware() fiber.Handler {
 		ctx := propagator.Extract(c.Context(), carrier)
 
 		method := c.Method()
-		route := ""
-		if r := c.Route(); r != nil {
-			route = r.Path
-		}
-		if route == "" {
-			route = c.Path()
-		}
-
-		spanName := "HTTP " + method + " " + route
+		path := c.Path()
+		spanName := "HTTP " + method + " " + path
 		ctx, span := tracer.Start(ctx, spanName,
 			oteltrace.WithSpanKind(oteltrace.SpanKindServer),
 			oteltrace.WithAttributes(
 				semconv.HTTPMethodKey.String(method),
-				semconv.HTTPRouteKey.String(route),
 				semconv.HTTPTargetKey.String(string(c.Request().URI().RequestURI())),
 				semconv.NetHostNameKey.String(c.Hostname()),
 				attribute.String("http.scheme", c.Scheme()),
@@ -73,6 +65,13 @@ func FiberMiddleware() fiber.Handler {
 		c.Locals(SpanKey, span)
 
 		err := c.Next()
+
+		route := path
+		if r := c.Route(); r != nil && r.Path != "" {
+			route = r.Path
+		}
+		span.SetName("HTTP " + method + " " + route)
+		span.SetAttributes(semconv.HTTPRouteKey.String(route))
 
 		status := c.Response().StatusCode()
 		span.SetAttributes(semconv.HTTPStatusCodeKey.Int(status))

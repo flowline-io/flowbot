@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
@@ -17,7 +19,8 @@ func openaiHTTPTransport(withThinking bool) http.RoundTripper {
 	if withThinking {
 		transport = &deepSeekThinkingTransport{base: transport}
 	}
-	return &streamIdleTransport{base: transport}
+	transport = &streamIdleTransport{base: transport}
+	return otelhttp.NewTransport(transport)
 }
 
 // openaiHTTPClient returns an HTTP client for OpenAI-compatible providers.

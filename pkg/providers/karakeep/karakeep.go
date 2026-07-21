@@ -2,6 +2,7 @@
 package karakeep
 
 import (
+	"context"
 	"fmt"
 
 	"resty.dev/v3"
@@ -27,10 +28,12 @@ func GetWebhookToken() string {
 	return tok.String()
 }
 
+// Karakeep is an HTTP client for the Karakeep bookmark API.
 type Karakeep struct {
 	c *resty.Client
 }
 
+// GetClient builds a Karakeep client from providers.karakeep config.
 func GetClient() *Karakeep {
 	endpoint, err := providers.GetConfig(ID, EndpointKey)
 	if err != nil {
@@ -44,6 +47,7 @@ func GetClient() *Karakeep {
 	return NewKarakeep(endpoint.String(), apiKey.String())
 }
 
+// NewKarakeep creates a Karakeep client with the given endpoint and API key.
 func NewKarakeep(endpoint, apiKey string) *Karakeep {
 	v := &Karakeep{}
 
@@ -54,8 +58,9 @@ func NewKarakeep(endpoint, apiKey string) *Karakeep {
 	return v
 }
 
-func (i *Karakeep) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, error) {
-	request := i.c.R().SetResult(&BookmarksResponse{})
+// GetAllBookmarks lists bookmarks with optional filters and cursor pagination.
+func (i *Karakeep) GetAllBookmarks(ctx context.Context, query *BookmarksQuery) (*BookmarksResponse, error) {
+	request := i.c.R().SetContext(ctx).SetResult(&BookmarksResponse{})
 
 	if query == nil {
 		query = &BookmarksQuery{Limit: MaxPageSize}
@@ -86,8 +91,10 @@ func (i *Karakeep) GetAllBookmarks(query *BookmarksQuery) (*BookmarksResponse, e
 	return result, nil
 }
 
-func (i *Karakeep) GetAllTags() ([]Tag, error) {
+// GetAllTags lists all tags.
+func (i *Karakeep) GetAllTags(ctx context.Context) ([]Tag, error) {
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&TagsResponse{}).
 		Get("/tags")
 	if err != nil {
@@ -101,7 +108,8 @@ func (i *Karakeep) GetAllTags() ([]Tag, error) {
 	return result.Tags, nil
 }
 
-func (i *Karakeep) AttachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
+// AttachTagsToBookmark attaches the given tag names to a bookmark.
+func (i *Karakeep) AttachTagsToBookmark(ctx context.Context, bookmarkId string, tags []string) ([]string, error) {
 	var list []BookmarkTagRequest
 	for _, tag := range tags {
 		list = append(list, BookmarkTagRequest{
@@ -110,6 +118,7 @@ func (i *Karakeep) AttachTagsToBookmark(bookmarkId string, tags []string) ([]str
 	}
 
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&AttachTagsResponse{}).
 		SetBody(list).
 		Post(fmt.Sprintf("/bookmarks/%s/tags", bookmarkId))
@@ -124,7 +133,8 @@ func (i *Karakeep) AttachTagsToBookmark(bookmarkId string, tags []string) ([]str
 	return result.Attached, nil
 }
 
-func (i *Karakeep) DetachTagsToBookmark(bookmarkId string, tags []string) ([]string, error) {
+// DetachTagsToBookmark detaches the given tag names from a bookmark.
+func (i *Karakeep) DetachTagsToBookmark(ctx context.Context, bookmarkId string, tags []string) ([]string, error) {
 	var list []BookmarkTagRequest
 	for _, tag := range tags {
 		list = append(list, BookmarkTagRequest{
@@ -133,6 +143,7 @@ func (i *Karakeep) DetachTagsToBookmark(bookmarkId string, tags []string) ([]str
 	}
 
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&DetachTagsResponse{}).
 		SetBody(list).
 		Delete(fmt.Sprintf("/bookmarks/%s/tags", bookmarkId))
@@ -147,8 +158,10 @@ func (i *Karakeep) DetachTagsToBookmark(bookmarkId string, tags []string) ([]str
 	return result.Detached, nil
 }
 
-func (i *Karakeep) ArchiveBookmark(id string) (bool, error) {
+// ArchiveBookmark marks a bookmark as archived.
+func (i *Karakeep) ArchiveBookmark(ctx context.Context, id string) (bool, error) {
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&ArchiveResponse{}).
 		SetBody(map[string]bool{
 			"archived": true,
@@ -165,8 +178,10 @@ func (i *Karakeep) ArchiveBookmark(id string) (bool, error) {
 	return result.Archived, nil
 }
 
-func (i *Karakeep) CreateBookmark(url string) (*Bookmark, error) {
+// CreateBookmark creates a link bookmark for the given URL.
+func (i *Karakeep) CreateBookmark(ctx context.Context, url string) (*Bookmark, error) {
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&Bookmark{}).
 		SetBody(map[string]string{
 			"type": "link",
@@ -191,8 +206,9 @@ func (i *Karakeep) CreateBookmark(url string) (*Bookmark, error) {
 //
 // The caller is responsible for handling a nil result or any error
 // produced by the underlying HTTP client.
-func (i *Karakeep) GetBookmark(id string) (*Bookmark, error) {
+func (i *Karakeep) GetBookmark(ctx context.Context, id string) (*Bookmark, error) {
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&Bookmark{}).
 		Get(fmt.Sprintf("/bookmarks/%s", id))
 	if err != nil {
@@ -206,8 +222,10 @@ func (i *Karakeep) GetBookmark(id string) (*Bookmark, error) {
 	return result, nil
 }
 
-func (i *Karakeep) CheckUrlExists(url string) (*string, error) {
+// CheckUrlExists checks whether a bookmark already exists for the given URL.
+func (i *Karakeep) CheckUrlExists(ctx context.Context, url string) (*string, error) {
 	resp, err := i.c.R().
+		SetContext(ctx).
 		SetResult(&CheckUrlResponse{}).
 		SetQueryParam("url", url).
 		Get("/bookmarks/check-url")
@@ -222,8 +240,9 @@ func (i *Karakeep) CheckUrlExists(url string) (*string, error) {
 	return result.BookmarkId, nil
 }
 
-func (i *Karakeep) SearchBookmarks(query *SearchBookmarksQuery) (*BookmarksResponse, error) {
-	request := i.c.R().SetResult(&BookmarksResponse{})
+// SearchBookmarks searches bookmarks with optional filters and cursor pagination.
+func (i *Karakeep) SearchBookmarks(ctx context.Context, query *SearchBookmarksQuery) (*BookmarksResponse, error) {
+	request := i.c.R().SetContext(ctx).SetResult(&BookmarksResponse{})
 
 	if query == nil {
 		query = &SearchBookmarksQuery{}

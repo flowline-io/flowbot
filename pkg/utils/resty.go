@@ -39,7 +39,7 @@ func DefaultRestyClient() *resty.Client {
 	c := resty.New()
 	c.SetLoggerWarnLevel(true)
 	c.SetTimeout(time.Minute)
-	c.SetTransport(httpTransport)
+	c.SetTransport(otelhttp.NewTransport(httpTransport))
 	c.AddContentTypeEncoder("json", EncodeJSON)
 	c.AddContentTypeDecoder("json", DecodeJSON)
 
@@ -47,15 +47,10 @@ func DefaultRestyClient() *resty.Client {
 }
 
 // RestyClientWithTrace returns a resty client configured with OTel HTTP tracing.
-// The underlying http.Transport is wrapped with otelhttp.NewTransport which automatically
-// propagates W3C TraceContext headers and creates client spans for outgoing requests.
-//
-// Providers should use SetContext(ctx) on individual requests to ensure the span context
-// is propagated from the caller's context.
+// It is an alias of DefaultRestyClient; providers should call SetContext(ctx) on
+// individual requests so client spans nest under the caller's span.
 func RestyClientWithTrace() *resty.Client {
-	c := DefaultRestyClient()
-	c.SetTransport(otelhttp.NewTransport(httpTransport))
-	return c
+	return DefaultRestyClient()
 }
 
 func EncodeJSON(w io.Writer, v any) error {

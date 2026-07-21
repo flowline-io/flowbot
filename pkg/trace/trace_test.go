@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
@@ -17,6 +18,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"go.uber.org/fx"
 
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -98,6 +100,81 @@ func TestTracer(t *testing.T) {
 			require.NotNil(t, tr)
 			_, span := tr.Start(context.Background(), "op")
 			span.End()
+		})
+	}
+}
+
+func TestDetachContext(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		nilParent  bool
+		startChild bool
+	}{
+		{name: "nil parent returns usable context", nilParent: true},
+		{name: "survives cancel without starting child", nilParent: false, startChild: false},
+		{name: "survives cancel and child keeps parent trace", nilParent: false, startChild: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			setupTestTracerProvider(t)
+
+			if tt.nilParent {
+				got := DetachContext(nil)
+				require.NotNil(t, got)
+				require.NoError(t, got.Err())
+				return
+			}
+
+			parent, cancel := context.WithCancel(context.Background())
+			ctx, span := StartSpan(parent, "detach-parent")
+			defer span.End()
+			parentSC := span.SpanContext()
+
+			detached := DetachContext(ctx)
+			cancel()
+
+			require.Error(t, parent.Err())
+			require.NoError(t, detached.Err())
+
+			if !tt.startChild {
+				return
+			}
+			childCtx, child := StartSpan(detached, "detach-child")
+			defer child.End()
+			_ = childCtx
+			assert.Equal(t, parentSC.TraceID(), child.SpanContext().TraceID())
+			assert.True(t, child.SpanContext().IsValid())
+			assert.NotEqual(t, parentSC.SpanID(), child.SpanContext().SpanID())
+		})
+	}
+}
+
+func TestDetachWithTimeout(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		timeout time.Duration
+	}{
+		{name: "short timeout", timeout: time.Millisecond},
+		{name: "one second", timeout: time.Second},
+		{name: "ten minutes", timeout: 10 * time.Minute},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			setupTestTracerProvider(t)
+			parent, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ctx, span := StartSpan(parent, "timeout-parent")
+			defer span.End()
+
+			detached, stop := DetachWithTimeout(ctx, tt.timeout)
+			defer stop()
+			cancel()
+			require.NoError(t, detached.Err())
+			assert.Equal(t, span.SpanContext().TraceID(), oteltrace.SpanFromContext(detached).SpanContext().TraceID())
 		})
 	}
 }
@@ -236,35 +313,60 @@ func TestFiberMiddleware(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		path       string
+		route      string
+		request    string
 		wantStatus int
 		skipSpan   bool
+		wantRoute  string
 	}{
-		{name: "creates span for normal route", path: "/api/items", wantStatus: fiber.StatusOK},
-		{name: "records error status on handler error", path: "/error", wantStatus: fiber.StatusTeapot},
-		{name: "skips span for health path", path: "/livez", wantStatus: fiber.StatusNotFound, skipSpan: true},
+		{name: "creates span for literal route", route: "/api/items", request: "/api/items", wantStatus: fiber.StatusOK, wantRoute: "/api/items"},
+		{name: "uses route template after Next not raw path", route: "/api/items/:id", request: "/api/items/42", wantStatus: fiber.StatusOK, wantRoute: "/api/items/:id"},
+		{name: "records error status on handler error", route: "/error", request: "/error", wantStatus: fiber.StatusTeapot, wantRoute: "/error"},
+		{name: "skips span for health path", route: "", request: "/livez", wantStatus: fiber.StatusNotFound, skipSpan: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			setupTestTracerProvider(t)
+			rec := setupTestTracerProvider(t)
 
 			app := fiber.New()
 			app.Use(FiberMiddleware())
-			app.Get("/api/items", func(c fiber.Ctx) error {
-				span := SpanFromFiber(c)
-				require.NotNil(t, span)
-				return c.SendString("ok")
-			})
+			if tt.route == "/api/items" || tt.route == "/api/items/:id" {
+				app.Get(tt.route, func(c fiber.Ctx) error {
+					span := SpanFromFiber(c)
+					require.NotNil(t, span)
+					return c.SendString("ok")
+				})
+			}
 			app.Get("/error", func(_ fiber.Ctx) error {
 				return fiber.NewError(fiber.StatusTeapot, "teapot")
 			})
 
-			resp, err := app.Test(httptest.NewRequest(http.MethodGet, tt.path, http.NoBody))
+			resp, err := app.Test(httptest.NewRequest(http.MethodGet, tt.request, http.NoBody))
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+
+			if tt.skipSpan || tt.wantRoute == "" {
+				return
+			}
+			found := false
+			for _, s := range rec.Ended() {
+				if s.Name() == "HTTP GET "+tt.wantRoute {
+					found = true
+					break
+				}
+			}
+			assert.True(t, found, "expected span named HTTP GET %s among %#v", tt.wantRoute, spanNames(rec))
 		})
 	}
+}
+
+func spanNames(rec *tracetest.SpanRecorder) []string {
+	out := make([]string, 0, len(rec.Ended()))
+	for _, s := range rec.Ended() {
+		out = append(out, s.Name())
+	}
+	return out
 }
 
 func TestSpanFromFiber(t *testing.T) {

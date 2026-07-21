@@ -162,7 +162,7 @@ func dispatchDirectMessage(
 	if sessionID != "" && !chatagent.IsChatControlCommand(msg.AltMessage) {
 		flog.Info("[chat-agent] dispatch agent run uid=%s session=%s platform=%s msg_id=%s text_len=%d",
 			dmCtx.uid, sessionID, msg.Self.Platform, msg.MessageId, len(msg.AltMessage))
-		go runChatAgent(caller, msg, dmCtx.uid, sessionID, dmCtx.platformID, dmCtx.topic)
+		go runChatAgent(dmCtx.ctx.Context(), caller, msg, dmCtx.uid, sessionID, dmCtx.platformID, dmCtx.topic)
 		return
 	}
 

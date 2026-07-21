@@ -15,14 +15,14 @@ import (
 var defaultCursorSecret = []byte("flowbot-ability-bookmark-karakeep-cursor-v1")
 
 type client interface {
-	GetAllBookmarks(query *provider.BookmarksQuery) (*provider.BookmarksResponse, error)
-	GetBookmark(id string) (*provider.Bookmark, error)
-	CreateBookmark(url string) (*provider.Bookmark, error)
-	ArchiveBookmark(id string) (bool, error)
-	SearchBookmarks(query *provider.SearchBookmarksQuery) (*provider.BookmarksResponse, error)
-	AttachTagsToBookmark(bookmarkID string, tags []string) ([]string, error)
-	DetachTagsToBookmark(bookmarkID string, tags []string) ([]string, error)
-	CheckUrlExists(url string) (*string, error)
+	GetAllBookmarks(ctx context.Context, query *provider.BookmarksQuery) (*provider.BookmarksResponse, error)
+	GetBookmark(ctx context.Context, id string) (*provider.Bookmark, error)
+	CreateBookmark(ctx context.Context, url string) (*provider.Bookmark, error)
+	ArchiveBookmark(ctx context.Context, id string) (bool, error)
+	SearchBookmarks(ctx context.Context, query *provider.SearchBookmarksQuery) (*provider.BookmarksResponse, error)
+	AttachTagsToBookmark(ctx context.Context, bookmarkID string, tags []string) ([]string, error)
+	DetachTagsToBookmark(ctx context.Context, bookmarkID string, tags []string) ([]string, error)
+	CheckUrlExists(ctx context.Context, url string) (*string, error)
 }
 
 type Adapter struct {
@@ -68,7 +68,7 @@ func (a *Adapter) List(ctx context.Context, q *ListQuery) (*capability.ListResul
 	if q.Favourited != nil {
 		query.Favourited = *q.Favourited
 	}
-	resp, err := a.client.GetAllBookmarks(query)
+	resp, err := a.client.GetAllBookmarks(ctx, query)
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "karakeep list bookmarks", err)
 	}
@@ -82,7 +82,7 @@ func (a *Adapter) Get(ctx context.Context, id string) (*capability.Bookmark, err
 	if id == "" {
 		return nil, types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	item, err := a.client.GetBookmark(id)
+	item, err := a.client.GetBookmark(ctx, id)
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "karakeep get bookmark", err)
 	}
@@ -99,7 +99,7 @@ func (a *Adapter) Create(ctx context.Context, url string) (*capability.Bookmark,
 	if url == "" {
 		return nil, types.Errorf(types.ErrInvalidArgument, "url is required")
 	}
-	item, err := a.client.CreateBookmark(url)
+	item, err := a.client.CreateBookmark(ctx, url)
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "karakeep create bookmark", err)
 	}
@@ -117,7 +117,7 @@ func (a *Adapter) Delete(ctx context.Context, id string) error {
 		return types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
 	// Karakeep hard-delete is not exposed; archive matches CLI "delete" semantics.
-	_, err := a.client.ArchiveBookmark(id)
+	_, err := a.client.ArchiveBookmark(ctx, id)
 	if err != nil {
 		return types.WrapError(types.ErrProvider, "karakeep delete bookmark", err)
 	}
@@ -131,7 +131,7 @@ func (a *Adapter) Archive(ctx context.Context, id string) (bool, error) {
 	if id == "" {
 		return false, types.Errorf(types.ErrInvalidArgument, "id is required")
 	}
-	archived, err := a.client.ArchiveBookmark(id)
+	archived, err := a.client.ArchiveBookmark(ctx, id)
 	if err != nil {
 		return false, types.WrapError(types.ErrProvider, "karakeep archive bookmark", err)
 	}
@@ -155,7 +155,7 @@ func (a *Adapter) Search(ctx context.Context, q *SearchQuery) (*capability.ListR
 		Cursor:    providerCursor,
 		SortOrder: q.Page.SortOrder,
 	}
-	resp, err := a.client.SearchBookmarks(query)
+	resp, err := a.client.SearchBookmarks(ctx, query)
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "karakeep search bookmarks", err)
 	}
@@ -172,7 +172,7 @@ func (a *Adapter) AttachTags(ctx context.Context, id string, tags []string) erro
 	if len(tags) == 0 {
 		return types.Errorf(types.ErrInvalidArgument, "tags are required")
 	}
-	if _, err := a.client.AttachTagsToBookmark(id, tags); err != nil {
+	if _, err := a.client.AttachTagsToBookmark(ctx, id, tags); err != nil {
 		return types.WrapError(types.ErrProvider, "karakeep attach tags", err)
 	}
 	return nil
@@ -188,7 +188,7 @@ func (a *Adapter) DetachTags(ctx context.Context, id string, tags []string) erro
 	if len(tags) == 0 {
 		return types.Errorf(types.ErrInvalidArgument, "tags are required")
 	}
-	if _, err := a.client.DetachTagsToBookmark(id, tags); err != nil {
+	if _, err := a.client.DetachTagsToBookmark(ctx, id, tags); err != nil {
 		return types.WrapError(types.ErrProvider, "karakeep detach tags", err)
 	}
 	return nil
@@ -201,7 +201,7 @@ func (a *Adapter) CheckURL(ctx context.Context, url string) (bool, string, error
 	if url == "" {
 		return false, "", types.Errorf(types.ErrInvalidArgument, "url is required")
 	}
-	id, err := a.client.CheckUrlExists(url)
+	id, err := a.client.CheckUrlExists(ctx, url)
 	if err != nil {
 		return false, "", types.WrapError(types.ErrProvider, "karakeep check url", err)
 	}
@@ -216,7 +216,7 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	if err := ctx.Err(); err != nil {
 		return false, types.WrapError(types.ErrTimeout, "context canceled", err)
 	}
-	_, err := a.client.GetAllBookmarks(&provider.BookmarksQuery{Limit: 1})
+	_, err := a.client.GetAllBookmarks(ctx, &provider.BookmarksQuery{Limit: 1})
 	if err != nil {
 		return false, types.WrapError(types.ErrProvider, "karakeep health check failed", err)
 	}

@@ -31,7 +31,7 @@ type fakeClient struct {
 	deleteErr     error
 }
 
-func (f *fakeClient) GetAllBookmarks(query *provider.BookmarksQuery) (*provider.BookmarksResponse, error) {
+func (f *fakeClient) GetAllBookmarks(_ context.Context, query *provider.BookmarksQuery) (*provider.BookmarksResponse, error) {
 	f.listQuery = query
 	if f.listErr != nil {
 		return nil, f.listErr
@@ -42,7 +42,7 @@ func (f *fakeClient) GetAllBookmarks(query *provider.BookmarksQuery) (*provider.
 	return f.listResp, nil
 }
 
-func (f *fakeClient) GetBookmark(id string) (*provider.Bookmark, error) {
+func (f *fakeClient) GetBookmark(_ context.Context, id string) (*provider.Bookmark, error) {
 	if f.getErr != nil {
 		return nil, f.getErr
 	}
@@ -52,7 +52,7 @@ func (f *fakeClient) GetBookmark(id string) (*provider.Bookmark, error) {
 	return testBookmark(id, "https://example.com"), nil
 }
 
-func (f *fakeClient) CreateBookmark(url string) (*provider.Bookmark, error) {
+func (f *fakeClient) CreateBookmark(_ context.Context, url string) (*provider.Bookmark, error) {
 	if f.createErr != nil {
 		return nil, f.createErr
 	}
@@ -62,14 +62,14 @@ func (f *fakeClient) CreateBookmark(url string) (*provider.Bookmark, error) {
 	return testBookmark("created", url), nil
 }
 
-func (f *fakeClient) ArchiveBookmark(_ string) (bool, error) {
+func (f *fakeClient) ArchiveBookmark(_ context.Context, _ string) (bool, error) {
 	if f.archiveErr != nil {
 		return false, f.archiveErr
 	}
 	return f.archiveResp, nil
 }
 
-func (f *fakeClient) SearchBookmarks(query *provider.SearchBookmarksQuery) (*provider.BookmarksResponse, error) {
+func (f *fakeClient) SearchBookmarks(_ context.Context, query *provider.SearchBookmarksQuery) (*provider.BookmarksResponse, error) {
 	f.searchQuery = query
 	if f.searchErr != nil {
 		return nil, f.searchErr
@@ -83,21 +83,21 @@ func (f *fakeClient) SearchBookmarks(query *provider.SearchBookmarksQuery) (*pro
 	return &provider.BookmarksResponse{}, nil
 }
 
-func (f *fakeClient) AttachTagsToBookmark(_ string, tags []string) ([]string, error) {
+func (f *fakeClient) AttachTagsToBookmark(_ context.Context, _ string, tags []string) ([]string, error) {
 	if f.attachTagsErr != nil {
 		return nil, f.attachTagsErr
 	}
 	return tags, nil
 }
 
-func (f *fakeClient) DetachTagsToBookmark(_ string, tags []string) ([]string, error) {
+func (f *fakeClient) DetachTagsToBookmark(_ context.Context, _ string, tags []string) ([]string, error) {
 	if f.detachTagsErr != nil {
 		return nil, f.detachTagsErr
 	}
 	return tags, nil
 }
 
-func (f *fakeClient) CheckUrlExists(_ string) (*string, error) {
+func (f *fakeClient) CheckUrlExists(_ context.Context, _ string) (*string, error) {
 	if f.checkURLErr != nil {
 		return nil, f.checkURLErr
 	}

@@ -2,13 +2,20 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/sdk/trace/tracetest"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 func TestDefaultRestyClient(t *testing.T) {
@@ -430,6 +437,81 @@ func TestDecodeJSON(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestRestyClientWithTrace(t *testing.T) {
+	tests := []struct {
+		name            string
+		setContext      bool
+		wantTraceparent bool
+		wantClientChild bool
+		useTraceAlias   bool
+	}{
+		{name: "SetContext nests client under parent", setContext: true, wantTraceparent: true, wantClientChild: true},
+		{name: "without SetContext still injects orphan client", setContext: false, wantTraceparent: true, wantClientChild: false},
+		{name: "RestyClientWithTrace alias nests like DefaultRestyClient", setContext: true, wantTraceparent: true, wantClientChild: true, useTraceAlias: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			recorder := tracetest.NewSpanRecorder()
+			tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(recorder))
+			prevTP := otel.GetTracerProvider()
+			prevProp := otel.GetTextMapPropagator()
+			otel.SetTracerProvider(tp)
+			otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+				propagation.TraceContext{},
+			))
+			t.Cleanup(func() {
+				_ = tp.Shutdown(context.Background())
+				otel.SetTracerProvider(prevTP)
+				otel.SetTextMapPropagator(prevProp)
+			})
+
+			var gotTraceparent string
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				gotTraceparent = r.Header.Get("traceparent")
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(`{}`))
+			}))
+			t.Cleanup(srv.Close)
+
+			parentCtx, parent := tp.Tracer("test").Start(context.Background(), "parent")
+			defer parent.End()
+
+			client := DefaultRestyClient()
+			if tt.useTraceAlias {
+				client = RestyClientWithTrace()
+			}
+			req := client.R()
+			if tt.setContext {
+				req.SetContext(parentCtx)
+			}
+			resp, err := req.Get(srv.URL)
+			require.NoError(t, err)
+			assert.Equal(t, http.StatusOK, resp.StatusCode())
+
+			if tt.wantTraceparent {
+				assert.NotEmpty(t, gotTraceparent)
+			} else {
+				assert.Empty(t, gotTraceparent)
+			}
+
+			var clientSpan sdktrace.ReadOnlySpan
+			for _, s := range recorder.Ended() {
+				if s.SpanKind() == oteltrace.SpanKindClient {
+					clientSpan = s
+					break
+				}
+			}
+			require.NotNil(t, clientSpan, "expected client span")
+			if tt.wantClientChild {
+				assert.Equal(t, parent.SpanContext().TraceID(), clientSpan.SpanContext().TraceID())
+				assert.Equal(t, parent.SpanContext().SpanID(), clientSpan.Parent().SpanID())
+			} else {
+				assert.NotEqual(t, parent.SpanContext().SpanID().String(), clientSpan.Parent().SpanID().String())
+			}
 		})
 	}
 }
