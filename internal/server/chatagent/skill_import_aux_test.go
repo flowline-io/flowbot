@@ -19,10 +19,10 @@ func TestCollectSkillAuxFiles(t *testing.T) {
 		{
 			name: "references md and examples yaml",
 			files: map[string]string{
-				"workflow/SKILL.md":                   "---\nname: workflow\ndescription: x\n---\n\nBody\n",
-				"workflow/references/cli.md":          "# cli\n",
-				"workflow/references/steps.md":        "# steps\n",
-				"workflow/examples/echo_mapper.yaml":  "name: echo\n",
+				"workflow/SKILL.md":                     "---\nname: workflow\ndescription: x\n---\n\nBody\n",
+				"workflow/references/cli.md":            "# cli\n",
+				"workflow/references/steps.md":          "# steps\n",
+				"workflow/examples/echo_mapper.yaml":    "name: echo\n",
 				"workflow/examples/save_and_track.yaml": "name: save\n",
 			},
 			skillDir: "workflow",
@@ -36,10 +36,10 @@ func TestCollectSkillAuxFiles(t *testing.T) {
 		{
 			name: "skips skill md and non text aux",
 			files: map[string]string{
-				"demo/SKILL.md":            "---\nname: demo\ndescription: x\n---\n\nBody\n",
-				"demo/references/cli.md":   "# cli\n",
-				"demo/examples/note.txt":   "plain\n",
-				"demo/scripts/run.sh":      "#!/bin/sh\n",
+				"demo/SKILL.md":              "---\nname: demo\ndescription: x\n---\n\nBody\n",
+				"demo/references/cli.md":     "# cli\n",
+				"demo/examples/note.txt":     "plain\n",
+				"demo/scripts/run.sh":        "#!/bin/sh\n",
 				"demo/references/ignore.bin": "\x00\x01",
 			},
 			skillDir:  "demo",
@@ -56,8 +56,8 @@ func TestCollectSkillAuxFiles(t *testing.T) {
 		{
 			name: "yml extension accepted under examples",
 			files: map[string]string{
-				"w/SKILL.md":             "---\nname: w\ndescription: x\n---\n\nBody\n",
-				"w/examples/sample.yml":  "name: sample\n",
+				"w/SKILL.md":            "---\nname: w\ndescription: x\n---\n\nBody\n",
+				"w/examples/sample.yml": "name: sample\n",
 			},
 			skillDir:  "w",
 			wantPaths: []string{"examples/sample.yml"},

@@ -1,11 +1,15 @@
 package web
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -241,6 +245,7 @@ func TestAgentSkillsPageUnauthenticated(t *testing.T) {
 		{name: "page redirects to login", path: "/service/web/agent-skills"},
 		{name: "list redirects to login", path: "/service/web/agent-skills/list"},
 		{name: "create redirects to login", path: "/service/web/agent-skills"},
+		{name: "import redirects to login", path: "/service/web/agent-skills/import"},
 	}
 
 	for _, tt := range tests {
@@ -249,7 +254,7 @@ func TestAgentSkillsPageUnauthenticated(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			method := http.MethodGet
-			if tt.name == "create redirects to login" {
+			if strings.Contains(tt.name, "create") || strings.Contains(tt.name, "import") {
 				method = http.MethodPost
 			}
 			req := httptest.NewRequest(method, tt.path, http.NoBody)
@@ -538,6 +543,193 @@ func TestAgentSkillDeleteAuthenticated(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAgentSkillSetEnabledAuthenticated(t *testing.T) {
+	tests := []struct {
+		name         string
+		flag         string
+		enabled      bool
+		wantStatus   int
+		wantEnabled  bool
+		wantContains []string
+		wantHX       string
+	}{
+		{
+			name:         "disables skill and returns row with enable action",
+			flag:         "demo-skill",
+			enabled:      false,
+			wantStatus:   http.StatusOK,
+			wantEnabled:  false,
+			wantContains: []string{`data-testid="agent-skill-enable"`, "Enable"},
+		},
+		{
+			name:         "enables skill and returns row with disable action",
+			flag:         "demo-skill",
+			enabled:      true,
+			wantStatus:   http.StatusOK,
+			wantEnabled:  true,
+			wantContains: []string{`data-testid="agent-skill-disable"`, "Disable"},
+		},
+		{
+			name:       "missing skill returns toast",
+			flag:       "missing",
+			enabled:    false,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "Agent skill not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := &testStore{
+				agentSkills: map[string]*gen.AgentSkill{
+					"demo-skill": {
+						Flag:        "demo-skill",
+						Name:        "demo-skill",
+						Description: "Demo",
+						Content:     "body",
+						Enabled:     !tt.enabled, // start opposite so toggle is visible
+						Source:      "global",
+					},
+				},
+			}
+			if tt.flag == "missing" {
+				ts.agentSkills["demo-skill"].Enabled = true
+			}
+			app := setupAuthenticatedApp(t, ts)
+
+			body := bytes.NewBufferString(`{"enabled":` + strconv.FormatBool(tt.enabled) + `}`)
+			req := httptest.NewRequest(http.MethodPut, "/service/web/agent-skills/"+tt.flag+"/enabled", body)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			respBody, _ := io.ReadAll(resp.Body)
+			if tt.wantHX != "" {
+				assert.Contains(t, resp.Header.Get("HX-Trigger"), tt.wantHX)
+				return
+			}
+			html := string(respBody)
+			for _, sub := range tt.wantContains {
+				assert.Contains(t, html, sub)
+			}
+			skill := ts.agentSkills["demo-skill"]
+			require.NotNil(t, skill)
+			assert.Equal(t, tt.wantEnabled, skill.Enabled)
+		})
+	}
+}
+
+func TestAgentSkillsImportAuthenticated(t *testing.T) {
+	validSkill := "---\nname: imported-demo\ndescription: From zip\n---\n\n# Demo\n\nBody\n"
+	tests := []struct {
+		name       string
+		filename   string
+		archive    []byte
+		wantStatus int
+		wantBody   string
+		wantHX     string
+		wantFlag   string
+		wantSource string
+		checkStore bool
+		unauth     bool
+	}{
+		{
+			name:       "imports skill zip and refreshes table",
+			filename:   "skills.zip",
+			archive:    mustSkillZip(t, map[string]string{"imported-demo/SKILL.md": validSkill}),
+			wantStatus: http.StatusOK,
+			wantBody:   "imported-demo",
+			wantHX:     "Imported 1 skill",
+			wantFlag:   "imported-demo",
+			wantSource: "imported",
+			checkStore: true,
+		},
+		{
+			name:       "rejects missing archive field",
+			filename:   "",
+			archive:    nil,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "zip archive",
+		},
+		{
+			name:       "rejects invalid zip",
+			filename:   "bad.zip",
+			archive:    []byte("not-a-zip"),
+			wantStatus: http.StatusNoContent,
+			wantHX:     "zip",
+		},
+		{
+			name:     "redirects when unauthenticated",
+			filename: "skills.zip",
+			archive:  mustSkillZip(t, map[string]string{"imported-demo/SKILL.md": validSkill}),
+			unauth:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := &testStore{agentSkills: map[string]*gen.AgentSkill{}}
+			app := setupAuthenticatedApp(t, ts)
+
+			var body bytes.Buffer
+			writer := multipart.NewWriter(&body)
+			if tt.filename != "" {
+				part, err := writer.CreateFormFile("archive", tt.filename)
+				require.NoError(t, err)
+				_, err = part.Write(tt.archive)
+				require.NoError(t, err)
+			}
+			require.NoError(t, writer.Close())
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/agent-skills/import", &body)
+			req.Header.Set("Content-Type", writer.FormDataContentType())
+			if !tt.unauth {
+				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			if tt.unauth {
+				assert.Equal(t, http.StatusSeeOther, resp.StatusCode)
+				return
+			}
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			respBody, _ := io.ReadAll(resp.Body)
+			if tt.wantBody != "" {
+				assert.Contains(t, string(respBody), tt.wantBody)
+			}
+			if tt.wantHX != "" {
+				assert.Contains(t, resp.Header.Get("HX-Trigger"), tt.wantHX)
+			}
+			if tt.checkStore {
+				skill, ok := ts.agentSkills[tt.wantFlag]
+				require.True(t, ok)
+				assert.Equal(t, tt.wantSource, skill.Source)
+			}
+		})
+	}
+}
+
+func mustSkillZip(t *testing.T, files map[string]string) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	w := zip.NewWriter(&buf)
+	for name, content := range files {
+		f, err := w.Create(name)
+		require.NoError(t, err)
+		_, err = f.Write([]byte(content))
+		require.NoError(t, err)
+	}
+	require.NoError(t, w.Close())
+	return buf.Bytes()
 }
 
 func setupAuthenticatedApp(t *testing.T, ts *testStore) *fiber.App {

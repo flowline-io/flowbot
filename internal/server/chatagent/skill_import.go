@@ -1,13 +1,17 @@
 package chatagent
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"path"
 	"slices"
 	"strings"
+	"testing/fstest"
 	"time"
 	"unicode"
 
@@ -21,7 +25,13 @@ import (
 )
 
 const (
-	skillSourceBundled = "bundled"
+	skillSourceBundled  = "bundled"
+	skillSourceImported = "imported"
+
+	maxSkillZipBytes        = 5 << 20 // 5 MiB compressed
+	maxSkillZipFiles        = 256
+	maxSkillZipUncompressed = 20 << 20 // 20 MiB total uncompressed
+	maxSkillZipFileBytes    = 1 << 20  // 1 MiB per file
 )
 
 // skillFrontmatter is the YAML header of a SKILL.md file.
@@ -45,32 +55,148 @@ func ImportBundledSkills(ctx context.Context) error {
 	return nil
 }
 
-// ImportSkillsFromFS walks root in fsys for */SKILL.md and upserts each skill.
-func ImportSkillsFromFS(ctx context.Context, fsys fs.FS, root string) (int, error) {
-	entries, err := fs.ReadDir(fsys, root)
+// ImportSkillsFromZip unpacks a skill zip archive and upserts each SKILL.md found.
+// Source is recorded as "imported". Returns the number of skills synced.
+func ImportSkillsFromZip(ctx context.Context, data []byte) (int, error) {
+	if len(data) == 0 {
+		return 0, fmt.Errorf("empty zip archive")
+	}
+	if len(data) > maxSkillZipBytes {
+		return 0, fmt.Errorf("zip archive exceeds maximum size (%d bytes)", maxSkillZipBytes)
+	}
+	fsys, err := mapFSFromZip(data)
 	if err != nil {
-		return 0, fmt.Errorf("read skill root %s: %w", root, err)
+		return 0, err
+	}
+	n, err := upsertSkillsFromFS(ctx, fsys, ".", skillSourceImported)
+	if err != nil {
+		return n, err
+	}
+	if n > 0 {
+		InvalidatePromptCache()
+	}
+	return n, nil
+}
+
+// ImportSkillsFromFS walks root in fsys for SKILL.md (including root) and upserts each skill.
+func ImportSkillsFromFS(ctx context.Context, fsys fs.FS, root string) (int, error) {
+	return upsertSkillsFromFS(ctx, fsys, root, skillSourceBundled)
+}
+
+func upsertSkillsFromFS(ctx context.Context, fsys fs.FS, root, source string) (int, error) {
+	dirs, err := findSkillDirs(fsys, root)
+	if err != nil {
+		return 0, err
+	}
+	if len(dirs) == 0 {
+		return 0, nil
+	}
+	if store.Database == nil {
+		return 0, fmt.Errorf("skill store unavailable")
 	}
 	synced := 0
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		skillDir := path.Join(root, entry.Name())
-		skillPath := path.Join(skillDir, "SKILL.md")
-		if _, err := fs.Stat(fsys, skillPath); err != nil {
-			continue
-		}
-		if err := upsertSkillFromFS(ctx, fsys, skillDir); err != nil {
-			return synced, fmt.Errorf("import skill %s: %w", entry.Name(), err)
+	for _, skillDir := range dirs {
+		if err := upsertSkillFromFS(ctx, fsys, skillDir, source); err != nil {
+			label := skillDir
+			if label == "." || label == "" {
+				label = "root"
+			}
+			return synced, fmt.Errorf("import skill %s: %w", label, err)
 		}
 		synced++
 	}
 	return synced, nil
 }
 
-func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir string) error {
-	raw, err := fs.ReadFile(fsys, path.Join(skillDir, "SKILL.md"))
+// findSkillDirs returns directories under root that contain a SKILL.md file.
+func findSkillDirs(fsys fs.FS, root string) ([]string, error) {
+	var dirs []string
+	err := fs.WalkDir(fsys, root, func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if path.Base(p) != "SKILL.md" {
+			return nil
+		}
+		dirs = append(dirs, path.Dir(p))
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("walk skill root %s: %w", root, err)
+	}
+	slices.Sort(dirs)
+	return dirs, nil
+}
+
+// mapFSFromZip materializes zip members into an in-memory FS with zip-slip protection.
+func mapFSFromZip(data []byte) (fstest.MapFS, error) {
+	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return nil, fmt.Errorf("open zip: %w", err)
+	}
+	if len(zr.File) > maxSkillZipFiles {
+		return nil, fmt.Errorf("zip archive has too many files")
+	}
+	out := make(fstest.MapFS)
+	var total int64
+	for _, f := range zr.File {
+		name, err := sanitizeZipPath(f.Name)
+		if err != nil {
+			return nil, err
+		}
+		if name == "" || strings.HasSuffix(f.Name, "/") || f.FileInfo().IsDir() {
+			continue
+		}
+		if f.UncompressedSize64 > maxSkillZipFileBytes {
+			return nil, fmt.Errorf("zip member %s exceeds maximum size", name)
+		}
+		total += int64(f.UncompressedSize64)
+		if total > maxSkillZipUncompressed {
+			return nil, fmt.Errorf("zip uncompressed size exceeds maximum")
+		}
+		rc, err := f.Open()
+		if err != nil {
+			return nil, fmt.Errorf("open zip member %s: %w", name, err)
+		}
+		content, err := io.ReadAll(io.LimitReader(rc, maxSkillZipFileBytes+1))
+		_ = rc.Close()
+		if err != nil {
+			return nil, fmt.Errorf("read zip member %s: %w", name, err)
+		}
+		if len(content) > maxSkillZipFileBytes {
+			return nil, fmt.Errorf("zip member %s exceeds maximum size", name)
+		}
+		out[name] = &fstest.MapFile{Data: content}
+	}
+	return out, nil
+}
+
+// sanitizeZipPath rejects absolute paths and zip-slip (..) members.
+func sanitizeZipPath(name string) (string, error) {
+	name = strings.ReplaceAll(name, "\\", "/")
+	name = strings.TrimPrefix(name, "./")
+	if name == "" || name == "." {
+		return "", nil
+	}
+	if path.IsAbs(name) || strings.HasPrefix(name, "/") {
+		return "", fmt.Errorf("illegal path in zip: %s", name)
+	}
+	clean := path.Clean(name)
+	if clean == ".." || strings.HasPrefix(clean, "../") {
+		return "", fmt.Errorf("illegal path in zip: %s", name)
+	}
+	return clean, nil
+}
+
+func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string) error {
+	skillMD := "SKILL.md"
+	if skillDir != "." && skillDir != "" {
+		skillMD = path.Join(skillDir, "SKILL.md")
+	}
+	raw, err := fs.ReadFile(fsys, skillMD)
 	if err != nil {
 		return err
 	}
@@ -89,6 +215,13 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir string) error {
 	case body == "":
 		return fmt.Errorf("SKILL.md body is empty")
 	}
+	if source == "" {
+		source = skillSourceBundled
+	}
+	baseDir := skillDir
+	if baseDir == "." {
+		baseDir = name
+	}
 
 	now := time.Now().UTC()
 	existing, err := store.Database.GetAgentSkillByFlag(ctx, name)
@@ -101,8 +234,8 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir string) error {
 			Name:                   name,
 			Description:            desc,
 			Content:                body,
-			BaseDir:                skillDir,
-			Source:                 skillSourceBundled,
+			BaseDir:                baseDir,
+			Source:                 source,
 			Enabled:                true,
 			DisableModelInvocation: false,
 			CreatedAt:              now,
@@ -115,8 +248,8 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir string) error {
 		existing.Name = name
 		existing.Description = desc
 		existing.Content = body
-		existing.BaseDir = skillDir
-		existing.Source = skillSourceBundled
+		existing.BaseDir = baseDir
+		existing.Source = source
 		existing.UpdatedAt = now
 		if err := store.Database.UpdateAgentSkill(ctx, existing); err != nil {
 			return fmt.Errorf("update skill %s: %w", name, err)

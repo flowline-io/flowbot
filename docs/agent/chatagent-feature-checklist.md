@@ -73,7 +73,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
-| A-01 | Skills CRUD + files | `/service/web/agent-skills…` | Enable/disable | agent skills webservice tests / pages |
+| A-01 | Skills CRUD + files + zip import + enable/disable | `/service/web/agent-skills…` | Enable/disable; Import zip | agent skills webservice tests / pages |
 | A-02 | Memory file list/read/write | `/service/web/agent-memory…` | Max file bytes | memory webservice tests |
 | A-03 | Subagents CRUD + tasks | `/service/web/agent-subagents…` | Seed defaults on enable | subagent specs/tests |
 | A-04 | Scheduled tasks list/detail/state | `/service/web/agent-scheduled-tasks…` | Pause/resume | `agent_scheduled_tasks_page_spec_test.go` |

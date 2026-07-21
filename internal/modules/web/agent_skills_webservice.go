@@ -3,6 +3,8 @@ package web
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -34,7 +36,9 @@ var agentSkillsWebserviceRules = []webservice.Rule{
 	webservice.Get("/agent-skills/list", agentSkillsTable, route.WithNotAuth()),
 	webservice.Get("/agent-skills/new", agentSkillNewForm, route.WithNotAuth()),
 	webservice.Post("/agent-skills", agentSkillCreate, route.WithNotAuth()),
+	webservice.Post("/agent-skills/import", agentSkillsImport, route.WithNotAuth()),
 	webservice.Get("/agent-skills/:flag/edit", agentSkillEditForm, route.WithNotAuth()),
+	webservice.Put("/agent-skills/:flag/enabled", agentSkillSetEnabled, route.WithNotAuth()),
 	webservice.Put("/agent-skills/:flag", agentSkillUpdate, route.WithNotAuth()),
 	webservice.Delete("/agent-skills/:flag", agentSkillDelete, route.WithNotAuth()),
 	webservice.Get("/agent-skills/:flag/files", agentSkillFilesTable, route.WithNotAuth()),
@@ -55,6 +59,51 @@ func agentSkillsPage(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	return pages.AgentSkillsPage(items).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func agentSkillsImport(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	header, err := ctx.FormFile("archive")
+	if err != nil || header == nil {
+		return toastError(ctx, "Choose a zip archive of Agent Skills")
+	}
+	if header.Size > 5<<20 {
+		return toastError(ctx, "Zip archive exceeds maximum size (5 MiB)")
+	}
+	file, err := header.Open()
+	if err != nil {
+		return toastError(ctx, "Failed to read zip archive")
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, (5<<20)+1))
+	if err != nil {
+		return toastError(ctx, "Failed to read zip archive")
+	}
+	if len(data) > 5<<20 {
+		return toastError(ctx, "Zip archive exceeds maximum size (5 MiB)")
+	}
+	n, err := chatagent.ImportSkillsFromZip(ctx.Context(), data)
+	if err != nil {
+		flog.Warn("[web] agent skills import failed uid=%s: %v", getUID(ctx), err)
+		return toastError(ctx, "Import failed: "+err.Error())
+	}
+	if n == 0 {
+		return toastError(ctx, "No SKILL.md found in zip archive")
+	}
+	items, err := listAgentSkillModels(ctx.Context())
+	if err != nil {
+		return toastError(ctx, "Imported but failed to reload agent skills")
+	}
+	msg := fmt.Sprintf("Imported %d skill", n)
+	if n != 1 {
+		msg = fmt.Sprintf("Imported %d skills", n)
+	}
+	setShowToast(ctx, "success", msg)
+	flog.Info("[web] agent skills imported uid=%s count=%d", getUID(ctx), n)
+	ctx.Type("html")
+	return partials.AgentSkillTable(items).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func agentSkillsTable(ctx fiber.Ctx) error {
@@ -189,6 +238,42 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill updated uid=%s flag=%s name=%s", getUID(ctx), flag, input.Name)
+	updated, err := loadAgentSkillModel(reqCtx, flag)
+	if err != nil {
+		return toastError(ctx, "Failed to load updated agent skill")
+	}
+	ctx.Type("html")
+	return partials.AgentSkillRow(updated).Render(reqCtx, ctx.Response().BodyWriter())
+}
+
+func agentSkillSetEnabled(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	flag, err := decodeAgentSkillFlag(ctx)
+	if err != nil {
+		return err
+	}
+	var body struct {
+		Enabled bool `json:"enabled" form:"enabled"`
+	}
+	if err := ctx.Bind().Body(&body); err != nil {
+		return toastError(ctx, "Invalid enabled value")
+	}
+	reqCtx := ctx.Context()
+	existing, err := store.Database.GetAgentSkillByFlag(reqCtx, flag)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return toastError(ctx, "Agent skill not found")
+		}
+		return toastError(ctx, "Failed to load agent skill")
+	}
+	existing.Enabled = body.Enabled
+	if err := store.Database.UpdateAgentSkill(reqCtx, existing); err != nil {
+		return toastError(ctx, "Failed to update agent skill")
+	}
+	chatagent.InvalidatePromptCache()
+	flog.Info("[web] agent skill enabled=%v uid=%s flag=%s", body.Enabled, getUID(ctx), flag)
 	updated, err := loadAgentSkillModel(reqCtx, flag)
 	if err != nil {
 		return toastError(ctx, "Failed to load updated agent skill")

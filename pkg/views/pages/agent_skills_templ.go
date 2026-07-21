@@ -59,7 +59,7 @@ func AgentSkillsPage(items []model.AgentSkill) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/agent-skills/list\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" data-testid=\"agent-skills-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button> <button hx-get=\"/service/web/agent-skills/new\" hx-target=\"#agent-skills-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-skills-new\" class=\"btn btn-primary btn-sm\">New Skill</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/agent-skills/list\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" data-testid=\"agent-skills-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button><form hx-post=\"/service/web/agent-skills/import\" hx-encoding=\"multipart/form-data\" hx-target=\"#agent-skills-table\" hx-swap=\"outerHTML\" hx-trigger=\"change from:input[type='file']\" class=\"inline-flex m-0\"><label class=\"btn btn-ghost btn-sm cursor-pointer\" data-testid=\"agent-skills-import\">Import <input type=\"file\" name=\"archive\" accept=\".zip,application/zip,application/x-zip-compressed\" class=\"hidden\" data-testid=\"agent-skills-import-input\"></label></form><button hx-get=\"/service/web/agent-skills/new\" hx-target=\"#agent-skills-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-skills-new\" class=\"btn btn-primary btn-sm\">New Skill</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

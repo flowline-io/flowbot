@@ -26,6 +26,10 @@ func agentSkillEditURL(item model.AgentSkill) string {
 	return agentSkillURL(item) + "/edit"
 }
 
+func agentSkillEnabledURL(item model.AgentSkill) string {
+	return agentSkillURL(item) + "/enabled"
+}
+
 func agentSkillListURL() string {
 	return "/service/web/agent-skills/list"
 }
