@@ -11,6 +11,7 @@ type NotifyTemplate struct {
 	DefaultFormat   string    `json:"default_format"`
 	DefaultTemplate string    `json:"default_template"`
 	OverridesJSON   string    `json:"overrides_json"` // JSON array string for form display
+	IsDefault       bool      `json:"is_default"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }

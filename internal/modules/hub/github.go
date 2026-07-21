@@ -34,12 +34,15 @@ func deploy(ctx types.Context) error {
 	}
 
 	// send message
-	err = notify.GatewaySend(ctx.Context(), ctx.AsUser, "github.deployment", []string{"slack", "ntfy"}, map[string]any{
+	err = notify.GatewaySendDefaultChannel(ctx.Context(), ctx.AsUser, "github.deployment", map[string]any{
 		"user":      user.UserName,
 		"repo":      drone.DefaultDeployRepoName,
 		"build":     build.Number,
 		"drone_url": config.App.Search.UrlBaseMap[drone.ID],
 	})
+	if notify.WarnSkipNoDefault(err, "github deployment") {
+		return nil
+	}
 	if err != nil {
 		return err
 	}

@@ -96,12 +96,12 @@ func handleOnlineAction(ctx types.Context, uid types.Uid, data types.AgentData) 
 	key := cache.NewKey("online", "agent", hostid)
 	_, ok, _ = cacheStore.Get(ctx.Context(), key)
 	if !ok {
-		err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+		err = notify.GatewaySendDefaultChannel(ctx.Context(), uid, "agent.status", map[string]any{
 			"hostid":   hostid,
 			"hostname": hostname,
 			"status":   "online",
 		})
-		if err != nil {
+		if err != nil && !notify.WarnSkipNoDefault(err, "agent online") {
 			flog.Error(fmt.Errorf("send message error %w", err))
 		}
 	}
@@ -131,12 +131,12 @@ func handleOfflineAction(ctx types.Context, uid types.Uid, data types.AgentData)
 		flog.Error(fmt.Errorf("del agent online stats error %w", err))
 	}
 
-	err = notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+	err = notify.GatewaySendDefaultChannel(ctx.Context(), uid, "agent.status", map[string]any{
 		"hostid":   hostid,
 		"hostname": hostname,
 		"status":   "offline",
 	})
-	if err != nil {
+	if err != nil && !notify.WarnSkipNoDefault(err, "agent offline") {
 		flog.Error(fmt.Errorf("send message error %w", err))
 	}
 	return nil
@@ -148,10 +148,10 @@ func handleMessageAction(ctx types.Context, uid types.Uid, data types.AgentData)
 		return errors.New("empty message")
 	}
 
-	err := notify.GatewaySend(ctx.Context(), uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+	err := notify.GatewaySendDefaultChannel(ctx.Context(), uid, "agent.status", map[string]any{
 		"message": message,
 	})
-	if err != nil {
+	if err != nil && !notify.WarnSkipNoDefault(err, "agent message") {
 		flog.Error(fmt.Errorf("send message error %w", err))
 	}
 	return nil

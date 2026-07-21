@@ -54,6 +54,20 @@ func (_c *NotifyChannelCreate) SetNillableEnabled(v *bool) *NotifyChannelCreate 
 	return _c
 }
 
+// SetIsDefault sets the "is_default" field.
+func (_c *NotifyChannelCreate) SetIsDefault(v bool) *NotifyChannelCreate {
+	_c.mutation.SetIsDefault(v)
+	return _c
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_c *NotifyChannelCreate) SetNillableIsDefault(v *bool) *NotifyChannelCreate {
+	if v != nil {
+		_c.SetIsDefault(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *NotifyChannelCreate) SetCreatedAt(v time.Time) *NotifyChannelCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -127,6 +141,10 @@ func (_c *NotifyChannelCreate) defaults() {
 		v := notifychannel.DefaultEnabled
 		_c.mutation.SetEnabled(v)
 	}
+	if _, ok := _c.mutation.IsDefault(); !ok {
+		v := notifychannel.DefaultIsDefault
+		_c.mutation.SetIsDefault(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := notifychannel.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -165,6 +183,9 @@ func (_c *NotifyChannelCreate) check() error {
 	}
 	if _, ok := _c.mutation.Enabled(); !ok {
 		return &ValidationError{Name: "enabled", err: errors.New(`gen: missing required field "NotifyChannel.enabled"`)}
+	}
+	if _, ok := _c.mutation.IsDefault(); !ok {
+		return &ValidationError{Name: "is_default", err: errors.New(`gen: missing required field "NotifyChannel.is_default"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "NotifyChannel.created_at"`)}
@@ -220,6 +241,10 @@ func (_c *NotifyChannelCreate) createSpec() (*NotifyChannel, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.Enabled(); ok {
 		_spec.SetField(notifychannel.FieldEnabled, field.TypeBool, value)
 		_node.Enabled = value
+	}
+	if value, ok := _c.mutation.IsDefault(); ok {
+		_spec.SetField(notifychannel.FieldIsDefault, field.TypeBool, value)
+		_node.IsDefault = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(notifychannel.FieldCreatedAt, field.TypeTime, value)
@@ -326,6 +351,18 @@ func (u *NotifyChannelUpsert) SetEnabled(v bool) *NotifyChannelUpsert {
 // UpdateEnabled sets the "enabled" field to the value that was provided on create.
 func (u *NotifyChannelUpsert) UpdateEnabled() *NotifyChannelUpsert {
 	u.SetExcluded(notifychannel.FieldEnabled)
+	return u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *NotifyChannelUpsert) SetIsDefault(v bool) *NotifyChannelUpsert {
+	u.Set(notifychannel.FieldIsDefault, v)
+	return u
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *NotifyChannelUpsert) UpdateIsDefault() *NotifyChannelUpsert {
+	u.SetExcluded(notifychannel.FieldIsDefault)
 	return u
 }
 
@@ -445,6 +482,20 @@ func (u *NotifyChannelUpsertOne) SetEnabled(v bool) *NotifyChannelUpsertOne {
 func (u *NotifyChannelUpsertOne) UpdateEnabled() *NotifyChannelUpsertOne {
 	return u.Update(func(s *NotifyChannelUpsert) {
 		s.UpdateEnabled()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *NotifyChannelUpsertOne) SetIsDefault(v bool) *NotifyChannelUpsertOne {
+	return u.Update(func(s *NotifyChannelUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *NotifyChannelUpsertOne) UpdateIsDefault() *NotifyChannelUpsertOne {
+	return u.Update(func(s *NotifyChannelUpsert) {
+		s.UpdateIsDefault()
 	})
 }
 
@@ -732,6 +783,20 @@ func (u *NotifyChannelUpsertBulk) SetEnabled(v bool) *NotifyChannelUpsertBulk {
 func (u *NotifyChannelUpsertBulk) UpdateEnabled() *NotifyChannelUpsertBulk {
 	return u.Update(func(s *NotifyChannelUpsert) {
 		s.UpdateEnabled()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *NotifyChannelUpsertBulk) SetIsDefault(v bool) *NotifyChannelUpsertBulk {
+	return u.Update(func(s *NotifyChannelUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *NotifyChannelUpsertBulk) UpdateIsDefault() *NotifyChannelUpsertBulk {
+	return u.Update(func(s *NotifyChannelUpsert) {
+		s.UpdateIsDefault()
 	})
 }
 

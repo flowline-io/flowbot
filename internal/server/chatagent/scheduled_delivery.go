@@ -99,11 +99,14 @@ func deliverScheduledReply(ctx context.Context, task *gen.ChatScheduledTask, tex
 	}
 
 	uid := types.Uid(task.UID)
-	err := notify.GatewaySend(ctx, uid, "agent.status", []string{"slack", "ntfy"}, map[string]any{
+	err := notify.GatewaySendDefaultChannel(ctx, uid, "agent.status", map[string]any{
 		notify.PayloadKeySummary: body,
 		"task_name":              task.Name,
 		"task_id":                task.Flag,
 	})
+	if notify.WarnSkipNoDefault(err, "scheduled delivery") {
+		return
+	}
 	if err != nil {
 		flog.Warn("[chat-agent] scheduled delivery notify task=%s uid=%s: %v", task.Flag, uid, err)
 	}

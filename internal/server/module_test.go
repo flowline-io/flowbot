@@ -660,10 +660,14 @@ func (*testStoreAdapter) GetNotifyChannelByNameRaw(context.Context, string) (mod
 func (*testStoreAdapter) ListNotifyChannels(context.Context, store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
 	return nil, nil
 }
+func (*testStoreAdapter) GetDefaultNotifyChannelRaw(context.Context) (model.NotifyChannel, error) {
+	return model.NotifyChannel{}, types.ErrNotFound
+}
 func (*testStoreAdapter) UpdateNotifyChannel(context.Context, int64, string, string, string, bool) error {
 	return nil
 }
-func (*testStoreAdapter) DeleteNotifyChannel(context.Context, int64) error { return nil }
+func (*testStoreAdapter) SetDefaultNotifyChannel(context.Context, int64) error { return nil }
+func (*testStoreAdapter) DeleteNotifyChannel(context.Context, int64) error     { return nil }
 func (*testStoreAdapter) CreateNotifyRule(context.Context, model.NotifyRule) (int64, error) {
 	return 0, nil
 }
@@ -683,14 +687,21 @@ func (*testStoreAdapter) CreateNotifyTemplate(context.Context, model.NotifyTempl
 func (*testStoreAdapter) GetNotifyTemplate(context.Context, int64) (model.NotifyTemplate, error) {
 	return model.NotifyTemplate{}, nil
 }
+func (*testStoreAdapter) GetNotifyTemplateByTemplateID(context.Context, string) (model.NotifyTemplate, error) {
+	return model.NotifyTemplate{}, nil
+}
+func (*testStoreAdapter) GetDefaultNotifyTemplate(context.Context) (model.NotifyTemplate, error) {
+	return model.NotifyTemplate{}, nil
+}
 func (*testStoreAdapter) ListNotifyTemplates(context.Context, store.ListNotifyTemplateOptions) ([]model.NotifyTemplate, error) {
 	return nil, nil
 }
 func (*testStoreAdapter) UpdateNotifyTemplate(context.Context, int64, model.NotifyTemplate) error {
 	return nil
 }
-func (*testStoreAdapter) DeleteNotifyTemplate(context.Context, int64) error { return nil }
-func (*testStoreAdapter) MaskNotifyURI(string, string) string               { return "" }
+func (*testStoreAdapter) SetDefaultNotifyTemplate(context.Context, int64) error { return nil }
+func (*testStoreAdapter) DeleteNotifyTemplate(context.Context, int64) error     { return nil }
+func (*testStoreAdapter) MaskNotifyURI(string, string) string                   { return "" }
 func (*testStoreAdapter) CreateToken(_ context.Context, _ types.Uid, _ time.Time, _ []string) (string, error) {
 	return "", nil
 }

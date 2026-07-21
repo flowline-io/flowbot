@@ -742,3 +742,130 @@ func TestNotifyChannelTest(t *testing.T) {
 		})
 	}
 }
+
+func TestNotifyChannelSetDefault(t *testing.T) {
+	tests := []struct {
+		name       string
+		channels   map[int64]model.NotifyChannel
+		id         string
+		wantStatus int
+		wantSub    string
+		wantID     int64
+	}{
+		{
+			name: "sets enabled channel as default",
+			channels: map[int64]model.NotifyChannel{
+				1: {ID: 1, Name: "phone", Protocol: "ntfy", URI: "ntfy://x", Enabled: true},
+				2: {ID: 2, Name: "chat", Protocol: "slack", URI: "slack://x", Enabled: true, IsDefault: true},
+			},
+			id:         "1",
+			wantStatus: http.StatusOK,
+			wantSub:    "Default channel updated",
+			wantID:     1,
+		},
+		{
+			name: "rejects disabled channel",
+			channels: map[int64]model.NotifyChannel{
+				1: {ID: 1, Name: "phone", Protocol: "ntfy", URI: "ntfy://x", Enabled: false},
+			},
+			id:         "1",
+			wantStatus: http.StatusNoContent,
+			wantSub:    "must be enabled",
+		},
+		{
+			name:       "missing channel",
+			channels:   map[int64]model.NotifyChannel{},
+			id:         "9",
+			wantStatus: http.StatusNoContent,
+			wantSub:    "not found",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			ts.notifyChannels = tt.channels
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+tt.id+"/default", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, tt.wantStatus, resp.StatusCode)
+			body, _ := io.ReadAll(resp.Body)
+			hx := resp.Header.Get("HX-Trigger")
+			combined := string(body) + hx
+			require.Contains(t, combined, tt.wantSub)
+			if tt.wantID != 0 {
+				require.True(t, ts.notifyChannels[tt.wantID].IsDefault)
+				for id, ch := range ts.notifyChannels {
+					if id != tt.wantID {
+						require.False(t, ch.IsDefault)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestNotifyTemplateSetDefault(t *testing.T) {
+	tests := []struct {
+		name       string
+		templates  map[int64]model.NotifyTemplate
+		id         string
+		wantStatus int
+		wantSub    string
+		wantID     int64
+	}{
+		{
+			name: "sets template with summary",
+			templates: map[int64]model.NotifyTemplate{
+				1: {ID: 1, TemplateID: "agent.notify", Name: "Agent", DefaultFormat: "markdown", DefaultTemplate: "{{ .summary }}", OverridesJSON: "[]"},
+			},
+			id:         "1",
+			wantStatus: http.StatusOK,
+			wantSub:    "Default template updated",
+			wantID:     1,
+		},
+		{
+			name: "rejects template without summary",
+			templates: map[int64]model.NotifyTemplate{
+				1: {ID: 1, TemplateID: "agent.status", Name: "Status", DefaultFormat: "markdown", DefaultTemplate: "{{ .status }}", OverridesJSON: "[]"},
+			},
+			id:         "1",
+			wantStatus: http.StatusNoContent,
+			wantSub:    "must reference {{ .summary }}",
+		},
+		{
+			name:       "missing template",
+			templates:  map[int64]model.NotifyTemplate{},
+			id:         "3",
+			wantStatus: http.StatusOK,
+			wantSub:    "Not found",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, ts := setupTestApp()
+			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+			ts.notifyTemplates = tt.templates
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/templates/"+tt.id+"/default", http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantSub != "" {
+				body, _ := io.ReadAll(resp.Body)
+				hx := resp.Header.Get("HX-Trigger")
+				require.Contains(t, string(body)+hx, tt.wantSub)
+			}
+			if tt.wantID != 0 {
+				require.True(t, ts.notifyTemplates[tt.wantID].IsDefault)
+			}
+		})
+	}
+}

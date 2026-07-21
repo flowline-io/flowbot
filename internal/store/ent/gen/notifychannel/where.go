@@ -74,6 +74,11 @@ func Enabled(v bool) predicate.NotifyChannel {
 	return predicate.NotifyChannel(sql.FieldEQ(FieldEnabled, v))
 }
 
+// IsDefault applies equality check predicate on the "is_default" field. It's identical to IsDefaultEQ.
+func IsDefault(v bool) predicate.NotifyChannel {
+	return predicate.NotifyChannel(sql.FieldEQ(FieldIsDefault, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.NotifyChannel {
 	return predicate.NotifyChannel(sql.FieldEQ(FieldCreatedAt, v))
@@ -287,6 +292,16 @@ func EnabledEQ(v bool) predicate.NotifyChannel {
 // EnabledNEQ applies the NEQ predicate on the "enabled" field.
 func EnabledNEQ(v bool) predicate.NotifyChannel {
 	return predicate.NotifyChannel(sql.FieldNEQ(FieldEnabled, v))
+}
+
+// IsDefaultEQ applies the EQ predicate on the "is_default" field.
+func IsDefaultEQ(v bool) predicate.NotifyChannel {
+	return predicate.NotifyChannel(sql.FieldEQ(FieldIsDefault, v))
+}
+
+// IsDefaultNEQ applies the NEQ predicate on the "is_default" field.
+func IsDefaultNEQ(v bool) predicate.NotifyChannel {
+	return predicate.NotifyChannel(sql.FieldNEQ(FieldIsDefault, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

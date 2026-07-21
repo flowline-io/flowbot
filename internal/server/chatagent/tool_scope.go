@@ -7,6 +7,7 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent/clip"
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	agentnotify "github.com/flowline-io/flowbot/pkg/agent/notify"
 )
 
 // Tool group name constants for dynamic activation.
@@ -73,7 +74,7 @@ func ToolGroupOf(name string) string {
 		return ToolGroupShell
 	case "web_search", "web_fetch", "glob_files", "grep_files":
 		return ToolGroupSearch
-	case clip.CreateToolName, clip.GetToolName:
+	case clip.CreateToolName, clip.GetToolName, agentnotify.SendToolName:
 		return ToolGroupCore
 	case taskToolName:
 		return ToolGroupSubagent

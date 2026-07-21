@@ -31,6 +31,10 @@ func notifyChannelTestURL(item model.NotifyChannel) string {
 	return fmt.Sprintf("/service/web/notifications/channels/%d/test", item.ID)
 }
 
+func notifyChannelDefaultURL(item model.NotifyChannel) string {
+	return fmt.Sprintf("/service/web/notifications/channels/%d/default", item.ID)
+}
+
 func notifyRuleRowID(item model.NotifyRule) string {
 	return fmt.Sprintf("notify-rule-%d", item.ID)
 }
@@ -83,6 +87,10 @@ func notifyTemplateDeleteURL(item model.NotifyTemplate) string {
 
 func notifyTemplateUpdateURL(item model.NotifyTemplate) string {
 	return notifyTemplateDeleteURL(item)
+}
+
+func notifyTemplateDefaultURL(item model.NotifyTemplate) string {
+	return fmt.Sprintf("/service/web/notifications/templates/%d/default", item.ID)
 }
 
 func notifyTemplateFormID(item model.NotifyTemplate, isNew bool) string {

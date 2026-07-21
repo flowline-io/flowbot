@@ -21,6 +21,7 @@ func (NotifyChannel) Fields() []ent.Field {
 		field.String("protocol").NotEmpty(),
 		field.String("uri").NotEmpty(),
 		field.Bool("enabled").Default(true),
+		field.Bool("is_default").Default(false),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -30,6 +31,7 @@ func (NotifyChannel) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("protocol"),
 		index.Fields("enabled"),
+		index.Fields("is_default"),
 	}
 }
 

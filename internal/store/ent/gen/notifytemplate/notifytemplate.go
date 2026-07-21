@@ -26,6 +26,8 @@ const (
 	FieldDefaultTemplate = "default_template"
 	// FieldOverrides holds the string denoting the overrides field in the database.
 	FieldOverrides = "overrides"
+	// FieldIsDefault holds the string denoting the is_default field in the database.
+	FieldIsDefault = "is_default"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -43,6 +45,7 @@ var Columns = []string{
 	FieldDefaultFormat,
 	FieldDefaultTemplate,
 	FieldOverrides,
+	FieldIsDefault,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -72,6 +75,8 @@ var (
 	DefaultTemplateValidator func(string) error
 	// DefaultOverrides holds the default value on creation for the "overrides" field.
 	DefaultOverrides []schema.NotifyTemplateOverride
+	// DefaultIsDefault holds the default value on creation for the "is_default" field.
+	DefaultIsDefault bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -111,6 +116,11 @@ func ByDefaultFormat(opts ...sql.OrderTermOption) OrderOption {
 // ByDefaultTemplate orders the results by the default_template field.
 func ByDefaultTemplate(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDefaultTemplate, opts...).ToFunc()
+}
+
+// ByIsDefault orders the results by the is_default field.
+func ByIsDefault(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsDefault, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

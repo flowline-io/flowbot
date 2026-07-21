@@ -10,9 +10,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/clip"
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
+	agentnotify "github.com/flowline-io/flowbot/pkg/agent/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 const agentName = "chat"
@@ -26,6 +28,10 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 		return nil, err
 	}
 	if err := clip.Register(registry, config.App.Flowbot.URL); err != nil {
+		return nil, err
+	}
+	uid := registryUID(taskDeps, scheduleDeps)
+	if err := agentnotify.Register(registry, uid); err != nil {
 		return nil, err
 	}
 	if err := registry.Register(ReadSkillTool{}); err != nil {
@@ -79,10 +85,21 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, clip.ActiveToolNames()...)
+	names = append(names, agentnotify.ActiveToolNames()...)
 	names = append(names, "read_skill", taskToolName)
 	names = append(names, scheduleToolNames()...)
 	names = append(names, updateMemoryToolName)
 	return names
+}
+
+func registryUID(taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) types.Uid {
+	if scheduleDeps != nil && scheduleDeps.UID != "" {
+		return scheduleDeps.UID
+	}
+	if taskDeps != nil {
+		return taskDeps.UID
+	}
+	return types.Uid("")
 }
 
 // BaseToolNamesForRun returns the active tool set for one run.

@@ -118,6 +118,20 @@ func (_u *NotifyTemplateUpdate) AppendOverrides(v []schema.NotifyTemplateOverrid
 	return _u
 }
 
+// SetIsDefault sets the "is_default" field.
+func (_u *NotifyTemplateUpdate) SetIsDefault(v bool) *NotifyTemplateUpdate {
+	_u.mutation.SetIsDefault(v)
+	return _u
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_u *NotifyTemplateUpdate) SetNillableIsDefault(v *bool) *NotifyTemplateUpdate {
+	if v != nil {
+		_u.SetIsDefault(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *NotifyTemplateUpdate) SetUpdatedAt(v time.Time) *NotifyTemplateUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -228,6 +242,9 @@ func (_u *NotifyTemplateUpdate) sqlSave(ctx context.Context) (_node int, err err
 			sqljson.Append(u, notifytemplate.FieldOverrides, value)
 		})
 	}
+	if value, ok := _u.mutation.IsDefault(); ok {
+		_spec.SetField(notifytemplate.FieldIsDefault, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(notifytemplate.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -336,6 +353,20 @@ func (_u *NotifyTemplateUpdateOne) SetOverrides(v []schema.NotifyTemplateOverrid
 // AppendOverrides appends value to the "overrides" field.
 func (_u *NotifyTemplateUpdateOne) AppendOverrides(v []schema.NotifyTemplateOverride) *NotifyTemplateUpdateOne {
 	_u.mutation.AppendOverrides(v)
+	return _u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (_u *NotifyTemplateUpdateOne) SetIsDefault(v bool) *NotifyTemplateUpdateOne {
+	_u.mutation.SetIsDefault(v)
+	return _u
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_u *NotifyTemplateUpdateOne) SetNillableIsDefault(v *bool) *NotifyTemplateUpdateOne {
+	if v != nil {
+		_u.SetIsDefault(*v)
+	}
 	return _u
 }
 
@@ -478,6 +509,9 @@ func (_u *NotifyTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NotifyTe
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, notifytemplate.FieldOverrides, value)
 		})
+	}
+	if value, ok := _u.mutation.IsDefault(); ok {
+		_spec.SetField(notifytemplate.FieldIsDefault, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(notifytemplate.FieldUpdatedAt, field.TypeTime, value)

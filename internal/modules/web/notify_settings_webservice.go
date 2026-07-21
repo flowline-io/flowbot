@@ -29,12 +29,14 @@ var notifySettingsWebserviceRules = []webservice.Rule{
 	webservice.Put("/notifications/channels/:id", notifyChannelUpdate, route.WithNotAuth()),
 	webservice.Delete("/notifications/channels/:id", notifyChannelDelete, route.WithNotAuth()),
 	webservice.Post("/notifications/channels/:id/test", notifyChannelTest, route.WithNotAuth()),
+	webservice.Post("/notifications/channels/:id/default", notifyChannelSetDefault, route.WithNotAuth()),
 	webservice.Get("/notifications/templates/list", notifyTemplatesTable, route.WithNotAuth()),
 	webservice.Get("/notifications/templates/new", notifyTemplateNewForm, route.WithNotAuth()),
 	webservice.Post("/notifications/templates", notifyTemplateCreate, route.WithNotAuth()),
 	webservice.Get("/notifications/templates/:id/edit", notifyTemplateEditForm, route.WithNotAuth()),
 	webservice.Put("/notifications/templates/:id", notifyTemplateUpdate, route.WithNotAuth()),
 	webservice.Delete("/notifications/templates/:id", notifyTemplateDelete, route.WithNotAuth()),
+	webservice.Post("/notifications/templates/:id/default", notifyTemplateSetDefault, route.WithNotAuth()),
 	webservice.Get("/notifications/rules/list", notifyRulesTable, route.WithNotAuth()),
 	webservice.Get("/notifications/rules/new", notifyRuleNewForm, route.WithNotAuth()),
 	webservice.Post("/notifications/rules", notifyRuleCreate, route.WithNotAuth()),
@@ -236,6 +238,26 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 	return ctx.SendString("")
 }
 
+func notifyChannelSetDefault(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	id, err := parseID(ctx)
+	if err != nil {
+		return err
+	}
+	if err := store.Database.SetDefaultNotifyChannel(ctx.Context(), id); err != nil {
+		return toastError(ctx, err.Error())
+	}
+	channels, err := store.Database.ListNotifyChannels(ctx.Context(), store.ListNotifyChannelOptions{})
+	if err != nil {
+		return storeError(ctx, err)
+	}
+	ctx.Type("html")
+	setShowToast(ctx, "success", "Default channel updated")
+	return partials.NotifyChannelsTable(channels).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
 // ---------------------------------------------------------------------------
 // Template handlers
 // ---------------------------------------------------------------------------
@@ -356,6 +378,33 @@ func notifyTemplateDelete(ctx fiber.Ctx) error {
 	}
 	reloadTemplateEngine(ctx.Context())
 	return ctx.SendString("")
+}
+
+func notifyTemplateSetDefault(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	id, err := parseID(ctx)
+	if err != nil {
+		return err
+	}
+	tmpl, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	if err != nil {
+		return notFound(ctx)
+	}
+	if !notifypkg.TemplateReferencesSummary(tmpl.DefaultTemplate, tmpl.OverridesJSON) {
+		return toastError(ctx, "default template must reference {{ .summary }}")
+	}
+	if err := store.Database.SetDefaultNotifyTemplate(ctx.Context(), id); err != nil {
+		return toastError(ctx, err.Error())
+	}
+	templates, err := store.Database.ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
+	if err != nil {
+		return storeError(ctx, err)
+	}
+	ctx.Type("html")
+	setShowToast(ctx, "success", "Default template updated")
+	return partials.NotifyTemplatesTable(templates).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // ---------------------------------------------------------------------------

@@ -31,6 +31,8 @@ type NotifyTemplate struct {
 	DefaultTemplate string `json:"default_template,omitempty"`
 	// Overrides holds the value of the "overrides" field.
 	Overrides []schema.NotifyTemplateOverride `json:"overrides,omitempty"`
+	// IsDefault holds the value of the "is_default" field.
+	IsDefault bool `json:"is_default,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -45,6 +47,8 @@ func (*NotifyTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case notifytemplate.FieldOverrides:
 			values[i] = new([]byte)
+		case notifytemplate.FieldIsDefault:
+			values[i] = new(sql.NullBool)
 		case notifytemplate.FieldID:
 			values[i] = new(sql.NullInt64)
 		case notifytemplate.FieldTemplateID, notifytemplate.FieldName, notifytemplate.FieldDescription, notifytemplate.FieldDefaultFormat, notifytemplate.FieldDefaultTemplate:
@@ -109,6 +113,12 @@ func (_m *NotifyTemplate) assignValues(columns []string, values []any) error {
 				if err := json.Unmarshal(*value, &_m.Overrides); err != nil {
 					return fmt.Errorf("unmarshal field overrides: %w", err)
 				}
+			}
+		case notifytemplate.FieldIsDefault:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_default", values[i])
+			} else if value.Valid {
+				_m.IsDefault = value.Bool
 			}
 		case notifytemplate.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -175,6 +185,9 @@ func (_m *NotifyTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("overrides=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Overrides))
+	builder.WriteString(", ")
+	builder.WriteString("is_default=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsDefault))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

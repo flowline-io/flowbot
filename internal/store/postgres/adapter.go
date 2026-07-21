@@ -2746,15 +2746,9 @@ func (a *adapter) GetNotifyChannel(ctx context.Context, id int64) (model.NotifyC
 		}
 		return model.NotifyChannel{}, fmt.Errorf("postgres: get notify channel: %w", err)
 	}
-	return model.NotifyChannel{
-		ID:        ch.ID,
-		Name:      ch.Name,
-		Protocol:  ch.Protocol,
-		URI:       a.MaskNotifyURI(ch.Protocol, ch.URI),
-		Enabled:   ch.Enabled,
-		CreatedAt: ch.CreatedAt,
-		UpdatedAt: ch.UpdatedAt,
-	}, nil
+	out := notifyChannelToModel(ch)
+	out.URI = a.MaskNotifyURI(ch.Protocol, ch.URI)
+	return out, nil
 }
 
 func (a *adapter) GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error) {
@@ -2765,15 +2759,7 @@ func (a *adapter) GetNotifyChannelRaw(ctx context.Context, id int64) (model.Noti
 		}
 		return model.NotifyChannel{}, fmt.Errorf("postgres: get notify channel raw: %w", err)
 	}
-	return model.NotifyChannel{
-		ID:        ch.ID,
-		Name:      ch.Name,
-		Protocol:  ch.Protocol,
-		URI:       ch.URI,
-		Enabled:   ch.Enabled,
-		CreatedAt: ch.CreatedAt,
-		UpdatedAt: ch.UpdatedAt,
-	}, nil
+	return notifyChannelToModel(ch), nil
 }
 
 func (a *adapter) GetNotifyChannelByNameRaw(ctx context.Context, name string) (model.NotifyChannel, error) {
@@ -2784,15 +2770,20 @@ func (a *adapter) GetNotifyChannelByNameRaw(ctx context.Context, name string) (m
 		}
 		return model.NotifyChannel{}, fmt.Errorf("postgres: get notify channel by name raw: %w", err)
 	}
-	return model.NotifyChannel{
-		ID:        ch.ID,
-		Name:      ch.Name,
-		Protocol:  ch.Protocol,
-		URI:       ch.URI,
-		Enabled:   ch.Enabled,
-		CreatedAt: ch.CreatedAt,
-		UpdatedAt: ch.UpdatedAt,
-	}, nil
+	return notifyChannelToModel(ch), nil
+}
+
+func (a *adapter) GetDefaultNotifyChannelRaw(ctx context.Context) (model.NotifyChannel, error) {
+	ch, err := a.client.NotifyChannel.Query().
+		Where(notifychannel.IsDefaultEQ(true), notifychannel.EnabledEQ(true)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyChannel{}, types.ErrNotFound
+		}
+		return model.NotifyChannel{}, fmt.Errorf("postgres: get default notify channel: %w", err)
+	}
+	return notifyChannelToModel(ch), nil
 }
 
 func (a *adapter) ListNotifyChannels(ctx context.Context, opts store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
@@ -2809,15 +2800,9 @@ func (a *adapter) ListNotifyChannels(ctx context.Context, opts store.ListNotifyC
 	}
 	result := make([]model.NotifyChannel, len(chs))
 	for i, ch := range chs {
-		result[i] = model.NotifyChannel{
-			ID:        ch.ID,
-			Name:      ch.Name,
-			Protocol:  ch.Protocol,
-			URI:       a.MaskNotifyURI(ch.Protocol, ch.URI),
-			Enabled:   ch.Enabled,
-			CreatedAt: ch.CreatedAt,
-			UpdatedAt: ch.UpdatedAt,
-		}
+		out := notifyChannelToModel(ch)
+		out.URI = a.MaskNotifyURI(ch.Protocol, ch.URI)
+		result[i] = out
 	}
 	return result, nil
 }
@@ -2831,6 +2816,9 @@ func (a *adapter) UpdateNotifyChannel(ctx context.Context, id int64, name, proto
 	if uri != "" {
 		upd = upd.SetURI(uri)
 	}
+	if !enabled {
+		upd = upd.SetIsDefault(false)
+	}
 	n, err := upd.Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: update notify channel: %w", err)
@@ -2841,12 +2829,61 @@ func (a *adapter) UpdateNotifyChannel(ctx context.Context, id int64, name, proto
 	return nil
 }
 
+func (a *adapter) SetDefaultNotifyChannel(ctx context.Context, id int64) error {
+	tx, err := a.client.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("postgres: set default notify channel begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	ch, err := tx.NotifyChannel.Query().Where(notifychannel.IDEQ(id)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return types.ErrNotFound
+		}
+		return fmt.Errorf("postgres: set default notify channel get: %w", err)
+	}
+	if !ch.Enabled {
+		return types.Errorf(types.ErrInvalidArgument, "default notify channel must be enabled")
+	}
+	if _, err := tx.NotifyChannel.Update().Where(notifychannel.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
+		return fmt.Errorf("postgres: clear default notify channels: %w", err)
+	}
+	n, err := tx.NotifyChannel.Update().Where(notifychannel.IDEQ(id)).
+		SetIsDefault(true).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: set default notify channel: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("postgres: set default notify channel commit: %w", err)
+	}
+	return nil
+}
+
 func (a *adapter) DeleteNotifyChannel(ctx context.Context, id int64) error {
 	_, err := a.client.NotifyChannel.Delete().Where(notifychannel.IDEQ(id)).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: delete notify channel: %w", err)
 	}
 	return nil
+}
+
+func notifyChannelToModel(ch *gen.NotifyChannel) model.NotifyChannel {
+	return model.NotifyChannel{
+		ID:        ch.ID,
+		Name:      ch.Name,
+		Protocol:  ch.Protocol,
+		URI:       ch.URI,
+		Enabled:   ch.Enabled,
+		IsDefault: ch.IsDefault,
+		CreatedAt: ch.CreatedAt,
+		UpdatedAt: ch.UpdatedAt,
+	}
 }
 
 // MaskNotifyURI produces a display-safe masked form of a notification URI.
@@ -3096,6 +3133,28 @@ func (a *adapter) GetNotifyTemplate(ctx context.Context, id int64) (model.Notify
 	return notifyTemplateToModel(row), nil
 }
 
+func (a *adapter) GetNotifyTemplateByTemplateID(ctx context.Context, templateID string) (model.NotifyTemplate, error) {
+	row, err := a.client.NotifyTemplate.Query().Where(notifytemplate.TemplateIDEQ(templateID)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyTemplate{}, types.ErrNotFound
+		}
+		return model.NotifyTemplate{}, fmt.Errorf("postgres: get notify template by template_id: %w", err)
+	}
+	return notifyTemplateToModel(row), nil
+}
+
+func (a *adapter) GetDefaultNotifyTemplate(ctx context.Context) (model.NotifyTemplate, error) {
+	row, err := a.client.NotifyTemplate.Query().Where(notifytemplate.IsDefaultEQ(true)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return model.NotifyTemplate{}, types.ErrNotFound
+		}
+		return model.NotifyTemplate{}, fmt.Errorf("postgres: get default notify template: %w", err)
+	}
+	return notifyTemplateToModel(row), nil
+}
+
 func (a *adapter) ListNotifyTemplates(ctx context.Context, _ store.ListNotifyTemplateOptions) ([]model.NotifyTemplate, error) {
 	rows, err := a.client.NotifyTemplate.Query().Order(gen.Asc(notifytemplate.FieldTemplateID)).All(ctx)
 	if err != nil {
@@ -3127,6 +3186,38 @@ func (a *adapter) UpdateNotifyTemplate(ctx context.Context, id int64, tmpl model
 	}
 	if n == 0 {
 		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) SetDefaultNotifyTemplate(ctx context.Context, id int64) error {
+	tx, err := a.client.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("postgres: set default notify template begin: %w", err)
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	if _, err := tx.NotifyTemplate.Query().Where(notifytemplate.IDEQ(id)).Only(ctx); err != nil {
+		if gen.IsNotFound(err) {
+			return types.ErrNotFound
+		}
+		return fmt.Errorf("postgres: set default notify template get: %w", err)
+	}
+	if _, err := tx.NotifyTemplate.Update().Where(notifytemplate.IsDefaultEQ(true)).SetIsDefault(false).Save(ctx); err != nil {
+		return fmt.Errorf("postgres: clear default notify templates: %w", err)
+	}
+	n, err := tx.NotifyTemplate.Update().Where(notifytemplate.IDEQ(id)).
+		SetIsDefault(true).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: set default notify template: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("postgres: set default notify template commit: %w", err)
 	}
 	return nil
 }
@@ -3168,6 +3259,7 @@ func notifyTemplateToModel(row *gen.NotifyTemplate) model.NotifyTemplate {
 		DefaultFormat:   row.DefaultFormat,
 		DefaultTemplate: row.DefaultTemplate,
 		OverridesJSON:   overridesJSON,
+		IsDefault:       row.IsDefault,
 		CreatedAt:       row.CreatedAt,
 		UpdatedAt:       row.UpdatedAt,
 	}

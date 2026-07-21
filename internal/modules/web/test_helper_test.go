@@ -200,10 +200,45 @@ func (s *testStore) UpdateNotifyChannel(_ context.Context, id int64, name, proto
 	ch.Name = name
 	ch.Protocol = protocol
 	ch.Enabled = enabled
+	if !enabled {
+		ch.IsDefault = false
+	}
 	if uri != "" {
 		ch.URI = uri
 	}
 	s.notifyChannels[id] = ch
+	return nil
+}
+
+// GetDefaultNotifyChannelRaw returns the default enabled channel.
+func (s *testStore) GetDefaultNotifyChannelRaw(_ context.Context) (model.NotifyChannel, error) {
+	if s.notifyChannelErr != nil {
+		return model.NotifyChannel{}, s.notifyChannelErr
+	}
+	for _, ch := range s.notifyChannels {
+		if ch.IsDefault && ch.Enabled {
+			return ch, nil
+		}
+	}
+	return model.NotifyChannel{}, types.ErrNotFound
+}
+
+// SetDefaultNotifyChannel marks one channel as the sole default.
+func (s *testStore) SetDefaultNotifyChannel(_ context.Context, id int64) error {
+	if s.notifyChannels == nil {
+		return types.ErrNotFound
+	}
+	ch, ok := s.notifyChannels[id]
+	if !ok {
+		return types.ErrNotFound
+	}
+	if !ch.Enabled {
+		return types.Errorf(types.ErrInvalidArgument, "default notify channel must be enabled")
+	}
+	for k, existing := range s.notifyChannels {
+		existing.IsDefault = k == id
+		s.notifyChannels[k] = existing
+	}
 	return nil
 }
 
@@ -320,6 +355,41 @@ func (s *testStore) GetNotifyTemplate(_ context.Context, id int64) (model.Notify
 		return model.NotifyTemplate{}, types.ErrNotFound
 	}
 	return tmpl, nil
+}
+
+// GetNotifyTemplateByTemplateID returns a template by its template_id string.
+func (s *testStore) GetNotifyTemplateByTemplateID(_ context.Context, templateID string) (model.NotifyTemplate, error) {
+	for _, tmpl := range s.notifyTemplates {
+		if tmpl.TemplateID == templateID {
+			return tmpl, nil
+		}
+	}
+	return model.NotifyTemplate{}, types.ErrNotFound
+}
+
+// GetDefaultNotifyTemplate returns the global default template.
+func (s *testStore) GetDefaultNotifyTemplate(_ context.Context) (model.NotifyTemplate, error) {
+	for _, tmpl := range s.notifyTemplates {
+		if tmpl.IsDefault {
+			return tmpl, nil
+		}
+	}
+	return model.NotifyTemplate{}, types.ErrNotFound
+}
+
+// SetDefaultNotifyTemplate marks one template as the sole default.
+func (s *testStore) SetDefaultNotifyTemplate(_ context.Context, id int64) error {
+	if s.notifyTemplates == nil {
+		return types.ErrNotFound
+	}
+	if _, ok := s.notifyTemplates[id]; !ok {
+		return types.ErrNotFound
+	}
+	for k, existing := range s.notifyTemplates {
+		existing.IsDefault = k == id
+		s.notifyTemplates[k] = existing
+	}
+	return nil
 }
 
 // ListNotifyTemplates returns seeded notification templates for tests.

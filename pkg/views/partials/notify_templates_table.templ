@@ -14,6 +14,7 @@ templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 					<th class="text-xs font-medium text-base-content/55">Name</th>
 					<th class="text-xs font-medium text-base-content/55">Format</th>
 					<th class="text-xs font-medium text-base-content/55">Overrides</th>
+					<th class="text-xs font-medium text-base-content/55 text-center">Default</th>
 					<th class="text-xs font-medium text-base-content/55">Actions</th>
 				</tr>
 				</thead>
@@ -23,7 +24,7 @@ templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 				}
 				if len(templates) == 0 {
 					<tr id="notify-templates-empty" data-testid="notify-templates-empty">
-						<td colspan="5" class="text-center text-base-content/50">No notification templates configured.</td>
+						<td colspan="6" class="text-center text-base-content/50">No notification templates configured.</td>
 					</tr>
 				}
 				</tbody>

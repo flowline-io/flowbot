@@ -32,6 +32,7 @@ func (NotifyTemplate) Fields() []ent.Field {
 		field.String("default_format").Default("markdown").NotEmpty(),
 		field.Text("default_template").NotEmpty(),
 		field.JSON("overrides", []NotifyTemplateOverride{}).Default([]NotifyTemplateOverride{}),
+		field.Bool("is_default").Default(false),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -41,6 +42,7 @@ func (NotifyTemplate) Fields() []ent.Field {
 func (NotifyTemplate) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("template_id"),
+		index.Fields("is_default"),
 	}
 }
 

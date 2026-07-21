@@ -26,6 +26,7 @@ func TestIsReadOnlyTool(t *testing.T) {
 		{name: "list_scheduled_tasks allowed", tool: "list_scheduled_tasks", want: true},
 		{name: "get_clip allowed", tool: "get_clip", want: true},
 		{name: "create_clip blocked", tool: "create_clip", want: false},
+		{name: "send_notification blocked", tool: "send_notification", want: false},
 		{name: "update_memory not unconditionally read-only", tool: "update_memory", want: false},
 		{name: "task blocked in plan mode", tool: "task", want: false},
 		{name: "write_file blocked", tool: "write_file", want: false},

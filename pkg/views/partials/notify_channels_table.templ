@@ -14,6 +14,7 @@ templ NotifyChannelsTable(channels []model.NotifyChannel) {
 					<th class="text-xs font-medium text-base-content/55">Protocol</th>
 					<th class="text-xs font-medium text-base-content/55">URI</th>
 					<th class="text-xs font-medium text-base-content/55 text-center">Status</th>
+					<th class="text-xs font-medium text-base-content/55 text-center">Default</th>
 					<th class="text-xs font-medium text-base-content/55">Actions</th>
 				</tr>
 				</thead>
@@ -23,7 +24,7 @@ templ NotifyChannelsTable(channels []model.NotifyChannel) {
 				}
 				if len(channels) == 0 {
 					<tr id="notify-channels-empty">
-						<td colspan="5" class="text-center text-base-content/50">No notification channels configured.</td>
+						<td colspan="6" class="text-center text-base-content/50">No notification channels configured.</td>
 					</tr>
 				}
 				</tbody>

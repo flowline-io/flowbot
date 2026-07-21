@@ -11,6 +11,7 @@ type NotifyChannel struct {
 	Protocol  string    `json:"protocol"`
 	URI       string    `json:"uri"` // masked for display
 	Enabled   bool      `json:"enabled"`
+	IsDefault bool      `json:"is_default"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

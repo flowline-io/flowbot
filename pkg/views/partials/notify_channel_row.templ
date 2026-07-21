@@ -16,6 +16,19 @@ templ NotifyChannelRow(item model.NotifyChannel) {
 		<td class="text-center">
 			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
+		<td class="text-center">
+			if item.IsDefault {
+				<span class="flowbot-chip flowbot-chip-primary" data-testid="channel-default-badge">Default</span>
+			} else if item.Enabled {
+				<button hx-post={ notifyChannelDefaultURL(item) }
+					hx-target="#notify-channels-table"
+					hx-swap="outerHTML"
+					data-testid="channel-set-default"
+					class="btn btn-ghost btn-xs text-primary">
+					Set default
+				</button>
+			}
+		</td>
 		<td>
 			<div class="flex gap-1">
 				<button hx-get={ notifyChannelEditURL(item) }

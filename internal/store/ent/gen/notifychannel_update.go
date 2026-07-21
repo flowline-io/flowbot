@@ -84,6 +84,20 @@ func (_u *NotifyChannelUpdate) SetNillableEnabled(v *bool) *NotifyChannelUpdate 
 	return _u
 }
 
+// SetIsDefault sets the "is_default" field.
+func (_u *NotifyChannelUpdate) SetIsDefault(v bool) *NotifyChannelUpdate {
+	_u.mutation.SetIsDefault(v)
+	return _u
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_u *NotifyChannelUpdate) SetNillableIsDefault(v *bool) *NotifyChannelUpdate {
+	if v != nil {
+		_u.SetIsDefault(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *NotifyChannelUpdate) SetUpdatedAt(v time.Time) *NotifyChannelUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -175,6 +189,9 @@ func (_u *NotifyChannelUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(notifychannel.FieldEnabled, field.TypeBool, value)
 	}
+	if value, ok := _u.mutation.IsDefault(); ok {
+		_spec.SetField(notifychannel.FieldIsDefault, field.TypeBool, value)
+	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(notifychannel.FieldUpdatedAt, field.TypeTime, value)
 	}
@@ -250,6 +267,20 @@ func (_u *NotifyChannelUpdateOne) SetEnabled(v bool) *NotifyChannelUpdateOne {
 func (_u *NotifyChannelUpdateOne) SetNillableEnabled(v *bool) *NotifyChannelUpdateOne {
 	if v != nil {
 		_u.SetEnabled(*v)
+	}
+	return _u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (_u *NotifyChannelUpdateOne) SetIsDefault(v bool) *NotifyChannelUpdateOne {
+	_u.mutation.SetIsDefault(v)
+	return _u
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_u *NotifyChannelUpdateOne) SetNillableIsDefault(v *bool) *NotifyChannelUpdateOne {
+	if v != nil {
+		_u.SetIsDefault(*v)
 	}
 	return _u
 }
@@ -374,6 +405,9 @@ func (_u *NotifyChannelUpdateOne) sqlSave(ctx context.Context) (_node *NotifyCha
 	}
 	if value, ok := _u.mutation.Enabled(); ok {
 		_spec.SetField(notifychannel.FieldEnabled, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.IsDefault(); ok {
+		_spec.SetField(notifychannel.FieldIsDefault, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(notifychannel.FieldUpdatedAt, field.TypeTime, value)

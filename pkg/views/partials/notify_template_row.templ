@@ -13,6 +13,19 @@ templ NotifyTemplateRow(item model.NotifyTemplate) {
 		<td class="text-base-content font-medium">{ item.Name }</td>
 		<td><span class="flowbot-chip flowbot-chip-muted">{ item.DefaultFormat }</span></td>
 		<td class="text-base-content/70">{ fmt.Sprintf("%d", notifyTemplateOverrideCount(item)) }</td>
+		<td class="text-center">
+			if item.IsDefault {
+				<span class="flowbot-chip flowbot-chip-primary" data-testid="template-default-badge">Default</span>
+			} else {
+				<button hx-post={ notifyTemplateDefaultURL(item) }
+					hx-target="#notify-templates-table"
+					hx-swap="outerHTML"
+					data-testid="template-set-default"
+					class="btn btn-ghost btn-xs text-primary">
+					Set default
+				</button>
+			}
+		</td>
 		<td>
 			<div class="flex gap-1">
 				<button hx-get={ notifyTemplateEditURL(item) }

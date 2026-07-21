@@ -23613,6 +23613,7 @@ type NotifyChannelMutation struct {
 	protocol      *string
 	uri           *string
 	enabled       *bool
+	is_default    *bool
 	created_at    *time.Time
 	updated_at    *time.Time
 	clearedFields map[string]struct{}
@@ -23869,6 +23870,42 @@ func (m *NotifyChannelMutation) ResetEnabled() {
 	m.enabled = nil
 }
 
+// SetIsDefault sets the "is_default" field.
+func (m *NotifyChannelMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *NotifyChannelMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the NotifyChannel entity.
+// If the NotifyChannel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyChannelMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *NotifyChannelMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *NotifyChannelMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -23975,7 +24012,7 @@ func (m *NotifyChannelMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotifyChannelMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.name != nil {
 		fields = append(fields, notifychannel.FieldName)
 	}
@@ -23987,6 +24024,9 @@ func (m *NotifyChannelMutation) Fields() []string {
 	}
 	if m.enabled != nil {
 		fields = append(fields, notifychannel.FieldEnabled)
+	}
+	if m.is_default != nil {
+		fields = append(fields, notifychannel.FieldIsDefault)
 	}
 	if m.created_at != nil {
 		fields = append(fields, notifychannel.FieldCreatedAt)
@@ -24010,6 +24050,8 @@ func (m *NotifyChannelMutation) Field(name string) (ent.Value, bool) {
 		return m.URI()
 	case notifychannel.FieldEnabled:
 		return m.Enabled()
+	case notifychannel.FieldIsDefault:
+		return m.IsDefault()
 	case notifychannel.FieldCreatedAt:
 		return m.CreatedAt()
 	case notifychannel.FieldUpdatedAt:
@@ -24031,6 +24073,8 @@ func (m *NotifyChannelMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldURI(ctx)
 	case notifychannel.FieldEnabled:
 		return m.OldEnabled(ctx)
+	case notifychannel.FieldIsDefault:
+		return m.OldIsDefault(ctx)
 	case notifychannel.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case notifychannel.FieldUpdatedAt:
@@ -24071,6 +24115,13 @@ func (m *NotifyChannelMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEnabled(v)
+		return nil
+	case notifychannel.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
 		return nil
 	case notifychannel.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -24146,6 +24197,9 @@ func (m *NotifyChannelMutation) ResetField(name string) error {
 		return nil
 	case notifychannel.FieldEnabled:
 		m.ResetEnabled()
+		return nil
+	case notifychannel.FieldIsDefault:
+		m.ResetIsDefault()
 		return nil
 	case notifychannel.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -25148,6 +25202,7 @@ type NotifyTemplateMutation struct {
 	default_template *string
 	overrides        *[]schema.NotifyTemplateOverride
 	appendoverrides  []schema.NotifyTemplateOverride
+	is_default       *bool
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
@@ -25504,6 +25559,42 @@ func (m *NotifyTemplateMutation) ResetOverrides() {
 	m.appendoverrides = nil
 }
 
+// SetIsDefault sets the "is_default" field.
+func (m *NotifyTemplateMutation) SetIsDefault(b bool) {
+	m.is_default = &b
+}
+
+// IsDefault returns the value of the "is_default" field in the mutation.
+func (m *NotifyTemplateMutation) IsDefault() (r bool, exists bool) {
+	v := m.is_default
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsDefault returns the old "is_default" field's value of the NotifyTemplate entity.
+// If the NotifyTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotifyTemplateMutation) OldIsDefault(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsDefault is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsDefault requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsDefault: %w", err)
+	}
+	return oldValue.IsDefault, nil
+}
+
+// ResetIsDefault resets all changes to the "is_default" field.
+func (m *NotifyTemplateMutation) ResetIsDefault() {
+	m.is_default = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *NotifyTemplateMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -25610,7 +25701,7 @@ func (m *NotifyTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotifyTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.template_id != nil {
 		fields = append(fields, notifytemplate.FieldTemplateID)
 	}
@@ -25628,6 +25719,9 @@ func (m *NotifyTemplateMutation) Fields() []string {
 	}
 	if m.overrides != nil {
 		fields = append(fields, notifytemplate.FieldOverrides)
+	}
+	if m.is_default != nil {
+		fields = append(fields, notifytemplate.FieldIsDefault)
 	}
 	if m.created_at != nil {
 		fields = append(fields, notifytemplate.FieldCreatedAt)
@@ -25655,6 +25749,8 @@ func (m *NotifyTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.DefaultTemplate()
 	case notifytemplate.FieldOverrides:
 		return m.Overrides()
+	case notifytemplate.FieldIsDefault:
+		return m.IsDefault()
 	case notifytemplate.FieldCreatedAt:
 		return m.CreatedAt()
 	case notifytemplate.FieldUpdatedAt:
@@ -25680,6 +25776,8 @@ func (m *NotifyTemplateMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldDefaultTemplate(ctx)
 	case notifytemplate.FieldOverrides:
 		return m.OldOverrides(ctx)
+	case notifytemplate.FieldIsDefault:
+		return m.OldIsDefault(ctx)
 	case notifytemplate.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case notifytemplate.FieldUpdatedAt:
@@ -25734,6 +25832,13 @@ func (m *NotifyTemplateMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOverrides(v)
+		return nil
+	case notifytemplate.FieldIsDefault:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsDefault(v)
 		return nil
 	case notifytemplate.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -25824,6 +25929,9 @@ func (m *NotifyTemplateMutation) ResetField(name string) error {
 		return nil
 	case notifytemplate.FieldOverrides:
 		m.ResetOverrides()
+		return nil
+	case notifytemplate.FieldIsDefault:
+		m.ResetIsDefault()
 		return nil
 	case notifytemplate.FieldCreatedAt:
 		m.ResetCreatedAt()

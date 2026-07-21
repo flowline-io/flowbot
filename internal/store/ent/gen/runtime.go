@@ -1047,12 +1047,16 @@ func init() {
 	notifychannelDescEnabled := notifychannelFields[4].Descriptor()
 	// notifychannel.DefaultEnabled holds the default value on creation for the enabled field.
 	notifychannel.DefaultEnabled = notifychannelDescEnabled.Default.(bool)
+	// notifychannelDescIsDefault is the schema descriptor for is_default field.
+	notifychannelDescIsDefault := notifychannelFields[5].Descriptor()
+	// notifychannel.DefaultIsDefault holds the default value on creation for the is_default field.
+	notifychannel.DefaultIsDefault = notifychannelDescIsDefault.Default.(bool)
 	// notifychannelDescCreatedAt is the schema descriptor for created_at field.
-	notifychannelDescCreatedAt := notifychannelFields[5].Descriptor()
+	notifychannelDescCreatedAt := notifychannelFields[6].Descriptor()
 	// notifychannel.DefaultCreatedAt holds the default value on creation for the created_at field.
 	notifychannel.DefaultCreatedAt = notifychannelDescCreatedAt.Default.(func() time.Time)
 	// notifychannelDescUpdatedAt is the schema descriptor for updated_at field.
-	notifychannelDescUpdatedAt := notifychannelFields[6].Descriptor()
+	notifychannelDescUpdatedAt := notifychannelFields[7].Descriptor()
 	// notifychannel.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	notifychannel.DefaultUpdatedAt = notifychannelDescUpdatedAt.Default.(func() time.Time)
 	// notifychannel.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -1125,12 +1129,16 @@ func init() {
 	notifytemplateDescOverrides := notifytemplateFields[6].Descriptor()
 	// notifytemplate.DefaultOverrides holds the default value on creation for the overrides field.
 	notifytemplate.DefaultOverrides = notifytemplateDescOverrides.Default.([]schema.NotifyTemplateOverride)
+	// notifytemplateDescIsDefault is the schema descriptor for is_default field.
+	notifytemplateDescIsDefault := notifytemplateFields[7].Descriptor()
+	// notifytemplate.DefaultIsDefault holds the default value on creation for the is_default field.
+	notifytemplate.DefaultIsDefault = notifytemplateDescIsDefault.Default.(bool)
 	// notifytemplateDescCreatedAt is the schema descriptor for created_at field.
-	notifytemplateDescCreatedAt := notifytemplateFields[7].Descriptor()
+	notifytemplateDescCreatedAt := notifytemplateFields[8].Descriptor()
 	// notifytemplate.DefaultCreatedAt holds the default value on creation for the created_at field.
 	notifytemplate.DefaultCreatedAt = notifytemplateDescCreatedAt.Default.(func() time.Time)
 	// notifytemplateDescUpdatedAt is the schema descriptor for updated_at field.
-	notifytemplateDescUpdatedAt := notifytemplateFields[8].Descriptor()
+	notifytemplateDescUpdatedAt := notifytemplateFields[9].Descriptor()
 	// notifytemplate.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	notifytemplate.DefaultUpdatedAt = notifytemplateDescUpdatedAt.Default.(func() time.Time)
 	// notifytemplate.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

@@ -42,6 +42,16 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 			if err := notifytmpl.Init(templates); err != nil {
 				return err
 			}
+			if err := notify.SeedAgentNotifyTemplate(ctx); err != nil {
+				flog.Warn("failed to seed agent.notify template: %v", err)
+			} else {
+				// Reload so the seeded template is available without restart.
+				if reloaded, loadErr := loadNotifyTemplatesFromDB(ctx); loadErr == nil {
+					if initErr := notifytmpl.Init(reloaded); initErr != nil {
+						flog.Warn("failed to reload notify templates after seed: %v", initErr)
+					}
+				}
+			}
 
 			enabled := true
 			dbRules, err := storeDB.Database.ListNotifyRules(ctx, storeDB.ListNotifyRuleOptions{Enabled: &enabled})

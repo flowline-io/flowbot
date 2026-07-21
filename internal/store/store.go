@@ -428,8 +428,12 @@ type Adapter interface {
 	GetNotifyChannelRaw(ctx context.Context, id int64) (model.NotifyChannel, error) // returns raw URI (internal use only)
 	// GetNotifyChannelByNameRaw returns a channel by unique name with raw URI (internal send path).
 	GetNotifyChannelByNameRaw(ctx context.Context, name string) (model.NotifyChannel, error)
+	// GetDefaultNotifyChannelRaw returns the global default enabled channel with raw URI.
+	GetDefaultNotifyChannelRaw(ctx context.Context) (model.NotifyChannel, error)
 	ListNotifyChannels(ctx context.Context, opts ListNotifyChannelOptions) ([]model.NotifyChannel, error)
 	UpdateNotifyChannel(ctx context.Context, id int64, name, protocol, uri string, enabled bool) error
+	// SetDefaultNotifyChannel marks id as the sole global default channel.
+	SetDefaultNotifyChannel(ctx context.Context, id int64) error
 	DeleteNotifyChannel(ctx context.Context, id int64) error
 
 	// NotifyRule CRUD
@@ -442,8 +446,14 @@ type Adapter interface {
 	// NotifyTemplate CRUD
 	CreateNotifyTemplate(ctx context.Context, tmpl model.NotifyTemplate) (int64, error)
 	GetNotifyTemplate(ctx context.Context, id int64) (model.NotifyTemplate, error)
+	// GetNotifyTemplateByTemplateID returns a template by its stable template_id string.
+	GetNotifyTemplateByTemplateID(ctx context.Context, templateID string) (model.NotifyTemplate, error)
+	// GetDefaultNotifyTemplate returns the global default notification template.
+	GetDefaultNotifyTemplate(ctx context.Context) (model.NotifyTemplate, error)
 	ListNotifyTemplates(ctx context.Context, opts ListNotifyTemplateOptions) ([]model.NotifyTemplate, error)
 	UpdateNotifyTemplate(ctx context.Context, id int64, tmpl model.NotifyTemplate) error
+	// SetDefaultNotifyTemplate marks id as the sole global default template.
+	SetDefaultNotifyTemplate(ctx context.Context, id int64) error
 	DeleteNotifyTemplate(ctx context.Context, id int64) error
 
 	// Notify URI masking

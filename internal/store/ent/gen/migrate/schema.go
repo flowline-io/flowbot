@@ -834,6 +834,7 @@ var (
 		{Name: "protocol", Type: field.TypeString},
 		{Name: "uri", Type: field.TypeString},
 		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -852,6 +853,11 @@ var (
 				Name:    "notifychannel_enabled",
 				Unique:  false,
 				Columns: []*schema.Column{NotifyChannelsColumns[4]},
+			},
+			{
+				Name:    "notifychannel_is_default",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyChannelsColumns[5]},
 			},
 		},
 	}
@@ -897,6 +903,7 @@ var (
 		{Name: "default_format", Type: field.TypeString, Default: "markdown"},
 		{Name: "default_template", Type: field.TypeString, Size: 2147483647},
 		{Name: "overrides", Type: field.TypeJSON},
+		{Name: "is_default", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -910,6 +917,11 @@ var (
 				Name:    "notifytemplate_template_id",
 				Unique:  false,
 				Columns: []*schema.Column{NotifyTemplatesColumns[1]},
+			},
+			{
+				Name:    "notifytemplate_is_default",
+				Unique:  false,
+				Columns: []*schema.Column{NotifyTemplatesColumns[7]},
 			},
 		},
 	}

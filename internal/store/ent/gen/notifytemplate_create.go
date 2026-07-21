@@ -75,6 +75,20 @@ func (_c *NotifyTemplateCreate) SetOverrides(v []schema.NotifyTemplateOverride) 
 	return _c
 }
 
+// SetIsDefault sets the "is_default" field.
+func (_c *NotifyTemplateCreate) SetIsDefault(v bool) *NotifyTemplateCreate {
+	_c.mutation.SetIsDefault(v)
+	return _c
+}
+
+// SetNillableIsDefault sets the "is_default" field if the given value is not nil.
+func (_c *NotifyTemplateCreate) SetNillableIsDefault(v *bool) *NotifyTemplateCreate {
+	if v != nil {
+		_c.SetIsDefault(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *NotifyTemplateCreate) SetCreatedAt(v time.Time) *NotifyTemplateCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -156,6 +170,10 @@ func (_c *NotifyTemplateCreate) defaults() {
 		v := notifytemplate.DefaultOverrides
 		_c.mutation.SetOverrides(v)
 	}
+	if _, ok := _c.mutation.IsDefault(); !ok {
+		v := notifytemplate.DefaultIsDefault
+		_c.mutation.SetIsDefault(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := notifytemplate.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -202,6 +220,9 @@ func (_c *NotifyTemplateCreate) check() error {
 	}
 	if _, ok := _c.mutation.Overrides(); !ok {
 		return &ValidationError{Name: "overrides", err: errors.New(`gen: missing required field "NotifyTemplate.overrides"`)}
+	}
+	if _, ok := _c.mutation.IsDefault(); !ok {
+		return &ValidationError{Name: "is_default", err: errors.New(`gen: missing required field "NotifyTemplate.is_default"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "NotifyTemplate.created_at"`)}
@@ -265,6 +286,10 @@ func (_c *NotifyTemplateCreate) createSpec() (*NotifyTemplate, *sqlgraph.CreateS
 	if value, ok := _c.mutation.Overrides(); ok {
 		_spec.SetField(notifytemplate.FieldOverrides, field.TypeJSON, value)
 		_node.Overrides = value
+	}
+	if value, ok := _c.mutation.IsDefault(); ok {
+		_spec.SetField(notifytemplate.FieldIsDefault, field.TypeBool, value)
+		_node.IsDefault = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(notifytemplate.FieldCreatedAt, field.TypeTime, value)
@@ -401,6 +426,18 @@ func (u *NotifyTemplateUpsert) SetOverrides(v []schema.NotifyTemplateOverride) *
 // UpdateOverrides sets the "overrides" field to the value that was provided on create.
 func (u *NotifyTemplateUpsert) UpdateOverrides() *NotifyTemplateUpsert {
 	u.SetExcluded(notifytemplate.FieldOverrides)
+	return u
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *NotifyTemplateUpsert) SetIsDefault(v bool) *NotifyTemplateUpsert {
+	u.Set(notifytemplate.FieldIsDefault, v)
+	return u
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *NotifyTemplateUpsert) UpdateIsDefault() *NotifyTemplateUpsert {
+	u.SetExcluded(notifytemplate.FieldIsDefault)
 	return u
 }
 
@@ -555,6 +592,20 @@ func (u *NotifyTemplateUpsertOne) SetOverrides(v []schema.NotifyTemplateOverride
 func (u *NotifyTemplateUpsertOne) UpdateOverrides() *NotifyTemplateUpsertOne {
 	return u.Update(func(s *NotifyTemplateUpsert) {
 		s.UpdateOverrides()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *NotifyTemplateUpsertOne) SetIsDefault(v bool) *NotifyTemplateUpsertOne {
+	return u.Update(func(s *NotifyTemplateUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *NotifyTemplateUpsertOne) UpdateIsDefault() *NotifyTemplateUpsertOne {
+	return u.Update(func(s *NotifyTemplateUpsert) {
+		s.UpdateIsDefault()
 	})
 }
 
@@ -877,6 +928,20 @@ func (u *NotifyTemplateUpsertBulk) SetOverrides(v []schema.NotifyTemplateOverrid
 func (u *NotifyTemplateUpsertBulk) UpdateOverrides() *NotifyTemplateUpsertBulk {
 	return u.Update(func(s *NotifyTemplateUpsert) {
 		s.UpdateOverrides()
+	})
+}
+
+// SetIsDefault sets the "is_default" field.
+func (u *NotifyTemplateUpsertBulk) SetIsDefault(v bool) *NotifyTemplateUpsertBulk {
+	return u.Update(func(s *NotifyTemplateUpsert) {
+		s.SetIsDefault(v)
+	})
+}
+
+// UpdateIsDefault sets the "is_default" field to the value that was provided on create.
+func (u *NotifyTemplateUpsertBulk) UpdateIsDefault() *NotifyTemplateUpsertBulk {
+	return u.Update(func(s *NotifyTemplateUpsert) {
+		s.UpdateIsDefault()
 	})
 }
 
