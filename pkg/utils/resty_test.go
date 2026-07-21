@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -511,6 +512,142 @@ func TestRestyClientWithTrace(t *testing.T) {
 				assert.Equal(t, parent.SpanContext().SpanID(), clientSpan.Parent().SpanID())
 			} else {
 				assert.NotEqual(t, parent.SpanContext().SpanID().String(), clientSpan.Parent().SpanID().String())
+			}
+		})
+	}
+}
+
+func TestDetachHTTPRequestBody(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		setup      func() *http.Request
+		wantCopied bool
+		wantLen    int64
+	}{
+		{
+			name: "nil request is no-op",
+			setup: func() *http.Request {
+				return nil
+			},
+		},
+		{
+			name: "nil body is no-op",
+			setup: func() *http.Request {
+				return &http.Request{Header: make(http.Header)}
+			},
+		},
+		{
+			name: "NoBody is no-op",
+			setup: func() *http.Request {
+				return &http.Request{Body: http.NoBody, Header: make(http.Header)}
+			},
+		},
+		{
+			name: "streaming reader without GetBody is preserved",
+			setup: func() *http.Request {
+				return &http.Request{
+					Body:   io.NopCloser(strings.NewReader("stream")),
+					Header: make(http.Header),
+				}
+			},
+			wantCopied: false,
+		},
+		{
+			name: "bytes buffer with GetBody is copied",
+			setup: func() *http.Request {
+				req, err := http.NewRequest(http.MethodPost, "http://example.com", bytes.NewBufferString(`{"id":1}`))
+				require.NoError(t, err)
+				return req
+			},
+			wantCopied: true,
+			wantLen:    8,
+		},
+		{
+			name: "empty buffer becomes NoBody and is skipped",
+			setup: func() *http.Request {
+				req, err := http.NewRequest(http.MethodPost, "http://example.com", bytes.NewBuffer(nil))
+				require.NoError(t, err)
+				return req
+			},
+			wantCopied: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			req := tt.setup()
+			var beforeBody io.ReadCloser
+			if req != nil {
+				beforeBody = req.Body
+			}
+			detachHTTPRequestBody(req)
+			if req == nil {
+				return
+			}
+			if !tt.wantCopied {
+				assert.Equal(t, beforeBody, req.Body)
+				return
+			}
+			require.NotNil(t, req.Body)
+			assert.NotEqual(t, beforeBody, req.Body)
+			assert.Equal(t, tt.wantLen, req.ContentLength)
+			got, err := io.ReadAll(req.Body)
+			require.NoError(t, err)
+			assert.Len(t, got, int(tt.wantLen))
+			require.NotNil(t, req.GetBody)
+			rc, err := req.GetBody()
+			require.NoError(t, err)
+			again, err := io.ReadAll(rc)
+			require.NoError(t, err)
+			assert.Equal(t, got, again)
+		})
+	}
+}
+
+func TestDefaultRestyClientParallelJSONBodies(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		method string
+		body   any
+	}{
+		{name: "parallel post", method: http.MethodPost, body: map[string]any{"n": 1}},
+		{name: "parallel patch", method: http.MethodPatch, body: map[string]any{"n": 2}},
+		{name: "parallel delete with payload", method: http.MethodDelete, body: []map[string]any{{"Id": 3}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				_, _ = io.ReadAll(r.Body)
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write([]byte(`{}`))
+			}))
+			t.Cleanup(server.Close)
+
+			const workers = 32
+			errCh := make(chan error, workers)
+			for i := 0; i < workers; i++ {
+				go func() {
+					client := DefaultRestyClient()
+					client.SetBaseURL(server.URL)
+					client.SetMethodDeleteAllowPayload(true)
+					req := client.R().SetBody(tt.body)
+					var err error
+					switch tt.method {
+					case http.MethodPost:
+						_, err = req.Post("/")
+					case http.MethodPatch:
+						_, err = req.Patch("/")
+					case http.MethodDelete:
+						_, err = req.Delete("/")
+					}
+					errCh <- err
+				}()
+			}
+			for i := 0; i < workers; i++ {
+				require.NoError(t, <-errCh)
 			}
 		})
 	}

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"time"
@@ -35,11 +36,59 @@ func HTTPTransport() *http.Transport {
 	return httpTransport
 }
 
+// detachBodyTransport copies the request body before the underlying RoundTrip
+// so pooled buffers (e.g. resty bodyBuf) can be recycled without racing the
+// net/http transport writeLoop.
+type detachBodyTransport struct {
+	base http.RoundTripper
+}
+
+// RoundTrip implements http.RoundTripper.
+func (t *detachBodyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	detachHTTPRequestBody(req)
+	base := t.base
+	if base == nil {
+		base = http.DefaultTransport
+	}
+	return base.RoundTrip(req)
+}
+
+// detachHTTPRequestBody replaces req.Body with an owned copy of its bytes when
+// net/http attached GetBody (typically *bytes.Buffer / *bytes.Reader).
+// Resty v3 passes a pooled *bytes.Buffer as http.Request.Body and returns that
+// buffer to sync.Pool when Execute finishes; the transport writeLoop may still
+// read it, which races under parallel provider calls (-race CI).
+// Streaming bodies (plain io.Reader, GetBody unset) are left untouched.
+func detachHTTPRequestBody(req *http.Request) {
+	if req == nil || req.Body == nil || req.Body == http.NoBody {
+		return
+	}
+	if req.GetBody == nil {
+		return
+	}
+	data, err := io.ReadAll(req.Body)
+	_ = req.Body.Close()
+	if err != nil {
+		req.Body = io.NopCloser(bytes.NewReader(nil))
+		req.ContentLength = 0
+		req.GetBody = nil
+		return
+	}
+	owned := data
+	req.Body = io.NopCloser(bytes.NewReader(owned))
+	req.ContentLength = int64(len(owned))
+	req.GetBody = func() (io.ReadCloser, error) {
+		return io.NopCloser(bytes.NewReader(owned)), nil
+	}
+}
+
 func DefaultRestyClient() *resty.Client {
 	c := resty.New()
 	c.SetLoggerWarnLevel(true)
 	c.SetTimeout(time.Minute)
-	c.SetTransport(otelhttp.NewTransport(httpTransport))
+	// Copy bodies before otelhttp/net/http so resty's pooled bodyBuf cannot race
+	// with writeLoop when recycled under concurrent requests.
+	c.SetTransport(&detachBodyTransport{base: otelhttp.NewTransport(httpTransport)})
 	c.AddContentTypeEncoder("json", EncodeJSON)
 	c.AddContentTypeDecoder("json", DecodeJSON)
 
