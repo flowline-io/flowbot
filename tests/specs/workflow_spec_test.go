@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	workflowmod "github.com/flowline-io/flowbot/internal/modules/workflow"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 
@@ -19,6 +20,10 @@ import (
 var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 
 	Describe("Webservice — apply / list / run", func() {
+		BeforeEach(func() {
+			workflowmod.MountForE2E(App)
+		})
+
 		It("rejects apply without yaml", func() {
 			body, _ := sonic.Marshal(map[string]any{})
 			req := JSONRequest(http.MethodPost, "/service/workflow/apply", body)

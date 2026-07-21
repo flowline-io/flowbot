@@ -1,6 +1,8 @@
 package workflow
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/bytedance/sonic"
@@ -80,6 +82,35 @@ func TestWebserviceRegistersWithoutInit(t *testing.T) {
 			require.NotPanics(t, func() {
 				h.Webservice(app)
 			})
+		})
+	}
+}
+
+func TestMountForE2E(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		method string
+		path   string
+	}{
+		{name: "apply is reachable", method: http.MethodPost, path: "/service/workflow/apply"},
+		{name: "list is reachable", method: http.MethodGet, path: "/service/workflow/list"},
+		{name: "run is reachable", method: http.MethodPost, path: "/service/workflow/run"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := fiber.New()
+			require.NotPanics(t, func() {
+				MountForE2E(app)
+			})
+			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
+			if tt.method == http.MethodPost {
+				req.Header.Set("Content-Type", "application/json")
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.NotEqual(t, http.StatusNotFound, resp.StatusCode)
 		})
 	}
 }

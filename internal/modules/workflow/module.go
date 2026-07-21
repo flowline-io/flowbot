@@ -77,6 +77,16 @@ func (moduleHandler) Webservice(app *fiber.App) {
 	module.Webservice(app, Name, webserviceRules)
 }
 
+// InitForE2E initializes the workflow module handler for e2e testing.
+func InitForE2E(configData json.RawMessage) error {
+	return handler.Init(configData)
+}
+
+// MountForE2E mounts workflow module routes onto the given Fiber app.
+func MountForE2E(app *fiber.App) {
+	handler.Webservice(app)
+}
+
 // Rules returns module rule sets.
 func (moduleHandler) Rules() []any {
 	return []any{webserviceRules}
