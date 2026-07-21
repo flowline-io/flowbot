@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"slices"
 	"strings"
 	"time"
 	"unicode"
@@ -122,27 +123,71 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir string) error {
 		}
 	}
 
-	return syncReferenceFilesFromFS(ctx, fsys, name, path.Join(skillDir, "references"), now)
+	return syncSkillAuxFilesFromFS(ctx, fsys, name, skillDir, now)
 }
 
-func syncReferenceFilesFromFS(ctx context.Context, fsys fs.FS, skillFlag, refsDir string, now time.Time) error {
-	entries, err := fs.ReadDir(fsys, refsDir)
-	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
+// skillAuxFile is a bundled skill auxiliary file relative to the skill directory.
+type skillAuxFile struct {
+	RelPath string
+	Content string
+}
+
+// isBundledSkillAuxFile reports whether rel (skill-dir relative) should be imported.
+func isBundledSkillAuxFile(rel string) bool {
+	rel = path.Clean(strings.TrimPrefix(rel, "./"))
+	if rel == "SKILL.md" || rel == "." {
+		return false
+	}
+	switch path.Ext(rel) {
+	case ".md", ".yaml", ".yml":
+		return true
+	default:
+		return false
+	}
+}
+
+// collectSkillAuxFiles lists importable auxiliary files under skillDir (references, examples, …).
+func collectSkillAuxFiles(fsys fs.FS, skillDir string) ([]skillAuxFile, error) {
+	var out []skillAuxFile
+	err := fs.WalkDir(fsys, skillDir, func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
 			return nil
 		}
-		return err
-	}
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
-			continue
+		rel := strings.TrimPrefix(p, skillDir+"/")
+		if rel == p {
+			rel = strings.TrimPrefix(p, skillDir)
+			rel = strings.TrimPrefix(rel, "/")
 		}
-		relPath := path.Join("references", entry.Name())
-		content, err := fs.ReadFile(fsys, path.Join(refsDir, entry.Name()))
+		rel = path.Clean(rel)
+		if rel == "." || !isBundledSkillAuxFile(rel) {
+			return nil
+		}
+		content, err := fs.ReadFile(fsys, p)
 		if err != nil {
 			return err
 		}
-		if err := upsertSkillFile(ctx, skillFlag, relPath, string(content), now); err != nil {
+		out = append(out, skillAuxFile{RelPath: rel, Content: string(content)})
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	slices.SortFunc(out, func(a, b skillAuxFile) int {
+		return strings.Compare(a.RelPath, b.RelPath)
+	})
+	return out, nil
+}
+
+func syncSkillAuxFilesFromFS(ctx context.Context, fsys fs.FS, skillFlag, skillDir string, now time.Time) error {
+	files, err := collectSkillAuxFiles(fsys, skillDir)
+	if err != nil {
+		return err
+	}
+	for _, f := range files {
+		if err := upsertSkillFile(ctx, skillFlag, f.RelPath, f.Content, now); err != nil {
 			return err
 		}
 	}

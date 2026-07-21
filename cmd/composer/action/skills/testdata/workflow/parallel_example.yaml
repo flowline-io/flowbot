@@ -1,0 +1,52 @@
+name: parallel_example
+describe: "Fan-out with conn edges and max_concurrency"
+enabled: true
+max_concurrency: 3
+resumable: true
+
+inputs:
+  - name: url
+    type: string
+    required: true
+    description: "URL to archive and track"
+
+triggers:
+  - type: manual
+    enabled: true
+
+pipeline:
+  - fetch_data
+  - archive_url
+  - create_task
+  - merge
+
+tasks:
+  - id: fetch_data
+    describe: "Anchor step before fan-out"
+    action: capability:karakeep.list
+
+  - id: archive_url
+    describe: "Archive URL (parallel with create_task)"
+    action: capability:archive.add
+    params:
+      url: "{{input.url}}"
+    conn:
+      - fetch_data
+
+  - id: create_task
+    describe: "Create kanban task (parallel with archive_url)"
+    action: capability:kanboard.create_task
+    params:
+      title: "Follow up {{input.url}}"
+    conn:
+      - fetch_data
+
+  - id: merge
+    describe: "Join parallel branches"
+    action: "mapper:"
+    params:
+      archived: '{{step "archive_url" "result"}}'
+      task: '{{step "create_task" "result"}}'
+    conn:
+      - archive_url
+      - create_task

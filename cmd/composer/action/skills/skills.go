@@ -1,7 +1,8 @@
-// Package skills generates SKILL.md files for CLI-invokable capabilities.
+// Package skills generates SKILL.md files for CLI-invokable capabilities and
+// platform skills (for example workflow).
 // Operations and flags are extracted dynamically from cmd/cli/command code.
 // Output follows the Agent Skills open standard (agentskills.io): lean SKILL.md
-// with progressive disclosure into references/cli.md.
+// with progressive disclosure into references/cli.md (and steps.md for workflow).
 package skills
 
 import (
@@ -444,6 +445,11 @@ var metaSpecs = []metaSpec{
 	},
 }
 
+// platformSpecs lists non-capability (platform) skills generated alongside metaSpecs.
+var platformSpecs = []platformSpec{
+	platformWorkflowSpec(),
+}
+
 // extractOperations walks a *cobra.Command tree recursively and returns all
 // leaf-level operations with their full CLI path, flags, and metadata.
 func extractOperations(cmd *cobra.Command, pathPrefix string) []opSpec {
@@ -698,7 +704,7 @@ func generateSkill(meta metaSpec, outputDir string, skillTmpl, refTmpl *template
 }
 
 // executeTemplateFile creates path and executes tmpl with data.
-func executeTemplateFile(tmpl *template.Template, path string, data skillData) error {
+func executeTemplateFile[T any](tmpl *template.Template, path string, data T) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
@@ -711,7 +717,7 @@ func executeTemplateFile(tmpl *template.Template, path string, data skillData) e
 	return closeErr
 }
 
-// SkillsAction generates SKILL.md files for all CLI-invokable capabilities.
+// SkillsAction generates SKILL.md files for all CLI-invokable capabilities and platform skills.
 func SkillsAction(cmd *cobra.Command, _ []string) error {
 	outputDir, err := cmd.Flags().GetString("output")
 	if err != nil {
@@ -733,6 +739,12 @@ func SkillsAction(cmd *cobra.Command, _ []string) error {
 
 	for _, meta := range metaSpecs {
 		if err := generateSkill(meta, outputDir, skillTmpl, refTmpl); err != nil {
+			return err
+		}
+	}
+
+	for _, meta := range platformSpecs {
+		if err := generatePlatformSkill(meta, outputDir); err != nil {
 			return err
 		}
 	}

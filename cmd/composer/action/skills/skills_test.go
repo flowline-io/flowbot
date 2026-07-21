@@ -1,10 +1,13 @@
 package skills
 
 import (
+	"embed"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 	"text/template"
 
 	"github.com/spf13/cobra"
@@ -541,4 +544,331 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 			require.True(t, ok, "metaSpec name %q is not a hub.CapabilityType", m.Name)
 		}
 	})
+}
+
+func TestGeneratePlatformWorkflowSkill(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		skillContains    []string
+		skillOmit        []string
+		cliContains      []string
+		stepsContains    []string
+		stepsOmit        []string
+		exampleFiles     []string
+		maxSkillNewlines int
+	}{
+		{
+			name: "writes skill cli steps and examples",
+			skillContains: []string{
+				"name: workflow",
+				"platform: workflow",
+				"workflow:read",
+				"references/steps.md",
+				"### Write or edit a workflow YAML",
+				"examples/echo_mapper.yaml",
+				"examples/save_and_track.yaml",
+				"examples/parallel_example.yaml",
+			},
+			skillOmit: []string{
+				"### Web UI",
+				"/service/web/workflows",
+			},
+			cliContains: []string{
+				"flowbot workflow apply",
+				"flowbot workflow run",
+				"## Commands",
+			},
+			exampleFiles: []string{
+				"echo_mapper.yaml",
+				"save_and_track.yaml",
+				"parallel_example.yaml",
+			},
+		},
+		{
+			name: "skill stays lean with step quickref and template vars",
+			skillContains: []string{
+				"## Step types",
+				"## Templates",
+				"**Variables available in workflows:**",
+				"{{input \"url\"}}",
+				"{{step \"id\" \"result\"}}",
+				".Input.url",
+				"`capability:`",
+				"`mapper:`",
+			},
+			maxSkillNewlines: 190,
+		},
+		{
+			name: "steps cover action types variables and helpers",
+			stepsContains: []string{
+				"capability:",
+				"docker:",
+				"shell:",
+				"machine:",
+				"mapper:",
+				"free-form",
+				"text/template",
+				"### Available variables",
+				".Input",
+				".Steps",
+				".Event",
+				".Env",
+				"{{input \"name\"}}",
+				"{{input.name}}",
+				`{{step "task_id" "result"}}`,
+				"jsonpath",
+				"jsonpathExists",
+				"contains",
+				"`conn`",
+				"`retry`",
+				"examples/echo_mapper.yaml",
+				"examples/save_and_track.yaml",
+				"examples/parallel_example.yaml",
+			},
+			stepsOmit: []string{
+				"## Definition skeleton",
+				"Sugar rewrites",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			require.NoError(t, generatePlatformSkill(platformWorkflowSpec(), dir))
+
+			skillBody, err := os.ReadFile(filepath.Join(dir, "workflow", "SKILL.md"))
+			require.NoError(t, err)
+			skill := string(skillBody)
+
+			cliBody, err := os.ReadFile(filepath.Join(dir, "workflow", "references", "cli.md"))
+			require.NoError(t, err)
+			cli := string(cliBody)
+
+			stepsBody, err := os.ReadFile(filepath.Join(dir, "workflow", "references", "steps.md"))
+			require.NoError(t, err)
+			steps := string(stepsBody)
+
+			for _, needle := range tt.skillContains {
+				require.Contains(t, skill, needle)
+			}
+			for _, needle := range tt.skillOmit {
+				require.NotContains(t, skill, needle)
+			}
+			for _, needle := range tt.cliContains {
+				require.Contains(t, cli, needle)
+			}
+			for _, needle := range tt.stepsContains {
+				require.Contains(t, steps, needle)
+			}
+			for _, needle := range tt.stepsOmit {
+				require.NotContains(t, steps, needle)
+			}
+			for _, example := range tt.exampleFiles {
+				_, err := os.Stat(filepath.Join(dir, "workflow", "examples", example))
+				require.NoError(t, err, "missing example %s", example)
+			}
+			if tt.maxSkillNewlines > 0 {
+				require.Less(t, strings.Count(skill, "\n"), tt.maxSkillNewlines, "SKILL.md should stay lean")
+			}
+		})
+	}
+}
+
+func TestCopyEmbeddedExamples(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		fsys    fs.FS
+		root    string
+		setup   func(t *testing.T, destParent string) string
+		wantErr string
+		want    []string
+	}{
+		{
+			name: "copies yaml from embedded workflow testdata",
+			fsys: workflowExampleFS,
+			root: "testdata/workflow",
+			setup: func(t *testing.T, destParent string) string {
+				t.Helper()
+				dest := filepath.Join(destParent, "examples")
+				require.NoError(t, os.MkdirAll(dest, 0o750))
+				return dest
+			},
+			want: []string{"echo_mapper.yaml", "parallel_example.yaml", "save_and_track.yaml"},
+		},
+		{
+			name: "missing root returns error",
+			fsys: fstest.MapFS{},
+			root: "missing",
+			setup: func(t *testing.T, destParent string) string {
+				t.Helper()
+				dest := filepath.Join(destParent, "examples")
+				require.NoError(t, os.MkdirAll(dest, 0o750))
+				return dest
+			},
+			wantErr: "read embedded examples",
+		},
+		{
+			name: "no yaml under root returns error",
+			fsys: fstest.MapFS{
+				"empty/readme.txt": &fstest.MapFile{Data: []byte("x")},
+			},
+			root: "empty",
+			setup: func(t *testing.T, destParent string) string {
+				t.Helper()
+				dest := filepath.Join(destParent, "examples")
+				require.NoError(t, os.MkdirAll(dest, 0o750))
+				return dest
+			},
+			wantErr: "no yaml examples",
+		},
+		{
+			name: "write failure when destination missing",
+			fsys: fstest.MapFS{
+				"src/demo.yaml": &fstest.MapFile{Data: []byte("name: demo\n")},
+			},
+			root: "src",
+			setup: func(t *testing.T, destParent string) string {
+				t.Helper()
+				return filepath.Join(destParent, "missing-parent", "examples")
+			},
+			wantErr: "write example",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dest := tt.setup(t, t.TempDir())
+			got, err := copyEmbeddedExamples(tt.fsys, tt.root, dest)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestGeneratePlatformSkillErrors(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		mutate  func(platformSpec) platformSpec
+		wantErr string
+	}{
+		{
+			name: "missing example dir",
+			mutate: func(m platformSpec) platformSpec {
+				m.ExampleDir = "testdata/does-not-exist"
+				return m
+			},
+			wantErr: "read embedded examples",
+		},
+		{
+			name: "nil command fn",
+			mutate: func(m platformSpec) platformSpec {
+				m.CommandFn = nil
+				return m
+			},
+			wantErr: "CommandFn is required",
+		},
+		{
+			name: "empty embed fs cannot list example dir",
+			mutate: func(m platformSpec) platformSpec {
+				m.ExampleFS = embed.FS{}
+				m.ExampleDir = "testdata/workflow"
+				return m
+			},
+			wantErr: "read embedded examples",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := generatePlatformSkill(tt.mutate(platformWorkflowSpec()), t.TempDir())
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
+}
+
+func TestSkillsActionIncludesPlatformWorkflow(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name          string
+		setupOutput   func(t *testing.T) string
+		wantErr       string
+		wantSkillDirs []string
+		wantFiles     []string
+		checkRegistry bool
+	}{
+		{
+			name: "generates capability and workflow skills",
+			setupOutput: func(t *testing.T) string {
+				t.Helper()
+				return t.TempDir()
+			},
+			wantSkillDirs: []string{"karakeep", "workflow"},
+			wantFiles:     []string{"workflow/SKILL.md", "workflow/references/steps.md"},
+		},
+		{
+			name: "platformSpecs registers workflow beside metaSpecs",
+			setupOutput: func(t *testing.T) string {
+				t.Helper()
+				return t.TempDir()
+			},
+			checkRegistry: true,
+		},
+		{
+			name: "output path that is a file fails",
+			setupOutput: func(t *testing.T) string {
+				t.Helper()
+				path := filepath.Join(t.TempDir(), "not-a-dir")
+				require.NoError(t, os.WriteFile(path, []byte("x"), 0o640))
+				return path
+			},
+			wantErr: "create directory",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if tt.checkRegistry {
+				for _, m := range metaSpecs {
+					require.NotEqual(t, "workflow", m.Name)
+				}
+				require.NotEmpty(t, platformSpecs)
+				require.Equal(t, "workflow", platformSpecs[0].Name)
+				require.Equal(t, "workflow", platformWorkflowSpec().Name)
+				return
+			}
+
+			dir := tt.setupOutput(t)
+			cmd := &cobra.Command{}
+			cmd.Flags().String("output", dir, "")
+			err := SkillsAction(cmd, nil)
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			for _, skillDir := range tt.wantSkillDirs {
+				_, err := os.Stat(filepath.Join(dir, skillDir, "SKILL.md"))
+				require.NoError(t, err)
+			}
+			for _, rel := range tt.wantFiles {
+				_, err := os.Stat(filepath.Join(dir, rel))
+				require.NoError(t, err)
+			}
+		})
+	}
 }

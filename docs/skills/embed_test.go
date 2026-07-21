@@ -12,8 +12,9 @@ import (
 func TestEmbeddedSkillTrees(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name string
-		dir  string
+		name       string
+		dir        string
+		extraPaths []string
 	}{
 		{name: "karakeep", dir: "karakeep"},
 		{name: "kanboard", dir: "kanboard"},
@@ -26,7 +27,16 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 		{name: "devops", dir: "devops"},
 		{name: "gitea", dir: "gitea"},
 		{name: "github", dir: "github"},
-		{name: "workflow", dir: "workflow"},
+		{
+			name: "workflow",
+			dir:  "workflow",
+			extraPaths: []string{
+				"references/steps.md",
+				"examples/echo_mapper.yaml",
+				"examples/save_and_track.yaml",
+				"examples/parallel_example.yaml",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -35,6 +45,10 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 			require.NoError(t, err)
 			_, err = fs.Stat(skills.FS, tt.dir+"/references/cli.md")
 			require.NoError(t, err)
+			for _, rel := range tt.extraPaths {
+				_, err = fs.Stat(skills.FS, tt.dir+"/"+rel)
+				require.NoError(t, err)
+			}
 		})
 	}
 }
