@@ -177,6 +177,7 @@ func TestPipelineTriggerLetter(t *testing.T) {
 		{name: "event", typ: "event", want: "E"},
 		{name: "cron", typ: "cron", want: "C"},
 		{name: "webhook", typ: "webhook", want: "W"},
+		{name: "manual", typ: "manual", want: "M"},
 		{name: "unknown", typ: "other", want: "?"},
 	}
 	for _, tt := range tests {

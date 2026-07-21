@@ -19,7 +19,7 @@ type CheckpointData struct {
 
 // WorkflowRunStore persists workflow runs, step runs, and checkpoint data.
 type WorkflowRunStore interface {
-	CreateRun(ctx context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error)
+	CreateRun(ctx context.Context, workflowID int64, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error)
 	UpdateRunStatus(ctx context.Context, runID int64, status int, errMsg string) error
 	CreateStepRun(ctx context.Context, runID int64, stepID, stepName, action, actionType string, params map[string]any, attempt int) (*gen.WorkflowStepRun, error)
 	UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, errMsg string, attempt int) error
@@ -28,4 +28,9 @@ type WorkflowRunStore interface {
 	GetCheckpoint(ctx context.Context, runID int64, target any) error
 	GetRun(ctx context.Context, runID int64) (*gen.WorkflowRun, error)
 	UpdateRunHeartbeat(ctx context.Context, runID int64) error
+}
+
+// DefinitionStore loads workflow definitions by name for resume and DB-backed runs.
+type DefinitionStore interface {
+	GetMetadata(ctx context.Context, name string) (*types.WorkflowMetadata, error)
 }

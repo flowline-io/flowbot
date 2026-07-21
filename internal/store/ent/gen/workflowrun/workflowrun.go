@@ -13,6 +13,8 @@ const (
 	Label = "workflow_run"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldWorkflowID holds the string denoting the workflow_id field in the database.
+	FieldWorkflowID = "workflow_id"
 	// FieldWorkflowName holds the string denoting the workflow_name field in the database.
 	FieldWorkflowName = "workflow_name"
 	// FieldWorkflowFile holds the string denoting the workflow_file field in the database.
@@ -44,6 +46,7 @@ const (
 // Columns holds all SQL columns for workflowrun fields.
 var Columns = []string{
 	FieldID,
+	FieldWorkflowID,
 	FieldWorkflowName,
 	FieldWorkflowFile,
 	FieldStatus,
@@ -71,8 +74,8 @@ func ValidColumn(column string) bool {
 var (
 	// WorkflowNameValidator is a validator for the "workflow_name" field. It is called by the builders before save.
 	WorkflowNameValidator func(string) error
-	// WorkflowFileValidator is a validator for the "workflow_file" field. It is called by the builders before save.
-	WorkflowFileValidator func(string) error
+	// DefaultWorkflowFile holds the default value on creation for the "workflow_file" field.
+	DefaultWorkflowFile string
 	// DefaultStatus holds the default value on creation for the "status" field.
 	DefaultStatus int
 	// DefaultTriggerType holds the default value on creation for the "trigger_type" field.
@@ -89,6 +92,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorkflowID orders the results by the workflow_id field.
+func ByWorkflowID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkflowID, opts...).ToFunc()
 }
 
 // ByWorkflowName orders the results by the workflow_name field.

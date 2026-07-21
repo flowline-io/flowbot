@@ -1,6 +1,17 @@
 name: save_and_track
 describe: "Save a URL as a bookmark, archive it, and create a kanban task"
+enabled: true
 resumable: true
+
+inputs:
+  - name: url
+    type: string
+    required: true
+    description: "URL to save"
+  - name: title
+    type: string
+    required: true
+    description: "Bookmark title"
 
 pipeline:
   - save_bookmark

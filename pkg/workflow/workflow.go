@@ -148,10 +148,13 @@ func DetermineRuntimeType(t *types.Task) string {
 type Runner struct {
 	engines      map[string]*executor.Engine
 	store        WorkflowRunStore
+	definitions  DefinitionStore
 	auditor      audit.Auditor
 	metrics      *metrics.WorkflowCollector
 	workflowFile string
+	workflowID   int64
 	triggerType  string
+	existingRun  *gen.WorkflowRun
 }
 
 // NewRunner creates a Runner without persistence. Use NewRunnerWithStore to enable run records.
@@ -160,7 +163,7 @@ func NewRunner() *Runner {
 }
 
 // NewRunnerWithStore creates a Runner that persists run and step records to the given store.
-// workflowFile and triggerType are recorded in the run for audit and potential resume.
+// workflowFile and triggerType are recorded in the run for audit; empty workflowFile becomes "db".
 func NewRunnerWithStore(store WorkflowRunStore, auditor audit.Auditor, wc *metrics.WorkflowCollector, workflowFile, triggerType string) *Runner {
 	return &Runner{
 		engines: map[string]*executor.Engine{
@@ -175,6 +178,33 @@ func NewRunnerWithStore(store WorkflowRunStore, auditor audit.Auditor, wc *metri
 		workflowFile: workflowFile,
 		triggerType:  triggerType,
 	}
+}
+
+// WithDefinitionStore attaches a DefinitionStore used to load definitions by name on resume.
+func (r *Runner) WithDefinitionStore(ds DefinitionStore) *Runner {
+	if r == nil {
+		return nil
+	}
+	r.definitions = ds
+	return r
+}
+
+// WithWorkflowID sets the workflow definition ID recorded on new runs (0 if unknown).
+func (r *Runner) WithWorkflowID(id int64) *Runner {
+	if r == nil {
+		return nil
+	}
+	r.workflowID = id
+	return r
+}
+
+// WithExistingRun skips CreateRun and continues execution against the given run record.
+func (r *Runner) WithExistingRun(run *gen.WorkflowRun) *Runner {
+	if r == nil {
+		return nil
+	}
+	r.existingRun = run
+	return r
 }
 
 func (r *Runner) auditWorkflowEvent(ctx context.Context, wfName, action string) {
@@ -230,10 +260,15 @@ func (r *Runner) Execute(ctx context.Context, wf types.WorkflowMetadata, input t
 func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMetadata, input types.KV, file string, taskMap map[string]types.WorkflowTask, parallel bool) error {
 	// Persist run record if store is available.
 	var run *gen.WorkflowRun
-	if r.store != nil {
+	if r.existingRun != nil {
+		run = r.existingRun
+	} else if r.store != nil {
 		workflowFile := file
 		if workflowFile == "" {
 			workflowFile = r.workflowFile
+		}
+		if workflowFile == "" {
+			workflowFile = "db"
 		}
 		triggerType := r.triggerType
 		if triggerType == "" {
@@ -245,7 +280,7 @@ func (r *Runner) executeWithRunRecord(ctx context.Context, wf types.WorkflowMeta
 			_ = inputJSON.Scan(raw)
 		}
 		var err error
-		run, err = r.store.CreateRun(ctx, wf.Name, workflowFile, triggerType, nil, inputJSON)
+		run, err = r.store.CreateRun(ctx, r.workflowID, wf.Name, workflowFile, triggerType, nil, inputJSON)
 		if err != nil {
 			flog.Error(fmt.Errorf("[workflow] create run record: %w", err))
 		}
@@ -298,7 +333,7 @@ func (r *Runner) runSequential(ctx context.Context, wf types.WorkflowMetadata, i
 		if cancelHeartbeat != nil {
 			cancelHeartbeat()
 		}
-		_ = r.store.UpdateRunStatus(ctx, run.ID, int(schema.WorkflowRunDone), "")
+		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), run.ID, int(schema.WorkflowRunDone), "")
 	}
 
 	r.auditWorkflowEvent(ctx, wf.Name, "workflow.complete")
@@ -329,7 +364,7 @@ func (r *Runner) executeSequentialStep(
 
 	var stepRun *gen.WorkflowStepRun
 	if r.store != nil && run != nil {
-		stepRun, err = r.store.CreateStepRun(ctx, run.ID, stepID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
+		stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), run.ID, stepID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
 		if err != nil {
 			flog.Error(fmt.Errorf("[workflow] create step run record %s: %w", stepID, err))
 		}
@@ -369,7 +404,7 @@ func (r *Runner) executeSequentialMapperStep(
 	if r.store != nil && stepRun != nil {
 		resultJSON := schema.JSON{}
 		_ = resultJSON.Scan(mappedJSON)
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
 	}
 	if r.metrics != nil {
 		r.metrics.IncStepTotal(wfName, stepID, "done")
@@ -437,7 +472,7 @@ func (r *Runner) executeSequentialExecutorStep(
 			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
 			_ = resultJSON.Scan(resultRaw)
 		}
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
 	}
 
 	flog.Info("[workflow] step %s completed", stepID)
@@ -453,18 +488,22 @@ func saveCheckpoint(ctx context.Context, stepIndex int, r *Runner, wf types.Work
 			Input:       input,
 			HeartbeatAt: time.Now(),
 		}
-		if cerr := r.store.SaveCheckpoint(ctx, run.ID, &cp); cerr != nil {
+		if cerr := r.store.SaveCheckpoint(workflowStoreCtx(ctx), run.ID, &cp); cerr != nil {
 			flog.Error(fmt.Errorf("[workflow] save checkpoint step %d: %w", stepIndex, cerr))
 		}
 	}
 }
 
 // ResumeWorkflow resumes a previously failed or incomplete workflow run from its checkpoint.
+// Definitions are loaded from DefinitionStore by workflow name (file-based resume is removed).
 func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 	defer r.Close()
 
 	if r.store == nil {
 		return fmt.Errorf("cannot resume workflow without a store")
+	}
+	if r.definitions == nil {
+		return fmt.Errorf("cannot resume workflow without a definition store")
 	}
 
 	run, err := r.store.GetRun(ctx, runID)
@@ -476,9 +515,9 @@ func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 		return fmt.Errorf("workflow run %d status is %d, not resumable", runID, run.Status)
 	}
 
-	wf, err := LoadFile(run.WorkflowFile)
+	wf, err := r.definitions.GetMetadata(ctx, run.WorkflowName)
 	if err != nil {
-		return fmt.Errorf("load workflow file %s: %w", run.WorkflowFile, err)
+		return fmt.Errorf("load workflow definition %s: %w", run.WorkflowName, err)
 	}
 
 	if r.metrics != nil {
@@ -522,7 +561,7 @@ func (r *Runner) ResumeWorkflow(ctx context.Context, runID int64) error {
 	if cancelHeartbeat != nil {
 		cancelHeartbeat()
 	}
-	_ = r.store.UpdateRunStatus(ctx, runID, int(schema.WorkflowRunDone), "")
+	_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), runID, int(schema.WorkflowRunDone), "")
 	return nil
 }
 
@@ -553,7 +592,7 @@ func (r *Runner) executeResumeStep(
 			Input:       input,
 			HeartbeatAt: time.Now(),
 		}
-		if cerr := r.store.SaveCheckpoint(ctx, runID, &cpData); cerr != nil {
+		if cerr := r.store.SaveCheckpoint(workflowStoreCtx(ctx), runID, &cpData); cerr != nil {
 			flog.Error(fmt.Errorf("[workflow] resume save checkpoint step %s: %w", stepID, cerr))
 		}
 	}
@@ -568,7 +607,7 @@ func (r *Runner) executeResumeStep(
 	info := ParseAction(wt.Action)
 
 	var stepRun *gen.WorkflowStepRun
-	stepRun, err = r.store.CreateStepRun(ctx, runID, stepID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
+	stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), runID, stepID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
 	if err != nil {
 		flog.Error(fmt.Errorf("[workflow] resume create step run %s: %w", stepID, err))
 	}
@@ -600,7 +639,7 @@ func (r *Runner) executeResumeMapperStep(
 	if stepRun != nil {
 		resultJSON := schema.JSON{}
 		_ = resultJSON.Scan(mappedJSON)
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
 	}
 	return nil
 }
@@ -644,7 +683,7 @@ func (r *Runner) executeResumeExecutorStep(
 			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
 			_ = resultJSON.Scan(resultRaw)
 		}
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
 	}
 	return nil
 }
@@ -655,15 +694,23 @@ func (r *Runner) failRun(ctx context.Context, run *gen.WorkflowRun, cancelHeartb
 		cancelHeartbeat()
 	}
 	if r.store != nil && run != nil {
-		_ = r.store.UpdateRunStatus(ctx, run.ID, int(schema.WorkflowRunFailed), err.Error())
+		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), run.ID, int(schema.WorkflowRunFailed), err.Error())
 	}
 }
 
 // failStep marks a step run as failed if stepRun is non-nil.
 func (r *Runner) failStep(ctx context.Context, stepRun *gen.WorkflowStepRun, err error, attempt int) {
 	if r.store != nil && stepRun != nil {
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunFailed), nil, err.Error(), attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunFailed), nil, err.Error(), attempt)
 	}
+}
+
+// workflowStoreCtx returns a context safe for persistence after fail-fast cancel.
+func workflowStoreCtx(ctx context.Context) context.Context {
+	if ctx == nil {
+		return context.Background()
+	}
+	return context.WithoutCancel(ctx)
 }
 
 // heartbeat periodically updates last_heartbeat for a resumable workflow run.
@@ -693,7 +740,7 @@ func (r *Runner) runWithRetry(ctx context.Context, task *types.Task, retryCfg *t
 	backoffCfg := retryCfg.ToBackoffConfig()
 	backoffCfg.OnRetry = func(attempt int, delay time.Duration, err error) {
 		if r.store != nil && stepRun != nil {
-			_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunRunning), nil, err.Error(), attempt)
+			_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunRunning), nil, err.Error(), attempt)
 		}
 		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", stepID, attempt, delay, err)
 	}

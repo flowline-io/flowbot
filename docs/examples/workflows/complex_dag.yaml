@@ -1,0 +1,159 @@
+name: complex_dag_demo
+describe: >-
+  Multi-wave parallel DAG demo: fork/join across fetch, normalize, score/tag/extract,
+  assemble, then parallel publish/audit before a final join. Uses mapper steps so it
+  runs without external capabilities.
+enabled: true
+resumable: true
+max_concurrency: 4
+
+inputs:
+  - name: topic
+    type: string
+    required: true
+    description: "Subject for the demo pipeline"
+  - name: source
+    type: string
+    required: false
+    default: "example"
+    description: "Logical source label"
+
+triggers:
+  - type: manual
+    enabled: true
+
+pipeline:
+  - start
+  - fetch_meta
+  - fetch_content
+  - normalize_meta
+  - normalize_content
+  - score
+  - tag
+  - extract
+  - assemble
+  - publish
+  - audit
+  - finalize
+
+tasks:
+  - id: start
+    action: "mapper:"
+    describe: "Seed run context from inputs"
+    params:
+      topic: "{{input.topic}}"
+      source: "{{input.source}}"
+      phase: start
+
+  - id: fetch_meta
+    action: "mapper:"
+    describe: "Fetch metadata branch"
+    conn:
+      - start
+    params:
+      kind: meta
+      topic: '{{step "start" "result"}}'
+      items: 3
+
+  - id: fetch_content
+    action: "mapper:"
+    describe: "Fetch content branch"
+    conn:
+      - start
+    params:
+      kind: content
+      topic: '{{step "start" "result"}}'
+      chunks: 5
+
+  - id: normalize_meta
+    action: "mapper:"
+    describe: "Normalize metadata"
+    conn:
+      - fetch_meta
+    params:
+      from: '{{step "fetch_meta" "result"}}'
+      schema: meta-v1
+
+  - id: normalize_content
+    action: "mapper:"
+    describe: "Normalize content"
+    conn:
+      - fetch_content
+    params:
+      from: '{{step "fetch_content" "result"}}'
+      schema: content-v1
+
+  - id: score
+    action: "mapper:"
+    describe: "Score joined normalized inputs"
+    conn:
+      - normalize_meta
+      - normalize_content
+    params:
+      meta: '{{step "normalize_meta" "result"}}'
+      content: '{{step "normalize_content" "result"}}'
+      score: 0.87
+
+  - id: tag
+    action: "mapper:"
+    describe: "Derive tags from metadata only"
+    conn:
+      - normalize_meta
+    params:
+      meta: '{{step "normalize_meta" "result"}}'
+      tags:
+        - demo
+        - dag
+        - parallel
+
+  - id: extract
+    action: "mapper:"
+    describe: "Extract entities from content only"
+    conn:
+      - normalize_content
+    params:
+      content: '{{step "normalize_content" "result"}}'
+      entities:
+        - title
+        - summary
+
+  - id: assemble
+    action: "mapper:"
+    describe: "Join score, tags, and entities"
+    conn:
+      - score
+      - tag
+      - extract
+    params:
+      score: '{{step "score" "result"}}'
+      tag: '{{step "tag" "result"}}'
+      extract: '{{step "extract" "result"}}'
+
+  - id: publish
+    action: "mapper:"
+    describe: "Publish assembled payload"
+    conn:
+      - assemble
+    params:
+      payload: '{{step "assemble" "result"}}'
+      channel: demo
+
+  - id: audit
+    action: "mapper:"
+    describe: "Audit assembled payload in parallel with publish"
+    conn:
+      - assemble
+    params:
+      payload: '{{step "assemble" "result"}}'
+      check: integrity
+
+  - id: finalize
+    action: "mapper:"
+    describe: "Final join after publish and audit"
+    conn:
+      - publish
+      - audit
+    params:
+      publish: '{{step "publish" "result"}}'
+      audit: '{{step "audit" "result"}}'
+      status: done

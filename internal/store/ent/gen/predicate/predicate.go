@@ -168,8 +168,17 @@ type Url func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
+// Workflow is the predicate function for workflow builders.
+type Workflow func(*sql.Selector)
+
 // WorkflowRun is the predicate function for workflowrun builders.
 type WorkflowRun func(*sql.Selector)
 
 // WorkflowStepRun is the predicate function for workflowsteprun builders.
 type WorkflowStepRun func(*sql.Selector)
+
+// WorkflowTask is the predicate function for workflowtask builders.
+type WorkflowTask func(*sql.Selector)
+
+// WorkflowTrigger is the predicate function for workflowtrigger builders.
+type WorkflowTrigger func(*sql.Selector)

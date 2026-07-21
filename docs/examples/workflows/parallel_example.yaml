@@ -1,7 +1,11 @@
 name: parallel_save_and_track
 describe: Save bookmark, archive URL, and create kanban task with parallel execution
+enabled: true
 max_concurrency: 3
 resumable: true
+
+inputs: []
+
 pipeline:
   - fetch_data
   - archive_url

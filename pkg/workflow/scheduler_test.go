@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -190,6 +192,71 @@ func TestRunParallelFailFast(t *testing.T) {
 	err := runner.Execute(context.Background(), wf, nil, "")
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "resolve params step failer")
+}
+
+func TestRunParallel_BranchFailureMarksRunFailed(t *testing.T) {
+	t.Parallel()
+	registerWorkflowCapabilityInvoker(t)
+
+	tests := []struct {
+		name string
+		wf   types.WorkflowMetadata
+	}{
+		{
+			name: "independent branch failure updates run",
+			wf: types.WorkflowMetadata{
+				Name:           "parallel-fail-run-status",
+				MaxConcurrency: 2,
+				Pipeline:       []string{"ok", "failer"},
+				Tasks: []types.WorkflowTask{
+					{ID: "ok", Action: "mapper:", Params: types.KV{"out": "ok"}},
+					{ID: "failer", Action: "capability:example.missing"},
+				},
+			},
+		},
+		{
+			name: "diamond join after branch failure updates run",
+			wf: types.WorkflowMetadata{
+				Name:           "diamond-fail-run-status",
+				MaxConcurrency: 2,
+				Pipeline:       []string{"root", "ok", "failer", "join"},
+				Tasks: []types.WorkflowTask{
+					{ID: "root", Action: "mapper:", Params: types.KV{"out": "root"}},
+					{ID: "ok", Action: "mapper:", Params: types.KV{"out": "ok"}, Conn: []string{"root"}},
+					{ID: "failer", Action: "capability:example.missing", Conn: []string{"root"}},
+					{ID: "join", Action: "mapper:", Params: types.KV{"out": "join"}, Conn: []string{"ok", "failer"}},
+				},
+			},
+		},
+		{
+			name: "single failing parallel task updates run",
+			wf: types.WorkflowMetadata{
+				Name:           "solo-fail-run-status",
+				MaxConcurrency: 2,
+				Pipeline:       []string{"failer"},
+				Tasks: []types.WorkflowTask{
+					{ID: "failer", Action: "capability:example.missing"},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			store := newMockWorkflowStore()
+			runner := NewRunnerWithStore(store, nil, nil, "", "")
+			err := runner.Execute(context.Background(), tt.wf, nil, "")
+			require.Error(t, err)
+			require.Len(t, store.runs, 1)
+			var run *gen.WorkflowRun
+			for _, r := range store.runs {
+				run = r
+			}
+			require.NotNil(t, run)
+			assert.Equal(t, int(schema.WorkflowRunFailed), run.Status)
+			assert.Contains(t, store.statusLog, int(schema.WorkflowRunFailed))
+		})
+	}
 }
 
 func TestRunParallelEdgeCases(t *testing.T) {

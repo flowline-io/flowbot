@@ -68,6 +68,7 @@ const (
 
 	ScopePipelineRead  = "pipeline:read"
 	ScopePipelineRun   = "pipeline:run"
+	ScopeWorkflowRead  = "workflow:read"
 	ScopeWorkflowRun   = "workflow:run"
 	ScopeChatAgentChat = "chatagent:chat"
 )
@@ -142,8 +143,8 @@ func isWriteHTTPMethod(method string) bool {
 }
 
 // MinimumServiceScope returns the default minimum scope for /service/{group} routes.
-// Web pipeline routes map to pipeline:*; hub module routes map to hub:capabilities:read;
-// provider modules use service:{group}:read|write.
+// Web pipeline routes map to pipeline:*; workflow module routes map to workflow:*;
+// hub module routes map to hub:capabilities:read; provider modules use service:{group}:read|write.
 func MinimumServiceScope(group, method string) string {
 	switch group {
 	case "web":
@@ -151,6 +152,11 @@ func MinimumServiceScope(group, method string) string {
 			return ScopePipelineRun
 		}
 		return ScopePipelineRead
+	case "workflow":
+		if isWriteHTTPMethod(method) {
+			return ScopeWorkflowRun
+		}
+		return ScopeWorkflowRead
 	case "hub":
 		return ScopeHubCapabilitiesRead
 	default:
@@ -162,7 +168,8 @@ func MinimumServiceScope(group, method string) string {
 }
 
 // HasMinimumServiceScope reports whether scopes satisfy the default /service/{group} gate.
-// Write scopes satisfy read for the same provider group; pipeline:run satisfies pipeline:read.
+// Write scopes satisfy read for the same provider group; pipeline:run satisfies pipeline:read;
+// workflow:run satisfies workflow:read.
 func HasMinimumServiceScope(scopes []string, group, method string) bool {
 	required := MinimumServiceScope(group, method)
 	if HasScope(scopes, required) {
@@ -172,6 +179,8 @@ func HasMinimumServiceScope(scopes []string, group, method string) bool {
 		switch group {
 		case "web":
 			return HasScope(scopes, ScopePipelineRun)
+		case "workflow":
+			return HasScope(scopes, ScopeWorkflowRun)
 		case "hub":
 			return false
 		default:
@@ -222,7 +231,8 @@ func AllScopes() []ScopeInfo {
 		{Value: ScopeServiceExampleWrite, Description: "write example"},
 		{Value: ScopePipelineRead, Description: "read pipelines"},
 		{Value: ScopePipelineRun, Description: "run pipelines"},
-		{Value: ScopeWorkflowRun, Description: "run workflows"},
+		{Value: ScopeWorkflowRead, Description: "read workflows"},
+		{Value: ScopeWorkflowRun, Description: "apply, delete, and run workflows"},
 		{Value: ScopeChatAgentChat, Description: "chat agent"},
 	}
 }

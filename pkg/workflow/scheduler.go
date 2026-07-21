@@ -123,12 +123,15 @@ func (r *Runner) runParallel(ctx context.Context, wf types.WorkflowMetadata, inp
 	}
 
 drain:
+	finalErr = firstErr
+	// Persist terminal status before waiting on cancelled siblings so a hung
+	// branch cannot leave the run stuck in Running.
+	statusErr := r.finalizeParallelStatus(ctx, run, 0, finalErr)
 	wg.Wait()
 	if cancelHeartbeat != nil {
 		cancelHeartbeat()
 	}
-	finalErr = firstErr
-	return r.finalizeParallelStatus(ctx, run, 0, finalErr)
+	return statusErr
 }
 
 // dispatchReadyTasks pops ready tasks from the queue and spawns dispatch goroutines
@@ -263,11 +266,12 @@ func (r *Runner) finalizeParallelStatus(ctx context.Context, run *gen.WorkflowRu
 	if id <= 0 || r.store == nil {
 		return err
 	}
+	storeCtx := workflowStoreCtx(ctx)
 	if err != nil {
-		_ = r.store.UpdateRunStatus(ctx, id, int(schema.WorkflowRunFailed), err.Error())
+		_ = r.store.UpdateRunStatus(storeCtx, id, int(schema.WorkflowRunFailed), err.Error())
 		return err
 	}
-	_ = r.store.UpdateRunStatus(ctx, id, int(schema.WorkflowRunDone), "")
+	_ = r.store.UpdateRunStatus(storeCtx, id, int(schema.WorkflowRunDone), "")
 	return nil
 }
 
@@ -302,7 +306,7 @@ func (r *Runner) executeParallelTask(
 
 	var stepRun *gen.WorkflowStepRun
 	if r.store != nil && run != nil {
-		stepRun, err = r.store.CreateStepRun(ctx, run.ID, taskID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
+		stepRun, err = r.store.CreateStepRun(workflowStoreCtx(ctx), run.ID, taskID, wt.Describe, wt.Action, info.Type, schema.JSON(params), 1)
 		if err != nil {
 			flog.Error(fmt.Errorf("[workflow] create step run record %s: %w", taskID, err))
 		}
@@ -355,7 +359,7 @@ func (r *Runner) executeMapperStep(
 	if r.store != nil && stepRun != nil {
 		resultJSON := schema.JSON{}
 		_ = resultJSON.Scan(mappedJSON)
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", 1)
 	}
 	flog.Info("[workflow] mapper step %s completed (parallel)", taskID)
 	return nil
@@ -390,7 +394,7 @@ func (r *Runner) executeExecutorStep(
 	backoffCfg := wt.Retry.ToBackoffConfig()
 	backoffCfg.OnRetry = func(a int, d time.Duration, err error) {
 		if r.store != nil && stepRun != nil {
-			_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunRunning), nil, err.Error(), a)
+			_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunRunning), nil, err.Error(), a)
 		}
 		flog.Info("[workflow] step %s attempt %d failed, retrying in %v: %v", taskID, a, d, err)
 	}
@@ -417,7 +421,7 @@ func (r *Runner) executeExecutorStep(
 			resultRaw, _ := pooledSonic.Marshal(map[string]any{"result": task.Result})
 			_ = resultJSON.Scan(resultRaw)
 		}
-		_ = r.store.UpdateStepRun(ctx, stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
+		_ = r.store.UpdateStepRun(workflowStoreCtx(ctx), stepRun.ID, int(schema.WorkflowRunDone), resultJSON, "", attempt)
 	}
 
 	flog.Info("[workflow] step %s completed (parallel)", taskID)
@@ -462,7 +466,7 @@ func (r *Runner) enqueueDependentsAndSaveCheckpoint(
 			Input:          input,
 			HeartbeatAt:    time.Now(),
 		}
-		if cerr := r.store.SaveCheckpoint(ctx, run.ID, &cp); cerr != nil {
+		if cerr := r.store.SaveCheckpoint(workflowStoreCtx(ctx), run.ID, &cp); cerr != nil {
 			flog.Error(fmt.Errorf("[workflow] save checkpoint step %s: %w", taskID, cerr))
 		}
 	}
@@ -549,7 +553,7 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 	totalRemaining := r.countRemainingTasksOnResume(wf, cp)
 
 	if totalRemaining == 0 {
-		_ = r.store.UpdateRunStatus(ctx, runID, int(schema.WorkflowRunDone), "")
+		_ = r.store.UpdateRunStatus(workflowStoreCtx(ctx), runID, int(schema.WorkflowRunDone), "")
 		return nil
 	}
 
@@ -568,6 +572,7 @@ func (r *Runner) runParallelResume(ctx context.Context, runID int64, wf types.Wo
 	}
 
 drain:
+	statusErr := r.finalizeParallelStatus(ctx, run, 0, firstErr)
 	wg.Wait()
-	return r.finalizeParallelStatus(ctx, run, 0, firstErr)
+	return statusErr
 }

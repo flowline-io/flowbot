@@ -154,7 +154,7 @@ func TestFinalizeParallelStatus(t *testing.T) {
 				store = newMockWorkflowStore()
 				runner = NewRunnerWithStore(store, nil, nil, "", "")
 				if tt.run == nil {
-					run, err := store.CreateRun(context.Background(), "wf", "f.yaml", "manual", nil, nil)
+					run, err := store.CreateRun(context.Background(), 0, "wf", "f.yaml", "manual", nil, nil)
 					require.NoError(t, err)
 					tt.run = run
 				}
@@ -194,9 +194,10 @@ tasks:
       merged: '{{step "a" "result"}}|{{step "b" "result"}}'
     conn: [a, b]
 `
-	path := writeWorkflowFile(t, wfContent)
+	wf, err := ParseYAML([]byte(wfContent))
+	require.NoError(t, err)
 	store := newMockWorkflowStore()
-	run, err := store.CreateRun(context.Background(), "parallel-resume", path, "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "parallel-resume", "db", "manual", nil, nil)
 	require.NoError(t, err)
 	run.Status = int(schema.WorkflowRunFailed)
 	require.NoError(t, store.SaveCheckpoint(context.Background(), run.ID, &CheckpointData{
@@ -205,7 +206,7 @@ tasks:
 		Input:          types.KV{},
 	}))
 
-	runner := NewRunnerWithStore(store, nil, nil, "", "")
+	runner := NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf))
 	err = runner.ResumeWorkflow(context.Background(), run.ID)
 	require.NoError(t, err)
 	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
@@ -214,7 +215,7 @@ tasks:
 func TestRunParallelResumeAllComplete(t *testing.T) {
 	t.Parallel()
 	store := newMockWorkflowStore()
-	run, err := store.CreateRun(context.Background(), "done-wf", "f.yaml", "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "done-wf", "f.yaml", "manual", nil, nil)
 	require.NoError(t, err)
 
 	wf := types.WorkflowMetadata{
@@ -250,7 +251,7 @@ func TestRunParallelResumeTaskHandler(t *testing.T) {
 	require.NoError(t, err)
 
 	store := newMockWorkflowStore()
-	run, err := store.CreateRun(context.Background(), wf.Name, "f.yaml", "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, wf.Name, "f.yaml", "manual", nil, nil)
 	require.NoError(t, err)
 
 	runner := NewRunnerWithStore(store, nil, nil, "", "")
@@ -273,7 +274,7 @@ func TestExecuteMapperStepMarshalErrorParallel(t *testing.T) {
 	t.Parallel()
 	store := newMockWorkflowStore()
 	runner := NewRunnerWithStore(store, nil, nil, "", "")
-	run, err := store.CreateRun(context.Background(), "wf", "f.yaml", "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "wf", "f.yaml", "manual", nil, nil)
 	require.NoError(t, err)
 	stepRun, err := store.CreateStepRun(context.Background(), run.ID, "m1", "", "mapper:", "mapper", nil, 1)
 	require.NoError(t, err)

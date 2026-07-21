@@ -1,0 +1,103 @@
+package pages
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowTrigger, recentRuns []*gen.WorkflowRun, yamlText string) {
+	@layout.Base("Workflow: " + meta.Name) {
+		<div class="max-w-4xl mx-auto space-y-6">
+			@partials.PageHeader(meta.Name, meta.Describe) {
+				<a href="/service/web/workflows" class="btn btn-ghost btn-sm" data-testid="workflow-back">← Workflows</a>
+				<a href={ templ.URL(partials.WorkflowWebPath(meta.Name) + "/runs") }
+					class="btn btn-ghost btn-sm"
+					data-testid="workflow-detail-runs-link">Runs</a>
+			}
+			<div class="flex flex-wrap items-center gap-2 text-sm" data-testid="workflow-meta">
+				@partials.StatusIcon(partials.EnabledStatusIcon(meta.Enabled), "workflow-detail-enabled")
+				if meta.Resumable {
+					<span class="flowbot-chip flowbot-chip-primary">Resumable</span>
+				}
+				<span class="text-base-content/50">
+					max concurrency · { fmt.Sprintf("%d", meta.MaxConcurrency) }
+				</span>
+			</div>
+
+			<div role="tablist" class="tabs tabs-bordered" data-testid="workflow-detail-tabs">
+				<input
+					type="radio"
+					name="workflow-detail-tabs"
+					class="tab"
+					aria-label="Overview"
+					checked="checked"
+					data-testid="workflow-tab-overview"
+				/>
+				<div class="tab-content pt-4 space-y-6">
+					<section>
+						<h2 class="text-base font-semibold tracking-tight mb-2">Inputs</h2>
+						@partials.WorkflowInputsReadonly(meta.Inputs)
+					</section>
+
+					<section>
+						<h2 class="text-base font-semibold tracking-tight mb-2">Triggers</h2>
+						@partials.WorkflowTriggersTable(meta.Name, triggers)
+					</section>
+
+					<section>
+						<h2 class="text-base font-semibold tracking-tight mb-2">Execution graph</h2>
+						@partials.WorkflowDAG(partials.BuildWorkflowDAGView(meta.Tasks, meta.Pipeline, meta.MaxConcurrency))
+					</section>
+
+					@partials.WorkflowRunNowForm(meta.Name, meta.Inputs)
+
+					<section>
+						<div class="flex items-center justify-between mb-2">
+							<h2 class="text-base font-semibold tracking-tight m-0">Recent runs</h2>
+							<a href={ templ.URL(partials.WorkflowWebPath(meta.Name) + "/runs") }
+								class="link link-hover text-sm"
+								data-testid="workflow-recent-runs-all">View all</a>
+						</div>
+						@partials.WorkflowRunsTable(meta.Name, recentRuns)
+					</section>
+				</div>
+
+				<input
+					type="radio"
+					name="workflow-detail-tabs"
+					class="tab"
+					aria-label="YAML"
+					data-testid="workflow-tab-yaml"
+				/>
+				<div class="tab-content pt-4 min-w-0 max-w-full">
+					@partials.WorkflowYAMLSource(yamlText)
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ WorkflowRunsPage(name string, runs []*gen.WorkflowRun) {
+	@layout.Base("Runs: " + name) {
+		<div class="max-w-4xl mx-auto">
+			@partials.PageHeader("Run History", name) {
+				<a href={ templ.URL(partials.WorkflowWebPath(name)) }
+					class="btn btn-ghost btn-sm"
+					data-testid="workflow-runs-back">{ name }</a>
+			}
+			<div
+				id="workflow-runs-panel"
+				hx-get={ templ.URL(partials.WorkflowWebPath(name) + "/runs/list") }
+				hx-trigger="every 10s"
+				hx-swap="innerHTML"
+				data-testid="workflow-runs-panel"
+			>
+				@partials.WorkflowRunsTable(name, runs)
+			</div>
+		</div>
+	}
+}

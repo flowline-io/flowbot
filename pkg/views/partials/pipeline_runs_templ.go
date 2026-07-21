@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -64,7 +65,7 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue("run-" + fmt.Sprint(r.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 32, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 33, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 				if templ_7745c5c3_Err != nil {
@@ -77,7 +78,7 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL("/service/web/pipelines/" + name + "/runs/" + fmt.Sprint(r.ID) + "/steps"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 34, Col: 100}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 35, Col: 100}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 				if templ_7745c5c3_Err != nil {
@@ -90,26 +91,26 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue("#steps-" + fmt.Sprint(r.ID) + " td")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 36, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 37, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML show:top\" hx-on::after-request=\"this.querySelector('.chevron').classList.add('rotate-90')\" onclick=\"var rid=this.dataset.runId;var td=document.getElementById('steps-'+rid).querySelector('td');var cv=this.querySelector('.chevron');if(td.innerHTML.trim()){td.innerHTML='';cv.classList.remove('rotate-90');return false}\" data-run-id=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-swap=\"innerHTML show:top\" data-run-id=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprint(r.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 40, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 39, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-testid=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-run-expand=\"1\" data-testid=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -239,13 +240,13 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue("steps-" + fmt.Sprint(r.ID))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 59, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 59, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"run-detail-row\"><td colspan=\"6\"></td></tr></tbody>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\" class=\"run-detail-row\"><td colspan=\"6\" class=\"max-w-0 p-0\"></td></tr></tbody>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -286,7 +287,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"px-4 py-3\" data-testid=\"step-runs-detail\"><div class=\"text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2\">Step Runs</div><table class=\"table table-xs\"><thead><tr><th class=\"w-8\"></th><th>Step</th><th>Capability</th><th>Operation</th><th>Status</th><th>Attempt</th><th>Duration</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<div class=\"px-4 py-3 min-w-0 max-w-full\" data-testid=\"step-runs-detail\"><div class=\"text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2\">Step Runs</div><table class=\"table table-xs w-full\"><thead><tr><th class=\"w-8\"></th><th>Step</th><th>Capability</th><th>Operation</th><th>Status</th><th>Attempt</th><th>Duration</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -423,14 +424,14 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" onclick=\"event.stopPropagation();var c=this.querySelector('.step-chevron');c.classList.toggle('rotate-90');this.nextElementSibling.classList.toggle('hidden')\"><td class=\"text-base-content/30\"><span class=\"step-chevron inline-block transition-transform duration-200\">&#9654;</span></td><td class=\"font-medium text-base-content\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" data-step-toggle role=\"button\" tabindex=\"0\"><td class=\"text-base-content/30\"><span class=\"step-chevron inline-block transition-transform duration-200\">&#9654;</span></td><td class=\"font-medium text-base-content\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var27 string
 					templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(s.StepName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 109, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 111, Col: 62}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 					if templ_7745c5c3_Err != nil {
@@ -443,7 +444,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					var templ_7745c5c3_Var28 string
 					templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(s.Capability)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 110, Col: 55}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 112, Col: 55}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 					if templ_7745c5c3_Err != nil {
@@ -456,7 +457,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					var templ_7745c5c3_Var29 string
 					templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(s.Operation)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 111, Col: 54}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 113, Col: 54}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 					if templ_7745c5c3_Err != nil {
@@ -491,7 +492,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					var templ_7745c5c3_Var32 string
 					templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(runsStatusText(int(s.Status)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 113, Col: 87}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 115, Col: 87}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 					if templ_7745c5c3_Err != nil {
@@ -504,7 +505,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					var templ_7745c5c3_Var33 string
 					templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(s.Attempt))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 115, Col: 64}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 117, Col: 64}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 					if templ_7745c5c3_Err != nil {
@@ -517,7 +518,7 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					var templ_7745c5c3_Var34 string
 					templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(stepRunsDuration(s))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 116, Col: 62}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 118, Col: 62}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 					if templ_7745c5c3_Err != nil {
@@ -530,31 +531,31 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 					var templ_7745c5c3_Var35 string
 					templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.ResolveAttributeValue("step-detail-row-" + s.StepName)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 118, Col: 87}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 120, Col: 87}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var35)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\"><td colspan=\"7\"><div class=\"space-y-1 py-1\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "\"><td colspan=\"7\" class=\"max-w-0\"><div class=\"min-w-0 max-w-full space-y-1 py-1\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					if len(s.Params) > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<details class=\"mb-1\" open><summary class=\"cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1\">Input</summary><pre class=\"bg-base-200 rounded-box p-2 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<details class=\"mb-1 min-w-0\" open><summary class=\"cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1\">Input</summary><div class=\"run-json-preview\" data-testid=\"step-input-json\"><pre>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var36 string
 						templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(sprintJSON(s.Params))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 124, Col: 133}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 127, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</pre></details> ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</pre></div></details> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -565,20 +566,20 @@ func PipelineStepRunsDetail(steps []*gen.PipelineStepRun) templ.Component {
 						}
 					}
 					if len(s.Result) > 0 {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<details open><summary class=\"cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1\">Output</summary><pre class=\"bg-base-200 rounded-box p-2 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<details class=\"min-w-0\" open><summary class=\"cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1\">Output</summary><div class=\"run-json-preview\" data-testid=\"step-output-json\"><pre>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var37 string
 						templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(sprintJSON(s.Result))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 132, Col: 133}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_runs.templ`, Line: 137, Col: 40}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</pre></details>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "</pre></div></details>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -657,11 +658,45 @@ func sprintJSON(m map[string]any) string {
 	if len(m) == 0 {
 		return ""
 	}
-	data, err := sonic.MarshalIndent(m, "", "  ")
+	data, err := sonic.MarshalIndent(expandNestedJSON(m), "", "  ")
 	if err != nil {
 		return fmt.Sprintf("(error: %v)", err)
 	}
 	return string(data)
+}
+
+// expandNestedJSON recursively parses JSON-looking string values so long escaped
+// payloads render as indented objects instead of one giant line.
+func expandNestedJSON(v any) any {
+	switch x := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(x))
+		for k, child := range x {
+			out[k] = expandNestedJSON(child)
+		}
+		return out
+	case []any:
+		out := make([]any, len(x))
+		for i, child := range x {
+			out[i] = expandNestedJSON(child)
+		}
+		return out
+	case string:
+		trimmed := strings.TrimSpace(x)
+		if len(trimmed) < 2 {
+			return x
+		}
+		if trimmed[0] != '{' && trimmed[0] != '[' {
+			return x
+		}
+		var parsed any
+		if err := sonic.Unmarshal([]byte(trimmed), &parsed); err != nil {
+			return x
+		}
+		return expandNestedJSON(parsed)
+	default:
+		return v
+	}
 }
 
 var _ = templruntime.GeneratedTemplate

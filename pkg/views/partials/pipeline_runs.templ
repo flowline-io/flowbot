@@ -2,6 +2,7 @@ package partials
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -35,9 +36,8 @@ templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 							hx-trigger="click"
 							hx-target={ "#steps-" + fmt.Sprint(r.ID) + " td" }
 							hx-swap="innerHTML show:top"
-							hx-on::after-request="this.querySelector('.chevron').classList.add('rotate-90')"
-							onclick="var rid=this.dataset.runId;var td=document.getElementById('steps-'+rid).querySelector('td');var cv=this.querySelector('.chevron');if(td.innerHTML.trim()){td.innerHTML='';cv.classList.remove('rotate-90');return false}"
 							data-run-id={ fmt.Sprint(r.ID) }
+							data-run-expand="1"
 							data-testid={ "run-row-" + fmt.Sprint(r.ID) }>
 							<td class="text-base-content/30">
 								<span class="chevron inline-block transition-transform duration-200">&#9654;</span>
@@ -56,8 +56,8 @@ templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 							<td class="text-base-content/50 text-xs">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
 							<td class="text-base-content/50 text-xs">{ runsDuration(r) }</td>
 						</tr>
-						<tr id={ "steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
-							<td colspan="6"></td>
+							<tr id={ "steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
+							<td colspan="6" class="max-w-0 p-0"></td>
 						</tr>
 					</tbody>
 				}
@@ -71,9 +71,9 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 	if len(steps) == 0 {
 		<div class="text-sm text-base-content/30 py-3 text-center">No step runs recorded for this run.</div>
 	} else {
-		<div class="px-4 py-3" data-testid="step-runs-detail">
+		<div class="px-4 py-3 min-w-0 max-w-full" data-testid="step-runs-detail">
 			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Step Runs</div>
-			<table class="table table-xs">
+			<table class="table table-xs w-full">
 				<thead>
 					<tr>
 						<th class="w-8"></th>
@@ -102,7 +102,9 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 						} else {
 							<tr class="cursor-pointer hover"
 								data-testid={ "step-row-" + s.StepName }
-								onclick="event.stopPropagation();var c=this.querySelector('.step-chevron');c.classList.toggle('rotate-90');this.nextElementSibling.classList.toggle('hidden')">
+								data-step-toggle
+								role="button"
+								tabindex="0">
 								<td class="text-base-content/30">
 									<span class="step-chevron inline-block transition-transform duration-200">&#9654;</span>
 								</td>
@@ -116,20 +118,24 @@ templ PipelineStepRunsDetail(steps []*gen.PipelineStepRun) {
 								<td class="text-base-content/50">{ stepRunsDuration(s) }</td>
 							</tr>
 							<tr class="step-detail-row hidden" data-testid={ "step-detail-row-" + s.StepName }>
-								<td colspan="7">
-									<div class="space-y-1 py-1">
+								<td colspan="7" class="max-w-0">
+									<div class="min-w-0 max-w-full space-y-1 py-1">
 										if len(s.Params) > 0 {
-											<details class="mb-1" open>
+											<details class="mb-1 min-w-0" open>
 												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Input</summary>
-												<pre class="bg-base-200 rounded-box p-2 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre">{ sprintJSON(s.Params) }</pre>
+												<div class="run-json-preview" data-testid="step-input-json">
+													<pre>{ sprintJSON(s.Params) }</pre>
+												</div>
 											</details>
 										} else {
 											<div class="text-xs text-base-content/20 italic py-1">Input: (empty)</div>
 										}
 										if len(s.Result) > 0 {
-											<details open>
+											<details class="min-w-0" open>
 												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Output</summary>
-												<pre class="bg-base-200 rounded-box p-2 text-xs font-mono overflow-x-auto max-h-60 whitespace-pre">{ sprintJSON(s.Result) }</pre>
+												<div class="run-json-preview" data-testid="step-output-json">
+													<pre>{ sprintJSON(s.Result) }</pre>
+												</div>
 											</details>
 										} else {
 											<div class="text-xs text-base-content/20 italic py-1">Output: (empty)</div>
@@ -199,9 +205,43 @@ func sprintJSON(m map[string]any) string {
 	if len(m) == 0 {
 		return ""
 	}
-	data, err := sonic.MarshalIndent(m, "", "  ")
+	data, err := sonic.MarshalIndent(expandNestedJSON(m), "", "  ")
 	if err != nil {
 		return fmt.Sprintf("(error: %v)", err)
 	}
 	return string(data)
+}
+
+// expandNestedJSON recursively parses JSON-looking string values so long escaped
+// payloads render as indented objects instead of one giant line.
+func expandNestedJSON(v any) any {
+	switch x := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(x))
+		for k, child := range x {
+			out[k] = expandNestedJSON(child)
+		}
+		return out
+	case []any:
+		out := make([]any, len(x))
+		for i, child := range x {
+			out[i] = expandNestedJSON(child)
+		}
+		return out
+	case string:
+		trimmed := strings.TrimSpace(x)
+		if len(trimmed) < 2 {
+			return x
+		}
+		if trimmed[0] != '{' && trimmed[0] != '[' {
+			return x
+		}
+		var parsed any
+		if err := sonic.Unmarshal([]byte(trimmed), &parsed); err != nil {
+			return x
+		}
+		return expandNestedJSON(parsed)
+	default:
+		return v
+	}
 }

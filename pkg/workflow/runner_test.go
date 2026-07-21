@@ -39,7 +39,7 @@ func newMockWorkflowStore() *mockWorkflowStore {
 	}
 }
 
-func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error) {
+func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowID int64, workflowName, workflowFile, triggerType string, triggerInfo, inputParams map[string]any) (*gen.WorkflowRun, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.nextRunID++
@@ -52,11 +52,46 @@ func (m *mockWorkflowStore) CreateRun(_ context.Context, workflowName, workflowF
 		InputParams:  inputParams,
 		Status:       int(schema.WorkflowRunRunning),
 	}
+	if workflowID != 0 {
+		run.WorkflowID = &workflowID
+	}
 	m.runs[run.ID] = run
 	return run, nil
 }
 
-func (m *mockWorkflowStore) UpdateRunStatus(_ context.Context, runID int64, status int, _ string) error {
+type mockDefinitionStore struct {
+	byName map[string]*types.WorkflowMetadata
+	err    error
+}
+
+func newMockDefinitionStore(defs ...*types.WorkflowMetadata) *mockDefinitionStore {
+	m := &mockDefinitionStore{byName: make(map[string]*types.WorkflowMetadata)}
+	for _, d := range defs {
+		if d != nil {
+			m.byName[d.Name] = d
+		}
+	}
+	return m
+}
+
+func (m *mockDefinitionStore) GetMetadata(_ context.Context, name string) (*types.WorkflowMetadata, error) {
+	if m != nil && m.err != nil {
+		return nil, m.err
+	}
+	if m == nil || m.byName == nil {
+		return nil, assert.AnError
+	}
+	wf, ok := m.byName[name]
+	if !ok {
+		return nil, assert.AnError
+	}
+	return wf, nil
+}
+
+func (m *mockWorkflowStore) UpdateRunStatus(ctx context.Context, runID int64, status int, _ string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.statusLog = append(m.statusLog, status)
@@ -85,7 +120,10 @@ func (m *mockWorkflowStore) CreateStepRun(_ context.Context, runID int64, stepID
 	return sr, nil
 }
 
-func (m *mockWorkflowStore) UpdateStepRun(_ context.Context, stepRunID int64, status int, result map[string]any, _ string, _ int) error {
+func (m *mockWorkflowStore) UpdateStepRun(ctx context.Context, stepRunID int64, status int, result map[string]any, _ string, _ int) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.stepStatus = append(m.stepStatus, status)
@@ -380,7 +418,7 @@ func TestRunner_RunWithRetry(t *testing.T) {
 	task, err := WorkflowTaskToTask(types.WorkflowTask{ID: "s1", Action: "shell:noop"})
 	require.NoError(t, err)
 
-	run, err := store.CreateRun(context.Background(), "retry-wf", "f.yaml", "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "retry-wf", "f.yaml", "manual", nil, nil)
 	require.NoError(t, err)
 	stepRun, err := store.CreateStepRun(context.Background(), run.ID, "s1", "", "shell:noop", "shell", nil, 1)
 	require.NoError(t, err)
@@ -411,9 +449,10 @@ tasks:
     params:
       from_m1: '{{step "m1" "result"}}'
 `
-	path := writeWorkflowFile(t, wfContent)
+	wf, err := ParseYAML([]byte(wfContent))
+	require.NoError(t, err)
 	store := newMockWorkflowStore()
-	run, err := store.CreateRun(context.Background(), "resume-wf", path, "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "resume-wf", "db", "manual", nil, nil)
 	require.NoError(t, err)
 	require.NoError(t, store.SaveCheckpoint(context.Background(), run.ID, &CheckpointData{
 		StepIndex:   0,
@@ -421,7 +460,7 @@ tasks:
 		Input:       types.KV{"seed": "v"},
 	}))
 
-	runner := NewRunnerWithStore(store, nil, nil, "", "")
+	runner := NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf))
 	err = runner.ResumeWorkflow(context.Background(), run.ID)
 	require.NoError(t, err)
 	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
@@ -442,13 +481,24 @@ func TestRunner_ResumeWorkflow_Errors(t *testing.T) {
 			errContains: "cannot resume workflow without a store",
 		},
 		{
+			name: "no definition store configured",
+			setup: func(t *testing.T) (*Runner, int64) {
+				store := newMockWorkflowStore()
+				run, err := store.CreateRun(context.Background(), 0, "wf", "db", "manual", nil, nil)
+				require.NoError(t, err)
+				return NewRunnerWithStore(store, nil, nil, "", ""), run.ID
+			},
+			errContains: "cannot resume workflow without a definition store",
+		},
+		{
 			name: "non-resumable status",
 			setup: func(t *testing.T) (*Runner, int64) {
 				store := newMockWorkflowStore()
-				run, err := store.CreateRun(context.Background(), "wf", "f.yaml", "manual", nil, nil)
+				run, err := store.CreateRun(context.Background(), 0, "wf", "db", "manual", nil, nil)
 				require.NoError(t, err)
 				run.Status = int(schema.WorkflowRunDone)
-				return NewRunnerWithStore(store, nil, nil, "", ""), run.ID
+				wf := &types.WorkflowMetadata{Name: "wf", Pipeline: []string{"m1"}, Tasks: []types.WorkflowTask{{ID: "m1", Action: "mapper:"}}}
+				return NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf)), run.ID
 			},
 			errContains: "not resumable",
 		},
@@ -456,17 +506,18 @@ func TestRunner_ResumeWorkflow_Errors(t *testing.T) {
 			name: "missing checkpoint",
 			setup: func(t *testing.T) (*Runner, int64) {
 				store := newMockWorkflowStore()
-				path := writeWorkflowFile(t, `name: wf
+				wf, err := ParseYAML([]byte(`name: wf
 pipeline: [m1]
 tasks:
   - id: m1
     action: "mapper:"
     params: {k: v}
-`)
-				run, err := store.CreateRun(context.Background(), "wf", path, "manual", nil, nil)
+`))
+				require.NoError(t, err)
+				run, err := store.CreateRun(context.Background(), 0, "wf", "db", "manual", nil, nil)
 				require.NoError(t, err)
 				run.Status = int(schema.WorkflowRunFailed)
-				return NewRunnerWithStore(store, nil, nil, "", ""), run.ID
+				return NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf)), run.ID
 			},
 			errContains: "get checkpoint",
 		},
@@ -645,9 +696,10 @@ tasks:
     params:
       value: '{{step "m1" "result"}}'
 `
-	path := writeWorkflowFile(t, wfContent)
+	wf, err := ParseYAML([]byte(wfContent))
+	require.NoError(t, err)
 	store := newMockWorkflowStore()
-	run, err := store.CreateRun(context.Background(), "resume-cap", path, "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "resume-cap", "db", "manual", nil, nil)
 	require.NoError(t, err)
 	run.Status = int(schema.WorkflowRunFailed)
 	require.NoError(t, store.SaveCheckpoint(context.Background(), run.ID, &CheckpointData{
@@ -655,7 +707,7 @@ tasks:
 		StepResults: map[string]string{"m1": `{"seed":"v"}`},
 	}))
 
-	runner := NewRunnerWithStore(store, nil, nil, "", "")
+	runner := NewRunnerWithStore(store, nil, nil, "", "").WithDefinitionStore(newMockDefinitionStore(wf))
 	err = runner.ResumeWorkflow(context.Background(), run.ID)
 	require.NoError(t, err)
 	assert.Contains(t, store.statusLog, int(schema.WorkflowRunDone))
@@ -665,7 +717,7 @@ func TestFailStepAndFailRun(t *testing.T) {
 	t.Parallel()
 	store := newMockWorkflowStore()
 	runner := NewRunnerWithStore(store, nil, nil, "", "")
-	run, err := store.CreateRun(context.Background(), "wf", "f.yaml", "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "wf", "f.yaml", "manual", nil, nil)
 	require.NoError(t, err)
 	stepRun, err := store.CreateStepRun(context.Background(), run.ID, "s1", "", "mapper:", "mapper", nil, 1)
 	require.NoError(t, err)
@@ -682,7 +734,7 @@ func TestExecuteSequentialMapperStepMarshalError(t *testing.T) {
 	t.Parallel()
 	store := newMockWorkflowStore()
 	runner := NewRunnerWithStore(store, nil, nil, "", "")
-	run, err := store.CreateRun(context.Background(), "wf", "f.yaml", "manual", nil, nil)
+	run, err := store.CreateRun(context.Background(), 0, "wf", "f.yaml", "manual", nil, nil)
 	require.NoError(t, err)
 	stepRun, err := store.CreateStepRun(context.Background(), run.ID, "m1", "", "mapper:", "mapper", nil, 1)
 	require.NoError(t, err)

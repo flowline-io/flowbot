@@ -18,6 +18,8 @@ type WorkflowRun struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int64 `json:"id,omitempty"`
+	// WorkflowID holds the value of the "workflow_id" field.
+	WorkflowID *int64 `json:"workflow_id,omitempty"`
 	// WorkflowName holds the value of the "workflow_name" field.
 	WorkflowName string `json:"workflow_name,omitempty"`
 	// WorkflowFile holds the value of the "workflow_file" field.
@@ -52,7 +54,7 @@ func (*WorkflowRun) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case workflowrun.FieldTriggerInfo, workflowrun.FieldInputParams, workflowrun.FieldCheckpointData:
 			values[i] = new([]byte)
-		case workflowrun.FieldID, workflowrun.FieldStatus:
+		case workflowrun.FieldID, workflowrun.FieldWorkflowID, workflowrun.FieldStatus:
 			values[i] = new(sql.NullInt64)
 		case workflowrun.FieldWorkflowName, workflowrun.FieldWorkflowFile, workflowrun.FieldTriggerType, workflowrun.FieldError:
 			values[i] = new(sql.NullString)
@@ -79,6 +81,13 @@ func (_m *WorkflowRun) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int64(value.Int64)
+		case workflowrun.FieldWorkflowID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field workflow_id", values[i])
+			} else if value.Valid {
+				_m.WorkflowID = new(int64)
+				*_m.WorkflowID = value.Int64
+			}
 		case workflowrun.FieldWorkflowName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field workflow_name", values[i])
@@ -195,6 +204,11 @@ func (_m *WorkflowRun) String() string {
 	var builder strings.Builder
 	builder.WriteString("WorkflowRun(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	if v := _m.WorkflowID; v != nil {
+		builder.WriteString("workflow_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("workflow_name=")
 	builder.WriteString(_m.WorkflowName)
 	builder.WriteString(", ")

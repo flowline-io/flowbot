@@ -18,20 +18,40 @@ import (
 
 var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 
-	Describe("Webservice — POST /run", func() {
-		It("rejects empty request body", func() {
-			req := JSONRequest(http.MethodPost, "/service/workflow/run", nil)
+	Describe("Webservice — apply / list / run", func() {
+		It("rejects apply without yaml", func() {
+			body, _ := sonic.Marshal(map[string]any{})
+			req := JSONRequest(http.MethodPost, "/service/workflow/apply", body)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp.StatusCode).To(Or(Equal(http.StatusOK), Equal(http.StatusBadRequest), Equal(http.StatusUnauthorized), Equal(http.StatusNotFound)))
+			Expect(resp.StatusCode).To(Or(
+				Equal(http.StatusBadRequest),
+				Equal(http.StatusUnauthorized),
+				Equal(http.StatusServiceUnavailable),
+			))
 		})
 
-		It("rejects request without file field", func() {
-			body, _ := sonic.Marshal(map[string]string{"params": "{}"})
+		It("rejects run without workflow name", func() {
+			body, _ := sonic.Marshal(map[string]any{"input": map[string]any{}})
 			req := JSONRequest(http.MethodPost, "/service/workflow/run", body)
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
-			_ = resp
+			Expect(resp.StatusCode).To(Or(
+				Equal(http.StatusBadRequest),
+				Equal(http.StatusUnauthorized),
+				Equal(http.StatusServiceUnavailable),
+			))
+		})
+
+		It("lists workflows or reports unavailable", func() {
+			req := JSONRequest(http.MethodGet, "/service/workflow/list", nil)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Or(
+				Equal(http.StatusOK),
+				Equal(http.StatusUnauthorized),
+				Equal(http.StatusServiceUnavailable),
+			))
 		})
 	})
 

@@ -262,12 +262,12 @@ func (_q *WorkflowRunQuery) Clone() *WorkflowRunQuery {
 // Example:
 //
 //	var v []struct {
-//		WorkflowName string `json:"workflow_name,omitempty"`
+//		WorkflowID int64 `json:"workflow_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.WorkflowRun.Query().
-//		GroupBy(workflowrun.FieldWorkflowName).
+//		GroupBy(workflowrun.FieldWorkflowID).
 //		Aggregate(gen.Count()).
 //		Scan(ctx, &v)
 func (_q *WorkflowRunQuery) GroupBy(field string, fields ...string) *WorkflowRunGroupBy {
@@ -285,11 +285,11 @@ func (_q *WorkflowRunQuery) GroupBy(field string, fields ...string) *WorkflowRun
 // Example:
 //
 //	var v []struct {
-//		WorkflowName string `json:"workflow_name,omitempty"`
+//		WorkflowID int64 `json:"workflow_id,omitempty"`
 //	}
 //
 //	client.WorkflowRun.Query().
-//		Select(workflowrun.FieldWorkflowName).
+//		Select(workflowrun.FieldWorkflowID).
 //		Scan(ctx, &v)
 func (_q *WorkflowRunQuery) Select(fields ...string) *WorkflowRunSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

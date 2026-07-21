@@ -657,6 +657,18 @@ func (f UserFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserMutation", m)
 }
 
+// The WorkflowFunc type is an adapter to allow the use of ordinary
+// function as Workflow mutator.
+type WorkflowFunc func(context.Context, *gen.WorkflowMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.WorkflowMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowMutation", m)
+}
+
 // The WorkflowRunFunc type is an adapter to allow the use of ordinary
 // function as WorkflowRun mutator.
 type WorkflowRunFunc func(context.Context, *gen.WorkflowRunMutation) (gen.Value, error)
@@ -679,6 +691,30 @@ func (f WorkflowStepRunFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Va
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowStepRunMutation", m)
+}
+
+// The WorkflowTaskFunc type is an adapter to allow the use of ordinary
+// function as WorkflowTask mutator.
+type WorkflowTaskFunc func(context.Context, *gen.WorkflowTaskMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowTaskFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.WorkflowTaskMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowTaskMutation", m)
+}
+
+// The WorkflowTriggerFunc type is an adapter to allow the use of ordinary
+// function as WorkflowTrigger mutator.
+type WorkflowTriggerFunc func(context.Context, *gen.WorkflowTriggerMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkflowTriggerFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.WorkflowTriggerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WorkflowTriggerMutation", m)
 }
 
 // Condition is a hook condition function.

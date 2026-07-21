@@ -1,0 +1,24 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ WorkflowListPage(entries []partials.WorkflowListEntry) {
+	@layout.Base("Workflows") {
+		<div class="max-w-4xl mx-auto">
+			@partials.PageHeader("Workflows", "Stored workflow definitions.") {
+			}
+			<div
+				id="workflow-list-panel"
+				hx-get="/service/web/workflows/list"
+				hx-trigger="every 30s"
+				hx-swap="innerHTML"
+				data-testid="workflow-list-panel"
+			>
+				@partials.WorkflowListTable(entries)
+			</div>
+		</div>
+	}
+}

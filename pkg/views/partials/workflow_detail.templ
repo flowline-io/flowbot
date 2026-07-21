@@ -1,0 +1,445 @@
+package partials
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+templ WorkflowRunsTable(name string, runs []*gen.WorkflowRun) {
+	if len(runs) == 0 {
+		<div class="py-12" data-testid="workflow-runs-empty">
+			@EmptyState("No runs recorded yet.")
+		</div>
+	} else {
+		<div id="workflow-runs-container" class="flowbot-surface min-w-0 max-w-full" data-testid="workflow-runs-table">
+			<div class="overflow-x-auto max-w-full">
+				<table class="table w-full">
+					<thead>
+						<tr>
+							<th class="w-8"></th>
+							<th>Run ID</th>
+							<th>Trigger</th>
+							<th>Status</th>
+							<th>Started</th>
+							<th>Duration</th>
+							<th>Error</th>
+						</tr>
+					</thead>
+					for _, r := range runs {
+						<tbody id={ "workflow-run-" + fmt.Sprint(r.ID) }>
+							<tr class="cursor-pointer hover"
+								hx-get={ templ.URL(WorkflowWebPath(name) + "/runs/" + fmt.Sprint(r.ID) + "/steps") }
+								hx-trigger="click"
+								hx-target={ "#workflow-steps-" + fmt.Sprint(r.ID) + " td" }
+								hx-swap="innerHTML show:top"
+								data-run-id={ fmt.Sprint(r.ID) }
+								data-run-expand="1"
+								data-testid={ "workflow-run-row-" + fmt.Sprint(r.ID) }>
+								<td class="text-base-content/30">
+									<span class="chevron inline-block transition-transform duration-200">&#9654;</span>
+								</td>
+								<td class="font-mono text-xs text-base-content/70">{ fmt.Sprint(r.ID) }</td>
+								<td class="text-base-content/70 text-sm">{ r.TriggerType }</td>
+								<td>
+									<span class={ WorkflowRunStatusClass(r.Status) } data-testid={ "workflow-run-status-" + fmt.Sprint(r.ID) }>
+										{ WorkflowRunStatusText(r.Status) }
+									</span>
+								</td>
+								<td class="text-base-content/50 text-xs">{ r.StartedAt.Format("2006-01-02 15:04:05") }</td>
+								<td class="text-base-content/50 text-xs">{ WorkflowRunDuration(r) }</td>
+								<td class="text-error text-xs max-w-md">
+									if r.Error != "" {
+										<div class="whitespace-pre-wrap break-all" title={ r.Error } data-testid={ "workflow-run-error-" + fmt.Sprint(r.ID) }>{ r.Error }</div>
+									} else {
+										<span class="text-base-content/30">—</span>
+									}
+								</td>
+							</tr>
+							<tr id={ "workflow-steps-" + fmt.Sprint(r.ID) } class="run-detail-row">
+								<td colspan="7" class="max-w-0 p-0"></td>
+							</tr>
+						</tbody>
+					}
+				</table>
+			</div>
+		</div>
+	}
+}
+
+templ WorkflowStepRunsDetail(steps []*gen.WorkflowStepRun) {
+	if len(steps) == 0 {
+		<div class="text-sm text-base-content/30 py-3 text-center" data-testid="workflow-step-runs-empty">No task runs recorded for this run.</div>
+	} else {
+		<div class="px-4 py-3 min-w-0 max-w-full" data-testid="workflow-step-runs-detail">
+			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Task Runs</div>
+			<table class="table table-xs w-full">
+				<thead>
+					<tr>
+						<th class="w-8"></th>
+						<th>Task</th>
+						<th>Action</th>
+						<th>Type</th>
+						<th>Status</th>
+						<th>Attempt</th>
+						<th>Duration</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, s := range steps {
+						if s == nil {
+							continue
+						}
+						if !workflowStepHasDetail(s) {
+							<tr data-testid={ "workflow-step-row-" + WorkflowStepKey(s) }>
+								<td></td>
+								<td class="font-medium text-base-content">{ stepDisplayName(s) }</td>
+								<td class="font-mono text-xs text-base-content/50">{ s.Action }</td>
+								<td class="text-base-content/50">{ s.ActionType }</td>
+								<td>
+									<span class={ WorkflowRunStatusClass(s.Status) }>{ WorkflowRunStatusText(s.Status) }</span>
+								</td>
+								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
+								<td class="text-base-content/50">{ WorkflowStepRunDuration(s) }</td>
+							</tr>
+						} else {
+							<tr class="cursor-pointer hover"
+								data-testid={ "workflow-step-row-" + WorkflowStepKey(s) }
+								data-step-toggle
+								role="button"
+								tabindex="0">
+								<td class="text-base-content/30">
+									<span class={ "step-chevron inline-block transition-transform duration-200", templ.KV("rotate-90", workflowStepDetailOpen(s)) }>&#9654;</span>
+								</td>
+								<td class="font-medium text-base-content">{ stepDisplayName(s) }</td>
+								<td class="font-mono text-xs text-base-content/50">{ s.Action }</td>
+								<td class="text-base-content/50">{ s.ActionType }</td>
+								<td>
+									<span class={ WorkflowRunStatusClass(s.Status) }>{ WorkflowRunStatusText(s.Status) }</span>
+								</td>
+								<td class="text-base-content/50">{ fmt.Sprint(s.Attempt) }</td>
+								<td class="text-base-content/50">{ WorkflowStepRunDuration(s) }</td>
+							</tr>
+							<tr class={ "step-detail-row", templ.KV("hidden", !workflowStepDetailOpen(s)) } data-testid={ "workflow-step-detail-row-" + WorkflowStepKey(s) }>
+								<td colspan="7" class="max-w-0">
+									<div class="min-w-0 max-w-full space-y-1 py-1">
+										if s.Error != "" {
+											<div class="mb-1" data-testid={ "workflow-step-error-" + WorkflowStepKey(s) }>
+												<div class="text-xs font-mono text-error/80 mb-1">Error</div>
+												<div class="run-json-preview">
+													<pre class="text-error">{ s.Error }</pre>
+												</div>
+											</div>
+										}
+										if len(s.Params) > 0 {
+											<details class="mb-1 min-w-0" open>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Input</summary>
+												<div class="run-json-preview" data-testid="workflow-step-input-json">
+													<pre>{ sprintJSON(s.Params) }</pre>
+												</div>
+											</details>
+										} else {
+											<div class="text-xs text-base-content/20 italic py-1">Input: (empty)</div>
+										}
+										if len(s.Result) > 0 {
+											<details class="min-w-0" open>
+												<summary class="cursor-pointer text-xs font-mono text-base-content/60 hover:text-base-content select-none mb-1">Output</summary>
+												<div class="run-json-preview" data-testid="workflow-step-output-json">
+													<pre>{ sprintJSON(s.Result) }</pre>
+												</div>
+											</details>
+										} else {
+											<div class="text-xs text-base-content/20 italic py-1">Output: (empty)</div>
+										}
+									</div>
+								</td>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+}
+
+templ WorkflowRunNowForm(name string, inputs []types.WorkflowInputDef) {
+	<div class="flowbot-surface p-4" data-testid="workflow-run-now">
+		<h2 class="text-base font-semibold tracking-tight mb-3">Run now</h2>
+		<form
+			hx-post={ templ.URL(WorkflowWebPath(name) + "/run") }
+			hx-target="body"
+			data-testid="workflow-run-form"
+		>
+			<div id="form-error" data-testid="form-error-slot"></div>
+			if len(inputs) == 0 {
+				<p class="text-sm text-base-content/50 mb-4">This workflow has no declared inputs.</p>
+			} else {
+				<div class="space-y-3 mb-4">
+					for _, in := range inputs {
+						@WorkflowInputField(in)
+					}
+				</div>
+			}
+			<button type="submit" class="btn btn-primary btn-sm" data-testid="btn-workflow-run">
+				Run workflow
+				<span class="loading loading-spinner loading-xs htmx-indicator"></span>
+			</button>
+		</form>
+	</div>
+}
+
+templ WorkflowInputField(in types.WorkflowInputDef) {
+	<div data-testid={ "workflow-input-" + in.Name }>
+		<label class="label py-1">
+			<span class="label-text">
+				{ in.Name }
+				if in.Required {
+					<span class="text-error">*</span>
+				}
+			</span>
+			<span class="label-text-alt text-base-content/40 font-mono">{ in.Type }</span>
+		</label>
+		if in.Description != "" {
+			<p class="text-xs text-base-content/50 mb-1">{ in.Description }</p>
+		}
+		if WorkflowInputIsBoolean(in.Type) {
+			<select name={ in.Name } class="select select-bordered select-sm w-full" data-testid={ "input-" + in.Name }>
+				<option value="">—</option>
+				<option value="true">true</option>
+				<option value="false">false</option>
+			</select>
+		} else if WorkflowInputIsJSON(in.Type) {
+			<textarea
+				name={ in.Name }
+				rows="3"
+				class="textarea textarea-bordered textarea-sm w-full font-mono"
+				placeholder={ WorkflowInputDefaultString(in) }
+				data-testid={ "input-" + in.Name }
+			></textarea>
+		} else if WorkflowInputIsNumber(in.Type) {
+			<input
+				type="number"
+				name={ in.Name }
+				step="any"
+				class="input input-bordered input-sm w-full"
+				placeholder={ WorkflowInputDefaultString(in) }
+				data-testid={ "input-" + in.Name }
+			>
+		} else {
+			<input
+				type="text"
+				name={ in.Name }
+				class="input input-bordered input-sm w-full"
+				placeholder={ WorkflowInputDefaultString(in) }
+				data-testid={ "input-" + in.Name }
+			>
+		}
+	</div>
+}
+
+templ WorkflowYAMLSource(yamlText string) {
+	if yamlText == "" {
+		<div class="py-6" data-testid="workflow-yaml-empty">
+			@EmptyState("YAML source unavailable.")
+		</div>
+	} else {
+		<div class="flowbot-surface workflow-yaml min-w-0 max-w-full" data-testid="workflow-yaml">
+			<pre class="workflow-yaml-source" data-testid="workflow-yaml-text">{ yamlText }</pre>
+		</div>
+	}
+}
+
+templ WorkflowDAG(view WorkflowDAGView) {
+	if len(view.Layers) == 0 {
+		<div class="py-6" data-testid="workflow-dag-empty">
+			@EmptyState("No tasks to graph.")
+		</div>
+	} else {
+		<div class="workflow-dag flowbot-surface" data-testid="workflow-dag">
+			<div class="workflow-dag-header">
+				<div>
+					<div class="workflow-dag-title">Execution graph</div>
+					<p class="workflow-dag-subtitle">
+						if view.Sequential {
+							Tasks run in pipeline order
+						} else if view.ParallelRuntime {
+							Parallel branches follow Conn dependencies
+						} else {
+							Conn graph; executes sequentially when max_concurrency ≤ 1
+						}
+					</p>
+				</div>
+				if view.ParallelRuntime {
+					<span class="flowbot-chip flowbot-chip-primary" data-testid="workflow-dag-mode">Parallel DAG</span>
+				} else {
+					<span class="flowbot-chip flowbot-chip-muted" data-testid="workflow-dag-mode">Sequential</span>
+				}
+			</div>
+			<div class="workflow-dag-canvas">
+				for i, layer := range view.Layers {
+					<div
+						class="workflow-dag-layer"
+						style={ "--dag-cols: " + fmt.Sprintf("%d", len(layer)) }
+						data-testid={ fmt.Sprintf("workflow-dag-layer-%d", i) }
+					>
+						for j, node := range layer {
+							<article
+								class="workflow-dag-node"
+								title={ workflowDAGNodeTitle(node) }
+								data-testid={ "workflow-dag-node-" + node.ID }
+							>
+								<div class="workflow-dag-node-accent" aria-hidden="true"></div>
+								<div class="workflow-dag-node-body">
+									<div class="workflow-dag-node-head">
+										<span class="workflow-dag-node-index">{ fmt.Sprintf("%d", WorkflowDAGNodeIndex(view, i, j)) }</span>
+										<span class="workflow-dag-node-id">{ node.ID }</span>
+									</div>
+									if node.Describe != "" {
+										<p class="workflow-dag-node-desc">{ node.Describe }</p>
+									}
+									if node.Action != "" {
+										<code class="workflow-dag-node-action">{ node.Action }</code>
+									}
+								</div>
+							</article>
+						}
+					</div>
+					if i < len(view.Layers)-1 {
+						@workflowDAGConnector(len(layer), len(view.Layers[i+1]))
+					}
+				}
+			</div>
+		</div>
+	}
+}
+
+templ workflowDAGConnector(fromCount, toCount int) {
+	<div
+		class={ workflowDAGConnectorClass(fromCount, toCount) }
+		style={ workflowDAGConnectorStyle(fromCount, toCount) }
+		aria-hidden="true"
+		data-testid="workflow-dag-connector"
+	>
+		<div class="workflow-dag-conn-from">
+			for range workflowDAGRepeat(fromCount) {
+				<span class="workflow-dag-conn-stem"></span>
+			}
+		</div>
+		<div class="workflow-dag-conn-bar-wrap">
+			<span class="workflow-dag-conn-bar"></span>
+		</div>
+		<div class="workflow-dag-conn-to">
+			for range workflowDAGRepeat(toCount) {
+				<span class="workflow-dag-conn-stem workflow-dag-conn-arrow"></span>
+			}
+		</div>
+	</div>
+}
+
+templ WorkflowTriggersTable(workflowName string, triggers []*gen.WorkflowTrigger) {
+	if len(triggers) == 0 {
+		<div class="py-6" data-testid="workflow-triggers-empty">
+			@EmptyState("No triggers configured.")
+		</div>
+	} else {
+		<div id="workflow-triggers-container" class="flowbot-surface" data-testid="workflow-triggers-table">
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Type</th>
+							<th class="text-center">Status</th>
+							<th>Rule</th>
+							<th class="text-right">Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, tr := range triggers {
+							if tr == nil {
+								continue
+							}
+							<tr data-testid={ "workflow-trigger-" + fmt.Sprint(tr.ID) }>
+								<td class="font-medium">{ tr.Type }</td>
+								<td class="text-center">
+									@StatusIcon(EnabledStatusIcon(tr.Enabled), "workflow-trigger-enabled-"+fmt.Sprint(tr.ID))
+								</td>
+								<td class="font-mono text-xs text-base-content/50 max-w-md truncate">{ valuePreview(tr.Rule) }</td>
+								<td class="text-right">
+									if tr.Enabled {
+										<button type="button"
+											hx-put={ templ.URL(WorkflowWebPath(workflowName) + "/triggers/" + fmt.Sprint(tr.ID) + "/enabled") }
+											hx-vals='{"enabled": false}'
+											hx-target="#workflow-triggers-container"
+											hx-swap="outerHTML"
+											data-confirm="Disable this trigger? It will stop firing until re-enabled."
+											data-confirm-title="Disable Trigger"
+											data-confirm-btn="Disable"
+											data-confirm-class="btn-warning"
+											data-testid={ "btn-disable-trigger-" + fmt.Sprint(tr.ID) }
+											class="btn btn-ghost btn-xs text-warning">Disable</button>
+									} else {
+										<button type="button"
+											hx-put={ templ.URL(WorkflowWebPath(workflowName) + "/triggers/" + fmt.Sprint(tr.ID) + "/enabled") }
+											hx-vals='{"enabled": true}'
+											hx-target="#workflow-triggers-container"
+											hx-swap="outerHTML"
+											data-testid={ "btn-enable-trigger-" + fmt.Sprint(tr.ID) }
+											class="btn btn-ghost btn-xs text-success">Enable</button>
+									}
+								</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}
+
+templ WorkflowInputsReadonly(inputs []types.WorkflowInputDef) {
+	if len(inputs) == 0 {
+		<div class="py-6" data-testid="workflow-inputs-empty">
+			@EmptyState("No inputs declared.")
+		</div>
+	} else {
+		<div class="flowbot-surface" data-testid="workflow-inputs-table">
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Type</th>
+							<th>Required</th>
+							<th>Default</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, in := range inputs {
+							<tr data-testid={ "workflow-input-def-" + in.Name }>
+								<td class="font-mono text-sm">{ in.Name }</td>
+								<td><span class="flowbot-chip flowbot-chip-muted">{ in.Type }</span></td>
+								<td class="text-sm">
+									if in.Required {
+										yes
+									} else {
+										no
+									}
+								</td>
+								<td class="font-mono text-xs text-base-content/50">
+									if in.Default != nil {
+										{ WorkflowInputDefaultString(in) }
+									} else {
+										—
+									}
+								</td>
+								<td class="text-sm text-base-content/70">{ in.Description }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	}
+}

@@ -94,6 +94,8 @@ func PipelineTriggerLetter(typ string) string {
 		return "C"
 	case "webhook":
 		return "W"
+	case "manual":
+		return "M"
 	default:
 		return "?"
 	}

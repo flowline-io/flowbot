@@ -6,25 +6,24 @@ Source: `pkg/workflow/`
 
 ## Overview
 
-The workflow engine executes ordered sequences of tasks defined in YAML files. Tasks can invoke capabilities, run Docker containers, execute shell commands, or connect to remote machines. The engine supports parameter resolution via Go templates and validates DAG dependencies to prevent cycles.
+Workflow definitions are stored in the database. YAML is an exchange format for
+`apply` / `export` only — the server does not execute local file paths. The runner
+supports capability, Docker, shell, machine, and mapper actions, Go template params,
+and DAG validation.
 
 ```
-Workflow YAML (parse + validate DAG)
-    │
-    ▼
-Runner.Execute()
-    │
-    ├── For each task in pipeline order:
-    │     ├── resolveParams (template engine)
-    │     ├── if action is mapper:
-    │     │     └── json.Marshal(params) → store as step result
-    │     │         (inline, no external runtime)
-    │     ├── else:
-    │     │     ├── WorkflowTaskToTask (task conversion)
-    │     │     ├── runWithRetry (Runner.Run with backoff)
-    │     │     └── Collect result for downstream templates
-    │     └── continue
-    └── Return success or error
+flowbot workflow apply --file wf.yaml
+        │
+        ▼
+ParseYAML → ApplyDefinition (DB) → ReloadTriggers (cron/webhook)
+        │
+POST /service/workflow/run { "name", "input" }
+        │
+        ▼
+StartRunAsync → ValidateInputs → CreateRun → Execute (goroutine)
+        │
+        ▼
+GET /service/workflow/runs/:name  (inspect status)
 ```
 
 ## YAML Schema
@@ -34,7 +33,16 @@ Workflow files are standalone YAML documents:
 ```yaml
 name: save_and_track
 describe: "Save a URL as a bookmark, archive it, and create a kanban task"
+enabled: true                          # false disables cron/webhook triggers
 resumable: true                        # enable state persistence
+
+inputs:                                # declared run inputs (validated on run)
+  - name: url
+    type: string
+    required: true
+  - name: title
+    type: string
+    required: true
 
 pipeline:                              # ordered list of task IDs
   - save_bookmark
@@ -83,14 +91,17 @@ tasks:
 
 ### Top-Level Fields
 
-| Field       | Type      | Required | Description                                    |
-| ----------- | --------- | -------- | ---------------------------------------------- |
-| `name`      | string    | Yes      | Unique workflow identifier                     |
-| `describe`  | string    | No       | Human-readable description                     |
-| `resumable` | bool      | No       | Enable checkpoint persistence (default: false) |
-| `triggers`  | []Trigger | No       | Trigger configurations (cron, manual, webhook) |
-| `pipeline`  | []string  | Yes      | Ordered list of task IDs to execute            |
-| `tasks`     | []Task    | Yes      | Task definitions                               |
+| Field             | Type      | Required | Description                                    |
+| ----------------- | --------- | -------- | ---------------------------------------------- |
+| `name`            | string    | Yes      | Unique workflow identifier                     |
+| `describe`        | string    | No       | Human-readable description                     |
+| `enabled`         | bool      | No       | Default true; false disables cron/webhook      |
+| `resumable`       | bool      | No       | Enable checkpoint persistence (default: false) |
+| `max_concurrency` | int       | No       | >1 enables parallel DAG execution              |
+| `inputs`          | []Input   | No       | Declared run inputs for validation/forms       |
+| `triggers`        | []Trigger | No       | Trigger configurations (cron, manual, webhook) |
+| `pipeline`        | []string  | Yes      | Ordered list of task IDs to execute            |
+| `tasks`           | []Task    | Yes      | Task definitions                               |
 
 ### Task Fields
 
@@ -101,7 +112,7 @@ tasks:
 | `describe` | string      | No       | Human-readable description                                                             |
 | `params`   | KV          | No       | Input parameters (template-rendered)                                                   |
 | `vars`     | []string    | No       | Declared variable names (reserved)                                                     |
-| `conn`     | []string    | No       | DAG dependency edges (validated for cycles, not used for scheduling)                   |
+| `conn`     | []string    | No       | DAG dependency edges (validated for cycles; used for parallel scheduling)              |
 | `retry`    | RetryConfig | No       | Retry strategy (see below)                                                             |
 
 ## Action Types
@@ -126,47 +137,7 @@ Mapper steps are resolved before the normal task execution path. When a task's a
 3. Stores the JSON as the step result for downstream consumption.
 4. Skips the engine/runtime dispatch entirely.
 
-**Example: field mapping between two capability steps**
-
-```yaml
-pipeline:
-  - fetch_data
-  - transform_output
-  - consume_data
-
-tasks:
-  - id: fetch_data
-    action: capability:api.fetch
-    params:
-      endpoint: "/users"
-
-  - id: transform_output
-    action: mapper:
-    params:
-      target_url: '{{jsonpath (step "fetch_data" "result") "data.0.link"}}'
-      target_title: '{{jsonpath (step "fetch_data" "result") "data.0.name"}}'
-      metadata:
-        source: api
-        priority: high
-
-  - id: consume_data
-    action: capability:karakeep.create
-    params:
-      url: '{{jsonpath (step "transform_output" "result") "target_url"}}'
-      title: '{{jsonpath (step "transform_output" "result") "target_title"}}'
-```
-
-**Example: conditional field mapping**
-
-```yaml
-  - id: conditional_map
-    action: mapper:
-    params:
-      status: "{{if jsonpathExists (step \"api\" \"result\") \"error\"}}failed{{else}}ok{{end}}"
-      output: '{{default "{}" (step "api" "result")}}'
-```
-
-The mapper's output is a JSON object where each key from `params` becomes a top-level field. Subsequent steps can extract individual fields using `jsonpath` or reference the full result with `{{step "transform_output" "result"}}`.
+In YAML, quote the action because a trailing colon is otherwise invalid: `action: "mapper:"`.
 
 ## Retry Strategy
 
@@ -183,84 +154,64 @@ Task `params` are rendered through the template engine before execution. The dat
 
 See [Pipeline Template Engine](pipeline-template.md) for the full template syntax.
 
-### Result Handling
-
-After a task succeeds:
-
-- If `task.Result` is non-empty, it is stored in the `results` map keyed by task ID.
-- Downstream tasks can reference it: `{{step "save_bookmark" "result"}}`.
-- Both the raw result string and the step output JSON are available.
-
 ## DAG Validation
 
-The `conn` field declares dependency edges between tasks. Before execution, `ValidateDAG()` performs a DFS cycle check:
-
-```
-save_bookmark → archive_url → create_task     (valid)
-save_bookmark → archive_url → save_bookmark   (cycle detected)
-```
-
-Tasks with unknown dependencies in `conn` are also rejected.
-
-Note: `conn` is currently used only for validation. Execution order is strictly determined by the `pipeline` list, not the DAG topology.
-
-## Execution Flow
-
-### Sequential
-
-Tasks execute in the order listed in `pipeline`. If a task fails (after retries are exhausted), the entire workflow stops and returns the error. No subsequent tasks execute.
-
-### Retry Loop
-
-```go
-backoffCfg := retryCfg.ToBackoffConfig()
-backoffCfg.OnRetry = func(attempt int, delay time.Duration, err error) {
-    // log or persist attempt metadata
-}
-return backoff.Do(ctx, backoffCfg, func(ctx context.Context) error {
-    return r.Run(ctx, task)
-})
-```
-
-### Error Propagation
-
-| Stage                           | Error                                         | Return    |
-| ------------------------------- | --------------------------------------------- | --------- |
-| Task not found in taskMap       | `task %s not found in workflow`               | Immediate |
-| Resolve params failure          | `resolve params step %s: %w`                  | Immediate |
-| Mapper marshal failure          | `mapper step %s: %w`                          | Immediate |
-| Convert task failure            | `convert task %s: %w`                         | Immediate |
-| Run failure (retries exhausted) | `step %s (retries exhausted, attempt %d): %w` | Immediate |
-| Run failure (context cancel)    | `step %s cancelled: %w`                       | Immediate |
+The `conn` field declares dependency edges between tasks. Before execution, `ValidateDAG()` performs a DFS cycle check. With `max_concurrency > 1`, `conn` also drives parallel scheduling; otherwise execution order follows `pipeline`.
 
 ## Invocation
 
-### From Code
+### CLI
 
-```go
-import (
-    "github.com/flowline-io/flowbot/pkg/workflow"
-    "github.com/flowline-io/flowbot/pkg/types"
-)
-
-runner := workflow.NewRunner()
-wf, _ := workflow.LoadFile("/path/to/workflow.yaml")
-err := runner.Execute(ctx, *wf)
+```bash
+flowbot workflow apply --file docs/examples/workflows/save_and_track.yaml
+flowbot workflow run save_and_track --input '{"url":"https://example.com","title":"Example"}'
+flowbot workflow runs save_and_track
 ```
+
+Scopes: `workflow:read` (list/get/export/runs), `workflow:run` (apply/delete/run).
 
 ### From HTTP
 
 ```
-POST /service/workflow/run
-Content-Type: application/json
+POST /service/workflow/apply
+{"yaml": "..."}
 
-{"file": "/path/to/workflow.yaml"}
+POST /service/workflow/run
+{"name": "save_and_track", "input": {"url": "...", "title": "..."}}
+→ 202 {"status":"ok","data":{"run_id":123}}
+
+GET /service/workflow/list
+GET /service/workflow/get/:name
+GET /service/workflow/export/:name
+DELETE /service/workflow/delete/:name
+GET /service/workflow/runs/:name
+```
+
+Webhook triggers are served at `/webhook/workflow/{path}` with the same token/HMAC auth fields as pipeline webhooks.
+
+### Web UI
+
+Open **Automate → Workflows** (`/service/web/workflows`):
+
+| Page | Features |
+|------|----------|
+| List | Name, status, triggers, task count, **Last Run**; Enable/Disable; open Runs |
+| Detail | Overview tab: Inputs, Triggers (Enable/Disable), Execution DAG, Run now, Recent runs; YAML tab: exported definition text |
+| Runs | Expandable run rows with step Input/Output/Error; polling pauses while a run is expanded |
+
+DAG badge **Parallel DAG** appears only when `max_concurrency > 1`. Conn graphs with `max_concurrency ≤ 1` still show topology but are labeled **Sequential**.
+
+### From Code
+
+```go
+runID, err := svc.StartRunAsync(ctx, "save_and_track", "manual", types.KV{
+    "url": "https://example.com",
+    "title": "Example",
+})
 ```
 
 ## Testing
 
 ```bash
-go test ./pkg/workflow/...   # Unit tests for parsing, DAG, params, runner
+go test ./pkg/workflow/...   # Unit tests for parsing, DAG, params, runner, service
 ```
-
-

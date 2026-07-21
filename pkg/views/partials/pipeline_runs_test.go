@@ -41,7 +41,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 				`data-testid="step-row-build"`,
 				"cursor-pointer",
 				"step-chevron",
-				"onclick",
+				"data-step-toggle",
 				`data-testid="step-detail-row-build"`,
 				"<details ",
 				"Input",
@@ -64,7 +64,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 			excludes: []string{
 				"cursor-pointer",
 				"step-chevron",
-				"onclick",
+				"data-step-toggle",
 			},
 		},
 		{
@@ -82,7 +82,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 				`data-testid="step-row-fetch"`,
 				"cursor-pointer",
 				"step-chevron",
-				"onclick",
+				"data-step-toggle",
 				"<details ",
 				"Input",
 				"Output: (empty)",
@@ -103,7 +103,7 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 				`data-testid="step-row-deploy"`,
 				"cursor-pointer",
 				"step-chevron",
-				"onclick",
+				"data-step-toggle",
 				"<details ",
 				"Input: (empty)",
 				"Output",
@@ -158,6 +158,59 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 			for _, s := range tt.excludes {
 				if strings.Contains(output, s) {
 					t.Errorf("output should not contain %q", s)
+				}
+			}
+		})
+	}
+}
+
+func TestSprintJSON(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		input    map[string]any
+		contains []string
+		excludes []string
+	}{
+		{
+			name:  "empty map",
+			input: nil,
+		},
+		{
+			name:     "expands nested json string",
+			input:    map[string]any{"result": `{"capability":"karakeep","operation":"list"}`},
+			contains: []string{`"capability": "karakeep"`, `"operation": "list"`},
+			excludes: []string{`\"capability\"`},
+		},
+		{
+			name:     "keeps plain string",
+			input:    map[string]any{"msg": "hello"},
+			contains: []string{`"msg": "hello"`},
+		},
+		{
+			name:     "expands nested array json",
+			input:    map[string]any{"payload": `[{"id":"a"}]`},
+			contains: []string{`"id": "a"`},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := sprintJSON(tt.input)
+			if tt.input == nil {
+				if got != "" {
+					t.Fatalf("got %q, want empty", got)
+				}
+				return
+			}
+			for _, sub := range tt.contains {
+				if !strings.Contains(got, sub) {
+					t.Errorf("sprintJSON() missing %q in %q", sub, got)
+				}
+			}
+			for _, sub := range tt.excludes {
+				if strings.Contains(got, sub) {
+					t.Errorf("sprintJSON() should not contain %q in %q", sub, got)
 				}
 			}
 		})

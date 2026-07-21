@@ -26,6 +26,7 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 		{name: "devops", dir: "devops"},
 		{name: "gitea", dir: "gitea"},
 		{name: "github", dir: "github"},
+		{name: "workflow", dir: "workflow"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

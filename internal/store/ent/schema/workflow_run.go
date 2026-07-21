@@ -17,8 +17,10 @@ type WorkflowRun struct {
 func (WorkflowRun) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int64("id").Immutable(),
+		field.Int64("workflow_id").Optional().Nillable(),
 		field.String("workflow_name").NotEmpty(),
-		field.String("workflow_file").NotEmpty(),
+		// workflow_file is "" or "db" for DB-backed definitions; legacy file paths may remain.
+		field.String("workflow_file").Default(""),
 		field.Int("status").Default(0),
 		field.String("trigger_type").Default(""),
 		field.JSON("trigger_info", map[string]any{}).Optional(),
@@ -35,6 +37,7 @@ func (WorkflowRun) Fields() []ent.Field {
 func (WorkflowRun) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("workflow_name"),
+		index.Fields("workflow_id"),
 	}
 }
 

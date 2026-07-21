@@ -1407,11 +1407,31 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// WorkflowsColumns holds the columns for the "workflows" table.
+	WorkflowsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "describe", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "resumable", Type: field.TypeBool, Default: false},
+		{Name: "max_concurrency", Type: field.TypeInt, Default: 1},
+		{Name: "inputs", Type: field.TypeJSON, Nullable: true},
+		{Name: "pipeline", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// WorkflowsTable holds the schema information for the "workflows" table.
+	WorkflowsTable = &schema.Table{
+		Name:       "workflows",
+		Columns:    WorkflowsColumns,
+		PrimaryKey: []*schema.Column{WorkflowsColumns[0]},
+	}
 	// WorkflowRunsColumns holds the columns for the "workflow_runs" table.
 	WorkflowRunsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "workflow_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "workflow_name", Type: field.TypeString},
-		{Name: "workflow_file", Type: field.TypeString},
+		{Name: "workflow_file", Type: field.TypeString, Default: ""},
 		{Name: "status", Type: field.TypeInt, Default: 0},
 		{Name: "trigger_type", Type: field.TypeString, Default: ""},
 		{Name: "trigger_info", Type: field.TypeJSON, Nullable: true},
@@ -1431,6 +1451,11 @@ var (
 		Indexes: []*schema.Index{
 			{
 				Name:    "workflowrun_workflow_name",
+				Unique:  false,
+				Columns: []*schema.Column{WorkflowRunsColumns[2]},
+			},
+			{
+				Name:    "workflowrun_workflow_id",
 				Unique:  false,
 				Columns: []*schema.Column{WorkflowRunsColumns[1]},
 			},
@@ -1463,6 +1488,57 @@ var (
 				Name:    "workflowsteprun_workflow_run_id",
 				Unique:  false,
 				Columns: []*schema.Column{WorkflowStepRunsColumns[1]},
+			},
+		},
+	}
+	// WorkflowTasksColumns holds the columns for the "workflow_tasks" table.
+	WorkflowTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "workflow_id", Type: field.TypeInt64},
+		{Name: "task_id", Type: field.TypeString},
+		{Name: "action", Type: field.TypeString},
+		{Name: "describe", Type: field.TypeString, Nullable: true, Default: ""},
+		{Name: "params", Type: field.TypeJSON, Nullable: true},
+		{Name: "vars", Type: field.TypeJSON, Nullable: true},
+		{Name: "conn", Type: field.TypeJSON, Nullable: true},
+		{Name: "retry", Type: field.TypeJSON, Nullable: true},
+	}
+	// WorkflowTasksTable holds the schema information for the "workflow_tasks" table.
+	WorkflowTasksTable = &schema.Table{
+		Name:       "workflow_tasks",
+		Columns:    WorkflowTasksColumns,
+		PrimaryKey: []*schema.Column{WorkflowTasksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workflowtask_workflow_id_task_id",
+				Unique:  true,
+				Columns: []*schema.Column{WorkflowTasksColumns[1], WorkflowTasksColumns[2]},
+			},
+			{
+				Name:    "workflowtask_workflow_id",
+				Unique:  false,
+				Columns: []*schema.Column{WorkflowTasksColumns[1]},
+			},
+		},
+	}
+	// WorkflowTriggersColumns holds the columns for the "workflow_triggers" table.
+	WorkflowTriggersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "workflow_id", Type: field.TypeInt64},
+		{Name: "type", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "rule", Type: field.TypeJSON, Nullable: true},
+	}
+	// WorkflowTriggersTable holds the schema information for the "workflow_triggers" table.
+	WorkflowTriggersTable = &schema.Table{
+		Name:       "workflow_triggers",
+		Columns:    WorkflowTriggersColumns,
+		PrimaryKey: []*schema.Column{WorkflowTriggersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workflowtrigger_workflow_id",
+				Unique:  false,
+				Columns: []*schema.Column{WorkflowTriggersColumns[1]},
 			},
 		},
 	}
@@ -1522,8 +1598,11 @@ var (
 		TopicsTable,
 		UrlsTable,
 		UsersTable,
+		WorkflowsTable,
 		WorkflowRunsTable,
 		WorkflowStepRunsTable,
+		WorkflowTasksTable,
+		WorkflowTriggersTable,
 	}
 )
 
@@ -1690,10 +1769,19 @@ func init() {
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
 	}
+	WorkflowsTable.Annotation = &entsql.Annotation{
+		Table: "workflows",
+	}
 	WorkflowRunsTable.Annotation = &entsql.Annotation{
 		Table: "workflow_runs",
 	}
 	WorkflowStepRunsTable.Annotation = &entsql.Annotation{
 		Table: "workflow_step_runs",
+	}
+	WorkflowTasksTable.Annotation = &entsql.Annotation{
+		Table: "workflow_tasks",
+	}
+	WorkflowTriggersTable.Annotation = &entsql.Annotation{
+		Table: "workflow_triggers",
 	}
 }

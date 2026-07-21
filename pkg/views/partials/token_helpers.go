@@ -46,6 +46,8 @@ func scopeBadge(scope string) string {
 		return "Pipeline R"
 	case "pipeline:run":
 		return "Pipeline X"
+	case "workflow:read":
+		return "Workflow R"
 	case "workflow:run":
 		return "Workflow X"
 	default:

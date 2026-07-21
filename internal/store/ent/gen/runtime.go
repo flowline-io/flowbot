@@ -59,8 +59,11 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowtask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowtrigger"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 )
 
@@ -1664,30 +1667,76 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	workflowFields := schema.Workflow{}.Fields()
+	_ = workflowFields
+	// workflowDescName is the schema descriptor for name field.
+	workflowDescName := workflowFields[1].Descriptor()
+	// workflow.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	workflow.NameValidator = func() func(string) error {
+		validators := workflowDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// workflowDescDescribe is the schema descriptor for describe field.
+	workflowDescDescribe := workflowFields[2].Descriptor()
+	// workflow.DefaultDescribe holds the default value on creation for the describe field.
+	workflow.DefaultDescribe = workflowDescDescribe.Default.(string)
+	// workflowDescEnabled is the schema descriptor for enabled field.
+	workflowDescEnabled := workflowFields[3].Descriptor()
+	// workflow.DefaultEnabled holds the default value on creation for the enabled field.
+	workflow.DefaultEnabled = workflowDescEnabled.Default.(bool)
+	// workflowDescResumable is the schema descriptor for resumable field.
+	workflowDescResumable := workflowFields[4].Descriptor()
+	// workflow.DefaultResumable holds the default value on creation for the resumable field.
+	workflow.DefaultResumable = workflowDescResumable.Default.(bool)
+	// workflowDescMaxConcurrency is the schema descriptor for max_concurrency field.
+	workflowDescMaxConcurrency := workflowFields[5].Descriptor()
+	// workflow.DefaultMaxConcurrency holds the default value on creation for the max_concurrency field.
+	workflow.DefaultMaxConcurrency = workflowDescMaxConcurrency.Default.(int)
+	// workflowDescCreatedAt is the schema descriptor for created_at field.
+	workflowDescCreatedAt := workflowFields[8].Descriptor()
+	// workflow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	workflow.DefaultCreatedAt = workflowDescCreatedAt.Default.(func() time.Time)
+	// workflowDescUpdatedAt is the schema descriptor for updated_at field.
+	workflowDescUpdatedAt := workflowFields[9].Descriptor()
+	// workflow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	workflow.DefaultUpdatedAt = workflowDescUpdatedAt.Default.(func() time.Time)
+	// workflow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	workflow.UpdateDefaultUpdatedAt = workflowDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workflowrunFields := schema.WorkflowRun{}.Fields()
 	_ = workflowrunFields
 	// workflowrunDescWorkflowName is the schema descriptor for workflow_name field.
-	workflowrunDescWorkflowName := workflowrunFields[1].Descriptor()
+	workflowrunDescWorkflowName := workflowrunFields[2].Descriptor()
 	// workflowrun.WorkflowNameValidator is a validator for the "workflow_name" field. It is called by the builders before save.
 	workflowrun.WorkflowNameValidator = workflowrunDescWorkflowName.Validators[0].(func(string) error)
 	// workflowrunDescWorkflowFile is the schema descriptor for workflow_file field.
-	workflowrunDescWorkflowFile := workflowrunFields[2].Descriptor()
-	// workflowrun.WorkflowFileValidator is a validator for the "workflow_file" field. It is called by the builders before save.
-	workflowrun.WorkflowFileValidator = workflowrunDescWorkflowFile.Validators[0].(func(string) error)
+	workflowrunDescWorkflowFile := workflowrunFields[3].Descriptor()
+	// workflowrun.DefaultWorkflowFile holds the default value on creation for the workflow_file field.
+	workflowrun.DefaultWorkflowFile = workflowrunDescWorkflowFile.Default.(string)
 	// workflowrunDescStatus is the schema descriptor for status field.
-	workflowrunDescStatus := workflowrunFields[3].Descriptor()
+	workflowrunDescStatus := workflowrunFields[4].Descriptor()
 	// workflowrun.DefaultStatus holds the default value on creation for the status field.
 	workflowrun.DefaultStatus = workflowrunDescStatus.Default.(int)
 	// workflowrunDescTriggerType is the schema descriptor for trigger_type field.
-	workflowrunDescTriggerType := workflowrunFields[4].Descriptor()
+	workflowrunDescTriggerType := workflowrunFields[5].Descriptor()
 	// workflowrun.DefaultTriggerType holds the default value on creation for the trigger_type field.
 	workflowrun.DefaultTriggerType = workflowrunDescTriggerType.Default.(string)
 	// workflowrunDescError is the schema descriptor for error field.
-	workflowrunDescError := workflowrunFields[9].Descriptor()
+	workflowrunDescError := workflowrunFields[10].Descriptor()
 	// workflowrun.DefaultError holds the default value on creation for the error field.
 	workflowrun.DefaultError = workflowrunDescError.Default.(string)
 	// workflowrunDescCreatedAt is the schema descriptor for created_at field.
-	workflowrunDescCreatedAt := workflowrunFields[12].Descriptor()
+	workflowrunDescCreatedAt := workflowrunFields[13].Descriptor()
 	// workflowrun.DefaultCreatedAt holds the default value on creation for the created_at field.
 	workflowrun.DefaultCreatedAt = workflowrunDescCreatedAt.Default.(func() time.Time)
 	workflowsteprunFields := schema.WorkflowStepRun{}.Fields()
@@ -1724,4 +1773,28 @@ func init() {
 	workflowsteprunDescCreatedAt := workflowsteprunFields[13].Descriptor()
 	// workflowsteprun.DefaultCreatedAt holds the default value on creation for the created_at field.
 	workflowsteprun.DefaultCreatedAt = workflowsteprunDescCreatedAt.Default.(func() time.Time)
+	workflowtaskFields := schema.WorkflowTask{}.Fields()
+	_ = workflowtaskFields
+	// workflowtaskDescTaskID is the schema descriptor for task_id field.
+	workflowtaskDescTaskID := workflowtaskFields[2].Descriptor()
+	// workflowtask.TaskIDValidator is a validator for the "task_id" field. It is called by the builders before save.
+	workflowtask.TaskIDValidator = workflowtaskDescTaskID.Validators[0].(func(string) error)
+	// workflowtaskDescAction is the schema descriptor for action field.
+	workflowtaskDescAction := workflowtaskFields[3].Descriptor()
+	// workflowtask.ActionValidator is a validator for the "action" field. It is called by the builders before save.
+	workflowtask.ActionValidator = workflowtaskDescAction.Validators[0].(func(string) error)
+	// workflowtaskDescDescribe is the schema descriptor for describe field.
+	workflowtaskDescDescribe := workflowtaskFields[4].Descriptor()
+	// workflowtask.DefaultDescribe holds the default value on creation for the describe field.
+	workflowtask.DefaultDescribe = workflowtaskDescDescribe.Default.(string)
+	workflowtriggerFields := schema.WorkflowTrigger{}.Fields()
+	_ = workflowtriggerFields
+	// workflowtriggerDescType is the schema descriptor for type field.
+	workflowtriggerDescType := workflowtriggerFields[2].Descriptor()
+	// workflowtrigger.TypeValidator is a validator for the "type" field. It is called by the builders before save.
+	workflowtrigger.TypeValidator = workflowtriggerDescType.Validators[0].(func(string) error)
+	// workflowtriggerDescEnabled is the schema descriptor for enabled field.
+	workflowtriggerDescEnabled := workflowtriggerFields[3].Descriptor()
+	// workflowtrigger.DefaultEnabled holds the default value on creation for the enabled field.
+	workflowtrigger.DefaultEnabled = workflowtriggerDescEnabled.Default.(bool)
 }

@@ -67,9 +67,9 @@ func TestSetSessionSettings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := SetSessionSettings(ctx, "sess-settings", tt.in)
 			if tt.wantErr != nil {
-			require.Error(t, err)
-			assert.ErrorIs(t, err, tt.wantErr)
-			return
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+				return
 			}
 			require.NoError(t, err)
 			got, err := GetSessionSettings(ctx, "sess-settings")

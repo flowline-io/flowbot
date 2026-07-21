@@ -5,5 +5,5 @@ import "embed"
 
 // FS holds Cap-ID skill trees under this directory (SKILL.md + references/).
 //
-//go:embed karakeep kanboard miniflux memos trilium fireflyiii transmission nocodb devops gitea github
+//go:embed karakeep kanboard miniflux memos trilium fireflyiii transmission nocodb devops gitea github workflow
 var FS embed.FS

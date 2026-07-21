@@ -54,6 +54,11 @@ func IDLTE(id int64) predicate.WorkflowRun {
 	return predicate.WorkflowRun(sql.FieldLTE(FieldID, id))
 }
 
+// WorkflowID applies equality check predicate on the "workflow_id" field. It's identical to WorkflowIDEQ.
+func WorkflowID(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldEQ(FieldWorkflowID, v))
+}
+
 // WorkflowName applies equality check predicate on the "workflow_name" field. It's identical to WorkflowNameEQ.
 func WorkflowName(v string) predicate.WorkflowRun {
 	return predicate.WorkflowRun(sql.FieldEQ(FieldWorkflowName, v))
@@ -97,6 +102,56 @@ func CompletedAt(v time.Time) predicate.WorkflowRun {
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.WorkflowRun {
 	return predicate.WorkflowRun(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// WorkflowIDEQ applies the EQ predicate on the "workflow_id" field.
+func WorkflowIDEQ(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldEQ(FieldWorkflowID, v))
+}
+
+// WorkflowIDNEQ applies the NEQ predicate on the "workflow_id" field.
+func WorkflowIDNEQ(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldNEQ(FieldWorkflowID, v))
+}
+
+// WorkflowIDIn applies the In predicate on the "workflow_id" field.
+func WorkflowIDIn(vs ...int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldIn(FieldWorkflowID, vs...))
+}
+
+// WorkflowIDNotIn applies the NotIn predicate on the "workflow_id" field.
+func WorkflowIDNotIn(vs ...int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldNotIn(FieldWorkflowID, vs...))
+}
+
+// WorkflowIDGT applies the GT predicate on the "workflow_id" field.
+func WorkflowIDGT(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldGT(FieldWorkflowID, v))
+}
+
+// WorkflowIDGTE applies the GTE predicate on the "workflow_id" field.
+func WorkflowIDGTE(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldGTE(FieldWorkflowID, v))
+}
+
+// WorkflowIDLT applies the LT predicate on the "workflow_id" field.
+func WorkflowIDLT(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldLT(FieldWorkflowID, v))
+}
+
+// WorkflowIDLTE applies the LTE predicate on the "workflow_id" field.
+func WorkflowIDLTE(v int64) predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldLTE(FieldWorkflowID, v))
+}
+
+// WorkflowIDIsNil applies the IsNil predicate on the "workflow_id" field.
+func WorkflowIDIsNil() predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldIsNull(FieldWorkflowID))
+}
+
+// WorkflowIDNotNil applies the NotNil predicate on the "workflow_id" field.
+func WorkflowIDNotNil() predicate.WorkflowRun {
+	return predicate.WorkflowRun(sql.FieldNotNull(FieldWorkflowID))
 }
 
 // WorkflowNameEQ applies the EQ predicate on the "workflow_name" field.

@@ -73,6 +73,9 @@ func TestHasMinimumServiceScope(t *testing.T) {
 		{name: "pipeline read for web GET", scopes: []string{ScopePipelineRead}, group: "web", method: "GET", want: true},
 		{name: "pipeline run for web GET", scopes: []string{ScopePipelineRun}, group: "web", method: "GET", want: true},
 		{name: "pipeline read denies web POST", scopes: []string{ScopePipelineRead}, group: "web", method: "POST", want: false},
+		{name: "workflow read for workflow GET", scopes: []string{ScopeWorkflowRead}, group: "workflow", method: "GET", want: true},
+		{name: "workflow run satisfies workflow GET", scopes: []string{ScopeWorkflowRun}, group: "workflow", method: "GET", want: true},
+		{name: "workflow read denies workflow POST", scopes: []string{ScopeWorkflowRead}, group: "workflow", method: "POST", want: false},
 		{name: "hub capabilities for hub GET", scopes: []string{ScopeHubCapabilitiesRead}, group: "hub", method: "GET", want: true},
 		{name: "empty scopes denied", scopes: []string{}, group: "example", method: "GET", want: false},
 	}
@@ -96,6 +99,8 @@ func TestMinimumServiceScope(t *testing.T) {
 		{name: "example POST", group: "example", method: "POST", want: ScopeServiceExampleWrite},
 		{name: "web GET", group: "web", method: "GET", want: ScopePipelineRead},
 		{name: "web DELETE", group: "web", method: "DELETE", want: ScopePipelineRun},
+		{name: "workflow GET", group: "workflow", method: "GET", want: ScopeWorkflowRead},
+		{name: "workflow POST", group: "workflow", method: "POST", want: ScopeWorkflowRun},
 		{name: "hub GET", group: "hub", method: "GET", want: ScopeHubCapabilitiesRead},
 	}
 	for _, tt := range tests {

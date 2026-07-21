@@ -28,6 +28,33 @@ func (_u *WorkflowRunUpdate) Where(ps ...predicate.WorkflowRun) *WorkflowRunUpda
 	return _u
 }
 
+// SetWorkflowID sets the "workflow_id" field.
+func (_u *WorkflowRunUpdate) SetWorkflowID(v int64) *WorkflowRunUpdate {
+	_u.mutation.ResetWorkflowID()
+	_u.mutation.SetWorkflowID(v)
+	return _u
+}
+
+// SetNillableWorkflowID sets the "workflow_id" field if the given value is not nil.
+func (_u *WorkflowRunUpdate) SetNillableWorkflowID(v *int64) *WorkflowRunUpdate {
+	if v != nil {
+		_u.SetWorkflowID(*v)
+	}
+	return _u
+}
+
+// AddWorkflowID adds value to the "workflow_id" field.
+func (_u *WorkflowRunUpdate) AddWorkflowID(v int64) *WorkflowRunUpdate {
+	_u.mutation.AddWorkflowID(v)
+	return _u
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (_u *WorkflowRunUpdate) ClearWorkflowID() *WorkflowRunUpdate {
+	_u.mutation.ClearWorkflowID()
+	return _u
+}
+
 // SetWorkflowName sets the "workflow_name" field.
 func (_u *WorkflowRunUpdate) SetWorkflowName(v string) *WorkflowRunUpdate {
 	_u.mutation.SetWorkflowName(v)
@@ -240,11 +267,6 @@ func (_u *WorkflowRunUpdate) check() error {
 			return &ValidationError{Name: "workflow_name", err: fmt.Errorf(`gen: validator failed for field "WorkflowRun.workflow_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.WorkflowFile(); ok {
-		if err := workflowrun.WorkflowFileValidator(v); err != nil {
-			return &ValidationError{Name: "workflow_file", err: fmt.Errorf(`gen: validator failed for field "WorkflowRun.workflow_file": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -259,6 +281,15 @@ func (_u *WorkflowRunUpdate) sqlSave(ctx context.Context) (_node int, err error)
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.WorkflowID(); ok {
+		_spec.SetField(workflowrun.FieldWorkflowID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedWorkflowID(); ok {
+		_spec.AddField(workflowrun.FieldWorkflowID, field.TypeInt64, value)
+	}
+	if _u.mutation.WorkflowIDCleared() {
+		_spec.ClearField(workflowrun.FieldWorkflowID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.WorkflowName(); ok {
 		_spec.SetField(workflowrun.FieldWorkflowName, field.TypeString, value)
@@ -332,6 +363,33 @@ type WorkflowRunUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *WorkflowRunMutation
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (_u *WorkflowRunUpdateOne) SetWorkflowID(v int64) *WorkflowRunUpdateOne {
+	_u.mutation.ResetWorkflowID()
+	_u.mutation.SetWorkflowID(v)
+	return _u
+}
+
+// SetNillableWorkflowID sets the "workflow_id" field if the given value is not nil.
+func (_u *WorkflowRunUpdateOne) SetNillableWorkflowID(v *int64) *WorkflowRunUpdateOne {
+	if v != nil {
+		_u.SetWorkflowID(*v)
+	}
+	return _u
+}
+
+// AddWorkflowID adds value to the "workflow_id" field.
+func (_u *WorkflowRunUpdateOne) AddWorkflowID(v int64) *WorkflowRunUpdateOne {
+	_u.mutation.AddWorkflowID(v)
+	return _u
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (_u *WorkflowRunUpdateOne) ClearWorkflowID() *WorkflowRunUpdateOne {
+	_u.mutation.ClearWorkflowID()
+	return _u
 }
 
 // SetWorkflowName sets the "workflow_name" field.
@@ -559,11 +617,6 @@ func (_u *WorkflowRunUpdateOne) check() error {
 			return &ValidationError{Name: "workflow_name", err: fmt.Errorf(`gen: validator failed for field "WorkflowRun.workflow_name": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.WorkflowFile(); ok {
-		if err := workflowrun.WorkflowFileValidator(v); err != nil {
-			return &ValidationError{Name: "workflow_file", err: fmt.Errorf(`gen: validator failed for field "WorkflowRun.workflow_file": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -595,6 +648,15 @@ func (_u *WorkflowRunUpdateOne) sqlSave(ctx context.Context) (_node *WorkflowRun
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.WorkflowID(); ok {
+		_spec.SetField(workflowrun.FieldWorkflowID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedWorkflowID(); ok {
+		_spec.AddField(workflowrun.FieldWorkflowID, field.TypeInt64, value)
+	}
+	if _u.mutation.WorkflowIDCleared() {
+		_spec.ClearField(workflowrun.FieldWorkflowID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.WorkflowName(); ok {
 		_spec.SetField(workflowrun.FieldWorkflowName, field.TypeString, value)

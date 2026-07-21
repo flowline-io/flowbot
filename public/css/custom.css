@@ -163,6 +163,289 @@ body {
   border-radius: var(--flowbot-radius-box, 0.5rem);
 }
 
+/* Run step Input/Output JSON: scroll container (prebuilt CSS lacks overflow-auto). */
+.run-json-preview {
+  max-height: 15rem;
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  background: var(--color-base-200, #f3f4f6);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+  padding: 0.5rem;
+}
+.run-json-preview > pre {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  background: transparent;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: visible;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Workflow detail YAML tab: keep long lines inside the surface card. */
+.workflow-yaml {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.workflow-yaml-source {
+  margin: 0;
+  padding: 1rem;
+  max-width: 100%;
+  max-height: 70vh;
+  overflow: auto;
+  box-sizing: border-box;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Workflow detail DAG — layered topo with SVG fork/join rails. */
+.workflow-dag {
+  padding: 1.25rem 1.25rem 1.5rem;
+  overflow-x: auto;
+  background:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      color-mix(in oklab, var(--color-primary, #0f766e) 8%, transparent),
+      transparent 55%
+    ),
+    var(--color-base-100, #fff);
+}
+.workflow-dag-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.workflow-dag-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-base-content, #111);
+}
+.workflow-dag-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content, #111) 55%, transparent);
+}
+.workflow-dag-canvas {
+  --dag-gap: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  min-width: min(100%, 28rem);
+  max-width: 40rem;
+  margin: 0 auto;
+}
+.workflow-dag-layer {
+  display: grid;
+  grid-template-columns: repeat(var(--dag-cols, 1), minmax(0, 1fr));
+  gap: var(--dag-gap);
+  width: 100%;
+  align-items: stretch;
+}
+.workflow-dag-node {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--color-base-300, #d1d5db) 90%,
+      var(--color-primary, #0f766e)
+    );
+  border-radius: calc(var(--flowbot-radius-box, 0.5rem) + 0.1rem);
+  background: color-mix(
+    in oklab,
+    var(--color-base-100, #fff) 92%,
+    var(--color-base-200, #f3f4f6)
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--color-base-content, #111) 4%, transparent),
+    0 8px 20px -16px
+      color-mix(in oklab, var(--color-primary, #0f766e) 45%, transparent);
+  overflow: hidden;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+.workflow-dag-node:hover {
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 45%,
+    var(--color-base-300, #d1d5db)
+  );
+  box-shadow:
+    0 1px 0 color-mix(in oklab, var(--color-base-content, #111) 4%, transparent),
+    0 14px 28px -18px
+      color-mix(in oklab, var(--color-primary, #0f766e) 55%, transparent);
+  transform: translateY(-1px);
+}
+.workflow-dag-node-accent {
+  flex: 0 0 3px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-primary, #0f766e) 88%, #fff),
+    var(--color-primary, #0f766e)
+  );
+}
+.workflow-dag-node-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.7rem 0.8rem 0.75rem;
+}
+.workflow-dag-node-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+.workflow-dag-node-index {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-primary, #0f766e);
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    transparent
+  );
+  border: 1px solid
+    color-mix(in oklab, var(--color-primary, #0f766e) 22%, transparent);
+}
+.workflow-dag-node-id {
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-base-content, #111);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workflow-dag-node-desc {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: color-mix(in oklab, var(--color-base-content, #111) 62%, transparent);
+}
+.workflow-dag-node-action {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: color-mix(in oklab, var(--color-base-content, #111) 58%, transparent);
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 85%,
+    var(--color-primary, #0f766e)
+  );
+  border: 1px solid
+    color-mix(in oklab, var(--color-base-300, #d1d5db) 80%, transparent);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+.workflow-dag-connector {
+  display: grid;
+  grid-template-rows: 0.7rem 2px 0.95rem;
+  align-items: stretch;
+  width: 100%;
+  margin: 0.1rem 0 0.15rem;
+  pointer-events: none;
+  --dag-line: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 55%,
+    var(--color-base-300, #d1d5db)
+  );
+}
+.workflow-dag-connector-single {
+  grid-template-rows: 1.65rem;
+}
+.workflow-dag-connector-single .workflow-dag-conn-from,
+.workflow-dag-connector-single .workflow-dag-conn-bar-wrap {
+  display: none;
+}
+.workflow-dag-conn-from,
+.workflow-dag-conn-to {
+  display: grid;
+  gap: var(--dag-gap);
+  width: 100%;
+  justify-items: center;
+}
+.workflow-dag-conn-from {
+  grid-template-columns: repeat(var(--from-cols, 1), minmax(0, 1fr));
+}
+.workflow-dag-conn-to {
+  grid-template-columns: repeat(var(--to-cols, 1), minmax(0, 1fr));
+}
+.workflow-dag-conn-bar-wrap {
+  position: relative;
+  width: 100%;
+  height: 2px;
+}
+.workflow-dag-conn-stem {
+  display: block;
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--dag-line);
+}
+.workflow-dag-conn-bar {
+  position: absolute;
+  top: 0;
+  left: calc(
+    (100% - (var(--rail-cols, 1) - 1) * var(--dag-gap)) / var(--rail-cols, 1) /
+      2
+  );
+  right: calc(
+    (100% - (var(--rail-cols, 1) - 1) * var(--dag-gap)) / var(--rail-cols, 1) /
+      2
+  );
+  height: 2px;
+  border-radius: 999px;
+  background: var(--dag-line);
+}
+.workflow-dag-conn-arrow {
+  position: relative;
+  height: calc(100% - 5px);
+  align-self: start;
+}
+.workflow-dag-conn-arrow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--dag-line);
+}
+
 /* Segmented join controls: square corners, no pill look */
 .flowbot-shell .join .join-item.btn {
   border-radius: 0;

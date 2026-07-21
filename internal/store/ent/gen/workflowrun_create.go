@@ -22,6 +22,20 @@ type WorkflowRunCreate struct {
 	conflict []sql.ConflictOption
 }
 
+// SetWorkflowID sets the "workflow_id" field.
+func (_c *WorkflowRunCreate) SetWorkflowID(v int64) *WorkflowRunCreate {
+	_c.mutation.SetWorkflowID(v)
+	return _c
+}
+
+// SetNillableWorkflowID sets the "workflow_id" field if the given value is not nil.
+func (_c *WorkflowRunCreate) SetNillableWorkflowID(v *int64) *WorkflowRunCreate {
+	if v != nil {
+		_c.SetWorkflowID(*v)
+	}
+	return _c
+}
+
 // SetWorkflowName sets the "workflow_name" field.
 func (_c *WorkflowRunCreate) SetWorkflowName(v string) *WorkflowRunCreate {
 	_c.mutation.SetWorkflowName(v)
@@ -31,6 +45,14 @@ func (_c *WorkflowRunCreate) SetWorkflowName(v string) *WorkflowRunCreate {
 // SetWorkflowFile sets the "workflow_file" field.
 func (_c *WorkflowRunCreate) SetWorkflowFile(v string) *WorkflowRunCreate {
 	_c.mutation.SetWorkflowFile(v)
+	return _c
+}
+
+// SetNillableWorkflowFile sets the "workflow_file" field if the given value is not nil.
+func (_c *WorkflowRunCreate) SetNillableWorkflowFile(v *string) *WorkflowRunCreate {
+	if v != nil {
+		_c.SetWorkflowFile(*v)
+	}
 	return _c
 }
 
@@ -183,6 +205,10 @@ func (_c *WorkflowRunCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *WorkflowRunCreate) defaults() {
+	if _, ok := _c.mutation.WorkflowFile(); !ok {
+		v := workflowrun.DefaultWorkflowFile
+		_c.mutation.SetWorkflowFile(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := workflowrun.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -213,11 +239,6 @@ func (_c *WorkflowRunCreate) check() error {
 	}
 	if _, ok := _c.mutation.WorkflowFile(); !ok {
 		return &ValidationError{Name: "workflow_file", err: errors.New(`gen: missing required field "WorkflowRun.workflow_file"`)}
-	}
-	if v, ok := _c.mutation.WorkflowFile(); ok {
-		if err := workflowrun.WorkflowFileValidator(v); err != nil {
-			return &ValidationError{Name: "workflow_file", err: fmt.Errorf(`gen: validator failed for field "WorkflowRun.workflow_file": %w`, err)}
-		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`gen: missing required field "WorkflowRun.status"`)}
@@ -263,6 +284,10 @@ func (_c *WorkflowRunCreate) createSpec() (*WorkflowRun, *sqlgraph.CreateSpec) {
 	if id, ok := _c.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = id
+	}
+	if value, ok := _c.mutation.WorkflowID(); ok {
+		_spec.SetField(workflowrun.FieldWorkflowID, field.TypeInt64, value)
+		_node.WorkflowID = &value
 	}
 	if value, ok := _c.mutation.WorkflowName(); ok {
 		_spec.SetField(workflowrun.FieldWorkflowName, field.TypeString, value)
@@ -319,7 +344,7 @@ func (_c *WorkflowRunCreate) createSpec() (*WorkflowRun, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.WorkflowRun.Create().
-//		SetWorkflowName(v).
+//		SetWorkflowID(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -328,7 +353,7 @@ func (_c *WorkflowRunCreate) createSpec() (*WorkflowRun, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.WorkflowRunUpsert) {
-//			SetWorkflowName(v+v).
+//			SetWorkflowID(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *WorkflowRunCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowRunUpsertOne {
@@ -363,6 +388,30 @@ type (
 		*sql.UpdateSet
 	}
 )
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowRunUpsert) SetWorkflowID(v int64) *WorkflowRunUpsert {
+	u.Set(workflowrun.FieldWorkflowID, v)
+	return u
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowRunUpsert) UpdateWorkflowID() *WorkflowRunUpsert {
+	u.SetExcluded(workflowrun.FieldWorkflowID)
+	return u
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *WorkflowRunUpsert) AddWorkflowID(v int64) *WorkflowRunUpsert {
+	u.Add(workflowrun.FieldWorkflowID, v)
+	return u
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowRunUpsert) ClearWorkflowID() *WorkflowRunUpsert {
+	u.SetNull(workflowrun.FieldWorkflowID)
+	return u
+}
 
 // SetWorkflowName sets the "workflow_name" field.
 func (u *WorkflowRunUpsert) SetWorkflowName(v string) *WorkflowRunUpsert {
@@ -587,6 +636,34 @@ func (u *WorkflowRunUpsertOne) Update(set func(*WorkflowRunUpsert)) *WorkflowRun
 		set(&WorkflowRunUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowRunUpsertOne) SetWorkflowID(v int64) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *WorkflowRunUpsertOne) AddWorkflowID(v int64) *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.AddWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowRunUpsertOne) UpdateWorkflowID() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowRunUpsertOne) ClearWorkflowID() *WorkflowRunUpsertOne {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearWorkflowID()
+	})
 }
 
 // SetWorkflowName sets the "workflow_name" field.
@@ -927,7 +1004,7 @@ func (_c *WorkflowRunCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.WorkflowRunUpsert) {
-//			SetWorkflowName(v+v).
+//			SetWorkflowID(v+v).
 //		}).
 //		Exec(ctx)
 func (_c *WorkflowRunCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowRunUpsertBulk {
@@ -1007,6 +1084,34 @@ func (u *WorkflowRunUpsertBulk) Update(set func(*WorkflowRunUpsert)) *WorkflowRu
 		set(&WorkflowRunUpsert{UpdateSet: update})
 	}))
 	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowRunUpsertBulk) SetWorkflowID(v int64) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// AddWorkflowID adds v to the "workflow_id" field.
+func (u *WorkflowRunUpsertBulk) AddWorkflowID(v int64) *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.AddWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowRunUpsertBulk) UpdateWorkflowID() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// ClearWorkflowID clears the value of the "workflow_id" field.
+func (u *WorkflowRunUpsertBulk) ClearWorkflowID() *WorkflowRunUpsertBulk {
+	return u.Update(func(s *WorkflowRunUpsert) {
+		s.ClearWorkflowID()
+	})
 }
 
 // SetWorkflowName sets the "workflow_name" field.

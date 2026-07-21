@@ -120,10 +120,16 @@ type Tx struct {
 	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// Workflow is the client for interacting with the Workflow builders.
+	Workflow *WorkflowClient
 	// WorkflowRun is the client for interacting with the WorkflowRun builders.
 	WorkflowRun *WorkflowRunClient
 	// WorkflowStepRun is the client for interacting with the WorkflowStepRun builders.
 	WorkflowStepRun *WorkflowStepRunClient
+	// WorkflowTask is the client for interacting with the WorkflowTask builders.
+	WorkflowTask *WorkflowTaskClient
+	// WorkflowTrigger is the client for interacting with the WorkflowTrigger builders.
+	WorkflowTrigger *WorkflowTriggerClient
 
 	// lazily loaded.
 	client     *Client
@@ -309,8 +315,11 @@ func (tx *Tx) init() {
 	tx.Topic = NewTopicClient(tx.config)
 	tx.Url = NewURLClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.Workflow = NewWorkflowClient(tx.config)
 	tx.WorkflowRun = NewWorkflowRunClient(tx.config)
 	tx.WorkflowStepRun = NewWorkflowStepRunClient(tx.config)
+	tx.WorkflowTask = NewWorkflowTaskClient(tx.config)
+	tx.WorkflowTrigger = NewWorkflowTriggerClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

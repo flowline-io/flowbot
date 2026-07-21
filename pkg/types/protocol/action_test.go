@@ -116,6 +116,18 @@ func TestNewFailedResponse(t *testing.T) {
 			mustNotContain: "dsn=secret",
 		},
 		{
+			name:        "invalid argument wrap includes cause for clients",
+			err:         types.WrapError(types.ErrInvalidArgument, "invalid workflow YAML", errors.New(`parse workflow yaml: [26:13] mapping value is not allowed`)),
+			wantRetCode: "10001",
+			wantMsg:     "invalid workflow YAML: parse workflow yaml: [26:13] mapping value is not allowed",
+		},
+		{
+			name:        "invalid argument does not duplicate embedded cause",
+			err:         types.WrapError(types.ErrInvalidArgument, "invalid workflow YAML: already detailed", errors.New("already detailed")),
+			wantRetCode: "10001",
+			wantMsg:     "invalid workflow YAML: already detailed",
+		},
+		{
 			name:        "domain kind-only uses kind text",
 			err:         &types.Error{Kind: types.ErrForbidden},
 			wantRetCode: "60007",

@@ -146,6 +146,98 @@ document.addEventListener('htmx:configRequest', function (evt) {
   }
 });
 
+// Expand/collapse run rows without hx-on / fragile onclick return false.
+// When detail content is already loaded, clear it and cancel the HTMX fetch.
+document.addEventListener('htmx:beforeRequest', function (evt) {
+  var elt = evt.detail && evt.detail.elt;
+  if (!elt || !elt.hasAttribute('data-run-expand')) {
+    return;
+  }
+  var rid = elt.getAttribute('data-run-id');
+  if (!rid) {
+    return;
+  }
+  var detail =
+    document.getElementById('workflow-steps-' + rid) ||
+    document.getElementById('steps-' + rid);
+  if (!detail) {
+    return;
+  }
+  var td = detail.querySelector('td');
+  if (!td || !td.innerHTML.trim()) {
+    return;
+  }
+  td.innerHTML = '';
+  var chevron = elt.querySelector('.chevron');
+  if (chevron) {
+    chevron.classList.remove('rotate-90');
+  }
+  evt.preventDefault();
+});
+
+// Rotate expand chevrons without hx-on (hx-on uses new Function → CSP unsafe-eval).
+document.addEventListener('htmx:afterRequest', function (evt) {
+  var detail = evt.detail;
+  if (!detail || !detail.elt || !detail.elt.hasAttribute('data-run-expand')) {
+    return;
+  }
+  if (detail.successful === false) {
+    return;
+  }
+  var chevron = detail.elt.querySelector('.chevron');
+  if (chevron) {
+    chevron.classList.add('rotate-90');
+  }
+});
+
+// Pause Run History polling while a run is expanded so Output/Error details stay open.
+document.addEventListener('htmx:beforeRequest', function (evt) {
+  var elt = evt.detail && evt.detail.elt;
+  if (!elt || elt.id !== 'workflow-runs-panel') {
+    return;
+  }
+  if (elt.querySelector('.chevron.rotate-90')) {
+    evt.preventDefault();
+    return;
+  }
+  var detailCells = elt.querySelectorAll('.run-detail-row td');
+  for (var i = 0; i < detailCells.length; i++) {
+    if (detailCells[i].innerHTML.trim()) {
+      evt.preventDefault();
+      return;
+    }
+  }
+});
+
+// Toggle step-run detail rows without inline onclick (CSP-friendly).
+document.addEventListener('click', function (evt) {
+  var row = evt.target && evt.target.closest('[data-step-toggle]');
+  if (!row) {
+    return;
+  }
+  evt.stopPropagation();
+  var chevron = row.querySelector('.step-chevron');
+  if (chevron) {
+    chevron.classList.toggle('rotate-90');
+  }
+  var detail = row.nextElementSibling;
+  if (detail && detail.classList.contains('step-detail-row')) {
+    detail.classList.toggle('hidden');
+  }
+});
+
+document.addEventListener('keydown', function (evt) {
+  if (evt.key !== 'Enter' && evt.key !== ' ') {
+    return;
+  }
+  var row = evt.target && evt.target.closest('[data-step-toggle]');
+  if (!row || evt.target !== row) {
+    return;
+  }
+  evt.preventDefault();
+  row.click();
+});
+
 // Capture phase so the hidden field exists before HTMX serializes the form.
 document.addEventListener(
   'submit',

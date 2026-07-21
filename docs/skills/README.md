@@ -1,10 +1,11 @@
 # Skills
 
 Flowbot ships with AI assistant skills that teach Claude Code, opencode, and
-other AI coding assistants how to use the `flowbot` CLI for daily tasks. Each
-skill corresponds to a Flowbot capability: the skill **name equals the
-capability ID** (`hub.CapabilityType` / provider ID). The skill body describes
-the CLI command tree for that capability (CLI domain names may differ from the
+other AI coding assistants how to use the `flowbot` CLI for daily tasks. Most
+skills correspond to a Flowbot capability: the skill **name equals the
+capability ID** (`hub.CapabilityType` / provider ID). Platform skills (for
+example `workflow`) are exceptions and are documented separately below. The
+skill body describes the CLI command tree (CLI domain names may differ from the
 capability ID, e.g. `karakeep` → `flowbot bookmark`).
 
 Skills follow the SKILL.md convention. The AI assistant loads the skill's
@@ -28,6 +29,12 @@ via `read_skill` with the `path` argument.
 | `devops`       | `devops`   | Query beszel, uptimekuma, traefik, grafana, wakapi, dozzle |
 | `gitea`        | `forge`    | Inspect forge repos, issues, diffs, and files          |
 | `github`       | `github`   | Inspect GitHub repos, issues, notifications, releases  |
+
+### Platform skills (not capability IDs)
+
+| Skill      | CLI root   | Description                                            |
+| ---------- | ---------- | ------------------------------------------------------ |
+| `workflow` | `workflow` | Apply/export DB-backed workflows, run, and inspect runs |
 
 Each skill file is in the corresponding subdirectory:
 
