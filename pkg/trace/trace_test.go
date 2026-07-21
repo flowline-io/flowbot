@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"sync"
 	"testing"
 
@@ -23,6 +24,31 @@ import (
 
 // tracingConfigMu serializes mutations of config.App.Tracing across parallel tests.
 var tracingConfigMu sync.Mutex
+
+// tracerProviderMu serializes exclusive use of the process-global otel TracerProvider.
+// Callers must acquire it only inside leaf tests (after t.Parallel), never in a parent
+// that still has parallel subtests waiting — that deadlocks parallel slots against the mutex.
+var tracerProviderMu sync.Mutex
+
+var (
+	testSpanRecorder   *tracetest.SpanRecorder
+	testTracerProvider *sdktrace.TracerProvider
+)
+
+// TestMain installs one shared TracerProvider for the package so parallel tests do not
+// Shutdown each other's providers via competing otel.SetTracerProvider calls.
+func TestMain(m *testing.M) {
+	testSpanRecorder = tracetest.NewSpanRecorder()
+	testTracerProvider = sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(testSpanRecorder))
+	otel.SetTracerProvider(testTracerProvider)
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	))
+	code := m.Run()
+	_ = testTracerProvider.Shutdown(context.Background())
+	os.Exit(code)
+}
 
 // withTracingConfig temporarily replaces config.App.Tracing under a package mutex.
 func withTracingConfig(t *testing.T, cfg config.Tracing) {
@@ -44,19 +70,15 @@ func (lc *testLifecycle) Append(h fx.Hook) {
 	lc.hooks = append(lc.hooks, h)
 }
 
+// setupTestTracerProvider pins the shared test TracerProvider for the calling leaf test.
+// The returned recorder is package-scoped (see TestMain); prefer it only for assertions
+// that tolerate concurrent spans from other parallel tests.
 func setupTestTracerProvider(t *testing.T) *tracetest.SpanRecorder {
 	t.Helper()
-	sr := tracetest.NewSpanRecorder()
-	tp := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(sr))
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	))
-	t.Cleanup(func() {
-		_ = tp.Shutdown(context.Background())
-	})
-	return sr
+	tracerProviderMu.Lock()
+	otel.SetTracerProvider(testTracerProvider)
+	t.Cleanup(tracerProviderMu.Unlock)
+	return testSpanRecorder
 }
 
 func TestTracer(t *testing.T) {
@@ -191,6 +213,13 @@ func TestNewTracerProviderDisabled(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			withTracingConfig(t, config.Tracing{Enabled: false})
+			// NewTracerProvider replaces the global provider; hold the mutex for the leaf
+			// test and restore the shared TestMain provider afterward.
+			tracerProviderMu.Lock()
+			t.Cleanup(func() {
+				otel.SetTracerProvider(testTracerProvider)
+				tracerProviderMu.Unlock()
+			})
 
 			lc := &testLifecycle{}
 			tp, err := NewTracerProvider(lc)
@@ -204,18 +233,6 @@ func TestNewTracerProviderDisabled(t *testing.T) {
 
 func TestFiberMiddleware(t *testing.T) {
 	t.Parallel()
-	setupTestTracerProvider(t)
-
-	app := fiber.New()
-	app.Use(FiberMiddleware())
-	app.Get("/api/items", func(c fiber.Ctx) error {
-		span := SpanFromFiber(c)
-		require.NotNil(t, span)
-		return c.SendString("ok")
-	})
-	app.Get("/error", func(_ fiber.Ctx) error {
-		return fiber.NewError(fiber.StatusTeapot, "teapot")
-	})
 
 	tests := []struct {
 		name       string
@@ -230,6 +247,19 @@ func TestFiberMiddleware(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			setupTestTracerProvider(t)
+
+			app := fiber.New()
+			app.Use(FiberMiddleware())
+			app.Get("/api/items", func(c fiber.Ctx) error {
+				span := SpanFromFiber(c)
+				require.NotNil(t, span)
+				return c.SendString("ok")
+			})
+			app.Get("/error", func(_ fiber.Ctx) error {
+				return fiber.NewError(fiber.StatusTeapot, "teapot")
+			})
+
 			resp, err := app.Test(httptest.NewRequest(http.MethodGet, tt.path, http.NoBody))
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)

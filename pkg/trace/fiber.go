@@ -31,13 +31,15 @@ var skippedPaths = []string{
 // The span is stored in ctx.Locals() under SpanKey for downstream access.
 // W3C TraceContext is extracted from incoming headers and propagated.
 func FiberMiddleware() fiber.Handler {
-	propagator := otel.GetTextMapPropagator()
-	tracer := otel.Tracer("fiber")
-
 	return func(c fiber.Ctx) error {
 		if utils.Contains(skippedPaths, c.Path()) {
 			return c.Next()
 		}
+
+		// Resolve tracer/propagator per request so a late otel.SetTracerProvider
+		// (e.g. after app wiring) is observed instead of a stale capture at Use time.
+		propagator := otel.GetTextMapPropagator()
+		tracer := otel.Tracer("fiber")
 
 		carrier := propagation.HeaderCarrier{}
 		for key, value := range c.Request().Header.All() {
