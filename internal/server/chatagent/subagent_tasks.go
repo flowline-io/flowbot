@@ -88,7 +88,7 @@ func buildSubagentSystemPrompt(ctx context.Context, def subagentDefinition) (str
 	return prompt, nil
 }
 
-// subagentDefinition is the local view of a runnable subagent used by task tooling.
+// subagentDefinition is the local view of a runnable subagent used by delegate_subagent tooling.
 type subagentDefinition struct {
 	Name         string
 	Description  string

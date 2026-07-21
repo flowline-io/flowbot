@@ -110,8 +110,8 @@ func TestHandleAPIStreamEventToolLifecycle(t *testing.T) {
 		{
 			name: "subagent tool update",
 			events: []agentevent.Event{
-				{Type: agentevent.TypeToolExecutionStart, ToolCall: msg.ToolCallPart{ID: "s1", Name: taskToolName}},
-				{Type: agentevent.TypeToolExecutionUpdate, ToolCall: msg.ToolCallPart{ID: "s1", Name: taskToolName}, Update: "step:1"},
+				{Type: agentevent.TypeToolExecutionStart, ToolCall: msg.ToolCallPart{ID: "s1", Name: delegateSubagentToolName}},
+				{Type: agentevent.TypeToolExecutionUpdate, ToolCall: msg.ToolCallPart{ID: "s1", Name: delegateSubagentToolName}, Update: "step:1"},
 			},
 			wantTypes: []string{EventTypeTool, EventTypeTool},
 		},

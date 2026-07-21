@@ -119,7 +119,7 @@ func publishAPIToolStart(publisher EventPublisher, tracker *apiStreamTracker, ev
 		return
 	}
 	tracker.coalescer.setToolStatus(toolStatusText(call))
-	if call.Name == taskToolName {
+	if call.Name == delegateSubagentToolName {
 		tracker.subagentTool = ""
 		_ = publisher.Publish(taskToolStreamEvent(call, "running", "", 0))
 		return
@@ -137,7 +137,7 @@ func publishAPIToolUpdate(publisher EventPublisher, tracker *apiStreamTracker, e
 	if !ok || ev.Update == "" {
 		return
 	}
-	if call.Name == taskToolName {
+	if call.Name == delegateSubagentToolName {
 		publishSubagentToolUpdate(publisher, tracker, ev.Update)
 		return
 	}
@@ -164,7 +164,7 @@ func publishAPIToolEnd(publisher EventPublisher, tracker *apiStreamTracker, ev a
 	}
 	stdout := apiToolResultText(result)
 
-	if call.Name == taskToolName {
+	if call.Name == delegateSubagentToolName {
 		tracker.subagentTool = ""
 		_ = publisher.Publish(taskToolStreamEvent(call, status, stdout, ev.DurationMs))
 		return
@@ -202,7 +202,7 @@ func publishSubagentToolUpdate(publisher EventPublisher, tracker *apiStreamTrack
 	if !ok {
 		_ = publisher.Publish(StreamEvent{
 			Type:   EventTypeTool,
-			Name:   taskToolName,
+			Name:   delegateSubagentToolName,
 			Status: "running",
 			Stdout: update,
 		})
@@ -222,12 +222,12 @@ func publishSubagentToolUpdate(publisher EventPublisher, tracker *apiStreamTrack
 	}
 }
 
-// toolDisplayName returns the client-facing tool name, annotating the task tool
+// toolDisplayName returns the client-facing tool name, annotating the delegate_subagent tool
 // with the delegated subagent so CLI and web clients can show the delegation target.
 func toolDisplayName(call msg.ToolCallPart) string {
-	if call.Name == taskToolName {
+	if call.Name == delegateSubagentToolName {
 		if name := subagentTypeFromArgs(call.Arguments); name != "" {
-			return fmt.Sprintf("%s (%s)", taskToolName, name)
+			return fmt.Sprintf("%s (%s)", delegateSubagentToolName, name)
 		}
 	}
 	return call.Name

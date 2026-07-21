@@ -48,7 +48,7 @@ func taskToolStreamEvent(call msg.ToolCallPart, status, stdout string, durationM
 	subagent := subagentTypeFromArgs(call.Arguments)
 	name := call.Name
 	if subagent != "" {
-		name = taskToolName
+		name = delegateSubagentToolName
 	}
 	return StreamEvent{
 		Type:       EventTypeTool,

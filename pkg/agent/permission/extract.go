@@ -21,7 +21,7 @@ const (
 	ToolWebFetch            = "web_fetch"
 	ToolRunCode             = "run_code"
 	ToolReadSkill           = "read_skill"
-	ToolTask                = "task"
+	ToolDelegateSubagent    = "delegate_subagent"
 	ToolScheduleTask        = "schedule_task"
 	ToolUpdateScheduledTask = "update_scheduled_task"
 	ToolListScheduledTasks  = "list_scheduled_tasks"
@@ -44,7 +44,7 @@ func PermissionKeyForTool(tool string) string {
 		return "websearch"
 	case ToolReadSkill:
 		return "skill"
-	case ToolTask:
+	case ToolDelegateSubagent:
 		return KeyDelegate
 	case ToolScheduleTask, ToolUpdateScheduledTask, ToolCancelScheduledTask:
 		return KeySchedule
@@ -126,7 +126,7 @@ func extractProductToolPrimary(req Request) (string, ParseBashCommand, []string)
 	switch req.Tool {
 	case ToolReadSkill:
 		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil
-	case ToolTask:
+	case ToolDelegateSubagent:
 		return strings.TrimSpace(fmt.Sprint(req.Args["subagent_type"])), ParseBashCommand{}, nil
 	case ToolScheduleTask:
 		return strings.TrimSpace(fmt.Sprint(req.Args["name"])), ParseBashCommand{}, nil

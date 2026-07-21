@@ -162,7 +162,7 @@ func toolStatusText(call msg.ToolCallPart) string {
 	if call.Name == "" {
 		return ""
 	}
-	if call.Name == taskToolName {
+	if call.Name == delegateSubagentToolName {
 		if name := subagentTypeFromArgs(call.Arguments); name != "" {
 			return fmt.Sprintf(subagentStatusTemplate, name)
 		}

@@ -97,22 +97,22 @@ func TestTaskToolStreamEvent(t *testing.T) {
 		{
 			name: "annotates subagent",
 			call: msg.ToolCallPart{
-				Name:      taskToolName,
+				Name:      delegateSubagentToolName,
 				Arguments: `{"subagent_type":"code-reviewer"}`,
 			},
 			want: StreamEvent{
 				Type:     EventTypeTool,
-				Name:     taskToolName,
+				Name:     delegateSubagentToolName,
 				Subagent: "code-reviewer",
 				Status:   "running",
 			},
 		},
 		{
 			name: "plain task without subagent",
-			call: msg.ToolCallPart{Name: taskToolName},
+			call: msg.ToolCallPart{Name: delegateSubagentToolName},
 			want: StreamEvent{
 				Type:   EventTypeTool,
-				Name:   taskToolName,
+				Name:   delegateSubagentToolName,
 				Status: "running",
 			},
 		},

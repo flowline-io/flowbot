@@ -113,7 +113,7 @@ func TestEvaluatorDelegateAndSchedule(t *testing.T) {
 	}{
 		{
 			name: "task defaults ask",
-			tool: permission.ToolTask,
+			tool: permission.ToolDelegateSubagent,
 			args: map[string]any{"subagent_type": "explore"},
 			want: permission.ActionAsk,
 			key:  permission.KeyDelegate,

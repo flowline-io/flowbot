@@ -63,10 +63,10 @@ func TestStreamCoalescer_handleEvents(t *testing.T) {
 			wantDirty: true,
 		},
 		{
-			name: "task tool shows subagent name",
+			name: "delegate_subagent tool shows subagent name",
 			events: []agentevent.Event{
 				{Type: agentevent.TypeToolExecutionStart, ToolCall: msg.ToolCallPart{
-					Name:      "task",
+					Name:      "delegate_subagent",
 					Arguments: `{"subagent_type":"code-reviewer","prompt":"review"}`,
 				}},
 			},

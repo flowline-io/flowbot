@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/schema/index"
 )
 
-// AgentSubagent stores a chat assistant subagent definition delegated through the task tool.
+// AgentSubagent stores a chat assistant subagent definition delegated through the delegate_subagent tool.
 type AgentSubagent struct {
 	ent.Schema
 }

@@ -91,7 +91,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-06 | Manual + automatic compaction | `CompactSession`, ctxmgr | | compaction / context tests |
 | O-08 | Pipeline agent step (ephemeral) | `pipeline_run.go` / `RunPipelineAgent` | Tools/skills allowlist; memory default off | `pipeline_run_test.go`, `ephemeral_run_test.go` |
 | O-09 | Scheduled autonomous run + delivery | `scheduled_run.go`, scheduler | Isolated session; permission policy | `chat_agent_scheduled_task_spec_test.go`, scheduled_* tests |
-| O-10 | Skills tool / memory tool / subagent task tool / todo tools | registry + tools | Allowlists for subagents | skills/memory/subagent/todo tests |
+| O-10 | Skills tool / memory tool / delegate_subagent tool / todo tools | registry + tools | Allowlists for subagents | skills/memory/subagent/todo tests |
 | O-11 | Sensors / progress / usage recording | sensors, progress, usage_record | | unit tests |
 | O-12 | Prompt cache | `prompt_cache.go` | Invalidation on config change | `prompt_cache_test.go` |
 
@@ -116,7 +116,7 @@ Use after each vertical slice and before freeze sign-off.
 6. Scheduled: create one-shot task, wait for completed + run row.
 7. Skills: toggle/enable a skill and confirm agent can `read_skill`.
 8. Memory: read/write via UI or tool; respect max size.
-9. Subagent: run a task tool delegation; progress/tool events appear.
+9. Subagent: run a delegate_subagent tool delegation; progress/tool events appear.
 10. Permissions: save form, reset to defaults; session grants clear.
 11. Export: download/export session JSONL or documented format.
 12. Title: first user message eventually updates session title (or test-disabled path).

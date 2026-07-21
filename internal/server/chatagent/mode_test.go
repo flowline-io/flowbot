@@ -30,7 +30,7 @@ func TestIsReadOnlyTool(t *testing.T) {
 		{name: "create_clip blocked", tool: "create_clip", want: false},
 		{name: "send_notification blocked", tool: "send_notification", want: false},
 		{name: "update_memory not unconditionally read-only", tool: "update_memory", want: false},
-		{name: "task blocked in plan mode", tool: "task", want: false},
+		{name: "delegate_subagent blocked in plan mode", tool: "delegate_subagent", want: false},
 		{name: "write_file blocked", tool: "write_file", want: false},
 		{name: "apply_patch blocked", tool: "apply_patch", want: false},
 		{name: "run_terminal blocked", tool: "run_terminal", want: false},

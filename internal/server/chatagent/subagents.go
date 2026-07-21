@@ -153,7 +153,7 @@ func defaultSubagentByFlag(flag string) *gen.AgentSubagent {
 }
 
 // defaultSubagents are seeded once when no subagent definitions exist, so the
-// task tool is usable out of the box.
+// delegate_subagent tool is usable out of the box.
 var defaultSubagents = []*gen.AgentSubagent{
 	{
 		Flag:        "general",
@@ -284,7 +284,7 @@ func FormatSubagentsForPrompt(subagents []Subagent) string {
 
 	lines := []string{
 		"\n\nThe following subagents handle specialized tasks in an isolated context.",
-		"Use the task tool with subagent_type set to a subagent name to delegate a self-contained task.",
+		"Use the delegate_subagent tool with subagent_type set to a subagent name to delegate a self-contained task.",
 		"Delegate when the task matches a subagent description; the subagent returns only its final result.",
 		"",
 		"<available_subagents>",

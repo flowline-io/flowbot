@@ -20,7 +20,7 @@ import (
 const agentName = "chat"
 
 // NewRegistry registers assistant tools including DB-backed skills support.
-// When taskDeps is non-nil, the subagent delegation task tool is registered and activated.
+// When taskDeps is non-nil, the delegate_subagent tool is registered and activated.
 // When scheduleDeps is non-nil, scheduled task tools are registered and activated.
 func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) (*tool.Registry, error) {
 	registry := tool.NewRegistry()
@@ -91,7 +91,7 @@ func ActiveToolNames() []string {
 	names := coding.ActiveToolNames()
 	names = append(names, clip.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)
-	names = append(names, "read_skill", taskToolName)
+	names = append(names, "read_skill", delegateSubagentToolName)
 	names = append(names, scheduleToolNames()...)
 	names = append(names, todoToolNames()...)
 	names = append(names, updateMemoryToolName)

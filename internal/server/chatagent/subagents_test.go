@@ -29,7 +29,7 @@ func TestFormatSubagentsForPrompt(t *testing.T) {
 				"<available_subagents>",
 				"<name>code-reviewer</name>",
 				"Reviews diffs for bugs and style",
-				"task tool",
+				"delegate_subagent tool",
 			},
 		},
 		{
@@ -97,7 +97,7 @@ func TestTaskToolExecuteValidation(t *testing.T) {
 
 func TestTaskToolSchema(t *testing.T) {
 	tool := chatagent.NewTaskTool(coding.Workspace{}, chatagent.TaskToolDeps{})
-	assert.Equal(t, "task", tool.Name())
+	assert.Equal(t, "delegate_subagent", tool.Name())
 	assert.NotEmpty(t, tool.Description())
 	params := tool.Parameters()
 	required, ok := params["required"].([]string)

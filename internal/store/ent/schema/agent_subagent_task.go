@@ -22,7 +22,7 @@ const (
 	AgentSubagentTaskStatusFailed AgentSubagentTaskStatus = "failed"
 )
 
-// AgentSubagentTask records one task delegation through the task tool.
+// AgentSubagentTask records one task delegation through the delegate_subagent tool.
 type AgentSubagentTask struct {
 	ent.Schema
 }

@@ -9,7 +9,7 @@ const KeyExternalDirectory = "external_directory"
 // KeyWildcard applies to all permission keys when no specific rule matches.
 const KeyWildcard = "*"
 
-// KeyDelegate is the permission key for subagent delegation via the task tool.
+// KeyDelegate is the permission key for subagent delegation via the delegate_subagent tool.
 const KeyDelegate = "delegate"
 
 // KeySchedule is the permission key for scheduled task write operations.

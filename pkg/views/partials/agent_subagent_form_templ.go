@@ -137,7 +137,7 @@ func AgentSubagentForm(params model.AgentSubagentFormParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"code-reviewer\" required maxlength=\"128\"><p class=\"text-xs text-base-content/50 mt-1\">Referenced as subagent_type by the task tool and shown in the agent prompt.</p><div class=\"text-error text-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" placeholder=\"code-reviewer\" required maxlength=\"128\"><p class=\"text-xs text-base-content/50 mt-1\">Referenced as subagent_type by the delegate_subagent tool and shown in the agent prompt.</p><div class=\"text-error text-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

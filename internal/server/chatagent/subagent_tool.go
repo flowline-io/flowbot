@@ -16,7 +16,7 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-const taskToolName = "task"
+const delegateSubagentToolName = "delegate_subagent"
 
 // TaskToolDeps carries the per-run metadata needed to delegate to a subagent.
 type TaskToolDeps struct {
@@ -36,13 +36,13 @@ type TaskTool struct {
 	deps      TaskToolDeps
 }
 
-// NewTaskTool creates a task tool bound to a workspace and per-run delegation metadata.
+// NewTaskTool creates a delegate_subagent tool bound to a workspace and per-run delegation metadata.
 func NewTaskTool(ws coding.Workspace, deps TaskToolDeps) TaskTool {
 	return TaskTool{workspace: ws, deps: deps}
 }
 
 // Name returns the tool identifier.
-func (TaskTool) Name() string { return taskToolName }
+func (TaskTool) Name() string { return delegateSubagentToolName }
 
 // Description explains the tool to the model.
 func (TaskTool) Description() string {
@@ -175,7 +175,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 	RecordLLMUsageMessages(ctx, t.deps.UID, t.deps.SessionID, types.TokenUsageSourceSubagent, result.Messages)
 	return msg.ToolResultMessage{
 		ToolCallID: id,
-		Name:       taskToolName,
+		Name:       delegateSubagentToolName,
 		Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
 	}, nil
 }
@@ -211,7 +211,7 @@ func stringArg(args map[string]any, key string) string {
 func taskToolError(id, text string) msg.ToolResultMessage {
 	return msg.ToolResultMessage{
 		ToolCallID: id,
-		Name:       taskToolName,
+		Name:       delegateSubagentToolName,
 		Parts:      []msg.ContentPart{msg.TextPart{Text: text}},
 		IsError:    true,
 	}

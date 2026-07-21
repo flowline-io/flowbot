@@ -77,7 +77,7 @@ func ToolGroupOf(name string) string {
 		return ToolGroupSearch
 	case clip.CreateToolName, clip.GetToolName, agentnotify.SendToolName:
 		return ToolGroupCore
-	case taskToolName:
+	case delegateSubagentToolName:
 		return ToolGroupSubagent
 	case scheduleToolName, updateScheduleToolName, listScheduleToolName, cancelScheduleToolName:
 		return ToolGroupSchedule

@@ -27,7 +27,7 @@ var ErrNoModel = errors.New("subagent: model is required")
 // Tools is an allowlist of tool names exposed to the subagent; empty means all
 // tools registered on the provided registry.
 type Definition struct {
-	// Name is the unique subagent identifier referenced by the task tool.
+	// Name is the unique subagent identifier referenced by the delegate_subagent tool.
 	Name string
 	// Description tells the primary agent when to delegate to this subagent.
 	Description string
