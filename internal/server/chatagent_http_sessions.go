@@ -14,6 +14,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
+type createSessionBody struct {
+	Model         string `json:"model"`
+	ThinkingLevel string `json:"thinking_level"`
+}
+
 func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
@@ -22,9 +27,21 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 	if rc == nil || rc.UID.IsZero() {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
+	var body createSessionBody
+	if len(c.Body()) > 0 {
+		if err := sonic.Unmarshal(c.Body(), &body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+		}
+	}
 	sessionID := types.Id()
 	if err := chatagent.CreateSession(c.Context(), rc.UID, sessionID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if body.Model != "" || body.ThinkingLevel != "" {
+		s := chatagent.SessionSettings{Model: body.Model, ThinkingLevel: body.ThinkingLevel}
+		if err := chatagent.SetSessionSettings(c.Context(), sessionID, s); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"session_id": sessionID})
 }
@@ -132,6 +149,44 @@ func (h *chatAgentHTTP) compactSession(c fiber.Ctx) error {
 		"tokens_before": result.TokensBefore,
 		"tokens_after":  result.TokensAfter,
 	})
+}
+
+func (h *chatAgentHTTP) getSessionSettings(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	settings, err := chatagent.GetSessionSettings(c.Context(), sessionID)
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(settings)
+}
+
+func (h *chatAgentHTTP) putSessionSettings(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	var body chatagent.SessionSettings
+	if err := sonic.Unmarshal(c.Body(), &body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+	}
+	if err := chatagent.SetSessionSettings(c.Context(), sessionID, body); err != nil {
+		return chatAgentError(c, err)
+	}
+	settings, err := chatagent.GetSessionSettings(c.Context(), sessionID)
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	chatagent.EvictHarnessPool(sessionID)
+	return c.JSON(settings)
 }
 
 func (h *chatAgentHTTP) getSessionMode(c fiber.Ctx) error {

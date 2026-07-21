@@ -256,12 +256,13 @@ func buildStreamOptions(cfg Config, modelName string, llmTools []llms.Tool, emit
 	}
 
 	streamOpts := agentllm.StreamOptions{
-		ModelName:   modelName,
-		Temperature: cfg.Temperature,
-		MaxTokens:   cfg.MaxTokens,
-		Tools:       llmTools,
-		OnTextDelta: messageTextDeltaHandler(emit),
-		Retry:       retry,
+		ModelName:     modelName,
+		Temperature:   cfg.Temperature,
+		MaxTokens:     cfg.MaxTokens,
+		ThinkingLevel: cfg.ThinkingLevel,
+		Tools:         llmTools,
+		OnTextDelta:   messageTextDeltaHandler(emit),
+		Retry:         retry,
 	}
 	if agentllm.SupportsReasoningStream(modelName) {
 		streamOpts.OnReasoningDelta = capture.deltaHandler(emit)

@@ -76,6 +76,34 @@ func (_c *ChatSessionCreate) SetNillableMode(v *string) *ChatSessionCreate {
 	return _c
 }
 
+// SetModel sets the "model" field.
+func (_c *ChatSessionCreate) SetModel(v string) *ChatSessionCreate {
+	_c.mutation.SetModel(v)
+	return _c
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillableModel(v *string) *ChatSessionCreate {
+	if v != nil {
+		_c.SetModel(*v)
+	}
+	return _c
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (_c *ChatSessionCreate) SetThinkingLevel(v string) *ChatSessionCreate {
+	_c.mutation.SetThinkingLevel(v)
+	return _c
+}
+
+// SetNillableThinkingLevel sets the "thinking_level" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillableThinkingLevel(v *string) *ChatSessionCreate {
+	if v != nil {
+		_c.SetThinkingLevel(*v)
+	}
+	return _c
+}
+
 // SetTitle sets the "title" field.
 func (_c *ChatSessionCreate) SetTitle(v string) *ChatSessionCreate {
 	_c.mutation.SetTitle(v)
@@ -171,6 +199,14 @@ func (_c *ChatSessionCreate) defaults() {
 		v := chatsession.DefaultMode
 		_c.mutation.SetMode(v)
 	}
+	if _, ok := _c.mutation.Model(); !ok {
+		v := chatsession.DefaultModel
+		_c.mutation.SetModel(v)
+	}
+	if _, ok := _c.mutation.ThinkingLevel(); !ok {
+		v := chatsession.DefaultThinkingLevel
+		_c.mutation.SetThinkingLevel(v)
+	}
 	if _, ok := _c.mutation.Title(); !ok {
 		v := chatsession.DefaultTitle
 		_c.mutation.SetTitle(v)
@@ -211,6 +247,12 @@ func (_c *ChatSessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Mode(); !ok {
 		return &ValidationError{Name: "mode", err: errors.New(`gen: missing required field "ChatSession.mode"`)}
+	}
+	if _, ok := _c.mutation.Model(); !ok {
+		return &ValidationError{Name: "model", err: errors.New(`gen: missing required field "ChatSession.model"`)}
+	}
+	if _, ok := _c.mutation.ThinkingLevel(); !ok {
+		return &ValidationError{Name: "thinking_level", err: errors.New(`gen: missing required field "ChatSession.thinking_level"`)}
 	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`gen: missing required field "ChatSession.title"`)}
@@ -273,6 +315,14 @@ func (_c *ChatSessionCreate) createSpec() (*ChatSession, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Mode(); ok {
 		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
 		_node.Mode = value
+	}
+	if value, ok := _c.mutation.Model(); ok {
+		_spec.SetField(chatsession.FieldModel, field.TypeString, value)
+		_node.Model = value
+	}
+	if value, ok := _c.mutation.ThinkingLevel(); ok {
+		_spec.SetField(chatsession.FieldThinkingLevel, field.TypeString, value)
+		_node.ThinkingLevel = value
 	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
@@ -401,6 +451,30 @@ func (u *ChatSessionUpsert) SetMode(v string) *ChatSessionUpsert {
 // UpdateMode sets the "mode" field to the value that was provided on create.
 func (u *ChatSessionUpsert) UpdateMode() *ChatSessionUpsert {
 	u.SetExcluded(chatsession.FieldMode)
+	return u
+}
+
+// SetModel sets the "model" field.
+func (u *ChatSessionUpsert) SetModel(v string) *ChatSessionUpsert {
+	u.Set(chatsession.FieldModel, v)
+	return u
+}
+
+// UpdateModel sets the "model" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdateModel() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldModel)
+	return u
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (u *ChatSessionUpsert) SetThinkingLevel(v string) *ChatSessionUpsert {
+	u.Set(chatsession.FieldThinkingLevel, v)
+	return u
+}
+
+// UpdateThinkingLevel sets the "thinking_level" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdateThinkingLevel() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldThinkingLevel)
 	return u
 }
 
@@ -553,6 +627,34 @@ func (u *ChatSessionUpsertOne) SetMode(v string) *ChatSessionUpsertOne {
 func (u *ChatSessionUpsertOne) UpdateMode() *ChatSessionUpsertOne {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateMode()
+	})
+}
+
+// SetModel sets the "model" field.
+func (u *ChatSessionUpsertOne) SetModel(v string) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetModel(v)
+	})
+}
+
+// UpdateModel sets the "model" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdateModel() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateModel()
+	})
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (u *ChatSessionUpsertOne) SetThinkingLevel(v string) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetThinkingLevel(v)
+	})
+}
+
+// UpdateThinkingLevel sets the "thinking_level" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdateThinkingLevel() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateThinkingLevel()
 	})
 }
 
@@ -875,6 +977,34 @@ func (u *ChatSessionUpsertBulk) SetMode(v string) *ChatSessionUpsertBulk {
 func (u *ChatSessionUpsertBulk) UpdateMode() *ChatSessionUpsertBulk {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateMode()
+	})
+}
+
+// SetModel sets the "model" field.
+func (u *ChatSessionUpsertBulk) SetModel(v string) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetModel(v)
+	})
+}
+
+// UpdateModel sets the "model" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdateModel() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateModel()
+	})
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (u *ChatSessionUpsertBulk) SetThinkingLevel(v string) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetThinkingLevel(v)
+	})
+}
+
+// UpdateThinkingLevel sets the "thinking_level" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdateThinkingLevel() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateThinkingLevel()
 	})
 }
 

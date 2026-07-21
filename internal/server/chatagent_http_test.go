@@ -39,13 +39,18 @@ func TestChatAgentHTTPDisabled(t *testing.T) {
 
 func TestChatAgentHTTPCreateSession(t *testing.T) {
 	origDB := store.Database
-	origCfg := config.App.ChatAgent
+	origCfg := config.App
 	store.Database = &testStoreAdapter{}
 	testChatSessions = map[string]*gen.ChatSession{}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	config.App = config.Type{
+		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()},
+		Models: []config.Model{
+			{Provider: "openai", ApiKey: "k", ModelNames: []string{"gpt-test", "gpt-alt"}},
+		},
+	}
 	t.Cleanup(func() {
 		store.Database = origDB
-		config.App.ChatAgent = origCfg
+		config.App = origCfg
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
@@ -59,16 +64,148 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 		return h.createSession(c)
 	})
 
-	req := httptest.NewRequest("POST", "/chatagent/sessions", http.NoBody)
-	resp, err := app.Test(req)
-	require.NoError(t, err)
-	assert.Equal(t, fiber.StatusCreated, resp.StatusCode)
+	tests := []struct {
+		name       string
+		body       string
+		wantModel  string
+		wantLevel  string
+		wantStatus int
+	}{
+		{
+			name:       "empty body creates session",
+			body:       "",
+			wantStatus: fiber.StatusCreated,
+		},
+		{
+			name:       "stores model and thinking level",
+			body:       `{"model":"gpt-alt","thinking_level":"high"}`,
+			wantModel:  "gpt-alt",
+			wantLevel:  "high",
+			wantStatus: fiber.StatusCreated,
+		},
+		{
+			name:       "rejects unknown model",
+			body:       `{"model":"nope","thinking_level":"default"}`,
+			wantStatus: fiber.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var req *http.Request
+			if tt.body == "" {
+				req = httptest.NewRequest("POST", "/chatagent/sessions", http.NoBody)
+			} else {
+				req = httptest.NewRequest("POST", "/chatagent/sessions", strings.NewReader(tt.body))
+				req.Header.Set("Content-Type", "application/json")
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantStatus != fiber.StatusCreated {
+				return
+			}
+			raw, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			var parsed map[string]string
+			require.NoError(t, sonic.Unmarshal(raw, &parsed))
+			require.NotEmpty(t, parsed["session_id"])
+			if tt.wantModel == "" && tt.wantLevel == "" {
+				return
+			}
+			sess := testChatSessions[parsed["session_id"]]
+			require.NotNil(t, sess)
+			assert.Equal(t, tt.wantModel, sess.Model)
+			assert.Equal(t, tt.wantLevel, sess.ThinkingLevel)
+		})
+	}
+}
 
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err)
-	var parsed map[string]string
-	require.NoError(t, sonic.Unmarshal(body, &parsed))
-	assert.NotEmpty(t, parsed["session_id"])
+func TestChatAgentHTTPSessionSettings(t *testing.T) {
+	origDB := store.Database
+	origCfg := config.App
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
+	}
+	config.App = config.Type{
+		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()},
+		Models: []config.Model{
+			{Provider: "openai", ApiKey: "k", ModelNames: []string{"gpt-test", "gpt-alt"}},
+		},
+	}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App = origCfg
+		testChatSessions = map[string]*gen.ChatSession{}
+	})
+
+	h := newChatAgentHTTP()
+	app := fiber.New()
+	withOwner := func(handler fiber.Handler) fiber.Handler {
+		return func(c fiber.Ctx) error {
+			c.Locals("route:ctx", &route.RequestContext{
+				UID:    types.Uid("user-1"),
+				Scopes: []string{auth.ScopeChatAgentChat},
+			})
+			return handler(c)
+		}
+	}
+	app.Get("/chatagent/sessions/:id/settings", withOwner(h.getSessionSettings))
+	app.Put("/chatagent/sessions/:id/settings", withOwner(h.putSessionSettings))
+
+	tests := []struct {
+		name       string
+		method     string
+		body       string
+		wantStatus int
+		wantModel  string
+		wantLevel  string
+	}{
+		{
+			name:       "get empty settings",
+			method:     http.MethodGet,
+			wantStatus: fiber.StatusOK,
+		},
+		{
+			name:       "put valid settings",
+			method:     http.MethodPut,
+			body:       `{"model":"gpt-alt","thinking_level":"medium"}`,
+			wantStatus: fiber.StatusOK,
+			wantModel:  "gpt-alt",
+			wantLevel:  "medium",
+		},
+		{
+			name:       "put invalid thinking level",
+			method:     http.MethodPut,
+			body:       `{"model":"gpt-alt","thinking_level":"turbo"}`,
+			wantStatus: fiber.StatusBadRequest,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var req *http.Request
+			if tt.method == http.MethodGet {
+				req = httptest.NewRequest(tt.method, "/chatagent/sessions/sess-1/settings", http.NoBody)
+			} else {
+				req = httptest.NewRequest(tt.method, "/chatagent/sessions/sess-1/settings", strings.NewReader(tt.body))
+				req.Header.Set("Content-Type", "application/json")
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantStatus != fiber.StatusOK || tt.method == http.MethodGet && tt.wantModel == "" {
+				if tt.method == http.MethodPut && tt.wantStatus == fiber.StatusOK {
+					assert.Equal(t, tt.wantModel, testChatSessions["sess-1"].Model)
+					assert.Equal(t, tt.wantLevel, testChatSessions["sess-1"].ThinkingLevel)
+				}
+				return
+			}
+			if tt.method == http.MethodPut {
+				assert.Equal(t, tt.wantModel, testChatSessions["sess-1"].Model)
+				assert.Equal(t, tt.wantLevel, testChatSessions["sess-1"].ThinkingLevel)
+			}
+		})
+	}
 }
 
 func TestChatAgentHTTPListMessages(t *testing.T) {

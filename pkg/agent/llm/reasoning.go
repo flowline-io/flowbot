@@ -16,7 +16,11 @@ func SupportsReasoningStream(modelName string) bool {
 
 // ReasoningCallOptions returns per-request call options that enable provider reasoning streams.
 // Langchaingo applies extended thinking through GenerateContent options rather than model construction.
-func ReasoningCallOptions(modelName string, maxTokens int) []llms.CallOption {
+func ReasoningCallOptions(modelName string, maxTokens int, thinkingLevel string) []llms.CallOption {
+	level := NormalizeThinkingLevel(thinkingLevel)
+	if level == ThinkingLevelOff {
+		return nil
+	}
 	if !SupportsReasoningStream(modelName) {
 		return nil
 	}
@@ -27,8 +31,18 @@ func ReasoningCallOptions(modelName string, maxTokens int) []llms.CallOption {
 	}
 
 	if isAnthropicReasoningModel(modelName) {
-		opts = append(opts, llms.WithThinkingMode(llms.ThinkingModeAuto))
-		if maxTokens > 0 {
+		mode := anthropicThinkingMode(level)
+		if mode == llms.ThinkingModeNone {
+			return nil
+		}
+		opts = append(opts, llms.WithThinkingMode(mode))
+		if maxTokens > 0 && mode != llms.ThinkingModeAuto {
+			budget := llms.CalculateThinkingBudget(mode, maxTokens)
+			if budget > 0 {
+				opts = append(opts, llms.WithThinkingBudget(budget))
+			}
+		}
+		if mode == llms.ThinkingModeAuto && maxTokens > 0 {
 			budget := llms.CalculateThinkingBudget(llms.ThinkingModeMedium, maxTokens)
 			if budget > 0 {
 				opts = append(opts, llms.WithThinkingBudget(budget))

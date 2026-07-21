@@ -23,6 +23,7 @@ type StreamOptions struct {
 	ModelName        string
 	Temperature      float64
 	MaxTokens        int
+	ThinkingLevel    string
 	Tools            []llms.Tool
 	OnTextDelta      func(delta string) error
 	OnReasoningDelta func(delta string) error
@@ -107,6 +108,8 @@ func streamAssistantOnce(
 	}
 	wrapped := wrapStreamCallbacks(streamCtx, opts, tracker, progress)
 	callOpts = append(callOpts, buildAssistantStreamOptions(wrapped, &textBuilder, &textMu)...)
+
+	streamCtx = WithThinkingLevel(streamCtx, opts.ThinkingLevel)
 
 	start := time.Now()
 	flog.Info("[agent-llm] generate start model=%s messages=%d tools=%d reasoning=%t ctx_deadline=%s",
@@ -270,7 +273,7 @@ func buildAssistantStreamOptions(opts StreamOptions, textBuilder *strings.Builde
 	}
 
 	if opts.OnReasoningDelta != nil {
-		out := ReasoningCallOptions(opts.ModelName, opts.MaxTokens)
+		out := ReasoningCallOptions(opts.ModelName, opts.MaxTokens, opts.ThinkingLevel)
 		out = append(out, llms.WithStreamingReasoningFunc(func(streamCtx context.Context, reasoningChunk, chunk []byte) error {
 			if streamCtx.Err() != nil {
 				return streamCtx.Err()

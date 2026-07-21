@@ -11970,22 +11970,24 @@ func (m *ChatScheduledTaskRunMutation) ResetEdge(name string) error {
 // ChatSessionMutation represents an operation that mutates the ChatSession nodes in the graph.
 type ChatSessionMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int64
-	flag          *string
-	uid           *string
-	leaf_id       *string
-	state         *int
-	addstate      *int
-	mode          *string
-	title         *string
-	created_at    *time.Time
-	updated_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*ChatSession, error)
-	predicates    []predicate.ChatSession
+	op             Op
+	typ            string
+	id             *int64
+	flag           *string
+	uid            *string
+	leaf_id        *string
+	state          *int
+	addstate       *int
+	mode           *string
+	model          *string
+	thinking_level *string
+	title          *string
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*ChatSession, error)
+	predicates     []predicate.ChatSession
 }
 
 var _ ent.Mutation = (*ChatSessionMutation)(nil)
@@ -12292,6 +12294,78 @@ func (m *ChatSessionMutation) ResetMode() {
 	m.mode = nil
 }
 
+// SetModel sets the "model" field.
+func (m *ChatSessionMutation) SetModel(s string) {
+	m.model = &s
+}
+
+// Model returns the value of the "model" field in the mutation.
+func (m *ChatSessionMutation) Model() (r string, exists bool) {
+	v := m.model
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldModel returns the old "model" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldModel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldModel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldModel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldModel: %w", err)
+	}
+	return oldValue.Model, nil
+}
+
+// ResetModel resets all changes to the "model" field.
+func (m *ChatSessionMutation) ResetModel() {
+	m.model = nil
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (m *ChatSessionMutation) SetThinkingLevel(s string) {
+	m.thinking_level = &s
+}
+
+// ThinkingLevel returns the value of the "thinking_level" field in the mutation.
+func (m *ChatSessionMutation) ThinkingLevel() (r string, exists bool) {
+	v := m.thinking_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldThinkingLevel returns the old "thinking_level" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldThinkingLevel(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldThinkingLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldThinkingLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldThinkingLevel: %w", err)
+	}
+	return oldValue.ThinkingLevel, nil
+}
+
+// ResetThinkingLevel resets all changes to the "thinking_level" field.
+func (m *ChatSessionMutation) ResetThinkingLevel() {
+	m.thinking_level = nil
+}
+
 // SetTitle sets the "title" field.
 func (m *ChatSessionMutation) SetTitle(s string) {
 	m.title = &s
@@ -12434,7 +12508,7 @@ func (m *ChatSessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ChatSessionMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.flag != nil {
 		fields = append(fields, chatsession.FieldFlag)
 	}
@@ -12449,6 +12523,12 @@ func (m *ChatSessionMutation) Fields() []string {
 	}
 	if m.mode != nil {
 		fields = append(fields, chatsession.FieldMode)
+	}
+	if m.model != nil {
+		fields = append(fields, chatsession.FieldModel)
+	}
+	if m.thinking_level != nil {
+		fields = append(fields, chatsession.FieldThinkingLevel)
 	}
 	if m.title != nil {
 		fields = append(fields, chatsession.FieldTitle)
@@ -12477,6 +12557,10 @@ func (m *ChatSessionMutation) Field(name string) (ent.Value, bool) {
 		return m.State()
 	case chatsession.FieldMode:
 		return m.Mode()
+	case chatsession.FieldModel:
+		return m.Model()
+	case chatsession.FieldThinkingLevel:
+		return m.ThinkingLevel()
 	case chatsession.FieldTitle:
 		return m.Title()
 	case chatsession.FieldCreatedAt:
@@ -12502,6 +12586,10 @@ func (m *ChatSessionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldState(ctx)
 	case chatsession.FieldMode:
 		return m.OldMode(ctx)
+	case chatsession.FieldModel:
+		return m.OldModel(ctx)
+	case chatsession.FieldThinkingLevel:
+		return m.OldThinkingLevel(ctx)
 	case chatsession.FieldTitle:
 		return m.OldTitle(ctx)
 	case chatsession.FieldCreatedAt:
@@ -12551,6 +12639,20 @@ func (m *ChatSessionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetMode(v)
+		return nil
+	case chatsession.FieldModel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetModel(v)
+		return nil
+	case chatsession.FieldThinkingLevel:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetThinkingLevel(v)
 		return nil
 	case chatsession.FieldTitle:
 		v, ok := value.(string)
@@ -12651,6 +12753,12 @@ func (m *ChatSessionMutation) ResetField(name string) error {
 		return nil
 	case chatsession.FieldMode:
 		m.ResetMode()
+		return nil
+	case chatsession.FieldModel:
+		m.ResetModel()
+		return nil
+	case chatsession.FieldThinkingLevel:
+		m.ResetThinkingLevel()
 		return nil
 	case chatsession.FieldTitle:
 		m.ResetTitle()

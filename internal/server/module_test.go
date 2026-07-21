@@ -249,6 +249,16 @@ func (*testStoreAdapter) UpdateChatSessionMode(_ context.Context, flag, mode str
 	return nil
 }
 
+func (*testStoreAdapter) UpdateChatSessionSettings(_ context.Context, flag, modelName, thinkingLevel string) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.Model = modelName
+	sess.ThinkingLevel = thinkingLevel
+	return nil
+}
+
 func (*testStoreAdapter) UpdateChatSessionTitle(_ context.Context, flag, title string) error {
 	sess, ok := testChatSessions[flag]
 	if !ok {

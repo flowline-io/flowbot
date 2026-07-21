@@ -79,6 +79,16 @@ func Mode(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldEQ(FieldMode, v))
 }
 
+// Model applies equality check predicate on the "model" field. It's identical to ModelEQ.
+func Model(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldModel, v))
+}
+
+// ThinkingLevel applies equality check predicate on the "thinking_level" field. It's identical to ThinkingLevelEQ.
+func ThinkingLevel(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldThinkingLevel, v))
+}
+
 // Title applies equality check predicate on the "title" field. It's identical to TitleEQ.
 func Title(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldEQ(FieldTitle, v))
@@ -392,6 +402,136 @@ func ModeEqualFold(v string) predicate.ChatSession {
 // ModeContainsFold applies the ContainsFold predicate on the "mode" field.
 func ModeContainsFold(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldContainsFold(FieldMode, v))
+}
+
+// ModelEQ applies the EQ predicate on the "model" field.
+func ModelEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldModel, v))
+}
+
+// ModelNEQ applies the NEQ predicate on the "model" field.
+func ModelNEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNEQ(FieldModel, v))
+}
+
+// ModelIn applies the In predicate on the "model" field.
+func ModelIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldIn(FieldModel, vs...))
+}
+
+// ModelNotIn applies the NotIn predicate on the "model" field.
+func ModelNotIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNotIn(FieldModel, vs...))
+}
+
+// ModelGT applies the GT predicate on the "model" field.
+func ModelGT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGT(FieldModel, v))
+}
+
+// ModelGTE applies the GTE predicate on the "model" field.
+func ModelGTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGTE(FieldModel, v))
+}
+
+// ModelLT applies the LT predicate on the "model" field.
+func ModelLT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLT(FieldModel, v))
+}
+
+// ModelLTE applies the LTE predicate on the "model" field.
+func ModelLTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLTE(FieldModel, v))
+}
+
+// ModelContains applies the Contains predicate on the "model" field.
+func ModelContains(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContains(FieldModel, v))
+}
+
+// ModelHasPrefix applies the HasPrefix predicate on the "model" field.
+func ModelHasPrefix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasPrefix(FieldModel, v))
+}
+
+// ModelHasSuffix applies the HasSuffix predicate on the "model" field.
+func ModelHasSuffix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasSuffix(FieldModel, v))
+}
+
+// ModelEqualFold applies the EqualFold predicate on the "model" field.
+func ModelEqualFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEqualFold(FieldModel, v))
+}
+
+// ModelContainsFold applies the ContainsFold predicate on the "model" field.
+func ModelContainsFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContainsFold(FieldModel, v))
+}
+
+// ThinkingLevelEQ applies the EQ predicate on the "thinking_level" field.
+func ThinkingLevelEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelNEQ applies the NEQ predicate on the "thinking_level" field.
+func ThinkingLevelNEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNEQ(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelIn applies the In predicate on the "thinking_level" field.
+func ThinkingLevelIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldIn(FieldThinkingLevel, vs...))
+}
+
+// ThinkingLevelNotIn applies the NotIn predicate on the "thinking_level" field.
+func ThinkingLevelNotIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNotIn(FieldThinkingLevel, vs...))
+}
+
+// ThinkingLevelGT applies the GT predicate on the "thinking_level" field.
+func ThinkingLevelGT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGT(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelGTE applies the GTE predicate on the "thinking_level" field.
+func ThinkingLevelGTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGTE(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelLT applies the LT predicate on the "thinking_level" field.
+func ThinkingLevelLT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLT(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelLTE applies the LTE predicate on the "thinking_level" field.
+func ThinkingLevelLTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLTE(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelContains applies the Contains predicate on the "thinking_level" field.
+func ThinkingLevelContains(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContains(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelHasPrefix applies the HasPrefix predicate on the "thinking_level" field.
+func ThinkingLevelHasPrefix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasPrefix(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelHasSuffix applies the HasSuffix predicate on the "thinking_level" field.
+func ThinkingLevelHasSuffix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasSuffix(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelEqualFold applies the EqualFold predicate on the "thinking_level" field.
+func ThinkingLevelEqualFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEqualFold(FieldThinkingLevel, v))
+}
+
+// ThinkingLevelContainsFold applies the ContainsFold predicate on the "thinking_level" field.
+func ThinkingLevelContainsFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContainsFold(FieldThinkingLevel, v))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.

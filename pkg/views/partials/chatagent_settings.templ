@@ -1,0 +1,54 @@
+package partials
+
+// ChatAgentSettingsCluster renders compact model and thinking selects for the
+// bottom-left corner of the agents composer and thread input dialogs.
+templ ChatAgentSettingsCluster(
+	modelID string,
+	thinkingID string,
+	models []SelectableModelOption,
+	selectedModel string,
+	selectedThinking string,
+	disabled bool,
+) {
+	<div class="chatagent-settings" data-testid="chatagent-settings">
+		if len(models) > 1 {
+			<select
+				id={ modelID }
+				class="chatagent-settings-select"
+				disabled?={ disabled }
+				data-session-model={ selectedModel }
+				data-testid={ modelID }
+				aria-label="Model">
+				for _, m := range models {
+					if selectedModel != "" && m.ID == selectedModel {
+						<option value={ m.ID } selected>{ m.Name }</option>
+					} else {
+						<option value={ m.ID }>{ m.Name }</option>
+					}
+				}
+			</select>
+			<span class="chatagent-settings-sep" aria-hidden="true">·</span>
+		}
+		<select
+			id={ thinkingID }
+			class="chatagent-settings-select"
+			disabled?={ disabled }
+			data-session-thinking={ selectedThinking }
+			data-testid={ thinkingID }
+			aria-label="Thinking level">
+			@chatAgentThinkingOption("default", "Default", selectedThinking)
+			@chatAgentThinkingOption("off", "Off", selectedThinking)
+			@chatAgentThinkingOption("low", "Low", selectedThinking)
+			@chatAgentThinkingOption("medium", "Medium", selectedThinking)
+			@chatAgentThinkingOption("high", "High", selectedThinking)
+		</select>
+	</div>
+}
+
+templ chatAgentThinkingOption(value, label, selectedThinking string) {
+	if chatAgentThinkingSelected(value, selectedThinking) {
+		<option value={ value } selected>{ label }</option>
+	} else {
+		<option value={ value }>{ label }</option>
+	}
+}

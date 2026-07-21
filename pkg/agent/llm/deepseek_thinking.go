@@ -36,11 +36,22 @@ func (t *deepSeekThinkingTransport) RoundTrip(req *http.Request) (*http.Response
 		return base.RoundTrip(req)
 	}
 
+	level := ThinkingLevelFromContext(req.Context())
+	enabled := deepSeekThinkingEnabled(level)
 	if _, ok := payload["thinking"]; !ok {
-		payload["thinking"] = map[string]string{"type": "enabled"}
+		if enabled {
+			payload["thinking"] = map[string]string{"type": "enabled"}
+		} else {
+			payload["thinking"] = map[string]string{"type": "disabled"}
+		}
 	}
-	if _, ok := payload["reasoning_effort"]; !ok {
-		payload["reasoning_effort"] = "high"
+	// DeepSeek rejects reasoning_effort=none; omit the field when thinking is off.
+	if enabled {
+		if _, ok := payload["reasoning_effort"]; !ok {
+			payload["reasoning_effort"] = deepSeekReasoningEffort(level)
+		}
+	} else {
+		delete(payload, "reasoning_effort")
 	}
 
 	patched, err := sonic.Marshal(payload)

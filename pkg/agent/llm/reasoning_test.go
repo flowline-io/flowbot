@@ -67,7 +67,7 @@ func TestReasoningCallOptions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			opts := llm.ReasoningCallOptions(tt.modelName, tt.maxTokens)
+			opts := llm.ReasoningCallOptions(tt.modelName, tt.maxTokens, llm.ThinkingLevelDefault)
 			assert.Len(t, opts, tt.wantLen)
 			if tt.wantMode == "" {
 				return

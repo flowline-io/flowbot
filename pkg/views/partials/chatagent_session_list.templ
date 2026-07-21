@@ -8,6 +8,7 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 		data-chatagent-root="composer"
 		data-create-url={ endpoints.CreateURL }
 		data-detail-url-template={ endpoints.DetailURLTemplate }
+		data-default-model={ endpoints.DefaultModel }
 		data-testid="chatagent-composer">
 		if disabled {
 			<div class="alert alert-warning text-sm mb-3" data-testid="chatagent-disabled">Chat agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml.</div>
@@ -21,7 +22,14 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 				rows="3"
 				data-testid="chatagent-composer-input"></textarea>
 			<div class="agents-composer-toolbar">
-				<span class="text-xs text-base-content/40">Press Enter to start</span>
+				@ChatAgentSettingsCluster(
+					"chatagent-composer-model",
+					"chatagent-composer-thinking",
+					endpoints.SelectableModels,
+					"",
+					"",
+					disabled,
+				)
 				<button
 					type="button"
 					id="chatagent-composer-start"

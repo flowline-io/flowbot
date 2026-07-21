@@ -594,16 +594,24 @@ func init() {
 	chatsessionDescMode := chatsessionFields[5].Descriptor()
 	// chatsession.DefaultMode holds the default value on creation for the mode field.
 	chatsession.DefaultMode = chatsessionDescMode.Default.(string)
+	// chatsessionDescModel is the schema descriptor for model field.
+	chatsessionDescModel := chatsessionFields[6].Descriptor()
+	// chatsession.DefaultModel holds the default value on creation for the model field.
+	chatsession.DefaultModel = chatsessionDescModel.Default.(string)
+	// chatsessionDescThinkingLevel is the schema descriptor for thinking_level field.
+	chatsessionDescThinkingLevel := chatsessionFields[7].Descriptor()
+	// chatsession.DefaultThinkingLevel holds the default value on creation for the thinking_level field.
+	chatsession.DefaultThinkingLevel = chatsessionDescThinkingLevel.Default.(string)
 	// chatsessionDescTitle is the schema descriptor for title field.
-	chatsessionDescTitle := chatsessionFields[6].Descriptor()
+	chatsessionDescTitle := chatsessionFields[8].Descriptor()
 	// chatsession.DefaultTitle holds the default value on creation for the title field.
 	chatsession.DefaultTitle = chatsessionDescTitle.Default.(string)
 	// chatsessionDescCreatedAt is the schema descriptor for created_at field.
-	chatsessionDescCreatedAt := chatsessionFields[7].Descriptor()
+	chatsessionDescCreatedAt := chatsessionFields[9].Descriptor()
 	// chatsession.DefaultCreatedAt holds the default value on creation for the created_at field.
 	chatsession.DefaultCreatedAt = chatsessionDescCreatedAt.Default.(func() time.Time)
 	// chatsessionDescUpdatedAt is the schema descriptor for updated_at field.
-	chatsessionDescUpdatedAt := chatsessionFields[8].Descriptor()
+	chatsessionDescUpdatedAt := chatsessionFields[10].Descriptor()
 	// chatsession.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	chatsession.DefaultUpdatedAt = chatsessionDescUpdatedAt.Default.(func() time.Time)
 	// chatsession.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

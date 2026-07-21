@@ -193,13 +193,15 @@ func mapAgentSession(row *gen.ChatSession) model.AgentSession {
 		return model.AgentSession{}
 	}
 	return model.AgentSession{
-		Flag:      row.Flag,
-		Title:     row.Title,
-		UID:       row.UID,
-		LeafID:    row.LeafID,
-		State:     chatSessionStateLabel(row.State),
-		CreatedAt: row.CreatedAt,
-		UpdatedAt: row.UpdatedAt,
+		Flag:          row.Flag,
+		Title:         row.Title,
+		UID:           row.UID,
+		LeafID:        row.LeafID,
+		State:         chatSessionStateLabel(row.State),
+		Model:         row.Model,
+		ThinkingLevel: row.ThinkingLevel,
+		CreatedAt:     row.CreatedAt,
+		UpdatedAt:     row.UpdatedAt,
 	}
 }
 

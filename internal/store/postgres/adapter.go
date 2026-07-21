@@ -772,6 +772,22 @@ func (a *adapter) UpdateChatSessionMode(ctx context.Context, flag, mode string) 
 	return nil
 }
 
+func (a *adapter) UpdateChatSessionSettings(ctx context.Context, flag, modelName, thinkingLevel string) error {
+	n, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetModel(modelName).
+		SetThinkingLevel(thinkingLevel).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session settings: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
 func (a *adapter) UpdateChatSessionTitle(ctx context.Context, flag, title string) error {
 	n, err := a.client.ChatSession.Update().
 		Where(chatsession.FlagEQ(flag)).

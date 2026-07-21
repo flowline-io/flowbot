@@ -197,7 +197,7 @@ func evictStaleHarnesses() {
 }
 
 func harnessConfigHash(workspace coding.Workspace) (string, error) {
-	cfg, chatModel, toolModel, dual, err := agentLoopConfig()
+	cfg, chatModel, toolModel, dual, err := agentLoopConfigForSession(context.Background(), "")
 	if err != nil {
 		return "", err
 	}
@@ -247,7 +247,7 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		return nil, err
 	}
 
-	cfg, chatModel, toolModel, dual, err := agentLoopConfig()
+	cfg, chatModel, toolModel, dual, err := agentLoopConfigForSession(ctx, req.SessionID)
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] model config session=%s: %w", req.SessionID, err))
 		return nil, fmt.Errorf("chat agent models: %w", err)

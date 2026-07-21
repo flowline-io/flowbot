@@ -23,6 +23,10 @@ const (
 	FieldState = "state"
 	// FieldMode holds the string denoting the mode field in the database.
 	FieldMode = "mode"
+	// FieldModel holds the string denoting the model field in the database.
+	FieldModel = "model"
+	// FieldThinkingLevel holds the string denoting the thinking_level field in the database.
+	FieldThinkingLevel = "thinking_level"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -41,6 +45,8 @@ var Columns = []string{
 	FieldLeafID,
 	FieldState,
 	FieldMode,
+	FieldModel,
+	FieldThinkingLevel,
 	FieldTitle,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -67,6 +73,10 @@ var (
 	DefaultState int
 	// DefaultMode holds the default value on creation for the "mode" field.
 	DefaultMode string
+	// DefaultModel holds the default value on creation for the "model" field.
+	DefaultModel string
+	// DefaultThinkingLevel holds the default value on creation for the "thinking_level" field.
+	DefaultThinkingLevel string
 	// DefaultTitle holds the default value on creation for the "title" field.
 	DefaultTitle string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
@@ -108,6 +118,16 @@ func ByState(opts ...sql.OrderTermOption) OrderOption {
 // ByMode orders the results by the mode field.
 func ByMode(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldMode, opts...).ToFunc()
+}
+
+// ByModel orders the results by the model field.
+func ByModel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldModel, opts...).ToFunc()
+}
+
+// ByThinkingLevel orders the results by the thinking_level field.
+func ByThinkingLevel(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldThinkingLevel, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.

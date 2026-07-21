@@ -108,6 +108,67 @@ func ChatAgentPendingPromptKey(sessionID string) string {
 	return ChatAgentPendingPromptKeyPrefix + sessionID
 }
 
+// chatAgentModelLabel returns the display label for the current session model.
+func chatAgentModelLabel(session model.AgentSession, defaultModel string) string {
+	m := strings.TrimSpace(session.Model)
+	if m == "" {
+		m = defaultModel
+	}
+	if m == "" {
+		return ""
+	}
+	return m
+}
+
+// chatAgentSelectedModel returns the model id to preselect in the picker.
+func chatAgentSelectedModel(storedModel, defaultModel string) string {
+	if m := strings.TrimSpace(storedModel); m != "" {
+		return m
+	}
+	return strings.TrimSpace(defaultModel)
+}
+
+// chatAgentSessionSettingsLabel returns the header line for model and thinking level.
+func chatAgentSessionSettingsLabel(session model.AgentSession, defaultModel string) string {
+	modelName := chatAgentModelLabel(session, defaultModel)
+	thinking := chatAgentThinkingLabel(session.ThinkingLevel)
+	switch {
+	case modelName != "" && thinking != "":
+		return modelName + " · Thinking: " + thinking
+	case modelName != "":
+		return modelName
+	case thinking != "":
+		return "Thinking: " + thinking
+	default:
+		return ""
+	}
+}
+
+// chatAgentThinkingLabel returns a human-readable thinking level label.
+func chatAgentThinkingLabel(level string) string {
+	switch strings.ToLower(strings.TrimSpace(level)) {
+	case "off":
+		return "Off"
+	case "low":
+		return "Low"
+	case "medium":
+		return "Medium"
+	case "high":
+		return "High"
+	default:
+		return "Default"
+	}
+}
+
+// chatAgentThinkingSelected reports whether value matches the session thinking level.
+func chatAgentThinkingSelected(value, selectedThinking string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(selectedThinking))
+	if normalized == "" {
+		normalized = "default"
+	}
+	return value == normalized
+}
+
 // ClassifyHistoryMessage splits one persisted history row into UI-friendly chat bubbles.
 func ClassifyHistoryMessage(role, text string, createdAt time.Time) []model.AgentChatMessage {
 	text = strings.TrimSpace(text)

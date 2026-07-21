@@ -105,6 +105,34 @@ func (_u *ChatSessionUpdate) SetNillableMode(v *string) *ChatSessionUpdate {
 	return _u
 }
 
+// SetModel sets the "model" field.
+func (_u *ChatSessionUpdate) SetModel(v string) *ChatSessionUpdate {
+	_u.mutation.SetModel(v)
+	return _u
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillableModel(v *string) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetModel(*v)
+	}
+	return _u
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (_u *ChatSessionUpdate) SetThinkingLevel(v string) *ChatSessionUpdate {
+	_u.mutation.SetThinkingLevel(v)
+	return _u
+}
+
+// SetNillableThinkingLevel sets the "thinking_level" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillableThinkingLevel(v *string) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetThinkingLevel(*v)
+	}
+	return _u
+}
+
 // SetTitle sets the "title" field.
 func (_u *ChatSessionUpdate) SetTitle(v string) *ChatSessionUpdate {
 	_u.mutation.SetTitle(v)
@@ -211,6 +239,12 @@ func (_u *ChatSessionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	if value, ok := _u.mutation.Mode(); ok {
 		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.Model(); ok {
+		_spec.SetField(chatsession.FieldModel, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ThinkingLevel(); ok {
+		_spec.SetField(chatsession.FieldThinkingLevel, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
 	}
@@ -310,6 +344,34 @@ func (_u *ChatSessionUpdateOne) SetMode(v string) *ChatSessionUpdateOne {
 func (_u *ChatSessionUpdateOne) SetNillableMode(v *string) *ChatSessionUpdateOne {
 	if v != nil {
 		_u.SetMode(*v)
+	}
+	return _u
+}
+
+// SetModel sets the "model" field.
+func (_u *ChatSessionUpdateOne) SetModel(v string) *ChatSessionUpdateOne {
+	_u.mutation.SetModel(v)
+	return _u
+}
+
+// SetNillableModel sets the "model" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillableModel(v *string) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetModel(*v)
+	}
+	return _u
+}
+
+// SetThinkingLevel sets the "thinking_level" field.
+func (_u *ChatSessionUpdateOne) SetThinkingLevel(v string) *ChatSessionUpdateOne {
+	_u.mutation.SetThinkingLevel(v)
+	return _u
+}
+
+// SetNillableThinkingLevel sets the "thinking_level" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillableThinkingLevel(v *string) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetThinkingLevel(*v)
 	}
 	return _u
 }
@@ -449,6 +511,12 @@ func (_u *ChatSessionUpdateOne) sqlSave(ctx context.Context) (_node *ChatSession
 	}
 	if value, ok := _u.mutation.Mode(); ok {
 		_spec.SetField(chatsession.FieldMode, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Model(); ok {
+		_spec.SetField(chatsession.FieldModel, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.ThinkingLevel(); ok {
+		_spec.SetField(chatsession.FieldThinkingLevel, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)

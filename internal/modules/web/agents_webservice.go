@@ -30,6 +30,8 @@ var (
 		webservice.Post("/agents/render-markdown", agentRenderMarkdown, route.WithNotAuth()),
 		webservice.Get("/agents/:id", agentChatPage, route.WithNotAuth()),
 		webservice.Delete("/agents/:id", agentChatClose, route.WithNotAuth()),
+		webservice.Get("/agents/:id/settings", agentChatGetSettings, route.WithNotAuth()),
+		webservice.Put("/agents/:id/settings", agentChatPutSettings, route.WithNotAuth()),
 		webservice.Post("/agents/:id/messages", agentChatSendMessage, route.WithNotAuth()),
 		webservice.Post("/agents/:id/cancel", agentChatCancel, route.WithNotAuth()),
 		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
@@ -47,6 +49,8 @@ func agentsEndpoints() partials.ChatAgentEndpoints {
 		ListURL:           "/service/web/agents/list",
 		DetailURLTemplate: "/service/web/agents/{id}",
 		RenderMarkdownURL: "/service/web/agents/render-markdown",
+		SelectableModels:  selectableModelOptions(),
+		DefaultModel:      pkgconfig.ChatAgentChatModel(),
 	}
 }
 
@@ -54,6 +58,7 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 	prefix := "/service/web/agents/" + sessionID
 	return partials.ChatAgentEndpoints{
 		DetailURLTemplate: "/service/web/agents/{id}",
+		SettingsURL:       prefix + "/settings",
 		MessagesURL:       prefix + "/messages",
 		CancelURL:         prefix + "/cancel",
 		CloseURL:          prefix,
@@ -63,6 +68,30 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 		RenderMarkdownURL: "/service/web/agents/render-markdown",
 		ContextURL:        prefix + "/context",
 		TodosURL:          prefix + "/todos",
+		SelectableModels:  selectableModelOptions(),
+		DefaultModel:      pkgconfig.ChatAgentChatModel(),
+	}
+}
+
+func selectableModelOptions() []partials.SelectableModelOption {
+	models := chatagent.BuildSelectableModels()
+	opts := make([]partials.SelectableModelOption, len(models))
+	for i, m := range models {
+		opts[i] = partials.SelectableModelOption{ID: m.ID, Name: m.Name}
+	}
+	return opts
+}
+
+func chatAgentSettingsJSONError(ctx fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, types.ErrInvalidArgument):
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	case errors.Is(err, types.ErrUnavailable):
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": err.Error()})
+	case errors.Is(err, types.ErrNotFound):
+		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	default:
+		return types.Errorf(types.ErrInternal, "session settings: %v", err)
 	}
 }
 
@@ -127,11 +156,82 @@ func agentsCreate(ctx fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
+	var body struct {
+		Model         string `json:"model"`
+		ThinkingLevel string `json:"thinking_level"`
+	}
+	if len(ctx.Body()) > 0 {
+		if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
+			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+		}
+	}
 	sessionID := types.Id()
 	if err := chatagent.CreateSession(ctx.Context(), uid, sessionID); err != nil {
 		return types.Errorf(types.ErrInternal, "create session: %v", err)
 	}
+	if body.Model != "" || body.ThinkingLevel != "" {
+		s := chatagent.SessionSettings{Model: body.Model, ThinkingLevel: body.ThinkingLevel}
+		if err := chatagent.SetSessionSettings(ctx.Context(), sessionID, s); err != nil {
+			return chatAgentSettingsJSONError(ctx, err)
+		}
+	}
 	return ctx.Status(http.StatusCreated).JSON(fiber.Map{"session_id": sessionID})
+}
+
+func agentChatGetSettings(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "get settings: %v", err)
+	}
+	settings, err := chatagent.GetSessionSettings(ctx.Context(), sessionID)
+	if err != nil {
+		return chatAgentSettingsJSONError(ctx, err)
+	}
+	return ctx.JSON(settings)
+}
+
+func agentChatPutSettings(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "put settings: %v", err)
+	}
+	var body chatagent.SessionSettings
+	if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
+	}
+	if err := chatagent.SetSessionSettings(ctx.Context(), sessionID, body); err != nil {
+		return chatAgentSettingsJSONError(ctx, err)
+	}
+	chatagent.EvictHarnessPool(sessionID)
+	settings, err := chatagent.GetSessionSettings(ctx.Context(), sessionID)
+	if err != nil {
+		return chatAgentSettingsJSONError(ctx, err)
+	}
+	return ctx.JSON(settings)
 }
 
 func agentChatPage(ctx fiber.Ctx) error {

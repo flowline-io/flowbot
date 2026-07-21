@@ -272,6 +272,40 @@ func TestFormatChatAgentDuration(t *testing.T) {
 	}
 }
 
+func TestChatAgentSessionSettingsLabel(t *testing.T) {
+	tests := []struct {
+		name         string
+		session      model.AgentSession
+		defaultModel string
+		want         string
+	}{
+		{
+			name:         "falls back to default model and default thinking",
+			session:      model.AgentSession{},
+			defaultModel: "gpt-test",
+			want:         "gpt-test · Thinking: Default",
+		},
+		{
+			name:         "shows stored model and thinking",
+			session:      model.AgentSession{Model: "claude", ThinkingLevel: "high"},
+			defaultModel: "gpt-test",
+			want:         "claude · Thinking: High",
+		},
+		{
+			name:         "empty everything",
+			session:      model.AgentSession{},
+			defaultModel: "",
+			want:         "Thinking: Default",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, chatAgentSessionSettingsLabel(tt.session, tt.defaultModel))
+		})
+	}
+}
+
 func TestClassifyHistoryMessage(t *testing.T) {
 	tests := []struct {
 		name      string

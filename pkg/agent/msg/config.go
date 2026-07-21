@@ -6,13 +6,15 @@ const defaultMaxSteps = 50
 
 // Config holds runtime options for an agent loop invocation.
 type Config struct {
-	MaxSteps            int
-	ToolExecution       ToolExecutionMode
-	ModelName           string
-	ChatModel           string
-	ToolModel           string
-	Temperature         float64
-	MaxTokens           int
+	MaxSteps      int
+	ToolExecution ToolExecutionMode
+	ModelName     string
+	ChatModel     string
+	ToolModel     string
+	Temperature   float64
+	MaxTokens     int
+	// ThinkingLevel controls reasoning intensity for supported models (default/off/low/medium/high).
+	ThinkingLevel       string
 	TransformContext    TransformContextFn
 	ConvertToLLM        ConvertToLLMFn
 	PrepareNextTurn     PrepareNextTurnFn

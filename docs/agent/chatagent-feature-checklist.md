@@ -46,6 +46,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | R-11 | Export session | `GET …/export` | | export tests |
 | R-12 | Resolve resource URI | `GET /chatagent/resources` | `plan://`, `file://` | `chat_agent_spec_test.go` resources It |
 | R-13 | Scheduled tasks CRUD + runs | `/chatagent/scheduled-tasks…` | One-shot complete; cancel | `scheduled_api_test.go`, `chat_agent_scheduled_task_spec_test.go` |
+| R-14 | Session model / thinking settings | `GET\|PUT …/settings`; create body `model` / `thinking_level`; `AgentInfo.selectable_models` | Unknown model / invalid level → 400; empty fields → runtime yaml/`default` | `settings_test.go`, `chatagent_http_test.go` |
 
 ## 3. Web chat UI (`/service/web/agents/*`)
 
@@ -58,6 +59,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero | `agents_page_spec_test.go` context It |
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert | chat BDD stream done |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
+| W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
 
 ## 4. Permissions UI
 

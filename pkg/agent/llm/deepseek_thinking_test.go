@@ -37,18 +37,22 @@ func (r *roundTripRecorder) RoundTrip(req *http.Request) (*http.Response, error)
 
 func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 	tests := []struct {
-		name       string
-		path       string
-		body       string
-		wantInject bool
-		wantEffort string
+		name          string
+		path          string
+		body          string
+		thinkingLevel string
+		wantInject    bool
+		wantEnabled   bool
+		wantEffort    string
+		wantNoEffort  bool
 	}{
 		{
-			name:       "chat completion gets thinking fields",
-			path:       "/v1/chat/completions",
-			body:       `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}]}`,
-			wantInject: true,
-			wantEffort: "high",
+			name:        "chat completion gets thinking fields",
+			path:        "/v1/chat/completions",
+			body:        `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}]}`,
+			wantInject:  true,
+			wantEnabled: true,
+			wantEffort:  "high",
 		},
 		{
 			name:       "non chat path unchanged",
@@ -57,11 +61,21 @@ func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 			wantInject: false,
 		},
 		{
-			name:       "preserves existing thinking fields",
-			path:       "/v1/chat/completions",
-			body:       `{"model":"deepseek-v4-flash","reasoning_effort":"max","thinking":{"type":"enabled"}}`,
-			wantInject: true,
-			wantEffort: "max",
+			name:        "preserves existing thinking fields",
+			path:        "/v1/chat/completions",
+			body:        `{"model":"deepseek-v4-flash","reasoning_effort":"max","thinking":{"type":"enabled"}}`,
+			wantInject:  true,
+			wantEnabled: true,
+			wantEffort:  "max",
+		},
+		{
+			name:          "off disables thinking and omits reasoning_effort",
+			path:          "/v1/chat/completions",
+			body:          `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}],"reasoning_effort":"high"}`,
+			thinkingLevel: llm.ThinkingLevelOff,
+			wantInject:    true,
+			wantEnabled:   false,
+			wantNoEffort:  true,
 		},
 	}
 	for _, tt := range tests {
@@ -71,6 +85,9 @@ func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 			client := llm.DeepSeekThinkingHTTPClientForTest(rec)
 			req, err := http.NewRequest(http.MethodPost, "https://api.deepseek.com"+tt.path, strings.NewReader(tt.body))
 			require.NoError(t, err)
+			if tt.thinkingLevel != "" {
+				req = req.WithContext(llm.WithThinkingLevel(req.Context(), tt.thinkingLevel))
+			}
 
 			_, err = client.Do(req)
 			require.NoError(t, err)
@@ -86,10 +103,19 @@ func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 				assert.False(t, hasThinking)
 				return
 			}
-			assert.Equal(t, tt.wantEffort, parsed["reasoning_effort"])
+			if tt.wantNoEffort {
+				_, hasEffort := parsed["reasoning_effort"]
+				assert.False(t, hasEffort)
+			} else {
+				assert.Equal(t, tt.wantEffort, parsed["reasoning_effort"])
+			}
 			thinking, ok := parsed["thinking"].(map[string]any)
 			if assert.True(t, ok) {
-				assert.Equal(t, "enabled", thinking["type"])
+				if tt.wantEnabled {
+					assert.Equal(t, "enabled", thinking["type"])
+				} else {
+					assert.Equal(t, "disabled", thinking["type"])
+				}
 			}
 		})
 	}
