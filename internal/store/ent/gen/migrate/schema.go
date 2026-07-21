@@ -182,6 +182,36 @@ var (
 			},
 		},
 	}
+	// AgentTodosColumns holds the columns for the "agent_todos" table.
+	AgentTodosColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "session_id", Type: field.TypeString},
+		{Name: "item_id", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "status", Type: field.TypeString},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AgentTodosTable holds the schema information for the "agent_todos" table.
+	AgentTodosTable = &schema.Table{
+		Name:       "agent_todos",
+		Columns:    AgentTodosColumns,
+		PrimaryKey: []*schema.Column{AgentTodosColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agenttodo_session_id",
+				Unique:  false,
+				Columns: []*schema.Column{AgentTodosColumns[2]},
+			},
+			{
+				Name:    "agenttodo_session_id_item_id",
+				Unique:  true,
+				Columns: []*schema.Column{AgentTodosColumns[2], AgentTodosColumns[3]},
+			},
+		},
+	}
 	// AppsColumns holds the columns for the "apps" table.
 	AppsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1442,6 +1472,7 @@ var (
 		AgentSkillFilesTable,
 		AgentSubagentsTable,
 		AgentSubagentTasksTable,
+		AgentTodosTable,
 		AppsTable,
 		AuditLogsTable,
 		AuthenticationsTable,
@@ -1512,6 +1543,9 @@ func init() {
 	}
 	AgentSubagentTasksTable.Annotation = &entsql.Annotation{
 		Table: "agent_subagent_tasks",
+	}
+	AgentTodosTable.Annotation = &entsql.Annotation{
+		Table: "agent_todos",
 	}
 	AppsTable.Annotation = &entsql.Annotation{
 		Table: "apps",

@@ -132,6 +132,13 @@ func TestEvaluatorDelegateAndSchedule(t *testing.T) {
 			want: permission.ActionAllow,
 			key:  permission.KeyScheduleRead,
 		},
+		{
+			name: "todo write defaults allow",
+			tool: permission.ToolTodoWrite,
+			args: map[string]any{"todos": []any{map[string]any{"id": "1", "content": "x", "status": "pending"}}},
+			want: permission.ActionAllow,
+			key:  permission.KeyTodo,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

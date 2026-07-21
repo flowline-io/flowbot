@@ -328,6 +328,11 @@ type Adapter interface {
 	GetAgentPlanInSession(ctx context.Context, sessionID, flag string) (*gen.AgentPlan, error)
 	ListAgentPlansBySession(ctx context.Context, sessionID string) ([]*gen.AgentPlan, error)
 
+	ListAgentTodosBySession(ctx context.Context, sessionID string) ([]*gen.AgentTodo, error)
+	ListAgentTodosBySessions(ctx context.Context, sessionIDs []string) ([]*gen.AgentTodo, error)
+	ReplaceAgentTodosForSession(ctx context.Context, sessionID string, items []*gen.AgentTodo) error
+	MergeAgentTodosForSession(ctx context.Context, sessionID string, items []*gen.AgentTodo) error
+
 	ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error)
 	GetAgentSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error)
 	GetAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error)

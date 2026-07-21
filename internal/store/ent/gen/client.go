@@ -20,6 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -88,6 +89,8 @@ type Client struct {
 	AgentSubagent *AgentSubagentClient
 	// AgentSubagentTask is the client for interacting with the AgentSubagentTask builders.
 	AgentSubagentTask *AgentSubagentTaskClient
+	// AgentTodo is the client for interacting with the AgentTodo builders.
+	AgentTodo *AgentTodoClient
 	// App is the client for interacting with the App builders.
 	App *AppClient
 	// AuditLog is the client for interacting with the AuditLog builders.
@@ -203,6 +206,7 @@ func (c *Client) init() {
 	c.AgentSkillFile = NewAgentSkillFileClient(c.config)
 	c.AgentSubagent = NewAgentSubagentClient(c.config)
 	c.AgentSubagentTask = NewAgentSubagentTaskClient(c.config)
+	c.AgentTodo = NewAgentTodoClient(c.config)
 	c.App = NewAppClient(c.config)
 	c.AuditLog = NewAuditLogClient(c.config)
 	c.Authentication = NewAuthenticationClient(c.config)
@@ -350,6 +354,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		AgentSkillFile:            NewAgentSkillFileClient(cfg),
 		AgentSubagent:             NewAgentSubagentClient(cfg),
 		AgentSubagentTask:         NewAgentSubagentTaskClient(cfg),
+		AgentTodo:                 NewAgentTodoClient(cfg),
 		App:                       NewAppClient(cfg),
 		AuditLog:                  NewAuditLogClient(cfg),
 		Authentication:            NewAuthenticationClient(cfg),
@@ -424,6 +429,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		AgentSkillFile:            NewAgentSkillFileClient(cfg),
 		AgentSubagent:             NewAgentSubagentClient(cfg),
 		AgentSubagentTask:         NewAgentSubagentTaskClient(cfg),
+		AgentTodo:                 NewAgentTodoClient(cfg),
 		App:                       NewAppClient(cfg),
 		AuditLog:                  NewAuditLogClient(cfg),
 		Authentication:            NewAuthenticationClient(cfg),
@@ -503,17 +509,17 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Agent, c.AgentPlan, c.AgentSkill, c.AgentSkillFile, c.AgentSubagent,
-		c.AgentSubagentTask, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
-		c.CapabilityBinding, c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun,
-		c.ChatSession, c.ChatSessionEntry, c.Clip, c.ConfigData, c.Connection,
-		c.Counter, c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption,
-		c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
-		c.WorkflowStepRun,
+		c.AgentSubagentTask, c.AgentTodo, c.App, c.AuditLog, c.Authentication,
+		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
+		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
+		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
+		c.LLMUsageRecord, c.Message, c.NotificationRecord, c.NotifyChannel,
+		c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Use(hooks...)
 	}
@@ -524,17 +530,17 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Agent, c.AgentPlan, c.AgentSkill, c.AgentSkillFile, c.AgentSubagent,
-		c.AgentSubagentTask, c.App, c.AuditLog, c.Authentication, c.Behavior, c.Bot,
-		c.CapabilityBinding, c.Channel, c.ChatScheduledTask, c.ChatScheduledTaskRun,
-		c.ChatSession, c.ChatSessionEntry, c.Clip, c.ConfigData, c.Connection,
-		c.Counter, c.CounterRecord, c.Data, c.DataEvent, c.EventConsumption,
-		c.EventOutbox, c.Fileupload, c.Form, c.Instruct, c.LLMUsageRecord, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WorkflowRun,
-		c.WorkflowStepRun,
+		c.AgentSubagentTask, c.AgentTodo, c.App, c.AuditLog, c.Authentication,
+		c.Behavior, c.Bot, c.CapabilityBinding, c.Channel, c.ChatScheduledTask,
+		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
+		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
+		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
+		c.LLMUsageRecord, c.Message, c.NotificationRecord, c.NotifyChannel,
+		c.NotifyRule, c.NotifyTemplate, c.OAuth, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WorkflowRun, c.WorkflowStepRun,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -555,6 +561,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.AgentSubagent.mutate(ctx, m)
 	case *AgentSubagentTaskMutation:
 		return c.AgentSubagentTask.mutate(ctx, m)
+	case *AgentTodoMutation:
+		return c.AgentTodo.mutate(ctx, m)
 	case *AppMutation:
 		return c.App.mutate(ctx, m)
 	case *AuditLogMutation:
@@ -1453,6 +1461,139 @@ func (c *AgentSubagentTaskClient) mutate(ctx context.Context, m *AgentSubagentTa
 		return (&AgentSubagentTaskDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown AgentSubagentTask mutation op: %q", m.Op())
+	}
+}
+
+// AgentTodoClient is a client for the AgentTodo schema.
+type AgentTodoClient struct {
+	config
+}
+
+// NewAgentTodoClient returns a client for the AgentTodo from the given config.
+func NewAgentTodoClient(c config) *AgentTodoClient {
+	return &AgentTodoClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `agenttodo.Hooks(f(g(h())))`.
+func (c *AgentTodoClient) Use(hooks ...Hook) {
+	c.hooks.AgentTodo = append(c.hooks.AgentTodo, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `agenttodo.Intercept(f(g(h())))`.
+func (c *AgentTodoClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AgentTodo = append(c.inters.AgentTodo, interceptors...)
+}
+
+// Create returns a builder for creating a AgentTodo entity.
+func (c *AgentTodoClient) Create() *AgentTodoCreate {
+	mutation := newAgentTodoMutation(c.config, OpCreate)
+	return &AgentTodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AgentTodo entities.
+func (c *AgentTodoClient) CreateBulk(builders ...*AgentTodoCreate) *AgentTodoCreateBulk {
+	return &AgentTodoCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AgentTodoClient) MapCreateBulk(slice any, setFunc func(*AgentTodoCreate, int)) *AgentTodoCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AgentTodoCreateBulk{err: fmt.Errorf("calling to AgentTodoClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AgentTodoCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AgentTodoCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AgentTodo.
+func (c *AgentTodoClient) Update() *AgentTodoUpdate {
+	mutation := newAgentTodoMutation(c.config, OpUpdate)
+	return &AgentTodoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AgentTodoClient) UpdateOne(_m *AgentTodo) *AgentTodoUpdateOne {
+	mutation := newAgentTodoMutation(c.config, OpUpdateOne, withAgentTodo(_m))
+	return &AgentTodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AgentTodoClient) UpdateOneID(id int64) *AgentTodoUpdateOne {
+	mutation := newAgentTodoMutation(c.config, OpUpdateOne, withAgentTodoID(id))
+	return &AgentTodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AgentTodo.
+func (c *AgentTodoClient) Delete() *AgentTodoDelete {
+	mutation := newAgentTodoMutation(c.config, OpDelete)
+	return &AgentTodoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AgentTodoClient) DeleteOne(_m *AgentTodo) *AgentTodoDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AgentTodoClient) DeleteOneID(id int64) *AgentTodoDeleteOne {
+	builder := c.Delete().Where(agenttodo.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AgentTodoDeleteOne{builder}
+}
+
+// Query returns a query builder for AgentTodo.
+func (c *AgentTodoClient) Query() *AgentTodoQuery {
+	return &AgentTodoQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAgentTodo},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AgentTodo entity by its id.
+func (c *AgentTodoClient) Get(ctx context.Context, id int64) (*AgentTodo, error) {
+	return c.Query().Where(agenttodo.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AgentTodoClient) GetX(ctx context.Context, id int64) *AgentTodo {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *AgentTodoClient) Hooks() []Hook {
+	return c.hooks.AgentTodo
+}
+
+// Interceptors returns the client interceptors.
+func (c *AgentTodoClient) Interceptors() []Interceptor {
+	return c.inters.AgentTodo
+}
+
+func (c *AgentTodoClient) mutate(ctx context.Context, m *AgentTodoMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AgentTodoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AgentTodoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AgentTodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AgentTodoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown AgentTodo mutation op: %q", m.Op())
 	}
 }
 
@@ -7977,26 +8118,26 @@ func (c *WorkflowStepRunClient) mutate(ctx context.Context, m *WorkflowStepRunMu
 type (
 	hooks struct {
 		Agent, AgentPlan, AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask,
-		App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
-		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		Message, NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth,
-		Page, PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WorkflowRun, WorkflowStepRun []ent.Hook
+		AgentTodo, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding,
+		Channel, ChatScheduledTask, ChatScheduledTaskRun, ChatSession,
+		ChatSessionEntry, Clip, ConfigData, Connection, Counter, CounterRecord, Data,
+		DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
+		LLMUsageRecord, Message, NotificationRecord, NotifyChannel, NotifyRule,
+		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
+		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
+		PlatformChannel, PlatformChannelUser, PlatformUser, PollingState, ResourceLink,
+		Topic, Url, User, WorkflowRun, WorkflowStepRun []ent.Hook
 	}
 	inters struct {
 		Agent, AgentPlan, AgentSkill, AgentSkillFile, AgentSubagent, AgentSubagentTask,
-		App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding, Channel,
-		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
-		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
-		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		Message, NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth,
-		Page, PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WorkflowRun, WorkflowStepRun []ent.Interceptor
+		AgentTodo, App, AuditLog, Authentication, Behavior, Bot, CapabilityBinding,
+		Channel, ChatScheduledTask, ChatScheduledTaskRun, ChatSession,
+		ChatSessionEntry, Clip, ConfigData, Connection, Counter, CounterRecord, Data,
+		DataEvent, EventConsumption, EventOutbox, Fileupload, Form, Instruct,
+		LLMUsageRecord, Message, NotificationRecord, NotifyChannel, NotifyRule,
+		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
+		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
+		PlatformChannel, PlatformChannelUser, PlatformUser, PollingState, ResourceLink,
+		Topic, Url, User, WorkflowRun, WorkflowStepRun []ent.Interceptor
 	}
 )

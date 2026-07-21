@@ -198,6 +198,12 @@
 
     var pending = consumePendingPrompt(sessionID);
     ns.initContextControl(root);
+    if (ns.hydrateTodosFromToolCards) {
+      ns.hydrateTodosFromToolCards(root);
+    }
+    if (ns.refreshTodosFromServer) {
+      ns.refreshTodosFromServer(root);
+    }
     if (pending && !threadHasHistory(root)) {
       ns.streamMessage(messagesURL, pending, root, null, approval);
     }

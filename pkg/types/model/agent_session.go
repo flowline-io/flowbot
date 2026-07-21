@@ -4,14 +4,15 @@ import "time"
 
 // AgentSession represents a chat agent session for UI display and transport.
 type AgentSession struct {
-	Flag            string    `json:"flag"`
-	Title           string    `json:"title"`
-	UID             string    `json:"uid"`
-	LeafID          string    `json:"leaf_id"`
-	State           string    `json:"state"`
-	TotalDurationMs int64     `json:"total_duration_ms,omitempty"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
+	Flag            string            `json:"flag"`
+	Title           string            `json:"title"`
+	UID             string            `json:"uid"`
+	LeafID          string            `json:"leaf_id"`
+	State           string            `json:"state"`
+	TotalDurationMs int64             `json:"total_duration_ms,omitempty"`
+	TodoSummary     *AgentTodoSummary `json:"todo_summary,omitempty"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
 }
 
 // AgentSessionEntry represents one append-only node in a chat session tree for UI display.

@@ -191,6 +191,87 @@ func (s *testStore) ListAgentPlansBySession(_ context.Context, sessionID string)
 	return rows, nil
 }
 
+func (s *testStore) ListAgentTodosBySession(_ context.Context, sessionID string) ([]*gen.AgentTodo, error) {
+	if s.agentTodosErr != nil {
+		return nil, s.agentTodosErr
+	}
+	if s.agentTodos == nil {
+		return nil, nil
+	}
+	rows := make([]*gen.AgentTodo, 0)
+	for _, row := range s.agentTodos {
+		if row.SessionID == sessionID {
+			rows = append(rows, row)
+		}
+	}
+	return rows, nil
+}
+
+func (s *testStore) ListAgentTodosBySessions(_ context.Context, sessionIDs []string) ([]*gen.AgentTodo, error) {
+	if s.agentTodosErr != nil {
+		return nil, s.agentTodosErr
+	}
+	if s.agentTodos == nil || len(sessionIDs) == 0 {
+		return nil, nil
+	}
+	allowed := make(map[string]struct{}, len(sessionIDs))
+	for _, sessionID := range sessionIDs {
+		allowed[sessionID] = struct{}{}
+	}
+	rows := make([]*gen.AgentTodo, 0)
+	for _, row := range s.agentTodos {
+		if _, ok := allowed[row.SessionID]; ok {
+			rows = append(rows, row)
+		}
+	}
+	return rows, nil
+}
+
+func (s *testStore) ReplaceAgentTodosForSession(_ context.Context, sessionID string, items []*gen.AgentTodo) error {
+	if s.agentTodos == nil {
+		s.agentTodos = make(map[string]*gen.AgentTodo)
+	}
+	for flag, row := range s.agentTodos {
+		if row.SessionID == sessionID {
+			delete(s.agentTodos, flag)
+		}
+	}
+	for _, item := range items {
+		if item != nil {
+			s.agentTodos[item.Flag] = item
+		}
+	}
+	return nil
+}
+
+func (s *testStore) MergeAgentTodosForSession(_ context.Context, sessionID string, items []*gen.AgentTodo) error {
+	if s.agentTodos == nil {
+		s.agentTodos = make(map[string]*gen.AgentTodo)
+	}
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		var existingFlag string
+		for flag, row := range s.agentTodos {
+			if row.SessionID == sessionID && row.ItemID == item.ItemID {
+				existingFlag = flag
+				break
+			}
+		}
+		if existingFlag != "" {
+			current := s.agentTodos[existingFlag]
+			current.Content = item.Content
+			current.Status = item.Status
+			current.SortOrder = item.SortOrder
+			s.agentTodos[existingFlag] = current
+			continue
+		}
+		s.agentTodos[item.Flag] = item
+	}
+	return nil
+}
+
 func TestChatSessionStateLabel(t *testing.T) {
 	tests := []struct {
 		name  string

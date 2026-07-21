@@ -397,7 +397,10 @@
             return;
           }
           if (ev.type === 'tool') {
-            upsertToolCard(messagesEl, ev, toolCards, assistantBody);
+            var card = upsertToolCard(messagesEl, ev, toolCards, assistantBody);
+            if (ns.handleTodoToolEvent) {
+              ns.handleTodoToolEvent(ev, card, threadRoot);
+            }
             return;
           }
           if (ev.type === 'turn') {
@@ -444,6 +447,9 @@
               showRunDuration(messagesEl, ev.duration_ms);
             }
             syncAssistantDuration();
+            if (ns.refreshTodosFromServer) {
+              ns.refreshTodosFromServer(threadRoot);
+            }
             return;
           }
           if (ev.type === 'usage') {

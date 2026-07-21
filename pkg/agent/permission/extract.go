@@ -27,6 +27,8 @@ const (
 	ToolListScheduledTasks  = "list_scheduled_tasks"
 	ToolCancelScheduledTask = "cancel_scheduled_task"
 	ToolUpdateMemory        = "update_memory"
+	ToolTodoWrite           = "todo_write"
+	ToolListTodos           = "list_todos"
 )
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
@@ -50,6 +52,8 @@ func PermissionKeyForTool(tool string) string {
 		return KeyScheduleRead
 	case ToolUpdateMemory:
 		return KeyMemory
+	case ToolTodoWrite, ToolListTodos:
+		return KeyTodo
 	default:
 		return KeyWildcard
 	}

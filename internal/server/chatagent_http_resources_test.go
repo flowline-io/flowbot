@@ -128,3 +128,41 @@ func TestChatAgentHTTPListSessionPlans(t *testing.T) {
 	assert.Contains(t, string(body), "plan://p1")
 	assert.Contains(t, string(body), "plan://p2")
 }
+
+func TestChatAgentHTTPListSessionTodos(t *testing.T) {
+	origDB := store.Database
+	origCfg := config.App.ChatAgent
+	store.Database = &testStoreAdapter{}
+	testChatSessions = map[string]*gen.ChatSession{
+		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
+	}
+	testAgentTodos = map[string]*gen.AgentTodo{
+		"t1": {Flag: "t1", SessionID: "sess-1", ItemID: "a", Content: "Plan work", Status: "pending", SortOrder: 0},
+	}
+	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	t.Cleanup(func() {
+		store.Database = origDB
+		config.App.ChatAgent = origCfg
+		testChatSessions = map[string]*gen.ChatSession{}
+		testAgentTodos = map[string]*gen.AgentTodo{}
+	})
+
+	h := newChatAgentHTTP()
+	app := fiber.New()
+	app.Get("/chatagent/sessions/:id/todos", func(c fiber.Ctx) error {
+		c.Locals("route:ctx", &route.RequestContext{
+			UID:    types.Uid("user-1"),
+			Scopes: []string{auth.ScopeChatAgentChat},
+		})
+		return h.listSessionTodos(c)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/chatagent/sessions/sess-1/todos", http.NoBody)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Contains(t, string(body), `"item_id":"a"`)
+	assert.Contains(t, string(body), "Plan work")
+}

@@ -2,7 +2,7 @@ package partials
 
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
-templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessage, endpoints ChatAgentEndpoints) {
+templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints ChatAgentEndpoints) {
 	<div
 		class="chatagent-thread flex flex-col flex-1 min-h-0"
 		data-chatagent-root="thread"
@@ -14,6 +14,9 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		data-events-url={ endpoints.EventsURL }
 		data-render-markdown-url={ endpoints.RenderMarkdownURL }
 		data-context-url={ endpoints.ContextURL }
+		if endpoints.TodosURL != "" {
+			data-todos-url={ endpoints.TodosURL }
+		}
 		data-testid="chatagent-thread">
 		<div class="flex items-center justify-between mb-5 gap-2 shrink-0 px-1">
 			<div>
@@ -43,6 +46,9 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			class="chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm"
 			data-testid="chatagent-status-toast"></div>
 		@ChatAgentApprovalPanel(session.Flag, endpoints)
+		if len(todos) > 0 {
+			@ChatAgentTodosPanel(todos)
+		}
 		<div id="chatagent-messages" class="flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4" data-testid="chatagent-messages">
 			for _, msg := range messages {
 				@ChatAgentMessage(msg, false)

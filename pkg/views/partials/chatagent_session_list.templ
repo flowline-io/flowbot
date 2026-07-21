@@ -67,6 +67,14 @@ templ ChatAgentSessionRow(item model.AgentSession, detailURL string) {
 					<span class="chatagent-duration" data-testid="chatagent-session-duration">· Total { ChatAgentDurationLabel(item.TotalDurationMs) }</span>
 				}
 			</div>
+			if item.TodoSummary != nil && item.TodoSummary.Total > 0 {
+				<div class="agents-session-todos" data-testid="chatagent-session-todos">
+					<span class="agents-session-todos-progress" aria-hidden="true">
+						<span class="agents-session-todos-progress-fill" style={ "width: " + chatAgentTodoSummaryProgressWidth(*item.TodoSummary) }></span>
+					</span>
+					<span class="agents-session-todos-line" data-testid="chatagent-session-todos-line">{ chatAgentSessionTodoLineLabel(*item.TodoSummary) }</span>
+				</div>
+			}
 		</div>
 	</a>
 }

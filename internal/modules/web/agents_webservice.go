@@ -35,6 +35,7 @@ var (
 		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
 		webservice.Get("/agents/:id/events", agentChatEvents, route.WithNotAuth()),
 		webservice.Get("/agents/:id/context", agentChatContext, route.WithNotAuth()),
+		webservice.Get("/agents/:id/todos", agentChatTodos, route.WithNotAuth()),
 	}
 
 	webChatAgentService = chatagent.NewService()
@@ -61,6 +62,7 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 		InspectURL:        "/service/web/agent-sessions/" + sessionID,
 		RenderMarkdownURL: "/service/web/agents/render-markdown",
 		ContextURL:        prefix + "/context",
+		TodosURL:          prefix + "/todos",
 	}
 }
 
@@ -163,10 +165,15 @@ func agentChatPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list messages: %v", err)
 	}
+	todos, err := chatagent.ListTodoModels(ctx.Context(), sessionID)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list todos: %v", err)
+	}
 	ctx.Type("html")
 	return pages.AgentChatPage(
 		mapAgentSession(row),
 		mapChatMessages(messages),
+		todos,
 		agentChatEndpoints(sessionID),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
@@ -366,6 +373,30 @@ func agentChatContext(ctx fiber.Ctx) error {
 	return ctx.JSON(report)
 }
 
+func agentChatTodos(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "list todos: %v", err)
+	}
+	todos, err := chatagent.ListTodoItems(ctx.Context(), sessionID)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(fiber.Map{"todos": todos})
+}
+
 func agentChatEvents(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
@@ -411,6 +442,19 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSess
 		if durations, err := chatagent.SumSessionsRunDurationMs(ctx.Context(), leafBySession); err == nil {
 			for i := range items {
 				items[i].TotalDurationMs = durations[items[i].Flag]
+			}
+		}
+	}
+	if len(items) > 0 {
+		sessionIDs := make([]string, len(items))
+		for i := range items {
+			sessionIDs[i] = items[i].Flag
+		}
+		if summaries, err := chatagent.SummarizeTodosBySessions(ctx.Context(), sessionIDs); err == nil {
+			for i := range items {
+				if summary, ok := summaries[items[i].Flag]; ok {
+					items[i].TodoSummary = &summary
+				}
 			}
 		}
 	}

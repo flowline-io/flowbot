@@ -21,6 +21,9 @@ const KeyScheduleRead = "schedule_read"
 // KeyMemory is the permission key for the update_memory tool.
 const KeyMemory = "memory"
 
+// KeyTodo is the permission key for session todo checklist tools.
+const KeyTodo = "todo"
+
 // DefaultConfig returns OpenCode-style baseline rules used when the user has no overrides.
 func DefaultConfig() Config {
 	return Config{
@@ -56,6 +59,7 @@ func DefaultConfig() Config {
 			},
 			Default: ActionAsk,
 		},
+		KeyTodo:     {Default: ActionAllow},
 		KeyDoomLoop: {Default: ActionAsk},
 		KeyExternalDirectory: {
 			Patterns: []PatternRule{

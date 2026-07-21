@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/app"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/auditlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/authentication"
@@ -287,6 +288,42 @@ func init() {
 	agentsubagenttask.DefaultUpdatedAt = agentsubagenttaskDescUpdatedAt.Default.(func() time.Time)
 	// agentsubagenttask.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agentsubagenttask.UpdateDefaultUpdatedAt = agentsubagenttaskDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agenttodoFields := schema.AgentTodo{}.Fields()
+	_ = agenttodoFields
+	// agenttodoDescFlag is the schema descriptor for flag field.
+	agenttodoDescFlag := agenttodoFields[1].Descriptor()
+	// agenttodo.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	agenttodo.FlagValidator = agenttodoDescFlag.Validators[0].(func(string) error)
+	// agenttodoDescSessionID is the schema descriptor for session_id field.
+	agenttodoDescSessionID := agenttodoFields[2].Descriptor()
+	// agenttodo.SessionIDValidator is a validator for the "session_id" field. It is called by the builders before save.
+	agenttodo.SessionIDValidator = agenttodoDescSessionID.Validators[0].(func(string) error)
+	// agenttodoDescItemID is the schema descriptor for item_id field.
+	agenttodoDescItemID := agenttodoFields[3].Descriptor()
+	// agenttodo.ItemIDValidator is a validator for the "item_id" field. It is called by the builders before save.
+	agenttodo.ItemIDValidator = agenttodoDescItemID.Validators[0].(func(string) error)
+	// agenttodoDescContent is the schema descriptor for content field.
+	agenttodoDescContent := agenttodoFields[4].Descriptor()
+	// agenttodo.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	agenttodo.ContentValidator = agenttodoDescContent.Validators[0].(func(string) error)
+	// agenttodoDescStatus is the schema descriptor for status field.
+	agenttodoDescStatus := agenttodoFields[5].Descriptor()
+	// agenttodo.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	agenttodo.StatusValidator = agenttodoDescStatus.Validators[0].(func(string) error)
+	// agenttodoDescSortOrder is the schema descriptor for sort_order field.
+	agenttodoDescSortOrder := agenttodoFields[6].Descriptor()
+	// agenttodo.DefaultSortOrder holds the default value on creation for the sort_order field.
+	agenttodo.DefaultSortOrder = agenttodoDescSortOrder.Default.(int)
+	// agenttodoDescCreatedAt is the schema descriptor for created_at field.
+	agenttodoDescCreatedAt := agenttodoFields[7].Descriptor()
+	// agenttodo.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agenttodo.DefaultCreatedAt = agenttodoDescCreatedAt.Default.(func() time.Time)
+	// agenttodoDescUpdatedAt is the schema descriptor for updated_at field.
+	agenttodoDescUpdatedAt := agenttodoFields[8].Descriptor()
+	// agenttodo.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agenttodo.DefaultUpdatedAt = agenttodoDescUpdatedAt.Default.(func() time.Time)
+	// agenttodo.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agenttodo.UpdateDefaultUpdatedAt = agenttodoDescUpdatedAt.UpdateDefault.(func() time.Time)
 	appFields := schema.App{}.Fields()
 	_ = appFields
 	// appDescName is the schema descriptor for name field.

@@ -65,6 +65,8 @@ func DefaultToolSnippets() map[string]string {
 		updateScheduleToolName: "Update an existing scheduled task's cron, run_at, prompt, name, or state (active|paused)",
 		listScheduleToolName:   "List active and paused scheduled tasks for the current user",
 		cancelScheduleToolName: "Cancel a scheduled task by task_id",
+		todoWriteToolName:      "Create or update the session todo checklist (merge by item id)",
+		listTodosToolName:      "List the current session todo checklist",
 		clip.CreateToolName:    "Create a shareable markdown clip and return its full public URL",
 		clip.GetToolName:       "Read a shareable markdown clip by slug",
 	}

@@ -177,6 +177,42 @@ func TestAgentsListShowsTotalDuration(t *testing.T) {
 	})
 }
 
+func TestAgentsListShowsTodoProgress(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		ts := &testStore{
+			chatSessions: []*gen.ChatSession{{
+				Flag:      "sess-todos",
+				Title:     "Todo demo",
+				UID:       "testuser",
+				State:     int(schema.ChatSessionActive),
+				UpdatedAt: now,
+				CreatedAt: now,
+			}},
+			agentTodos: map[string]*gen.AgentTodo{
+				"t1": {Flag: "t1", SessionID: "sess-todos", ItemID: "1", Content: "设计方案制定", Status: chatagent.TodoStatusCompleted, SortOrder: 0},
+				"t2": {Flag: "t2", SessionID: "sess-todos", ItemID: "2", Content: "编码实现", Status: chatagent.TodoStatusInProgress, SortOrder: 1},
+				"t3": {Flag: "t3", SessionID: "sess-todos", ItemID: "3", Content: "测试验证", Status: chatagent.TodoStatusPending, SortOrder: 2},
+			},
+		}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		text := string(body)
+		assert.Contains(t, text, `data-testid="chatagent-session-todos"`)
+		assert.Contains(t, text, `data-testid="chatagent-session-todos-line"`)
+		assert.Contains(t, text, "33% · 2 active · 1/3 · 编码实现")
+	})
+}
+
 func TestAgentsListExcludesClosedSessions(t *testing.T) {
 	now := time.Now().UTC()
 	withChatAgentEnabled(t, func() {

@@ -1,0 +1,72 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+// ChatAgentTodosPanel renders the read-only session checklist above the chat thread.
+templ ChatAgentTodosPanel(todos []model.AgentTodo) {
+	<details
+		id="chatagent-todos-panel"
+		class={ chatAgentTodosPanelClass(len(todos)) }
+		data-testid="chatagent-todos-panel"
+		if len(todos) > 0 {
+			open
+		}>
+		<summary class="chatagent-todos-summary">
+			<span class="chatagent-todos-summary-label">Todos</span>
+			<span class="chatagent-todos-summary-meta" data-testid="chatagent-todos-count">{ chatAgentTodosCountLabel(todos) }</span>
+			if len(todos) > 0 {
+				<span class="chatagent-todos-progress-wrap">
+					<span class="chatagent-todos-progress" aria-hidden="true">
+						<span class="chatagent-todos-progress-fill" style={ "width: " + chatAgentTodosProgressWidth(todos) }></span>
+					</span>
+					<span class="chatagent-todos-progress-label" data-testid="chatagent-todos-progress">{ chatAgentTodosProgressPercentLabel(todos) }</span>
+				</span>
+			}
+		</summary>
+		<div class="chatagent-todos-body" id="chatagent-todos-list" data-testid="chatagent-todos-list">
+			@ChatAgentTodosList(todos)
+		</div>
+	</details>
+}
+
+// AgentSessionTodosCard renders the session checklist on the inspect detail page.
+templ AgentSessionTodosCard(todos []model.AgentTodo) {
+	if len(todos) > 0 {
+		<div class="flowbot-surface mb-6 chatagent-todos-card" data-testid="agent-session-todos">
+			<div class="p-4">
+				<div class="chatagent-todos-card-header">
+					<h2 class="chatagent-todos-summary-label m-0">Todos</h2>
+					<span class="chatagent-todos-summary-meta">{ chatAgentTodosCountLabel(todos) }</span>
+					<span class="chatagent-todos-progress-wrap">
+						<span class="chatagent-todos-progress" aria-hidden="true">
+							<span class="chatagent-todos-progress-fill" style={ "width: " + chatAgentTodosProgressWidth(todos) }></span>
+						</span>
+						<span class="chatagent-todos-progress-label" data-testid="chatagent-todos-progress">{ chatAgentTodosProgressPercentLabel(todos) }</span>
+					</span>
+				</div>
+				<div class="chatagent-todos-body mt-3">
+					@ChatAgentTodosList(todos)
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ ChatAgentTodosList(todos []model.AgentTodo) {
+	if len(todos) == 0 {
+		<p class="chatagent-todos-empty">No todos yet.</p>
+	} else {
+		<ul class="chatagent-todos-list">
+			for _, item := range todos {
+				<li
+					class={ chatAgentTodoItemClass(item.Status) }
+					data-testid={ "chatagent-todo-" + item.ItemID }
+					data-todo-id={ item.ItemID }
+					data-todo-status={ item.Status }>
+					<span class={ chatAgentTodoMarkerClass(item.Status) } aria-hidden="true"></span>
+					<span class="chatagent-todos-content">{ item.Content }</span>
+				</li>
+			}
+		</ul>
+	}
+}

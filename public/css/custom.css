@@ -927,6 +927,51 @@ body:has(.chatagent-page) > main {
   color: oklch(var(--bc) / 0.5);
 }
 
+.agents-session-todos {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  min-width: 0;
+}
+
+.agents-session-todos-progress {
+  flex-shrink: 0;
+  width: 3.5rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    var(--color-base-200, #e5e7eb)
+  );
+  border: 1px solid
+    color-mix(in oklab, var(--color-primary, #0f766e) 20%, transparent);
+  overflow: hidden;
+}
+
+.agents-session-todos-progress-fill {
+  display: block;
+  height: 100%;
+  min-width: 0.2rem;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-primary, #0f766e) 75%, #000),
+    var(--color-primary, #0f766e)
+  );
+}
+
+.agents-session-todos-line {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.6875rem;
+  color: oklch(var(--bc) / 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .agents-session-empty {
   text-align: center;
   padding: 2rem 1rem;
@@ -941,4 +986,244 @@ body:has(.chatagent-page) > main {
     transparent
   );
   color: var(--color-primary, #2dd4bf);
+}
+
+/* Chat agent session todo checklist */
+.chatagent-todos-panel {
+  padding: 0.5rem 0.75rem;
+}
+
+.chatagent-todos-panel > summary {
+  list-style: none;
+}
+
+.chatagent-todos-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.chatagent-todos-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.chatagent-todos-summary::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-top: 0.3rem solid transparent;
+  border-bottom: 0.3rem solid transparent;
+  border-left: 0.42rem solid oklch(var(--bc) / 0.45);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chatagent-todos-panel[open] > .chatagent-todos-summary::before {
+  transform: rotate(90deg);
+}
+
+.chatagent-todos-summary-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: oklch(var(--bc) / 0.85);
+}
+
+.chatagent-todos-summary-meta {
+  font-size: 0.75rem;
+  color: oklch(var(--bc) / 0.5);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chatagent-todos-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  min-width: 9rem;
+  max-width: 14rem;
+  flex: 1 1 9rem;
+}
+
+.chatagent-todos-progress {
+  flex: 1;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    var(--color-base-200, #e5e7eb)
+  );
+  border: 1px solid
+    color-mix(in oklab, var(--color-primary, #0f766e) 22%, transparent);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px oklch(var(--bc) / 0.08);
+}
+
+.chatagent-todos-progress-fill {
+  display: block;
+  height: 100%;
+  min-width: 0.375rem;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-primary, #0f766e) 75%, #000),
+    var(--color-primary, #0f766e) 55%,
+    color-mix(in oklab, var(--color-primary, #0f766e) 88%, #fff)
+  );
+  box-shadow: 0 0 0 1px
+    color-mix(in oklab, var(--color-primary, #0f766e) 35%, transparent);
+  transition: width 0.25s ease;
+}
+
+.chatagent-todos-progress-label {
+  flex-shrink: 0;
+  min-width: 2.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--color-primary, #0f766e);
+}
+
+.chatagent-todos-body {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid oklch(var(--bc) / 0.08);
+}
+
+.chatagent-todos-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chatagent-todos-card-header .chatagent-todos-progress-wrap {
+  max-width: 14rem;
+}
+
+.chatagent-todos-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: oklch(var(--bc) / 0.5);
+}
+
+.chatagent-todos-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.chatagent-todos-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: oklch(var(--bc) / 0.88);
+}
+
+.chatagent-todos-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.chatagent-todos-item--in-progress {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 8%,
+    var(--color-base-100, #fff)
+  );
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-primary, #0f766e) 18%, transparent);
+}
+
+.chatagent-todos-item--completed {
+  color: oklch(var(--bc) / 0.5);
+}
+
+.chatagent-todos-item--completed .chatagent-todos-content {
+  text-decoration: line-through;
+  text-decoration-color: oklch(var(--bc) / 0.25);
+}
+
+.chatagent-todos-item--cancelled {
+  color: oklch(var(--bc) / 0.38);
+}
+
+.chatagent-todos-item--cancelled .chatagent-todos-content {
+  text-decoration: line-through;
+}
+
+.chatagent-todos-marker {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1.5px solid oklch(var(--bc) / 0.18);
+  background: transparent;
+  position: relative;
+}
+
+.chatagent-todos-marker--pending {
+  background: oklch(var(--bc) / 0.04);
+}
+
+.chatagent-todos-marker--in-progress {
+  border-color: var(--color-primary, #0f766e);
+  border-width: 2px;
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 10%,
+    var(--color-base-100, #fff)
+  );
+}
+
+.chatagent-todos-marker--in-progress::after {
+  content: '';
+  position: absolute;
+  inset: 0.25rem;
+  border-radius: 50%;
+  background: var(--color-primary, #0f766e);
+}
+
+.chatagent-todos-marker--completed {
+  border: none;
+  background: var(--color-primary, #0f766e);
+  box-shadow: 0 1px 2px
+    color-mix(in oklab, var(--color-primary, #0f766e) 35%, transparent);
+}
+
+.chatagent-todos-marker--completed::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: center / 0.65rem no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M3.5 8.2 6.4 11.1 12.5 4.9' stroke='%23ffffff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.chatagent-todos-marker--cancelled {
+  border-color: oklch(var(--bc) / 0.14);
+  background: oklch(var(--bc) / 0.05);
+}
+
+.chatagent-todos-marker--cancelled::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: center / 0.55rem no-repeat
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5' stroke='%239ca3af' stroke-width='1.75' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.chatagent-todos-marker--cancelled::before {
+  content: none;
 }

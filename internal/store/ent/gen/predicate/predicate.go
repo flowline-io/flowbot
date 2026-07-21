@@ -24,6 +24,9 @@ type AgentSubagent func(*sql.Selector)
 // AgentSubagentTask is the predicate function for agentsubagenttask builders.
 type AgentSubagentTask func(*sql.Selector)
 
+// AgentTodo is the predicate function for agenttodo builders.
+type AgentTodo func(*sql.Selector)
+
 // App is the predicate function for app builders.
 type App func(*sql.Selector)
 

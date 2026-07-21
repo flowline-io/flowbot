@@ -97,7 +97,7 @@ func toolResultText(res msg.ToolResultMessage) string {
 	var b strings.Builder
 	for _, p := range res.Parts {
 		if tp, ok := p.(msg.TextPart); ok {
-			b.WriteString(tp.Text)
+			_, _ = b.WriteString(tp.Text)
 		}
 	}
 	return b.String()

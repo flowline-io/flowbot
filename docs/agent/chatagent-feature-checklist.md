@@ -35,7 +35,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | -- | -------- | ----- | ---------- | ----- |
 | R-01 | Agent info | `GET /chatagent/info` | Disabled → 503 | `chatagent_http_test.go`, BDD chat HTTP |
 | R-02 | List / create / close sessions | `GET\|POST /chatagent/sessions`, `DELETE …/:id` | Closed → not found for owner ops | unit + `chat_agent_chat_spec_test.go` |
-| R-03 | List messages / plans | `GET …/messages`, `GET …/plans` | Empty history | unit HTTP tests |
+| R-03 | List messages / plans / todos | `GET …/messages`, `GET …/plans`, `GET …/todos` | Empty history | unit HTTP tests |
 | R-04 | Send message (full SSE stream) | `POST …/messages` | Empty text 400; run in flight 409 | `chat_agent_chat_spec_test.go` |
 | R-05 | Subscribe session events | `GET …/events` | Client disconnect; buffered hub | `session_events_test.go` |
 | R-06 | Confirm / cancel run | `POST …/confirm`, `POST …/cancel` | Unknown confirm 404; already resolved 409 | confirm unit + BDD plan mode |
@@ -56,7 +56,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session | agents page |
 | W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject | chat BDD helpers; unit confirm |
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero | `agents_page_spec_test.go` context It |
-| W-06 | Streaming markdown + tool cards + thinking | `public/js/chatagent-*.js` | Open code fence delay; tool upsert | chat BDD stream done |
+| W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert | chat BDD stream done |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 
 ## 4. Permissions UI
@@ -75,7 +75,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | A-02 | Memory file list/read/write | `/service/web/agent-memory…` | Max file bytes | memory webservice tests |
 | A-03 | Subagents CRUD + tasks | `/service/web/agent-subagents…` | Seed defaults on enable | subagent specs/tests |
 | A-04 | Scheduled tasks list/detail/state | `/service/web/agent-scheduled-tasks…` | Pause/resume | `agent_scheduled_tasks_page_spec_test.go` |
-| A-05 | Session inspect UI | `/service/web/agent-sessions…` | Entry payload, events, confirm | `agent_sessions_page_spec_test.go` |
+| A-05 | Session inspect UI | `/service/web/agent-sessions…` | Entry payload, events, confirm, todos | `agent_sessions_page_spec_test.go` |
 
 ## 6. Orchestration capabilities
 
@@ -89,7 +89,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-06 | Manual + automatic compaction | `CompactSession`, ctxmgr | | compaction / context tests |
 | O-08 | Pipeline agent step (ephemeral) | `pipeline_run.go` / `RunPipelineAgent` | Tools/skills allowlist; memory default off | `pipeline_run_test.go`, `ephemeral_run_test.go` |
 | O-09 | Scheduled autonomous run + delivery | `scheduled_run.go`, scheduler | Isolated session; permission policy | `chat_agent_scheduled_task_spec_test.go`, scheduled_* tests |
-| O-10 | Skills tool / memory tool / subagent task tool | registry + tools | Allowlists for subagents | skills/memory/subagent tests |
+| O-10 | Skills tool / memory tool / subagent task tool / todo tools | registry + tools | Allowlists for subagents | skills/memory/subagent/todo tests |
 | O-11 | Sensors / progress / usage recording | sensors, progress, usage_record | | unit tests |
 | O-12 | Prompt cache | `prompt_cache.go` | Invalidation on config change | `prompt_cache_test.go` |
 

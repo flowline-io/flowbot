@@ -48,8 +48,9 @@ Script load order (defer, in order):
 3. `chatagent-markdown.js`
 4. `chatagent-context.js`
 5. `chatagent-approval.js`
-6. `chatagent-thread.js`
-7. `chatagent-chat.js` (boot: composer/thread init)
+6. `chatagent-todos.js`
+7. `chatagent-thread.js`
+8. `chatagent-chat.js` (boot: composer/thread init)
 
 Pages: `pkg/views/pages/agents.templ`, `agent_session_detail.templ` (approval-only panels may load a subset; thread pages load all).
 

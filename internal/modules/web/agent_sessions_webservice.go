@@ -83,12 +83,17 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list agent plans: %v", err)
 	}
+	todos, err := chatagent.ListTodoModels(ctx.Context(), sessionID)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "list agent todos: %v", err)
+	}
 
 	ctx.Type("html")
 	return pages.AgentSessionDetailPage(
 		mapAgentSession(row),
 		mapAgentSessionEntries(entries),
 		mapAgentPlans(plans),
+		todos,
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

@@ -25,6 +25,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagenttask"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agenttodo"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/behavior"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/bot"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/channel"
@@ -1195,6 +1196,123 @@ func (a *adapter) ListAgentPlansBySession(ctx context.Context, sessionID string)
 		return nil, fmt.Errorf("postgres: list agent plans: %w", err)
 	}
 	return rows, nil
+}
+
+func (a *adapter) ListAgentTodosBySession(ctx context.Context, sessionID string) ([]*gen.AgentTodo, error) {
+	rows, err := a.client.AgentTodo.Query().
+		Where(agenttodo.SessionIDEQ(sessionID)).
+		Order(gen.Asc(agenttodo.FieldSortOrder), gen.Asc(agenttodo.FieldItemID)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent todos: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) ListAgentTodosBySessions(ctx context.Context, sessionIDs []string) ([]*gen.AgentTodo, error) {
+	if len(sessionIDs) == 0 {
+		return nil, nil
+	}
+	rows, err := a.client.AgentTodo.Query().
+		Where(agenttodo.SessionIDIn(sessionIDs...)).
+		Order(
+			gen.Asc(agenttodo.FieldSessionID),
+			gen.Asc(agenttodo.FieldSortOrder),
+			gen.Asc(agenttodo.FieldItemID),
+		).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent todos by sessions: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) ReplaceAgentTodosForSession(ctx context.Context, sessionID string, items []*gen.AgentTodo) error {
+	tx, err := a.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: replace agent todos tx: %w", err)
+	}
+	if _, err := tx.AgentTodo.Delete().Where(agenttodo.SessionIDEQ(sessionID)).Exec(ctx); err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("postgres: delete agent todos: %w", err)
+	}
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		builder := tx.AgentTodo.Create().
+			SetFlag(item.Flag).
+			SetSessionID(sessionID).
+			SetItemID(item.ItemID).
+			SetContent(item.Content).
+			SetStatus(item.Status).
+			SetSortOrder(item.SortOrder)
+		if !item.CreatedAt.IsZero() {
+			builder = builder.SetCreatedAt(item.CreatedAt)
+		}
+		if !item.UpdatedAt.IsZero() {
+			builder = builder.SetUpdatedAt(item.UpdatedAt)
+		}
+		if _, err := builder.Save(ctx); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("postgres: create agent todo: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("postgres: commit replace agent todos: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) MergeAgentTodosForSession(ctx context.Context, sessionID string, items []*gen.AgentTodo) error {
+	tx, err := a.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: merge agent todos tx: %w", err)
+	}
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		existing, err := tx.AgentTodo.Query().
+			Where(agenttodo.SessionIDEQ(sessionID), agenttodo.ItemIDEQ(item.ItemID)).
+			Only(ctx)
+		if err != nil && !gen.IsNotFound(err) {
+			_ = tx.Rollback()
+			return fmt.Errorf("postgres: query agent todo: %w", err)
+		}
+		if existing != nil {
+			updater := tx.AgentTodo.UpdateOneID(existing.ID).
+				SetContent(item.Content).
+				SetStatus(item.Status).
+				SetSortOrder(item.SortOrder)
+			if err := updater.Exec(ctx); err != nil {
+				_ = tx.Rollback()
+				return fmt.Errorf("postgres: update agent todo: %w", err)
+			}
+			continue
+		}
+		builder := tx.AgentTodo.Create().
+			SetFlag(item.Flag).
+			SetSessionID(sessionID).
+			SetItemID(item.ItemID).
+			SetContent(item.Content).
+			SetStatus(item.Status).
+			SetSortOrder(item.SortOrder)
+		if !item.CreatedAt.IsZero() {
+			builder = builder.SetCreatedAt(item.CreatedAt)
+		}
+		if !item.UpdatedAt.IsZero() {
+			builder = builder.SetUpdatedAt(item.UpdatedAt)
+		}
+		if _, err := builder.Save(ctx); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("postgres: create agent todo: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("postgres: commit merge agent todos: %w", err)
+	}
+	return nil
 }
 
 func (a *adapter) ListAgentSkills(ctx context.Context, enabledOnly bool) ([]*gen.AgentSkill, error) {

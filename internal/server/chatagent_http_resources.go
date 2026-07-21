@@ -52,3 +52,18 @@ func (h *chatAgentHTTP) listSessionPlans(c fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"plans": plans})
 }
+
+func (h *chatAgentHTTP) listSessionTodos(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := c.Params("id")
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	todos, err := chatagent.ListTodoItems(c.Context(), sessionID)
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(fiber.Map{"todos": todos})
+}

@@ -19,6 +19,7 @@ const (
 	ToolGroupSchedule = "schedule"
 	ToolGroupSubagent = "subagent"
 	ToolGroupMemory   = "memory"
+	ToolGroupTodo     = "todo"
 )
 
 var scheduleIntentPattern = regexp.MustCompile(`(?i)\b(schedule|cron|scheduled\s+task|remind\s+me|every\s+day|recurring)\b`)
@@ -84,6 +85,8 @@ func ToolGroupOf(name string) string {
 		return ToolGroupCore
 	case updateMemoryToolName:
 		return ToolGroupMemory
+	case todoWriteToolName, listTodosToolName:
+		return ToolGroupTodo
 	default:
 		if strings.HasPrefix(name, "schedule") {
 			return ToolGroupSchedule

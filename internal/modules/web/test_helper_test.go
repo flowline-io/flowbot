@@ -55,6 +55,8 @@ type testStore struct {
 	chatScheduledTaskRunsErr  error
 	agentPlans                map[string]*gen.AgentPlan
 	agentPlansErr             error
+	agentTodos                map[string]*gen.AgentTodo
+	agentTodosErr             error
 	dbClient                  *store.Client // in-memory SQLite client for view handler tests
 	notifyChannels            map[int64]model.NotifyChannel
 	notifyChannelErr          error

@@ -115,6 +115,22 @@ func (a *agentSessionsWebAdapter) ListAgentPlansBySession(_ context.Context, _ s
 	return nil, nil
 }
 
+func (a *agentSessionsWebAdapter) ListAgentTodosBySession(_ context.Context, _ string) ([]*gen.AgentTodo, error) {
+	return nil, nil
+}
+
+func (a *agentSessionsWebAdapter) ListAgentTodosBySessions(_ context.Context, _ []string) ([]*gen.AgentTodo, error) {
+	return nil, nil
+}
+
+func (a *agentSessionsWebAdapter) ReplaceAgentTodosForSession(_ context.Context, _ string, _ []*gen.AgentTodo) error {
+	return nil
+}
+
+func (a *agentSessionsWebAdapter) MergeAgentTodosForSession(_ context.Context, _ string, _ []*gen.AgentTodo) error {
+	return nil
+}
+
 func (a *agentSessionsWebAdapter) GetChatSessionEntryInSession(ctx context.Context, sessionID, flag string) (*gen.ChatSessionEntry, error) {
 	row, err := a.ent.ChatSessionEntry.Query().
 		Where(

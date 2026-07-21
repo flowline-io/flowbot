@@ -51,6 +51,7 @@ var (
 	testAgentSkills        = make(map[string]*gen.AgentSkill)
 	testAgentSkillFiles    = make(map[string]map[string]*gen.AgentSkillFile)
 	testAgentPlans         = make(map[string]*gen.AgentPlan)
+	testAgentTodos         = make(map[string]*gen.AgentTodo)
 )
 
 func newTestStoreAdapter() *testStoreAdapter {
@@ -365,6 +366,81 @@ func sortAgentPlansByCreatedAtDesc(rows []*gen.AgentPlan) {
 	for i := range rows {
 		for j := i + 1; j < len(rows); j++ {
 			if rows[j].CreatedAt.After(rows[i].CreatedAt) {
+				rows[i], rows[j] = rows[j], rows[i]
+			}
+		}
+	}
+}
+func (*testStoreAdapter) ListAgentTodosBySession(_ context.Context, sessionID string) ([]*gen.AgentTodo, error) {
+	rows := make([]*gen.AgentTodo, 0)
+	for _, row := range testAgentTodos {
+		if row.SessionID == sessionID {
+			rows = append(rows, row)
+		}
+	}
+	sortAgentTodos(rows)
+	return rows, nil
+}
+func (*testStoreAdapter) ListAgentTodosBySessions(_ context.Context, sessionIDs []string) ([]*gen.AgentTodo, error) {
+	if len(sessionIDs) == 0 {
+		return nil, nil
+	}
+	allowed := make(map[string]struct{}, len(sessionIDs))
+	for _, sessionID := range sessionIDs {
+		allowed[sessionID] = struct{}{}
+	}
+	rows := make([]*gen.AgentTodo, 0)
+	for _, row := range testAgentTodos {
+		if _, ok := allowed[row.SessionID]; ok {
+			rows = append(rows, row)
+		}
+	}
+	sortAgentTodos(rows)
+	return rows, nil
+}
+func (*testStoreAdapter) ReplaceAgentTodosForSession(_ context.Context, sessionID string, items []*gen.AgentTodo) error {
+	for flag, row := range testAgentTodos {
+		if row.SessionID == sessionID {
+			delete(testAgentTodos, flag)
+		}
+	}
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		testAgentTodos[item.Flag] = item
+	}
+	return nil
+}
+func (*testStoreAdapter) MergeAgentTodosForSession(_ context.Context, sessionID string, items []*gen.AgentTodo) error {
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		var existingFlag string
+		for flag, row := range testAgentTodos {
+			if row.SessionID == sessionID && row.ItemID == item.ItemID {
+				existingFlag = flag
+				break
+			}
+		}
+		if existingFlag != "" {
+			current := testAgentTodos[existingFlag]
+			current.Content = item.Content
+			current.Status = item.Status
+			current.SortOrder = item.SortOrder
+			testAgentTodos[existingFlag] = current
+			continue
+		}
+		testAgentTodos[item.Flag] = item
+	}
+	return nil
+}
+func sortAgentTodos(rows []*gen.AgentTodo) {
+	for i := range rows {
+		for j := i + 1; j < len(rows); j++ {
+			if rows[j].SortOrder < rows[i].SortOrder ||
+				(rows[j].SortOrder == rows[i].SortOrder && rows[j].ItemID < rows[i].ItemID) {
 				rows[i], rows[j] = rows[j], rows[i]
 			}
 		}

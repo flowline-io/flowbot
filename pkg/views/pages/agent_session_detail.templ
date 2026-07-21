@@ -6,7 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan) {
+templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo) {
 	@layout.Base(partials.AgentSessionPageTitle(session)) {
 		if session.Title != "" {
 			@partials.PageHeader(session.Title, session.Flag) {
@@ -62,6 +62,7 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 			</div>
 		</div>
 		@partials.AgentSessionPlansCard(session.Flag, plans)
+		@partials.AgentSessionTodosCard(todos)
 		<h2 class="text-lg font-semibold mb-3">Entries</h2>
 		@partials.AgentSessionEntriesTable(entries)
 		@partials.ChatAgentApprovalScripts()

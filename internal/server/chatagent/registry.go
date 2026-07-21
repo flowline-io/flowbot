@@ -47,6 +47,11 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 			return nil, err
 		}
 	}
+	if sessionID := registrySessionID(taskDeps, scheduleDeps); sessionID != "" {
+		if err := NewTodoTools(TodoToolDeps{SessionID: sessionID}).Register(registry); err != nil {
+			return nil, err
+		}
+	}
 	memTool, err := NewUpdateMemoryTool()
 	if err != nil {
 		return nil, err
@@ -88,6 +93,7 @@ func ActiveToolNames() []string {
 	names = append(names, agentnotify.ActiveToolNames()...)
 	names = append(names, "read_skill", taskToolName)
 	names = append(names, scheduleToolNames()...)
+	names = append(names, todoToolNames()...)
 	names = append(names, updateMemoryToolName)
 	return names
 }
@@ -100,6 +106,16 @@ func registryUID(taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) types.U
 		return taskDeps.UID
 	}
 	return types.Uid("")
+}
+
+func registrySessionID(taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) string {
+	if scheduleDeps != nil && scheduleDeps.SessionID != "" {
+		return scheduleDeps.SessionID
+	}
+	if taskDeps != nil && taskDeps.SessionID != "" {
+		return taskDeps.SessionID
+	}
+	return ""
 }
 
 // BaseToolNamesForRun returns the active tool set for one run.
