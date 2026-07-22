@@ -166,7 +166,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, msg); err != nil {
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
-			_, _ = ns.Record(ctx.Context(), uid, ch.Name, templateID, summary, "failed", err.Error(), payload)
+			_, _ = ns.Record(ctx.Context(), uid, ch.Name, templateID, summary, "failed", err.Error(), "", payload)
 		}
 		setShowToast(ctx, "error", "Send failed: "+err.Error())
 		view.Result = &partials.NotifyPlaygroundResultParams{
@@ -181,7 +181,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
-		_, _ = ns.Record(ctx.Context(), uid, ch.Name, templateID, summary, "success", "", payload)
+		_, _ = ns.Record(ctx.Context(), uid, ch.Name, templateID, summary, "success", "", "", payload)
 	}
 	setShowToast(ctx, "success", "Notification sent to "+ch.Name)
 	view.Result = &partials.NotifyPlaygroundResultParams{

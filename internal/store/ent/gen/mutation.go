@@ -23742,10 +23742,12 @@ type NotificationRecordMutation struct {
 	uid              *string
 	channel          *string
 	template_id      *string
+	rule_id          *string
 	summary          *string
 	status           *notificationrecord.Status
 	error_msg        *string
 	payload_snapshot *map[string]interface{}
+	read_at          *time.Time
 	created_at       *time.Time
 	clearedFields    map[string]struct{}
 	done             bool
@@ -23965,6 +23967,42 @@ func (m *NotificationRecordMutation) ResetTemplateID() {
 	m.template_id = nil
 }
 
+// SetRuleID sets the "rule_id" field.
+func (m *NotificationRecordMutation) SetRuleID(s string) {
+	m.rule_id = &s
+}
+
+// RuleID returns the value of the "rule_id" field in the mutation.
+func (m *NotificationRecordMutation) RuleID() (r string, exists bool) {
+	v := m.rule_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRuleID returns the old "rule_id" field's value of the NotificationRecord entity.
+// If the NotificationRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationRecordMutation) OldRuleID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRuleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRuleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRuleID: %w", err)
+	}
+	return oldValue.RuleID, nil
+}
+
+// ResetRuleID resets all changes to the "rule_id" field.
+func (m *NotificationRecordMutation) ResetRuleID() {
+	m.rule_id = nil
+}
+
 // SetSummary sets the "summary" field.
 func (m *NotificationRecordMutation) SetSummary(s string) {
 	m.summary = &s
@@ -24122,6 +24160,55 @@ func (m *NotificationRecordMutation) ResetPayloadSnapshot() {
 	delete(m.clearedFields, notificationrecord.FieldPayloadSnapshot)
 }
 
+// SetReadAt sets the "read_at" field.
+func (m *NotificationRecordMutation) SetReadAt(t time.Time) {
+	m.read_at = &t
+}
+
+// ReadAt returns the value of the "read_at" field in the mutation.
+func (m *NotificationRecordMutation) ReadAt() (r time.Time, exists bool) {
+	v := m.read_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReadAt returns the old "read_at" field's value of the NotificationRecord entity.
+// If the NotificationRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationRecordMutation) OldReadAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReadAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReadAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReadAt: %w", err)
+	}
+	return oldValue.ReadAt, nil
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (m *NotificationRecordMutation) ClearReadAt() {
+	m.read_at = nil
+	m.clearedFields[notificationrecord.FieldReadAt] = struct{}{}
+}
+
+// ReadAtCleared returns if the "read_at" field was cleared in this mutation.
+func (m *NotificationRecordMutation) ReadAtCleared() bool {
+	_, ok := m.clearedFields[notificationrecord.FieldReadAt]
+	return ok
+}
+
+// ResetReadAt resets all changes to the "read_at" field.
+func (m *NotificationRecordMutation) ResetReadAt() {
+	m.read_at = nil
+	delete(m.clearedFields, notificationrecord.FieldReadAt)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *NotificationRecordMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -24192,7 +24279,7 @@ func (m *NotificationRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationRecordMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.uid != nil {
 		fields = append(fields, notificationrecord.FieldUID)
 	}
@@ -24201,6 +24288,9 @@ func (m *NotificationRecordMutation) Fields() []string {
 	}
 	if m.template_id != nil {
 		fields = append(fields, notificationrecord.FieldTemplateID)
+	}
+	if m.rule_id != nil {
+		fields = append(fields, notificationrecord.FieldRuleID)
 	}
 	if m.summary != nil {
 		fields = append(fields, notificationrecord.FieldSummary)
@@ -24213,6 +24303,9 @@ func (m *NotificationRecordMutation) Fields() []string {
 	}
 	if m.payload_snapshot != nil {
 		fields = append(fields, notificationrecord.FieldPayloadSnapshot)
+	}
+	if m.read_at != nil {
+		fields = append(fields, notificationrecord.FieldReadAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, notificationrecord.FieldCreatedAt)
@@ -24231,6 +24324,8 @@ func (m *NotificationRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.Channel()
 	case notificationrecord.FieldTemplateID:
 		return m.TemplateID()
+	case notificationrecord.FieldRuleID:
+		return m.RuleID()
 	case notificationrecord.FieldSummary:
 		return m.Summary()
 	case notificationrecord.FieldStatus:
@@ -24239,6 +24334,8 @@ func (m *NotificationRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.ErrorMsg()
 	case notificationrecord.FieldPayloadSnapshot:
 		return m.PayloadSnapshot()
+	case notificationrecord.FieldReadAt:
+		return m.ReadAt()
 	case notificationrecord.FieldCreatedAt:
 		return m.CreatedAt()
 	}
@@ -24256,6 +24353,8 @@ func (m *NotificationRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldChannel(ctx)
 	case notificationrecord.FieldTemplateID:
 		return m.OldTemplateID(ctx)
+	case notificationrecord.FieldRuleID:
+		return m.OldRuleID(ctx)
 	case notificationrecord.FieldSummary:
 		return m.OldSummary(ctx)
 	case notificationrecord.FieldStatus:
@@ -24264,6 +24363,8 @@ func (m *NotificationRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldErrorMsg(ctx)
 	case notificationrecord.FieldPayloadSnapshot:
 		return m.OldPayloadSnapshot(ctx)
+	case notificationrecord.FieldReadAt:
+		return m.OldReadAt(ctx)
 	case notificationrecord.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	}
@@ -24296,6 +24397,13 @@ func (m *NotificationRecordMutation) SetField(name string, value ent.Value) erro
 		}
 		m.SetTemplateID(v)
 		return nil
+	case notificationrecord.FieldRuleID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRuleID(v)
+		return nil
 	case notificationrecord.FieldSummary:
 		v, ok := value.(string)
 		if !ok {
@@ -24323,6 +24431,13 @@ func (m *NotificationRecordMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPayloadSnapshot(v)
+		return nil
+	case notificationrecord.FieldReadAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReadAt(v)
 		return nil
 	case notificationrecord.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -24364,6 +24479,9 @@ func (m *NotificationRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(notificationrecord.FieldPayloadSnapshot) {
 		fields = append(fields, notificationrecord.FieldPayloadSnapshot)
 	}
+	if m.FieldCleared(notificationrecord.FieldReadAt) {
+		fields = append(fields, notificationrecord.FieldReadAt)
+	}
 	return fields
 }
 
@@ -24380,6 +24498,9 @@ func (m *NotificationRecordMutation) ClearField(name string) error {
 	switch name {
 	case notificationrecord.FieldPayloadSnapshot:
 		m.ClearPayloadSnapshot()
+		return nil
+	case notificationrecord.FieldReadAt:
+		m.ClearReadAt()
 		return nil
 	}
 	return fmt.Errorf("unknown NotificationRecord nullable field %s", name)
@@ -24398,6 +24519,9 @@ func (m *NotificationRecordMutation) ResetField(name string) error {
 	case notificationrecord.FieldTemplateID:
 		m.ResetTemplateID()
 		return nil
+	case notificationrecord.FieldRuleID:
+		m.ResetRuleID()
+		return nil
 	case notificationrecord.FieldSummary:
 		m.ResetSummary()
 		return nil
@@ -24409,6 +24533,9 @@ func (m *NotificationRecordMutation) ResetField(name string) error {
 		return nil
 	case notificationrecord.FieldPayloadSnapshot:
 		m.ResetPayloadSnapshot()
+		return nil
+	case notificationrecord.FieldReadAt:
+		m.ResetReadAt()
 		return nil
 	case notificationrecord.FieldCreatedAt:
 		m.ResetCreatedAt()

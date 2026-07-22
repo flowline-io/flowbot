@@ -20,6 +20,8 @@ const (
 	FieldChannel = "channel"
 	// FieldTemplateID holds the string denoting the template_id field in the database.
 	FieldTemplateID = "template_id"
+	// FieldRuleID holds the string denoting the rule_id field in the database.
+	FieldRuleID = "rule_id"
 	// FieldSummary holds the string denoting the summary field in the database.
 	FieldSummary = "summary"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -28,6 +30,8 @@ const (
 	FieldErrorMsg = "error_msg"
 	// FieldPayloadSnapshot holds the string denoting the payload_snapshot field in the database.
 	FieldPayloadSnapshot = "payload_snapshot"
+	// FieldReadAt holds the string denoting the read_at field in the database.
+	FieldReadAt = "read_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// Table holds the table name of the notificationrecord in the database.
@@ -40,10 +44,12 @@ var Columns = []string{
 	FieldUID,
 	FieldChannel,
 	FieldTemplateID,
+	FieldRuleID,
 	FieldSummary,
 	FieldStatus,
 	FieldErrorMsg,
 	FieldPayloadSnapshot,
+	FieldReadAt,
 	FieldCreatedAt,
 }
 
@@ -64,6 +70,8 @@ var (
 	ChannelValidator func(string) error
 	// TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	TemplateIDValidator func(string) error
+	// DefaultRuleID holds the default value on creation for the "rule_id" field.
+	DefaultRuleID string
 	// DefaultSummary holds the default value on creation for the "summary" field.
 	DefaultSummary string
 	// DefaultErrorMsg holds the default value on creation for the "error_msg" field.
@@ -125,6 +133,11 @@ func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
 }
 
+// ByRuleID orders the results by the rule_id field.
+func ByRuleID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRuleID, opts...).ToFunc()
+}
+
 // BySummary orders the results by the summary field.
 func BySummary(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSummary, opts...).ToFunc()
@@ -138,6 +151,11 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByErrorMsg orders the results by the error_msg field.
 func ByErrorMsg(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldErrorMsg, opts...).ToFunc()
+}
+
+// ByReadAt orders the results by the read_at field.
+func ByReadAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReadAt, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

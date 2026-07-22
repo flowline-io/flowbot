@@ -51,7 +51,8 @@ func notifySettingsPage(ctx fiber.Ctx) error {
 	}
 	tab := normalizeNotifySettingsTab(ctx.Query("tab"))
 	ctx.Type("html")
-	return pages.NotifySettingsPage(tab).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return pages.NotifySettingsPage(tab, ctx.Query("channel"), ctx.Query("rule_id")).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // normalizeNotifySettingsTab returns a known tab id or the default channels tab.
@@ -81,7 +82,7 @@ func notifyChannelsTable(ctx fiber.Ctx) error {
 		return partials.EmptyState("Failed to load channels").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
-	return partials.NotifyChannelsTable(channels).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyChannelsTable(channels, ctx.Query("highlight")).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyChannelNewForm(ctx fiber.Ctx) error {
@@ -123,7 +124,7 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	setShowToast(ctx, "success", "Channel saved")
-	if err := partials.NotifyChannelRow(ch).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+	if err := partials.NotifyChannelRow(ch, false).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
 	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-channels-empty" hx-swap-oob="delete"></tr>`))
@@ -186,7 +187,7 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	setShowToast(ctx, "success", "Channel saved")
-	return partials.NotifyChannelRow(ch).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyChannelRow(ch, false).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyChannelDelete(ctx fiber.Ctx) error {
@@ -228,14 +229,14 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		setShowToast(ctx, "error", "Channel test failed: "+err.Error())
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
-			_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), nil)
+			_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), "", nil)
 		}
 		return ctx.SendString("")
 	}
 	setShowToast(ctx, "success", "Channel test succeeded")
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
-		_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", nil)
+		_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", "", nil)
 	}
 	return ctx.SendString("")
 }
@@ -257,7 +258,7 @@ func notifyChannelSetDefault(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	setShowToast(ctx, "success", "Default channel updated")
-	return partials.NotifyChannelsTable(channels).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyChannelsTable(channels, "").Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 // ---------------------------------------------------------------------------
@@ -426,7 +427,7 @@ func notifyRulesTable(ctx fiber.Ctx) error {
 	}
 	templateIDs := getTemplateIDs()
 	ctx.Type("html")
-	return partials.NotifyRulesTable(rules, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyRulesTable(rules, templateIDs, ctx.Query("highlight")).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyRuleNewForm(ctx fiber.Ctx) error {
@@ -465,7 +466,7 @@ func notifyRuleCreate(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	setShowToast(ctx, "success", "Rule saved")
-	if err := partials.NotifyRuleRow(r, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
+	if err := partials.NotifyRuleRow(r, templateIDs, false).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
 	_, _ = ctx.Response().BodyWriter().Write([]byte(`<tr id="notify-rules-empty" hx-swap-oob="delete"></tr>`))
@@ -522,7 +523,7 @@ func notifyRuleUpdate(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	setShowToast(ctx, "success", "Rule saved")
-	return partials.NotifyRuleRow(r, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.NotifyRuleRow(r, templateIDs, false).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func notifyRuleDelete(ctx fiber.Ctx) error {

@@ -24,6 +24,8 @@ type NotificationRecord struct {
 	Channel string `json:"channel,omitempty"`
 	// TemplateID holds the value of the "template_id" field.
 	TemplateID string `json:"template_id,omitempty"`
+	// RuleID holds the value of the "rule_id" field.
+	RuleID string `json:"rule_id,omitempty"`
 	// Summary holds the value of the "summary" field.
 	Summary string `json:"summary,omitempty"`
 	// Status holds the value of the "status" field.
@@ -32,6 +34,8 @@ type NotificationRecord struct {
 	ErrorMsg string `json:"error_msg,omitempty"`
 	// PayloadSnapshot holds the value of the "payload_snapshot" field.
 	PayloadSnapshot map[string]interface{} `json:"payload_snapshot,omitempty"`
+	// ReadAt holds the value of the "read_at" field.
+	ReadAt *time.Time `json:"read_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt    time.Time `json:"created_at,omitempty"`
 	selectValues sql.SelectValues
@@ -46,9 +50,9 @@ func (*NotificationRecord) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case notificationrecord.FieldID:
 			values[i] = new(sql.NullInt64)
-		case notificationrecord.FieldUID, notificationrecord.FieldChannel, notificationrecord.FieldTemplateID, notificationrecord.FieldSummary, notificationrecord.FieldStatus, notificationrecord.FieldErrorMsg:
+		case notificationrecord.FieldUID, notificationrecord.FieldChannel, notificationrecord.FieldTemplateID, notificationrecord.FieldRuleID, notificationrecord.FieldSummary, notificationrecord.FieldStatus, notificationrecord.FieldErrorMsg:
 			values[i] = new(sql.NullString)
-		case notificationrecord.FieldCreatedAt:
+		case notificationrecord.FieldReadAt, notificationrecord.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -89,6 +93,12 @@ func (_m *NotificationRecord) assignValues(columns []string, values []any) error
 			} else if value.Valid {
 				_m.TemplateID = value.String
 			}
+		case notificationrecord.FieldRuleID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field rule_id", values[i])
+			} else if value.Valid {
+				_m.RuleID = value.String
+			}
 		case notificationrecord.FieldSummary:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field summary", values[i])
@@ -114,6 +124,13 @@ func (_m *NotificationRecord) assignValues(columns []string, values []any) error
 				if err := json.Unmarshal(*value, &_m.PayloadSnapshot); err != nil {
 					return fmt.Errorf("unmarshal field payload_snapshot: %w", err)
 				}
+			}
+		case notificationrecord.FieldReadAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field read_at", values[i])
+			} else if value.Valid {
+				_m.ReadAt = new(time.Time)
+				*_m.ReadAt = value.Time
 			}
 		case notificationrecord.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -166,6 +183,9 @@ func (_m *NotificationRecord) String() string {
 	builder.WriteString("template_id=")
 	builder.WriteString(_m.TemplateID)
 	builder.WriteString(", ")
+	builder.WriteString("rule_id=")
+	builder.WriteString(_m.RuleID)
+	builder.WriteString(", ")
 	builder.WriteString("summary=")
 	builder.WriteString(_m.Summary)
 	builder.WriteString(", ")
@@ -177,6 +197,11 @@ func (_m *NotificationRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("payload_snapshot=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PayloadSnapshot))
+	builder.WriteString(", ")
+	if v := _m.ReadAt; v != nil {
+		builder.WriteString("read_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

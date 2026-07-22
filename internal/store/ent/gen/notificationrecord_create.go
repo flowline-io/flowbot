@@ -40,6 +40,20 @@ func (_c *NotificationRecordCreate) SetTemplateID(v string) *NotificationRecordC
 	return _c
 }
 
+// SetRuleID sets the "rule_id" field.
+func (_c *NotificationRecordCreate) SetRuleID(v string) *NotificationRecordCreate {
+	_c.mutation.SetRuleID(v)
+	return _c
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_c *NotificationRecordCreate) SetNillableRuleID(v *string) *NotificationRecordCreate {
+	if v != nil {
+		_c.SetRuleID(*v)
+	}
+	return _c
+}
+
 // SetSummary sets the "summary" field.
 func (_c *NotificationRecordCreate) SetSummary(v string) *NotificationRecordCreate {
 	_c.mutation.SetSummary(v)
@@ -85,6 +99,20 @@ func (_c *NotificationRecordCreate) SetNillableErrorMsg(v *string) *Notification
 // SetPayloadSnapshot sets the "payload_snapshot" field.
 func (_c *NotificationRecordCreate) SetPayloadSnapshot(v map[string]interface{}) *NotificationRecordCreate {
 	_c.mutation.SetPayloadSnapshot(v)
+	return _c
+}
+
+// SetReadAt sets the "read_at" field.
+func (_c *NotificationRecordCreate) SetReadAt(v time.Time) *NotificationRecordCreate {
+	_c.mutation.SetReadAt(v)
+	return _c
+}
+
+// SetNillableReadAt sets the "read_at" field if the given value is not nil.
+func (_c *NotificationRecordCreate) SetNillableReadAt(v *time.Time) *NotificationRecordCreate {
+	if v != nil {
+		_c.SetReadAt(*v)
+	}
 	return _c
 }
 
@@ -143,6 +171,10 @@ func (_c *NotificationRecordCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *NotificationRecordCreate) defaults() {
+	if _, ok := _c.mutation.RuleID(); !ok {
+		v := notificationrecord.DefaultRuleID
+		_c.mutation.SetRuleID(v)
+	}
 	if _, ok := _c.mutation.Summary(); !ok {
 		v := notificationrecord.DefaultSummary
 		_c.mutation.SetSummary(v)
@@ -186,6 +218,9 @@ func (_c *NotificationRecordCreate) check() error {
 		if err := notificationrecord.TemplateIDValidator(v); err != nil {
 			return &ValidationError{Name: "template_id", err: fmt.Errorf(`gen: validator failed for field "NotificationRecord.template_id": %w`, err)}
 		}
+	}
+	if _, ok := _c.mutation.RuleID(); !ok {
+		return &ValidationError{Name: "rule_id", err: errors.New(`gen: missing required field "NotificationRecord.rule_id"`)}
 	}
 	if _, ok := _c.mutation.Summary(); !ok {
 		return &ValidationError{Name: "summary", err: errors.New(`gen: missing required field "NotificationRecord.summary"`)}
@@ -249,6 +284,10 @@ func (_c *NotificationRecordCreate) createSpec() (*NotificationRecord, *sqlgraph
 		_spec.SetField(notificationrecord.FieldTemplateID, field.TypeString, value)
 		_node.TemplateID = value
 	}
+	if value, ok := _c.mutation.RuleID(); ok {
+		_spec.SetField(notificationrecord.FieldRuleID, field.TypeString, value)
+		_node.RuleID = value
+	}
 	if value, ok := _c.mutation.Summary(); ok {
 		_spec.SetField(notificationrecord.FieldSummary, field.TypeString, value)
 		_node.Summary = value
@@ -264,6 +303,10 @@ func (_c *NotificationRecordCreate) createSpec() (*NotificationRecord, *sqlgraph
 	if value, ok := _c.mutation.PayloadSnapshot(); ok {
 		_spec.SetField(notificationrecord.FieldPayloadSnapshot, field.TypeJSON, value)
 		_node.PayloadSnapshot = value
+	}
+	if value, ok := _c.mutation.ReadAt(); ok {
+		_spec.SetField(notificationrecord.FieldReadAt, field.TypeTime, value)
+		_node.ReadAt = &value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(notificationrecord.FieldCreatedAt, field.TypeTime, value)
@@ -357,6 +400,18 @@ func (u *NotificationRecordUpsert) UpdateTemplateID() *NotificationRecordUpsert 
 	return u
 }
 
+// SetRuleID sets the "rule_id" field.
+func (u *NotificationRecordUpsert) SetRuleID(v string) *NotificationRecordUpsert {
+	u.Set(notificationrecord.FieldRuleID, v)
+	return u
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *NotificationRecordUpsert) UpdateRuleID() *NotificationRecordUpsert {
+	u.SetExcluded(notificationrecord.FieldRuleID)
+	return u
+}
+
 // SetSummary sets the "summary" field.
 func (u *NotificationRecordUpsert) SetSummary(v string) *NotificationRecordUpsert {
 	u.Set(notificationrecord.FieldSummary, v)
@@ -408,6 +463,24 @@ func (u *NotificationRecordUpsert) UpdatePayloadSnapshot() *NotificationRecordUp
 // ClearPayloadSnapshot clears the value of the "payload_snapshot" field.
 func (u *NotificationRecordUpsert) ClearPayloadSnapshot() *NotificationRecordUpsert {
 	u.SetNull(notificationrecord.FieldPayloadSnapshot)
+	return u
+}
+
+// SetReadAt sets the "read_at" field.
+func (u *NotificationRecordUpsert) SetReadAt(v time.Time) *NotificationRecordUpsert {
+	u.Set(notificationrecord.FieldReadAt, v)
+	return u
+}
+
+// UpdateReadAt sets the "read_at" field to the value that was provided on create.
+func (u *NotificationRecordUpsert) UpdateReadAt() *NotificationRecordUpsert {
+	u.SetExcluded(notificationrecord.FieldReadAt)
+	return u
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (u *NotificationRecordUpsert) ClearReadAt() *NotificationRecordUpsert {
+	u.SetNull(notificationrecord.FieldReadAt)
 	return u
 }
 
@@ -504,6 +577,20 @@ func (u *NotificationRecordUpsertOne) UpdateTemplateID() *NotificationRecordUpse
 	})
 }
 
+// SetRuleID sets the "rule_id" field.
+func (u *NotificationRecordUpsertOne) SetRuleID(v string) *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *NotificationRecordUpsertOne) UpdateRuleID() *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
 // SetSummary sets the "summary" field.
 func (u *NotificationRecordUpsertOne) SetSummary(v string) *NotificationRecordUpsertOne {
 	return u.Update(func(s *NotificationRecordUpsert) {
@@ -564,6 +651,27 @@ func (u *NotificationRecordUpsertOne) UpdatePayloadSnapshot() *NotificationRecor
 func (u *NotificationRecordUpsertOne) ClearPayloadSnapshot() *NotificationRecordUpsertOne {
 	return u.Update(func(s *NotificationRecordUpsert) {
 		s.ClearPayloadSnapshot()
+	})
+}
+
+// SetReadAt sets the "read_at" field.
+func (u *NotificationRecordUpsertOne) SetReadAt(v time.Time) *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetReadAt(v)
+	})
+}
+
+// UpdateReadAt sets the "read_at" field to the value that was provided on create.
+func (u *NotificationRecordUpsertOne) UpdateReadAt() *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateReadAt()
+	})
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (u *NotificationRecordUpsertOne) ClearReadAt() *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.ClearReadAt()
 	})
 }
 
@@ -826,6 +934,20 @@ func (u *NotificationRecordUpsertBulk) UpdateTemplateID() *NotificationRecordUps
 	})
 }
 
+// SetRuleID sets the "rule_id" field.
+func (u *NotificationRecordUpsertBulk) SetRuleID(v string) *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetRuleID(v)
+	})
+}
+
+// UpdateRuleID sets the "rule_id" field to the value that was provided on create.
+func (u *NotificationRecordUpsertBulk) UpdateRuleID() *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateRuleID()
+	})
+}
+
 // SetSummary sets the "summary" field.
 func (u *NotificationRecordUpsertBulk) SetSummary(v string) *NotificationRecordUpsertBulk {
 	return u.Update(func(s *NotificationRecordUpsert) {
@@ -886,6 +1008,27 @@ func (u *NotificationRecordUpsertBulk) UpdatePayloadSnapshot() *NotificationReco
 func (u *NotificationRecordUpsertBulk) ClearPayloadSnapshot() *NotificationRecordUpsertBulk {
 	return u.Update(func(s *NotificationRecordUpsert) {
 		s.ClearPayloadSnapshot()
+	})
+}
+
+// SetReadAt sets the "read_at" field.
+func (u *NotificationRecordUpsertBulk) SetReadAt(v time.Time) *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetReadAt(v)
+	})
+}
+
+// UpdateReadAt sets the "read_at" field to the value that was provided on create.
+func (u *NotificationRecordUpsertBulk) UpdateReadAt() *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateReadAt()
+	})
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (u *NotificationRecordUpsertBulk) ClearReadAt() *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.ClearReadAt()
 	})
 }
 

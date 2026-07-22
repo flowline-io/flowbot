@@ -6,8 +6,16 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
-templ NotifyRuleRow(item model.NotifyRule, templateIDs []string) {
-	<tr id={ notifyRuleRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover" x-data="{ expanded: false }">
+templ NotifyRuleRow(item model.NotifyRule, templateIDs []string, highlighted bool) {
+	<tr id={ notifyRuleRowID(item) }
+		hx-target="this"
+		hx-swap="outerHTML"
+		class={ "hover", templ.KV("bg-primary/10 ring-1 ring-primary/30", highlighted) }
+		x-data="{ expanded: false }"
+		if highlighted {
+			data-notify-highlight="1"
+		}
+	>
 		<td class="text-base-content/70 text-center">{ fmt.Sprintf("%d", item.Priority) }</td>
 		<td class="text-base-content font-medium">
 			<button type="button" class="link link-hover text-left" @click="expanded = !expanded"

@@ -371,3 +371,16 @@ function flowbotHTMXErrorMessage(status, body) {
     bump(-1);
   });
 })();
+
+// Scroll History deep-links into view after Channels/Rules table settle.
+document.addEventListener('htmx:afterSettle', function (evt) {
+  var root = evt.target;
+  if (!root || !root.querySelector) {
+    return;
+  }
+  var el = root.querySelector('[data-notify-highlight]');
+  if (!el) {
+    return;
+  }
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+});

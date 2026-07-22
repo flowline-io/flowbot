@@ -17,64 +17,164 @@ func statusBadgeClass(status string) string {
 	}
 }
 
-templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
-	<div class="flowbot-surface" id="notifications-table" data-testid="notifications-table">
-		<div class="overflow-x-auto">
-			<table class="table">
-				<thead>
-				<tr>
-					<th class="text-xs text-base-content/55">Time</th>
-					<th class="text-xs text-base-content/55">Channel</th>
-					<th class="text-xs text-base-content/55">Template</th>
-					<th class="text-xs text-base-content/55">Summary</th>
-					<th class="text-xs text-base-content/55">Status</th>
-				</tr>
-				</thead>
-				<tbody id="notifications-rows">
-				for _, r := range records {
-					<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }>
-						<td class="text-xs whitespace-nowrap">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
-						<td><span class="flowbot-chip flowbot-chip-muted">{ r.Channel }</span></td>
-						<td class="text-xs font-mono">{ r.TemplateID }</td>
-						<td class="text-xs max-w-48 truncate" title={ r.Summary }>{ r.Summary }</td>
-						<td class="flex items-center gap-1">
-							<span class={ statusBadgeClass(string(r.Status)) } title={ r.ErrorMsg }>{ string(r.Status) }</span>
-							if string(r.Status) == "failed" {
-								<button class="btn btn-xs btn-outline btn-error"
-									hx-post={ templ.URL("/service/web/notifications/" + strconv.FormatInt(r.ID, 10) + "/retry") }
-									hx-target="#notifications-table"
-									hx-swap="outerHTML"
-									hx-disabled-elt="this"
-									title="Retries go through normal delivery. Rate limits still apply."
-									data-testid={ "retry-btn-" + strconv.FormatInt(r.ID, 10) }>Retry</button>
-							}
-						</td>
-					</tr>
-				}
-				if len(records) == 0 {
-					<tr id="notifications-empty">
-						<td colspan="5" class="p-0">
-							@EmptyStateCTA(
-								"No notifications yet",
-								"Configure channels and rules to deliver alerts.",
-								"/service/web/notifications?tab=channels",
-								"Open Notify settings",
-							)
-						</td>
-					</tr>
-				}
-				</tbody>
-			</table>
+templ NotificationsTable(p NotificationHistoryParams) {
+	<div class="space-y-3" id="notifications-table" data-testid="notifications-table">
+		<div class="flex flex-wrap items-center gap-3" data-testid="history-group-bar">
+			<div class="join" role="group" aria-label="Group notifications">
+				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "") }
+					href={ templ.URL(NotifyHistoryListURL("", "", "", "")) }
+					hx-get={ templ.URL(NotifyHistoryListURL("", "", "", "")) }
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					data-testid="group-all">All</a>
+				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "channel") }
+					href={ templ.URL(NotifyHistoryListURL("channel", p.Channel, "", "")) }
+					hx-get={ templ.URL(NotifyHistoryListURL("channel", p.Channel, "", "")) }
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					data-testid="group-channel">By channel</a>
+				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "rule") }
+					href={ templ.URL(NotifyHistoryListURL("rule", "", p.RuleID, "")) }
+					hx-get={ templ.URL(NotifyHistoryListURL("rule", "", p.RuleID, "")) }
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					data-testid="group-rule">By rule</a>
+				<a class={ "btn btn-sm join-item", templ.KV("btn-primary", p.Group == "unread") }
+					href={ templ.URL(NotifyHistoryListURL("unread", "", "", "")) }
+					hx-get={ templ.URL(NotifyHistoryListURL("unread", "", "", "")) }
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					data-testid="group-unread">Unread</a>
+			</div>
+			if p.Group == "channel" && len(p.Channels) > 0 {
+				<select class="select select-bordered select-sm"
+					aria-label="Filter channel"
+					data-testid="history-channel-filter"
+					name="channel"
+					hx-get="/service/web/notifications/list"
+					hx-trigger="change"
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					hx-vals='{"group":"channel"}'>
+					<option value="" if p.Channel == "" { selected }>All channels</option>
+					for _, ch := range p.Channels {
+						<option value={ ch } if ch == p.Channel { selected }>{ ch }</option>
+					}
+				</select>
+			}
+			if p.Group == "rule" && len(p.RuleIDs) > 0 {
+				<select class="select select-bordered select-sm"
+					aria-label="Filter rule"
+					data-testid="history-rule-filter"
+					name="rule_id"
+					hx-get="/service/web/notifications/list"
+					hx-trigger="change"
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					hx-vals='{"group":"rule"}'>
+					<option value="" if p.RuleID == "" { selected }>All rules</option>
+					for _, rid := range p.RuleIDs {
+						<option value={ rid } if rid == p.RuleID { selected }>{ rid }</option>
+					}
+				</select>
+			}
 		</div>
 
-		if nextCursor != "" {
-			<div class="p-3 text-center" id="load-more-container">
-				<button class="btn btn-sm btn-ghost"
-					hx-get={ templ.URL("/service/web/notifications/list?cursor=" + nextCursor) }
-					hx-target="#load-more-container"
-					hx-swap="outerHTML"
-					data-testid="load-more">Load more</button>
+		<div class="flowbot-surface">
+			<div class="overflow-x-auto">
+				<table class="table">
+					<thead>
+					<tr>
+						<th class="text-xs text-base-content/55">Time</th>
+						<th class="text-xs text-base-content/55">Channel</th>
+						<th class="text-xs text-base-content/55">Rule</th>
+						<th class="text-xs text-base-content/55">Template</th>
+						<th class="text-xs text-base-content/55">Summary</th>
+						<th class="text-xs text-base-content/55">Status</th>
+					</tr>
+					</thead>
+					<tbody id="notifications-rows">
+					for _, g := range GroupNotificationRecords(p.Group, p.Records) {
+						if g.Label != "" {
+							<tr class="bg-base-200/60" data-testid={ "history-group-" + g.Key }>
+								<td colspan="6" class="text-xs font-medium text-base-content/70 py-2">{ g.Label }</td>
+							</tr>
+						}
+						for _, r := range g.Records {
+							@notificationHistoryRow(r, p.Group)
+						}
+					}
+					if len(p.Records) == 0 {
+						<tr id="notifications-empty">
+							<td colspan="6" class="p-0">
+								@EmptyStateCTA(
+									"No notifications yet",
+									"Configure channels and rules to deliver alerts.",
+									"/service/web/notifications?tab=channels",
+									"Open Notify settings",
+								)
+							</td>
+						</tr>
+					}
+					</tbody>
+				</table>
 			</div>
-		}
+
+			if p.NextCursor != "" {
+				<div class="p-3 text-center" id="load-more-container">
+					<button class="btn btn-sm btn-ghost"
+						hx-get={ templ.URL(NotifyHistoryListURL(p.Group, p.Channel, p.RuleID, p.NextCursor)) }
+						hx-target="#load-more-container"
+						hx-swap="outerHTML"
+						data-testid="load-more">Load more</button>
+				</div>
+			}
+		</div>
 	</div>
+}
+
+templ notificationHistoryRow(r *gen.NotificationRecord, group string) {
+	<tr id={ "notify-row-" + strconv.FormatInt(r.ID, 10) }
+		class={ NotifyRecordRowClass(string(r.Status)) }
+		data-testid={ "notify-row-" + strconv.FormatInt(r.ID, 10) }
+		data-status={ string(r.Status) }>
+		<td class="text-xs whitespace-nowrap">{ r.CreatedAt.Format("2006-01-02 15:04:05") }</td>
+		<td>
+			<a class="flowbot-chip flowbot-chip-muted link link-hover"
+				href={ templ.URL(NotifyChannelJumpURL(r.Channel)) }
+				data-testid={ "jump-channel-" + strconv.FormatInt(r.ID, 10) }
+				title="Open channel">{ r.Channel }</a>
+		</td>
+		<td class="text-xs font-mono">
+			if r.RuleID != "" {
+				<a class="link link-hover"
+					href={ templ.URL(NotifyRuleJumpURL(r.RuleID)) }
+					data-testid={ "jump-rule-" + strconv.FormatInt(r.ID, 10) }
+					title="Open rule">{ r.RuleID }</a>
+			} else {
+				<span class="text-base-content/40">—</span>
+			}
+		</td>
+		<td class="text-xs font-mono">{ r.TemplateID }</td>
+		<td class="text-xs max-w-48 truncate" title={ r.Summary }>{ r.Summary }</td>
+		<td class="flex items-center gap-1 flex-wrap">
+			<span class={ statusBadgeClass(string(r.Status)) } title={ r.ErrorMsg }>{ string(r.Status) }</span>
+			if string(r.Status) == "failed" {
+				<button class="btn btn-xs btn-outline btn-error"
+					hx-post={ templ.URL("/service/web/notifications/" + strconv.FormatInt(r.ID, 10) + "/retry") }
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					hx-disabled-elt="this"
+					title="Retries go through normal delivery. Rate limits still apply."
+					data-testid={ "retry-btn-" + strconv.FormatInt(r.ID, 10) }>Retry</button>
+			}
+			if group == "unread" && r.ReadAt == nil {
+				<button class="btn btn-xs btn-ghost"
+					hx-post={ templ.URL(NotifyRecordReadURL(r.ID) + "?group=unread") }
+					hx-target="#notifications-table"
+					hx-swap="outerHTML"
+					data-testid={ "mark-read-" + strconv.FormatInt(r.ID, 10) }>Mark read</button>
+			}
+		</td>
+	</tr>
 }

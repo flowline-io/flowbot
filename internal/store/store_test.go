@@ -1521,6 +1521,7 @@ func TestNotifyStore_Record(t *testing.T) {
 		summary string
 		status  string
 		errMsg  string
+		ruleID  string
 		payload map[string]any
 	}{
 		{
@@ -1531,6 +1532,7 @@ func TestNotifyStore_Record(t *testing.T) {
 			summary: "New bookmark: example.com",
 			status:  "success",
 			errMsg:  "",
+			ruleID:  "",
 			payload: map[string]any{"url": "https://example.com", "summary": "New bookmark: example.com"},
 		},
 		{
@@ -1541,22 +1543,24 @@ func TestNotifyStore_Record(t *testing.T) {
 			summary: "Task #42 created",
 			status:  "failed",
 			errMsg:  "connection timeout",
+			ruleID:  "",
 			payload: map[string]any{"summary": "Task #42 created"},
 		},
 		{
-			name:    "dropped record no error",
+			name:    "dropped record with matched rule",
 			uid:     "user2",
 			channel: "ntfy",
 			tpl:     "system.health",
 			summary: "",
 			status:  "dropped",
 			errMsg:  "",
+			ruleID:  "night_mute",
 			payload: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := ns.Record(ctx, tt.uid, tt.channel, tt.tpl, tt.summary, tt.status, tt.errMsg, tt.payload)
+			id, err := ns.Record(ctx, tt.uid, tt.channel, tt.tpl, tt.summary, tt.status, tt.errMsg, tt.ruleID, tt.payload)
 			require.NoError(t, err)
 			assert.Positive(t, id)
 
@@ -1569,6 +1573,120 @@ func TestNotifyStore_Record(t *testing.T) {
 			assert.Equal(t, tt.summary, rec.Summary)
 			assert.Equal(t, tt.status, string(rec.Status))
 			assert.Equal(t, tt.errMsg, rec.ErrorMsg)
+			assert.Equal(t, tt.ruleID, rec.RuleID)
+			assert.Nil(t, rec.ReadAt)
+		})
+	}
+}
+
+func TestNotifyStore_ListRecords_Filters(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+	uid := "user_filter"
+
+	_, err := ns.Record(ctx, uid, "slack", "tpl.a", "a", "success", "", "", nil)
+	require.NoError(t, err)
+	failedID, err := ns.Record(ctx, uid, "slack", "tpl.b", "b", "failed", "boom", "throttle_rule", nil)
+	require.NoError(t, err)
+	_, err = ns.Record(ctx, uid, "ntfy", "tpl.c", "c", "dropped", "", "drop_rule", nil)
+	require.NoError(t, err)
+	require.NoError(t, ns.MarkRead(ctx, uid, failedID))
+
+	tests := []struct {
+		name      string
+		opts      ListNotifyRecordsOptions
+		wantCount int
+		wantChans []string
+	}{
+		{
+			name:      "filter by channel",
+			opts:      ListNotifyRecordsOptions{Channel: "slack", Limit: 20},
+			wantCount: 2,
+			wantChans: []string{"slack", "slack"},
+		},
+		{
+			name:      "filter by rule id",
+			opts:      ListNotifyRecordsOptions{RuleID: "drop_rule", Limit: 20},
+			wantCount: 1,
+			wantChans: []string{"ntfy"},
+		},
+		{
+			name:      "filter unread only",
+			opts:      ListNotifyRecordsOptions{UnreadOnly: true, Limit: 20},
+			wantCount: 2,
+			wantChans: []string{"ntfy", "slack"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			records, _, err := ns.ListRecords(ctx, uid, tt.opts)
+			require.NoError(t, err)
+			require.Len(t, records, tt.wantCount)
+			got := make([]string, len(records))
+			for i, r := range records {
+				got[i] = r.Channel
+			}
+			assert.Equal(t, tt.wantChans, got)
+		})
+	}
+}
+
+func TestNotifyStore_MarkRead(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+	uid := "user_mark_read"
+
+	id1, err := ns.Record(ctx, uid, "slack", "tpl", "one", "failed", "err", "", nil)
+	require.NoError(t, err)
+	id2, err := ns.Record(ctx, uid, "ntfy", "tpl", "two", "success", "", "", nil)
+	require.NoError(t, err)
+	otherID, err := ns.Record(ctx, "other_user", "slack", "tpl", "x", "failed", "err", "", nil)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		markUID   string
+		ids       []int64
+		wantRead  []int64
+		wantUnset []int64
+	}{
+		{
+			name:      "marks own records",
+			markUID:   uid,
+			ids:       []int64{id1},
+			wantRead:  []int64{id1},
+			wantUnset: []int64{id2, otherID},
+		},
+		{
+			name:      "ignores other users ids",
+			markUID:   uid,
+			ids:       []int64{otherID},
+			wantRead:  nil,
+			wantUnset: []int64{otherID},
+		},
+		{
+			name:      "empty ids is no-op",
+			markUID:   uid,
+			ids:       nil,
+			wantRead:  nil,
+			wantUnset: []int64{id2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.NoError(t, ns.MarkRead(ctx, tt.markUID, tt.ids...))
+			for _, id := range tt.wantRead {
+				rec, err := ns.GetRecord(ctx, id)
+				require.NoError(t, err)
+				assert.NotNil(t, rec.ReadAt)
+			}
+			for _, id := range tt.wantUnset {
+				rec, err := ns.GetRecord(ctx, id)
+				require.NoError(t, err)
+				assert.Nil(t, rec.ReadAt)
+			}
 		})
 	}
 }
@@ -1579,7 +1697,7 @@ func TestNotifyStore_ListRecords_Pagination(t *testing.T) {
 	ctx := context.Background()
 
 	for range 25 {
-		_, err := ns.Record(ctx, "user_p", "slack", "test.template", "", "success", "", nil)
+		_, err := ns.Record(ctx, "user_p", "slack", "test.template", "", "success", "", "", nil)
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 	}
@@ -1636,7 +1754,7 @@ func TestNotifyStore_DeleteOldest(t *testing.T) {
 	ctx := context.Background()
 
 	for range 10 {
-		_, err := ns.Record(ctx, "user_d", "slack", "test.template", "", "success", "", nil)
+		_, err := ns.Record(ctx, "user_d", "slack", "test.template", "", "success", "", "", nil)
 		require.NoError(t, err)
 	}
 
@@ -1661,7 +1779,7 @@ func TestNotifyStore_Cursor_Pagination_Continuity(t *testing.T) {
 	ctx := context.Background()
 
 	for range 25 {
-		_, err := ns.Record(ctx, "user_c", "slack", "test.template", "", "success", "", nil)
+		_, err := ns.Record(ctx, "user_c", "slack", "test.template", "", "success", "", "", nil)
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 	}

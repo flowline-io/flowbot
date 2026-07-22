@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
-func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) templ.Component {
+func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -36,7 +36,7 @@ func NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) templ.Comp
 			return templ_7745c5c3_Err
 		}
 		for _, rule := range rules {
-			templ_7745c5c3_Err = NotifyRuleRow(rule, templateIDs).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = NotifyRuleRow(rule, templateIDs, highlight == rule.RuleID).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

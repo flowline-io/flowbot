@@ -964,7 +964,7 @@ func TestRecordAsync_NilStore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.NotPanics(t, func() {
-				recordAsync(types.Uid("u"), "slack", "tpl", "sum", "success", "", map[string]any{"k": "v"})
+				recordAsync(types.Uid("u"), "slack", "tpl", "sum", "success", "", "", map[string]any{"k": "v"})
 			})
 			WaitForRecordAsyncForTest()
 		})

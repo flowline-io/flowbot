@@ -2,13 +2,16 @@
 package pages
 
 import (
+	"net/url"
+
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
-templ NotifySettingsPage(activeTab string) {
+// focusChannel / focusRuleID deep-link highlight a row after jumping from History.
+templ NotifySettingsPage(activeTab, focusChannel, focusRuleID string) {
 	@layout.Base("Notifications — Flowbot") {
 		@partials.PageHeader("Notifications", "") {
 		}
@@ -29,7 +32,7 @@ templ NotifySettingsPage(activeTab string) {
 						New Channel
 					</button>
 				</div>
-				<div hx-get="/service/web/notifications/channels/list"
+				<div hx-get={ templ.URL(notifyChannelsListURL(focusChannel)) }
 					hx-trigger="load"
 					hx-swap="outerHTML">
 					@partials.PanelSkeleton()
@@ -73,7 +76,7 @@ templ NotifySettingsPage(activeTab string) {
 						New Rule
 					</button>
 				</div>
-				<div hx-get="/service/web/notifications/rules/list"
+				<div hx-get={ templ.URL(notifyRulesListURL(focusRuleID)) }
 					hx-trigger="load once"
 					hx-swap="outerHTML">
 					@partials.PanelSkeleton()
@@ -108,4 +111,20 @@ templ NotifySettingsPage(activeTab string) {
 			</div>
 		</div>
 	}
+}
+
+func notifyChannelsListURL(focusChannel string) string {
+	path := "/service/web/notifications/channels/list"
+	if focusChannel == "" {
+		return path
+	}
+	return path + "?highlight=" + url.QueryEscape(focusChannel)
+}
+
+func notifyRulesListURL(focusRuleID string) string {
+	path := "/service/web/notifications/rules/list"
+	if focusRuleID == "" {
+		return path
+	}
+	return path + "?highlight=" + url.QueryEscape(focusRuleID)
 }

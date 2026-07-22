@@ -1065,16 +1065,20 @@ func init() {
 	notificationrecordDescTemplateID := notificationrecordFields[3].Descriptor()
 	// notificationrecord.TemplateIDValidator is a validator for the "template_id" field. It is called by the builders before save.
 	notificationrecord.TemplateIDValidator = notificationrecordDescTemplateID.Validators[0].(func(string) error)
+	// notificationrecordDescRuleID is the schema descriptor for rule_id field.
+	notificationrecordDescRuleID := notificationrecordFields[4].Descriptor()
+	// notificationrecord.DefaultRuleID holds the default value on creation for the rule_id field.
+	notificationrecord.DefaultRuleID = notificationrecordDescRuleID.Default.(string)
 	// notificationrecordDescSummary is the schema descriptor for summary field.
-	notificationrecordDescSummary := notificationrecordFields[4].Descriptor()
+	notificationrecordDescSummary := notificationrecordFields[5].Descriptor()
 	// notificationrecord.DefaultSummary holds the default value on creation for the summary field.
 	notificationrecord.DefaultSummary = notificationrecordDescSummary.Default.(string)
 	// notificationrecordDescErrorMsg is the schema descriptor for error_msg field.
-	notificationrecordDescErrorMsg := notificationrecordFields[6].Descriptor()
+	notificationrecordDescErrorMsg := notificationrecordFields[7].Descriptor()
 	// notificationrecord.DefaultErrorMsg holds the default value on creation for the error_msg field.
 	notificationrecord.DefaultErrorMsg = notificationrecordDescErrorMsg.Default.(string)
 	// notificationrecordDescCreatedAt is the schema descriptor for created_at field.
-	notificationrecordDescCreatedAt := notificationrecordFields[8].Descriptor()
+	notificationrecordDescCreatedAt := notificationrecordFields[10].Descriptor()
 	// notificationrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
 	notificationrecord.DefaultCreatedAt = notificationrecordDescCreatedAt.Default.(func() time.Time)
 	notifychannelFields := schema.NotifyChannel{}.Fields()

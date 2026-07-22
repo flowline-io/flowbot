@@ -242,14 +242,18 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 		eval, err := evaluateAndRenderNotification(ctx, templateID, channel, payload)
 		if err != nil {
 			errs = append(errs, err)
-			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), payload)
+			ruleID := ""
+			if eval != nil {
+				ruleID = eval.ruleID
+			}
+			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), ruleID, payload)
 			continue
 		}
 		if eval == nil {
 			continue
 		}
 		if eval.action != "" {
-			recordAsync(uid, channel, templateID, summary, eval.action, "", payload)
+			recordAsync(uid, channel, templateID, summary, eval.action, "", eval.ruleID, payload)
 			continue
 		}
 		if eval.renderResult == nil {
@@ -260,9 +264,9 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 
 		if err := dispatchChannel(ctx, uid, channel, msg); err != nil {
 			errs = append(errs, err)
-			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), payload)
+			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), eval.ruleID, payload)
 		} else {
-			recordAsync(uid, channel, templateID, summary, "success", "", payload)
+			recordAsync(uid, channel, templateID, summary, "success", "", eval.ruleID, payload)
 		}
 	}
 
@@ -276,29 +280,32 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 type evalResult struct {
 	renderResult *notifytmpl.RenderResult
 	action       string // "dropped", "muted", "throttled", "aggregated", or ""
+	ruleID       string // matched rule id when a rule applied or matched
 }
 
 // evaluateAndRenderNotification applies rules and renders the template for a single channel.
 // Returns nil result and nil error when the message should be skipped due to rules.
 func evaluateAndRenderNotification(ctx context.Context, templateID, channel string, payload map[string]any) (*evalResult, error) {
+	var matchedRuleID string
 	ruleEngine := notifyrules.GetEngine()
 	if ruleEngine != nil {
 		ruleResult := ruleEngine.Evaluate(ctx, templateID, channel)
 		if ruleResult != nil {
+			matchedRuleID = ruleResult.RuleID
 			switch ruleResult.Action {
 			case RuleActionDrop:
 				flog.Info("[notify] message dropped by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-				return &evalResult{action: "dropped"}, nil
+				return &evalResult{action: "dropped", ruleID: matchedRuleID}, nil
 			case RuleActionMute:
 				flog.Info("[notify] message muted by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
-				return &evalResult{action: "muted"}, nil
+				return &evalResult{action: "muted", ruleID: matchedRuleID}, nil
 			case RuleActionThrottle:
 				if handleThrottleRule(ctx, ruleResult, templateID, channel) {
-					return &evalResult{action: "throttled"}, nil
+					return &evalResult{action: "throttled", ruleID: matchedRuleID}, nil
 				}
 			case RuleActionAggregate:
 				if handleAggregateRule(ctx, ruleResult, templateID, channel, payload) {
-					return &evalResult{action: "aggregated"}, nil
+					return &evalResult{action: "aggregated", ruleID: matchedRuleID}, nil
 				}
 			}
 		}
@@ -308,9 +315,9 @@ func evaluateAndRenderNotification(ctx context.Context, templateID, channel stri
 	result, err := engine.Render(templateID, channel, payload)
 	if err != nil {
 		flog.Warn("[notify] failed to render template %s for channel %s: %v", templateID, channel, err)
-		return nil, err
+		return &evalResult{ruleID: matchedRuleID}, err
 	}
-	return &evalResult{renderResult: result}, nil
+	return &evalResult{renderResult: result, ruleID: matchedRuleID}, nil
 }
 
 // handleThrottleRule checks throttle limits for a rule and returns true if the message should be skipped.
@@ -516,7 +523,7 @@ func WaitForRecordAsyncForTest() {
 
 // recordAsync writes a notification delivery record in a goroutine with a 2s timeout.
 // It also triggers deferred rolling window cleanup (best-effort).
-func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg string, payload map[string]any) {
+func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg, ruleID string, payload map[string]any) {
 	// Shallow-copy payload to avoid data race if caller mutates the map after returning.
 	payloadCopy := make(map[string]any, len(payload))
 	maps.Copy(payloadCopy, payload)
@@ -532,7 +539,7 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg str
 		if uid.IsZero() {
 			recordUID = systemNotifyUID
 		}
-		if _, err := ns.Record(ctx, recordUID, channel, templateID, summary, status, errMsg, payloadCopy); err != nil {
+		if _, err := ns.Record(ctx, recordUID, channel, templateID, summary, status, errMsg, ruleID, payloadCopy); err != nil {
 			flog.Warn("[notify] failed to record notification: %v", err)
 			return
 		}

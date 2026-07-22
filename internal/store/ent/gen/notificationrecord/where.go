@@ -69,6 +69,11 @@ func TemplateID(v string) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldEQ(FieldTemplateID, v))
 }
 
+// RuleID applies equality check predicate on the "rule_id" field. It's identical to RuleIDEQ.
+func RuleID(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldRuleID, v))
+}
+
 // Summary applies equality check predicate on the "summary" field. It's identical to SummaryEQ.
 func Summary(v string) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldEQ(FieldSummary, v))
@@ -77,6 +82,11 @@ func Summary(v string) predicate.NotificationRecord {
 // ErrorMsg applies equality check predicate on the "error_msg" field. It's identical to ErrorMsgEQ.
 func ErrorMsg(v string) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldEQ(FieldErrorMsg, v))
+}
+
+// ReadAt applies equality check predicate on the "read_at" field. It's identical to ReadAtEQ.
+func ReadAt(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldReadAt, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -279,6 +289,71 @@ func TemplateIDContainsFold(v string) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldContainsFold(FieldTemplateID, v))
 }
 
+// RuleIDEQ applies the EQ predicate on the "rule_id" field.
+func RuleIDEQ(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldRuleID, v))
+}
+
+// RuleIDNEQ applies the NEQ predicate on the "rule_id" field.
+func RuleIDNEQ(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNEQ(FieldRuleID, v))
+}
+
+// RuleIDIn applies the In predicate on the "rule_id" field.
+func RuleIDIn(vs ...string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldIn(FieldRuleID, vs...))
+}
+
+// RuleIDNotIn applies the NotIn predicate on the "rule_id" field.
+func RuleIDNotIn(vs ...string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNotIn(FieldRuleID, vs...))
+}
+
+// RuleIDGT applies the GT predicate on the "rule_id" field.
+func RuleIDGT(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGT(FieldRuleID, v))
+}
+
+// RuleIDGTE applies the GTE predicate on the "rule_id" field.
+func RuleIDGTE(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGTE(FieldRuleID, v))
+}
+
+// RuleIDLT applies the LT predicate on the "rule_id" field.
+func RuleIDLT(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLT(FieldRuleID, v))
+}
+
+// RuleIDLTE applies the LTE predicate on the "rule_id" field.
+func RuleIDLTE(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLTE(FieldRuleID, v))
+}
+
+// RuleIDContains applies the Contains predicate on the "rule_id" field.
+func RuleIDContains(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldContains(FieldRuleID, v))
+}
+
+// RuleIDHasPrefix applies the HasPrefix predicate on the "rule_id" field.
+func RuleIDHasPrefix(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldHasPrefix(FieldRuleID, v))
+}
+
+// RuleIDHasSuffix applies the HasSuffix predicate on the "rule_id" field.
+func RuleIDHasSuffix(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldHasSuffix(FieldRuleID, v))
+}
+
+// RuleIDEqualFold applies the EqualFold predicate on the "rule_id" field.
+func RuleIDEqualFold(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEqualFold(FieldRuleID, v))
+}
+
+// RuleIDContainsFold applies the ContainsFold predicate on the "rule_id" field.
+func RuleIDContainsFold(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldContainsFold(FieldRuleID, v))
+}
+
 // SummaryEQ applies the EQ predicate on the "summary" field.
 func SummaryEQ(v string) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldEQ(FieldSummary, v))
@@ -437,6 +512,56 @@ func PayloadSnapshotIsNil() predicate.NotificationRecord {
 // PayloadSnapshotNotNil applies the NotNil predicate on the "payload_snapshot" field.
 func PayloadSnapshotNotNil() predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldNotNull(FieldPayloadSnapshot))
+}
+
+// ReadAtEQ applies the EQ predicate on the "read_at" field.
+func ReadAtEQ(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldReadAt, v))
+}
+
+// ReadAtNEQ applies the NEQ predicate on the "read_at" field.
+func ReadAtNEQ(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNEQ(FieldReadAt, v))
+}
+
+// ReadAtIn applies the In predicate on the "read_at" field.
+func ReadAtIn(vs ...time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldIn(FieldReadAt, vs...))
+}
+
+// ReadAtNotIn applies the NotIn predicate on the "read_at" field.
+func ReadAtNotIn(vs ...time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNotIn(FieldReadAt, vs...))
+}
+
+// ReadAtGT applies the GT predicate on the "read_at" field.
+func ReadAtGT(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGT(FieldReadAt, v))
+}
+
+// ReadAtGTE applies the GTE predicate on the "read_at" field.
+func ReadAtGTE(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGTE(FieldReadAt, v))
+}
+
+// ReadAtLT applies the LT predicate on the "read_at" field.
+func ReadAtLT(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLT(FieldReadAt, v))
+}
+
+// ReadAtLTE applies the LTE predicate on the "read_at" field.
+func ReadAtLTE(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLTE(FieldReadAt, v))
+}
+
+// ReadAtIsNil applies the IsNil predicate on the "read_at" field.
+func ReadAtIsNil() predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldIsNull(FieldReadAt))
+}
+
+// ReadAtNotNil applies the NotNil predicate on the "read_at" field.
+func ReadAtNotNil() predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNotNull(FieldReadAt))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

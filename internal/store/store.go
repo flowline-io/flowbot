@@ -3489,12 +3489,17 @@ func NewNotifyStore(client *gen.Client) *NotifyStore {
 
 // ListNotifyRecordsOptions holds filters and pagination for listing notification records.
 type ListNotifyRecordsOptions struct {
-	Limit  int    // max 100, default 20
-	Cursor string // opaque cursor: ID value as string
+	Limit      int    // max 100, default 20
+	Cursor     string // opaque cursor: ID value as string
+	Channel    string // exact channel name filter; empty means any
+	RuleID     string // exact rule_id filter; empty means any
+	UnreadOnly bool   // when true, only rows with nil read_at
 }
 
 // Record inserts a notification delivery record and returns the new row ID.
-func (s *NotifyStore) Record(ctx context.Context, uid, channel, templateID, summary, status, errorMsg string, payload map[string]any) (int64, error) {
+// ruleID is the matched notify rule id when known; empty when no rule applied.
+// New records are unread (read_at nil) until MarkRead.
+func (s *NotifyStore) Record(ctx context.Context, uid, channel, templateID, summary, status, errorMsg, ruleID string, payload map[string]any) (int64, error) {
 	if s == nil || s.client == nil {
 		return 0, nil
 	}
@@ -3502,6 +3507,7 @@ func (s *NotifyStore) Record(ctx context.Context, uid, channel, templateID, summ
 		SetUID(uid).
 		SetChannel(channel).
 		SetTemplateID(templateID).
+		SetRuleID(ruleID).
 		SetSummary(summary).
 		SetStatus(notificationrecord.Status(status)).
 		SetErrorMsg(errorMsg).
@@ -3530,6 +3536,15 @@ func (s *NotifyStore) ListRecords(ctx context.Context, uid string, opts ListNoti
 		Order(gen.Desc(notificationrecord.FieldID)).
 		Limit(opts.Limit + 1)
 
+	if opts.Channel != "" {
+		q = q.Where(notificationrecord.ChannelEQ(opts.Channel))
+	}
+	if opts.RuleID != "" {
+		q = q.Where(notificationrecord.RuleIDEQ(opts.RuleID))
+	}
+	if opts.UnreadOnly {
+		q = q.Where(notificationrecord.ReadAtIsNil())
+	}
 	if opts.Cursor != "" {
 		id, err := strconv.ParseInt(opts.Cursor, 10, 64)
 		if err == nil {
@@ -3549,6 +3564,26 @@ func (s *NotifyStore) ListRecords(ctx context.Context, uid string, opts ListNoti
 	}
 
 	return records, nextCursor, nil
+}
+
+// MarkRead sets read_at on the given notification records owned by uid.
+func (s *NotifyStore) MarkRead(ctx context.Context, uid string, ids ...int64) error {
+	if s == nil || s.client == nil || len(ids) == 0 {
+		return nil
+	}
+	now := time.Now()
+	_, err := s.client.NotificationRecord.Update().
+		Where(
+			notificationrecord.UID(uid),
+			notificationrecord.IDIn(ids...),
+			notificationrecord.ReadAtIsNil(),
+		).
+		SetReadAt(now).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("mark notification records read: %w", err)
+	}
+	return nil
 }
 
 // GetRecord returns a single notification record by ID.

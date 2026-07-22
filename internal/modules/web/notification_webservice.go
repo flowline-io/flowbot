@@ -22,6 +22,7 @@ var notificationWebserviceRules = []webservice.Rule{
 	webservice.Get("/notifications", notifySettingsPage, route.WithNotAuth()),
 	webservice.Get("/notifications/list", notificationsTable, route.WithNotAuth()),
 	webservice.Post("/notifications/:id/retry", retryNotification, route.WithNotAuth()),
+	webservice.Post("/notifications/:id/read", markNotificationRead, route.WithNotAuth()),
 }
 
 func notificationsTable(ctx fiber.Ctx) error {
@@ -34,26 +35,13 @@ func notificationsTable(ctx fiber.Ctx) error {
 		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
-	cursor := ctx.Query("cursor")
-
 	ns := notifypkg.GetNotifyStore()
 	if ns == nil {
 		ctx.Type("html")
 		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
-	records, nextCursor, err := ns.ListRecords(ctx.Context(), uid, store.ListNotifyRecordsOptions{
-		Limit:  20,
-		Cursor: cursor,
-	})
-	if err != nil {
-		ctx.Type("html")
-		return partials.EmptyState("Failed to load notifications").Render(ctx.Context(), ctx.Response().BodyWriter())
-	}
-
-	ctx.Type("html")
-	return partials.NotificationsTable(records, nextCursor).
-		Render(ctx.Context(), ctx.Response().BodyWriter())
+	return renderNotificationsTable(ctx, ns, uid)
 }
 
 func retryNotification(ctx fiber.Ctx) error {
@@ -119,16 +107,116 @@ func retryNotification(ctx fiber.Ctx) error {
 	return renderNotificationsTable(ctx, ns, uid)
 }
 
+func markNotificationRead(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid := getUID(ctx)
+	if uid == "" {
+		ctx.Type("html")
+		return partials.EmptyState("Not authenticated").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+
+	id, err := strconv.ParseInt(ctx.Params("id"), 10, 64)
+	if err != nil {
+		ctx.Status(fiber.StatusBadRequest)
+		return ctx.SendString("Invalid ID")
+	}
+
+	ns := notifypkg.GetNotifyStore()
+	if ns == nil {
+		ctx.Type("html")
+		return partials.EmptyState("Store not available").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+
+	rec, err := ns.GetRecord(ctx.Context(), id)
+	if err != nil || rec == nil {
+		ctx.Type("html")
+		return partials.EmptyState("Record not found").Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
+	if rec.UID != uid {
+		ctx.Status(fiber.StatusForbidden)
+		return ctx.SendString("Not your notification")
+	}
+	if err := ns.MarkRead(ctx.Context(), uid, id); err != nil {
+		setShowToast(ctx, "error", "Failed to mark as read")
+		return renderNotificationsTable(ctx, ns, uid)
+	}
+	return renderNotificationsTable(ctx, ns, uid)
+}
+
 // renderNotificationsTable reloads and renders the notifications table fragment.
 func renderNotificationsTable(ctx fiber.Ctx, ns *store.NotifyStore, uid string) error {
-	records, nextCursor, listErr := ns.ListRecords(context.Background(), uid, store.ListNotifyRecordsOptions{Limit: 20})
+	opts := notifyHistoryListOptions(ctx)
+	records, nextCursor, listErr := ns.ListRecords(ctx.Context(), uid, opts)
 	if listErr != nil {
-		setShowToast(ctx, "error", "Retried but failed to reload")
+		setShowToast(ctx, "error", "Failed to load notifications")
 		return ctx.SendString("")
 	}
+
+	params := partials.NotificationHistoryParams{
+		Records:    records,
+		NextCursor: nextCursor,
+		Group:      partials.NormalizeNotifyHistoryGroup(ctx.Query("group")),
+		Channel:    ctx.Query("channel"),
+		RuleID:     ctx.Query("rule_id"),
+		Channels:   notifyHistoryChannelFacets(ctx.Context()),
+		RuleIDs:    notifyHistoryRuleFacets(ctx.Context()),
+	}
+	if params.Group == "" && opts.UnreadOnly {
+		params.Group = "unread"
+	}
+
 	ctx.Type("html")
-	return partials.NotificationsTable(records, nextCursor).
+	return partials.NotificationsTable(params).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+// notifyHistoryListOptions maps History query params onto store list filters.
+func notifyHistoryListOptions(ctx fiber.Ctx) store.ListNotifyRecordsOptions {
+	group := partials.NormalizeNotifyHistoryGroup(ctx.Query("group"))
+	opts := store.ListNotifyRecordsOptions{
+		Limit:   20,
+		Cursor:  ctx.Query("cursor"),
+		Channel: ctx.Query("channel"),
+		RuleID:  ctx.Query("rule_id"),
+	}
+	if group == "unread" {
+		opts.UnreadOnly = true
+	}
+	return opts
+}
+
+// notifyHistoryChannelFacets returns channel names for the History filter dropdown.
+func notifyHistoryChannelFacets(ctx context.Context) []string {
+	if store.Database == nil {
+		return nil
+	}
+	channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{})
+	if err != nil {
+		return nil
+	}
+	names := make([]string, 0, len(channels))
+	for _, ch := range channels {
+		names = append(names, ch.Name)
+	}
+	return names
+}
+
+// notifyHistoryRuleFacets returns rule ids for the History filter dropdown.
+func notifyHistoryRuleFacets(ctx context.Context) []string {
+	if store.Database == nil {
+		return nil
+	}
+	rules, err := store.Database.ListNotifyRules(ctx, store.ListNotifyRuleOptions{})
+	if err != nil {
+		return nil
+	}
+	ids := make([]string, 0, len(rules))
+	for _, r := range rules {
+		ids = append(ids, r.RuleID)
+	}
+	return ids
 }
 
 // retryConnectivityTest re-runs a channel connectivity probe for the named channel.
@@ -144,12 +232,12 @@ func retryConnectivityTest(ctx context.Context, ns *store.NotifyStore, uid, chan
 	}
 	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
 		if ns != nil {
-			_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), nil)
+			_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), "", nil)
 		}
 		return err
 	}
 	if ns != nil {
-		_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", nil)
+		_, _ = ns.Record(ctx, uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", "", nil)
 	}
 	return nil
 }

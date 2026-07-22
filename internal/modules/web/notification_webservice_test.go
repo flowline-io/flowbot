@@ -168,7 +168,7 @@ func TestRetryNotificationConnectivityTest(t *testing.T) {
 			t.Cleanup(func() { notifypkg.Unregister(tt.register.protocol) })
 
 			ns := store.NewNotifyStore(client)
-			recID, err := ns.Record(context.Background(), "testuser", "testing", notifypkg.ConnectivityTestTemplateID, "Test connectivity", string(notificationrecord.StatusFailed), "previous error", nil)
+			recID, err := ns.Record(context.Background(), "testuser", "testing", notifypkg.ConnectivityTestTemplateID, "Test connectivity", string(notificationrecord.StatusFailed), "previous error", "", nil)
 			require.NoError(t, err)
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/"+strconv.FormatInt(recID, 10)+"/retry", http.NoBody)
@@ -184,6 +184,111 @@ func TestRetryNotificationConnectivityTest(t *testing.T) {
 			assert.Contains(t, hx, tt.wantHXContains)
 			assert.Equal(t, tt.wantSent, tt.register.sent)
 			assert.Contains(t, string(body), "notifications-table")
+		})
+	}
+}
+
+func TestNotificationsTableHistoryGrouping(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+	ns := store.NewNotifyStore(client)
+	ctx := context.Background()
+	successID, err := ns.Record(ctx, "testuser", "slack", "tpl", "ok", "success", "", "mute_rule", nil)
+	require.NoError(t, err)
+	failedID, err := ns.Record(ctx, "testuser", "ntfy", "tpl", "bad", "failed", "boom", "", nil)
+	require.NoError(t, err)
+	require.NoError(t, ns.MarkRead(ctx, "testuser", successID))
+
+	tests := []struct {
+		name        string
+		query       string
+		wantContain []string
+		wantAbsent  []string
+	}{
+		{
+			name:        "group by channel shows section",
+			query:       "?group=channel",
+			wantContain: []string{`data-testid="group-channel"`, `data-testid="history-group-slack"`, "jump-channel-"},
+		},
+		{
+			name:        "group by rule shows section",
+			query:       "?group=rule",
+			wantContain: []string{`data-testid="group-rule"`, `data-testid="history-group-mute_rule"`, "jump-rule-"},
+		},
+		{
+			name:        "unread shows failed and mark read",
+			query:       "?group=unread",
+			wantContain: []string{`data-testid="group-unread"`, "bg-error/5", "mark-read-" + strconv.FormatInt(failedID, 10)},
+			wantAbsent:  []string{">ok<"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/list"+tt.query, http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			body, _ := io.ReadAll(resp.Body)
+			for _, want := range tt.wantContain {
+				assert.Contains(t, string(body), want)
+			}
+			for _, absent := range tt.wantAbsent {
+				assert.NotContains(t, string(body), absent)
+			}
+		})
+	}
+}
+
+func TestMarkNotificationRead(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
+	ns := store.NewNotifyStore(client)
+	id, err := ns.Record(context.Background(), "testuser", "slack", "tpl", "unread", "failed", "err", "", nil)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name       string
+		path       string
+		wantStatus int
+		wantRead   bool
+	}{
+		{
+			name:       "marks own unread record",
+			path:       "/service/web/notifications/" + strconv.FormatInt(id, 10) + "/read?group=unread",
+			wantStatus: http.StatusOK,
+			wantRead:   true,
+		},
+		{
+			name:       "invalid id",
+			path:       "/service/web/notifications/nope/read",
+			wantStatus: http.StatusBadRequest,
+			wantRead:   true,
+		},
+		{
+			name:       "missing record",
+			path:       "/service/web/notifications/999999/read",
+			wantStatus: http.StatusOK,
+			wantRead:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, tt.path, http.NoBody)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantStatus == http.StatusOK && tt.name == "marks own unread record" {
+				rec, err := ns.GetRecord(context.Background(), id)
+				require.NoError(t, err)
+				assert.NotNil(t, rec.ReadAt)
+			}
 		})
 	}
 }

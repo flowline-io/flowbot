@@ -11,13 +11,16 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"net/url"
+
 	"github.com/flowline-io/flowbot/pkg/views/layout"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 // NotifySettingsPage renders the Notifications page with channels, templates, rules, history, and playground tabs.
 // activeTab selects the initial tab: channels (default), templates, rules, history, or playground.
-func NotifySettingsPage(activeTab string) templ.Component {
+// focusChannel / focusRuleID deep-link highlight a row after jumping from History.
+func NotifySettingsPage(activeTab, focusChannel, focusRuleID string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -78,7 +81,20 @@ func NotifySettingsPage(activeTab string) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/channels/new\" hx-target=\"#notify-channels-rows\" hx-swap=\"afterbegin\" data-testid=\"channels-new\" class=\"btn btn-primary btn-sm\">New Channel</button></div><div hx-get=\"/service/web/notifications/channels/list\" hx-trigger=\"load\" hx-swap=\"outerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/channels/new\" hx-target=\"#notify-channels-rows\" hx-swap=\"afterbegin\" data-testid=\"channels-new\" class=\"btn btn-primary btn-sm\">New Channel</button></div><div hx-get=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(notifyChannelsListURL(focusChannel)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/notify_settings.templ`, Line: 35, Col: 64}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-trigger=\"load\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -86,17 +102,17 @@ func NotifySettingsPage(activeTab string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Templates\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Templates\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if activeTab == "templates" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " checked=\"checked\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/templates/new\" hx-target=\"#notify-templates-rows\" hx-swap=\"afterbegin\" data-testid=\"templates-new\" class=\"btn btn-primary btn-sm\">New Template</button></div><div hx-get=\"/service/web/notifications/templates/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/templates/new\" hx-target=\"#notify-templates-rows\" hx-swap=\"afterbegin\" data-testid=\"templates-new\" class=\"btn btn-primary btn-sm\">New Template</button></div><div hx-get=\"/service/web/notifications/templates/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -104,17 +120,30 @@ func NotifySettingsPage(activeTab string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Rules\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Rules\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if activeTab == "rules" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " checked=\"checked\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/rules/new\" hx-target=\"#notify-rules-rows\" hx-swap=\"afterbegin\" data-testid=\"rules-new\" class=\"btn btn-primary btn-sm\">New Rule</button></div><div hx-get=\"/service/web/notifications/rules/list\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "><div class=\"tab-content p-4\"><div class=\"flex justify-end mb-3\"><button hx-get=\"/service/web/notifications/rules/new\" hx-target=\"#notify-rules-rows\" hx-swap=\"afterbegin\" data-testid=\"rules-new\" class=\"btn btn-primary btn-sm\">New Rule</button></div><div hx-get=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(notifyRulesListURL(focusRuleID)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/notify_settings.templ`, Line: 79, Col: 60}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -122,17 +151,17 @@ func NotifySettingsPage(activeTab string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"History\" data-testid=\"tab-history\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"History\" data-testid=\"tab-history\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if activeTab == "history" || activeTab == "notifications" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " checked=\"checked\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "><div class=\"tab-content p-4\"><div id=\"notifications-content\" hx-get=\"/service/web/notifications/list\" hx-trigger=\"load once\" hx-swap=\"innerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "><div class=\"tab-content p-4\"><div id=\"notifications-content\" hx-get=\"/service/web/notifications/list\" hx-trigger=\"load once\" hx-swap=\"innerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -140,17 +169,17 @@ func NotifySettingsPage(activeTab string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Playground\" data-testid=\"tab-playground\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</div></div><input type=\"radio\" name=\"notify-tabs\" class=\"tab\" aria-label=\"Playground\" data-testid=\"tab-playground\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if activeTab == "playground" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, " checked=\"checked\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " checked=\"checked\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "><div class=\"tab-content p-4\"><div hx-get=\"/service/web/notifications/playground\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "><div class=\"tab-content p-4\"><div hx-get=\"/service/web/notifications/playground\" hx-trigger=\"load once\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -158,7 +187,7 @@ func NotifySettingsPage(activeTab string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</div></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -170,6 +199,22 @@ func NotifySettingsPage(activeTab string) templ.Component {
 		}
 		return nil
 	})
+}
+
+func notifyChannelsListURL(focusChannel string) string {
+	path := "/service/web/notifications/channels/list"
+	if focusChannel == "" {
+		return path
+	}
+	return path + "?highlight=" + url.QueryEscape(focusChannel)
+}
+
+func notifyRulesListURL(focusRuleID string) string {
+	path := "/service/web/notifications/rules/list"
+	if focusRuleID == "" {
+		return path
+	}
+	return path + "?highlight=" + url.QueryEscape(focusRuleID)
 }
 
 var _ = templruntime.GeneratedTemplate

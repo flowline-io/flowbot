@@ -2,7 +2,7 @@ package partials
 
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
-templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
+templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string, highlight string) {
 	<div id="notify-rules-table"
 		data-testid="notify-rules-table"
 		class="flowbot-surface">
@@ -21,7 +21,7 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
 				</thead>
 				<tbody id="notify-rules-rows">
 				for _, rule := range rules {
-					@NotifyRuleRow(rule, templateIDs)
+					@NotifyRuleRow(rule, templateIDs, highlight == rule.RuleID)
 				}
 				if len(rules) == 0 {
 					<tr id="notify-rules-empty">

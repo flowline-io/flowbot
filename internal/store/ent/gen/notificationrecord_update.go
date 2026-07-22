@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -69,6 +70,20 @@ func (_u *NotificationRecordUpdate) SetNillableTemplateID(v *string) *Notificati
 	return _u
 }
 
+// SetRuleID sets the "rule_id" field.
+func (_u *NotificationRecordUpdate) SetRuleID(v string) *NotificationRecordUpdate {
+	_u.mutation.SetRuleID(v)
+	return _u
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_u *NotificationRecordUpdate) SetNillableRuleID(v *string) *NotificationRecordUpdate {
+	if v != nil {
+		_u.SetRuleID(*v)
+	}
+	return _u
+}
+
 // SetSummary sets the "summary" field.
 func (_u *NotificationRecordUpdate) SetSummary(v string) *NotificationRecordUpdate {
 	_u.mutation.SetSummary(v)
@@ -120,6 +135,26 @@ func (_u *NotificationRecordUpdate) SetPayloadSnapshot(v map[string]interface{})
 // ClearPayloadSnapshot clears the value of the "payload_snapshot" field.
 func (_u *NotificationRecordUpdate) ClearPayloadSnapshot() *NotificationRecordUpdate {
 	_u.mutation.ClearPayloadSnapshot()
+	return _u
+}
+
+// SetReadAt sets the "read_at" field.
+func (_u *NotificationRecordUpdate) SetReadAt(v time.Time) *NotificationRecordUpdate {
+	_u.mutation.SetReadAt(v)
+	return _u
+}
+
+// SetNillableReadAt sets the "read_at" field if the given value is not nil.
+func (_u *NotificationRecordUpdate) SetNillableReadAt(v *time.Time) *NotificationRecordUpdate {
+	if v != nil {
+		_u.SetReadAt(*v)
+	}
+	return _u
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (_u *NotificationRecordUpdate) ClearReadAt() *NotificationRecordUpdate {
+	_u.mutation.ClearReadAt()
 	return _u
 }
 
@@ -201,6 +236,9 @@ func (_u *NotificationRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	if value, ok := _u.mutation.TemplateID(); ok {
 		_spec.SetField(notificationrecord.FieldTemplateID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.RuleID(); ok {
+		_spec.SetField(notificationrecord.FieldRuleID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Summary(); ok {
 		_spec.SetField(notificationrecord.FieldSummary, field.TypeString, value)
 	}
@@ -215,6 +253,12 @@ func (_u *NotificationRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if _u.mutation.PayloadSnapshotCleared() {
 		_spec.ClearField(notificationrecord.FieldPayloadSnapshot, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.ReadAt(); ok {
+		_spec.SetField(notificationrecord.FieldReadAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReadAtCleared() {
+		_spec.ClearField(notificationrecord.FieldReadAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -278,6 +322,20 @@ func (_u *NotificationRecordUpdateOne) SetNillableTemplateID(v *string) *Notific
 	return _u
 }
 
+// SetRuleID sets the "rule_id" field.
+func (_u *NotificationRecordUpdateOne) SetRuleID(v string) *NotificationRecordUpdateOne {
+	_u.mutation.SetRuleID(v)
+	return _u
+}
+
+// SetNillableRuleID sets the "rule_id" field if the given value is not nil.
+func (_u *NotificationRecordUpdateOne) SetNillableRuleID(v *string) *NotificationRecordUpdateOne {
+	if v != nil {
+		_u.SetRuleID(*v)
+	}
+	return _u
+}
+
 // SetSummary sets the "summary" field.
 func (_u *NotificationRecordUpdateOne) SetSummary(v string) *NotificationRecordUpdateOne {
 	_u.mutation.SetSummary(v)
@@ -329,6 +387,26 @@ func (_u *NotificationRecordUpdateOne) SetPayloadSnapshot(v map[string]interface
 // ClearPayloadSnapshot clears the value of the "payload_snapshot" field.
 func (_u *NotificationRecordUpdateOne) ClearPayloadSnapshot() *NotificationRecordUpdateOne {
 	_u.mutation.ClearPayloadSnapshot()
+	return _u
+}
+
+// SetReadAt sets the "read_at" field.
+func (_u *NotificationRecordUpdateOne) SetReadAt(v time.Time) *NotificationRecordUpdateOne {
+	_u.mutation.SetReadAt(v)
+	return _u
+}
+
+// SetNillableReadAt sets the "read_at" field if the given value is not nil.
+func (_u *NotificationRecordUpdateOne) SetNillableReadAt(v *time.Time) *NotificationRecordUpdateOne {
+	if v != nil {
+		_u.SetReadAt(*v)
+	}
+	return _u
+}
+
+// ClearReadAt clears the value of the "read_at" field.
+func (_u *NotificationRecordUpdateOne) ClearReadAt() *NotificationRecordUpdateOne {
+	_u.mutation.ClearReadAt()
 	return _u
 }
 
@@ -440,6 +518,9 @@ func (_u *NotificationRecordUpdateOne) sqlSave(ctx context.Context) (_node *Noti
 	if value, ok := _u.mutation.TemplateID(); ok {
 		_spec.SetField(notificationrecord.FieldTemplateID, field.TypeString, value)
 	}
+	if value, ok := _u.mutation.RuleID(); ok {
+		_spec.SetField(notificationrecord.FieldRuleID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Summary(); ok {
 		_spec.SetField(notificationrecord.FieldSummary, field.TypeString, value)
 	}
@@ -454,6 +535,12 @@ func (_u *NotificationRecordUpdateOne) sqlSave(ctx context.Context) (_node *Noti
 	}
 	if _u.mutation.PayloadSnapshotCleared() {
 		_spec.ClearField(notificationrecord.FieldPayloadSnapshot, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.ReadAt(); ok {
+		_spec.SetField(notificationrecord.FieldReadAt, field.TypeTime, value)
+	}
+	if _u.mutation.ReadAtCleared() {
+		_spec.ClearField(notificationrecord.FieldReadAt, field.TypeTime)
 	}
 	_node = &NotificationRecord{config: _u.config}
 	_spec.Assign = _node.assignValues

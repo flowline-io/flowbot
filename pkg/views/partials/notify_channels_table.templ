@@ -2,7 +2,7 @@ package partials
 
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
-templ NotifyChannelsTable(channels []model.NotifyChannel) {
+templ NotifyChannelsTable(channels []model.NotifyChannel, highlight string) {
 	<div id="notify-channels-table"
 		data-testid="notify-channels-table"
 		class="flowbot-surface">
@@ -20,7 +20,7 @@ templ NotifyChannelsTable(channels []model.NotifyChannel) {
 				</thead>
 				<tbody id="notify-channels-rows">
 				for _, ch := range channels {
-					@NotifyChannelRow(ch)
+					@NotifyChannelRow(ch, highlight == ch.Name)
 				}
 				if len(channels) == 0 {
 					<tr id="notify-channels-empty">

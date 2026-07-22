@@ -20,10 +20,12 @@ func (NotificationRecord) Fields() []ent.Field {
 		field.String("uid").NotEmpty(),
 		field.String("channel").NotEmpty(),
 		field.String("template_id").NotEmpty(),
+		field.String("rule_id").Default(""),
 		field.String("summary").Default(""),
 		field.Enum("status").Values("success", "failed", "dropped", "throttled", "aggregated", "muted").Default("success"),
 		field.String("error_msg").Default(""),
 		field.JSON("payload_snapshot", map[string]any{}).Optional(),
+		field.Time("read_at").Optional().Nillable(),
 		field.Time("created_at").Immutable().Default(time.Now),
 	}
 }
@@ -32,6 +34,9 @@ func (NotificationRecord) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("uid", "id"),
 		index.Fields("uid", "created_at"),
+		index.Fields("uid", "channel", "id"),
+		index.Fields("uid", "rule_id", "id"),
+		index.Fields("uid", "read_at"),
 	}
 }
 
