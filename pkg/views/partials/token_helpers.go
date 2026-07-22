@@ -2,14 +2,23 @@ package partials
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 // tokenPrefix returns the first 12 characters of a token string plus ellipsis.
 func tokenPrefix(token string) string {
 	return auth.TokenPrefix(token) + "..."
+}
+
+// TokenFilterText builds the client-side filter haystack for a token row.
+func TokenFilterText(item model.TokenItem) string {
+	parts := []string{item.UID.String(), auth.TokenPrefix(item.Token)}
+	parts = append(parts, item.Scopes...)
+	return strings.Join(parts, " ")
 }
 
 // timeSince returns a human-readable relative time string.

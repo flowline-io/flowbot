@@ -28,3 +28,9 @@ templ EventFilterScripts() {
 templ HomelabRegistryScripts() {
 	<script src="/static/js/homelab-registry.js"></script>
 }
+
+// TableFilterScripts loads shared client-side table filter controls.
+// Loaded synchronously (no defer) so Alpine.data registers before alpine:init.
+templ TableFilterScripts() {
+	<script src="/static/js/table-filter.js"></script>
+}

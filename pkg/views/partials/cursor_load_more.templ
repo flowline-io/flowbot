@@ -1,0 +1,30 @@
+package partials
+
+// CursorLoadMore renders a cursor-based Load more control.
+// When nextCursor is set, the button appends into rowsTarget via hx-swap beforeend.
+// When oob is true and nextCursor is empty, the control is removed via hx-swap-oob delete.
+templ CursorLoadMore(id string, listURL string, rowsTarget string, nextCursor string, oob bool) {
+	if nextCursor != "" {
+		if oob {
+			<div class="p-3 text-center" id={ id } hx-swap-oob="true">
+				<button
+					class="btn btn-sm btn-ghost"
+					hx-get={ templ.URL(listURL + "?cursor=" + nextCursor) }
+					hx-target={ rowsTarget }
+					hx-swap="beforeend"
+					data-testid={ id }>Load more</button>
+			</div>
+		} else {
+			<div class="p-3 text-center" id={ id }>
+				<button
+					class="btn btn-sm btn-ghost"
+					hx-get={ templ.URL(listURL + "?cursor=" + nextCursor) }
+					hx-target={ rowsTarget }
+					hx-swap="beforeend"
+					data-testid={ id }>Load more</button>
+			</div>
+		}
+	} else if oob {
+		<div id={ id } hx-swap-oob="delete"></div>
+	}
+}

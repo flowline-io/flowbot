@@ -4,6 +4,10 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
+const agentSessionsListURL = "/service/web/agent-sessions/list"
+const agentSessionsLoadMoreID = "agent-sessions-load-more"
+const agentSessionsRowsTarget = "#agent-sessions-rows"
+
 templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 	<div class="flowbot-surface" id="agent-sessions-table" data-testid="agent-sessions-table">
 		<div class="overflow-x-auto">
@@ -38,14 +42,14 @@ templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 				</tbody>
 			</table>
 		</div>
-		if nextCursor != "" {
-			<div class="p-3 text-center" id="agent-sessions-load-more">
-				<button class="btn btn-sm btn-ghost"
-					hx-get={ templ.URL("/service/web/agent-sessions/list?cursor=" + nextCursor) }
-					hx-target="#agent-sessions-load-more"
-					hx-swap="outerHTML"
-					data-testid="agent-sessions-load-more">Load more</button>
-			</div>
-		}
+		@CursorLoadMore(agentSessionsLoadMoreID, agentSessionsListURL, agentSessionsRowsTarget, nextCursor, false)
 	</div>
+}
+
+// AgentSessionTableAppend renders additional session rows plus an OOB Load more control.
+templ AgentSessionTableAppend(items []model.AgentSession, nextCursor string) {
+	for _, item := range items {
+		@AgentSessionRow(item)
+	}
+	@CursorLoadMore(agentSessionsLoadMoreID, agentSessionsListURL, agentSessionsRowsTarget, nextCursor, true)
 }

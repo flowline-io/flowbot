@@ -9,6 +9,7 @@ import (
 
 templ TokensPage(items []model.TokenItem) {
 	@layout.Base("Tokens — Flowbot") {
+		@partials.TableFilterScripts()
 		@partials.PageHeader("Tokens", "") {
 			<button
 				hx-get="/service/web/tokens/new"

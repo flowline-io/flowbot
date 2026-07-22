@@ -163,6 +163,92 @@ body {
   border-radius: var(--flowbot-radius-box, 0.5rem);
 }
 
+/* Client-side table filter toolbar (inside .flowbot-surface) */
+.flowbot-table-filter {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-base-300, #d1d5db);
+}
+.flowbot-table-filter-field {
+  position: relative;
+  display: block;
+  max-width: 18rem;
+}
+.flowbot-table-filter-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.7rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  transform: translateY(-50%);
+  color: var(--color-base-content);
+  opacity: 0.4;
+  pointer-events: none;
+}
+.flowbot-table-filter-input {
+  width: 100%;
+  height: 2rem;
+  margin: 0;
+  padding: 0 2rem 0 2rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-200, #f3f4f6);
+  color: var(--color-base-content);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+.flowbot-table-filter-input::placeholder {
+  color: var(--color-base-content);
+  opacity: 0.4;
+}
+.flowbot-table-filter-input:hover {
+  border-color: color-mix(
+    in oklab,
+    var(--color-base-content) 22%,
+    var(--color-base-300, #d1d5db)
+  );
+}
+.flowbot-table-filter-input:focus {
+  border-color: var(--color-primary, #0f766e);
+  background: var(--color-base-100, #fff);
+  box-shadow: var(
+    --flowbot-focus-ring,
+    0 0 0 1px var(--color-primary, #0f766e)
+  );
+}
+.flowbot-table-filter-input::-webkit-search-decoration,
+.flowbot-table-filter-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.flowbot-table-filter-clear {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: transparent;
+  color: var(--color-base-content);
+  opacity: 0.45;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.flowbot-table-filter-clear:hover {
+  opacity: 0.8;
+  background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
+}
+
 /* Run step Input/Output JSON: scroll container (prebuilt CSS lacks overflow-auto). */
 .run-json-preview {
   max-height: 15rem;

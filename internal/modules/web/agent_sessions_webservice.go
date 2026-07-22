@@ -54,6 +54,9 @@ func agentSessionsTable(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load agent sessions")
 	}
 	ctx.Type("html")
+	if cursor != "" {
+		return partials.AgentSessionTableAppend(items, nextCursor).Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
 	return partials.AgentSessionTable(items, nextCursor).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

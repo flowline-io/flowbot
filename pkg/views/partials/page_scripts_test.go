@@ -39,6 +39,17 @@ func TestAlpineDataPageScriptsLoadSynchronously(t *testing.T) {
 			},
 		},
 		{
+			name: "table filter",
+			src:  "/static/js/table-filter.js",
+			render: func() string {
+				var buf bytes.Buffer
+				if err := partials.TableFilterScripts().Render(context.Background(), &buf); err != nil {
+					t.Fatalf("render: %v", err)
+				}
+				return buf.String()
+			},
+		},
+		{
 			name: "chart scripts may defer",
 			src:  "/static/vendor/chart.js.min.js",
 			render: func() string {
@@ -57,7 +68,9 @@ func TestAlpineDataPageScriptsLoadSynchronously(t *testing.T) {
 			if !strings.Contains(html, tt.src) {
 				t.Fatalf("want script %q in %q", tt.src, html)
 			}
-			alpineDataScript := strings.Contains(tt.src, "event-filters") || strings.Contains(tt.src, "homelab-registry")
+			alpineDataScript := strings.Contains(tt.src, "event-filters") ||
+				strings.Contains(tt.src, "homelab-registry") ||
+				strings.Contains(tt.src, "table-filter")
 			hasDefer := strings.Contains(html, " defer")
 			if alpineDataScript && hasDefer {
 				t.Fatalf("Alpine.data script %q must not use defer: %q", tt.src, html)

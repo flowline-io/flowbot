@@ -366,6 +366,87 @@ func TestAgentSessionsListAuthenticated(t *testing.T) {
 	}
 }
 
+func TestAgentSessionsListLoadMoreAppendsRows(t *testing.T) {
+	now := time.Now().UTC()
+	sessions := make([]*gen.ChatSession, 0, 41)
+	for i := range 41 {
+		id := int64(41 - i)
+		sessions = append(sessions, &gen.ChatSession{
+			ID:        id,
+			Flag:      "sess-page-" + strconv.FormatInt(id, 10),
+			Title:     "Page " + strconv.FormatInt(id, 10),
+			UID:       "user:page",
+			State:     int(schema.ChatSessionActive),
+			UpdatedAt: now.Add(-time.Duration(i) * time.Minute),
+			CreatedAt: now.Add(-time.Duration(i) * time.Minute),
+		})
+	}
+	app := setupAuthenticatedApp(t, &testStore{chatSessions: sessions})
+
+	tests := []struct {
+		name       string
+		path       string
+		want       []string
+		wantAbsent []string
+	}{
+		{
+			name: "first page renders table and load more targeting rows",
+			path: "/service/web/agent-sessions/list",
+			want: []string{
+				"Page 41",
+				`data-testid="agent-sessions-table"`,
+				`hx-target="#agent-sessions-rows"`,
+				`hx-swap="beforeend"`,
+			},
+			wantAbsent: []string{"Page 1</a>"},
+		},
+		{
+			name: "cursor page with remaining pages keeps oob load more",
+			path: "/service/web/agent-sessions/list?cursor=22",
+			want: []string{
+				"Page 21",
+				`hx-swap-oob="true"`,
+				`hx-target="#agent-sessions-rows"`,
+				`hx-swap="beforeend"`,
+			},
+			wantAbsent: []string{`data-testid="agent-sessions-table"`},
+		},
+		{
+			name: "last cursor page appends rows and deletes load more",
+			path: "/service/web/agent-sessions/list?cursor=2",
+			want: []string{
+				"Page 1",
+				`hx-swap-oob="delete"`,
+			},
+			wantAbsent: []string{
+				`data-testid="agent-sessions-table"`,
+				"Page 41",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
+			req.Header.Set("Cookie", "accessToken=test-token")
+			AttachCSRFForTest(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			text := string(body)
+			for _, want := range tt.want {
+				assert.Contains(t, text, want)
+			}
+			for _, absent := range tt.wantAbsent {
+				assert.NotContains(t, text, absent)
+			}
+		})
+	}
+}
+
 func TestAgentSessionDetailAuthenticated(t *testing.T) {
 	now := time.Now().UTC()
 	tests := []struct {
