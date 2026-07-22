@@ -101,6 +101,8 @@ func TestWorkflowStepRunsDetail(t *testing.T) {
 				"rotate-90",
 				`data-testid="workflow-step-detail-row-fail"`,
 				`data-testid="workflow-step-error-fail"`,
+				`data-testid="run-error-summary"`,
+				`data-testid="run-waterfall"`,
 				"Error",
 				"exit status 1",
 			},

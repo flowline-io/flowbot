@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/types"
 	pkgworkflow "github.com/flowline-io/flowbot/pkg/workflow"
@@ -300,6 +301,87 @@ func TestWorkflowStore_LatestRunStartedAtByNames(t *testing.T) {
 			run: func(t *testing.T) {
 				var ws *store.WorkflowStore
 				got, err := ws.LatestRunStartedAtByNames(context.Background(), []string{"x"})
+				require.NoError(t, err)
+				assert.Empty(t, got)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.run(t)
+		})
+	}
+}
+
+func TestWorkflowStore_RunLatencyStatsByNames(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "empty names returns empty map",
+			run: func(t *testing.T) {
+				client := sqlitetest.OpenClient(t, t.Name())
+				ws := store.NewWorkflowStore(client)
+				got, err := ws.RunLatencyStatsByNames(context.Background(), nil, time.Time{})
+				require.NoError(t, err)
+				assert.Empty(t, got)
+			},
+		},
+		{
+			name: "aggregates success rate and percentiles per workflow",
+			run: func(t *testing.T) {
+				ctx := context.Background()
+				client := sqlitetest.OpenClient(t, t.Name())
+				ws := store.NewWorkflowStore(client)
+				rs := store.NewWorkflowRunStore(client)
+
+				metaA := sampleWorkflowMeta("lat-wf-a")
+				rowA, err := ws.ApplyDefinition(ctx, metaA)
+				require.NoError(t, err)
+				metaB := sampleWorkflowMeta("lat-wf-b")
+				rowB, err := ws.ApplyDefinition(ctx, metaB)
+				require.NoError(t, err)
+
+				now := time.Now()
+				seed := func(wfID int64, name string, status int, start, end time.Time) {
+					t.Helper()
+					run, err := rs.CreateRun(ctx, wfID, name, "db", "manual", nil, nil)
+					require.NoError(t, err)
+					_, err = client.WorkflowRun.UpdateOneID(run.ID).
+						SetStatus(status).
+						SetStartedAt(start).
+						SetCompletedAt(end).
+						Save(ctx)
+					require.NoError(t, err)
+				}
+				seed(rowA.ID, metaA.Name, int(schema.WorkflowRunDone), now.Add(-1000*time.Millisecond), now)
+				seed(rowA.ID, metaA.Name, int(schema.WorkflowRunFailed), now.Add(-3000*time.Millisecond), now)
+				seed(rowB.ID, metaB.Name, int(schema.WorkflowRunDone), now.Add(-500*time.Millisecond), now)
+
+				got, err := ws.RunLatencyStatsByNames(ctx, []string{metaA.Name, metaB.Name, "never-run"}, time.Time{})
+				require.NoError(t, err)
+				require.Contains(t, got, metaA.Name)
+				require.Contains(t, got, metaB.Name)
+				a := got[metaA.Name]
+				assert.Equal(t, int64(2), a.Total)
+				assert.InDelta(t, 0.5, a.SuccessRate, 0.001)
+				assert.Equal(t, int64(1000), a.P50Ms)
+				assert.Equal(t, int64(3000), a.P95Ms)
+				b := got[metaB.Name]
+				assert.Equal(t, int64(1), b.Total)
+				assert.InDelta(t, 1.0, b.SuccessRate, 0.001)
+				_, hasNever := got["never-run"]
+				assert.False(t, hasNever)
+			},
+		},
+		{
+			name: "nil store returns empty map",
+			run: func(t *testing.T) {
+				var ws *store.WorkflowStore
+				got, err := ws.RunLatencyStatsByNames(context.Background(), []string{"x"}, time.Time{})
 				require.NoError(t, err)
 				assert.Empty(t, got)
 			},

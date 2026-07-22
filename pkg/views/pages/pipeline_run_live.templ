@@ -44,10 +44,11 @@ templ PipelineRunLivePage(p PipelineRunLiveParams) {
 				</div>
 			</div>
 			<div class="grid grid-cols-12 gap-4">
-				<div class="col-span-4 space-y-1" data-testid="step-list">
+				<div class="col-span-4 space-y-1 max-h-[28rem] overflow-y-auto" data-testid="step-list">
 					<template x-for="(step, idx) in steps" :key="idx">
 						<div class="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-base-300"
-						     :class="selectedIndex === idx ? 'bg-base-300' : ''"
+						     :class="stepRowClass(idx)"
+						     :data-step-index="idx"
 						     @click="selectStep(idx)" data-testid="step-row">
 							<span class="w-6 h-6 flex items-center justify-center text-sm"
 							      :class="stepStatusIndicator(step.status)"

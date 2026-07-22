@@ -305,7 +305,8 @@ document.addEventListener('htmx:responseError', function (evt) {
   if (flowbotXHRHasRetarget(xhr) || flowbotXHRHasHTMLBody(xhr)) {
     return;
   }
-  var body = xhr && typeof xhr.responseText === 'string' ? xhr.responseText : '';
+  var body =
+    xhr && typeof xhr.responseText === 'string' ? xhr.responseText : '';
   showToast(flowbotHTMXErrorMessage(status, body), 'error');
 });
 

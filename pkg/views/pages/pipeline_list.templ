@@ -8,7 +8,7 @@ import (
 templ PipelineListPage(entries []partials.PipelineListEntry) {
 	@layout.Base("Pipelines") {
 		@partials.PipelineStatsScripts()
-		<div class="max-w-4xl mx-auto">
+		<div class="max-w-6xl mx-auto">
 			@partials.PageHeader("Pipelines", "") {
 				<button type="button"
 					onclick="document.getElementById('create-modal').showModal()"

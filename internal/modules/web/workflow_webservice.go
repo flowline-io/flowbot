@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
@@ -127,7 +128,13 @@ func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry,
 	if err != nil {
 		return nil, err
 	}
-	return partials.BuildWorkflowListEntries(defs, triggers, lastRuns), nil
+	entries := partials.BuildWorkflowListEntries(defs, triggers, lastRuns)
+	since := time.Now().Add(-7 * 24 * time.Hour)
+	stats, err := s.RunLatencyStatsByNames(ctx, names, since)
+	if err != nil {
+		return nil, err
+	}
+	return partials.AttachWorkflowRunLatencyStats(entries, stats), nil
 }
 
 func workflowDetailPage(c fiber.Ctx) error {

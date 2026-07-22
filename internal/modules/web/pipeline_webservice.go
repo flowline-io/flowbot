@@ -95,7 +95,7 @@ func pipelineListTable(c fiber.Ctx) error {
 	return partials.PipelineListTable(entries).Render(context.Background(), c.Response().BodyWriter())
 }
 
-// buildPipelineListEntries loads last-run timestamps and builds pipeline list rows.
+// buildPipelineListEntries loads last-run timestamps and latency stats and builds pipeline list rows.
 func buildPipelineListEntries(ctx context.Context, s *store.PipelineStore, defs []*gen.PipelineDefinition) ([]partials.PipelineListEntry, error) {
 	names := make([]string, 0, len(defs))
 	for _, def := range defs {
@@ -107,7 +107,13 @@ func buildPipelineListEntries(ctx context.Context, s *store.PipelineStore, defs 
 	if err != nil {
 		return nil, err
 	}
-	return partials.BuildPipelineListEntries(defs, lastRuns), nil
+	entries := partials.BuildPipelineListEntries(defs, lastRuns)
+	since := time.Now().Add(-7 * 24 * time.Hour)
+	stats, err := s.RunLatencyStatsByParentNames(ctx, names, since)
+	if err != nil {
+		return nil, err
+	}
+	return partials.AttachRunLatencyStats(entries, stats), nil
 }
 
 func pipelineEditorPage(c fiber.Ctx) error {

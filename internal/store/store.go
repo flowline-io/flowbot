@@ -1527,6 +1527,87 @@ func (s *PipelineStore) GetRunsByParentName(ctx context.Context, parentName stri
 		All(ctx)
 }
 
+// RunLatencyStatsByParentNames returns success rate and P50/P95 duration stats per parent pipeline name.
+// Matches exact pipeline_name and compound trigger names (name__trigger_*).
+// Only completed runs with started_at >= since (when since is non-zero) are included.
+// Names without qualifying runs are omitted from the result.
+func (s *PipelineStore) RunLatencyStatsByParentNames(ctx context.Context, names []string, since time.Time) (map[string]types.RunLatencyStats, error) {
+	result := make(map[string]types.RunLatencyStats)
+	if s == nil || s.client == nil || len(names) == 0 {
+		return result, nil
+	}
+	runs, err := s.fetchCompletedRunsForParents(ctx, names, since)
+	if err != nil {
+		return nil, err
+	}
+	byParent := groupPipelineLatencyOutcomes(runs, names)
+	for parent, outcomes := range byParent {
+		result[parent] = computeRunLatencyStats(outcomes)
+	}
+	return result, nil
+}
+
+func (s *PipelineStore) fetchCompletedRunsForParents(ctx context.Context, names []string, since time.Time) ([]*gen.PipelineRun, error) {
+	preds := make([]predicate.PipelineRun, 0, len(names))
+	for _, name := range names {
+		if name == "" {
+			continue
+		}
+		preds = append(preds, pipelineRunByParentName(name))
+	}
+	if len(preds) == 0 {
+		return nil, nil
+	}
+	q := s.client.PipelineRun.Query().
+		Where(
+			pipelinerun.Or(preds...),
+			pipelinerun.CompletedAtNotNil(),
+		)
+	if !since.IsZero() {
+		q = q.Where(pipelinerun.StartedAtGTE(since))
+	}
+	runs, err := q.Select(
+		pipelinerun.FieldPipelineName,
+		pipelinerun.FieldStatus,
+		pipelinerun.FieldStartedAt,
+		pipelinerun.FieldCompletedAt,
+	).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("run latency stats by parent names: %w", err)
+	}
+	return runs, nil
+}
+
+func groupPipelineLatencyOutcomes(runs []*gen.PipelineRun, names []string) map[string][]runLatencyOutcome {
+	byParent := make(map[string][]runLatencyOutcome)
+	for _, run := range runs {
+		outcome, parent, ok := pipelineRunLatencyOutcome(run, names)
+		if !ok {
+			continue
+		}
+		byParent[parent] = append(byParent[parent], outcome)
+	}
+	return byParent
+}
+
+func pipelineRunLatencyOutcome(run *gen.PipelineRun, names []string) (runLatencyOutcome, string, bool) {
+	if run == nil || run.CompletedAt == nil || run.StartedAt.IsZero() {
+		return runLatencyOutcome{}, "", false
+	}
+	parent := matchParentPipelineName(run.PipelineName, names)
+	if parent == "" {
+		return runLatencyOutcome{}, "", false
+	}
+	dur := run.CompletedAt.Sub(run.StartedAt).Milliseconds()
+	if dur < 0 {
+		dur = 0
+	}
+	return runLatencyOutcome{
+		durationMs: dur,
+		success:    run.Status == int(schema.PipelineDone),
+	}, parent, true
+}
+
 // LatestRunStartedAtByParentNames returns the latest started_at for each parent pipeline name.
 // Matches exact pipeline_name and compound trigger names (name__trigger_*).
 // Names without runs are omitted from the result.
@@ -2344,6 +2425,60 @@ func (s *WorkflowStore) ListRunsByName(ctx context.Context, name string) ([]*gen
 		Order(gen.Desc(workflowrun.FieldCreatedAt)).
 		Limit(100).
 		All(ctx)
+}
+
+// RunLatencyStatsByNames returns success rate and P50/P95 duration stats per workflow name.
+// Only completed runs with started_at >= since (when since is non-zero) are included.
+// Names without qualifying runs are omitted from the result.
+func (s *WorkflowStore) RunLatencyStatsByNames(ctx context.Context, names []string, since time.Time) (map[string]types.RunLatencyStats, error) {
+	result := make(map[string]types.RunLatencyStats)
+	if s == nil || s.client == nil || len(names) == 0 {
+		return result, nil
+	}
+	filtered := make([]string, 0, len(names))
+	for _, name := range names {
+		if name != "" {
+			filtered = append(filtered, name)
+		}
+	}
+	if len(filtered) == 0 {
+		return result, nil
+	}
+	q := s.client.WorkflowRun.Query().
+		Where(
+			workflowrun.WorkflowNameIn(filtered...),
+			workflowrun.CompletedAtNotNil(),
+		)
+	if !since.IsZero() {
+		q = q.Where(workflowrun.StartedAtGTE(since))
+	}
+	runs, err := q.Select(
+		workflowrun.FieldWorkflowName,
+		workflowrun.FieldStatus,
+		workflowrun.FieldStartedAt,
+		workflowrun.FieldCompletedAt,
+	).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("run latency stats by workflow names: %w", err)
+	}
+	byName := make(map[string][]runLatencyOutcome)
+	for _, run := range runs {
+		if run == nil || run.CompletedAt == nil || run.StartedAt.IsZero() {
+			continue
+		}
+		dur := run.CompletedAt.Sub(run.StartedAt).Milliseconds()
+		if dur < 0 {
+			dur = 0
+		}
+		byName[run.WorkflowName] = append(byName[run.WorkflowName], runLatencyOutcome{
+			durationMs: dur,
+			success:    run.Status == int(schema.WorkflowRunDone),
+		})
+	}
+	for name, outcomes := range byName {
+		result[name] = computeRunLatencyStats(outcomes)
+	}
+	return result, nil
 }
 
 // LatestRunStartedAtByNames returns the latest started_at for each workflow name.

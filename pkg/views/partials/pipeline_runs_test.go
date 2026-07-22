@@ -110,34 +110,50 @@ func TestPipelineStepRunsDetail(t *testing.T) {
 			},
 		},
 		{
-			name: "data-testid step-row present on summary rows for all steps",
+			name: "failed step defaults open with error summary and error block",
 			steps: []*gen.PipelineStepRun{
 				{
-					StepName:  "alpha",
+					StepName:  "ok",
 					Status:    2,
 					Attempt:   1,
 					StartedAt: now,
 				},
 				{
-					StepName:  "beta",
+					StepName:  "boom",
+					Status:    4,
+					Error:     "timeout exceeded",
+					Attempt:   1,
+					StartedAt: now,
 					Params:    map[string]any{"x": 1},
-					Status:    2,
-					Attempt:   1,
-					StartedAt: now,
 				},
+			},
+			contains: []string{
+				`data-testid="run-error-summary"`,
+				"timeout exceeded",
+				`data-testid="step-error-boom"`,
+				"rotate-90",
+				`data-testid="run-waterfall"`,
+			},
+			excludes: []string{},
+		},
+		{
+			name: "successful expandable step stays collapsed",
+			steps: []*gen.PipelineStepRun{
 				{
-					StepName:  "gamma",
-					Params:    map[string]any{"y": 2},
-					Result:    map[string]any{"z": 3},
+					StepName:  "build",
+					Params:    map[string]any{"source": "main.go"},
+					Result:    map[string]any{"binary": "app"},
 					Status:    2,
 					Attempt:   1,
 					StartedAt: now,
 				},
 			},
 			contains: []string{
-				`data-testid="step-row-alpha"`,
-				`data-testid="step-row-beta"`,
-				`data-testid="step-row-gamma"`,
+				`data-testid="step-detail-row-build"`,
+				"step-detail-row hidden",
+			},
+			excludes: []string{
+				`data-testid="run-error-summary"`,
 			},
 		},
 	}

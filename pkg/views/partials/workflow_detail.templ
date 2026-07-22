@@ -73,6 +73,34 @@ templ WorkflowStepRunsDetail(steps []*gen.WorkflowStepRun) {
 		<div class="text-sm text-base-content/30 py-3 text-center" data-testid="workflow-step-runs-empty">No task runs recorded for this run.</div>
 	} else {
 		<div class="px-4 py-3 min-w-0 max-w-full" data-testid="workflow-step-runs-detail">
+			if errs := WorkflowStepErrorSummary(steps); len(errs) > 0 {
+				<div class="mb-3 rounded border border-error/30 bg-error/5 px-3 py-2" data-testid="run-error-summary">
+					<div class="text-xs font-medium text-error mb-1">Errors</div>
+					<ul class="space-y-1">
+						for _, e := range errs {
+							<li class="text-xs">
+								<span class="font-medium text-base-content">{ e.Name }</span>
+								<span class="text-error/80 ml-2 break-all">{ e.Error }</span>
+							</li>
+						}
+					</ul>
+				</div>
+			}
+			if bars := WorkflowStepWaterfall(steps); len(bars) > 0 {
+				<div class="mb-3" data-testid="run-waterfall">
+					<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Duration</div>
+					<div class="run-waterfall space-y-1">
+						for _, bar := range bars {
+							<div class="run-waterfall-row">
+								<span class="run-waterfall-label truncate" title={ bar.Name }>{ bar.Name }</span>
+								<div class="run-waterfall-track">
+									<div class={ WorkflowWaterfallBarClass(bar.Status) } style={ WaterfallBarStyle(bar) } title={ bar.Name }></div>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
 			<div class="text-xs font-medium text-base-content/30 uppercase tracking-wider mb-2">Task Runs</div>
 			<table class="table table-xs w-full">
 				<thead>

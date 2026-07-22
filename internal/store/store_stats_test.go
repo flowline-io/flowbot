@@ -13,6 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinerun"
 	_ "github.com/flowline-io/flowbot/internal/store/ent/gen/runtime"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestPipelineStats_SuccessRateTrend(t *testing.T) {
@@ -216,6 +217,139 @@ func TestPipelineStats_NilSafe(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, stats)
 			assert.Len(t, stats.TriggerSourcePie, 4)
+		})
+	}
+}
+
+func TestPipelineStore_RunLatencyStatsByParentNames(t *testing.T) {
+	client := getTestClient(t)
+	s := NewPipelineStore(client)
+	ctx := context.Background()
+	now := time.Now()
+
+	type seed struct {
+		pipelineName string
+		eventID      string
+		status       int
+		startedAt    time.Time
+		completedAt  time.Time
+	}
+	seeds := []seed{
+		{
+			pipelineName: "lat-a",
+			eventID:      "lat-a-1",
+			status:       int(schema.PipelineDone),
+			startedAt:    now.Add(-1000 * time.Millisecond),
+			completedAt:  now,
+		},
+		{
+			pipelineName: "lat-a__trigger_event_0",
+			eventID:      "lat-a-2",
+			status:       int(schema.PipelineFailed),
+			startedAt:    now.Add(-3000 * time.Millisecond),
+			completedAt:  now,
+		},
+		{
+			pipelineName: "lat-b",
+			eventID:      "lat-b-1",
+			status:       int(schema.PipelineDone),
+			startedAt:    now.Add(-500 * time.Millisecond),
+			completedAt:  now,
+		},
+		{
+			pipelineName: "lat-old",
+			eventID:      "lat-old-1",
+			status:       int(schema.PipelineDone),
+			startedAt:    now.Add(-48 * time.Hour),
+			completedAt:  now.Add(-47 * time.Hour),
+		},
+	}
+	for _, row := range seeds {
+		run, err := client.PipelineRun.Create().
+			SetPipelineName(row.pipelineName).
+			SetEventID(row.eventID).
+			SetEventType("t.evt").
+			SetTriggerSource(pipelinerun.TriggerSourceEvent).
+			SetStatus(int(schema.PipelineStart)).
+			SetStartedAt(row.startedAt).
+			SetCreatedAt(row.startedAt).
+			Save(ctx)
+		require.NoError(t, err)
+		_, err = client.PipelineRun.UpdateOneID(run.ID).
+			SetStatus(row.status).
+			SetCompletedAt(row.completedAt).
+			Save(ctx)
+		require.NoError(t, err)
+	}
+
+	tests := []struct {
+		name      string
+		names     []string
+		since     time.Time
+		wantKeys  []string
+		check     func(t *testing.T, got map[string]types.RunLatencyStats)
+		nilStore  bool
+		emptyOnly bool
+	}{
+		{
+			name:     "aggregates by parent including compound names",
+			names:    []string{"lat-a", "lat-b", "never-run"},
+			wantKeys: []string{"lat-a", "lat-b"},
+			check: func(t *testing.T, got map[string]types.RunLatencyStats) {
+				a := got["lat-a"]
+				assert.Equal(t, int64(2), a.Total)
+				assert.InDelta(t, 0.5, a.SuccessRate, 0.001)
+				assert.Equal(t, int64(1000), a.P50Ms)
+				assert.Equal(t, int64(3000), a.P95Ms)
+				b := got["lat-b"]
+				assert.Equal(t, int64(1), b.Total)
+				assert.InDelta(t, 1.0, b.SuccessRate, 0.001)
+				assert.Equal(t, int64(500), b.P50Ms)
+				_, hasNever := got["never-run"]
+				assert.False(t, hasNever)
+			},
+		},
+		{
+			name:     "since filter excludes older runs",
+			names:    []string{"lat-old", "lat-a"},
+			since:    now.Add(-24 * time.Hour),
+			wantKeys: []string{"lat-a"},
+			check: func(t *testing.T, got map[string]types.RunLatencyStats) {
+				_, hasOld := got["lat-old"]
+				assert.False(t, hasOld)
+			},
+		},
+		{
+			name:      "empty names returns empty map",
+			names:     nil,
+			emptyOnly: true,
+		},
+		{
+			name:     "nil store returns empty map",
+			names:    []string{"lat-a"},
+			nilStore: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			store := s
+			if tt.nilStore {
+				store = nil
+			}
+			got, err := store.RunLatencyStatsByParentNames(ctx, tt.names, tt.since)
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			if tt.emptyOnly || tt.nilStore {
+				assert.Empty(t, got)
+				return
+			}
+			for _, k := range tt.wantKeys {
+				require.Contains(t, got, k)
+			}
+			if tt.check != nil {
+				tt.check(t, got)
+			}
 		})
 	}
 }

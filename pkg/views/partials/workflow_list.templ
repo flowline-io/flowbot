@@ -14,80 +14,86 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 		</div>
 	} else {
 		<div id="workflow-list-container" class="flowbot-surface" data-testid="workflow-table">
-			<div class="overflow-x-auto">
-				<table class="table">
-					<thead>
-						<tr>
-							<th>Name</th>
-							<th class="text-center">Status</th>
-							<th>Triggers</th>
-							<th class="text-center">Tasks</th>
-							<th>Last Run</th>
-							<th class="text-right">Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						for _, entry := range entries {
-							<tr class="hover" data-testid={ "workflow-row-" + entry.Name }>
-								<td>
-									<a href={ templ.URL(WorkflowWebPath(entry.Name)) }
-										class="link link-hover font-medium text-base-content"
-										data-testid={ "workflow-link-" + entry.Name }>
-										{ entry.Name }
-									</a>
-									if entry.Describe != "" {
-										<div class="text-xs text-base-content/50 mt-0.5 truncate max-w-xs">{ entry.Describe }</div>
-									}
-								</td>
-								<td class="text-center">
-									@StatusIcon(EnabledStatusIcon(entry.Enabled), "workflow-enabled-"+entry.Name)
-								</td>
-								<td>
-									if len(entry.Triggers) == 0 {
-										<span class="text-base-content/30 text-xs">—</span>
-									} else {
-										<div class="flex items-center gap-1" data-testid={ "workflow-triggers-" + entry.Name }>
-											for _, tr := range entry.Triggers {
-												@PipelineTriggerIcon(tr)
-											}
-										</div>
-									}
-								</td>
-								<td class="text-center tabular-nums text-sm" data-testid={ "workflow-tasks-" + entry.Name }>{ fmt.Sprintf("%d", entry.TaskCount) }</td>
-								<td class="text-base-content/50 text-xs" data-testid={ "workflow-last-run-" + entry.Name }>{ PipelineLastRunOrDash(entry.LastRunAt) }</td>
-								<td class="text-right">
-									<div class="flex items-center justify-end gap-1">
-										if entry.Enabled {
-											<button type="button"
-												hx-put={ templ.URL(WorkflowWebPath(entry.Name) + "/enabled") }
-												hx-vals='{"enabled": false}'
-												hx-target="#workflow-list-container"
-												hx-swap="outerHTML"
-												data-confirm="Disable this workflow? Cron and webhook triggers will stop until re-enabled."
-												data-confirm-title="Disable Workflow"
-												data-confirm-btn="Disable"
-												data-confirm-class="btn-warning"
-												data-testid={ "btn-disable-workflow-" + entry.Name }
-												class="btn btn-ghost btn-xs text-warning">Disable</button>
-										} else {
-											<button type="button"
-												hx-put={ templ.URL(WorkflowWebPath(entry.Name) + "/enabled") }
-												hx-vals='{"enabled": true}'
-												hx-target="#workflow-list-container"
-												hx-swap="outerHTML"
-												data-testid={ "btn-enable-workflow-" + entry.Name }
-												class="btn btn-ghost btn-xs text-success">Enable</button>
+			<table class="table table-fixed w-full">
+				<thead>
+					<tr>
+						<th class="w-[32%]">Name</th>
+						<th class="w-14 text-center">Status</th>
+						<th class="w-20">Triggers</th>
+						<th class="w-14 text-center">Tasks</th>
+						<th class="w-[22%]">
+							<span class="tooltip tooltip-bottom" data-tip="Last 7 days: success rate · P50 / P95 duration">Runs (7d)</span>
+						</th>
+						<th class="w-28">Last Run</th>
+						<th class="w-28 text-right">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					for _, entry := range entries {
+						<tr class="hover" data-testid={ "workflow-row-" + entry.Name }>
+							<td class="min-w-0">
+								<a href={ templ.URL(WorkflowWebPath(entry.Name)) }
+									class="link link-hover font-medium text-base-content truncate block"
+									data-testid={ "workflow-link-" + entry.Name }>
+									{ entry.Name }
+								</a>
+								if entry.Describe != "" {
+									<div class="text-xs text-base-content/50 mt-0.5 truncate">{ entry.Describe }</div>
+								}
+							</td>
+							<td class="text-center">
+								@StatusIcon(EnabledStatusIcon(entry.Enabled), "workflow-enabled-"+entry.Name)
+							</td>
+							<td>
+								if len(entry.Triggers) == 0 {
+									<span class="text-base-content/30 text-xs">—</span>
+								} else {
+									<div class="flex items-center gap-1" data-testid={ "workflow-triggers-" + entry.Name }>
+										for _, tr := range entry.Triggers {
+											@PipelineTriggerIcon(tr)
 										}
-										<a href={ templ.URL(WorkflowWebPath(entry.Name) + "/runs") }
-											class="btn btn-ghost btn-xs"
-											data-testid={ "workflow-runs-link-" + entry.Name }>Runs</a>
 									</div>
-								</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-			</div>
+								}
+							</td>
+							<td class="text-center tabular-nums text-sm" data-testid={ "workflow-tasks-" + entry.Name }>{ fmt.Sprintf("%d", entry.TaskCount) }</td>
+							<td class="tabular-nums text-xs whitespace-nowrap"
+								title={ RunLatencyCompactTip(entry.Stats) }
+								data-testid={ "workflow-runs-stats-" + entry.Name }>
+								{ RunLatencyCompactOrDash(entry.Stats) }
+							</td>
+							<td class="text-base-content/50 text-xs whitespace-nowrap" data-testid={ "workflow-last-run-" + entry.Name }>{ PipelineLastRunOrDash(entry.LastRunAt) }</td>
+							<td class="text-right">
+								<div class="flex items-center justify-end gap-1">
+									if entry.Enabled {
+										<button type="button"
+											hx-put={ templ.URL(WorkflowWebPath(entry.Name) + "/enabled") }
+											hx-vals='{"enabled": false}'
+											hx-target="#workflow-list-container"
+											hx-swap="outerHTML"
+											data-confirm="Disable this workflow? Cron and webhook triggers will stop until re-enabled."
+											data-confirm-title="Disable Workflow"
+											data-confirm-btn="Disable"
+											data-confirm-class="btn-warning"
+											data-testid={ "btn-disable-workflow-" + entry.Name }
+											class="btn btn-ghost btn-xs text-warning">Disable</button>
+									} else {
+										<button type="button"
+											hx-put={ templ.URL(WorkflowWebPath(entry.Name) + "/enabled") }
+											hx-vals='{"enabled": true}'
+											hx-target="#workflow-list-container"
+											hx-swap="outerHTML"
+											data-testid={ "btn-enable-workflow-" + entry.Name }
+											class="btn btn-ghost btn-xs text-success">Enable</button>
+									}
+									<a href={ templ.URL(WorkflowWebPath(entry.Name) + "/runs") }
+										class="btn btn-ghost btn-xs"
+										data-testid={ "workflow-runs-link-" + entry.Name }>Runs</a>
+								</div>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
 		</div>
 	}
 }

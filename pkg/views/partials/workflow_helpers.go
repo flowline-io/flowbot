@@ -32,6 +32,8 @@ type WorkflowListEntry struct {
 	TaskCount int
 	// LastRunAt is the latest run started_at when known.
 	LastRunAt *time.Time
+	// Stats holds recent completed-run latency aggregates when available.
+	Stats *types.RunLatencyStats
 }
 
 // BuildWorkflowListEntries maps store rows to list entries.
@@ -221,7 +223,7 @@ func workflowStepHasDetail(s *gen.WorkflowStepRun) bool {
 	if s == nil {
 		return false
 	}
-	return len(s.Params) > 0 || len(s.Result) > 0 || s.Error != ""
+	return len(s.Params) > 0 || len(s.Result) > 0 || s.Error != "" || schema.WorkflowRunState(s.Status) == schema.WorkflowRunFailed
 }
 
 // workflowStepDetailOpen reports whether the detail row should start expanded (failed steps).

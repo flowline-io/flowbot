@@ -7,6 +7,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // PipelineWebPath returns the encoded web UI path for a pipeline name.
@@ -35,6 +36,8 @@ type PipelineListEntry struct {
 	Triggers []PipelineTriggerSummary
 	// StepCount is the number of steps in the displayed YAML.
 	StepCount int
+	// Stats holds recent completed-run latency aggregates when available.
+	Stats *types.RunLatencyStats
 }
 
 // BuildPipelineListEntries derives list rows from stored pipeline definitions.

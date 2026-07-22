@@ -1,6 +1,26 @@
 'use strict';
 
 (function () {
+  function pickScrollIndex(steps, selectedIndex) {
+    if (!steps || !steps.length) return -1;
+    var running = -1;
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i] && steps[i].status === 'running') {
+        running = i;
+        break;
+      }
+    }
+    if (running >= 0) return running;
+    if (selectedIndex >= 0 && selectedIndex < steps.length)
+      return selectedIndex;
+    return steps.length - 1;
+  }
+
+  function shouldFlash(prevStatus, nextStatus) {
+    if (!nextStatus) return false;
+    return prevStatus !== nextStatus;
+  }
+
   function register() {
     Alpine.data('pipelineRunLive', function () {
       var el = document.getElementById('initial-data');
@@ -20,6 +40,8 @@
         failedSteps: 0,
         runStatus: initial.runStatus || 'pending',
         eventSource: null,
+        flashIndex: -1,
+        flashTimer: null,
 
         init: function () {
           this.recalc();
@@ -28,6 +50,13 @@
             return s.status === 'running' || s.status === 'pending';
           });
           this.selectedIndex = idx >= 0 ? idx : this.steps.length - 1;
+          this.$nextTick(
+            function () {
+              this.scrollToStep(
+                pickScrollIndex(this.steps, this.selectedIndex),
+              );
+            }.bind(this),
+          );
 
           if (this.runStatus === 'running') {
             var self = this;
@@ -60,6 +89,29 @@
           }, 0);
         },
 
+        flashStep: function (idx) {
+          var self = this;
+          this.flashIndex = idx;
+          if (this.flashTimer) {
+            clearTimeout(this.flashTimer);
+          }
+          this.flashTimer = setTimeout(function () {
+            if (self.flashIndex === idx) {
+              self.flashIndex = -1;
+            }
+          }, 900);
+        },
+
+        scrollToStep: function (idx) {
+          if (idx < 0) return;
+          var root = this.$el;
+          if (!root || !root.querySelector) return;
+          var row = root.querySelector('[data-step-index="' + idx + '"]');
+          if (row && typeof row.scrollIntoView === 'function') {
+            row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          }
+        },
+
         applyEvent: function (evt) {
           if (evt.step_index === -1) {
             if (evt.status === 'start') this.runStatus = 'running';
@@ -70,6 +122,10 @@
           }
           var step = this.steps[evt.step_index];
           if (!step) return;
+          var prevStatus = step.status;
+          if (shouldFlash(prevStatus, evt.status)) {
+            this.flashStep(evt.step_index);
+          }
           step.status = evt.status;
           if (evt.status === 'done') {
             step.output = evt.output;
@@ -82,12 +138,27 @@
           if (evt.status === 'running') {
             step.input = evt.input;
             this.selectedIndex = evt.step_index;
+            var self = this;
+            this.$nextTick(function () {
+              self.scrollToStep(evt.step_index);
+            });
           }
           this.recalc();
         },
 
         selectStep: function (idx) {
           this.selectedIndex = idx;
+        },
+
+        stepRowClass: function (idx) {
+          var classes = '';
+          if (this.selectedIndex === idx) {
+            classes += 'bg-base-300 ';
+          }
+          if (this.flashIndex === idx) {
+            classes += 'run-step-flash ';
+          }
+          return classes.trim();
         },
 
         get selectedStep() {
@@ -136,9 +207,22 @@
     });
   }
 
-  if (window.Alpine) {
-    register();
+  // Expose pure helpers for unit tests when running under Node.
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      pickScrollIndex: pickScrollIndex,
+      shouldFlash: shouldFlash,
+    };
   } else {
+    window.FlowbotPipelineRunLive = {
+      pickScrollIndex: pickScrollIndex,
+      shouldFlash: shouldFlash,
+    };
+  }
+
+  if (typeof Alpine !== 'undefined') {
+    register();
+  } else if (typeof document !== 'undefined') {
     document.addEventListener('alpine:init', register);
   }
 })();

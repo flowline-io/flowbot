@@ -140,32 +140,32 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"flowbot-surface\" data-testid=\"pipeline-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th>Name</th><th>Status</th><th>Triggers</th><th class=\"text-center\">Steps</th><th class=\"text-center\">Runtime</th><th>Last Run</th><th class=\"text-right\">Actions</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"flowbot-surface\" data-testid=\"pipeline-table\"><table class=\"table table-fixed w-full\"><thead><tr><th class=\"w-[28%]\">Name</th><th class=\"w-24\">Status</th><th class=\"w-20\">Triggers</th><th class=\"w-14 text-center\">Steps</th><th class=\"w-16 text-center\">Runtime</th><th class=\"w-[20%]\"><span class=\"tooltip tooltip-bottom\" data-tip=\"Last 7 days: success rate · P50 / P95 duration\">Runs (7d)</span></th><th class=\"w-28\">Last Run</th><th class=\"w-32 text-right\">Actions</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, entry := range entries {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<tr class=\"hover\"><td class=\"font-medium text-base-content\"><a href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<tr class=\"hover\"><td class=\"font-medium text-base-content min-w-0\"><a href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 templ.SafeURL
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(PipelineWebPath(entry.Definition.Name)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 48, Col: 67}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 50, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"link link-hover\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" class=\"link link-hover truncate block\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(entry.Definition.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 48, Col: 117}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 50, Col: 132}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -203,7 +203,7 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 					var templ_7745c5c3_Var10 string
 					templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue("pipeline-triggers-" + entry.Definition.Name)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 63, Col: 104}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 65, Col: 104}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 					if templ_7745c5c3_Err != nil {
@@ -231,7 +231,7 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue("pipeline-steps-" + entry.Definition.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 70, Col: 107}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 72, Col: 107}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
 				if templ_7745c5c3_Err != nil {
@@ -244,7 +244,7 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", entry.StepCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 70, Col: 146}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 72, Col: 146}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -265,102 +265,141 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td class=\"text-base-content/50 text-xs\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td class=\"tabular-nums text-xs whitespace-nowrap\" title=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var13 string
-				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(PipelineLastRunOrDash(entry.LastRunAt))
+				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(RunLatencyCompactTip(entry.Stats))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 78, Col: 88}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 81, Col: 49}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</td><td class=\"text-right\"><div class=\"flex items-center justify-end gap-1\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" data-testid=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var14 string
+				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue("pipeline-runs-stats-" + entry.Definition.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 82, Col: 68}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var15 string
+				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(RunLatencyCompactOrDash(entry.Stats))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 83, Col: 46}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</td><td class=\"text-base-content/50 text-xs whitespace-nowrap\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var16 string
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(PipelineLastRunOrDash(entry.LastRunAt))
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 85, Col: 106}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</td><td class=\"text-right\"><div class=\"flex items-center justify-end gap-1\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if PipelineIsPublished(entry.Definition) {
 					if entry.Enabled {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button type=\"button\" hx-put=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var14 string
-						templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled"))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 84, Col: 83}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" hx-vals='{\"enabled\": false}' hx-target=\"#pipeline-list-container\" hx-swap=\"outerHTML\" data-confirm=\"Pause this pipeline? Triggers will stop firing until resumed.\" data-confirm-title=\"Pause Pipeline\" data-confirm-btn=\"Pause\" data-confirm-class=\"btn-warning\" data-testid=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var15 string
-						templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue("btn-pause-" + entry.Definition.Name)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 92, Col: 62}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" class=\"btn btn-ghost btn-xs text-warning\">Pause</button> ")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-					} else {
 						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<button type=\"button\" hx-put=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var16 string
-						templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled"))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 96, Col: 83}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" hx-vals='{\"enabled\": true}' hx-target=\"#pipeline-list-container\" hx-swap=\"outerHTML\" data-testid=\"")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
 						var templ_7745c5c3_Var17 string
-						templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue("btn-resume-" + entry.Definition.Name)
+						templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled"))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 100, Col: 63}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 91, Col: 83}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"btn btn-ghost btn-xs text-success\">Resume</button> ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" hx-vals='{\"enabled\": false}' hx-target=\"#pipeline-list-container\" hx-swap=\"outerHTML\" data-confirm=\"Pause this pipeline? Triggers will stop firing until resumed.\" data-confirm-title=\"Pause Pipeline\" data-confirm-btn=\"Pause\" data-confirm-class=\"btn-warning\" data-testid=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var18 string
+						templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue("btn-pause-" + entry.Definition.Name)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 99, Col: 62}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" class=\"btn btn-ghost btn-xs text-warning\">Pause</button> ")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+					} else {
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<button type=\"button\" hx-put=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var19 string
+						templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name) + "/enabled"))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 103, Col: 83}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var19)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" hx-vals='{\"enabled\": true}' hx-target=\"#pipeline-list-container\" hx-swap=\"outerHTML\" data-testid=\"")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var20 string
+						templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.ResolveAttributeValue("btn-resume-" + entry.Definition.Name)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 107, Col: 63}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var20)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"btn btn-ghost btn-xs text-success\">Resume</button> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<button type=\"button\" hx-delete=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<button type=\"button\" hx-delete=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name)))
+				var templ_7745c5c3_Var21 string
+				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.URL(PipelineWebPath(entry.Definition.Name)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 105, Col: 71}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/pipeline_list.templ`, Line: 112, Col: 71}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var18)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" hx-target=\"#pipeline-list-container\" data-confirm=\"Delete this pipeline? Associated run records will also be removed.\" data-confirm-title=\"Delete Pipeline\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" class=\"btn btn-ghost btn-xs text-error\">Delete")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-target=\"#pipeline-list-container\" data-confirm=\"Delete this pipeline? Associated run records will also be removed.\" data-confirm-title=\"Delete Pipeline\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" class=\"btn btn-ghost btn-xs text-error\">Delete")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -368,12 +407,12 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</button></div></td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</button></div></td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</tbody></table></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</tbody></table></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
