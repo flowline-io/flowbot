@@ -114,9 +114,10 @@ func createConfig(ctx fiber.Ctx) error {
 	}
 	err := store.Database.ConfigSet(context.Background(), types.Uid(uid), topic, key, value)
 	if err != nil {
-		return toastError(ctx, "Failed to create config")
+		return toastError(ctx, "Could not save config. Please try again.")
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Config saved")
 	// Remove empty-state row now that a config exists
 	ctx.Response().BodyWriter().Write([]byte(`<tr id="configs-empty" hx-swap-oob="delete"></tr>`))
 	return partials.ConfigRow(model.ConfigItem{UID: uid, Topic: topic, Key: key, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
@@ -160,9 +161,10 @@ func updateConfig(ctx fiber.Ctx) error {
 	}
 	err = store.Database.ConfigSet(context.Background(), types.Uid(urlUID), urlTopic, urlKey, value)
 	if err != nil {
-		return toastError(ctx, "Failed to update config")
+		return toastError(ctx, "Could not save config. Please try again.")
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Config saved")
 	return partials.ConfigRow(model.ConfigItem{UID: urlUID, Topic: urlTopic, Key: urlKey, Value: value}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 

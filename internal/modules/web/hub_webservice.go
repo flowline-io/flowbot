@@ -181,25 +181,44 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 
 	scope := lifecycleScope(operation)
 	if scope != "" && !route.ScopeHandler(c, scope) {
-		return c.Status(http.StatusForbidden).SendString("insufficient scope: " + scope)
+		return toastError(c, "Permission denied: missing scope "+scope)
 	}
 	if !homelab.AllowsLifecycle(homelab.DefaultRegistry.Permissions(), operation) {
-		return c.Status(http.StatusForbidden).SendString(operation + " not allowed by config")
+		return toastError(c, "Permission denied: "+operation+" is not allowed by Hub config")
 	}
 
 	if err := fn(c.Context(), app); err != nil {
 		if errors.Is(err, types.ErrNotImplemented) {
-			return c.Status(http.StatusNotImplemented).SendString(operation + " not available")
+			return toastError(c, operation+" is not available for this app")
 		}
-		return c.Status(http.StatusInternalServerError).SendString(err.Error())
+		return toastError(c, "Could not "+operation+" "+name+": "+err.Error())
 	}
 
 	status, err := homelab.DefaultRuntime.Status(c.Context(), app)
 	if err != nil {
 		status = app.Status
 	}
+	setShowToast(c, "success", hubLifecycleSuccessMessage(name, operation))
 	c.Type("html")
 	return pages.HubAppStatusBadge(status).Render(c.Context(), c.Response().BodyWriter())
+}
+
+// hubLifecycleSuccessMessage returns the success toast for a Hub lifecycle action.
+func hubLifecycleSuccessMessage(name, operation string) string {
+	switch operation {
+	case "start":
+		return name + " started"
+	case "stop":
+		return name + " stopped"
+	case "restart":
+		return name + " restarted"
+	case "pull":
+		return name + " image pull started"
+	case "update":
+		return name + " updated"
+	default:
+		return name + " " + operation + " completed"
+	}
 }
 
 // lifecycleScope maps a lifecycle operation to the matching hub:apps:* scope.

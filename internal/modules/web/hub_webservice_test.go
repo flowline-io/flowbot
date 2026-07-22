@@ -358,24 +358,28 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 		action     string
 		perms      homelab.Permissions
 		wantStatus int
+		wantHX     string
 	}{
 		{
 			name:       "start denied when Start false",
 			action:     "start",
 			perms:      homelab.Permissions{},
-			wantStatus: http.StatusForbidden,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "Permission denied",
 		},
 		{
 			name:       "stop denied when Stop false",
 			action:     "stop",
 			perms:      homelab.Permissions{Start: true},
-			wantStatus: http.StatusForbidden,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "Permission denied",
 		},
 		{
 			name:       "restart denied when Restart false",
 			action:     "restart",
 			perms:      homelab.Permissions{Start: true, Stop: true},
-			wantStatus: http.StatusForbidden,
+			wantStatus: http.StatusNoContent,
+			wantHX:     "not allowed by Hub config",
 		},
 	}
 	for _, tt := range tests {
@@ -403,6 +407,81 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 			if resp.StatusCode != tt.wantStatus {
 				body, _ := io.ReadAll(resp.Body)
 				t.Errorf("want status %d, got %d body=%s", tt.wantStatus, resp.StatusCode, body)
+			}
+			hx := resp.Header.Get("HX-Trigger")
+			if !strings.Contains(hx, tt.wantHX) {
+				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, hx)
+			}
+			if !strings.Contains(hx, `"type":"error"`) {
+				t.Errorf("want error toast, got %q", hx)
+			}
+		})
+	}
+}
+
+func TestHubLifecycleAction_SuccessToast(t *testing.T) {
+	tests := []struct {
+		name   string
+		action string
+		perms  homelab.Permissions
+		wantHX string
+	}{
+		{
+			name:   "start shows started toast",
+			action: "start",
+			perms:  homelab.Permissions{Start: true},
+			wantHX: "demo-app started",
+		},
+		{
+			name:   "stop shows stopped toast",
+			action: "stop",
+			perms:  homelab.Permissions{Stop: true},
+			wantHX: "demo-app stopped",
+		},
+		{
+			name:   "restart shows restarted toast",
+			action: "restart",
+			perms:  homelab.Permissions{Restart: true},
+			wantHX: "demo-app restarted",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app, _ := setupTestApp()
+			oldApps := homelab.DefaultRegistry.List()
+			oldPerms := homelab.DefaultRegistry.Permissions()
+			prevRuntime := homelab.DefaultRuntime
+			defer func() {
+				store.Database = nil
+				handler = moduleHandler{}
+				config = configType{}
+				homelab.DefaultRegistry.Replace(oldApps)
+				homelab.DefaultRegistry.SetPermissions(oldPerms)
+				homelab.DefaultRuntime = prevRuntime
+			}()
+			homelab.DefaultRegistry.SetPermissions(tt.perms)
+			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "demo-app", Status: homelab.AppStatusRunning}})
+			homelab.DefaultRuntime = stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+				"demo-app": homelab.AppStatusRunning,
+			}}
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/hub/demo-app/"+tt.action, http.NoBody)
+			addWebAuth(req)
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				body, _ := io.ReadAll(resp.Body)
+				t.Fatalf("want status 200, got %d body=%s", resp.StatusCode, body)
+			}
+			hx := resp.Header.Get("HX-Trigger")
+			if !strings.Contains(hx, tt.wantHX) {
+				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, hx)
+			}
+			if !strings.Contains(hx, `"type":"success"`) {
+				t.Errorf("want success toast, got %q", hx)
 			}
 		})
 	}

@@ -305,11 +305,8 @@ document.addEventListener('htmx:responseError', function (evt) {
   if (flowbotXHRHasRetarget(xhr) || flowbotXHRHasHTMLBody(xhr)) {
     return;
   }
-  var msg = 'Request failed';
-  if (status) {
-    msg += ' (' + status + ')';
-  }
-  showToast(msg, 'error');
+  var body = xhr && typeof xhr.responseText === 'string' ? xhr.responseText : '';
+  showToast(flowbotHTMXErrorMessage(status, body), 'error');
 });
 
 document.addEventListener('htmx:sendError', function () {
@@ -319,6 +316,33 @@ document.addEventListener('htmx:sendError', function () {
 document.addEventListener('htmx:timeout', function () {
   showToast('Request timed out. Please try again.', 'error');
 });
+
+// Keep in sync with htmxResponseErrorMessage in internal/modules/web/utils.go.
+function flowbotHTMXErrorMessage(status, body) {
+  body = (body || '').trim();
+  if (body && body.length < 240 && body.indexOf('<') === -1) {
+    return body;
+  }
+  if (status === 403) {
+    return 'Permission denied. You do not have access to perform this action.';
+  }
+  if (status === 400 || status === 422) {
+    return 'Validation error. Check your input and try again.';
+  }
+  if (status === 404) {
+    return 'Not found. The requested resource no longer exists.';
+  }
+  if (status === 408 || status === 504) {
+    return 'Request timed out. Please try again.';
+  }
+  if (status >= 500) {
+    return 'Server error (' + status + '). Please try again.';
+  }
+  if (status) {
+    return 'Request failed (' + status + '). Please try again.';
+  }
+  return 'Request failed. Please try again.';
+}
 
 // Global top progress: do NOT put hx-indicator on <body> — that replaces the
 // requesting element's htmx-request class and hides button HtmxIndicator spinners.

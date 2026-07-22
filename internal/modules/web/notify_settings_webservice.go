@@ -122,6 +122,7 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Channel created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Channel saved")
 	if err := partials.NotifyChannelRow(ch).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
@@ -184,6 +185,7 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Channel saved")
 	return partials.NotifyChannelRow(ch).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -223,14 +225,14 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 		Priority: notifypkg.Low,
 	}
 	if err := notifypkg.SendToProtocol(ch.Protocol, ch.URI, notifyMsg); err != nil {
-		setShowToast(ctx, "error", "Connection failed: "+err.Error())
+		setShowToast(ctx, "error", "Channel test failed: "+err.Error())
 		ns := notifypkg.GetNotifyStore()
 		if ns != nil {
 			_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "failed", err.Error(), nil)
 		}
 		return ctx.SendString("")
 	}
-	setShowToast(ctx, "success", "Connection successful")
+	setShowToast(ctx, "success", "Channel test succeeded")
 	ns := notifypkg.GetNotifyStore()
 	if ns != nil {
 		_, _ = ns.Record(ctx.Context(), uid, ch.Name, notifypkg.ConnectivityTestTemplateID, "Test connectivity", "success", "", nil)
@@ -308,6 +310,7 @@ func notifyTemplateCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Template created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Template saved")
 	if err := partials.NotifyTemplateRow(row).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
@@ -362,6 +365,7 @@ func notifyTemplateUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Template saved")
 	return partials.NotifyTemplateRow(row).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -460,6 +464,7 @@ func notifyRuleCreate(ctx fiber.Ctx) error {
 		return partials.EmptyState("Rule created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Rule saved")
 	if err := partials.NotifyRuleRow(r, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter()); err != nil {
 		return err
 	}
@@ -516,6 +521,7 @@ func notifyRuleUpdate(ctx fiber.Ctx) error {
 		return notFound(ctx)
 	}
 	ctx.Type("html")
+	setShowToast(ctx, "success", "Rule saved")
 	return partials.NotifyRuleRow(r, templateIDs).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -572,7 +578,7 @@ func notifyFormErrorsFromStore(err error) map[string]string {
 		return fieldErrs
 	}
 	flog.Error(fmt.Errorf("notify settings save: %w", err))
-	return map[string]string{"_save": "Failed to save"}
+	return map[string]string{"_save": "Could not save. Please try again."}
 }
 
 // mapNotifyChannelUniqueError maps unique constraint failures on notify channels.

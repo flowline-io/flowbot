@@ -499,7 +499,7 @@ func TestNotifyFormErrorsFromStore(t *testing.T) {
 			name:      "generic store error hides raw sql",
 			err:       errors.New(`postgres: create notify rule: gen: constraint failed: ERROR: something else (SQLSTATE 23505)`),
 			wantField: "_save",
-			wantSub:   "Failed to save",
+			wantSub:   "Could not save. Please try again.",
 			wantRaw:   true,
 		},
 	}
@@ -577,6 +577,31 @@ func TestShowToastTrigger(t *testing.T) {
 			if strings.Contains(tt.message, `"`) {
 				assert.NotContains(t, got, `foo "bar"`)
 			}
+		})
+	}
+}
+
+func TestHTMXResponseErrorMessage(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		status int
+		body   string
+		want   string
+	}{
+		{name: "permission 403 with plain body", status: 403, body: "insufficient scope", want: "insufficient scope"},
+		{name: "permission 403 without body", status: 403, body: "", want: "Permission denied. You do not have access to perform this action."},
+		{name: "validation 422", status: 422, body: "", want: "Validation error. Check your input and try again."},
+		{name: "validation 400", status: 400, body: "", want: "Validation error. Check your input and try again."},
+		{name: "not found 404", status: 404, body: "", want: "Not found. The requested resource no longer exists."},
+		{name: "server 500", status: 500, body: "", want: "Server error (500). Please try again."},
+		{name: "html body ignored for 403", status: 403, body: "<div>denied</div>", want: "Permission denied. You do not have access to perform this action."},
+		{name: "unknown status fallback", status: 418, body: "", want: "Request failed (418). Please try again."},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, htmxResponseErrorMessage(tt.status, tt.body))
 		})
 	}
 }

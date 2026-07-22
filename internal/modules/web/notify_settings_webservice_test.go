@@ -140,6 +140,7 @@ func TestNotifyChannelCreate(t *testing.T) {
 		wantStatus int
 		wantURI    string
 		wantErrSub string
+		wantHX     string
 	}{
 		{
 			name: "creates channel with slack uri",
@@ -150,6 +151,7 @@ func TestNotifyChannelCreate(t *testing.T) {
 			},
 			wantStatus: http.StatusOK,
 			wantURI:    "slack://T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+			wantHX:     "Channel saved",
 		},
 		{
 			name: "rejects missing uri",
@@ -196,6 +198,9 @@ func TestNotifyChannelCreate(t *testing.T) {
 					t.Errorf("want body containing %q, got %q", tt.wantErrSub, string(body))
 				}
 				return
+			}
+			if tt.wantHX != "" && !strings.Contains(resp.Header.Get("HX-Trigger"), tt.wantHX) {
+				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, resp.Header.Get("HX-Trigger"))
 			}
 			if len(ts.notifyChannels) != 1 {
 				t.Fatalf("want 1 channel stored, got %d", len(ts.notifyChannels))
@@ -684,7 +689,7 @@ func TestNotifyChannelTest(t *testing.T) {
 				Enabled:  true,
 			},
 			wantStatus:     http.StatusOK,
-			wantHXContains: `"type":"error"`,
+			wantHXContains: "Channel test failed",
 		},
 		{
 			name:      "relative URI builds scheme from protocol",

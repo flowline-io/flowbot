@@ -252,6 +252,7 @@ func TestCreateConfig(t *testing.T) {
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
 			wantValue:        types.KV{"value": float64(42)},
+			wantHX:           "Config saved",
 		},
 		{
 			name:             "invalid JSON value returns 422 with invalid JSON error",
@@ -265,6 +266,7 @@ func TestCreateConfig(t *testing.T) {
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
 			wantValue:        types.KV{},
+			wantHX:           `"type":"success"`,
 		},
 		{
 			name:             "empty value field creates config successfully",
@@ -290,7 +292,7 @@ func TestCreateConfig(t *testing.T) {
 			body:        "uid=u1&topic=t1&key=k1&value=%7B%7D",
 			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
 			wantStatus:  http.StatusNoContent,
-			wantHX:      "Failed to create config",
+			wantHX:      "Could not save config",
 		},
 		{
 			name:             "JSON string value auto-wraps into JSON object successfully",
@@ -363,6 +365,7 @@ func TestUpdateConfig(t *testing.T) {
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
 			wantValue:        types.KV{"enabled": true},
+			wantHX:           "Config saved",
 		},
 		{
 			name:             "number value auto-wraps into JSON object successfully",
@@ -372,6 +375,7 @@ func TestUpdateConfig(t *testing.T) {
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "k1",
 			wantValue:        types.KV{"value": float64(42)},
+			wantHX:           `"type":"success"`,
 		},
 		{
 			name:             "invalid JSON value returns 422 with invalid JSON error",
@@ -397,7 +401,7 @@ func TestUpdateConfig(t *testing.T) {
 			getConfigFn: func(_ types.Uid, _ string, _ string) (types.KV, error) { return types.KV{"old": "value"}, nil },
 			setConfigFn: func(_ types.Uid, _ string, _ string, _ types.KV) error { return fmt.Errorf("db down") },
 			wantStatus:  http.StatusNoContent,
-			wantHX:      "Failed to update config",
+			wantHX:      "Could not save config",
 		},
 	}
 	for _, tt := range tests {

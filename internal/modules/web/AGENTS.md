@@ -253,7 +253,8 @@ Rules:
 
 - User-visible failures must use toast (`showToast` / `HX-Trigger showToast`) or inline `FormError` — never `console.error` alone.
 - Intentionally silent failures (CSRF warm-up, cancel races) must be marked `intentionally silent` in a short comment.
-- Dual-channel client rule in `public/js/app.js`: HTML/`HX-Retarget` error bodies swap inline (no toast); network/`sendError`/`timeout` and non-HTML errors toast; `401` redirects to login with `next`.
+- Dual-channel client rule in `public/js/app.js`: HTML/`HX-Retarget` error bodies swap inline (no toast); network/`sendError`/`timeout` and non-HTML errors toast with categorized copy (network / validation / permission / not-found / server); prefer short plain-text response bodies when present; `401` redirects to login with `next`.
+- Success toasts (`setShowToast(..., "success", ...)`) for save / Hub lifecycle / channel test — keep messages specific (`Config saved`, `demo-app started`, `Channel test succeeded`), not generic OK.
 - Do not default every `renderError` to Retarget — that breaks DELETE/table refresh targets. Prefer explicit `renderFormError` or `toastError`.
 - Loading: use `partials.PanelSkeleton` (delayed soft spinner) inside `hx-trigger="load"` / `revealed` containers; button actions (refresh, delete, test, load more) keep `.htmx-indicator` via `partials.HtmxIndicator`. A delayed global top progress bar (`#flowbot-htmx-progress`, toggled from `app.js` request counter — **not** `body hx-indicator`, which would steal `htmx-request` from buttons) coexists with soft spinners. No large DaisyUI gray skeleton slabs for panel loads.
 
