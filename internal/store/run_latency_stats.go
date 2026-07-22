@@ -42,10 +42,7 @@ func percentileNearestRank(sorted []int64, p float64) int64 {
 	if n == 0 {
 		return 0
 	}
-	rank := int(math.Ceil(p * float64(n)))
-	if rank < 1 {
-		rank = 1
-	}
+	rank := max(int(math.Ceil(p*float64(n))), 1)
 	if rank > n {
 		rank = n
 	}

@@ -5,18 +5,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
 
-func webhookSourceDisplay(e *gen.DataEvent) string {
-	source := e.Source
-	if e.Data != nil {
-		if p, ok := e.Data["_webhook_path"]; ok {
-			if s, ok := p.(string); ok {
-				return source + " " + s
-			}
-		}
-	}
-	return source
-}
-
 func webhookMethod(e *gen.DataEvent) string {
 	if e.Data != nil {
 		if m, ok := e.Data["_webhook_method"]; ok {
@@ -53,48 +41,68 @@ templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pa
 					<th class="text-xs text-base-content/55">Method</th>
 					<th class="text-xs text-base-content/55">Status</th>
 					<th class="text-xs text-base-content/55">Pipeline</th>
+					<th class="text-xs text-base-content/55">Actions</th>
 				</tr>
 				</thead>
-					<tbody>
-					for _, e := range events {
-						<tbody id={ "wh-" + e.EventID }>
-							<tr class="cursor-pointer hover"
-								hx-get={ templ.URL("/service/web/events/payload/" + e.EventID) }
-								hx-trigger="click"
-								hx-target={ "#wh-detail-" + e.EventID }
-								hx-swap="innerHTML show:top">
-							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("2006-01-02 15:04:05") }</td>
-							<td><span class="flowbot-chip flowbot-chip-muted">{ e.EventType }</span></td>
-							<td class="text-xs">{ webhookSourceDisplay(e) }</td>
-								<td class="text-xs font-mono">{ webhookPath(e) }</td>
-								<td><span class="flowbot-chip flowbot-chip-muted">{ webhookMethod(e) }</span></td>
-								<td><span class="flowbot-chip flowbot-chip-success">202</span></td>
-								<td class="text-xs">
-								if eventPipelineName(e.EventID, runMap) != "" {
-									{ eventPipelineName(e.EventID, runMap) }
-								} else {
-									<span class="text-base-content/30">-</span>
-								}
-								</td>
-							</tr>
-						<tr id={ "wh-detail-" + e.EventID } class="hidden">
-							<td colspan="7"></td>
-						</tr>
-						</tbody>
-					}
 				if len(events) == 0 {
-					<tr>
-						<td colspan="7" class="p-0">
-							@EmptyStateCTA(
-								"No webhook receipts yet",
-								"Webhook triggers record receipts here when they fire.",
-								"/service/web/pipelines",
-								"Create pipeline",
-							)
-						</td>
-					</tr>
-				}
+					<tbody>
+						<tr>
+							<td colspan="8" class="p-0">
+								@EmptyStateCTA(
+									"No webhook receipts yet",
+									"Webhook triggers record receipts here when they fire.",
+									"/service/web/pipelines",
+									"Create pipeline",
+								)
+							</td>
+						</tr>
 					</tbody>
+				}
+				for _, e := range events {
+					<tbody id={ "wh-" + e.EventID }>
+						<tr class="cursor-pointer hover"
+							hx-get={ templ.URL("/service/web/events/payload/" + e.EventID) }
+							hx-trigger="click"
+							hx-target={ "#wh-detail-" + e.EventID + " td" }
+							hx-swap="innerHTML show:top"
+							data-testid={ "webhook-row-" + e.EventID }>
+							<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("2006-01-02 15:04:05") }</td>
+							<td><span class={ EventTypeChipClass(e.EventType) }>{ e.EventType }</span></td>
+							<td class="text-xs">
+								<span class={ EventSourceChipClass(e.Source) }>{ e.Source }</span>
+							</td>
+							<td class="text-xs font-mono">{ webhookPath(e) }</td>
+							<td><span class={ WebhookMethodChipClass(webhookMethod(e)) }>{ webhookMethod(e) }</span></td>
+							<td><span class="flowbot-chip flowbot-chip-success">202</span></td>
+							<td class="text-xs">
+							if len(eventPipelineRuns(e.EventID, runMap)) > 0 {
+								<div class="flex flex-col gap-1">
+								for _, run := range eventPipelineRuns(e.EventID, runMap) {
+									<div class="flex flex-wrap items-center gap-1">
+										<a class="link link-hover text-xs"
+											href={ templ.URL(PipelineRunLiveURL(run.PipelineName, run.ID)) }
+											data-testid="event-pipeline-run-link"
+											onclick="event.stopPropagation()">{ run.PipelineName }</a>
+										<span class={ EventRunStatusChipClass(run.Status) }>{ EventRunStatusText(run.Status) }</span>
+									</div>
+								}
+								</div>
+							} else {
+								<span class="text-base-content/30">-</span>
+							}
+							</td>
+							<td class="text-xs whitespace-nowrap">
+								<a class="link link-hover"
+									href={ templ.URL(SimilarEventsURL(e.Source, e.EventType)) }
+									data-testid="event-similar-link"
+									onclick="event.stopPropagation()">Similar</a>
+							</td>
+						</tr>
+						<tr id={ "wh-detail-" + e.EventID } class="event-detail-row">
+							<td colspan="8" class="p-0 max-w-0"></td>
+						</tr>
+					</tbody>
+				}
 				</table>
 			</div>
 			@EventPagination(pageInfo)

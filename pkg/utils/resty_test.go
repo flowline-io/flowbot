@@ -628,7 +628,7 @@ func TestDefaultRestyClientParallelJSONBodies(t *testing.T) {
 
 			const workers = 32
 			errCh := make(chan error, workers)
-			for i := 0; i < workers; i++ {
+			for range workers {
 				go func() {
 					client := DefaultRestyClient()
 					client.SetBaseURL(server.URL)
@@ -646,7 +646,7 @@ func TestDefaultRestyClientParallelJSONBodies(t *testing.T) {
 					errCh <- err
 				}()
 			}
-			for i := 0; i < workers; i++ {
+			for range workers {
 				require.NoError(t, <-errCh)
 			}
 		})

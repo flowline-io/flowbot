@@ -615,6 +615,7 @@ func sanitizeAuditValue(v any) any {
 
 // PipelineRunInfo is a lightweight view of a pipeline run for event matching display.
 type PipelineRunInfo struct {
+	ID            int64
 	PipelineName  string
 	EventID       string
 	Status        string
@@ -1040,6 +1041,7 @@ func (s *EventStore) GetPipelineRunsForEvents(ctx context.Context, eventIDs []st
 	result := make(map[string][]PipelineRunInfo, len(runs))
 	for _, r := range runs {
 		info := PipelineRunInfo{
+			ID:            r.ID,
 			PipelineName:  r.PipelineName,
 			EventID:       r.EventID,
 			Status:        fmt.Sprintf("%d", r.Status),
@@ -1598,10 +1600,7 @@ func pipelineRunLatencyOutcome(run *gen.PipelineRun, names []string) (runLatency
 	if parent == "" {
 		return runLatencyOutcome{}, "", false
 	}
-	dur := run.CompletedAt.Sub(run.StartedAt).Milliseconds()
-	if dur < 0 {
-		dur = 0
-	}
+	dur := max(run.CompletedAt.Sub(run.StartedAt).Milliseconds(), 0)
 	return runLatencyOutcome{
 		durationMs: dur,
 		success:    run.Status == int(schema.PipelineDone),
@@ -2466,10 +2465,7 @@ func (s *WorkflowStore) RunLatencyStatsByNames(ctx context.Context, names []stri
 		if run == nil || run.CompletedAt == nil || run.StartedAt.IsZero() {
 			continue
 		}
-		dur := run.CompletedAt.Sub(run.StartedAt).Milliseconds()
-		if dur < 0 {
-			dur = 0
-		}
+		dur := max(run.CompletedAt.Sub(run.StartedAt).Milliseconds(), 0)
 		byName[run.WorkflowName] = append(byName[run.WorkflowName], runLatencyOutcome{
 			durationMs: dur,
 			success:    run.Status == int(schema.WorkflowRunDone),

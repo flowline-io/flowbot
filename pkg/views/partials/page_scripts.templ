@@ -1,5 +1,7 @@
 package partials
 
+import "github.com/flowline-io/flowbot/version"
+
 // ChartScripts loads Chart.js for dashboard charts.
 templ ChartScripts() {
 	<script src="/static/vendor/chart.js.min.js" defer></script>
@@ -17,10 +19,11 @@ templ PipelineStatsScripts() {
 	<script src="/static/js/pipeline-stats.js" defer></script>
 }
 
-// EventFilterScripts loads event timeline filter controls.
-// Loaded synchronously (no defer) so Alpine.data registers before alpine:init.
+// EventFilterScripts loads event timeline filter controls and clip-copy for payloads.
+// event-filters.js is loaded synchronously (no defer) so Alpine.data registers before alpine:init.
 templ EventFilterScripts() {
-	<script src="/static/js/event-filters.js"></script>
+	<script src={ "/static/js/clip-copy.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/event-filters.js?v=" + version.Buildtags }></script>
 }
 
 // HomelabRegistryScripts loads homelab registry interactions.

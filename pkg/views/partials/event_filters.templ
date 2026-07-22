@@ -15,69 +15,103 @@ type FilterBarParams struct {
 
 templ FilterBar(p FilterBarParams) {
 	<div class="flowbot-surface mb-4" id="event-filter-bar" data-testid="event-filter-bar">
-		<div class="card-body p-3">
-			<div class="flex flex-wrap items-center gap-2 mb-2">
-				<div class="join">
-					<button type="button" class="btn btn-sm join-item"
-						x-on:click="setTimeRange('1h')"
-						x-bind:class="timeRange === '1h' ? 'btn-primary' : ''"
-						data-testid="time-range-1h">1h</button>
-					<button type="button" class="btn btn-sm join-item"
-						x-on:click="setTimeRange('24h')"
-						x-bind:class="timeRange === '24h' ? 'btn-primary' : ''"
-						data-testid="time-range-24h">24h</button>
-					<button type="button" class="btn btn-sm join-item"
-						x-on:click="setTimeRange('7d')"
-						x-bind:class="timeRange === '7d' ? 'btn-primary' : ''"
-						data-testid="time-range-7d">7d</button>
+		<div class="flowbot-event-filter">
+			<div class="flowbot-event-filter-main">
+				<div class="flowbot-event-filter-time" role="group" aria-label="Time range">
+					<div class="join">
+						<button type="button" class="btn btn-sm join-item"
+							x-on:click="setTimeRange('1h')"
+							x-bind:class="timeRange === '1h' ? 'btn-primary' : ''"
+							data-testid="time-range-1h">1h</button>
+						<button type="button" class="btn btn-sm join-item"
+							x-on:click="setTimeRange('24h')"
+							x-bind:class="timeRange === '24h' ? 'btn-primary' : ''"
+							data-testid="time-range-24h">24h</button>
+						<button type="button" class="btn btn-sm join-item"
+							x-on:click="setTimeRange('7d')"
+							x-bind:class="timeRange === '7d' ? 'btn-primary' : ''"
+							data-testid="time-range-7d">7d</button>
+					</div>
+					<div class="flowbot-event-filter-range">
+						<input type="datetime-local" class="input input-bordered input-sm flowbot-event-filter-datetime"
+							x-model="timeStart" x-on:change="onDateChange()"
+							data-filter-input name="time_start"
+							aria-label="Start time"
+							data-testid="time-start"/>
+						<span class="flowbot-event-filter-range-sep" aria-hidden="true">–</span>
+						<input type="datetime-local" class="input input-bordered input-sm flowbot-event-filter-datetime"
+							x-model="timeEnd" x-on:change="onDateChange()"
+							data-filter-input name="time_end"
+							aria-label="End time"
+							data-testid="time-end"/>
+					</div>
 				</div>
-				<input type="datetime-local" class="input input-bordered input-sm"
-					x-model="timeStart" x-on:change="onDateChange()"
-					data-filter-input name="time_start"
-					data-testid="time-start"/>
-				<span class="text-xs text-base-content/50">~</span>
-				<input type="datetime-local" class="input input-bordered input-sm"
-					x-model="timeEnd" x-on:change="onDateChange()"
-					data-filter-input name="time_end"
-					data-testid="time-end"/>
+
+				<div class="flowbot-event-filter-fields">
+					<input type="search" class="input input-bordered input-sm flowbot-event-filter-search"
+						placeholder="Search events..."
+						x-model="search"
+						x-on:keyup="debounceSearch()"
+						data-filter-input name="search"
+						data-testid="search-input"/>
+					<select class="select select-bordered select-sm flowbot-event-filter-select"
+						data-filter-input name="pipeline"
+						x-model="pipeline"
+						x-on:change="submitFilter()"
+						aria-label="Pipeline"
+						data-testid="pipeline-select">
+						<option value="">All pipelines</option>
+						for _, name := range p.PipelineNames {
+							<option value={ name } selected={ templ.KV(name == p.PipelineFilter, true) }>{ name }</option>
+						}
+					</select>
+					<select class="select select-bordered select-sm flowbot-event-filter-select"
+						data-filter-input name="source"
+						x-model="source"
+						x-on:change="submitFilter()"
+						aria-label="Source"
+						data-testid="source-select">
+						<option value="">All sources</option>
+						for _, s := range p.Sources {
+							<option value={ s } selected={ templ.KV(s == p.SourceFilter, true) }>{ s }</option>
+						}
+					</select>
+					<select class="select select-bordered select-sm flowbot-event-filter-select"
+						data-filter-input name="type"
+						x-model="eventType"
+						x-on:change="submitFilter()"
+						aria-label="Event type"
+						data-testid="type-select">
+						<option value="">All types</option>
+						for _, t := range p.EventTypes {
+							<option value={ t } selected={ templ.KV(t == p.TypeFilter, true) }>{ t }</option>
+						}
+					</select>
+				</div>
+
+				<button type="button" class="btn btn-sm btn-ghost flowbot-event-filter-reset"
+					x-on:click="resetFilters()"
+					data-testid="reset-filter-btn">Reset</button>
 			</div>
-			<div class="flex flex-wrap items-center gap-2">
-				<input type="search" class="input input-bordered input-sm w-64"
-					placeholder="Search events..."
-					x-model="search"
-					x-on:keyup="debounceSearch()"
-					data-filter-input name="search"
-					data-testid="search-input"/>
-				<select class="select select-bordered select-sm"
-					data-filter-input name="pipeline"
-					x-model="pipeline"
-					x-on:change="submitFilter()"
-					data-testid="pipeline-select">
-					<option value="">All pipelines</option>
-					for _, name := range p.PipelineNames {
-						<option value={ name } selected={ templ.KV(name == p.PipelineFilter, true) }>{ name }</option>
-					}
+
+			<div class="flowbot-event-filter-presets">
+				<span class="flowbot-event-filter-label">Presets</span>
+				<select class="select select-bordered select-sm flowbot-event-filter-select"
+					x-model="selectedPreset"
+					x-on:change="applySelectedPreset()"
+					x-ref="savedFiltersSelect"
+					aria-label="Saved filters"
+					data-testid="saved-filters-select">
+					<option value="">Saved filters</option>
 				</select>
-				<select class="select select-bordered select-sm"
-					data-filter-input name="source"
-					x-model="source"
-					x-on:change="submitFilter()"
-					data-testid="source-select">
-					<option value="">All sources</option>
-					for _, s := range p.Sources {
-						<option value={ s } selected={ templ.KV(s == p.SourceFilter, true) }>{ s }</option>
-					}
-				</select>
-				<select class="select select-bordered select-sm"
-					data-filter-input name="type"
-					x-model="eventType"
-					x-on:change="submitFilter()"
-					data-testid="type-select">
-					<option value="">All types</option>
-					for _, t := range p.EventTypes {
-						<option value={ t } selected={ templ.KV(t == p.TypeFilter, true) }>{ t }</option>
-					}
-				</select>
+				<button type="button" class="btn btn-sm btn-ghost"
+					x-on:click="deleteSelectedPreset()"
+					x-bind:disabled="!selectedPreset"
+					data-testid="delete-filter-btn">Delete</button>
+				<span class="flowbot-event-filter-presets-spacer" aria-hidden="true"></span>
+				<button type="button" class="btn btn-sm btn-ghost"
+					x-on:click="saveCurrentFilter()"
+					data-testid="save-filter-btn">Save filter</button>
 			</div>
 		</div>
 	</div>

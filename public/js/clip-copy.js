@@ -55,18 +55,26 @@
     }, 1500);
   }
 
-  document.addEventListener('click', function (event) {
-    var btn = event.target.closest('[data-clip-copy]');
-    if (!btn) {
-      return;
-    }
-    var md = btn.getAttribute('data-clip-markdown') || '';
-    copyText(md)
-      .then(function () {
-        showCopyFeedback(btn, 'Copied', true);
-      })
-      .catch(function () {
-        showCopyFeedback(btn, 'Copy failed', true);
-      });
-  });
+  // Capture phase so copy still runs when a button uses stopPropagation
+  // (e.g. event payload Copy inside an HTMX click-to-expand row / <summary>).
+  document.addEventListener(
+    'click',
+    function (event) {
+      var btn = event.target.closest('[data-clip-copy]');
+      if (!btn) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      var md = btn.getAttribute('data-clip-markdown') || '';
+      copyText(md)
+        .then(function () {
+          showCopyFeedback(btn, 'Copied', true);
+        })
+        .catch(function () {
+          showCopyFeedback(btn, 'Copy failed', true);
+        });
+    },
+    true,
+  );
 })();

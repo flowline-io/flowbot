@@ -5,18 +5,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 )
 
-func formatSourceCapability(source, capability string) string {
-	if capability != "" {
-		return source + " / " + capability
+// eventPipelineRuns returns pipeline runs linked to the event, if any.
+func eventPipelineRuns(eventID string, runMap map[string][]store.PipelineRunInfo) []store.PipelineRunInfo {
+	if runs, ok := runMap[eventID]; ok {
+		return runs
 	}
-	return source
-}
-
-func eventPipelineName(eventID string, runMap map[string][]store.PipelineRunInfo) string {
-	if runs, ok := runMap[eventID]; ok && len(runs) > 0 {
-		return runs[0].PipelineName
-	}
-	return ""
+	return nil
 }
 
 templ DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pageInfo PageInfo, runMap map[string][]store.PipelineRunInfo) {
@@ -31,46 +25,69 @@ templ DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 						<th class="text-xs font-medium text-base-content/55">Source / Capability</th>
 						<th class="text-xs font-medium text-base-content/55">Entity</th>
 						<th class="text-xs font-medium text-base-content/55">Pipeline</th>
+						<th class="text-xs font-medium text-base-content/55">Actions</th>
 					</tr>
 					</thead>
-					<tbody>
+					if len(events) == 0 {
+						<tbody>
+							<tr>
+								<td colspan="6" class="p-0">
+									@EmptyStateCTA(
+										"No events yet",
+										"Events appear when capabilities emit data.",
+										"/service/web/pipelines",
+										"Create pipeline",
+									)
+								</td>
+							</tr>
+						</tbody>
+					}
 					for _, e := range events {
 						<tbody id={ "event-" + e.EventID }>
 							<tr class="cursor-pointer hover"
 								hx-get={ templ.URL("/service/web/events/payload/" + e.EventID) }
 								hx-trigger="click"
-								hx-target={ "#detail-" + e.EventID }
-								hx-swap="innerHTML show:top">
+								hx-target={ "#detail-" + e.EventID + " td" }
+								hx-swap="innerHTML show:top"
+								data-testid={ "event-row-" + e.EventID }>
 								<td class="text-xs whitespace-nowrap">{ e.CreatedAt.Format("2006-01-02 15:04:05") }</td>
-								<td><span class="flowbot-chip flowbot-chip-muted">{ e.EventType }</span></td>
-								<td class="text-xs">{ formatSourceCapability(e.Source, e.Capability) }</td>
+								<td><span class={ EventTypeChipClass(e.EventType) }>{ e.EventType }</span></td>
+								<td class="text-xs">
+									<span class={ EventSourceChipClass(e.Source) }>{ e.Source }</span>
+									if e.Capability != "" {
+										<span class="text-base-content/50 ml-1">/ { e.Capability }</span>
+									}
+								</td>
 								<td class="text-xs font-mono">{ e.EntityID }</td>
 								<td class="text-xs">
-								if eventPipelineName(e.EventID, runMap) != "" {
-									{ eventPipelineName(e.EventID, runMap) }
+								if len(eventPipelineRuns(e.EventID, runMap)) > 0 {
+									<div class="flex flex-col gap-1">
+									for _, run := range eventPipelineRuns(e.EventID, runMap) {
+										<div class="flex flex-wrap items-center gap-1">
+											<a class="link link-hover text-xs"
+												href={ templ.URL(PipelineRunLiveURL(run.PipelineName, run.ID)) }
+												data-testid="event-pipeline-run-link"
+												onclick="event.stopPropagation()">{ run.PipelineName }</a>
+											<span class={ EventRunStatusChipClass(run.Status) }>{ EventRunStatusText(run.Status) }</span>
+										</div>
+									}
+									</div>
 								} else {
 									<span class="text-base-content/30">-</span>
 								}
 								</td>
+								<td class="text-xs whitespace-nowrap">
+									<a class="link link-hover"
+										href={ templ.URL(SimilarEventsURL(e.Source, e.EventType)) }
+										data-testid="event-similar-link"
+										onclick="event.stopPropagation()">Similar</a>
+								</td>
 							</tr>
-							<tr id={ "detail-" + e.EventID } class="hidden">
-								<td colspan="5"></td>
+							<tr id={ "detail-" + e.EventID } class="event-detail-row">
+								<td colspan="6" class="p-0 max-w-0"></td>
 							</tr>
 						</tbody>
 					}
-					if len(events) == 0 {
-						<tr>
-							<td colspan="5" class="p-0">
-								@EmptyStateCTA(
-									"No events yet",
-									"Events appear when capabilities emit data.",
-									"/service/web/pipelines",
-									"Create pipeline",
-								)
-							</td>
-						</tr>
-					}
-					</tbody>
 				</table>
 			</div>
 			@EventPagination(pageInfo)

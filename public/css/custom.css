@@ -204,11 +204,137 @@ body {
   );
 }
 
-/* Bordered surface instead of card+shadow wrappers */
-.flowbot-surface {
-  background: var(--color-base-100, #fff);
-  border: 1px solid var(--color-base-300, #d1d5db);
-  border-radius: var(--flowbot-radius-box, 0.5rem);
+/* JSON syntax highlighting for event payloads */
+.flowbot-json .flowbot-json-key {
+  color: var(--color-primary, #0f766e);
+}
+.flowbot-json .flowbot-json-string {
+  color: color-mix(
+    in oklab,
+    var(--color-success, #16a34a) 85%,
+    var(--color-base-content, #111)
+  );
+}
+.flowbot-json .flowbot-json-number {
+  color: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 90%,
+    var(--color-base-content, #111)
+  );
+}
+.flowbot-json .flowbot-json-bool {
+  color: var(--color-primary, #0f766e);
+  font-weight: 500;
+}
+.flowbot-json .flowbot-json-null {
+  color: color-mix(in oklab, var(--color-base-content, #111) 45%, transparent);
+  font-style: italic;
+}
+
+/* Events timeline filter toolbar */
+.flowbot-event-filter {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.flowbot-event-filter-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.flowbot-event-filter-time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.flowbot-event-filter-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.flowbot-event-filter-range-sep {
+  flex: none;
+  color: color-mix(in oklab, var(--color-base-content, #111) 40%, transparent);
+  font-size: 0.75rem;
+  line-height: 1;
+}
+.flowbot-event-filter-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+.flowbot-event-filter-reset {
+  margin-left: auto;
+}
+.flowbot-event-filter-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--color-base-300, #d1d5db);
+}
+.flowbot-event-filter-presets-spacer {
+  flex: 1 1 auto;
+  min-width: 0.5rem;
+}
+.flowbot-event-filter-label {
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content, #111) 55%, transparent);
+}
+.flowbot-event-filter .input,
+.flowbot-event-filter .select,
+.flowbot-event-filter .btn {
+  min-height: 2rem;
+  height: 2rem;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+}
+.flowbot-event-filter .join .btn {
+  min-height: 2rem;
+  height: 2rem;
+}
+.flowbot-event-filter-datetime {
+  width: 11.25rem;
+  max-width: 100%;
+  padding-inline: 0.5rem;
+}
+.flowbot-event-filter-search {
+  flex: 1 1 11rem;
+  width: 11rem;
+  max-width: 16rem;
+  min-width: 9rem;
+}
+.flowbot-event-filter-select {
+  width: 9.25rem;
+  max-width: 100%;
+  flex: none;
+}
+@media (max-width: 640px) {
+  .flowbot-event-filter-reset {
+    margin-left: 0;
+  }
+  .flowbot-event-filter-datetime {
+    width: 100%;
+  }
+  .flowbot-event-filter-range {
+    width: 100%;
+  }
+  .flowbot-event-filter-search,
+  .flowbot-event-filter-select {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+  }
 }
 
 /* Client-side table filter toolbar (inside .flowbot-surface) */

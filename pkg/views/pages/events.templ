@@ -38,8 +38,6 @@ templ EventsPage(p EventsPageParams) {
 				</div>
 			</div>
 			<div id="events-table-container"
-				hx-get="/service/web/events/filtered-events?tab=data-events"
-				hx-trigger="load"
 				hx-swap="innerHTML"
 				data-testid="events-table-container">
 				@partials.PanelSkeleton()

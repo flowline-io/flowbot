@@ -29,43 +29,59 @@ func WebhookPayloadDetail(headersJSON, bodyJSON string, bodyTruncated bool) temp
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<td colspan=\"6\" class=\"p-0\"><div class=\"p-3 space-y-3\"><details open><summary class=\"text-sm font-semibold cursor-pointer\">Request Headers</summary><pre class=\"bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48 mt-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"p-3 space-y-3\" data-testid=\"webhook-payload-detail\"><div><div class=\"flex items-center justify-between gap-2 mb-1\"><span class=\"text-sm font-semibold\">Request Headers</span> <button type=\"button\" class=\"btn btn-ghost btn-xs\" title=\"Copy headers\" aria-label=\"Copy headers\" data-testid=\"webhook-headers-copy\" data-clip-copy data-clip-markdown=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(headersJSON)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(PrettyJSON(headersJSON))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_payload.templ`, Line: 8, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_payload.templ`, Line: 14, Col: 49}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</pre></details> <details open><summary class=\"text-sm font-semibold cursor-pointer\">Request Body</summary><pre class=\"bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96 mt-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">Copy</button></div><pre class=\"flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48\" data-testid=\"webhook-headers-json\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.Raw(HighlightJSON(PrettyJSON(headersJSON))).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</pre></div><div><div class=\"flex items-center justify-between gap-2 mb-1\"><span class=\"text-sm font-semibold\">Request Body</span> <button type=\"button\" class=\"btn btn-ghost btn-xs\" title=\"Copy body\" aria-label=\"Copy body\" data-testid=\"webhook-body-copy\" data-clip-copy data-clip-markdown=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(bodyJSON)
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue(PrettyJSON(bodyJSON))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_payload.templ`, Line: 12, Col: 99}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/webhook_payload.templ`, Line: 30, Col: 46}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</pre></details> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\">Copy</button></div><pre class=\"flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96\" data-testid=\"webhook-body-json\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.Raw(HighlightJSON(PrettyJSON(bodyJSON))).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</pre></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if bodyTruncated {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"text-xs text-warning mt-1\">Body truncated to 64KB</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"text-xs text-warning mt-1\">Body truncated to 64KB</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

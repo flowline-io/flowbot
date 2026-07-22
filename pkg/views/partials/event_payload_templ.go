@@ -29,20 +29,28 @@ func EventPayloadDetail(payloadJSON string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<td colspan=\"5\" class=\"p-0\"><div class=\"p-3\"><details open><summary class=\"text-sm font-semibold cursor-pointer\">Payload</summary><pre class=\"bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96 mt-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"p-3\" data-testid=\"event-payload-detail\"><div class=\"flex items-center justify-between gap-2 mb-1\"><span class=\"text-sm font-semibold\">Payload</span> <button type=\"button\" class=\"btn btn-ghost btn-xs\" title=\"Copy payload\" aria-label=\"Copy payload\" data-testid=\"event-payload-copy\" data-clip-copy data-clip-markdown=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(payloadJSON)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.ResolveAttributeValue(PrettyJSON(payloadJSON))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/event_payload.templ`, Line: 8, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/event_payload.templ`, Line: 13, Col: 48}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var2)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</pre></details></div></td>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\">Copy</button></div><pre class=\"flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96\" data-testid=\"event-payload-json\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.Raw(HighlightJSON(PrettyJSON(payloadJSON))).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</pre></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -148,11 +148,13 @@ func TestEventStore_GetPipelineRunsForEvents(t *testing.T) {
 	require.NotNil(t, run)
 
 	tests := []struct {
-		name     string
-		eventIDs []string
-		wantLen  int
+		name      string
+		eventIDs  []string
+		wantLen   int
+		wantRunID bool
+		wantPipe  string
 	}{
-		{name: "matches pipeline run", eventIDs: []string{"evt-run-1"}, wantLen: 1},
+		{name: "matches pipeline run with id", eventIDs: []string{"evt-run-1"}, wantLen: 1, wantRunID: true, wantPipe: "sync-pipeline"},
 		{name: "empty ids returns nil", eventIDs: nil, wantLen: 0},
 		{name: "unknown event returns empty map entry", eventIDs: []string{"missing"}, wantLen: 0},
 	}
@@ -167,6 +169,13 @@ func TestEventStore_GetPipelineRunsForEvents(t *testing.T) {
 			total := 0
 			for _, infos := range result {
 				total += len(infos)
+				for _, info := range infos {
+					if tt.wantRunID {
+						assert.Equal(t, run.ID, info.ID)
+						assert.Equal(t, tt.wantPipe, info.PipelineName)
+						assert.Equal(t, "evt-run-1", info.EventID)
+					}
+				}
 			}
 			assert.Equal(t, tt.wantLen, total)
 		})

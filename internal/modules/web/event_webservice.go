@@ -257,7 +257,7 @@ func eventPayload(ctx fiber.Ctx) error {
 
 	payloadJSON := "{}"
 	if found.Data != nil {
-		if b, err := sonic.Marshal(found.Data); err == nil {
+		if b, err := sonic.MarshalIndent(found.Data, "", "  "); err == nil {
 			payloadJSON = string(b)
 		}
 	}
@@ -268,7 +268,7 @@ func eventPayload(ctx fiber.Ctx) error {
 		bodyTruncated := false
 		if found.Data != nil {
 			if h, ok := found.Data["_webhook_headers"]; ok {
-				if b, err := sonic.Marshal(h); err == nil {
+				if b, err := sonic.MarshalIndent(h, "", "  "); err == nil {
 					headersJSON = string(b)
 				}
 			}

@@ -91,7 +91,7 @@ func EventsPage(p EventsPageParams) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"mb-4\"><div role=\"tablist\" class=\"tabs tabs-lifted\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'data-events' ? 'tab-active' : ''\" x-on:click=\"switchTab('data-events')\" data-testid=\"tab-data-events\">Data Events</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'webhook-logs' ? 'tab-active' : ''\" x-on:click=\"switchTab('webhook-logs')\" data-testid=\"tab-webhook-logs\">Webhook Logs</button></div></div><div id=\"events-table-container\" hx-get=\"/service/web/events/filtered-events?tab=data-events\" hx-trigger=\"load\" hx-swap=\"innerHTML\" data-testid=\"events-table-container\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"mb-4\"><div role=\"tablist\" class=\"tabs tabs-lifted\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'data-events' ? 'tab-active' : ''\" x-on:click=\"switchTab('data-events')\" data-testid=\"tab-data-events\">Data Events</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'webhook-logs' ? 'tab-active' : ''\" x-on:click=\"switchTab('webhook-logs')\" data-testid=\"tab-webhook-logs\">Webhook Logs</button></div></div><div id=\"events-table-container\" hx-swap=\"innerHTML\" data-testid=\"events-table-container\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

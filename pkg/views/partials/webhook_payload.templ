@@ -1,19 +1,41 @@
 package partials
 
 templ WebhookPayloadDetail(headersJSON, bodyJSON string, bodyTruncated bool) {
-	<td colspan="6" class="p-0">
-		<div class="p-3 space-y-3">
-			<details open>
-				<summary class="text-sm font-semibold cursor-pointer">Request Headers</summary>
-				<pre class="bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48 mt-1">{ headersJSON }</pre>
-			</details>
-			<details open>
-				<summary class="text-sm font-semibold cursor-pointer">Request Body</summary>
-				<pre class="bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96 mt-1">{ bodyJSON }</pre>
-			</details>
-			if bodyTruncated {
-				<div class="text-xs text-warning mt-1">Body truncated to 64KB</div>
-			}
+	<div class="p-3 space-y-3" data-testid="webhook-payload-detail">
+		<div>
+			<div class="flex items-center justify-between gap-2 mb-1">
+				<span class="text-sm font-semibold">Request Headers</span>
+				<button type="button"
+					class="btn btn-ghost btn-xs"
+					title="Copy headers"
+					aria-label="Copy headers"
+					data-testid="webhook-headers-copy"
+					data-clip-copy
+					data-clip-markdown={ PrettyJSON(headersJSON) }>Copy</button>
+			</div>
+			<pre class="flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-48"
+				data-testid="webhook-headers-json">
+				@templ.Raw(HighlightJSON(PrettyJSON(headersJSON)))
+			</pre>
 		</div>
-	</td>
+		<div>
+			<div class="flex items-center justify-between gap-2 mb-1">
+				<span class="text-sm font-semibold">Request Body</span>
+				<button type="button"
+					class="btn btn-ghost btn-xs"
+					title="Copy body"
+					aria-label="Copy body"
+					data-testid="webhook-body-copy"
+					data-clip-copy
+					data-clip-markdown={ PrettyJSON(bodyJSON) }>Copy</button>
+			</div>
+			<pre class="flowbot-json bg-base-200 rounded p-2 text-xs font-mono overflow-x-auto max-h-96"
+				data-testid="webhook-body-json">
+				@templ.Raw(HighlightJSON(PrettyJSON(bodyJSON)))
+			</pre>
+		</div>
+		if bodyTruncated {
+			<div class="text-xs text-warning mt-1">Body truncated to 64KB</div>
+		}
+	</div>
 }

@@ -1,4 +1,32 @@
 (function () {
+  var STORAGE_KEY = 'flowbot-event-filters';
+
+  function readPresets() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return [];
+      }
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed.filter(function (p) {
+        return p && typeof p.name === 'string' && p.name.trim() !== '';
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  function writePresets(presets) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+    } catch {
+      // intentionally silent: private mode / quota
+    }
+  }
+
   function register() {
     Alpine.data('eventFilters', () => ({
       timeRange: 'custom',
@@ -9,6 +37,8 @@
       source: '',
       eventType: '',
       tab: 'data-events',
+      savedPresets: [],
+      selectedPreset: '',
 
       init() {
         const params = new URLSearchParams(window.location.search);
@@ -19,6 +49,11 @@
         this.source = params.get('source') || '';
         this.eventType = params.get('type') || '';
         this.tab = params.get('tab') || 'data-events';
+        this.savedPresets = readPresets();
+        this.$nextTick(() => {
+          this.syncPresetOptions();
+          this.submitFilter();
+        });
 
         if (this.timeStart && this.timeEnd) {
           const now = Date.now();
@@ -67,9 +102,18 @@
         return params.toString();
       },
 
+      syncURL() {
+        const qs = this.getFilterParams();
+        const next = '/service/web/events?' + qs;
+        if (window.location.pathname + window.location.search !== next) {
+          history.replaceState(null, '', next);
+        }
+      },
+
       submitFilter() {
-        const url =
-          '/service/web/events/filtered-events?' + this.getFilterParams();
+        const qs = this.getFilterParams();
+        this.syncURL();
+        const url = '/service/web/events/filtered-events?' + qs;
         htmx.ajax('GET', url, {
           target: '#events-table-container',
           swap: 'innerHTML',
@@ -84,6 +128,118 @@
       debounceSearch() {
         clearTimeout(this.searchTimer);
         this.searchTimer = setTimeout(() => this.submitFilter(), 300);
+      },
+
+      resetFilters() {
+        clearTimeout(this.searchTimer);
+        this.timeRange = 'custom';
+        this.timeStart = '';
+        this.timeEnd = '';
+        this.search = '';
+        this.pipeline = '';
+        this.source = '';
+        this.eventType = '';
+        this.selectedPreset = '';
+        this.submitFilter();
+      },
+
+      syncPresetOptions() {
+        var sel = this.$refs.savedFiltersSelect;
+        if (!sel) {
+          return;
+        }
+        var current = this.selectedPreset || '';
+        while (sel.options.length > 1) {
+          sel.remove(1);
+        }
+        for (var i = 0; i < this.savedPresets.length; i++) {
+          var opt = document.createElement('option');
+          opt.value = this.savedPresets[i].name;
+          opt.textContent = this.savedPresets[i].name;
+          sel.appendChild(opt);
+        }
+        sel.value = current;
+        if (sel.value !== current) {
+          this.selectedPreset = '';
+        }
+      },
+
+      saveCurrentFilter() {
+        var name = window.prompt('Filter name');
+        if (!name) {
+          return;
+        }
+        name = name.trim();
+        if (!name) {
+          return;
+        }
+        var preset = {
+          name: name,
+          source: this.source || '',
+          type: this.eventType || '',
+          pipeline: this.pipeline || '',
+          search: this.search || '',
+          timeRange: this.timeRange || 'custom',
+          timeStart: this.timeStart || '',
+          timeEnd: this.timeEnd || '',
+          tab: this.tab || 'data-events',
+        };
+        var next = this.savedPresets.filter(function (p) {
+          return p.name !== name;
+        });
+        next.push(preset);
+        this.savedPresets = next;
+        writePresets(next);
+        this.selectedPreset = name;
+        this.$nextTick(() => this.syncPresetOptions());
+      },
+
+      applySelectedPreset() {
+        var name = this.selectedPreset;
+        if (!name) {
+          return;
+        }
+        var preset = null;
+        for (var i = 0; i < this.savedPresets.length; i++) {
+          if (this.savedPresets[i].name === name) {
+            preset = this.savedPresets[i];
+            break;
+          }
+        }
+        if (!preset) {
+          return;
+        }
+        this.source = preset.source || '';
+        this.eventType = preset.type || '';
+        this.pipeline = preset.pipeline || '';
+        this.search = preset.search || '';
+        this.tab = preset.tab || 'data-events';
+        this.timeRange = preset.timeRange || 'custom';
+        if (
+          preset.timeRange === '1h' ||
+          preset.timeRange === '24h' ||
+          preset.timeRange === '7d'
+        ) {
+          this.setTimeRange(preset.timeRange);
+          return;
+        }
+        this.timeStart = preset.timeStart || '';
+        this.timeEnd = preset.timeEnd || '';
+        this.submitFilter();
+      },
+
+      deleteSelectedPreset() {
+        var name = this.selectedPreset;
+        if (!name) {
+          return;
+        }
+        var next = this.savedPresets.filter(function (p) {
+          return p.name !== name;
+        });
+        this.savedPresets = next;
+        writePresets(next);
+        this.selectedPreset = '';
+        this.$nextTick(() => this.syncPresetOptions());
       },
     }));
   }
