@@ -608,6 +608,56 @@ func TestListChatSessions(t *testing.T) {
 			}(),
 			wantLen: 1,
 		},
+		{
+			name: "archived filter excludes archived by default path",
+			seeds: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-open", UID: "user:arch", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-arch", UID: "user:arch", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+				require.NoError(t, a.UpdateChatSessionArchived(context.Background(), "sess-arch", true))
+			},
+			opts: func() store.ListChatSessionsOptions {
+				archived := false
+				return store.ListChatSessionsOptions{Limit: 10, UID: "user:arch", Archived: &archived}
+			}(),
+			wantLen: 1,
+		},
+		{
+			name: "pinned first sorts pinned ahead",
+			seeds: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-unpin", UID: "user:pin", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-pin", UID: "user:pin", State: int(schema.ChatSessionActive),
+					CreatedAt: now.Add(-time.Hour), UpdatedAt: now.Add(-time.Hour),
+				}))
+				require.NoError(t, a.UpdateChatSessionPinned(context.Background(), "sess-pin", true))
+			},
+			opts:    store.ListChatSessionsOptions{Limit: 10, UID: "user:pin", PinnedFirst: true},
+			wantLen: 2,
+		},
+		{
+			name: "flags filter returns matching sessions only",
+			seeds: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-keep", UID: "user:f", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+				require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+					Flag: "sess-drop", UID: "user:f", State: int(schema.ChatSessionActive),
+					CreatedAt: now, UpdatedAt: now,
+				}))
+			},
+			opts:    store.ListChatSessionsOptions{Limit: 10, Flags: []string{"sess-keep"}},
+			wantLen: 1,
+		},
 	}
 
 	for _, tt := range tests {
@@ -619,6 +669,13 @@ func TestListChatSessions(t *testing.T) {
 			got, cursor, err := a.ListChatSessions(context.Background(), tt.opts)
 			require.NoError(t, err)
 			assert.Len(t, got, tt.wantLen)
+			if tt.name == "pinned first sorts pinned ahead" && len(got) == 2 {
+				assert.Equal(t, "sess-pin", got[0].Flag)
+				assert.True(t, got[0].Pinned)
+			}
+			if tt.name == "flags filter returns matching sessions only" && len(got) == 1 {
+				assert.Equal(t, "sess-keep", got[0].Flag)
+			}
 			if tt.wantCursor {
 				assert.NotEmpty(t, cursor)
 				page2, cursor2, err := a.ListChatSessions(context.Background(), store.ListChatSessionsOptions{
@@ -668,6 +725,68 @@ func TestUpdateChatSessionTitle(t *testing.T) {
 			got, err := a.GetChatSession(ctx, "sess-title")
 			require.NoError(t, err)
 			assert.Equal(t, tt.title, got.Title)
+		})
+	}
+}
+
+func TestUpdateChatSessionListMeta(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	a := testAdapter(t)
+	require.NoError(t, a.CreateChatSession(ctx, &gen.ChatSession{
+		Flag: "sess-meta", UID: "user:m", State: int(schema.ChatSessionActive),
+	}))
+
+	tests := []struct {
+		name string
+		run  func(t *testing.T)
+	}{
+		{
+			name: "sets preview",
+			run: func(t *testing.T) {
+				require.NoError(t, a.UpdateChatSessionPreview(ctx, "sess-meta", "last reply"))
+				got, err := a.GetChatSession(ctx, "sess-meta")
+				require.NoError(t, err)
+				assert.Equal(t, "last reply", got.Preview)
+			},
+		},
+		{
+			name: "pins and unpins",
+			run: func(t *testing.T) {
+				require.NoError(t, a.UpdateChatSessionPinned(ctx, "sess-meta", true))
+				got, err := a.GetChatSession(ctx, "sess-meta")
+				require.NoError(t, err)
+				assert.True(t, got.Pinned)
+				require.NoError(t, a.UpdateChatSessionPinned(ctx, "sess-meta", false))
+				got, err = a.GetChatSession(ctx, "sess-meta")
+				require.NoError(t, err)
+				assert.False(t, got.Pinned)
+			},
+		},
+		{
+			name: "archives and restores",
+			run: func(t *testing.T) {
+				require.NoError(t, a.UpdateChatSessionArchived(ctx, "sess-meta", true))
+				got, err := a.GetChatSession(ctx, "sess-meta")
+				require.NoError(t, err)
+				assert.True(t, got.Archived)
+				require.NoError(t, a.UpdateChatSessionArchived(ctx, "sess-meta", false))
+				got, err = a.GetChatSession(ctx, "sess-meta")
+				require.NoError(t, err)
+				assert.False(t, got.Archived)
+			},
+		},
+		{
+			name: "missing session preview",
+			run: func(t *testing.T) {
+				err := a.UpdateChatSessionPreview(ctx, "missing", "x")
+				assert.ErrorIs(t, err, types.ErrNotFound)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.run(t)
 		})
 	}
 }

@@ -11988,6 +11988,9 @@ type ChatSessionMutation struct {
 	model          *string
 	thinking_level *string
 	title          *string
+	preview        *string
+	pinned         *bool
+	archived       *bool
 	created_at     *time.Time
 	updated_at     *time.Time
 	clearedFields  map[string]struct{}
@@ -12408,6 +12411,114 @@ func (m *ChatSessionMutation) ResetTitle() {
 	m.title = nil
 }
 
+// SetPreview sets the "preview" field.
+func (m *ChatSessionMutation) SetPreview(s string) {
+	m.preview = &s
+}
+
+// Preview returns the value of the "preview" field in the mutation.
+func (m *ChatSessionMutation) Preview() (r string, exists bool) {
+	v := m.preview
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPreview returns the old "preview" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldPreview(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPreview is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPreview requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPreview: %w", err)
+	}
+	return oldValue.Preview, nil
+}
+
+// ResetPreview resets all changes to the "preview" field.
+func (m *ChatSessionMutation) ResetPreview() {
+	m.preview = nil
+}
+
+// SetPinned sets the "pinned" field.
+func (m *ChatSessionMutation) SetPinned(b bool) {
+	m.pinned = &b
+}
+
+// Pinned returns the value of the "pinned" field in the mutation.
+func (m *ChatSessionMutation) Pinned() (r bool, exists bool) {
+	v := m.pinned
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPinned returns the old "pinned" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldPinned(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPinned is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPinned requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPinned: %w", err)
+	}
+	return oldValue.Pinned, nil
+}
+
+// ResetPinned resets all changes to the "pinned" field.
+func (m *ChatSessionMutation) ResetPinned() {
+	m.pinned = nil
+}
+
+// SetArchived sets the "archived" field.
+func (m *ChatSessionMutation) SetArchived(b bool) {
+	m.archived = &b
+}
+
+// Archived returns the value of the "archived" field in the mutation.
+func (m *ChatSessionMutation) Archived() (r bool, exists bool) {
+	v := m.archived
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArchived returns the old "archived" field's value of the ChatSession entity.
+// If the ChatSession object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ChatSessionMutation) OldArchived(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArchived is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArchived requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArchived: %w", err)
+	}
+	return oldValue.Archived, nil
+}
+
+// ResetArchived resets all changes to the "archived" field.
+func (m *ChatSessionMutation) ResetArchived() {
+	m.archived = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *ChatSessionMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -12514,7 +12625,7 @@ func (m *ChatSessionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ChatSessionMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 13)
 	if m.flag != nil {
 		fields = append(fields, chatsession.FieldFlag)
 	}
@@ -12538,6 +12649,15 @@ func (m *ChatSessionMutation) Fields() []string {
 	}
 	if m.title != nil {
 		fields = append(fields, chatsession.FieldTitle)
+	}
+	if m.preview != nil {
+		fields = append(fields, chatsession.FieldPreview)
+	}
+	if m.pinned != nil {
+		fields = append(fields, chatsession.FieldPinned)
+	}
+	if m.archived != nil {
+		fields = append(fields, chatsession.FieldArchived)
 	}
 	if m.created_at != nil {
 		fields = append(fields, chatsession.FieldCreatedAt)
@@ -12569,6 +12689,12 @@ func (m *ChatSessionMutation) Field(name string) (ent.Value, bool) {
 		return m.ThinkingLevel()
 	case chatsession.FieldTitle:
 		return m.Title()
+	case chatsession.FieldPreview:
+		return m.Preview()
+	case chatsession.FieldPinned:
+		return m.Pinned()
+	case chatsession.FieldArchived:
+		return m.Archived()
 	case chatsession.FieldCreatedAt:
 		return m.CreatedAt()
 	case chatsession.FieldUpdatedAt:
@@ -12598,6 +12724,12 @@ func (m *ChatSessionMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldThinkingLevel(ctx)
 	case chatsession.FieldTitle:
 		return m.OldTitle(ctx)
+	case chatsession.FieldPreview:
+		return m.OldPreview(ctx)
+	case chatsession.FieldPinned:
+		return m.OldPinned(ctx)
+	case chatsession.FieldArchived:
+		return m.OldArchived(ctx)
 	case chatsession.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case chatsession.FieldUpdatedAt:
@@ -12666,6 +12798,27 @@ func (m *ChatSessionMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
+		return nil
+	case chatsession.FieldPreview:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPreview(v)
+		return nil
+	case chatsession.FieldPinned:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPinned(v)
+		return nil
+	case chatsession.FieldArchived:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArchived(v)
 		return nil
 	case chatsession.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -12768,6 +12921,15 @@ func (m *ChatSessionMutation) ResetField(name string) error {
 		return nil
 	case chatsession.FieldTitle:
 		m.ResetTitle()
+		return nil
+	case chatsession.FieldPreview:
+		m.ResetPreview()
+		return nil
+	case chatsession.FieldPinned:
+		m.ResetPinned()
+		return nil
+	case chatsession.FieldArchived:
+		m.ResetArchived()
 		return nil
 	case chatsession.FieldCreatedAt:
 		m.ResetCreatedAt()

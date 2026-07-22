@@ -23,6 +23,47 @@ func ChatAgentDetailURL(template, sessionID string) string {
 	return strings.ReplaceAll(template, "{id}", sessionID)
 }
 
+// ChatAgentSessionListURL builds the HTMX list URL including optional filter and cursor.
+func ChatAgentSessionListURL(endpoints ChatAgentEndpoints, cursor string) string {
+	base := strings.TrimSpace(endpoints.ListURL)
+	if base == "" {
+		base = "/service/web/agents/list"
+	}
+	q := make([]string, 0, 2)
+	if filter := strings.TrimSpace(endpoints.Filter); filter != "" {
+		q = append(q, "filter="+filter)
+	}
+	if cursor != "" {
+		q = append(q, "cursor="+cursor)
+	}
+	if len(q) == 0 {
+		return base
+	}
+	return base + "?" + strings.Join(q, "&")
+}
+
+// ChatAgentListActionURL builds pin/archive action URLs and preserves the active list filter.
+func ChatAgentListActionURL(template, sessionID, filter string) string {
+	url := ChatAgentDetailURL(template, sessionID)
+	if f := strings.TrimSpace(filter); f != "" {
+		return url + "?filter=" + f
+	}
+	return url
+}
+
+func chatAgentSessionDisplayState(item model.AgentSession) string {
+	switch item.Activity {
+	case "needs_approval":
+		return "NeedsApproval"
+	case "running":
+		return "Running"
+	default:
+		return item.State
+	}
+}
+
+const chatAgentSessionPreviewLimit = 96
+
 // ChatAgentSessionTitle returns the display title for a session list row.
 func ChatAgentSessionTitle(item model.AgentSession) string {
 	if title := strings.TrimSpace(item.Title); title != "" {
@@ -32,6 +73,107 @@ func ChatAgentSessionTitle(item model.AgentSession) string {
 		return item.Flag
 	}
 	return "Untitled session"
+}
+
+// TruncateChatAgentSessionPreview shortens last-message text for list rows.
+func TruncateChatAgentSessionPreview(text string, limit int) string {
+	text = strings.Join(strings.Fields(strings.TrimSpace(text)), " ")
+	if text == "" {
+		return ""
+	}
+	if limit <= 0 {
+		limit = chatAgentSessionPreviewLimit
+	}
+	runes := []rune(text)
+	if len(runes) <= limit {
+		return text
+	}
+	if limit == 1 {
+		return "…"
+	}
+	return string(runes[:limit-1]) + "…"
+}
+
+// ChatAgentSessionActivityLabel returns a human-readable runtime activity label.
+func ChatAgentSessionActivityLabel(activity string) string {
+	switch strings.TrimSpace(activity) {
+	case "running":
+		return "Running"
+	case "needs_approval":
+		return "Needs approval"
+	default:
+		return ""
+	}
+}
+
+// GroupAgentSessionsForList builds pinned + calendar-day buckets for the agents home list.
+func GroupAgentSessionsForList(items []model.AgentSession, now time.Time) []model.AgentSessionDayGroup {
+	if len(items) == 0 {
+		return nil
+	}
+	pinned := make([]model.AgentSession, 0)
+	rest := make([]model.AgentSession, 0, len(items))
+	for _, item := range items {
+		if item.Pinned {
+			pinned = append(pinned, item)
+			continue
+		}
+		rest = append(rest, item)
+	}
+	groups := make([]model.AgentSessionDayGroup, 0, 4)
+	if len(pinned) > 0 {
+		groups = append(groups, model.AgentSessionDayGroup{
+			Key:   "pinned",
+			Label: "Pinned",
+			Items: pinned,
+		})
+	}
+	groups = append(groups, GroupAgentSessionsByDay(rest, now)...)
+	return groups
+}
+
+// GroupAgentSessionsByDay buckets sessions by local calendar day of UpdatedAt.
+// Input order is preserved within each day group.
+func GroupAgentSessionsByDay(items []model.AgentSession, now time.Time) []model.AgentSessionDayGroup {
+	if len(items) == 0 {
+		return nil
+	}
+	if now.IsZero() {
+		now = time.Now()
+	}
+	loc := now.Location()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+	yesterday := today.AddDate(0, 0, -1)
+
+	groups := make([]model.AgentSessionDayGroup, 0)
+	indexByKey := make(map[string]int, 8)
+	for _, item := range items {
+		at := item.UpdatedAt.In(loc)
+		day := time.Date(at.Year(), at.Month(), at.Day(), 0, 0, 0, 0, loc)
+		key := day.Format("2006-01-02")
+		label := key
+		switch {
+		case day.Equal(today):
+			key = "today"
+			label = "Today"
+		case day.Equal(yesterday):
+			key = "yesterday"
+			label = "Yesterday"
+		default:
+			label = day.Format("Mon, Jan 2")
+		}
+		if idx, ok := indexByKey[key]; ok {
+			groups[idx].Items = append(groups[idx].Items, item)
+			continue
+		}
+		indexByKey[key] = len(groups)
+		groups = append(groups, model.AgentSessionDayGroup{
+			Key:   key,
+			Label: label,
+			Items: []model.AgentSession{item},
+		})
+	}
+	return groups
 }
 
 // FormatChatAgentRelativeTime returns a compact relative timestamp (e.g. "2h", "6d").
@@ -85,10 +227,12 @@ func chatAgentRelativeTimeSince(t, now time.Time) string {
 // chatAgentSessionThumbClass returns thumbnail frame classes for a session state.
 func chatAgentSessionThumbClass(state string) string {
 	base := "agents-session-thumb"
-	if state == "Active" {
+	switch state {
+	case "Active", "Running", "NeedsApproval":
 		return base + " agents-session-thumb-active"
+	default:
+		return base
 	}
-	return base
 }
 
 // chatAgentSessionBadgeClass returns pill badge classes for the session thumbnail.
@@ -96,6 +240,10 @@ func chatAgentSessionBadgeClass(state string) string {
 	switch state {
 	case "Active":
 		return "agents-session-badge agents-session-badge-active"
+	case "Running":
+		return "agents-session-badge agents-session-badge-running"
+	case "NeedsApproval":
+		return "agents-session-badge agents-session-badge-needs-approval"
 	case "Closed":
 		return "agents-session-badge agents-session-badge-closed"
 	default:

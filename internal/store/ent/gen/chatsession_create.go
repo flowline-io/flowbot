@@ -118,6 +118,48 @@ func (_c *ChatSessionCreate) SetNillableTitle(v *string) *ChatSessionCreate {
 	return _c
 }
 
+// SetPreview sets the "preview" field.
+func (_c *ChatSessionCreate) SetPreview(v string) *ChatSessionCreate {
+	_c.mutation.SetPreview(v)
+	return _c
+}
+
+// SetNillablePreview sets the "preview" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillablePreview(v *string) *ChatSessionCreate {
+	if v != nil {
+		_c.SetPreview(*v)
+	}
+	return _c
+}
+
+// SetPinned sets the "pinned" field.
+func (_c *ChatSessionCreate) SetPinned(v bool) *ChatSessionCreate {
+	_c.mutation.SetPinned(v)
+	return _c
+}
+
+// SetNillablePinned sets the "pinned" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillablePinned(v *bool) *ChatSessionCreate {
+	if v != nil {
+		_c.SetPinned(*v)
+	}
+	return _c
+}
+
+// SetArchived sets the "archived" field.
+func (_c *ChatSessionCreate) SetArchived(v bool) *ChatSessionCreate {
+	_c.mutation.SetArchived(v)
+	return _c
+}
+
+// SetNillableArchived sets the "archived" field if the given value is not nil.
+func (_c *ChatSessionCreate) SetNillableArchived(v *bool) *ChatSessionCreate {
+	if v != nil {
+		_c.SetArchived(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *ChatSessionCreate) SetCreatedAt(v time.Time) *ChatSessionCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -211,6 +253,18 @@ func (_c *ChatSessionCreate) defaults() {
 		v := chatsession.DefaultTitle
 		_c.mutation.SetTitle(v)
 	}
+	if _, ok := _c.mutation.Preview(); !ok {
+		v := chatsession.DefaultPreview
+		_c.mutation.SetPreview(v)
+	}
+	if _, ok := _c.mutation.Pinned(); !ok {
+		v := chatsession.DefaultPinned
+		_c.mutation.SetPinned(v)
+	}
+	if _, ok := _c.mutation.Archived(); !ok {
+		v := chatsession.DefaultArchived
+		_c.mutation.SetArchived(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := chatsession.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -256,6 +310,15 @@ func (_c *ChatSessionCreate) check() error {
 	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`gen: missing required field "ChatSession.title"`)}
+	}
+	if _, ok := _c.mutation.Preview(); !ok {
+		return &ValidationError{Name: "preview", err: errors.New(`gen: missing required field "ChatSession.preview"`)}
+	}
+	if _, ok := _c.mutation.Pinned(); !ok {
+		return &ValidationError{Name: "pinned", err: errors.New(`gen: missing required field "ChatSession.pinned"`)}
+	}
+	if _, ok := _c.mutation.Archived(); !ok {
+		return &ValidationError{Name: "archived", err: errors.New(`gen: missing required field "ChatSession.archived"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "ChatSession.created_at"`)}
@@ -327,6 +390,18 @@ func (_c *ChatSessionCreate) createSpec() (*ChatSession, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
 		_node.Title = value
+	}
+	if value, ok := _c.mutation.Preview(); ok {
+		_spec.SetField(chatsession.FieldPreview, field.TypeString, value)
+		_node.Preview = value
+	}
+	if value, ok := _c.mutation.Pinned(); ok {
+		_spec.SetField(chatsession.FieldPinned, field.TypeBool, value)
+		_node.Pinned = value
+	}
+	if value, ok := _c.mutation.Archived(); ok {
+		_spec.SetField(chatsession.FieldArchived, field.TypeBool, value)
+		_node.Archived = value
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(chatsession.FieldCreatedAt, field.TypeTime, value)
@@ -487,6 +562,42 @@ func (u *ChatSessionUpsert) SetTitle(v string) *ChatSessionUpsert {
 // UpdateTitle sets the "title" field to the value that was provided on create.
 func (u *ChatSessionUpsert) UpdateTitle() *ChatSessionUpsert {
 	u.SetExcluded(chatsession.FieldTitle)
+	return u
+}
+
+// SetPreview sets the "preview" field.
+func (u *ChatSessionUpsert) SetPreview(v string) *ChatSessionUpsert {
+	u.Set(chatsession.FieldPreview, v)
+	return u
+}
+
+// UpdatePreview sets the "preview" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdatePreview() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldPreview)
+	return u
+}
+
+// SetPinned sets the "pinned" field.
+func (u *ChatSessionUpsert) SetPinned(v bool) *ChatSessionUpsert {
+	u.Set(chatsession.FieldPinned, v)
+	return u
+}
+
+// UpdatePinned sets the "pinned" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdatePinned() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldPinned)
+	return u
+}
+
+// SetArchived sets the "archived" field.
+func (u *ChatSessionUpsert) SetArchived(v bool) *ChatSessionUpsert {
+	u.Set(chatsession.FieldArchived, v)
+	return u
+}
+
+// UpdateArchived sets the "archived" field to the value that was provided on create.
+func (u *ChatSessionUpsert) UpdateArchived() *ChatSessionUpsert {
+	u.SetExcluded(chatsession.FieldArchived)
 	return u
 }
 
@@ -669,6 +780,48 @@ func (u *ChatSessionUpsertOne) SetTitle(v string) *ChatSessionUpsertOne {
 func (u *ChatSessionUpsertOne) UpdateTitle() *ChatSessionUpsertOne {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateTitle()
+	})
+}
+
+// SetPreview sets the "preview" field.
+func (u *ChatSessionUpsertOne) SetPreview(v string) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetPreview(v)
+	})
+}
+
+// UpdatePreview sets the "preview" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdatePreview() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdatePreview()
+	})
+}
+
+// SetPinned sets the "pinned" field.
+func (u *ChatSessionUpsertOne) SetPinned(v bool) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetPinned(v)
+	})
+}
+
+// UpdatePinned sets the "pinned" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdatePinned() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdatePinned()
+	})
+}
+
+// SetArchived sets the "archived" field.
+func (u *ChatSessionUpsertOne) SetArchived(v bool) *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetArchived(v)
+	})
+}
+
+// UpdateArchived sets the "archived" field to the value that was provided on create.
+func (u *ChatSessionUpsertOne) UpdateArchived() *ChatSessionUpsertOne {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateArchived()
 	})
 }
 
@@ -1019,6 +1172,48 @@ func (u *ChatSessionUpsertBulk) SetTitle(v string) *ChatSessionUpsertBulk {
 func (u *ChatSessionUpsertBulk) UpdateTitle() *ChatSessionUpsertBulk {
 	return u.Update(func(s *ChatSessionUpsert) {
 		s.UpdateTitle()
+	})
+}
+
+// SetPreview sets the "preview" field.
+func (u *ChatSessionUpsertBulk) SetPreview(v string) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetPreview(v)
+	})
+}
+
+// UpdatePreview sets the "preview" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdatePreview() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdatePreview()
+	})
+}
+
+// SetPinned sets the "pinned" field.
+func (u *ChatSessionUpsertBulk) SetPinned(v bool) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetPinned(v)
+	})
+}
+
+// UpdatePinned sets the "pinned" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdatePinned() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdatePinned()
+	})
+}
+
+// SetArchived sets the "archived" field.
+func (u *ChatSessionUpsertBulk) SetArchived(v bool) *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.SetArchived(v)
+	})
+}
+
+// UpdateArchived sets the "archived" field to the value that was provided on create.
+func (u *ChatSessionUpsertBulk) UpdateArchived() *ChatSessionUpsertBulk {
+	return u.Update(func(s *ChatSessionUpsert) {
+		s.UpdateArchived()
 	})
 }
 

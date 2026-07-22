@@ -30,6 +30,10 @@ var (
 		webservice.Post("/agents/render-markdown", agentRenderMarkdown, route.WithNotAuth()),
 		webservice.Get("/agents/:id", agentChatPage, route.WithNotAuth()),
 		webservice.Delete("/agents/:id", agentChatClose, route.WithNotAuth()),
+		webservice.Post("/agents/:id/pin", agentChatPin, route.WithNotAuth()),
+		webservice.Delete("/agents/:id/pin", agentChatUnpin, route.WithNotAuth()),
+		webservice.Post("/agents/:id/archive", agentChatArchive, route.WithNotAuth()),
+		webservice.Delete("/agents/:id/archive", agentChatUnarchive, route.WithNotAuth()),
 		webservice.Get("/agents/:id/settings", agentChatGetSettings, route.WithNotAuth()),
 		webservice.Put("/agents/:id/settings", agentChatPutSettings, route.WithNotAuth()),
 		webservice.Post("/agents/:id/messages", agentChatSendMessage, route.WithNotAuth()),
@@ -43,14 +47,37 @@ var (
 	webChatAgentService = chatagent.NewService()
 )
 
+const (
+	agentsListFilterAll           = ""
+	agentsListFilterRunning       = "running"
+	agentsListFilterNeedsApproval = "needs_approval"
+	agentsListFilterArchived      = "archived"
+)
+
 func agentsEndpoints() partials.ChatAgentEndpoints {
+	return agentsEndpointsWithFilter("")
+}
+
+func agentsEndpointsWithFilter(filter string) partials.ChatAgentEndpoints {
 	return partials.ChatAgentEndpoints{
-		CreateURL:         "/service/web/agents",
-		ListURL:           "/service/web/agents/list",
-		DetailURLTemplate: "/service/web/agents/{id}",
-		RenderMarkdownURL: "/service/web/agents/render-markdown",
-		SelectableModels:  selectableModelOptions(),
-		DefaultModel:      pkgconfig.ChatAgentChatModel(),
+		CreateURL:          "/service/web/agents",
+		ListURL:            "/service/web/agents/list",
+		DetailURLTemplate:  "/service/web/agents/{id}",
+		PinURLTemplate:     "/service/web/agents/{id}/pin",
+		ArchiveURLTemplate: "/service/web/agents/{id}/archive",
+		Filter:             normalizeAgentsListFilter(filter),
+		RenderMarkdownURL:  "/service/web/agents/render-markdown",
+		SelectableModels:   selectableModelOptions(),
+		DefaultModel:       pkgconfig.ChatAgentChatModel(),
+	}
+}
+
+func normalizeAgentsListFilter(filter string) string {
+	switch strings.TrimSpace(filter) {
+	case agentsListFilterRunning, agentsListFilterNeedsApproval, agentsListFilterArchived:
+		return filter
+	default:
+		return agentsListFilterAll
 	}
 }
 
@@ -107,17 +134,18 @@ func agentsPage(ctx fiber.Ctx) error {
 		return err
 	}
 	enabled := pkgconfig.ChatAgentEnabled()
+	filter := normalizeAgentsListFilter(ctx.Query("filter"))
 	var items []model.AgentSession
 	var nextCursor string
 	if enabled {
 		var err error
-		items, nextCursor, err = listUserAgentSessionModels(ctx, "")
+		items, nextCursor, err = listUserAgentSessionModels(ctx, "", filter)
 		if err != nil {
 			return types.Errorf(types.ErrInternal, "list agents: %v", err)
 		}
 	}
 	ctx.Type("html")
-	return pages.AgentsPage(items, nextCursor, agentsEndpoints(), enabled).
+	return pages.AgentsPage(items, nextCursor, agentsEndpointsWithFilter(filter), enabled).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -130,13 +158,14 @@ func agentsTable(ctx fiber.Ctx) error {
 		return renderError(ctx, "Chat agent is not enabled")
 	}
 	cursor := ctx.Query("cursor")
-	items, nextCursor, err := listUserAgentSessionModels(ctx, cursor)
+	filter := normalizeAgentsListFilter(ctx.Query("filter"))
+	items, nextCursor, err := listUserAgentSessionModels(ctx, cursor, filter)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to load sessions")
 	}
 	ctx.Type("html")
-	endpoints := agentsEndpoints()
+	endpoints := agentsEndpointsWithFilter(filter)
 	if cursor != "" {
 		return partials.ChatAgentSessionListAppend(items, nextCursor, endpoints).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -517,25 +546,42 @@ func agentChatEvents(ctx fiber.Ctx) error {
 	return streamWebSessionEvents(ctx, sessionID)
 }
 
-func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSession, string, error) {
+func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.AgentSession, string, error) {
 	if store.Database == nil {
 		return nil, "", errors.New("store not available")
 	}
 	uid := getUID(ctx)
+	filter = normalizeAgentsListFilter(filter)
 	active := int(schema.ChatSessionActive)
-	rows, nextCursor, err := store.Database.ListChatSessions(ctx.Context(), store.ListChatSessionsOptions{
-		Limit:  20,
-		Cursor: cursor,
-		UID:    uid,
-		State:  &active,
-	})
+	archivedOnly := filter == agentsListFilterArchived
+	archived := archivedOnly
+	opts := store.ListChatSessionsOptions{
+		Limit:       20,
+		Cursor:      cursor,
+		UID:         uid,
+		State:       &active,
+		Archived:    &archived,
+		PinnedFirst: !archivedOnly,
+	}
+	switch filter {
+	case agentsListFilterRunning, agentsListFilterNeedsApproval:
+		flags := chatagent.ListSessionIDsByActivity(filter)
+		if len(flags) == 0 {
+			return nil, "", nil
+		}
+		opts.Flags = flags
+		opts.Cursor = ""
+	}
+	rows, nextCursor, err := store.Database.ListChatSessions(ctx.Context(), opts)
 	if err != nil {
 		return nil, "", err
 	}
 	leafBySession := make(map[string]string, len(rows))
 	items := make([]model.AgentSession, 0, len(rows))
 	for _, row := range rows {
-		items = append(items, mapAgentSession(row))
+		item := mapAgentSession(row)
+		item.Activity = chatagent.SessionActivity(row.Flag)
+		items = append(items, item)
 		leafBySession[row.Flag] = row.LeafID
 	}
 	if len(leafBySession) > 0 {
@@ -559,6 +605,85 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSess
 		}
 	}
 	return items, nextCursor, nil
+}
+
+func agentChatPin(ctx fiber.Ctx) error {
+	return setAgentChatPinned(ctx, true)
+}
+
+func agentChatUnpin(ctx fiber.Ctx) error {
+	return setAgentChatPinned(ctx, false)
+}
+
+func agentChatArchive(ctx fiber.Ctx) error {
+	return setAgentChatArchived(ctx, true)
+}
+
+func agentChatUnarchive(ctx fiber.Ctx) error {
+	return setAgentChatArchived(ctx, false)
+}
+
+func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return toastError(ctx, "Chat agent is not enabled")
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return toastError(ctx, "Session not found")
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return toastError(ctx, "Forbidden")
+		}
+		return types.Errorf(types.ErrInternal, "pin session: %v", err)
+	}
+	if err := store.Database.UpdateChatSessionPinned(ctx.Context(), sessionID, pinned); err != nil {
+		return toastError(ctx, "Failed to update pin")
+	}
+	filter := normalizeAgentsListFilter(ctx.Query("filter"))
+	items, nextCursor, err := listUserAgentSessionModels(ctx, "", filter)
+	if err != nil {
+		return toastError(ctx, "Failed to refresh sessions")
+	}
+	ctx.Type("html")
+	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter)).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return toastError(ctx, "Chat agent is not enabled")
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return toastError(ctx, "Session not found")
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return toastError(ctx, "Forbidden")
+		}
+		return types.Errorf(types.ErrInternal, "archive session: %v", err)
+	}
+	if err := store.Database.UpdateChatSessionArchived(ctx.Context(), sessionID, archived); err != nil {
+		return toastError(ctx, "Failed to update archive")
+	}
+	filter := normalizeAgentsListFilter(ctx.Query("filter"))
+	if archived && filter == agentsListFilterAll {
+		filter = agentsListFilterAll
+	}
+	items, nextCursor, err := listUserAgentSessionModels(ctx, "", filter)
+	if err != nil {
+		return toastError(ctx, "Failed to refresh sessions")
+	}
+	ctx.Type("html")
+	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter)).
+		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func mapChatMessages(messages []chatagent.HistoryMessage) []model.AgentChatMessage {

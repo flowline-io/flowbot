@@ -1536,7 +1536,30 @@ body:has(.chatagent-page) > main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   margin-bottom: 0.5rem;
+}
+
+.agents-session-list-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.agents-session-filters .btn-active {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 14%,
+    transparent
+  );
+  color: var(--color-primary, #0f766e);
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 35%,
+    transparent
+  );
 }
 
 .agents-session-list-label {
@@ -1549,21 +1572,61 @@ body:has(.chatagent-page) > main {
 .agents-session-rows {
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+}
+
+.agents-session-day-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.agents-session-day-label {
+  margin: 0.35rem 0.35rem 0.15rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: oklch(var(--bc) / 0.45);
 }
 
 .agents-session-row {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.85rem 0.35rem;
+  align-items: stretch;
+  gap: 0.35rem;
+  padding: 0.35rem;
   border-radius: 0.75rem;
-  text-decoration: none;
   color: inherit;
   transition: background-color 0.12s ease;
 }
 
 .agents-session-row:hover {
   background: oklch(var(--bc) / 0.04);
+}
+
+.agents-session-main {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.65rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.agents-session-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.agents-session-row:hover .agents-session-actions,
+.agents-session-row:focus-within .agents-session-actions {
+  opacity: 1;
 }
 
 .agents-session-thumb {
@@ -1609,6 +1672,24 @@ body:has(.chatagent-page) > main {
   color: var(--color-primary, #0f766e);
 }
 
+.agents-session-badge-running {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 18%,
+    transparent
+  );
+  color: var(--color-primary, #0f766e);
+}
+
+.agents-session-badge-needs-approval {
+  background: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 18%,
+    transparent
+  );
+  color: var(--color-warning, #d97706);
+}
+
 .agents-session-badge-closed {
   background: oklch(var(--bc) / 0.08);
   color: oklch(var(--bc) / 0.65);
@@ -1624,10 +1705,33 @@ body:has(.chatagent-page) > main {
   flex: 1;
 }
 
+.agents-session-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .agents-session-title {
   font-size: 0.95rem;
   font-weight: 600;
   color: oklch(var(--bc));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agents-session-pin-mark {
+  flex-shrink: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: oklch(var(--bc) / 0.45);
+}
+
+.agents-session-preview {
+  margin-top: 0.15rem;
+  font-size: 0.8rem;
+  color: oklch(var(--bc) / 0.55);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -194,17 +194,16 @@ func listTestChatSessions(sessions map[string]*gen.ChatSession, opts store.ListC
 		limit = 20
 	}
 
-	rows := make([]*gen.ChatSession, 0, len(sessions))
-	for _, sess := range sessions {
-		if opts.UID != "" && sess.UID != opts.UID {
-			continue
-		}
-		if opts.State != nil && sess.State != *opts.State {
-			continue
-		}
-		rows = append(rows, sess)
-	}
+	rows := filterTestChatSessions(sessions, opts)
 	slices.SortFunc(rows, func(a, b *gen.ChatSession) int {
+		if opts.PinnedFirst {
+			if a.Pinned != b.Pinned {
+				if a.Pinned {
+					return -1
+				}
+				return 1
+			}
+		}
 		if c := b.UpdatedAt.Compare(a.UpdatedAt); c != 0 {
 			return c
 		}
@@ -230,6 +229,32 @@ func listTestChatSessions(sessions map[string]*gen.ChatSession, opts store.ListC
 		rows = rows[:limit]
 	}
 	return rows, nextCursor, nil
+}
+
+func filterTestChatSessions(sessions map[string]*gen.ChatSession, opts store.ListChatSessionsOptions) []*gen.ChatSession {
+	flagSet := map[string]struct{}{}
+	for _, flag := range opts.Flags {
+		flagSet[flag] = struct{}{}
+	}
+	rows := make([]*gen.ChatSession, 0, len(sessions))
+	for _, sess := range sessions {
+		if opts.UID != "" && sess.UID != opts.UID {
+			continue
+		}
+		if opts.State != nil && sess.State != *opts.State {
+			continue
+		}
+		if opts.Archived != nil && sess.Archived != *opts.Archived {
+			continue
+		}
+		if len(flagSet) > 0 {
+			if _, ok := flagSet[sess.Flag]; !ok {
+				continue
+			}
+		}
+		rows = append(rows, sess)
+	}
+	return rows
 }
 func (*testStoreAdapter) UpdateChatSessionLeaf(_ context.Context, flag, leafID string) error {
 	sess, ok := testChatSessions[flag]
@@ -267,6 +292,34 @@ func (*testStoreAdapter) UpdateChatSessionTitle(_ context.Context, flag, title s
 	sess.Title = title
 	return nil
 }
+
+func (*testStoreAdapter) UpdateChatSessionPreview(_ context.Context, flag, preview string) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.Preview = preview
+	return nil
+}
+
+func (*testStoreAdapter) UpdateChatSessionPinned(_ context.Context, flag string, pinned bool) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.Pinned = pinned
+	return nil
+}
+
+func (*testStoreAdapter) UpdateChatSessionArchived(_ context.Context, flag string, archived bool) error {
+	sess, ok := testChatSessions[flag]
+	if !ok {
+		return types.ErrNotFound
+	}
+	sess.Archived = archived
+	return nil
+}
+
 func (*testStoreAdapter) CloseChatSession(_ context.Context, flag string) error {
 	sess, ok := testChatSessions[flag]
 	if !ok {

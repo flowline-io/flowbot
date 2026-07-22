@@ -708,11 +708,20 @@ func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessi
 		opts.Limit = 20
 	}
 
-	q := a.client.ChatSession.Query().
-		Order(
+	order := []chatsession.OrderOption{
+		gen.Desc(chatsession.FieldUpdatedAt),
+		gen.Desc(chatsession.FieldID),
+	}
+	if opts.PinnedFirst {
+		order = []chatsession.OrderOption{
+			gen.Desc(chatsession.FieldPinned),
 			gen.Desc(chatsession.FieldUpdatedAt),
 			gen.Desc(chatsession.FieldID),
-		).
+		}
+	}
+
+	q := a.client.ChatSession.Query().
+		Order(order...).
 		Limit(opts.Limit + 1)
 
 	if opts.Cursor != "" {
@@ -726,6 +735,12 @@ func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessi
 	}
 	if opts.State != nil {
 		q = q.Where(chatsession.StateEQ(*opts.State))
+	}
+	if opts.Archived != nil {
+		q = q.Where(chatsession.ArchivedEQ(*opts.Archived))
+	}
+	if len(opts.Flags) > 0 {
+		q = q.Where(chatsession.FlagIn(opts.Flags...))
 	}
 
 	rows, err := q.All(ctx)
@@ -795,6 +810,51 @@ func (a *adapter) UpdateChatSessionTitle(ctx context.Context, flag, title string
 		Save(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: update chat session title: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) UpdateChatSessionPreview(ctx context.Context, flag, preview string) error {
+	n, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetPreview(preview).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session preview: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) UpdateChatSessionPinned(ctx context.Context, flag string, pinned bool) error {
+	n, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetPinned(pinned).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session pinned: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) UpdateChatSessionArchived(ctx context.Context, flag string, archived bool) error {
+	n, err := a.client.ChatSession.Update().
+		Where(chatsession.FlagEQ(flag)).
+		SetArchived(archived).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update chat session archived: %w", err)
 	}
 	if n == 0 {
 		return types.ErrNotFound

@@ -34,19 +34,16 @@ func listWebTestChatSessions(sessions []*gen.ChatSession, opts store.ListChatSes
 		limit = 20
 	}
 
-	rows := append([]*gen.ChatSession(nil), sessions...)
-	filtered := rows[:0]
-	for _, sess := range rows {
-		if opts.UID != "" && sess.UID != opts.UID {
-			continue
-		}
-		if opts.State != nil && sess.State != *opts.State {
-			continue
-		}
-		filtered = append(filtered, sess)
-	}
-	rows = filtered
+	rows := filterWebTestChatSessions(sessions, opts)
 	slices.SortFunc(rows, func(a, b *gen.ChatSession) int {
+		if opts.PinnedFirst {
+			if a.Pinned != b.Pinned {
+				if a.Pinned {
+					return -1
+				}
+				return 1
+			}
+		}
 		if c := b.UpdatedAt.Compare(a.UpdatedAt); c != 0 {
 			return c
 		}
@@ -72,6 +69,32 @@ func listWebTestChatSessions(sessions []*gen.ChatSession, opts store.ListChatSes
 		rows = rows[:limit]
 	}
 	return rows, nextCursor
+}
+
+func filterWebTestChatSessions(sessions []*gen.ChatSession, opts store.ListChatSessionsOptions) []*gen.ChatSession {
+	flagSet := map[string]struct{}{}
+	for _, flag := range opts.Flags {
+		flagSet[flag] = struct{}{}
+	}
+	out := make([]*gen.ChatSession, 0, len(sessions))
+	for _, sess := range sessions {
+		if opts.UID != "" && sess.UID != opts.UID {
+			continue
+		}
+		if opts.State != nil && sess.State != *opts.State {
+			continue
+		}
+		if opts.Archived != nil && sess.Archived != *opts.Archived {
+			continue
+		}
+		if len(flagSet) > 0 {
+			if _, ok := flagSet[sess.Flag]; !ok {
+				continue
+			}
+		}
+		out = append(out, sess)
+	}
+	return out
 }
 
 func (s *testStore) GetChatSession(_ context.Context, flag string) (*gen.ChatSession, error) {
@@ -105,6 +128,33 @@ func (s *testStore) CloseChatSession(_ context.Context, flag string) error {
 			break
 		}
 	}
+	return nil
+}
+
+func (s *testStore) UpdateChatSessionPreview(_ context.Context, flag, preview string) error {
+	sess, err := s.GetChatSession(context.Background(), flag)
+	if err != nil {
+		return err
+	}
+	sess.Preview = preview
+	return nil
+}
+
+func (s *testStore) UpdateChatSessionPinned(_ context.Context, flag string, pinned bool) error {
+	sess, err := s.GetChatSession(context.Background(), flag)
+	if err != nil {
+		return err
+	}
+	sess.Pinned = pinned
+	return nil
+}
+
+func (s *testStore) UpdateChatSessionArchived(_ context.Context, flag string, archived bool) error {
+	sess, err := s.GetChatSession(context.Background(), flag)
+	if err != nil {
+		return err
+	}
+	sess.Archived = archived
 	return nil
 }
 

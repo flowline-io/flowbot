@@ -147,6 +147,48 @@ func (_u *ChatSessionUpdate) SetNillableTitle(v *string) *ChatSessionUpdate {
 	return _u
 }
 
+// SetPreview sets the "preview" field.
+func (_u *ChatSessionUpdate) SetPreview(v string) *ChatSessionUpdate {
+	_u.mutation.SetPreview(v)
+	return _u
+}
+
+// SetNillablePreview sets the "preview" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillablePreview(v *string) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetPreview(*v)
+	}
+	return _u
+}
+
+// SetPinned sets the "pinned" field.
+func (_u *ChatSessionUpdate) SetPinned(v bool) *ChatSessionUpdate {
+	_u.mutation.SetPinned(v)
+	return _u
+}
+
+// SetNillablePinned sets the "pinned" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillablePinned(v *bool) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetPinned(*v)
+	}
+	return _u
+}
+
+// SetArchived sets the "archived" field.
+func (_u *ChatSessionUpdate) SetArchived(v bool) *ChatSessionUpdate {
+	_u.mutation.SetArchived(v)
+	return _u
+}
+
+// SetNillableArchived sets the "archived" field if the given value is not nil.
+func (_u *ChatSessionUpdate) SetNillableArchived(v *bool) *ChatSessionUpdate {
+	if v != nil {
+		_u.SetArchived(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *ChatSessionUpdate) SetUpdatedAt(v time.Time) *ChatSessionUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -247,6 +289,15 @@ func (_u *ChatSessionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Preview(); ok {
+		_spec.SetField(chatsession.FieldPreview, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Pinned(); ok {
+		_spec.SetField(chatsession.FieldPinned, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Archived(); ok {
+		_spec.SetField(chatsession.FieldArchived, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(chatsession.FieldUpdatedAt, field.TypeTime, value)
@@ -390,6 +441,48 @@ func (_u *ChatSessionUpdateOne) SetNillableTitle(v *string) *ChatSessionUpdateOn
 	return _u
 }
 
+// SetPreview sets the "preview" field.
+func (_u *ChatSessionUpdateOne) SetPreview(v string) *ChatSessionUpdateOne {
+	_u.mutation.SetPreview(v)
+	return _u
+}
+
+// SetNillablePreview sets the "preview" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillablePreview(v *string) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetPreview(*v)
+	}
+	return _u
+}
+
+// SetPinned sets the "pinned" field.
+func (_u *ChatSessionUpdateOne) SetPinned(v bool) *ChatSessionUpdateOne {
+	_u.mutation.SetPinned(v)
+	return _u
+}
+
+// SetNillablePinned sets the "pinned" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillablePinned(v *bool) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetPinned(*v)
+	}
+	return _u
+}
+
+// SetArchived sets the "archived" field.
+func (_u *ChatSessionUpdateOne) SetArchived(v bool) *ChatSessionUpdateOne {
+	_u.mutation.SetArchived(v)
+	return _u
+}
+
+// SetNillableArchived sets the "archived" field if the given value is not nil.
+func (_u *ChatSessionUpdateOne) SetNillableArchived(v *bool) *ChatSessionUpdateOne {
+	if v != nil {
+		_u.SetArchived(*v)
+	}
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *ChatSessionUpdateOne) SetUpdatedAt(v time.Time) *ChatSessionUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
@@ -520,6 +613,15 @@ func (_u *ChatSessionUpdateOne) sqlSave(ctx context.Context) (_node *ChatSession
 	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(chatsession.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Preview(); ok {
+		_spec.SetField(chatsession.FieldPreview, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Pinned(); ok {
+		_spec.SetField(chatsession.FieldPinned, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Archived(); ok {
+		_spec.SetField(chatsession.FieldArchived, field.TypeBool, value)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(chatsession.FieldUpdatedAt, field.TypeTime, value)

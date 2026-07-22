@@ -220,6 +220,7 @@ func TestAgentsListExcludesClosedSessions(t *testing.T) {
 			chatSessions: []*gen.ChatSession{
 				{ID: 1, Flag: "sess-active", Title: "Still open", UID: "testuser", State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now},
 				{ID: 2, Flag: "sess-closed", Title: "Already closed", UID: "testuser", State: int(schema.ChatSessionClosed), UpdatedAt: now.Add(-time.Hour), CreatedAt: now.Add(-time.Hour)},
+				{ID: 3, Flag: "sess-archived", Title: "Archived one", UID: "testuser", State: int(schema.ChatSessionActive), Archived: true, UpdatedAt: now.Add(-time.Minute), CreatedAt: now.Add(-time.Minute)},
 			},
 		}
 		app := setupAuthenticatedApp(t, ts)
@@ -235,7 +236,105 @@ func TestAgentsListExcludesClosedSessions(t *testing.T) {
 		text := string(body)
 		assert.Contains(t, text, "Still open")
 		assert.NotContains(t, text, "Already closed")
+		assert.NotContains(t, text, "Archived one")
+		assert.Contains(t, text, `data-testid="chatagent-session-filters"`)
+		assert.Contains(t, text, `data-testid="chatagent-session-day-`)
 	})
+}
+
+func TestAgentsListShowsPreviewAndPinArchiveActions(t *testing.T) {
+	now := time.Now().UTC()
+	withChatAgentEnabled(t, func() {
+		ts := &testStore{
+			chatSessions: []*gen.ChatSession{{
+				ID:        1,
+				Flag:      "sess-preview",
+				Title:     "Auto title",
+				Preview:   "Last assistant reply about redis",
+				UID:       "testuser",
+				State:     int(schema.ChatSessionActive),
+				UpdatedAt: now,
+				CreatedAt: now,
+			}},
+		}
+		app := setupAuthenticatedApp(t, ts)
+
+		req := httptest.NewRequest(http.MethodGet, "/service/web/agents/list", http.NoBody)
+		req.Header.Set("Cookie", "accessToken=test-token")
+		AttachCSRFForTest(req)
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		body, _ := io.ReadAll(resp.Body)
+		text := string(body)
+		assert.Contains(t, text, "Auto title")
+		assert.Contains(t, text, `data-testid="chatagent-session-preview"`)
+		assert.Contains(t, text, "Last assistant reply about redis")
+		assert.Contains(t, text, `data-testid="chatagent-session-pin"`)
+		assert.Contains(t, text, `data-testid="chatagent-session-archive"`)
+	})
+}
+
+func TestAgentsPinAndArchiveRefreshList(t *testing.T) {
+	now := time.Now().UTC()
+	tests := []struct {
+		name       string
+		method     string
+		path       string
+		wantBody   string
+		wantAbsent string
+	}{
+		{
+			name:     "pin session",
+			method:   http.MethodPost,
+			path:     "/service/web/agents/sess-a/pin",
+			wantBody: `data-testid="chatagent-session-unpin"`,
+		},
+		{
+			name:       "archive session",
+			method:     http.MethodPost,
+			path:       "/service/web/agents/sess-a/archive",
+			wantAbsent: "Keep me",
+			wantBody:   "No sessions yet",
+		},
+		{
+			name:     "list archived filter",
+			method:   http.MethodGet,
+			path:     "/service/web/agents/list?filter=archived",
+			wantBody: "Keep me",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withChatAgentEnabled(t, func() {
+				ts := &testStore{
+					chatSessions: []*gen.ChatSession{{
+						ID: 1, Flag: "sess-a", Title: "Keep me", UID: "testuser",
+						State: int(schema.ChatSessionActive), UpdatedAt: now, CreatedAt: now,
+					}},
+				}
+				if tt.name == "list archived filter" {
+					ts.chatSessions[0].Archived = true
+				}
+				app := setupAuthenticatedApp(t, ts)
+
+				req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
+				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
+				resp, err := app.Test(req)
+				require.NoError(t, err)
+				defer resp.Body.Close()
+				assert.Equal(t, http.StatusOK, resp.StatusCode)
+				body, _ := io.ReadAll(resp.Body)
+				text := string(body)
+				assert.Contains(t, text, tt.wantBody)
+				if tt.wantAbsent != "" {
+					assert.NotContains(t, text, tt.wantAbsent)
+				}
+			})
+		})
+	}
 }
 
 func TestAgentsListLoadMoreAppendsRows(t *testing.T) {

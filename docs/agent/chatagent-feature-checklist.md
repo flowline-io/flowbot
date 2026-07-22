@@ -53,6 +53,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
 | W-01 | Agents home: composer + session list | `GET /service/web/agents` | Unauthenticated → login | `agents_page_spec_test.go` |
+| W-01a | Session list: auto title, last-message preview, day groups, pin/archive, status filters | `GET /service/web/agents/list?filter=`; `POST\|DELETE …/:id/pin\|archive` | Default hides archived; running / needs_approval from runtime gates | `agents_webservice_test.go`, helpers/day-group unit tests |
 | W-02 | Create session (+ optional pending prompt) | `POST /service/web/agents` | `?prompt=` / sessionStorage pending key | agents page + JS pending prompt |
 | W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session | agents page |
 | W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject | chat BDD helpers; unit confirm |

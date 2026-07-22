@@ -49,6 +49,7 @@ type ConfirmGate struct {
 	ch        chan ConfirmResponse
 	done      chan struct{}
 	resolved  bool
+	waiting   bool
 	timeout   time.Duration
 }
 
@@ -67,6 +68,16 @@ func NewConfirmGate(sessionID string, publisher EventPublisher) *ConfirmGate {
 // ID returns the confirmation request identifier shared with the client.
 func (g *ConfirmGate) ID() string {
 	return g.id
+}
+
+// IsWaiting reports whether the gate is currently blocking on a client decision.
+func (g *ConfirmGate) IsWaiting() bool {
+	if g == nil {
+		return false
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return g.waiting
 }
 
 // Wait publishes a confirm event and blocks until the client responds or times out.
@@ -114,7 +125,9 @@ func (g *ConfirmGate) beginWait() string {
 		g.id = uuid.NewString()
 		g.resolved = false
 		g.ch = make(chan ConfirmResponse, 1)
+		g.done = make(chan struct{})
 	}
+	g.waiting = true
 	return g.id
 }
 
@@ -142,6 +155,7 @@ func (g *ConfirmGate) Cancel() {
 		return
 	}
 	g.resolved = true
+	g.waiting = false
 	close(g.done)
 }
 
@@ -152,6 +166,7 @@ func (g *ConfirmGate) publishResolved(confirmID string, resp ConfirmResponse) {
 		return
 	}
 	g.resolved = true
+	g.waiting = false
 	g.mu.Unlock()
 
 	reason := string(resp.Reason)

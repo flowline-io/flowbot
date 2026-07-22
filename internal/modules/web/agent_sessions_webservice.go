@@ -203,6 +203,9 @@ func mapAgentSession(row *gen.ChatSession) model.AgentSession {
 		State:         chatSessionStateLabel(row.State),
 		Model:         row.Model,
 		ThinkingLevel: row.ThinkingLevel,
+		Preview:       row.Preview,
+		Pinned:        row.Pinned,
+		Archived:      row.Archived,
 		CreatedAt:     row.CreatedAt,
 		UpdatedAt:     row.UpdatedAt,
 	}

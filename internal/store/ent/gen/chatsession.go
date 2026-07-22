@@ -33,6 +33,12 @@ type ChatSession struct {
 	ThinkingLevel string `json:"thinking_level,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
+	// Preview holds the value of the "preview" field.
+	Preview string `json:"preview,omitempty"`
+	// Pinned holds the value of the "pinned" field.
+	Pinned bool `json:"pinned,omitempty"`
+	// Archived holds the value of the "archived" field.
+	Archived bool `json:"archived,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -45,9 +51,11 @@ func (*ChatSession) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case chatsession.FieldPinned, chatsession.FieldArchived:
+			values[i] = new(sql.NullBool)
 		case chatsession.FieldID, chatsession.FieldState:
 			values[i] = new(sql.NullInt64)
-		case chatsession.FieldFlag, chatsession.FieldUID, chatsession.FieldLeafID, chatsession.FieldMode, chatsession.FieldModel, chatsession.FieldThinkingLevel, chatsession.FieldTitle:
+		case chatsession.FieldFlag, chatsession.FieldUID, chatsession.FieldLeafID, chatsession.FieldMode, chatsession.FieldModel, chatsession.FieldThinkingLevel, chatsession.FieldTitle, chatsession.FieldPreview:
 			values[i] = new(sql.NullString)
 		case chatsession.FieldCreatedAt, chatsession.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -120,6 +128,24 @@ func (_m *ChatSession) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Title = value.String
 			}
+		case chatsession.FieldPreview:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field preview", values[i])
+			} else if value.Valid {
+				_m.Preview = value.String
+			}
+		case chatsession.FieldPinned:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field pinned", values[i])
+			} else if value.Valid {
+				_m.Pinned = value.Bool
+			}
+		case chatsession.FieldArchived:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field archived", values[i])
+			} else if value.Valid {
+				_m.Archived = value.Bool
+			}
 		case chatsession.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -191,6 +217,15 @@ func (_m *ChatSession) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(_m.Title)
+	builder.WriteString(", ")
+	builder.WriteString("preview=")
+	builder.WriteString(_m.Preview)
+	builder.WriteString(", ")
+	builder.WriteString("pinned=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Pinned))
+	builder.WriteString(", ")
+	builder.WriteString("archived=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Archived))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -208,6 +208,12 @@ type ListChatSessionsOptions struct {
 	Cursor string // opaque cursor: session ID value as string
 	UID    string // when set, only sessions owned by this user are returned
 	State  *int   // when set, only sessions in this state are returned
+	// Archived filters by archive flag; nil means any.
+	Archived *bool
+	// PinnedFirst sorts pinned sessions ahead of unpinned ones.
+	PinnedFirst bool
+	// Flags restricts results to the given session flags when non-empty.
+	Flags []string
 }
 
 // ListChatScheduledTasksOptions filters scheduled task queries.
@@ -308,6 +314,9 @@ type Adapter interface {
 	UpdateChatSessionMode(ctx context.Context, flag, mode string) error
 	UpdateChatSessionSettings(ctx context.Context, flag, modelName, thinkingLevel string) error
 	UpdateChatSessionTitle(ctx context.Context, flag, title string) error
+	UpdateChatSessionPreview(ctx context.Context, flag, preview string) error
+	UpdateChatSessionPinned(ctx context.Context, flag string, pinned bool) error
+	UpdateChatSessionArchived(ctx context.Context, flag string, archived bool) error
 	CloseChatSession(ctx context.Context, flag string) error
 	CreateChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error
 	AppendChatSessionEntry(ctx context.Context, entry *gen.ChatSessionEntry) error

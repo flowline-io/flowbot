@@ -8,19 +8,23 @@ type SelectableModelOption struct {
 
 // ChatAgentEndpoints carries configurable HTTP paths for chat agent UI components.
 type ChatAgentEndpoints struct {
-	CreateURL         string
-	ListURL           string
-	DetailURLTemplate string
-	SettingsURL       string
-	MessagesURL       string
-	CancelURL         string
-	CloseURL          string
-	ConfirmURL        string
-	EventsURL         string
-	InspectURL        string
-	RenderMarkdownURL string
-	ContextURL        string
-	TodosURL          string
+	CreateURL          string
+	ListURL            string
+	DetailURLTemplate  string
+	PinURLTemplate     string
+	ArchiveURLTemplate string
+	SettingsURL        string
+	MessagesURL        string
+	CancelURL          string
+	CloseURL           string
+	ConfirmURL         string
+	EventsURL          string
+	InspectURL         string
+	RenderMarkdownURL  string
+	ContextURL         string
+	TodosURL           string
+	// Filter is the active session list filter query value.
+	Filter string
 	// SelectableModels is the list of models available in the composer/thread picker.
 	SelectableModels []SelectableModelOption
 	// DefaultModel is the global chat_model used when no session override is set.

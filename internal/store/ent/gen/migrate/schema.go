@@ -426,6 +426,9 @@ var (
 		{Name: "model", Type: field.TypeString, Default: ""},
 		{Name: "thinking_level", Type: field.TypeString, Default: ""},
 		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "preview", Type: field.TypeString, Default: ""},
+		{Name: "pinned", Type: field.TypeBool, Default: false},
+		{Name: "archived", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -439,6 +442,16 @@ var (
 				Name:    "chatsession_uid",
 				Unique:  false,
 				Columns: []*schema.Column{ChatSessionsColumns[2]},
+			},
+			{
+				Name:    "chatsession_uid_archived",
+				Unique:  false,
+				Columns: []*schema.Column{ChatSessionsColumns[2], ChatSessionsColumns[11]},
+			},
+			{
+				Name:    "chatsession_uid_pinned",
+				Unique:  false,
+				Columns: []*schema.Column{ChatSessionsColumns[2], ChatSessionsColumns[10]},
 			},
 		},
 	}

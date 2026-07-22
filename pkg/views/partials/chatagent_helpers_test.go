@@ -103,12 +103,45 @@ func TestChatAgentSessionBadgeClass(t *testing.T) {
 		want  string
 	}{
 		{name: "active", state: "Active", want: "agents-session-badge-active"},
+		{name: "running", state: "Running", want: "agents-session-badge-running"},
+		{name: "needs approval", state: "NeedsApproval", want: "agents-session-badge-needs-approval"},
 		{name: "closed", state: "Closed", want: "agents-session-badge-closed"},
 		{name: "unknown", state: "Unknown", want: "agents-session-badge-unknown"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Contains(t, chatAgentSessionBadgeClass(tt.state), tt.want)
+		})
+	}
+}
+
+func TestChatAgentSessionListURL(t *testing.T) {
+	tests := []struct {
+		name      string
+		endpoints ChatAgentEndpoints
+		cursor    string
+		want      string
+	}{
+		{
+			name:      "default list",
+			endpoints: ChatAgentEndpoints{ListURL: "/service/web/agents/list"},
+			want:      "/service/web/agents/list",
+		},
+		{
+			name:      "with filter",
+			endpoints: ChatAgentEndpoints{ListURL: "/service/web/agents/list", Filter: "running"},
+			want:      "/service/web/agents/list?filter=running",
+		},
+		{
+			name:      "with filter and cursor",
+			endpoints: ChatAgentEndpoints{ListURL: "/service/web/agents/list", Filter: "archived"},
+			cursor:    "12",
+			want:      "/service/web/agents/list?filter=archived&cursor=12",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, ChatAgentSessionListURL(tt.endpoints, tt.cursor))
 		})
 	}
 }
@@ -325,6 +358,110 @@ func TestClassifyHistoryMessage(t *testing.T) {
 				kinds = append(kinds, item.Kind)
 			}
 			assert.Equal(t, tt.wantKinds, kinds)
+		})
+	}
+}
+
+func TestTruncateChatAgentSessionPreview(t *testing.T) {
+	tests := []struct {
+		name  string
+		text  string
+		limit int
+		want  string
+	}{
+		{name: "empty text", text: "  ", limit: 40, want: ""},
+		{name: "short text unchanged", text: "hello world", limit: 40, want: "hello world"},
+		{name: "truncates long text with ellipsis", text: "abcdefghijklmnopqrstuvwxyz0123456789", limit: 10, want: "abcdefghi…"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, TruncateChatAgentSessionPreview(tt.text, tt.limit))
+		})
+	}
+}
+
+func TestGroupAgentSessionsByDay(t *testing.T) {
+	now := time.Date(2026, 7, 22, 15, 0, 0, 0, time.Local)
+	today := time.Date(2026, 7, 22, 10, 0, 0, 0, time.Local)
+	yesterday := time.Date(2026, 7, 21, 18, 0, 0, 0, time.Local)
+	earlier := time.Date(2026, 7, 10, 9, 0, 0, 0, time.Local)
+
+	tests := []struct {
+		name      string
+		items     []model.AgentSession
+		wantKeys  []string
+		wantLens  []int
+		wantFirst []string
+	}{
+		{
+			name:     "empty list",
+			items:    nil,
+			wantKeys: nil,
+			wantLens: nil,
+		},
+		{
+			name: "groups today yesterday and older",
+			items: []model.AgentSession{
+				{Flag: "a", UpdatedAt: today},
+				{Flag: "b", UpdatedAt: yesterday},
+				{Flag: "c", UpdatedAt: earlier},
+				{Flag: "d", UpdatedAt: today.Add(-time.Hour)},
+			},
+			wantKeys:  []string{"today", "yesterday", "2026-07-10"},
+			wantLens:  []int{2, 1, 1},
+			wantFirst: []string{"a", "b", "c"},
+		},
+		{
+			name: "pinned section precedes day groups",
+			items: []model.AgentSession{
+				{Flag: "old-pin", Pinned: true, UpdatedAt: earlier},
+				{Flag: "new", UpdatedAt: today},
+			},
+			wantKeys:  []string{"pinned", "today"},
+			wantLens:  []int{1, 1},
+			wantFirst: []string{"old-pin", "new"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			groups := GroupAgentSessionsForList(tt.items, now)
+			keys := make([]string, 0, len(groups))
+			lens := make([]int, 0, len(groups))
+			first := make([]string, 0, len(groups))
+			for _, g := range groups {
+				keys = append(keys, g.Key)
+				lens = append(lens, len(g.Items))
+				if len(g.Items) > 0 {
+					first = append(first, g.Items[0].Flag)
+				}
+			}
+			if tt.wantKeys == nil {
+				assert.Empty(t, keys)
+				assert.Empty(t, lens)
+				return
+			}
+			assert.Equal(t, tt.wantKeys, keys)
+			assert.Equal(t, tt.wantLens, lens)
+			if tt.wantFirst != nil {
+				assert.Equal(t, tt.wantFirst, first)
+			}
+		})
+	}
+}
+
+func TestChatAgentSessionActivityLabel(t *testing.T) {
+	tests := []struct {
+		name     string
+		activity string
+		want     string
+	}{
+		{name: "running", activity: "running", want: "Running"},
+		{name: "needs approval", activity: "needs_approval", want: "Needs approval"},
+		{name: "empty", activity: "", want: ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, ChatAgentSessionActivityLabel(tt.activity))
 		})
 	}
 }

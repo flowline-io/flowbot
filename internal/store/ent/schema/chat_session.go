@@ -26,6 +26,9 @@ func (ChatSession) Fields() []ent.Field {
 		field.String("model").Default(""),
 		field.String("thinking_level").Default(""),
 		field.String("title").Default(""),
+		field.String("preview").Default(""),
+		field.Bool("pinned").Default(false),
+		field.Bool("archived").Default(false),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -34,6 +37,8 @@ func (ChatSession) Fields() []ent.Field {
 func (ChatSession) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("uid"),
+		index.Fields("uid", "archived"),
+		index.Fields("uid", "pinned"),
 	}
 }
 

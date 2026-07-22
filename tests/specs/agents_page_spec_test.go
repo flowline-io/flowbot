@@ -55,11 +55,19 @@ func (a *agentsWebAdapter) ListChatSessions(ctx context.Context, opts store.List
 	if opts.Limit <= 0 || opts.Limit > 100 {
 		opts.Limit = 20
 	}
-	q := a.ent.ChatSession.Query().
-		Order(
+	order := []chatsession.OrderOption{
+		gen.Desc(chatsession.FieldUpdatedAt),
+		gen.Desc(chatsession.FieldID),
+	}
+	if opts.PinnedFirst {
+		order = []chatsession.OrderOption{
+			gen.Desc(chatsession.FieldPinned),
 			gen.Desc(chatsession.FieldUpdatedAt),
 			gen.Desc(chatsession.FieldID),
-		).
+		}
+	}
+	q := a.ent.ChatSession.Query().
+		Order(order...).
 		Limit(opts.Limit + 1)
 	if opts.Cursor != "" {
 		if id, err := strconv.ParseInt(opts.Cursor, 10, 64); err == nil {
@@ -71,6 +79,12 @@ func (a *agentsWebAdapter) ListChatSessions(ctx context.Context, opts store.List
 	}
 	if opts.State != nil {
 		q = q.Where(chatsession.StateEQ(*opts.State))
+	}
+	if opts.Archived != nil {
+		q = q.Where(chatsession.ArchivedEQ(*opts.Archived))
+	}
+	if len(opts.Flags) > 0 {
+		q = q.Where(chatsession.FlagIn(opts.Flags...))
 	}
 	rows, err := q.All(ctx)
 	if err != nil {
@@ -107,6 +121,39 @@ func (a *agentsWebAdapter) CreateChatSession(ctx context.Context, session *gen.C
 		SetUpdatedAt(session.UpdatedAt).
 		Save(ctx)
 	return err
+}
+
+func (a *agentsWebAdapter) UpdateChatSessionPreview(ctx context.Context, flag, preview string) error {
+	n, err := a.ent.ChatSession.Update().Where(chatsession.FlagEQ(flag)).SetPreview(preview).Save(ctx)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *agentsWebAdapter) UpdateChatSessionPinned(ctx context.Context, flag string, pinned bool) error {
+	n, err := a.ent.ChatSession.Update().Where(chatsession.FlagEQ(flag)).SetPinned(pinned).Save(ctx)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *agentsWebAdapter) UpdateChatSessionArchived(ctx context.Context, flag string, archived bool) error {
+	n, err := a.ent.ChatSession.Update().Where(chatsession.FlagEQ(flag)).SetArchived(archived).Save(ctx)
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
 }
 
 func (a *agentsWebAdapter) ListChatSessionEntries(ctx context.Context, sessionID string) ([]*gen.ChatSessionEntry, error) {

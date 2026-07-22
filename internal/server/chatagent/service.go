@@ -208,6 +208,11 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	}
 	deliverRunResult(ctx, h, req, reply, sink, result.Messages, resources, time.Since(start))
 	maybeGenerateSessionTitle(req.SessionID, req.Text, reply)
+	previewText := reply
+	if strings.TrimSpace(previewText) == "" {
+		previewText = req.Text
+	}
+	UpdateSessionPreview(ctx, req.SessionID, previewText)
 
 	if req.Kind == RunKindPipeline {
 		flog.Info("[pipeline-agent] harness finished session=%s reply_len=%d duration=%s",

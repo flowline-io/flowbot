@@ -94,6 +94,21 @@ func Title(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldEQ(FieldTitle, v))
 }
 
+// Preview applies equality check predicate on the "preview" field. It's identical to PreviewEQ.
+func Preview(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldPreview, v))
+}
+
+// Pinned applies equality check predicate on the "pinned" field. It's identical to PinnedEQ.
+func Pinned(v bool) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldPinned, v))
+}
+
+// Archived applies equality check predicate on the "archived" field. It's identical to ArchivedEQ.
+func Archived(v bool) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldArchived, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldEQ(FieldCreatedAt, v))
@@ -597,6 +612,91 @@ func TitleEqualFold(v string) predicate.ChatSession {
 // TitleContainsFold applies the ContainsFold predicate on the "title" field.
 func TitleContainsFold(v string) predicate.ChatSession {
 	return predicate.ChatSession(sql.FieldContainsFold(FieldTitle, v))
+}
+
+// PreviewEQ applies the EQ predicate on the "preview" field.
+func PreviewEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldPreview, v))
+}
+
+// PreviewNEQ applies the NEQ predicate on the "preview" field.
+func PreviewNEQ(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNEQ(FieldPreview, v))
+}
+
+// PreviewIn applies the In predicate on the "preview" field.
+func PreviewIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldIn(FieldPreview, vs...))
+}
+
+// PreviewNotIn applies the NotIn predicate on the "preview" field.
+func PreviewNotIn(vs ...string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNotIn(FieldPreview, vs...))
+}
+
+// PreviewGT applies the GT predicate on the "preview" field.
+func PreviewGT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGT(FieldPreview, v))
+}
+
+// PreviewGTE applies the GTE predicate on the "preview" field.
+func PreviewGTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldGTE(FieldPreview, v))
+}
+
+// PreviewLT applies the LT predicate on the "preview" field.
+func PreviewLT(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLT(FieldPreview, v))
+}
+
+// PreviewLTE applies the LTE predicate on the "preview" field.
+func PreviewLTE(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldLTE(FieldPreview, v))
+}
+
+// PreviewContains applies the Contains predicate on the "preview" field.
+func PreviewContains(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContains(FieldPreview, v))
+}
+
+// PreviewHasPrefix applies the HasPrefix predicate on the "preview" field.
+func PreviewHasPrefix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasPrefix(FieldPreview, v))
+}
+
+// PreviewHasSuffix applies the HasSuffix predicate on the "preview" field.
+func PreviewHasSuffix(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldHasSuffix(FieldPreview, v))
+}
+
+// PreviewEqualFold applies the EqualFold predicate on the "preview" field.
+func PreviewEqualFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEqualFold(FieldPreview, v))
+}
+
+// PreviewContainsFold applies the ContainsFold predicate on the "preview" field.
+func PreviewContainsFold(v string) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldContainsFold(FieldPreview, v))
+}
+
+// PinnedEQ applies the EQ predicate on the "pinned" field.
+func PinnedEQ(v bool) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldPinned, v))
+}
+
+// PinnedNEQ applies the NEQ predicate on the "pinned" field.
+func PinnedNEQ(v bool) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNEQ(FieldPinned, v))
+}
+
+// ArchivedEQ applies the EQ predicate on the "archived" field.
+func ArchivedEQ(v bool) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldEQ(FieldArchived, v))
+}
+
+// ArchivedNEQ applies the NEQ predicate on the "archived" field.
+func ArchivedNEQ(v bool) predicate.ChatSession {
+	return predicate.ChatSession(sql.FieldNEQ(FieldArchived, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -29,6 +29,12 @@ const (
 	FieldThinkingLevel = "thinking_level"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
+	// FieldPreview holds the string denoting the preview field in the database.
+	FieldPreview = "preview"
+	// FieldPinned holds the string denoting the pinned field in the database.
+	FieldPinned = "pinned"
+	// FieldArchived holds the string denoting the archived field in the database.
+	FieldArchived = "archived"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -48,6 +54,9 @@ var Columns = []string{
 	FieldModel,
 	FieldThinkingLevel,
 	FieldTitle,
+	FieldPreview,
+	FieldPinned,
+	FieldArchived,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -79,6 +88,12 @@ var (
 	DefaultThinkingLevel string
 	// DefaultTitle holds the default value on creation for the "title" field.
 	DefaultTitle string
+	// DefaultPreview holds the default value on creation for the "preview" field.
+	DefaultPreview string
+	// DefaultPinned holds the default value on creation for the "pinned" field.
+	DefaultPinned bool
+	// DefaultArchived holds the default value on creation for the "archived" field.
+	DefaultArchived bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -133,6 +148,21 @@ func ByThinkingLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByTitle orders the results by the title field.
 func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTitle, opts...).ToFunc()
+}
+
+// ByPreview orders the results by the preview field.
+func ByPreview(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPreview, opts...).ToFunc()
+}
+
+// ByPinned orders the results by the pinned field.
+func ByPinned(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPinned, opts...).ToFunc()
+}
+
+// ByArchived orders the results by the archived field.
+func ByArchived(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldArchived, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.
