@@ -42,6 +42,40 @@
     return body;
   }
 
+  var copyMarkdownIconSVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-3 h-3" aria-hidden="true"><path d="M5 6.5A1.5 1.5 0 0 1 6.5 5h6A1.5 1.5 0 0 1 14 6.5v6a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 5 12.5v-6Z"></path><path d="M3.5 2A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11V6.5a3 3 0 0 1 3-3H11A1.5 1.5 0 0 0 9.5 2h-6Z"></path></svg>';
+
+  function ensureMessageMeta(bodyEl) {
+    var meta = bodyEl.querySelector('[data-testid="chatagent-message-meta"]');
+    if (!meta) {
+      meta = document.createElement('div');
+      meta.className = 'chatagent-message-meta';
+      meta.setAttribute('data-testid', 'chatagent-message-meta');
+      bodyEl.appendChild(meta);
+    }
+    return meta;
+  }
+
+  function ensureCopyMarkdownButton(bodyEl, markdown) {
+    if (!bodyEl || !(markdown || '').trim()) {
+      return;
+    }
+    var meta = ensureMessageMeta(bodyEl);
+    var btn = meta.querySelector('[data-testid="chatagent-copy-md"]');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-ghost btn-xs btn-square chatagent-copy-md';
+      btn.title = 'Copy markdown';
+      btn.setAttribute('aria-label', 'Copy markdown');
+      btn.setAttribute('data-testid', 'chatagent-copy-md');
+      btn.setAttribute('data-clip-copy', '');
+      btn.innerHTML = copyMarkdownIconSVG;
+      meta.appendChild(btn);
+    }
+    btn.setAttribute('data-clip-markdown', markdown);
+  }
+
   function appendThinkingBlock(container) {
     var details = document.createElement('details');
     details.className = 'chatagent-thinking opacity-90';
@@ -245,15 +279,15 @@
     if (!bodyEl || (turnMs <= 0 && runMs <= 0)) {
       return;
     }
-    var existing = bodyEl.querySelector(
+    var meta = ensureMessageMeta(bodyEl);
+    var existing = meta.querySelector(
       '[data-testid="chatagent-message-duration"]',
     );
     if (existing) {
       existing.remove();
     }
     var footer = document.createElement('div');
-    footer.className =
-      'mt-2 pt-2 border-t border-base-300/60 text-xs text-base-content/50 chatagent-duration';
+    footer.className = 'chatagent-duration text-xs text-base-content/50';
     footer.setAttribute('data-testid', 'chatagent-message-duration');
     var parts = [];
     if (turnMs > 0) {
@@ -263,7 +297,12 @@
       parts.push('Total ' + ns.formatDuration(runMs));
     }
     footer.textContent = parts.join(' · ');
-    bodyEl.appendChild(footer);
+    var copyBtn = meta.querySelector('[data-testid="chatagent-copy-md"]');
+    if (copyBtn) {
+      meta.insertBefore(footer, copyBtn);
+    } else {
+      meta.appendChild(footer);
+    }
   }
 
   function applyAssistantDuration(bodyEl, turnMs, runMs) {
@@ -512,6 +551,10 @@
           syncAssistantDuration();
           if (assistantBody) {
             assistantBody.parentElement.classList.remove('opacity-80');
+            ensureCopyMarkdownButton(
+              assistantBody,
+              assistantText,
+            );
           }
           if (ctxCtrl) {
             ctxCtrl.onRunComplete();

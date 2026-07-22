@@ -880,6 +880,37 @@ body:has(.chatagent-page) > main {
   color: var(--color-base-content, inherit);
 }
 
+/* Duration left, copy icon bottom-right inside the bubble */
+.chatagent-page .chatagent-message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid
+    color-mix(in oklab, var(--color-base-300, #d1d5db) 60%, transparent);
+}
+
+.chatagent-page .chatagent-message-meta .chatagent-duration,
+.chatagent-page .chatagent-message-meta-spacer {
+  margin-right: auto;
+}
+
+.chatagent-page .chatagent-copy-md {
+  opacity: 0.45;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  min-height: 1.25rem;
+  padding: 0;
+}
+
+.chatagent-page .chatagent-copy-md:hover,
+.chatagent-page .chatagent-copy-md[data-copied='true'] {
+  opacity: 1;
+}
+
 /* Alpine.js cloak to prevent flash before init */
 [x-cloak] {
   display: none !important;
