@@ -20,6 +20,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 type notifyWebAdapter struct {
@@ -47,6 +48,17 @@ func (a *notifyWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Par
 		},
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+// ListNotifyChannels satisfies History facet dropdown loading. The embedded
+// Adapter is nil in BDD stubs; without this method, renderNotificationsTable panics.
+func (*notifyWebAdapter) ListNotifyChannels(_ context.Context, _ store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {
+	return nil, nil
+}
+
+// ListNotifyRules satisfies History facet dropdown loading for rule filters.
+func (*notifyWebAdapter) ListNotifyRules(_ context.Context, _ store.ListNotifyRuleOptions) ([]model.NotifyRule, error) {
+	return nil, nil
 }
 
 var _ = Describe("Notifications Pages", Label("module", "web"), func() {
