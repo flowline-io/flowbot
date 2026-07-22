@@ -205,7 +205,12 @@ templ ChatAgentSessionListFilters(endpoints ChatAgentEndpoints) {
 			hx-get={ templ.URL(ChatAgentSessionListURL(ChatAgentEndpoints{ListURL: endpoints.ListURL, Filter: "needs_approval"}, "")) }
 			hx-target="#chatagent-session-list"
 			hx-swap="outerHTML"
-			data-testid="chatagent-filter-needs-approval">Needs approval</button>
+			data-testid="chatagent-filter-needs-approval">
+			Needs approval
+			if endpoints.PendingApprovalCount > 0 {
+				@ApprovalCountBadge(endpoints.PendingApprovalCount)
+			}
+		</button>
 		<button
 			type="button"
 			class={ "btn btn-xs join-item", templ.KV("btn-active", endpoints.Filter == "archived") }

@@ -2,6 +2,7 @@ package partials
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -205,6 +206,47 @@ func chatAgentPendingConfirmMeta(pending *ChatAgentPendingConfirm) string {
 		parts = append(parts, "pattern: "+p)
 	}
 	return strings.Join(parts, " · ")
+}
+
+// ChatAgentApproveOnceLabel is the primary one-shot approval button text.
+func ChatAgentApproveOnceLabel() string {
+	return "Allow once"
+}
+
+// ChatAgentApproveOnceHint explains that once applies only to this tool call.
+func ChatAgentApproveOnceHint() string {
+	return "This tool call only"
+}
+
+// ChatAgentApproveAlwaysLabel is the remember-pattern approval button text.
+func ChatAgentApproveAlwaysLabel() string {
+	return "Always allow matching"
+}
+
+// ChatAgentApproveAlwaysHint explains that always remembers the suggested pattern for future matching calls.
+func ChatAgentApproveAlwaysHint(suggestedPattern string) string {
+	pattern := strings.TrimSpace(suggestedPattern)
+	if pattern == "" {
+		return "Remember this pattern for future matching calls"
+	}
+	return "Remember for future matching calls: " + pattern
+}
+
+// ChatAgentApproveDenyLabel is the reject button text.
+func ChatAgentApproveDenyLabel() string {
+	return "Deny"
+}
+
+// FormatPendingApprovalBadgeText formats a compact count for nav / home badges.
+// Zero returns empty so callers can hide the badge.
+func FormatPendingApprovalBadgeText(count int) string {
+	if count <= 0 {
+		return ""
+	}
+	if count > 99 {
+		return "99+"
+	}
+	return strconv.Itoa(count)
 }
 
 // ChatAgentPendingConfirmFromEvent maps a stream confirm payload into view data.

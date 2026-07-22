@@ -9,6 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -24,6 +25,7 @@ var homeWebserviceRules = []webservice.Rule{
 	webservice.Get("/home/dashboard", homeDashboardPartial, route.WithNotAuth()),
 	webservice.Get("/home/token-usage", homeTokenUsage, route.WithNotAuth()),
 	webservice.Get("/session-badge", sessionBadge, route.WithNotAuth()),
+	webservice.Get("/approval-badge", approvalBadge, route.WithNotAuth()),
 }
 
 func homePage(ctx fiber.Ctx) error {
@@ -85,6 +87,7 @@ func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 		}
 	}
 
+	d.PendingApprovals = chatagent.CountPendingApprovalSessions()
 	d.Checklist = buildHomeChecklist(ctx, d)
 	return d
 }
@@ -215,4 +218,14 @@ func sessionBadge(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	return partials.SessionBadge(username, expires).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+// approvalBadge renders a compact navbar/home count for sessions awaiting tool approval.
+func approvalBadge(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	ctx.Type("html")
+	count := chatagent.CountPendingApprovalSessions()
+	return partials.ApprovalCountBadge(count).Render(context.Background(), ctx.Response().BodyWriter())
 }

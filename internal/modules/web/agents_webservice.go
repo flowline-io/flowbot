@@ -60,15 +60,16 @@ func agentsEndpoints() partials.ChatAgentEndpoints {
 
 func agentsEndpointsWithFilter(filter string) partials.ChatAgentEndpoints {
 	return partials.ChatAgentEndpoints{
-		CreateURL:          "/service/web/agents",
-		ListURL:            "/service/web/agents/list",
-		DetailURLTemplate:  "/service/web/agents/{id}",
-		PinURLTemplate:     "/service/web/agents/{id}/pin",
-		ArchiveURLTemplate: "/service/web/agents/{id}/archive",
-		Filter:             normalizeAgentsListFilter(filter),
-		RenderMarkdownURL:  "/service/web/agents/render-markdown",
-		SelectableModels:   selectableModelOptions(),
-		DefaultModel:       pkgconfig.ChatAgentChatModel(),
+		CreateURL:            "/service/web/agents",
+		ListURL:              "/service/web/agents/list",
+		DetailURLTemplate:    "/service/web/agents/{id}",
+		PinURLTemplate:       "/service/web/agents/{id}/pin",
+		ArchiveURLTemplate:   "/service/web/agents/{id}/archive",
+		Filter:               normalizeAgentsListFilter(filter),
+		PendingApprovalCount: chatagent.CountPendingApprovalSessions(),
+		RenderMarkdownURL:    "/service/web/agents/render-markdown",
+		SelectableModels:     selectableModelOptions(),
+		DefaultModel:         pkgconfig.ChatAgentChatModel(),
 	}
 }
 

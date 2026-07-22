@@ -899,6 +899,185 @@ body:has(.chatagent-page) > main {
   box-shadow: 0 -4px 12px oklch(0 0 0 / 0.04);
 }
 
+.chatagent-page .chatagent-approval-panel {
+  margin: 0 0.25rem;
+  border: 1px solid
+    color-mix(in oklab, var(--color-warning, #d97706) 28%, var(--color-base-300, #d1d5db));
+  border-bottom-width: 0;
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 6%,
+    var(--color-base-100, #fff)
+  );
+  z-index: 6;
+}
+
+.chatagent-page .chatagent-approval-panel.hidden {
+  display: none;
+}
+
+.chatagent-approval-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem 1.25rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.chatagent-approval-kicker {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: color-mix(in oklab, var(--color-base-content, #111) 55%, transparent);
+}
+
+.chatagent-approval-summary {
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--color-base-content, #111);
+  word-break: break-word;
+}
+
+.chatagent-approval-meta {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: color-mix(in oklab, var(--color-base-content, #111) 52%, transparent);
+  word-break: break-word;
+}
+
+.chatagent-approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.chatagent-approval-choice {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.1rem;
+  min-height: 2.5rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.chatagent-approval-choice:focus-visible {
+  outline: none;
+  box-shadow: var(
+    --flowbot-focus-ring,
+    0 0 0 1px var(--color-primary, #0f766e)
+  );
+}
+
+.chatagent-approval-choice-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.chatagent-approval-choice-hint {
+  max-width: 11rem;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  line-height: 1.25;
+  color: color-mix(in oklab, currentColor 62%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatagent-approval-choice-hint-mono {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.65rem;
+}
+
+.chatagent-approval-choice-once {
+  background: var(--color-primary, #0f766e);
+  border-color: var(--color-primary, #0f766e);
+  color: var(--color-primary-content, #fff);
+}
+
+.chatagent-approval-choice-once:hover {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 88%,
+    var(--color-base-content, #111)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 88%,
+    var(--color-base-content, #111)
+  );
+}
+
+.chatagent-approval-choice-always {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 10%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 28%,
+    var(--color-base-300, #d1d5db)
+  );
+  color: var(--color-base-content, #111);
+}
+
+.chatagent-approval-choice-always:hover {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 16%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 42%,
+    var(--color-base-300, #d1d5db)
+  );
+}
+
+.chatagent-approval-choice-deny {
+  align-items: center;
+  justify-content: center;
+  min-width: 3.25rem;
+  padding-inline: 0.7rem;
+  color: color-mix(in oklab, var(--color-base-content, #111) 62%, transparent);
+}
+
+.chatagent-approval-choice-deny:hover {
+  background: color-mix(
+    in oklab,
+    var(--color-base-content, #111) 6%,
+    transparent
+  );
+  color: var(--color-error, #dc2626);
+}
+
+.chatagent-approval-panel:not(.hidden) {
+  display: block;
+}
+
 .chatagent-page .chatagent-input-stack {
   position: relative;
 }

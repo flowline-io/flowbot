@@ -3,7 +3,7 @@ package partials
 templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pending *ChatAgentPendingConfirm) {
 	<div
 		id="chatagent-approval-panel"
-		class={ "chatagent-approval-panel shrink-0 flowbot-surface mx-1 mb-2 border border-warning/30", templ.KV("hidden", pending == nil) }
+		class={ "chatagent-approval-panel shrink-0", templ.KV("hidden", pending == nil) }
 		data-session-id={ sessionID }
 		data-confirm-url={ endpoints.ConfirmURL }
 		data-events-url={ endpoints.EventsURL }
@@ -20,26 +20,53 @@ templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pen
 			}
 		}
 	>
-		<div class="card-body">
-			<h2 class="text-lg font-semibold tracking-tight m-0">Pending Tool Approval</h2>
-			<p class="text-sm" id="chatagent-approval-summary">
-				if pending != nil {
-					{ pending.Tool }: { pending.Summary }
-				}
-			</p>
-			<p class="text-xs text-base-content/60" id="chatagent-approval-meta">
-				if pending != nil {
-					{ chatAgentPendingConfirmMeta(pending) }
-				}
-			</p>
-			<div class="flex gap-2 mt-2" id="chatagent-approval-actions">
-				<button type="button" class="btn btn-primary btn-sm" data-mode="once" data-testid="chatagent-approve-once">Approve once</button>
+		<div class="chatagent-approval-body">
+			<div class="chatagent-approval-copy min-w-0 flex-1">
+				<p class="chatagent-approval-kicker m-0">Pending tool approval</p>
+				<p class="chatagent-approval-summary m-0" id="chatagent-approval-summary">
+					if pending != nil {
+						{ pending.Tool }: { pending.Summary }
+					}
+				</p>
+				<p class="chatagent-approval-meta m-0" id="chatagent-approval-meta">
+					if pending != nil {
+						{ chatAgentPendingConfirmMeta(pending) }
+					}
+				</p>
+			</div>
+			<div class="chatagent-approval-actions" id="chatagent-approval-actions">
 				<button
 					type="button"
-					class={ "btn btn-secondary btn-sm", templ.KV("hidden", pending == nil || !pending.SuggestAlways || pending.SuggestedPattern == "") }
+					class="chatagent-approval-choice chatagent-approval-choice-once"
+					data-mode="once"
+					data-testid="chatagent-approve-once">
+					<span class="chatagent-approval-choice-label">{ ChatAgentApproveOnceLabel() }</span>
+					<span class="chatagent-approval-choice-hint" data-testid="chatagent-approve-once-hint">{ ChatAgentApproveOnceHint() }</span>
+				</button>
+				<button
+					type="button"
+					id="chatagent-approve-always-wrap"
+					class={ "chatagent-approval-choice chatagent-approval-choice-always", templ.KV("hidden", pending == nil || !pending.SuggestAlways || pending.SuggestedPattern == "") }
 					data-mode="always"
-					data-testid="chatagent-approve-always">Always allow</button>
-				<button type="button" class="btn btn-ghost btn-sm" data-mode="reject" data-testid="chatagent-approve-deny">Deny</button>
+					data-testid="chatagent-approve-always"
+					if pending != nil && pending.SuggestedPattern != "" {
+						title={ ChatAgentApproveAlwaysHint(pending.SuggestedPattern) }
+					}>
+					<span class="chatagent-approval-choice-label">{ ChatAgentApproveAlwaysLabel() }</span>
+					<span
+						class="chatagent-approval-choice-hint chatagent-approval-choice-hint-mono"
+						id="chatagent-approve-always-hint"
+						data-testid="chatagent-approve-always-hint">
+						if pending != nil && pending.SuggestedPattern != "" {
+							{ pending.SuggestedPattern }
+						}
+					</span>
+				</button>
+				<button
+					type="button"
+					class="chatagent-approval-choice chatagent-approval-choice-deny"
+					data-mode="reject"
+					data-testid="chatagent-approve-deny">{ ChatAgentApproveDenyLabel() }</button>
 			</div>
 		</div>
 	</div>

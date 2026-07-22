@@ -61,6 +61,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
+| W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
 
 ## 4. Permissions UI
 
@@ -111,7 +112,7 @@ Use after each vertical slice and before freeze sign-off.
 
 1. Platform: send one DM (Slack if available) — streaming or final reply, message persisted.
 2. Web: create session from `/service/web/agents`, send a turn, see SSE done and history hydrate.
-3. Approval: trigger a gated tool — Approve once; repeat with Always; Reject path.
+3. Approval: trigger a gated tool — Allow once; repeat with Always allow matching; Deny path. Confirm Nav/Home badge count and docked approval bar.
 4. Plan mode: set plan → blocked write → switch normal → write works.
 5. Compact: call compact on a long session; context ring updates.
 6. Scheduled: create one-shot task, wait for completed + run row.

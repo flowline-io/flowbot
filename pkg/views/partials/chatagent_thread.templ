@@ -54,7 +54,6 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			id="chatagent-status-toast"
 			class="chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm"
 			data-testid="chatagent-status-toast"></div>
-		@ChatAgentApprovalPanel(session.Flag, endpoints, pending)
 		if len(todos) > 0 {
 			@ChatAgentTodosPanel(todos)
 		}
@@ -78,6 +77,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 				Jump to bottom
 			</button>
 		</div>
+		@ChatAgentApprovalPanel(session.Flag, endpoints, pending)
 		<div class="chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4" data-testid="chatagent-input-bar">
 			<div class="chatagent-input-stack">
 				@ChatAgentContextPopover(endpoints)

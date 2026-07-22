@@ -25,6 +25,8 @@ type ChatAgentEndpoints struct {
 	TodosURL           string
 	// Filter is the active session list filter query value.
 	Filter string
+	// PendingApprovalCount is how many sessions currently wait on tool approval.
+	PendingApprovalCount int
 	// SelectableModels is the list of models available in the composer/thread picker.
 	SelectableModels []SelectableModelOption
 	// DefaultModel is the global chat_model used when no session override is set.

@@ -33,6 +33,7 @@
     var metaEl = panel.querySelector('#chatagent-approval-meta');
     var actionsEl = panel.querySelector('#chatagent-approval-actions');
     var alwaysBtn = panel.querySelector('[data-mode="always"]');
+    var alwaysHint = panel.querySelector('#chatagent-approve-always-hint');
     var pending = null;
     var submitting = false;
     var toastTimer = null;
@@ -131,8 +132,19 @@
       if (alwaysBtn) {
         if (ev.suggest_always && ev.suggested_pattern) {
           alwaysBtn.classList.remove('hidden');
+          alwaysBtn.setAttribute(
+            'title',
+            'Remember for future matching calls: ' + ev.suggested_pattern,
+          );
+          if (alwaysHint) {
+            alwaysHint.textContent = ev.suggested_pattern;
+          }
         } else {
           alwaysBtn.classList.add('hidden');
+          alwaysBtn.removeAttribute('title');
+          if (alwaysHint) {
+            alwaysHint.textContent = '';
+          }
         }
       }
       if (actionsEl) {

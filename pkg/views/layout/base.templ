@@ -30,7 +30,16 @@ templ Base(title string) {
 					</div>
 					<ul tabindex="0" class="dropdown-content menu menu-sm bg-base-100 rounded-box z-[100] mt-3 w-72 max-h-[calc(100dvh-5rem)] overflow-y-auto p-2 border border-base-300">
 						<li class="menu-title">Agent</li>
-						<li><a href="/service/web/agents">Agents</a></li>
+						<li>
+							<a href="/service/web/agents" class="justify-between">
+								Agents
+								<span
+									hx-get="/service/web/approval-badge"
+									hx-trigger="load, every 20s"
+									hx-swap="innerHTML"
+									data-testid="nav-mobile-agents-approval-badge"></span>
+							</a>
+						</li>
 						<li><a href="/service/web/agent-skills">Skills</a></li>
 						<li><a href="/service/web/agent-subagents">Subagents</a></li>
 						<li><a href="/service/web/agent-scheduled-tasks">Scheduled Tasks</a></li>
@@ -61,9 +70,25 @@ templ Base(title string) {
 			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
 				<div class="hidden lg:flex items-center gap-1">
 					<div class="dropdown dropdown-hover">
-						<div tabindex="0" role="button" data-testid="nav-group-operate" class="btn btn-ghost btn-sm">Agent</div>
+						<div tabindex="0" role="button" data-testid="nav-group-operate" class="btn btn-ghost btn-sm gap-1">
+							Agent
+							<span
+								hx-get="/service/web/approval-badge"
+								hx-trigger="load, every 20s"
+								hx-swap="innerHTML"
+								data-testid="nav-agent-approval-badge"></span>
+						</div>
 						<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-44 z-50">
-							<li><a href="/service/web/agents" data-testid="nav-agents">Agents</a></li>
+							<li>
+								<a href="/service/web/agents" data-testid="nav-agents" class="justify-between">
+									Agents
+									<span
+										hx-get="/service/web/approval-badge"
+										hx-trigger="load, every 20s"
+										hx-swap="innerHTML"
+										data-testid="nav-agents-approval-badge"></span>
+								</a>
+							</li>
 							<li><a href="/service/web/agent-skills" data-testid="nav-agent-skills">Skills</a></li>
 							<li><a href="/service/web/agent-subagents" data-testid="nav-agent-subagents">Subagents</a></li>
 							<li><a href="/service/web/agent-scheduled-tasks" data-testid="nav-agent-scheduled-tasks">Scheduled Tasks</a></li>

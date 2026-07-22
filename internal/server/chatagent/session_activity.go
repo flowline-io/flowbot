@@ -60,6 +60,11 @@ func ListSessionIDsByActivity(activity string) []string {
 	}
 }
 
+// CountPendingApprovalSessions returns how many sessions currently wait on tool approval.
+func CountPendingApprovalSessions() int {
+	return len(listPendingConfirmSessionIDs())
+}
+
 func listPendingConfirmSessionIDs() []string {
 	out := make([]string, 0)
 	sessionConfirmGates.Range(func(key, value any) bool {

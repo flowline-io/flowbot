@@ -84,7 +84,12 @@ templ HomeQuickLinksSection(links []HomeQuickLink) {
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-8" data-testid="home-quick-links">
 		for _, link := range links {
 			<a href={ link.Href } class="group block py-2 border-b border-base-200 hover:border-primary transition-colors" data-testid={ link.TestID }>
-				<p class="font-medium m-0 group-hover:text-primary transition-colors">{ link.Title }</p>
+				<p class="font-medium m-0 group-hover:text-primary transition-colors flex items-center gap-1">
+					{ link.Title }
+					if link.Badge > 0 {
+						@ApprovalCountBadge(link.Badge)
+					}
+				</p>
 				<p class="text-sm text-base-content/60 m-0 mt-0.5">{ link.Detail }</p>
 			</a>
 		}

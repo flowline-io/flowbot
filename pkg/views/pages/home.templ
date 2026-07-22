@@ -13,7 +13,7 @@ templ HomePage(d partials.HomeDashboard) {
 		<div data-testid="home-dashboard-loader">
 			@partials.HomeDashboardBlock(d)
 		</div>
-		@partials.HomeQuickLinksSection(partials.HomeQuickLinks())
+		@partials.HomeQuickLinksSection(partials.HomeQuickLinks(d.PendingApprovals))
 		<div hx-get="/service/web/home/token-usage?range=7d&groupBy=model" hx-trigger="revealed" hx-swap="outerHTML" data-testid="token-usage-loader">
 			@partials.PanelSkeleton()
 		</div>

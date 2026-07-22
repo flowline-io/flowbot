@@ -12,6 +12,67 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCountPendingApprovalSessions(t *testing.T) {
+	tests := []struct {
+		name      string
+		setup     func(t *testing.T) string
+		wantDelta int
+	}{
+		{
+			name: "idle does not add pending sessions",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				return ""
+			},
+			wantDelta: 0,
+		},
+		{
+			name: "counts one waiting gate",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				sessionID := "sess-count-one"
+				pub := NewChannelPublisher(8)
+				gate := NewConfirmGate(sessionID, pub)
+				gate.timeout = 2 * time.Second
+				state := NewAPIRunState(pub, gate)
+				require.NoError(t, TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+				go func() {
+					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
+						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+						Args:     map[string]any{"command": "ls"},
+					}, testEvalResult())
+				}()
+				waitConfirmEvent(t, pub)
+				return sessionID
+			},
+			wantDelta: 1,
+		},
+		{
+			name: "ignores running without pending confirm",
+			setup: func(t *testing.T) string {
+				t.Helper()
+				sessionID := "sess-count-running"
+				state := NewAPIRunState(NewChannelPublisher(4), NewConfirmGate(sessionID, nil))
+				require.NoError(t, TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+				return sessionID
+			},
+			wantDelta: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			before := CountPendingApprovalSessions()
+			sessionID := tt.setup(t)
+			assert.Equal(t, before+tt.wantDelta, CountPendingApprovalSessions())
+			if sessionID != "" && tt.wantDelta > 0 {
+				assert.Contains(t, ListSessionIDsByActivity(SessionActivityNeedsApproval), sessionID)
+			}
+		})
+	}
+}
+
 func TestSessionActivity(t *testing.T) {
 	tests := []struct {
 		name    string

@@ -1,0 +1,17 @@
+package partials
+
+// ApprovalCountBadge renders a compact count chip for pending tool approvals.
+// Empty when count is zero so HTMX can clear previous badges.
+templ ApprovalCountBadge(count int) {
+	if text := FormatPendingApprovalBadgeText(count); text != "" {
+		<span
+			class="flowbot-chip flowbot-chip-warning ml-1 tabular-nums"
+			data-testid="approval-count-badge"
+			title={ text + " session(s) awaiting tool approval" }
+			aria-label={ text + " sessions awaiting tool approval" }>
+			{ text }
+		</span>
+	} else {
+		<span data-testid="approval-count-badge-empty" aria-hidden="true"></span>
+	}
+}

@@ -488,3 +488,73 @@ func TestChatAgentSessionActivityLabel(t *testing.T) {
 		})
 	}
 }
+
+func TestChatAgentApprovalActionCopy(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		suggestedPattern string
+		wantOnce         string
+		wantOnceHint     string
+		wantAlways       string
+		wantAlwaysHint   string
+		wantDeny         string
+	}{
+		{
+			name:           "without suggested pattern",
+			wantOnce:       "Allow once",
+			wantOnceHint:   "This tool call only",
+			wantAlways:     "Always allow matching",
+			wantAlwaysHint: "Remember this pattern for future matching calls",
+			wantDeny:       "Deny",
+		},
+		{
+			name:             "with suggested pattern",
+			suggestedPattern: "run_terminal:ls *",
+			wantOnce:         "Allow once",
+			wantOnceHint:     "This tool call only",
+			wantAlways:       "Always allow matching",
+			wantAlwaysHint:   "Remember for future matching calls: run_terminal:ls *",
+			wantDeny:         "Deny",
+		},
+		{
+			name:             "trims suggested pattern whitespace",
+			suggestedPattern: "  edit:a.txt  ",
+			wantOnce:         "Allow once",
+			wantOnceHint:     "This tool call only",
+			wantAlways:       "Always allow matching",
+			wantAlwaysHint:   "Remember for future matching calls: edit:a.txt",
+			wantDeny:         "Deny",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.wantOnce, ChatAgentApproveOnceLabel())
+			assert.Equal(t, tt.wantOnceHint, ChatAgentApproveOnceHint())
+			assert.Equal(t, tt.wantAlways, ChatAgentApproveAlwaysLabel())
+			assert.Equal(t, tt.wantAlwaysHint, ChatAgentApproveAlwaysHint(tt.suggestedPattern))
+			assert.Equal(t, tt.wantDeny, ChatAgentApproveDenyLabel())
+		})
+	}
+}
+
+func TestFormatPendingApprovalBadgeText(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		count int
+		want  string
+	}{
+		{name: "zero hides badge", count: 0, want: ""},
+		{name: "negative hides badge", count: -1, want: ""},
+		{name: "single digit", count: 3, want: "3"},
+		{name: "caps at 99 plus", count: 100, want: "99+"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, FormatPendingApprovalBadgeText(tt.count))
+		})
+	}
+}

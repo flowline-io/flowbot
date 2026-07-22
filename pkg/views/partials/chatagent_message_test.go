@@ -294,6 +294,7 @@ func TestChatAgentThreadPendingApprovalEmptyState(t *testing.T) {
 		wantWait   bool
 		wantOpen   bool
 		wantHidden bool
+		wantAlways bool
 	}{
 		{
 			name: "pending with empty history shows waiting + open panel",
@@ -322,6 +323,19 @@ func TestChatAgentThreadPendingApprovalEmptyState(t *testing.T) {
 			}},
 			wantWait: true,
 			wantOpen: true,
+		},
+		{
+			name: "suggest always shows matching allow copy",
+			pending: &ChatAgentPendingConfirm{
+				ID:               "c-3",
+				Tool:             "run_terminal",
+				Summary:          "command: ls",
+				SuggestAlways:    true,
+				SuggestedPattern: "run_terminal:ls *",
+			},
+			wantWait:   true,
+			wantOpen:   true,
+			wantAlways: true,
 		},
 	}
 	for _, tt := range tests {
@@ -354,8 +368,39 @@ func TestChatAgentThreadPendingApprovalEmptyState(t *testing.T) {
 			if tt.wantHidden && hasPending {
 				t.Fatalf("did not want pending confirm attrs\nhtml=%s", html)
 			}
-			if tt.wantOpen && strings.Contains(html, `chatagent-approval-panel shrink-0 flowbot-surface mx-1 mb-2 hidden`) {
+			if tt.wantOpen && strings.Contains(html, `chatagent-approval-panel shrink-0 hidden`) {
 				t.Fatalf("pending panel should not include hidden class\nhtml=%s", html)
+			}
+			if tt.wantOpen {
+				if !strings.Contains(html, `data-testid="chatagent-approve-once"`) || !strings.Contains(html, "Allow once") {
+					t.Fatalf("want Allow once button\nhtml=%s", html)
+				}
+				if !strings.Contains(html, `data-testid="chatagent-approve-once-hint"`) {
+					t.Fatalf("want Allow once hint\nhtml=%s", html)
+				}
+			}
+			if tt.wantAlways {
+				if !strings.Contains(html, "Always allow matching") {
+					t.Fatalf("want Always allow matching label\nhtml=%s", html)
+				}
+				if !strings.Contains(html, "run_terminal:ls *") {
+					t.Fatalf("want always pattern hint\nhtml=%s", html)
+				}
+				if !strings.Contains(html, "chatagent-approval-choice-always") {
+					t.Fatalf("want always choice button class\nhtml=%s", html)
+				}
+			}
+			if tt.wantOpen {
+				// Docked above the composer, not above the message list.
+				approvalIdx := strings.Index(html, `id="chatagent-approval-panel"`)
+				inputIdx := strings.Index(html, `data-testid="chatagent-input-bar"`)
+				messagesIdx := strings.Index(html, `id="chatagent-messages"`)
+				if approvalIdx < 0 || inputIdx < 0 || messagesIdx < 0 {
+					t.Fatalf("missing approval/input/messages markers\nhtml=%s", html)
+				}
+				if !(messagesIdx < approvalIdx && approvalIdx < inputIdx) {
+					t.Fatalf("want messages → approval → input order, got messages=%d approval=%d input=%d", messagesIdx, approvalIdx, inputIdx)
+				}
 			}
 		})
 	}
