@@ -275,6 +275,93 @@ func TestCreatePipelineChineseName(t *testing.T) {
 	assert.Equal(t, name, def.Name)
 }
 
+func TestRenamePipeline(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
+
+	ctx := context.Background()
+	ps := store.NewPipelineStore(client)
+
+	tests := []struct {
+		name       string
+		setup      func(t *testing.T) (oldName, newName string)
+		wantStatus int
+		wantCode   string
+	}{
+		{
+			name: "renames pipeline and returns new name",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				require.NoError(t, ps.CreateDefinition(ctx, "web-rename-src", "", ""))
+				_, err := ps.UpdateDefinitionDraft(ctx, "web-rename-src", "name: web-rename-src\ntriggers: []\nsteps: []", 1)
+				require.NoError(t, err)
+				return "web-rename-src", "web-rename-dst"
+			},
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "rejects invalid name",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				require.NoError(t, ps.CreateDefinition(ctx, "web-rename-bad", "", ""))
+				return "web-rename-bad", "-bad"
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantCode:   "VALIDATION_ERROR",
+		},
+		{
+			name: "rejects duplicate name",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				require.NoError(t, ps.CreateDefinition(ctx, "web-rename-dup-src", "", ""))
+				require.NoError(t, ps.CreateDefinition(ctx, "web-rename-dup-dst", "", ""))
+				return "web-rename-dup-src", "web-rename-dup-dst"
+			},
+			wantStatus: http.StatusUnprocessableEntity,
+			wantCode:   "ALREADY_EXISTS",
+		},
+		{
+			name: "missing pipeline returns not found",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				return "web-rename-missing", "web-rename-missing-dst"
+			},
+			wantStatus: http.StatusNotFound,
+			wantCode:   "NOT_FOUND",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldName, newName := tt.setup(t)
+			body, err := sonic.MarshalString(map[string]string{"name": newName})
+			require.NoError(t, err)
+			req := httptest.NewRequest(http.MethodPut, "/service/web/pipelines/"+url.PathEscape(oldName)+"/rename", strings.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			addWebAuth(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			require.Equal(t, tt.wantStatus, resp.StatusCode)
+
+			raw, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			if tt.wantStatus == http.StatusOK {
+				var payload struct {
+					Name string `json:"name"`
+				}
+				require.NoError(t, sonic.Unmarshal(raw, &payload))
+				assert.Equal(t, newName, payload.Name)
+				def, getErr := ps.GetDefinitionByName(ctx, newName)
+				require.NoError(t, getErr)
+				assert.Equal(t, newName, def.Name)
+				return
+			}
+			assert.Contains(t, string(raw), tt.wantCode)
+		})
+	}
+}
+
 func TestPipelineEditorPageChineseName(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })

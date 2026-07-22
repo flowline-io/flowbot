@@ -204,6 +204,13 @@ body {
   );
 }
 
+/* Bordered surface instead of card+shadow wrappers */
+.flowbot-surface {
+  background: var(--color-base-100, #fff);
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+}
+
 /* JSON syntax highlighting for event payloads */
 .flowbot-json .flowbot-json-key {
   color: var(--color-primary, #0f766e);

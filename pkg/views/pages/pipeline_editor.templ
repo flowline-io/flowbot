@@ -20,7 +20,19 @@ templ PipelineEditorPage(name string) {
 			<!-- Header -->
 			<div x-show="!loading" class="sticky top-0 z-20 -mx-4 px-4 py-3 mb-4 bg-base-100 border-b border-base-300 flex items-center justify-between gap-3">
 				<div class="flex items-center gap-3 min-w-0">
-					<h2 class="text-lg font-semibold tracking-tight text-base-content truncate m-0" x-text="name" data-testid="pipeline-title"></h2>
+					<h2 x-show="!renaming"
+						@click="startRename"
+						class="text-lg font-semibold tracking-tight text-base-content truncate m-0 cursor-pointer hover:text-primary"
+						title="Click to rename"
+						x-text="name"
+						data-testid="pipeline-title"></h2>
+					<input x-show="renaming" type="text" x-model="renameValue"
+						@keydown.enter.prevent="confirmRename"
+						@keydown.escape.prevent="cancelRename"
+						@blur="confirmRename"
+						class="input input-bordered input-sm text-lg font-semibold tracking-tight w-56 max-w-full"
+						maxlength="128"
+						data-testid="input-rename-pipeline">
 					<span x-show="status === 'draft'" class="flowbot-chip flowbot-chip-muted" data-testid="status-badge">Draft</span>
 					<span x-show="status === 'published'" class="flowbot-chip flowbot-chip-success" data-testid="status-badge">Published</span>
 				</div>

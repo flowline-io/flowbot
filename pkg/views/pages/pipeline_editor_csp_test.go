@@ -47,4 +47,19 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 			t.Fatal("want pipeline-editor.js?v= cache buster")
 		}
 	})
+	t.Run("title click starts rename", func(t *testing.T) {
+		t.Parallel()
+		if !strings.Contains(html, `data-testid="pipeline-title"`) {
+			t.Fatal("want clickable pipeline title")
+		}
+		if !strings.Contains(html, `@click="startRename"`) {
+			t.Fatal("want title click to start rename")
+		}
+		if strings.Contains(html, `data-testid="btn-rename-pipeline"`) {
+			t.Fatal("rename button should not be present")
+		}
+		if !strings.Contains(html, `data-testid="input-rename-pipeline"`) {
+			t.Fatal("want inline rename input")
+		}
+	})
 }

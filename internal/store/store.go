@@ -1487,6 +1487,189 @@ func (s *PipelineStore) SetDefinitionEnabled(ctx context.Context, name string, e
 	return s.GetDefinitionByName(ctx, name)
 }
 
+// RenameDefinition renames a pipeline definition and cascades the new name to
+// version snapshots, runs (including compound trigger names), resource links,
+// and top-level name fields in draft/published YAML.
+func (s *PipelineStore) RenameDefinition(ctx context.Context, oldName, newName string) (*gen.PipelineDefinition, error) {
+	if s == nil || s.client == nil {
+		return nil, types.ErrNotFound
+	}
+	oldName = strings.TrimSpace(oldName)
+	newName = strings.TrimSpace(newName)
+	if err := pipeline.ValidateName(newName); err != nil {
+		return nil, fmt.Errorf("%w: %s", types.ErrInvalidArgument, err.Error())
+	}
+	if oldName == newName {
+		return s.GetDefinitionByName(ctx, oldName)
+	}
+
+	def, err := s.GetDefinitionByName(ctx, oldName)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.ensureRenameTargetAvailable(ctx, newName); err != nil {
+		return nil, err
+	}
+
+	draftYAML, publishedYAML, err := renameDefinitionYAML(def, newName)
+	if err != nil {
+		return nil, err
+	}
+
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("rename pipeline begin tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if err := renameDefinitionInTx(ctx, tx, oldName, newName, draftYAML, publishedYAML); err != nil {
+		return nil, err
+	}
+	if err := renamePipelineReferencesInTx(ctx, tx, oldName, newName); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("rename pipeline commit: %w", err)
+	}
+	committed = true
+	return s.GetDefinitionByName(ctx, newName)
+}
+
+// ensureRenameTargetAvailable reports whether newName can be used for a rename.
+func (s *PipelineStore) ensureRenameTargetAvailable(ctx context.Context, newName string) error {
+	_, err := s.GetDefinitionByName(ctx, newName)
+	if err == nil {
+		return fmt.Errorf("pipeline %q %w", newName, types.ErrAlreadyExists)
+	}
+	if !errors.Is(err, types.ErrNotFound) {
+		return err
+	}
+	return nil
+}
+
+// renameDefinitionYAML rewrites top-level name fields in draft and published YAML.
+func renameDefinitionYAML(def *gen.PipelineDefinition, newName string) (string, *string, error) {
+	draftYAML := def.YamlDraft
+	if draftYAML != "" {
+		updated, err := pipeline.SetNameInYAML(draftYAML, newName)
+		if err != nil {
+			return "", nil, fmt.Errorf("rename pipeline draft yaml: %w", err)
+		}
+		draftYAML = updated
+	}
+	var publishedYAML *string
+	if def.YamlPublished != nil && *def.YamlPublished != "" {
+		updated, err := pipeline.SetNameInYAML(*def.YamlPublished, newName)
+		if err != nil {
+			return "", nil, fmt.Errorf("rename pipeline published yaml: %w", err)
+		}
+		publishedYAML = &updated
+	}
+	return draftYAML, publishedYAML, nil
+}
+
+// renameDefinitionInTx updates the pipeline_definitions row inside a transaction.
+func renameDefinitionInTx(ctx context.Context, tx *gen.Tx, oldName, newName, draftYAML string, publishedYAML *string) error {
+	update := tx.PipelineDefinition.Update().
+		Where(pipelinedefinition.Name(oldName)).
+		SetName(newName).
+		SetYamlDraft(draftYAML).
+		SetUpdatedAt(time.Now())
+	if publishedYAML != nil {
+		update = update.SetYamlPublished(*publishedYAML)
+	}
+	n, err := update.Save(ctx)
+	if err != nil {
+		if gen.IsConstraintError(err) {
+			return fmt.Errorf("pipeline %q %w", newName, types.ErrAlreadyExists)
+		}
+		return fmt.Errorf("rename pipeline definition: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+// renamePipelineReferencesInTx cascades pipeline_name updates to versions, runs, and links.
+func renamePipelineReferencesInTx(ctx context.Context, tx *gen.Tx, oldName, newName string) error {
+	if _, err := tx.PipelineDefinitionVersion.Update().
+		Where(pipelinedefinitionversion.PipelineName(oldName)).
+		SetPipelineName(newName).
+		Save(ctx); err != nil {
+		return fmt.Errorf("rename pipeline versions: %w", err)
+	}
+	return renameExactAndCompoundNames(ctx, tx, oldName, newName)
+}
+
+// renameExactAndCompoundNames rewrites exact and __trigger_ compound pipeline_name values.
+func renameExactAndCompoundNames(ctx context.Context, tx *gen.Tx, oldName, newName string) error {
+	if _, err := tx.PipelineRun.Update().
+		Where(pipelinerun.PipelineName(oldName)).
+		SetPipelineName(newName).
+		Save(ctx); err != nil {
+		return fmt.Errorf("rename pipeline runs: %w", err)
+	}
+	if err := renameCompoundPipelineRuns(ctx, tx, oldName, newName); err != nil {
+		return err
+	}
+	if _, err := tx.ResourceLink.Update().
+		Where(resourcelink.PipelineName(oldName)).
+		SetPipelineName(newName).
+		Save(ctx); err != nil {
+		return fmt.Errorf("rename pipeline resource links: %w", err)
+	}
+	return renameCompoundResourceLinks(ctx, tx, oldName, newName)
+}
+
+// renameCompoundPipelineRuns rewrites compound trigger run names to the new parent.
+func renameCompoundPipelineRuns(ctx context.Context, tx *gen.Tx, oldName, newName string) error {
+	oldTriggerPrefix := oldName + "__trigger_"
+	newTriggerPrefix := newName + "__trigger_"
+	compoundRuns, err := tx.PipelineRun.Query().
+		Where(pipelinerun.PipelineNameHasPrefix(oldTriggerPrefix)).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("list compound pipeline runs: %w", err)
+	}
+	for _, run := range compoundRuns {
+		renamed := newTriggerPrefix + strings.TrimPrefix(run.PipelineName, oldTriggerPrefix)
+		if _, err := tx.PipelineRun.UpdateOneID(run.ID).
+			SetPipelineName(renamed).
+			Save(ctx); err != nil {
+			return fmt.Errorf("rename compound pipeline run %d: %w", run.ID, err)
+		}
+	}
+	return nil
+}
+
+// renameCompoundResourceLinks rewrites compound trigger resource link names to the new parent.
+func renameCompoundResourceLinks(ctx context.Context, tx *gen.Tx, oldName, newName string) error {
+	oldTriggerPrefix := oldName + "__trigger_"
+	newTriggerPrefix := newName + "__trigger_"
+	compoundLinks, err := tx.ResourceLink.Query().
+		Where(resourcelink.PipelineNameHasPrefix(oldTriggerPrefix)).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("list compound resource links: %w", err)
+	}
+	for _, link := range compoundLinks {
+		renamed := newTriggerPrefix + strings.TrimPrefix(link.PipelineName, oldTriggerPrefix)
+		if _, err := tx.ResourceLink.UpdateOneID(link.ID).
+			SetPipelineName(renamed).
+			Save(ctx); err != nil {
+			return fmt.Errorf("rename compound resource link %d: %w", link.ID, err)
+		}
+	}
+	return nil
+}
+
 // DeleteDefinitionByName removes a pipeline definition and its associated runs.
 // Returns the number of pipeline runs that were deleted.
 func (s *PipelineStore) DeleteDefinitionByName(ctx context.Context, name string) (int64, error) {

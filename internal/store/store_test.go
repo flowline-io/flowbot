@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/notificationrecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/resourcelink"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -469,6 +470,143 @@ func TestPipelineDefinitionStore_EnsureDefinitionCreatedBy(t *testing.T) {
 			def, err := ps.GetDefinitionByName(ctx, name)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, def.CreatedBy)
+		})
+	}
+}
+
+func TestPipelineDefinitionStore_RenameDefinition(t *testing.T) {
+	client := getTestClient(t)
+	ps := NewPipelineStore(client)
+	ctx := context.Background()
+
+	tests := []struct {
+		name    string
+		setup   func(t *testing.T) (oldName string, newName string)
+		wantErr error
+		check   func(t *testing.T, newName string)
+	}{
+		{
+			name: "renames definition yaml versions runs and links",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				oldName := "rename-src"
+				newName := "rename-dst"
+				require.NoError(t, ps.CreateDefinition(ctx, oldName, "desc", "owner"))
+				yamlDraft := "name: rename-src\nenabled: true\ntriggers: []\nsteps: []"
+				_, err := ps.UpdateDefinitionDraft(ctx, oldName, yamlDraft, 1)
+				require.NoError(t, err)
+				_, err = ps.PublishDefinition(ctx, oldName, 2)
+				require.NoError(t, err)
+				_, err = ps.CreateRun(ctx, oldName, "evt-rename-1", "t", "event")
+				require.NoError(t, err)
+				_, err = ps.CreateRun(ctx, oldName+"__trigger_event_0", "evt-rename-2", "t", "event")
+				require.NoError(t, err)
+				require.NoError(t, client.ResourceLink.Create().
+					SetSourceEventID("src-1").
+					SetTargetEventID("tgt-1").
+					SetPipelineName(oldName).
+					Exec(ctx))
+				require.NoError(t, client.ResourceLink.Create().
+					SetSourceEventID("src-2").
+					SetTargetEventID("tgt-2").
+					SetPipelineName(oldName+"__trigger_event_0").
+					Exec(ctx))
+				return oldName, newName
+			},
+			check: func(t *testing.T, newName string) {
+				t.Helper()
+				def, err := ps.GetDefinitionByName(ctx, newName)
+				require.NoError(t, err)
+				assert.Equal(t, "desc", def.Description)
+				assert.Equal(t, "owner", def.CreatedBy)
+				parsedDraft, err := pipeline.ParseEditorYAML(def.YamlDraft)
+				require.NoError(t, err)
+				assert.Equal(t, newName, parsedDraft.Name)
+				require.NotNil(t, def.YamlPublished)
+				parsedPublished, err := pipeline.ParseEditorYAML(*def.YamlPublished)
+				require.NoError(t, err)
+				assert.Equal(t, newName, parsedPublished.Name)
+
+				_, err = ps.GetDefinitionByName(ctx, "rename-src")
+				require.ErrorIs(t, err, types.ErrNotFound)
+
+				versions, err := ps.ListDefinitionVersions(ctx, newName)
+				require.NoError(t, err)
+				require.NotEmpty(t, versions)
+
+				runs, err := ps.GetRunsByParentName(ctx, newName)
+				require.NoError(t, err)
+				require.Len(t, runs, 2)
+				names := []string{runs[0].PipelineName, runs[1].PipelineName}
+				assert.Contains(t, names, newName)
+				assert.Contains(t, names, newName+"__trigger_event_0")
+
+				links, err := client.ResourceLink.Query().
+					Where(resourcelink.Or(
+						resourcelink.PipelineName(newName),
+						resourcelink.PipelineName(newName+"__trigger_event_0"),
+					)).
+					All(ctx)
+				require.NoError(t, err)
+				require.Len(t, links, 2)
+			},
+		},
+		{
+			name: "rejects invalid new name",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				require.NoError(t, ps.CreateDefinition(ctx, "rename-invalid", "", ""))
+				return "rename-invalid", "-bad"
+			},
+			wantErr: types.ErrInvalidArgument,
+		},
+		{
+			name: "rejects duplicate target name",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				require.NoError(t, ps.CreateDefinition(ctx, "rename-dup-src", "", ""))
+				require.NoError(t, ps.CreateDefinition(ctx, "rename-dup-dst", "", ""))
+				return "rename-dup-src", "rename-dup-dst"
+			},
+			wantErr: types.ErrAlreadyExists,
+		},
+		{
+			name: "same name is no-op",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				require.NoError(t, ps.CreateDefinition(ctx, "rename-same", "", ""))
+				return "rename-same", "rename-same"
+			},
+			check: func(t *testing.T, newName string) {
+				t.Helper()
+				_, err := ps.GetDefinitionByName(ctx, newName)
+				require.NoError(t, err)
+			},
+		},
+		{
+			name: "missing source returns not found",
+			setup: func(t *testing.T) (string, string) {
+				t.Helper()
+				return "missing-rename-src", "missing-rename-dst"
+			},
+			wantErr: types.ErrNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			oldName, newName := tt.setup(t)
+			def, err := ps.RenameDefinition(ctx, oldName, newName)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, def)
+			assert.Equal(t, newName, def.Name)
+			if tt.check != nil {
+				tt.check(t, newName)
+			}
 		})
 	}
 }

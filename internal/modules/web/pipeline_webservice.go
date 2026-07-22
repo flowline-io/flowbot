@@ -40,6 +40,7 @@ var pipelineWebserviceRules = []webservice.Rule{
 	webservice.Get("/pipelines/:name", pipelineEditorPage),
 	webservice.Post("/pipelines", createPipeline),
 	webservice.Put("/pipelines/:name", updatePipelineDraft),
+	webservice.Put("/pipelines/:name/rename", renamePipeline),
 	webservice.Put("/pipelines/:name/publish", publishPipeline),
 	webservice.Put("/pipelines/:name/enabled", setPipelineEnabled),
 	webservice.Delete("/pipelines/:name", deletePipeline),
@@ -172,6 +173,54 @@ func updatePipelineDraft(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "update draft: %v", err)
 	}
 	return c.JSON(fiber.Map{"version": def.Version, "status": def.Status})
+}
+
+// renamePipeline renames a pipeline definition and redirects clients to the new URL.
+func renamePipeline(c fiber.Ctx) error {
+	name, err := pipelineNameParam(c)
+	if err != nil {
+		return err
+	}
+	var body struct {
+		Name string `json:"name"`
+	}
+	if err := c.Bind().Body(&body); err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid body: %v", err)
+	}
+	newName := strings.TrimSpace(body.Name)
+	if err := pipeline.ValidateName(newName); err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+		})
+	}
+	s := getPipelineDefStore()
+	def, err := s.RenameDefinition(context.Background(), name, newName)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return c.Status(404).JSON(fiber.Map{
+				"error": fiber.Map{"code": "NOT_FOUND", "message": "Pipeline not found"},
+			})
+		}
+		if errors.Is(err, types.ErrAlreadyExists) {
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error": fiber.Map{"code": "ALREADY_EXISTS", "message": fmt.Sprintf("Pipeline %q already exists.", newName)},
+			})
+		}
+		if errors.Is(err, types.ErrInvalidArgument) {
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+				"error": fiber.Map{"code": "VALIDATION_ERROR", "message": err.Error()},
+			})
+		}
+		return types.Errorf(types.ErrInternal, "rename pipeline: %v", err)
+	}
+	if reloadErr := pipeline.ReloadDefinitions(context.Background()); reloadErr != nil {
+		flog.Error(fmt.Errorf("reload pipeline engine after rename: %w", reloadErr))
+	}
+	return c.JSON(fiber.Map{
+		"name":    def.Name,
+		"version": def.Version,
+		"status":  def.Status,
+	})
 }
 
 func publishPipeline(c fiber.Ctx) error {

@@ -7,6 +7,9 @@
       },
       name: '',
       description: '',
+      renaming: false,
+      renameValue: '',
+      renamingBusy: false,
       enabled: true,
       status: 'draft',
       version: 1,
@@ -86,6 +89,69 @@
           showToast('Failed to load pipeline', 'error');
         } finally {
           this.loading = false;
+        }
+      },
+
+      startRename() {
+        this.renameValue = this.name;
+        this.renaming = true;
+        setTimeout(() => {
+          const input = document.querySelector(
+            '[data-testid="input-rename-pipeline"]',
+          );
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }, 0);
+      },
+
+      cancelRename() {
+        if (this.renamingBusy) return;
+        this.renaming = false;
+        this.renameValue = this.name;
+      },
+
+      async confirmRename() {
+        if (!this.renaming || this.renamingBusy) return;
+        const nextName = (this.renameValue || '').trim();
+        if (!nextName) {
+          showToast('Pipeline name is required', 'error');
+          this.renameValue = this.name;
+          this.renaming = false;
+          return;
+        }
+        if (nextName === this.name) {
+          this.renaming = false;
+          return;
+        }
+        this.renamingBusy = true;
+        try {
+          const resp = await fetch(this.pipelineURL('/rename'), {
+            method: 'PUT',
+            headers: flowbotCSRFHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({ name: nextName }),
+          });
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok) {
+            const message =
+              (data.error && data.error.message) || 'Failed to rename pipeline';
+            showToast(message, 'error');
+            this.renaming = false;
+            this.renameValue = this.name;
+            return;
+          }
+          const renamed = (data && data.name) || nextName;
+          showToast('Pipeline renamed', 'success');
+          window.location.href =
+            '/service/web/pipelines/' + encodeURIComponent(renamed);
+        } catch (e) {
+          console.error('Failed to rename pipeline:', e);
+          showToast('Failed to rename pipeline', 'error');
+          this.renaming = false;
+          this.renameValue = this.name;
+        } finally {
+          this.renamingBusy = false;
         }
       },
 
