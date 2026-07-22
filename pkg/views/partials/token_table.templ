@@ -23,7 +23,16 @@ templ TokenTable(items []model.TokenItem) {
 				}
 				if len(items) == 0 {
 					<tr id="tokens-empty">
-						<td colspan="7" class="text-center text-base-content/50">No tokens found.</td>
+						<td colspan="7" class="p-0">
+							@EmptyStateHXCTA(
+								"No tokens yet",
+								"Tokens authenticate API and CLI access.",
+								"/service/web/tokens/new",
+								"#tokens-rows",
+								"afterbegin",
+								"Create token",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

@@ -26,7 +26,14 @@ templ AgentScheduledTaskTable(items []model.AgentScheduledTask) {
 					}
 					if len(items) == 0 {
 						<tr id="agent-scheduled-tasks-empty">
-							<td colspan="8" class="text-center text-base-content/50 py-4">No scheduled tasks found.</td>
+							<td colspan="8" class="p-0">
+								@EmptyStateCTA(
+									"No scheduled tasks yet",
+									"Ask an agent to schedule recurring work.",
+									"/service/web/agents",
+									"Open Agents",
+								)
+							</td>
 						</tr>
 					}
 				</tbody>

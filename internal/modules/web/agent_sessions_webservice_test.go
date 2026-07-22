@@ -343,7 +343,7 @@ func TestAgentSessionsListAuthenticated(t *testing.T) {
 			name:     "empty list shows placeholder",
 			path:     "/service/web/agent-sessions/list",
 			sessions: nil,
-			wantBody: "No sessions found",
+			wantBody: "No sessions yet",
 		},
 	}
 
@@ -405,7 +405,7 @@ func TestAgentSessionDetailAuthenticated(t *testing.T) {
 			},
 			entries:    map[string][]*gen.ChatSessionEntry{},
 			wantStatus: http.StatusOK,
-			wantBody:   "No entries in this session",
+			wantBody:   "No entries yet",
 		},
 	}
 

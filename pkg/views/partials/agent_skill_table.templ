@@ -24,7 +24,16 @@ templ AgentSkillTable(items []model.AgentSkill) {
 				}
 				if len(items) == 0 {
 					<tr id="agent-skills-empty">
-						<td colspan="6" class="text-center text-base-content/50">No agent skills found.</td>
+						<td colspan="6" class="p-0">
+							@EmptyStateHXCTA(
+								"No agent skills yet",
+								"Skills extend what agents can do.",
+								"/service/web/agent-skills/new",
+								"#agent-skills-rows",
+								"afterbegin",
+								"Create skill",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

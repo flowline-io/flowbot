@@ -53,7 +53,14 @@ templ AgentScheduledTaskRunsTable(items []model.AgentScheduledTaskRun) {
 						}
 						if len(items) == 0 {
 							<tr>
-								<td colspan="7" class="text-center text-base-content/50 py-4">No runs found.</td>
+								<td colspan="7" class="p-0">
+									@EmptyStateCTA(
+										"No runs yet",
+										"Runs appear after the task executes.",
+										"",
+										"",
+									)
+								</td>
 							</tr>
 						}
 					</tbody>

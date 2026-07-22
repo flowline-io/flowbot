@@ -315,7 +315,7 @@ func TestNotifyTemplatesTable(t *testing.T) {
 			name:       "empty templates shows placeholder",
 			templates:  map[int64]model.NotifyTemplate{},
 			wantStatus: http.StatusOK,
-			wantSub:    "No notification templates",
+			wantSub:    "No templates yet",
 		},
 		{
 			name: "exposes delete controls",
@@ -380,7 +380,7 @@ func TestNotifyRulesTable(t *testing.T) {
 			name:       "empty rules shows placeholder",
 			rules:      map[int64]model.NotifyRule{},
 			wantStatus: http.StatusOK,
-			wantSub:    "No notification rules",
+			wantSub:    "No rules yet",
 		},
 		{
 			name: "exposes delete controls",

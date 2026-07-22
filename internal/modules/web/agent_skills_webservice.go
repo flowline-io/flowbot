@@ -302,7 +302,21 @@ func agentSkillDelete(ctx fiber.Ctx) error {
 	items, err := store.Database.ListAgentSkills(reqCtx, false)
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
-		ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-skills-empty" hx-swap-oob="innerHTML:#agent-skills-rows"><td colspan="6" class="text-center text-base-content/50">No agent skills found.</td></tr>`))
+		_ = partials.WriteTableEmptyOOB(
+			reqCtx,
+			ctx.Response().BodyWriter(),
+			"agent-skills-empty",
+			"#agent-skills-rows",
+			"6",
+			partials.EmptyStateHXCTA(
+				"No agent skills yet",
+				"Skills extend what agents can do.",
+				"/service/web/agent-skills/new",
+				"#agent-skills-rows",
+				"afterbegin",
+				"Create skill",
+			),
+		)
 	}
 	return ctx.SendString("")
 }

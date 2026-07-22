@@ -23,7 +23,14 @@ templ AgentSessionEntriesTable(entries []model.AgentSessionEntry) {
 				}
 				if len(entries) == 0 {
 					<tr>
-						<td colspan="5" class="text-center text-base-content/50 py-4">No entries in this session.</td>
+						<td colspan="5" class="p-0">
+							@EmptyStateCTA(
+								"No entries yet",
+								"Messages and tool calls appear as the session runs.",
+								"/service/web/agents",
+								"Open Agents",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

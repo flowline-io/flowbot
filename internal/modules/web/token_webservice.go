@@ -165,7 +165,21 @@ func tokensRevoke(ctx fiber.Ctx) error {
 	items, err := store.Database.ListTokens(context.Background())
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
-		ctx.Response().BodyWriter().Write([]byte(`<tr id="tokens-empty" hx-swap-oob="innerHTML:#tokens-rows"><td colspan="7" class="text-center text-base-content/50">No tokens found.</td></tr>`))
+		_ = partials.WriteTableEmptyOOB(
+			context.Background(),
+			ctx.Response().BodyWriter(),
+			"tokens-empty",
+			"#tokens-rows",
+			"7",
+			partials.EmptyStateHXCTA(
+				"No tokens yet",
+				"Tokens authenticate API and CLI access.",
+				"/service/web/tokens/new",
+				"#tokens-rows",
+				"afterbegin",
+				"Create token",
+			),
+		)
 	}
 	return nil
 }

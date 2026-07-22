@@ -53,7 +53,14 @@ templ NotificationsTable(records []*gen.NotificationRecord, nextCursor string) {
 				}
 				if len(records) == 0 {
 					<tr id="notifications-empty">
-						<td colspan="5" class="text-center text-base-content/50 py-4">No notifications yet.</td>
+						<td colspan="5" class="p-0">
+							@EmptyStateCTA(
+								"No notifications yet",
+								"Configure channels and rules to deliver alerts.",
+								"/service/web/notifications?tab=channels",
+								"Open Notify settings",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

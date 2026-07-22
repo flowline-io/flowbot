@@ -5,15 +5,49 @@ templ EmptyState(message string) {
 	@EmptyStateCTA(message, "", "", "")
 }
 
-// EmptyStateCTA renders an empty placeholder with optional primary action.
+// EmptyStateCTA renders an empty placeholder with optional primary link action.
 templ EmptyStateCTA(message string, detail string, href string, cta string) {
+	@emptyStateShell(message, detail) {
+		if href != "" && cta != "" {
+			<a href={ href } class="btn btn-primary btn-sm mt-4" data-testid="empty-state-cta">{ cta }</a>
+		}
+	}
+}
+
+// EmptyStateHXCTA renders an empty placeholder with an HTMX GET primary action.
+templ EmptyStateHXCTA(message string, detail string, hxGet string, hxTarget string, hxSwap string, cta string) {
+	@emptyStateShell(message, detail) {
+		if hxGet != "" && cta != "" {
+			<button type="button"
+				class="btn btn-primary btn-sm mt-4"
+				hx-get={ hxGet }
+				hx-target={ hxTarget }
+				hx-swap={ hxSwap }
+				data-testid="empty-state-cta">{ cta }</button>
+		}
+	}
+}
+
+// EmptyStateOnClickCTA renders an empty placeholder with a scripted primary action.
+templ EmptyStateOnClickCTA(message string, detail string, onClick string, cta string) {
+	@emptyStateShell(message, detail) {
+		if onClick != "" && cta != "" {
+			<button type="button"
+				class="btn btn-primary btn-sm mt-4"
+				data-testid="empty-state-cta"
+				{ templ.Attributes{"onclick": onClick}... }
+			>{ cta }</button>
+		}
+	}
+}
+
+// emptyStateShell is the shared empty-state layout; children supply the optional CTA.
+templ emptyStateShell(message string, detail string) {
 	<div class="py-10 px-4 text-center border-t border-base-300" data-testid="empty-state">
 		<p class="text-base-content/70 font-medium m-0">{ message }</p>
 		if detail != "" {
 			<p class="text-sm text-base-content/50 m-0 mt-2 max-w-md mx-auto">{ detail }</p>
 		}
-		if href != "" && cta != "" {
-			<a href={ href } class="btn btn-primary btn-sm mt-4" data-testid="empty-state-cta">{ cta }</a>
-		}
+		{ children... }
 	</div>
 }

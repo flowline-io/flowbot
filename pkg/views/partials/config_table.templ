@@ -26,7 +26,14 @@ templ ConfigTable(items []model.ConfigItem) {
 				if len(items) == 0 {
 					<tr id="configs-empty">
 						<td colspan="7" class="p-0">
-							@EmptyState("No configs found.")
+							@EmptyStateHXCTA(
+								"No configs yet",
+								"Store per-module settings as key/value pairs.",
+								"/service/web/configs/new",
+								"#configs-rows",
+								"afterbegin",
+								"Create config",
+							)
 						</td>
 					</tr>
 				}

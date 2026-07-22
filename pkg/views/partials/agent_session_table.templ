@@ -25,7 +25,14 @@ templ AgentSessionTable(items []model.AgentSession, nextCursor string) {
 				}
 				if len(items) == 0 {
 					<tr id="agent-sessions-empty">
-						<td colspan="7" class="text-center text-base-content/50 py-4">No sessions found.</td>
+						<td colspan="7" class="p-0">
+							@EmptyStateCTA(
+								"No sessions yet",
+								"Conversations appear here after you chat with an agent.",
+								"/service/web/agents",
+								"Open Agents",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

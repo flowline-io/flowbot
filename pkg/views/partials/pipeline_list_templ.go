@@ -126,11 +126,11 @@ func PipelineListTable(entries []PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = EmptyStateCTA(
+			templ_7745c5c3_Err = EmptyStateOnClickCTA(
 				"No pipelines yet",
-				"Use New Pipeline to create your first automation.",
-				"",
-				"",
+				"Create your first automation to react to events.",
+				"document.getElementById('create-modal').showModal()",
+				"Create pipeline",
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

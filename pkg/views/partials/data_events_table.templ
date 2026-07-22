@@ -60,7 +60,14 @@ templ DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, pag
 					}
 					if len(events) == 0 {
 						<tr>
-							<td colspan="5" class="text-center text-base-content/50 py-4">No events found.</td>
+							<td colspan="5" class="p-0">
+								@EmptyStateCTA(
+									"No events yet",
+									"Events appear when capabilities emit data.",
+									"/service/web/pipelines",
+									"Create pipeline",
+								)
+							</td>
 						</tr>
 					}
 					</tbody>

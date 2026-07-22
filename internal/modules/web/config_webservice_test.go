@@ -58,7 +58,7 @@ func TestListConfigs(t *testing.T) {
 		wantStatus         int
 	}{
 		{name: "renders config table", storeConfigs: []model.ConfigItem{createTestConfig("u1", "t1", "k1")}, wantStatus: http.StatusOK, wantContains: "k1"},
-		{name: "renders empty state", storeConfigs: []model.ConfigItem{}, wantStatus: http.StatusOK, wantContains: "No configs"},
+		{name: "renders empty state", storeConfigs: []model.ConfigItem{}, wantStatus: http.StatusOK, wantContains: "No configs yet"},
 		{name: "renders multiple rows", storeConfigs: []model.ConfigItem{createTestConfig("u1", "t1", "k1"), createTestConfig("u2", "t2", "k2")}, wantStatus: http.StatusOK, wantContains: "k2"},
 	}
 	for _, tt := range tests {

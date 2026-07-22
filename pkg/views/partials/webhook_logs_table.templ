@@ -84,7 +84,14 @@ templ WebhookLogsTable(sources, eventTypes []string, events []*gen.DataEvent, pa
 					}
 				if len(events) == 0 {
 					<tr>
-						<td colspan="7" class="text-center text-base-content/50 py-4">No webhook receipts recorded yet.</td>
+						<td colspan="7" class="p-0">
+							@EmptyStateCTA(
+								"No webhook receipts yet",
+								"Webhook triggers record receipts here when they fire.",
+								"/service/web/pipelines",
+								"Create pipeline",
+							)
+						</td>
 					</tr>
 				}
 					</tbody>

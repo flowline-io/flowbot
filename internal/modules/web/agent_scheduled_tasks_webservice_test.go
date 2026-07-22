@@ -163,7 +163,7 @@ func TestListScheduledTaskModels(t *testing.T) {
 				assert.Equal(t, http.StatusOK, resp.StatusCode)
 				assert.Contains(t, string(body), tt.wantName)
 				if tt.wantLen == 0 {
-					assert.Contains(t, string(body), "No scheduled tasks found")
+					assert.Contains(t, string(body), "No scheduled tasks yet")
 				}
 			})
 		})
@@ -223,7 +223,7 @@ func TestAgentScheduledTasksListAuthenticated(t *testing.T) {
 			name:     "empty list shows placeholder",
 			path:     "/service/web/agent-scheduled-tasks/list",
 			tasks:    nil,
-			wantBody: "No scheduled tasks found",
+			wantBody: "No scheduled tasks yet",
 		},
 	}
 
@@ -306,7 +306,7 @@ func TestAgentScheduledTaskDetailAuthenticated(t *testing.T) {
 			},
 			runs:       map[string][]*gen.ChatScheduledTaskRun{},
 			wantStatus: http.StatusOK,
-			wantBody:   "No runs found",
+			wantBody:   "No runs yet",
 		},
 	}
 

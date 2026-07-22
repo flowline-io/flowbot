@@ -242,7 +242,21 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 	items, err := store.Database.ListAgentSubagents(reqCtx, false)
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
-		ctx.Response().BodyWriter().Write([]byte(`<tr id="agent-subagents-empty" hx-swap-oob="innerHTML:#agent-subagents-rows"><td colspan="7" class="text-center text-base-content/50">No agent subagents found.</td></tr>`))
+		_ = partials.WriteTableEmptyOOB(
+			reqCtx,
+			ctx.Response().BodyWriter(),
+			"agent-subagents-empty",
+			"#agent-subagents-rows",
+			"7",
+			partials.EmptyStateHXCTA(
+				"No subagents yet",
+				"Define specialists for delegated work.",
+				"/service/web/agent-subagents/new",
+				"#agent-subagents-rows",
+				"afterbegin",
+				"Create subagent",
+			),
+		)
 	}
 	return ctx.SendString("")
 }

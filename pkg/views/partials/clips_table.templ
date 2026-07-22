@@ -37,7 +37,14 @@ templ ClipsTable(items []ClipListItem) {
 					}
 					if len(items) == 0 {
 						<tr id="clips-empty">
-							<td colspan="5" class="text-center text-base-content/50" data-testid="clips-empty">No clips yet.</td>
+							<td colspan="5" class="p-0" data-testid="clips-empty">
+								@EmptyStateCTA(
+									"No clips yet",
+									"Create clips from the CLI or chat to share readable pages.",
+									"/service/web/agents",
+									"Open Agents",
+								)
+							</td>
 						</tr>
 					}
 				</tbody>

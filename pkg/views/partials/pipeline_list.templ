@@ -19,11 +19,11 @@ templ PipelineTriggerIcon(tr PipelineTriggerSummary) {
 templ PipelineListTable(entries []PipelineListEntry) {
 	if len(entries) == 0 {
 			<div class="text-center py-12" data-testid="pipeline-empty">
-				@EmptyStateCTA(
+				@EmptyStateOnClickCTA(
 					"No pipelines yet",
-					"Use New Pipeline to create your first automation.",
-					"",
-					"",
+					"Create your first automation to react to events.",
+					"document.getElementById('create-modal').showModal()",
+					"Create pipeline",
 				)
 			</div>
 	} else {

@@ -25,7 +25,16 @@ templ AgentSubagentTable(items []model.AgentSubagent) {
 				}
 				if len(items) == 0 {
 					<tr id="agent-subagents-empty">
-						<td colspan="7" class="text-center text-base-content/50">No agent subagents found.</td>
+						<td colspan="7" class="p-0">
+							@EmptyStateHXCTA(
+								"No subagents yet",
+								"Define specialists for delegated work.",
+								"/service/web/agent-subagents/new",
+								"#agent-subagents-rows",
+								"afterbegin",
+								"Create subagent",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

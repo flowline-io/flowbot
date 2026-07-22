@@ -551,10 +551,7 @@
           syncAssistantDuration();
           if (assistantBody) {
             assistantBody.parentElement.classList.remove('opacity-80');
-            ensureCopyMarkdownButton(
-              assistantBody,
-              assistantText,
-            );
+            ensureCopyMarkdownButton(assistantBody, assistantText);
           }
           if (ctxCtrl) {
             ctxCtrl.onRunComplete();

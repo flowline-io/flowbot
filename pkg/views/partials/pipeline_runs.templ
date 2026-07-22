@@ -13,7 +13,12 @@ import (
 templ PipelineRunsTable(name string, runs []*gen.PipelineRun) {
 	if len(runs) == 0 {
 		<div class="py-12" data-testid="runs-empty">
-			@EmptyState("No runs recorded yet.")
+			@EmptyStateCTA(
+				"No runs recorded yet",
+				"Trigger or manually run this pipeline to see history here.",
+				"",
+				"",
+			)
 		</div>
 	} else {
 		<div class="flowbot-surface" data-testid="runs-table">

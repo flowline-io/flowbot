@@ -250,7 +250,7 @@ func TestAgentSubagentTasksTableAuthenticated(t *testing.T) {
 			name:       "renders empty state",
 			tasks:      map[int64]*gen.AgentSubagentTask{},
 			wantStatus: http.StatusOK,
-			wantBody:   "No delegated tasks found",
+			wantBody:   "No delegated tasks yet",
 		},
 		{
 			name: "renders failed status badge",

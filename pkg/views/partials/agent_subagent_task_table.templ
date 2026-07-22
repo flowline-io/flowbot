@@ -26,7 +26,14 @@ templ AgentSubagentTaskTable(items []model.AgentSubagentTask) {
 				}
 				if len(items) == 0 {
 					<tr id="agent-subagent-tasks-empty">
-						<td colspan="8" class="text-center text-base-content/50">No delegated tasks found.</td>
+						<td colspan="8" class="p-0">
+							@EmptyStateCTA(
+								"No delegated tasks yet",
+								"Tasks appear when agents delegate work to subagents.",
+								"/service/web/agents",
+								"Open Agents",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

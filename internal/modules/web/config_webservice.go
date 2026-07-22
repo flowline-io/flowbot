@@ -185,7 +185,21 @@ func deleteConfig(ctx fiber.Ctx) error {
 	items, err := store.Database.ListConfigs(context.Background(), store.ListConfigOptions{Limit: 1})
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
-		ctx.Response().BodyWriter().Write([]byte(`<tr id="configs-empty" hx-swap-oob="innerHTML:#configs-rows"><td colspan="7" class="px-4 py-6 text-center text-sm text-gray-500">No configs found.</td></tr>`))
+		_ = partials.WriteTableEmptyOOB(
+			context.Background(),
+			ctx.Response().BodyWriter(),
+			"configs-empty",
+			"#configs-rows",
+			"7",
+			partials.EmptyStateHXCTA(
+				"No configs yet",
+				"Store per-module settings as key/value pairs.",
+				"/service/web/configs/new",
+				"#configs-rows",
+				"afterbegin",
+				"Create config",
+			),
+		)
 	}
 	return nil
 }

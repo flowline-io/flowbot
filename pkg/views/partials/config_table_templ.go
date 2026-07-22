@@ -46,7 +46,14 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = EmptyState("No configs found.").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = EmptyStateHXCTA(
+				"No configs yet",
+				"Store per-module settings as key/value pairs.",
+				"/service/web/configs/new",
+				"#configs-rows",
+				"afterbegin",
+				"Create config",
+			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

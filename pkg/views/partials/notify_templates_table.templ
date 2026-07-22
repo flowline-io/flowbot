@@ -24,7 +24,16 @@ templ NotifyTemplatesTable(templates []model.NotifyTemplate) {
 				}
 				if len(templates) == 0 {
 					<tr id="notify-templates-empty" data-testid="notify-templates-empty">
-						<td colspan="6" class="text-center text-base-content/50">No notification templates configured.</td>
+						<td colspan="6" class="p-0">
+							@EmptyStateHXCTA(
+								"No templates yet",
+								"Templates format notification content for channels.",
+								"/service/web/notifications/templates/new",
+								"#notify-templates-rows",
+								"afterbegin",
+								"Create template",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

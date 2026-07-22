@@ -25,7 +25,16 @@ templ NotifyRulesTable(rules []model.NotifyRule, templateIDs []string) {
 				}
 				if len(rules) == 0 {
 					<tr id="notify-rules-empty">
-						<td colspan="7" class="text-center text-base-content/50">No notification rules configured.</td>
+						<td colspan="7" class="p-0">
+							@EmptyStateHXCTA(
+								"No rules yet",
+								"Rules match events to channels and templates.",
+								"/service/web/notifications/rules/new",
+								"#notify-rules-rows",
+								"afterbegin",
+								"Create rule",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>

@@ -22,8 +22,13 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 					<tbody>
 						if len(apps) == 0 {
 							<tr data-testid="hub-apps-empty">
-								<td colspan="4" class="text-center text-base-content/50 py-8">
-									No apps discovered. Ensure homelab.apps_dir is configured and contains compose files.
+								<td colspan="4" class="p-0">
+									@EmptyStateCTA(
+										"No apps discovered",
+										"Configure homelab.apps_dir, then rescan the registry.",
+										"/service/web/homelab",
+										"Open Registry",
+									)
 								</td>
 							</tr>
 						} else {

@@ -39,8 +39,8 @@ func WorkflowListTable(entries []WorkflowListEntry) templ.Component {
 			templ_7745c5c3_Err = EmptyStateCTA(
 				"No workflows yet",
 				"Apply a workflow definition via CLI to see it here.",
-				"",
-				"",
+				"/service/web/pipelines",
+				"Open Pipelines",
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

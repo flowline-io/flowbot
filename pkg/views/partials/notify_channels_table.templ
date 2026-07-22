@@ -24,7 +24,16 @@ templ NotifyChannelsTable(channels []model.NotifyChannel) {
 				}
 				if len(channels) == 0 {
 					<tr id="notify-channels-empty">
-						<td colspan="6" class="text-center text-base-content/50">No notification channels configured.</td>
+						<td colspan="6" class="p-0">
+							@EmptyStateHXCTA(
+								"No channels yet",
+								"Add a channel to deliver notifications.",
+								"/service/web/notifications/channels/new",
+								"#notify-channels-rows",
+								"afterbegin",
+								"Create channel",
+							)
+						</td>
 					</tr>
 				}
 				</tbody>
