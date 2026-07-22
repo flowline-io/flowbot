@@ -14,6 +14,13 @@
     return label;
   }
 
+  function reconnectDelay(attempt) {
+    if (typeof window.flowbotNextReconnectDelay === 'function') {
+      return window.flowbotNextReconnectDelay(attempt);
+    }
+    return Math.min(1000 * Math.pow(2, Math.max(0, attempt)), 8000);
+  }
+
   ns.initApproval = function (panel) {
     if (!panel) {
       return null;
@@ -38,9 +45,18 @@
     var submitting = false;
     var toastTimer = null;
     var source = null;
+    var reconnectAttempt = 0;
+    var reconnectTimer = null;
     // Reload only when the turn fully ends. Timed reloads interrupt multi-tool
     // approval chains and wipe the page before finishStream persists history.
     var reloadOnComplete = false;
+
+    function clearReconnectTimer() {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+    }
 
     function clearToastTimer() {
       if (toastTimer) {
@@ -326,10 +342,17 @@
     });
 
     function connect() {
+      clearReconnectTimer();
       if (source) {
         source.close();
       }
       source = new EventSource(eventsURL);
+      source.addEventListener('open', function () {
+        if (reconnectAttempt > 0) {
+          showStatusToast('Connected', 'info');
+        }
+        reconnectAttempt = 0;
+      });
       source.addEventListener('message', function (msg) {
         if (!msg.data) {
           return;
@@ -347,7 +370,10 @@
           source.close();
           source = null;
         }
-        window.setTimeout(connect, 3000);
+        showStatusToast('Reconnecting…', 'warning');
+        var delay = reconnectDelay(reconnectAttempt);
+        reconnectAttempt += 1;
+        reconnectTimer = window.setTimeout(connect, delay);
       });
     }
 

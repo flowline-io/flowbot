@@ -369,6 +369,27 @@
     ns.showError(el, message);
   }
 
+  function showReloadMessagesPrompt(el, message) {
+    if (!el) {
+      return;
+    }
+    if (isApprovalStatusMessage(message)) {
+      return;
+    }
+    el.classList.remove('hidden');
+    el.textContent = '';
+    el.appendChild(document.createTextNode(message + ' '));
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn-ghost btn-xs text-primary align-baseline';
+    btn.textContent = 'Reload messages';
+    btn.setAttribute('data-testid', 'chatagent-reload-messages');
+    btn.addEventListener('click', function () {
+      window.location.reload();
+    });
+    el.appendChild(btn);
+  }
+
   ns.streamMessage = function (
     messagesURL,
     text,
@@ -598,13 +619,10 @@
           // Stream ended cleanly but never delivered Done (e.g. mid-turn SSE
           // detach while waiting for tool approval). Reload persisted history.
           if (!sawDone) {
-            showThreadError(
+            showReloadMessagesPrompt(
               errorEl,
-              'Run finished without a live stream. Reloading saved messages…',
+              'Run finished without a live stream.',
             );
-            setTimeout(function () {
-              window.location.reload();
-            }, 800);
           }
         });
       })
@@ -617,13 +635,7 @@
           (err.name === 'TypeError' ||
             /network|fetch|load failed|incomplete/i.test(msg));
         if (networkLost) {
-          showThreadError(
-            errorEl,
-            'Connection lost while streaming. Reloading saved messages…',
-          );
-          setTimeout(function () {
-            window.location.reload();
-          }, 1200);
+          showReloadMessagesPrompt(errorEl, 'Connection lost while streaming.');
           return;
         }
         showThreadError(errorEl, msg);

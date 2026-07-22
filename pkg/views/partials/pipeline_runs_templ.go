@@ -58,7 +58,7 @@ func PipelineRunsTable(name string, runs []*gen.PipelineRun) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flowbot-surface\" data-testid=\"runs-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"w-8\"></th><th>Run ID</th><th>Event</th><th>Status</th><th>Started</th><th>Duration</th></tr></thead> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"flowbot-surface\" data-testid=\"runs-table\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th class=\"w-8\"></th><th>Run ID</th><th>Event</th><th>Status</th><th>Started</th><th>Duration</th></tr></thead> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

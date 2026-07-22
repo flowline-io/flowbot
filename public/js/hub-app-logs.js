@@ -7,16 +7,44 @@
   if (!url) {
     return;
   }
-  var es = new EventSource(url);
-  panel.textContent = '';
-  es.addEventListener('message', function (e) {
-    panel.appendChild(document.createTextNode(e.data + '\n'));
+
+  var es = null;
+
+  function appendLine(text) {
+    panel.appendChild(document.createTextNode(text + '\n'));
     panel.scrollTop = panel.scrollHeight;
-  });
-  es.addEventListener('error', function () {
-    if (es.readyState === EventSource.CLOSED) {
-      panel.appendChild(document.createTextNode('\n-- Log stream ended --'));
+  }
+
+  function connect() {
+    if (es) {
       es.close();
+      es = null;
     }
-  });
+    es = new EventSource(url);
+    es.addEventListener('open', function () {
+      if (typeof showToast === 'function') {
+        showToast('Log stream connected', 'info');
+      }
+    });
+    es.addEventListener('message', function (e) {
+      appendLine(e.data);
+    });
+    es.addEventListener('error', function () {
+      if (!es || es.readyState !== EventSource.CLOSED) {
+        return;
+      }
+      es.close();
+      es = null;
+      appendLine('-- Log stream ended --');
+      if (typeof showToast === 'function') {
+        showToast(
+          'Log stream ended. Refresh the page to reconnect.',
+          'warning',
+        );
+      }
+    });
+  }
+
+  panel.textContent = '';
+  connect();
 })();

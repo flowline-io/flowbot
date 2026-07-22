@@ -366,7 +366,7 @@ func NotificationsTable(p NotificationHistoryParams) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div><div class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Time</th><th class=\"text-xs text-base-content/55\">Channel</th><th class=\"text-xs text-base-content/55\">Rule</th><th class=\"text-xs text-base-content/55\">Template</th><th class=\"text-xs text-base-content/55\">Summary</th><th class=\"text-xs text-base-content/55\">Status</th></tr></thead> <tbody id=\"notifications-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</div><div class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th class=\"text-xs text-base-content/55\">Time</th><th class=\"text-xs text-base-content/55\">Channel</th><th class=\"text-xs text-base-content/55\">Rule</th><th class=\"text-xs text-base-content/55\">Template</th><th class=\"text-xs text-base-content/55\">Summary</th><th class=\"text-xs text-base-content/55\">Status</th></tr></thead> <tbody id=\"notifications-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

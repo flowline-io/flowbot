@@ -22,6 +22,8 @@ const (
 	PlanLocationPrefix = "plan://"
 	// FileLocationPrefix is the URI scheme for workspace-relative files.
 	FileLocationPrefix = "file://"
+	// ResourcePreviewMaxBytes is the hard cap for full UI previews.
+	ResourcePreviewMaxBytes = 2 << 20
 )
 
 var resourceURIPattern = regexp.MustCompile(`\[[^\]]*\]\((plan://[^)]+|file://[^)]+)\)`)
@@ -57,8 +59,19 @@ func ParseResourceURI(uri string) (scheme, ref string, err error) {
 	}
 }
 
-// ResolveResource loads one plan:// or file:// resource for a session.
+// ResolveResourceOptions controls truncation for ResolveResourceWithOptions.
+type ResolveResourceOptions struct {
+	// Full skips workspace TruncateOutput and applies ResourcePreviewMaxBytes instead.
+	Full bool
+}
+
+// ResolveResource loads one plan:// or file:// resource for a session (preview truncated).
 func ResolveResource(ctx context.Context, sessionID, uri string) (ResourceContent, error) {
+	return ResolveResourceWithOptions(ctx, sessionID, uri, ResolveResourceOptions{})
+}
+
+// ResolveResourceWithOptions loads one resource with optional full preview mode.
+func ResolveResourceWithOptions(ctx context.Context, sessionID, uri string, opts ResolveResourceOptions) (ResourceContent, error) {
 	if strings.TrimSpace(sessionID) == "" {
 		return ResourceContent{}, types.Errorf(types.ErrInvalidArgument, "session_id is required")
 	}
@@ -70,7 +83,7 @@ func ResolveResource(ctx context.Context, sessionID, uri string) (ResourceConten
 	case "plan":
 		return resolvePlanResource(ctx, sessionID, uri, ref)
 	case "file":
-		return resolveFileResource(ctx, sessionID, uri, ref)
+		return resolveFileResource(ctx, sessionID, uri, ref, opts)
 	default:
 		return ResourceContent{}, types.Errorf(types.ErrInvalidArgument, "unsupported resource scheme: %q", scheme)
 	}
@@ -93,7 +106,7 @@ func resolvePlanResource(ctx context.Context, sessionID, uri, planID string) (Re
 	}, nil
 }
 
-func resolveFileResource(ctx context.Context, sessionID, uri, relPath string) (ResourceContent, error) {
+func resolveFileResource(ctx context.Context, sessionID, uri, relPath string, opts ResolveResourceOptions) (ResourceContent, error) {
 	if err := checkFileReadPermission(ctx, sessionID, relPath); err != nil {
 		return ResourceContent{}, err
 	}
@@ -116,8 +129,7 @@ func resolveFileResource(ctx context.Context, sessionID, uri, relPath string) (R
 		return ResourceContent{}, types.Errorf(types.ErrInvalidArgument, "file is not valid UTF-8 text")
 	}
 	raw := string(data)
-	content := ws.TruncateOutput(raw)
-	truncated := strings.HasSuffix(content, "\n...(output truncated)")
+	content, truncated := LimitResourcePreviewContent(raw, opts.Full)
 	title := filepath.Base(relPath)
 	contentType := "text/plain"
 	if strings.HasSuffix(strings.ToLower(relPath), ".md") {
@@ -131,6 +143,19 @@ func resolveFileResource(ctx context.Context, sessionID, uri, relPath string) (R
 		ContentType: contentType,
 		Truncated:   truncated,
 	}, nil
+}
+
+// LimitResourcePreviewContent applies preview truncation or the UI hard cap for full loads.
+func LimitResourcePreviewContent(raw string, full bool) (content string, truncated bool) {
+	if !full {
+		ws := coding.Workspace{}
+		content = ws.TruncateOutput(raw)
+		return content, strings.HasSuffix(content, "\n...(output truncated)")
+	}
+	if len(raw) > ResourcePreviewMaxBytes {
+		return raw[:ResourcePreviewMaxBytes] + "\n...(output truncated)", true
+	}
+	return raw, false
 }
 
 func checkFileReadPermission(ctx context.Context, sessionID, relPath string) error {

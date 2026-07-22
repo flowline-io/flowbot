@@ -24,32 +24,99 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			data-todos-url={ endpoints.TodosURL }
 		}
 		data-testid="chatagent-thread">
-		<div class="flex items-center justify-between mb-5 gap-2 shrink-0 px-1">
-			<div>
-				if session.Title != "" {
-					<h1 class="text-2xl font-semibold tracking-tight text-base-content">{ session.Title }</h1>
-					<p class="font-mono text-sm text-base-content/60">{ session.Flag }</p>
-				} else {
-					<h1 class="text-2xl font-semibold tracking-tight font-mono text-base-content">{ session.Flag }</h1>
-				}
-				<p id="chatagent-session-model-label" class="text-xs text-base-content/50 mt-0.5" data-testid="chatagent-session-model-label">
-					{ chatAgentSessionSettingsLabel(session, endpoints.DefaultModel) }
-				</p>
-			</div>
-			<div class="flex gap-2">
-				if session.State == "Active" && endpoints.CloseURL != "" {
+		<header class="chatagent-thread-header shrink-0 px-1 mb-3 sm:mb-5" data-testid="chatagent-thread-header">
+			<div class="flex items-start gap-2">
+				<div class="min-w-0 flex-1">
+					if session.Title != "" {
+						<h1 class="chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight text-base-content" data-testid="chatagent-thread-title">{ session.Title }</h1>
+						<p class="hidden lg:flex font-mono text-xs sm:text-sm text-base-content/55 mt-0.5" data-testid="chatagent-thread-session-id">{ session.Flag }</p>
+					} else {
+						<h1 class="chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight font-mono text-base-content" data-testid="chatagent-thread-title">{ session.Flag }</h1>
+					}
+					<p id="chatagent-session-model-label" class="text-xs text-base-content/50 mt-0.5 truncate" data-testid="chatagent-session-model-label">
+						{ chatAgentSessionSettingsLabel(session, endpoints.DefaultModel) }
+					</p>
+				</div>
+				<div class="hidden lg:flex flex-wrap justify-end gap-1 shrink-0 pt-0.5" data-testid="chatagent-header-actions-desktop">
+					if session.State == "Active" && endpoints.CloseURL != "" {
+						<button
+							type="button"
+							id="chatagent-close-session"
+							class="btn btn-ghost btn-sm text-error"
+							data-chatagent-close
+							data-testid="chatagent-close-session">Close session</button>
+					}
+					if endpoints.InspectURL != "" {
+						<a href={ templ.URL(endpoints.InspectURL) } class="btn btn-ghost btn-sm" data-testid="chatagent-inspect">Inspect entries</a>
+					}
+					<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">Back to Agents</a>
+				</div>
+				<div class="flex lg:hidden items-center gap-0.5 shrink-0 pt-0.5">
+					if endpoints.ListURL != "" {
+						<button
+							type="button"
+							class="btn btn-ghost btn-sm btn-square"
+							aria-label="Sessions"
+							title="Sessions"
+							data-testid="chatagent-sessions-open"
+							onclick="document.getElementById('chatagent-sessions-drawer').showModal()">
+							<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M8 6h13"></path>
+								<path d="M8 12h13"></path>
+								<path d="M8 18h13"></path>
+								<path d="M3 6h.01"></path>
+								<path d="M3 12h.01"></path>
+								<path d="M3 18h.01"></path>
+							</svg>
+						</button>
+					}
 					<button
 						type="button"
-						id="chatagent-close-session"
-						class="btn btn-ghost btn-sm text-error"
-						data-testid="chatagent-close-session">Close session</button>
-				}
-				if endpoints.InspectURL != "" {
-					<a href={ templ.URL(endpoints.InspectURL) } class="btn btn-ghost btn-sm" data-testid="chatagent-inspect">Inspect entries</a>
-				}
-				<a href="/service/web/agents" class="btn btn-ghost btn-sm" data-testid="chatagent-back">Back to Agents</a>
+						class="btn btn-ghost btn-sm btn-square"
+						aria-label="Session actions"
+						data-testid="chatagent-header-menu"
+						onclick="document.getElementById('chatagent-header-actions-dialog').showModal()">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<circle cx="12" cy="5" r="1"></circle>
+							<circle cx="12" cy="12" r="1"></circle>
+							<circle cx="12" cy="19" r="1"></circle>
+						</svg>
+					</button>
+				</div>
 			</div>
-		</div>
+		</header>
+		<dialog
+			id="chatagent-header-actions-dialog"
+			class="modal lg:hidden"
+			data-testid="chatagent-header-menu-panel">
+			<div class="modal-box max-w-xs p-2">
+				<ul class="menu menu-sm w-full p-0">
+					if session.State == "Active" && endpoints.CloseURL != "" {
+						<li>
+							<button
+								type="button"
+								class="text-error"
+								data-chatagent-close
+								data-testid="chatagent-close-session-mobile">Close session</button>
+						</li>
+					}
+					if endpoints.InspectURL != "" {
+						<li>
+							<a href={ templ.URL(endpoints.InspectURL) } data-testid="chatagent-inspect-mobile">Inspect entries</a>
+						</li>
+					}
+					<li>
+						<a href="/service/web/agents" data-testid="chatagent-back-mobile">Back to Agents</a>
+					</li>
+				</ul>
+			</div>
+			<form method="dialog" class="modal-backdrop">
+				<button type="submit">close</button>
+			</form>
+		</dialog>
+		if endpoints.ListURL != "" {
+			@ChatAgentSessionsDrawer(endpoints)
+		}
 		<div
 			id="chatagent-status-toast"
 			class="chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm"

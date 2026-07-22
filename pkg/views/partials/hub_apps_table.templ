@@ -6,11 +6,12 @@ templ HubAppsTable(apps []homelab.App, updatedAts map[string]string) {
 	<div id="hub-apps-table"
 		hx-get="/service/web/hub/list"
 		hx-trigger="every 10s"
-		hx-swap="outerHTML"
+		hx-swap="outerHTML show:none"
+		data-preserve-scroll
 		data-testid="hub-apps-table">
 		<div class="flowbot-surface">
 			<div class="overflow-x-auto">
-				<table class="table">
+				<table class="table flowbot-table-pin">
 					<thead>
 						<tr>
 							<th>Name</th>

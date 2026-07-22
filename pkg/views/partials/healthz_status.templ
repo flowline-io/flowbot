@@ -5,7 +5,8 @@ templ HealthzStatus(data HealthzData) {
 		data-testid="healthz-status"
 		hx-get="/service/web/healthz"
 		hx-trigger="every 30s"
-		hx-swap="outerHTML">
+		hx-swap="outerHTML show:none"
+		data-preserve-scroll>
 		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 			<!-- DB Latency -->
 			<div class="flowbot-surface" data-testid="healthz-db-latency">

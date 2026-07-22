@@ -1596,7 +1596,7 @@ func WorkflowTriggersTable(workflowName string, triggers []*gen.WorkflowTrigger)
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<div id=\"workflow-triggers-container\" class=\"flowbot-surface\" data-testid=\"workflow-triggers-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th>Type</th><th class=\"text-center\">Status</th><th>Rule</th><th class=\"text-right\">Actions</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 149, "<div id=\"workflow-triggers-container\" class=\"flowbot-surface\" data-testid=\"workflow-triggers-table\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th>Type</th><th class=\"text-center\">Status</th><th>Rule</th><th class=\"text-right\">Actions</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1770,7 +1770,7 @@ func WorkflowInputsReadonly(inputs []types.WorkflowInputDef) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"flowbot-surface\" data-testid=\"workflow-inputs-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 166, "<div class=\"flowbot-surface\" data-testid=\"workflow-inputs-table\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th>Name</th><th>Type</th><th>Required</th><th>Default</th><th>Description</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

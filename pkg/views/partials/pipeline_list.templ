@@ -28,19 +28,20 @@ templ PipelineListTable(entries []PipelineListEntry) {
 			</div>
 	} else {
 		<div class="flowbot-surface" data-testid="pipeline-table">
-			<table class="table table-fixed w-full">
+			<div class="overflow-x-auto">
+			<table class="table table-fixed w-full min-w-[60rem]">
 				<thead>
 					<tr>
-						<th class="w-[28%]">Name</th>
+						<th class="w-[22%]">Name</th>
 						<th class="w-24">Status</th>
-						<th class="w-20">Triggers</th>
-						<th class="w-14 text-center">Steps</th>
-						<th class="w-16 text-center">Runtime</th>
-						<th class="w-[20%]">
-							<span class="tooltip tooltip-bottom" data-tip="Last 7 days: success rate · P50 / P95 duration">Runs (7d)</span>
+						<th class="w-16">Triggers</th>
+						<th class="w-12 text-center">Steps</th>
+						<th class="w-14 text-center">Runtime</th>
+						<th class="w-[16%]" title="Last 7 days: success rate · P50 / P95 duration">
+							<span class="border-b border-dotted border-base-content/35 cursor-help">Runs (7d)</span>
 						</th>
-						<th class="w-28">Last Run</th>
-						<th class="w-32 text-right">Actions</th>
+						<th class="w-36">Last Run</th>
+						<th class="w-40 text-right">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -77,14 +78,18 @@ templ PipelineListTable(entries []PipelineListEntry) {
 									<span class="text-base-content/30 text-xs">—</span>
 								}
 							</td>
-							<td class="tabular-nums text-xs whitespace-nowrap"
+							<td class="tabular-nums text-xs whitespace-nowrap overflow-hidden text-ellipsis"
 								title={ RunLatencyCompactTip(entry.Stats) }
 								data-testid={ "pipeline-runs-stats-" + entry.Definition.Name }>
 								{ RunLatencyCompactOrDash(entry.Stats) }
 							</td>
-							<td class="text-base-content/50 text-xs whitespace-nowrap">{ PipelineLastRunOrDash(entry.LastRunAt) }</td>
+							<td
+								class="text-base-content/50 text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+								title={ PipelineLastRunOrDash(entry.LastRunAt) }>
+								{ PipelineLastRunOrDash(entry.LastRunAt) }
+							</td>
 							<td class="text-right">
-								<div class="flex items-center justify-end gap-1">
+								<div class="flex items-center justify-end gap-1 flex-nowrap">
 									if PipelineIsPublished(entry.Definition) {
 										if entry.Enabled {
 											<button type="button"
@@ -125,6 +130,7 @@ templ PipelineListTable(entries []PipelineListEntry) {
 					}
 				</tbody>
 			</table>
+			</div>
 		</div>
 	}
 }

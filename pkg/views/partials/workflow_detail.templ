@@ -373,7 +373,7 @@ templ WorkflowTriggersTable(workflowName string, triggers []*gen.WorkflowTrigger
 	} else {
 		<div id="workflow-triggers-container" class="flowbot-surface" data-testid="workflow-triggers-table">
 			<div class="overflow-x-auto">
-				<table class="table">
+				<table class="table flowbot-table-pin">
 					<thead>
 						<tr>
 							<th>Type</th>
@@ -433,7 +433,7 @@ templ WorkflowInputsReadonly(inputs []types.WorkflowInputDef) {
 	} else {
 		<div class="flowbot-surface" data-testid="workflow-inputs-table">
 			<div class="overflow-x-auto">
-				<table class="table">
+				<table class="table flowbot-table-pin">
 					<thead>
 						<tr>
 							<th>Name</th>

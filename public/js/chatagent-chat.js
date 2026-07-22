@@ -330,11 +330,14 @@
       if (!closeURL) {
         return;
       }
-      var closeBtn = root.querySelector('#chatagent-close-session');
-      function doClose() {
-        if (closeBtn) {
-          closeBtn.disabled = true;
+      var closeBtns = root.querySelectorAll('[data-chatagent-close]');
+      function setCloseDisabled(disabled) {
+        for (var i = 0; i < closeBtns.length; i++) {
+          closeBtns[i].disabled = disabled;
         }
+      }
+      function doClose() {
+        setCloseDisabled(true);
         flowbotCSRFHeadersAsync()
           .then(function (headers) {
             return fetch(closeURL, { method: 'DELETE', headers: headers });
@@ -356,9 +359,7 @@
           })
           .catch(function (err) {
             ns.showError(errorEl, err.message || 'Failed to close session');
-            if (closeBtn) {
-              closeBtn.disabled = false;
-            }
+            setCloseDisabled(false);
           });
       }
       if (window.showConfirmModal) {
@@ -377,9 +378,9 @@
       }
     }
 
-    var closeBtn = root.querySelector('#chatagent-close-session');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeSession);
+    var closeBtns = root.querySelectorAll('[data-chatagent-close]');
+    for (var ci = 0; ci < closeBtns.length; ci++) {
+      closeBtns[ci].addEventListener('click', closeSession);
     }
 
     function sendFollowUp() {

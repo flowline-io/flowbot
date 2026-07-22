@@ -33,7 +33,7 @@ func AgentScheduledTaskTable(items []model.AgentScheduledTask) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"agent-scheduled-tasks-table\" data-testid=\"agent-scheduled-tasks-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Name</th><th class=\"text-xs text-base-content/55\">Task ID</th><th class=\"text-xs text-base-content/55\">Kind</th><th class=\"text-xs text-base-content/55\">Schedule</th><th class=\"text-xs text-base-content/55 text-center\">State</th><th class=\"text-xs text-base-content/55\">Next Run</th><th class=\"text-xs text-base-content/55\">Last Run</th><th class=\"text-xs text-base-content/55\">Updated</th></tr></thead> <tbody id=\"agent-scheduled-tasks-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"agent-scheduled-tasks-table\" data-testid=\"agent-scheduled-tasks-table\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th class=\"text-xs text-base-content/55\">Name</th><th class=\"text-xs text-base-content/55\">Task ID</th><th class=\"text-xs text-base-content/55\">Kind</th><th class=\"text-xs text-base-content/55\">Schedule</th><th class=\"text-xs text-base-content/55 text-center\">State</th><th class=\"text-xs text-base-content/55\">Next Run</th><th class=\"text-xs text-base-content/55\">Last Run</th><th class=\"text-xs text-base-content/55\">Updated</th></tr></thead> <tbody id=\"agent-scheduled-tasks-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

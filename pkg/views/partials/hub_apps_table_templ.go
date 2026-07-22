@@ -31,7 +31,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"hub-apps-table\" hx-get=\"/service/web/hub/list\" hx-trigger=\"every 10s\" hx-swap=\"outerHTML\" data-testid=\"hub-apps-table\"><div class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th>Name</th><th>Status</th><th>Capabilities</th><th>Last Updated</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"hub-apps-table\" hx-get=\"/service/web/hub/list\" hx-trigger=\"every 10s\" hx-swap=\"outerHTML show:none\" data-preserve-scroll data-testid=\"hub-apps-table\"><div class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th>Name</th><th>Status</th><th>Capabilities</th><th>Last Updated</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -62,7 +62,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 				var templ_7745c5c3_Var2 templ.SafeURL
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/service/web/hub/" + a.Name))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 38, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 39, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -75,7 +75,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("hub-app-link-" + a.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 39, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 40, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 				if templ_7745c5c3_Err != nil {
@@ -88,7 +88,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(a.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 40, Col: 19}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 41, Col: 19}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -114,7 +114,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 					var templ_7745c5c3_Var5 string
 					templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(capsLabel(a.Capabilities))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 48, Col: 97}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 49, Col: 97}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 					if templ_7745c5c3_Err != nil {
@@ -127,7 +127,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 					var templ_7745c5c3_Var6 string
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(capsLabel(a.Capabilities))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 48, Col: 127}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 49, Col: 127}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -146,7 +146,7 @@ func HubAppsTable(apps []homelab.App, updatedAts map[string]string) templ.Compon
 					var templ_7745c5c3_Var7 string
 					templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ts)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 53, Col: 15}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/hub_apps_table.templ`, Line: 54, Col: 15}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 					if templ_7745c5c3_Err != nil {

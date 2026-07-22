@@ -430,6 +430,81 @@ body {
   background: color-mix(in oklab, var(--color-base-content) 8%, transparent);
 }
 
+/* Sticky first column while the table scrolls horizontally (own class; avoid DaisyUI table-pin-cols). */
+.table.flowbot-table-pin
+  :where(
+    thead tr th:first-child,
+    tfoot tr th:first-child,
+    tbody tr td:first-child,
+    tbody tr th:first-child
+  ) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--color-base-100, #fff);
+}
+.table.flowbot-table-pin thead tr th:first-child {
+  z-index: 3;
+}
+
+/* Narrow screens: stack labeled rows as cards for selected wide tables. */
+@media (max-width: 640px) {
+  .flowbot-table-cards thead {
+    display: none;
+  }
+  .flowbot-table-cards,
+  .flowbot-table-cards tbody,
+  .flowbot-table-cards tr,
+  .flowbot-table-cards td {
+    display: block;
+    width: 100%;
+  }
+  .flowbot-table-cards tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+  .flowbot-table-cards tr {
+    border: 1px solid var(--color-base-300, #d1d5db);
+    border-radius: var(--flowbot-radius-box, 0.5rem);
+    background: var(--color-base-100, #fff);
+    overflow: hidden;
+  }
+  .flowbot-table-cards tr:hover {
+    background: var(--color-base-100, #fff);
+  }
+  .flowbot-table-cards td {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: start;
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid var(--color-base-300, #d1d5db);
+    max-width: none;
+    white-space: normal;
+  }
+  .flowbot-table-cards td:last-child {
+    border-bottom: 0;
+  }
+  .flowbot-table-cards td[colspan] {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .flowbot-table-cards td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-base-content);
+    opacity: 0.55;
+  }
+  .flowbot-table-cards td:first-child {
+    position: static;
+    box-shadow: none;
+  }
+}
+
 /* Run step Input/Output JSON: scroll container (prebuilt CSS lacks overflow-auto). */
 .run-json-preview {
   max-height: 15rem;
@@ -814,6 +889,34 @@ body:has(.chatagent-page) > main {
   min-height: 0;
   flex: 1;
   overflow: hidden;
+}
+
+.chatagent-page .chatagent-thread-header {
+  border-bottom: 1px solid var(--color-base-300, #d1d5db);
+  padding-bottom: 0.75rem;
+}
+
+.chatagent-page .chatagent-thread-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+@media (min-width: 640px) {
+  .chatagent-page .chatagent-thread-header {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .chatagent-page .chatagent-thread-title {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+  }
 }
 
 .chatagent-page #chatagent-messages {
@@ -1885,6 +1988,16 @@ body:has(.chatagent-page) > main {
 .agents-session-row:hover .agents-session-actions,
 .agents-session-row:focus-within .agents-session-actions {
   opacity: 1;
+}
+
+@media (max-width: 1023px) {
+  .agents-session-actions {
+    opacity: 1;
+  }
+}
+
+.chatagent-sessions-drawer-panel {
+  box-shadow: var(--flowbot-shadow, 0 1px 2px rgba(0, 0, 0, 0.06));
 }
 
 .agents-session-thumb {

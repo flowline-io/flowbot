@@ -45,6 +45,14 @@ function showToast(message, type) {
   }, ttl);
 }
 
+// Exponential backoff for SSE reconnects: 1s → 2s → 4s → 8s (cap).
+function flowbotNextReconnectDelay(attempt) {
+  var n = Math.max(0, attempt | 0);
+  var ms = 1000 * Math.pow(2, n);
+  return Math.min(ms, 8000);
+}
+window.flowbotNextReconnectDelay = flowbotNextReconnectDelay;
+
 // Bridge HTMX HX-Trigger {"showToast": {...}} events to the toast UI.
 // Listen on document (not body): app.js loads in <head> before body exists.
 document.addEventListener('showToast', function (evt) {
@@ -317,6 +325,54 @@ document.addEventListener('htmx:sendError', function () {
 document.addEventListener('htmx:timeout', function () {
   showToast('Request timed out. Please try again.', 'error');
 });
+
+// Preserve scroll position for containers marked data-preserve-scroll across HTMX swaps.
+(function () {
+  var saved = null;
+
+  function scrollRoot(elt) {
+    if (!elt) {
+      return null;
+    }
+    if (elt.hasAttribute && elt.hasAttribute('data-preserve-scroll')) {
+      return elt;
+    }
+    if (elt.closest) {
+      return elt.closest('[data-preserve-scroll]');
+    }
+    return null;
+  }
+
+  document.addEventListener('htmx:beforeSwap', function (evt) {
+    var target = evt.detail && evt.detail.target;
+    var root = scrollRoot(target);
+    if (!root) {
+      saved = null;
+      return;
+    }
+    saved = {
+      id: root.id || '',
+      top: root.scrollTop,
+      left: root.scrollLeft,
+      winX: window.scrollX,
+      winY: window.scrollY,
+    };
+  });
+
+  document.addEventListener('htmx:afterSwap', function (evt) {
+    if (!saved) {
+      return;
+    }
+    var target = evt.detail && evt.detail.target;
+    var root = scrollRoot(target);
+    if (root && (!saved.id || root.id === saved.id)) {
+      root.scrollTop = saved.top;
+      root.scrollLeft = saved.left;
+    }
+    window.scrollTo(saved.winX, saved.winY);
+    saved = null;
+  });
+})();
 
 // Keep in sync with htmxResponseErrorMessage in internal/modules/web/utils.go.
 function flowbotHTMXErrorMessage(status, body) {

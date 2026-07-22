@@ -17,7 +17,7 @@ templ AgentSessionPlansCard(sessionID string, plans []model.AgentPlan) {
 								class="btn btn-ghost btn-sm justify-start font-normal"
 								data-testid={ "agent-plan-link-" + plan.PlanID }
 								data-resource-uri={ plan.URI }
-								hx-get={ agentResourcePreviewURL(sessionID, plan.URI) }
+								hx-get={ AgentResourcePreviewURL(sessionID, plan.URI, false) }
 								hx-target={ "#agent-resource-preview-" + plan.PlanID }
 								hx-swap="innerHTML"
 							>
@@ -33,12 +33,24 @@ templ AgentSessionPlansCard(sessionID string, plans []model.AgentPlan) {
 	}
 }
 
-templ AgentResourcePreview(title, bodyHTML string, truncated bool) {
+templ AgentResourcePreview(title, bodyHTML string, truncated bool, fullURL string) {
 	<div class="flowbot-surface bg-base-200" data-testid="agent-resource-preview">
 		<div class="p-4 prose prose-sm max-w-none">
 			<h3 class="text-base font-semibold">{ title }</h3>
 			if truncated {
 				<p class="text-warning text-sm">Content truncated for preview.</p>
+				if fullURL != "" {
+					<button
+						type="button"
+						class="btn btn-ghost btn-xs text-primary mb-2"
+						data-testid="agent-resource-load-full"
+						hx-get={ templ.URL(fullURL) }
+						hx-target="closest [data-testid='agent-resource-preview']"
+						hx-swap="outerHTML">
+						Load full
+						@HtmxIndicator()
+					</button>
+				}
 			}
 			<div>
 				// bodyHTML must already be sanitized (utils.MarkdownToSafeHTML or html-escaped pre).

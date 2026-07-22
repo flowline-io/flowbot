@@ -115,7 +115,9 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		return partials.EmptyState("Session not found").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	content, err := chatagent.ResolveResource(ctx.Context(), sessionID, uri)
+	content, err := chatagent.ResolveResourceWithOptions(ctx.Context(), sessionID, uri, chatagent.ResolveResourceOptions{
+		Full: ctx.Query("full") == "1",
+	})
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Resource not found").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -130,8 +132,12 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 	} else {
 		bodyHTML = "<pre class=\"whitespace-pre-wrap font-mono text-sm\">" + htmlEscape(content.Content) + "</pre>"
 	}
+	fullURL := ""
+	if content.Truncated {
+		fullURL = string(partials.AgentResourcePreviewURL(sessionID, uri, true))
+	}
 	ctx.Type("html")
-	return partials.AgentResourcePreview(content.Title, bodyHTML, content.Truncated).Render(ctx.Context(), ctx.Response().BodyWriter())
+	return partials.AgentResourcePreview(content.Title, bodyHTML, content.Truncated, fullURL).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
 func mapAgentPlans(plans []chatagent.PlanSummary) []model.AgentPlan {

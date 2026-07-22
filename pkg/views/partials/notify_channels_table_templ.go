@@ -31,7 +31,7 @@ func NotifyChannelsTable(channels []model.NotifyChannel, highlight string) templ
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-channels-table\" data-testid=\"notify-channels-table\" class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">Name</th><th class=\"text-xs font-medium text-base-content/55\">Protocol</th><th class=\"text-xs font-medium text-base-content/55\">URI</th><th class=\"text-xs font-medium text-base-content/55 text-center\">Status</th><th class=\"text-xs font-medium text-base-content/55 text-center\">Default</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> <tbody id=\"notify-channels-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"notify-channels-table\" data-testid=\"notify-channels-table\" class=\"flowbot-surface\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin flowbot-table-cards\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">Name</th><th class=\"text-xs font-medium text-base-content/55\">Protocol</th><th class=\"text-xs font-medium text-base-content/55\">URI</th><th class=\"text-xs font-medium text-base-content/55 text-center\">Status</th><th class=\"text-xs font-medium text-base-content/55 text-center\">Default</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> <tbody id=\"notify-channels-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

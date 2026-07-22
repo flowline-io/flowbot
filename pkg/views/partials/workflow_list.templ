@@ -14,18 +14,19 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 		</div>
 	} else {
 		<div id="workflow-list-container" class="flowbot-surface" data-testid="workflow-table">
-			<table class="table table-fixed w-full">
+			<div class="overflow-x-auto">
+			<table class="table table-fixed w-full min-w-[56rem]">
 				<thead>
 					<tr>
-						<th class="w-[32%]">Name</th>
-						<th class="w-14 text-center">Status</th>
-						<th class="w-20">Triggers</th>
-						<th class="w-14 text-center">Tasks</th>
-						<th class="w-[22%]">
-							<span class="tooltip tooltip-bottom" data-tip="Last 7 days: success rate · P50 / P95 duration">Runs (7d)</span>
+						<th class="w-[24%]">Name</th>
+						<th class="w-12 text-center">Status</th>
+						<th class="w-16">Triggers</th>
+						<th class="w-12 text-center">Tasks</th>
+						<th class="w-[18%]" title="Last 7 days: success rate · P50 / P95 duration">
+							<span class="border-b border-dotted border-base-content/35 cursor-help">Runs (7d)</span>
 						</th>
-						<th class="w-28">Last Run</th>
-						<th class="w-28 text-right">Actions</th>
+						<th class="w-36">Last Run</th>
+						<th class="w-40 text-right">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -56,14 +57,19 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 								}
 							</td>
 							<td class="text-center tabular-nums text-sm" data-testid={ "workflow-tasks-" + entry.Name }>{ fmt.Sprintf("%d", entry.TaskCount) }</td>
-							<td class="tabular-nums text-xs whitespace-nowrap"
+							<td class="tabular-nums text-xs whitespace-nowrap overflow-hidden text-ellipsis"
 								title={ RunLatencyCompactTip(entry.Stats) }
 								data-testid={ "workflow-runs-stats-" + entry.Name }>
 								{ RunLatencyCompactOrDash(entry.Stats) }
 							</td>
-							<td class="text-base-content/50 text-xs whitespace-nowrap" data-testid={ "workflow-last-run-" + entry.Name }>{ PipelineLastRunOrDash(entry.LastRunAt) }</td>
+							<td
+								class="text-base-content/50 text-xs whitespace-nowrap overflow-hidden text-ellipsis"
+								title={ PipelineLastRunOrDash(entry.LastRunAt) }
+								data-testid={ "workflow-last-run-" + entry.Name }>
+								{ PipelineLastRunOrDash(entry.LastRunAt) }
+							</td>
 							<td class="text-right">
-								<div class="flex items-center justify-end gap-1">
+								<div class="flex items-center justify-end gap-1 flex-nowrap">
 									if entry.Enabled {
 										<button type="button"
 											hx-put={ templ.URL(WorkflowWebPath(entry.Name) + "/enabled") }
@@ -94,6 +100,7 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 					}
 				</tbody>
 			</table>
+			</div>
 		</div>
 	}
 }

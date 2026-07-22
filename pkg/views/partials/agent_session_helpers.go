@@ -28,9 +28,14 @@ func agentSessionEntryPayloadURL(sessionID, entryID string) templ.SafeURL {
 	return templ.URL("/service/web/agent-sessions/" + sessionID + "/entries/" + entryID + "/payload")
 }
 
-// agentResourcePreviewURL builds the HTMX preview URL for a resource URI.
-func agentResourcePreviewURL(sessionID, resourceURI string) templ.SafeURL {
-	return templ.URL("/service/web/agent-sessions/" + sessionID + "/resources?uri=" + url.QueryEscape(resourceURI))
+// AgentResourcePreviewURL builds the HTMX preview URL for a resource URI.
+func AgentResourcePreviewURL(sessionID, resourceURI string, full bool) templ.SafeURL {
+	q := url.Values{}
+	q.Set("uri", resourceURI)
+	if full {
+		q.Set("full", "1")
+	}
+	return templ.URL("/service/web/agent-sessions/" + sessionID + "/resources?" + q.Encode())
 }
 
 // FormatEntryPayload pretty-prints entry payload JSON for display.

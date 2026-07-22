@@ -6,7 +6,7 @@ templ TokenTable(items []model.TokenItem) {
 	<div class="flowbot-surface" x-data="tableFilter">
 		@TableFilterBar("Search tokens...", "token-table-filter")
 		<div id="tokens-table" data-testid="token-table" class="overflow-x-auto">
-			<table class="table">
+			<table class="table flowbot-table-pin">
 				<thead>
 				<tr>
 					<th class="text-xs font-medium text-base-content/55">UID</th>

@@ -42,6 +42,9 @@
         eventSource: null,
         flashIndex: -1,
         flashTimer: null,
+        reconnectAttempt: 0,
+        reconnectTimer: null,
+        watchURL: '',
 
         init: function () {
           this.recalc();
@@ -59,22 +62,72 @@
           );
 
           if (this.runStatus === 'running') {
-            var self = this;
-            var watchURL = window.location.pathname.replace(
+            this.watchURL = window.location.pathname.replace(
               /\/live$/,
               '/live/watch',
             );
-            this.eventSource = new EventSource(watchURL);
-            this.eventSource.addEventListener('message', function (e) {
-              var evt = JSON.parse(e.data);
-              self.applyEvent(evt);
-            });
-            this.eventSource.addEventListener('error', function () {
-              if (self.runStatus === 'done' || self.runStatus === 'failed') {
-                self.eventSource.close();
-              }
-            });
+            this.connectLive();
           }
+        },
+
+        reconnectDelay: function (attempt) {
+          if (typeof window.flowbotNextReconnectDelay === 'function') {
+            return window.flowbotNextReconnectDelay(attempt);
+          }
+          return Math.min(1000 * Math.pow(2, Math.max(0, attempt)), 8000);
+        },
+
+        connectLive: function () {
+          var self = this;
+          if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+          }
+          if (this.eventSource) {
+            this.eventSource.close();
+            this.eventSource = null;
+          }
+          if (!this.watchURL) {
+            return;
+          }
+          this.eventSource = new EventSource(this.watchURL);
+          this.eventSource.addEventListener('open', function () {
+            if (self.reconnectAttempt > 0 && typeof showToast === 'function') {
+              showToast('Live stream connected', 'info');
+            }
+            self.reconnectAttempt = 0;
+          });
+          this.eventSource.addEventListener('message', function (e) {
+            var evt = JSON.parse(e.data);
+            self.applyEvent(evt);
+            if (self.runStatus === 'done' || self.runStatus === 'failed') {
+              if (self.eventSource) {
+                self.eventSource.close();
+                self.eventSource = null;
+              }
+            }
+          });
+          this.eventSource.addEventListener('error', function () {
+            if (self.runStatus === 'done' || self.runStatus === 'failed') {
+              if (self.eventSource) {
+                self.eventSource.close();
+                self.eventSource = null;
+              }
+              return;
+            }
+            if (self.eventSource) {
+              self.eventSource.close();
+              self.eventSource = null;
+            }
+            if (typeof showToast === 'function') {
+              showToast('Reconnecting live stream…', 'warning');
+            }
+            var delay = self.reconnectDelay(self.reconnectAttempt);
+            self.reconnectAttempt += 1;
+            self.reconnectTimer = setTimeout(function () {
+              self.connectLive();
+            }, delay);
+          });
         },
 
         recalc: function () {
@@ -212,11 +265,21 @@
     module.exports = {
       pickScrollIndex: pickScrollIndex,
       shouldFlash: shouldFlash,
+      nextReconnectDelay:
+        typeof window !== 'undefined' && window.flowbotNextReconnectDelay
+          ? window.flowbotNextReconnectDelay
+          : function (attempt) {
+              return Math.min(
+                1000 * Math.pow(2, Math.max(0, attempt | 0)),
+                8000,
+              );
+            },
     };
   } else {
     window.FlowbotPipelineRunLive = {
       pickScrollIndex: pickScrollIndex,
       shouldFlash: shouldFlash,
+      nextReconnectDelay: window.flowbotNextReconnectDelay,
     };
   }
 

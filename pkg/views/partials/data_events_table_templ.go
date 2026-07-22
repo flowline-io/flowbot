@@ -42,7 +42,7 @@ func DataEventsTable(sources, eventTypes []string, events []*gen.DataEvent, page
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"events-table-container\"><div class=\"flowbot-surface\" id=\"data-events-table\" data-testid=\"data-events-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">Time</th><th class=\"text-xs font-medium text-base-content/55\">Event Type</th><th class=\"text-xs font-medium text-base-content/55\">Source / Capability</th><th class=\"text-xs font-medium text-base-content/55\">Entity</th><th class=\"text-xs font-medium text-base-content/55\">Pipeline</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"events-table-container\"><div class=\"flowbot-surface\" id=\"data-events-table\" data-testid=\"data-events-table\"><div class=\"overflow-x-auto\"><table class=\"table flowbot-table-pin\"><thead><tr><th class=\"text-xs font-medium text-base-content/55\">Time</th><th class=\"text-xs font-medium text-base-content/55\">Event Type</th><th class=\"text-xs font-medium text-base-content/55\">Source / Capability</th><th class=\"text-xs font-medium text-base-content/55\">Entity</th><th class=\"text-xs font-medium text-base-content/55\">Pipeline</th><th class=\"text-xs font-medium text-base-content/55\">Actions</th></tr></thead> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

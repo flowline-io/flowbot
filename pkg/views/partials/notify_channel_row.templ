@@ -13,15 +13,15 @@ templ NotifyChannelRow(item model.NotifyChannel, highlighted bool) {
 			data-notify-highlight="1"
 		}
 	>
-		<td class="text-base-content font-medium">{ item.Name }</td>
-		<td class="text-base-content/70">
+		<td class="text-base-content font-medium" data-label="Name">{ item.Name }</td>
+		<td class="text-base-content/70" data-label="Protocol">
 			<span class="flowbot-chip flowbot-chip-muted">{ item.Protocol }</span>
 		</td>
-		<td class="text-base-content/50 font-mono text-xs max-w-xs truncate">{ item.URI }</td>
-		<td class="text-center">
+		<td class="text-base-content/50 font-mono text-xs max-w-xs truncate" data-label="URI">{ item.URI }</td>
+		<td class="text-center" data-label="Status">
 			@StatusIcon(EnabledStatusIcon(item.Enabled), "")
 		</td>
-		<td class="text-center">
+		<td class="text-center" data-label="Default">
 			if item.IsDefault {
 				<span class="flowbot-chip flowbot-chip-primary" data-testid="channel-default-badge">Default</span>
 			} else if item.Enabled {
@@ -34,7 +34,7 @@ templ NotifyChannelRow(item model.NotifyChannel, highlighted bool) {
 				</button>
 			}
 		</td>
-		<td>
+		<td data-label="Actions">
 			<div class="flex gap-1">
 				<button hx-get={ notifyChannelEditURL(item) }
 					data-testid="channel-edit"
