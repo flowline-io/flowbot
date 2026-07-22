@@ -24,6 +24,12 @@ func streamWebSessionEvents(ctx fiber.Ctx, sessionID string) error {
 		defer hub.Unsubscribe(subID)
 
 		sse := &chatagent.BufioSSEWriter{W: w}
+		if chatagent.WritePendingConfirmIfAny(sessionID, func(ev chatagent.StreamEvent) bool {
+			return sse.WriteEvent(ev)
+		}) {
+			return
+		}
+
 		for {
 			select {
 			case <-reqCtx.Done():

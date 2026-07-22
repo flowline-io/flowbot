@@ -2,7 +2,7 @@ package partials
 
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
-templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints ChatAgentEndpoints) {
+templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints ChatAgentEndpoints, pending *ChatAgentPendingConfirm) {
 	<div
 		class="chatagent-thread flex flex-col flex-1 min-h-0"
 		data-chatagent-root="thread"
@@ -54,14 +54,29 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 			id="chatagent-status-toast"
 			class="chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm"
 			data-testid="chatagent-status-toast"></div>
-		@ChatAgentApprovalPanel(session.Flag, endpoints)
+		@ChatAgentApprovalPanel(session.Flag, endpoints, pending)
 		if len(todos) > 0 {
 			@ChatAgentTodosPanel(todos)
 		}
-		<div id="chatagent-messages" class="flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4" data-testid="chatagent-messages">
-			for _, msg := range messages {
-				@ChatAgentMessage(msg, false)
-			}
+		<div class="chatagent-messages-wrap relative flex-1 min-h-0 flex flex-col">
+			<div id="chatagent-messages" class="flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4" data-testid="chatagent-messages">
+				if pending != nil {
+					<div class="chatagent-run-waiting text-sm text-base-content/60 px-1 py-2" data-testid="chatagent-run-waiting">
+						Waiting for tool approval. The rest of this turn appears after it finishes.
+					</div>
+				}
+				for _, msg := range messages {
+					@ChatAgentMessage(msg, false)
+				}
+			</div>
+			<button
+				type="button"
+				id="chatagent-jump-bottom"
+				class="chatagent-jump-bottom hidden"
+				data-testid="chatagent-jump-bottom"
+				aria-label="Jump to bottom">
+				Jump to bottom
+			</button>
 		</div>
 		<div class="chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4" data-testid="chatagent-input-bar">
 			<div class="chatagent-input-stack">

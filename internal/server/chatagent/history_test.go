@@ -22,11 +22,12 @@ func TestHistoryMessagesFromMessage(t *testing.T) {
 	createdAt := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 
 	tests := []struct {
-		name string
-		in   msg.AgentMessage
-		want int
-		kind string
-		ms   int64
+		name           string
+		in             msg.AgentMessage
+		want           int
+		kind           string
+		ms             int64
+		rejectToolRows bool
 	}{
 		{
 			name: "tool result row",
@@ -58,6 +59,19 @@ func TestHistoryMessagesFromMessage(t *testing.T) {
 			want: 1,
 			kind: "user",
 		},
+		{
+			name: "tool-call assistant emits thinking only not completed tool",
+			in: msg.AssistantMessage{
+				Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "run_terminal", Arguments: `{"command":"ls"}`},
+				},
+				ThinkingText:       "need ls",
+				ThinkingDurationMs: 50,
+			},
+			want:           1,
+			kind:           "thinking",
+			rejectToolRows: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -69,10 +83,17 @@ func TestHistoryMessagesFromMessage(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.kind, got[0].Kind)
+			if tt.rejectToolRows {
+				for _, row := range got {
+					assert.NotEqual(t, "tool", row.Kind, "unexecuted tool calls must not become tool rows")
+					assert.NotEqual(t, "completed", row.ToolStatus)
+				}
+			}
 			if tt.kind == "tool" {
 				assert.Equal(t, tt.ms, got[0].DurationMs)
+				assert.Equal(t, "completed", got[0].ToolStatus)
 			}
-			if tt.kind == "thinking" {
+			if tt.kind == "thinking" && tt.want == 2 {
 				assert.Equal(t, tt.ms, got[0].ThinkingDurationMs)
 				assert.Equal(t, "assistant", got[1].Kind)
 				assert.Equal(t, int64(900), got[1].TurnDurationMs)

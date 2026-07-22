@@ -30,3 +30,14 @@ type ChatAgentEndpoints struct {
 	// DefaultModel is the global chat_model used when no session override is set.
 	DefaultModel string
 }
+
+// ChatAgentPendingConfirm is a tool approval still waiting on the active run.
+type ChatAgentPendingConfirm struct {
+	ID               string
+	Tool             string
+	Summary          string
+	Permission       string
+	Pattern          string
+	SuggestedPattern string
+	SuggestAlways    bool
+}

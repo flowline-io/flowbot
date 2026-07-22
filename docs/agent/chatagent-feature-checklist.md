@@ -11,7 +11,7 @@ Both channels use `chatagent.StreamEvent` JSON (`type` discriminator) from `inte
 
 | Channel | Message send (primary turn stream) | Live event subscribe | Subscribe filter |
 | ------- | ---------------------------------- | -------------------- | ---------------- |
-| REST | `POST /chatagent/sessions/:id/messages` — full SSE (`delta` / `thinking` / `tool` / … / `done`) | `GET /chatagent/sessions/:id/events` | `confirm`, `confirm_resolved`, `canceled`, `mode_change` only |
+| REST | `POST /chatagent/sessions/:id/messages` — full SSE (`delta` / `thinking` / `tool` / … / `done`) | `GET /chatagent/sessions/:id/events` | `confirm`, `confirm_resolved`, `canceled`, `mode_change`, `run_complete` |
 | Web | `POST /service/web/agents/:id/messages` — turn execution; UI may use fetch/SSE depending on handler | `GET /service/web/agents/:id/events` | **Same subset** (`chatagent_web_stream.go`) |
 
 Event **shape** (`StreamEvent`) is shared. Both `/events` subscribers use the same type filter (not full deltas). Primary turn tokens come from the messages/send path (REST `StreamAPIRun`), not from `/events`.
@@ -56,9 +56,9 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-01a | Session list: auto title, last-message preview, day groups, pin/archive, status filters | `GET /service/web/agents/list?filter=`; `POST\|DELETE …/:id/pin\|archive` | Default hides archived; running / needs_approval from runtime gates | `agents_webservice_test.go`, helpers/day-group unit tests |
 | W-02 | Create session (+ optional pending prompt) | `POST /service/web/agents` | `?prompt=` / sessionStorage pending key | agents page + JS pending prompt |
 | W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session | agents page |
-| W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject | chat BDD helpers; unit confirm |
+| W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject; reopen page replays pending confirm; `run_complete` reloads history | chat BDD helpers; unit confirm; pending SSR |
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero | `agents_page_spec_test.go` context It |
-| W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert | chat BDD stream done |
+| W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
 

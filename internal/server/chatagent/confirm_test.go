@@ -206,6 +206,86 @@ func TestAlwaysGrantPattern(t *testing.T) {
 	}
 }
 
+func TestConfirmGatePendingEvent(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		run  func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher)
+	}{
+		{
+			name: "unavailable before wait",
+			run: func(t *testing.T, gate *ConfirmGate, _ *ChannelPublisher) {
+				_, ok := gate.PendingEvent()
+				assert.False(t, ok)
+			},
+		},
+		{
+			name: "available while waiting",
+			run: func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher) {
+				done := make(chan struct{})
+				go func() {
+					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
+						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+						Args:     map[string]any{"command": "ls"},
+					}, testEvalResult())
+					close(done)
+				}()
+				waitConfirmEvent(t, pub)
+				ev, ok := gate.PendingEvent()
+				require.True(t, ok)
+				assert.Equal(t, EventTypeConfirm, ev.Type)
+				assert.Equal(t, permission.ToolRunTerminal, ev.Tool)
+				assert.NotEmpty(t, ev.ID)
+				require.True(t, gate.Resolve(ConfirmResponse{
+					Approved: true,
+					Reason:   ConfirmReasonApproved,
+					Mode:     ConfirmModeOnce,
+				}))
+				<-done
+				_, ok = gate.PendingEvent()
+				assert.False(t, ok)
+			},
+		},
+		{
+			name: "lookup pending by session id",
+			run: func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher) {
+				sessionID := "sess-lookup-pending"
+				state := NewAPIRunState(pub, gate)
+				require.NoError(t, TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+
+				done := make(chan struct{})
+				go func() {
+					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
+						ToolCall: msg.ToolCallPart{Name: permission.ToolWriteFile},
+						Args:     map[string]any{"path": "a.txt"},
+					}, permission.Result{Action: permission.ActionAsk, PermissionKey: "edit", Pattern: "a.txt"})
+					close(done)
+				}()
+				waitConfirmEvent(t, pub)
+				ev, ok := LookupPendingConfirm(sessionID)
+				require.True(t, ok)
+				assert.Equal(t, permission.ToolWriteFile, ev.Tool)
+				require.True(t, gate.Resolve(ConfirmResponse{
+					Approved: false,
+					Reason:   ConfirmReasonDenied,
+					Mode:     ConfirmModeReject,
+				}))
+				<-done
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			pub := NewChannelPublisher(8)
+			gate := NewConfirmGate("sess-pending-event", pub)
+			gate.timeout = 2 * time.Second
+			tt.run(t, gate, pub)
+		})
+	}
+}
+
 func waitConfirmEvent(t *testing.T, pub *ChannelPublisher) {
 	t.Helper()
 	select {

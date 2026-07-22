@@ -37,6 +37,9 @@
     var submitting = false;
     var toastTimer = null;
     var source = null;
+    // Reload only when the turn fully ends. Timed reloads interrupt multi-tool
+    // approval chains and wipe the page before finishStream persists history.
+    var reloadOnComplete = false;
 
     function clearToastTimer() {
       if (toastTimer) {
@@ -85,6 +88,19 @@
       toastTimer = window.setTimeout(hideToast, 2500);
     }
 
+    function waitingCopyEl() {
+      return threadRoot
+        ? threadRoot.querySelector('[data-testid="chatagent-run-waiting"]')
+        : null;
+    }
+
+    function setWaitingCopy(text) {
+      var el = waitingCopyEl();
+      if (el && text) {
+        el.textContent = text;
+      }
+    }
+
     function hidePanel() {
       panel.classList.add('hidden');
       pending = null;
@@ -122,10 +138,50 @@
       if (actionsEl) {
         actionsEl.classList.remove('hidden');
       }
+      setWaitingCopy(
+        'Waiting for tool approval. The rest of this turn appears after it finishes.',
+      );
+    }
+
+    function hydratePendingFromPanel() {
+      var id = panel.getAttribute('data-pending-confirm-id') || '';
+      if (!id) {
+        return;
+      }
+      reloadOnComplete = true;
+      showConfirm({
+        type: 'confirm',
+        id: id,
+        tool: panel.getAttribute('data-pending-tool') || '',
+        summary: panel.getAttribute('data-pending-summary') || '',
+        permission: panel.getAttribute('data-pending-permission') || '',
+        pattern: panel.getAttribute('data-pending-pattern') || '',
+        suggested_pattern:
+          panel.getAttribute('data-pending-suggested-pattern') || '',
+        suggest_always:
+          panel.getAttribute('data-pending-suggest-always') === '1',
+      });
+    }
+
+    function isDetachedObserver() {
+      return (
+        !!waitingCopyEl() || (threadRoot && !ns.isThreadRunning(threadRoot))
+      );
+    }
+
+    function markApprovedWaiting() {
+      reloadOnComplete = true;
+      showStatusToast('Approved — continuing the turn…', 'info');
+      setWaitingCopy(
+        'Approved. Waiting for the next step (another approval or the final reply)…',
+      );
     }
 
     function resolveConfirmEvent(ev) {
       if (ev.type === 'confirm') {
+        // Keep the observer on-page across multi-step approvals; history is
+        // refreshed on run_complete once mid-turn tool results are durable.
+        reloadOnComplete = true;
         showConfirm(ev);
         return;
       }
@@ -136,10 +192,26 @@
         pending = null;
         submitting = false;
         hidePanel();
-        showStatusToast(
-          formatConfirmResolvedLabel(ev),
-          ev.approved ? 'success' : 'warning',
-        );
+        if (ev.approved && isDetachedObserver()) {
+          markApprovedWaiting();
+        } else {
+          showStatusToast(
+            formatConfirmResolvedLabel(ev),
+            ev.approved ? 'success' : 'warning',
+          );
+          if (!ev.approved && isDetachedObserver()) {
+            reloadOnComplete = true;
+            setWaitingCopy('Denied. Waiting for the turn to finish…');
+          }
+        }
+        return;
+      }
+      if (ev.type === 'run_complete') {
+        // Only reload when this page was observing an in-flight approval turn.
+        // Idle /events subscribers must not full-reload every unrelated finish.
+        if (reloadOnComplete) {
+          window.location.reload();
+        }
         return;
       }
       if (ev.type === 'canceled') {
@@ -147,6 +219,10 @@
         submitting = false;
         hidePanel();
         showStatusToast('Run canceled.', 'warning');
+        reloadOnComplete = true;
+        window.setTimeout(function () {
+          window.location.reload();
+        }, 600);
       }
     }
 
@@ -162,6 +238,7 @@
         return;
       }
       submitting = true;
+      var wasApproved = !!approved;
       flowbotCSRFHeadersAsync({ 'Content-Type': 'application/json' })
         .then(function (headers) {
           return fetch(confirmURL, {
@@ -180,7 +257,22 @@
         })
         .then(function (res) {
           if (res.status === 204) {
+            pending = null;
             submitting = false;
+            hidePanel();
+            if (wasApproved) {
+              if (isDetachedObserver()) {
+                markApprovedWaiting();
+              } else {
+                showStatusToast('Approved', 'success');
+              }
+            } else {
+              showStatusToast('Denied', 'warning');
+              if (isDetachedObserver()) {
+                reloadOnComplete = true;
+                setWaitingCopy('Denied. Waiting for the turn to finish…');
+              }
+            }
             return;
           }
           if (res.status === 404 || res.status === 409) {
@@ -247,6 +339,7 @@
       });
     }
 
+    hydratePendingFromPanel();
     connect();
     return { handleStreamEvent: resolveConfirmEvent };
   };

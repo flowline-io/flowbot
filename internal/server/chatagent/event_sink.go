@@ -20,37 +20,21 @@ func NewChannelPublisher(buffer int) *ChannelPublisher {
 }
 
 // Publish enqueues one stream event for the SSE writer goroutine.
+// Never blocks: a dead or slow consumer must not stall confirm gates or hub fan-out
+// (e.g. after the primary messages SSE disconnects while a run is still waiting).
 func (p *ChannelPublisher) Publish(event StreamEvent) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if p.done {
 		return nil
 	}
-	if isCriticalStreamEvent(event) {
-		p.ch <- event
-		return nil
-	}
 	select {
 	case p.ch <- event:
 	default:
-		// Drop non-critical events when the consumer is slow; deltas are snapshots.
+		// Drop when the buffer is full. Critical events are still best-effort;
+		// observers subscribe on their own channels and stay writable.
 	}
 	return nil
-}
-
-func isCriticalStreamEvent(event StreamEvent) bool {
-	switch event.Type {
-	case EventTypeConfirm, EventTypeConfirmResolved, EventTypeCanceled,
-		EventTypeDone, EventTypeError, EventTypeUsage, EventTypeModeChange,
-		EventTypeTurn:
-		return true
-	case EventTypeTool:
-		return event.Status == "completed" || event.Status == "error"
-	case EventTypeThinking:
-		return event.Status == "completed"
-	default:
-		return false
-	}
 }
 
 // Events returns the readable event channel.

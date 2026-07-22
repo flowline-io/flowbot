@@ -19,7 +19,11 @@
     body.textContent = text;
     wrap.appendChild(body);
     container.appendChild(wrap);
-    ns.scrollMessages(container);
+    if (ns.stickMessagesToBottom) {
+      ns.stickMessagesToBottom(container);
+    } else {
+      ns.scrollMessages(container);
+    }
   }
 
   function appendAssistantMessage(container, text, streaming) {
@@ -134,9 +138,15 @@
       wrap.setAttribute('data-role', 'tool');
       wrap.setAttribute('data-testid', 'chatagent-message-tool');
 
-      var bubble = document.createElement('div');
-      bubble.className =
-        'chat-bubble bg-base-200 border border-base-300 max-w-[92%] text-sm';
+      var details = document.createElement('details');
+      details.className =
+        'chatagent-tool chat-bubble bg-base-200 border border-base-300 max-w-[92%] text-sm';
+      details.setAttribute('data-testid', 'chatagent-tool-details');
+      details.open = false;
+
+      var summary = document.createElement('summary');
+      summary.className =
+        'chatagent-tool-summary cursor-pointer select-none list-none';
 
       var header = document.createElement('div');
       header.className = 'flex items-center gap-2 flex-wrap';
@@ -158,7 +168,10 @@
       header.appendChild(badge);
       header.appendChild(status);
       header.appendChild(duration);
-      bubble.appendChild(header);
+      summary.appendChild(header);
+
+      var body = document.createElement('div');
+      body.className = 'chatagent-tool-body';
 
       var stdout = document.createElement('pre');
       stdout.className =
@@ -170,13 +183,16 @@
         'mt-2 text-xs whitespace-pre-wrap overflow-x-auto max-h-32 bg-error/10 text-error rounded p-2 font-mono hidden';
       stderr.setAttribute('data-testid', 'chatagent-tool-stderr');
 
-      bubble.appendChild(stdout);
-      bubble.appendChild(stderr);
-      wrap.appendChild(bubble);
+      body.appendChild(stdout);
+      body.appendChild(stderr);
+      details.appendChild(summary);
+      details.appendChild(body);
+      wrap.appendChild(details);
       insertStreamNode(container, wrap, anchorBody);
 
       card = {
         wrap: wrap,
+        details: details,
         status: status,
         duration: duration,
         stdout: stdout,
@@ -206,7 +222,8 @@
         '· ' + ns.formatDuration(Date.now() - card.startedAt);
     } else if (
       card.status.textContent === 'completed' ||
-      card.status.textContent === 'error'
+      card.status.textContent === 'error' ||
+      card.status.textContent === 'needs_approval'
     ) {
       if (card.timer) {
         clearInterval(card.timer);
@@ -225,8 +242,24 @@
       card.stderr.textContent = (card.stderr.textContent || '') + ev.stderr;
       card.stderr.classList.remove('hidden');
     }
+    if (card.details && ns.toolCardShouldExpand(card.status.textContent)) {
+      card.details.open = true;
+    }
     ns.scrollMessages(container);
     return card;
+  }
+
+  function expandRunningToolCards(toolCards) {
+    Object.keys(toolCards || {}).forEach(function (key) {
+      var card = toolCards[key];
+      if (!card || !card.details) {
+        return;
+      }
+      if ((card.status.textContent || '') === 'running') {
+        card.status.textContent = 'needs_approval';
+        card.details.open = true;
+      }
+    });
   }
 
   function insertStreamNode(container, node, anchorBody) {
@@ -503,6 +536,9 @@
               ev.type === 'confirm_resolved' ||
               ev.type === 'canceled')
           ) {
+            if (ev.type === 'confirm') {
+              expandRunningToolCards(toolCards);
+            }
             approval.handleStreamEvent(ev);
             return;
           }
@@ -558,6 +594,17 @@
           }
           if (typeof onDone === 'function') {
             onDone();
+          }
+          // Stream ended cleanly but never delivered Done (e.g. mid-turn SSE
+          // detach while waiting for tool approval). Reload persisted history.
+          if (!sawDone) {
+            showThreadError(
+              errorEl,
+              'Run finished without a live stream. Reloading saved messages…',
+            );
+            setTimeout(function () {
+              window.location.reload();
+            }, 800);
           }
         });
       })

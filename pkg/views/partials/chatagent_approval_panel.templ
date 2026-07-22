@@ -1,19 +1,44 @@
 package partials
 
-templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints) {
-	<div id="chatagent-approval-panel"
-		class="chatagent-approval-panel shrink-0 flowbot-surface mx-1 mb-2 hidden border border-warning/30"
+templ ChatAgentApprovalPanel(sessionID string, endpoints ChatAgentEndpoints, pending *ChatAgentPendingConfirm) {
+	<div
+		id="chatagent-approval-panel"
+		class={ "chatagent-approval-panel shrink-0 flowbot-surface mx-1 mb-2 border border-warning/30", templ.KV("hidden", pending == nil) }
 		data-session-id={ sessionID }
 		data-confirm-url={ endpoints.ConfirmURL }
 		data-events-url={ endpoints.EventsURL }
-		data-testid="chatagent-approval-panel">
+		data-testid="chatagent-approval-panel"
+		if pending != nil {
+			data-pending-confirm-id={ pending.ID }
+			data-pending-tool={ pending.Tool }
+			data-pending-summary={ pending.Summary }
+			data-pending-permission={ pending.Permission }
+			data-pending-pattern={ pending.Pattern }
+			data-pending-suggested-pattern={ pending.SuggestedPattern }
+			if pending.SuggestAlways {
+				data-pending-suggest-always="1"
+			}
+		}
+	>
 		<div class="card-body">
 			<h2 class="text-lg font-semibold tracking-tight m-0">Pending Tool Approval</h2>
-			<p class="text-sm" id="chatagent-approval-summary"></p>
-			<p class="text-xs text-base-content/60" id="chatagent-approval-meta"></p>
+			<p class="text-sm" id="chatagent-approval-summary">
+				if pending != nil {
+					{ pending.Tool }: { pending.Summary }
+				}
+			</p>
+			<p class="text-xs text-base-content/60" id="chatagent-approval-meta">
+				if pending != nil {
+					{ chatAgentPendingConfirmMeta(pending) }
+				}
+			</p>
 			<div class="flex gap-2 mt-2" id="chatagent-approval-actions">
 				<button type="button" class="btn btn-primary btn-sm" data-mode="once" data-testid="chatagent-approve-once">Approve once</button>
-				<button type="button" class="btn btn-secondary btn-sm hidden" data-mode="always" data-testid="chatagent-approve-always">Always allow</button>
+				<button
+					type="button"
+					class={ "btn btn-secondary btn-sm", templ.KV("hidden", pending == nil || !pending.SuggestAlways || pending.SuggestedPattern == "") }
+					data-mode="always"
+					data-testid="chatagent-approve-always">Always allow</button>
 				<button type="button" class="btn btn-ghost btn-sm" data-mode="reject" data-testid="chatagent-approve-deny">Deny</button>
 			</div>
 		</div>

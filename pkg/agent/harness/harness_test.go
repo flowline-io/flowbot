@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
+	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -107,6 +109,246 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 			assert.Contains(t, reply, tt.wantSubstr)
 		})
 	}
+}
+
+func TestHarnessPersistsUserBeforeToolApproval(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "user visible while tool call blocked"},
+		{name: "user not duplicated after turn completes"},
+		{name: "user remains when run aborted mid wait"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := context.Background()
+			store := session.NewMemoryStorage()
+			sess := session.New(store)
+
+			blocked := make(chan struct{})
+			release := make(chan struct{})
+			regHooks := hooks.NewRegistry()
+			hooks.OnToolCall(regHooks, func(context.Context, hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+				close(blocked)
+				<-release
+				return nil, nil
+			})
+
+			fakeModel := agentllm.NewFakeModel(
+				agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+					ID: "call-1", Type: "function",
+					FunctionCall: &llms.FunctionCall{Name: "echo", Arguments: `{"text":"hi"}`},
+				}}},
+				agentllm.ResponseScript{Content: "done"},
+			)
+			toolReg := tool.NewRegistry()
+			require.NoError(t, toolReg.Register(echo.Tool{}))
+
+			h := harness.New(harness.Options{
+				AgentOptions: agent.Options{
+					Model:    fakeModel,
+					Registry: toolReg,
+					Config:   agent.Config{MaxSteps: 10},
+				},
+				Session:   sess,
+				Hooks:     regHooks,
+				ModelName: "fake",
+			})
+
+			_, err := h.Prompt(ctx, agent.NewUserMessage("please echo"))
+			require.NoError(t, err)
+
+			select {
+			case <-blocked:
+			case <-time.After(3 * time.Second):
+				t.Fatal("timeout waiting for tool approval gate")
+			}
+
+			branch, err := sess.GetBranch(ctx, "")
+			require.NoError(t, err)
+			require.NotEmpty(t, branch, "user must be persisted before tool approval")
+			userCount := 0
+			for _, entry := range branch {
+				um, ok := entry.Message.(agent.UserMessage)
+				if !ok {
+					continue
+				}
+				userCount++
+				got := ""
+				for _, part := range um.Parts {
+					if tp, ok := part.(agent.TextPart); ok {
+						got += tp.Text
+					}
+				}
+				assert.Contains(t, got, "please echo")
+			}
+			require.Equal(t, 1, userCount)
+
+			if tt.name == "user remains when run aborted mid wait" {
+				h.Agent().Abort()
+				close(release)
+				require.NoError(t, h.WaitIdle(ctx))
+				branch, err = sess.GetBranch(ctx, "")
+				require.NoError(t, err)
+				userCount = 0
+				for _, entry := range branch {
+					if _, ok := entry.Message.(agent.UserMessage); ok {
+						userCount++
+					}
+				}
+				assert.Equal(t, 1, userCount)
+				return
+			}
+
+			close(release)
+			require.NoError(t, h.WaitIdle(ctx))
+			require.NoError(t, h.LastRunResult().Err)
+
+			branch, err = sess.GetBranch(ctx, "")
+			require.NoError(t, err)
+			userCount = 0
+			for _, entry := range branch {
+				if _, ok := entry.Message.(agent.UserMessage); ok {
+					userCount++
+				}
+			}
+			assert.Equal(t, 1, userCount, "finishStream must not duplicate early-persisted user")
+		})
+	}
+}
+
+func TestHarnessPersistsToolStepsBetweenApprovals(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "no fake completed tool before first approval"},
+		{name: "tool result persisted before second approval"},
+		{name: "no duplicate messages after final turn"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			runPersistsToolStepsBetweenApprovals(t)
+		})
+	}
+}
+
+func runPersistsToolStepsBetweenApprovals(t *testing.T) {
+	t.Helper()
+	ctx := context.Background()
+	store := session.NewMemoryStorage()
+	sess := session.New(store)
+
+	gate := make(chan struct{})
+	release := make(chan struct{})
+	approvals := 0
+	regHooks := hooks.NewRegistry()
+	hooks.OnToolCall(regHooks, func(context.Context, hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+		approvals++
+		if approvals == 1 {
+			close(gate)
+		} else if approvals == 2 {
+			assert.True(t, branchHasToolResult(t, sess), "tool result must be persisted before the next approval wait")
+		}
+		<-release
+		return nil, nil
+	})
+
+	fakeModel := agentllm.NewFakeModel(
+		agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+			ID: "call-1", Type: "function",
+			FunctionCall: &llms.FunctionCall{Name: "echo", Arguments: `{"text":"one"}`},
+		}}},
+		agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+			ID: "call-2", Type: "function",
+			FunctionCall: &llms.FunctionCall{Name: "echo", Arguments: `{"text":"two"}`},
+		}}},
+		agentllm.ResponseScript{Content: "all done"},
+	)
+	toolReg := tool.NewRegistry()
+	require.NoError(t, toolReg.Register(echo.Tool{}))
+
+	h := harness.New(harness.Options{
+		AgentOptions: agent.Options{
+			Model:    fakeModel,
+			Registry: toolReg,
+			Config:   agent.Config{MaxSteps: 10},
+		},
+		Session:   sess,
+		Hooks:     regHooks,
+		ModelName: "fake",
+	})
+
+	_, err := h.Prompt(ctx, agent.NewUserMessage("echo twice"))
+	require.NoError(t, err)
+
+	select {
+	case <-gate:
+	case <-time.After(3 * time.Second):
+		t.Fatal("timeout waiting for first approval")
+	}
+
+	assertNoMidTurnToolPersist(t, sess)
+
+	go func() {
+		release <- struct{}{}
+		release <- struct{}{}
+	}()
+	require.NoError(t, h.WaitIdle(ctx))
+	require.NoError(t, h.LastRunResult().Err)
+
+	userCount, toolCount, textAssistant := countBranchMessageKinds(t, sess)
+	assert.Equal(t, 1, userCount)
+	assert.Equal(t, 2, toolCount)
+	assert.Equal(t, 1, textAssistant)
+}
+
+func branchHasToolResult(t *testing.T, sess *session.Session) bool {
+	t.Helper()
+	branch, err := sess.GetBranch(context.Background(), "")
+	require.NoError(t, err)
+	for _, entry := range branch {
+		if _, ok := entry.Message.(agent.ToolResultMessage); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func assertNoMidTurnToolPersist(t *testing.T, sess *session.Session) {
+	t.Helper()
+	branch, err := sess.GetBranch(context.Background(), "")
+	require.NoError(t, err)
+	for _, entry := range branch {
+		if _, ok := entry.Message.(agent.ToolResultMessage); ok {
+			t.Fatal("tool result must not exist before first approval")
+		}
+		if as, ok := entry.Message.(agent.AssistantMessage); ok && len(as.ToolCalls()) > 0 {
+			t.Fatal("tool-call assistant must not be mid-persisted before approval")
+		}
+	}
+}
+
+func countBranchMessageKinds(t *testing.T, sess *session.Session) (userCount, toolCount, textAssistant int) {
+	t.Helper()
+	branch, err := sess.GetBranch(context.Background(), "")
+	require.NoError(t, err)
+	for _, entry := range branch {
+		switch m := entry.Message.(type) {
+		case agent.UserMessage:
+			userCount++
+		case agent.ToolResultMessage:
+			toolCount++
+		case agent.AssistantMessage:
+			if len(m.ToolCalls()) == 0 && m.TextContent() != "" {
+				textAssistant++
+			}
+		}
+	}
+	return userCount, toolCount, textAssistant
 }
 
 func TestHarnessRespectsCompactionDisabledOnOverflow(t *testing.T) {

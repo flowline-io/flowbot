@@ -17,6 +17,7 @@ func TestIsObserverStreamEvent(t *testing.T) {
 		{name: "confirm_resolved is observer", eventType: EventTypeConfirmResolved, want: true},
 		{name: "canceled is observer", eventType: EventTypeCanceled, want: true},
 		{name: "mode_change is observer", eventType: EventTypeModeChange, want: true},
+		{name: "run_complete is observer", eventType: EventTypeRunComplete, want: true},
 		{name: "delta is not observer", eventType: EventTypeDelta, want: false},
 		{name: "done is not observer", eventType: EventTypeDone, want: false},
 		{name: "tool is not observer", eventType: EventTypeTool, want: false},

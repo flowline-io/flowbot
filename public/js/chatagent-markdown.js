@@ -59,6 +59,9 @@
       bodyEl.className = renderedClass;
       bodyEl.innerHTML = html;
       bodyEl.dataset.mdRendered = '1';
+      if (ns.enhanceCodeBlocks) {
+        ns.enhanceCodeBlocks(bodyEl);
+      }
       if (options.onAfterRender) {
         options.onAfterRender(bodyEl);
       }

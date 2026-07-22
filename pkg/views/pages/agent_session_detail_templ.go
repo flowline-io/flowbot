@@ -14,7 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-func AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo) templ.Component {
+func AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo, pending *partials.ChatAgentPendingConfirm) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -101,7 +101,7 @@ func AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSes
 			templ_7745c5c3_Err = partials.ChatAgentApprovalPanel(session.Flag, partials.ChatAgentEndpoints{
 				ConfirmURL: "/service/web/agent-sessions/" + session.Flag + "/confirm",
 				EventsURL:  "/service/web/agent-sessions/" + session.Flag + "/events",
-			}).Render(ctx, templ_7745c5c3_Buffer)
+			}, pending).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

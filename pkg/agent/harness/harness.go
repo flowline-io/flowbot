@@ -48,20 +48,22 @@ type Options struct {
 
 // Harness orchestrates agent loop, session tree, tools, and lifecycle hooks.
 type Harness struct {
-	mu           sync.Mutex
-	phase        Phase
-	idleCh       chan struct{}
-	lastResult   agentevent.Result
-	runStartedAt time.Time
-	agent        *agent.Agent
-	session      *session.Session
-	registry     *tool.Registry
-	router       *model.Router
-	systemPrompt string
-	modelName    string
-	ctxMgr       *ctxmgr.Manager
-	hookRegistry *hooks.Registry
-	loopBaseCfg  agent.Config
+	mu                   sync.Mutex
+	phase                Phase
+	idleCh               chan struct{}
+	lastResult           agentevent.Result
+	runStartedAt         time.Time
+	persistedPromptCount int
+	persistedToolCallIDs map[string]struct{}
+	agent                *agent.Agent
+	session              *session.Session
+	registry             *tool.Registry
+	router               *model.Router
+	systemPrompt         string
+	modelName            string
+	ctxMgr               *ctxmgr.Manager
+	hookRegistry         *hooks.Registry
+	loopBaseCfg          agent.Config
 }
 
 // New creates a harness with optional session and router dependencies.
@@ -94,17 +96,18 @@ func New(opts Options) *Harness {
 	agentInstance := agent.NewAgent(opts.AgentOptions)
 
 	return &Harness{
-		agent:        agentInstance,
-		session:      opts.Session,
-		registry:     registry,
-		router:       opts.Router,
-		systemPrompt: opts.SystemPrompt,
-		modelName:    opts.ModelName,
-		ctxMgr:       opts.ContextManager,
-		hookRegistry: hookRegistry,
-		loopBaseCfg:  agentInstance.Config(),
-		phase:        PhaseIdle,
-		idleCh:       make(chan struct{}),
+		agent:                agentInstance,
+		session:              opts.Session,
+		registry:             registry,
+		router:               opts.Router,
+		systemPrompt:         opts.SystemPrompt,
+		modelName:            opts.ModelName,
+		ctxMgr:               opts.ContextManager,
+		hookRegistry:         hookRegistry,
+		loopBaseCfg:          agentInstance.Config(),
+		phase:                PhaseIdle,
+		idleCh:               make(chan struct{}),
+		persistedToolCallIDs: make(map[string]struct{}),
 	}
 }
 
@@ -204,6 +207,12 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 		return nil, wrapPromptError(err)
 	}
 
+	if err := h.persistPromptMessages(ctx, prompts); err != nil {
+		h.setPhase(PhaseIdle)
+		metrics.Agent().IncRunTotal("error")
+		return nil, wrapPromptError(err)
+	}
+
 	routed := model.ApplyDefaultRouter(h.loopBaseCfg)
 	bridged := hooks.BridgeConfig(ctx, h.hookRegistry, routed)
 	h.agent.ApplyConfig(func(cfg *agent.Config) {
@@ -232,6 +241,12 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 		metrics.Agent().IncRunTotal("error")
 		return nil, err
 	}
+	// Persist tool-call assistants and tool results as they complete so a reloaded
+	// detail page can show progress between multiple approval prompts.
+	stream.Subscribe(func(ev agentevent.Event) error {
+		h.persistPartialFromEvent(ctx, ev)
+		return nil
+	})
 	go func() {
 		runCtx, span := trace.StartSpan(ctx, "agent.run")
 		defer span.End()
@@ -385,6 +400,7 @@ func (h *Harness) shouldRetryOverflow(result agentevent.Result) bool {
 
 func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 	h.emitObservation(ctx, hooks.ObservationEvent{Type: hooks.EventSavePoint})
+	defer h.resetPersistedThrough()
 	if result.Err != nil || h.session == nil {
 		return
 	}
@@ -392,15 +408,31 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 	h.mu.Lock()
 	runStart := h.runStartedAt
 	h.runStartedAt = time.Time{}
+	skip := h.persistedPromptCount
+	toolIDs := make(map[string]struct{}, len(h.persistedToolCallIDs))
+	for id := range h.persistedToolCallIDs {
+		toolIDs[id] = struct{}{}
+	}
 	h.mu.Unlock()
 
 	messages := applyRunDuration(result.Messages, runStart)
+	if skip > 0 {
+		if skip > len(messages) {
+			skip = len(messages)
+		}
+		messages = messages[skip:]
+	}
 
 	parentID, _ := h.currentLeafID(ctx)
 	for _, item := range messages {
 		message, ok := item.(agent.AgentMessage)
 		if !ok {
 			continue
+		}
+		if tr, ok := message.(msg.ToolResultMessage); ok {
+			if _, seen := toolIDs[tr.ToolCallID]; seen && tr.ToolCallID != "" {
+				continue
+			}
 		}
 		entryID := uuid.NewString()
 		if err := h.session.Append(ctx, session.TreeEntry{
@@ -414,6 +446,80 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 		}
 		parentID = entryID
 	}
+}
+
+// persistPromptMessages writes the turn prompts to the session before the loop
+// runs so reloads can show the user message while a confirm gate is waiting.
+func (h *Harness) persistPromptMessages(ctx context.Context, prompts []agent.AgentMessage) error {
+	if h.session == nil || len(prompts) == 0 {
+		return nil
+	}
+	parentID, _ := h.currentLeafID(ctx)
+	for _, message := range prompts {
+		entryID := uuid.NewString()
+		if err := h.session.Append(ctx, session.TreeEntry{
+			ID:       entryID,
+			ParentID: parentID,
+			Type:     session.EntryMessage,
+			Message:  message,
+		}); err != nil {
+			return fmt.Errorf("harness: persist prompt message: %w", err)
+		}
+		parentID = entryID
+	}
+	h.mu.Lock()
+	h.persistedPromptCount = len(prompts)
+	h.mu.Unlock()
+	return nil
+}
+
+// persistPartialFromEvent writes mid-turn tool results so reloads between multiple
+// approvals can show completed steps. Tool-call assistants are not persisted here:
+// AssistantDisplayText would be classified as a completed tool card before approval.
+func (h *Harness) persistPartialFromEvent(ctx context.Context, ev agentevent.Event) {
+	if h.session == nil {
+		return
+	}
+	if ev.Type != agentevent.TypeToolExecutionEnd {
+		return
+	}
+	result, ok := ev.ToolResult.(msg.ToolResultMessage)
+	if !ok {
+		return
+	}
+	h.persistOneMessage(ctx, result)
+}
+
+func (h *Harness) persistOneMessage(ctx context.Context, message agent.AgentMessage) {
+	if h.session == nil || message == nil {
+		return
+	}
+	parentID, _ := h.currentLeafID(ctx)
+	entryID := uuid.NewString()
+	if err := h.session.Append(ctx, session.TreeEntry{
+		ID:       entryID,
+		ParentID: parentID,
+		Type:     session.EntryMessage,
+		Message:  message,
+	}); err != nil {
+		flog.Warn("harness: mid-turn persist code=%s: %v", agentresult.CodeOf(err), err)
+		return
+	}
+	if tr, ok := message.(msg.ToolResultMessage); ok && tr.ToolCallID != "" {
+		h.mu.Lock()
+		if h.persistedToolCallIDs == nil {
+			h.persistedToolCallIDs = make(map[string]struct{})
+		}
+		h.persistedToolCallIDs[tr.ToolCallID] = struct{}{}
+		h.mu.Unlock()
+	}
+}
+
+func (h *Harness) resetPersistedThrough() {
+	h.mu.Lock()
+	h.persistedPromptCount = 0
+	h.persistedToolCallIDs = make(map[string]struct{})
+	h.mu.Unlock()
 }
 
 // applyRunDuration sets RunDurationMs on the final displayable assistant message in a run batch.

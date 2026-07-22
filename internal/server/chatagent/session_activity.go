@@ -8,12 +8,21 @@ const SessionActivityNeedsApproval = "needs_approval"
 
 // HasPendingConfirm reports whether the session has an unresolved confirmation gate.
 func HasPendingConfirm(sessionID string) bool {
+	_, ok := LookupPendingConfirm(sessionID)
+	return ok
+}
+
+// LookupPendingConfirm returns the outstanding confirm event for a session when waiting.
+func LookupPendingConfirm(sessionID string) (StreamEvent, bool) {
 	raw, ok := sessionConfirmGates.Load(sessionID)
 	if !ok {
-		return false
+		return StreamEvent{}, false
 	}
 	gate, ok := raw.(*ConfirmGate)
-	return ok && gate.IsWaiting()
+	if !ok {
+		return StreamEvent{}, false
+	}
+	return gate.PendingEvent()
 }
 
 // IsSessionRunning reports whether the session has an in-flight agent run.

@@ -79,6 +79,15 @@ func TestChatAgentHTTPSessionEventsObserverFilter(t *testing.T) {
 			wantInBody:    []string{`"type":"canceled"`},
 			wantNotInBody: []string{`"type":"done"`},
 		},
+		{
+			name: "forwards run_complete for detached observers",
+			events: []chatagent.StreamEvent{
+				{Type: chatagent.EventTypeDelta, Text: "secret"},
+				{Type: chatagent.EventTypeRunComplete},
+			},
+			wantInBody:    []string{`"type":"run_complete"`},
+			wantNotInBody: []string{`"type":"delta"`, "secret"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -13,10 +13,10 @@ func TestSessionEventHubPublishReleasesLock(t *testing.T) {
 		name      string
 		eventType string
 	}{
-		{name: "confirm while subscriber blocked", eventType: EventTypeConfirm},
-		{name: "done while subscriber blocked", eventType: EventTypeDone},
-		{name: "usage while subscriber blocked", eventType: EventTypeUsage},
-		{name: "mode_change while subscriber blocked", eventType: EventTypeModeChange},
+		{name: "confirm with full slow subscriber", eventType: EventTypeConfirm},
+		{name: "done with full slow subscriber", eventType: EventTypeDone},
+		{name: "usage with full slow subscriber", eventType: EventTypeUsage},
+		{name: "mode_change with full slow subscriber", eventType: EventTypeModeChange},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -34,15 +34,8 @@ func TestSessionEventHubPublishReleasesLock(t *testing.T) {
 
 			select {
 			case <-done:
-				t.Fatal("publish should not block while holding hub lock")
-			case <-time.After(50 * time.Millisecond):
-			}
-
-			<-slow.Events()
-			select {
-			case <-done:
-			case <-time.After(time.Second):
-				t.Fatal("publish did not complete after slow subscriber consumed")
+			case <-time.After(200 * time.Millisecond):
+				t.Fatal("hub publish must not block on a full subscriber")
 			}
 
 			select {
@@ -50,6 +43,14 @@ func TestSessionEventHubPublishReleasesLock(t *testing.T) {
 				assert.Equal(t, tt.eventType, ev.Type)
 			case <-time.After(time.Second):
 				t.Fatal("fast subscriber did not receive event")
+			}
+
+			// Slow buffer still holds the filler; the new event was dropped for it.
+			select {
+			case ev := <-slow.Events():
+				assert.Equal(t, EventTypeDelta, ev.Type)
+			default:
+				t.Fatal("slow subscriber should still hold the filler event")
 			}
 		})
 	}

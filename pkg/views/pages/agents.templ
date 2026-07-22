@@ -18,10 +18,10 @@ templ AgentsPage(items []model.AgentSession, nextCursor string, endpoints partia
 	}
 }
 
-templ AgentChatPage(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints) {
+templ AgentChatPage(session model.AgentSession, messages []model.AgentChatMessage, todos []model.AgentTodo, endpoints partials.ChatAgentEndpoints, pending *partials.ChatAgentPendingConfirm) {
 	@layout.Base("Agent Chat — Flowbot") {
 		<div class="chatagent-page flex flex-col flex-1 min-h-0 overflow-hidden">
-			@partials.ChatAgentThread(session, messages, todos, endpoints)
+			@partials.ChatAgentThread(session, messages, todos, endpoints, pending)
 		</div>
 		@partials.ChatAgentThreadScripts()
 	}

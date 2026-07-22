@@ -400,6 +400,14 @@
 
     var pending = consumePendingPrompt(sessionID);
     ns.initContextControl(root);
+    var messagesEl = root.querySelector('#chatagent-messages');
+    var jumpBtn = root.querySelector('#chatagent-jump-bottom');
+    if (ns.initMessageScroll) {
+      ns.initMessageScroll(messagesEl, jumpBtn);
+    }
+    if (ns.enhanceCodeBlocks) {
+      ns.enhanceCodeBlocks(messagesEl);
+    }
     if (ns.hydrateTodosFromToolCards) {
       ns.hydrateTodosFromToolCards(root);
     }

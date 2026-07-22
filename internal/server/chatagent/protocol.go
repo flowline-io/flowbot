@@ -17,6 +17,9 @@ const (
 	EventTypeCanceled        = "canceled"
 	EventTypeDone            = "done"
 	EventTypeError           = "error"
+	// EventTypeRunComplete notifies /events observers that an API turn finished
+	// and session history is durable (used when the primary messages SSE is gone).
+	EventTypeRunComplete = "run_complete"
 )
 
 // IsObserverStreamEvent reports whether eventType is forwarded on session
@@ -24,7 +27,7 @@ const (
 // (delta/tool/done) are delivered on the messages send SSE, not /events.
 func IsObserverStreamEvent(eventType string) bool {
 	switch eventType {
-	case EventTypeConfirm, EventTypeConfirmResolved, EventTypeCanceled, EventTypeModeChange:
+	case EventTypeConfirm, EventTypeConfirmResolved, EventTypeCanceled, EventTypeModeChange, EventTypeRunComplete:
 		return true
 	default:
 		return false

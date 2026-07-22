@@ -253,6 +253,12 @@ func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
 		publisher := hub.Subscribe(subID, 32)
 		defer hub.Unsubscribe(subID)
 
+		if chatagent.WritePendingConfirmIfAny(sessionID, func(ev chatagent.StreamEvent) bool {
+			return writeChatAgentSSE(w, ev)
+		}) {
+			return
+		}
+
 		for {
 			select {
 			case <-reqCtx.Done():

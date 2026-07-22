@@ -51,6 +51,7 @@ type ConfirmGate struct {
 	resolved  bool
 	waiting   bool
 	timeout   time.Duration
+	pending   *StreamEvent
 }
 
 // NewConfirmGate creates a gate that publishes confirm events to session subscribers.
@@ -80,6 +81,19 @@ func (g *ConfirmGate) IsWaiting() bool {
 	return g.waiting
 }
 
+// PendingEvent returns the last published confirm payload while the gate is waiting.
+func (g *ConfirmGate) PendingEvent() (StreamEvent, bool) {
+	if g == nil {
+		return StreamEvent{}, false
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if !g.waiting || g.pending == nil {
+		return StreamEvent{}, false
+	}
+	return *g.pending, true
+}
+
 // Wait publishes a confirm event and blocks until the client responds or times out.
 func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent, eval permission.Result) (ConfirmResponse, error) {
 	confirmID := g.beginWait()
@@ -94,6 +108,7 @@ func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent, eval 
 		SuggestedPattern: eval.SuggestedPattern,
 		SuggestAlways:    eval.SuggestAlways,
 	}
+	g.setPending(payload)
 	_ = g.emit(payload)
 
 	timer := time.NewTimer(g.timeout)
@@ -116,6 +131,17 @@ func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent, eval 
 		g.publishResolved(confirmID, resp)
 		return resp, fmt.Errorf("confirmation cancelled")
 	}
+}
+
+func (g *ConfirmGate) setPending(event StreamEvent) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	cp := event
+	g.pending = &cp
+}
+
+func (g *ConfirmGate) clearPending() {
+	g.pending = nil
 }
 
 func (g *ConfirmGate) beginWait() string {
@@ -156,6 +182,7 @@ func (g *ConfirmGate) Cancel() {
 	}
 	g.resolved = true
 	g.waiting = false
+	g.clearPending()
 	close(g.done)
 }
 
@@ -167,6 +194,7 @@ func (g *ConfirmGate) publishResolved(confirmID string, resp ConfirmResponse) {
 	}
 	g.resolved = true
 	g.waiting = false
+	g.clearPending()
 	g.mu.Unlock()
 
 	reason := string(resp.Reason)

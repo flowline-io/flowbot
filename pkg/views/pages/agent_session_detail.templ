@@ -6,7 +6,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo) {
+templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSessionEntry, plans []model.AgentPlan, todos []model.AgentTodo, pending *partials.ChatAgentPendingConfirm) {
 	@layout.Base(partials.AgentSessionPageTitle(session)) {
 		if session.Title != "" {
 			@partials.PageHeader(session.Title, session.Flag) {
@@ -24,7 +24,7 @@ templ AgentSessionDetailPage(session model.AgentSession, entries []model.AgentSe
 		@partials.ChatAgentApprovalPanel(session.Flag, partials.ChatAgentEndpoints{
 			ConfirmURL: "/service/web/agent-sessions/" + session.Flag + "/confirm",
 			EventsURL:  "/service/web/agent-sessions/" + session.Flag + "/events",
-		})
+		}, pending)
 		<div class="flowbot-surface mb-6">
 			<div class="card-body">
 				<div class="grid grid-cols-2 gap-2 text-sm text-base-content/70">

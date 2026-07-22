@@ -97,6 +97,7 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 		mapAgentSessionEntries(entries),
 		mapAgentPlans(plans),
 		todos,
+		pendingConfirmForSession(sessionID),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

@@ -51,7 +51,15 @@ func (h *SessionEventHub) Subscribe(id string, buffer int) *ChannelPublisher {
 	return pub
 }
 
-// Unsubscribe removes one SSE consumer from the session hub.
+// Detach removes one SSE consumer from hub fan-out without closing its publisher.
+// Use this when the publisher is still owned by an in-flight run (primary messages SSE).
+func (h *SessionEventHub) Detach(id string) {
+	h.mu.Lock()
+	delete(h.subs, id)
+	h.mu.Unlock()
+}
+
+// Unsubscribe removes one SSE consumer from the session hub and closes its publisher.
 func (h *SessionEventHub) Unsubscribe(id string) {
 	h.mu.Lock()
 	pub, ok := h.subs[id]
@@ -83,6 +91,16 @@ func (h *SessionEventHub) closeAll() {
 		}
 		delete(h.subs, id)
 	}
+}
+
+// WritePendingConfirmIfAny writes a waiting confirm event for late /events subscribers.
+// Returns true when the writer failed and the stream should stop.
+func WritePendingConfirmIfAny(sessionID string, write func(StreamEvent) bool) bool {
+	ev, ok := LookupPendingConfirm(sessionID)
+	if !ok {
+		return false
+	}
+	return write(ev)
 }
 
 // hubPublisher publishes events to every subscriber on a session hub.

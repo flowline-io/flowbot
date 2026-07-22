@@ -181,6 +181,42 @@ func FormatChatAgentRelativeTime(t time.Time) string {
 	return chatAgentRelativeTimeSince(t, time.Now())
 }
 
+// ChatAgentToolCardExpanded reports whether a tool card should render expanded.
+// Successful and in-progress cards stay collapsed; failures and approval gates open.
+func ChatAgentToolCardExpanded(status string) bool {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "error", "failed", "needs_approval":
+		return true
+	default:
+		return false
+	}
+}
+
+// chatAgentPendingConfirmMeta formats permission / pattern metadata for the approval panel.
+func chatAgentPendingConfirmMeta(pending *ChatAgentPendingConfirm) string {
+	if pending == nil {
+		return ""
+	}
+	parts := make([]string, 0, 2)
+	if p := strings.TrimSpace(pending.Permission); p != "" {
+		parts = append(parts, "permission: "+p)
+	}
+	if p := strings.TrimSpace(pending.Pattern); p != "" {
+		parts = append(parts, "pattern: "+p)
+	}
+	return strings.Join(parts, " · ")
+}
+
+// ChatAgentPendingConfirmFromEvent maps a stream confirm payload into view data.
+func ChatAgentPendingConfirmFromEvent(pending ChatAgentPendingConfirm) *ChatAgentPendingConfirm {
+	pending.ID = strings.TrimSpace(pending.ID)
+	if pending.ID == "" {
+		return nil
+	}
+	cp := pending
+	return &cp
+}
+
 // ChatAgentDurationLabel formats a millisecond duration for chat UI labels.
 func ChatAgentDurationLabel(ms int64) string {
 	if ms <= 0 {

@@ -121,6 +121,22 @@ func historyMessagesFromMessage(message agent.AgentMessage, createdAt time.Time)
 				CreatedAt:          ts,
 			})
 		}
+		// Tool-call assistants must not use AssistantDisplayText here: that summary
+		// is later classified as a completed tool card even before approval/result.
+		if len(m.ToolCalls()) > 0 {
+			text := strings.TrimSpace(msg.TrimToolCallStreamContent(m.TextContent()))
+			if text != "" {
+				out = append(out, HistoryMessage{
+					Role:           "assistant",
+					Kind:           "assistant",
+					Text:           text,
+					TurnDurationMs: m.TurnDurationMs,
+					RunDurationMs:  m.RunDurationMs,
+					CreatedAt:      ts,
+				})
+			}
+			return out
+		}
 		text := strings.TrimSpace(msg.AssistantDisplayText(m))
 		if text != "" {
 			out = append(out, HistoryMessage{

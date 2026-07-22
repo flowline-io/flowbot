@@ -304,7 +304,24 @@ func agentChatPage(ctx fiber.Ctx) error {
 		mapChatMessages(messages),
 		todos,
 		agentChatEndpoints(sessionID),
+		pendingConfirmForSession(sessionID),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
+}
+
+func pendingConfirmForSession(sessionID string) *partials.ChatAgentPendingConfirm {
+	ev, ok := chatagent.LookupPendingConfirm(sessionID)
+	if !ok {
+		return nil
+	}
+	return partials.ChatAgentPendingConfirmFromEvent(partials.ChatAgentPendingConfirm{
+		ID:               ev.ID,
+		Tool:             ev.Tool,
+		Summary:          ev.Summary,
+		Permission:       ev.Permission,
+		Pattern:          ev.Pattern,
+		SuggestedPattern: ev.SuggestedPattern,
+		SuggestAlways:    ev.SuggestAlways,
+	})
 }
 
 func agentChatSendMessage(ctx fiber.Ctx) error {

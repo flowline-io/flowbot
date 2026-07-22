@@ -207,6 +207,29 @@ func TestEnhanceChatAgentMarkdownHTML(t *testing.T) {
 	}
 }
 
+func TestChatAgentToolCardExpanded(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		status string
+		want   bool
+	}{
+		{name: "completed stays collapsed", status: "completed", want: false},
+		{name: "running stays collapsed", status: "running", want: false},
+		{name: "empty stays collapsed", status: "", want: false},
+		{name: "error expands", status: "error", want: true},
+		{name: "failed expands", status: "failed", want: true},
+		{name: "needs_approval expands", status: "needs_approval", want: true},
+		{name: "Needs Approval expands case insensitive", status: "Needs_Approval", want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, ChatAgentToolCardExpanded(tt.status))
+		})
+	}
+}
+
 func TestRenderChatAgentMarkdownHTML(t *testing.T) {
 	tests := []struct {
 		name       string

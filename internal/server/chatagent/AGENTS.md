@@ -26,9 +26,9 @@ It must not grow into a second agent engine.
 
 ### `/events` filter
 
-Both REST and Web `/events` endpoints forward only approval overlay events:
+Both REST and Web `/events` endpoints forward only approval / run-lifecycle overlay events:
 
-- `confirm`, `confirm_resolved`, `canceled`, `mode_change`
+- `confirm`, `confirm_resolved`, `canceled`, `mode_change`, `run_complete`
 
 The shared predicate is `chatagent.IsObserverStreamEvent` in `internal/server/chatagent/protocol.go`.
 
@@ -46,11 +46,13 @@ Script load order (defer, in order):
 1. `chatagent-util.js`
 2. `chatagent-sse.js`
 3. `chatagent-markdown.js`
-4. `chatagent-context.js`
-5. `chatagent-approval.js`
-6. `chatagent-todos.js`
-7. `chatagent-thread.js`
-8. `chatagent-chat.js` (boot: composer/thread init)
+4. `chatagent-codeblocks.js`
+5. `chatagent-context.js`
+6. `chatagent-approval.js`
+7. `chatagent-todos.js`
+8. `chatagent-thread.js`
+9. `chatagent-chat.js` (boot: composer/thread init)
+10. `clip-copy.js`
 
 Pages: `pkg/views/pages/agents.templ`, `agent_session_detail.templ` (approval-only panels may load a subset; thread pages load all).
 
