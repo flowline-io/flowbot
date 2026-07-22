@@ -68,6 +68,18 @@ templ Base(title string) {
 				</a>
 			</div>
 			<div class="navbar-end shrink-0 flex items-center gap-0.5 sm:gap-1">
+				<button
+					type="button"
+					id="nav-command-palette"
+					data-testid="nav-command-palette"
+					class="btn btn-ghost btn-sm gap-1.5"
+					aria-label="Open command palette"
+					title="Search (Ctrl/Cmd+K)"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+					<span class="hidden md:inline text-base-content/60 font-normal">Search</span>
+					<kbd class="kbd kbd-sm hidden lg:inline-flex text-base-content/50" data-testid="nav-command-palette-hint">Ctrl K</kbd>
+				</button>
 				<div class="hidden lg:flex items-center gap-1">
 					<div class="dropdown dropdown-hover">
 						<div tabindex="0" role="button" data-testid="nav-group-operate" class="btn btn-ghost btn-sm gap-1">
@@ -160,6 +172,8 @@ templ Base(title string) {
 		</main>
 		<div id="toast-container" class="toast toast-end z-[9999]" data-testid="toast-container"></div>
 		@partials.ConfirmModal()
+		@partials.CommandPalette()
+		<script src="/static/js/command-palette.js" defer></script>
 		// Alpine CSP build — no unsafe-eval. Page scripts register Alpine.data before this loads.
 		<script src="/static/vendor/alpine.csp.min.js" defer></script>
 	</body>

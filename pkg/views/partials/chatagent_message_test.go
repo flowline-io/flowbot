@@ -356,52 +356,73 @@ func TestChatAgentThreadPendingApprovalEmptyState(t *testing.T) {
 			if err != nil {
 				t.Fatalf("render: %v", err)
 			}
-			html := buf.String()
-			hasWait := strings.Contains(html, `data-testid="chatagent-run-waiting"`)
-			if hasWait != tt.wantWait {
-				t.Fatalf("waiting copy present=%v want=%v", hasWait, tt.wantWait)
-			}
-			hasPending := strings.Contains(html, `data-pending-confirm-id=`)
-			if tt.wantOpen && !hasPending {
-				t.Fatalf("want pending confirm attrs\nhtml=%s", html)
-			}
-			if tt.wantHidden && hasPending {
-				t.Fatalf("did not want pending confirm attrs\nhtml=%s", html)
-			}
-			if tt.wantOpen && strings.Contains(html, `chatagent-approval-panel shrink-0 hidden`) {
-				t.Fatalf("pending panel should not include hidden class\nhtml=%s", html)
-			}
-			if tt.wantOpen {
-				if !strings.Contains(html, `data-testid="chatagent-approve-once"`) || !strings.Contains(html, "Allow once") {
-					t.Fatalf("want Allow once button\nhtml=%s", html)
-				}
-				if !strings.Contains(html, `data-testid="chatagent-approve-once-hint"`) {
-					t.Fatalf("want Allow once hint\nhtml=%s", html)
-				}
-			}
-			if tt.wantAlways {
-				if !strings.Contains(html, "Always allow matching") {
-					t.Fatalf("want Always allow matching label\nhtml=%s", html)
-				}
-				if !strings.Contains(html, "run_terminal:ls *") {
-					t.Fatalf("want always pattern hint\nhtml=%s", html)
-				}
-				if !strings.Contains(html, "chatagent-approval-choice-always") {
-					t.Fatalf("want always choice button class\nhtml=%s", html)
-				}
-			}
-			if tt.wantOpen {
-				// Docked above the composer, not above the message list.
-				approvalIdx := strings.Index(html, `id="chatagent-approval-panel"`)
-				inputIdx := strings.Index(html, `data-testid="chatagent-input-bar"`)
-				messagesIdx := strings.Index(html, `id="chatagent-messages"`)
-				if approvalIdx < 0 || inputIdx < 0 || messagesIdx < 0 {
-					t.Fatalf("missing approval/input/messages markers\nhtml=%s", html)
-				}
-				if !(messagesIdx < approvalIdx && approvalIdx < inputIdx) {
-					t.Fatalf("want messages → approval → input order, got messages=%d approval=%d input=%d", messagesIdx, approvalIdx, inputIdx)
-				}
-			}
+			assertChatAgentPendingApprovalHTML(t, buf.String(), tt.wantWait, tt.wantOpen, tt.wantHidden, tt.wantAlways)
 		})
+	}
+}
+
+func assertChatAgentPendingApprovalHTML(t *testing.T, html string, wantWait, wantOpen, wantHidden, wantAlways bool) {
+	t.Helper()
+	hasWait := strings.Contains(html, `data-testid="chatagent-run-waiting"`)
+	if hasWait != wantWait {
+		t.Fatalf("waiting copy present=%v want=%v", hasWait, wantWait)
+	}
+	hasPending := strings.Contains(html, `data-pending-confirm-id=`)
+	if wantOpen && !hasPending {
+		t.Fatalf("want pending confirm attrs\nhtml=%s", html)
+	}
+	if wantHidden && hasPending {
+		t.Fatalf("did not want pending confirm attrs\nhtml=%s", html)
+	}
+	if wantOpen && strings.Contains(html, `chatagent-approval-panel shrink-0 hidden`) {
+		t.Fatalf("pending panel should not include hidden class\nhtml=%s", html)
+	}
+	assertChatAgentPendingApprovalOpen(t, html, wantOpen)
+	assertChatAgentPendingApprovalAlways(t, html, wantAlways)
+	assertChatAgentPendingApprovalOrder(t, html, wantOpen)
+}
+
+func assertChatAgentPendingApprovalOpen(t *testing.T, html string, wantOpen bool) {
+	t.Helper()
+	if !wantOpen {
+		return
+	}
+	if !strings.Contains(html, `data-testid="chatagent-approve-once"`) || !strings.Contains(html, "Allow once") {
+		t.Fatalf("want Allow once button\nhtml=%s", html)
+	}
+	if !strings.Contains(html, `data-testid="chatagent-approve-once-hint"`) {
+		t.Fatalf("want Allow once hint\nhtml=%s", html)
+	}
+}
+
+func assertChatAgentPendingApprovalAlways(t *testing.T, html string, wantAlways bool) {
+	t.Helper()
+	if !wantAlways {
+		return
+	}
+	if !strings.Contains(html, "Always allow matching") {
+		t.Fatalf("want Always allow matching label\nhtml=%s", html)
+	}
+	if !strings.Contains(html, "run_terminal:ls *") {
+		t.Fatalf("want always pattern hint\nhtml=%s", html)
+	}
+	if !strings.Contains(html, "chatagent-approval-choice-always") {
+		t.Fatalf("want always choice button class\nhtml=%s", html)
+	}
+}
+
+func assertChatAgentPendingApprovalOrder(t *testing.T, html string, wantOpen bool) {
+	t.Helper()
+	if !wantOpen {
+		return
+	}
+	approvalIdx := strings.Index(html, `id="chatagent-approval-panel"`)
+	inputIdx := strings.Index(html, `data-testid="chatagent-input-bar"`)
+	messagesIdx := strings.Index(html, `id="chatagent-messages"`)
+	if approvalIdx < 0 || inputIdx < 0 || messagesIdx < 0 {
+		t.Fatalf("missing approval/input/messages markers\nhtml=%s", html)
+	}
+	if !(messagesIdx < approvalIdx && approvalIdx < inputIdx) {
+		t.Fatalf("want messages → approval → input order, got messages=%d approval=%d input=%d", messagesIdx, approvalIdx, inputIdx)
 	}
 }

@@ -73,6 +73,20 @@ func TestBaseLayout(t *testing.T) {
 				}, "CSP Alpine cannot use %q")
 			},
 		},
+		{
+			name: "command palette markup and script",
+			body: templ.NopComponent,
+			check: func(t *testing.T, html string) {
+				t.Helper()
+				assertContainsAll(t, html, []string{
+					`data-testid="command-palette"`,
+					`data-testid="command-palette-input"`,
+					`data-testid="nav-command-palette"`,
+					`command-palette.js`,
+					`data-testid="command-palette-pages"`,
+				})
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

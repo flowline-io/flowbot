@@ -1,0 +1,38 @@
+package partials
+
+templ CommandPalette() {
+	<dialog id="command-palette" class="modal flowbot-command-palette" data-testid="command-palette">
+		<div class="flowbot-command-palette-panel modal-box">
+			<div class="flowbot-command-palette-header">
+				<svg xmlns="http://www.w3.org/2000/svg" class="flowbot-command-palette-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+				<input
+					id="command-palette-input"
+					type="search"
+					class="flowbot-command-palette-input"
+					placeholder="Search pages, pipelines, sessions, homelab…"
+					autocomplete="off"
+					spellcheck="false"
+					data-testid="command-palette-input"
+					aria-label="Command palette search"
+				/>
+				<kbd class="flowbot-command-palette-kbd flowbot-command-palette-kbd-esc hidden sm:inline-flex" data-testid="command-palette-esc-hint">esc</kbd>
+			</div>
+			<div
+				id="command-palette-results"
+				class="flowbot-command-palette-results"
+				data-testid="command-palette-results"
+				role="listbox"
+				aria-label="Command palette results"
+			></div>
+			<div class="flowbot-command-palette-footer">
+				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">↑</kbd><kbd class="flowbot-command-palette-kbd">↓</kbd><span>navigate</span></span>
+				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">↵</kbd><span>open</span></span>
+				<span class="flowbot-command-palette-hint"><kbd class="flowbot-command-palette-kbd">esc</kbd><span>close</span></span>
+			</div>
+		</div>
+		<form method="dialog" class="modal-backdrop">
+			<button type="submit" data-testid="command-palette-backdrop">close</button>
+		</form>
+	</dialog>
+	<script type="application/json" id="command-palette-pages" data-testid="command-palette-pages">{ templ.Raw(CommandPalettePagesJSON()) }</script>
+}
