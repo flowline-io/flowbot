@@ -114,6 +114,7 @@ templ AgentSkillForm(item model.AgentSkill, isNew bool, errors map[string]string
 						hx-get={ agentSkillFilesListURL(item) }
 						hx-trigger="load"
 						hx-swap="innerHTML">
+						@PanelSkeleton()
 					</div>
 				}
 			</div>

@@ -3,10 +3,8 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ AgentSkillTable(items []model.AgentSkill) {
-	<div class="flowbot-surface">
-		<div id="agent-skills-table"
-			data-testid="agent-skills-table"
-			class="overflow-x-auto">
+	<div class="flowbot-surface" id="agent-skills-table" data-testid="agent-skills-table">
+		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>

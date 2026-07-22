@@ -15,6 +15,7 @@ templ AgentSkillsPage(items []model.AgentSkill) {
 				data-testid="agent-skills-refresh"
 				class="btn btn-ghost btn-sm">
 				Refresh
+				@partials.HtmxIndicator()
 			</button>
 			<form
 				hx-post="/service/web/agent-skills/import"

@@ -34,7 +34,8 @@ func TestCursorLoadMore(t *testing.T) {
 				`hx-target="#agent-sessions-rows"`,
 				`hx-swap="beforeend"`,
 				`data-testid="agent-sessions-load-more"`,
-				">Load more</button>",
+				`htmx-indicator`,
+				"Load more",
 			},
 			wantAbsent: []string{`hx-swap-oob`},
 		},
@@ -51,6 +52,7 @@ func TestCursorLoadMore(t *testing.T) {
 				`hx-get="/service/web/agent-sessions/list?cursor=7"`,
 				`hx-target="#agent-sessions-rows"`,
 				`hx-swap="beforeend"`,
+				`htmx-indicator`,
 			},
 		},
 		{

@@ -63,7 +63,23 @@ func AgentSubagentsPage(items []model.AgentSubagent) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex gap-2\" x-show=\"tab === 'subagents'\"><button hx-get=\"/service/web/agent-subagents/list\" hx-target=\"#agent-subagents-table\" hx-swap=\"outerHTML\" data-testid=\"agent-subagents-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button> <button hx-get=\"/service/web/agent-subagents/new\" hx-target=\"#agent-subagents-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-subagents-new\" class=\"btn btn-primary btn-sm\">New Subagent</button></div><div class=\"flex gap-2\" x-show=\"tab === 'tasks'\" x-cloak><button hx-get=\"/service/web/agent-subagents/tasks\" hx-target=\"#agent-subagent-tasks-panel\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div class=\"flex gap-2\" x-show=\"tab === 'subagents'\"><button hx-get=\"/service/web/agent-subagents/list\" hx-target=\"#agent-subagents-table\" hx-swap=\"outerHTML\" data-testid=\"agent-subagents-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = partials.HtmxIndicator().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</button> <button hx-get=\"/service/web/agent-subagents/new\" hx-target=\"#agent-subagents-rows\" hx-swap=\"afterbegin\" data-testid=\"agent-subagents-new\" class=\"btn btn-primary btn-sm\">New Subagent</button></div><div class=\"flex gap-2\" x-show=\"tab === 'tasks'\" x-cloak><button hx-get=\"/service/web/agent-subagents/tasks\" hx-target=\"#agent-subagent-tasks-panel\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = partials.HtmxIndicator().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</button></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -73,7 +89,7 @@ func AgentSubagentsPage(items []model.AgentSubagent) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div role=\"tablist\" class=\"tabs tabs-bordered mb-6\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'subagents' ? 'tab-active' : ''\" x-on:click=\"tab = 'subagents'\" data-testid=\"agent-subagents-tab-subagents\">Subagents</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'tasks' ? 'tab-active' : ''\" x-on:click=\"tab = 'tasks'\" data-testid=\"agent-subagents-tab-tasks\">Tasks</button></div><div x-show=\"tab === 'subagents'\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<div role=\"tablist\" class=\"tabs tabs-bordered mb-6\"><button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'subagents' ? 'tab-active' : ''\" x-on:click=\"tab = 'subagents'\" data-testid=\"agent-subagents-tab-subagents\">Subagents</button> <button role=\"tab\" class=\"tab\" x-bind:class=\"tab === 'tasks' ? 'tab-active' : ''\" x-on:click=\"tab = 'tasks'\" data-testid=\"agent-subagents-tab-tasks\">Tasks</button></div><div x-show=\"tab === 'subagents'\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -81,7 +97,15 @@ func AgentSubagentsPage(items []model.AgentSubagent) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div x-show=\"tab === 'tasks'\" id=\"agent-subagent-tasks-panel\" hx-get=\"/service/web/agent-subagents/tasks\" hx-trigger=\"revealed\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-panel\"><div class=\"flex justify-center p-8\"><span class=\"loading loading-spinner loading-lg\"></span></div></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div><div x-show=\"tab === 'tasks'\" id=\"agent-subagent-tasks-panel\" hx-get=\"/service/web/agent-subagents/tasks\" hx-trigger=\"revealed\" hx-swap=\"innerHTML\" data-testid=\"agent-subagent-tasks-panel\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = partials.PanelSkeleton().Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

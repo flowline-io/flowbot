@@ -31,7 +31,7 @@ func ConfigTable(items []model.ConfigItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\"><div id=\"configs-table\" data-testid=\"configs-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">ID</th><th class=\"text-xs text-base-content/55\">UID</th><th class=\"text-xs text-base-content/55\">Topic</th><th class=\"text-xs text-base-content/55\">Key</th><th class=\"text-xs text-base-content/55\">Value</th><th class=\"text-xs text-base-content/55\">Updated</th><th class=\"text-xs text-base-content/55\">Actions</th></tr></thead> <tbody id=\"configs-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"configs-table\" data-testid=\"configs-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">ID</th><th class=\"text-xs text-base-content/55\">UID</th><th class=\"text-xs text-base-content/55\">Topic</th><th class=\"text-xs text-base-content/55\">Key</th><th class=\"text-xs text-base-content/55\">Value</th><th class=\"text-xs text-base-content/55\">Updated</th><th class=\"text-xs text-base-content/55\">Actions</th></tr></thead> <tbody id=\"configs-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -283,3 +283,28 @@ func TestPanelSkeleton(t *testing.T) {
 		})
 	}
 }
+
+func TestHtmxIndicator(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		want string
+	}{
+		{name: "htmx indicator class", want: "htmx-indicator"},
+		{name: "spinner", want: "loading-spinner"},
+		{name: "extra small size", want: "loading-xs"},
+		{name: "aria hidden", want: `aria-hidden="true"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var buf bytes.Buffer
+			if err := partials.HtmxIndicator().Render(context.Background(), &buf); err != nil {
+				t.Fatalf("render: %v", err)
+			}
+			if !strings.Contains(buf.String(), tt.want) {
+				t.Fatalf("want %q in %s", tt.want, buf.String())
+			}
+		})
+	}
+}

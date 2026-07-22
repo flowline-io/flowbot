@@ -167,7 +167,15 @@ func NotifyTemplateRow(item model.NotifyTemplate) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-confirm=\"Delete this template?\" data-confirm-title=\"Delete Template\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"template-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></div></td></tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-confirm=\"Delete this template?\" data-confirm-title=\"Delete Template\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"template-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = HtmxIndicator().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</button></div></td></tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

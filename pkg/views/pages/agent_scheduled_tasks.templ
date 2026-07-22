@@ -15,6 +15,7 @@ templ AgentScheduledTasksPage(items []model.AgentScheduledTask) {
 				data-testid="agent-scheduled-tasks-refresh"
 				class="btn btn-ghost btn-sm">
 				Refresh
+				@partials.HtmxIndicator()
 			</button>
 		}
 		@partials.AgentScheduledTaskTable(items)

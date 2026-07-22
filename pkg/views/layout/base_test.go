@@ -41,6 +41,22 @@ func TestBaseLayout(t *testing.T) {
 			},
 		},
 		{
+			name: "delayed global htmx progress bar",
+			body: templ.NopComponent,
+			check: func(t *testing.T, html string) {
+				t.Helper()
+				assertContainsAll(t, html, []string{
+					`id="flowbot-htmx-progress"`,
+					`flowbot-htmx-progress`,
+					`data-testid="htmx-progress"`,
+					`htmx-indicator`,
+				})
+				assertContainsNone(t, html, []string{
+					`hx-indicator="#flowbot-htmx-progress"`,
+				}, "body must not set %q — it steals htmx-request from buttons")
+			},
+		},
+		{
 			name: "theme picker uses static CSP-safe bindings",
 			body: templ.NopComponent,
 			check: func(t *testing.T, html string) {

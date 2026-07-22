@@ -3,10 +3,8 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ AgentSubagentTable(items []model.AgentSubagent) {
-	<div class="flowbot-surface">
-		<div id="agent-subagents-table"
-			data-testid="agent-subagents-table"
-			class="overflow-x-auto">
+	<div class="flowbot-surface" id="agent-subagents-table" data-testid="agent-subagents-table">
+		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>

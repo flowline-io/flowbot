@@ -31,7 +31,7 @@ func AgentSubagentTable(items []model.AgentSubagent) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\"><div id=\"agent-subagents-table\" data-testid=\"agent-subagents-table\" class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Flag</th><th class=\"text-xs text-base-content/55\">Name</th><th class=\"text-xs text-base-content/55\">Description</th><th class=\"text-xs text-base-content/55\">Model</th><th class=\"text-xs text-base-content/55 text-center\">Enabled</th><th class=\"text-xs text-base-content/55\">Updated</th><th class=\"text-xs text-base-content/55\">Actions</th></tr></thead> <tbody id=\"agent-subagents-rows\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flowbot-surface\" id=\"agent-subagents-table\" data-testid=\"agent-subagents-table\"><div class=\"overflow-x-auto\"><table class=\"table\"><thead><tr><th class=\"text-xs text-base-content/55\">Flag</th><th class=\"text-xs text-base-content/55\">Name</th><th class=\"text-xs text-base-content/55\">Description</th><th class=\"text-xs text-base-content/55\">Model</th><th class=\"text-xs text-base-content/55 text-center\">Enabled</th><th class=\"text-xs text-base-content/55\">Updated</th><th class=\"text-xs text-base-content/55\">Actions</th></tr></thead> <tbody id=\"agent-subagents-rows\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

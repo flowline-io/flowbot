@@ -129,7 +129,10 @@ templ ChatAgentSessionList(items []model.AgentSession, nextCursor string, endpoi
 				hx-target="#chatagent-session-list"
 				hx-swap="outerHTML"
 				class="btn btn-ghost btn-xs text-base-content/50"
-				data-testid="chatagent-sessions-refresh">Refresh</button>
+				data-testid="chatagent-sessions-refresh">
+				Refresh
+				@HtmxIndicator()
+			</button>
 		</div>
 		<div id="chatagent-session-rows" class="agents-session-rows">
 			for _, item := range items {

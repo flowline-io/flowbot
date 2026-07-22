@@ -16,6 +16,7 @@ templ ConfigsPage(items []model.ConfigItem) {
 				data-testid="configs-refresh"
 				class="btn btn-ghost btn-sm">
 				Refresh
+				@partials.HtmxIndicator()
 			</button>
 			<button hx-get="/service/web/configs/new"
 				hx-target="#configs-rows"

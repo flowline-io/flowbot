@@ -122,7 +122,15 @@ func AgentSkillFileRow(skill model.AgentSkill, file model.AgentSkillFile) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-swap=\"innerHTML\" data-confirm=\"Delete this file?\" data-confirm-title=\"Delete Skill File\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"agent-skill-file-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-swap=\"innerHTML\" data-confirm=\"Delete this file?\" data-confirm-title=\"Delete Skill File\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"agent-skill-file-delete\" class=\"btn btn-ghost btn-xs text-error\">Delete")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = HtmxIndicator().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</button></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

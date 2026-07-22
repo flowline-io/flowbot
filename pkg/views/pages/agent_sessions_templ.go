@@ -59,7 +59,15 @@ func AgentSessionsPage(items []model.AgentSession, nextCursor string) templ.Comp
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/agent-sessions/list\" hx-target=\"#agent-sessions-table\" hx-swap=\"outerHTML\" data-testid=\"agent-sessions-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/agent-sessions/list\" hx-target=\"#agent-sessions-table\" hx-swap=\"outerHTML\" data-testid=\"agent-sessions-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = partials.HtmxIndicator().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -69,7 +77,7 @@ func AgentSessionsPage(items []model.AgentSession, nextCursor string) templ.Comp
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

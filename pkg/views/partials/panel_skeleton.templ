@@ -8,3 +8,9 @@ templ PanelSkeleton() {
 		<span class="text-sm">Loading…</span>
 	</div>
 }
+
+// HtmxIndicator renders a soft DaisyUI spinner gated by the htmx-indicator class.
+// Place as a child of the requesting button so htmx-request reveals it during the request.
+templ HtmxIndicator() {
+	<span class="loading loading-spinner loading-xs htmx-indicator" aria-hidden="true"></span>
+}

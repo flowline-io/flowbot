@@ -108,7 +108,10 @@ templ PipelineListTable(entries []PipelineListEntry) {
 										data-confirm-title="Delete Pipeline"
 										data-confirm-btn="Delete"
 										data-confirm-class="btn-error"
-										class="btn btn-ghost btn-xs text-error">Delete</button>
+										class="btn btn-ghost btn-xs text-error">
+										Delete
+										@HtmxIndicator()
+									</button>
 								</div>
 							</td>
 						</tr>

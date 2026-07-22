@@ -319,3 +319,30 @@ document.addEventListener('htmx:sendError', function () {
 document.addEventListener('htmx:timeout', function () {
   showToast('Request timed out. Please try again.', 'error');
 });
+
+// Global top progress: do NOT put hx-indicator on <body> — that replaces the
+// requesting element's htmx-request class and hides button HtmxIndicator spinners.
+(function () {
+  var active = 0;
+  function progressEl() {
+    return document.getElementById('flowbot-htmx-progress');
+  }
+  function bump(delta) {
+    active = Math.max(0, active + delta);
+    var el = progressEl();
+    if (!el) {
+      return;
+    }
+    if (active > 0) {
+      el.classList.add('htmx-request');
+    } else {
+      el.classList.remove('htmx-request');
+    }
+  }
+  document.addEventListener('htmx:beforeRequest', function () {
+    bump(1);
+  });
+  document.addEventListener('htmx:afterRequest', function () {
+    bump(-1);
+  });
+})();

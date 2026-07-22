@@ -3,10 +3,8 @@ package partials
 import "github.com/flowline-io/flowbot/pkg/types/model"
 
 templ ConfigTable(items []model.ConfigItem) {
-	<div class="flowbot-surface">
-		<div id="configs-table"
-			data-testid="configs-table"
-			class="overflow-x-auto">
+	<div class="flowbot-surface" id="configs-table" data-testid="configs-table">
+		<div class="overflow-x-auto">
 			<table class="table">
 				<thead>
 				<tr>

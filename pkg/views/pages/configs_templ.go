@@ -61,7 +61,15 @@ func ConfigsPage(items []model.ConfigItem) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/configs/list\" hx-target=\"#configs-table\" hx-swap=\"outerHTML\" data-testid=\"configs-refresh\" class=\"btn btn-ghost btn-sm\">Refresh</button> <button hx-get=\"/service/web/configs/new\" hx-target=\"#configs-rows\" hx-swap=\"afterbegin\" data-testid=\"configs-new\" class=\"btn btn-primary btn-sm\">New Config</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button hx-get=\"/service/web/configs/list\" hx-target=\"#configs-table\" hx-swap=\"outerHTML\" data-testid=\"configs-refresh\" class=\"btn btn-ghost btn-sm\">Refresh")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = partials.HtmxIndicator().Render(ctx, templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</button> <button hx-get=\"/service/web/configs/new\" hx-target=\"#configs-rows\" hx-swap=\"afterbegin\" data-testid=\"configs-new\" class=\"btn btn-primary btn-sm\">New Config</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -71,7 +79,7 @@ func ConfigsPage(items []model.ConfigItem) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

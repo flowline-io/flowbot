@@ -17,6 +17,7 @@ templ AgentSubagentsPage(items []model.AgentSubagent) {
 						data-testid="agent-subagents-refresh"
 						class="btn btn-ghost btn-sm">
 						Refresh
+						@partials.HtmxIndicator()
 					</button>
 					<button hx-get="/service/web/agent-subagents/new"
 						hx-target="#agent-subagents-rows"
@@ -33,6 +34,7 @@ templ AgentSubagentsPage(items []model.AgentSubagent) {
 						data-testid="agent-subagent-tasks-refresh"
 						class="btn btn-ghost btn-sm">
 						Refresh
+						@partials.HtmxIndicator()
 					</button>
 				</div>
 			}
@@ -61,9 +63,7 @@ templ AgentSubagentsPage(items []model.AgentSubagent) {
 				hx-trigger="revealed"
 				hx-swap="innerHTML"
 				data-testid="agent-subagent-tasks-panel">
-				<div class="flex justify-center p-8">
-					<span class="loading loading-spinner loading-lg"></span>
-				</div>
+				@partials.PanelSkeleton()
 			</div>
 		</div>
 	}

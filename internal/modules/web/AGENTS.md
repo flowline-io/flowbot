@@ -255,7 +255,7 @@ Rules:
 - Intentionally silent failures (CSRF warm-up, cancel races) must be marked `intentionally silent` in a short comment.
 - Dual-channel client rule in `public/js/app.js`: HTML/`HX-Retarget` error bodies swap inline (no toast); network/`sendError`/`timeout` and non-HTML errors toast; `401` redirects to login with `next`.
 - Do not default every `renderError` to Retarget — that breaks DELETE/table refresh targets. Prefer explicit `renderFormError` or `toastError`.
-- Loading: use `partials.PanelSkeleton` (delayed soft spinner) inside `hx-trigger="load"` containers; button spinners keep `.htmx-indicator`. No global progress bar and no large DaisyUI gray skeleton slabs for panel loads.
+- Loading: use `partials.PanelSkeleton` (delayed soft spinner) inside `hx-trigger="load"` / `revealed` containers; button actions (refresh, delete, test, load more) keep `.htmx-indicator` via `partials.HtmxIndicator`. A delayed global top progress bar (`#flowbot-htmx-progress`, toggled from `app.js` request counter — **not** `body hx-indicator`, which would steal `htmx-request` from buttons) coexists with soft spinners. No large DaisyUI gray skeleton slabs for panel loads.
 
 ## Alpine.js Usage (Pipeline Editor)
 
@@ -299,7 +299,7 @@ Product goal: a refined **homelab ops console**, not a marketing landing page an
 - **Navbar**: border-bottom emphasis over drop shadow; brand mark + “Flowbot” with `font-semibold tracking-tight`; dropdown menus use `border border-base-300 shadow-sm`.
 - **Agents composer**: square-ish send button (not circular ChatGPT-style). Active session styles use teal, not purple.
 - **Avatars**: rounded square letter marks aligned with favicon tile radius language.
-- **Loading**: `partials.PanelSkeleton` (delayed soft spinner) for HTMX panel loads — not large gray DaisyUI skeleton slabs.
+- **Loading**: `partials.PanelSkeleton` (delayed soft spinner) for HTMX panel loads — not large gray DaisyUI skeleton slabs. Button actions use `partials.HtmxIndicator`. Optional delayed global top progress (`#flowbot-htmx-progress`) coexists with soft spinners.
 
 ### Visual Do / Don’t
 

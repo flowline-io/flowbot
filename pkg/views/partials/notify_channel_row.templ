@@ -1,8 +1,6 @@
 package partials
 
 import (
-	"fmt"
-
 	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
@@ -39,10 +37,9 @@ templ NotifyChannelRow(item model.NotifyChannel) {
 				<button hx-post={ notifyChannelTestURL(item) }
 					hx-swap="none"
 					data-testid="channel-test"
-					class="btn btn-ghost btn-xs text-info"
-					hx-indicator={ "#channel-test-spinner-" + fmt.Sprintf("%d", item.ID) }>
+					class="btn btn-ghost btn-xs text-info">
 					Test
-					<span id={ "channel-test-spinner-" + fmt.Sprintf("%d", item.ID) } class="htmx-indicator loading loading-spinner loading-xs"></span>
+					@HtmxIndicator()
 				</button>
 				<button hx-delete={ notifyChannelDeleteURL(item) }
 					data-confirm="Delete this channel?"
@@ -52,6 +49,7 @@ templ NotifyChannelRow(item model.NotifyChannel) {
 					data-testid="channel-delete"
 					class="btn btn-ghost btn-xs text-error">
 					Delete
+					@HtmxIndicator()
 				</button>
 			</div>
 		</td>

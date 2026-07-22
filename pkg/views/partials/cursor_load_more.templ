@@ -12,7 +12,10 @@ templ CursorLoadMore(id string, listURL string, rowsTarget string, nextCursor st
 					hx-get={ templ.URL(listURL + "?cursor=" + nextCursor) }
 					hx-target={ rowsTarget }
 					hx-swap="beforeend"
-					data-testid={ id }>Load more</button>
+					data-testid={ id }>
+					Load more
+					@HtmxIndicator()
+				</button>
 			</div>
 		} else {
 			<div class="p-3 text-center" id={ id }>
@@ -21,7 +24,10 @@ templ CursorLoadMore(id string, listURL string, rowsTarget string, nextCursor st
 					hx-get={ templ.URL(listURL + "?cursor=" + nextCursor) }
 					hx-target={ rowsTarget }
 					hx-swap="beforeend"
-					data-testid={ id }>Load more</button>
+					data-testid={ id }>
+					Load more
+					@HtmxIndicator()
+				</button>
 			</div>
 		}
 	} else if oob {
