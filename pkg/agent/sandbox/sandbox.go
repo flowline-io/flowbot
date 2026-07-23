@@ -14,13 +14,13 @@ import (
 	"time"
 
 	"github.com/containerd/errdefs"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/client"
 )
 
 const (
@@ -229,7 +229,7 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	}
 	defer cleanup()
 
-	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return env.Capture{}, err
 	}
@@ -249,7 +249,10 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	// while the client returns an error without an ID to clean up.
 	createCtx, createCancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCreateWait)
 	defer createCancel()
-	resp, err := cli.ContainerCreate(createCtx, buildContainerConfig(opts, cmd, workDir), hostConfig, nil, nil, "")
+	resp, err := cli.ContainerCreate(createCtx, client.ContainerCreateOptions{
+		Config:     buildContainerConfig(opts, cmd, workDir),
+		HostConfig: hostConfig,
+	})
 	if err != nil {
 		flog.Info("[sandbox] container create failed image=%s workspace=%s err=%s",
 			opts.Image, opts.Workspace, err.Error())
@@ -282,7 +285,7 @@ func buildContainerConfig(opts RunOptions, cmd []string, workDir string) *contai
 func removeSandboxContainer(cli *client.Client, id string) {
 	rctx, cancel := context.WithTimeout(context.Background(), defaultStopWait)
 	defer cancel()
-	if err := cli.ContainerRemove(rctx, id, container.RemoveOptions{Force: true, RemoveVolumes: true}); err != nil {
+	if _, err := cli.ContainerRemove(rctx, id, client.ContainerRemoveOptions{Force: true, RemoveVolumes: true}); err != nil {
 		if errdefs.IsNotFound(err) {
 			return
 		}
@@ -429,26 +432,26 @@ func cliCredsLabel(accessToken string) string {
 }
 
 func waitAndCollectLogs(ctx context.Context, cli *client.Client, id, workspace, workDir string) (env.Capture, error) {
-	if err := cli.ContainerStart(ctx, id, container.StartOptions{}); err != nil {
+	if _, err := cli.ContainerStart(ctx, id, client.ContainerStartOptions{}); err != nil {
 		return env.Capture{}, err
 	}
-	statusCh, errCh := cli.ContainerWait(ctx, id, container.WaitConditionNotRunning)
+	wait := cli.ContainerWait(ctx, id, client.ContainerWaitOptions{Condition: container.WaitConditionNotRunning})
 	var exitCode int64
 	select {
-	case err := <-errCh:
+	case err := <-wait.Error:
 		if err != nil {
 			return env.Capture{}, err
 		}
-	case status := <-statusCh:
+	case status := <-wait.Result:
 		exitCode = status.StatusCode
 	case <-ctx.Done():
 		// Caller defer force-removes; stop first so a running container can exit cleanly.
 		stopCtx, cancel := context.WithTimeout(context.Background(), defaultStopWait)
 		defer cancel()
-		_ = cli.ContainerStop(stopCtx, id, container.StopOptions{})
+		_, _ = cli.ContainerStop(stopCtx, id, client.ContainerStopOptions{})
 		return env.Capture{}, ctx.Err()
 	}
-	logs, err := cli.ContainerLogs(ctx, id, container.LogsOptions{ShowStdout: true, ShowStderr: true})
+	logs, err := cli.ContainerLogs(ctx, id, client.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		return env.Capture{}, err
 	}

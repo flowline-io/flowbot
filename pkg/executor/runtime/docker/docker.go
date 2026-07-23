@@ -18,14 +18,12 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/containerd/errdefs"
-	cliopts "github.com/docker/cli/opts"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
-	regtypes "github.com/docker/docker/api/types/registry"
-	"github.com/docker/docker/client"
 	"github.com/docker/go-units"
+	"github.com/moby/moby/api/types/container"
+	"github.com/moby/moby/api/types/mount"
+	"github.com/moby/moby/api/types/network"
+	regtypes "github.com/moby/moby/api/types/registry"
+	"github.com/moby/moby/client"
 
 	"github.com/flowline-io/flowbot/pkg/executor/runtime"
 	"github.com/flowline-io/flowbot/pkg/flog"
@@ -98,7 +96,7 @@ func NewRuntime(opts ...Option) (*Runtime, error) {
 	}
 	// Create Docker client if not provided via WithClient.
 	if rt.client == nil {
-		dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		dc, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			return nil, err
 		}
@@ -215,8 +213,11 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	// Status=created orphans without an ID returned to the client.
 	createCtx, createCancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Minute)
 	defer createCancel()
-	resp, err := d.client.ContainerCreate(
-		createCtx, &cc, &hc, &nc, nil, "")
+	resp, err := d.client.ContainerCreate(createCtx, client.ContainerCreateOptions{
+		Config:           &cc,
+		HostConfig:       &hc,
+		NetworkingConfig: &nc,
+	})
 	if err != nil {
 		flog.Error(fmt.Errorf("error creating container using image %s: %w", t.Image, err))
 		return err
@@ -242,12 +243,12 @@ func (d *Runtime) doRun(ctx context.Context, t *types.Task) error {
 	}
 
 	flog.Info("Starting container %s", resp.ID)
-	err = d.client.ContainerStart(ctx, resp.ID, container.StartOptions{})
+	_, err = d.client.ContainerStart(ctx, resp.ID, client.ContainerStartOptions{})
 	if err != nil {
 		return fmt.Errorf("error starting container %s: %w", resp.ID, err)
 	}
 
-	out, err := d.client.ContainerLogs(ctx, resp.ID, container.LogsOptions{
+	out, err := d.client.ContainerLogs(ctx, resp.ID, client.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow:     true,
@@ -324,11 +325,11 @@ func buildResources(t *types.Task) (container.Resources, error) {
 		Memory:   mem,
 	}
 	if t.GPUs != "" {
-		gpuOpts := cliopts.GpuOpts{}
-		if err := gpuOpts.Set(t.GPUs); err != nil {
+		reqs, err := parseGPUDeviceRequests(t.GPUs)
+		if err != nil {
 			return container.Resources{}, fmt.Errorf("error setting GPUs, %w", err)
 		}
-		// resources.DeviceRequests = gpuOpts.Value() FIXME
+		resources.DeviceRequests = reqs
 	}
 	return resources, nil
 }
@@ -371,18 +372,20 @@ func (d *Runtime) waitForCompletion(ctx context.Context, t *types.Task, containe
 	if _, ok := d.tasks.Get(t.ID); !ok {
 		return fmt.Errorf("task %s was stopped", t.ID)
 	}
-	statusCh, errCh := d.client.ContainerWait(ctx, containerID, container.WaitConditionNotRunning)
+	wait := d.client.ContainerWait(ctx, containerID, client.ContainerWaitOptions{
+		Condition: container.WaitConditionNotRunning,
+	})
 	var status container.WaitResponse
 	select {
-	case err := <-errCh:
+	case err := <-wait.Error:
 		if err != nil {
 			return err
 		}
-		status = <-statusCh
-	case status = <-statusCh:
+		status = <-wait.Result
+	case status = <-wait.Result:
 	}
 	if status.StatusCode != 0 {
-		out, err := d.client.ContainerLogs(ctx, containerID, container.LogsOptions{
+		out, err := d.client.ContainerLogs(ctx, containerID, client.ContainerLogsOptions{
 			ShowStdout: true,
 			ShowStderr: true,
 			Tail:       "10",
@@ -407,10 +410,13 @@ func (d *Runtime) waitForCompletion(ctx context.Context, t *types.Task, containe
 }
 
 func (d *Runtime) readOutput(ctx context.Context, containerID string) (string, error) {
-	r, _, err := d.client.CopyFromContainer(ctx, containerID, "/flowbot/stdout")
+	res, err := d.client.CopyFromContainer(ctx, containerID, client.CopyFromContainerOptions{
+		SourcePath: "/flowbot/stdout",
+	})
 	if err != nil {
 		return "", err
 	}
+	r := res.Content
 	defer func() {
 		err := r.Close()
 		if err != nil {
@@ -467,7 +473,10 @@ func (d *Runtime) initWorkdir(ctx context.Context, containerID string, t *types.
 		}
 	}()
 	r := bufio.NewReader(ar)
-	if err := d.client.CopyToContainer(ctx, containerID, "/flowbot", r, container.CopyToContainerOptions{}); err != nil {
+	if _, err := d.client.CopyToContainer(ctx, containerID, client.CopyToContainerOptions{
+		DestinationPath: "/flowbot",
+		Content:         r,
+	}); err != nil {
 		return err
 	}
 	return nil
@@ -545,7 +554,7 @@ func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
 		return nil
 	}
 	flog.Info("Attempting to stop and remove container %v", containerID)
-	err := d.client.ContainerRemove(ctx, containerID, container.RemoveOptions{
+	_, err := d.client.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{
 		RemoveVolumes: true,
 		Force:         true,
 	})
@@ -556,11 +565,12 @@ func (d *Runtime) Stop(ctx context.Context, t *types.Task) error {
 }
 
 func (d *Runtime) HealthCheck(ctx context.Context) error {
-	_, err := d.client.ContainerList(ctx, container.ListOptions{})
+	_, err := d.client.ContainerList(ctx, client.ContainerListOptions{})
 	return err
 }
 
-// take from https://github.com/docker/cli/blob/9bd5ec504afd13e82d5e50b60715e7190c1b2aa0/opts/opts.go#L393-L403
+// parseCPUs converts a TaskLimits.CPUs rational string into NanoCPUs.
+// Logic mirrors docker/cli opts.ParseCPUs (no docker/cli import).
 func parseCPUs(limits *types.TaskLimits) (int64, error) {
 	if limits == nil || limits.CPUs == "" {
 		return 0, nil
@@ -620,14 +630,11 @@ func (d *Runtime) imagePull(ctx context.Context, t *types.Task) error {
 		return nil
 	}
 	// Check if the image exists locally.
-	images, err := d.client.ImageList(
-		ctx,
-		image.ListOptions{All: true},
-	)
+	images, err := d.client.ImageList(ctx, client.ImageListOptions{All: true})
 	if err != nil {
 		return err
 	}
-	for _, img := range images {
+	for _, img := range images.Items {
 		for _, tag := range img.RepoTags {
 			if tag == t.Image {
 				d.images.Set(tag, true)
@@ -690,7 +697,7 @@ func (d *Runtime) puller() {
 		}
 		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
 		reader, err := d.client.ImagePull(
-			context.Background(), pr.image, image.PullOptions{RegistryAuth: authStr})
+			context.Background(), pr.image, client.ImagePullOptions{RegistryAuth: authStr})
 		if err != nil {
 			pr.done <- err
 			continue

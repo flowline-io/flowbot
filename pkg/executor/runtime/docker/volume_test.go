@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/docker/docker/api/types/volume"
+	"github.com/moby/moby/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -25,10 +25,10 @@ func TestCreateVolume(t *testing.T) {
 		err = vm.Mount(ctx, mnt)
 		require.NoError(t, err)
 
-		ls, err := vm.client.VolumeList(ctx, volume.ListOptions{})
+		ls, err := vm.client.VolumeList(ctx, client.VolumeListOptions{})
 		require.NoError(t, err)
 		found := false
-		for _, v := range ls.Volumes {
+		for _, v := range ls.Items {
 			if v.Name == mnt.Source {
 				found = true
 				break
@@ -39,10 +39,10 @@ func TestCreateVolume(t *testing.T) {
 		err = vm.Unmount(ctx, mnt)
 		require.NoError(t, err)
 
-		ls, err = vm.client.VolumeList(ctx, volume.ListOptions{})
+		ls, err = vm.client.VolumeList(ctx, client.VolumeListOptions{})
 		require.NoError(t, err)
 
-		for _, v := range ls.Volumes {
+		for _, v := range ls.Items {
 			assert.NotEqual(t, "testvol", v.Name)
 		}
 	})

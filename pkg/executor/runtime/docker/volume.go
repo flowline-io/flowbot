@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/volume"
-	"github.com/docker/docker/client"
+	"github.com/moby/moby/client"
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -20,7 +18,7 @@ type VolumeMounter struct {
 
 // NewVolumeMounter creates a VolumeMounter with its own Docker client.
 func NewVolumeMounter() (*VolumeMounter, error) {
-	dc, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	dc, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, err
 	}
@@ -37,24 +35,26 @@ func NewVolumeMounterWithClient(c *client.Client) *VolumeMounter {
 func (m *VolumeMounter) Mount(ctx context.Context, mn *types.Mount) error {
 	name := utils.NewUUID()
 	mn.Source = name
-	v, err := m.client.VolumeCreate(ctx, volume.CreateOptions{Name: name})
+	res, err := m.client.VolumeCreate(ctx, client.VolumeCreateOptions{Name: name})
 	if err != nil {
 		return err
 	}
-	flog.Info("mount-point: %s, created volume %s", v.Mountpoint, v.Name)
+	flog.Info("mount-point: %s, created volume %s", res.Volume.Mountpoint, res.Volume.Name)
 	return nil
 }
 
 // Unmount removes the Docker volume identified by mn.Source.
 func (m *VolumeMounter) Unmount(ctx context.Context, mn *types.Mount) error {
-	ls, err := m.client.VolumeList(ctx, volume.ListOptions{Filters: filters.NewArgs(filters.Arg("name", mn.Source))})
+	ls, err := m.client.VolumeList(ctx, client.VolumeListOptions{
+		Filters: make(client.Filters).Add("name", mn.Source),
+	})
 	if err != nil {
 		return err
 	}
-	if len(ls.Volumes) == 0 {
+	if len(ls.Items) == 0 {
 		return fmt.Errorf("unknown volume: %s", mn.Source)
 	}
-	if err := m.client.VolumeRemove(ctx, mn.Source, true); err != nil {
+	if _, err := m.client.VolumeRemove(ctx, mn.Source, client.VolumeRemoveOptions{Force: true}); err != nil {
 		return err
 	}
 	flog.Info("removed volume %s", mn.Source)

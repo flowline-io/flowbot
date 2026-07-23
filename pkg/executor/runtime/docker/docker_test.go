@@ -11,8 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/image"
+	"github.com/moby/moby/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -463,13 +462,13 @@ func Test_imagePull(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotNil(t, rt)
 
-		images, err := rt.client.ImageList(ctx, image.ListOptions{
-			Filters: filters.NewArgs(filters.Arg("reference", "busybox:*")),
+		images, err := rt.client.ImageList(ctx, client.ImageListOptions{
+			Filters: make(client.Filters).Add("reference", "busybox:*"),
 		})
 		require.NoError(t, err)
 
-		for _, img := range images {
-			_, err = rt.client.ImageRemove(ctx, img.ID, image.RemoveOptions{Force: true})
+		for _, img := range images.Items {
+			_, err = rt.client.ImageRemove(ctx, img.ID, client.ImageRemoveOptions{Force: true})
 			require.NoError(t, err)
 		}
 
@@ -503,28 +502,31 @@ func Test_imagePullPrivateRegistry(t *testing.T) {
 		assert.NotNil(t, rt)
 
 		// attempt to pull a public image; skip entire test if unable to reach registry
-		r1, err := rt.client.ImagePull(ctx, "alpine:3.18.3", image.PullOptions{})
+		r1, err := rt.client.ImagePull(ctx, "alpine:3.18.3", client.ImagePullOptions{})
 		if err != nil {
 			t.Skipf("could not pull alpine image: %v", err)
 		}
 		_ = r1.Close()
 
-		images, err := rt.client.ImageList(ctx, image.ListOptions{
-			Filters: filters.NewArgs(filters.Arg("reference", "alpine:3.18.3")),
+		images, err := rt.client.ImageList(ctx, client.ImageListOptions{
+			Filters: make(client.Filters).Add("reference", "alpine:3.18.3"),
 		})
 		require.NoError(t, err)
 		// len may be 0 if daemon cleaned up, not a failure
-		if len(images) == 0 {
+		if len(images.Items) == 0 {
 			t.Skip("image not found after pull, skipping private registry portion")
 		}
 
 		// try tagging; if local registry not available skip
-		err = rt.client.ImageTag(ctx, "alpine:3.18.3", "localhost:5001/flowbot/alpine:3.18.3")
+		_, err = rt.client.ImageTag(ctx, client.ImageTagOptions{
+			Source: "alpine:3.18.3",
+			Target: "localhost:5001/flowbot/alpine:3.18.3",
+		})
 		if err != nil {
 			t.Skipf("unable to tag for local registry: %v", err)
 		}
 
-		r2, err := rt.client.ImagePush(ctx, "localhost:5001/flowbot/alpine:3.18.3", image.PushOptions{RegistryAuth: "noauth"})
+		r2, err := rt.client.ImagePush(ctx, "localhost:5001/flowbot/alpine:3.18.3", client.ImagePushOptions{RegistryAuth: "noauth"})
 		if err != nil {
 			t.Skipf("unable to push to local registry: %v", err)
 		}
