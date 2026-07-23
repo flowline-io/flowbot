@@ -1004,6 +1004,37 @@ func TestAgentKnowledgeCRUDAndSearch(t *testing.T) {
 			},
 		},
 		{
+			name: "search finds tag-only match",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
+					Path:    "/scripts/run.md",
+					Title:   "Homelab Data Hub & Capability Orchestration Center",
+					Tags:    []string{"flowbot", "homelab"},
+					Summary: "",
+					Content: "Homelab Data Hub overview without the product codename in body",
+				}))
+				rows, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{Query: "flowbot", Limit: 10})
+				require.NoError(t, err)
+				require.Len(t, rows, 1)
+				assert.Equal(t, "/scripts/run.md", rows[0].Path)
+			},
+		},
+		{
+			name: "search tag match is case-insensitive",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
+					Path:    "/docs/tag-case.md",
+					Title:   "Other Title",
+					Tags:    []string{"FlowBot"},
+					Content: "no needle in body",
+				}))
+				rows, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{Query: "flowbot", Limit: 10})
+				require.NoError(t, err)
+				require.Len(t, rows, 1)
+				assert.Equal(t, "/docs/tag-case.md", rows[0].Path)
+			},
+		},
+		{
 			name: "search requires query or path prefix",
 			run: func(t *testing.T, a *adapter) {
 				_, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{})

@@ -31,7 +31,7 @@ func (s *knowledgeTestStore) SearchAgentKnowledge(_ context.Context, params stor
 			continue
 		}
 		if q != "" {
-			hay := strings.ToLower(doc.Path + "\n" + doc.Title + "\n" + doc.Summary + "\n" + doc.Content)
+			hay := strings.ToLower(doc.Path + "\n" + doc.Title + "\n" + doc.Summary + "\n" + doc.Content + "\n" + strings.Join(doc.Tags, "\n"))
 			if !strings.Contains(hay, q) {
 				continue
 			}
@@ -66,6 +66,11 @@ func TestSearchKnowledgeTool(t *testing.T) {
 			wantPath: "/docs/ops/postgres.md",
 		},
 		{
+			name:     "query finds tag-only document",
+			args:     map[string]any{"query": "flowbot"},
+			wantPath: "/scripts/run.md",
+		},
+		{
 			name:    "missing query and prefix",
 			args:    map[string]any{},
 			wantErr: true,
@@ -86,6 +91,14 @@ func TestSearchKnowledgeTool(t *testing.T) {
 						Tags:      []string{"ops"},
 						Summary:   "Backup guide",
 						Content:   "How to backup postgres",
+						UpdatedAt: time.Now(),
+					},
+					"/scripts/run.md": {
+						Path:      "/scripts/run.md",
+						Title:     "Homelab Data Hub",
+						Tags:      []string{"flowbot", "homelab"},
+						Summary:   "",
+						Content:   "Overview without product name in body",
 						UpdatedAt: time.Now(),
 					},
 				},

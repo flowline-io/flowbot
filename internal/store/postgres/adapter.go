@@ -1677,6 +1677,7 @@ func (a *adapter) SearchAgentKnowledge(ctx context.Context, params store.AgentKn
 			agentknowledge.TitleContainsFold(queryText),
 			agentknowledge.SummaryContainsFold(queryText),
 			agentknowledge.ContentContainsFold(queryText),
+			agentKnowledgeTagsContainsFold(queryText),
 		))
 	}
 	// Fetch a wider match window so relevance ranking can reorder before Limit.
@@ -1730,6 +1731,20 @@ func filterAgentKnowledgeByTag(rows []*gen.AgentKnowledge, tag string) []*gen.Ag
 	return filtered
 }
 
+// agentKnowledgeTagsContainsFold matches queryText against the JSON tags array
+// as text (case-insensitive). Works for both Postgres jsonb and SQLite JSON.
+func agentKnowledgeTagsContainsFold(queryText string) func(*entsql.Selector) {
+	needle := "%" + strings.ToLower(strings.TrimSpace(queryText)) + "%"
+	return func(s *entsql.Selector) {
+		s.Where(entsql.P(func(b *entsql.Builder) {
+			b.WriteString("LOWER(CAST(")
+			b.Ident(s.C(agentknowledge.FieldTags))
+			b.WriteString(" AS TEXT)) LIKE ")
+			b.Arg(needle)
+		}))
+	}
+}
+
 func knowledgeHasTag(tags []string, want string) bool {
 	for _, tag := range tags {
 		if strings.EqualFold(strings.TrimSpace(tag), want) {
@@ -1765,9 +1780,20 @@ func knowledgeRelevanceRank(row *gen.AgentKnowledge, qLower string) int {
 		return 0
 	case strings.Contains(path, qLower):
 		return 1
-	default:
+	case knowledgeTagsContainFold(row.Tags, qLower):
 		return 2
+	default:
+		return 3
 	}
+}
+
+func knowledgeTagsContainFold(tags []string, qLower string) bool {
+	for _, tag := range tags {
+		if strings.Contains(strings.ToLower(strings.TrimSpace(tag)), qLower) {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *adapter) GetAgentKnowledgeByPath(ctx context.Context, path string) (*gen.AgentKnowledge, error) {

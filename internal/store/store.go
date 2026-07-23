@@ -209,10 +209,9 @@ type AgentKnowledgeListFilter struct {
 }
 
 // AgentKnowledgeSearchParams controls agent knowledge search over path, title,
-// summary, content (DB substring match), plus optional exact tag filter.
+// tags, summary, content (DB substring match), plus optional exact tag filter.
 type AgentKnowledgeSearchParams struct {
-	// Query matches path, title, summary, or content via case-insensitive substring.
-	// Tag names are matched in-process after the DB query when present on a row.
+	// Query matches path, title, tags, summary, or content via case-insensitive substring.
 	Query string
 	// PathPrefix restricts results to paths with this prefix.
 	PathPrefix string
