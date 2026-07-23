@@ -56,7 +56,8 @@ func agentSessionSummaryRetry(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	sessionID := strings.TrimSpace(ctx.Params("session"))
+	// Clone: Fiber reuses the request buffer; RetrySessionSummary enqueues async work that must outlive this ctx.
+	sessionID := strings.Clone(strings.TrimSpace(ctx.Params("session")))
 	if sessionID == "" {
 		return toastError(ctx, "Session id is required")
 	}

@@ -77,7 +77,8 @@ func RetrySessionSummary(ctx context.Context, sessionID string) error {
 }
 
 func enqueueSessionSummary(ctx context.Context, sessionID string) error {
-	sessionID = strings.TrimSpace(sessionID)
+	// Clone so callers that pass Fiber/fasthttp buffer aliases stay safe after the request ends.
+	sessionID = strings.Clone(strings.TrimSpace(sessionID))
 	if sessionID == "" {
 		return fmt.Errorf("chatagent: empty session id")
 	}
