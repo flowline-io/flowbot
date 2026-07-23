@@ -182,11 +182,11 @@ All JavaScript and CSS dependencies are vendored under `public/` and served via 
 | `public/vendor/js-yaml.min.js` | YAML parser (pipeline editor) |
 | `public/vendor/diff.min.js` | Text diff library (pipeline diff) |
 | `public/vendor/daisyui.css` / `themes.css` | Optional reference copies (`scripts/vendor.sh`) |
-| `public/js/app.js` | Application bootstrap |
+| `public/js/app.js` | Application bootstrap; tab title status + desktop Notification helpers |
 | `public/js/confirm.js` | Global confirmation dialog |
 | `public/js/pipeline-editor.js` | Pipeline editor (Alpine.js component) |
 | `public/js/pipeline-stats.js` | Pipeline stats charts |
-| `public/js/pipeline-run-live.js` | Live pipeline run viewer |
+| `public/js/pipeline-run-live.js` | Live pipeline run viewer (`Live finished` / `Live failed` tab title) |
 | `public/js/event-filters.js` | Event timeline filter controls |
 | `public/js/homelab-registry.js` | Homelab registry interactions |
 | `public/js/chatagent-*.js` | Chatagent chat UI (namespaced, split modules) |

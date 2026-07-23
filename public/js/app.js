@@ -440,3 +440,104 @@ document.addEventListener('htmx:afterSettle', function (evt) {
   }
   el.scrollIntoView({ block: 'center', behavior: 'smooth' });
 });
+
+// Page tab title + desktop Notification helpers (approval / live run status).
+(function () {
+  var baseTitle = '';
+  var lastNotifyKey = '';
+
+  function flowbotCaptureBaseTitle() {
+    if (!baseTitle) {
+      baseTitle = document.title || 'Flowbot';
+    }
+    return baseTitle;
+  }
+
+  // Status strings replace the tab title entirely so background tabs stay readable.
+  function flowbotSetPageStatus(status) {
+    var base = flowbotCaptureBaseTitle();
+    if (!status) {
+      document.title = base;
+      return base;
+    }
+    document.title = String(status);
+    return document.title;
+  }
+
+  function flowbotClearPageStatus() {
+    return flowbotSetPageStatus('');
+  }
+
+  function flowbotFormatNeedsApprovalTitle() {
+    return '\u25CF Needs approval';
+  }
+
+  function flowbotFormatLiveFinishedTitle(pipelineName, failed) {
+    var name = String(pipelineName || '').trim();
+    var prefix = failed ? 'Live failed' : 'Live finished';
+    return name ? prefix + ': ' + name : prefix;
+  }
+
+  function flowbotRequestNotifyPermission() {
+    if (typeof Notification === 'undefined') {
+      return Promise.resolve('denied');
+    }
+    if (Notification.permission !== 'default') {
+      return Promise.resolve(Notification.permission);
+    }
+    try {
+      return Notification.requestPermission();
+    } catch {
+      return Promise.resolve('denied');
+    }
+  }
+
+  // Desktop notify only when the tab is hidden (user already sees the in-page panel).
+  function flowbotNotifyIfHidden(opts) {
+    opts = opts || {};
+    if (typeof Notification === 'undefined') {
+      return null;
+    }
+    if (typeof document.hidden === 'boolean' && !document.hidden) {
+      return null;
+    }
+    if (Notification.permission !== 'granted') {
+      return null;
+    }
+    var key = opts.tag || opts.title || '';
+    if (key && key === lastNotifyKey) {
+      return null;
+    }
+    lastNotifyKey = key;
+    try {
+      var n = new Notification(opts.title || 'Flowbot', {
+        body: opts.body || '',
+        tag: opts.tag || 'flowbot-status',
+      });
+      n.addEventListener('click', function () {
+        try {
+          window.focus();
+        } catch {
+          /* ignore */
+        }
+        n.close();
+      });
+      return n;
+    } catch {
+      return null;
+    }
+  }
+
+  function flowbotResetNotifyDedupe() {
+    lastNotifyKey = '';
+  }
+
+  window.flowbotCaptureBaseTitle = flowbotCaptureBaseTitle;
+  window.flowbotSetPageStatus = flowbotSetPageStatus;
+  window.flowbotClearPageStatus = flowbotClearPageStatus;
+  window.flowbotFormatNeedsApprovalTitle = flowbotFormatNeedsApprovalTitle;
+  window.flowbotFormatLiveFinishedTitle = flowbotFormatLiveFinishedTitle;
+  window.flowbotRequestNotifyPermission = flowbotRequestNotifyPermission;
+  window.flowbotNotifyIfHidden = flowbotNotifyIfHidden;
+  window.flowbotResetNotifyDedupe = flowbotResetNotifyDedupe;
+})();

@@ -62,6 +62,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
 | W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
+| W-09a | Background attention for approval | Tab title `● Needs approval` while confirm pending; desktop `Notification` when tab is hidden (permission via user gesture) | Permission denied/default is silent; focus tab on notification click; clear title on resolve | `public/js/app.js`, `public/js/chatagent-approval.js` |
 
 ## 4. Permissions UI
 
@@ -113,7 +114,7 @@ Use after each vertical slice and before freeze sign-off.
 
 1. Platform: send one DM (Slack if available) — streaming or final reply, message persisted.
 2. Web: create session from `/service/web/agents`, send a turn, see SSE done and history hydrate.
-3. Approval: trigger a gated tool — Allow once; repeat with Always allow matching; Deny path. Confirm Nav/Home badge count and docked approval bar.
+3. Approval: trigger a gated tool — Allow once; repeat with Always allow matching; Deny path. Confirm Nav/Home badge count and docked approval bar. With the tab in background, confirm tab title shows `● Needs approval` and (if Notification permission granted) a desktop notification; resolve clears the title.
 4. Plan mode: set plan → blocked write → switch normal → write works.
 5. Compact: call compact on a long session; context ring updates.
 6. Scheduled: create one-shot task, wait for completed + run row.

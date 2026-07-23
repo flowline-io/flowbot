@@ -46,8 +46,34 @@
         reconnectTimer: null,
         watchURL: '',
 
+        syncPageTitle: function () {
+          if (typeof window.flowbotSetPageStatus !== 'function') {
+            return;
+          }
+          if (this.runStatus === 'done' || this.runStatus === 'failed') {
+            var title =
+              typeof window.flowbotFormatLiveFinishedTitle === 'function'
+                ? window.flowbotFormatLiveFinishedTitle(
+                    this.pipelineName,
+                    this.runStatus === 'failed',
+                  )
+                : this.runStatus === 'failed'
+                  ? 'Live failed'
+                  : 'Live finished';
+            window.flowbotSetPageStatus(title);
+            return;
+          }
+          if (typeof window.flowbotClearPageStatus === 'function') {
+            window.flowbotClearPageStatus();
+          }
+        },
+
         init: function () {
           this.recalc();
+          if (typeof window.flowbotCaptureBaseTitle === 'function') {
+            window.flowbotCaptureBaseTitle();
+          }
+          this.syncPageTitle();
 
           var idx = this.steps.findIndex(function (s) {
             return s.status === 'running' || s.status === 'pending';
@@ -171,6 +197,7 @@
             if (evt.status === 'complete') this.runStatus = 'done';
             if (evt.status === 'failed') this.runStatus = 'failed';
             if (evt.elapsed_ms) this.totalElapsed = evt.elapsed_ms;
+            this.syncPageTitle();
             return;
           }
           var step = this.steps[evt.step_index];

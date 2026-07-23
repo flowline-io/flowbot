@@ -21,6 +21,36 @@
     return Math.min(1000 * Math.pow(2, Math.max(0, attempt)), 8000);
   }
 
+  function setApprovalTitle(active) {
+    if (typeof window.flowbotSetPageStatus !== 'function') {
+      return;
+    }
+    if (!active) {
+      if (typeof window.flowbotClearPageStatus === 'function') {
+        window.flowbotClearPageStatus();
+      }
+      return;
+    }
+    var title =
+      typeof window.flowbotFormatNeedsApprovalTitle === 'function'
+        ? window.flowbotFormatNeedsApprovalTitle()
+        : '\u25CF Needs approval';
+    window.flowbotSetPageStatus(title);
+  }
+
+  function notifyApproval(ev, sessionID) {
+    if (typeof window.flowbotNotifyIfHidden !== 'function') {
+      return;
+    }
+    var tool = (ev && ev.tool) || 'tool';
+    var summary = (ev && ev.summary) || '';
+    window.flowbotNotifyIfHidden({
+      title: 'Needs approval',
+      body: summary ? tool + ': ' + summary : tool,
+      tag: 'flowbot-approval-' + ((ev && ev.id) || sessionID),
+    });
+  }
+
   ns.initApproval = function (panel) {
     if (!panel) {
       return null;
@@ -47,6 +77,7 @@
     var source = null;
     var reconnectAttempt = 0;
     var reconnectTimer = null;
+    var permissionArmed = false;
     // Reload only when the turn fully ends. Timed reloads interrupt multi-tool
     // approval chains and wipe the page before finishStream persists history.
     var reloadOnComplete = false;
@@ -56,6 +87,23 @@
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
+    }
+
+    function armNotifyPermission() {
+      if (permissionArmed) {
+        return;
+      }
+      permissionArmed = true;
+      if (typeof window.flowbotRequestNotifyPermission === 'function') {
+        window.flowbotRequestNotifyPermission();
+      }
+    }
+
+    function onVisibilityChange() {
+      if (!pending || !document.hidden) {
+        return;
+      }
+      notifyApproval(pending, sessionID);
     }
 
     function clearToastTimer() {
@@ -122,6 +170,10 @@
       panel.classList.add('hidden');
       pending = null;
       submitting = false;
+      setApprovalTitle(false);
+      if (typeof window.flowbotResetNotifyDedupe === 'function') {
+        window.flowbotResetNotifyDedupe();
+      }
       if (actionsEl) {
         actionsEl.classList.remove('hidden');
       }
@@ -132,6 +184,8 @@
       pending = ev;
       submitting = false;
       panel.classList.remove('hidden');
+      setApprovalTitle(true);
+      notifyApproval(ev, sessionID);
       if (summaryEl) {
         summaryEl.textContent = (ev.tool || 'tool') + ': ' + (ev.summary || '');
       }
@@ -327,6 +381,7 @@
     }
 
     panel.addEventListener('click', function (event) {
+      armNotifyPermission();
       var btn = event.target.closest('[data-mode]');
       if (!btn || !pending || submitting) {
         return;
@@ -340,6 +395,24 @@
         postConfirm(false, 'reject');
       }
     });
+
+    if (threadRoot) {
+      threadRoot.addEventListener(
+        'click',
+        function () {
+          armNotifyPermission();
+        },
+        { once: true },
+      );
+      threadRoot.addEventListener(
+        'keydown',
+        function () {
+          armNotifyPermission();
+        },
+        { once: true },
+      );
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     function connect() {
       clearReconnectTimer();
