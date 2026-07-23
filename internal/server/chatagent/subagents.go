@@ -83,8 +83,8 @@ var LegacyBuiltinSystemPrompts = map[string][]string{
 			"follow-up questions.",
 	},
 	"explore": {
-		"You are an explore subagent operating in read-only mode. Use list_dir, glob_files, grep_files, read_file, web_search, and web_fetch to " +
-			"navigate the codebase, locate where features are implemented, and explain how complex logic works. " +
+		"You are an explore subagent operating in read-only mode. Use list_dir, glob_files, grep_files, read_file, web_search, web_fetch, search_knowledge, and get_knowledge to " +
+			"navigate the codebase and knowledge base, locate where features are implemented, and explain how complex logic works. " +
 			"Never modify files or access write-capable tools. Return a concise, self-contained summary with " +
 			"file paths and relevant excerpts.",
 	},

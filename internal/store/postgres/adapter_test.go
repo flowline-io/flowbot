@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
@@ -914,6 +915,100 @@ func TestChatScheduledTaskStore(t *testing.T) {
 		},
 	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.run(t, testAdapter(t))
+		})
+	}
+}
+
+func TestAgentKnowledgeCRUDAndSearch(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	tests := []struct {
+		name string
+		run  func(t *testing.T, a *adapter)
+	}{
+		{
+			name: "create get list and delete",
+			run: func(t *testing.T, a *adapter) {
+				doc := &gen.AgentKnowledge{
+					Path:    "/docs/ops/backup.md",
+					Title:   "Backup",
+					Tags:    []string{"ops"},
+					Summary: "how to backup",
+					Content: "postgres backup steps",
+				}
+				require.NoError(t, a.CreateAgentKnowledge(ctx, doc))
+				assert.Positive(t, doc.ID)
+
+				got, err := a.GetAgentKnowledgeByPath(ctx, "/docs/ops/backup.md")
+				require.NoError(t, err)
+				assert.Equal(t, "Backup", got.Title)
+
+				listed, err := a.ListAgentKnowledge(ctx, store.AgentKnowledgeListFilter{Q: "backup"})
+				require.NoError(t, err)
+				require.NotEmpty(t, listed)
+
+				require.NoError(t, a.DeleteAgentKnowledge(ctx, doc.ID))
+				_, err = a.GetAgentKnowledgeByID(ctx, doc.ID)
+				require.ErrorIs(t, err, types.ErrNotFound)
+			},
+		},
+		{
+			name: "search ranks title hits first",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
+					Path:    "/docs/a.md",
+					Title:   "Other",
+					Tags:    []string{},
+					Content: "mentions widget in body only",
+				}))
+				require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
+					Path:    "/docs/b.md",
+					Title:   "Widget Guide",
+					Tags:    []string{},
+					Content: "unrelated",
+				}))
+				rows, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{Query: "widget", Limit: 10})
+				require.NoError(t, err)
+				require.GreaterOrEqual(t, len(rows), 2)
+				assert.Equal(t, "/docs/b.md", rows[0].Path)
+			},
+		},
+		{
+			name: "search finds content match outside recent window",
+			run: func(t *testing.T, a *adapter) {
+				require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
+					Path:      "/docs/old-match.md",
+					Title:     "Old",
+					Tags:      []string{},
+					Content:   "unique-needle-token",
+					UpdatedAt: time.Now().Add(-48 * time.Hour),
+				}))
+				for i := 0; i < 120; i++ {
+					require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
+						Path:    "/docs/recent-" + strconv.Itoa(i) + ".md",
+						Title:   "Recent",
+						Tags:    []string{},
+						Content: "noise",
+					}))
+				}
+				rows, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{Query: "unique-needle-token", Limit: 10})
+				require.NoError(t, err)
+				require.Len(t, rows, 1)
+				assert.Equal(t, "/docs/old-match.md", rows[0].Path)
+			},
+		},
+		{
+			name: "search requires query or path prefix",
+			run: func(t *testing.T, a *adapter) {
+				_, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{})
+				require.Error(t, err)
+			},
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

@@ -1,0 +1,32 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentKnowledgeRow(item model.AgentKnowledge) {
+	<tr id={ agentKnowledgeRowID(item) } hx-target="this" hx-swap="outerHTML" class="hover">
+		<td class="text-base-content font-mono text-sm">{ item.Path }</td>
+		<td class="text-base-content font-medium">{ item.Title }</td>
+		<td class="text-base-content/70 text-sm">{ agentKnowledgeTagsDisplay(item.Tags) }</td>
+		<td class="text-base-content/70 max-w-xs truncate">{ agentKnowledgeSummaryPreview(item.Summary) }</td>
+		<td class="text-base-content/50">{ item.UpdatedAt.Format("2006-01-02 15:04") }</td>
+		<td>
+			<div class="flex gap-1">
+				<button hx-get={ agentKnowledgeEditURL(item) }
+					data-testid="agent-knowledge-edit"
+					class="btn btn-ghost btn-xs text-primary">
+					Edit
+				</button>
+				<button hx-delete={ agentKnowledgeURL(item) }
+					data-confirm="Delete this knowledge document?"
+					data-confirm-title="Delete Document"
+					data-confirm-btn="Delete"
+					data-confirm-class="btn-error"
+					data-testid="agent-knowledge-delete"
+					class="btn btn-ghost btn-xs text-error">
+					Delete
+					@HtmxIndicator()
+				</button>
+			</div>
+		</td>
+	</tr>
+}

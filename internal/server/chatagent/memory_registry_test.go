@@ -83,6 +83,10 @@ func TestNewRegistryRegistersMemory(t *testing.T) {
 	require.NoError(t, err)
 	_, ok := reg.Get(updateMemoryToolName)
 	assert.True(t, ok)
+	_, ok = reg.Get(searchKnowledgeToolName)
+	assert.True(t, ok)
+	_, ok = reg.Get(getKnowledgeToolName)
+	assert.True(t, ok)
 }
 
 func TestNewSubagentRegistryRegistersMemory(t *testing.T) {

@@ -69,6 +69,8 @@ func DefaultToolSnippets() map[string]string {
 		listTodosToolName:        "List the current session todo checklist",
 		clip.CreateToolName:      "Create a shareable markdown clip and return its full public URL",
 		clip.GetToolName:         "Read a shareable markdown clip by slug",
+		searchKnowledgeToolName:  "Search the knowledge base; returns path, title, tags, and summary",
+		getKnowledgeToolName:     "Read a knowledge base markdown document by path",
 	}
 }
 
@@ -272,6 +274,9 @@ func addCodingWorkflow(add func(string), has func(string) bool) {
 func addProductWorkflow(add func(string), has func(string) bool) {
 	if has("read_skill") {
 		add("Load a matching skill with read_skill before specialized product workflows")
+	}
+	if has(searchKnowledgeToolName) {
+		add("Search the knowledge base with search_knowledge, then load a chosen path with get_knowledge")
 	}
 	if has(delegateSubagentToolName) {
 		add("Delegate self-contained work with the delegate_subagent tool to a matching subagent from available_subagents")

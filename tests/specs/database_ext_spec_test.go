@@ -7,6 +7,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -491,6 +492,61 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 
 			err = EntClient.Connection.DeleteOne(c).Exec(ctx)
 			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+	Describe("AgentKnowledge", func() {
+		It("creates a knowledge document", func() {
+			doc, err := EntClient.AgentKnowledge.Create().
+				SetPath("/docs/bdd-" + types.Id() + ".md").
+				SetTitle("BDD Doc").
+				SetTags([]string{"bdd"}).
+				SetSummary("summary").
+				SetContent("# Hello").
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(doc.ID).NotTo(BeZero())
+			EntClient.AgentKnowledge.DeleteOne(doc).Exec(ctx)
+		})
+
+		It("retrieves a knowledge document by path", func() {
+			path := "/docs/bdd-get-" + types.Id() + ".md"
+			doc, err := EntClient.AgentKnowledge.Create().
+				SetPath(path).
+				SetTitle("Get Doc").
+				SetTags([]string{}).
+				SetSummary("").
+				SetContent("body").
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			row, err := store.Database.GetAgentKnowledgeByPath(ctx, path)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(row.Title).To(Equal("Get Doc"))
+
+			EntClient.AgentKnowledge.DeleteOne(doc).Exec(ctx)
+		})
+
+		It("searches knowledge documents by content", func() {
+			path := "/docs/bdd-search-" + types.Id() + ".md"
+			doc, err := EntClient.AgentKnowledge.Create().
+				SetPath(path).
+				SetTitle("Search Doc").
+				SetTags([]string{"ops"}).
+				SetSummary("meta").
+				SetContent("unique-knowledge-token-xyz").
+				Save(ctx)
+			Expect(err).NotTo(HaveOccurred())
+
+			rows, err := store.Database.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{
+				Query: "unique-knowledge-token-xyz",
+				Limit: 10,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rows).NotTo(BeEmpty())
+			Expect(rows[0].Path).To(Equal(path))
+
+			EntClient.AgentKnowledge.DeleteOne(doc).Exec(ctx)
 		})
 	})
 })

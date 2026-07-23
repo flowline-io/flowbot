@@ -202,6 +202,26 @@ type ListNotifyRuleOptions struct {
 // ListNotifyTemplateOptions holds filtering options for listing notification templates.
 type ListNotifyTemplateOptions struct{}
 
+// AgentKnowledgeListFilter filters knowledge documents for the management UI.
+type AgentKnowledgeListFilter struct {
+	// Q matches a substring of path or title when non-empty.
+	Q string
+}
+
+// AgentKnowledgeSearchParams controls agent knowledge search over path, title,
+// summary, content (DB substring match), plus optional exact tag filter.
+type AgentKnowledgeSearchParams struct {
+	// Query matches path, title, summary, or content via case-insensitive substring.
+	// Tag names are matched in-process after the DB query when present on a row.
+	Query string
+	// PathPrefix restricts results to paths with this prefix.
+	PathPrefix string
+	// Tag requires an exact tag match when non-empty.
+	Tag string
+	// Limit caps results (default 10, max 50).
+	Limit int
+}
+
 // ListChatSessionsOptions holds pagination for listing chat agent sessions.
 type ListChatSessionsOptions struct {
 	Limit  int    // max 100, default 20
@@ -354,6 +374,14 @@ type Adapter interface {
 	CreateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 	UpdateAgentSkill(ctx context.Context, skill *gen.AgentSkill) error
 	DeleteAgentSkill(ctx context.Context, flag string) error
+
+	ListAgentKnowledge(ctx context.Context, filter AgentKnowledgeListFilter) ([]*gen.AgentKnowledge, error)
+	SearchAgentKnowledge(ctx context.Context, params AgentKnowledgeSearchParams) ([]*gen.AgentKnowledge, error)
+	GetAgentKnowledgeByPath(ctx context.Context, path string) (*gen.AgentKnowledge, error)
+	GetAgentKnowledgeByID(ctx context.Context, id int64) (*gen.AgentKnowledge, error)
+	CreateAgentKnowledge(ctx context.Context, doc *gen.AgentKnowledge) error
+	UpdateAgentKnowledge(ctx context.Context, doc *gen.AgentKnowledge) error
+	DeleteAgentKnowledge(ctx context.Context, id int64) error
 
 	ListAgentSkillFiles(ctx context.Context, skillFlag string) ([]*gen.AgentSkillFile, error)
 	GetAgentSkillFile(ctx context.Context, skillFlag, path string) (*gen.AgentSkillFile, error)

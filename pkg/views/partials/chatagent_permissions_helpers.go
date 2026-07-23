@@ -43,6 +43,7 @@ type PermissionFormPageData struct {
 var permissionKeyCatalog = []PermissionKeyMeta{
 	{Key: "websearch", Label: "Web Search", Description: "Controls web_search tool access.", DisallowAllow: false},
 	{Key: "skill", Label: "Skills", Description: "Controls read_skill tool access.", DisallowAllow: false},
+	{Key: "knowledge", Label: "Knowledge", Description: "Controls search_knowledge and get_knowledge tool access.", DisallowAllow: false},
 	{Key: "delegate", Label: "Delegate", Description: "Controls task (subagent) delegation.", DisallowAllow: true},
 	{Key: "schedule", Label: "Schedule Write", Description: "Controls schedule_task, update_scheduled_task, and cancel_scheduled_task.", DisallowAllow: true},
 	{Key: "schedule_read", Label: "Schedule Read", Description: "Controls list_scheduled_tasks.", DisallowAllow: false},

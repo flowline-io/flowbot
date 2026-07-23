@@ -24,6 +24,7 @@ func CommandPaletteNavPages() []CommandPaletteNavPage {
 		{"Home", "Dashboard", "/service/web/home"},
 		{"Agents", "Agent", "/service/web/agents"},
 		{"Skills", "Agent", "/service/web/agent-skills"},
+		{"Knowledge", "Agent", "/service/web/agent-knowledge"},
 		{"Subagents", "Agent", "/service/web/agent-subagents"},
 		{"Scheduled Tasks", "Agent", "/service/web/agent-scheduled-tasks"},
 		{"Sessions", "Agent", "/service/web/agent-sessions"},

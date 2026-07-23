@@ -1,0 +1,81 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentKnowledgeForm(item model.AgentKnowledge, isNew bool, errors map[string]string, listQ string) {
+	<tr id={ agentKnowledgeFormID(item, isNew) }>
+		<td colspan="6" class="bg-base-200/50">
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+				<div class="md:col-span-2">
+					<label class="label"><span class="label-text">Path</span></label>
+					<input type="text" name="path" value={ item.Path }
+						data-testid="agent-knowledge-path"
+						class={ "input input-bordered input-sm w-full font-mono " + fieldError(errors, "path") }
+						placeholder="/docs/develop/api-specs.md"
+						required maxlength="512"
+					/>
+					<p class="text-xs text-base-content/50 mt-1">Must start with / and end with .md</p>
+					<div class="text-error text-xs">{ errors["path"] }</div>
+				</div>
+				<div>
+					<label class="label"><span class="label-text">Title</span></label>
+					<input type="text" name="title" value={ item.Title }
+						data-testid="agent-knowledge-title"
+						class={ "input input-bordered input-sm w-full " + fieldError(errors, "title") }
+						placeholder="API Specs"
+						required maxlength="256"
+					/>
+					<div class="text-error text-xs">{ errors["title"] }</div>
+				</div>
+				<div>
+					<label class="label"><span class="label-text">Tags</span></label>
+					<input type="text" name="tags" value={ agentKnowledgeTagsInput(item.Tags) }
+						data-testid="agent-knowledge-tags"
+						class="input input-bordered input-sm w-full"
+						placeholder="api, develop (comma-separated)"
+					/>
+				</div>
+				<div class="md:col-span-2">
+					<label class="label"><span class="label-text">Summary</span></label>
+					<input type="text" name="summary" value={ item.Summary }
+						data-testid="agent-knowledge-summary"
+						class="input input-bordered input-sm w-full"
+						placeholder="Short description shown in search results"
+						maxlength="1024"
+					/>
+				</div>
+				<div class="md:col-span-2">
+					<label class="label"><span class="label-text">Content</span></label>
+					<textarea name="content" rows="14"
+						data-testid="agent-knowledge-content"
+						class={ "textarea textarea-bordered w-full font-mono text-sm " + fieldError(errors, "content") }
+						placeholder="# Title&#10;&#10;Markdown body">{ item.Content }</textarea>
+					<div class="text-error text-xs">{ errors["content"] }</div>
+				</div>
+				<div class="flex items-end gap-2 md:col-span-2">
+					<button type="button"
+						if isNew {
+							hx-post="/service/web/agent-knowledge"
+						} else {
+							hx-put={ agentKnowledgeURL(item) }
+						}
+						hx-target="closest tr"
+						hx-swap="outerHTML"
+						hx-include="closest tr"
+						data-testid="agent-knowledge-save"
+						class="btn btn-primary btn-sm">
+						Save
+					</button>
+					<button type="button"
+						hx-get={ agentKnowledgeListURL(listQ) }
+						hx-target="#agent-knowledge-table"
+						hx-swap="outerHTML"
+						data-testid="agent-knowledge-cancel"
+						class="btn btn-ghost btn-sm">
+						Cancel
+					</button>
+				</div>
+			</div>
+		</td>
+	</tr>
+}

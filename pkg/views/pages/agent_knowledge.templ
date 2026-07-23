@@ -1,0 +1,36 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentKnowledgePage(items []model.AgentKnowledge, q string) {
+	@layout.Base("Agent Knowledge — Flowbot") {
+		@partials.PageHeader("Agent Knowledge", "Markdown documents for search_knowledge / get_knowledge") {
+			<form class="inline-flex items-center gap-2 m-0"
+				hx-get="/service/web/agent-knowledge/list"
+				hx-target="#agent-knowledge-table"
+				hx-swap="outerHTML"
+				hx-trigger="submit, keyup changed delay:300ms from:input">
+				<input type="search" name="q" value={ q }
+					placeholder="Filter path or title"
+					data-testid="agent-knowledge-filter"
+					class="input input-bordered input-sm w-48 md:w-64"/>
+				<button type="submit" data-testid="agent-knowledge-refresh" class="btn btn-ghost btn-sm">
+					Refresh
+					@partials.HtmxIndicator()
+				</button>
+			</form>
+			<button hx-get="/service/web/agent-knowledge/new"
+				hx-target="#agent-knowledge-rows"
+				hx-swap="afterbegin"
+				data-testid="agent-knowledge-new"
+				class="btn btn-primary btn-sm">
+				New Document
+			</button>
+		}
+		@partials.AgentKnowledgeTable(items, q)
+	}
+}

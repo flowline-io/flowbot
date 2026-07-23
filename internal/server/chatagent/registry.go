@@ -37,6 +37,12 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 	if err := registry.Register(ReadSkillTool{}); err != nil {
 		return nil, err
 	}
+	if err := registry.Register(SearchKnowledgeTool{}); err != nil {
+		return nil, err
+	}
+	if err := registry.Register(GetKnowledgeTool{}); err != nil {
+		return nil, err
+	}
 	if taskDeps != nil {
 		if err := registry.Register(NewTaskTool(ws, *taskDeps)); err != nil {
 			return nil, err
@@ -76,6 +82,12 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 	if err := registry.Register(skillTool); err != nil {
 		return nil, err
 	}
+	if err := registry.Register(SearchKnowledgeTool{}); err != nil {
+		return nil, err
+	}
+	if err := registry.Register(GetKnowledgeTool{}); err != nil {
+		return nil, err
+	}
 	memTool, err := NewUpdateMemoryTool()
 	if err != nil {
 		return nil, err
@@ -92,6 +104,7 @@ func ActiveToolNames() []string {
 	names = append(names, clip.ActiveToolNames()...)
 	names = append(names, agentnotify.ActiveToolNames()...)
 	names = append(names, "read_skill", delegateSubagentToolName)
+	names = append(names, KnowledgeToolNames()...)
 	names = append(names, scheduleToolNames()...)
 	names = append(names, todoToolNames()...)
 	names = append(names, updateMemoryToolName)

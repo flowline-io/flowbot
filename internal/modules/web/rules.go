@@ -20,6 +20,7 @@ var allWebserviceRules = [][]webservice.Rule{
 	notifySettingsWebserviceRules,
 	notifyPlaygroundWebserviceRules,
 	agentSkillsWebserviceRules,
+	agentKnowledgeWebserviceRules,
 	agentMemoryWebserviceRules,
 	agentSubagentsWebserviceRules,
 	agentSessionsWebserviceRules,

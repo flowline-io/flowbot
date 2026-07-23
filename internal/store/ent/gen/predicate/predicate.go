@@ -9,6 +9,9 @@ import (
 // Agent is the predicate function for agent builders.
 type Agent func(*sql.Selector)
 
+// AgentKnowledge is the predicate function for agentknowledge builders.
+type AgentKnowledge func(*sql.Selector)
+
 // AgentPlan is the predicate function for agentplan builders.
 type AgentPlan func(*sql.Selector)
 

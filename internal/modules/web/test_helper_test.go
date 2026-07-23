@@ -34,6 +34,9 @@ type testStore struct {
 	createAgentSkillFn        func(skill *gen.AgentSkill) error
 	updateAgentSkillFn        func(skill *gen.AgentSkill) error
 	deleteAgentSkillFn        func(flag string) error
+	agentKnowledge            map[int64]*gen.AgentKnowledge
+	agentKnowledgeErr         error
+	agentKnowledgeSeq         int64
 	agentSubagents            map[string]*gen.AgentSubagent
 	agentSubagentsErr         error
 	createAgentSubagentFn     func(subagent *gen.AgentSubagent) error

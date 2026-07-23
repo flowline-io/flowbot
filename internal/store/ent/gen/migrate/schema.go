@@ -27,6 +27,35 @@ var (
 		Columns:    AgentsColumns,
 		PrimaryKey: []*schema.Column{AgentsColumns[0]},
 	}
+	// AgentKnowledgeColumns holds the columns for the "agent_knowledge" table.
+	AgentKnowledgeColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "path", Type: field.TypeString, Unique: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "tags", Type: field.TypeJSON},
+		{Name: "summary", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AgentKnowledgeTable holds the schema information for the "agent_knowledge" table.
+	AgentKnowledgeTable = &schema.Table{
+		Name:       "agent_knowledge",
+		Columns:    AgentKnowledgeColumns,
+		PrimaryKey: []*schema.Column{AgentKnowledgeColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentknowledge_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AgentKnowledgeColumns[7]},
+			},
+			{
+				Name:    "agentknowledge_title",
+				Unique:  false,
+				Columns: []*schema.Column{AgentKnowledgeColumns[2]},
+			},
+		},
+	}
 	// AgentPlansColumns holds the columns for the "agent_plans" table.
 	AgentPlansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1575,6 +1604,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AgentsTable,
+		AgentKnowledgeTable,
 		AgentPlansTable,
 		AgentSkillsTable,
 		AgentSkillFilesTable,
@@ -1639,6 +1669,9 @@ var (
 func init() {
 	AgentsTable.Annotation = &entsql.Annotation{
 		Table: "agents",
+	}
+	AgentKnowledgeTable.Annotation = &entsql.Annotation{
+		Table: "agent_knowledge",
 	}
 	AgentPlansTable.Annotation = &entsql.Annotation{
 		Table: "agent_plans",

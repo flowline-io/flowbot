@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentknowledge"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentplan"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
@@ -103,6 +104,38 @@ func init() {
 	agent.DefaultUpdatedAt = agentDescUpdatedAt.Default.(func() time.Time)
 	// agent.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agent.UpdateDefaultUpdatedAt = agentDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentknowledgeFields := schema.AgentKnowledge{}.Fields()
+	_ = agentknowledgeFields
+	// agentknowledgeDescPath is the schema descriptor for path field.
+	agentknowledgeDescPath := agentknowledgeFields[1].Descriptor()
+	// agentknowledge.PathValidator is a validator for the "path" field. It is called by the builders before save.
+	agentknowledge.PathValidator = agentknowledgeDescPath.Validators[0].(func(string) error)
+	// agentknowledgeDescTitle is the schema descriptor for title field.
+	agentknowledgeDescTitle := agentknowledgeFields[2].Descriptor()
+	// agentknowledge.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	agentknowledge.TitleValidator = agentknowledgeDescTitle.Validators[0].(func(string) error)
+	// agentknowledgeDescTags is the schema descriptor for tags field.
+	agentknowledgeDescTags := agentknowledgeFields[3].Descriptor()
+	// agentknowledge.DefaultTags holds the default value on creation for the tags field.
+	agentknowledge.DefaultTags = agentknowledgeDescTags.Default.([]string)
+	// agentknowledgeDescSummary is the schema descriptor for summary field.
+	agentknowledgeDescSummary := agentknowledgeFields[4].Descriptor()
+	// agentknowledge.DefaultSummary holds the default value on creation for the summary field.
+	agentknowledge.DefaultSummary = agentknowledgeDescSummary.Default.(string)
+	// agentknowledgeDescContent is the schema descriptor for content field.
+	agentknowledgeDescContent := agentknowledgeFields[5].Descriptor()
+	// agentknowledge.ContentValidator is a validator for the "content" field. It is called by the builders before save.
+	agentknowledge.ContentValidator = agentknowledgeDescContent.Validators[0].(func(string) error)
+	// agentknowledgeDescCreatedAt is the schema descriptor for created_at field.
+	agentknowledgeDescCreatedAt := agentknowledgeFields[6].Descriptor()
+	// agentknowledge.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentknowledge.DefaultCreatedAt = agentknowledgeDescCreatedAt.Default.(func() time.Time)
+	// agentknowledgeDescUpdatedAt is the schema descriptor for updated_at field.
+	agentknowledgeDescUpdatedAt := agentknowledgeFields[7].Descriptor()
+	// agentknowledge.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentknowledge.DefaultUpdatedAt = agentknowledgeDescUpdatedAt.Default.(func() time.Time)
+	// agentknowledge.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentknowledge.UpdateDefaultUpdatedAt = agentknowledgeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	agentplanFields := schema.AgentPlan{}.Fields()
 	_ = agentplanFields
 	// agentplanDescFlag is the schema descriptor for flag field.

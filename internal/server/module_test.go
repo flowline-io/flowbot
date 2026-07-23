@@ -4,8 +4,10 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
+	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -50,6 +52,8 @@ var (
 	testChatSessionEntries = make(map[string][]*gen.ChatSessionEntry)
 	testAgentSkills        = make(map[string]*gen.AgentSkill)
 	testAgentSkillFiles    = make(map[string]map[string]*gen.AgentSkillFile)
+	testAgentKnowledge     = make(map[int64]*gen.AgentKnowledge)
+	testAgentKnowledgeSeq  int64
 	testAgentPlans         = make(map[string]*gen.AgentPlan)
 	testAgentTodos         = make(map[string]*gen.AgentTodo)
 )
@@ -627,6 +631,110 @@ func (*testStoreAdapter) DeleteAgentSkillFile(_ context.Context, skillFlag, path
 }
 func (*testStoreAdapter) DeleteAgentSkillFilesByFlag(_ context.Context, skillFlag string) error {
 	delete(testAgentSkillFiles, skillFlag)
+	return nil
+}
+func (*testStoreAdapter) ListAgentKnowledge(_ context.Context, filter store.AgentKnowledgeListFilter) ([]*gen.AgentKnowledge, error) {
+	q := strings.ToLower(strings.TrimSpace(filter.Q))
+	rows := make([]*gen.AgentKnowledge, 0, len(testAgentKnowledge))
+	for _, doc := range testAgentKnowledge {
+		if q != "" {
+			if !strings.Contains(strings.ToLower(doc.Path), q) && !strings.Contains(strings.ToLower(doc.Title), q) {
+				continue
+			}
+		}
+		rows = append(rows, doc)
+	}
+	return rows, nil
+}
+func (*testStoreAdapter) SearchAgentKnowledge(_ context.Context, params store.AgentKnowledgeSearchParams) ([]*gen.AgentKnowledge, error) {
+	query := strings.TrimSpace(params.Query)
+	prefix := strings.TrimSpace(params.PathPrefix)
+	if query == "" && prefix == "" {
+		return nil, fmt.Errorf("query or path_prefix is required")
+	}
+	limit := params.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 50 {
+		limit = 50
+	}
+	tag := strings.TrimSpace(params.Tag)
+	qLower := strings.ToLower(query)
+	rows := make([]*gen.AgentKnowledge, 0)
+	for _, doc := range testAgentKnowledge {
+		if prefix != "" && !strings.HasPrefix(doc.Path, prefix) {
+			continue
+		}
+		if tag != "" {
+			found := false
+			for _, t := range doc.Tags {
+				if strings.EqualFold(strings.TrimSpace(t), tag) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		if query != "" {
+			hay := strings.ToLower(doc.Path + "\n" + doc.Title + "\n" + doc.Summary + "\n" + doc.Content + "\n" + strings.Join(doc.Tags, "\n"))
+			if !strings.Contains(hay, qLower) {
+				continue
+			}
+		}
+		rows = append(rows, doc)
+		if len(rows) >= limit {
+			break
+		}
+	}
+	return rows, nil
+}
+func (*testStoreAdapter) GetAgentKnowledgeByPath(_ context.Context, path string) (*gen.AgentKnowledge, error) {
+	for _, doc := range testAgentKnowledge {
+		if doc.Path == path {
+			return doc, nil
+		}
+	}
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) GetAgentKnowledgeByID(_ context.Context, id int64) (*gen.AgentKnowledge, error) {
+	doc, ok := testAgentKnowledge[id]
+	if !ok {
+		return nil, types.ErrNotFound
+	}
+	return doc, nil
+}
+func (*testStoreAdapter) CreateAgentKnowledge(_ context.Context, doc *gen.AgentKnowledge) error {
+	if doc == nil {
+		return fmt.Errorf("nil agent knowledge")
+	}
+	testAgentKnowledgeSeq++
+	doc.ID = testAgentKnowledgeSeq
+	if doc.Tags == nil {
+		doc.Tags = []string{}
+	}
+	cp := *doc
+	testAgentKnowledge[doc.ID] = &cp
+	return nil
+}
+func (*testStoreAdapter) UpdateAgentKnowledge(_ context.Context, doc *gen.AgentKnowledge) error {
+	if doc == nil {
+		return fmt.Errorf("nil agent knowledge")
+	}
+	if _, ok := testAgentKnowledge[doc.ID]; !ok {
+		return types.ErrNotFound
+	}
+	cp := *doc
+	testAgentKnowledge[doc.ID] = &cp
+	return nil
+}
+func (*testStoreAdapter) DeleteAgentKnowledge(_ context.Context, id int64) error {
+	if _, ok := testAgentKnowledge[id]; !ok {
+		return types.ErrNotFound
+	}
+	delete(testAgentKnowledge, id)
 	return nil
 }
 func (*testStoreAdapter) ListAgentSubagents(_ context.Context, _ bool) ([]*gen.AgentSubagent, error) {

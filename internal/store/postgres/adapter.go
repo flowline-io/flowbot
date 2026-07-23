@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -20,6 +21,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentknowledge"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentplan"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
@@ -1632,6 +1634,227 @@ func (a *adapter) DeleteAgentSkillFilesByFlag(ctx context.Context, skillFlag str
 		Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("postgres: delete agent skill files by flag: %w", err)
+	}
+	return nil
+}
+
+func (a *adapter) ListAgentKnowledge(ctx context.Context, filter store.AgentKnowledgeListFilter) ([]*gen.AgentKnowledge, error) {
+	query := a.client.AgentKnowledge.Query()
+	q := strings.TrimSpace(filter.Q)
+	if q != "" {
+		query = query.Where(agentknowledge.Or(
+			agentknowledge.PathContainsFold(q),
+			agentknowledge.TitleContainsFold(q),
+		))
+	}
+	rows, err := query.Order(gen.Desc(agentknowledge.FieldUpdatedAt)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent knowledge: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) SearchAgentKnowledge(ctx context.Context, params store.AgentKnowledgeSearchParams) ([]*gen.AgentKnowledge, error) {
+	queryText := strings.TrimSpace(params.Query)
+	prefix := strings.TrimSpace(params.PathPrefix)
+	tag := strings.TrimSpace(params.Tag)
+	if queryText == "" && prefix == "" {
+		return nil, fmt.Errorf("postgres: search agent knowledge: query or path_prefix is required")
+	}
+	limit := normalizeAgentKnowledgeSearchLimit(params.Limit)
+
+	query := a.client.AgentKnowledge.Query()
+	if prefix != "" {
+		query = query.Where(agentknowledge.PathHasPrefix(prefix))
+	}
+	if queryText != "" {
+		query = query.Where(agentknowledge.Or(
+			agentknowledge.PathContainsFold(queryText),
+			agentknowledge.TitleContainsFold(queryText),
+			agentknowledge.SummaryContainsFold(queryText),
+			agentknowledge.ContentContainsFold(queryText),
+		))
+	}
+	// Fetch a wider match window so relevance ranking can reorder before Limit.
+	rows, err := query.Order(gen.Desc(agentknowledge.FieldUpdatedAt)).
+		Limit(agentKnowledgeSearchFetchLimit(limit)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: search agent knowledge: %w", err)
+	}
+	filtered := filterAgentKnowledgeByTag(rows, tag)
+	if queryText != "" {
+		sortAgentKnowledgeByRelevance(filtered, queryText)
+	}
+	if len(filtered) > limit {
+		filtered = filtered[:limit]
+	}
+	return filtered, nil
+}
+
+func normalizeAgentKnowledgeSearchLimit(limit int) int {
+	if limit <= 0 {
+		return 10
+	}
+	if limit > 50 {
+		return 50
+	}
+	return limit
+}
+
+func agentKnowledgeSearchFetchLimit(limit int) int {
+	fetchLimit := limit * 10
+	if fetchLimit < 100 {
+		return 100
+	}
+	if fetchLimit > 500 {
+		return 500
+	}
+	return fetchLimit
+}
+
+func filterAgentKnowledgeByTag(rows []*gen.AgentKnowledge, tag string) []*gen.AgentKnowledge {
+	if tag == "" {
+		return rows
+	}
+	filtered := make([]*gen.AgentKnowledge, 0, len(rows))
+	for _, row := range rows {
+		if knowledgeHasTag(row.Tags, tag) {
+			filtered = append(filtered, row)
+		}
+	}
+	return filtered
+}
+
+func knowledgeHasTag(tags []string, want string) bool {
+	for _, tag := range tags {
+		if strings.EqualFold(strings.TrimSpace(tag), want) {
+			return true
+		}
+	}
+	return false
+}
+
+func sortAgentKnowledgeByRelevance(rows []*gen.AgentKnowledge, query string) {
+	q := strings.ToLower(query)
+	slices.SortStableFunc(rows, func(a, b *gen.AgentKnowledge) int {
+		ra := knowledgeRelevanceRank(a, q)
+		rb := knowledgeRelevanceRank(b, q)
+		if ra != rb {
+			return ra - rb
+		}
+		if a.UpdatedAt.After(b.UpdatedAt) {
+			return -1
+		}
+		if a.UpdatedAt.Before(b.UpdatedAt) {
+			return 1
+		}
+		return 0
+	})
+}
+
+func knowledgeRelevanceRank(row *gen.AgentKnowledge, qLower string) int {
+	title := strings.ToLower(row.Title)
+	path := strings.ToLower(row.Path)
+	switch {
+	case strings.Contains(title, qLower):
+		return 0
+	case strings.Contains(path, qLower):
+		return 1
+	default:
+		return 2
+	}
+}
+
+func (a *adapter) GetAgentKnowledgeByPath(ctx context.Context, path string) (*gen.AgentKnowledge, error) {
+	row, err := a.client.AgentKnowledge.Query().
+		Where(agentknowledge.PathEQ(path)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent knowledge by path: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) GetAgentKnowledgeByID(ctx context.Context, id int64) (*gen.AgentKnowledge, error) {
+	row, err := a.client.AgentKnowledge.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent knowledge by id: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) CreateAgentKnowledge(ctx context.Context, doc *gen.AgentKnowledge) error {
+	if doc == nil {
+		return errors.New("postgres: nil agent knowledge")
+	}
+	tags := doc.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+	builder := a.client.AgentKnowledge.Create().
+		SetPath(doc.Path).
+		SetTitle(doc.Title).
+		SetTags(tags).
+		SetSummary(doc.Summary).
+		SetContent(doc.Content)
+	if !doc.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(doc.CreatedAt)
+	}
+	if !doc.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(doc.UpdatedAt)
+	}
+	row, err := builder.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: create agent knowledge: %w", err)
+	}
+	doc.ID = row.ID
+	doc.CreatedAt = row.CreatedAt
+	doc.UpdatedAt = row.UpdatedAt
+	return nil
+}
+
+func (a *adapter) UpdateAgentKnowledge(ctx context.Context, doc *gen.AgentKnowledge) error {
+	if doc == nil {
+		return errors.New("postgres: nil agent knowledge")
+	}
+	tags := doc.Tags
+	if tags == nil {
+		tags = []string{}
+	}
+	n, err := a.client.AgentKnowledge.Update().
+		Where(agentknowledge.IDEQ(doc.ID)).
+		SetPath(doc.Path).
+		SetTitle(doc.Title).
+		SetTags(tags).
+		SetSummary(doc.Summary).
+		SetContent(doc.Content).
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: update agent knowledge: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) DeleteAgentKnowledge(ctx context.Context, id int64) error {
+	n, err := a.client.AgentKnowledge.Delete().
+		Where(agentknowledge.IDEQ(id)).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete agent knowledge: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
 	}
 	return nil
 }

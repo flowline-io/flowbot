@@ -83,6 +83,8 @@ func ToolGroupOf(name string) string {
 		return ToolGroupSchedule
 	case "read_skill":
 		return ToolGroupCore
+	case searchKnowledgeToolName, getKnowledgeToolName:
+		return ToolGroupSearch
 	case updateMemoryToolName:
 		return ToolGroupMemory
 	case todoWriteToolName, listTodosToolName:

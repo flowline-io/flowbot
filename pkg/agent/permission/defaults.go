@@ -21,6 +21,9 @@ const KeyScheduleRead = "schedule_read"
 // KeyMemory is the permission key for the update_memory tool.
 const KeyMemory = "memory"
 
+// KeyKnowledge is the permission key for knowledge base search/read tools.
+const KeyKnowledge = "knowledge"
+
 // KeyTodo is the permission key for session todo checklist tools.
 const KeyTodo = "todo"
 
@@ -48,6 +51,7 @@ func DefaultConfig() Config {
 		},
 		"websearch":     {Default: ActionAsk},
 		"skill":         {Default: ActionAllow},
+		KeyKnowledge:    {Default: ActionAllow},
 		KeyDelegate:     {Default: ActionAsk},
 		KeySchedule:     {Default: ActionAsk},
 		KeyScheduleRead: {Default: ActionAllow},
