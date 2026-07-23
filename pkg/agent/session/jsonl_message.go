@@ -93,7 +93,15 @@ func parseMessage(raw any) result.Result[msg.AgentMessage, result.ParseError] {
 	}
 	switch role {
 	case "user":
-		return result.Ok[msg.AgentMessage, result.ParseError](msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: text}}})
+		parts := make([]msg.ContentPart, 0, 1)
+		if text != "" {
+			parts = append(parts, msg.TextPart{Text: text})
+		}
+		parts = append(parts, mediaPartsFromRaw(payload["media"])...)
+		if len(parts) == 0 {
+			parts = []msg.ContentPart{msg.TextPart{Text: ""}}
+		}
+		return result.Ok[msg.AgentMessage, result.ParseError](msg.UserMessage{Parts: parts})
 	case "assistant":
 		return result.Ok[msg.AgentMessage, result.ParseError](assistantFromPayload(payload, text))
 	case "toolResult":
@@ -111,6 +119,37 @@ func parseMessage(raw any) result.Result[msg.AgentMessage, result.ParseError] {
 
 func rawToMessage(raw any) (msg.AgentMessage, error) {
 	return result.GetOrError(parseMessage(raw))
+}
+
+func mediaPartsFromRaw(raw any) []msg.ContentPart {
+	list, ok := raw.([]any)
+	if !ok || len(list) == 0 {
+		return nil
+	}
+	parts := make([]msg.ContentPart, 0, len(list))
+	for _, item := range list {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		kind := msg.MediaKind(optionalStringField(m, "kind"))
+		mimeType := optionalStringField(m, "mime_type")
+		fileID := optionalStringField(m, "file_id")
+		if kind == "" {
+			if inferred, ok := msg.KindFromMIME(mimeType); ok {
+				kind = inferred
+			}
+		}
+		if fileID == "" && mimeType == "" {
+			continue
+		}
+		parts = append(parts, msg.MediaPart{
+			Kind:     kind,
+			MIMEType: mimeType,
+			FileID:   fileID,
+		})
+	}
+	return parts
 }
 
 func parseFieldError(field string, err error) result.ParseError {

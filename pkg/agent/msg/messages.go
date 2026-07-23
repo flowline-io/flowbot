@@ -27,11 +27,26 @@ type TextPart struct {
 	Text string
 }
 
-// ImagePart holds image content for multimodal messages.
-type ImagePart struct {
+// MediaKind classifies multimodal input for modality checks and LLM conversion.
+type MediaKind string
+
+const (
+	// MediaKindImage is image input (vision).
+	MediaKindImage MediaKind = "image"
+	// MediaKindAudio is audio input.
+	MediaKindAudio MediaKind = "audio"
+	// MediaKindVideo is video input.
+	MediaKindVideo MediaKind = "video"
+)
+
+// MediaPart holds multimodal media content for user messages.
+// Persist FileID + MIMEType + Kind only; URL and Data are runtime fields for ConvertToLLM.
+type MediaPart struct {
+	Kind     MediaKind
 	MIMEType string
-	Data     []byte
+	FileID   string
 	URL      string
+	Data     []byte
 }
 
 // ToolCallPart is a tool invocation requested by the assistant.
@@ -47,7 +62,7 @@ type ContentPart interface {
 }
 
 func (TextPart) isContentPart()     {}
-func (ImagePart) isContentPart()    {}
+func (MediaPart) isContentPart()    {}
 func (ToolCallPart) isContentPart() {}
 
 // UserMessage is a user turn, optionally multimodal.

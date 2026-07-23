@@ -61,7 +61,7 @@ func DrainPublisherSSE(w SSEWriter, publisher *ChannelPublisher) {
 }
 
 // StreamAPIRun executes one agent turn and streams SSE events to w.
-func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w SSEWriter) {
+func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, attachments []AttachmentRef, ownerUID string, w SSEWriter) {
 	hub := GetSessionEventHub(sessionID)
 	subID := "run"
 	publisher := hub.Subscribe(subID, 64)
@@ -106,11 +106,13 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, w S
 			runDone <- runErr
 		}()
 		runErr = svc.RunAPI(runCtx, RunRequest{
-			SessionID: sessionID,
-			Text:      text,
+			SessionID:   sessionID,
+			Text:        text,
+			Attachments: attachments,
 		}, &APIRunOptions{
 			Publisher: publisher,
 			Confirm:   gate,
+			OwnerUID:  ownerUID,
 		})
 		publisher.Close()
 	}()

@@ -27,6 +27,7 @@ listen: ":6060"
 # Media uploads — omit to disable. Zero max_size/gc_* use code defaults (100MiB/60s/100).
 # media:
 #   use_handler: fs
+#   # sign_secret: ""  # HMAC fallback for chat_agent.media FS signed URLs
 #   handlers:
 #     fs:
 #       upload_dir: uploads
@@ -136,6 +137,10 @@ chat_agent:
     # multiplier: 2.0
   sensors:
     lint_on_write: false         # observation-only lint log after write_file of *.go
+  media:
+    # public_base_url: "https://bot.example.com"  # required for fs-signed LLM fetch URLs
+    # signed_url_ttl: 60m
+    # sign_secret: ""             # HMAC secret; falls back to media.sign_secret
   sandbox:
     enabled: false
     image: ghcr.io/flowline-io/flowbot-agent-sandbox:latest

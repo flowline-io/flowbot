@@ -36,6 +36,7 @@ const (
 type RunRequest struct {
 	SessionID    string
 	Text         string
+	Attachments  []AttachmentRef
 	API          *APIRunOptions
 	Kind         RunKind
 	RunStartedAt time.Time
@@ -155,7 +156,7 @@ func validateRunRequest(ctx context.Context, req RunRequest) error {
 		flog.Warn("[chat-agent] run rejected: agent disabled or model not configured session=%s", req.SessionID)
 		return fmt.Errorf("chat agent is disabled or model is not configured")
 	}
-	if strings.TrimSpace(req.Text) == "" {
+	if strings.TrimSpace(req.Text) == "" && len(req.Attachments) == 0 {
 		flog.Debug("[chat-agent] run rejected: empty message session=%s", req.SessionID)
 		return fmt.Errorf("empty message")
 	}
@@ -172,7 +173,13 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 	} else {
 		h.SetRunStartedAt(start)
 	}
-	stream, err := h.Prompt(ctx, agent.NewUserMessage(req.Text))
+
+	userMsg, mediaParts, err := buildRunUserMessage(ctx, req)
+	if err != nil {
+		return "", err
+	}
+
+	stream, err := h.Prompt(ctx, userMsg)
 	if err != nil {
 		return handlePromptError(req.SessionID, start, err)
 	}
@@ -207,10 +214,14 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 		resources = []ResourceRef{FormatPlanResourceRef(planID, title)}
 	}
 	deliverRunResult(ctx, h, req, reply, sink, result.Messages, resources, time.Since(start))
-	maybeGenerateSessionTitle(req.SessionID, req.Text, reply)
+	titleSeed := strings.TrimSpace(req.Text)
+	if titleSeed == "" {
+		titleSeed = MediaPlaceholderText(mediaParts)
+	}
+	maybeGenerateSessionTitle(req.SessionID, titleSeed, reply)
 	previewText := reply
 	if strings.TrimSpace(previewText) == "" {
-		previewText = req.Text
+		previewText = titleSeed
 	}
 	UpdateSessionPreview(ctx, req.SessionID, previewText)
 
@@ -222,6 +233,26 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 			req.SessionID, len(reply), time.Since(start).Round(time.Millisecond))
 	}
 	return reply, nil
+}
+
+func buildRunUserMessage(ctx context.Context, req RunRequest) (agent.UserMessage, []msg.ContentPart, error) {
+	ownerUID := ""
+	if req.API != nil {
+		ownerUID = strings.TrimSpace(req.API.OwnerUID)
+	}
+	mediaParts, err := ResolveAttachments(ctx, req.SessionID, ownerUID, req.Attachments)
+	if err != nil {
+		return agent.UserMessage{}, nil, err
+	}
+	chatModel := ResolveSessionChatModel(ctx, req.SessionID)
+	if err := RejectUnsupportedModalities(chatModel, mediaParts); err != nil {
+		return agent.UserMessage{}, nil, err
+	}
+	userParts := BuildUserMessageParts(req.Text, mediaParts)
+	if len(userParts) == 0 {
+		return agent.UserMessage{}, nil, fmt.Errorf("empty message")
+	}
+	return agent.NewUserMessageWithParts(userParts...), mediaParts, nil
 }
 
 func handlePromptError(sessionID string, start time.Time, err error) (string, error) {

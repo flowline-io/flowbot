@@ -16,6 +16,10 @@ const (
 	ModalityTextOut Feature = "ModalityTextOut"
 	// ModalityImageIn marks image input modality support.
 	ModalityImageIn Feature = "ModalityImageIn"
+	// ModalityAudioIn marks audio input modality support.
+	ModalityAudioIn Feature = "ModalityAudioIn"
+	// ModalityVideoIn marks video input modality support.
+	ModalityVideoIn Feature = "ModalityVideoIn"
 	// ModalityFileIn marks file input modality support.
 	ModalityFileIn Feature = "ModalityFileIn"
 )

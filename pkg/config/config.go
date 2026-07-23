@@ -154,6 +154,8 @@ type mediaConfig struct {
 	GcBlockSize int `json:"gc_block_size" yaml:"gc_block_size" mapstructure:"gc_block_size"`
 	// Individual handler config params to pass to handlers unchanged.
 	Handlers map[string]any `json:"handlers" yaml:"handlers" mapstructure:"handlers"`
+	// SignSecret is the default HMAC secret for FS-signed chatagent media URLs.
+	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret"`
 }
 
 // PostgresConfig holds PostgreSQL connection and optional pool overrides.
@@ -587,6 +589,18 @@ type ChatAgentConfig struct {
 	Sandbox ChatAgentSandboxConfig `json:"sandbox" yaml:"sandbox" mapstructure:"sandbox"`
 	// WebSearch configures backends for the web_search tool.
 	WebSearch ChatAgentWebSearchConfig `json:"web_search" yaml:"web_search" mapstructure:"web_search"`
+	// Media configures multimodal attachment signing and public fetch URLs.
+	Media ChatAgentMediaConfig `json:"media" yaml:"media" mapstructure:"media"`
+}
+
+// ChatAgentMediaConfig configures multimodal media delivery for the chat agent.
+type ChatAgentMediaConfig struct {
+	// PublicBaseURL is the absolute origin LLM providers use to fetch FS-signed media (e.g. https://bot.example.com).
+	PublicBaseURL string `json:"public_base_url" yaml:"public_base_url" mapstructure:"public_base_url"`
+	// SignedURLTTL is the lifetime of signed media URLs; zero defaults to 60m.
+	SignedURLTTL time.Duration `json:"signed_url_ttl" yaml:"signed_url_ttl" mapstructure:"signed_url_ttl"`
+	// SignSecret is the HMAC secret for FS-signed media URLs; falls back to media.sign_secret when empty.
+	SignSecret string `json:"sign_secret" yaml:"sign_secret" mapstructure:"sign_secret"`
 }
 
 // ChatAgentWebSearchConfig configures the web_search tool via SerpApi.

@@ -14,17 +14,18 @@ import (
 
 // HistoryMessage is one persisted chat row exposed to HTTP clients.
 type HistoryMessage struct {
-	Role               string    `json:"role"`
-	Kind               string    `json:"kind"`
-	Text               string    `json:"text"`
-	CreatedAt          time.Time `json:"created_at"`
-	ToolName           string    `json:"tool_name,omitempty"`
-	ToolStatus         string    `json:"tool_status,omitempty"`
-	DurationMs         int64     `json:"duration_ms,omitempty"`
-	TurnDurationMs     int64     `json:"turn_duration_ms,omitempty"`
-	ThinkingDurationMs int64     `json:"thinking_duration_ms,omitempty"`
-	RunDurationMs      int64     `json:"run_duration_ms,omitempty"`
-	ThinkingText       string    `json:"thinking_text,omitempty"`
+	Role               string          `json:"role"`
+	Kind               string          `json:"kind"`
+	Text               string          `json:"text"`
+	Attachments        []AttachmentRef `json:"attachments,omitempty"`
+	CreatedAt          time.Time       `json:"created_at"`
+	ToolName           string          `json:"tool_name,omitempty"`
+	ToolStatus         string          `json:"tool_status,omitempty"`
+	DurationMs         int64           `json:"duration_ms,omitempty"`
+	TurnDurationMs     int64           `json:"turn_duration_ms,omitempty"`
+	ThinkingDurationMs int64           `json:"thinking_duration_ms,omitempty"`
+	RunDurationMs      int64           `json:"run_duration_ms,omitempty"`
+	ThinkingText       string          `json:"thinking_text,omitempty"`
 }
 
 // ListSessionMessages returns user and assistant messages for a session branch.
@@ -98,15 +99,17 @@ func historyMessagesFromMessage(message agent.AgentMessage, createdAt time.Time)
 	switch m := message.(type) {
 	case msg.UserMessage:
 		text := strings.TrimSpace(textFromParts(m.Parts))
-		if text == "" {
+		attachments := historyAttachments(m.Parts)
+		if text == "" && len(attachments) == 0 {
 			return nil
 		}
 		ts := messageTimestamp(m.Timestamp, createdAt)
 		return []HistoryMessage{{
-			Role:      "user",
-			Kind:      "user",
-			Text:      text,
-			CreatedAt: ts,
+			Role:        "user",
+			Kind:        "user",
+			Text:        text,
+			Attachments: attachments,
+			CreatedAt:   ts,
 		}}
 	case msg.AssistantMessage:
 		ts := messageTimestamp(m.Timestamp, createdAt)
@@ -175,4 +178,20 @@ func messageTimestamp(messageTime, fallback time.Time) time.Time {
 		return messageTime
 	}
 	return fallback
+}
+
+func historyAttachments(parts []msg.ContentPart) []AttachmentRef {
+	out := make([]AttachmentRef, 0)
+	for _, part := range parts {
+		mp, ok := part.(msg.MediaPart)
+		if !ok {
+			continue
+		}
+		out = append(out, AttachmentRef{
+			FileID:   mp.FileID,
+			MIMEType: mp.MIMEType,
+			Kind:     string(mp.Kind),
+		})
+	}
+	return out
 }

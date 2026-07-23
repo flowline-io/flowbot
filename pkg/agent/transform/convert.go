@@ -21,16 +21,28 @@ func DefaultConvertToLLM(messages []msg.AgentMessage) ([]llms.MessageContent, er
 	for _, message := range messages {
 		switch m := message.(type) {
 		case msg.UserMessage:
-			result = append(result, userToLLM(m))
+			content, err := userToLLM(m)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, content)
 		case msg.AssistantMessage:
-			result = append(result, assistantToLLM(m))
+			content, err := assistantToLLM(m)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, content)
 		case msg.ToolResultMessage:
 			result = append(result, toolResultToLLM(m))
 		case msg.CustomMessage:
 			if m.ExcludeFromContext || m.DisplayOnly {
 				continue
 			}
-			result = append(result, customToLLM(m))
+			content, err := customToLLM(m)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, content)
 		case msg.BranchSummaryMessage:
 			result = append(result, llms.TextParts(llms.ChatMessageTypeHuman, branchSummaryPrefix+m.Summary+branchSummarySuffix))
 		case msg.CompactionSummaryMessage:
@@ -42,14 +54,20 @@ func DefaultConvertToLLM(messages []msg.AgentMessage) ([]llms.MessageContent, er
 	return result, nil
 }
 
-func userToLLM(message msg.UserMessage) llms.MessageContent {
-	parts := partsToLLM(message.Parts)
-	return llms.MessageContent{Role: llms.ChatMessageTypeHuman, Parts: parts}
+func userToLLM(message msg.UserMessage) (llms.MessageContent, error) {
+	parts, err := partsToLLM(message.Parts)
+	if err != nil {
+		return llms.MessageContent{}, err
+	}
+	return llms.MessageContent{Role: llms.ChatMessageTypeHuman, Parts: parts}, nil
 }
 
-func assistantToLLM(message msg.AssistantMessage) llms.MessageContent {
-	parts := partsToLLM(message.Parts)
-	return llms.MessageContent{Role: llms.ChatMessageTypeAI, Parts: parts}
+func assistantToLLM(message msg.AssistantMessage) (llms.MessageContent, error) {
+	parts, err := partsToLLM(message.Parts)
+	if err != nil {
+		return llms.MessageContent{}, err
+	}
+	return llms.MessageContent{Role: llms.ChatMessageTypeAI, Parts: parts}, nil
 }
 
 func toolResultToLLM(message msg.ToolResultMessage) llms.MessageContent {
@@ -66,22 +84,26 @@ func toolResultToLLM(message msg.ToolResultMessage) llms.MessageContent {
 	}
 }
 
-func customToLLM(message msg.CustomMessage) llms.MessageContent {
-	return llms.MessageContent{Role: llms.ChatMessageTypeHuman, Parts: partsToLLM(message.Parts)}
+func customToLLM(message msg.CustomMessage) (llms.MessageContent, error) {
+	parts, err := partsToLLM(message.Parts)
+	if err != nil {
+		return llms.MessageContent{}, err
+	}
+	return llms.MessageContent{Role: llms.ChatMessageTypeHuman, Parts: parts}, nil
 }
 
-func partsToLLM(parts []msg.ContentPart) []llms.ContentPart {
+func partsToLLM(parts []msg.ContentPart) ([]llms.ContentPart, error) {
 	result := make([]llms.ContentPart, 0, len(parts))
 	for _, part := range parts {
 		switch p := part.(type) {
 		case msg.TextPart:
 			result = append(result, llms.TextPart(p.Text))
-		case msg.ImagePart:
-			if p.URL != "" {
-				result = append(result, llms.ImageURLPart(p.URL))
-			} else {
-				result = append(result, llms.BinaryPart(p.MIMEType, p.Data))
+		case msg.MediaPart:
+			llmPart, err := mediaPartToLLM(p)
+			if err != nil {
+				return nil, err
 			}
+			result = append(result, llmPart)
 		case msg.ToolCallPart:
 			result = append(result, llms.ToolCall{
 				ID:   p.ID,
@@ -93,7 +115,23 @@ func partsToLLM(parts []msg.ContentPart) []llms.ContentPart {
 			})
 		}
 	}
-	return result
+	return result, nil
+}
+
+func mediaPartToLLM(p msg.MediaPart) (llms.ContentPart, error) {
+	if p.Kind != "" && p.Kind != msg.MediaKindImage {
+		if len(p.Data) == 0 {
+			return nil, fmt.Errorf("transform: non-image media kind %q requires binary data", p.Kind)
+		}
+		return llms.BinaryPart(p.MIMEType, p.Data), nil
+	}
+	if len(p.Data) > 0 {
+		return llms.BinaryPart(p.MIMEType, p.Data), nil
+	}
+	if p.URL != "" {
+		return llms.ImageURLPart(p.URL), nil
+	}
+	return nil, fmt.Errorf("transform: image media part requires URL or data (file_id=%q)", p.FileID)
 }
 
 func textFromParts(parts []msg.ContentPart) string {

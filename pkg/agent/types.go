@@ -6,7 +6,8 @@ type (
 	MessageRole              = msg.MessageRole
 	AgentMessage             = msg.AgentMessage
 	TextPart                 = msg.TextPart
-	ImagePart                = msg.ImagePart
+	MediaKind                = msg.MediaKind
+	MediaPart                = msg.MediaPart
 	ToolCallPart             = msg.ToolCallPart
 	ContentPart              = msg.ContentPart
 	UserMessage              = msg.UserMessage
@@ -50,4 +51,7 @@ const (
 	StopReasonComplete      = msg.StopReasonComplete
 	StopReasonError         = msg.StopReasonError
 	StopReasonAborted       = msg.StopReasonAborted
+	MediaKindImage          = msg.MediaKindImage
+	MediaKindAudio          = msg.MediaKindAudio
+	MediaKindVideo          = msg.MediaKindVideo
 )

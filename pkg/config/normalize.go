@@ -1,10 +1,13 @@
 package config
 
+import "time"
+
 // Normalize applies defaults and builds internal views from the public YAML surface.
 // Call after unmarshaling and before Validate / opening subsystems.
 func (t *Type) Normalize() {
 	t.normalizePostgres()
 	t.normalizeMedia()
+	t.normalizeChatAgentMedia()
 }
 
 // normalizePostgres maps PostgresConfig into the internal StoreType view used by store.Open.
@@ -57,5 +60,14 @@ func (t *Type) normalizeMedia() {
 	}
 	if t.Media.GcBlockSize <= 0 {
 		t.Media.GcBlockSize = defaultMediaGcBlockSize
+	}
+}
+
+const defaultChatAgentSignedURLTTL = time.Hour
+
+// normalizeChatAgentMedia fills multimodal media defaults.
+func (t *Type) normalizeChatAgentMedia() {
+	if t.ChatAgent.Media.SignedURLTTL <= 0 {
+		t.ChatAgent.Media.SignedURLTTL = defaultChatAgentSignedURLTTL
 	}
 }

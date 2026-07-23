@@ -8,6 +8,9 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		data-chatagent-root="thread"
 		data-session-id={ session.Flag }
 		data-messages-url={ endpoints.MessagesURL }
+		if endpoints.MediaURL != "" {
+			data-media-url={ endpoints.MediaURL }
+		}
 		data-cancel-url={ endpoints.CancelURL }
 		data-close-url={ endpoints.CloseURL }
 		data-confirm-url={ endpoints.ConfirmURL }
@@ -150,25 +153,28 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 				@ChatAgentContextPopover(endpoints)
 				<div class="flex items-end gap-2">
 					<div class="chatagent-input-wrap flex-1 min-w-0">
+						<div id="chatagent-pending-attachments" class="flex flex-wrap gap-1 mb-1 empty:hidden" data-testid="chatagent-pending-attachments"></div>
 						<textarea
 							id="chatagent-followup-input"
 							class="chatagent-followup-textarea w-full min-h-12 max-h-40 resize-y leading-normal"
-							placeholder="Add follow-up... (Enter to send, Shift+Enter for newline)"
+							placeholder="Add follow-up... (Enter to send, Shift+Enter for newline; paste image to attach)"
 							rows="2"
 							data-testid="chatagent-followup-input"></textarea>
 						<div class="chatagent-input-footer">
-							if endpoints.SettingsURL != "" {
-								@ChatAgentSettingsCluster(
-									"chatagent-thread-model",
-									"chatagent-thread-thinking",
-									endpoints.SelectableModels,
-									chatAgentSelectedModel(session.Model, endpoints.DefaultModel),
-									session.ThinkingLevel,
-									false,
-								)
-							} else {
-								<span></span>
-							}
+							<div class="flex items-center gap-1">
+								<input type="file" id="chatagent-media-input" class="hidden" accept="image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm" data-testid="chatagent-media-input" multiple />
+								<button type="button" id="chatagent-attach-media" class="btn btn-ghost btn-xs" data-testid="chatagent-attach-media" title="Attach media">Attach</button>
+								if endpoints.SettingsURL != "" {
+									@ChatAgentSettingsCluster(
+										"chatagent-thread-model",
+										"chatagent-thread-thinking",
+										endpoints.SelectableModels,
+										chatAgentSelectedModel(session.Model, endpoints.DefaultModel),
+										session.ThinkingLevel,
+										false,
+									)
+								}
+							</div>
 							@ChatAgentContextRing()
 						</div>
 					</div>

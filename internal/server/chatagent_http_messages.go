@@ -2,17 +2,21 @@ package server
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
+	"io"
 	"strings"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/pkg/route"
 )
 
 type sendMessageBody struct {
-	Text string `json:"text"`
+	Text        string                    `json:"text"`
+	Attachments []chatagent.AttachmentRef `json:"attachments"`
 }
 
 func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
@@ -31,12 +35,15 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 	}
 	text := strings.Clone(strings.TrimSpace(body.Text))
-	if text == "" {
+	attachments := append([]chatagent.AttachmentRef(nil), body.Attachments...)
+	if text == "" && len(attachments) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "empty message"})
 	}
 	if _, ok := chatagent.GetAPIRunState(sessionID); ok {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": chatagent.ErrRunInFlight.Error()})
 	}
+
+	ownerUID := chatAgentCallerUID(c)
 
 	c.Set("Content-Type", "text/event-stream")
 	c.Set("Cache-Control", "no-cache")
@@ -52,8 +59,50 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 
 	return c.SendStreamWriter(func(w *bufio.Writer) {
 		sse := &chatagent.BufioSSEWriter{W: w}
-		chatagent.StreamAPIRun(baseCtx, h.service, sessionID, text, sse)
+		chatagent.StreamAPIRun(baseCtx, h.service, sessionID, text, attachments, ownerUID, sse)
 	})
+}
+
+func (h *chatAgentHTTP) uploadSessionMedia(c fiber.Ctx) error {
+	if err := requireChatAgentEnabled(); err != nil {
+		return chatAgentError(c, err)
+	}
+	sessionID := strings.Clone(c.Params("id"))
+	if err := h.ensureSessionOwner(c, sessionID); err != nil {
+		return chatAgentError(c, err)
+	}
+	if err := chatagent.EnsureMediaPublicConfig(); err != nil {
+		return chatAgentError(c, err)
+	}
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "file is required"})
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "open file failed"})
+	}
+	defer func() { _ = file.Close() }()
+
+	var seeker io.ReadSeeker
+	if rs, ok := file.(io.ReadSeeker); ok {
+		seeker = rs
+	} else {
+		data, readErr := io.ReadAll(file)
+		if readErr != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "read file failed"})
+		}
+		seeker = bytes.NewReader(data)
+	}
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if mimeType == "" {
+		mimeType = "application/octet-stream"
+	}
+	result, err := chatagent.UploadSessionMedia(c.Context(), sessionID, chatAgentCallerUID(c), fileHeader.Filename, mimeType, seeker, fileHeader.Size)
+	if err != nil {
+		return chatAgentError(c, err)
+	}
+	return c.JSON(result)
 }
 
 type confirmBody struct {
@@ -121,4 +170,12 @@ func (h *chatAgentHTTP) cancelRun(c fiber.Ctx) error {
 		}
 	}
 	return c.SendStatus(fiber.StatusNoContent)
+}
+
+func chatAgentCallerUID(c fiber.Ctx) string {
+	rc := route.GetRequestContext(c)
+	if rc == nil || rc.UID.IsZero() {
+		return ""
+	}
+	return rc.UID.String()
 }

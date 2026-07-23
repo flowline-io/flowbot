@@ -73,9 +73,10 @@ func TestProcessAttachments(t *testing.T) {
 		name        string
 		attachments []transform.Attachment
 		wantParts   int
+		wantKind    agent.MediaKind
 	}{
-		{name: "url attachment", attachments: []transform.Attachment{{URL: "http://img", MIMEType: "image/png"}}, wantParts: 1},
-		{name: "binary attachment", attachments: []transform.Attachment{{MIMEType: "image/jpeg", Data: []byte("abc")}}, wantParts: 1},
+		{name: "url attachment", attachments: []transform.Attachment{{URL: "http://img", MIMEType: "image/png"}}, wantParts: 1, wantKind: agent.MediaKindImage},
+		{name: "binary attachment", attachments: []transform.Attachment{{MIMEType: "image/jpeg", Data: []byte("abc")}}, wantParts: 1, wantKind: agent.MediaKindImage},
 		{name: "empty list", attachments: nil, wantParts: 0},
 	}
 
@@ -84,6 +85,65 @@ func TestProcessAttachments(t *testing.T) {
 			t.Parallel()
 			parts := transform.ProcessAttachments(tt.attachments)
 			assert.Len(t, parts, tt.wantParts)
+			if tt.wantParts > 0 {
+				mp, ok := parts[0].(agent.MediaPart)
+				require.True(t, ok)
+				assert.Equal(t, tt.wantKind, mp.Kind)
+			}
+		})
+	}
+}
+
+func TestMediaPartConvert(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		parts   []agent.ContentPart
+		wantErr string
+		check   func(t *testing.T, parts []llms.ContentPart)
+	}{
+		{
+			name:  "image url",
+			parts: []agent.ContentPart{agent.MediaPart{Kind: agent.MediaKindImage, URL: "https://x/a.png", MIMEType: "image/png"}},
+			check: func(t *testing.T, parts []llms.ContentPart) {
+				t.Helper()
+				require.Len(t, parts, 1)
+				_, ok := parts[0].(llms.ImageURLContent)
+				assert.True(t, ok)
+			},
+		},
+		{
+			name:  "image binary for anthropic path",
+			parts: []agent.ContentPart{agent.MediaPart{Kind: agent.MediaKindImage, MIMEType: "image/png", Data: []byte{1, 2, 3}}},
+			check: func(t *testing.T, parts []llms.ContentPart) {
+				t.Helper()
+				require.Len(t, parts, 1)
+				_, ok := parts[0].(llms.BinaryContent)
+				assert.True(t, ok)
+			},
+		},
+		{
+			name:    "audio without data rejected",
+			parts:   []agent.ContentPart{agent.MediaPart{Kind: agent.MediaKindAudio, MIMEType: "audio/wav", URL: "https://x/a.wav"}},
+			wantErr: "requires binary data",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result, err := transform.DefaultConvertToLLM([]agent.AgentMessage{
+				agent.UserMessage{Parts: tt.parts},
+			})
+			if tt.wantErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+				return
+			}
+			require.NoError(t, err)
+			require.Len(t, result, 1)
+			tt.check(t, result[0].Parts)
 		})
 	}
 }

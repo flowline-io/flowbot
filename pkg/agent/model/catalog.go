@@ -3,6 +3,8 @@ package model
 import (
 	"slices"
 	"testing"
+
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
 
 // DefaultContextWindow is the fallback input token budget for unknown models.
@@ -23,6 +25,12 @@ const qwen37PlusDescription = "Qwen3.7-Plus is a cost-effective model in Alibaba
 const qwen37MaxDescription = "Qwen3.7-Max is the flagship model in Alibaba's Qwen3.7 series. It supports text input and output and is designed for agent-centric workloads, with particular strengths in coding, office and productivity tasks, complex reasoning, and long-context tool-using workflows."
 
 const gpt55ProDescription = "GPT-5.5 Pro is OpenAI's high-capability model optimized for deep reasoning and accuracy on complex, high-stakes workloads. It features a 1M+ token context window (922K input, 128K output) with support for text, image, and file inputs, function calling, and structured JSON output for agent and enterprise workflows."
+
+const grok45Description = "Grok 4.5 is a Cursor and SpaceXAI model for long-running software engineering and knowledge work. It is trained for multi-step agent workflows that use tools, inspect results, recover from errors, and adapt strategy, targeting coding and other computer-based tasks with fewer steps than comparable frontier models."
+
+const mimoV25Description = "Xiaomi MiMo-V2.5 is an omni-modal agent model with a 1M-token context window. It natively understands images, video, audio, and text for cross-modal perception and long-range reasoning, and supports native agent execution for browse, comprehend, reason, and act workloads."
+
+const mimoV25ProDescription = "Xiaomi MiMo-V2.5-Pro is a trillion-scale Mixture-of-Experts model (1T total parameters, 42B activated) with a 1M-token context window. It targets peak agent performance on demanding agentic workloads while retaining the V2.5 series' omni-modal understanding of text, image, audio, and video."
 
 var catalog = map[string]Metadata{
 	"deepseek-v4-pro": {
@@ -144,6 +152,54 @@ var catalog = map[string]Metadata{
 			ModalityTextOut,
 		},
 	},
+	"grok-4.5": {
+		ID:            "grok-4.5",
+		Name:          "Grok 4.5",
+		Description:   grok45Description,
+		ContextLength: 256_000,
+		MaxOutput:     128_000,
+		Features: []Feature{
+			CapChat,
+			CapFunctionCall,
+			CapJsonMode,
+			ModalityTextIn,
+			ModalityTextOut,
+		},
+	},
+	"mimo-v2.5": {
+		ID:            "mimo-v2.5",
+		Name:          "MiMo V2.5",
+		Description:   mimoV25Description,
+		ContextLength: 1_048_576,
+		MaxOutput:     128_000,
+		Features: []Feature{
+			CapChat,
+			CapFunctionCall,
+			CapJsonMode,
+			ModalityAudioIn,
+			ModalityImageIn,
+			ModalityTextIn,
+			ModalityTextOut,
+			ModalityVideoIn,
+		},
+	},
+	"mimo-v2.5-pro": {
+		ID:            "mimo-v2.5-pro",
+		Name:          "MiMo V2.5 Pro",
+		Description:   mimoV25ProDescription,
+		ContextLength: 1_048_576,
+		MaxOutput:     128_000,
+		Features: []Feature{
+			CapChat,
+			CapFunctionCall,
+			CapJsonMode,
+			ModalityAudioIn,
+			ModalityImageIn,
+			ModalityTextIn,
+			ModalityTextOut,
+			ModalityVideoIn,
+		},
+	},
 }
 
 // Lookup returns catalog metadata for a model ID when known.
@@ -185,6 +241,25 @@ func HasFeature(modelName string, feature Feature) bool {
 		return false
 	}
 	return slices.Contains(meta.Features, feature)
+}
+
+// SupportsModality reports whether modelName may accept the given input modality.
+// Unknown (uncatalogued) models allow image input and rely on the provider to fail;
+// audio and video require an explicit catalog feature.
+func SupportsModality(modelName string, kind msg.MediaKind) bool {
+	switch kind {
+	case msg.MediaKindImage:
+		if _, ok := Lookup(modelName); !ok {
+			return true
+		}
+		return HasFeature(modelName, ModalityImageIn)
+	case msg.MediaKindAudio:
+		return HasFeature(modelName, ModalityAudioIn)
+	case msg.MediaKindVideo:
+		return HasFeature(modelName, ModalityVideoIn)
+	default:
+		return false
+	}
 }
 
 // RegisterTestMetadata adds or overrides a catalog entry for the duration of a test.

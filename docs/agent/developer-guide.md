@@ -346,14 +346,22 @@ For tests, use `agentllm.NewFakeModel` with scripted `ResponseScript` entries (t
 
 ## Multimodal Input
 
+User turns use `msg.MediaPart` (`Kind` = `image|audio|video`) plus optional `TextPart`. Chatagent persists only `file_id` + mime + kind; temporary signed URLs or bytes are filled at convert time.
+
 ```go
 parts := transform.ProcessAttachments([]transform.Attachment{
-    {MIMEType: "image/png", URL: "https://example.com/chart.png"},
+    {MIMEType: "image/png", FileID: "fid", Kind: msg.MediaKindImage},
 })
 msg := agent.NewUserMessageWithParts(parts...)
 ```
 
-Attachments are converted to langchaingo `ImageURLContent` or `BinaryContent` during `ConvertToLLM`.
+`ConvertToLLM` is provider-aware:
+
+- Providers that accept remote image URLs receive a short-lived signed URL (`llms.ImageURLPart`).
+- Providers that only accept bytes (e.g. Anthropic via langchaingo) hydrate from media storage (`llms.BinaryPart`).
+- Non-image kinds must not be sent as `ImageURLPart`; without catalog `ModalityAudioIn` / `ModalityVideoIn`, chatagent Rejects before the loop.
+
+Chat product flow: `POST /chatagent/sessions/:id/media` then `POST …/messages` with `{text, attachments}`.
 
 ## Testing
 

@@ -210,15 +210,54 @@ func (ah *handler) GetIdFromUrl(fUrl string) types.Uid {
 }
 
 func (ah *handler) presignedURL(fdef *types.FileDef) (string, error) {
-	reqParams := make(url.Values)
-	reqParams.Set("response-content-disposition", fmt.Sprintf("attachment; filename=%q", fdef.Name))
+	return ah.presignedURLTTL(fdef, time.Hour)
+}
 
-	presignedURL, err := ah.svc.PresignedGetObject(context.Background(), ah.conf.BucketName, fdef.Location, time.Hour, reqParams)
+func (ah *handler) presignedURLTTL(fdef *types.FileDef, ttl time.Duration) (string, error) {
+	if ttl <= 0 {
+		ttl = time.Hour
+	}
+	reqParams := make(url.Values)
+	// inline so LLM providers can fetch content without forcing download disposition
+	reqParams.Set("response-content-disposition", fmt.Sprintf("inline; filename=%q", fdef.Name))
+
+	presignedURL, err := ah.svc.PresignedGetObject(context.Background(), ah.conf.BucketName, fdef.Location, ttl, reqParams)
 	if err != nil {
 		return "", fmt.Errorf("failed to get presigned url, %w", err)
 	}
 
 	return presignedURL.String(), nil
+}
+
+// SignGetURL returns a MinIO presigned GET URL for the file id.
+func (ah *handler) SignGetURL(ctx context.Context, fileID string, ttl time.Duration) (string, error) {
+	fd, err := store.Database.FileGet(ctx, fileID)
+	if err != nil {
+		return "", fmt.Errorf("file not found %v, %w", fileID, err)
+	}
+	if fd == nil {
+		return "", protocol.ErrNotFound.New("fid not found")
+	}
+	if ttl <= 0 {
+		ttl = appConfig.App.ChatAgent.Media.SignedURLTTL
+	}
+	return ah.presignedURLTTL(fd, ttl)
+}
+
+// OpenByID opens a stored MinIO object by file id.
+func (ah *handler) OpenByID(ctx context.Context, fileID string) (*types.FileDef, media.ReadSeekCloser, error) {
+	fd, err := store.Database.FileGet(ctx, fileID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("file not found %v, %w", fileID, err)
+	}
+	if fd == nil {
+		return nil, nil, protocol.ErrNotFound.New("fid not found")
+	}
+	obj, err := ah.svc.GetObject(ctx, ah.conf.BucketName, fd.Location, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to download file %v from minio, %w", fd.Location, err)
+	}
+	return fd, obj, nil
 }
 
 func Register() {

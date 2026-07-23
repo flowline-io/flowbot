@@ -82,7 +82,11 @@ func LoadJSONL(r io.Reader) ([]TreeEntry, error) {
 func messageToRaw(message msg.AgentMessage) map[string]any {
 	switch m := message.(type) {
 	case msg.UserMessage:
-		return map[string]any{"role": "user", "text": textFromParts(m.Parts)}
+		raw := map[string]any{"role": "user", "text": textFromParts(m.Parts)}
+		if media := mediaPartsToRaw(m.Parts); len(media) > 0 {
+			raw["media"] = media
+		}
+		return raw
 	case msg.AssistantMessage:
 		raw := map[string]any{"role": "assistant", "text": textFromParts(m.Parts), "model": m.Model, "stop_reason": m.StopReason}
 		if m.TurnDurationMs > 0 {
@@ -143,6 +147,22 @@ func textFromParts(parts []msg.ContentPart) string {
 		}
 	}
 	return text.String()
+}
+
+func mediaPartsToRaw(parts []msg.ContentPart) []map[string]any {
+	out := make([]map[string]any, 0)
+	for _, part := range parts {
+		mp, ok := part.(msg.MediaPart)
+		if !ok {
+			continue
+		}
+		out = append(out, map[string]any{
+			"kind":      string(mp.Kind),
+			"mime_type": mp.MIMEType,
+			"file_id":   mp.FileID,
+		})
+	}
+	return out
 }
 
 func stringField(payload map[string]any, key string) (string, error) {

@@ -396,10 +396,13 @@
     threadRoot,
     onDone,
     approval,
+    attachments,
   ) {
     var messagesEl = threadRoot.querySelector('#chatagent-messages');
     var errorEl = threadRoot.querySelector('#chatagent-thread-error');
     var cancelURL = threadRoot.getAttribute('data-cancel-url') || '';
+    var mediaURL = threadRoot.getAttribute('data-media-url') || '';
+    var pending = Array.isArray(attachments) ? attachments.slice() : [];
     var assistantBody = null;
     var assistantText = '';
     var thinkingState = null;
@@ -440,17 +443,60 @@
 
     showThreadError(errorEl, '');
     ns.setRunning(true, threadRoot);
-    appendUserMessage(messagesEl, text);
+    appendUserMessage(messagesEl, text || (pending.length ? '[media]' : ''));
 
     flowbotCSRFHeadersAsync({
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
     })
       .then(function (headers) {
-        return fetch(messagesURL, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({ text: text }),
+        var upload = Promise.resolve(pending);
+        if (pending.length && mediaURL) {
+          upload = Promise.all(
+            pending.map(function (item) {
+              if (item.file_id) {
+                return {
+                  file_id: item.file_id,
+                  mime_type: item.mime_type,
+                  kind: item.kind,
+                };
+              }
+              if (!item.file) {
+                return Promise.reject(new Error('missing attachment file'));
+              }
+              var fd = new FormData();
+              fd.append(
+                'file',
+                item.file,
+                item.name || item.file.name || 'upload.bin',
+              );
+              return flowbotCSRFHeadersAsync({}).then(function (upHeaders) {
+                return fetch(mediaURL, {
+                  method: 'POST',
+                  headers: upHeaders,
+                  body: fd,
+                }).then(function (res) {
+                  return res.json().then(function (body) {
+                    if (!res.ok) {
+                      throw new Error((body && body.error) || 'upload failed');
+                    }
+                    return {
+                      file_id: body.file_id,
+                      mime_type: body.mime_type,
+                      kind: body.kind,
+                    };
+                  });
+                });
+              });
+            }),
+          );
+        }
+        return upload.then(function (refs) {
+          return fetch(messagesURL, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({ text: text || '', attachments: refs || [] }),
+          });
         });
       })
       .then(function (res) {

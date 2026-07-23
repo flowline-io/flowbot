@@ -35,7 +35,16 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 				</div>
 			} else {
 				<div class="chat-bubble bg-base-100 border border-base-300 whitespace-pre-wrap text-sm max-w-[92%]" data-testid="chatagent-message-body">
-					{ msg.Text }
+					if msg.Text != "" {
+						{ msg.Text }
+					}
+					if len(msg.Attachments) > 0 {
+						<ul class="mt-1 space-y-0.5 text-xs opacity-80" data-testid="chatagent-message-attachments">
+							for _, att := range msg.Attachments {
+								<li>[{ att.Kind }] { att.FileID }</li>
+							}
+						</ul>
+					}
 					if msg.Role == "assistant" {
 						@ChatAgentAssistantMeta(msg, !streaming)
 					} else if msg.TurnDurationMs > 0 || msg.RunDurationMs > 0 {

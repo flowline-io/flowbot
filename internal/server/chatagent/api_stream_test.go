@@ -120,7 +120,7 @@ func TestStreamAPIRun_InFlight(t *testing.T) {
 	})
 
 	captured := &captureSSE{}
-	chatagent.StreamAPIRun(context.Background(), chatagent.NewService(), sessionID, "hello", captured)
+	chatagent.StreamAPIRun(context.Background(), chatagent.NewService(), sessionID, "hello", nil, "", captured)
 
 	require.Len(t, captured.events, 1)
 	assert.Equal(t, chatagent.EventTypeError, captured.events[0].Type)

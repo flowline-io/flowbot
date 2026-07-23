@@ -6,7 +6,10 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/transform"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/tmc/langchaingo/llms"
 )
 
 // agentLoopConfig resolves chat agent models and builds loop configuration
@@ -43,7 +46,19 @@ func agentLoopConfigForSession(ctx context.Context, sessionID string) (cfg agent
 		cfg.ChatModel = chatModel
 		cfg.ToolModel = toolModel
 	}
+	cfg.ConvertToLLM = multimodalConvertToLLM(chatModel)
 	return cfg, chatModel, toolModel, dual, nil
+}
+
+func multimodalConvertToLLM(chatModel string) msg.ConvertToLLMFn {
+	return func(messages []msg.AgentMessage) ([]llms.MessageContent, error) {
+		provider := agentllm.ProviderForModel(chatModel)
+		prepared, err := PrepareMediaForProvider(context.Background(), provider, messages)
+		if err != nil {
+			return nil, err
+		}
+		return transform.DefaultConvertToLLM(prepared)
+	}
 }
 
 func runMaxSteps() int {

@@ -8,10 +8,26 @@ import (
 )
 
 func serializeUserMessage(parts []msg.ContentPart) string {
-	if text := textFromParts(parts); text != "" {
-		return "[User]: " + text
+	text := textFromParts(parts)
+	var mediaStubs []string
+	for _, part := range parts {
+		if mp, ok := part.(msg.MediaPart); ok {
+			mediaStubs = append(mediaStubs, msg.MediaPlaceholder(mp.Kind))
+		}
 	}
-	return ""
+	body := text
+	if len(mediaStubs) > 0 {
+		stub := strings.Join(mediaStubs, " ")
+		if body == "" {
+			body = stub
+		} else {
+			body = body + " " + stub
+		}
+	}
+	if body == "" {
+		return ""
+	}
+	return "[User]: " + body
 }
 
 func serializeAssistantMessage(m msg.AssistantMessage) string {

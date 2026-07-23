@@ -383,13 +383,85 @@
       closeBtns[ci].addEventListener('click', closeSession);
     }
 
-    function sendFollowUp() {
-      var text = (input.value || '').trim();
-      if (!text) {
+    var pendingAttachments = [];
+    var pendingEl = root.querySelector('#chatagent-pending-attachments');
+    var mediaInput = root.querySelector('#chatagent-media-input');
+    var attachBtn = root.querySelector('#chatagent-attach-media');
+
+    function renderPendingAttachments() {
+      if (!pendingEl) {
         return;
       }
+      pendingEl.textContent = '';
+      pendingAttachments.forEach(function (item, idx) {
+        var chip = document.createElement('span');
+        chip.className = 'badge badge-ghost badge-sm gap-1';
+        chip.textContent = item.name || item.kind || 'media';
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'btn btn-ghost btn-xs px-1';
+        rm.textContent = '×';
+        rm.addEventListener('click', function () {
+          pendingAttachments.splice(idx, 1);
+          renderPendingAttachments();
+        });
+        chip.appendChild(rm);
+        pendingEl.appendChild(chip);
+      });
+    }
+
+    function queueFile(file) {
+      if (!file) {
+        return;
+      }
+      if (pendingAttachments.length >= 8) {
+        ns.showError(errorEl, 'At most 8 attachments per message');
+        return;
+      }
+      pendingAttachments.push({
+        file: file,
+        name: file.name,
+        mime_type: file.type,
+      });
+      renderPendingAttachments();
+    }
+
+    if (attachBtn && mediaInput) {
+      attachBtn.addEventListener('click', function () {
+        mediaInput.click();
+      });
+      mediaInput.addEventListener('change', function () {
+        var files = mediaInput.files || [];
+        for (var i = 0; i < files.length; i++) {
+          queueFile(files[i]);
+        }
+        mediaInput.value = '';
+      });
+    }
+
+    input.addEventListener('paste', function (ev) {
+      var items = (ev.clipboardData && ev.clipboardData.items) || [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.indexOf('image/') === 0) {
+          var f = items[i].getAsFile();
+          if (f) {
+            queueFile(f);
+            ev.preventDefault();
+          }
+        }
+      }
+    });
+
+    function sendFollowUp() {
+      var text = (input.value || '').trim();
+      if (!text && pendingAttachments.length === 0) {
+        return;
+      }
+      var atts = pendingAttachments.slice();
+      pendingAttachments = [];
+      renderPendingAttachments();
       input.value = '';
-      ns.streamMessage(messagesURL, text, root, null, approval);
+      ns.streamMessage(messagesURL, text, root, null, approval, atts);
     }
 
     input.addEventListener('keydown', function (ev) {
@@ -416,7 +488,7 @@
       ns.refreshTodosFromServer(root);
     }
     if (pending && !threadHasHistory(root)) {
-      ns.streamMessage(messagesURL, pending, root, null, approval);
+      ns.streamMessage(messagesURL, pending, root, null, approval, []);
     }
   }
 

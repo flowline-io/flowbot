@@ -35,8 +35,10 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | -- | -------- | ----- | ---------- | ----- |
 | R-01 | Agent info | `GET /chatagent/info` | Disabled → 503 | `chatagent_http_test.go`, BDD chat HTTP |
 | R-02 | List / create / close sessions | `GET\|POST /chatagent/sessions`, `DELETE …/:id` | Closed → not found for owner ops | unit + `chat_agent_chat_spec_test.go` |
-| R-03 | List messages / plans / todos | `GET …/messages`, `GET …/plans`, `GET …/todos` | Empty history | unit HTTP tests |
-| R-04 | Send message (full SSE stream) | `POST …/messages` | Empty text 400; run in flight 409 | `chat_agent_chat_spec_test.go` |
+| R-03 | List messages / plans / todos | `GET …/messages`, `GET …/plans`, `GET …/todos` | Empty history; user rows may include `attachments[]` | unit HTTP tests |
+| R-04 | Send message (full SSE stream) | `POST …/messages` JSON `{text, attachments?}` | Empty text **and** no attachments → 400; run in flight 409; max 8 attachments; MIME allowlist; model missing modality → 400 | `chat_agent_chat_spec_test.go`, multimodal unit tests |
+| R-04a | Upload session media | `POST …/media` multipart | Strict MIME allowlist; binds `(session_id, owner)`; requires media public base when FS signing needed | media upload tests |
+| R-04b | Modality gate | Before run | Audio/video Reject until catalog marks `ModalityAudioIn`/`ModalityVideoIn`; unknown models allow image only | modality reject tests |
 | R-05 | Subscribe session events | `GET …/events` | Client disconnect; buffered hub | `session_events_test.go` |
 | R-06 | Confirm / cancel run | `POST …/confirm`, `POST …/cancel` | Unknown confirm 404; already resolved 409 | confirm unit + BDD plan mode |
 | R-07 | Session mode get/set | `GET\|PUT …/mode` | Plan vs normal | `chat_agent_chat_spec_test.go`, plan mode tests |
@@ -56,7 +58,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-01a | Session list: auto title, last-message preview, day groups, pin/archive, status filters | `GET /service/web/agents/list?filter=`; `POST\|DELETE …/:id/pin\|archive` | Default hides archived; running / needs_approval from runtime gates | `agents_webservice_test.go`, helpers/day-group unit tests |
 | W-02 | Create session (+ optional pending prompt) | `POST /service/web/agents` | `?prompt=` / sessionStorage pending key | agents page + JS pending prompt |
 | W-03 | Chat page hydrate history | `GET /service/web/agents/:id` | Closed session | agents page |
-| W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject; reopen page replays pending confirm; `run_complete` reloads history | chat BDD helpers; unit confirm; pending SSR |
+| W-04 | Send message / cancel / confirm | Web posts under `/agents/:id/…` | Approval once/always/reject; reopen page replays pending confirm; `run_complete` reloads history; empty text OK when attachments present | chat BDD helpers; unit confirm; pending SSR |
+| W-04a | Composer media (upload + paste image) | Two-step: upload media then send with `file_id`s | MIME allowlist; max 8; modality Reject / missing `public_base_url` surfaced in UI | `chatagent-chat.js` + media unit/HTTP tests |
 | W-05 | Context ring + popover | `GET …/context` + JS | Token window zero | `agents_page_spec_test.go` context It |
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
@@ -91,7 +94,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | O-02 | Plan mode blocks writes until confirm/normal | mode + permission hooks | Return to normal allows write | `chat_agent_spec_test.go` plan It |
 | O-03 | Confirm gate (once / always / reject) | `confirm.go` | Pattern suggest | confirm tests + BDD |
 | O-04 | Harness pool TTL / config hash refresh | `harness_pool.go` | Evict on close/abort | harness-related tests |
-| O-05 | Session title generation | `title.go` | LLM disabled for tests | `title_test.go`, BDD title wait helpers |
+| O-05 | Session title generation | `title.go` | LLM disabled for tests; media-only turns use `[image]`/`[audio]`/`[video]` placeholders | `title_test.go`, BDD title wait helpers |
+| O-05a | Multimodal user turns | `RunRequest.Attachments` → `MediaPart` (file_id); provider-aware URL or Binary hydrate | Session-scoped ownership; re-sign/hydrate per run; tool-model strip media parts | transform + service multimodal tests |
 | O-06 | Manual + automatic compaction | `CompactSession`, ctxmgr | | compaction / context tests |
 | O-08 | Pipeline agent step (ephemeral) | `pipeline_run.go` / `RunPipelineAgent` | Tools/skills allowlist; memory default off | `pipeline_run_test.go`, `ephemeral_run_test.go` |
 | O-09 | Scheduled autonomous run + delivery | `scheduled_run.go`, scheduler | Isolated session; permission policy | `chat_agent_scheduled_task_spec_test.go`, scheduled_* tests |
@@ -126,6 +130,7 @@ Use after each vertical slice and before freeze sign-off.
 12. Export: download/export session JSONL or documented format.
 13. Title: first user message eventually updates session title (or test-disabled path).
 14. REST smoke: `POST /chatagent/sessions/:id/messages` SSE reaches `done`; `GET …/events` receives hub events when a run publishes.
+15. Multimodal: upload an image via `POST …/media`, send with attachments (optional empty text) on a vision-capable model; history shows attachment; audio/video on unmarked models returns 400.
 
 ---
 

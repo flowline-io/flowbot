@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/bytedance/sonic"
 
@@ -182,6 +183,35 @@ func (*fshandler) getFileRecord(fid types.Uid) (*types.FileDef, error) {
 		return nil, protocol.ErrNotFound.New("fid not found")
 	}
 	return fd, nil
+}
+
+// SignGetURL builds an HMAC-signed absolute URL using chat_agent.media settings.
+func (*fshandler) SignGetURL(_ context.Context, fileID string, ttl time.Duration) (string, error) {
+	cfg := appConfig.App.ChatAgent.Media
+	if ttl <= 0 {
+		ttl = cfg.SignedURLTTL
+	}
+	secret := cfg.SignSecret
+	if secret == "" && appConfig.App.Media != nil {
+		secret = appConfig.App.Media.SignSecret
+	}
+	return media.BuildSignedURL(cfg.PublicBaseURL, secret, fileID, ttl, time.Now().UTC())
+}
+
+// OpenByID opens a stored file by id.
+func (fh *fshandler) OpenByID(_ context.Context, fileID string) (*types.FileDef, media.ReadSeekCloser, error) {
+	fd, err := fh.getFileRecord(types.Uid(fileID))
+	if err != nil {
+		return nil, nil, err
+	}
+	file, err := os.Open(fd.Location)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = protocol.ErrNotFound.New("file not found")
+		}
+		return nil, nil, fmt.Errorf("failed to open file %v, %w", fd.Location, err)
+	}
+	return fd, file, nil
 }
 
 func Register() {

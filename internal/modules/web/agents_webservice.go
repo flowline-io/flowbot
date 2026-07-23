@@ -2,7 +2,9 @@ package web
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 
@@ -37,6 +39,7 @@ var (
 		webservice.Get("/agents/:id/settings", agentChatGetSettings, route.WithNotAuth()),
 		webservice.Put("/agents/:id/settings", agentChatPutSettings, route.WithNotAuth()),
 		webservice.Post("/agents/:id/messages", agentChatSendMessage, route.WithNotAuth()),
+		webservice.Post("/agents/:id/media", agentChatUploadMedia, route.WithNotAuth()),
 		webservice.Post("/agents/:id/cancel", agentChatCancel, route.WithNotAuth()),
 		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
 		webservice.Get("/agents/:id/events", agentChatEvents, route.WithNotAuth()),
@@ -88,6 +91,7 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 		DetailURLTemplate: "/service/web/agents/{id}",
 		SettingsURL:       prefix + "/settings",
 		MessagesURL:       prefix + "/messages",
+		MediaURL:          prefix + "/media",
 		CancelURL:         prefix + "/cancel",
 		CloseURL:          prefix,
 		ConfirmURL:        prefix + "/confirm",
@@ -346,18 +350,22 @@ func agentChatSendMessage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "send message: %v", err)
 	}
 	var body struct {
-		Text string `json:"text"`
+		Text        string                    `json:"text"`
+		Attachments []chatagent.AttachmentRef `json:"attachments"`
 	}
 	if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid json"})
 	}
 	text := strings.Clone(strings.TrimSpace(body.Text))
-	if text == "" {
+	attachments := append([]chatagent.AttachmentRef(nil), body.Attachments...)
+	if text == "" && len(attachments) == 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "empty message"})
 	}
 	if _, ok := chatagent.GetAPIRunState(sessionID); ok {
 		return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": chatagent.ErrRunInFlight.Error()})
 	}
+
+	ownerUID := getUID(ctx)
 
 	ctx.Set("Content-Type", "text/event-stream")
 	ctx.Set("Cache-Control", "no-cache")
@@ -366,8 +374,58 @@ func agentChatSendMessage(ctx fiber.Ctx) error {
 	baseCtx := ctx.Context()
 	return ctx.SendStreamWriter(func(w *bufio.Writer) {
 		sse := &chatagent.BufioSSEWriter{W: w}
-		chatagent.StreamAPIRun(baseCtx, webChatAgentService, sessionID, text, sse)
+		chatagent.StreamAPIRun(baseCtx, webChatAgentService, sessionID, text, attachments, ownerUID, sse)
 	})
+}
+
+func agentChatUploadMedia(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "upload media: %v", err)
+	}
+	if err := chatagent.EnsureMediaPublicConfig(); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	fileHeader, err := ctx.FormFile("file")
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "file is required"})
+	}
+	file, err := fileHeader.Open()
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "open file failed"})
+	}
+	defer func() { _ = file.Close() }()
+	var seeker io.ReadSeeker
+	if rs, ok := file.(io.ReadSeeker); ok {
+		seeker = rs
+	} else {
+		data, readErr := io.ReadAll(file)
+		if readErr != nil {
+			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "read file failed"})
+		}
+		seeker = bytes.NewReader(data)
+	}
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if mimeType == "" {
+		mimeType = "application/octet-stream"
+	}
+	result, err := chatagent.UploadSessionMedia(ctx.Context(), sessionID, getUID(ctx), fileHeader.Filename, mimeType, seeker, fileHeader.Size)
+	if err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(result)
 }
 
 func agentChatClose(ctx fiber.Ctx) error {
@@ -747,12 +805,21 @@ func mapHistoryMessage(m chatagent.HistoryMessage) model.AgentChatMessage {
 			CreatedAt:          m.CreatedAt,
 		}
 	case "user":
+		atts := make([]model.AgentChatAttachment, 0, len(m.Attachments))
+		for _, a := range m.Attachments {
+			atts = append(atts, model.AgentChatAttachment{
+				FileID:   a.FileID,
+				MIMEType: a.MIMEType,
+				Kind:     a.Kind,
+			})
+		}
 		return model.AgentChatMessage{
-			Role:      "user",
-			Kind:      "user",
-			Text:      m.Text,
-			HTML:      partials.FormatChatAgentMessageHTML("user", m.Text),
-			CreatedAt: m.CreatedAt,
+			Role:        "user",
+			Kind:        "user",
+			Text:        m.Text,
+			HTML:        partials.FormatChatAgentMessageHTML("user", m.Text),
+			Attachments: atts,
+			CreatedAt:   m.CreatedAt,
 		}
 	default:
 		return model.AgentChatMessage{

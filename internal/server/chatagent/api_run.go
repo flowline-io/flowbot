@@ -8,6 +8,7 @@ import (
 type APIRunOptions struct {
 	Publisher EventPublisher
 	Confirm   *ConfirmGate
+	OwnerUID  string
 }
 
 var (

@@ -15,6 +15,7 @@ type ChatAgentEndpoints struct {
 	ArchiveURLTemplate string
 	SettingsURL        string
 	MessagesURL        string
+	MediaURL           string
 	CancelURL          string
 	CloseURL           string
 	ConfirmURL         string

@@ -328,7 +328,7 @@ func TestStreamAPIRun_CompletesWithFakeModel(t *testing.T) {
 	}))
 
 	captured := &streamCapture{}
-	StreamAPIRun(ctx, NewService(), sessionID, "hello stream", captured)
+	StreamAPIRun(ctx, NewService(), sessionID, "hello stream", nil, "", captured)
 	WaitForSessionTitleGenerationForTest()
 
 	events := captured.snapshot()
@@ -350,7 +350,7 @@ func TestStreamAPIRun_EmptyMessageReturnsError(t *testing.T) {
 	}))
 
 	captured := &streamCapture{}
-	StreamAPIRun(ctx, NewService(), sessionID, "   ", captured)
+	StreamAPIRun(ctx, NewService(), sessionID, "   ", nil, "", captured)
 
 	events := captured.snapshot()
 	require.NotEmpty(t, events)

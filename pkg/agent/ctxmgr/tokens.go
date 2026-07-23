@@ -7,7 +7,11 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 )
 
-const estimatedImageChars = 4800
+const (
+	estimatedImageChars = 4800
+	estimatedAudioChars = 9600
+	estimatedVideoChars = 24000
+)
 
 // ContextUsageEstimate is a token budget estimate for a message list.
 type ContextUsageEstimate struct {
@@ -105,8 +109,15 @@ func estimatePartsChars(parts []msg.ContentPart) int {
 		switch p := part.(type) {
 		case msg.TextPart:
 			chars += len(p.Text)
-		case msg.ImagePart:
-			chars += estimatedImageChars
+		case msg.MediaPart:
+			switch p.Kind {
+			case msg.MediaKindAudio:
+				chars += estimatedAudioChars
+			case msg.MediaKindVideo:
+				chars += estimatedVideoChars
+			default:
+				chars += estimatedImageChars
+			}
 		case msg.ToolCallPart:
 			chars += len(p.Name) + len(p.Arguments)
 		}
