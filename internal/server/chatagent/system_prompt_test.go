@@ -154,6 +154,22 @@ func TestBuildSystemPrompt(t *testing.T) {
 				"## Plan mode",
 			},
 		},
+		{
+			name: "injects memory facts block",
+			options: chatagent.BuildSystemPromptOptions{
+				CWD: root,
+				MemoryFacts: []chatagent.InjectedMemoryFact{
+					{Key: "user.name", Value: "Robin", Pinned: true},
+					{Key: "pref.lang", Value: "zh"},
+				},
+			},
+			wantParts: []string{
+				"<memory_facts>",
+				"user.name=Robin pinned=true",
+				"pref.lang=zh",
+				"</memory_facts>",
+			},
+		},
 	}
 
 	for _, tt := range tests {

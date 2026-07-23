@@ -44,33 +44,47 @@ type BuildSystemPromptOptions struct {
 	Subagents []Subagent
 	// Mode selects plan vs normal prompt behavior; empty means normal.
 	Mode string
+	// MemoryFacts are scoped facts injected into the system prompt under budget.
+	MemoryFacts []InjectedMemoryFact
+}
+
+// InjectedMemoryFact is one fact line for system-prompt injection.
+type InjectedMemoryFact struct {
+	Key    string
+	Value  string
+	Pinned bool
 }
 
 // DefaultToolSnippets returns one-line tool descriptions for the chat assistant.
 func DefaultToolSnippets() map[string]string {
 	return map[string]string{
-		"run_terminal":           "Run shell commands inside the workspace (git, build, test, etc.)",
-		"list_dir":               "List files and directories under a workspace path",
-		"glob_files":             "Find files by glob pattern (supports **); returns relative paths",
-		"grep_files":             "Search file contents with a regular expression",
-		"read_file":              "Read a text file from the workspace by relative path",
-		"write_file":             "Write or overwrite a text file in the workspace, creating parent dirs as needed",
-		"apply_patch":            "Apply an incremental multi-file patch (add/update/delete) inside the workspace",
-		"web_search":             "Search the web for titles, URLs, and snippets",
-		"web_fetch":              "Fetch text content from an http(s) URL (not localhost)",
-		"run_code":               "Execute a Python or shell code snippet in the workspace",
-		"read_skill":             "Load full skill instructions or an auxiliary file via optional path",
-		delegateSubagentToolName: "Delegate a self-contained task to a specialized subagent that runs in isolation",
-		scheduleToolName:         "Create a cron or one-shot scheduled agent task with name, prompt, and cron or run_at",
-		updateScheduleToolName:   "Update an existing scheduled task's cron, run_at, prompt, name, or state (active|paused)",
-		listScheduleToolName:     "List active and paused scheduled tasks for the current user",
-		cancelScheduleToolName:   "Cancel a scheduled task by task_id",
-		todoWriteToolName:        "Create or update the session todo checklist (merge by item id)",
-		listTodosToolName:        "List the current session todo checklist",
-		clip.CreateToolName:      "Create a shareable markdown clip and return its full public URL",
-		clip.GetToolName:         "Read a shareable markdown clip by slug",
-		searchKnowledgeToolName:  "Search the knowledge base; returns path, title, tags, and summary",
-		getKnowledgeToolName:     "Read a knowledge base markdown document by path",
+		"run_terminal":                 "Run shell commands inside the workspace (git, build, test, etc.)",
+		"list_dir":                     "List files and directories under a workspace path",
+		"glob_files":                   "Find files by glob pattern (supports **); returns relative paths",
+		"grep_files":                   "Search file contents with a regular expression",
+		"read_file":                    "Read a text file from the workspace by relative path",
+		"write_file":                   "Write or overwrite a text file in the workspace, creating parent dirs as needed",
+		"apply_patch":                  "Apply an incremental multi-file patch (add/update/delete) inside the workspace",
+		"web_search":                   "Search the web for titles, URLs, and snippets",
+		"web_fetch":                    "Fetch text content from an http(s) URL (not localhost)",
+		"run_code":                     "Execute a Python or shell code snippet in the workspace",
+		"read_skill":                   "Load full skill instructions or an auxiliary file via optional path",
+		delegateSubagentToolName:       "Delegate a self-contained task to a specialized subagent that runs in isolation",
+		scheduleToolName:               "Create a cron or one-shot scheduled agent task with name, prompt, and cron or run_at",
+		updateScheduleToolName:         "Update an existing scheduled task's cron, run_at, prompt, name, or state (active|paused)",
+		listScheduleToolName:           "List active and paused scheduled tasks for the current user",
+		cancelScheduleToolName:         "Cancel a scheduled task by task_id",
+		todoWriteToolName:              "Create or update the session todo checklist (merge by item id)",
+		listTodosToolName:              "List the current session todo checklist",
+		memorySetToolName:              "Save or update a keyed memory fact in the current memory scope",
+		memoryGetToolName:              "Read one memory fact by key",
+		memoryListToolName:             "List memory fact keys in the current memory scope",
+		memoryDeleteToolName:           "Delete one memory fact by key",
+		searchSessionSummariesToolName: "Search archived chat session summaries by keyword",
+		clip.CreateToolName:            "Create a shareable markdown clip and return its full public URL",
+		clip.GetToolName:               "Read a shareable markdown clip by slug",
+		searchKnowledgeToolName:        "Search the knowledge base; returns path, title, tags, and summary",
+		getKnowledgeToolName:           "Read a knowledge base markdown document by path",
 	}
 }
 
@@ -106,7 +120,7 @@ func BuildSystemPrompt(options BuildSystemPromptOptions) string {
 	subagents := options.Subagents
 
 	if custom := strings.TrimSpace(options.CustomPrompt); custom != "" {
-		return finalizePrompt(custom+appendSection, contextFiles, skills, subagents, date, cwd, language, tools)
+		return finalizePrompt(custom+appendSection, contextFiles, skills, subagents, options.MemoryFacts, date, cwd, language, tools)
 	}
 
 	toolsList := formatToolsList(tools, snippets)
@@ -134,7 +148,7 @@ In addition to the tools above, you may receive other custom tools depending on 
 - If the task can be completed end-to-end, do so without asking unnecessary follow-up questions.
 `, toolsList, workflow)
 
-	return finalizePrompt(body+appendSection, contextFiles, skills, subagents, date, cwd, language, tools)
+	return finalizePrompt(body+appendSection, contextFiles, skills, subagents, options.MemoryFacts, date, cwd, language, tools)
 }
 
 // SystemPrompt builds the default chat assistant prompt from workspace, config, and DB skills.
@@ -278,6 +292,12 @@ func addProductWorkflow(add func(string), has func(string) bool) {
 	if has(searchKnowledgeToolName) {
 		add("Search the knowledge base with search_knowledge, then load a chosen path with get_knowledge")
 	}
+	if has(memorySetToolName) {
+		add("Persist stable user preferences and agreements with memory_set; pin core identity facts")
+	}
+	if has(searchSessionSummariesToolName) {
+		add("Recall past chat topics with search_session_summaries (archived sessions only)")
+	}
 	if has(delegateSubagentToolName) {
 		add("Delegate self-contained work with the delegate_subagent tool to a matching subagent from available_subagents")
 	}
@@ -306,11 +326,25 @@ func finalizePrompt(
 	contextFiles []ContextFile,
 	skills []Skill,
 	subagents []Subagent,
+	memoryFacts []InjectedMemoryFact,
 	date, cwd, language string,
 	tools []string,
 ) string {
 	var prompt strings.Builder
 	writePrompt(&prompt, body)
+
+	if len(memoryFacts) > 0 {
+		writePrompt(&prompt, "\n\n<memory_facts>\n")
+		writePrompt(&prompt, "Durable facts for the current memory scope (pinned preferred). Use memory tools for facts not listed here.\n")
+		for _, fact := range memoryFacts {
+			pin := ""
+			if fact.Pinned {
+				pin = " pinned=true"
+			}
+			writePrompt(&prompt, fmt.Sprintf("- %s=%s%s\n", fact.Key, fact.Value, pin))
+		}
+		writePrompt(&prompt, "</memory_facts>\n")
+	}
 
 	if len(contextFiles) > 0 && hasTool(tools, "read_file") {
 		writePrompt(&prompt, "\n\n<project_context>\n\nProject-specific instructions and guidelines:\n\n")

@@ -24,6 +24,8 @@ func IsReadOnlyTool(name string) bool {
 	switch name {
 	case "read_file", "web_search", "web_fetch", "read_skill", "list_dir", "glob_files", "grep_files", listScheduleToolName, listTodosToolName, clip.GetToolName, searchKnowledgeToolName, getKnowledgeToolName:
 		return true
+	case memoryGetToolName, memoryListToolName, searchSessionSummariesToolName:
+		return true
 	case todoWriteToolName:
 		return true
 	default:
@@ -35,7 +37,8 @@ func IsReadOnlyTool(name string) bool {
 func ReadOnlyToolNames() []string {
 	return []string{
 		"list_dir", "glob_files", "grep_files", "read_file",
-		"web_search", "web_fetch", "read_skill", listScheduleToolName, listTodosToolName, todoWriteToolName, updateMemoryToolName,
+		"web_search", "web_fetch", "read_skill", listScheduleToolName, listTodosToolName, todoWriteToolName,
+		memoryGetToolName, memoryListToolName, searchSessionSummariesToolName,
 		clip.GetToolName,
 		searchKnowledgeToolName, getKnowledgeToolName,
 	}

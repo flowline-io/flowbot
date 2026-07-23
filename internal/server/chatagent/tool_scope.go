@@ -85,7 +85,7 @@ func ToolGroupOf(name string) string {
 		return ToolGroupCore
 	case searchKnowledgeToolName, getKnowledgeToolName:
 		return ToolGroupSearch
-	case updateMemoryToolName:
+	case memorySetToolName, memoryGetToolName, memoryListToolName, memoryDeleteToolName, searchSessionSummariesToolName:
 		return ToolGroupMemory
 	case todoWriteToolName, listTodosToolName:
 		return ToolGroupTodo

@@ -125,29 +125,36 @@ reg.SetActive([]string{"disk_usage"}) // review mode: read-only tools only
 
 See reference: [pkg/agent/example/echo/](../../pkg/agent/example/echo/echo.go).
 
-## Persistent memory (`update_memory`)
+## Persistent memory (fact memory + session summaries)
 
-The chat agent always registers `update_memory`. Memory files live outside `chat_agent.workspace` at `<workspace-parent>/agent-memories/{scope}/*.md`.
+Memory is **agent-produced** and orthogonal to **Knowledge** (user-authored docs). Short-term conversation context remains the session tree + compaction (unchanged).
 
-Tool arguments:
+### Fact memory (`memory_set` / `memory_get` / `memory_list` / `memory_delete`)
 
-- `operation` (required): `read`, `write`, or `list`
-- `file` (optional): markdown filename, default `MEMORIES.md`
-- `content` (required for `write`): file body
+Facts are keyed rows in Postgres (`agent_memory_facts`), isolated by `memory_scope`:
 
-Scope is chosen per run:
-
+- Interactive chat: all sessions share scope `default`
 - Pipeline `agent.run`: pipeline name (auto-injected as `memory_scope`)
 - Scheduled tasks: task flag
-- Interactive chat: `default`
 
-Permissions:
+Pinned facts (plus recent facts under a budget of ~30 rows / 4k chars) are injected into the system prompt as `<memory_facts>`. Prompt cache keys include a facts fingerprint.
 
-- Interactive chat: `read`/`list` allow; `write` asks for approval
-- Pipeline and scheduled runs: `write` is allowed (no confirm gate) when the tool is enabled
-- Plan mode: `read`/`list` only; `write` is blocked
+Permissions (key `memory`):
 
-Interactive chat always has `update_memory` available. Pipeline `agent.run` and scheduled tasks must include `update_memory` in the step **Tools** allowlist to enable it. The Pipeline editor shows **Memory Notes** when at least one `agent.run` step in the current pipeline includes that tool.
+- Interactive: `read`/`list` allow; `write` (set/delete) asks for approval
+- Pipeline / scheduled: write allowed when the tools are enabled (no confirm gate)
+- Plan mode: get/list/search only; set/delete blocked
+
+Interactive chat registers the memory tools by default. Pipeline `agent.run` and scheduled tasks must include the tools in the step **Tools** allowlist. The Pipeline editor shows **Memory Facts** when an `agent.run` step includes `memory_set` (or related memory tools).
+
+### Session summaries (`search_session_summaries`)
+
+When a chat session is archived, Flowbot asynchronously generates a searchable summary (`agent_session_summaries`). Retrieval uses case-insensitive substring match (ContainsFold), not `tsvector`. Summaries are never auto-injected into the prompt. Unarchive keeps existing summaries; re-archive refreshes them.
+
+Web admin:
+
+- `/service/web/agent-memory` — browse/edit/pin/delete facts by scope (create via `memory_set`)
+- `/service/web/agent-session-summaries` — browse/search/retry summaries
 
 ## Session Persistence
 

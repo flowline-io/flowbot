@@ -1,0 +1,50 @@
+package partials
+
+import "github.com/flowline-io/flowbot/pkg/types/model"
+
+templ AgentSessionSummariesTable(items []model.AgentSessionSummary, q string) {
+	<div id="agent-session-summaries-table" class="overflow-x-auto" data-testid="agent-session-summaries-table">
+		<table class="table table-sm">
+			<thead>
+				<tr>
+					<th>Session</th>
+					<th>Title</th>
+					<th>Status</th>
+					<th>Summary</th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				if len(items) == 0 {
+					<tr>
+						<td colspan="5" class="text-base-content/60">No session summaries</td>
+					</tr>
+				} else {
+					for _, item := range items {
+						<tr data-testid={ "agent-session-summary-" + item.SessionFlag }>
+							<td class="font-mono text-xs">{ item.SessionFlag }</td>
+							<td>{ item.Title }</td>
+							<td>
+								<span class="badge badge-sm" data-testid="agent-session-summary-status">{ item.Status }</span>
+							</td>
+							<td class="max-w-lg truncate text-sm">{ item.Summary }</td>
+							<td>
+								if item.Status == "failed" || item.Status == "pending" {
+									<button
+										type="button"
+										class="btn btn-ghost btn-xs"
+										hx-post={ "/service/web/agent-session-summaries/" + item.SessionFlag + "/retry?q=" + q }
+										hx-target="#agent-session-summaries-table"
+										hx-swap="outerHTML"
+										data-testid="agent-session-summary-retry">
+										Retry
+									</button>
+								}
+							</td>
+						</tr>
+					}
+				}
+			</tbody>
+		</table>
+	</div>
+}

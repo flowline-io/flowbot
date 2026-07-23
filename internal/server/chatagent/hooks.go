@@ -202,15 +202,9 @@ func planModeToolBlock(ctx context.Context, sessionID string, event hooks.ToolCa
 		return nil
 	}
 	toolName := event.ToolCall.Name
-	if toolName == updateMemoryToolName {
-		switch MemoryOperation(event.Args) {
-		case "read", "list":
-			return nil
-		case "write":
-			return &hooks.ToolCallResult{Block: true, Reason: "plan mode: memory write disabled"}
-		default:
-			return &hooks.ToolCallResult{Block: true, Reason: "plan mode: read-only"}
-		}
+	switch toolName {
+	case memorySetToolName, memoryDeleteToolName:
+		return &hooks.ToolCallResult{Block: true, Reason: "plan mode: memory write disabled"}
 	}
 	if IsReadOnlyTool(toolName) {
 		return nil

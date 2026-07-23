@@ -222,6 +222,58 @@ type AgentKnowledgeSearchParams struct {
 	Limit int
 }
 
+// AgentMemoryFactUpsert carries fields for inserting or updating one memory fact.
+type AgentMemoryFactUpsert struct {
+	// Scope isolates facts (interactive chat uses "default").
+	Scope string
+	// Key is the fact name within the scope.
+	Key string
+	// Value is the stored fact text.
+	Value string
+	// Pinned prefers the fact for system-prompt injection.
+	Pinned bool
+}
+
+// AgentMemoryInjectableParams controls which facts are selected for system-prompt injection.
+type AgentMemoryInjectableParams struct {
+	// Scope selects which memory scope to read.
+	Scope string
+	// MaxCount caps how many facts are returned (default 30).
+	MaxCount int
+	// MaxChars caps total key+value characters across returned facts (default 4000).
+	MaxChars int
+}
+
+// AgentMemoryFactsFingerprint is a cache-busting digest for injectable facts in a scope.
+type AgentMemoryFactsFingerprint struct {
+	// Count is the number of facts in the scope.
+	Count int
+	// MaxUpdatedAt is the newest updated_at among facts in the scope.
+	MaxUpdatedAt time.Time
+	// ContentHash digests key/value/pinned/updated_at for cache invalidation.
+	ContentHash string
+}
+
+// AgentSessionSummarySearchParams controls session summary search.
+type AgentSessionSummarySearchParams struct {
+	// Query matches title or summary via case-insensitive substring.
+	Query string
+	// Scope restricts results when non-empty.
+	Scope string
+	// Limit caps results (default 10, max 50).
+	Limit int
+}
+
+// AgentSessionSummaryListFilter filters session summaries for the management UI.
+type AgentSessionSummaryListFilter struct {
+	// Scope restricts results when non-empty.
+	Scope string
+	// Status filters by pending|ready|failed when non-empty.
+	Status string
+	// Q matches title or summary via case-insensitive substring when non-empty.
+	Q string
+}
+
 // ListChatSessionsOptions holds pagination for listing chat agent sessions.
 type ListChatSessionsOptions struct {
 	Limit  int    // max 100, default 20
@@ -382,6 +434,36 @@ type Adapter interface {
 	CreateAgentKnowledge(ctx context.Context, doc *gen.AgentKnowledge) error
 	UpdateAgentKnowledge(ctx context.Context, doc *gen.AgentKnowledge) error
 	DeleteAgentKnowledge(ctx context.Context, id int64) error
+
+	// UpsertAgentMemoryFact inserts or updates one fact keyed by (scope, key).
+	UpsertAgentMemoryFact(ctx context.Context, fact AgentMemoryFactUpsert) (*gen.AgentMemoryFact, error)
+	// GetAgentMemoryFact returns one fact by scope and key.
+	GetAgentMemoryFact(ctx context.Context, scope, key string) (*gen.AgentMemoryFact, error)
+	// ListAgentMemoryFacts lists facts in a scope (pinned first, then updated_at desc).
+	ListAgentMemoryFacts(ctx context.Context, scope string) ([]*gen.AgentMemoryFact, error)
+	// DeleteAgentMemoryFact deletes one fact by scope and key.
+	DeleteAgentMemoryFact(ctx context.Context, scope, key string) error
+	// ListInjectableAgentMemoryFacts returns pinned-first facts under count/char budgets.
+	ListInjectableAgentMemoryFacts(ctx context.Context, params AgentMemoryInjectableParams) ([]*gen.AgentMemoryFact, error)
+	// GetAgentMemoryFactsFingerprint returns a cache-busting digest for a scope.
+	GetAgentMemoryFactsFingerprint(ctx context.Context, scope string) (AgentMemoryFactsFingerprint, error)
+
+	// UpsertAgentSessionSummaryPending marks a session summary pending for generation.
+	UpsertAgentSessionSummaryPending(ctx context.Context, sessionFlag, scope, title string) (*gen.AgentSessionSummary, error)
+	// ClaimAgentSessionSummaryPending claims the oldest unclaimed pending summary.
+	ClaimAgentSessionSummaryPending(ctx context.Context, claimToken string) (*gen.AgentSessionSummary, error)
+	// MarkAgentSessionSummaryReady finishes a claimed summary; claimToken must match.
+	MarkAgentSessionSummaryReady(ctx context.Context, sessionFlag, claimToken, title, summary string) error
+	// MarkAgentSessionSummaryFailed records generation failure; claimToken must match.
+	MarkAgentSessionSummaryFailed(ctx context.Context, sessionFlag, claimToken, errMsg string) error
+	// GetAgentSessionSummaryBySession returns the summary row for a session flag.
+	GetAgentSessionSummaryBySession(ctx context.Context, sessionFlag string) (*gen.AgentSessionSummary, error)
+	// SearchAgentSessionSummaries searches ready summaries by title/summary ContainsFold.
+	SearchAgentSessionSummaries(ctx context.Context, params AgentSessionSummarySearchParams) ([]*gen.AgentSessionSummary, error)
+	// ListAgentSessionSummaries lists summaries for the management UI.
+	ListAgentSessionSummaries(ctx context.Context, filter AgentSessionSummaryListFilter) ([]*gen.AgentSessionSummary, error)
+	// RequeueStaleAgentSessionSummaryPending clears stale claims so rows can be claimed again.
+	RequeueStaleAgentSessionSummaryPending(ctx context.Context, olderThan time.Duration) (int, error)
 
 	ListAgentSkillFiles(ctx context.Context, skillFlag string) ([]*gen.AgentSkillFile, error)
 	GetAgentSkillFile(ctx context.Context, skillFlag, path string) (*gen.AgentSkillFile, error)

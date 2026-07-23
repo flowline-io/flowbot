@@ -12,8 +12,14 @@ type Agent func(*sql.Selector)
 // AgentKnowledge is the predicate function for agentknowledge builders.
 type AgentKnowledge func(*sql.Selector)
 
+// AgentMemoryFact is the predicate function for agentmemoryfact builders.
+type AgentMemoryFact func(*sql.Selector)
+
 // AgentPlan is the predicate function for agentplan builders.
 type AgentPlan func(*sql.Selector)
+
+// AgentSessionSummary is the predicate function for agentsessionsummary builders.
+type AgentSessionSummary func(*sql.Selector)
 
 // AgentSkill is the predicate function for agentskill builders.
 type AgentSkill func(*sql.Selector)

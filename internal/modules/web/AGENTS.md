@@ -26,7 +26,8 @@ internal/modules/web/
 ├── agent_sessions_webservice.go # Agent sessions routes (list, detail, run history)
 ├── agent_skills_webservice.go   # Agent skills routes (list, enable/disable)
 ├── agents_webservice.go         # Agents listing / chat UI routes
-├── agent_memory_webservice.go   # Agent memory modal routes
+├── agent_memory_webservice.go   # Agent memory facts routes
+├── agent_session_summaries_webservice.go # Archived session summary browse/retry
 ├── agent_scheduled_tasks_webservice.go # Agent scheduled tasks routes
 ├── agent_subagents_webservice.go       # Agent subagents routes
 ├── chatagent_permissions_webservice.go # Chatagent permission policy routes

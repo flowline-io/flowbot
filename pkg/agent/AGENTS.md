@@ -31,7 +31,6 @@ agent/
 ├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
 ├── harness/              # High-level orchestration with hooks + overflow degrade
 ├── permission/           # Tool permission evaluation, forms, session/scheduled policies
-├── memory/               # Agent memory store
 ├── subagent/             # Subagent orchestration
 ├── coding/               # Code execution tools (run_code, read/write/list/glob/grep/patch, web_search/fetch, terminal, workspace)
 ├── sandbox/              # Opt-in Docker ExecutionEnv for shell/code

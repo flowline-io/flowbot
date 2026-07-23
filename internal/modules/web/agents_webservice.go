@@ -688,7 +688,7 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 		}
 		return types.Errorf(types.ErrInternal, "archive session: %v", err)
 	}
-	if err := store.Database.UpdateChatSessionArchived(ctx.Context(), sessionID, archived); err != nil {
+	if err := chatagent.SetSessionArchived(ctx.Context(), sessionID, archived); err != nil {
 		return toastError(ctx, "Failed to update archive")
 	}
 	filter := normalizeAgentsListFilter(ctx.Query("filter"))

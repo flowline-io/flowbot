@@ -18,7 +18,7 @@ const KeySchedule = "schedule"
 // KeyScheduleRead is the permission key for listing scheduled tasks.
 const KeyScheduleRead = "schedule_read"
 
-// KeyMemory is the permission key for the update_memory tool.
+// KeyMemory is the permission key for memory fact and session-summary tools.
 const KeyMemory = "memory"
 
 // KeyKnowledge is the permission key for knowledge base search/read tools.

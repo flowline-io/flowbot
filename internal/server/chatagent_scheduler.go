@@ -14,6 +14,7 @@ func initChatAgentScheduler(lc fx.Lifecycle) {
 	chatagent.SetGlobalScheduler(sched)
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			chatagent.StartSessionSummaryWorker(ctx)
 			if err := sched.Start(ctx); err != nil {
 				flog.Error(err)
 				return err

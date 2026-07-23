@@ -5,7 +5,7 @@ import (
 )
 
 // allWebserviceRules lists every route group registered under /service/web.
-// Rules() exposes each slice separately (24 groups; formerly bundled in webservice.go).
+// Rules() exposes each slice separately (26 groups; formerly bundled in webservice.go).
 var allWebserviceRules = [][]webservice.Rule{
 	homeWebserviceRules,
 	loginWebserviceRules,
@@ -22,6 +22,7 @@ var allWebserviceRules = [][]webservice.Rule{
 	agentSkillsWebserviceRules,
 	agentKnowledgeWebserviceRules,
 	agentMemoryWebserviceRules,
+	agentSessionSummariesWebserviceRules,
 	agentSubagentsWebserviceRules,
 	agentSessionsWebserviceRules,
 	agentScheduledTasksWebserviceRules,

@@ -33,6 +33,18 @@ func (f AgentKnowledgeFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentKnowledgeMutation", m)
 }
 
+// The AgentMemoryFactFunc type is an adapter to allow the use of ordinary
+// function as AgentMemoryFact mutator.
+type AgentMemoryFactFunc func(context.Context, *gen.AgentMemoryFactMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentMemoryFactFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentMemoryFactMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentMemoryFactMutation", m)
+}
+
 // The AgentPlanFunc type is an adapter to allow the use of ordinary
 // function as AgentPlan mutator.
 type AgentPlanFunc func(context.Context, *gen.AgentPlanMutation) (gen.Value, error)
@@ -43,6 +55,18 @@ func (f AgentPlanFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, e
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentPlanMutation", m)
+}
+
+// The AgentSessionSummaryFunc type is an adapter to allow the use of ordinary
+// function as AgentSessionSummary mutator.
+type AgentSessionSummaryFunc func(context.Context, *gen.AgentSessionSummaryMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AgentSessionSummaryFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.AgentSessionSummaryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.AgentSessionSummaryMutation", m)
 }
 
 // The AgentSkillFunc type is an adapter to allow the use of ordinary

@@ -7,7 +7,9 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentknowledge"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentmemoryfact"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentplan"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsessionsummary"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
@@ -136,6 +138,34 @@ func init() {
 	agentknowledge.DefaultUpdatedAt = agentknowledgeDescUpdatedAt.Default.(func() time.Time)
 	// agentknowledge.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agentknowledge.UpdateDefaultUpdatedAt = agentknowledgeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentmemoryfactFields := schema.AgentMemoryFact{}.Fields()
+	_ = agentmemoryfactFields
+	// agentmemoryfactDescScope is the schema descriptor for scope field.
+	agentmemoryfactDescScope := agentmemoryfactFields[1].Descriptor()
+	// agentmemoryfact.ScopeValidator is a validator for the "scope" field. It is called by the builders before save.
+	agentmemoryfact.ScopeValidator = agentmemoryfactDescScope.Validators[0].(func(string) error)
+	// agentmemoryfactDescKey is the schema descriptor for key field.
+	agentmemoryfactDescKey := agentmemoryfactFields[2].Descriptor()
+	// agentmemoryfact.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	agentmemoryfact.KeyValidator = agentmemoryfactDescKey.Validators[0].(func(string) error)
+	// agentmemoryfactDescValue is the schema descriptor for value field.
+	agentmemoryfactDescValue := agentmemoryfactFields[3].Descriptor()
+	// agentmemoryfact.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	agentmemoryfact.ValueValidator = agentmemoryfactDescValue.Validators[0].(func(string) error)
+	// agentmemoryfactDescPinned is the schema descriptor for pinned field.
+	agentmemoryfactDescPinned := agentmemoryfactFields[4].Descriptor()
+	// agentmemoryfact.DefaultPinned holds the default value on creation for the pinned field.
+	agentmemoryfact.DefaultPinned = agentmemoryfactDescPinned.Default.(bool)
+	// agentmemoryfactDescCreatedAt is the schema descriptor for created_at field.
+	agentmemoryfactDescCreatedAt := agentmemoryfactFields[5].Descriptor()
+	// agentmemoryfact.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentmemoryfact.DefaultCreatedAt = agentmemoryfactDescCreatedAt.Default.(func() time.Time)
+	// agentmemoryfactDescUpdatedAt is the schema descriptor for updated_at field.
+	agentmemoryfactDescUpdatedAt := agentmemoryfactFields[6].Descriptor()
+	// agentmemoryfact.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentmemoryfact.DefaultUpdatedAt = agentmemoryfactDescUpdatedAt.Default.(func() time.Time)
+	// agentmemoryfact.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentmemoryfact.UpdateDefaultUpdatedAt = agentmemoryfactDescUpdatedAt.UpdateDefault.(func() time.Time)
 	agentplanFields := schema.AgentPlan{}.Fields()
 	_ = agentplanFields
 	// agentplanDescFlag is the schema descriptor for flag field.
@@ -168,6 +198,48 @@ func init() {
 	agentplan.DefaultUpdatedAt = agentplanDescUpdatedAt.Default.(func() time.Time)
 	// agentplan.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	agentplan.UpdateDefaultUpdatedAt = agentplanDescUpdatedAt.UpdateDefault.(func() time.Time)
+	agentsessionsummaryFields := schema.AgentSessionSummary{}.Fields()
+	_ = agentsessionsummaryFields
+	// agentsessionsummaryDescSessionFlag is the schema descriptor for session_flag field.
+	agentsessionsummaryDescSessionFlag := agentsessionsummaryFields[1].Descriptor()
+	// agentsessionsummary.SessionFlagValidator is a validator for the "session_flag" field. It is called by the builders before save.
+	agentsessionsummary.SessionFlagValidator = agentsessionsummaryDescSessionFlag.Validators[0].(func(string) error)
+	// agentsessionsummaryDescScope is the schema descriptor for scope field.
+	agentsessionsummaryDescScope := agentsessionsummaryFields[2].Descriptor()
+	// agentsessionsummary.ScopeValidator is a validator for the "scope" field. It is called by the builders before save.
+	agentsessionsummary.ScopeValidator = agentsessionsummaryDescScope.Validators[0].(func(string) error)
+	// agentsessionsummaryDescTitle is the schema descriptor for title field.
+	agentsessionsummaryDescTitle := agentsessionsummaryFields[3].Descriptor()
+	// agentsessionsummary.DefaultTitle holds the default value on creation for the title field.
+	agentsessionsummary.DefaultTitle = agentsessionsummaryDescTitle.Default.(string)
+	// agentsessionsummaryDescSummary is the schema descriptor for summary field.
+	agentsessionsummaryDescSummary := agentsessionsummaryFields[4].Descriptor()
+	// agentsessionsummary.DefaultSummary holds the default value on creation for the summary field.
+	agentsessionsummary.DefaultSummary = agentsessionsummaryDescSummary.Default.(string)
+	// agentsessionsummaryDescStatus is the schema descriptor for status field.
+	agentsessionsummaryDescStatus := agentsessionsummaryFields[5].Descriptor()
+	// agentsessionsummary.DefaultStatus holds the default value on creation for the status field.
+	agentsessionsummary.DefaultStatus = agentsessionsummaryDescStatus.Default.(string)
+	// agentsessionsummary.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	agentsessionsummary.StatusValidator = agentsessionsummaryDescStatus.Validators[0].(func(string) error)
+	// agentsessionsummaryDescError is the schema descriptor for error field.
+	agentsessionsummaryDescError := agentsessionsummaryFields[6].Descriptor()
+	// agentsessionsummary.DefaultError holds the default value on creation for the error field.
+	agentsessionsummary.DefaultError = agentsessionsummaryDescError.Default.(string)
+	// agentsessionsummaryDescClaimToken is the schema descriptor for claim_token field.
+	agentsessionsummaryDescClaimToken := agentsessionsummaryFields[7].Descriptor()
+	// agentsessionsummary.DefaultClaimToken holds the default value on creation for the claim_token field.
+	agentsessionsummary.DefaultClaimToken = agentsessionsummaryDescClaimToken.Default.(string)
+	// agentsessionsummaryDescCreatedAt is the schema descriptor for created_at field.
+	agentsessionsummaryDescCreatedAt := agentsessionsummaryFields[9].Descriptor()
+	// agentsessionsummary.DefaultCreatedAt holds the default value on creation for the created_at field.
+	agentsessionsummary.DefaultCreatedAt = agentsessionsummaryDescCreatedAt.Default.(func() time.Time)
+	// agentsessionsummaryDescUpdatedAt is the schema descriptor for updated_at field.
+	agentsessionsummaryDescUpdatedAt := agentsessionsummaryFields[10].Descriptor()
+	// agentsessionsummary.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	agentsessionsummary.DefaultUpdatedAt = agentsessionsummaryDescUpdatedAt.Default.(func() time.Time)
+	// agentsessionsummary.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	agentsessionsummary.UpdateDefaultUpdatedAt = agentsessionsummaryDescUpdatedAt.UpdateDefault.(func() time.Time)
 	agentskillFields := schema.AgentSkill{}.Fields()
 	_ = agentskillFields
 	// agentskillDescFlag is the schema descriptor for flag field.

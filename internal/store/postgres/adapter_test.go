@@ -3,11 +3,13 @@ package postgres
 import (
 	"context"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsessionsummary"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -1005,6 +1007,150 @@ func TestAgentKnowledgeCRUDAndSearch(t *testing.T) {
 			name: "search requires query or path prefix",
 			run: func(t *testing.T, a *adapter) {
 				_, err := a.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{})
+				require.Error(t, err)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.run(t, testAdapter(t))
+		})
+	}
+}
+
+func TestAgentMemoryFactsAndSessionSummaries(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	tests := []struct {
+		name string
+		run  func(t *testing.T, a *adapter)
+	}{
+		{
+			name: "upsert get list delete memory fact",
+			run: func(t *testing.T, a *adapter) {
+				row, err := a.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+					Scope: "default", Key: "user.name", Value: "Robin", Pinned: true,
+				})
+				require.NoError(t, err)
+				assert.Positive(t, row.ID)
+				got, err := a.GetAgentMemoryFact(ctx, "default", "user.name")
+				require.NoError(t, err)
+				assert.Equal(t, "Robin", got.Value)
+				assert.True(t, got.Pinned)
+				listed, err := a.ListAgentMemoryFacts(ctx, "default")
+				require.NoError(t, err)
+				require.Len(t, listed, 1)
+				require.NoError(t, a.DeleteAgentMemoryFact(ctx, "default", "user.name"))
+				_, err = a.GetAgentMemoryFact(ctx, "default", "user.name")
+				require.ErrorIs(t, err, types.ErrNotFound)
+			},
+		},
+		{
+			name: "injectable facts prefer pinned then truncate by count",
+			run: func(t *testing.T, a *adapter) {
+				_, err := a.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+					Scope: "s", Key: "a", Value: "1", Pinned: false,
+				})
+				require.NoError(t, err)
+				time.Sleep(2 * time.Millisecond)
+				_, err = a.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+					Scope: "s", Key: "b", Value: "2", Pinned: true,
+				})
+				require.NoError(t, err)
+				time.Sleep(2 * time.Millisecond)
+				_, err = a.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+					Scope: "s", Key: "c", Value: "3", Pinned: false,
+				})
+				require.NoError(t, err)
+				rows, err := a.ListInjectableAgentMemoryFacts(ctx, store.AgentMemoryInjectableParams{
+					Scope: "s", MaxCount: 2, MaxChars: 4000,
+				})
+				require.NoError(t, err)
+				require.Len(t, rows, 2)
+				assert.Equal(t, "b", rows[0].Key)
+				fp, err := a.GetAgentMemoryFactsFingerprint(ctx, "s")
+				require.NoError(t, err)
+				assert.Equal(t, 3, fp.Count)
+				assert.NotEmpty(t, fp.ContentHash)
+			},
+		},
+		{
+			name: "injectable facts skip oversized first fact",
+			run: func(t *testing.T, a *adapter) {
+				big := strings.Repeat("x", 5000)
+				_, err := a.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+					Scope: "budget", Key: "huge", Value: big, Pinned: true,
+				})
+				require.NoError(t, err)
+				rows, err := a.ListInjectableAgentMemoryFacts(ctx, store.AgentMemoryInjectableParams{
+					Scope: "budget", MaxCount: 30, MaxChars: 4000,
+				})
+				require.NoError(t, err)
+				assert.Empty(t, rows)
+			},
+		},
+		{
+			name: "session summary pending claim ready and search",
+			run: func(t *testing.T, a *adapter) {
+				_, err := a.UpsertAgentSessionSummaryPending(ctx, "sess-1", "default", "Topic A")
+				require.NoError(t, err)
+				claimed, err := a.ClaimAgentSessionSummaryPending(ctx, "tok-1")
+				require.NoError(t, err)
+				assert.Equal(t, "sess-1", claimed.SessionFlag)
+				require.NoError(t, a.MarkAgentSessionSummaryReady(ctx, "sess-1", "tok-1", "Topic A", "discussed widgets and backups"))
+				rows, err := a.SearchAgentSessionSummaries(ctx, store.AgentSessionSummarySearchParams{
+					Query: "widgets", Scope: "default", Limit: 10,
+				})
+				require.NoError(t, err)
+				require.Len(t, rows, 1)
+				assert.Equal(t, "sess-1", rows[0].SessionFlag)
+			},
+		},
+		{
+			name: "stale claim cannot mark after requeue",
+			run: func(t *testing.T, a *adapter) {
+				_, err := a.UpsertAgentSessionSummaryPending(ctx, "sess-race", "default", "Race")
+				require.NoError(t, err)
+				_, err = a.ClaimAgentSessionSummaryPending(ctx, "old-tok")
+				require.NoError(t, err)
+				_, err = a.UpsertAgentSessionSummaryPending(ctx, "sess-race", "default", "Race")
+				require.NoError(t, err)
+				_, err = a.ClaimAgentSessionSummaryPending(ctx, "new-tok")
+				require.NoError(t, err)
+				err = a.MarkAgentSessionSummaryReady(ctx, "sess-race", "old-tok", "Race", "stale write")
+				require.ErrorIs(t, err, types.ErrNotFound)
+				require.NoError(t, a.MarkAgentSessionSummaryReady(ctx, "sess-race", "new-tok", "Race", "fresh write"))
+				row, err := a.GetAgentSessionSummaryBySession(ctx, "sess-race")
+				require.NoError(t, err)
+				assert.Equal(t, "fresh write", row.Summary)
+			},
+		},
+		{
+			name: "requeue stale claimed pending",
+			run: func(t *testing.T, a *adapter) {
+				_, err := a.UpsertAgentSessionSummaryPending(ctx, "sess-stale", "default", "Stale")
+				require.NoError(t, err)
+				_, err = a.ClaimAgentSessionSummaryPending(ctx, "tok-stale")
+				require.NoError(t, err)
+				// Force claimed_at into the past via update.
+				_, err = a.client.AgentSessionSummary.Update().
+					Where(agentsessionsummary.SessionFlagEQ("sess-stale")).
+					SetClaimedAt(time.Now().Add(-time.Hour)).
+					Save(ctx)
+				require.NoError(t, err)
+				n, err := a.RequeueStaleAgentSessionSummaryPending(ctx, 5*time.Minute)
+				require.NoError(t, err)
+				assert.Equal(t, 1, n)
+				claimed, err := a.ClaimAgentSessionSummaryPending(ctx, "tok-2")
+				require.NoError(t, err)
+				assert.Equal(t, "sess-stale", claimed.SessionFlag)
+			},
+		},
+		{
+			name: "search requires query",
+			run: func(t *testing.T, a *adapter) {
+				_, err := a.SearchAgentSessionSummaries(ctx, store.AgentSessionSummarySearchParams{})
 				require.Error(t, err)
 			},
 		},

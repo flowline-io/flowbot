@@ -138,6 +138,15 @@ root ──► user msg ──► assistant ──► tool result ──► leaf
 
 `session.BuildContext(path)` reconstructs `[]msg.AgentMessage` and model/tool state from a branch path, honoring compaction boundaries via `first_kept_entry_id`.
 
+## Persistent memory (chatagent)
+
+Orthogonal to short-term session context and to user-authored **Knowledge**:
+
+| Layer | Store | Behavior |
+| ----- | ----- | -------- |
+| Fact memory | `agent_memory_facts` | Tools `memory_set`/`get`/`list`/`delete`; injectable pinned+recent facts in `<memory_facts>`; scope `default` shared across interactive chats |
+| Session summaries | `agent_session_summaries` | Generated on archive via `OnSessionArchived`; tool `search_session_summaries` (ContainsFold, not tsvector); not auto-injected |
+
 ## Context Management
 
 Long-running sessions are kept within model limits by `pkg/agent/ctxmgr`:

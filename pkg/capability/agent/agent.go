@@ -73,7 +73,7 @@ func Register() error {
 					{Name: "uid", Type: "string", Required: false, Description: "Owner UID for permissions; use {{.Event.uid}} in YAML when available"},
 					{Name: "tools", Type: "[]string", Required: false, Description: "Tool allowlist; omit or leave empty for pipeline defaults"},
 					{Name: "skills", Type: "[]string", Required: false, Description: "Skill allowlist by name; omit or leave empty for all enabled skills"},
-					{Name: "memory_scope", Type: "string", Required: false, Description: "Memory scope for update_memory; defaults to pipeline name when omitted"},
+					{Name: "memory_scope", Type: "string", Required: false, Description: "Memory scope for memory_* tools; defaults to pipeline name when omitted"},
 				},
 				Handler: runInvoker,
 			},

@@ -34,18 +34,18 @@ func TestPlanModeMemoryWriteBlock(t *testing.T) {
 	tests := []struct {
 		name    string
 		tool    string
-		args    map[string]any
 		wantBlk bool
 	}{
-		{name: "memory read allowed", tool: updateMemoryToolName, args: map[string]any{"operation": "read"}, wantBlk: false},
-		{name: "memory list allowed", tool: updateMemoryToolName, args: map[string]any{"operation": "list"}, wantBlk: false},
-		{name: "memory write blocked", tool: updateMemoryToolName, args: map[string]any{"operation": "write"}, wantBlk: true},
+		{name: "memory get allowed", tool: memoryGetToolName, wantBlk: false},
+		{name: "memory list allowed", tool: memoryListToolName, wantBlk: false},
+		{name: "search summaries allowed", tool: searchSessionSummariesToolName, wantBlk: false},
+		{name: "memory set blocked", tool: memorySetToolName, wantBlk: true},
+		{name: "memory delete blocked", tool: memoryDeleteToolName, wantBlk: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			event := hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},
-				Args:     tt.args,
 			}
 			block := planModeToolBlock(ctx, sessionID, event)
 			if tt.wantBlk {
@@ -76,27 +76,11 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 	tests := []struct {
 		name    string
 		kind    RunKind
-		args    map[string]any
 		wantBlk bool
 	}{
-		{
-			name:    "pipeline allows memory write",
-			kind:    RunKindPipeline,
-			args:    map[string]any{"operation": "write", "content": "x"},
-			wantBlk: false,
-		},
-		{
-			name:    "scheduled allows memory write",
-			kind:    RunKindScheduled,
-			args:    map[string]any{"operation": "write", "content": "x"},
-			wantBlk: false,
-		},
-		{
-			name:    "interactive blocks memory write without gate",
-			kind:    RunKindInteractive,
-			args:    map[string]any{"operation": "write", "content": "x"},
-			wantBlk: true,
-		},
+		{name: "pipeline allows memory set", kind: RunKindPipeline, wantBlk: false},
+		{name: "scheduled allows memory set", kind: RunKindScheduled, wantBlk: false},
+		{name: "interactive blocks memory set without gate", kind: RunKindInteractive, wantBlk: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -114,8 +98,8 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 				Kind:      tt.kind,
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
-				ToolCall: msg.ToolCallPart{Name: permission.ToolUpdateMemory},
-				Args:     tt.args,
+				ToolCall: msg.ToolCallPart{Name: permission.ToolMemorySet},
+				Args:     map[string]any{"key": "k", "value": "v"},
 			})
 			require.NoError(t, err)
 			if tt.wantBlk {

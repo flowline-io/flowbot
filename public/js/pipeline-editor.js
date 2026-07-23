@@ -40,9 +40,10 @@
       capabilities: [],
       agentRunOptions: { tools: [], skills: [] },
       memoryModalOpen: false,
-      memoryFiles: [],
-      memorySelectedFile: 'MEMORIES.md',
+      memoryKeys: [],
+      memorySelectedKey: '',
       memoryContent: '',
+      memoryPinned: false,
       memoryError: '',
       memorySaving: false,
       defaultTemplateSet: null,
@@ -493,7 +494,7 @@
           return false;
         }
         const available = (this.agentRunOptions.tools || []).includes(
-          'update_memory',
+          'memory_set',
         );
         if (!available) {
           return false;
@@ -502,7 +503,12 @@
           if (!this.isAgentRunStep(i)) {
             continue;
           }
-          if (this.getAgentRunParamList(i, 'tools').includes('update_memory')) {
+          const tools = this.getAgentRunParamList(i, 'tools');
+          if (
+            tools.includes('memory_set') ||
+            tools.includes('memory_get') ||
+            tools.includes('memory_list')
+          ) {
             return true;
           }
         }
@@ -1855,8 +1861,7 @@
       async openMemoryModal() {
         this.memoryModalOpen = true;
         this.memoryError = '';
-        await this.loadMemoryFiles();
-        await this.loadMemoryContent();
+        await this.loadMemoryFacts();
       },
 
       closeMemoryModal() {
@@ -1864,74 +1869,118 @@
         this.memoryError = '';
       },
 
-      async loadMemoryFiles() {
+      async loadMemoryFacts() {
         try {
           const resp = await fetch(
-            '/service/web/agent-memory/files?scope=' +
+            '/service/web/agent-memory/facts?scope=' +
               encodeURIComponent(this.name),
           );
           if (!resp.ok) {
-            throw new Error('failed to list memory files');
+            throw new Error('failed to list memory facts');
           }
           const json = await resp.json();
-          const files = json.data || [];
-          this.memoryFiles = files.length > 0 ? files : ['MEMORIES.md'];
-          if (!this.memoryFiles.includes(this.memorySelectedFile)) {
-            this.memorySelectedFile = this.memoryFiles[0];
+          const facts = json.data || [];
+          this.memoryKeys = facts.map((f) => f.key);
+          if (this.memoryKeys.length === 0) {
+            this.memorySelectedKey = '';
+            this.memoryContent = '';
+            this.memoryPinned = false;
+            return;
           }
+          if (!this.memoryKeys.includes(this.memorySelectedKey)) {
+            this.memorySelectedKey = this.memoryKeys[0];
+          }
+          await this.loadMemoryFact();
         } catch (e) {
-          console.error('Failed to load memory files:', e);
-          this.memoryError = 'Failed to load memory files';
-          this.memoryFiles = ['MEMORIES.md'];
+          console.error('Failed to load memory facts:', e);
+          this.memoryError = 'Failed to load memory facts';
+          this.memoryKeys = [];
         }
       },
 
-      async loadMemoryContent() {
-        if (!this.name) {
+      async loadMemoryFact() {
+        if (!this.name || !this.memorySelectedKey) {
           return;
         }
         try {
-          const url =
-            '/service/web/agent-memory/content?scope=' +
-            encodeURIComponent(this.name) +
-            '&file=' +
-            encodeURIComponent(this.memorySelectedFile || 'MEMORIES.md');
-          const resp = await fetch(url);
+          const resp = await fetch(
+            '/service/web/agent-memory/facts?scope=' +
+              encodeURIComponent(this.name),
+          );
           if (!resp.ok) {
-            throw new Error('failed to load memory content');
+            throw new Error('failed to load memory facts');
           }
           const json = await resp.json();
-          this.memoryContent = (json.data && json.data.content) || '';
+          const facts = json.data || [];
+          const fact = facts.find((f) => f.key === this.memorySelectedKey);
+          this.memoryContent = (fact && fact.value) || '';
+          this.memoryPinned = !!(fact && fact.pinned);
           this.memoryError = '';
         } catch (e) {
-          console.error('Failed to load memory content:', e);
-          this.memoryError = 'Failed to load memory content';
+          console.error('Failed to load memory fact:', e);
+          this.memoryError = 'Failed to load memory fact';
         }
       },
 
-      async saveMemoryContent() {
+      async saveMemoryFact() {
         if (!this.name) {
+          return;
+        }
+        const key = (this.memorySelectedKey || '').trim();
+        if (!key) {
+          this.memoryError = 'Key is required';
           return;
         }
         this.memorySaving = true;
         this.memoryError = '';
         try {
-          const resp = await fetch('/service/web/agent-memory/content', {
+          const resp = await fetch('/service/web/agent-memory/facts', {
             method: 'PUT',
             headers: flowbotCSRFHeaders({ 'Content-Type': 'application/json' }),
             body: JSON.stringify({
               scope: this.name,
-              file: this.memorySelectedFile || 'MEMORIES.md',
-              content: this.memoryContent,
+              key: key,
+              value: this.memoryContent,
+              pinned: !!this.memoryPinned,
             }),
           });
           if (!resp.ok) {
-            throw new Error('failed to save memory content');
+            throw new Error('failed to save memory fact');
           }
           this.closeMemoryModal();
         } catch (e) {
-          console.error('Failed to save memory content:', e);
-          this.memoryError = 'Failed to save memory content';
+          console.error('Failed to save memory fact:', e);
+          this.memoryError = 'Failed to save memory fact';
+        } finally {
+          this.memorySaving = false;
+        }
+      },
+
+      async deleteMemoryFact() {
+        if (!this.name || !this.memorySelectedKey) {
+          return;
+        }
+        this.memorySaving = true;
+        this.memoryError = '';
+        try {
+          const resp = await fetch(
+            '/service/web/agent-memory/facts?scope=' +
+              encodeURIComponent(this.name) +
+              '&key=' +
+              encodeURIComponent(this.memorySelectedKey),
+            {
+              method: 'DELETE',
+              headers: flowbotCSRFHeaders(),
+            },
+          );
+          if (!resp.ok) {
+            throw new Error('failed to delete memory fact');
+          }
+          this.memorySelectedKey = '';
+          await this.loadMemoryFacts();
+        } catch (e) {
+          console.error('Failed to delete memory fact:', e);
+          this.memoryError = 'Failed to delete memory fact';
         } finally {
           this.memorySaving = false;
         }

@@ -3,7 +3,9 @@ package postgres
 
 import (
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"slices"
@@ -22,7 +24,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agent"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentknowledge"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentmemoryfact"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentplan"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsessionsummary"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentskillfile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/agentsubagent"
@@ -1857,6 +1861,394 @@ func (a *adapter) DeleteAgentKnowledge(ctx context.Context, id int64) error {
 		return types.ErrNotFound
 	}
 	return nil
+}
+
+func (a *adapter) UpsertAgentMemoryFact(ctx context.Context, fact store.AgentMemoryFactUpsert) (*gen.AgentMemoryFact, error) {
+	scope := strings.TrimSpace(fact.Scope)
+	key := strings.TrimSpace(fact.Key)
+	value := strings.TrimSpace(fact.Value)
+	if scope == "" || key == "" {
+		return nil, fmt.Errorf("postgres: upsert agent memory fact: scope and key are required")
+	}
+	if value == "" {
+		return nil, fmt.Errorf("postgres: upsert agent memory fact: value is required")
+	}
+	existing, err := a.client.AgentMemoryFact.Query().
+		Where(
+			agentmemoryfact.ScopeEQ(scope),
+			agentmemoryfact.KeyEQ(key),
+		).
+		Only(ctx)
+	if err != nil && !gen.IsNotFound(err) {
+		return nil, fmt.Errorf("postgres: upsert agent memory fact lookup: %w", err)
+	}
+	now := time.Now()
+	if gen.IsNotFound(err) {
+		row, createErr := a.client.AgentMemoryFact.Create().
+			SetScope(scope).
+			SetKey(key).
+			SetValue(value).
+			SetPinned(fact.Pinned).
+			SetCreatedAt(now).
+			SetUpdatedAt(now).
+			Save(ctx)
+		if createErr != nil {
+			return nil, fmt.Errorf("postgres: create agent memory fact: %w", createErr)
+		}
+		return row, nil
+	}
+	row, updateErr := existing.Update().
+		SetValue(value).
+		SetPinned(fact.Pinned).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if updateErr != nil {
+		return nil, fmt.Errorf("postgres: update agent memory fact: %w", updateErr)
+	}
+	return row, nil
+}
+
+func (a *adapter) GetAgentMemoryFact(ctx context.Context, scope, key string) (*gen.AgentMemoryFact, error) {
+	row, err := a.client.AgentMemoryFact.Query().
+		Where(
+			agentmemoryfact.ScopeEQ(strings.TrimSpace(scope)),
+			agentmemoryfact.KeyEQ(strings.TrimSpace(key)),
+		).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get agent memory fact: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) ListAgentMemoryFacts(ctx context.Context, scope string) ([]*gen.AgentMemoryFact, error) {
+	rows, err := a.client.AgentMemoryFact.Query().
+		Where(agentmemoryfact.ScopeEQ(strings.TrimSpace(scope))).
+		Order(gen.Desc(agentmemoryfact.FieldPinned), gen.Desc(agentmemoryfact.FieldUpdatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list agent memory facts: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) DeleteAgentMemoryFact(ctx context.Context, scope, key string) error {
+	n, err := a.client.AgentMemoryFact.Delete().
+		Where(
+			agentmemoryfact.ScopeEQ(strings.TrimSpace(scope)),
+			agentmemoryfact.KeyEQ(strings.TrimSpace(key)),
+		).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: delete agent memory fact: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) ListInjectableAgentMemoryFacts(ctx context.Context, params store.AgentMemoryInjectableParams) ([]*gen.AgentMemoryFact, error) {
+	maxCount := params.MaxCount
+	if maxCount <= 0 {
+		maxCount = 30
+	}
+	maxChars := params.MaxChars
+	if maxChars <= 0 {
+		maxChars = 4000
+	}
+	rows, err := a.ListAgentMemoryFacts(ctx, params.Scope)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*gen.AgentMemoryFact, 0, maxCount)
+	used := 0
+	for _, row := range rows {
+		if len(out) >= maxCount {
+			break
+		}
+		lineLen := len(row.Key) + len(row.Value) + 3
+		if used+lineLen > maxChars {
+			break
+		}
+		out = append(out, row)
+		used += lineLen
+	}
+	return out, nil
+}
+
+func (a *adapter) GetAgentMemoryFactsFingerprint(ctx context.Context, scope string) (store.AgentMemoryFactsFingerprint, error) {
+	rows, err := a.ListAgentMemoryFacts(ctx, scope)
+	if err != nil {
+		return store.AgentMemoryFactsFingerprint{}, err
+	}
+	h := sha256.New()
+	var maxUpdated time.Time
+	for _, row := range rows {
+		_, _ = fmt.Fprintf(h, "%s\x00%s\x00%t\x00%s\x00%d\n", row.Key, row.Value, row.Pinned, row.UpdatedAt.UTC().Format(time.RFC3339Nano), row.ID)
+		if row.UpdatedAt.After(maxUpdated) {
+			maxUpdated = row.UpdatedAt
+		}
+	}
+	return store.AgentMemoryFactsFingerprint{
+		Count:        len(rows),
+		MaxUpdatedAt: maxUpdated,
+		ContentHash:  hex.EncodeToString(h.Sum(nil)),
+	}, nil
+}
+
+func (a *adapter) UpsertAgentSessionSummaryPending(ctx context.Context, sessionFlag, scope, title string) (*gen.AgentSessionSummary, error) {
+	flag := strings.TrimSpace(sessionFlag)
+	scope = strings.TrimSpace(scope)
+	if flag == "" || scope == "" {
+		return nil, fmt.Errorf("postgres: upsert session summary pending: session_flag and scope are required")
+	}
+	existing, err := a.client.AgentSessionSummary.Query().
+		Where(agentsessionsummary.SessionFlagEQ(flag)).
+		Only(ctx)
+	if err != nil && !gen.IsNotFound(err) {
+		return nil, fmt.Errorf("postgres: upsert session summary pending lookup: %w", err)
+	}
+	now := time.Now()
+	if gen.IsNotFound(err) {
+		row, createErr := a.client.AgentSessionSummary.Create().
+			SetSessionFlag(flag).
+			SetScope(scope).
+			SetTitle(strings.TrimSpace(title)).
+			SetSummary("").
+			SetStatus(schema.AgentSessionSummaryPending).
+			SetError("").
+			SetClaimToken("").
+			SetCreatedAt(now).
+			SetUpdatedAt(now).
+			Save(ctx)
+		if createErr != nil {
+			return nil, fmt.Errorf("postgres: create session summary pending: %w", createErr)
+		}
+		return row, nil
+	}
+	upd := existing.Update().
+		SetScope(scope).
+		SetStatus(schema.AgentSessionSummaryPending).
+		SetError("").
+		SetClaimToken("").
+		ClearClaimedAt().
+		SetUpdatedAt(now)
+	if t := strings.TrimSpace(title); t != "" {
+		upd = upd.SetTitle(t)
+	}
+	row, updateErr := upd.Save(ctx)
+	if updateErr != nil {
+		return nil, fmt.Errorf("postgres: update session summary pending: %w", updateErr)
+	}
+	return row, nil
+}
+
+func (a *adapter) ClaimAgentSessionSummaryPending(ctx context.Context, claimToken string) (*gen.AgentSessionSummary, error) {
+	token := strings.TrimSpace(claimToken)
+	if token == "" {
+		return nil, fmt.Errorf("postgres: claim session summary: claim_token is required")
+	}
+	row, err := a.client.AgentSessionSummary.Query().
+		Where(
+			agentsessionsummary.StatusEQ(schema.AgentSessionSummaryPending),
+			agentsessionsummary.ClaimTokenEQ(""),
+		).
+		Order(gen.Asc(agentsessionsummary.FieldUpdatedAt)).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: claim session summary lookup: %w", err)
+	}
+	now := time.Now()
+	n, err := a.client.AgentSessionSummary.Update().
+		Where(
+			agentsessionsummary.IDEQ(row.ID),
+			agentsessionsummary.StatusEQ(schema.AgentSessionSummaryPending),
+			agentsessionsummary.ClaimTokenEQ(""),
+		).
+		SetClaimToken(token).
+		SetClaimedAt(now).
+		SetUpdatedAt(now).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: claim session summary: %w", err)
+	}
+	if n == 0 {
+		return nil, types.ErrNotFound
+	}
+	return a.GetAgentSessionSummaryBySession(ctx, row.SessionFlag)
+}
+
+func (a *adapter) MarkAgentSessionSummaryReady(ctx context.Context, sessionFlag, claimToken, title, summary string) error {
+	flag := strings.TrimSpace(sessionFlag)
+	token := strings.TrimSpace(claimToken)
+	if flag == "" || token == "" {
+		return fmt.Errorf("postgres: mark session summary ready: session_flag and claim_token are required")
+	}
+	n, err := a.client.AgentSessionSummary.Update().
+		Where(
+			agentsessionsummary.SessionFlagEQ(flag),
+			agentsessionsummary.ClaimTokenEQ(token),
+			agentsessionsummary.StatusEQ(schema.AgentSessionSummaryPending),
+		).
+		SetTitle(strings.TrimSpace(title)).
+		SetSummary(summary).
+		SetStatus(schema.AgentSessionSummaryReady).
+		SetError("").
+		SetClaimToken("").
+		ClearClaimedAt().
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: mark session summary ready: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) MarkAgentSessionSummaryFailed(ctx context.Context, sessionFlag, claimToken, errMsg string) error {
+	flag := strings.TrimSpace(sessionFlag)
+	token := strings.TrimSpace(claimToken)
+	if flag == "" || token == "" {
+		return fmt.Errorf("postgres: mark session summary failed: session_flag and claim_token are required")
+	}
+	n, err := a.client.AgentSessionSummary.Update().
+		Where(
+			agentsessionsummary.SessionFlagEQ(flag),
+			agentsessionsummary.ClaimTokenEQ(token),
+			agentsessionsummary.StatusEQ(schema.AgentSessionSummaryPending),
+		).
+		SetStatus(schema.AgentSessionSummaryFailed).
+		SetError(errMsg).
+		SetClaimToken("").
+		ClearClaimedAt().
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("postgres: mark session summary failed: %w", err)
+	}
+	if n == 0 {
+		return types.ErrNotFound
+	}
+	return nil
+}
+
+func (a *adapter) GetAgentSessionSummaryBySession(ctx context.Context, sessionFlag string) (*gen.AgentSessionSummary, error) {
+	row, err := a.client.AgentSessionSummary.Query().
+		Where(agentsessionsummary.SessionFlagEQ(strings.TrimSpace(sessionFlag))).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, types.ErrNotFound
+		}
+		return nil, fmt.Errorf("postgres: get session summary: %w", err)
+	}
+	return row, nil
+}
+
+func (a *adapter) SearchAgentSessionSummaries(ctx context.Context, params store.AgentSessionSummarySearchParams) ([]*gen.AgentSessionSummary, error) {
+	queryText := strings.TrimSpace(params.Query)
+	if queryText == "" {
+		return nil, fmt.Errorf("postgres: search session summaries: query is required")
+	}
+	limit := normalizeAgentKnowledgeSearchLimit(params.Limit)
+	query := a.client.AgentSessionSummary.Query().
+		Where(
+			agentsessionsummary.StatusEQ(schema.AgentSessionSummaryReady),
+			agentsessionsummary.Or(
+				agentsessionsummary.TitleContainsFold(queryText),
+				agentsessionsummary.SummaryContainsFold(queryText),
+			),
+		)
+	if scope := strings.TrimSpace(params.Scope); scope != "" {
+		query = query.Where(agentsessionsummary.ScopeEQ(scope))
+	}
+	rows, err := query.Order(gen.Desc(agentsessionsummary.FieldUpdatedAt)).
+		Limit(agentKnowledgeSearchFetchLimit(limit)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: search session summaries: %w", err)
+	}
+	sortAgentSessionSummariesByRelevance(rows, queryText)
+	if len(rows) > limit {
+		rows = rows[:limit]
+	}
+	return rows, nil
+}
+
+func sortAgentSessionSummariesByRelevance(rows []*gen.AgentSessionSummary, query string) {
+	q := strings.ToLower(query)
+	slices.SortStableFunc(rows, func(a, b *gen.AgentSessionSummary) int {
+		ra := sessionSummaryRelevanceRank(a, q)
+		rb := sessionSummaryRelevanceRank(b, q)
+		if ra != rb {
+			return ra - rb
+		}
+		if a.UpdatedAt.After(b.UpdatedAt) {
+			return -1
+		}
+		if a.UpdatedAt.Before(b.UpdatedAt) {
+			return 1
+		}
+		return 0
+	})
+}
+
+func sessionSummaryRelevanceRank(row *gen.AgentSessionSummary, qLower string) int {
+	if strings.Contains(strings.ToLower(row.Title), qLower) {
+		return 0
+	}
+	return 1
+}
+
+func (a *adapter) ListAgentSessionSummaries(ctx context.Context, filter store.AgentSessionSummaryListFilter) ([]*gen.AgentSessionSummary, error) {
+	query := a.client.AgentSessionSummary.Query()
+	if scope := strings.TrimSpace(filter.Scope); scope != "" {
+		query = query.Where(agentsessionsummary.ScopeEQ(scope))
+	}
+	if status := strings.TrimSpace(filter.Status); status != "" {
+		query = query.Where(agentsessionsummary.StatusEQ(status))
+	}
+	if q := strings.TrimSpace(filter.Q); q != "" {
+		query = query.Where(agentsessionsummary.Or(
+			agentsessionsummary.TitleContainsFold(q),
+			agentsessionsummary.SummaryContainsFold(q),
+		))
+	}
+	rows, err := query.Order(gen.Desc(agentsessionsummary.FieldUpdatedAt)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("postgres: list session summaries: %w", err)
+	}
+	return rows, nil
+}
+
+func (a *adapter) RequeueStaleAgentSessionSummaryPending(ctx context.Context, olderThan time.Duration) (int, error) {
+	if olderThan <= 0 {
+		olderThan = 10 * time.Minute
+	}
+	cutoff := time.Now().Add(-olderThan)
+	n, err := a.client.AgentSessionSummary.Update().
+		Where(
+			agentsessionsummary.StatusEQ(schema.AgentSessionSummaryPending),
+			agentsessionsummary.ClaimTokenNEQ(""),
+			agentsessionsummary.ClaimedAtLT(cutoff),
+		).
+		SetClaimToken("").
+		ClearClaimedAt().
+		SetUpdatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: requeue stale session summaries: %w", err)
+	}
+	return n, nil
 }
 
 func (a *adapter) ListAgentSubagents(ctx context.Context, enabledOnly bool) ([]*gen.AgentSubagent, error) {

@@ -737,6 +737,48 @@ func (*testStoreAdapter) DeleteAgentKnowledge(_ context.Context, id int64) error
 	delete(testAgentKnowledge, id)
 	return nil
 }
+func (*testStoreAdapter) UpsertAgentMemoryFact(_ context.Context, _ store.AgentMemoryFactUpsert) (*gen.AgentMemoryFact, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) GetAgentMemoryFact(_ context.Context, _, _ string) (*gen.AgentMemoryFact, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) ListAgentMemoryFacts(_ context.Context, _ string) ([]*gen.AgentMemoryFact, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) DeleteAgentMemoryFact(_ context.Context, _, _ string) error {
+	return types.ErrNotFound
+}
+func (*testStoreAdapter) ListInjectableAgentMemoryFacts(_ context.Context, _ store.AgentMemoryInjectableParams) ([]*gen.AgentMemoryFact, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) GetAgentMemoryFactsFingerprint(_ context.Context, _ string) (store.AgentMemoryFactsFingerprint, error) {
+	return store.AgentMemoryFactsFingerprint{}, nil
+}
+func (*testStoreAdapter) UpsertAgentSessionSummaryPending(_ context.Context, _, _, _ string) (*gen.AgentSessionSummary, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) ClaimAgentSessionSummaryPending(_ context.Context, _ string) (*gen.AgentSessionSummary, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) MarkAgentSessionSummaryReady(_ context.Context, _, _, _, _ string) error {
+	return types.ErrNotFound
+}
+func (*testStoreAdapter) MarkAgentSessionSummaryFailed(_ context.Context, _, _, _ string) error {
+	return types.ErrNotFound
+}
+func (*testStoreAdapter) GetAgentSessionSummaryBySession(_ context.Context, _ string) (*gen.AgentSessionSummary, error) {
+	return nil, types.ErrNotFound
+}
+func (*testStoreAdapter) SearchAgentSessionSummaries(_ context.Context, _ store.AgentSessionSummarySearchParams) ([]*gen.AgentSessionSummary, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) ListAgentSessionSummaries(_ context.Context, _ store.AgentSessionSummaryListFilter) ([]*gen.AgentSessionSummary, error) {
+	return nil, nil
+}
+func (*testStoreAdapter) RequeueStaleAgentSessionSummaryPending(_ context.Context, _ time.Duration) (int, error) {
+	return 0, nil
+}
 func (*testStoreAdapter) ListAgentSubagents(_ context.Context, _ bool) ([]*gen.AgentSubagent, error) {
 	return nil, nil
 }

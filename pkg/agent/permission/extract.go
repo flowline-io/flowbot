@@ -10,27 +10,31 @@ import (
 
 // Tool names used by the chat agent coding toolkit.
 const (
-	ToolRunTerminal         = "run_terminal"
-	ToolListDir             = "list_dir"
-	ToolGlobFiles           = "glob_files"
-	ToolGrepFiles           = "grep_files"
-	ToolReadFile            = "read_file"
-	ToolWriteFile           = "write_file"
-	ToolApplyPatch          = "apply_patch"
-	ToolWebSearch           = "web_search"
-	ToolWebFetch            = "web_fetch"
-	ToolRunCode             = "run_code"
-	ToolReadSkill           = "read_skill"
-	ToolSearchKnowledge     = "search_knowledge"
-	ToolGetKnowledge        = "get_knowledge"
-	ToolDelegateSubagent    = "delegate_subagent"
-	ToolScheduleTask        = "schedule_task"
-	ToolUpdateScheduledTask = "update_scheduled_task"
-	ToolListScheduledTasks  = "list_scheduled_tasks"
-	ToolCancelScheduledTask = "cancel_scheduled_task"
-	ToolUpdateMemory        = "update_memory"
-	ToolTodoWrite           = "todo_write"
-	ToolListTodos           = "list_todos"
+	ToolRunTerminal            = "run_terminal"
+	ToolListDir                = "list_dir"
+	ToolGlobFiles              = "glob_files"
+	ToolGrepFiles              = "grep_files"
+	ToolReadFile               = "read_file"
+	ToolWriteFile              = "write_file"
+	ToolApplyPatch             = "apply_patch"
+	ToolWebSearch              = "web_search"
+	ToolWebFetch               = "web_fetch"
+	ToolRunCode                = "run_code"
+	ToolReadSkill              = "read_skill"
+	ToolSearchKnowledge        = "search_knowledge"
+	ToolGetKnowledge           = "get_knowledge"
+	ToolDelegateSubagent       = "delegate_subagent"
+	ToolScheduleTask           = "schedule_task"
+	ToolUpdateScheduledTask    = "update_scheduled_task"
+	ToolListScheduledTasks     = "list_scheduled_tasks"
+	ToolCancelScheduledTask    = "cancel_scheduled_task"
+	ToolMemorySet              = "memory_set"
+	ToolMemoryGet              = "memory_get"
+	ToolMemoryList             = "memory_list"
+	ToolMemoryDelete           = "memory_delete"
+	ToolSearchSessionSummaries = "search_session_summaries"
+	ToolTodoWrite              = "todo_write"
+	ToolListTodos              = "list_todos"
 )
 
 // PermissionKeyForTool maps a tool name to its OpenCode permission key.
@@ -54,7 +58,7 @@ func PermissionKeyForTool(tool string) string {
 		return KeySchedule
 	case ToolListScheduledTasks:
 		return KeyScheduleRead
-	case ToolUpdateMemory:
+	case ToolMemorySet, ToolMemoryGet, ToolMemoryList, ToolMemoryDelete, ToolSearchSessionSummaries:
 		return KeyMemory
 	case ToolTodoWrite, ToolListTodos:
 		return KeyTodo
@@ -146,8 +150,12 @@ func extractProductToolPrimary(req Request) (string, ParseBashCommand, []string)
 		return strings.TrimSpace(fmt.Sprint(req.Args["task_id"])), ParseBashCommand{}, nil
 	case ToolListScheduledTasks:
 		return "*", ParseBashCommand{}, nil
-	case ToolUpdateMemory:
-		return strings.ToLower(strings.TrimSpace(fmt.Sprint(req.Args["operation"]))), ParseBashCommand{}, nil
+	case ToolMemorySet, ToolMemoryDelete:
+		return "write", ParseBashCommand{}, nil
+	case ToolMemoryGet, ToolSearchSessionSummaries:
+		return "read", ParseBashCommand{}, nil
+	case ToolMemoryList:
+		return "list", ParseBashCommand{}, nil
 	default:
 		return req.Tool, ParseBashCommand{}, nil
 	}

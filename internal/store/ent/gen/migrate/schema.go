@@ -56,6 +56,34 @@ var (
 			},
 		},
 	}
+	// AgentMemoryFactsColumns holds the columns for the "agent_memory_facts" table.
+	AgentMemoryFactsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "scope", Type: field.TypeString},
+		{Name: "key", Type: field.TypeString},
+		{Name: "value", Type: field.TypeString, Size: 2147483647},
+		{Name: "pinned", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AgentMemoryFactsTable holds the schema information for the "agent_memory_facts" table.
+	AgentMemoryFactsTable = &schema.Table{
+		Name:       "agent_memory_facts",
+		Columns:    AgentMemoryFactsColumns,
+		PrimaryKey: []*schema.Column{AgentMemoryFactsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentmemoryfact_scope_key",
+				Unique:  true,
+				Columns: []*schema.Column{AgentMemoryFactsColumns[1], AgentMemoryFactsColumns[2]},
+			},
+			{
+				Name:    "agentmemoryfact_scope_pinned_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AgentMemoryFactsColumns[1], AgentMemoryFactsColumns[4], AgentMemoryFactsColumns[6]},
+			},
+		},
+	}
 	// AgentPlansColumns holds the columns for the "agent_plans" table.
 	AgentPlansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -77,6 +105,38 @@ var (
 				Name:    "agentplan_session_id",
 				Unique:  false,
 				Columns: []*schema.Column{AgentPlansColumns[2]},
+			},
+		},
+	}
+	// AgentSessionSummariesColumns holds the columns for the "agent_session_summaries" table.
+	AgentSessionSummariesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "session_flag", Type: field.TypeString, Unique: true},
+		{Name: "scope", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "summary", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "error", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "claim_token", Type: field.TypeString, Default: ""},
+		{Name: "claimed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AgentSessionSummariesTable holds the schema information for the "agent_session_summaries" table.
+	AgentSessionSummariesTable = &schema.Table{
+		Name:       "agent_session_summaries",
+		Columns:    AgentSessionSummariesColumns,
+		PrimaryKey: []*schema.Column{AgentSessionSummariesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "agentsessionsummary_scope_status_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSessionSummariesColumns[2], AgentSessionSummariesColumns[5], AgentSessionSummariesColumns[10]},
+			},
+			{
+				Name:    "agentsessionsummary_status_claimed_at",
+				Unique:  false,
+				Columns: []*schema.Column{AgentSessionSummariesColumns[5], AgentSessionSummariesColumns[8]},
 			},
 		},
 	}
@@ -1605,7 +1665,9 @@ var (
 	Tables = []*schema.Table{
 		AgentsTable,
 		AgentKnowledgeTable,
+		AgentMemoryFactsTable,
 		AgentPlansTable,
+		AgentSessionSummariesTable,
 		AgentSkillsTable,
 		AgentSkillFilesTable,
 		AgentSubagentsTable,
@@ -1673,8 +1735,14 @@ func init() {
 	AgentKnowledgeTable.Annotation = &entsql.Annotation{
 		Table: "agent_knowledge",
 	}
+	AgentMemoryFactsTable.Annotation = &entsql.Annotation{
+		Table: "agent_memory_facts",
+	}
 	AgentPlansTable.Annotation = &entsql.Annotation{
 		Table: "agent_plans",
+	}
+	AgentSessionSummariesTable.Annotation = &entsql.Annotation{
+		Table: "agent_session_summaries",
 	}
 	AgentSkillsTable.Annotation = &entsql.Annotation{
 		Table: "agent_skills",

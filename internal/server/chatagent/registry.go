@@ -58,11 +58,7 @@ func NewRegistry(ws coding.Workspace, taskDeps *TaskToolDeps, scheduleDeps *Sche
 			return nil, err
 		}
 	}
-	memTool, err := NewUpdateMemoryTool()
-	if err != nil {
-		return nil, err
-	}
-	if err := registry.Register(memTool); err != nil {
+	if err := RegisterMemoryTools(registry); err != nil {
 		return nil, err
 	}
 	registry.SetActive(ActiveToolNames())
@@ -88,11 +84,7 @@ func NewSubagentRegistry(ws coding.Workspace, skillAllowlist []string) (*tool.Re
 	if err := registry.Register(GetKnowledgeTool{}); err != nil {
 		return nil, err
 	}
-	memTool, err := NewUpdateMemoryTool()
-	if err != nil {
-		return nil, err
-	}
-	if err := registry.Register(memTool); err != nil {
+	if err := RegisterMemoryTools(registry); err != nil {
 		return nil, err
 	}
 	return registry, nil
@@ -107,7 +99,7 @@ func ActiveToolNames() []string {
 	names = append(names, KnowledgeToolNames()...)
 	names = append(names, scheduleToolNames()...)
 	names = append(names, todoToolNames()...)
-	names = append(names, updateMemoryToolName)
+	names = append(names, MemoryToolNames()...)
 	return names
 }
 
@@ -132,24 +124,33 @@ func registrySessionID(taskDeps *TaskToolDeps, scheduleDeps *ScheduleToolDeps) s
 }
 
 // BaseToolNamesForRun returns the active tool set for one run.
-// Autonomous runs omit update_memory unless it appears in explicitTools.
+// Autonomous runs omit memory tools unless they appear in explicitTools.
 func BaseToolNamesForRun(kind RunKind, explicitTools []string) []string {
 	if len(explicitTools) > 0 {
 		return append([]string(nil), explicitTools...)
 	}
 	names := ActiveToolNames()
 	if IsAutonomousRunKind(kind) {
-		return omitToolName(names, updateMemoryToolName)
+		return omitToolNames(names, MemoryToolNames()...)
 	}
 	return names
 }
 
 func omitToolName(names []string, drop string) []string {
+	return omitToolNames(names, drop)
+}
+
+func omitToolNames(names []string, drop ...string) []string {
+	skip := make(map[string]struct{}, len(drop))
+	for _, name := range drop {
+		skip[name] = struct{}{}
+	}
 	out := make([]string, 0, len(names))
 	for _, name := range names {
-		if name != drop {
-			out = append(out, name)
+		if _, ok := skip[name]; ok {
+			continue
 		}
+		out = append(out, name)
 	}
 	return out
 }

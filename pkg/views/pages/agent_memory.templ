@@ -1,0 +1,29 @@
+package pages
+
+import (
+	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AgentMemoryPage(items []model.AgentMemoryFact, scope string) {
+	@layout.Base("Agent Memory — Flowbot") {
+		@partials.PageHeader("Agent Memory", "Correct keyed facts written by memory_* tools (shared across interactive chats when scope is default)") {
+			<form class="inline-flex items-center gap-2 m-0"
+				hx-get="/service/web/agent-memory/list"
+				hx-target="#agent-memory-table"
+				hx-swap="outerHTML"
+				hx-trigger="submit">
+				<input type="text" name="scope" value={ scope }
+					placeholder="scope"
+					data-testid="agent-memory-scope"
+					class="input input-bordered input-sm w-40"/>
+				<button type="submit" data-testid="agent-memory-refresh" class="btn btn-ghost btn-sm">
+					Refresh
+					@partials.HtmxIndicator()
+				</button>
+			</form>
+		}
+		@partials.AgentMemoryTable(items, scope)
+	}
+}

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent/memory"
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,75 +20,131 @@ func memoryToolResultText(result msg.ToolResultMessage) string {
 	return ""
 }
 
-func TestUpdateMemoryToolReadWriteList(t *testing.T) {
-	LockAppConfigForTest(t)
-	root := t.TempDir()
-	memRoot := t.TempDir()
-	config.App.ChatAgent = config.ChatAgentConfig{
-		ChatModel: "gpt-test",
-		Workspace: root,
-	}
+func TestMemoryFactToolsCRUD(t *testing.T) {
+	orig := store.Database
+	store.Database = postgres.NewSQLiteTestAdapter(t)
+	t.Cleanup(func() { store.Database = orig })
 
-	store, err := memory.NewFileStore(memRoot, "MEMORIES.md", 4096)
-	require.NoError(t, err)
-	tool := UpdateMemoryTool{Store: store}
-
+	ctx := WithMemoryScope(context.Background(), "default")
 	tests := []struct {
 		name     string
-		scope    string
-		args     map[string]any
+		run      func(t *testing.T)
 		wantText string
 		wantErr  bool
 	}{
 		{
-			name: "write", scope: "pipe-a",
-			args:     map[string]any{"operation": "write", "content": "Memory example"},
-			wantText: "saved MEMORIES.md",
+			name: "set fact",
+			run: func(t *testing.T) {
+				result, err := (MemorySetTool{}).Execute(ctx, "id-1", map[string]any{
+					"key": "user.name", "value": "Robin", "pinned": true,
+				}, nil)
+				require.NoError(t, err)
+				assert.False(t, result.IsError)
+				assert.Contains(t, memoryToolResultText(result), "user.name")
+			},
 		},
 		{
-			name: "read", scope: "pipe-a",
-			args:     map[string]any{"operation": "read"},
-			wantText: "Memory example",
+			name: "get fact",
+			run: func(t *testing.T) {
+				_, err := (MemorySetTool{}).Execute(ctx, "id-0", map[string]any{
+					"key": "user.name", "value": "Robin",
+				}, nil)
+				require.NoError(t, err)
+				result, err := (MemoryGetTool{}).Execute(ctx, "id-1", map[string]any{"key": "user.name"}, nil)
+				require.NoError(t, err)
+				assert.False(t, result.IsError)
+				assert.Contains(t, memoryToolResultText(result), "Robin")
+			},
 		},
 		{
-			name: "list", scope: "pipe-a",
-			args:     map[string]any{"operation": "list"},
-			wantText: "MEMORIES.md",
+			name: "list facts",
+			run: func(t *testing.T) {
+				_, err := (MemorySetTool{}).Execute(ctx, "id-0", map[string]any{
+					"key": "pref.lang", "value": "zh",
+				}, nil)
+				require.NoError(t, err)
+				result, err := (MemoryListTool{}).Execute(ctx, "id-1", nil, nil)
+				require.NoError(t, err)
+				assert.False(t, result.IsError)
+				assert.Contains(t, memoryToolResultText(result), "pref.lang")
+			},
+		},
+		{
+			name: "delete fact",
+			run: func(t *testing.T) {
+				_, err := (MemorySetTool{}).Execute(ctx, "id-0", map[string]any{
+					"key": "tmp.k", "value": "v",
+				}, nil)
+				require.NoError(t, err)
+				result, err := (MemoryDeleteTool{}).Execute(ctx, "id-1", map[string]any{"key": "tmp.k"}, nil)
+				require.NoError(t, err)
+				assert.False(t, result.IsError)
+			},
+		},
+		{
+			name: "set rejects bad key",
+			run: func(t *testing.T) {
+				result, err := (MemorySetTool{}).Execute(ctx, "id-1", map[string]any{
+					"key": "bad key!", "value": "x",
+				}, nil)
+				require.NoError(t, err)
+				assert.True(t, result.IsError)
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := WithMemoryScope(context.Background(), tt.scope)
-			result, err := tool.Execute(ctx, "id-1", tt.args, nil)
-			require.NoError(t, err)
-			if tt.wantErr {
-				assert.True(t, result.IsError)
-				return
-			}
-			assert.False(t, result.IsError)
-			assert.Contains(t, memoryToolResultText(result), tt.wantText)
+			tt.run(t)
 		})
 	}
 }
 
-func TestUpdateMemoryToolValidation(t *testing.T) {
-	store, err := memory.NewFileStore(t.TempDir(), "MEMORIES.md", 128)
-	require.NoError(t, err)
-	tool := UpdateMemoryTool{Store: store}
+func TestSearchSessionSummariesTool(t *testing.T) {
+	orig := store.Database
+	db := postgres.NewSQLiteTestAdapter(t)
+	store.Database = db
+	t.Cleanup(func() { store.Database = orig })
 
+	ctx := WithMemoryScope(context.Background(), "default")
 	tests := []struct {
 		name string
-		args map[string]any
+		run  func(t *testing.T)
 	}{
-		{name: "missing operation", args: map[string]any{}},
-		{name: "invalid operation", args: map[string]any{"operation": "delete"}},
-		{name: "write without content", args: map[string]any{"operation": "write"}},
+		{
+			name: "empty query errors",
+			run: func(t *testing.T) {
+				result, err := (SearchSessionSummariesTool{}).Execute(ctx, "id", map[string]any{}, nil)
+				require.NoError(t, err)
+				assert.True(t, result.IsError)
+			},
+		},
+		{
+			name: "finds ready summary",
+			run: func(t *testing.T) {
+				_, err := db.UpsertAgentSessionSummaryPending(ctx, "sess-a", "default", "Widgets")
+				require.NoError(t, err)
+				_, err = db.ClaimAgentSessionSummaryPending(ctx, "search-tok")
+				require.NoError(t, err)
+				require.NoError(t, db.MarkAgentSessionSummaryReady(ctx, "sess-a", "search-tok", "Widgets", "talked about widgets"))
+				result, err := (SearchSessionSummariesTool{}).Execute(ctx, "id", map[string]any{"query": "widgets"}, nil)
+				require.NoError(t, err)
+				assert.False(t, result.IsError)
+				assert.Contains(t, memoryToolResultText(result), "sess-a")
+			},
+		},
+		{
+			name: "no matches returns empty array",
+			run: func(t *testing.T) {
+				result, err := (SearchSessionSummariesTool{}).Execute(ctx, "id", map[string]any{"query": "zzzz-none"}, nil)
+				require.NoError(t, err)
+				assert.False(t, result.IsError)
+				assert.Equal(t, "[]", memoryToolResultText(result))
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := tool.Execute(context.Background(), "id", tt.args, nil)
-			require.NoError(t, err)
-			assert.True(t, result.IsError)
+			tt.run(t)
 		})
 	}
 }

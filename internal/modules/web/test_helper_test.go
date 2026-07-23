@@ -37,6 +37,10 @@ type testStore struct {
 	agentKnowledge            map[int64]*gen.AgentKnowledge
 	agentKnowledgeErr         error
 	agentKnowledgeSeq         int64
+	agentMemoryFacts          map[string]*gen.AgentMemoryFact
+	agentMemoryFactSeq        int64
+	agentSessionSummaries     map[string]*gen.AgentSessionSummary
+	agentSessionSummarySeq    int64
 	agentSubagents            map[string]*gen.AgentSubagent
 	agentSubagentsErr         error
 	createAgentSubagentFn     func(subagent *gen.AgentSubagent) error

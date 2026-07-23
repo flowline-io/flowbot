@@ -76,7 +76,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | ID | Behavior | Entry | Edge cases | Tests |
 | -- | -------- | ----- | ---------- | ----- |
 | A-01 | Skills CRUD + files + zip import + enable/disable | `/service/web/agent-skills…` | Enable/disable; Import zip | agent skills webservice tests / pages |
-| A-02 | Memory file list/read/write | `/service/web/agent-memory…` | Max file bytes | memory webservice tests |
+| A-02 | Memory facts list/upsert/delete | `/service/web/agent-memory…` | Scope isolation; pin | memory webservice tests |
+| A-02b | Session summaries browse/search/retry | `/service/web/agent-session-summaries…` | Archive-only generation | session summary tests |
 | A-03 | Subagents CRUD + tasks | `/service/web/agent-subagents…` | Seed defaults on enable | subagent specs/tests |
 | A-04 | Scheduled tasks list/detail/state | `/service/web/agent-scheduled-tasks…` | Pause/resume | `agent_scheduled_tasks_page_spec_test.go` |
 | A-05 | Session inspect UI | `/service/web/agent-sessions…` | Entry payload, events, confirm, todos | `agent_sessions_page_spec_test.go` |
@@ -118,7 +119,7 @@ Use after each vertical slice and before freeze sign-off.
 6. Scheduled: create one-shot task, wait for completed + run row.
 7. Skills: toggle/enable a skill and confirm agent can `read_skill`.
 8. Knowledge: create a markdown doc in Agent Knowledge; confirm agent can `search_knowledge` then `get_knowledge` by path.
-9. Memory: read/write via UI or tool; respect max size.
+9. Memory: fact CRUD via UI or `memory_*` tools; session summaries via archive + search tool.
 10. Subagent: run a delegate_subagent tool delegation; progress/tool events appear.
 11. Permissions: save form, reset to defaults; session grants clear; Knowledge key defaults to allow.
 12. Export: download/export session JSONL or documented format.

@@ -70,11 +70,13 @@ func TestCachedSystemPromptCacheHit(t *testing.T) {
 
 			promptCacheMu.Lock()
 			promptCache = promptCacheEntry{
-				prompt:       tt.preload,
-				loadedAt:     time.Now().UTC(),
-				configHash:   promptConfigHash(root),
-				fileMTimes:   collectContextFileMTimes(root, nil),
-				skillsMaxRev: time.Time{},
+				prompt:            tt.preload,
+				loadedAt:          time.Now().UTC(),
+				configHash:        promptConfigHash(root),
+				fileMTimes:        collectContextFileMTimes(root, nil),
+				skillsMaxRev:      time.Time{},
+				memoryScope:       "default",
+				memoryFingerprint: "",
 			}
 			promptCacheMu.Unlock()
 
@@ -96,6 +98,71 @@ func TestCachedSystemPromptCacheHit(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tt.wantPrompt, got)
+		})
+	}
+}
+
+func TestCachedSystemPromptRebuildsWhenMemoryFingerprintChanges(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func()
+	}{
+		{
+			name: "fingerprint string change busts cache",
+			mutate: func() {
+				promptCacheMu.Lock()
+				promptCache.memoryFingerprint = "stale-fp"
+				promptCacheMu.Unlock()
+			},
+		},
+		{
+			name: "memory scope change busts cache",
+			mutate: func() {
+				promptCacheMu.Lock()
+				promptCache.memoryScope = "other-scope"
+				promptCacheMu.Unlock()
+			},
+		},
+		{
+			name: "empty fingerprint treated as miss when cache has value",
+			mutate: func() {
+				promptCacheMu.Lock()
+				promptCache.memoryFingerprint = "had-facts"
+				promptCacheMu.Unlock()
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+			ResetPromptCacheForTest()
+			root := t.TempDir()
+			require.NoError(t, os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("# rules"), 0o644))
+			originalPrompt := config.App.ChatAgent.SystemPrompt
+			t.Cleanup(func() {
+				config.App.ChatAgent.SystemPrompt = originalPrompt
+				ResetPromptCacheForTest()
+			})
+			config.App.ChatAgent.SystemPrompt = ""
+
+			promptCacheMu.Lock()
+			promptCache = promptCacheEntry{
+				prompt:            "cached with old memory",
+				loadedAt:          time.Now().UTC(),
+				configHash:        promptConfigHash(root),
+				fileMTimes:        collectContextFileMTimes(root, nil),
+				memoryScope:       "default",
+				memoryFingerprint: "",
+			}
+			promptCacheMu.Unlock()
+			tt.mutate()
+
+			before := PromptCacheVersion()
+			got := CachedSystemPrompt(context.Background(), coding.Workspace{Root: root})
+			after := PromptCacheVersion()
+			assert.Greater(t, after, before)
+			assert.NotEqual(t, "cached with old memory", got)
+			assert.NotEmpty(t, got)
 		})
 	}
 }
