@@ -84,7 +84,7 @@ jobs:
       - name: Build and push agent sandbox
         uses: docker/build-push-action@v7
         with:
-          context: deployments/agent-sandbox
+          context: .
           file: deployments/agent-sandbox/Dockerfile
           target: ${{ matrix.target }}
           push: true
@@ -130,7 +130,7 @@ jobs:
           IMAGE="ghcr.io/flowline-io/flowbot-agent-sandbox:${{ steps.smoketag.outputs.value }}"
           docker pull "$IMAGE"
           docker run --rm "$IMAGE" bash -lc \
-            'git --version && go version && node --version && python3 --version && flowbot version'
+            'git --version && go version && node --version && python3 --version && flowbot version && dcg --version && test -f /etc/dcg/config.toml'
           if [[ "${{ matrix.target }}" == "playwright" ]]; then
             docker run --rm "$IMAGE" bash -lc 'npx playwright --version'
           fi

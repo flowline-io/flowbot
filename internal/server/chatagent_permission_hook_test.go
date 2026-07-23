@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
@@ -53,6 +54,7 @@ func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
 			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
 				SessionID: "sess-1",
 				UID:       types.Uid("user-1"),
+				DCG:       dcg.AllowAllChecker{},
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},
@@ -100,7 +102,11 @@ func TestChatAgentPermissionHookAlwaysGrantUsesSuggestedPattern(t *testing.T) {
 	t.Cleanup(func() { chatagent.ClearAPIRunState("sess-1", state) })
 
 	reg := hooks.NewRegistry()
-	chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{SessionID: "sess-1", UID: types.Uid("user-1")})
+	chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
+		SessionID: "sess-1",
+		UID:       types.Uid("user-1"),
+		DCG:       dcg.AllowAllChecker{},
+	})
 
 	done := make(chan *hooks.ToolCallResult, 1)
 	go func() {

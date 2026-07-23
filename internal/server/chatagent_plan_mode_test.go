@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
+	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
@@ -64,14 +65,15 @@ func TestPlanModePermissionHook(t *testing.T) {
 				SessionID:   "sess-plan",
 				UID:         types.Uid("user-1"),
 				SessionMode: chatagent.ModePlan,
+				DCG:         dcg.AllowAllChecker{},
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},
 				Args: map[string]any{
 					"path":     "README.md",
 					"command":  "ls",
-					"language": "go",
-					"code":     "fmt.Println()",
+					"language": "python",
+					"code":     "print(1)",
 				},
 			})
 			require.NoError(t, err)

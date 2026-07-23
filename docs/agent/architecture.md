@@ -283,6 +283,7 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 | Progress artifact | `{workspace}/.flowbot/progress.md` injected via `OnContext` (≤500 tokens) |
 | Dynamic tools | `ApplyToolScope` — plan readonly; normal excludes schedule unless intent/RunKind |
 | Sandbox | Opt-in Docker `pkg/agent/sandbox` for `run_terminal` / `run_code` |
+| DCG guard | Always-on pre-permission check via `pkg/agent/dcg` (`dcg --robot test`) for `run_terminal` / `run_code`; requires `dcg` on `PATH` (bundled in [`deployments/Dockerfile`](../../deployments/Dockerfile) and the agent-sandbox image); embedded packs in `pkg/agent/dcg/config.toml`; no agent bypass |
 | Eval | `pkg/agent/eval` FakeModel suite (`go test ./pkg/agent/eval/...`) |
 
 ## LLM Layer

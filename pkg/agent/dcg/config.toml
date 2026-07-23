@@ -1,0 +1,19 @@
+# Flowbot chat-agent DCG policy.
+# core.filesystem / core.git are always-on inside dcg (cannot disable).
+# windows.filesystem / windows.system are listed explicitly so an explicit
+# [packs] enabled list cannot silently drop Windows default-on packs.
+# Category IDs expand to every sub-pack under that category.
+
+[general]
+fail_closed = true
+
+[packs]
+enabled = [
+  "windows.filesystem",
+  "windows.system",
+  "remote",
+  "database",
+  "containers",
+  "system",
+  "platform",
+]

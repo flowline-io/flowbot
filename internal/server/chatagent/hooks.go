@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -25,6 +26,8 @@ type ChatHookDeps struct {
 	UID         types.Uid
 	SessionMode string
 	Kind        RunKind
+	// DCG is the pre-permission command guard. Nil uses dcg.DefaultChecker().
+	DCG dcg.Checker
 }
 
 // RegisterHooks wires observational and API hooks for one chat agent harness run.
@@ -33,6 +36,7 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 		return
 	}
 
+	registerDCGHook(reg, deps)
 	registerPermissionHook(reg, deps)
 	registerPathSensors(reg)
 	registerLintSensor(reg)
@@ -77,6 +81,44 @@ func activePublisher(sessionID string) EventPublisher {
 		return nil
 	}
 	return state.publisher
+}
+
+func registerDCGHook(reg *hooks.Registry, deps ChatHookDeps) {
+	hooks.OnToolCall(reg, func(ctx context.Context, event hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+		command, ok, err := dcg.CommandForTool(event.ToolCall.Name, event.Args)
+		if err != nil {
+			flog.Warn("[chat-agent] dcg synth failed session=%s tool=%s: %v",
+				deps.SessionID, event.ToolCall.Name, err)
+			return &hooks.ToolCallResult{Block: true, Reason: err.Error()}, nil
+		}
+		if !ok {
+			return nil, nil
+		}
+		flog.Debug("[chat-agent] dcg check session=%s tool=%s command=%q",
+			deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(command))
+		checker := deps.DCG
+		if checker == nil {
+			checker = dcg.DefaultChecker()
+		}
+		decision, err := checker.Check(ctx, command)
+		if err != nil {
+			flog.Warn("[chat-agent] dcg check error session=%s tool=%s command=%q: %v",
+				deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(command), err)
+			return &hooks.ToolCallResult{Block: true, Reason: err.Error()}, nil
+		}
+		if !decision.Allow {
+			reason := decision.Reason
+			if reason == "" {
+				reason = dcg.ReasonBlocked
+			}
+			flog.Info("[chat-agent] dcg blocked session=%s tool=%s rule=%s pack=%s reason=%s command=%q",
+				deps.SessionID, event.ToolCall.Name, decision.RuleID, decision.PackID, reason, dcg.TruncateCommandForLog(command))
+			return &hooks.ToolCallResult{Block: true, Reason: reason}, nil
+		}
+		flog.Debug("[chat-agent] dcg allowed session=%s tool=%s command=%q",
+			deps.SessionID, event.ToolCall.Name, dcg.TruncateCommandForLog(command))
+		return nil, nil
+	})
 }
 
 func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {

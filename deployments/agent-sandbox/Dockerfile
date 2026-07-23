@@ -4,6 +4,7 @@
 ARG GO_VERSION=1.26.5
 ARG NODE_MAJOR=22
 ARG CLI_VERSION=latest
+ARG DCG_VERSION=v0.6.7
 
 # Download flowbot CLI from GitHub releases (latest tag by default).
 FROM ubuntu:24.04 AS cli-builder
@@ -30,6 +31,20 @@ RUN apt-get update \
     && test -n "${EXPECTED}" \
     && test "${EXPECTED}" = "${ACTUAL}" \
     && chmod 755 /out/flowbot
+
+# Download Destructive Command Guard (dcg) for host/sandbox PATH parity.
+# Flowbot's chat-agent gate runs on the host; the image binary is for operational parity only.
+FROM ubuntu:24.04 AS dcg-builder
+
+ARG DCG_VERSION=v0.6.7
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+COPY scripts/install-dcg.sh /tmp/install-dcg.sh
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && DCG_VERSION="${DCG_VERSION}" sh /tmp/install-dcg.sh /out
 
 FROM ubuntu:24.04 AS base
 
@@ -93,6 +108,8 @@ RUN set -eux; \
     chmod 0440 /etc/sudoers.d/agent
 
 COPY --from=cli-builder /out/flowbot /usr/local/bin/flowbot
+COPY --from=dcg-builder /out/dcg /usr/local/bin/dcg
+COPY pkg/agent/dcg/config.toml /etc/dcg/config.toml
 
 WORKDIR /opt/app
 

@@ -31,6 +31,7 @@ agent/
 ├── hooks/                # Typed hook registry (on/observe/emit) bridged to loop Config
 ├── harness/              # High-level orchestration with hooks + overflow degrade
 ├── permission/           # Tool permission evaluation, forms, session/scheduled policies
+├── dcg/                  # Destructive Command Guard pre-exec check for run_terminal / run_code
 ├── subagent/             # Subagent orchestration
 ├── coding/               # Code execution tools (run_code, read/write/list/glob/grep/patch, web_search/fetch, terminal, workspace)
 ├── sandbox/              # Opt-in Docker ExecutionEnv for shell/code

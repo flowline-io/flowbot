@@ -28,6 +28,8 @@ docker build -f deployments/Dockerfile -t flowbot .
 docker run -p 6060:6060 -v $(pwd)/flowbot.yaml:/opt/app/flowbot.yaml flowbot
 ```
 
+The server image installs `dcg` on `PATH` (`/usr/local/bin/dcg`, linux musl amd64, SHA256-verified) and ships [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml) at `/etc/dcg/config.toml` for Always-on chat-agent `run_terminal` / `run_code` guards. Flowbot still materializes the embedded config at runtime; the image file is for operational parity.
+
 For the Cloud Agent ephemeral sandbox image (`flowbot-agent-sandbox`), see [Agent Sandbox](../agent/agent-sandbox.md).
 
 ### 3. Systemd Service

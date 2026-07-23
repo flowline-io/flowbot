@@ -43,8 +43,18 @@ Versions are pinned in [`deployments/agent-sandbox/Dockerfile`](../../deployment
 | Python | 3.x (distro) | `python` symlinked to `python3`; pip and venv included |
 | Shell / CLI | bash, jq, ripgrep, curl, wget, openssh-client, build-essential | Aligned with Flowbot server runtime packages |
 | `flowbot` CLI | GitHub release (`CLI_VERSION`, default `latest`) | Installed as `/usr/local/bin/flowbot` from asset `flowbot-cli_linux_amd64`; checksum verified. This is the **CLI client** (second process vs host Flowbot server), not the server binary from `deployments/Dockerfile`. |
+| `dcg` | GitHub release (`DCG_VERSION`, default `v0.6.7`) | Installed as `/usr/local/bin/dcg` (linux musl amd64) with SHA256 verify; config at `/etc/dcg/config.toml` (same as [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml)). **Parity only** — Flowbot's Always-on DCG gate for `run_terminal` / `run_code` runs on the **host** before sandbox exec; the image does not re-check. |
 
 Credential files materialized by the chat agent sandbox runner are chowned to uid/gid `1000` (the image `agent` user) when possible; otherwise they are mode `0644` so the container can still read them when the host process cannot chown.
+
+## Destructive Command Guard (dcg)
+
+Flowbot chat agent Always-on protection for `run_terminal` / `run_code` uses [dcg](https://github.com/Dicklesworthstone/destructive_command_guard) on the **host** (`dcg --robot test` via `pkg/agent/dcg`), before permission ask and before sandbox exec:
+
+- Install `dcg` on the Flowbot server `PATH` (required; missing binary → startup warning, first shell/code tool call fails closed).
+- Policy is embedded from [`pkg/agent/dcg/config.toml`](../../pkg/agent/dcg/config.toml) (default cores + windows default packs + `remote` / `database` / `containers` / `system` / `platform`).
+- `DCG_BYPASS` is stripped from the dcg child process only; agents have no bypass path.
+- The sandbox image ships `dcg` + the same toml for **operational parity** only — Flowbot does not run a second check inside the container.
 
 ## Runtime contract
 
@@ -121,22 +131,22 @@ Manual builds (development):
 ## Build locally
 
 ```bash
-# Slim base variant (CLI from latest GitHub release tag)
+# Slim base variant (CLI from latest GitHub release tag; context is repo root for dcg config COPY)
 docker build -f deployments/agent-sandbox/Dockerfile --target base \
-  -t flowbot-agent-sandbox:local deployments/agent-sandbox
+  -t flowbot-agent-sandbox:local .
 
 # Pin CLI to a release tag
 docker build -f deployments/agent-sandbox/Dockerfile --target base \
   --build-arg CLI_VERSION=v0.40 \
-  -t flowbot-agent-sandbox:local deployments/agent-sandbox
+  -t flowbot-agent-sandbox:local .
 
 # Playwright variant
 docker build -f deployments/agent-sandbox/Dockerfile --target playwright \
-  -t flowbot-agent-sandbox:playwright-local deployments/agent-sandbox
+  -t flowbot-agent-sandbox:playwright-local .
 
 # Smoke test
 docker run --rm flowbot-agent-sandbox:local bash -lc \
-  'git --version && go version && node --version && python3 --version && flowbot version'
+  'git --version && go version && node --version && python3 --version && flowbot version && dcg --version && test -f /etc/dcg/config.toml'
 ```
 
 ## CI/CD
