@@ -734,6 +734,7 @@ func mustSkillZip(t *testing.T, files map[string]string) []byte {
 
 func setupAuthenticatedApp(t *testing.T, ts *testStore) *fiber.App {
 	t.Helper()
+	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
 	handler = moduleHandler{authConfig: AuthConfig{Username: "admin", Password: "admin"}}
 	config = configType{Enabled: true, Auth: AuthConfig{Username: "admin", Password: "admin"}}

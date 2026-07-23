@@ -277,6 +277,11 @@ func TestAgentsListShowsPreviewAndPinArchiveActions(t *testing.T) {
 }
 
 func TestAgentsPinAndArchiveRefreshList(t *testing.T) {
+	restoreLLM := chatagent.DisableSessionSummaryLLMForTest()
+	t.Cleanup(func() {
+		chatagent.WaitForSessionSummaryGenerationForTest()
+		restoreLLM()
+	})
 	now := time.Now().UTC()
 	tests := []struct {
 		name       string

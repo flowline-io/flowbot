@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
@@ -20,6 +22,7 @@ import (
 
 type testStore struct {
 	store.Adapter
+	mu                        sync.Mutex
 	configs                   []model.ConfigItem
 	configErr                 error
 	setConfigFn               func(uid types.Uid, topic, key string, value types.KV) error
@@ -437,6 +440,8 @@ func (s *testStore) DeleteNotifyTemplate(_ context.Context, id int64) error {
 
 func setupTestApp() (*fiber.App, *testStore) {
 	ts := &testStore{}
+	// Drain async session-summary jobs before swapping the global adapter.
+	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
 	// Intentionally bypasses validateAuthConfig (Init); weak creds are for login-path unit tests only.
 	handler = moduleHandler{
@@ -456,6 +461,7 @@ func setupTestApp() (*fiber.App, *testStore) {
 // setupTestAppWithRateLimiter creates a Fiber test app with an active login rate limiter.
 func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore) {
 	ts := &testStore{}
+	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
 	handler = moduleHandler{
 		authConfig: AuthConfig{Username: "admin", Password: "admin"},
@@ -482,6 +488,7 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	dbClient := sqlitetest.OpenClient(t, dbName)
 
 	ts := &testStore{dbClient: dbClient}
+	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
 	handler = moduleHandler{
 		authConfig: AuthConfig{Username: "admin", Password: "admin"},

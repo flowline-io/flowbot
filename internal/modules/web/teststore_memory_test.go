@@ -94,6 +94,8 @@ func (s *testStore) UpsertAgentSessionSummaryPending(_ context.Context, sessionF
 	if sessionFlag == "" || scope == "" {
 		return nil, types.ErrNotFound
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.agentSessionSummaries == nil {
 		s.agentSessionSummaries = make(map[string]*gen.AgentSessionSummary)
 	}
@@ -130,6 +132,8 @@ func (s *testStore) ClaimAgentSessionSummaryPending(_ context.Context, claimToke
 	if claimToken == "" {
 		return nil, types.ErrNotFound
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	now := time.Now().UTC()
 	for _, row := range s.agentSessionSummaries {
 		if row.Status != schema.AgentSessionSummaryPending || row.ClaimToken != "" {
@@ -145,6 +149,8 @@ func (s *testStore) ClaimAgentSessionSummaryPending(_ context.Context, claimToke
 }
 
 func (s *testStore) MarkAgentSessionSummaryReady(_ context.Context, sessionFlag, claimToken, title, summary string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	row, ok := s.agentSessionSummaries[strings.TrimSpace(sessionFlag)]
 	if !ok {
 		return types.ErrNotFound
@@ -166,6 +172,8 @@ func (s *testStore) MarkAgentSessionSummaryReady(_ context.Context, sessionFlag,
 }
 
 func (s *testStore) MarkAgentSessionSummaryFailed(_ context.Context, sessionFlag, claimToken, errMsg string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	row, ok := s.agentSessionSummaries[strings.TrimSpace(sessionFlag)]
 	if !ok {
 		return types.ErrNotFound
@@ -185,6 +193,8 @@ func (s *testStore) MarkAgentSessionSummaryFailed(_ context.Context, sessionFlag
 }
 
 func (s *testStore) GetAgentSessionSummaryBySession(_ context.Context, sessionFlag string) (*gen.AgentSessionSummary, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	row, ok := s.agentSessionSummaries[strings.TrimSpace(sessionFlag)]
 	if !ok {
 		return nil, types.ErrNotFound
@@ -198,6 +208,8 @@ func (s *testStore) SearchAgentSessionSummaries(_ context.Context, params store.
 	if q == "" {
 		return nil, nil
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	out := make([]*gen.AgentSessionSummary, 0)
 	for _, row := range s.agentSessionSummaries {
 		if row.Status != schema.AgentSessionSummaryReady {
@@ -216,6 +228,8 @@ func (s *testStore) SearchAgentSessionSummaries(_ context.Context, params store.
 }
 
 func (s *testStore) ListAgentSessionSummaries(_ context.Context, filter store.AgentSessionSummaryListFilter) ([]*gen.AgentSessionSummary, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	out := make([]*gen.AgentSessionSummary, 0)
 	q := strings.ToLower(strings.TrimSpace(filter.Q))
 	for _, row := range s.agentSessionSummaries {
@@ -235,6 +249,8 @@ func (s *testStore) RequeueStaleAgentSessionSummaryPending(_ context.Context, ol
 	if olderThan <= 0 {
 		olderThan = 10 * time.Minute
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	cutoff := time.Now().UTC().Add(-olderThan)
 	n := 0
 	for _, row := range s.agentSessionSummaries {

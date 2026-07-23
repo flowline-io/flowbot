@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 )
 
 func TestAgentSessionSummariesListAuthenticated(t *testing.T) {
@@ -69,6 +71,11 @@ func TestAgentSessionSummariesListAuthenticated(t *testing.T) {
 }
 
 func TestAgentSessionSummaryRetry(t *testing.T) {
+	restoreLLM := chatagent.DisableSessionSummaryLLMForTest()
+	t.Cleanup(func() {
+		chatagent.WaitForSessionSummaryGenerationForTest()
+		restoreLLM()
+	})
 	app, _ := setupTestApp()
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
