@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseDDGHTML(t *testing.T) {
+func TestParseSerpAPIResponse(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name      string
@@ -15,36 +15,40 @@ func TestParseDDGHTML(t *testing.T) {
 		wantCount int
 		wantURL   string
 		wantTitle string
+		wantErr   string
 	}{
 		{
-			name: "parses result links and snippets",
-			body: `
-<div class="result web-result">
-  <a class="result__a" href="//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Famd">AMD RX 9070 GRE price</a>
-  <a class="result__snippet">Street price around $599 for the GRE model.</a>
-</div>`,
+			name: "parses organic results",
+			body: `{
+  "search_metadata": {"status": "Success"},
+  "organic_results": [
+    {"title": "Coffee - Wikipedia", "link": "https://en.wikipedia.org/wiki/Coffee", "snippet": "Coffee is a brewed drink."}
+  ]
+}`,
 			wantCount: 1,
-			wantURL:   "https://example.com/amd",
-			wantTitle: "AMD RX 9070 GRE price",
+			wantURL:   "https://en.wikipedia.org/wiki/Coffee",
+			wantTitle: "Coffee - Wikipedia",
 		},
 		{
-			name:      "empty body yields no hits",
-			body:      `<html><body>no results</body></html>`,
+			name:      "empty organic results",
+			body:      `{"search_metadata": {"status": "Success"}, "organic_results": []}`,
 			wantCount: 0,
 		},
 		{
-			name: "strips nested tags in title",
-			body: `<a class="result__a" href="https://docs.example/"><b>Go</b> docs</a>
-<a class="result__snippet">Official docs</a>`,
-			wantCount: 1,
-			wantURL:   "https://docs.example/",
-			wantTitle: "Go docs",
+			name:    "serpapi error field",
+			body:    `{"error": "Invalid API key."}`,
+			wantErr: "serpapi error: Invalid API key.",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			hits := parseDDGHTML(tt.body)
+			hits, errMsg := parseSerpAPIResponse([]byte(tt.body))
+			if tt.wantErr != "" {
+				assert.Equal(t, tt.wantErr, errMsg)
+				return
+			}
+			require.Empty(t, errMsg)
 			require.Len(t, hits, tt.wantCount)
 			if tt.wantCount == 0 {
 				return
@@ -52,56 +56,6 @@ func TestParseDDGHTML(t *testing.T) {
 			assert.Equal(t, tt.wantURL, hits[0].URL)
 			assert.Equal(t, tt.wantTitle, hits[0].Title)
 			assert.NotEmpty(t, hits[0].Snippet)
-		})
-	}
-}
-
-func TestIsDDGCaptcha(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-		body string
-		want bool
-	}{
-		{name: "challenge form", body: `<form id="challenge-form" action="//duckduckgo.com/anomaly.js">`, want: true},
-		{name: "anomaly script", body: `<script src="/anomaly.js"></script>`, want: true},
-		{name: "normal results", body: `<a class="result__a" href="https://example.com">ok</a>`, want: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.want, isDDGCaptcha(tt.body))
-		})
-	}
-}
-
-func TestDecodeDDGHref(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name string
-		href string
-		want string
-	}{
-		{
-			name: "decodes uddg redirect",
-			href: "//duckduckgo.com/l/?uddg=https%3A%2F%2Fexample.com%2Fpath&rut=abc",
-			want: "https://example.com/path",
-		},
-		{
-			name: "keeps absolute url",
-			href: "https://example.com/direct",
-			want: "https://example.com/direct",
-		},
-		{
-			name: "empty href",
-			href: "",
-			want: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.want, decodeDDGHref(tt.href))
 		})
 	}
 }

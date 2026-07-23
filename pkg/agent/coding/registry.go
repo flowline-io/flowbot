@@ -19,9 +19,8 @@ func RegisterAll(registry *tool.Registry, ws Workspace, executionEnv env.Executi
 		WriteFileTool{Workspace: ws, Env: executionEnv},
 		ApplyPatchTool{Workspace: ws, Env: executionEnv},
 		WebSearchTool{
-			MaxOutput:   ws.MaxOutput,
-			SearxURL:    ws.WebSearchSearxURL,
-			BraveAPIKey: ws.WebSearchBraveAPIKey,
+			MaxOutput: ws.MaxOutput,
+			APIKey:    ws.WebSearchAPIKey,
 		},
 		WebFetchTool{MaxOutput: ws.MaxOutput},
 		RunCodeTool{Workspace: ws, Env: executionEnv},

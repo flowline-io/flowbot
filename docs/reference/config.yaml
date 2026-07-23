@@ -145,8 +145,7 @@ chat_agent:
     # server_url: "http://host.docker.internal:6060"  # URL reachable from inside the container
     # access_token: ""  # dedicated Hub access token; empty skips credential injection
   # web_search:
-  #   searx_url: "http://127.0.0.1:8080/search"  # SearXNG JSON API (?q=&format=json); preferred when set
-  #   brave_api_key: ""                          # Brave Search API key; used when searx_url is empty
+  #   api_key: ""  # SerpApi key (https://serpapi.com/search-api); required for web_search
 
 # Flowbot instance configuration
 flowbot:

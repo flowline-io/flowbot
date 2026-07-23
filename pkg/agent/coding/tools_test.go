@@ -123,15 +123,20 @@ func TestRunTerminalTool_Execute(t *testing.T) {
 }
 
 func TestWebSearchTool_Execute(t *testing.T) {
-	htmlServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, http.MethodPost, r.Method)
-		w.Header().Set("Content-Type", "text/html")
-		_, _ = w.Write([]byte(`
-<a class="result__a" href="https://example.com/go">Go language</a>
-<a class="result__snippet">An open-source programming language.</a>
-`))
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "google", r.URL.Query().Get("engine"))
+		assert.Equal(t, "test-key", r.URL.Query().Get("api_key"))
+		assert.Equal(t, "json", r.URL.Query().Get("output"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{
+  "search_metadata": {"status": "Success"},
+  "organic_results": [
+    {"title": "Go language", "link": "https://example.com/go", "snippet": "An open-source programming language."}
+  ]
+}`))
 	}))
-	defer htmlServer.Close()
+	defer server.Close()
 
 	tests := []struct {
 		name      string
@@ -144,7 +149,7 @@ func TestWebSearchTool_Execute(t *testing.T) {
 		{name: "whitespace trimmed", query: " go ", wantError: false, wantText: "example.com/go"},
 	}
 
-	tool := coding.WebSearchTool{HTTPClient: htmlServer.Client(), BaseURL: htmlServer.URL}
+	tool := coding.WebSearchTool{HTTPClient: server.Client(), BaseURL: server.URL, APIKey: "test-key"}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := tool.Execute(context.Background(), "id", map[string]any{"query": tt.query}, nil)
@@ -157,24 +162,24 @@ func TestWebSearchTool_Execute(t *testing.T) {
 	}
 }
 
-func TestWebSearchTool_SearxPreferred(t *testing.T) {
+func TestWebSearchTool_SerpAPI(t *testing.T) {
 	t.Parallel()
-	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "amd 9070gre", r.URL.Query().Get("q"))
-		assert.Equal(t, "json", r.URL.Query().Get("format"))
-		_, _ = w.Write([]byte(`{"results":[{"title":"RX 9070 GRE","url":"https://shop.example/9070","content":"Price CNY 4599"}]}`))
+		assert.Equal(t, "secret", r.URL.Query().Get("api_key"))
+		_, _ = w.Write([]byte(`{
+  "search_metadata": {"status": "Success"},
+  "organic_results": [
+    {"title": "RX 9070 GRE", "link": "https://shop.example/9070", "snippet": "Price CNY 4599"}
+  ]
+}`))
 	}))
-	defer searx.Close()
-
-	htmlBlocked := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-		t.Fatal("duckduckgo html should not be called when searx is configured")
-	}))
-	defer htmlBlocked.Close()
+	defer server.Close()
 
 	tool := coding.WebSearchTool{
-		HTTPClient: searx.Client(),
-		BaseURL:    htmlBlocked.URL,
-		SearxURL:   searx.URL,
+		HTTPClient: server.Client(),
+		BaseURL:    server.URL,
+		APIKey:     "secret",
 	}
 	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "amd 9070gre"}, nil)
 	require.NoError(t, err)
@@ -184,37 +189,13 @@ func TestWebSearchTool_SearxPreferred(t *testing.T) {
 	assert.Contains(t, text, "4599")
 }
 
-func TestWebSearchTool_BraveAPI(t *testing.T) {
+func TestWebSearchTool_MissingAPIKey(t *testing.T) {
 	t.Parallel()
-	brave := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "secret", r.Header.Get("X-Subscription-Token"))
-		_, _ = w.Write([]byte(`{"web":{"results":[{"title":"Brave hit","url":"https://brave.example","description":"snippet"}]}}`))
-	}))
-	defer brave.Close()
-
-	tool := coding.WebSearchTool{
-		HTTPClient:   brave.Client(),
-		BraveAPIKey:  "secret",
-		BraveBaseURL: brave.URL,
-	}
-	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "test"}, nil)
-	require.NoError(t, err)
-	require.False(t, result.IsError)
-	assert.Contains(t, textFromResult(t, result), "Brave hit")
-}
-
-func TestWebSearchTool_CaptchaReturnsHint(t *testing.T) {
-	t.Parallel()
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte(`<form id="challenge-form" action="//duckduckgo.com/anomaly.js"></form>`))
-	}))
-	defer server.Close()
-
-	tool := coding.WebSearchTool{HTTPClient: server.Client(), BaseURL: server.URL}
+	tool := coding.WebSearchTool{}
 	result, err := tool.Execute(context.Background(), "id", map[string]any{"query": "price"}, nil)
 	require.NoError(t, err)
 	require.True(t, result.IsError)
-	assert.Contains(t, textFromResult(t, result), "searx_url")
+	assert.Contains(t, textFromResult(t, result), "api_key")
 }
 
 func TestRunCodeTool_Execute(t *testing.T) {

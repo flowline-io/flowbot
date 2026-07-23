@@ -589,13 +589,10 @@ type ChatAgentConfig struct {
 	WebSearch ChatAgentWebSearchConfig `json:"web_search" yaml:"web_search" mapstructure:"web_search"`
 }
 
-// ChatAgentWebSearchConfig configures web_search tool backends.
+// ChatAgentWebSearchConfig configures the web_search tool via SerpApi.
 type ChatAgentWebSearchConfig struct {
-	// SearxURL is a SearXNG-compatible search endpoint (e.g. http://127.0.0.1:8080/search).
-	// When set, web_search uses ?q=&format=json and prefers this over DuckDuckGo.
-	SearxURL string `json:"searx_url" yaml:"searx_url" mapstructure:"searx_url"`
-	// BraveAPIKey enables the Brave Search API when non-empty.
-	BraveAPIKey string `json:"brave_api_key" yaml:"brave_api_key" mapstructure:"brave_api_key"`
+	// APIKey is the SerpApi private key (https://serpapi.com/search-api).
+	APIKey string `json:"api_key" yaml:"api_key" mapstructure:"api_key"`
 }
 
 // LLMRetryConfig configures transient LLM call retries.
