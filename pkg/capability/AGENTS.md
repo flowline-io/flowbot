@@ -19,4 +19,5 @@ capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit":
 - CapType == provider ID for provider-backed caps
 - **Exception:** `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx (sole multi-provider CapType≠provider). Ops use underscores (`beszel_list_systems`)
 - Domain event names stay stable; set `DataEvent.Capability` to provider ID
+- Pagination: limit + opaque cursor; hide provider pagination internals in the adapter
 - New caps: follow `pkg/capability/example/`

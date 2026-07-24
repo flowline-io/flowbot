@@ -13,6 +13,7 @@ Third-party API/OAuth clients. Configure under `flowbot.yaml` → `providers.<na
 - OAuth production providers export `Register()` and wire via `fx.Invoke` in `internal/server/providers.go` (github, slack, dropbox). `example` shows OAuth methods but does **not** export `Register()`
 - Token/API-key providers skip OAuth `Register` / fx wiring
 - Never hardcode credentials; respect rate limits; use context timeouts
+- Never call hub / pipeline / emit DataEvent from inside a provider — orchestration stays outside this package
 
 ## Testing
 

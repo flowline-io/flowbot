@@ -18,7 +18,7 @@ modules/<name>/
 
 - Do not import `pkg/providers/*` — use `capability.Invoke`
 - Provider wiring belongs in `pkg/capability/<provider>/adapter.go`
-- Routes: `/service/{module}/*`; management: `/hub/*`
+- Routes: `/service/{module}/*` for module business APIs; hub **management** APIs under `/hub/*` — never put hub management under `/service/hub/*` (hub module business routes may still live under `/service/hub`)
 - Cross-service orchestration in Pipeline, not cron/event handlers
 
 ## Testing

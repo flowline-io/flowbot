@@ -23,6 +23,13 @@ Flowbot uses Ginkgo v2 + Gomega for Behavior-Driven Development (BDD) at the int
 | BDD Acceptance | Ginkgo + Gomega      | `tests/specs/`                       | All integration/acceptance tests must use |
 | Unit           | testify table-driven | `pkg/**/`, `internal/**/`, `cmd/**/` | Never migrate -- retained permanently     |
 
+## When BDD is required
+
+* **Required:** new modules; changes that alter cross-boundary behavior (HTTP APIs, events, auth, pipelines) visible outside a single package.
+* **Not required:** pure library refactors covered by unit tests; docs / AGENTS / comment-only edits.
+* **Without Docker:** `go tool task test:specs` needs Docker/testcontainers. Run unit tests (`go tool task test`) and explicitly state that BDD specs were skipped — do not claim specs passed.
+* Repo-wide policy summary: root [AGENTS.md](../../AGENTS.md) Testing policy.
+
 ## Directory Structure
 
 ```

@@ -22,6 +22,8 @@ Look at the package directory for the full file set; prefer hot-path names above
 - Never block in handlers — long work in goroutines
 - Map `types.Err*` in `error.go`; use `protocol.NewFailedResponse` / `NewSuccessResponse`
 - Validate inputs before processing
+- Events: DataEvent → PostgreSQL `data_events` (+ event outbox) → Redis Stream → pipeline handler → `pipeline_runs`
+- Use `http.NoBody` instead of `nil` in `http.NewRequest` calls
 
 ## Routing
 

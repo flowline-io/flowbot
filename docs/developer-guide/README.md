@@ -8,6 +8,7 @@ Operations and development documentation for Flowbot.
 - [Monitoring](./monitoring.md) — Grafana dashboard, Prometheus metrics via PushGateway, and alerting rules
 - [Tracing](./tracing.md) — OpenTelemetry distributed tracing across all components
 - [Conformance](./conformance.md) — Ability adapter conformance test suite for provider development
+- [Cursor Cloud](./cursor-cloud.md) — Per-session PostgreSQL/Redis bootstrap and Cloud config gotchas
 
 ## Development Tools
 

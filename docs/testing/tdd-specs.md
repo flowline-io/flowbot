@@ -2,6 +2,13 @@
 
 All unit tests follow Test-Driven Development with testify table-driven patterns. This document defines the development workflow, test structure, and quality standards.
 
+## When unit tests are required
+
+* Library / pure logic / behavior changes in Go packages: write or update table-driven unit tests (this doc).
+* New modules or cross-boundary HTTP/event behavior: also add or update BDD specs — see [bdd-specs.md](./bdd-specs.md).
+* Docs-only, AGENTS.md, or comment-only edits: unit tests are not required.
+* Repo-wide policy summary: root [AGENTS.md](../../AGENTS.md) Testing policy.
+
 ## TDD Workflow
 
 ```
@@ -239,6 +246,7 @@ This maximizes concurrency. Tests run in `t.Parallel()` are paused until the par
 - Tests sharing a database fixture should not use `t.Parallel` against the same data.
 - Read-only globals (e.g., compiled regexps, template engines) are safe for parallel access.
 - Integration tests using shared containers do not use `t.Parallel()`.
+- Never remove `t.Parallel()` to hide race conditions — fix shared-state serialization or other root causes instead.
 
 ## Test Naming
 
