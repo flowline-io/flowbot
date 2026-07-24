@@ -36,13 +36,27 @@ metadata:
 
 # {{.Title}}
 
-Use ` + "`" + `flowbot {{.CLIRoot}}` + "`" + ` for capability ` + "`" + `{{.Name}}` + "`" + `. Prefer the workflows below; load [references/cli.md](references/cli.md) only when you need a flag or subcommand not covered here.
+Use ` + "`" + `flowbot {{.CLIRoot}}` + "`" + ` for capability ` + "`" + `{{.Name}}` + "`" + `.
+**CLI root is ` + "`" + `{{.CLIRoot}}` + "`" + `** — do not invent ` + "`" + `flowbot {{.Name}}` + "`" + ` unless cli.md lists it as an alias.
+Prefer the workflows below; load [references/cli.md](references/cli.md) only when you need a flag or subcommand not covered here.
+{{- if .LimitsNote}}
+
+**CLI limits:** {{.LimitsNote}}
+{{- end}}
+{{- if .ResponseHint}}
+
+**JSON fields:** {{.ResponseHint}}
+{{- end}}
 
 ## Setup
 
 1. Ensure CLI auth: ` + "`" + `flowbot login` + "`" + `
 2. Set server via ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or ` + "`" + `--server-url` + "`" + `; optional ` + "`" + `--profile` + "`" + `, ` + "`" + `--debug` + "`" + ` / ` + "`" + `-d` + "`" + `
 3. Prefer ` + "`" + `-o json` + "`" + ` when parsing results programmatically
+4. Destructive commands often need ` + "`" + `-y` + "`" + ` / ` + "`" + `--yes` + "`" + ` in non-interactive sessions — check cli.md
+{{- if .ScopesNote}}
+5. Token scopes: {{.ScopesNote}}
+{{- end}}
 
 ## Workflows
 {{- range .Workflows}}
@@ -61,7 +75,10 @@ Use ` + "`" + `flowbot {{.CLIRoot}}` + "`" + ` for capability ` + "`" + `{{.Name
 |-------|-----|
 | not logged in | ` + "`" + `flowbot login` + "`" + ` |
 | server URL is required | set ` + "`" + `FLOWBOT_SERVER_URL` + "`" + ` or pass ` + "`" + `--server-url` + "`" + ` |
-| empty results | confirm server health and capability access scopes |
+| permission denied / 403 | token missing service scopes{{- if .ScopesNote}} ({{.ScopesNote}}){{- end}} |
+| hung waiting for confirm | pass ` + "`" + `-y` + "`" + ` when the command supports it (see cli.md) |
+| empty results | provider not configured, wrong id/name, or empty dataset |
+| unknown command | use ` + "`" + `flowbot {{.CLIRoot}}` + "`" + `, not the capability id as the CLI verb |
 `
 
 // cliReferenceTemplate is the on-demand CLI command reference.
@@ -123,12 +140,15 @@ type workflowSpec struct {
 // metaSpec holds contextual information not derivable from CLI command structs.
 // Name must be the hub.CapabilityType string (provider ID), not the CLI domain name.
 type metaSpec struct {
-	Name        string
-	Title       string
-	Description string
-	Keywords    string
-	Workflows   []workflowSpec
-	CommandFn   func() *cobra.Command
+	Name         string
+	Title        string
+	Description  string
+	Keywords     string
+	ScopesNote   string // e.g. service:karakeep:read / service:karakeep:write
+	ResponseHint string // how to read ids from -o json
+	LimitsNote   string // CLI surface gaps vs capability ops
+	Workflows    []workflowSpec
+	CommandFn    func() *cobra.Command
 }
 
 // metaSpecs maps each CLI-invokable capability to its skill metadata.
@@ -136,11 +156,14 @@ type metaSpec struct {
 // (e.g. capability "karakeep" is invoked as "flowbot bookmark ...").
 var metaSpecs = []metaSpec{
 	{
-		Name:        string(hub.CapKarakeep),
-		Title:       "Karakeep",
-		CommandFn:   command.BookmarkCommand,
-		Description: "Create, list, search, archive, and delete bookmarks via flowbot bookmark.",
-		Keywords:    "bookmarks, karakeep, saved URLs, reading list, link archiving, web clippings",
+		Name:         string(hub.CapKarakeep),
+		Title:        "Karakeep",
+		CommandFn:    command.BookmarkCommand,
+		Description:  "Create, list, search, archive, and delete bookmarks via flowbot bookmark.",
+		Keywords:     "bookmarks, karakeep, saved URLs, reading list, link archiving, web clippings",
+		ScopesNote:   "`service:karakeep:read` / `service:karakeep:write`",
+		ResponseHint: "Bookmark id is a string field `id` in `-o json` output.",
+		LimitsNote:   "Tag attach/detach and health are capability ops without CLI commands; inspect tags via `bookmark get`.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Save a URL from a chat message",
@@ -160,23 +183,35 @@ var metaSpecs = []metaSpec{
 					{Step: 3, Note: "Present the bookmark details to the user."},
 				},
 			},
+			{
+				Title:       "Archive a bookmark",
+				Description: "When a user wants to archive a saved URL:",
+				Steps: []workflowStep{
+					{Step: 1, Command: "flowbot bookmark archive <id> -y"},
+					{Step: 2, Note: "Confirm archive status from the command output."},
+				},
+			},
 		},
 	},
 	{
-		Name:        string(hub.CapKanboard),
-		Title:       "Kanboard",
-		CommandFn:   command.KanbanCommand,
-		Description: "Manage kanban boards, tasks, subtasks, timers, tags, and metadata via flowbot kanban.",
-		Keywords:    "kanban, kanboard, tasks, todo, subtasks, time tracking, board columns, moving cards",
+		Name:         string(hub.CapKanboard),
+		Title:        "Kanboard",
+		CommandFn:    command.KanbanCommand,
+		Description:  "Manage kanban boards, tasks, subtasks, timers, tags, and metadata via flowbot kanban.",
+		Keywords:     "kanban, kanboard, tasks, todo, subtasks, time tracking, board columns, moving cards",
+		ScopesNote:   "`service:kanboard:read` / `service:kanboard:write`",
+		ResponseHint: "Task ids are integers; use `kanban list` / `get` JSON `id`. Column ids come from `kanban column list`.",
+		LimitsNote:   "CLI also exposes subtask/tag/timer helpers beyond the core capability CatalogSpec ops; there is no `kanban health` command.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Create a task with subtasks",
 				Description: "When a user wants to create a well-structured task:",
 				Steps: []workflowStep{
-					{Step: 1, Command: "flowbot kanban column list -p 1"},
-					{Step: 2, Command: "flowbot kanban create -t \"<task title>\" -d \"<description>\" -p 1 -c <column_id>"},
-					{Step: 3, Command: "flowbot kanban subtask create <task_id> -t \"<subtask 1>\" -e <minutes>"},
-					{Step: 4, Command: "flowbot kanban subtask create <task_id> -t \"<subtask 2>\" -e <minutes>"},
+					{Step: 1, Note: "Ask for or discover project_id (do not assume 1)."},
+					{Step: 2, Command: "flowbot kanban column list -p <project_id>"},
+					{Step: 3, Command: "flowbot kanban create -t \"<task title>\" -d \"<description>\" -p <project_id> -c <column_id>"},
+					{Step: 4, Command: "flowbot kanban subtask create <task_id> -t \"<subtask 1>\" -e <minutes>"},
+					{Step: 5, Command: "flowbot kanban subtask create <task_id> -t \"<subtask 2>\" -e <minutes>"},
 				},
 			},
 			{
@@ -192,20 +227,24 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapMiniflux),
-		Title:       "Miniflux",
-		CommandFn:   command.ReaderCommand,
-		Description: "Subscribe to RSS/Atom feeds and manage entries via flowbot reader.",
-		Keywords:    "RSS, Atom, miniflux, feed reader, unread entries, starring articles, feed subscriptions",
+		Name:         string(hub.CapMiniflux),
+		Title:        "Miniflux",
+		CommandFn:    command.ReaderCommand,
+		Description:  "Subscribe to RSS/Atom feeds and manage entries via flowbot reader.",
+		Keywords:     "RSS, Atom, miniflux, feed reader, unread entries, feed subscriptions, mark as read",
+		ScopesNote:   "`service:miniflux:read` / `service:miniflux:write`",
+		ResponseHint: "Feed and entry ids are integers in `-o json` (`id`).",
+		LimitsNote:   "No `reader refresh` or star/unstar CLI; feed fetch is server-side. Mark read/unread with `reader update-entries`.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Subscribe to a new feed",
 				Description: "When a user shares a blog or feed URL they want to follow:",
 				Steps: []workflowStep{
 					{Step: 1, Command: "flowbot reader create -u <feed_url>"},
-					{Step: 2, Command: "flowbot reader refresh <feed_id>"},
-					{Step: 3, Command: "flowbot reader feed-entries <feed_id> -n 5"},
-					{Step: 4, Note: "Report the latest entries to the user."},
+					{Step: 2, Command: "flowbot reader list"},
+					{Step: 3, Note: "Pick the new feed id from list output (server fetches entries asynchronously)."},
+					{Step: 4, Command: "flowbot reader feed-entries <feed_id> -n 5"},
+					{Step: 5, Note: "Report the latest entries to the user; retry feed-entries shortly if still empty."},
 				},
 			},
 			{
@@ -220,11 +259,13 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapMemos),
-		Title:       "Memos",
-		CommandFn:   command.MemoCommand,
-		Description: "Create, list, update, and delete memos via flowbot memo.",
-		Keywords:    "memos, memo notes, scratchpad, quick notes, jotting",
+		Name:         string(hub.CapMemos),
+		Title:        "Memos",
+		CommandFn:    command.MemoCommand,
+		Description:  "Create, list, update, and delete memos via flowbot memo.",
+		Keywords:     "memos, memo notes, scratchpad, quick notes, jotting",
+		ScopesNote:   "`service:memos:read` / `service:memos:write`",
+		ResponseHint: "Memo resource name (not a numeric id) is the get/delete argument; see `name` in `-o json`.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Capture a quick note",
@@ -246,18 +287,22 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapTrilium),
-		Title:       "Trilium",
-		CommandFn:   command.TriliumCommand,
-		Description: "Create, list, search, update, and delete trilium notes via flowbot trilium.",
-		Keywords:    "trilium, notes, knowledge base, note tree, personal wiki",
+		Name:         string(hub.CapTrilium),
+		Title:        "Trilium",
+		CommandFn:    command.TriliumCommand,
+		Description:  "Create, list, search, update, and delete trilium notes via flowbot trilium.",
+		Keywords:     "trilium, notes, knowledge base, note tree, personal wiki",
+		ScopesNote:   "`service:trilium:read` / `service:trilium:write`",
+		ResponseHint: "Note ids are strings; create requires an existing `parent_note_id`.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Create a note under a parent",
 				Description: "When a user wants to add a new trilium note:",
 				Steps: []workflowStep{
-					{Step: 1, Command: "flowbot trilium create -t \"<title>\" -c \"<content>\" -p <parent_note_id>"},
-					{Step: 2, Note: "Report back with the note ID."},
+					{Step: 1, Command: "flowbot trilium list --limit 20"},
+					{Step: 2, Note: "Choose parent_note_id from list/get (ask the user if unclear)."},
+					{Step: 3, Command: "flowbot trilium create -t \"<title>\" -c \"<content>\" -p <parent_note_id>"},
+					{Step: 4, Note: "Report back with the note ID."},
 				},
 			},
 			{
@@ -273,11 +318,13 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapFireflyiii),
-		Title:       "Firefly III",
-		CommandFn:   command.FireflyiiiCommand,
-		Description: "Create Firefly III transactions and inspect instance health via flowbot fireflyiii.",
-		Keywords:    "fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting",
+		Name:         string(hub.CapFireflyiii),
+		Title:        "Firefly III",
+		CommandFn:    command.FireflyiiiCommand,
+		Description:  "Create Firefly III transactions and inspect instance health via flowbot fireflyiii.",
+		Keywords:     "fireflyiii, firefly, finance, transactions, expenses, budgeting, accounting",
+		ScopesNote:   "`service:fireflyiii:read` / `service:fireflyiii:write`",
+		ResponseHint: "Transaction id is a string field `id` in create output.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Record an expense",
@@ -299,11 +346,13 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapTransmission),
-		Title:       "Transmission",
-		CommandFn:   command.TransmissionCommand,
-		Description: "Add, list, stop, and remove Transmission torrents via flowbot transmission.",
-		Keywords:    "transmission, torrent, magnet, download, bittorrent, seed",
+		Name:         string(hub.CapTransmission),
+		Title:        "Transmission",
+		CommandFn:    command.TransmissionCommand,
+		Description:  "Add, list, stop, and remove Transmission torrents via flowbot transmission.",
+		Keywords:     "transmission, torrent, magnet, download, bittorrent, seed",
+		ScopesNote:   "`service:transmission:read` / `service:transmission:write`",
+		ResponseHint: "Torrent ids are integers; use `list` JSON `id`.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Add a torrent",
@@ -319,17 +368,19 @@ var metaSpecs = []metaSpec{
 				Steps: []workflowStep{
 					{Step: 1, Command: "flowbot transmission list"},
 					{Step: 2, Command: "flowbot transmission stop --ids <id>"},
-					{Step: 3, Note: "Use remove only when the user confirms the torrent should be deleted from Transmission."},
+					{Step: 3, Note: "Remove only after explicit confirmation: flowbot transmission remove --ids <id> (no -y flag; confirm with the user first)."},
 				},
 			},
 		},
 	},
 	{
-		Name:        string(hub.CapNocodb),
-		Title:       "NocoDB",
-		CommandFn:   command.NocodbCommand,
-		Description: "Discover NocoDB bases/tables and create, list, update, or delete records via flowbot nocodb.",
-		Keywords:    "nocodb, base, table, record, spreadsheet, database, airtable",
+		Name:         string(hub.CapNocodb),
+		Title:        "NocoDB",
+		CommandFn:    command.NocodbCommand,
+		Description:  "Discover NocoDB bases/tables and create, list, update, or delete records via flowbot nocodb.",
+		Keywords:     "nocodb, base, table, record, spreadsheet, database, airtable",
+		ScopesNote:   "`service:nocodb:read` / `service:nocodb:write`",
+		ResponseHint: "Use base-id / table-id / record-id strings from discover commands; `--fields` keys must match column titles.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Discover bases and tables",
@@ -353,11 +404,14 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapDevops),
-		Title:       "DevOps",
-		CommandFn:   command.DevopsCommand,
-		Description: "Query devops backends (beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx) via flowbot devops.",
-		Keywords:    "devops, beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, prometheus, loki, tempo, pyroscope, alloy, monitoring, infrastructure",
+		Name:         string(hub.CapDevops),
+		Title:        "DevOps",
+		CommandFn:    command.DevopsCommand,
+		Description:  "Query devops backends (beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx) via flowbot devops.",
+		Keywords:     "devops, beszel, uptimekuma, traefik, grafana, wakapi, dozzle, netalertx, prometheus, loki, tempo, pyroscope, alloy, monitoring, infrastructure",
+		ScopesNote:   "`service:devops:read`",
+		ResponseHint: "Prefer `-o json`. Start with `devops status` to see which backends are configured.",
+		LimitsNote:   "There is no `flowbot devops health`; use `flowbot devops status` for aggregate readiness, then backend-specific health/metrics commands.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Check which backends are configured",
@@ -375,7 +429,9 @@ var metaSpecs = []metaSpec{
 					{Step: 2, Command: "flowbot devops uptimekuma health"},
 					{Step: 3, Command: "flowbot devops traefik routers"},
 					{Step: 4, Command: "flowbot devops grafana health"},
-					{Step: 5, Command: "flowbot devops netalertx totals"},
+					{Step: 5, Command: "flowbot devops wakapi projects"},
+					{Step: 6, Command: "flowbot devops dozzle health"},
+					{Step: 7, Command: "flowbot devops netalertx totals"},
 				},
 			},
 			{
@@ -390,11 +446,14 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapGitea),
-		Title:       "Gitea",
-		CommandFn:   command.ForgeCommand,
-		Description: "Inspect forge users, repos, issues, diffs, and files via flowbot forge.",
-		Keywords:    "gitea, forge, repositories, issues, commit diffs, source files, code review",
+		Name:         string(hub.CapGitea),
+		Title:        "Gitea",
+		CommandFn:    command.ForgeCommand,
+		Description:  "Inspect forge users, repos, issues, diffs, and files via flowbot forge.",
+		Keywords:     "gitea, forge, repositories, issues, commit diffs, source files, code review",
+		ScopesNote:   "`service:gitea:read` / `service:gitea:write`",
+		ResponseHint: "Issue index is the forge issue number argument; not the same as GitHub `number` naming in docs.",
+		LimitsNote:   "CLI root is `forge` (alias may include gitea). No `forge health` command.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Inspect a repository issue",
@@ -417,11 +476,14 @@ var metaSpecs = []metaSpec{
 		},
 	},
 	{
-		Name:        string(hub.CapGithub),
-		Title:       "GitHub",
-		CommandFn:   command.GithubCommand,
-		Description: "Inspect GitHub users, repos, issues, notifications, releases, diffs, and files via flowbot github.",
-		Keywords:    "github, repositories, issues, notifications, releases, pull requests, commit diffs",
+		Name:         string(hub.CapGithub),
+		Title:        "GitHub",
+		CommandFn:    command.GithubCommand,
+		Description:  "Inspect GitHub users, repos, issues, notifications, releases, diffs, and files via flowbot github.",
+		Keywords:     "github, repositories, issues, notifications, releases, commit diffs, source files",
+		ScopesNote:   "`service:github:read` / `service:github:write`",
+		ResponseHint: "Issue argument is `<number>`; notification and release ids appear in `-o json`.",
+		LimitsNote:   "No pull-request commands and no `github health` CLI.",
 		Workflows: []workflowSpec{
 			{
 				Title:       "Triage open issues",
@@ -659,6 +721,9 @@ type skillData struct {
 	Title              string
 	CLIRoot            string
 	TriggerDescription string
+	ScopesNote         string
+	ResponseHint       string
+	LimitsNote         string
 	Operations         []opSpec
 	Workflows          []workflowSpec
 }
@@ -684,6 +749,9 @@ func generateSkill(meta metaSpec, outputDir string, skillTmpl, refTmpl *template
 		Title:              meta.Title,
 		CLIRoot:            cliRoot,
 		TriggerDescription: buildTriggerDescription(meta.Description, meta.Keywords),
+		ScopesNote:         meta.ScopesNote,
+		ResponseHint:       meta.ResponseHint,
+		LimitsNote:         meta.LimitsNote,
 		Operations:         extractOperations(rootCmd, cliRoot),
 		Workflows:          meta.Workflows,
 	}

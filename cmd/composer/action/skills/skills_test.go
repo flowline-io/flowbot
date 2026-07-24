@@ -466,10 +466,12 @@ func TestGenerateSkillProgressiveDisclosure(t *testing.T) {
 			skill := string(skillBody)
 			require.Contains(t, skill, "name: "+meta.Name)
 			require.Contains(t, skill, "Use when the user mentions")
+			require.Contains(t, skill, "CLI root is")
 			require.Contains(t, skill, "references/cli.md")
 			require.Contains(t, skill, "## Workflows")
+			require.Contains(t, skill, "permission denied")
 			require.NotContains(t, skill, "## Commands")
-			require.Less(t, strings.Count(skill, "\n"), 120, "SKILL.md should stay lean")
+			require.Less(t, strings.Count(skill, "\n"), 180, "SKILL.md should stay lean")
 
 			refBody, err := os.ReadFile(filepath.Join(dir, meta.Name, "references", "cli.md"))
 			require.NoError(t, err)
@@ -478,6 +480,69 @@ func TestGenerateSkillProgressiveDisclosure(t *testing.T) {
 			require.Contains(t, ref, "flowbot ")
 		})
 	}
+}
+
+func TestMetaSpecsTeachabilityGuards(t *testing.T) {
+	t.Parallel()
+
+	byName := make(map[string]metaSpec, len(metaSpecs))
+	for _, m := range metaSpecs {
+		byName[m.Name] = m
+	}
+
+	t.Run("miniflux has no refresh workflow command", func(t *testing.T) {
+		t.Parallel()
+		m := byName[string(hub.CapMiniflux)]
+		require.NotContains(t, m.Keywords, "starring")
+		for _, wf := range m.Workflows {
+			for _, step := range wf.Steps {
+				require.NotContains(t, step.Command, "reader refresh")
+				require.NotContains(t, step.Note, "reader refresh")
+			}
+		}
+	})
+
+	t.Run("github does not advertise pull requests", func(t *testing.T) {
+		t.Parallel()
+		m := byName[string(hub.CapGithub)]
+		require.NotContains(t, m.Keywords, "pull request")
+		require.Contains(t, m.LimitsNote, "pull-request")
+	})
+
+	t.Run("kanboard create workflow does not hardcode project 1", func(t *testing.T) {
+		t.Parallel()
+		m := byName[string(hub.CapKanboard)]
+		for _, wf := range m.Workflows {
+			for _, step := range wf.Steps {
+				require.NotContains(t, step.Command, "-p 1")
+			}
+		}
+	})
+
+	t.Run("every skill documents scopes and cli root mismatch risk", func(t *testing.T) {
+		t.Parallel()
+		funcs := newTemplateFuncs()
+		skillTmpl, err := template.New("skill").Funcs(funcs).Parse(skillTemplate)
+		require.NoError(t, err)
+		refTmpl, err := template.New("cli_ref").Funcs(funcs).Parse(cliReferenceTemplate)
+		require.NoError(t, err)
+
+		for _, meta := range metaSpecs {
+			t.Run(meta.Name, func(t *testing.T) {
+				t.Parallel()
+				require.NotEmpty(t, meta.ScopesNote, "scopes note required for %s", meta.Name)
+				dir := t.TempDir()
+				require.NoError(t, generateSkill(meta, dir, skillTmpl, refTmpl))
+				body, err := os.ReadFile(filepath.Join(dir, meta.Name, "SKILL.md"))
+				require.NoError(t, err)
+				skill := string(body)
+				require.Contains(t, skill, "CLI root is")
+				require.Contains(t, skill, "unknown command")
+				require.Contains(t, skill, "-y")
+				require.Contains(t, skill, meta.ScopesNote)
+			})
+		}
+	})
 }
 
 func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
