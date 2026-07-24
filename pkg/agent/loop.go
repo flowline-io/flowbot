@@ -454,14 +454,14 @@ func turnModelName(cfg Config, current *Context) string {
 // resolveTurnModel returns the langchaingo client for the current turn.
 func resolveTurnModel(ctx context.Context, deps LoopDeps, modelName string) (llms.Model, error) {
 	if deps.ResolveModel != nil {
-		model, err := deps.ResolveModel(ctx, modelName)
+		resolved, err := deps.ResolveModel(ctx, modelName)
 		if err != nil {
 			return nil, fmt.Errorf("agent loop: resolve model %q: %w", modelName, err)
 		}
-		if model == nil {
+		if resolved == nil {
 			return nil, fmt.Errorf("agent loop: resolve model %q returned nil", modelName)
 		}
-		return model, nil
+		return resolved, nil
 	}
 	if deps.Model == nil {
 		return nil, fmt.Errorf("agent loop: model is nil")

@@ -157,7 +157,7 @@ func TestTruncateCommandForLog(t *testing.T) {
 
 func stringsRepeat(s string, n int) string {
 	b := make([]byte, 0, len(s)*n)
-	for i := 0; i < n; i++ {
+	for range n {
 		b = append(b, s...)
 	}
 	return string(b)

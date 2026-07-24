@@ -989,7 +989,7 @@ func TestAgentKnowledgeCRUDAndSearch(t *testing.T) {
 					Content:   "unique-needle-token",
 					UpdatedAt: time.Now().Add(-48 * time.Hour),
 				}))
-				for i := 0; i < 120; i++ {
+				for i := range 120 {
 					require.NoError(t, a.CreateAgentKnowledge(ctx, &gen.AgentKnowledge{
 						Path:    "/docs/recent-" + strconv.Itoa(i) + ".md",
 						Title:   "Recent",

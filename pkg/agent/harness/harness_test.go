@@ -176,13 +176,13 @@ func TestHarnessPersistsUserBeforeToolApproval(t *testing.T) {
 					continue
 				}
 				userCount++
-				got := ""
+				var got strings.Builder
 				for _, part := range um.Parts {
 					if tp, ok := part.(agent.TextPart); ok {
-						got += tp.Text
+						got.WriteString(tp.Text)
 					}
 				}
-				assert.Contains(t, got, "please echo")
+				assert.Contains(t, got.String(), "please echo")
 			}
 			require.Equal(t, 1, userCount)
 

@@ -439,7 +439,7 @@ func (s *testStore) DeleteNotifyTemplate(_ context.Context, id int64) error {
 }
 
 func ensureChatAgentServiceForTest() {
-	SetChatAgentService(chatagent.NewService())
+	ensureChatAgentService()
 }
 
 func setupTestApp() (*fiber.App, *testStore) {

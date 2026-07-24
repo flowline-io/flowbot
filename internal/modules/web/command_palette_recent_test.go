@@ -41,7 +41,7 @@ func TestRecordCommandPaletteRecent(t *testing.T) {
 			name: "caps at eight entries",
 			existing: func() []commandPaletteItem {
 				out := make([]commandPaletteItem, 8)
-				for i := 0; i < 8; i++ {
+				for i := range 8 {
 					out[i] = commandPaletteItem{
 						ID:    "page:" + itoaRecent(i),
 						Title: "P",

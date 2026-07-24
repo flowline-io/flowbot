@@ -150,7 +150,7 @@ func runSessionSummaryWorker(stop <-chan struct{}) {
 			if _, err := store.Database.RequeueStaleAgentSessionSummaryPending(context.Background(), sessionSummaryStaleClaimAge); err != nil {
 				flog.Warn("[chat-agent] requeue stale session summaries: %v", err)
 			}
-			for i := 0; i < 5; i++ {
+			for range 5 {
 				if !processOneSessionSummary(context.Background()) {
 					break
 				}

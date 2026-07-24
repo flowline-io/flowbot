@@ -116,5 +116,6 @@ func InitForE2E(configData json.RawMessage) error {
 
 // MountForE2E mounts web module routes onto the given Fiber app.
 func MountForE2E(app *fiber.App) {
+	ensureChatAgentService()
 	handler.Webservice(app)
 }

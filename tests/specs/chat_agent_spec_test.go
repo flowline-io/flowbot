@@ -203,7 +203,14 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		}
 		done := make(chan runResult, 1)
 		go func() {
-			r, runErr := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "now edit plan-mode-target.txt"}, nil)
+			r, runErr := svc.Run(ctx, chatagent.RunRequest{
+				SessionID: sessionID,
+				Text:      "now edit plan-mode-target.txt",
+				API: &chatagent.APIRunOptions{
+					Publisher: pub,
+					Confirm:   gate,
+				},
+			}, nil)
 			done <- runResult{reply: r, err: runErr}
 		}()
 

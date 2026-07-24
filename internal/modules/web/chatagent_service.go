@@ -11,6 +11,14 @@ func SetChatAgentService(s *chatagent.Service) {
 	webChatAgentService = s
 }
 
+// ensureChatAgentService installs a Service when E2E/unit helpers mount Web
+// without going through server.ChatAgentService bootstrap.
+func ensureChatAgentService() {
+	if webChatAgentService == nil {
+		SetChatAgentService(chatagent.NewService())
+	}
+}
+
 // chatAgentService returns the shared Service installed by SetChatAgentService.
 func chatAgentService() *chatagent.Service {
 	if webChatAgentService == nil {
