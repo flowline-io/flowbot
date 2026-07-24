@@ -20,6 +20,9 @@ func TestSupportsReasoningStream(t *testing.T) {
 		{name: "deepseek-v4-flash is reasoning", modelName: "deepseek-v4-flash", want: true},
 		{name: "deepseek-v4-pro is reasoning", modelName: "deepseek-v4-pro", want: true},
 		{name: "deepseek-chat is not reasoning", modelName: "deepseek-chat", want: false},
+		{name: "mimo-v2.5 is reasoning", modelName: "mimo-v2.5", want: true},
+		{name: "mimo-v2.5-pro is reasoning", modelName: "mimo-v2.5-pro", want: true},
+		{name: "mimo-v2 is not reasoning", modelName: "mimo-v2", want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -52,6 +55,12 @@ func TestReasoningCallOptions(t *testing.T) {
 		{
 			name:      "deepseek v4 flash enables stream thinking",
 			modelName: "deepseek-v4-flash",
+			maxTokens: 4096,
+			wantLen:   2,
+		},
+		{
+			name:      "mimo v2.5 enables stream thinking",
+			modelName: "mimo-v2.5",
 			maxTokens: 4096,
 			wantLen:   2,
 		},

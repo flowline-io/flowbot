@@ -128,10 +128,10 @@ func TestRouter_PrepareNextTurnHook_media(t *testing.T) {
 	}}
 
 	tests := []struct {
-		name          string
-		chatModel     string
-		toolModel     string
-		toolResults   int
+		name           string
+		chatModel      string
+		toolModel      string
+		toolResults    int
 		wantMediaKinds []msg.MediaKind
 	}{
 		{

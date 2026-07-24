@@ -17,7 +17,7 @@ const defaultLLMHTTPTimeout = 10 * time.Minute
 func openaiHTTPTransport(withThinking bool) http.RoundTripper {
 	var transport http.RoundTripper = cloneDefaultHTTPTransport()
 	if withThinking {
-		transport = &deepSeekThinkingTransport{base: transport}
+		transport = &thinkingTransport{base: transport}
 	}
 	transport = &streamIdleTransport{base: transport}
 	return otelhttp.NewTransport(transport)

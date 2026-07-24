@@ -35,7 +35,7 @@ func (r *roundTripRecorder) RoundTrip(req *http.Request) (*http.Response, error)
 	}, nil
 }
 
-func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
+func TestThinkingHTTPClientInjectsThinking(t *testing.T) {
 	tests := []struct {
 		name          string
 		path          string
@@ -47,7 +47,7 @@ func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 		wantNoEffort  bool
 	}{
 		{
-			name:        "chat completion gets thinking fields",
+			name:        "deepseek chat completion gets thinking and effort",
 			path:        "/v1/chat/completions",
 			body:        `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}]}`,
 			wantInject:  true,
@@ -69,9 +69,26 @@ func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 			wantEffort:  "max",
 		},
 		{
-			name:          "off disables thinking and omits reasoning_effort",
+			name:          "deepseek off disables thinking and omits reasoning_effort",
 			path:          "/v1/chat/completions",
 			body:          `{"model":"deepseek-v4-flash","messages":[{"role":"user","content":"hi"}],"reasoning_effort":"high"}`,
+			thinkingLevel: llm.ThinkingLevelOff,
+			wantInject:    true,
+			wantEnabled:   false,
+			wantNoEffort:  true,
+		},
+		{
+			name:         "mimo gets thinking without reasoning_effort",
+			path:         "/v1/chat/completions",
+			body:         `{"model":"mimo-v2.5","messages":[{"role":"user","content":"hi"}]}`,
+			wantInject:   true,
+			wantEnabled:  true,
+			wantNoEffort: true,
+		},
+		{
+			name:          "mimo off disables thinking only",
+			path:          "/v1/chat/completions",
+			body:          `{"model":"mimo-v2.5-pro","messages":[{"role":"user","content":"hi"}],"reasoning_effort":"high"}`,
 			thinkingLevel: llm.ThinkingLevelOff,
 			wantInject:    true,
 			wantEnabled:   false,
@@ -82,8 +99,8 @@ func TestDeepSeekThinkingHTTPClientInjectsThinking(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			rec := &roundTripRecorder{}
-			client := llm.DeepSeekThinkingHTTPClientForTest(rec)
-			req, err := http.NewRequest(http.MethodPost, "https://api.deepseek.com"+tt.path, strings.NewReader(tt.body))
+			client := llm.ThinkingHTTPClientForTest(rec)
+			req, err := http.NewRequest(http.MethodPost, "https://api.example.com"+tt.path, strings.NewReader(tt.body))
 			require.NoError(t, err)
 			if tt.thinkingLevel != "" {
 				req = req.WithContext(llm.WithThinkingLevel(req.Context(), tt.thinkingLevel))

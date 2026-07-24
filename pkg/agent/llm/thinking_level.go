@@ -54,6 +54,11 @@ func anthropicThinkingMode(level string) llms.ThinkingMode {
 	}
 }
 
+// thinkingEnabled reports whether extended thinking should be enabled for the session level.
+func thinkingEnabled(level string) bool {
+	return NormalizeThinkingLevel(level) != ThinkingLevelOff
+}
+
 // deepSeekReasoningEffort maps a normalized thinking level to DeepSeek reasoning_effort.
 // DeepSeek accepts only high|low|medium|max|xhigh — never "none". Callers must omit
 // reasoning_effort when thinking is disabled (ThinkingLevelOff).
@@ -69,9 +74,4 @@ func deepSeekReasoningEffort(level string) string {
 		// default and off both map to high; off callers should skip this field.
 		return "high"
 	}
-}
-
-// deepSeekThinkingEnabled reports whether DeepSeek extended thinking should be enabled.
-func deepSeekThinkingEnabled(level string) bool {
-	return NormalizeThinkingLevel(level) != ThinkingLevelOff
 }

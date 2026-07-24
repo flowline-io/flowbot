@@ -11,7 +11,8 @@ func SupportsReasoningStream(modelName string) bool {
 	if llms.IsReasoningModel(modelName) {
 		return true
 	}
-	return isDeepSeekV4ReasoningModel(modelName)
+	_, ok := thinkingRequestProfileFor(modelName)
+	return ok
 }
 
 // ReasoningCallOptions returns per-request call options that enable provider reasoning streams.
@@ -56,6 +57,20 @@ func ReasoningCallOptions(modelName string, maxTokens int, thinkingLevel string)
 func isDeepSeekV4ReasoningModel(modelName string) bool {
 	lower := strings.ToLower(modelName)
 	return strings.Contains(lower, "deepseek-v4")
+}
+
+// isMiMoReasoningModel reports whether model is a Xiaomi MiMo V2.5 series
+// reasoning model that returns reasoning_content (see MiMo deep-thinking API).
+func isMiMoReasoningModel(modelName string) bool {
+	lower := strings.ToLower(modelName)
+	return strings.Contains(lower, "mimo-v2.5")
+}
+
+// needsThinkingHTTPClient reports whether the OpenAI-compatible HTTP client
+// should inject provider thinking request fields (thinking.type, etc.).
+func needsThinkingHTTPClient(modelName string) bool {
+	_, ok := thinkingRequestProfileFor(modelName)
+	return ok
 }
 
 func isAnthropicReasoningModel(modelName string) bool {
