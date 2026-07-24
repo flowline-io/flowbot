@@ -125,11 +125,16 @@
     list.length = 0;
   }
 
+  function optionMultimodal(opt) {
+    if (!opt) {
+      return false;
+    }
+    return opt.getAttribute('data-multimodal') === 'true';
+  }
+
   function selectedModelMultimodal(modelSel, settingsEl) {
-    if (modelSel && modelSel.selectedOptions && modelSel.selectedOptions[0]) {
-      return (
-        modelSel.selectedOptions[0].getAttribute('data-multimodal') === 'true'
-      );
+    if (modelSel && modelSel.options && modelSel.selectedIndex >= 0) {
+      return optionMultimodal(modelSel.options[modelSel.selectedIndex]);
     }
     if (settingsEl) {
       return settingsEl.getAttribute('data-selected-multimodal') === 'true';
@@ -137,7 +142,7 @@
     return false;
   }
 
-  function syncAttachVisibility(modelSel, attachBtn, settingsEl) {
+  function syncAttachVisibility(modelSel, attachBtn, settingsEl, onHide) {
     var multimodal = selectedModelMultimodal(modelSel, settingsEl);
     if (settingsEl) {
       settingsEl.setAttribute(
@@ -146,7 +151,10 @@
       );
     }
     if (attachBtn) {
-      attachBtn.classList.toggle('hidden', !multimodal);
+      attachBtn.hidden = !multimodal;
+    }
+    if (!multimodal && typeof onHide === 'function') {
+      onHide();
     }
     return multimodal;
   }
@@ -205,6 +213,11 @@
       });
     }
 
+    function clearPending() {
+      clearPendingAttachments(pendingAttachments);
+      renderPendingAttachments();
+    }
+
     function queueFile(file) {
       if (!file) {
         return;
@@ -231,17 +244,23 @@
       ns.showError(errorEl, '');
     }
 
-    syncAttachVisibility(modelSel, attachBtn, settingsEl);
+    function syncVisibility() {
+      syncAttachVisibility(modelSel, attachBtn, settingsEl, function () {
+        if (pendingAttachments.length) {
+          clearPending();
+        }
+      });
+    }
+
+    syncVisibility();
 
     if (modelSel) {
-      modelSel.addEventListener('change', function () {
-        syncAttachVisibility(modelSel, attachBtn, settingsEl);
-      });
+      modelSel.addEventListener('change', syncVisibility);
     }
 
     if (attachBtn && mediaInput) {
       attachBtn.addEventListener('click', function () {
-        if (attachBtn.classList.contains('hidden') || attachBtn.disabled) {
+        if (attachBtn.hidden || attachBtn.disabled) {
           return;
         }
         mediaInput.click();
@@ -282,10 +301,8 @@
         renderPendingAttachments();
         return atts;
       },
-      clear: function () {
-        clearPendingAttachments(pendingAttachments);
-        renderPendingAttachments();
-      },
+      clear: clearPending,
+      syncVisibility: syncVisibility,
     };
   }
 
@@ -605,9 +622,21 @@
     var settingsEl = root.querySelector('[data-testid="chatagent-settings"]');
     var attachBtn = root.querySelector('#chatagent-attach-media');
 
-    initThreadSettings(root, function () {
-      syncAttachVisibility(modelSel, attachBtn, settingsEl);
+    var queue = createAttachmentQueue({
+      pendingEl: root.querySelector('#chatagent-pending-attachments'),
+      mediaInput: root.querySelector('#chatagent-media-input'),
+      attachBtn: attachBtn,
+      modelSel: modelSel,
+      settingsEl: settingsEl,
+      inputEl: input,
+      errorEl: errorEl,
     });
+
+    initThreadSettings(root, function () {
+      queue.syncVisibility();
+    });
+    // Re-sync after settings restore session model selection.
+    queue.syncVisibility();
 
     function closeSession() {
       if (!closeURL) {
@@ -665,16 +694,6 @@
     for (var ci = 0; ci < closeBtns.length; ci++) {
       closeBtns[ci].addEventListener('click', closeSession);
     }
-
-    var queue = createAttachmentQueue({
-      pendingEl: root.querySelector('#chatagent-pending-attachments'),
-      mediaInput: root.querySelector('#chatagent-media-input'),
-      attachBtn: attachBtn,
-      modelSel: modelSel,
-      settingsEl: settingsEl,
-      inputEl: input,
-      errorEl: errorEl,
-    });
 
     function sendFollowUp() {
       var text = (input.value || '').trim();

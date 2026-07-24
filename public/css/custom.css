@@ -1291,6 +1291,10 @@ body:has(.chatagent-page) > main {
     background-color 0.15s ease;
 }
 
+.chatagent-attach-btn[hidden] {
+  display: none;
+}
+
 .chatagent-attach-btn:hover:not(:disabled) {
   color: oklch(var(--bc) / 0.55);
   background: oklch(var(--bc) / 0.06);

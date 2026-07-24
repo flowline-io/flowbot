@@ -53,7 +53,8 @@ templ ChatAgentAttachButton(id string, hidden bool, disabled bool) {
 	<button
 		type="button"
 		id={ id }
-		class={ "chatagent-attach-btn", templ.KV("hidden", hidden) }
+		class="chatagent-attach-btn"
+		hidden?={ hidden }
 		disabled?={ disabled }
 		data-testid={ id }
 		title="Attach media"
