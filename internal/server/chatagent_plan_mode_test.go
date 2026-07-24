@@ -45,7 +45,7 @@ func TestPlanModePermissionHook(t *testing.T) {
 		config.App.ChatAgent = origCfg
 		testChatSessions = map[string]*gen.ChatSession{}
 		chatagent.ResetPermissionCacheForTest()
-		chatagent.ResetPermissionSessionsForTest()
+		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
 	tests := []struct {
@@ -66,6 +66,7 @@ func TestPlanModePermissionHook(t *testing.T) {
 				UID:         types.Uid("user-1"),
 				SessionMode: chatagent.ModePlan,
 				DCG:         dcg.AllowAllChecker{},
+				Service:     ChatAgentService(),
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},
@@ -109,7 +110,7 @@ func TestChatAgentHTTPSessionMode(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/mode", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -176,16 +177,16 @@ func TestSetSessionModeAndNotify(t *testing.T) {
 	t.Cleanup(func() {
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
-		chatagent.ResetSessionEventHubsForTest()
+		ChatAgentService().ResetSessionEventHubsForTest()
 	})
-	chatagent.ResetSessionEventHubsForTest()
+	ChatAgentService().ResetSessionEventHubsForTest()
 
-	hub := chatagent.GetSessionEventHub("sess-1")
+	hub := ChatAgentService().GetSessionEventHub("sess-1")
 	pub := hub.Subscribe("test", 4)
 	t.Cleanup(func() { hub.Unsubscribe("test") })
 
 	ctx := context.Background()
-	require.NoError(t, chatagent.SetSessionModeAndNotify(ctx, "sess-1", chatagent.ModePlan))
+	require.NoError(t, ChatAgentService().SetSessionModeAndNotify(ctx, "sess-1", chatagent.ModePlan))
 
 	select {
 	case ev := <-pub.Events():

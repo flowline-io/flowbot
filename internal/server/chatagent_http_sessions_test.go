@@ -32,11 +32,11 @@ func TestChatAgentHTTPSessionEventsObserverFilter(t *testing.T) {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		testChatSessions = map[string]*gen.ChatSession{}
-		chatagent.ResetSessionEventHubsForTest()
+		ChatAgentService().ResetSessionEventHubsForTest()
 	})
-	chatagent.ResetSessionEventHubsForTest()
+	ChatAgentService().ResetSessionEventHubsForTest()
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/events", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -91,7 +91,7 @@ func TestChatAgentHTTPSessionEventsObserverFilter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			chatagent.ResetSessionEventHubsForTest()
+			ChatAgentService().ResetSessionEventHubsForTest()
 
 			req := httptest.NewRequest(http.MethodGet, "/chatagent/sessions/sess-ev/events", http.NoBody)
 
@@ -112,12 +112,12 @@ func TestChatAgentHTTPSessionEventsObserverFilter(t *testing.T) {
 
 			time.Sleep(100 * time.Millisecond)
 			for _, ev := range tt.events {
-				chatagent.PublishSessionEvent("sess-ev", ev)
+				ChatAgentService().PublishSessionEvent("sess-ev", ev)
 			}
 			// Non-terminal observer events keep the SSE stream open; canceled ends it
 			// (same as production clients disconnecting). req.Context cancel is unreliable
 			// under fiber app.Test for long-lived streams.
-			chatagent.PublishSessionEvent("sess-ev", chatagent.StreamEvent{
+			ChatAgentService().PublishSessionEvent("sess-ev", chatagent.StreamEvent{
 				Type:    chatagent.EventTypeCanceled,
 				Message: "test done",
 			})

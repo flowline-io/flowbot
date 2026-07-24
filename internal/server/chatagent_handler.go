@@ -18,7 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
 
-var chatAgentService = chatagent.NewService()
+var chatAgentService *chatagent.Service
 
 func runChatAgent(
 	parentCtx context.Context,
@@ -38,12 +38,16 @@ func runChatAgent(
 	// while keeping the OTel SpanContext so the run stays on the same trace.
 	ctx, cancel := fbtrace.DetachWithTimeout(parentCtx, runTimeout)
 	defer cancel()
-	chatagent.BindRunCancel(sessionID, cancel)
-	defer chatagent.UnbindRunCancel(sessionID)
+	svc := chatAgentService
+	if svc == nil {
+		svc = ChatAgentService()
+	}
+	svc.BindRunCancel(sessionID, cancel)
+	defer svc.UnbindRunCancel(sessionID)
 
 	sink, platformMsgID, streaming := startChatStream(caller, msg)
 
-	reply, err := chatAgentService.Run(ctx, chatagent.RunRequest{
+	reply, err := svc.Run(ctx, chatagent.RunRequest{
 		SessionID: sessionID,
 		Text:      msg.AltMessage,
 	}, sink)

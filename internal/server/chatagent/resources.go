@@ -66,12 +66,12 @@ type ResolveResourceOptions struct {
 }
 
 // ResolveResource loads one plan:// or file:// resource for a session (preview truncated).
-func ResolveResource(ctx context.Context, sessionID, uri string) (ResourceContent, error) {
-	return ResolveResourceWithOptions(ctx, sessionID, uri, ResolveResourceOptions{})
+func (s *Service) ResolveResource(ctx context.Context, sessionID, uri string) (ResourceContent, error) {
+	return s.ResolveResourceWithOptions(ctx, sessionID, uri, ResolveResourceOptions{})
 }
 
 // ResolveResourceWithOptions loads one resource with optional full preview mode.
-func ResolveResourceWithOptions(ctx context.Context, sessionID, uri string, opts ResolveResourceOptions) (ResourceContent, error) {
+func (s *Service) ResolveResourceWithOptions(ctx context.Context, sessionID, uri string, opts ResolveResourceOptions) (ResourceContent, error) {
 	if strings.TrimSpace(sessionID) == "" {
 		return ResourceContent{}, types.Errorf(types.ErrInvalidArgument, "session_id is required")
 	}
@@ -83,7 +83,7 @@ func ResolveResourceWithOptions(ctx context.Context, sessionID, uri string, opts
 	case "plan":
 		return resolvePlanResource(ctx, sessionID, uri, ref)
 	case "file":
-		return resolveFileResource(ctx, sessionID, uri, ref, opts)
+		return s.resolveFileResource(ctx, sessionID, uri, ref, opts)
 	default:
 		return ResourceContent{}, types.Errorf(types.ErrInvalidArgument, "unsupported resource scheme: %q", scheme)
 	}
@@ -106,8 +106,8 @@ func resolvePlanResource(ctx context.Context, sessionID, uri, planID string) (Re
 	}, nil
 }
 
-func resolveFileResource(ctx context.Context, sessionID, uri, relPath string, opts ResolveResourceOptions) (ResourceContent, error) {
-	if err := checkFileReadPermission(ctx, sessionID, relPath); err != nil {
+func (s *Service) resolveFileResource(ctx context.Context, sessionID, uri, relPath string, opts ResolveResourceOptions) (ResourceContent, error) {
+	if err := s.checkFileReadPermission(ctx, sessionID, relPath); err != nil {
 		return ResourceContent{}, err
 	}
 	ws, err := WorkspaceFromConfig()
@@ -158,7 +158,7 @@ func LimitResourcePreviewContent(raw string, full bool) (content string, truncat
 	return raw, false
 }
 
-func checkFileReadPermission(ctx context.Context, sessionID, relPath string) error {
+func (s *Service) checkFileReadPermission(ctx context.Context, sessionID, relPath string) error {
 	uid, err := SessionOwnerUID(ctx, sessionID)
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func checkFileReadPermission(ctx context.Context, sessionID, relPath string) err
 	ws := coding.Workspace{Root: workspaceRoot}
 	externalPath := !ws.ResolvePath(relPath).IsOk()
 	evaluator := permission.NewEvaluator(cfg)
-	sessionState := permissionSessions.GetPermissionSession(ctx, sessionID)
+	sessionState := s.permissionSessions.GetPermissionSession(ctx, sessionID)
 	result := evaluator.Evaluate(permission.Request{
 		Tool:          permission.ToolReadFile,
 		Args:          map[string]any{"path": relPath},

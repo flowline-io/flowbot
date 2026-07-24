@@ -13,7 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
-var scheduledRunService = NewService()
+var scheduledRunService *Service
 
 // ExecuteScheduledTaskForTest runs one scheduled task; exposed for integration specs.
 func ExecuteScheduledTaskForTest(ctx context.Context, task *gen.ChatScheduledTask) {
@@ -25,13 +25,18 @@ func executeScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) {
 	if task == nil || store.Database == nil {
 		return
 	}
-	runSessionID, runFlag, sessionOK := beginScheduledTaskRun(ctx, task)
+	svc := scheduledRunService
+	if svc == nil {
+		flog.Error(fmt.Errorf("[chat-agent] scheduled task skipped: shared service not bound task=%s", task.Flag))
+		return
+	}
+	runSessionID, runFlag, sessionOK := beginScheduledTaskRun(ctx, task, svc)
 	if !sessionOK {
 		return
 	}
-	defer CloseEphemeralSession(ctx, runSessionID)
+	defer CloseEphemeralSession(ctx, svc, runSessionID)
 
-	reply, runErr := RunAutonomousPrompt(ctx, scheduledRunService, runSessionID, task.Prompt, RunKindScheduled, nil, nil, task.Flag)
+	reply, runErr := RunAutonomousPrompt(ctx, svc, runSessionID, task.Prompt, RunKindScheduled, nil, nil, task.Flag)
 	finished := time.Now().UTC()
 	persistScheduledTaskRun(ctx, task, runFlag, reply, runErr, finished)
 	updateScheduledTaskAfterRun(ctx, task, finished)
@@ -39,7 +44,7 @@ func executeScheduledTask(ctx context.Context, task *gen.ChatScheduledTask) {
 	finalizeScheduledTask(ctx, task, runErr)
 }
 
-func beginScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask) (runSessionID, runFlag string, ok bool) {
+func beginScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask, svc *Service) (runSessionID, runFlag string, ok bool) {
 	uid := types.Uid(task.UID)
 	runFlag = types.Id()
 	var err error
@@ -56,7 +61,7 @@ func beginScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask) (ru
 		StartedAt:    time.Now().UTC(),
 	}); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] scheduled task run record task=%s: %w", task.Flag, err))
-		CloseEphemeralSession(ctx, runSessionID)
+		CloseEphemeralSession(ctx, svc, runSessionID)
 		return "", "", false
 	}
 	return runSessionID, runFlag, true

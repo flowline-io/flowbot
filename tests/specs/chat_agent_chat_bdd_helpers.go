@@ -28,7 +28,7 @@ var chatAgentRoutesOnce sync.Once
 // mountChatAgentRoutes registers Chat Agent HTTP routes on the shared test app once per process.
 func mountChatAgentRoutes(app *fiber.App) {
 	chatAgentRoutesOnce.Do(func() {
-		server.RegisterChatAgentRoutes(app)
+		server.RegisterChatAgentRoutes(app, server.ChatAgentService())
 	})
 }
 

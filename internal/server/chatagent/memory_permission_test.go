@@ -59,6 +59,7 @@ func TestPlanModeMemoryWriteBlock(t *testing.T) {
 }
 
 func TestMemoryPermissionOverlay(t *testing.T) {
+	svc := NewService()
 	LockAppConfigForTest(t)
 
 	origDB := store.Database
@@ -70,7 +71,7 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		ResetPermissionCacheForTest()
-		ResetPermissionSessionsForTest()
+		svc.ResetPermissionSessionsForTest()
 	})
 
 	tests := []struct {
@@ -84,6 +85,7 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			svc := NewService()
 			sessionID := types.Id()
 			require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
 				Flag:  sessionID,
@@ -96,6 +98,7 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 				SessionID: sessionID,
 				UID:       types.Uid("user-1"),
 				Kind:      tt.kind,
+				Service:   svc,
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: permission.ToolMemorySet},

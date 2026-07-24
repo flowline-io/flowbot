@@ -16,7 +16,7 @@ type PermissionsView struct {
 }
 
 // BuildPermissionsView assembles permission state for one user and optional session.
-func BuildPermissionsView(ctx context.Context, uid types.Uid, sessionID string) (PermissionsView, error) {
+func (s *Service) BuildPermissionsView(ctx context.Context, uid types.Uid, sessionID string) (PermissionsView, error) {
 	user, err := loadUserPermissionConfig(ctx, uid)
 	if err != nil {
 		return PermissionsView{}, err
@@ -27,14 +27,14 @@ func BuildPermissionsView(ctx context.Context, uid types.Uid, sessionID string) 
 		Effective: permission.EffectiveConfig(user),
 	}
 	if sessionID != "" {
-		view.SessionGrants = permissionSessions.GetPermissionSession(ctx, sessionID).Grants()
+		view.SessionGrants = s.permissionSessions.GetPermissionSession(ctx, sessionID).Grants()
 	}
 	return view, nil
 }
 
 // ClearSessionPermissionGrants resets always grants and doom-loop counters for one session.
-func ClearSessionPermissionGrants(ctx context.Context, sessionID string) {
-	state := permissionSessions.GetPermissionSession(ctx, sessionID)
+func (s *Service) ClearSessionPermissionGrants(ctx context.Context, sessionID string) {
+	state := s.permissionSessions.GetPermissionSession(ctx, sessionID)
 	state.Clear()
 	PersistSessionGrants(ctx, sessionID, state)
 }

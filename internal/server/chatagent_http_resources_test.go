@@ -29,7 +29,7 @@ func TestChatAgentHTTPGetResourceRequiresSessionID(t *testing.T) {
 		config.App.ChatAgent = origCfg
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/resources", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -69,7 +69,7 @@ func TestChatAgentHTTPGetPlanResource(t *testing.T) {
 		testAgentPlans = map[string]*gen.AgentPlan{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/resources", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -109,7 +109,7 @@ func TestChatAgentHTTPListSessionPlans(t *testing.T) {
 		testAgentPlans = map[string]*gen.AgentPlan{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/plans", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -147,7 +147,7 @@ func TestChatAgentHTTPListSessionTodos(t *testing.T) {
 		testAgentTodos = map[string]*gen.AgentTodo{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/todos", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{

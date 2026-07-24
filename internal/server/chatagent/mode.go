@@ -83,21 +83,21 @@ func SetSessionMode(ctx context.Context, sessionID, mode string) error {
 }
 
 // NotifySessionModeChange publishes a mode_change event to session SSE subscribers.
-func NotifySessionModeChange(sessionID, mode string) {
+func (s *Service) NotifySessionModeChange(sessionID, mode string) {
 	if sessionID == "" {
 		return
 	}
-	PublishSessionEvent(sessionID, StreamEvent{
+	s.PublishSessionEvent(sessionID, StreamEvent{
 		Type: EventTypeModeChange,
 		Mode: mode,
 	})
 }
 
 // SetSessionModeAndNotify persists mode and notifies connected SSE clients.
-func SetSessionModeAndNotify(ctx context.Context, sessionID, mode string) error {
+func (s *Service) SetSessionModeAndNotify(ctx context.Context, sessionID, mode string) error {
 	if err := SetSessionMode(ctx, sessionID, mode); err != nil {
 		return err
 	}
-	NotifySessionModeChange(sessionID, mode)
+	s.NotifySessionModeChange(sessionID, mode)
 	return nil
 }

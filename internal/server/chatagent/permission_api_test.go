@@ -16,12 +16,13 @@ import (
 )
 
 func TestBuildPermissionsView(t *testing.T) {
+	svc := NewService()
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	t.Cleanup(func() {
 		store.Database = origDB
 		ResetPermissionCacheForTest()
-		ResetPermissionSessionsForTest()
+		svc.ResetPermissionSessionsForTest()
 	})
 
 	ctx := context.Background()
@@ -31,7 +32,7 @@ func TestBuildPermissionsView(t *testing.T) {
 		Flag: sessionID, UID: uid.String(), State: int(schema.ChatSessionActive),
 	}))
 
-	state := permissionSessions.GetPermissionSession(ctx, sessionID)
+	state := svc.permissionSessions.GetPermissionSession(ctx, sessionID)
 	require.NoError(t, state.AddGrant("bash", "git status*"))
 	PersistSessionGrants(ctx, sessionID, state)
 
@@ -46,7 +47,7 @@ func TestBuildPermissionsView(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			view, err := BuildPermissionsView(ctx, uid, tt.sessionID)
+			view, err := svc.BuildPermissionsView(ctx, uid, tt.sessionID)
 			require.NoError(t, err)
 			assert.NotEmpty(t, view.Defaults)
 			assert.NotEmpty(t, view.Effective)
@@ -97,11 +98,12 @@ func TestParsePermissionsBody(t *testing.T) {
 }
 
 func TestClearSessionPermissionGrants(t *testing.T) {
+	svc := NewService()
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	t.Cleanup(func() {
 		store.Database = origDB
-		ResetPermissionSessionsForTest()
+		svc.ResetPermissionSessionsForTest()
 	})
 
 	ctx := context.Background()
@@ -110,18 +112,19 @@ func TestClearSessionPermissionGrants(t *testing.T) {
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 
-	state := permissionSessions.GetPermissionSession(ctx, sessionID)
+	state := svc.permissionSessions.GetPermissionSession(ctx, sessionID)
 	require.NoError(t, state.AddGrant("bash", "ls*"))
 	PersistSessionGrants(ctx, sessionID, state)
 
-	ClearSessionPermissionGrants(ctx, sessionID)
+	svc.ClearSessionPermissionGrants(ctx, sessionID)
 
-	ResetPermissionSessionsForTest()
-	reloaded := permissionSessions.GetPermissionSession(ctx, sessionID)
+	svc.ResetPermissionSessionsForTest()
+	reloaded := svc.permissionSessions.GetPermissionSession(ctx, sessionID)
 	assert.False(t, reloaded.MatchesGrant("bash", "ls"))
 }
 
 func TestSaveAndDeleteUserPermissions(t *testing.T) {
+	svc := NewService()
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	t.Cleanup(func() {
@@ -135,12 +138,12 @@ func TestSaveAndDeleteUserPermissions(t *testing.T) {
 	cfg := permission.Config{"bash": {Default: permission.ActionDeny}}
 	require.NoError(t, SaveUserPermissions(ctx, uid, cfg))
 
-	view, err := BuildPermissionsView(ctx, uid, "")
+	view, err := svc.BuildPermissionsView(ctx, uid, "")
 	require.NoError(t, err)
 	assert.Equal(t, permission.ActionDeny, view.User["bash"].Default)
 
 	require.NoError(t, DeleteUserPermissions(ctx, uid))
-	view, err = BuildPermissionsView(ctx, uid, "")
+	view, err = svc.BuildPermissionsView(ctx, uid, "")
 	require.NoError(t, err)
 	assert.Empty(t, view.User)
 

@@ -507,12 +507,7 @@
 
     showThreadError(errorEl, '');
     ns.setRunning(true, threadRoot);
-    appendUserMessage(
-      messagesEl,
-      text,
-      pending,
-      mediaURL,
-    );
+    appendUserMessage(messagesEl, text, pending, mediaURL);
 
     flowbotCSRFHeadersAsync({
       'Content-Type': 'application/json',
@@ -679,8 +674,10 @@
             return;
           }
           if (ev.type === 'error') {
+            sawDone = true;
             showThreadError(errorEl, ev.message || 'Run failed');
           } else if (ev.type === 'canceled') {
+            sawDone = true;
             showThreadError(errorEl, ev.message || 'Run canceled');
           }
         }

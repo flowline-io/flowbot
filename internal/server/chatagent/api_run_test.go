@@ -42,24 +42,25 @@ func TestCancelSessionRun(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			svc := NewService()
 			switch tt.name {
 			case "cancels bound run context":
 				ctx, cancel := context.WithCancel(context.Background())
-				registerRunCancel("sess-cancel-run", cancel)
-				t.Cleanup(func() { unregisterRunCancel("sess-cancel-run") })
-				CancelSessionRun("sess-cancel-run")
+				svc.registerRunCancel("sess-cancel-run", cancel)
+				t.Cleanup(func() { svc.unregisterRunCancel("sess-cancel-run") })
+				svc.CancelSessionRun("sess-cancel-run")
 				require.ErrorIs(t, ctx.Err(), context.Canceled)
 			case "no-op without active run":
-				assert.NotPanics(t, func() { CancelSessionRun("sess-no-run") })
+				assert.NotPanics(t, func() { svc.CancelSessionRun("sess-no-run") })
 			case "aborts pooled harness without panic":
 				sessionID := "sess-cancel-harness"
 				h := harness.New(harness.Options{
 					AgentOptions: agent.Options{Model: agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})},
 					ModelName:    "fake",
 				})
-				harnessPool.Store(sessionID, &pooledHarness{harness: h})
-				t.Cleanup(func() { EvictHarnessPool(sessionID) })
-				assert.NotPanics(t, func() { CancelSessionRun(sessionID) })
+				svc.harnessPoolMap().Store(sessionID, &pooledHarness{harness: h})
+				t.Cleanup(func() { svc.EvictHarnessPool(sessionID) })
+				assert.NotPanics(t, func() { svc.CancelSessionRun(sessionID) })
 			}
 		})
 	}
@@ -68,32 +69,32 @@ func TestCancelSessionRun(t *testing.T) {
 func TestResolveConfirmErrors(t *testing.T) {
 	tests := []struct {
 		name     string
-		setup    func() (string, string)
+		setup    func(*Service) (string, string)
 		approved bool
 		wantErr  error
 	}{
 		{
 			name: "missing session gate",
-			setup: func() (string, string) {
+			setup: func(*Service) (string, string) {
 				return "missing-session", "confirm-1"
 			},
 			wantErr: ErrConfirmNotFound,
 		},
 		{
 			name: "wrong confirm id",
-			setup: func() (string, string) {
+			setup: func(svc *Service) (string, string) {
 				sessionID := "sess-wrong-id"
 				pub := NewChannelPublisher(4)
-				gate := NewConfirmGate(sessionID, pub)
-				require.NoError(t, TrySetAPIRunState(sessionID, NewAPIRunState(pub, gate)))
-				t.Cleanup(func() { ClearAPIRunState(sessionID, nil) })
+				gate := NewConfirmGate(sessionID, pub, nil)
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, NewAPIRunState(pub, gate)))
+				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, nil) })
 				return sessionID, "wrong-id"
 			},
 			wantErr: ErrConfirmNotFound,
 		},
 		{
 			name: "nil run state rejected",
-			setup: func() (string, string) {
+			setup: func(*Service) (string, string) {
 				return "sess-nil-state", ""
 			},
 			wantErr: ErrConfirmNotFound,
@@ -101,8 +102,9 @@ func TestResolveConfirmErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sessionID, confirmID := tt.setup()
-			ok, err := ResolveConfirm(sessionID, confirmID, tt.approved, "", "", ConfirmReasonDenied)
+			svc := NewService()
+			sessionID, confirmID := tt.setup(svc)
+			ok, err := svc.ResolveConfirm(sessionID, confirmID, tt.approved, "", "", ConfirmReasonDenied)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				assert.False(t, ok)
@@ -115,51 +117,52 @@ func TestResolveConfirmErrors(t *testing.T) {
 }
 
 func TestClearAPIRunStateWithoutExpected(t *testing.T) {
+	svc := NewService()
 	sessionID := "sess-force-clear"
 	pub := NewChannelPublisher(4)
-	gate := NewConfirmGate(sessionID, pub)
+	gate := NewConfirmGate(sessionID, pub, nil)
 	state := NewAPIRunState(pub, gate)
-	require.NoError(t, TrySetAPIRunState(sessionID, state))
-	t.Cleanup(func() { ClearAPIRunState(sessionID, nil) })
+	require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+	t.Cleanup(func() { svc.ClearAPIRunState(sessionID, nil) })
 
-	ClearAPIRunState(sessionID, nil)
-	_, ok := GetAPIRunState(sessionID)
+	svc.ClearAPIRunState(sessionID, nil)
+	_, ok := svc.GetAPIRunState(sessionID)
 	assert.False(t, ok)
 }
 
 func TestTrySetAPIRunState(t *testing.T) {
 	tests := []struct {
 		name      string
-		setup     func() string
+		setup     func(*Service) string
 		wantErr   bool
 		wantClear bool
 	}{
 		{
 			name: "registers first run",
-			setup: func() string {
+			setup: func(*Service) string {
 				return "sess-a"
 			},
 		},
 		{
 			name: "rejects concurrent run",
-			setup: func() string {
+			setup: func(svc *Service) string {
 				sessionID := "sess-b"
 				pub := NewChannelPublisher(4)
-				gate := NewConfirmGate(sessionID, pub)
-				require.NoError(t, TrySetAPIRunState(sessionID, NewAPIRunState(pub, gate)))
+				gate := NewConfirmGate(sessionID, pub, nil)
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, NewAPIRunState(pub, gate)))
 				return sessionID
 			},
 			wantErr: true,
 		},
 		{
 			name: "clear only matching state",
-			setup: func() string {
+			setup: func(svc *Service) string {
 				sessionID := "sess-c"
 				pub := NewChannelPublisher(4)
-				gate := NewConfirmGate(sessionID, pub)
+				gate := NewConfirmGate(sessionID, pub, nil)
 				state := NewAPIRunState(pub, gate)
-				require.NoError(t, TrySetAPIRunState(sessionID, state))
-				ClearAPIRunState(sessionID, state)
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				svc.ClearAPIRunState(sessionID, state)
 				return sessionID
 			},
 			wantClear: true,
@@ -167,25 +170,26 @@ func TestTrySetAPIRunState(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sessionID := tt.setup()
-			t.Cleanup(func() { ClearAPIRunState(sessionID, nil) })
+			svc := NewService()
+			sessionID := tt.setup(svc)
+			t.Cleanup(func() { svc.ClearAPIRunState(sessionID, nil) })
 
 			if tt.wantClear {
-				_, ok := GetAPIRunState(sessionID)
+				_, ok := svc.GetAPIRunState(sessionID)
 				assert.False(t, ok)
 				return
 			}
 
 			pub := NewChannelPublisher(4)
-			gate := NewConfirmGate(sessionID, pub)
+			gate := NewConfirmGate(sessionID, pub, nil)
 			state := NewAPIRunState(pub, gate)
-			err := TrySetAPIRunState(sessionID, state)
+			err := svc.TrySetAPIRunState(sessionID, state)
 			if tt.wantErr {
 				require.ErrorIs(t, err, ErrRunInFlight)
 				return
 			}
 			require.NoError(t, err)
-			got, ok := GetAPIRunState(sessionID)
+			got, ok := svc.GetAPIRunState(sessionID)
 			require.True(t, ok)
 			assert.Equal(t, state, got)
 		})

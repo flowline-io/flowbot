@@ -34,7 +34,7 @@ func setupScheduledHTTPTest(t *testing.T) (*chatAgentHTTP, *fiber.App, types.Uid
 		config.App.ChatAgent = origCfg
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	uid := types.Uid("user:alice")
 	wrap := func(fn func(fiber.Ctx) error) fiber.Handler {
@@ -149,7 +149,7 @@ func TestChatAgentHTTPScheduledUnauthorized(t *testing.T) {
 	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
 	t.Cleanup(func() { config.App.ChatAgent = origCfg })
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/scheduled-tasks", h.listScheduledTasks)
 

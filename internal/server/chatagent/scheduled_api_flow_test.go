@@ -99,12 +99,12 @@ func TestRunAPIWithFakeModel(t *testing.T) {
 	}))
 
 	pub := NewChannelPublisher(16)
-	gate := NewConfirmGate(sessionID, pub)
+	gate := NewConfirmGate(sessionID, pub, nil)
 	state := NewAPIRunState(pub, gate)
-	require.NoError(t, TrySetAPIRunState(sessionID, state))
-	t.Cleanup(func() { ClearAPIRunState(sessionID, nil) })
-
 	svc := NewService()
+	require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+	t.Cleanup(func() { svc.ClearAPIRunState(sessionID, nil) })
+
 	err := svc.RunAPI(ctx, RunRequest{SessionID: sessionID, Text: "hello api"}, &APIRunOptions{
 		Publisher: pub,
 		Confirm:   gate,

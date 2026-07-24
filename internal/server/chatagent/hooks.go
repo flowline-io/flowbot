@@ -26,6 +26,14 @@ type ChatHookDeps struct {
 	UID         types.Uid
 	SessionMode string
 	Kind        RunKind
+	// Service owns hot-path session state (permission sessions). Required for permission grants.
+	Service *Service
+	// Publisher is the SSE publisher when known at harness build time.
+	// Prefer run-context injection via withRunIO for pooled harness turns.
+	Publisher EventPublisher
+	// Confirm is the active confirm gate when known at harness build time.
+	// Prefer run-context injection via withRunIO for pooled harness turns.
+	Confirm *ConfirmGate
 	// DCG is the pre-permission command guard. Nil uses dcg.DefaultChecker().
 	DCG dcg.Checker
 }
@@ -42,7 +50,7 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 	registerLintSensor(reg)
 	registerProgressHooks(reg)
 
-	hooks.Observe(reg, func(_ context.Context, event hooks.ObservationEvent) error {
+	hooks.Observe(reg, func(ctx context.Context, event hooks.ObservationEvent) error {
 		switch event.Type {
 		case hooks.EventContextUsage:
 			if event.ContextUsage == nil {
@@ -54,7 +62,8 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 				event.ContextUsage.ContextWindow,
 				event.ContextUsage.Percent,
 			)
-			if publisher := activePublisher(deps.SessionID); publisher != nil {
+			publisher := resolveRunPublisher(ctx, deps)
+			if publisher != nil {
 				PublishUsageEvent(
 					publisher,
 					0,
@@ -71,16 +80,18 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 	})
 }
 
-func activePublisher(sessionID string) EventPublisher {
-	raw, ok := activeAPIRuns.Load(sessionID)
-	if !ok {
-		return nil
+func resolveRunPublisher(ctx context.Context, deps ChatHookDeps) EventPublisher {
+	if io := runIOFromContext(ctx); io != nil && io.Publisher != nil {
+		return io.Publisher
 	}
-	state, ok := raw.(*APIRunState)
-	if !ok || state.publisher == nil {
-		return nil
+	return deps.Publisher
+}
+
+func resolveRunConfirm(ctx context.Context, deps ChatHookDeps) *ConfirmGate {
+	if io := runIOFromContext(ctx); io != nil && io.Confirm != nil {
+		return io.Confirm
 	}
-	return state.publisher
+	return deps.Confirm
 }
 
 func registerDCGHook(reg *hooks.Registry, deps ChatHookDeps) {
@@ -140,13 +151,17 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 			cfg = permission.Merge(cfg, permission.ScheduledRunOverlay())
 		}
 		evaluator := permission.NewEvaluator(cfg)
-		sessionState := permissionSessions.GetPermissionSession(ctx, deps.SessionID)
 		workspaceRoot := config.App.ChatAgent.Workspace
 		externalPath := detectExternalPath(event, workspaceRoot)
 
 		if block := planModeToolBlock(ctx, deps.SessionID, event); block != nil {
 			return block, nil
 		}
+
+		if deps.Service == nil {
+			return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
+		}
+		sessionState := deps.Service.permissionSessions.GetPermissionSession(ctx, deps.SessionID)
 
 		result := evaluator.Evaluate(permission.Request{
 			Tool:          event.ToolCall.Name,
@@ -159,13 +174,13 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 			metrics.Agent().IncDoomLoop(event.ToolCall.Name)
 		}
 
-		return evaluatePermissionResult(ctx, deps.SessionID, event, result, sessionState)
+		return evaluatePermissionResult(ctx, deps, event, result, sessionState)
 	})
 }
 
 func evaluatePermissionResult(
 	ctx context.Context,
-	sessionID string,
+	deps ChatHookDeps,
 	event hooks.ToolCallEvent,
 	result permission.Result,
 	sessionState *permission.SessionState,
@@ -176,7 +191,7 @@ func evaluatePermissionResult(
 	case permission.ActionDeny:
 		return &hooks.ToolCallResult{Block: true, Reason: "permission denied"}, nil
 	case permission.ActionAsk:
-		return handlePermissionAsk(ctx, sessionID, event, result, sessionState)
+		return handlePermissionAsk(ctx, deps, event, result, sessionState)
 	default:
 		return &hooks.ToolCallResult{Block: true, Reason: "permission denied"}, nil
 	}
@@ -184,20 +199,17 @@ func evaluatePermissionResult(
 
 func handlePermissionAsk(
 	ctx context.Context,
-	sessionID string,
+	deps ChatHookDeps,
 	event hooks.ToolCallEvent,
 	result permission.Result,
 	sessionState *permission.SessionState,
 ) (*hooks.ToolCallResult, error) {
-	raw, ok := sessionConfirmGates.Load(sessionID)
-	if !ok {
+	sessionID := deps.SessionID
+	gate := resolveRunConfirm(ctx, deps)
+	if gate == nil {
 		flog.Debug("[chat-agent] ask blocked without confirm gate session=%s tool=%s",
 			sessionID, event.ToolCall.Name)
 		return &hooks.ToolCallResult{Block: true, Reason: ReasonConfirmRequiredPlatform}, nil
-	}
-	gate, ok := raw.(*ConfirmGate)
-	if !ok {
-		return &hooks.ToolCallResult{Block: true, Reason: "approval required"}, nil
 	}
 	resp, err := gate.Wait(ctx, event, result)
 	if err != nil {

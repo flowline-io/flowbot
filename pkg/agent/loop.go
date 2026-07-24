@@ -296,7 +296,7 @@ func assistantFromStreamResult(result agentllm.AssistantResult, capture reasonin
 			name = call.FunctionCall.Name
 		}
 		parts = append(parts, ToolCallPart{
-			ID:        call.ID,
+			ID:        msg.EnsureToolCallID(call.ID),
 			Name:      name,
 			Arguments: args,
 		})

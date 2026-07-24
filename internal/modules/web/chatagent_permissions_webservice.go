@@ -33,7 +33,7 @@ func chatAgentPermissionsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	view, err := chatagent.BuildPermissionsView(ctx.Context(), uid, "")
+	view, err := chatAgentService().BuildPermissionsView(ctx.Context(), uid, "")
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "load permissions: %v", err)
 	}
@@ -48,7 +48,7 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	view, err := chatagent.BuildPermissionsView(ctx.Context(), uid, "")
+	view, err := chatAgentService().BuildPermissionsView(ctx.Context(), uid, "")
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "load permissions: %v", err)
 	}

@@ -28,6 +28,8 @@ type TaskToolDeps struct {
 	Depth int
 	// Kind is the parent run kind propagated to subagent permission hooks.
 	Kind RunKind
+	// Service owns hot-path state shared with the parent run (permissions, confirms).
+	Service *Service
 }
 
 // TaskTool delegates a self-contained task to an isolated subagent loop.
@@ -131,6 +133,7 @@ func (t TaskTool) Execute(ctx context.Context, id string, args map[string]any, o
 		UID:         t.deps.UID,
 		SessionMode: LoadSessionMode(ctx, t.deps.SessionID),
 		Kind:        t.deps.Kind,
+		Service:     t.deps.Service,
 	})
 	cfg = hooks.BridgeConfig(ctx, hookRegistry, cfg)
 

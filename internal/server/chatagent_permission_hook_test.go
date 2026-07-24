@@ -28,7 +28,7 @@ func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		chatagent.ResetPermissionCacheForTest()
-		chatagent.ResetPermissionSessionsForTest()
+		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
 	tests := []struct {
@@ -55,6 +55,7 @@ func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
 				SessionID: "sess-1",
 				UID:       types.Uid("user-1"),
 				DCG:       dcg.AllowAllChecker{},
+				Service:   ChatAgentService(),
 			})
 			result, err := reg.EmitToolCall(context.Background(), hooks.ToolCallEvent{
 				ToolCall: msg.ToolCallPart{Name: tt.tool},
@@ -89,23 +90,26 @@ func TestChatAgentPermissionHookAlwaysGrantUsesSuggestedPattern(t *testing.T) {
 		config.App.ChatAgent = origCfg
 		testChatSessions = map[string]*gen.ChatSession{}
 		chatagent.ResetPermissionCacheForTest()
-		chatagent.ResetPermissionSessionsForTest()
-		chatagent.ClearAPIRunState("sess-1", nil)
+		ChatAgentService().ResetPermissionSessionsForTest()
+		ChatAgentService().ClearAPIRunState("sess-1", nil)
 	})
 	chatagent.ResetPermissionCacheForTest()
-	chatagent.ResetPermissionSessionsForTest()
+	ChatAgentService().ResetPermissionSessionsForTest()
 
 	pub := chatagent.NewChannelPublisher(8)
-	gate := chatagent.NewConfirmGate("sess-1", pub)
+	gate := chatagent.NewConfirmGate("sess-1", pub, nil)
 	state := chatagent.NewAPIRunState(pub, gate)
-	require.NoError(t, chatagent.TrySetAPIRunState("sess-1", state))
-	t.Cleanup(func() { chatagent.ClearAPIRunState("sess-1", state) })
+	require.NoError(t, ChatAgentService().TrySetAPIRunState("sess-1", state))
+	t.Cleanup(func() { ChatAgentService().ClearAPIRunState("sess-1", state) })
 
 	reg := hooks.NewRegistry()
 	chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{
 		SessionID: "sess-1",
 		UID:       types.Uid("user-1"),
 		DCG:       dcg.AllowAllChecker{},
+		Service:   ChatAgentService(),
+		Publisher: pub,
+		Confirm:   gate,
 	})
 
 	done := make(chan *hooks.ToolCallResult, 1)
@@ -129,7 +133,7 @@ func TestChatAgentPermissionHookAlwaysGrantUsesSuggestedPattern(t *testing.T) {
 	}
 	waitConfirmEvent(t)
 
-	_, err := chatagent.ResolveConfirm("sess-1", gate.ID(), true, chatagent.ConfirmModeAlways, "git *", chatagent.ConfirmReasonApproved)
+	_, err := ChatAgentService().ResolveConfirm("sess-1", gate.ID(), true, chatagent.ConfirmModeAlways, "git *", chatagent.ConfirmReasonApproved)
 	require.NoError(t, err)
 
 	result := <-done
@@ -137,7 +141,7 @@ func TestChatAgentPermissionHookAlwaysGrantUsesSuggestedPattern(t *testing.T) {
 		assert.False(t, result.Block)
 	}
 
-	view, err := chatagent.BuildPermissionsView(context.Background(), types.Uid("user-1"), "sess-1")
+	view, err := ChatAgentService().BuildPermissionsView(context.Background(), types.Uid("user-1"), "sess-1")
 	require.NoError(t, err)
 	assert.Empty(t, view.SessionGrants["bash"])
 }

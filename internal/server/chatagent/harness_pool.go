@@ -41,16 +41,14 @@ func (e *pooledHarness) staleAt(now time.Time, ttl time.Duration) bool {
 	return now.Sub(time.Unix(0, last)) > ttl
 }
 
-var harnessPool sync.Map
-
 // EvictHarnessPool removes a cached harness for the given session.
-func EvictHarnessPool(sessionID string) {
-	harnessPool.Delete(sessionID)
+func (s *Service) EvictHarnessPool(sessionID string) {
+	s.harnessPool.Delete(sessionID)
 }
 
 // AbortSessionHarness cooperatively cancels the agent loop for a pooled session harness.
-func AbortSessionHarness(sessionID string) {
-	raw, ok := harnessPool.Load(sessionID)
+func (s *Service) AbortSessionHarness(sessionID string) {
+	raw, ok := s.harnessPool.Load(sessionID)
 	if !ok {
 		return
 	}
@@ -62,34 +60,34 @@ func AbortSessionHarness(sessionID string) {
 }
 
 // ResetHarnessPoolForTest clears all pooled harnesses.
-func ResetHarnessPoolForTest() {
-	harnessPool = sync.Map{}
+func (s *Service) ResetHarnessPoolForTest() {
+	s.harnessPool = sync.Map{}
 }
 
-func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
-	evictStaleHarnesses()
+func (s *Service) getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
+	s.evictStaleHarnesses()
 
 	var h *harness.Harness
-	if raw, ok := harnessPool.Load(req.SessionID); ok {
+	if raw, ok := s.harnessPool.Load(req.SessionID); ok {
 		entry, ok := raw.(*pooledHarness)
 		if !ok {
-			harnessPool.Delete(req.SessionID)
+			s.harnessPool.Delete(req.SessionID)
 		} else {
 			entry.touchLastUsed()
-			if refreshed, err := refreshPooledHarness(ctx, req, entry, textLen); err != nil {
+			if refreshed, err := s.refreshPooledHarness(ctx, req, entry, textLen); err != nil {
 				return nil, err
 			} else if refreshed != nil {
-				harnessPool.Store(req.SessionID, refreshed)
+				s.harnessPool.Store(req.SessionID, refreshed)
 				h = refreshed.harness
 			} else {
-				harnessPool.Store(req.SessionID, entry)
+				s.harnessPool.Store(req.SessionID, entry)
 				h = entry.harness
 			}
 		}
 	}
 
 	if h == nil {
-		built, err := buildRunHarness(ctx, req, textLen)
+		built, err := s.buildRunHarness(ctx, req, textLen)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +97,7 @@ func getOrCreateHarness(ctx context.Context, req RunRequest, textLen int) (*harn
 			promptVer:  built.promptVer,
 		}
 		created.touchLastUsed()
-		harnessPool.Store(req.SessionID, created)
+		s.harnessPool.Store(req.SessionID, created)
 		h = built.harness
 	}
 
@@ -146,7 +144,7 @@ type builtHarness struct {
 	promptVer  uint64
 }
 
-func refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarness, textLen int) (*pooledHarness, error) {
+func (s *Service) refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarness, textLen int) (*pooledHarness, error) {
 	workspace, err := WorkspaceFromConfig()
 	if err != nil {
 		return nil, err
@@ -156,8 +154,8 @@ func refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarn
 		return nil, err
 	}
 	if currentHash != entry.configHash {
-		EvictHarnessPool(req.SessionID)
-		built, err := buildRunHarness(ctx, req, textLen)
+		s.EvictHarnessPool(req.SessionID)
+		built, err := s.buildRunHarness(ctx, req, textLen)
 		if err != nil {
 			return nil, err
 		}
@@ -182,16 +180,16 @@ func refreshPooledHarness(ctx context.Context, req RunRequest, entry *pooledHarn
 	return nil, nil
 }
 
-func evictStaleHarnesses() {
+func (s *Service) evictStaleHarnesses() {
 	now := time.Now()
-	harnessPool.Range(func(key, value any) bool {
+	s.harnessPool.Range(func(key, value any) bool {
 		entry, ok := value.(*pooledHarness)
 		if !ok {
-			harnessPool.Delete(key)
+			s.harnessPool.Delete(key)
 			return true
 		}
 		if entry.staleAt(now, sessionLockTTL) {
-			harnessPool.Delete(key)
+			s.harnessPool.Delete(key)
 		}
 		return true
 	})
@@ -241,7 +239,7 @@ func sandboxAccessTokenFingerprint(token string) string {
 	return hex.EncodeToString(sum[:8])
 }
 
-func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHarness, error) {
+func (s *Service) buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHarness, error) {
 	workspace, err := WorkspaceFromConfig()
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] workspace config session=%s: %w", req.SessionID, err))
@@ -272,6 +270,7 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 		SessionID: req.SessionID,
 		UID:       uid,
 		Kind:      kind,
+		Service:   s,
 	}, &ScheduleToolDeps{SessionID: req.SessionID, UID: uid})
 	if err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] tool registry session=%s: %w", req.SessionID, err))
@@ -300,12 +299,21 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 	flog.Debug("[chat-agent] harness prompt session=%s model=%s dual_model=%t chat_model=%s tool_model=%s workspace=%s branch_entries=%d max_steps=%d text_len=%d context_window=%d compaction_enabled=%t",
 		req.SessionID, resolvedName, dual, chatModel, toolModel, workspace.Root, len(branch), cfg.MaxSteps, textLen, contextWindow, compactionSettings.Enabled)
 
+	var publisher EventPublisher
+	var confirm *ConfirmGate
+	if req.API != nil {
+		publisher = req.API.Publisher
+		confirm = req.API.Confirm
+	}
 	hookRegistry := hooks.NewRegistry()
 	RegisterHooks(hookRegistry, ChatHookDeps{
 		SessionID:   req.SessionID,
 		UID:         uid,
 		SessionMode: LoadSessionMode(ctx, req.SessionID),
 		Kind:        kind,
+		Service:     s,
+		Publisher:   publisher,
+		Confirm:     confirm,
 	})
 
 	configHash, err := harnessConfigHash(workspace)

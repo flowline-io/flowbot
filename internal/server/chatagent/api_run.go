@@ -1,20 +1,11 @@
 package chatagent
 
-import (
-	"sync"
-)
-
 // APIRunOptions configures an HTTP Chat Agent run with SSE publishing and confirmations.
 type APIRunOptions struct {
 	Publisher EventPublisher
 	Confirm   *ConfirmGate
 	OwnerUID  string
 }
-
-var (
-	sessionConfirmGates sync.Map
-	activeAPIRuns       sync.Map
-)
 
 // APIRunState tracks one in-flight HTTP run for cancel and confirm routing.
 type APIRunState struct {
@@ -36,39 +27,39 @@ func (s *APIRunState) Publisher() EventPublisher {
 }
 
 // TrySetAPIRunState registers run state when no other run is active for the session.
-func TrySetAPIRunState(sessionID string, state *APIRunState) error {
+func (s *Service) TrySetAPIRunState(sessionID string, state *APIRunState) error {
 	if state == nil {
 		return ErrRunInFlight
 	}
-	if _, loaded := activeAPIRuns.LoadOrStore(sessionID, state); loaded {
+	if _, loaded := s.activeAPIRuns.LoadOrStore(sessionID, state); loaded {
 		return ErrRunInFlight
 	}
 	if state.gate != nil {
-		sessionConfirmGates.Store(sessionID, state.gate)
+		s.sessionConfirmGates.Store(sessionID, state.gate)
 	}
 	return nil
 }
 
 // ClearAPIRunState removes run state only when it matches the active connection.
-func ClearAPIRunState(sessionID string, expected *APIRunState) {
+func (s *Service) ClearAPIRunState(sessionID string, expected *APIRunState) {
 	if expected != nil {
-		activeAPIRuns.CompareAndDelete(sessionID, expected)
+		s.activeAPIRuns.CompareAndDelete(sessionID, expected)
 		if expected.gate != nil {
-			sessionConfirmGates.CompareAndDelete(sessionID, expected.gate)
+			s.sessionConfirmGates.CompareAndDelete(sessionID, expected.gate)
 		}
 		return
 	}
-	if raw, ok := activeAPIRuns.LoadAndDelete(sessionID); ok {
+	if raw, ok := s.activeAPIRuns.LoadAndDelete(sessionID); ok {
 		if state, ok := raw.(*APIRunState); ok && state.gate != nil {
 			state.gate.Cancel()
-			sessionConfirmGates.CompareAndDelete(sessionID, state.gate)
+			s.sessionConfirmGates.CompareAndDelete(sessionID, state.gate)
 		}
 	}
 }
 
 // GetAPIRunState returns the active HTTP run state when present.
-func GetAPIRunState(sessionID string) (*APIRunState, bool) {
-	raw, ok := activeAPIRuns.Load(sessionID)
+func (s *Service) GetAPIRunState(sessionID string) (*APIRunState, bool) {
+	raw, ok := s.activeAPIRuns.Load(sessionID)
 	if !ok {
 		return nil, false
 	}
@@ -77,14 +68,14 @@ func GetAPIRunState(sessionID string) (*APIRunState, bool) {
 }
 
 // CancelSessionRun aborts the in-flight agent run for a session.
-func CancelSessionRun(sessionID string) {
-	AbortSessionHarness(sessionID)
-	cancelRun(sessionID)
+func (s *Service) CancelSessionRun(sessionID string) {
+	s.AbortSessionHarness(sessionID)
+	s.cancelRun(sessionID)
 }
 
 // ResolveConfirm applies a client confirmation for the active gate on a session.
-func ResolveConfirm(sessionID, confirmID string, approved bool, mode ConfirmMode, pattern string, reason ConfirmReason) (bool, error) {
-	raw, ok := sessionConfirmGates.Load(sessionID)
+func (s *Service) ResolveConfirm(sessionID, confirmID string, approved bool, mode ConfirmMode, pattern string, reason ConfirmReason) (bool, error) {
+	raw, ok := s.sessionConfirmGates.Load(sessionID)
 	if !ok {
 		return false, ErrConfirmNotFound
 	}

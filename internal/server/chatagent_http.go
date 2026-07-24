@@ -18,8 +18,13 @@ import (
 )
 
 // RegisterChatAgentRoutes wires Chat Agent REST endpoints for HTTP clients.
-func RegisterChatAgentRoutes(a *fiber.App) {
-	chatHTTP := newChatAgentHTTP()
+func RegisterChatAgentRoutes(a *fiber.App, svc *chatagent.Service) {
+	if svc == nil {
+		svc = ChatAgentService()
+	} else {
+		installChatAgentService(svc)
+	}
+	chatHTTP := newChatAgentHTTP(svc)
 	a.Get("/chatagent/info", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.info)))
 	a.Get("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.listSessions)))
 	a.Post("/chatagent/sessions", route.Authorize(route.RequireScope(auth.ScopeChatAgentChat, chatHTTP.createSession)))
@@ -64,8 +69,8 @@ type chatAgentHTTP struct {
 	service *chatagent.Service
 }
 
-func newChatAgentHTTP() *chatAgentHTTP {
-	return &chatAgentHTTP{service: chatagent.NewService()}
+func newChatAgentHTTP(svc *chatagent.Service) *chatAgentHTTP {
+	return &chatAgentHTTP{service: svc}
 }
 
 func (*chatAgentHTTP) info(c fiber.Ctx) error {

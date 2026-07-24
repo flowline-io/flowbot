@@ -23,7 +23,7 @@ func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, sess
 			}
 			if err := cacheStore.Set(ctx.Context(), chatKey, session, cache.TTLSession); err != nil {
 				flog.Error(fmt.Errorf("failed to set chat key: %w", err))
-				if closeErr := chatagent.CloseSession(ctx.Context(), session); closeErr != nil {
+				if closeErr := ChatAgentService().CloseSession(ctx.Context(), session); closeErr != nil {
 					flog.Error(fmt.Errorf("rollback chat session: %w", closeErr))
 				}
 				return types.TextMsg{Text: "Failed to start chat session."}, ""
@@ -39,7 +39,7 @@ func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, sess
 	if strings.ToLower(msgAlt) == "end" {
 		closingSession := session
 		if session != "" {
-			if err := chatagent.CloseSession(ctx.Context(), session); err != nil {
+			if err := ChatAgentService().CloseSession(ctx.Context(), session); err != nil {
 				flog.Error(fmt.Errorf("failed to close chat session: %w", err))
 			} else {
 				flog.Info("[chat-agent] session closed uid=%s session=%s", uid, closingSession)
@@ -66,14 +66,14 @@ func handleChatPlanCommands(ctx types.Context, msgAlt, session string, uid types
 	}
 	switch strings.ToLower(msgAlt) {
 	case "plan":
-		if err := chatagent.SetSessionModeAndNotify(ctx.Context(), session, chatagent.ModePlan); err != nil {
+		if err := ChatAgentService().SetSessionModeAndNotify(ctx.Context(), session, chatagent.ModePlan); err != nil {
 			flog.Error(fmt.Errorf("failed to enable plan mode: %w", err))
 			return types.TextMsg{Text: "Failed to enable plan mode."}, true
 		}
 		flog.Info("[chat-agent] plan mode enabled uid=%s session=%s", uid, session)
 		return types.TextMsg{Text: "Plan mode on. The agent will research and propose a plan without making changes."}, true
 	case "proceed":
-		if err := chatagent.SetSessionModeAndNotify(ctx.Context(), session, chatagent.ModeNormal); err != nil {
+		if err := ChatAgentService().SetSessionModeAndNotify(ctx.Context(), session, chatagent.ModeNormal); err != nil {
 			flog.Error(fmt.Errorf("failed to disable plan mode: %w", err))
 			return types.TextMsg{Text: "Failed to disable plan mode."}, true
 		}

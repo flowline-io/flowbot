@@ -47,8 +47,6 @@ var (
 		webservice.Get("/agents/:id/context", agentChatContext, route.WithNotAuth()),
 		webservice.Get("/agents/:id/todos", agentChatTodos, route.WithNotAuth()),
 	}
-
-	webChatAgentService = chatagent.NewService()
 )
 
 const (
@@ -70,7 +68,7 @@ func agentsEndpointsWithFilter(filter string) partials.ChatAgentEndpoints {
 		PinURLTemplate:       "/service/web/agents/{id}/pin",
 		ArchiveURLTemplate:   "/service/web/agents/{id}/archive",
 		Filter:               normalizeAgentsListFilter(filter),
-		PendingApprovalCount: chatagent.CountPendingApprovalSessions(),
+		PendingApprovalCount: chatAgentService().CountPendingApprovalSessions(),
 		RenderMarkdownURL:    "/service/web/agents/render-markdown",
 		SelectableModels:     selectableModelOptions(),
 		DefaultModel:         pkgconfig.ChatAgentChatModel(),
@@ -261,7 +259,7 @@ func agentChatPutSettings(ctx fiber.Ctx) error {
 	if err := chatagent.SetSessionSettings(ctx.Context(), sessionID, body); err != nil {
 		return chatAgentSettingsJSONError(ctx, err)
 	}
-	chatagent.EvictHarnessPool(sessionID)
+	chatAgentService().EvictHarnessPool(sessionID)
 	settings, err := chatagent.GetSessionSettings(ctx.Context(), sessionID)
 	if err != nil {
 		return chatAgentSettingsJSONError(ctx, err)
@@ -315,7 +313,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 }
 
 func pendingConfirmForSession(sessionID string) *partials.ChatAgentPendingConfirm {
-	ev, ok := chatagent.LookupPendingConfirm(sessionID)
+	ev, ok := chatAgentService().LookupPendingConfirm(sessionID)
 	if !ok {
 		return nil
 	}
@@ -362,7 +360,7 @@ func agentChatSendMessage(ctx fiber.Ctx) error {
 	if text == "" && len(attachments) == 0 {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "empty message"})
 	}
-	if _, ok := chatagent.GetAPIRunState(sessionID); ok {
+	if _, ok := chatAgentService().GetAPIRunState(sessionID); ok {
 		return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": chatagent.ErrRunInFlight.Error()})
 	}
 
@@ -375,7 +373,7 @@ func agentChatSendMessage(ctx fiber.Ctx) error {
 	baseCtx := ctx.Context()
 	return ctx.SendStreamWriter(func(w *bufio.Writer) {
 		sse := &chatagent.BufioSSEWriter{W: w}
-		chatagent.StreamAPIRun(baseCtx, webChatAgentService, sessionID, text, attachments, ownerUID, sse)
+		chatAgentService().StreamAPIRun(baseCtx, sessionID, text, attachments, ownerUID, sse)
 	})
 }
 
@@ -484,10 +482,10 @@ func agentChatClose(ctx fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "close session: %v", err)
 	}
-	if err := chatagent.CloseSession(ctx.Context(), sessionID); err != nil {
+	if err := chatAgentService().CloseSession(ctx.Context(), sessionID); err != nil {
 		return types.Errorf(types.ErrInternal, "close session: %v", err)
 	}
-	chatagent.ClearAPIRunState(sessionID, nil)
+	chatAgentService().ClearAPIRunState(sessionID, nil)
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
@@ -508,8 +506,8 @@ func agentChatCancel(ctx fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "cancel: %v", err)
 	}
-	chatagent.CancelSessionRun(sessionID)
-	if state, ok := chatagent.GetAPIRunState(sessionID); ok {
+	chatAgentService().CancelSessionRun(sessionID)
+	if state, ok := chatAgentService().GetAPIRunState(sessionID); ok {
 		if pub := state.Publisher(); pub != nil {
 			_ = pub.Publish(chatagent.StreamEvent{
 				Type:    chatagent.EventTypeCanceled,
@@ -558,7 +556,7 @@ func agentChatConfirm(ctx fiber.Ctx) error {
 			mode = chatagent.ConfirmModeReject
 		}
 	}
-	ok, err := chatagent.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
+	ok, err := chatAgentService().ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
 	if errors.Is(err, chatagent.ErrConfirmNotFound) {
 		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -680,7 +678,7 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.A
 	}
 	switch filter {
 	case agentsListFilterRunning, agentsListFilterNeedsApproval:
-		flags := chatagent.ListSessionIDsByActivity(filter)
+		flags := chatAgentService().ListSessionIDsByActivity(filter)
 		if len(flags) == 0 {
 			return nil, "", nil
 		}
@@ -695,7 +693,7 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.A
 	items := make([]model.AgentSession, 0, len(rows))
 	for _, row := range rows {
 		item := mapAgentSession(row)
-		item.Activity = chatagent.SessionActivity(row.Flag)
+		item.Activity = chatAgentService().SessionActivity(row.Flag)
 		items = append(items, item)
 		leafBySession[row.Flag] = row.LeafID
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -53,26 +54,42 @@ type ManualCompactionResult struct {
 }
 
 // Service orchestrates chat assistant agent runs for direct chat sessions.
-type Service struct{}
+// Hot-path runtime state (harness pool, session locks, run cancels, API runs,
+// confirm gates, session event hubs, permission sessions) lives on *Service.
+type Service struct {
+	harnessPool sync.Map
+
+	sessionLocksMu sync.Mutex
+	sessionLocks   map[string]*lockEntry
+
+	runCancelsMu sync.Mutex
+	runCancels   map[string]*runCancelEntry
+
+	sessionConfirmGates sync.Map
+	activeAPIRuns       sync.Map
+	sessionEventHubs    sync.Map
+	permissionSessions  PermissionSessionManager
+}
 
 // NewService creates a chat agent service using current application config.
 func NewService() *Service {
-	return &Service{}
+	return &Service{
+		sessionLocks: make(map[string]*lockEntry),
+		runCancels:   make(map[string]*runCancelEntry),
+	}
 }
 
 // Run executes one agent turn and returns the assistant reply text.
-func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (string, error) {
-	start := time.Now()
-	req.RunStartedAt = start
-	textLen := len(strings.TrimSpace(req.Text))
-
-	if err := validateRunRequest(ctx, req); err != nil {
+//
+// Pipeline phases: prepare → lock → harness → hooks/permission/confirm → stream → deliver → cleanup.
+func (s *Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (string, error) {
+	start, req, err := s.prepareRun(ctx, req)
+	if err != nil {
 		return "", err
 	}
 
-	lock := sessionLock(req.SessionID)
-	lock.Lock()
-	defer lock.Unlock()
+	unlock := s.lockSession(req.SessionID)
+	defer unlock()
 
 	if err := ensureSessionActive(ctx, req.SessionID); err != nil {
 		flog.Warn("[chat-agent] run rejected after lock: session=%s: %v", req.SessionID, err)
@@ -80,13 +97,36 @@ func (*Service) Run(ctx context.Context, req RunRequest, sink StreamSink) (strin
 	}
 
 	ctx = WithMemoryScope(ctx, ResolveMemoryScope(req))
+	ctx = withRunIO(ctx, req.API)
 
-	h, err := getOrCreateHarness(ctx, req, textLen)
+	h, err := s.ensureHarness(ctx, req, len(strings.TrimSpace(req.Text)))
 	if err != nil {
 		return "", err
 	}
 
-	return executeRun(ctx, h, req, start, sink)
+	return s.executeRun(ctx, h, req, start, sink)
+}
+
+// prepareRun validates the request and stamps RunStartedAt.
+func (*Service) prepareRun(ctx context.Context, req RunRequest) (time.Time, RunRequest, error) {
+	start := time.Now()
+	req.RunStartedAt = start
+	if err := validateRunRequest(ctx, req); err != nil {
+		return time.Time{}, req, err
+	}
+	return start, req, nil
+}
+
+// lockSession acquires the per-session mutex and returns an unlock function.
+func (s *Service) lockSession(sessionID string) func() {
+	lock := s.sessionLock(sessionID)
+	lock.Lock()
+	return lock.Unlock
+}
+
+// ensureHarness returns a pooled or newly built harness for the session.
+func (s *Service) ensureHarness(ctx context.Context, req RunRequest, textLen int) (*harness.Harness, error) {
+	return s.getOrCreateHarness(ctx, req, textLen)
 }
 
 // RunAPI executes one agent turn for HTTP clients with SSE event publishing.
@@ -101,7 +141,7 @@ func (s *Service) RunAPI(ctx context.Context, req RunRequest, opts *APIRunOption
 }
 
 // CompactSession force-compacts the current session branch without sending a user turn.
-func (*Service) CompactSession(ctx context.Context, sessionID string) (*ManualCompactionResult, error) {
+func (s *Service) CompactSession(ctx context.Context, sessionID string) (*ManualCompactionResult, error) {
 	if !agentllm.AgentEnabled(agentName) {
 		return nil, fmt.Errorf("chat agent is disabled or model is not configured")
 	}
@@ -109,15 +149,14 @@ func (*Service) CompactSession(ctx context.Context, sessionID string) (*ManualCo
 		return nil, err
 	}
 
-	lock := sessionLock(sessionID)
-	lock.Lock()
-	defer lock.Unlock()
+	unlock := s.lockSession(sessionID)
+	defer unlock()
 
 	if err := ensureSessionActive(ctx, sessionID); err != nil {
 		return nil, err
 	}
 
-	h, err := getOrCreateHarness(ctx, RunRequest{SessionID: sessionID}, 0)
+	h, err := s.ensureHarness(ctx, RunRequest{SessionID: sessionID}, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +206,8 @@ func validateRunRequest(ctx context.Context, req RunRequest) error {
 	return nil
 }
 
-func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
+// executeRun runs hooks/permission/confirm → stream → deliver → cleanup for one turn.
+func (s *Service) executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start time.Time, sink StreamSink) (string, error) {
 	if !req.RunStartedAt.IsZero() {
 		h.SetRunStartedAt(req.RunStartedAt)
 	} else {
@@ -195,7 +235,7 @@ func executeRun(ctx context.Context, h *harness.Harness, req RunRequest, start t
 				req.SessionID, time.Since(start).Round(time.Millisecond), err)
 		}
 		if isRunInterrupted(err) {
-			releaseHarnessAfterRunAbort(h, req.SessionID)
+			s.releaseHarnessAfterRunAbort(h, req.SessionID)
 		}
 		return "", awaitRunError(req.SessionID, start, err)
 	}
@@ -336,7 +376,7 @@ func isRunInterrupted(err error) bool {
 // releaseHarnessAfterRunAbort stops an in-flight loop and waits for the pooled harness to
 // return idle before the session lock is released. Without this, a follow-up Prompt can
 // observe PhaseBusy when cancellation only unblocked WaitIdle via ctx.Done().
-func releaseHarnessAfterRunAbort(h *harness.Harness, sessionID string) {
+func (s *Service) releaseHarnessAfterRunAbort(h *harness.Harness, sessionID string) {
 	if h == nil {
 		return
 	}
@@ -345,7 +385,7 @@ func releaseHarnessAfterRunAbort(h *harness.Harness, sessionID string) {
 	defer cancel()
 	if err := h.WaitIdle(drainCtx); err != nil {
 		flog.Warn("[chat-agent] harness drain after abort session=%s: %v; evicting pool entry", sessionID, err)
-		EvictHarnessPool(sessionID)
+		s.EvictHarnessPool(sessionID)
 	}
 }
 

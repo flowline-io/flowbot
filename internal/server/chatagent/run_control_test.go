@@ -20,21 +20,22 @@ func TestCancelRun(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			svc := NewService()
 			switch tt.name {
 			case "cancels bound context":
 				ctx, cancel := context.WithCancel(context.Background())
-				registerRunCancel("sess-a", cancel)
-				t.Cleanup(func() { unregisterRunCancel("sess-a") })
-				cancelRun("sess-a")
+				svc.registerRunCancel("sess-a", cancel)
+				t.Cleanup(func() { svc.unregisterRunCancel("sess-a") })
+				svc.cancelRun("sess-a")
 				require.ErrorIs(t, ctx.Err(), context.Canceled)
 			case "no-op when unbound":
-				assert.NotPanics(t, func() { cancelRun("missing-session") })
+				assert.NotPanics(t, func() { svc.cancelRun("missing-session") })
 			case "rebind cancels previous":
 				ctx1, cancel1 := context.WithCancel(context.Background())
 				ctx2, cancel2 := context.WithCancel(context.Background())
-				registerRunCancel("sess-b", cancel1)
-				registerRunCancel("sess-b", cancel2)
-				t.Cleanup(func() { unregisterRunCancel("sess-b") })
+				svc.registerRunCancel("sess-b", cancel1)
+				svc.registerRunCancel("sess-b", cancel2)
+				t.Cleanup(func() { svc.unregisterRunCancel("sess-b") })
 				require.ErrorIs(t, ctx1.Err(), context.Canceled)
 				require.NoError(t, ctx2.Err())
 			}
@@ -53,20 +54,21 @@ func TestReleaseSessionLock(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			svc := NewService()
 			switch tt.name {
 			case "lock can be re-created after release":
-				releaseSessionLock("sess-lock-1")
-				first := sessionLock("sess-lock-1")
-				releaseSessionLock("sess-lock-1")
-				second := sessionLock("sess-lock-1")
+				svc.releaseSessionLock("sess-lock-1")
+				first := svc.sessionLock("sess-lock-1")
+				svc.releaseSessionLock("sess-lock-1")
+				second := svc.sessionLock("sess-lock-1")
 				assert.NotSame(t, first, second)
 			case "release unknown session is safe":
-				assert.NotPanics(t, func() { releaseSessionLock("unknown-lock") })
+				assert.NotPanics(t, func() { svc.releaseSessionLock("unknown-lock") })
 			case "same session shares lock":
-				a := sessionLock("sess-lock-2")
-				b := sessionLock("sess-lock-2")
+				a := svc.sessionLock("sess-lock-2")
+				b := svc.sessionLock("sess-lock-2")
 				assert.Same(t, a, b)
-				releaseSessionLock("sess-lock-2")
+				svc.releaseSessionLock("sess-lock-2")
 			}
 		})
 	}
@@ -83,43 +85,44 @@ func TestEvictStaleRunCancel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			svc := NewService()
 			switch tt.name {
 			case "stale run cancel entry is removed":
 				ctx, cancel := context.WithCancel(context.Background())
-				runCancelsMu.Lock()
-				runCancels["stale-cancel"] = &runCancelEntry{
+				svc.runCancelsMu.Lock()
+				svc.runCancels["stale-cancel"] = &runCancelEntry{
 					cancel:   cancel,
 					lastUsed: time.Now().Add(-sessionLockTTL - time.Minute),
 				}
-				runCancelsMu.Unlock()
+				svc.runCancelsMu.Unlock()
 				t.Cleanup(func() {
-					unregisterRunCancel("stale-cancel")
+					svc.unregisterRunCancel("stale-cancel")
 					cancel()
 				})
 
-				runCancelsMu.Lock()
+				svc.runCancelsMu.Lock()
 				now := time.Now()
-				for id, entry := range runCancels {
+				for id, entry := range svc.runCancels {
 					if now.Sub(entry.lastUsed) > sessionLockTTL {
-						delete(runCancels, id)
+						delete(svc.runCancels, id)
 					}
 				}
-				_, ok := runCancels["stale-cancel"]
-				runCancelsMu.Unlock()
+				_, ok := svc.runCancels["stale-cancel"]
+				svc.runCancelsMu.Unlock()
 				assert.False(t, ok)
 				require.NoError(t, ctx.Err())
 			case "fresh run cancel entry is kept":
 				ctx, cancel := context.WithCancel(context.Background())
-				registerRunCancel("fresh-cancel", cancel)
-				t.Cleanup(func() { unregisterRunCancel("fresh-cancel") })
+				svc.registerRunCancel("fresh-cancel", cancel)
+				t.Cleanup(func() { svc.unregisterRunCancel("fresh-cancel") })
 
-				runCancelsMu.Lock()
-				_, ok := runCancels["fresh-cancel"]
-				runCancelsMu.Unlock()
+				svc.runCancelsMu.Lock()
+				_, ok := svc.runCancels["fresh-cancel"]
+				svc.runCancelsMu.Unlock()
 				assert.True(t, ok)
 				require.NoError(t, ctx.Err())
 			case "evict unknown session is safe":
-				assert.NotPanics(t, func() { unregisterRunCancel("never-bound") })
+				assert.NotPanics(t, func() { svc.unregisterRunCancel("never-bound") })
 			}
 		})
 	}

@@ -29,7 +29,7 @@ func TestChatAgentHTTPDisabled(t *testing.T) {
 	t.Cleanup(func() { config.App.ChatAgent = orig })
 
 	app := fiber.New()
-	app.Get("/chatagent/info", newChatAgentHTTP().info)
+	app.Get("/chatagent/info", newChatAgentHTTP(ChatAgentService()).info)
 
 	req := httptest.NewRequest("GET", "/chatagent/info", http.NoBody)
 	resp, err := app.Test(req)
@@ -54,7 +54,7 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -139,7 +139,7 @@ func TestChatAgentHTTPSessionSettings(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	withOwner := func(handler fiber.Handler) fiber.Handler {
 		return func(c fiber.Ctx) error {
@@ -222,7 +222,7 @@ func TestChatAgentHTTPListMessages(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/messages", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -251,7 +251,7 @@ func TestChatAgentHTTPConfirmNotFound(t *testing.T) {
 		config.App.ChatAgent = origCfg
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions/:id/confirm", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{UID: types.Uid("user-1")})
@@ -279,7 +279,7 @@ func TestChatAgentHTTPEmptyMessage(t *testing.T) {
 		config.App.ChatAgent = origCfg
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions/:id/messages", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -307,14 +307,14 @@ func TestChatAgentHTTPRunInFlight(t *testing.T) {
 	t.Cleanup(func() {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
-		chatagent.ClearAPIRunState("sess-1", nil)
+		ChatAgentService().ClearAPIRunState("sess-1", nil)
 	})
 
 	pub := chatagent.NewChannelPublisher(4)
-	gate := chatagent.NewConfirmGate("sess-1", pub)
-	require.NoError(t, chatagent.TrySetAPIRunState("sess-1", chatagent.NewAPIRunState(pub, gate)))
+	gate := chatagent.NewConfirmGate("sess-1", pub, nil)
+	require.NoError(t, ChatAgentService().TrySetAPIRunState("sess-1", chatagent.NewAPIRunState(pub, gate)))
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions/:id/messages", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -348,7 +348,7 @@ func TestChatAgentHTTPListSessions(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 
 	tests := []struct {
 		name       string
@@ -418,10 +418,10 @@ func TestChatAgentHTTPGetPermissionsSessionOwner(t *testing.T) {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		testChatSessions = map[string]*gen.ChatSession{}
-		chatagent.ResetPermissionSessionsForTest()
+		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/permissions", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -459,10 +459,10 @@ func TestChatAgentHTTPPermissionsMutations(t *testing.T) {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		chatagent.ResetPermissionCacheForTest()
-		chatagent.ResetPermissionSessionsForTest()
+		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Put("/chatagent/permissions", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -519,10 +519,10 @@ func TestChatAgentHTTPClearPermissionGrants(t *testing.T) {
 		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		testChatSessions = map[string]*gen.ChatSession{}
-		chatagent.ResetPermissionSessionsForTest()
+		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Delete("/chatagent/sessions/:id/permission-grants", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{
@@ -566,7 +566,7 @@ func TestChatAgentHTTPCancelRun(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions/:id/cancel", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{

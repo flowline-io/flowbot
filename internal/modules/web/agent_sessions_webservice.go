@@ -115,7 +115,7 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		return partials.EmptyState("Session not found").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	content, err := chatagent.ResolveResourceWithOptions(ctx.Context(), sessionID, uri, chatagent.ResolveResourceOptions{
+	content, err := chatAgentService().ResolveResourceWithOptions(ctx.Context(), sessionID, uri, chatagent.ResolveResourceOptions{
 		Full: ctx.Query("full") == "1",
 	})
 	if err != nil {
@@ -289,7 +289,7 @@ func agentSessionConfirm(ctx fiber.Ctx) error {
 			mode = chatagent.ConfirmModeReject
 		}
 	}
-	ok, err := chatagent.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
+	ok, err := chatAgentService().ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
 	if errors.Is(err, chatagent.ErrConfirmNotFound) {
 		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}

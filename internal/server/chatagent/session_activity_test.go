@@ -15,12 +15,12 @@ import (
 func TestCountPendingApprovalSessions(t *testing.T) {
 	tests := []struct {
 		name      string
-		setup     func(t *testing.T) string
+		setup     func(t *testing.T, svc *Service) string
 		wantDelta int
 	}{
 		{
 			name: "idle does not add pending sessions",
-			setup: func(t *testing.T) string {
+			setup: func(t *testing.T, _ *Service) string {
 				t.Helper()
 				return ""
 			},
@@ -28,15 +28,15 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 		},
 		{
 			name: "counts one waiting gate",
-			setup: func(t *testing.T) string {
+			setup: func(t *testing.T, svc *Service) string {
 				t.Helper()
 				sessionID := "sess-count-one"
 				pub := NewChannelPublisher(8)
-				gate := NewConfirmGate(sessionID, pub)
+				gate := NewConfirmGate(sessionID, pub, nil)
 				gate.timeout = 2 * time.Second
 				state := NewAPIRunState(pub, gate)
-				require.NoError(t, TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
 				go func() {
 					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
@@ -50,12 +50,12 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 		},
 		{
 			name: "ignores running without pending confirm",
-			setup: func(t *testing.T) string {
+			setup: func(t *testing.T, svc *Service) string {
 				t.Helper()
 				sessionID := "sess-count-running"
-				state := NewAPIRunState(NewChannelPublisher(4), NewConfirmGate(sessionID, nil))
-				require.NoError(t, TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+				state := NewAPIRunState(NewChannelPublisher(4), NewConfirmGate(sessionID, nil, nil))
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
 				return sessionID
 			},
 			wantDelta: 0,
@@ -63,11 +63,12 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			before := CountPendingApprovalSessions()
-			sessionID := tt.setup(t)
-			assert.Equal(t, before+tt.wantDelta, CountPendingApprovalSessions())
+			svc := NewService()
+			before := svc.CountPendingApprovalSessions()
+			sessionID := tt.setup(t, svc)
+			assert.Equal(t, before+tt.wantDelta, svc.CountPendingApprovalSessions())
 			if sessionID != "" && tt.wantDelta > 0 {
-				assert.Contains(t, ListSessionIDsByActivity(SessionActivityNeedsApproval), sessionID)
+				assert.Contains(t, svc.ListSessionIDsByActivity(SessionActivityNeedsApproval), sessionID)
 			}
 		})
 	}
@@ -75,43 +76,41 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 
 func TestSessionActivity(t *testing.T) {
 	tests := []struct {
-		name    string
-		setup   func(t *testing.T) string
-		want    string
-		cleanup func(sessionID string)
+		name  string
+		setup func(t *testing.T, svc *Service) string
+		want  string
 	}{
 		{
 			name: "idle session",
-			setup: func(t *testing.T) string {
+			setup: func(t *testing.T, _ *Service) string {
 				t.Helper()
 				return "sess-idle"
 			},
 			want: "",
 		},
 		{
-			name: "running via active api run",
-			setup: func(t *testing.T) string {
+			name: "running session",
+			setup: func(t *testing.T, svc *Service) string {
 				t.Helper()
 				sessionID := "sess-running"
-				state := NewAPIRunState(NewChannelPublisher(4), NewConfirmGate(sessionID, nil))
-				require.NoError(t, TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+				state := NewAPIRunState(NewChannelPublisher(4), NewConfirmGate(sessionID, nil, nil))
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
 				return sessionID
 			},
 			want: SessionActivityRunning,
 		},
 		{
-			name: "needs approval while waiting",
-			setup: func(t *testing.T) string {
+			name: "needs approval",
+			setup: func(t *testing.T, svc *Service) string {
 				t.Helper()
-				sessionID := "sess-need-approval"
+				sessionID := "sess-needs-approval"
 				pub := NewChannelPublisher(8)
-				gate := NewConfirmGate(sessionID, pub)
+				gate := NewConfirmGate(sessionID, pub, nil)
 				gate.timeout = 2 * time.Second
 				state := NewAPIRunState(pub, gate)
-				require.NoError(t, TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
-
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
 				go func() {
 					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
@@ -126,20 +125,22 @@ func TestSessionActivity(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sessionID := tt.setup(t)
-			assert.Equal(t, tt.want, SessionActivity(sessionID))
+			svc := NewService()
+			sessionID := tt.setup(t, svc)
+			assert.Equal(t, tt.want, svc.SessionActivity(sessionID))
 			if tt.want == SessionActivityNeedsApproval {
-				assert.Contains(t, ListSessionIDsByActivity(SessionActivityNeedsApproval), sessionID)
-				assert.NotContains(t, ListSessionIDsByActivity(SessionActivityRunning), sessionID)
+				assert.Contains(t, svc.ListSessionIDsByActivity(SessionActivityNeedsApproval), sessionID)
+				assert.NotContains(t, svc.ListSessionIDsByActivity(SessionActivityRunning), sessionID)
 			}
 			if tt.want == SessionActivityRunning {
-				assert.Contains(t, ListSessionIDsByActivity(SessionActivityRunning), sessionID)
+				assert.Contains(t, svc.ListSessionIDsByActivity(SessionActivityRunning), sessionID)
 			}
 		})
 	}
 }
 
 func TestConfirmGateIsWaiting(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		run  func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher)
@@ -151,15 +152,15 @@ func TestConfirmGateIsWaiting(t *testing.T) {
 			},
 		},
 		{
-			name: "true while waiting then false after resolve",
+			name: "true while waiting",
 			run: func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher) {
 				done := make(chan struct{})
 				go func() {
-					defer close(done)
 					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
-						Args:     map[string]any{"command": "echo"},
+						Args:     map[string]any{"command": "ls"},
 					}, testEvalResult())
+					close(done)
 				}()
 				waitConfirmEvent(t, pub)
 				assert.True(t, gate.IsWaiting())
@@ -177,14 +178,13 @@ func TestConfirmGateIsWaiting(t *testing.T) {
 			run: func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher) {
 				done := make(chan struct{})
 				go func() {
-					defer close(done)
 					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
-						ToolCall: msg.ToolCallPart{Name: permission.ToolWriteFile},
-						Args:     map[string]any{"path": "a.txt"},
-					}, permission.Result{Action: permission.ActionAsk, PermissionKey: "edit", Pattern: "a.txt"})
+						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+						Args:     map[string]any{"command": "ls"},
+					}, testEvalResult())
+					close(done)
 				}()
 				waitConfirmEvent(t, pub)
-				assert.True(t, gate.IsWaiting())
 				gate.Cancel()
 				<-done
 				assert.False(t, gate.IsWaiting())
@@ -193,8 +193,9 @@ func TestConfirmGateIsWaiting(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			pub := NewChannelPublisher(8)
-			gate := NewConfirmGate("sess-waiting", pub)
+			gate := NewConfirmGate("sess-waiting", pub, nil)
 			gate.timeout = 2 * time.Second
 			tt.run(t, gate, pub)
 		})

@@ -7,14 +7,14 @@ const SessionActivityRunning = "running"
 const SessionActivityNeedsApproval = "needs_approval"
 
 // HasPendingConfirm reports whether the session has an unresolved confirmation gate.
-func HasPendingConfirm(sessionID string) bool {
-	_, ok := LookupPendingConfirm(sessionID)
+func (s *Service) HasPendingConfirm(sessionID string) bool {
+	_, ok := s.LookupPendingConfirm(sessionID)
 	return ok
 }
 
 // LookupPendingConfirm returns the outstanding confirm event for a session when waiting.
-func LookupPendingConfirm(sessionID string) (StreamEvent, bool) {
-	raw, ok := sessionConfirmGates.Load(sessionID)
+func (s *Service) LookupPendingConfirm(sessionID string) (StreamEvent, bool) {
+	raw, ok := s.sessionConfirmGates.Load(sessionID)
 	if !ok {
 		return StreamEvent{}, false
 	}
@@ -26,48 +26,48 @@ func LookupPendingConfirm(sessionID string) (StreamEvent, bool) {
 }
 
 // IsSessionRunning reports whether the session has an in-flight agent run.
-func IsSessionRunning(sessionID string) bool {
-	if _, ok := activeAPIRuns.Load(sessionID); ok {
+func (s *Service) IsSessionRunning(sessionID string) bool {
+	if _, ok := s.activeAPIRuns.Load(sessionID); ok {
 		return true
 	}
-	runCancelsMu.Lock()
-	defer runCancelsMu.Unlock()
-	_, ok := runCancels[sessionID]
+	s.runCancelsMu.Lock()
+	defer s.runCancelsMu.Unlock()
+	_, ok := s.runCancels[sessionID]
 	return ok
 }
 
 // SessionActivity returns the list-facing runtime status for a session.
 // Needs-approval takes precedence over running.
-func SessionActivity(sessionID string) string {
-	if HasPendingConfirm(sessionID) {
+func (s *Service) SessionActivity(sessionID string) string {
+	if s.HasPendingConfirm(sessionID) {
 		return SessionActivityNeedsApproval
 	}
-	if IsSessionRunning(sessionID) {
+	if s.IsSessionRunning(sessionID) {
 		return SessionActivityRunning
 	}
 	return ""
 }
 
 // ListSessionIDsByActivity returns session IDs that currently match the activity filter.
-func ListSessionIDsByActivity(activity string) []string {
+func (s *Service) ListSessionIDsByActivity(activity string) []string {
 	switch activity {
 	case SessionActivityNeedsApproval:
-		return listPendingConfirmSessionIDs()
+		return s.listPendingConfirmSessionIDs()
 	case SessionActivityRunning:
-		return listRunningSessionIDs()
+		return s.listRunningSessionIDs()
 	default:
 		return nil
 	}
 }
 
 // CountPendingApprovalSessions returns how many sessions currently wait on tool approval.
-func CountPendingApprovalSessions() int {
-	return len(listPendingConfirmSessionIDs())
+func (s *Service) CountPendingApprovalSessions() int {
+	return len(s.listPendingConfirmSessionIDs())
 }
 
-func listPendingConfirmSessionIDs() []string {
+func (s *Service) listPendingConfirmSessionIDs() []string {
 	out := make([]string, 0)
-	sessionConfirmGates.Range(func(key, value any) bool {
+	s.sessionConfirmGates.Range(func(key, value any) bool {
 		sessionID, ok := key.(string)
 		if !ok || sessionID == "" {
 			return true
@@ -81,25 +81,25 @@ func listPendingConfirmSessionIDs() []string {
 	return out
 }
 
-func listRunningSessionIDs() []string {
+func (s *Service) listRunningSessionIDs() []string {
 	seen := make(map[string]struct{})
-	activeAPIRuns.Range(func(key, _ any) bool {
+	s.activeAPIRuns.Range(func(key, _ any) bool {
 		if sessionID, ok := key.(string); ok && sessionID != "" {
 			seen[sessionID] = struct{}{}
 		}
 		return true
 	})
-	runCancelsMu.Lock()
-	for sessionID := range runCancels {
+	s.runCancelsMu.Lock()
+	for sessionID := range s.runCancels {
 		if sessionID != "" {
 			seen[sessionID] = struct{}{}
 		}
 	}
-	runCancelsMu.Unlock()
+	s.runCancelsMu.Unlock()
 	out := make([]string, 0, len(seen))
 	for sessionID := range seen {
 		// Prefer needs_approval exclusivity for the running filter.
-		if HasPendingConfirm(sessionID) {
+		if s.HasPendingConfirm(sessionID) {
 			continue
 		}
 		out = append(out, sessionID)

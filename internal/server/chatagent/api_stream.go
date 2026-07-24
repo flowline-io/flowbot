@@ -61,8 +61,8 @@ func DrainPublisherSSE(w SSEWriter, publisher *ChannelPublisher) {
 }
 
 // StreamAPIRun executes one agent turn and streams SSE events to w.
-func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, attachments []AttachmentRef, ownerUID string, w SSEWriter) {
-	hub := GetSessionEventHub(sessionID)
+func (s *Service) StreamAPIRun(ctx context.Context, sessionID, text string, attachments []AttachmentRef, ownerUID string, w SSEWriter) {
+	hub := s.GetSessionEventHub(sessionID)
 	subID := "run"
 	publisher := hub.Subscribe(subID, 64)
 	var detachOnce sync.Once
@@ -77,9 +77,9 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, att
 	}
 	defer detachFromHub()
 
-	gate := NewConfirmGate(sessionID, nil)
+	gate := NewConfirmGate(sessionID, nil, hub)
 	runState := NewAPIRunState(publisher, gate)
-	if err := TrySetAPIRunState(sessionID, runState); err != nil {
+	if err := s.TrySetAPIRunState(sessionID, runState); err != nil {
 		publisher.Close()
 		_ = w.WriteEvent(StreamEvent{
 			Type:    EventTypeError,
@@ -91,21 +91,21 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, att
 	// Detach from the HTTP request context so closing the message SSE stream
 	// does not cancel a run that is still waiting for tool approval.
 	runCtx, cancel := fbtrace.DetachWithTimeout(ctx, RunTimeout())
-	BindRunCancel(sessionID, cancel)
+	s.BindRunCancel(sessionID, cancel)
 
 	runDone := make(chan error, 1)
 	go func() {
 		var runErr error
 		defer func() {
 			cancel()
-			UnbindRunCancel(sessionID)
-			ClearAPIRunState(sessionID, runState)
+			s.UnbindRunCancel(sessionID)
+			s.ClearAPIRunState(sessionID, runState)
 			// Observers (reopened detail pages) do not share the primary messages
 			// SSE; tell them history is ready to reload.
-			PublishSessionEvent(sessionID, StreamEvent{Type: EventTypeRunComplete})
+			s.PublishSessionEvent(sessionID, StreamEvent{Type: EventTypeRunComplete})
 			runDone <- runErr
 		}()
-		runErr = svc.RunAPI(runCtx, RunRequest{
+		runErr = s.RunAPI(runCtx, RunRequest{
 			SessionID:   sessionID,
 			Text:        text,
 			Attachments: attachments,
@@ -114,6 +114,12 @@ func StreamAPIRun(ctx context.Context, svc *Service, sessionID, text string, att
 			Confirm:   gate,
 			OwnerUID:  ownerUID,
 		})
+		if runErr != nil && !errors.Is(runErr, context.Canceled) {
+			_ = publisher.Publish(StreamEvent{
+				Type:    EventTypeError,
+				Message: runErr.Error(),
+			})
+		}
 		publisher.Close()
 	}()
 

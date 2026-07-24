@@ -9,7 +9,6 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/homelab"
@@ -87,7 +86,7 @@ func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 		}
 	}
 
-	d.PendingApprovals = chatagent.CountPendingApprovalSessions()
+	d.PendingApprovals = chatAgentService().CountPendingApprovalSessions()
 	d.Checklist = buildHomeChecklist(ctx, d)
 	return d
 }
@@ -226,6 +225,6 @@ func approvalBadge(ctx fiber.Ctx) error {
 		return err
 	}
 	ctx.Type("html")
-	count := chatagent.CountPendingApprovalSessions()
+	count := chatAgentService().CountPendingApprovalSessions()
 	return partials.ApprovalCountBadge(count).Render(context.Background(), ctx.Response().BodyWriter())
 }

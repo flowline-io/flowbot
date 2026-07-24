@@ -40,7 +40,7 @@ func TestBeginEphemeralSessionCreatesActiveSession(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "user-1", sess.UID)
 
-	CloseEphemeralSession(context.Background(), sessionID)
+	CloseEphemeralSession(context.Background(), NewService(), sessionID)
 }
 
 func TestRunEphemeralReturnsReplyAndClosesSession(t *testing.T) {
@@ -69,7 +69,7 @@ func TestRunAutonomousPromptRejectsEmptyMessage(t *testing.T) {
 
 	sessionID, err := BeginEphemeralSession(context.Background(), "user-1")
 	require.NoError(t, err)
-	defer CloseEphemeralSession(context.Background(), sessionID)
+	defer CloseEphemeralSession(context.Background(), NewService(), sessionID)
 
 	_, err = RunAutonomousPrompt(context.Background(), NewService(), sessionID, "   ", RunKindScheduled, nil, nil, "")
 	assert.Error(t, err)

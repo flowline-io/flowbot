@@ -71,7 +71,8 @@ func TestResolveResourceFullOption(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ResolveResourceWithOptions(context.Background(), tt.sessionID, "file://big.txt", tt.opts)
+			svc := NewService()
+			got, err := svc.ResolveResourceWithOptions(context.Background(), tt.sessionID, "file://big.txt", tt.opts)
 			if tt.wantErr {
 				require.Error(t, err)
 				return

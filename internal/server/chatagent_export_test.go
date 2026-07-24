@@ -119,7 +119,7 @@ func TestChatAgentHTTPExportSession(t *testing.T) {
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/export", func(c fiber.Ctx) error {
 		c.Locals("route:ctx", &route.RequestContext{

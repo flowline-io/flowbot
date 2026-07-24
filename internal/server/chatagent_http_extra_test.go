@@ -31,7 +31,7 @@ func TestChatAgentHTTPGetSessionAndExport(t *testing.T) {
 		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
-	h := newChatAgentHTTP()
+	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	wrap := func(fn func(fiber.Ctx) error) fiber.Handler {
 		return func(c fiber.Ctx) error {

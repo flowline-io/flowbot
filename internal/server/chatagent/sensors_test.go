@@ -57,7 +57,7 @@ func TestRegisterHooksLintSensor(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			config.App.ChatAgent.Sensors.LintOnWrite = tt.lintOnWrite
 			reg := hooks.NewRegistry()
-			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{SessionID: "lint-test"})
+			chatagent.RegisterHooks(reg, chatagent.ChatHookDeps{SessionID: "lint-test", Service: chatagent.NewService()})
 			cfg := hooks.BridgeConfig(context.Background(), reg, msg.Config{})
 			require.NotNil(t, cfg.AfterToolCall)
 			result, err := cfg.AfterToolCall(msg.AfterToolContext{

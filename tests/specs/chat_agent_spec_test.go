@@ -72,7 +72,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(entries).NotTo(BeEmpty())
 
-		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
+		Expect(svc.CloseSession(ctx, sessionID)).To(Succeed())
 		closed, err := store.Database.GetChatSession(ctx, sessionID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(closed.State).To(Equal(int(schema.ChatSessionClosed)))
@@ -132,7 +132,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		}
 		Expect(assistantModels).To(Equal([]string{"chat-model", "tool-model"}))
 
-		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
+		Expect(svc.CloseSession(ctx, sessionID)).To(Succeed())
 	})
 
 	It("blocks write_file in plan mode and allows it after returning to normal", func() {
@@ -165,9 +165,10 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 
 		ctx := context.Background()
 		sessionID := "bdd-plan-mode-" + types.Id()
+		svc := chatagent.NewService()
 		defer func() {
 			chatagent.WaitForSessionTitleGenerationForTest()
-			chatagent.EvictHarnessPool(sessionID)
+			svc.EvictHarnessPool(sessionID)
 			chatagent.NewModelForTest = orig
 		}()
 
@@ -177,7 +178,6 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(chatagent.CreateSession(ctx, "uid-plan", sessionID)).To(Succeed())
 		Expect(chatagent.SetSessionMode(ctx, sessionID, chatagent.ModePlan)).To(Succeed())
 
-		svc := chatagent.NewService()
 		reply, err := svc.Run(ctx, chatagent.RunRequest{SessionID: sessionID, Text: "edit plan-mode-target.txt"}, nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(reply).To(ContainSubstring("plan"))
@@ -192,10 +192,10 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		// approve the pending request so the run can proceed, mirroring how an
 		// Web UI or the HTTP SSE endpoint resolves asks.
 		pub := chatagent.NewChannelPublisher(4)
-		gate := chatagent.NewConfirmGate(sessionID, pub)
+		gate := chatagent.NewConfirmGate(sessionID, pub, nil)
 		runState := chatagent.NewAPIRunState(pub, gate)
-		Expect(chatagent.TrySetAPIRunState(sessionID, runState)).To(Succeed())
-		defer chatagent.ClearAPIRunState(sessionID, runState)
+		Expect(svc.TrySetAPIRunState(sessionID, runState)).To(Succeed())
+		defer svc.ClearAPIRunState(sessionID, runState)
 
 		type runResult struct {
 			reply string
@@ -208,7 +208,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		}()
 
 		Eventually(pub.Events(), "5s").Should(Receive(HaveField("Type", chatagent.EventTypeConfirm)))
-		_, err = chatagent.ResolveConfirm(sessionID, gate.ID(), true, chatagent.ConfirmModeOnce, "", chatagent.ConfirmReasonApproved)
+		_, err = svc.ResolveConfirm(sessionID, gate.ID(), true, chatagent.ConfirmModeOnce, "", chatagent.ConfirmReasonApproved)
 		Expect(err).NotTo(HaveOccurred())
 
 		var result runResult
@@ -219,7 +219,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		_, statErr = os.Stat(filepath.Join(wsDir, target))
 		Expect(statErr).NotTo(HaveOccurred())
 
-		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
+		Expect(svc.CloseSession(ctx, sessionID)).To(Succeed())
 	})
 
 	It("persists plan resources and resolves plan:// and file:// links", func() {
@@ -256,17 +256,17 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(plans).NotTo(BeEmpty())
 
-		planContent, err := chatagent.ResolveResource(ctx, sessionID, plans[0].URI)
+		planContent, err := svc.ResolveResource(ctx, sessionID, plans[0].URI)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(planContent.Content).To(ContainSubstring("Resource Plan"))
 
-		fileContent, err := chatagent.ResolveResource(ctx, sessionID, "file://note.txt")
+		fileContent, err := svc.ResolveResource(ctx, sessionID, "file://note.txt")
 		Expect(err).NotTo(HaveOccurred())
 		Expect(fileContent.Content).To(Equal("file body"))
 
-		_, err = chatagent.ResolveResource(ctx, sessionID, "file://../outside.txt")
+		_, err = svc.ResolveResource(ctx, sessionID, "file://../outside.txt")
 		Expect(err).To(HaveOccurred())
 
-		Expect(chatagent.CloseSession(ctx, sessionID)).To(Succeed())
+		Expect(svc.CloseSession(ctx, sessionID)).To(Succeed())
 	})
 })

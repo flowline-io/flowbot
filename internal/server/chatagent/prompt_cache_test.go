@@ -303,14 +303,15 @@ func TestEvictHarnessPool(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ResetHarnessPoolForTest()
+			svc := NewService()
+			svc.ResetHarnessPoolForTest()
 			if tt.preload {
 				entry := &pooledHarness{}
 				entry.touchLastUsed()
-				harnessPool.Store(tt.sessionID, entry)
+				svc.harnessPoolMap().Store(tt.sessionID, entry)
 			}
-			EvictHarnessPool(tt.evictID)
-			_, ok := harnessPool.Load(tt.sessionID)
+			svc.EvictHarnessPool(tt.evictID)
+			_, ok := svc.harnessPoolMap().Load(tt.sessionID)
 			assert.Equal(t, tt.wantHit, ok)
 		})
 	}

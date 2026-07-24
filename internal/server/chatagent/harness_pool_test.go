@@ -16,7 +16,9 @@ func TestGetOrCreateHarness(t *testing.T) {
 	t.Cleanup(DisableSessionTitleLLMForTest())
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "harness reply")
-	t.Cleanup(ResetHarnessPoolForTest)
+
+	svc := NewService()
+	t.Cleanup(func() { svc.ResetHarnessPoolForTest() })
 
 	ctx := context.Background()
 	sessionID := "sess-harness-pool"
@@ -26,37 +28,37 @@ func TestGetOrCreateHarness(t *testing.T) {
 
 	tests := []struct {
 		name string
-		run  func(*testing.T)
+		run  func(*testing.T, *Service)
 	}{
 		{
 			name: "creates harness on first call",
-			run: func(t *testing.T) {
-				h, err := getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "hi"}, 2)
+			run: func(t *testing.T, svc *Service) {
+				h, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "hi"}, 2)
 				require.NoError(t, err)
 				require.NotNil(t, h)
-				_, ok := harnessPool.Load(sessionID)
+				_, ok := svc.harnessPoolMap().Load(sessionID)
 				assert.True(t, ok)
 			},
 		},
 		{
 			name: "reuses pooled harness on second call",
-			run: func(t *testing.T) {
+			run: func(t *testing.T, svc *Service) {
 				req := RunRequest{SessionID: sessionID, Text: "hello"}
-				h1, err := getOrCreateHarness(ctx, req, len(req.Text))
+				h1, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
-				h2, err := getOrCreateHarness(ctx, req, len(req.Text))
+				h2, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
 				assert.Same(t, h1, h2)
 			},
 		},
 		{
 			name: "evict removes stale pooled entry",
-			run: func(t *testing.T) {
+			run: func(t *testing.T, svc *Service) {
 				req := RunRequest{SessionID: sessionID, Text: "ping"}
-				first, err := getOrCreateHarness(ctx, req, len(req.Text))
+				first, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
-				EvictHarnessPool(sessionID)
-				second, err := getOrCreateHarness(ctx, req, len(req.Text))
+				svc.EvictHarnessPool(sessionID)
+				second, err := svc.getOrCreateHarness(ctx, req, len(req.Text))
 				require.NoError(t, err)
 				assert.NotSame(t, first, second)
 			},
@@ -65,8 +67,8 @@ func TestGetOrCreateHarness(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ResetHarnessPoolForTest()
-			tt.run(t)
+			svc.ResetHarnessPoolForTest()
+			tt.run(t, svc)
 		})
 	}
 }
@@ -76,7 +78,9 @@ func TestApplySessionModeUpdatesTools(t *testing.T) {
 	t.Cleanup(DisableSessionTitleLLMForTest())
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "ok")
-	t.Cleanup(ResetHarnessPoolForTest)
+
+	svc := NewService()
+	t.Cleanup(func() { svc.ResetHarnessPoolForTest() })
 
 	ctx := context.Background()
 	sessionID := "sess-mode"
@@ -84,7 +88,7 @@ func TestApplySessionModeUpdatesTools(t *testing.T) {
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive), Mode: ModePlan,
 	}))
 
-	h, err := getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "plan task"}, 9)
+	h, err := svc.getOrCreateHarness(ctx, RunRequest{SessionID: sessionID, Text: "plan task"}, 9)
 	require.NoError(t, err)
 	require.NotNil(t, h)
 

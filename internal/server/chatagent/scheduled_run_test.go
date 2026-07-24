@@ -18,6 +18,8 @@ import (
 
 func setupEphemeralRunTestDB(t *testing.T) store.Adapter {
 	t.Helper()
+	BindSharedService(NewService())
+	t.Cleanup(func() { BindSharedService(nil) })
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	t.Cleanup(func() {

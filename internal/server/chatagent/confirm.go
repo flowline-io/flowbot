@@ -46,6 +46,7 @@ type ConfirmGate struct {
 	id        string
 	sessionID string
 	publisher EventPublisher
+	hub       *SessionEventHub
 	ch        chan ConfirmResponse
 	done      chan struct{}
 	resolved  bool
@@ -54,12 +55,14 @@ type ConfirmGate struct {
 	pending   *StreamEvent
 }
 
-// NewConfirmGate creates a gate that publishes confirm events to session subscribers.
-func NewConfirmGate(sessionID string, publisher EventPublisher) *ConfirmGate {
+// NewConfirmGate creates a gate that publishes confirm events via publisher or hub.
+// When publisher is nil, emit uses hub.publish (hub must be non-nil for fan-out).
+func NewConfirmGate(sessionID string, publisher EventPublisher, hub *SessionEventHub) *ConfirmGate {
 	return &ConfirmGate{
 		id:        uuid.NewString(),
 		sessionID: sessionID,
 		publisher: publisher,
+		hub:       hub,
 		ch:        make(chan ConfirmResponse, 1),
 		done:      make(chan struct{}),
 		timeout:   defaultConfirmTimeout,
@@ -219,7 +222,9 @@ func (g *ConfirmGate) emit(event StreamEvent) error {
 	if g.publisher != nil {
 		return g.publisher.Publish(event)
 	}
-	GetSessionEventHub(g.sessionID).publish(event)
+	if g.hub != nil {
+		g.hub.publish(event)
+	}
 	return nil
 }
 

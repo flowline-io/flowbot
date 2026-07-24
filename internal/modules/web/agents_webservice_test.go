@@ -691,9 +691,9 @@ func TestAgentChatSendMessageValidation(t *testing.T) {
 				sessionID := "sess-msg"
 				if tt.inFlight {
 					pub := chatagent.NewChannelPublisher(4)
-					gate := chatagent.NewConfirmGate(sessionID, pub)
-					require.NoError(t, chatagent.TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
-					t.Cleanup(func() { chatagent.ClearAPIRunState(sessionID, nil) })
+					gate := chatagent.NewConfirmGate(sessionID, pub, nil)
+					require.NoError(t, chatAgentService().TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
+					t.Cleanup(func() { chatAgentService().ClearAPIRunState(sessionID, nil) })
 				}
 
 				ts := &testStore{chatSessionsByFlag: map[string]*gen.ChatSession{
@@ -965,12 +965,12 @@ func TestAgentChatConfirmNotFound(t *testing.T) {
 				var gateID string
 				if tt.inFlight {
 					pub := chatagent.NewChannelPublisher(4)
-					gate := chatagent.NewConfirmGate(sessionID, pub)
+					gate := chatagent.NewConfirmGate(sessionID, pub, nil)
 					gateID = gate.ID()
-					require.NoError(t, chatagent.TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
-					t.Cleanup(func() { chatagent.ClearAPIRunState(sessionID, nil) })
+					require.NoError(t, chatAgentService().TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
+					t.Cleanup(func() { chatAgentService().ClearAPIRunState(sessionID, nil) })
 					if tt.resolve {
-						_, err := chatagent.ResolveConfirm(sessionID, gateID, true, chatagent.ConfirmModeOnce, "", chatagent.ConfirmReasonApproved)
+						_, err := chatAgentService().ResolveConfirm(sessionID, gateID, true, chatagent.ConfirmModeOnce, "", chatagent.ConfirmReasonApproved)
 						require.NoError(t, err)
 					}
 				}

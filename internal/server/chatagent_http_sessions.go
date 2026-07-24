@@ -80,10 +80,10 @@ func (h *chatAgentHTTP) closeSession(c fiber.Ctx) error {
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
-	if err := chatagent.CloseSession(c.Context(), sessionID); err != nil {
+	if err := h.service.CloseSession(c.Context(), sessionID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	chatagent.ClearAPIRunState(sessionID, nil)
+	h.service.ClearAPIRunState(sessionID, nil)
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
@@ -185,7 +185,7 @@ func (h *chatAgentHTTP) putSessionSettings(c fiber.Ctx) error {
 	if err != nil {
 		return chatAgentError(c, err)
 	}
-	chatagent.EvictHarnessPool(sessionID)
+	h.service.EvictHarnessPool(sessionID)
 	return c.JSON(settings)
 }
 
@@ -223,7 +223,7 @@ func (h *chatAgentHTTP) putSessionMode(c fiber.Ctx) error {
 	if !chatagent.ValidSessionMode(mode) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid mode"})
 	}
-	if err := chatagent.SetSessionModeAndNotify(c.Context(), sessionID, mode); err != nil {
+	if err := h.service.SetSessionModeAndNotify(c.Context(), sessionID, mode); err != nil {
 		return chatAgentError(c, err)
 	}
 	return c.JSON(fiber.Map{"mode": mode})
@@ -247,13 +247,14 @@ func (h *chatAgentHTTP) sessionEvents(c fiber.Ctx) error {
 	// Fiber has released and reused the fiber.Ctx; calling c.Context() from
 	// inside the callback races with that release.
 	reqCtx := c.Context()
+	svc := h.service
 	return c.SendStreamWriter(func(w *bufio.Writer) {
-		hub := chatagent.GetSessionEventHub(sessionID)
+		hub := svc.GetSessionEventHub(sessionID)
 		subID := fmt.Sprintf("observer-%p", w)
 		publisher := hub.Subscribe(subID, 32)
 		defer hub.Unsubscribe(subID)
 
-		if chatagent.WritePendingConfirmIfAny(sessionID, func(ev chatagent.StreamEvent) bool {
+		if svc.WritePendingConfirmIfAny(sessionID, func(ev chatagent.StreamEvent) bool {
 			return writeChatAgentSSE(w, ev)
 		}) {
 			return

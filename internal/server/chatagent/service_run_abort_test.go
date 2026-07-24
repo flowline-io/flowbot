@@ -119,6 +119,7 @@ func TestReleaseHarnessAfterRunAbort(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			svc := NewService()
 			ctx, cancel := context.WithCancel(context.Background())
 			stall := newStallModel()
 			h := harness.New(harness.Options{
@@ -138,7 +139,7 @@ func TestReleaseHarnessAfterRunAbort(t *testing.T) {
 			require.ErrorIs(t, <-idleErr, context.Canceled)
 
 			stall.unblock()
-			releaseHarnessAfterRunAbort(h, tt.sessionID)
+			svc.releaseHarnessAfterRunAbort(h, tt.sessionID)
 			require.NoError(t, h.WaitIdle(context.Background()))
 
 			_, err = h.Prompt(context.Background(), agent.NewUserMessage("follow-up"))
@@ -160,8 +161,9 @@ func TestReleaseHarnessAfterRunAbortNilHarness(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			svc := NewService()
 			assert.NotPanics(t, func() {
-				releaseHarnessAfterRunAbort(nil, "sess-nil")
+				svc.releaseHarnessAfterRunAbort(nil, "sess-nil")
 			})
 		})
 	}
@@ -170,28 +172,28 @@ func TestReleaseHarnessAfterRunAbortNilHarness(t *testing.T) {
 func TestAbortSessionHarness(t *testing.T) {
 	tests := []struct {
 		name  string
-		setup func(sessionID string) *harness.Harness
+		setup func(svc *Service, sessionID string) *harness.Harness
 	}{
 		{
 			name:  "missing session is no-op",
-			setup: func(string) *harness.Harness { return nil },
+			setup: func(*Service, string) *harness.Harness { return nil },
 		},
 		{
 			name: "aborts pooled harness loop",
-			setup: func(sessionID string) *harness.Harness {
+			setup: func(svc *Service, sessionID string) *harness.Harness {
 				blocking := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "blocked"})
 				h := harness.New(harness.Options{
 					AgentOptions: agent.Options{Model: blocking},
 					ModelName:    "fake",
 				})
-				harnessPool.Store(sessionID, &pooledHarness{harness: h})
+				svc.harnessPoolMap().Store(sessionID, &pooledHarness{harness: h})
 				return h
 			},
 		},
 		{
 			name: "invalid pool entry is no-op",
-			setup: func(sessionID string) *harness.Harness {
-				harnessPool.Store(sessionID, "not-a-harness")
+			setup: func(svc *Service, sessionID string) *harness.Harness {
+				svc.harnessPoolMap().Store(sessionID, "not-a-harness")
 				return nil
 			},
 		},
@@ -200,12 +202,13 @@ func TestAbortSessionHarness(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			svc := NewService()
 			sessionID := "abort-" + tt.name
-			t.Cleanup(func() { EvictHarnessPool(sessionID) })
+			t.Cleanup(func() { svc.EvictHarnessPool(sessionID) })
 
-			h := tt.setup(sessionID)
+			h := tt.setup(svc, sessionID)
 			if h == nil {
-				assert.NotPanics(t, func() { AbortSessionHarness(sessionID) })
+				assert.NotPanics(t, func() { svc.AbortSessionHarness(sessionID) })
 				return
 			}
 
@@ -216,9 +219,9 @@ func TestAbortSessionHarness(t *testing.T) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				AbortSessionHarness(sessionID)
+				svc.AbortSessionHarness(sessionID)
 				cancel()
-				releaseHarnessAfterRunAbort(h, sessionID)
+				svc.releaseHarnessAfterRunAbort(h, sessionID)
 			}()
 
 			select {

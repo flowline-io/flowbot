@@ -145,7 +145,7 @@ func TestChatAgentService_CompactSession(t *testing.T) {
 		store.Database = origDB
 		testChatSessions = map[string]*gen.ChatSession{}
 		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
-		chatagent.ResetHarnessPoolForTest()
+		ChatAgentService().ResetHarnessPoolForTest()
 	})
 
 	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{

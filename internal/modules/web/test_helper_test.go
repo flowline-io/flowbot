@@ -438,7 +438,12 @@ func (s *testStore) DeleteNotifyTemplate(_ context.Context, id int64) error {
 	return nil
 }
 
+func ensureChatAgentServiceForTest() {
+	SetChatAgentService(chatagent.NewService())
+}
+
 func setupTestApp() (*fiber.App, *testStore) {
+	ensureChatAgentServiceForTest()
 	ts := &testStore{}
 	// Drain async session-summary jobs before swapping the global adapter.
 	chatagent.WaitForSessionSummaryGenerationForTest()
@@ -460,6 +465,7 @@ func setupTestApp() (*fiber.App, *testStore) {
 
 // setupTestAppWithRateLimiter creates a Fiber test app with an active login rate limiter.
 func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore) {
+	ensureChatAgentServiceForTest()
 	ts := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
@@ -483,6 +489,7 @@ func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore)
 // Each call opens a private in-memory database identified by t.Name().
 func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	t.Helper()
+	ensureChatAgentServiceForTest()
 
 	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
 	dbClient := sqlitetest.OpenClient(t, dbName)

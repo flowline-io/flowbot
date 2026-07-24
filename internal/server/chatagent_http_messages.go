@@ -39,7 +39,7 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 	if text == "" && len(attachments) == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "empty message"})
 	}
-	if _, ok := chatagent.GetAPIRunState(sessionID); ok {
+	if _, ok := h.service.GetAPIRunState(sessionID); ok {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": chatagent.ErrRunInFlight.Error()})
 	}
 
@@ -59,7 +59,7 @@ func (h *chatAgentHTTP) sendMessage(c fiber.Ctx) error {
 
 	return c.SendStreamWriter(func(w *bufio.Writer) {
 		sse := &chatagent.BufioSSEWriter{W: w}
-		chatagent.StreamAPIRun(baseCtx, h.service, sessionID, text, attachments, ownerUID, sse)
+		h.service.StreamAPIRun(baseCtx, sessionID, text, attachments, ownerUID, sse)
 	})
 }
 
@@ -136,7 +136,7 @@ func (h *chatAgentHTTP) confirm(c fiber.Ctx) error {
 			mode = chatagent.ConfirmModeReject
 		}
 	}
-	ok, err := chatagent.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
+	ok, err := h.service.ResolveConfirm(sessionID, body.ID, body.Approved, mode, body.Pattern, reason)
 	if errors.Is(err, chatagent.ErrConfirmNotFound) {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -160,8 +160,8 @@ func (h *chatAgentHTTP) cancelRun(c fiber.Ctx) error {
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
-	chatagent.CancelSessionRun(sessionID)
-	if state, ok := chatagent.GetAPIRunState(sessionID); ok {
+	h.service.CancelSessionRun(sessionID)
+	if state, ok := h.service.GetAPIRunState(sessionID); ok {
 		if pub := state.Publisher(); pub != nil {
 			_ = pub.Publish(chatagent.StreamEvent{
 				Type:    chatagent.EventTypeCanceled,

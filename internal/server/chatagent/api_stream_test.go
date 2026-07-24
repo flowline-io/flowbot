@@ -111,16 +111,17 @@ func TestDrainPublisherSSE(t *testing.T) {
 }
 
 func TestStreamAPIRun_InFlight(t *testing.T) {
+	svc := chatagent.NewService()
 	sessionID := "sess-inflight"
 	pub := chatagent.NewChannelPublisher(4)
-	gate := chatagent.NewConfirmGate(sessionID, pub)
-	require.NoError(t, chatagent.TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
+	gate := chatagent.NewConfirmGate(sessionID, pub, nil)
+	require.NoError(t, svc.TrySetAPIRunState(sessionID, chatagent.NewAPIRunState(pub, gate)))
 	t.Cleanup(func() {
-		chatagent.ClearAPIRunState(sessionID, nil)
+		svc.ClearAPIRunState(sessionID, nil)
 	})
 
 	captured := &captureSSE{}
-	chatagent.StreamAPIRun(context.Background(), chatagent.NewService(), sessionID, "hello", nil, "", captured)
+	svc.StreamAPIRun(context.Background(), sessionID, "hello", nil, "", captured)
 
 	require.Len(t, captured.events, 1)
 	assert.Equal(t, chatagent.EventTypeError, captured.events[0].Type)

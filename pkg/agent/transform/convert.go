@@ -106,7 +106,7 @@ func partsToLLM(parts []msg.ContentPart) ([]llms.ContentPart, error) {
 			result = append(result, llmPart)
 		case msg.ToolCallPart:
 			result = append(result, llms.ToolCall{
-				ID:   p.ID,
+				ID:   msg.EnsureToolCallID(p.ID),
 				Type: "function",
 				FunctionCall: &llms.FunctionCall{
 					Name:      p.Name,

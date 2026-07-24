@@ -1,6 +1,7 @@
 package transform_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
@@ -16,6 +17,7 @@ func TestDefaultConvertToLLM(t *testing.T) {
 		messages []agent.AgentMessage
 		wantLen  int
 		wantRole llms.ChatMessageType
+		check    func(t *testing.T, result []llms.MessageContent)
 	}{
 		{
 			name:     "user message",
@@ -31,6 +33,21 @@ func TestDefaultConvertToLLM(t *testing.T) {
 			}}},
 			wantLen:  1,
 			wantRole: llms.ChatMessageTypeAI,
+		},
+		{
+			name: "assistant with empty tool call id gets synthesized",
+			messages: []agent.AgentMessage{agent.AssistantMessage{Parts: []agent.ContentPart{
+				agent.ToolCallPart{ID: "", Name: "echo", Arguments: `{}`},
+			}}},
+			wantLen:  1,
+			wantRole: llms.ChatMessageTypeAI,
+			check: func(t *testing.T, result []llms.MessageContent) {
+				require.Len(t, result[0].Parts, 1)
+				tc, ok := result[0].Parts[0].(llms.ToolCall)
+				require.True(t, ok)
+				assert.NotEmpty(t, tc.ID)
+				assert.True(t, strings.HasPrefix(tc.ID, "call_"))
+			},
 		},
 		{
 			name: "custom display only filtered",
@@ -63,6 +80,9 @@ func TestDefaultConvertToLLM(t *testing.T) {
 			assert.Len(t, result, tt.wantLen)
 			if tt.wantLen > 0 {
 				assert.Equal(t, tt.wantRole, result[0].Role)
+			}
+			if tt.check != nil {
+				tt.check(t, result)
 			}
 		})
 	}

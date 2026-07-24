@@ -24,7 +24,7 @@ func (h *chatAgentHTTP) getResource(c fiber.Ctx) error {
 	if uri == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "uri is required"})
 	}
-	content, err := chatagent.ResolveResourceWithOptions(c.Context(), sessionID, uri, chatagent.ResolveResourceOptions{
+	content, err := h.service.ResolveResourceWithOptions(c.Context(), sessionID, uri, chatagent.ResolveResourceOptions{
 		Full: c.Query("full") == "1",
 	})
 	if err != nil {

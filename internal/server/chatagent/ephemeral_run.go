@@ -41,11 +41,11 @@ func BeginEphemeralSession(ctx context.Context, uid types.Uid) (sessionID string
 }
 
 // CloseEphemeralSession closes a temporary session. Failures are logged and not returned.
-func CloseEphemeralSession(ctx context.Context, sessionID string) {
-	if sessionID == "" {
+func CloseEphemeralSession(ctx context.Context, svc *Service, sessionID string) {
+	if sessionID == "" || svc == nil {
 		return
 	}
-	if err := CloseSession(ctx, sessionID); err != nil {
+	if err := svc.CloseSession(ctx, sessionID); err != nil {
 		flog.Warn("[chat-agent] ephemeral session close session=%s: %v", sessionID, err)
 	}
 }
@@ -73,7 +73,7 @@ func RunEphemeral(ctx context.Context, svc *Service, params EphemeralRunParams) 
 	if params.Kind == RunKindPipeline {
 		flog.Info("[pipeline-agent] ephemeral session created uid=%s session=%s", params.UID, sessionID)
 	}
-	defer CloseEphemeralSession(ctx, sessionID)
+	defer CloseEphemeralSession(ctx, svc, sessionID)
 
 	if params.Kind == RunKindPipeline {
 		flog.Info("[pipeline-agent] autonomous prompt start session=%s prompt_len=%d timeout=%s",

@@ -34,7 +34,7 @@ func TestConfirmGateResolve(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pub := NewChannelPublisher(8)
-			gate := NewConfirmGate("sess-1", pub)
+			gate := NewConfirmGate("sess-1", pub, nil)
 			gate.timeout = 2 * time.Second
 
 			done := make(chan ConfirmResponse, 1)
@@ -68,7 +68,7 @@ func TestConfirmGateResolve(t *testing.T) {
 
 func TestConfirmGateTimeout(t *testing.T) {
 	pub := NewChannelPublisher(4)
-	gate := NewConfirmGate("sess-1", pub)
+	gate := NewConfirmGate("sess-1", pub, nil)
 	gate.timeout = 20 * time.Millisecond
 
 	done := make(chan ConfirmResponse, 1)
@@ -92,7 +92,7 @@ func TestConfirmGateTimeout(t *testing.T) {
 
 func TestConfirmGateMultipleTools(t *testing.T) {
 	pub := NewChannelPublisher(8)
-	gate := NewConfirmGate("sess-1", pub)
+	gate := NewConfirmGate("sess-1", pub, nil)
 	gate.timeout = 2 * time.Second
 
 	done1 := make(chan ConfirmResponse, 1)
@@ -130,27 +130,29 @@ func TestConfirmGateMultipleTools(t *testing.T) {
 }
 
 func TestResolveConfirmAPI(t *testing.T) {
+	svc := NewService()
 	pub := NewChannelPublisher(4)
-	gate := NewConfirmGate("sess-2", pub)
+	gate := NewConfirmGate("sess-2", pub, nil)
 	state := NewAPIRunState(pub, gate)
-	require.NoError(t, TrySetAPIRunState("sess-2", state))
-	t.Cleanup(func() { ClearAPIRunState("sess-2", nil) })
+	require.NoError(t, svc.TrySetAPIRunState("sess-2", state))
+	t.Cleanup(func() { svc.ClearAPIRunState("sess-2", nil) })
 
-	ok, err := ResolveConfirm("sess-2", gate.ID(), true, ConfirmModeOnce, "", ConfirmReasonApproved)
+	ok, err := svc.ResolveConfirm("sess-2", gate.ID(), true, ConfirmModeOnce, "", ConfirmReasonApproved)
 	require.NoError(t, err)
 	assert.True(t, ok)
 
-	_, err = ResolveConfirm("sess-2", gate.ID(), true, ConfirmModeOnce, "", ConfirmReasonApproved)
+	_, err = svc.ResolveConfirm("sess-2", gate.ID(), true, ConfirmModeOnce, "", ConfirmReasonApproved)
 	assert.ErrorIs(t, err, ErrConfirmResolved)
 }
 
 func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
+	svc := NewService()
 	pub := NewChannelPublisher(8)
-	gate := NewConfirmGate("sess-premature", pub)
+	gate := NewConfirmGate("sess-premature", pub, nil)
 	gate.timeout = 2 * time.Second
 	state := NewAPIRunState(pub, gate)
-	require.NoError(t, TrySetAPIRunState("sess-premature", state))
-	t.Cleanup(func() { ClearAPIRunState("sess-premature", nil) })
+	require.NoError(t, svc.TrySetAPIRunState("sess-premature", state))
+	t.Cleanup(func() { svc.ClearAPIRunState("sess-premature", nil) })
 
 	go func() {
 		_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
@@ -162,9 +164,9 @@ func TestPrematureClearAPIRunStateBreaksConfirm(t *testing.T) {
 	waitConfirmEvent(t, pub)
 	confirmID := gate.ID()
 
-	ClearAPIRunState("sess-premature", state)
+	svc.ClearAPIRunState("sess-premature", state)
 
-	_, err := ResolveConfirm("sess-premature", confirmID, true, ConfirmModeOnce, "", ConfirmReasonApproved)
+	_, err := svc.ResolveConfirm("sess-premature", confirmID, true, ConfirmModeOnce, "", ConfirmReasonApproved)
 	assert.ErrorIs(t, err, ErrConfirmNotFound)
 }
 
@@ -249,10 +251,11 @@ func TestConfirmGatePendingEvent(t *testing.T) {
 		{
 			name: "lookup pending by session id",
 			run: func(t *testing.T, gate *ConfirmGate, pub *ChannelPublisher) {
+				svc := NewService()
 				sessionID := "sess-lookup-pending"
 				state := NewAPIRunState(pub, gate)
-				require.NoError(t, TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { ClearAPIRunState(sessionID, state) })
+				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
 
 				done := make(chan struct{})
 				go func() {
@@ -263,7 +266,7 @@ func TestConfirmGatePendingEvent(t *testing.T) {
 					close(done)
 				}()
 				waitConfirmEvent(t, pub)
-				ev, ok := LookupPendingConfirm(sessionID)
+				ev, ok := svc.LookupPendingConfirm(sessionID)
 				require.True(t, ok)
 				assert.Equal(t, permission.ToolWriteFile, ev.Tool)
 				require.True(t, gate.Resolve(ConfirmResponse{
@@ -279,7 +282,7 @@ func TestConfirmGatePendingEvent(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			pub := NewChannelPublisher(8)
-			gate := NewConfirmGate("sess-pending-event", pub)
+			gate := NewConfirmGate("sess-pending-event", pub, nil)
 			gate.timeout = 2 * time.Second
 			tt.run(t, gate, pub)
 		})

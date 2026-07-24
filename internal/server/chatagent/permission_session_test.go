@@ -55,6 +55,7 @@ func TestPermissionSessionManagerPersists(t *testing.T) {
 }
 
 func TestSessionGrantsPersistAndClear(t *testing.T) {
+	svc := NewService()
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	sessionID := "sess-grants"
@@ -65,20 +66,20 @@ func TestSessionGrantsPersistAndClear(t *testing.T) {
 	}))
 	t.Cleanup(func() {
 		store.Database = origDB
-		ResetPermissionSessionsForTest()
+		svc.ResetPermissionSessionsForTest()
 	})
 
 	ctx := context.Background()
-	state := permissionSessions.GetPermissionSession(ctx, sessionID)
+	state := svc.permissionSessions.GetPermissionSession(ctx, sessionID)
 	require.NoError(t, state.AddGrant("bash", "git status*"))
 	PersistSessionGrants(ctx, sessionID, state)
 
-	ResetPermissionSessionsForTest()
-	reloaded := permissionSessions.GetPermissionSession(ctx, sessionID)
+	svc.ResetPermissionSessionsForTest()
+	reloaded := svc.permissionSessions.GetPermissionSession(ctx, sessionID)
 	assert.True(t, reloaded.MatchesGrant("bash", "git status"))
 
-	require.NoError(t, CloseSession(ctx, sessionID))
-	ResetPermissionSessionsForTest()
-	afterClose := permissionSessions.GetPermissionSession(ctx, sessionID)
+	require.NoError(t, svc.CloseSession(ctx, sessionID))
+	svc.ResetPermissionSessionsForTest()
+	afterClose := svc.permissionSessions.GetPermissionSession(ctx, sessionID)
 	assert.False(t, afterClose.MatchesGrant("bash", "git status"))
 }

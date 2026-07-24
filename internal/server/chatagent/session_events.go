@@ -8,31 +8,29 @@ type SessionEventHub struct {
 	subs map[string]*ChannelPublisher
 }
 
-var sessionEventHubs sync.Map
-
 // GetSessionEventHub returns the event hub for one session.
-func GetSessionEventHub(sessionID string) *SessionEventHub {
+func (s *Service) GetSessionEventHub(sessionID string) *SessionEventHub {
 	if sessionID == "" {
 		return &SessionEventHub{subs: make(map[string]*ChannelPublisher)}
 	}
-	if raw, ok := sessionEventHubs.Load(sessionID); ok {
+	if raw, ok := s.sessionEventHubs.Load(sessionID); ok {
 		if hub, ok := raw.(*SessionEventHub); ok {
 			return hub
 		}
 	}
 	hub := &SessionEventHub{subs: make(map[string]*ChannelPublisher)}
-	actual, _ := sessionEventHubs.LoadOrStore(sessionID, hub)
+	actual, _ := s.sessionEventHubs.LoadOrStore(sessionID, hub)
 	if existing, ok := actual.(*SessionEventHub); ok {
 		return existing
 	}
 	return hub
 }
 
-func clearSessionEventHub(sessionID string) {
+func (s *Service) clearSessionEventHub(sessionID string) {
 	if sessionID == "" {
 		return
 	}
-	if raw, ok := sessionEventHubs.LoadAndDelete(sessionID); ok {
+	if raw, ok := s.sessionEventHubs.LoadAndDelete(sessionID); ok {
 		if hub, ok := raw.(*SessionEventHub); ok {
 			hub.closeAll()
 		}
@@ -95,30 +93,20 @@ func (h *SessionEventHub) closeAll() {
 
 // WritePendingConfirmIfAny writes a waiting confirm event for late /events subscribers.
 // Returns true when the writer failed and the stream should stop.
-func WritePendingConfirmIfAny(sessionID string, write func(StreamEvent) bool) bool {
-	ev, ok := LookupPendingConfirm(sessionID)
+func (s *Service) WritePendingConfirmIfAny(sessionID string, write func(StreamEvent) bool) bool {
+	ev, ok := s.LookupPendingConfirm(sessionID)
 	if !ok {
 		return false
 	}
 	return write(ev)
 }
 
-// hubPublisher publishes events to every subscriber on a session hub.
-type hubPublisher struct {
-	sessionID string
-}
-
-func (p hubPublisher) Publish(event StreamEvent) error {
-	GetSessionEventHub(p.sessionID).publish(event)
-	return nil
-}
-
 // PublishSessionEvent delivers one event to all SSE subscribers for a session.
-func PublishSessionEvent(sessionID string, event StreamEvent) {
-	GetSessionEventHub(sessionID).publish(event)
+func (s *Service) PublishSessionEvent(sessionID string, event StreamEvent) {
+	s.GetSessionEventHub(sessionID).publish(event)
 }
 
 // ResetSessionEventHubsForTest clears all session event hubs.
-func ResetSessionEventHubsForTest() {
-	sessionEventHubs = sync.Map{}
+func (s *Service) ResetSessionEventHubsForTest() {
+	s.sessionEventHubs = sync.Map{}
 }

@@ -3,6 +3,8 @@ package msg
 import (
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // MessageRole identifies the role of an agent message in the session tree.
@@ -54,6 +56,16 @@ type ToolCallPart struct {
 	ID        string
 	Name      string
 	Arguments string
+}
+
+// EnsureToolCallID returns id when non-empty; otherwise a unique call_ id.
+// Providers that omit tool-call ids still require id on subsequent requests
+// (langchaingo openai client uses json:"id,omitempty", which drops empty ids).
+func EnsureToolCallID(id string) string {
+	if strings.TrimSpace(id) != "" {
+		return id
+	}
+	return "call_" + uuid.NewString()
 }
 
 // ContentPart is a union of message part types.

@@ -23,14 +23,14 @@ func (h *chatAgentHTTP) getPermissions(c fiber.Ctx) error {
 			return chatAgentError(c, err)
 		}
 	}
-	view, err := chatagent.BuildPermissionsView(c.Context(), rc.UID, sessionID)
+	view, err := h.service.BuildPermissionsView(c.Context(), rc.UID, sessionID)
 	if err != nil {
 		return chatAgentError(c, err)
 	}
 	return c.JSON(view)
 }
 
-func (*chatAgentHTTP) putPermissions(c fiber.Ctx) error {
+func (h *chatAgentHTTP) putPermissions(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
 	}
@@ -45,14 +45,14 @@ func (*chatAgentHTTP) putPermissions(c fiber.Ctx) error {
 	if err := chatagent.SaveUserPermissions(c.Context(), rc.UID, cfg); err != nil {
 		return chatAgentError(c, err)
 	}
-	view, err := chatagent.BuildPermissionsView(c.Context(), rc.UID, "")
+	view, err := h.service.BuildPermissionsView(c.Context(), rc.UID, "")
 	if err != nil {
 		return chatAgentError(c, err)
 	}
 	return c.JSON(view)
 }
 
-func (*chatAgentHTTP) deletePermissions(c fiber.Ctx) error {
+func (h *chatAgentHTTP) deletePermissions(c fiber.Ctx) error {
 	if err := requireChatAgentEnabled(); err != nil {
 		return chatAgentError(c, err)
 	}
@@ -63,7 +63,7 @@ func (*chatAgentHTTP) deletePermissions(c fiber.Ctx) error {
 	if err := chatagent.DeleteUserPermissions(c.Context(), rc.UID); err != nil {
 		return chatAgentError(c, err)
 	}
-	view, err := chatagent.BuildPermissionsView(c.Context(), rc.UID, "")
+	view, err := h.service.BuildPermissionsView(c.Context(), rc.UID, "")
 	if err != nil {
 		return chatAgentError(c, err)
 	}
@@ -78,6 +78,6 @@ func (h *chatAgentHTTP) clearPermissionGrants(c fiber.Ctx) error {
 	if err := h.ensureSessionOwner(c, sessionID); err != nil {
 		return chatAgentError(c, err)
 	}
-	chatagent.ClearSessionPermissionGrants(c.Context(), sessionID)
+	h.service.ClearSessionPermissionGrants(c.Context(), sessionID)
 	return c.SendStatus(fiber.StatusNoContent)
 }

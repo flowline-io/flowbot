@@ -26,8 +26,6 @@ type PermissionSessionManager struct {
 	states sync.Map
 }
 
-var permissionSessions PermissionSessionManager
-
 // GetPermissionSession returns or creates session-scoped permission state.
 func (m *PermissionSessionManager) GetPermissionSession(ctx context.Context, sessionID string) *permission.SessionState {
 	if sessionID == "" {
@@ -89,8 +87,8 @@ func (m *PermissionSessionManager) ClearPermissionSession(ctx context.Context, s
 }
 
 // ResetPermissionSessionsForTest clears all in-memory permission session state.
-func ResetPermissionSessionsForTest() {
-	permissionSessions = PermissionSessionManager{}
+func (s *Service) ResetPermissionSessionsForTest() {
+	s.permissionSessions = PermissionSessionManager{}
 }
 
 func sessionGrantsConfigKey(sessionID string) string {

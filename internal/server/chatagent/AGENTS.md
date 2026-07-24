@@ -56,6 +56,22 @@ Script load order (defer, in order):
 
 Pages: `pkg/views/pages/agents.templ`, `agent_session_detail.templ` (approval-only panels may load a subset; thread pages load all).
 
+## Runtime state and Run pipeline
+
+Hot-path runtime state lives on `*chatagent.Service` (harness pool, session locks, run cancels, API run state, confirm gates, session event hubs, permission sessions). Production entry points share one instance via `server.ChatAgentService()` / `chatagent.BindSharedService` / `web.SetChatAgentService`. Do not look up publishers/gates from session maps inside hooks; inject them through `withRunIO` on the run context (and optionally `ChatHookDeps` at harness build).
+
+### Run pipeline phases
+
+`Service.Run` executes named phases (also used by `StreamAPIRun` → `RunAPI` → `Run`):
+
+1. **prepare** — validate request, stamp `RunStartedAt`
+2. **lock** — per-session mutex
+3. **harness** — get or create pooled harness
+4. **hooks / permission / confirm** — wired at harness build; ask path uses Service confirm gates
+5. **stream** — coalescer / SSE publisher
+6. **deliver** — final reply / Done event
+7. **cleanup** — abort drain / pool eviction when interrupted
+
 ## Testing
 
 - Unit tests:
