@@ -1,0 +1,58 @@
+---
+description: Web UI visual design, HTMX/Alpine patterns, and frontend conventions
+globs: internal/modules/web/**,pkg/views/**,public/**
+alwaysApply: false
+---
+
+# Web UI conventions
+
+Stack: templ pages/partials, HTMX 2.x, Alpine.js CSP build, DaisyUI v5 + committed `public/css/app.css`. All JS/CSS vendored under `public/` (embedded via `webassets`); no CDN, no in-repo `node_modules` CSS build.
+
+## Visual design (ops console)
+
+Homelab ops console — not marketing, not generic DaisyUI admin. Brand: favicon, `BrandMark`, teal primary. Do not copy `docs/website/` visual language into `/service/web`.
+
+| Axis | Rule |
+|------|------|
+| Color | Teal only for brand. Semantic colors for status only. Never violet/indigo/purple for brand, focus, Active, or Chart.js palettes. |
+| Surfaces | `.flowbot-surface` for tables/panels. DaisyUI `card` + heavy shadow only for interactive containers. |
+| Radius | Square-ish (`--flowbot-radius` ≈ `0.375rem`). Status via `.flowbot-chip`. Avoid `rounded-full` pills for badges. |
+| Typography | Self-hosted IBM Plex Sans in `public/fonts/` via `custom.css`. Titles: 600 + `tracking-tight`. |
+| Shadow | At most one light shadow (`--flowbot-shadow`). No glow rings. |
+| Theme | Product themes: **light** and **dark** only. Overlays use `base-*` tokens. |
+
+Tokens: `.flowbot-shell` in `public/css/custom.css`. Chart palettes: teal + greys + semantic only.
+
+Components:
+
+- Page titles: `partials.PageHeader(title, subtitle)` — not ad-hoc `font-bold` / `card-title`
+- Status: `.flowbot-chip-*` — not DaisyUI `badge-success|error|…`
+- Loading: `partials.PanelSkeleton` for HTMX panels; `partials.HtmxIndicator` on buttons; optional `#flowbot-htmx-progress` (not `body hx-indicator`)
+
+Do / Don't: `.flowbot-surface` not `card bg-base-100 shadow-sm` list shells; teal not purple; no marketing heroes, multi-layer shadows, or hardcoded surface hex.
+
+CSS: DaisyUI via `public/css/app.css`; tokens/chips in `custom.css`; Alpine at `/static/vendor/alpine.csp.min.js`; never load `tailwind-browser.min.js`.
+
+## Template conventions
+
+- Pages (`pkg/views/pages/`): `@layout.Base(title)`. Partials (`pkg/views/partials/`): HTMX fragments. Never mix page+partial in one `.templ`.
+- `data-testid="kebab-case"` on interactive elements.
+- Never edit generated `*_templ.go`; regenerate after `.templ` changes (`go tool templ generate`).
+- No multi-line inline CSS; no `<script>` in partials; no unsanitized `templ.Raw` (use `utils.MarkdownToSafeHTML`); use `templ.URL()` for dynamic paths.
+
+## HTMX
+
+- Redirect: `HX-Redirect` + `200`. Form errors: `renderFormError` → `#form-error` slot. Action-only: `toastError` / `setShowToast` — do not Retarget list/table swaps by default.
+- OOB cleanup: `hx-swap-oob="delete"`. Destructive confirm: `data-confirm*` + `confirm.js` preferred over bare `hx-confirm`.
+- Dual-channel (`app.js`): HTML/`HX-Retarget` swap inline (no toast); network/timeout/non-HTML toast; `401` → login with `next`.
+- Silent failures (CSRF warm-up, cancel races): mark `intentionally silent` in a short comment.
+- Success toasts: specific copy (`Config saved`), not generic OK.
+
+## Alpine (pipeline editor)
+
+- `pipelineEditor()` in `public/js/pipeline-editor.js`; mount with `x-data` / `x-init`.
+- **CSP-safe expressions only** in templates: no `?.`, `??`, `=>`, object/array literals, or `...` in `x-text` / `x-for` / `@click`. Put logic in JS helpers; prefer getter/`x-for` data props; cache-bust Alpine scripts with `?v=` + `version.Buildtags`.
+
+## Static assets
+
+`public/` embedded (`webassets.go`); served at `/static/*`. Refresh vendors via `scripts/vendor.sh`.

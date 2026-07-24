@@ -1,51 +1,23 @@
 # Types Package
 
-Core type definitions: rulesets, message payloads, protocol types, KV helpers.
+Shared types: rulesets, message payloads, protocol, KV, models.
 
-## Structure
+## Entry points
 
-```
-types/
-├── types.go           # Ruler interface, RulesetType
-├── kv.go              # KV map with accessor methods (String, Int64, Map)
-├── msg.go             # MsgPayload interface
-├── errors.go          # Error types, NewError, constant sentinels (ErrNotFound, ...)
-├── context.go         # Context type with metadata fields
-├── event.go           # DataEvent type definitions
-├── task.go            # Task type definitions
-├── workflow.go        # Workflow type definitions
-├── agent.go           # Agent instruct protocol types
-├── uid.go             # Unique ID generation
-├── id.go              # Compact ID encoding/decoding
-├── filter.go          # Event filter types
-├── filter_cache.go    # In-memory filter cache for source/event type dropdowns
-├── file.go            # File type definitions
-├── pipeline_stats.go  # Pipeline statistics types
-├── token_usage_source.go  # Token usage source constants
-├── token_usage_range.go   # Token usage time-range helpers
-├── token_usage_stats.go   # Token usage aggregate stats
-├── protocol/          # Platform-agnostic types
-│   ├── action.go      # Request/Response, error codes (10xxx–60xxx)
-│   ├── message.go     # Message type definition
-│   ├── event.go       # Event type definition
-│   ├── user.go        # User type definition
-│   ├── command.go     # Command type definition
-│   └── platform.go    # Driver, Adapter, Action interfaces
-├── ruleset/           # Rule implementations
-│   ├── command/       # Command rule types
-│   ├── form/          # Form rule types
-│   └── webservice/    # Webservice rule types
-├── audit/             # Audit trail types
-└── model/             # Persistence/DTO models (agent session/skill/subagent/scheduled task, notify_*, token, config, …)
-```
+- Core: `types.go`, `kv.go`, `msg.go`, `errors.go`, `event.go`, …
+- Protocol: `protocol/` (Driver/Adapter/Action, messages, errors)
+- Rulesets: `ruleset/{command,form,webservice}/`
+- DTOs: `model/`; also `audit/`, stats helpers (`pipeline_stats`, `token_usage_*`, `run_latency_stats`)
 
-## Rules
+Look at the package directory for the full file list.
 
-- Prefer `KV` type over raw `map[string]any` for structured key-value access. `map[string]any` is acceptable in interface signatures (e.g. `capability.Invoke` params), protocol definitions, and generated code.
+## Boundaries
+
+- Prefer `KV` over raw `map[string]any` for structured access (`map[string]any` OK in `capability.Invoke` params / protocol / generated code)
 - Never define new message types outside this package
-- Always implement `MsgPayload.Convert()` for new message types
+- New message types must implement `MsgPayload.Convert()`
 
-## Commands
+## Testing
 
 ```bash
 go test ./pkg/types/...

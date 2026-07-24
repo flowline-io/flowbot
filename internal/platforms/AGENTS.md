@@ -1,71 +1,23 @@
 # Platforms Guide
 
-Multi-platform chat and messaging integrations. Each platform implements the `protocol.Driver`, `protocol.Adapter`, and `protocol.Action` interfaces to provide bidirectional communication with external chat services.
+Chat integrations implementing `protocol.Driver`, `Adapter`, and `Action`. Reference: `internal/platforms/slack/`.
 
-## Reference Implementation
+## Entry points
 
-- When creating or modifying a platform, reference `internal/platforms/slack/` for file structure, naming, and code style — it is the most complete implementation.
+- Core: `caller.go`, `convert.go`, `registry.go` (`PlatformRegister`, `GetCaller`, `MessageConvert`)
+- Wired today: `slack/` (`fx.Provide`), `tailchat/` (controller construction + router)
+- Not wired: `discord/` (package + config exist; no server fx / platform callback)
 
-## Structure
+Per platform: `driver.go`, `adapter.go`, `action.go`, `types.go` (`const ID`).
 
-```
-internal/platforms/
-├── caller.go            # Caller dispatch (Caller struct, Do method)
-├── convert.go           # MessageConvert (MsgPayload -> protocol.Message)
-├── registry.go          # PlatformRegister, GetCaller
-├── slack/               # Fully wired (fx.Provide + router callbacks)
-├── tailchat/            # Constructed in controller; router callbacks
-├── discord/             # Package + config exist; not wired into server fx yet
-└── <platform>/
-    ├── driver.go         # Driver struct + NewDriver() → protocol.Driver
-    ├── adapter.go        # Adapter struct → protocol.Adapter (MessageConvert, EventConvert)
-    ├── action.go         # Action struct → protocol.Action (SendMessage, etc.)
-    ├── types.go          # const ID, platform-local types
-    ├── *_test.go         # TDD unit tests (table-driven)
-    └── blockkit.go       # Optional: platform-specific rendering helpers (e.g. Slack Block Kit)
-```
+## Boundaries
 
-## Core Package (`caller.go`, `convert.go`, `registry.go`)
-
-- **`Caller`** — bundles an `Action` and `Adapter`. `Caller.Do(req)` dispatches `SendMessage`/`UpdateMessage`/`DeleteMessage` to the platform's `Action` based on `req.Action`.
-- **`PlatformRegister(name, caller)`** — persists the platform to the database (idempotent) and stores the `Caller` in the in-memory registry.
-- **`GetCaller(name)`** — retrieves a registered platform by name from the in-memory registry.
-- **`MessageConvert(data)`** — uses `reflect.TypeOf` to dispatch `types.MsgPayload` variants (Text, Link, Table, Info, Chart, Html, Markdown, Instruct, KV, Form, Empty) to their `protocol.Message` converters.
-
-## Interfaces (defined in `pkg/types/protocol`)
-
-- **`Driver`** — lifecycle and transport: `HttpServer`, `HttpWebhookClient`, `WebSocketClient`, `WebSocketServer`, `Shutdown`
-- **`Adapter`** — converts platform-native payloads into `protocol.Message` / `protocol.Event`
-- **`Action`** — platform API (all methods must be implemented):
-  - Messaging: `SendMessage`, `UpdateMessage`, `DeleteMessage`
-  - User: `GetUserInfo`
-  - Channel: `CreateChannel`, `GetChannelInfo`, `GetChannelList`
-  - Registration: `RegisterChannels`, `RegisterSlashCommands`
-  - Query: `GetLatestEvents`, `GetSupportedActions`, `GetStatus`, `GetVersion`
-
-## Patterns
-
-- **New platform**: create a sub-package under `internal/platforms/<name>/` with `driver.go`, `adapter.go`, `action.go`, `types.go`.
-- **`types.go`**: define `const ID = "<name>"` (used for DB registration and route dispatch). Add any platform-specific request/response types here.
-- **`driver.go`**: `NewDriver(cfg *config.Type, store store.Adapter) protocol.Driver` initializes the SDK client, calls `platforms.PlatformRegister(ID, &platforms.Caller{Action: …, Adapter: …})`, and returns the `Driver`.
-- **Wiring today**: Slack via `fx.Provide(slack.NewDriver)` in `internal/server/fx.go`; Tailchat via controller construction; Discord not yet provided/invoked. Add router callbacks in `internal/server/router.go` when enabling HTTP platform hooks.
-- **`adapter.go`**: `MessageConvert` typically delegates to `platforms.MessageConvert(data)` for common types; `EventConvert` maps platform-specific webhook/interaction payloads to `protocol.Event`.
-- **`action.go`**: implement `SendMessage` (required for messaging); unsupported actions return `protocol.NewFailedResponse(protocol.ErrUnsupportedAction.New("unsupported action"))`. Additional helpers (Block Kit builders, chart rendering, file upload) may live in platform-local files like `blockkit.go`.
-- **Route callbacks**: `platformCallback` in `router.go` matches `platform` against platform `ID` constants (currently Slack + Tailchat).
-- **Lifecycle**: `handlePlatform` in `server/platform.go` starts `WebSocketClient` on app startup via `fx.Lifecycle`.
-
-## Rules
-
-- Never import `pkg/providers/*` from `internal/platforms/*`.
-- Platform packages are internal — do not expose platform-specific types outside `internal/platforms`.
-- Platform-native event conversion belongs in the adapter, not in the server.
-- Channel/message routing logic lives in the platform's `action.go`, not in `server/`.
-- Always use `protocol.NewFailedResponse(protocol.ErrXxx.New(…))` for errors.
-- Use `protocol.NewSuccessResponse(data)` for success responses.
-- Register each **wired** platform in `internal/server/fx.go` (or controller) and `internal/server/router.go` as needed.
+- Never import `pkg/providers/*`
+- Platform-native conversion stays in the adapter; routing in `action.go`, not `server/`
+- Errors: `protocol.NewFailedResponse` / `NewSuccessResponse`
+- Wire each enabled platform in `internal/server/fx.go` (or controller) and `router.go` as needed
+- Lifecycle: `handlePlatform` starts `WebSocketClient` on fx Lifecycle
 
 ## Testing
 
-- Each component has `*_test.go` counterpart.
-- Table-driven tests with `require`/`assert`.
-- Mock platform SDK clients or use `httptest` for HTTP-based platforms.
+Table-driven unit tests; mock SDKs or `httptest`.

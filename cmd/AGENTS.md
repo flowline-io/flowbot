@@ -1,14 +1,14 @@
 # Entry Points
 
-3 binaries serving distinct roles.
+Three binaries:
 
 | Binary   | Main file          | Purpose                                      | DI  |
 | -------- | ------------------ | -------------------------------------------- | --- |
 | server   | `main.go`          | HTTP API server (Fiber v3)                   | fx  |
 | composer | `composer/main.go` | Dev tooling (`admin`, `webdoc`, `skills`)    | —   |
-| cli      | `cli/main.go`      | User-facing CLI (login, hub, pipeline, workflows, capability commands) | —   |
+| cli      | `cli/main.go`      | User CLI (login, hub, pipeline, workflows, …) | —   |
 
-## Commands
+## Testing / build
 
 ```bash
 go tool task build:cli           # → bin/flowbot-cli

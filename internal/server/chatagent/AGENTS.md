@@ -1,102 +1,30 @@
-# Chatagent (Product Orchestration) Guide
+# Chatagent (Product Orchestration)
 
-`internal/server/chatagent` is Flowbot's **chat assistant product layer**. It binds the core agent engine (`pkg/agent`) to:
+Binds `pkg/agent` to REST (`/chatagent/*`), Web (`/service/web/agents/*`), platform sinks, store, and scheduled tasks. Must not become a second agent engine.
 
-- REST endpoints under `/chatagent/*` (`internal/server/chatagent_http*.go`)
-- Web UI pages under `/service/web/agents/*` (module `internal/modules/web`)
-- Platform chat sinks (e.g. Slack streaming) via `internal/server/chatagent_handler.go`
-- Flowbot persistence via `internal/store`
-- Scheduled tasks and delivery context
+## Boundaries
 
-It must not grow into a second agent engine.
+- **Allowed**: `pkg/agent/*`, `internal/store/*`, views via handlers.
+- **Forbidden**: `internal/store` inside `pkg/agent`; store types in engine APIs.
 
-## Key boundaries
+## Entry points
 
-- **Allowed dependencies**: `pkg/agent/*` primitives (harness, tools, permission evaluation, sessions), `internal/store/*`, `pkg/views/*` (via handlers).
-- **Forbidden**: importing `internal/store` from `pkg/agent` or leaking store-specific types into engine APIs.
+- REST: `internal/server/chatagent_http*.go` — primary `POST .../messages` (SSE); observer `GET .../events` (subset via `IsObserverStreamEvent` in `protocol.go`: confirm, confirm_resolved, canceled, mode_change, run_complete)
+- Web SSE: `internal/modules/web/chatagent_web_stream.go`
+- Platform DM: `chatagent_handler.go`
+- Shared `*Service`: `server.ChatAgentService()` (`chatagent_bootstrap.go`) → `BindSharedService` (`service_state.go`) + `web.SetChatAgentService`
+- Scripts: `pkg/views/partials/chatagent_scripts.templ` (`FlowbotChatAgent` only)
 
-## Entry points and routes
+Hot-path files: `service.go` (Run), `service_state.go`, `run_io.go` (`withRunIO`), `hooks.go`, `harness_pool.go`, `api_stream.go` / `api_run.go`, `protocol.go`, `confirm.go`, `session_events.go`. Non-interactive: `pipeline_run.go` (not Run phases), `ephemeral_run.go`, `scheduled_run.go`.
 
-- **REST routes**: registered in `internal/server/chatagent_http.go`
-  - Primary turn streaming: `POST /chatagent/sessions/:id/messages` (SSE)
-  - Observer overlays: `GET /chatagent/sessions/:id/events` (SSE subset)
-- **Web observer SSE**: `internal/modules/web/chatagent_web_stream.go`
-- **Platform DM**: `internal/server/chatagent_handler.go`
-- **Service layer**: `internal/server/chatagent/service.go`
+## Run pipeline
 
-### `/events` filter
+`StreamAPIRun` → `RunAPI` → `Service.Run`: prepare → lock → harness → hooks/permission/confirm (wired at harness build; ask via `withRunIO`) → stream → deliver → cleanup (abort path). Inject publisher/confirm via `withRunIO`; do not look up from session maps in hooks.
 
-Both REST and Web `/events` endpoints forward only approval / run-lifecycle overlay events:
-
-- `confirm`, `confirm_resolved`, `canceled`, `mode_change`, `run_complete`
-
-The shared predicate is `chatagent.IsObserverStreamEvent` in `internal/server/chatagent/protocol.go`.
-
-## Frontend integration
-
-Chatagent UI JavaScript is split into multiple files under `public/js/chatagent-*.js` and uses:
-
-- `window.FlowbotChatAgent` namespace only
-- script load order (see `pkg/views/pages/agents.templ`)
-
-Do not re-introduce a monolithic single-file implementation.
-
-Script load order (defer, in order):
-
-1. `chatagent-util.js`
-2. `chatagent-sse.js`
-3. `chatagent-markdown.js`
-4. `chatagent-codeblocks.js`
-5. `chatagent-context.js`
-6. `chatagent-approval.js`
-7. `chatagent-todos.js`
-8. `chatagent-thread.js`
-9. `chatagent-chat.js` (boot: composer/thread init)
-10. `clip-copy.js`
-
-Pages: `pkg/views/pages/agents.templ`, `agent_session_detail.templ` (approval-only panels may load a subset; thread pages load all).
-
-## Runtime state and Run pipeline
-
-Hot-path runtime state lives on `*chatagent.Service` (harness pool, session locks, run cancels, API run state, confirm gates, session event hubs, permission sessions). Production entry points share one instance via `server.ChatAgentService()` / `chatagent.BindSharedService` / `web.SetChatAgentService`. Do not look up publishers/gates from session maps inside hooks; inject them through `withRunIO` on the run context (and optionally `ChatHookDeps` at harness build).
-
-### Run pipeline phases
-
-`Service.Run` executes named phases (also used by `StreamAPIRun` → `RunAPI` → `Run`):
-
-1. **prepare** — validate request, stamp `RunStartedAt`
-2. **lock** — per-session mutex
-3. **harness** — get or create pooled harness
-4. **hooks / permission / confirm** — wired at harness build; ask path uses Service confirm gates
-5. **stream** — coalescer / SSE publisher
-6. **deliver** — final reply / Done event
-7. **cleanup** — abort drain / pool eviction when interrupted
+Protocol changes: update `docs/agent/chatagent-feature-checklist.md` + tests first. Keep HTTP handlers thin.
 
 ## Testing
-
-- Unit tests:
 
 ```bash
 go test ./internal/server/chatagent -count=1
 ```
-
-- Full suite (includes JS lint via `oxlint`):
-
-```bash
-go tool task format
-go tool task lint
-go tool task test
-```
-
-- Specs (BDD, requires Docker/testcontainers in some environments):
-
-```bash
-go tool task test:specs
-```
-
-## Common refactor safety rules
-
-- Keep HTTP handlers thin; business rules belong in the `chatagent` package.
-- Any protocol changes must update `docs/agent/chatagent-feature-checklist.md` and tests first.
-- Prefer additive APIs over moving code across package boundaries.
-

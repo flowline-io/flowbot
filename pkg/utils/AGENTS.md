@@ -1,25 +1,18 @@
 # Utilities
 
-General-purpose utility functions with unit tests.
+General-purpose helpers with co-located tests.
 
-## Structure
+## Entry points
 
-```
-utils/
-├── utils.go, file.go, network.go, slice.go, string.go, ...
-├── reexec/   # Self-reexec for upgrades (platform-tagged command_*.go)
-├── sets/     # Generic set types (int, string)
-└── syncx/    # Generic sync.Map wrapper
-```
+Package root (`utils.go`, `file.go`, …) plus `reexec/`, `sets/`, `syncx/`.
 
-## Rules
+## Non-obvious rules
 
-- Prefer a co-located `*_test.go` for each non-trivial `.go` file (platform-tagged `reexec/command_*.go` may share package-level tests).
-- Use `utils.CheckSingleton()` for thread-safe single init.
-- Use `utils.SignalHandler()` to obtain the signal channel (blocks on SIGTERM/SIGINT; also watches SIGHUP).
-- Markdown for browser display: `MarkdownToSafeHTML` (not raw `MarkdownToHTML` + `templ.Raw`).
+- Prefer `*_test.go` per non-trivial `.go` file (`reexec/command_*.go` may share package tests)
+- `CheckSingleton()` for thread-safe single init; `SignalHandler()` for SIGTERM/SIGINT (+ SIGHUP)
+- Browser markdown: `MarkdownToSafeHTML` (not raw `MarkdownToHTML` + `templ.Raw`)
 
-## Commands
+## Testing
 
 ```bash
 go test ./pkg/utils/...
