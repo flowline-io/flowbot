@@ -25,6 +25,8 @@ var _ = Describe("Chat Agent Scheduled Tasks", Label("module", "chat-agent", "sc
 
 	BeforeEach(func() {
 		restoreSessionTitleLLM = chatagent.DisableSessionTitleLLMForTest()
+		// ExecuteScheduledTaskForTest uses the process-bound Service (same as production bootstrap).
+		chatagent.BindSharedService(chatagent.NewService())
 	})
 
 	AfterEach(func() {

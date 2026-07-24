@@ -29,6 +29,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
+	"github.com/flowline-io/flowbot/internal/server"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
@@ -142,6 +143,9 @@ var _ = SynchronizedBeforeSuite(
 		Expect(store.Migrate()).To(Succeed())
 
 		App = setupTestApp()
+
+		// Bind the process-wide chatagent Service (scheduled/pipeline/web entry points).
+		_ = server.ChatAgentService()
 
 		// Register pipeline CRUD BDD routes before any test-specific
 		// BeforeEach can mount the web module's auth-protected versions.

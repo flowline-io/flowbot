@@ -15,7 +15,9 @@ func SetChatAgentService(s *chatagent.Service) {
 // without going through server.ChatAgentService bootstrap.
 func ensureChatAgentService() {
 	if webChatAgentService == nil {
-		SetChatAgentService(chatagent.NewService())
+		svc := chatagent.NewService()
+		SetChatAgentService(svc)
+		chatagent.BindSharedService(svc)
 	}
 }
 
