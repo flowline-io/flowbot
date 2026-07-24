@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	abilityclip "github.com/flowline-io/flowbot/pkg/capability/clip"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -56,7 +55,7 @@ func clipPage(ctx fiber.Ctx) error {
 	data.Title = row.Title
 	data.Description = row.Description
 	data.CreatedAt = row.CreatedAt
-	data.WordCount = abilityclip.WordCount(row.Content)
+	data.WordCount = utils.WordCount(row.Content)
 	data.ContentMD = row.Content
 
 	if authed {

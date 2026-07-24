@@ -12,8 +12,11 @@ metadata:
 
 Use `flowbot workflow` for platform workflow definitions stored in the database.
 YAML is an exchange format for `apply` / `export` only — the server does not run from local files.
-Prefer the workflows below; load [references/cli.md](references/cli.md) for flags and
-[references/steps.md](references/steps.md) for task action types and params.
+Prefer the workflows below; load [references/schema.md](references/schema.md) for the full YAML definition,
+[references/cli.md](references/cli.md) for flags,
+[references/steps.md](references/steps.md) for task action types, inputs/outputs, and usage, and
+[references/capabilities.md](references/capabilities.md) (index) and `references/capabilities/<type>.md` for every `capability:<type>.<op>` param list.
+**Never invent** a `capability:<type>` that is absent from the capabilities index.
 Teaching examples (load via read_skill with path):
 - [examples/echo_mapper.yaml](examples/echo_mapper.yaml)
 - [examples/parallel_example.yaml](examples/parallel_example.yaml)
@@ -30,14 +33,16 @@ Teaching examples (load via read_skill with path):
 
 | Prefix | Use |
 |--------|-----|
-| `capability:` | Invoke a Flowbot capability operation |
-| `docker:` | Run a container image via the Docker runtime |
+| `capability:` | Invoke a Flowbot capability operation (provider or CapCore) |
+| `docker:` | Run a container image via the Docker runtime on the workflow runner |
 | `shell:` | Run a shell command on the workflow runner host |
-| `machine:` | Run on a named remote machine via SSH runtime |
+| `machine:` | Intended for a named remote machine via SSH runtime |
 | `mapper:` | Inline data transform: render params and marshal to JSON (no external runtime) |
 | `free-form / echo` | Actions without a known prefix fall through to shell-style run; bare echo is a special type name |
 
-Load [references/steps.md](references/steps.md) for params, templates, and `conn`/`retry`.
+Load [references/steps.md](references/steps.md) for per-type inputs/outputs, usage, templates, and `conn`/`retry`.
+Load [references/schema.md](references/schema.md) before writing any workflow YAML.
+Load [references/capabilities.md](references/capabilities.md) for the capability index; **must** open `references/capabilities/<type>.md` before emitting that type's actions.
 
 ## Templates
 
@@ -57,17 +62,18 @@ Not set for workflows: `event` / `.Event`, `env` / `.Env`. Helpers: `jsonpath`, 
 ### Write or edit a workflow YAML
 
 When the user needs a new or updated workflow definition:
-1. Pick action types from the Step types table; load references/steps.md for params and templates.
-2. Use examples/echo_mapper.yaml, examples/save_and_track.yaml, or examples/parallel_example.yaml as starting points.
-3. Ensure name, pipeline, tasks, and inputs for any {{input.*}} used in params.
-4. `flowbot workflow apply --file path/to/workflow.yaml`
-5. `flowbot workflow get <name>`
-6. Optional: flowbot workflow run <name> --input '{...}' then flowbot workflow runs <name>.
+1. Load references/schema.md and copy the skeleton (name, enabled, triggers, pipeline, tasks, inputs).
+2. For each capability: action, open references/capabilities/<type>.md first; never invent types missing from the capabilities index.
+3. Use examples/echo_mapper.yaml, examples/save_and_track.yaml, or examples/parallel_example.yaml as starting points.
+4. Declare inputs for every {{input.*}} key; use jsonpath for prior capability results (see capabilities.md Common data paths).
+5. `flowbot workflow apply --file path/to/workflow.yaml`
+6. `flowbot workflow get <name>`
+7. Optional: flowbot workflow run <name> --input '{...}' then flowbot workflow runs <name>.
 
 ### Apply a definition from YAML
 
 When the user already has a workflow YAML file to create or replace:
-1. Ensure the YAML has name, pipeline, tasks, and inputs for any {{input.*}} used in params.
+1. Validate against references/schema.md: name, pipeline, tasks, triggers, and inputs for any {{input.*}} used in params.
 2. `flowbot workflow apply --file path/to/workflow.yaml`
 3. `flowbot workflow get <name>`
 

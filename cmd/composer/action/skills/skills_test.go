@@ -534,9 +534,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 			string(hub.CapGitea):        {},
 			string(hub.CapGithub):       {},
 			string(hub.CapTrilium):      {},
-			string(hub.CapNotify):       {},
-			string(hub.CapAgent):        {},
-			string(hub.CapClip):         {},
+			string(hub.CapCore): {},
 			string(hub.CapExample):      {},
 		}
 		for _, m := range metaSpecs {
@@ -546,25 +544,35 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 	})
 }
 
+type workflowSkillCheck struct {
+	name             string
+	skillContains    []string
+	skillOmit        []string
+	cliContains      []string
+	stepsContains    []string
+	stepsOmit        []string
+	schemaContains   []string
+	capsContains     []string
+	capFileContains  map[string][]string
+	exampleFiles     []string
+	exampleContains  map[string][]string
+	exampleOmit      []string
+	maxSkillNewlines int
+}
+
 func TestGeneratePlatformWorkflowSkill(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
-		name             string
-		skillContains    []string
-		skillOmit        []string
-		cliContains      []string
-		stepsContains    []string
-		stepsOmit        []string
-		exampleFiles     []string
-		maxSkillNewlines int
-	}{
+	tests := []workflowSkillCheck{
 		{
 			name: "writes skill cli steps and examples",
 			skillContains: []string{
 				"name: workflow",
 				"platform: workflow",
 				"workflow:read",
+				"references/schema.md",
 				"references/steps.md",
+				"references/capabilities.md",
+				"Never invent",
 				"### Write or edit a workflow YAML",
 				"examples/echo_mapper.yaml",
 				"examples/save_and_track.yaml",
@@ -596,13 +604,25 @@ func TestGeneratePlatformWorkflowSkill(t *testing.T) {
 				".Input.url",
 				"`capability:`",
 				"`mapper:`",
+				"references/capabilities.md",
+				"references/schema.md",
 			},
-			maxSkillNewlines: 190,
+			maxSkillNewlines: 220,
 		},
 		{
 			name: "steps cover action types variables and helpers",
 			stepsContains: []string{
 				"capability:",
+				"capabilities.md",
+				"schema.md",
+				"writing that action",
+				"CapCore",
+				"**Inputs:**",
+				"**Outputs",
+				"**Usage:**",
+				"InvokeResult",
+				"data.reply",
+				"Do not invent types",
 				"docker:",
 				"shell:",
 				"machine:",
@@ -629,6 +649,82 @@ func TestGeneratePlatformWorkflowSkill(t *testing.T) {
 			stepsOmit: []string{
 				"## Definition skeleton",
 				"Sugar rewrites",
+				"capability:notify.send",
+				"capability:agent.run",
+				"capability:archive.add",
+			},
+		},
+		{
+			name: "schema documents metadata inputs and triggers",
+			schemaContains: []string{
+				"## Skeleton",
+				"WorkflowMetadata",
+				"max_concurrency",
+				"resumable",
+				"type: string",
+				"number | boolean | json",
+				"type: manual",
+				"type: cron",
+				"type: webhook",
+				"rule.cron",
+				"auth.token",
+				"hmac_secret",
+				"## Authoring checklist",
+			},
+		},
+		{
+			name: "capabilities catalog lists ops inputs and usage",
+			capsContains: []string{
+				"## Result envelope",
+				"InvokeResult",
+				"Do not invent",
+				"capability:archive.*",
+				"## Common `data` paths",
+				"data.id",
+				"capabilities/core.md",
+				"capabilities/karakeep.md",
+				"capabilities/kanboard.md",
+				"capabilities/github.md",
+			},
+			capFileContains: map[string][]string{
+				"core.md": {
+					"capability:core.notify_send",
+					"template_id",
+					"channels",
+					"capability:core.agent_run",
+					"capability:core.http_request",
+					"capability:core.kv_get",
+					"**mutation**",
+					"**Inputs (params):**",
+					"**Outputs:**",
+					"**Usage:**",
+				},
+				"karakeep.md": {
+					"capability:karakeep.create",
+					"capability:karakeep.archive",
+					"| `url` | `string` | yes |",
+				},
+			},
+		},
+		{
+			name: "examples use only registered capability actions",
+			exampleOmit: []string{
+				"capability:archive.add",
+				"capability:archive.",
+			},
+			exampleContains: map[string][]string{
+				"save_and_track.yaml": {
+					"capability:karakeep.create",
+					"capability:karakeep.archive",
+					"capability:kanboard.create_task",
+					`jsonpath (step "save_bookmark" "result") "data.id"`,
+				},
+				"parallel_example.yaml": {
+					"capability:karakeep.check_url",
+					"capability:karakeep.create",
+					"capability:kanboard.create_task",
+					"max_concurrency: 3",
+				},
 			},
 		},
 	}
@@ -638,42 +734,70 @@ func TestGeneratePlatformWorkflowSkill(t *testing.T) {
 			t.Parallel()
 			dir := t.TempDir()
 			require.NoError(t, generatePlatformSkill(platformWorkflowSpec(), dir))
-
-			skillBody, err := os.ReadFile(filepath.Join(dir, "workflow", "SKILL.md"))
-			require.NoError(t, err)
-			skill := string(skillBody)
-
-			cliBody, err := os.ReadFile(filepath.Join(dir, "workflow", "references", "cli.md"))
-			require.NoError(t, err)
-			cli := string(cliBody)
-
-			stepsBody, err := os.ReadFile(filepath.Join(dir, "workflow", "references", "steps.md"))
-			require.NoError(t, err)
-			steps := string(stepsBody)
-
-			for _, needle := range tt.skillContains {
-				require.Contains(t, skill, needle)
-			}
-			for _, needle := range tt.skillOmit {
-				require.NotContains(t, skill, needle)
-			}
-			for _, needle := range tt.cliContains {
-				require.Contains(t, cli, needle)
-			}
-			for _, needle := range tt.stepsContains {
-				require.Contains(t, steps, needle)
-			}
-			for _, needle := range tt.stepsOmit {
-				require.NotContains(t, steps, needle)
-			}
-			for _, example := range tt.exampleFiles {
-				_, err := os.Stat(filepath.Join(dir, "workflow", "examples", example))
-				require.NoError(t, err, "missing example %s", example)
-			}
-			if tt.maxSkillNewlines > 0 {
-				require.Less(t, strings.Count(skill, "\n"), tt.maxSkillNewlines, "SKILL.md should stay lean")
-			}
+			assertGeneratedWorkflowSkill(t, dir, tt)
 		})
+	}
+}
+
+func assertGeneratedWorkflowSkill(t *testing.T, dir string, tt workflowSkillCheck) {
+	t.Helper()
+	skill := readWorkflowSkillFile(t, dir, "SKILL.md")
+	cli := readWorkflowSkillFile(t, dir, "references", "cli.md")
+	steps := readWorkflowSkillFile(t, dir, "references", "steps.md")
+	schema := readWorkflowSkillFile(t, dir, "references", "schema.md")
+	caps := readWorkflowSkillFile(t, dir, "references", "capabilities.md")
+
+	assertContainsAll(t, skill, tt.skillContains)
+	assertOmitsAll(t, skill, tt.skillOmit)
+	assertContainsAll(t, cli, tt.cliContains)
+	assertContainsAll(t, steps, tt.stepsContains)
+	assertOmitsAll(t, steps, tt.stepsOmit)
+	assertContainsAll(t, schema, tt.schemaContains)
+	assertContainsAll(t, caps, tt.capsContains)
+
+	for file, needles := range tt.capFileContains {
+		content := readWorkflowSkillFile(t, dir, "references", "capabilities", file)
+		assertContainsAll(t, content, needles)
+	}
+	for _, example := range tt.exampleFiles {
+		_, err := os.Stat(filepath.Join(dir, "workflow", "examples", example))
+		require.NoError(t, err, "missing example %s", example)
+	}
+	for file, needles := range tt.exampleContains {
+		content := readWorkflowSkillFile(t, dir, "examples", file)
+		assertContainsAll(t, content, needles)
+		assertOmitsAll(t, content, tt.exampleOmit)
+	}
+	if len(tt.exampleOmit) > 0 && len(tt.exampleContains) == 0 {
+		for _, name := range []string{"echo_mapper.yaml", "save_and_track.yaml", "parallel_example.yaml"} {
+			content := readWorkflowSkillFile(t, dir, "examples", name)
+			assertOmitsAll(t, content, tt.exampleOmit)
+		}
+	}
+	if tt.maxSkillNewlines > 0 {
+		require.Less(t, strings.Count(skill, "\n"), tt.maxSkillNewlines, "SKILL.md should stay lean")
+	}
+}
+
+func readWorkflowSkillFile(t *testing.T, dir string, parts ...string) string {
+	t.Helper()
+	pathParts := append([]string{dir, "workflow"}, parts...)
+	body, err := os.ReadFile(filepath.Join(pathParts...))
+	require.NoError(t, err)
+	return string(body)
+}
+
+func assertContainsAll(t *testing.T, content string, needles []string) {
+	t.Helper()
+	for _, needle := range needles {
+		require.Contains(t, content, needle)
+	}
+}
+
+func assertOmitsAll(t *testing.T, content string, needles []string) {
+	t.Helper()
+	for _, needle := range needles {
+		require.NotContains(t, content, needle)
 	}
 }
 
@@ -816,7 +940,14 @@ func TestSkillsActionIncludesPlatformWorkflow(t *testing.T) {
 				return t.TempDir()
 			},
 			wantSkillDirs: []string{"karakeep", "workflow"},
-			wantFiles:     []string{"workflow/SKILL.md", "workflow/references/steps.md"},
+			wantFiles: []string{
+				"workflow/SKILL.md",
+				"workflow/references/steps.md",
+				"workflow/references/schema.md",
+				"workflow/references/capabilities.md",
+				"workflow/references/capabilities/core.md",
+				"workflow/references/capabilities/karakeep.md",
+			},
 		},
 		{
 			name: "platformSpecs registers workflow beside metaSpecs",

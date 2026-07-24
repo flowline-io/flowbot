@@ -112,11 +112,13 @@ Cross-service data flows defined in `pipelines.yaml`, triggered by durable event
     event: bookmark.created
   steps:
     - name: send_notification
-      capability: notify
-      operation: send
+      capability: core
+      operation: notify_send
       params:
-        channel: slack
-        message: "Saved: {{event.url}}"
+        template_id: "bookmark.saved"
+        channels: ["slack"]
+        payload:
+          url: "{{event.url}}"
 ```
 
 Every pipeline run is persisted, idempotent, and audited. Events flow: DataEvent → PostgreSQL `data_events` → Redis Stream → pipeline handler → `pipeline_runs`.
@@ -126,7 +128,7 @@ Every pipeline run is persisted, idempotent, and audited. Events flow: DataEvent
 Composable task DAGs in YAML. Each task uses an action prefix:
 
 ```
-[cron trigger] → [capability:miniflux.list_entries] → [mapper:] → [capability:notify.send]
+[cron trigger] → [capability:miniflux.list_entries] → [mapper:] → [capability:core.notify_send]
 ```
 
 | Prefix        | Runtime               | Example                      |

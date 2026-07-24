@@ -91,6 +91,38 @@ func TestRegisterSpec(t *testing.T) {
 	}
 }
 
+func TestDescriptorFromSpec(t *testing.T) {
+	t.Parallel()
+
+	desc := DescriptorFromSpec(Spec{
+		Type:        hub.CapabilityType("test-descriptor"),
+		App:         "app",
+		Description: "desc",
+		Events:      []hub.EventDef{{Name: "evt"}},
+		Instance:    "ignored",
+		Ops: []OpDef{
+			{
+				Name:        "create",
+				Description: "Create item",
+				Scopes:      []string{"write"},
+				Mutation:    true,
+				Input:       []hub.ParamDef{{Name: "url", Type: "string", Required: true}},
+				Handler:     nil,
+			},
+		},
+	})
+
+	assert.Equal(t, hub.CapabilityType("test-descriptor"), desc.Type)
+	assert.Equal(t, "app", desc.App)
+	assert.Equal(t, "desc", desc.Description)
+	assert.Nil(t, desc.Instance)
+	require.Len(t, desc.Operations, 1)
+	assert.Equal(t, "create", desc.Operations[0].Name)
+	assert.Equal(t, "url", desc.Operations[0].Input[0].Name)
+	require.Len(t, desc.Events, 1)
+	assert.Equal(t, "evt", desc.Events[0].Name)
+}
+
 func TestRegisterSpecValidation(t *testing.T) {
 	t.Parallel()
 

@@ -84,7 +84,7 @@ var _ = Describe("Workflow Module", Label("module", "workflow"), func() {
 		It("creates workflow task with retry config", func() {
 			task := types.WorkflowTask{
 				ID:     "retry-task",
-				Action: "notify.send",
+				Action: "core.notify_send",
 				Retry: &types.RetryConfig{
 					MaxAttempts: 3,
 					Delay:       1 * time.Second,

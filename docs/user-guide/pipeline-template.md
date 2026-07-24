@@ -417,8 +417,8 @@ Pipeline steps can invoke the chat agent when `chat_agent` is configured:
 ```yaml
 steps:
   - name: summarize-bookmark
-    capability: agent
-    operation: run
+    capability: core
+    operation: agent_run
     params:
       prompt: |
         Summarize this bookmark:
@@ -429,8 +429,8 @@ steps:
       max_attempts: 2
       delay: 30s
   - name: notify-summary
-    capability: notify
-    operation: send
+    capability: core
+    operation: notify_send
     params:
       template_id: bookmark.summary
       channels: [ntfy]
@@ -451,8 +451,8 @@ Example with scoped tools and skills:
 
 ```yaml
   - name: research
-    capability: agent
-    operation: run
+    capability: core
+    operation: agent_run
     params:
       prompt: "Research {{.Event.url}}"
       uid: "{{.Event.uid}}"

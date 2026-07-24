@@ -4,12 +4,14 @@ Decouples modules from providers. Provider-backed caps live in `pkg/capability/<
 
 ## Entry points
 
-- Core: `invoke.go`, `register.go`, ops/eventsource/polling helpers
+- Framework: `invoke.go`, `register.go`, ops/eventsource/polling helpers
 - Reference: `example/` (`service.go`, `adapter.go`, `register.go`)
-- Provider caps: `karakeep/`, `miniflux/`, …; multi-provider: `devops/`; internal (no provider): `notify/`, `agent/`, `clip/`
+- Provider caps: `karakeep/`, `miniflux/`, …; multi-provider: `devops/`; internal multi-op: `core/`
+- Shared exec for sandbox run_*: `pkg/exec` (used by `core` and agent coding tools)
 
 ```go
 capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit": 20})
+capability.Invoke(ctx, hub.CapCore, core.OpNotifySend, map[string]any{...})
 ```
 
 ## Boundaries
@@ -17,7 +19,11 @@ capability.Invoke(ctx, hub.CapKarakeep, karakeep.OpList, map[string]any{"limit":
 - Modules never import `pkg/providers/*` — use `capability.Invoke`
 - Adapters never call hub/pipeline/emit DataEvent
 - CapType == provider ID for provider-backed caps
-- **Exception:** `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx (sole multi-provider CapType≠provider). Ops use underscores (`beszel_list_systems`)
+- **Exceptions** (CapType ≠ single provider ID):
+  - `devops` (`hub.CapDevops`) aggregates beszel/uptimekuma/traefik/grafana/wakapi/dozzle/netalertx
+  - `core` (`hub.CapCore`) aggregates notify/clip/agent plus runtime primitives (`http_request`, `run_code`, `run_terminal`, `kv_*`)
 - Domain event names stay stable; set `DataEvent.Capability` to provider ID
 - Pagination: limit + opaque cursor; hide provider pagination internals in the adapter
 - New caps: follow `pkg/capability/example/`
+- `pkg/capability/core` must not import `internal/store` — inject `Persister` / `KVStore` / `Runner` / `ExecProvider` from `internal/server`
+- `pkg/exec` must not import `pkg/capability`

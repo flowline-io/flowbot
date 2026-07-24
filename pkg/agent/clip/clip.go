@@ -10,7 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/capability"
-	capclip "github.com/flowline-io/flowbot/pkg/capability/clip"
+	capclip "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -88,7 +88,7 @@ func (t CreateTool) Execute(ctx context.Context, id string, args map[string]any,
 		}
 	}
 
-	res, err := capability.Invoke(ctx, hub.CapClip, capclip.OpCreate, params)
+	res, err := capability.Invoke(ctx, hub.CapCore, capclip.OpClipCreate, params)
 	if err != nil {
 		return invokeErrorResult(id, t.Name(), err), nil
 	}
@@ -143,7 +143,7 @@ func (GetTool) Execute(ctx context.Context, id string, args map[string]any, _ to
 		return tool.ErrorResult(id, GetToolName, "invalid_args", "slug is required", "pass the clip slug from /c/{slug}"), nil
 	}
 
-	res, err := capability.Invoke(ctx, hub.CapClip, capclip.OpGet, map[string]any{"slug": slug})
+	res, err := capability.Invoke(ctx, hub.CapCore, capclip.OpClipGet, map[string]any{"slug": slug})
 	if err != nil {
 		return invokeErrorResult(id, GetToolName, err), nil
 	}

@@ -82,7 +82,7 @@ const (
 	OpForgeGetCommitDiff  = "get_commit_diff"
 	OpForgeGetFileContent = "get_file_content"
 
-	OpNotifySend   = "send"
+	OpNotifySend   = "notify_send"
 	OpNotifyDigest = "digest"
 
 	OpNoteList       = "list"
@@ -102,7 +102,7 @@ const (
 	OpMemoDelete = "delete"
 	OpMemoHealth = "health"
 
-	OpAgentRun = "run"
+	OpAgentRun = "agent_run"
 )
 
 // Op looks up a registered operation name by capability and key.

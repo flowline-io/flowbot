@@ -29,7 +29,7 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 					Enabled: true,
 					Trigger: pipeline.Trigger{Event: types.EventBookmarkCreated},
 					Steps: []pipeline.Step{
-						{Name: "step-1", Capability: hub.CapNotify, Operation: "send", Params: map[string]any{"message": "hello"}},
+						{Name: "step-1", Capability: hub.CapCore, Operation: "notify_send", Params: map[string]any{"message": "hello"}},
 					},
 				}
 				Expect(def.Name).NotTo(BeEmpty())
@@ -206,8 +206,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 				Enabled: true,
 				Trigger: pipeline.Trigger{Event: "test.event"},
 				Steps: []pipeline.Step{
-					{Name: "a", Capability: hub.CapNotify, Operation: "send"},
-					{Name: "b", Capability: hub.CapNotify, Operation: "send"},
+					{Name: "a", Capability: hub.CapCore, Operation: "notify_send"},
+					{Name: "b", Capability: hub.CapCore, Operation: "notify_send"},
 				},
 			}
 		})

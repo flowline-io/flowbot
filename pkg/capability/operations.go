@@ -18,7 +18,9 @@ var (
 		"create_feed":     true,
 		"mark_entry_read": true, "mark_entry_unread": true,
 		"star_entry": true, "unstar_entry": true,
-		"send": true, "run": true, "add": true,
+		"notify_send": true, "agent_run": true, "add": true,
+		"http_request": true, "run_code": true, "run_terminal": true,
+		"kv_set": true, "kv_delete": true, "clip_create": true,
 		"create_transaction": true, "set_content": true,
 	}
 )

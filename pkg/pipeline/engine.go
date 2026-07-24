@@ -365,7 +365,7 @@ func injectTags(rc *RenderContext, renderedParams map[string]any) {
 	renderedParams["tags"] = mergeTags(rc.Event.Tags, renderedParams["tags"])
 }
 
-// InjectAgentRunDefaults applies default uid and memory_scope for agent.run and notify.send steps.
+// InjectAgentRunDefaults applies default uid and memory_scope for agent_run and notify_send steps.
 func InjectAgentRunDefaults(step Step, renderedParams map[string]any, rc *RenderContext, pipelineName string) {
 	injectAgentRunMemoryScope(step, renderedParams, pipelineName)
 	injectEventUID(step, renderedParams, rc)
@@ -385,7 +385,7 @@ func applyDefinitionUID(def Definition, event *types.DataEvent) {
 }
 
 func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelineName string) {
-	if step.Capability != hub.CapAgent || step.Operation != capability.OpAgentRun {
+	if step.Capability != hub.CapCore || step.Operation != capability.OpAgentRun {
 		return
 	}
 	if renderedParams == nil {
@@ -399,7 +399,7 @@ func injectAgentRunMemoryScope(step Step, renderedParams map[string]any, pipelin
 	renderedParams["memory_scope"] = pipelineName
 }
 
-// injectEventUID copies Event.UID into step params for agent.run and notify.send when unset.
+// injectEventUID copies Event.UID into step params for agent_run and notify_send when unset.
 func injectEventUID(step Step, renderedParams map[string]any, rc *RenderContext) {
 	if !stepNeedsEventUID(step) {
 		return
@@ -422,9 +422,9 @@ func injectEventUID(step Step, renderedParams map[string]any, rc *RenderContext)
 // stepNeedsEventUID reports whether the step should receive a default uid from the event.
 func stepNeedsEventUID(step Step) bool {
 	switch {
-	case step.Capability == hub.CapAgent && step.Operation == capability.OpAgentRun:
+	case step.Capability == hub.CapCore && step.Operation == capability.OpAgentRun:
 		return true
-	case step.Capability == hub.CapNotify && step.Operation == "send":
+	case step.Capability == hub.CapCore && step.Operation == capability.OpNotifySend:
 		return true
 	default:
 		return false

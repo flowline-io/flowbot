@@ -11,7 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/capability"
-	capclip "github.com/flowline-io/flowbot/pkg/capability/clip"
+	capclip "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 )
@@ -63,10 +63,10 @@ func TestAbsoluteURL(t *testing.T) {
 
 func TestCreateAndGetTools(t *testing.T) {
 	t.Cleanup(func() {
-		capability.UnregisterInvoker(hub.CapClip, capclip.OpCreate)
-		capability.UnregisterInvoker(hub.CapClip, capclip.OpGet)
-		capability.UnregisterInvoker(hub.CapClip, capclip.OpHealth)
-		hub.Default.Unregister(hub.CapClip)
+		capability.UnregisterInvoker(hub.CapCore, capclip.OpClipCreate)
+		capability.UnregisterInvoker(hub.CapCore, capclip.OpClipGet)
+		capability.UnregisterInvoker(hub.CapCore, capclip.OpClipHealth)
+		hub.Default.Unregister(hub.CapCore)
 		capclip.SetPersister(nil)
 		capclip.SetMetaLLMForTest(nil)
 	})

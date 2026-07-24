@@ -13,7 +13,16 @@ import (
 // Register registers the miniflux capability with hub and invoker registry.
 // When svc is nil the provider is not configured and registration is skipped.
 func Register(app string, svc Service) error {
-	return capability.Register(capability.Spec{
+	return capability.Register(buildSpec(app, svc))
+}
+
+// CatalogSpec returns capability metadata for documentation (handlers may close over a nil service and must not be invoked).
+func CatalogSpec() capability.Spec {
+	return buildSpec("", nil)
+}
+
+func buildSpec(app string, svc Service) capability.Spec {
+	return capability.Spec{
 		Type:        hub.CapMiniflux,
 		App:         app,
 		Description: "Reader capability",
@@ -77,7 +86,7 @@ func Register(app string, svc Service) error {
 				Handler: invokeHealth(svc),
 			},
 		},
-	})
+	}
 }
 
 func invokeListFeeds(svc Service) capability.Invoker {

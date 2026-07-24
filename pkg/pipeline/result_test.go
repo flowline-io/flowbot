@@ -22,8 +22,8 @@ func TestStepResultFromInvoke(t *testing.T) {
 		{
 			name: "map data passthrough",
 			res: &capability.InvokeResult{
-				Capability: hub.CapAgent,
-				Operation:  "run",
+				Capability: hub.CapCore,
+				Operation:  "agent_run",
 				Data:       map[string]any{"reply": "hello", "session_id": "s1"},
 			},
 			want: map[string]any{"reply": "hello", "session_id": "s1"},

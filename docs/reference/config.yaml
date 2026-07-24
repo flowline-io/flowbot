@@ -152,6 +152,14 @@ chat_agent:
   # web_search:
   #   api_key: ""  # SerpApi key (https://serpapi.com/search-api); required for web_search
 
+# CapCore runtime primitives (http_request, run_*, kv_*). Workspace falls back to chat_agent.workspace.
+core:
+  # workspace: "/var/lib/flowbot/chat-workspace"
+  http:
+    allow_private: false
+    # allow_hosts:
+    #   - "api.example.com"
+
 # Flowbot instance configuration
 flowbot:
   # External URL of this Flowbot instance

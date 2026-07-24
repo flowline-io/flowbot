@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	abilityagent "github.com/flowline-io/flowbot/pkg/capability/agent"
+	abilityagent "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

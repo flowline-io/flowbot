@@ -26,6 +26,26 @@ type Spec struct {
 	Ops         []OpDef
 }
 
+// DescriptorFromSpec builds hub metadata from Spec (handlers and Instance ignored).
+func DescriptorFromSpec(s Spec) hub.Descriptor {
+	ops := make([]hub.Operation, 0, len(s.Ops))
+	for _, op := range s.Ops {
+		ops = append(ops, hub.Operation{
+			Name:        op.Name,
+			Description: op.Description,
+			Scopes:      op.Scopes,
+			Input:       op.Input,
+		})
+	}
+	return hub.Descriptor{
+		Type:        s.Type,
+		App:         s.App,
+		Description: s.Description,
+		Operations:  ops,
+		Events:      s.Events,
+	}
+}
+
 // Register registers hub metadata and invokers from Spec.
 // It skips registration and logs a warning when Instance is nil.
 func Register(s Spec) error {
@@ -37,7 +57,6 @@ func Register(s Spec) error {
 		return nil
 	}
 
-	ops := make([]hub.Operation, 0, len(s.Ops))
 	opIndex := make(map[string]string, len(s.Ops))
 	for _, op := range s.Ops {
 		if op.Name == "" {
@@ -46,27 +65,15 @@ func Register(s Spec) error {
 		if op.Handler == nil {
 			return types.Errorf(types.ErrInvalidArgument, "handler required for operation %s", op.Name)
 		}
-		ops = append(ops, hub.Operation{
-			Name:        op.Name,
-			Description: op.Description,
-			Scopes:      op.Scopes,
-			Input:       op.Input,
-		})
 		opIndex[op.Name] = op.Name
 		if op.Mutation {
 			registerMutation(op.Name)
 		}
 	}
 
-	desc := hub.Descriptor{
-		Type:        s.Type,
-		App:         s.App,
-		Description: s.Description,
-		Operations:  ops,
-		Events:      s.Events,
-		Instance:    s.Instance,
-		Healthy:     true,
-	}
+	desc := DescriptorFromSpec(s)
+	desc.Instance = s.Instance
+	desc.Healthy = true
 	if err := hub.Default.Register(desc); err != nil {
 		return err
 	}

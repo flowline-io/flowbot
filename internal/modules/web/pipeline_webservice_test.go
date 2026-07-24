@@ -18,7 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/pipelinedefinition"
 	"github.com/flowline-io/flowbot/pkg/capability"
-	abilityagent "github.com/flowline-io/flowbot/pkg/capability/agent"
+	abilityagent "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/pipeline"
 )
@@ -56,8 +56,8 @@ func registerWebAgentRunner(t *testing.T, runner abilityagent.Runner) {
 	require.NoError(t, abilityagent.Register())
 	t.Cleanup(func() {
 		abilityagent.SetRunner(nil)
-		capability.UnregisterInvoker(hub.CapAgent, capability.OpAgentRun)
-		hub.Default.Unregister(hub.CapAgent)
+		capability.UnregisterInvoker(hub.CapCore, capability.OpAgentRun)
+		hub.Default.Unregister(hub.CapCore)
 	})
 }
 
@@ -74,13 +74,13 @@ func TestTestPipelineStepAgentMultiStepOutput(t *testing.T) {
 	yamlDraft := `name: agent-chain-test
 steps:
   - name: summarize
-    capability: agent
-    operation: run
+    capability: core
+    operation: agent_run
     params:
       prompt: "summarize {{.Event.url}}"
   - name: follow-up
-    capability: agent
-    operation: run
+    capability: core
+    operation: agent_run
     params:
       prompt: "Previous reply: {{step \"summarize\" \"reply\"}}"`
 	require.NoError(t, client.PipelineDefinition.Update().
@@ -132,8 +132,8 @@ func TestTestPipelineStepRejectsWhitespaceAgentPrompt(t *testing.T) {
 		SetYamlDraft(`name: agent-empty-prompt
 steps:
   - name: bad
-    capability: agent
-    operation: run
+    capability: core
+    operation: agent_run
     params:
       prompt: "   "`).
 		Where(pipelinedefinition.Name("agent-empty-prompt")).

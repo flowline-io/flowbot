@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/pkg/capability"
-	abilityagent "github.com/flowline-io/flowbot/pkg/capability/agent"
+	abilityagent "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -33,8 +33,8 @@ func TestAgentStepTemplateAndInvoke(t *testing.T) {
 	require.NoError(t, abilityagent.Register())
 	t.Cleanup(func() {
 		abilityagent.SetRunner(nil)
-		capability.UnregisterInvoker(hub.CapAgent, capability.OpAgentRun)
-		hub.Default.Unregister(hub.CapAgent)
+		capability.UnregisterInvoker(hub.CapCore, capability.OpAgentRun)
+		hub.Default.Unregister(hub.CapCore)
 	})
 
 	event := types.DataEvent{
@@ -52,7 +52,7 @@ func TestAgentStepTemplateAndInvoke(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	res, err := capability.Invoke(context.Background(), hub.CapAgent, capability.OpAgentRun, rendered)
+	res, err := capability.Invoke(context.Background(), hub.CapCore, capability.OpAgentRun, rendered)
 	require.NoError(t, err)
 
 	stepOutput := StepResultFromInvoke(res)

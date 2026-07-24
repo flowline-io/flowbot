@@ -1,5 +1,4 @@
-// Package agent provides the agent capability for pipeline steps to run chat agent prompts.
-package agent
+package core
 
 import (
 	"context"
@@ -8,7 +7,6 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -21,7 +19,7 @@ type RunParams struct {
 	MemoryScope string
 }
 
-// RunResult holds the outcome of one agent.run invocation.
+// RunResult holds the outcome of one agent_run invocation.
 type RunResult struct {
 	Reply     string
 	SessionID string
@@ -50,42 +48,7 @@ func getRunner() Runner {
 	return runner
 }
 
-// serviceMarker is a non-nil instance used for hub registration when the agent is enabled.
-type serviceMarker struct{}
-
-// Register registers the agent capability with hub and invoker registry.
-// Registration runs when chat agent is enabled or a Runner has been wired
-// (including test stubs via SetRunner).
-func Register() error {
-	var instance any
-	if config.ChatAgentEnabled() || getRunner() != nil {
-		instance = serviceMarker{}
-	}
-	return capability.Register(capability.Spec{
-		Type:        hub.CapAgent,
-		Description: "Run the chat agent with a rendered prompt",
-		Instance:    instance,
-		Ops: []capability.OpDef{
-			{
-				Name: OpRun, Description: "Execute one autonomous agent turn with a prompt", Mutation: true,
-				Input: []hub.ParamDef{
-					{Name: "prompt", Type: "string", Required: true, Description: "User prompt (supports pipeline template rendering)"},
-					{Name: "uid", Type: "string", Required: false, Description: "Owner UID for permissions; use {{.Event.uid}} in YAML when available"},
-					{Name: "tools", Type: "[]string", Required: false, Description: "Tool allowlist; omit or leave empty for pipeline defaults"},
-					{Name: "skills", Type: "[]string", Required: false, Description: "Skill allowlist by name; omit or leave empty for all enabled skills"},
-					{Name: "memory_scope", Type: "string", Required: false, Description: "Memory scope for memory_* tools; defaults to pipeline name when omitted"},
-				},
-				Handler: runInvoker,
-			},
-			{
-				Name: OpHealth, Description: "Health check",
-				Handler: healthInvoker,
-			},
-		},
-	})
-}
-
-func runInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+func agentRunInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 	prompt, err := capability.RequiredString(params, "prompt")
 	if err != nil {
 		return nil, err
@@ -141,7 +104,7 @@ func runInvoker(ctx context.Context, params map[string]any) (*capability.InvokeR
 	}, nil
 }
 
-func healthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+func agentHealthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
 	if config.ChatAgentEnabled() || getRunner() != nil {
 		return &capability.InvokeResult{Data: true}, nil
 	}

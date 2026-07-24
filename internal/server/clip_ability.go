@@ -4,20 +4,26 @@ import (
 	"context"
 
 	storepkg "github.com/flowline-io/flowbot/internal/store"
-	abilityclip "github.com/flowline-io/flowbot/pkg/capability/clip"
+	"github.com/flowline-io/flowbot/pkg/capability/core"
 )
 
-// initClipAbility wires clip persistence and registers the clip capability.
+// initClipAbility wires clip persistence and other CapCore deps (registration is deferred to notify OnStart).
 func initClipAbility() error {
 	if storepkg.Database != nil {
 		if client, ok := storepkg.Database.GetDB().(*storepkg.Client); ok && client != nil {
-			abilityclip.SetPersister(&clipStorePersister{store: storepkg.NewClipStore(client)})
+			core.SetPersister(&clipStorePersister{store: storepkg.NewClipStore(client)})
 		}
+		wireCoreKVStore()
 	}
-	return abilityclip.Register()
+	wireCoreExecProvider()
+	return nil
 }
 
-// clipStorePersister adapts store.ClipStore to capability/clip.Persister.
+func registerCoreCapability() error {
+	return core.Register()
+}
+
+// clipStorePersister adapts store.ClipStore to core.Persister.
 type clipStorePersister struct {
 	store *storepkg.ClipStore
 }
@@ -28,7 +34,7 @@ func (p *clipStorePersister) CreateClip(ctx context.Context, slug, title, descri
 }
 
 // GetClipBySlug loads a clip by slug.
-func (p *clipStorePersister) GetClipBySlug(ctx context.Context, slug string) (*abilityclip.Record, error) {
+func (p *clipStorePersister) GetClipBySlug(ctx context.Context, slug string) (*core.Record, error) {
 	row, err := p.store.GetClipBySlug(ctx, slug)
 	if err != nil {
 		return nil, err
@@ -36,7 +42,7 @@ func (p *clipStorePersister) GetClipBySlug(ctx context.Context, slug string) (*a
 	if row == nil {
 		return nil, nil
 	}
-	return &abilityclip.Record{
+	return &core.Record{
 		Slug:        row.Slug,
 		Title:       row.Title,
 		Description: row.Description,

@@ -7,7 +7,7 @@ import (
 
 	storeDB "github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	abilitynotify "github.com/flowline-io/flowbot/pkg/capability/notify"
+	abilitycore "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/notify/messagepusher"
@@ -65,7 +65,8 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 				return err
 			}
 
-			return abilitynotify.Register()
+			abilitycore.SetNotifierFunc(notify.GatewaySend)
+			return registerCoreCapability()
 		},
 		OnStop: func(_ context.Context) error {
 			return nil

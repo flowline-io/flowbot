@@ -1,5 +1,4 @@
-// Package clip provides the clip capability for creating shareable markdown clips.
-package clip
+package core
 
 import (
 	"context"
@@ -9,7 +8,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/bytedance/sonic"
@@ -19,8 +17,8 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/hub"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 const (
@@ -76,9 +74,6 @@ type metaModelFunc func(context.Context, string) (llms.Model, string, error)
 
 type metaLLMFunc func(context.Context, string, metaModelFunc) (Meta, error)
 
-// serviceMarker is a non-nil instance used for hub registration.
-type serviceMarker struct{}
-
 var (
 	persisterMu sync.RWMutex
 	persister   Persister
@@ -88,7 +83,7 @@ var (
 	generateMeta metaLLMFunc   = generateMetaWithLLM
 )
 
-// SetPersister wires the persistence backend used by clip.create.
+// SetPersister wires the persistence backend used by clip_create.
 func SetPersister(p Persister) {
 	persisterMu.Lock()
 	defer persisterMu.Unlock()
@@ -112,37 +107,7 @@ func SetMetaLLMForTest(fn metaLLMFunc) {
 	generateMeta = fn
 }
 
-// Register registers the clip capability with hub and invoker registry.
-func Register() error {
-	return capability.Register(capability.Spec{
-		Type:        hub.CapClip,
-		Description: "Create shareable markdown clips with LLM-generated title and description",
-		Instance:    serviceMarker{},
-		Ops: []capability.OpDef{
-			{
-				Name: OpCreate, Description: "Create a markdown clip and return its public URL", Mutation: true,
-				Input: []hub.ParamDef{
-					{Name: "content", Type: "string", Required: true, Description: "Markdown body"},
-					{Name: "created_by", Type: "string", Required: false, Description: "Optional creator identifier"},
-				},
-				Handler: createInvoker,
-			},
-			{
-				Name: OpGet, Description: "Get a markdown clip by slug",
-				Input: []hub.ParamDef{
-					{Name: "slug", Type: "string", Required: true, Description: "Clip slug"},
-				},
-				Handler: getInvoker,
-			},
-			{
-				Name: OpHealth, Description: "Health check",
-				Handler: healthInvoker,
-			},
-		},
-	})
-}
-
-func createInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+func clipCreateInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 	content, err := capability.RequiredString(params, "content")
 	if err != nil {
 		return nil, err
@@ -209,7 +174,7 @@ func createInvoker(ctx context.Context, params map[string]any) (*capability.Invo
 	return nil, types.Errorf(types.ErrInternal, "create clip: slug collision after %d attempts", slugMaxAttempts)
 }
 
-func getInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+func clipGetInvoker(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 	slug, err := capability.RequiredString(params, "slug")
 	if err != nil {
 		return nil, err
@@ -247,7 +212,7 @@ func getInvoker(ctx context.Context, params map[string]any) (*capability.InvokeR
 	}, nil
 }
 
-func healthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
+func clipHealthInvoker(_ context.Context, _ map[string]any) (*capability.InvokeResult, error) {
 	ready := getPersister() != nil
 	status := "ok"
 	if !ready {
@@ -404,17 +369,5 @@ func isUniqueViolation(err error) bool {
 
 // WordCount returns a rough word count for markdown display metadata.
 func WordCount(content string) int {
-	count := 0
-	inWord := false
-	for _, r := range content {
-		if unicode.IsSpace(r) {
-			inWord = false
-			continue
-		}
-		if !inWord {
-			count++
-			inWord = true
-		}
-	}
-	return count
+	return utils.WordCount(content)
 }

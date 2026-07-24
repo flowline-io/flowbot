@@ -83,8 +83,8 @@ pipelines:
       event: bookmark.created
     steps:
       - name: send-notification
-        capability: notify
-        operation: send
+        capability: core
+        operation: notify_send
         params:
           template_id: "bookmark.created"
           channels:
@@ -418,8 +418,8 @@ pipelines:
       event: bookmark.created
     steps:
       - name: send-notify
-        capability: notify
-        operation: send
+        capability: core
+        operation: notify_send
         params:
           template_id: "bookmark.created"
           channels: ["slack", "ntfy"]
@@ -469,15 +469,15 @@ err := notify.GatewaySend(ctx.Context(), uid, "agent.status",
 
 ### GatewaySend Entry Point
 
-`notify.GatewaySend()` is the single entry point into the gateway. It is invoked by the `notify` capability's `send` operation (`pkg/ability/notify/send.go`), which is reachable from every ruleset that can dispatch a capability:
+`notify.GatewaySend()` is the single entry point into the gateway. It is invoked by CapCore `notify_send` (`pkg/capability/core`), which is reachable from every ruleset that can dispatch a capability:
 
 | Call Site      | Mechanism                                                  |
 | -------------- | ---------------------------------------------------------- |
-| Pipeline steps | `capability: notify`, `operation: send`                    |
-| Cron ruleset   | `capability.Invoke(ctx, "notify", "send", ...)`               |
-| Webhook ruleset| `capability.Invoke(ctx, "notify", "send", ...)`               |
-| Agent actions  | `capability.Invoke(ctx, "notify", "send", ...)`               |
-| Form ruleset   | `capability.Invoke(ctx, "notify", "send", ...)`               |
+| Pipeline steps | `capability: core`, `operation: notify_send`                    |
+| Cron ruleset   | `capability.Invoke(ctx, "core", "notify_send", ...)`               |
+| Webhook ruleset| `capability.Invoke(ctx, "core", "notify_send", ...)`               |
+| Agent actions  | `capability.Invoke(ctx, "core", "notify_send", ...)`               |
+| Form ruleset   | `capability.Invoke(ctx, "core", "notify_send", ...)`               |
 
 Interactive chat messages (command responses, form interactions) continue to use `event.SendMessage()` directly.
 

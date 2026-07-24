@@ -27,7 +27,12 @@ tasks:
       - fetch_data
   - id: notify
     describe: Send notification
-    action: capability:notify.send
+    action: capability:core.notify_send
+    params:
+      template_id: bookmark.saved
+      channels: ["slack"]
+      payload:
+        note: parallel save completed
     conn:
       - archive_url
       - create_task

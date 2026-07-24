@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	pkgexec "github.com/flowline-io/flowbot/pkg/exec"
 )
 
 // RunTerminalTool executes shell commands inside the workspace.
@@ -57,25 +58,20 @@ func (t RunTerminalTool) Execute(ctx context.Context, id string, args map[string
 	if timeout <= 0 {
 		timeout = DefaultShellTimeout
 	}
-	runCtx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-
-	execResult := t.executionEnv().Exec(runCtx, env.ExecOptions{
-		Command: command,
-		Dir:     rootResult.Value(),
-		Timeout: runCtx,
-	})
-	if !execResult.IsOk() {
-		return toolError(id, t.Name(), env.FormatExecutionError(execResult.ErrorValue())), nil
+	res, err := pkgexec.RunTerminal(ctx, pkgexec.Config{
+		Workspace: rootResult.Value(),
+		Env:       t.executionEnv(),
+		Timeout:   timeout,
+		MaxOutput: t.Workspace.MaxOutput,
+	}, command, "")
+	if err != nil {
+		return toolError(id, t.Name(), err.Error()), nil
 	}
-
-	capture := execResult.Value()
-	output := t.Workspace.TruncateOutput(env.FormatExecOutput(capture, capture.ExitCode != 0, nil))
 	return msg.ToolResultMessage{
 		ToolCallID: id,
 		Name:       t.Name(),
-		Parts:      []msg.ContentPart{msg.TextPart{Text: output}},
-		IsError:    capture.ExitCode != 0,
+		Parts:      []msg.ContentPart{msg.TextPart{Text: res.Output}},
+		IsError:    res.ExitCode != 0,
 	}, nil
 }
 

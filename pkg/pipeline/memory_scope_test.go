@@ -21,7 +21,7 @@ func TestInjectAgentRunMemoryScope(t *testing.T) {
 	}{
 		{
 			name:         "injects for agent run",
-			step:         Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
+			step:         Step{Capability: hub.CapCore, Operation: capability.OpAgentRun},
 			existing:     map[string]any{"prompt": "hi"},
 			pipelineName: "sync-bookmarks",
 			want:         "sync-bookmarks",
@@ -29,7 +29,7 @@ func TestInjectAgentRunMemoryScope(t *testing.T) {
 		},
 		{
 			name:         "keeps explicit scope",
-			step:         Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
+			step:         Step{Capability: hub.CapCore, Operation: capability.OpAgentRun},
 			existing:     map[string]any{"memory_scope": "custom"},
 			pipelineName: "sync-bookmarks",
 			want:         "custom",
@@ -70,7 +70,7 @@ func TestInjectEventUID(t *testing.T) {
 	}{
 		{
 			name:     "injects into agent run from event uid",
-			step:     Step{Capability: hub.CapAgent, Operation: capability.OpAgentRun},
+			step:     Step{Capability: hub.CapCore, Operation: capability.OpAgentRun},
 			existing: map[string]any{"prompt": "hi"},
 			eventUID: "user-admin",
 			want:     "user-admin",
@@ -78,7 +78,7 @@ func TestInjectEventUID(t *testing.T) {
 		},
 		{
 			name:     "injects into notify send from event uid",
-			step:     Step{Capability: hub.CapNotify, Operation: "send"},
+			step:     Step{Capability: hub.CapCore, Operation: capability.OpNotifySend},
 			existing: map[string]any{"template_id": "cron.output", "channels": []string{"testing"}},
 			eventUID: "user-admin",
 			want:     "user-admin",
@@ -86,7 +86,7 @@ func TestInjectEventUID(t *testing.T) {
 		},
 		{
 			name:     "keeps explicit uid on notify send",
-			step:     Step{Capability: hub.CapNotify, Operation: "send"},
+			step:     Step{Capability: hub.CapCore, Operation: capability.OpNotifySend},
 			existing: map[string]any{"uid": "user-custom"},
 			eventUID: "user-admin",
 			want:     "user-custom",
@@ -101,7 +101,7 @@ func TestInjectEventUID(t *testing.T) {
 		},
 		{
 			name:     "skips when event uid empty",
-			step:     Step{Capability: hub.CapNotify, Operation: "send"},
+			step:     Step{Capability: hub.CapCore, Operation: capability.OpNotifySend},
 			existing: map[string]any{},
 			eventUID: "",
 			wantSet:  false,

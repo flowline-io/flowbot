@@ -95,6 +95,9 @@ type Type struct {
 	// Capability invocation configuration (YAML key remains "ability" for backward compatibility).
 	Capability AbilityConfig `json:"ability" yaml:"ability" mapstructure:"ability"`
 
+	// Core configures CapCore runtime primitives (HTTP SSRF policy, workspace).
+	Core CoreConfig `json:"core" yaml:"core" mapstructure:"core"`
+
 	// Plugin system configuration
 	Plugins *plugintypes.PluginConfig `json:"plugins" yaml:"plugins" mapstructure:"plugins"`
 
@@ -486,6 +489,22 @@ type AbilityEventPool struct {
 type AbilityConfig struct {
 	// EventPool configures the goroutine pool for event emission.
 	EventPool AbilityEventPool `json:"event_pool" yaml:"event_pool" mapstructure:"event_pool"`
+}
+
+// CoreConfig configures hub.CapCore primitives.
+type CoreConfig struct {
+	// Workspace is the root for run_code / run_terminal; empty falls back to chat_agent.workspace.
+	Workspace string `json:"workspace" yaml:"workspace" mapstructure:"workspace"`
+	// HTTP configures outbound http_request SSRF policy.
+	HTTP CoreHTTPConfig `json:"http" yaml:"http" mapstructure:"http"`
+}
+
+// CoreHTTPConfig controls CapCore http_request outbound access.
+type CoreHTTPConfig struct {
+	// AllowPrivate permits requests to private/loopback/link-local addresses when true.
+	AllowPrivate bool `json:"allow_private" yaml:"allow_private" mapstructure:"allow_private"`
+	// AllowHosts lists hostnames always permitted (bypass private-address checks).
+	AllowHosts []string `json:"allow_hosts" yaml:"allow_hosts" mapstructure:"allow_hosts"`
 }
 
 type Pipeline struct {

@@ -2,7 +2,7 @@
 
 Multi-channel notification gateway: rules → templates → channel `Notifyer` dispatch.
 
-Call path: callers → `notify.GatewaySend()` (or optional `pkg/capability/notify`) → rules/template engines → registered providers (`slack`, `ntfy`, `pushover`, `messagepusher`).
+Call path: callers → `notify.GatewaySend()` (or `pkg/capability/core` `notify_send`) → rules/template engines → registered providers (`slack`, `ntfy`, `pushover`, `messagepusher`).
 
 ## Entry points
 

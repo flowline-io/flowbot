@@ -17,9 +17,8 @@ const (
 	CapGithub       CapabilityType = "github"
 	CapDevops       CapabilityType = "devops"
 	CapExample      CapabilityType = "example"
-	CapNotify       CapabilityType = "notify"
-	CapAgent        CapabilityType = "agent"
-	CapClip         CapabilityType = "clip"
+	// CapCore is the internal multi-op capability (notify, clip, agent, http, run_*, kv_*).
+	CapCore CapabilityType = "core"
 )
 
 // EventDef describes an event that a capability emits.

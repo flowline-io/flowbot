@@ -144,7 +144,7 @@ func TestIsMutation(t *testing.T) {
 		{"mark_entry_unread is mutation", "mark_entry_unread", true},
 		{"star_entry is mutation", "star_entry", true},
 		{"unstar_entry is mutation", "unstar_entry", true},
-		{"send is mutation", "send", true},
+		{"send is mutation", "notify_send", true},
 		{"add is mutation", "add", true},
 		{"create_feed is mutation", "create_feed", true},
 		{"create_transaction is mutation", "create_transaction", true},
@@ -175,7 +175,7 @@ func TestOperationConstants(t *testing.T) {
 		{"example Add constant", OpArchiveAdd, "add"},
 		{"reader ListFeeds constant", OpReaderListFeeds, "list_feeds"},
 		{"kanban ListTasks constant", OpKanbanListTasks, "list_tasks"},
-		{"agent Run constant", OpAgentRun, "run"},
+		{"agent Run constant", OpAgentRun, "agent_run"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

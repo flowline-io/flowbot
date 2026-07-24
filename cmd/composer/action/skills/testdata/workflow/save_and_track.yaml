@@ -19,7 +19,7 @@ triggers:
 
 pipeline:
   - save_bookmark
-  - archive_url
+  - archive_bookmark
   - create_task
 
 tasks:
@@ -35,11 +35,11 @@ tasks:
       max_delay: 30s
       jitter: true
 
-  - id: archive_url
-    action: capability:archive.add
-    describe: "Archive the URL in ArchiveBox"
+  - id: archive_bookmark
+    action: capability:karakeep.archive
+    describe: "Archive the bookmark in Karakeep"
     params:
-      url: "{{input.url}}"
+      id: '{{jsonpath (step "save_bookmark" "result") "data.id"}}'
     retry:
       max_attempts: 5
       delay: 1s
@@ -51,7 +51,7 @@ tasks:
     describe: "Create a follow-up task"
     params:
       title: "Read: {{input.title}}"
-      description: 'Bookmark reference: {{step "save_bookmark" "result"}}'
+      description: 'Bookmark id: {{jsonpath (step "save_bookmark" "result") "data.id"}}'
       tags:
         - reading
         - bookmark

@@ -56,11 +56,13 @@ Pipelines are defined in a separate `pipelines.yaml` file in the working directo
           - rate_limited
 
     - name: send_notification
-      capability: notify
-      operation: send
+      capability: core
+      operation: notify_send
       params:
-        channel: slack
-        message: "New feeds: {{step "fetch_feeds" "count"}}"
+        template_id: "rss.new_feeds"
+        channels: ["slack"]
+        payload:
+          count: '{{step "fetch_feeds" "count"}}'
 ```
 
 ## Retry Strategy
