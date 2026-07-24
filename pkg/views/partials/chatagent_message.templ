@@ -33,17 +33,35 @@ templ ChatAgentMessage(msg model.AgentChatMessage, streaming bool) {
 					@templ.Raw(msg.HTML)
 					@ChatAgentAssistantMeta(msg, !streaming)
 				</div>
+			} else if msg.Role == "user" {
+				<div class="chat-bubble bg-primary text-primary-content whitespace-pre-wrap text-sm max-w-[92%]" data-testid="chatagent-message-body">
+					if len(msg.Attachments) > 0 {
+						<div class="chatagent-message-attachments" data-testid="chatagent-message-attachments">
+							for _, att := range msg.Attachments {
+								if att.Kind == "image" && att.URL != "" {
+									<img
+										src={ att.URL }
+										alt=""
+										class="chatagent-message-attach-img"
+										loading="lazy"
+										data-testid="chatagent-message-attach-img"/>
+								} else {
+									<span class="chatagent-message-attach-file">[{ att.Kind }] { att.FileID }</span>
+								}
+							}
+						</div>
+					}
+					if msg.Text != "" {
+						<div class="chatagent-message-text">{ msg.Text }</div>
+					}
+					if msg.TurnDurationMs > 0 || msg.RunDurationMs > 0 {
+						@ChatAgentDurationFooter(msg)
+					}
+				</div>
 			} else {
 				<div class="chat-bubble bg-base-100 border border-base-300 whitespace-pre-wrap text-sm max-w-[92%]" data-testid="chatagent-message-body">
 					if msg.Text != "" {
 						{ msg.Text }
-					}
-					if len(msg.Attachments) > 0 {
-						<ul class="mt-1 space-y-0.5 text-xs opacity-80" data-testid="chatagent-message-attachments">
-							for _, att := range msg.Attachments {
-								<li>[{ att.Kind }] { att.FileID }</li>
-							}
-						</ul>
 					}
 					if msg.Role == "assistant" {
 						@ChatAgentAssistantMeta(msg, !streaming)

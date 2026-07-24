@@ -115,6 +115,8 @@ func TestSecurityHeadersMiddleware_HSTS(t *testing.T) {
 			}
 			assert.Equal(t, "nosniff", resp.Header.Get(fiber.HeaderXContentTypeOptions))
 			assert.Equal(t, "DENY", resp.Header.Get(fiber.HeaderXFrameOptions))
+			csp := resp.Header.Get("Content-Security-Policy")
+			assert.Contains(t, csp, "img-src 'self' data: blob:")
 		})
 	}
 }

@@ -28,6 +28,8 @@ type SelectableModel struct {
 	ID string `json:"id"`
 	// Name is a human-readable label (catalog name when available, falls back to ID).
 	Name string `json:"name"`
+	// Multimodal is true when the model accepts image, audio, or video input.
+	Multimodal bool `json:"multimodal"`
 }
 
 // EffectiveSessionSettings is the resolved chat model and thinking level used for a run or UI.
@@ -143,7 +145,11 @@ func BuildSelectableModels() []SelectableModel {
 			if meta, ok := agentmodel.Lookup(name); ok && meta.Name != "" {
 				label = meta.Name
 			}
-			out = append(out, SelectableModel{ID: name, Name: label})
+			out = append(out, SelectableModel{
+				ID:         name,
+				Name:       label,
+				Multimodal: agentmodel.AcceptsMediaInput(name),
+			})
 		}
 	}
 	return out

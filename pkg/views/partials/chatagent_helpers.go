@@ -354,6 +354,30 @@ func chatAgentSelectedModel(storedModel, defaultModel string) string {
 	return strings.TrimSpace(defaultModel)
 }
 
+// chatAgentModelMultimodal reports whether the selected (or first) model accepts media input.
+func chatAgentModelMultimodal(models []SelectableModelOption, selectedModel string) bool {
+	selected := strings.TrimSpace(selectedModel)
+	if selected != "" {
+		for _, m := range models {
+			if m.ID == selected {
+				return m.Multimodal
+			}
+		}
+	}
+	if len(models) > 0 {
+		return models[0].Multimodal
+	}
+	return false
+}
+
+// chatAgentMultimodalAttr returns "true" or "false" for HTML data attributes.
+func chatAgentMultimodalAttr(v bool) string {
+	if v {
+		return "true"
+	}
+	return "false"
+}
+
 // chatAgentSessionSettingsLabel returns the header line for model and thinking level.
 func chatAgentSessionSettingsLabel(session model.AgentSession, defaultModel string) string {
 	modelName := chatAgentModelLabel(session, defaultModel)

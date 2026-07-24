@@ -19,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/tmc/langchaingo/llms"
 )
 
 type pooledHarness struct {
@@ -318,7 +319,11 @@ func buildRunHarness(ctx context.Context, req RunRequest, textLen int) (*builtHa
 				InitialState: agentCtx,
 				Config:       cfg,
 				Model:        llmModel,
-				Registry:     registry,
+				ResolveModel: func(resolveCtx context.Context, modelName string) (llms.Model, error) {
+					m, _, resolveErr := NewModelForTest(resolveCtx, modelName)
+					return m, resolveErr
+				},
+				Registry: registry,
 			},
 			Session:        agentSession,
 			SystemPrompt:   systemPrompt,

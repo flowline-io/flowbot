@@ -10,7 +10,10 @@ templ ChatAgentSettingsCluster(
 	selectedThinking string,
 	disabled bool,
 ) {
-	<div class="chatagent-settings" data-testid="chatagent-settings">
+	<div
+		class="chatagent-settings"
+		data-testid="chatagent-settings"
+		data-selected-multimodal={ chatAgentMultimodalAttr(chatAgentModelMultimodal(models, selectedModel)) }>
 		if len(models) > 1 {
 			<select
 				id={ modelID }
@@ -21,9 +24,9 @@ templ ChatAgentSettingsCluster(
 				aria-label="Model">
 				for _, m := range models {
 					if selectedModel != "" && m.ID == selectedModel {
-						<option value={ m.ID } selected>{ m.Name }</option>
+						<option value={ m.ID } data-multimodal={ chatAgentMultimodalAttr(m.Multimodal) } selected>{ m.Name }</option>
 					} else {
-						<option value={ m.ID }>{ m.Name }</option>
+						<option value={ m.ID } data-multimodal={ chatAgentMultimodalAttr(m.Multimodal) }>{ m.Name }</option>
 					}
 				}
 			</select>
@@ -43,6 +46,23 @@ templ ChatAgentSettingsCluster(
 			@chatAgentThinkingOption("high", "High", selectedThinking)
 		</select>
 	</div>
+}
+
+// ChatAgentAttachButton renders the circle-plus control used to attach media.
+templ ChatAgentAttachButton(id string, hidden bool, disabled bool) {
+	<button
+		type="button"
+		id={ id }
+		class={ "chatagent-attach-btn", templ.KV("hidden", hidden) }
+		disabled?={ disabled }
+		data-testid={ id }
+		title="Attach media"
+		aria-label="Attach media">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" class="chatagent-attach-icon" aria-hidden="true">
+			<circle cx="10" cy="10" r="7.25" stroke="currentColor" stroke-width="1.5"></circle>
+			<path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M10 6.75v6.5M6.75 10h6.5"></path>
+		</svg>
+	</button>
 }
 
 templ chatAgentThinkingOption(value, label, selectedThinking string) {

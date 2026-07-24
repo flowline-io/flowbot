@@ -49,6 +49,23 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 			wantCopy: false,
 		},
 		{
+			name: "user image attachment renders preview",
+			msg: model.AgentChatMessage{
+				Role: "user",
+				Kind: "user",
+				Text: "这是什么",
+				Attachments: []model.AgentChatAttachment{
+					{
+						FileID:   "img-1",
+						MIMEType: "image/png",
+						Kind:     "image",
+						URL:      "/service/web/agents/s1/media/img-1",
+					},
+				},
+			},
+			wantCopy: false,
+		},
+		{
 			name: "streaming assistant hides copy button",
 			msg: model.AgentChatMessage{
 				Role: "assistant",
@@ -81,6 +98,14 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 			hasCopy := strings.Contains(html, `data-testid="chatagent-copy-md"`)
 			if hasCopy != tt.wantCopy {
 				t.Fatalf("copy button present=%v want=%v\nhtml=%s", hasCopy, tt.wantCopy, html)
+			}
+			if tt.name == "user image attachment renders preview" {
+				if !strings.Contains(html, `data-testid="chatagent-message-attach-img"`) {
+					t.Fatalf("want image preview\nhtml=%s", html)
+				}
+				if !strings.Contains(html, `src="/service/web/agents/s1/media/img-1"`) {
+					t.Fatalf("want preview src\nhtml=%s", html)
+				}
 			}
 			if !tt.wantCopy {
 				return

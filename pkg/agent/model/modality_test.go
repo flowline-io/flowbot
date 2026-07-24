@@ -35,3 +35,23 @@ func TestSupportsModality(t *testing.T) {
 		})
 	}
 }
+
+func TestAcceptsMediaInput(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		modelName string
+		want      bool
+	}{
+		{name: "vision model accepts media", modelName: "mimo-v2.5", want: true},
+		{name: "text-only model rejects media", modelName: "deepseek-v4-pro", want: false},
+		{name: "unknown model allows image so accepts media", modelName: "custom-uncatalogued", want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, model.AcceptsMediaInput(tt.modelName))
+		})
+	}
+}

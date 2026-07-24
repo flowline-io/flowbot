@@ -426,7 +426,15 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"flex items-end gap-2\"><div class=\"chatagent-input-wrap flex-1 min-w-0\"><div id=\"chatagent-pending-attachments\" class=\"flex flex-wrap gap-1 mb-1 empty:hidden\" data-testid=\"chatagent-pending-attachments\"></div><textarea id=\"chatagent-followup-input\" class=\"chatagent-followup-textarea w-full min-h-12 max-h-40 resize-y leading-normal\" placeholder=\"Add follow-up... (Enter to send, Shift+Enter for newline; paste image to attach)\" rows=\"2\" data-testid=\"chatagent-followup-input\"></textarea><div class=\"chatagent-input-footer\"><div class=\"flex items-center gap-1\"><input type=\"file\" id=\"chatagent-media-input\" class=\"hidden\" accept=\"image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm\" data-testid=\"chatagent-media-input\" multiple> <button type=\"button\" id=\"chatagent-attach-media\" class=\"btn btn-ghost btn-xs\" data-testid=\"chatagent-attach-media\" title=\"Attach media\">Attach</button> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"flex items-end gap-2\"><div class=\"chatagent-input-wrap flex-1 min-w-0\"><div id=\"chatagent-pending-attachments\" class=\"chatagent-pending-attachments empty:hidden\" data-testid=\"chatagent-pending-attachments\"></div><textarea id=\"chatagent-followup-input\" class=\"chatagent-followup-textarea w-full min-h-12 max-h-40 resize-y leading-normal\" placeholder=\"Add follow-up... (Enter to send, Shift+Enter for newline; paste image to attach)\" rows=\"2\" data-testid=\"chatagent-followup-input\"></textarea><div class=\"chatagent-input-footer\"><div class=\"flex items-center gap-1 min-w-0\"><input type=\"file\" id=\"chatagent-media-input\" class=\"hidden\" accept=\"image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm\" data-testid=\"chatagent-media-input\" multiple>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = ChatAgentAttachButton(
+			"chatagent-attach-media",
+			!chatAgentModelMultimodal(endpoints.SelectableModels, chatAgentSelectedModel(session.Model, endpoints.DefaultModel)),
+			false,
+		).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

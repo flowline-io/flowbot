@@ -2,8 +2,9 @@ package partials
 
 // SelectableModelOption is one model entry available for the session picker.
 type SelectableModelOption struct {
-	ID   string
-	Name string
+	ID         string
+	Name       string
+	Multimodal bool
 }
 
 // ChatAgentEndpoints carries configurable HTTP paths for chat agent UI components.

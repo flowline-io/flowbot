@@ -6,13 +6,40 @@
   var PENDING_PREFIX = 'flowbot-chatagent-pending:';
   var COMPOSER_MODEL_KEY = 'flowbot-chatagent-composer:model';
   var COMPOSER_THINKING_KEY = 'flowbot-chatagent-composer:thinking';
+  var MAX_ATTACHMENTS = 8;
 
   function pendingKey(sessionID) {
     return PENDING_PREFIX + sessionID;
   }
 
+  function parsePendingPayload(raw) {
+    if (!raw) {
+      return { text: '', attachments: [] };
+    }
+    try {
+      var parsed = JSON.parse(raw);
+      if (
+        parsed &&
+        typeof parsed === 'object' &&
+        !Array.isArray(parsed) &&
+        ('text' in parsed || 'attachments' in parsed)
+      ) {
+        return {
+          text: typeof parsed.text === 'string' ? parsed.text : '',
+          attachments: Array.isArray(parsed.attachments)
+            ? parsed.attachments
+            : [],
+        };
+      }
+    } catch {
+      /* legacy plain-text pending prompt */
+    }
+    return { text: String(raw), attachments: [] };
+  }
+
   function consumePendingPrompt(sessionID) {
     var text = '';
+    var attachments = [];
     var params = new URLSearchParams(window.location.search);
     if (params.has('prompt')) {
       text = params.get('prompt') || '';
@@ -23,17 +50,33 @@
     }
     try {
       var key = pendingKey(sessionID);
-      if (!text.trim()) {
-        text = sessionStorage.getItem(key) || '';
-      }
+      var stored = parsePendingPayload(sessionStorage.getItem(key) || '');
       // Always clear: create flow writes both ?prompt= and sessionStorage. If we
       // only clear storage when the URL is empty, revisiting the session from the
       // list re-sends the first prompt.
       sessionStorage.removeItem(key);
+      if (!text.trim()) {
+        text = stored.text || '';
+      }
+      attachments = stored.attachments || [];
     } catch {
       /* storage may be unavailable */
     }
-    return text.trim();
+    return { text: text.trim(), attachments: attachments };
+  }
+
+  function storePendingPrompt(sessionID, text, attachments) {
+    try {
+      sessionStorage.setItem(
+        pendingKey(sessionID),
+        JSON.stringify({
+          text: text || '',
+          attachments: attachments || [],
+        }),
+      );
+    } catch {
+      /* storage may be unavailable */
+    }
   }
 
   function lsGet(key) {
@@ -66,6 +109,220 @@
     );
   }
 
+  function isImageMime(mime) {
+    return !!(mime && mime.indexOf('image/') === 0);
+  }
+
+  function revokePreviewURL(item) {
+    if (item && item.previewURL) {
+      URL.revokeObjectURL(item.previewURL);
+      item.previewURL = '';
+    }
+  }
+
+  function clearPendingAttachments(list) {
+    (list || []).forEach(revokePreviewURL);
+    list.length = 0;
+  }
+
+  function selectedModelMultimodal(modelSel, settingsEl) {
+    if (modelSel && modelSel.selectedOptions && modelSel.selectedOptions[0]) {
+      return (
+        modelSel.selectedOptions[0].getAttribute('data-multimodal') === 'true'
+      );
+    }
+    if (settingsEl) {
+      return settingsEl.getAttribute('data-selected-multimodal') === 'true';
+    }
+    return false;
+  }
+
+  function syncAttachVisibility(modelSel, attachBtn, settingsEl) {
+    var multimodal = selectedModelMultimodal(modelSel, settingsEl);
+    if (settingsEl) {
+      settingsEl.setAttribute(
+        'data-selected-multimodal',
+        multimodal ? 'true' : 'false',
+      );
+    }
+    if (attachBtn) {
+      attachBtn.classList.toggle('hidden', !multimodal);
+    }
+    return multimodal;
+  }
+
+  function createAttachmentQueue(opts) {
+    var pendingAttachments = [];
+    var pendingEl = opts.pendingEl;
+    var mediaInput = opts.mediaInput;
+    var attachBtn = opts.attachBtn;
+    var modelSel = opts.modelSel;
+    var settingsEl = opts.settingsEl;
+    var inputEl = opts.inputEl;
+    var errorEl = opts.errorEl;
+
+    function renderPendingAttachments() {
+      if (!pendingEl) {
+        return;
+      }
+      pendingEl.textContent = '';
+      pendingAttachments.forEach(function (item) {
+        var rm = document.createElement('button');
+        rm.type = 'button';
+        rm.className = 'chatagent-pending-remove';
+        rm.setAttribute('aria-label', 'Remove attachment');
+        rm.textContent = '\u00d7';
+        rm.addEventListener('click', function () {
+          var i = pendingAttachments.indexOf(item);
+          if (i < 0) {
+            return;
+          }
+          revokePreviewURL(pendingAttachments[i]);
+          pendingAttachments.splice(i, 1);
+          renderPendingAttachments();
+        });
+
+        if (item.previewURL && isImageMime(item.mime_type)) {
+          var thumb = document.createElement('div');
+          thumb.className = 'chatagent-pending-thumb';
+          var img = document.createElement('img');
+          img.src = item.previewURL;
+          img.alt = item.name || 'Attached image';
+          thumb.appendChild(img);
+          thumb.appendChild(rm);
+          pendingEl.appendChild(thumb);
+          return;
+        }
+
+        var chip = document.createElement('span');
+        chip.className = 'chatagent-pending-file';
+        var name = document.createElement('span');
+        name.className = 'chatagent-pending-file-name';
+        name.textContent = item.name || item.kind || 'media';
+        chip.appendChild(name);
+        chip.appendChild(rm);
+        pendingEl.appendChild(chip);
+      });
+    }
+
+    function queueFile(file) {
+      if (!file) {
+        return;
+      }
+      if (!selectedModelMultimodal(modelSel, settingsEl)) {
+        ns.showError(errorEl, 'Selected model does not support media input');
+        return;
+      }
+      if (pendingAttachments.length >= MAX_ATTACHMENTS) {
+        ns.showError(errorEl, 'At most 8 attachments per message');
+        return;
+      }
+      var item = {
+        file: file,
+        name: file.name,
+        mime_type: file.type,
+        previewURL: '',
+      };
+      if (isImageMime(file.type)) {
+        item.previewURL = URL.createObjectURL(file);
+      }
+      pendingAttachments.push(item);
+      renderPendingAttachments();
+      ns.showError(errorEl, '');
+    }
+
+    syncAttachVisibility(modelSel, attachBtn, settingsEl);
+
+    if (modelSel) {
+      modelSel.addEventListener('change', function () {
+        syncAttachVisibility(modelSel, attachBtn, settingsEl);
+      });
+    }
+
+    if (attachBtn && mediaInput) {
+      attachBtn.addEventListener('click', function () {
+        if (attachBtn.classList.contains('hidden') || attachBtn.disabled) {
+          return;
+        }
+        mediaInput.click();
+      });
+      mediaInput.addEventListener('change', function () {
+        var files = mediaInput.files || [];
+        for (var i = 0; i < files.length; i++) {
+          queueFile(files[i]);
+        }
+        mediaInput.value = '';
+      });
+    }
+
+    if (inputEl) {
+      inputEl.addEventListener('paste', function (ev) {
+        if (!selectedModelMultimodal(modelSel, settingsEl)) {
+          return;
+        }
+        var items = (ev.clipboardData && ev.clipboardData.items) || [];
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].type && items[i].type.indexOf('image/') === 0) {
+            var f = items[i].getAsFile();
+            if (f) {
+              queueFile(f);
+              ev.preventDefault();
+            }
+          }
+        }
+      });
+    }
+
+    return {
+      list: pendingAttachments,
+      render: renderPendingAttachments,
+      take: function () {
+        var atts = pendingAttachments.slice();
+        pendingAttachments.length = 0;
+        renderPendingAttachments();
+        return atts;
+      },
+      clear: function () {
+        clearPendingAttachments(pendingAttachments);
+        renderPendingAttachments();
+      },
+    };
+  }
+
+  function uploadComposerAttachments(mediaURL, files) {
+    return Promise.all(
+      (files || []).map(function (item) {
+        if (!item.file) {
+          return Promise.reject(new Error('missing attachment file'));
+        }
+        var fd = new FormData();
+        fd.append(
+          'file',
+          item.file,
+          item.name || item.file.name || 'upload.bin',
+        );
+        return flowbotCSRFHeadersAsync({}).then(function (upHeaders) {
+          return fetch(mediaURL, {
+            method: 'POST',
+            headers: upHeaders,
+            body: fd,
+          }).then(function (res) {
+            return res.json().then(function (body) {
+              if (!res.ok) {
+                throw new Error((body && body.error) || 'upload failed');
+              }
+              return {
+                file_id: body.file_id,
+                mime_type: body.mime_type,
+                kind: body.kind,
+              };
+            });
+          });
+        });
+      }),
+    );
+  }
+
   function initComposer(root) {
     var createURL = root.getAttribute('data-create-url');
     var detailTemplate = root.getAttribute('data-detail-url-template');
@@ -75,6 +332,7 @@
     var modelSel = root.querySelector('#chatagent-composer-model');
     var thinkingSel = root.querySelector('#chatagent-composer-thinking');
     var errorEl = root.querySelector('#chatagent-composer-error');
+    var settingsEl = root.querySelector('[data-testid="chatagent-settings"]');
     if (!createURL || !detailTemplate || !input || !startBtn) {
       return;
     }
@@ -104,9 +362,19 @@
       });
     }
 
+    var queue = createAttachmentQueue({
+      pendingEl: root.querySelector('#chatagent-composer-pending'),
+      mediaInput: root.querySelector('#chatagent-composer-media-input'),
+      attachBtn: root.querySelector('#chatagent-composer-attach'),
+      modelSel: modelSel,
+      settingsEl: settingsEl,
+      inputEl: input,
+      errorEl: errorEl,
+    });
+
     function start() {
       var text = (input.value || '').trim();
-      if (!text) {
+      if (!text && queue.list.length === 0) {
         ns.showError(errorEl, 'Enter a prompt to start.');
         return;
       }
@@ -118,6 +386,7 @@
         thinking_level:
           thinkingSel && thinkingSel.value ? thinkingSel.value : 'default',
       };
+      var localAtts = queue.list.slice();
 
       flowbotCSRFHeadersAsync()
         .then(function (headers) {
@@ -148,16 +417,21 @@
           if (!sessionID) {
             throw new Error('Missing session id');
           }
-          try {
-            sessionStorage.setItem(pendingKey(sessionID), text);
-          } catch {
-            /* storage may be unavailable */
-          }
-          var detailURL =
-            detailTemplate.replace('{id}', sessionID) +
-            '?prompt=' +
-            encodeURIComponent(text);
-          window.location.href = detailURL;
+          var mediaURL = detailTemplate.replace('{id}', sessionID) + '/media';
+          var upload =
+            localAtts.length > 0
+              ? uploadComposerAttachments(mediaURL, localAtts)
+              : Promise.resolve([]);
+          return upload.then(function (refs) {
+            clearPendingAttachments(localAtts);
+            queue.clear();
+            storePendingPrompt(sessionID, text, refs);
+            var detailURL = detailTemplate.replace('{id}', sessionID);
+            if (text) {
+              detailURL += '?prompt=' + encodeURIComponent(text);
+            }
+            window.location.href = detailURL;
+          });
         })
         .catch(function (err) {
           ns.showError(errorEl, err.message || 'Failed to start');
@@ -206,7 +480,7 @@
     return '';
   }
 
-  function initThreadSettings(root) {
+  function initThreadSettings(root, onModelChange) {
     var settingsURL = root.getAttribute('data-settings-url');
     if (!settingsURL) {
       return;
@@ -287,6 +561,9 @@
             );
           }
           ns.showError(errorEl, '');
+          if (typeof onModelChange === 'function') {
+            onModelChange();
+          }
         })
         .catch(function (err) {
           var msg = (err && err.message) || 'Failed to save settings';
@@ -324,7 +601,13 @@
       root.querySelector('#chatagent-approval-panel'),
     );
 
-    initThreadSettings(root);
+    var modelSel = root.querySelector('#chatagent-thread-model');
+    var settingsEl = root.querySelector('[data-testid="chatagent-settings"]');
+    var attachBtn = root.querySelector('#chatagent-attach-media');
+
+    initThreadSettings(root, function () {
+      syncAttachVisibility(modelSel, attachBtn, settingsEl);
+    });
 
     function closeSession() {
       if (!closeURL) {
@@ -383,83 +666,22 @@
       closeBtns[ci].addEventListener('click', closeSession);
     }
 
-    var pendingAttachments = [];
-    var pendingEl = root.querySelector('#chatagent-pending-attachments');
-    var mediaInput = root.querySelector('#chatagent-media-input');
-    var attachBtn = root.querySelector('#chatagent-attach-media');
-
-    function renderPendingAttachments() {
-      if (!pendingEl) {
-        return;
-      }
-      pendingEl.textContent = '';
-      pendingAttachments.forEach(function (item, idx) {
-        var chip = document.createElement('span');
-        chip.className = 'badge badge-ghost badge-sm gap-1';
-        chip.textContent = item.name || item.kind || 'media';
-        var rm = document.createElement('button');
-        rm.type = 'button';
-        rm.className = 'btn btn-ghost btn-xs px-1';
-        rm.textContent = '×';
-        rm.addEventListener('click', function () {
-          pendingAttachments.splice(idx, 1);
-          renderPendingAttachments();
-        });
-        chip.appendChild(rm);
-        pendingEl.appendChild(chip);
-      });
-    }
-
-    function queueFile(file) {
-      if (!file) {
-        return;
-      }
-      if (pendingAttachments.length >= 8) {
-        ns.showError(errorEl, 'At most 8 attachments per message');
-        return;
-      }
-      pendingAttachments.push({
-        file: file,
-        name: file.name,
-        mime_type: file.type,
-      });
-      renderPendingAttachments();
-    }
-
-    if (attachBtn && mediaInput) {
-      attachBtn.addEventListener('click', function () {
-        mediaInput.click();
-      });
-      mediaInput.addEventListener('change', function () {
-        var files = mediaInput.files || [];
-        for (var i = 0; i < files.length; i++) {
-          queueFile(files[i]);
-        }
-        mediaInput.value = '';
-      });
-    }
-
-    input.addEventListener('paste', function (ev) {
-      var items = (ev.clipboardData && ev.clipboardData.items) || [];
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].type && items[i].type.indexOf('image/') === 0) {
-          var f = items[i].getAsFile();
-          if (f) {
-            queueFile(f);
-            ev.preventDefault();
-          }
-        }
-      }
+    var queue = createAttachmentQueue({
+      pendingEl: root.querySelector('#chatagent-pending-attachments'),
+      mediaInput: root.querySelector('#chatagent-media-input'),
+      attachBtn: attachBtn,
+      modelSel: modelSel,
+      settingsEl: settingsEl,
+      inputEl: input,
+      errorEl: errorEl,
     });
 
     function sendFollowUp() {
       var text = (input.value || '').trim();
-      if (!text && pendingAttachments.length === 0) {
+      if (!text && queue.list.length === 0) {
         return;
       }
-      var atts = pendingAttachments.slice();
-      pendingAttachments = [];
-      renderPendingAttachments();
+      var atts = queue.take();
       input.value = '';
       ns.streamMessage(messagesURL, text, root, null, approval, atts);
     }
@@ -487,8 +709,18 @@
     if (ns.refreshTodosFromServer) {
       ns.refreshTodosFromServer(root);
     }
-    if (pending && !threadHasHistory(root)) {
-      ns.streamMessage(messagesURL, pending, root, null, approval, []);
+    if (
+      (pending.text || (pending.attachments && pending.attachments.length)) &&
+      !threadHasHistory(root)
+    ) {
+      ns.streamMessage(
+        messagesURL,
+        pending.text,
+        root,
+        null,
+        approval,
+        pending.attachments || [],
+      );
     }
   }
 

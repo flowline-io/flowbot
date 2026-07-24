@@ -866,7 +866,7 @@ func TestMapChatMessages(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			out := mapChatMessages(tt.in)
+			out := mapChatMessages("sess-map", tt.in)
 			assert.Len(t, out, tt.want)
 			if tt.want > 0 && tt.in[0].Role == "assistant" && tt.in[0].Kind != "tool" && tt.name != "legacy assistant splits tool payload" {
 				assert.NotEmpty(t, out[0].HTML)
@@ -877,6 +877,46 @@ func TestMapChatMessages(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestChatAgentMediaPreviewURL(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		sessionID string
+		fileID    string
+		want      string
+	}{
+		{
+			name:      "builds same-origin path",
+			sessionID: "sess-1",
+			fileID:    "file-abc",
+			want:      "/service/web/agents/sess-1/media/file-abc",
+		},
+		{name: "empty session", sessionID: "", fileID: "f1", want: ""},
+		{name: "empty file", sessionID: "sess-1", fileID: "", want: ""},
+		{name: "trims spaces", sessionID: " sess ", fileID: " f1 ", want: "/service/web/agents/sess/media/f1"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, chatAgentMediaPreviewURL(tt.sessionID, tt.fileID))
+		})
+	}
+}
+
+func TestMapHistoryMessageImagePreviewURL(t *testing.T) {
+	t.Parallel()
+	got := mapHistoryMessage("sess-img", chatagent.HistoryMessage{
+		Role: "user",
+		Kind: "user",
+		Text: "what is this",
+		Attachments: []chatagent.AttachmentRef{
+			{FileID: "img-1", MIMEType: "image/png", Kind: "image"},
+		},
+	})
+	require.Len(t, got.Attachments, 1)
+	assert.Equal(t, "/service/web/agents/sess-img/media/img-1", got.Attachments[0].URL)
 }
 
 func TestAgentChatConfirmNotFound(t *testing.T) {

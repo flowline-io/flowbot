@@ -262,6 +262,13 @@ func SupportsModality(modelName string, kind msg.MediaKind) bool {
 	}
 }
 
+// AcceptsMediaInput reports whether modelName accepts image, audio, or video input.
+func AcceptsMediaInput(modelName string) bool {
+	return SupportsModality(modelName, msg.MediaKindImage) ||
+		SupportsModality(modelName, msg.MediaKindAudio) ||
+		SupportsModality(modelName, msg.MediaKindVideo)
+}
+
 // RegisterTestMetadata adds or overrides a catalog entry for the duration of a test.
 func RegisterTestMetadata(t *testing.T, meta Metadata) {
 	t.Helper()

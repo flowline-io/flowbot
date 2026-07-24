@@ -1196,6 +1196,116 @@ body:has(.chatagent-page) > main {
   background-color: var(--color-base-100, #ffffff);
 }
 
+.chatagent-pending-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 0.75rem 0;
+}
+
+.chatagent-pending-attachments:empty {
+  display: none;
+  padding: 0;
+}
+
+.chatagent-pending-thumb {
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  overflow: hidden;
+  border: 1px solid oklch(var(--bc) / 0.14);
+  background: oklch(var(--b2));
+  flex-shrink: 0;
+}
+
+.chatagent-pending-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chatagent-pending-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 12rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  border: 1px solid oklch(var(--bc) / 0.14);
+  background: oklch(var(--b2));
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: oklch(var(--bc) / 0.75);
+}
+
+.chatagent-pending-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chatagent-pending-remove {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: oklch(0 0 0 / 0.55);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chatagent-pending-file .chatagent-pending-remove {
+  position: static;
+  width: 1rem;
+  height: 1rem;
+  background: transparent;
+  color: oklch(var(--bc) / 0.55);
+}
+
+.chatagent-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: oklch(var(--bc) / 0.35);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.chatagent-attach-btn:hover:not(:disabled) {
+  color: oklch(var(--bc) / 0.55);
+  background: oklch(var(--bc) / 0.06);
+}
+
+.chatagent-attach-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.chatagent-attach-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 .chatagent-page .chatagent-followup-textarea {
   display: block;
   min-height: 3rem;
@@ -1569,6 +1679,35 @@ body:has(.chatagent-page) > main {
 }
 
 /* Duration left, copy icon bottom-right inside the bubble */
+.chatagent-page .chatagent-message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.chatagent-page .chatagent-message-attach-img {
+  display: block;
+  max-width: 12rem;
+  max-height: 12rem;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: oklch(0 0 0 / 0.12);
+}
+
+.chatagent-page .chatagent-message-attach-file {
+  display: inline-block;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.chatagent-page .chatagent-message-text + .chatagent-duration,
+.chatagent-page .chatagent-message-attachments + .chatagent-message-text {
+  margin-top: 0;
+}
+
 .chatagent-page .chatagent-message-meta {
   display: flex;
   align-items: center;
@@ -1805,6 +1944,17 @@ body:has(.chatagent-page) > main {
   gap: 0.75rem;
   margin-top: 0.5rem;
   padding-top: 0.15rem;
+}
+
+.agents-composer-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.agents-composer-box .chatagent-pending-attachments {
+  padding: 0 0 0.75rem;
 }
 
 .agents-composer-send {

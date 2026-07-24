@@ -22,9 +22,16 @@ import (
 
 // LoopDeps holds runtime dependencies for the agent loop.
 type LoopDeps struct {
-	Model    llms.Model
-	Registry *tool.Registry
+	Model llms.Model
+	// ResolveModel optionally returns the langchaingo client for a turn's model name.
+	// Dual-model routing changes ModelName across turns; without ResolveModel the loop
+	// would keep calling deps.Model (bound to the chat provider endpoint).
+	ResolveModel ModelResolver
+	Registry     *tool.Registry
 }
+
+// ModelResolver returns the langchaingo client for a specific model name.
+type ModelResolver func(ctx context.Context, modelName string) (llms.Model, error)
 
 // RunLoop starts a new agent loop from prompt messages.
 func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg Config, deps LoopDeps, stream *agentevent.Stream) ([]AgentMessage, error) {
@@ -209,7 +216,13 @@ func streamAssistant(
 	streamOpts := buildStreamOptions(cfg, modelName, llmTools, emit, &capture)
 
 	start := time.Now()
-	result, err := agentllm.StreamAssistant(ctx, deps.Model, current.SystemPrompt, llmMessages, streamOpts)
+	llmModel, err := resolveTurnModel(ctx, deps, modelName)
+	if err != nil {
+		metrics.Agent().IncLLMRequest(modelName, "error")
+		trace.RecordError(ctx, err)
+		return AssistantMessage{}, err
+	}
+	result, err := agentllm.StreamAssistant(ctx, llmModel, current.SystemPrompt, llmMessages, streamOpts)
 	metrics.Agent().ObserveLLMDuration(modelName, time.Since(start).Seconds())
 	if err != nil {
 		err = agentresult.WrapOverflowError(err)
@@ -436,4 +449,22 @@ func turnModelName(cfg Config, current *Context) string {
 		return current.ModelName
 	}
 	return ""
+}
+
+// resolveTurnModel returns the langchaingo client for the current turn.
+func resolveTurnModel(ctx context.Context, deps LoopDeps, modelName string) (llms.Model, error) {
+	if deps.ResolveModel != nil {
+		model, err := deps.ResolveModel(ctx, modelName)
+		if err != nil {
+			return nil, fmt.Errorf("agent loop: resolve model %q: %w", modelName, err)
+		}
+		if model == nil {
+			return nil, fmt.Errorf("agent loop: resolve model %q returned nil", modelName)
+		}
+		return model, nil
+	}
+	if deps.Model == nil {
+		return nil, fmt.Errorf("agent loop: model is nil")
+	}
+	return deps.Model, nil
 }

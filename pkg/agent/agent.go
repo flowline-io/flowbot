@@ -28,6 +28,8 @@ type Options struct {
 	InitialState *Context
 	Config       Config
 	Model        llms.Model
+	// ResolveModel optionally resolves per-turn clients for dual-model routing.
+	ResolveModel ModelResolver
 	Registry     *tool.Registry
 }
 
@@ -55,8 +57,9 @@ func NewAgent(opts Options) *Agent {
 		state: state,
 		cfg:   cfg,
 		deps: LoopDeps{
-			Model:    opts.Model,
-			Registry: registry,
+			Model:        opts.Model,
+			ResolveModel: opts.ResolveModel,
+			Registry:     registry,
 		},
 		steering: newMessageQueue(cfg.SteeringMode),
 		followUp: newMessageQueue(cfg.FollowUpMode),

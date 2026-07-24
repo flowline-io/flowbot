@@ -558,3 +558,29 @@ func TestFormatPendingApprovalBadgeText(t *testing.T) {
 		})
 	}
 }
+
+func TestChatAgentModelMultimodal(t *testing.T) {
+	t.Parallel()
+	models := []SelectableModelOption{
+		{ID: "text", Name: "Text", Multimodal: false},
+		{ID: "vision", Name: "Vision", Multimodal: true},
+	}
+	tests := []struct {
+		name     string
+		models   []SelectableModelOption
+		selected string
+		want     bool
+	}{
+		{name: "selected multimodal model", models: models, selected: "vision", want: true},
+		{name: "selected text-only model", models: models, selected: "text", want: false},
+		{name: "empty selection uses first model", models: models, selected: "", want: false},
+		{name: "unknown selection falls back to first", models: models, selected: "missing", want: false},
+		{name: "no models", models: nil, selected: "vision", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, chatAgentModelMultimodal(tt.models, tt.selected))
+		})
+	}
+}

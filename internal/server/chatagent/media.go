@@ -2,6 +2,7 @@ package chatagent
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strings"
@@ -165,6 +166,36 @@ func ResolveAttachments(ctx context.Context, sessionID, ownerUID string, refs []
 	return parts, nil
 }
 
+// OpenSessionMedia returns MIME type and bytes for a session-bound media file owned by caller.
+func OpenSessionMedia(ctx context.Context, sessionID, ownerUID, fileID string) (string, []byte, error) {
+	sessionID = strings.TrimSpace(sessionID)
+	fileID = strings.TrimSpace(fileID)
+	ownerUID = strings.TrimSpace(ownerUID)
+	if sessionID == "" || fileID == "" {
+		return "", nil, types.Errorf(types.ErrInvalidArgument, "session and file_id are required")
+	}
+	binding, err := loadSessionMediaBinding(ctx, sessionID, fileID)
+	if err != nil {
+		return "", nil, err
+	}
+	if binding.Owner != "" && ownerUID != "" && binding.Owner != ownerUID {
+		return "", nil, types.Errorf(types.ErrForbidden, "media file does not belong to caller")
+	}
+	accessor, ok := media.AsAccessor(store.FileSystem)
+	if !ok || accessor == nil {
+		return "", nil, types.Errorf(types.ErrUnavailable, "media handler is not configured")
+	}
+	fd, data, err := media.ReadAll(ctx, accessor, fileID)
+	if err != nil {
+		return "", nil, types.Errorf(types.ErrNotFound, "media file %q not found", fileID)
+	}
+	mimeType := binding.MIMEType
+	if mimeType == "" && fd != nil {
+		mimeType = fd.MimeType
+	}
+	return mimeType, data, nil
+}
+
 // RejectUnsupportedModalities fails when the chat model cannot accept attachment kinds.
 func RejectUnsupportedModalities(modelName string, parts []msg.ContentPart) error {
 	for _, part := range parts {
@@ -187,8 +218,6 @@ func PrepareMediaForProvider(ctx context.Context, provider string, messages []ms
 	if !ok || accessor == nil {
 		return messages, nil
 	}
-	hydrate := providerNeedsBinary(provider)
-	ttl := config.App.ChatAgent.Media.SignedURLTTL
 	out := make([]msg.AgentMessage, len(messages))
 	for i, message := range messages {
 		user, ok := message.(msg.UserMessage)
@@ -203,25 +232,14 @@ func PrepareMediaForProvider(ctx context.Context, provider string, messages []ms
 			if !ok || mp.FileID == "" {
 				continue
 			}
-			if hydrate || mp.Kind != msg.MediaKindImage {
-				fd, data, err := media.ReadAll(ctx, accessor, mp.FileID)
-				if err != nil {
-					return nil, fmt.Errorf("hydrate media %s: %w", mp.FileID, err)
-				}
-				if mp.MIMEType == "" && fd != nil {
-					mp.MIMEType = fd.MimeType
-				}
-				mp.Data = data
-				mp.URL = ""
-			} else {
-				signed, err := accessor.SignGetURL(ctx, mp.FileID, ttl)
-				if err != nil {
-					return nil, fmt.Errorf("sign media %s: %w", mp.FileID, err)
-				}
-				mp.URL = signed
-				mp.Data = nil
+			fd, data, err := media.ReadAll(ctx, accessor, mp.FileID)
+			if err != nil {
+				return nil, fmt.Errorf("hydrate media %s: %w", mp.FileID, err)
 			}
-			parts[j] = mp
+			if mp.MIMEType == "" && fd != nil {
+				mp.MIMEType = fd.MimeType
+			}
+			parts[j] = FillMediaPartForProvider(provider, mp, data)
 		}
 		user.Parts = parts
 		out[i] = user
@@ -229,13 +247,49 @@ func PrepareMediaForProvider(ctx context.Context, provider string, messages []ms
 	return out, nil
 }
 
-func providerNeedsBinary(provider string) bool {
-	switch provider {
-	case llm.ProviderAnthropic:
-		return true
-	default:
-		return false
+type mediaPayloadMode int
+
+const (
+	mediaPayloadBinary mediaPayloadMode = iota
+	mediaPayloadDataURL
+)
+
+// mediaPayloadModeFor chooses how media bytes are attached for a provider/kind.
+// OpenAI-compatible APIs (including MiMo) require publicly reachable image URLs or
+// data: URIs; private object-storage signed URLs fail with 400 Param Incorrect.
+func mediaPayloadModeFor(provider string, kind msg.MediaKind) mediaPayloadMode {
+	if kind != msg.MediaKindImage {
+		return mediaPayloadBinary
 	}
+	switch provider {
+	case llm.ProviderAnthropic, llm.ProviderGemini:
+		return mediaPayloadBinary
+	default:
+		// openai, openai_compatible, and unknown providers: inline data URIs.
+		return mediaPayloadDataURL
+	}
+}
+
+// MediaDataURI builds an OpenAI-compatible data URI for inline image bytes.
+func MediaDataURI(mimeType string, data []byte) string {
+	mime := strings.TrimSpace(mimeType)
+	if mime == "" {
+		mime = "application/octet-stream"
+	}
+	return "data:" + mime + ";base64," + base64.StdEncoding.EncodeToString(data)
+}
+
+// FillMediaPartForProvider sets URL or Data on a media part for ConvertToLLM.
+func FillMediaPartForProvider(provider string, mp msg.MediaPart, data []byte) msg.MediaPart {
+	switch mediaPayloadModeFor(provider, mp.Kind) {
+	case mediaPayloadBinary:
+		mp.Data = data
+		mp.URL = ""
+	default:
+		mp.URL = MediaDataURI(mp.MIMEType, data)
+		mp.Data = nil
+	}
+	return mp
 }
 
 func sessionMediaCacheKey(sessionID, fileID string) cache.Key {

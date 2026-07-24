@@ -9,6 +9,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	agentmodel "github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -196,6 +197,59 @@ func TestBuildSelectableModels(t *testing.T) {
 				ids[i] = m.ID
 			}
 			assert.Equal(t, tt.want, ids)
+		})
+	}
+}
+
+func TestBuildSelectableModelsMultimodal(t *testing.T) {
+	LockAppConfigForTest(t)
+	orig := config.App
+	t.Cleanup(func() { config.App = orig })
+
+	agentmodel.RegisterTestMetadata(t, agentmodel.Metadata{
+		ID: "vision-model",
+		Features: []agentmodel.Feature{
+			agentmodel.ModalityImageIn,
+			agentmodel.ModalityTextIn,
+			agentmodel.ModalityTextOut,
+		},
+	})
+	agentmodel.RegisterTestMetadata(t, agentmodel.Metadata{
+		ID: "text-only-model",
+		Features: []agentmodel.Feature{
+			agentmodel.ModalityTextIn,
+			agentmodel.ModalityTextOut,
+		},
+	})
+	agentmodel.RegisterTestMetadata(t, agentmodel.Metadata{
+		ID: "audio-model",
+		Features: []agentmodel.Feature{
+			agentmodel.ModalityAudioIn,
+			agentmodel.ModalityTextIn,
+			agentmodel.ModalityTextOut,
+		},
+	})
+
+	tests := []struct {
+		name string
+		id   string
+		want bool
+	}{
+		{name: "image input model is multimodal", id: "vision-model", want: true},
+		{name: "text-only model is not multimodal", id: "text-only-model", want: false},
+		{name: "audio input model is multimodal", id: "audio-model", want: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config.App = config.Type{
+				ChatAgent: config.ChatAgentConfig{ChatModel: tt.id},
+				Models: []config.Model{
+					{Provider: "openai", ModelNames: []string{tt.id}},
+				},
+			}
+			got := BuildSelectableModels()
+			require.Len(t, got, 1)
+			assert.Equal(t, tt.want, got[0].Multimodal)
 		})
 	}
 }

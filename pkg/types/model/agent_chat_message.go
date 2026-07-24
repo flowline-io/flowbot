@@ -25,4 +25,6 @@ type AgentChatAttachment struct {
 	FileID   string `json:"file_id"`
 	MIMEType string `json:"mime_type,omitempty"`
 	Kind     string `json:"kind,omitempty"`
+	// URL is a same-origin preview/download path for the web UI when available.
+	URL string `json:"url,omitempty"`
 }

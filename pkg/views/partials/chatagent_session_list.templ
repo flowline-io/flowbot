@@ -18,6 +18,10 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 			<div class="alert alert-warning text-sm mb-3" data-testid="chatagent-disabled">Chat agent is not enabled. Configure chat_agent.chat_model in flowbot.yaml.</div>
 		}
 		<div class="agents-composer-box">
+			<div
+				id="chatagent-composer-pending"
+				class="chatagent-pending-attachments empty:hidden"
+				data-testid="chatagent-composer-pending"></div>
 			<textarea
 				id="chatagent-composer-input"
 				class="agents-composer-input"
@@ -26,14 +30,29 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 				rows="3"
 				data-testid="chatagent-composer-input"></textarea>
 			<div class="agents-composer-toolbar">
-				@ChatAgentSettingsCluster(
-					"chatagent-composer-model",
-					"chatagent-composer-thinking",
-					endpoints.SelectableModels,
-					"",
-					"",
-					disabled,
-				)
+				<div class="agents-composer-toolbar-left">
+					<input
+						type="file"
+						id="chatagent-composer-media-input"
+						class="hidden"
+						accept="image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm"
+						data-testid="chatagent-composer-media-input"
+						multiple
+						disabled?={ disabled }/>
+					@ChatAgentAttachButton(
+						"chatagent-composer-attach",
+						!chatAgentModelMultimodal(endpoints.SelectableModels, endpoints.DefaultModel),
+						disabled,
+					)
+					@ChatAgentSettingsCluster(
+						"chatagent-composer-model",
+						"chatagent-composer-thinking",
+						endpoints.SelectableModels,
+						endpoints.DefaultModel,
+						"",
+						disabled,
+					)
+				</div>
 				<button
 					type="button"
 					id="chatagent-composer-start"

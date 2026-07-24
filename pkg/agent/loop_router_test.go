@@ -98,3 +98,54 @@ func TestRunLoop_DualModelRouting(t *testing.T) {
 		})
 	}
 }
+
+func TestRunLoop_DualModelResolvesPerTurnClient(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		wantChatCalls int
+		wantToolCalls int
+	}{
+		{
+			name:          "tool turn uses tool-model client not chat client",
+			wantChatCalls: 1,
+			wantToolCalls: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			chatModel := agentllm.NewFakeModel(agentllm.ResponseScript{
+				ToolCalls: []llms.ToolCall{echoToolCall("call-1")},
+			})
+			toolModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "done"})
+			reg := tool.NewRegistry()
+			require.NoError(t, reg.Register(echo.Tool{}))
+
+			cfg := agent.DefaultConfig()
+			cfg.MaxSteps = 10
+			cfg.ChatModel = "chat-model"
+			cfg.ToolModel = "tool-model"
+			cfg.ModelName = "chat-model"
+
+			_, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
+				agent.NewUserMessage("run echo"),
+			}, &agent.Context{}, cfg, agent.LoopDeps{
+				Model: chatModel,
+				ResolveModel: func(_ context.Context, name string) (llms.Model, error) {
+					switch name {
+					case "tool-model":
+						return toolModel, nil
+					default:
+						return chatModel, nil
+					}
+				},
+				Registry: reg,
+			}, nil)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantChatCalls, chatModel.Calls())
+			assert.Equal(t, tt.wantToolCalls, toolModel.Calls())
+		})
+	}
+}

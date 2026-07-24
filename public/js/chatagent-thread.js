@@ -6,7 +6,25 @@
   var thinkingBodyClass =
     'chatagent-thinking-body chatagent-markdown markdown-body text-sm max-w-[92%]';
   var thinkingPlainClass = 'chatagent-thinking-body text-sm max-w-[92%]';
-  function appendUserMessage(container, text) {
+  function isImageAttachment(item) {
+    if (!item) {
+      return false;
+    }
+    if (item.kind === 'image') {
+      return true;
+    }
+    var mime = item.mime_type || (item.file && item.file.type) || '';
+    return mime.indexOf('image/') === 0;
+  }
+
+  function mediaPreviewURL(mediaURL, fileID) {
+    if (!mediaURL || !fileID) {
+      return '';
+    }
+    return mediaURL.replace(/\/$/, '') + '/' + encodeURIComponent(fileID);
+  }
+
+  function appendUserMessage(container, text, attachments, mediaURL) {
     var wrap = document.createElement('div');
     wrap.className = 'chat chat-end';
     wrap.setAttribute('data-role', 'user');
@@ -16,7 +34,53 @@
     body.className =
       'chat-bubble bg-primary text-primary-content whitespace-pre-wrap text-sm max-w-[92%]';
     body.setAttribute('data-testid', 'chatagent-message-body');
-    body.textContent = text;
+
+    var atts = Array.isArray(attachments) ? attachments : [];
+    if (atts.length) {
+      var gallery = document.createElement('div');
+      gallery.className = 'chatagent-message-attachments';
+      gallery.setAttribute('data-testid', 'chatagent-message-attachments');
+      atts.forEach(function (item) {
+        if (isImageAttachment(item)) {
+          var src = '';
+          if (item.previewURL) {
+            src = item.previewURL;
+          } else if (item.file && isImageAttachment(item)) {
+            src = URL.createObjectURL(item.file);
+          } else if (item.file_id) {
+            src = mediaPreviewURL(mediaURL, item.file_id);
+          }
+          if (src) {
+            var img = document.createElement('img');
+            img.src = src;
+            img.alt = '';
+            img.className = 'chatagent-message-attach-img';
+            img.setAttribute('data-testid', 'chatagent-message-attach-img');
+            gallery.appendChild(img);
+            return;
+          }
+        }
+        var chip = document.createElement('span');
+        chip.className = 'chatagent-message-attach-file';
+        chip.textContent =
+          '[' +
+          (item.kind || 'media') +
+          '] ' +
+          (item.file_id || item.name || 'attachment');
+        gallery.appendChild(chip);
+      });
+      body.appendChild(gallery);
+    }
+
+    if (text) {
+      var textEl = document.createElement('div');
+      textEl.className = 'chatagent-message-text';
+      textEl.textContent = text;
+      body.appendChild(textEl);
+    } else if (!atts.length) {
+      body.textContent = '';
+    }
+
     wrap.appendChild(body);
     container.appendChild(wrap);
     if (ns.stickMessagesToBottom) {
@@ -443,7 +507,12 @@
 
     showThreadError(errorEl, '');
     ns.setRunning(true, threadRoot);
-    appendUserMessage(messagesEl, text || (pending.length ? '[media]' : ''));
+    appendUserMessage(
+      messagesEl,
+      text,
+      pending,
+      mediaURL,
+    );
 
     flowbotCSRFHeadersAsync({
       'Content-Type': 'application/json',

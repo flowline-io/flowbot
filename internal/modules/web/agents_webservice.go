@@ -40,6 +40,7 @@ var (
 		webservice.Put("/agents/:id/settings", agentChatPutSettings, route.WithNotAuth()),
 		webservice.Post("/agents/:id/messages", agentChatSendMessage, route.WithNotAuth()),
 		webservice.Post("/agents/:id/media", agentChatUploadMedia, route.WithNotAuth()),
+		webservice.Get("/agents/:id/media/:file_id", agentChatGetMedia, route.WithNotAuth()),
 		webservice.Post("/agents/:id/cancel", agentChatCancel, route.WithNotAuth()),
 		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
 		webservice.Get("/agents/:id/events", agentChatEvents, route.WithNotAuth()),
@@ -109,7 +110,7 @@ func selectableModelOptions() []partials.SelectableModelOption {
 	models := chatagent.BuildSelectableModels()
 	opts := make([]partials.SelectableModelOption, len(models))
 	for i, m := range models {
-		opts[i] = partials.SelectableModelOption{ID: m.ID, Name: m.Name}
+		opts[i] = partials.SelectableModelOption{ID: m.ID, Name: m.Name, Multimodal: m.Multimodal}
 	}
 	return opts
 }
@@ -306,7 +307,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	return pages.AgentChatPage(
 		mapAgentSession(row),
-		mapChatMessages(messages),
+		mapChatMessages(sessionID, messages),
 		todos,
 		agentChatEndpoints(sessionID),
 		pendingConfirmForSession(sessionID),
@@ -426,6 +427,44 @@ func agentChatUploadMedia(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.JSON(result)
+}
+
+func agentChatGetMedia(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	if err := webRequireChatAgentEnabled(); err != nil {
+		return ctx.Status(http.StatusServiceUnavailable).JSON(fiber.Map{"error": "chat agent is not enabled"})
+	}
+	sessionID := strings.Clone(ctx.Params("id"))
+	fileID := strings.Clone(ctx.Params("file_id"))
+	if err := ensureWebSessionOwner(ctx, sessionID); err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "session not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		return types.Errorf(types.ErrInternal, "get media: %v", err)
+	}
+	mimeType, data, err := chatagent.OpenSessionMedia(ctx.Context(), sessionID, getUID(ctx), fileID)
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "media not found"})
+		}
+		if errors.Is(err, types.ErrForbidden) {
+			return ctx.Status(http.StatusForbidden).JSON(fiber.Map{"error": "forbidden"})
+		}
+		if errors.Is(err, types.ErrInvalidArgument) {
+			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		return types.Errorf(types.ErrInternal, "get media: %v", err)
+	}
+	if mimeType != "" {
+		ctx.Set("Content-Type", mimeType)
+	}
+	ctx.Set(fiber.HeaderCacheControl, "private, max-age=3600")
+	return ctx.Send(data)
 }
 
 func agentChatClose(ctx fiber.Ctx) error {
@@ -762,7 +801,7 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
-func mapChatMessages(messages []chatagent.HistoryMessage) []model.AgentChatMessage {
+func mapChatMessages(sessionID string, messages []chatagent.HistoryMessage) []model.AgentChatMessage {
 	usePersisted := chatagent.HasPersistedToolResults(messages)
 	out := make([]model.AgentChatMessage, 0, len(messages))
 	for _, m := range messages {
@@ -770,12 +809,12 @@ func mapChatMessages(messages []chatagent.HistoryMessage) []model.AgentChatMessa
 			out = append(out, partials.ClassifyHistoryMessage(m.Role, m.Text, m.CreatedAt)...)
 			continue
 		}
-		out = append(out, mapHistoryMessage(m))
+		out = append(out, mapHistoryMessage(sessionID, m))
 	}
 	return out
 }
 
-func mapHistoryMessage(m chatagent.HistoryMessage) model.AgentChatMessage {
+func mapHistoryMessage(sessionID string, m chatagent.HistoryMessage) model.AgentChatMessage {
 	kind := m.Kind
 	if kind == "" {
 		kind = m.Role
@@ -811,6 +850,7 @@ func mapHistoryMessage(m chatagent.HistoryMessage) model.AgentChatMessage {
 				FileID:   a.FileID,
 				MIMEType: a.MIMEType,
 				Kind:     a.Kind,
+				URL:      chatAgentMediaPreviewURL(sessionID, a.FileID),
 			})
 		}
 		return model.AgentChatMessage{
@@ -832,4 +872,14 @@ func mapHistoryMessage(m chatagent.HistoryMessage) model.AgentChatMessage {
 			CreatedAt:      m.CreatedAt,
 		}
 	}
+}
+
+// chatAgentMediaPreviewURL builds a same-origin preview path for a session media file.
+func chatAgentMediaPreviewURL(sessionID, fileID string) string {
+	sessionID = strings.TrimSpace(sessionID)
+	fileID = strings.TrimSpace(fileID)
+	if sessionID == "" || fileID == "" {
+		return ""
+	}
+	return "/service/web/agents/" + sessionID + "/media/" + fileID
 }
