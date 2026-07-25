@@ -245,6 +245,25 @@
           return this.steps[this.selectedIndex] || null;
         },
 
+        // CSP Alpine cannot reference the global JSON object in templates.
+        prettyJSON: function (value) {
+          if (value === undefined || value === null) {
+            return '';
+          }
+          try {
+            return JSON.stringify(value, null, 2);
+          } catch {
+            return String(value);
+          }
+        },
+
+        formatStepElapsed: function (ms) {
+          if (!ms) {
+            return '';
+          }
+          return (ms / 1000).toFixed(1) + 's';
+        },
+
         get formattedElapsed() {
           var ms = this.totalElapsed;
           if (ms < 1000) return ms + 'ms';

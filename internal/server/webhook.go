@@ -55,33 +55,45 @@ func sanitizeWebhookHeaders(c fiber.Ctx, wcfg *pipeline.WebhookConfig) map[strin
 	return headers
 }
 
-// registerWebhookRoutes registers webhook HTTP routes on the Fiber app
-// for each webhook-enabled pipeline definition.
+// registerWebhookRoutes mounts a catch-all handler under /webhook/*
+// so ReloadDefinitions can update endpoints without re-registering Fiber routes.
+// Reserved prefixes provider/ and workflow/ are ignored here; they have their own routes.
 func registerWebhookRoutes(engine *pipeline.Engine) error {
-	webhookMap, err := engine.RegisterWebhooks()
-	if err != nil {
+	if _, err := engine.RegisterWebhooks(); err != nil {
 		return fmt.Errorf("register webhooks: %w", err)
 	}
-
-	for path, def := range webhookMap {
-		method := def.Trigger.Webhook.Method
-		routePath := "/webhook/" + strings.TrimPrefix(path, "/")
-		handler := makeWebhookHandler(engine, def)
-		switch method {
-		case "GET":
-			sharedAppPtr().Get(routePath, handler)
-		case "POST":
-			sharedAppPtr().Post(routePath, handler)
-		case "PUT":
-			sharedAppPtr().Put(routePath, handler)
-		default:
-			flog.Warn("webhook pipeline %s: unsupported method %q, skipping route registration", def.Name, method)
-			continue
-		}
-		flog.Info("webhook route registered: %s %s -> pipeline %s", method, routePath, def.Name)
-	}
-
+	sharedAppPtr().All("/webhook/*", makePipelineWebhookCatchAll(engine))
+	flog.Info("pipeline webhook route registered: ALL /webhook/*")
 	return nil
+}
+
+func makePipelineWebhookCatchAll(engine *pipeline.Engine) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		path := strings.TrimPrefix(c.Params("*"), "/")
+		if path == "" || isReservedWebhookPrefix(path) {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+		def, ok := engine.LookupWebhook(path)
+		if !ok || def == nil || def.Trigger.Webhook == nil {
+			return c.SendStatus(fiber.StatusNotFound)
+		}
+		method := def.Trigger.Webhook.Method
+		if method == "" {
+			method = "POST"
+		}
+		if !strings.EqualFold(string(c.Request().Header.Method()), method) {
+			return c.SendStatus(fiber.StatusMethodNotAllowed)
+		}
+		return makeWebhookHandler(engine, def)(c)
+	}
+}
+
+func isReservedWebhookPrefix(path string) bool {
+	path = strings.TrimPrefix(path, "/")
+	return path == "provider" ||
+		strings.HasPrefix(path, "provider/") ||
+		path == "workflow" ||
+		strings.HasPrefix(path, "workflow/")
 }
 
 // makeWebhookHandler returns a Fiber handler that authenticates the request
@@ -149,6 +161,8 @@ func makeWebhookHandler(engine *pipeline.Engine, def *pipeline.Definition) fiber
 }
 
 // authenticateWebhook validates the request against the webhook auth config.
+// Token auth accepts either the configured header (default X-Webhook-Token)
+// or the query parameter "token".
 func authenticateWebhook(c fiber.Ctx, wcfg *pipeline.WebhookConfig) (int, bool) {
 	if wcfg == nil {
 		return fiber.StatusUnauthorized, false
@@ -165,6 +179,9 @@ func authenticateWebhook(c fiber.Ctx, wcfg *pipeline.WebhookConfig) (int, bool) 
 			tokenHeader = "X-Webhook-Token"
 		}
 		provided := c.Get(tokenHeader)
+		if provided == "" {
+			provided = c.Query("token")
+		}
 		if provided == ac.Token {
 			return fiber.StatusOK, true
 		}

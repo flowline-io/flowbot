@@ -28,6 +28,7 @@ func TestAuthenticateWebhook(t *testing.T) {
 		name       string
 		wcfg       *pipeline.WebhookConfig
 		body       string
+		query      string
 		setHeaders func(req *http.Request)
 		wantOK     bool
 	}{
@@ -98,6 +99,22 @@ func TestAuthenticateWebhook(t *testing.T) {
 			wantOK: true,
 		},
 		{
+			name: "token via query param",
+			wcfg: &pipeline.WebhookConfig{
+				Auth: pipeline.WebhookAuthConfig{Token: "123456"},
+			},
+			query:  "token=123456",
+			wantOK: true,
+		},
+		{
+			name: "wrong query token rejected",
+			wcfg: &pipeline.WebhookConfig{
+				Auth: pipeline.WebhookAuthConfig{Token: "123456"},
+			},
+			query:  "token=wrong",
+			wantOK: false,
+		},
+		{
 			name: "HMAC with uppercase signature prefix",
 			wcfg: &pipeline.WebhookConfig{
 				Auth: pipeline.WebhookAuthConfig{HMACSecret: "key", HMACHeader: "X-Hub-Signature-256"},
@@ -123,9 +140,15 @@ func TestAuthenticateWebhook(t *testing.T) {
 				return c.Status(status).SendString(http.StatusText(status))
 			})
 
-			req, err := http.NewRequest("POST", "/test-auth", strings.NewReader(tt.body))
+			url := "/test-auth"
+			if tt.query != "" {
+				url += "?" + tt.query
+			}
+			req, err := http.NewRequest("POST", url, strings.NewReader(tt.body))
 			require.NoError(t, err)
-			tt.setHeaders(req)
+			if tt.setHeaders != nil {
+				tt.setHeaders(req)
+			}
 
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -311,6 +334,132 @@ func TestWebhookHandler_AuthFailureReturns401(t *testing.T) {
 			resp, err := app.Test(req)
 			require.NoError(t, err)
 			assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+		})
+	}
+}
+
+func TestPipelineWebhookCatchAll(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		defs       []pipeline.Definition
+		method     string
+		url        string
+		token      string
+		reload     []pipeline.Definition
+		wantStatus int
+	}{
+		{
+			name: "post hits published path",
+			defs: []pipeline.Definition{{
+				Name: "wh", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "/a", Method: "POST", EventType: "webhook.a",
+					Auth: pipeline.WebhookAuthConfig{Token: "tok"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodPost,
+			url:        "/webhook/a",
+			token:      "tok",
+			wantStatus: fiber.StatusAccepted,
+		},
+		{
+			name: "get with query token succeeds when method is GET",
+			defs: []pipeline.Definition{{
+				Name: "wh", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "a", Method: "GET", EventType: "webhook.a",
+					Auth: pipeline.WebhookAuthConfig{Token: "123456"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodGet,
+			url:        "/webhook/a?token=123456",
+			wantStatus: fiber.StatusAccepted,
+		},
+		{
+			name: "get with query token is wrong method when configured POST",
+			defs: []pipeline.Definition{{
+				Name: "wh", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "a", Method: "POST", EventType: "webhook.a",
+					Auth: pipeline.WebhookAuthConfig{Token: "123456"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodGet,
+			url:        "/webhook/a?token=123456",
+			wantStatus: fiber.StatusMethodNotAllowed,
+		},
+		{
+			name: "unknown path is 404",
+			defs: []pipeline.Definition{{
+				Name: "wh", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "a", Method: "POST", EventType: "webhook.a",
+					Auth: pipeline.WebhookAuthConfig{Token: "tok"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodPost,
+			url:        "/webhook/missing",
+			token:      "tok",
+			wantStatus: fiber.StatusNotFound,
+		},
+		{
+			name: "reserved provider prefix is 404 in catch-all",
+			defs: []pipeline.Definition{{
+				Name: "wh", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "provider/x", Method: "POST", EventType: "webhook.x",
+					Auth: pipeline.WebhookAuthConfig{Token: "tok"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodPost,
+			url:        "/webhook/provider/x",
+			token:      "tok",
+			wantStatus: fiber.StatusNotFound,
+		},
+		{
+			name: "reload picks up new webhook path without new fiber route",
+			defs: []pipeline.Definition{{
+				Name: "old", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "old", Method: "POST", EventType: "webhook.old",
+					Auth: pipeline.WebhookAuthConfig{Token: "tok"}, Payload: "raw",
+				}},
+			}},
+			reload: []pipeline.Definition{{
+				Name: "new", Enabled: true,
+				Trigger: pipeline.Trigger{Webhook: &pipeline.WebhookConfig{
+					Path: "a", Method: "POST", EventType: "webhook.a",
+					Auth: pipeline.WebhookAuthConfig{Token: "tok"}, Payload: "raw",
+				}},
+			}},
+			method:     http.MethodPost,
+			url:        "/webhook/a",
+			token:      "tok",
+			wantStatus: fiber.StatusAccepted,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := fiber.New()
+			defer app.Shutdown()
+
+			engine := pipeline.NewEngine(tt.defs, nil, nil, nil, nil)
+			defer engine.Stop()
+			app.All("/webhook/*", makePipelineWebhookCatchAll(engine))
+			if tt.reload != nil {
+				require.NoError(t, engine.Reload(tt.reload))
+			}
+
+			req, err := http.NewRequest(tt.method, tt.url, http.NoBody)
+			require.NoError(t, err)
+			if tt.token != "" {
+				req.Header.Set("X-Webhook-Token", tt.token)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 		})
 	}
 }

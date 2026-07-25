@@ -147,7 +147,7 @@ func (e *Engine) registerCronJobs(defs []Definition) {
 }
 
 // Reload replaces in-memory pipeline definitions and refreshes cron registrations.
-// Event and webhook handlers use the updated defs slice; webhook HTTP routes are not re-registered.
+// Event handlers and the catch-all webhook route look up defs dynamically after reload.
 func (e *Engine) Reload(defs []Definition) error {
 	if e == nil {
 		return nil
@@ -762,13 +762,45 @@ func (e *Engine) RegisterWebhooks() (map[string]*Definition, error) {
 		if e.defs[i].Trigger.Webhook == nil {
 			continue
 		}
-		path := e.defs[i].Trigger.Webhook.Path
+		path := normalizeWebhookPath(e.defs[i].Trigger.Webhook.Path)
+		if path == "" {
+			continue
+		}
 		if _, exists := result[path]; exists {
 			return nil, fmt.Errorf("duplicate webhook path %q", path)
 		}
 		result[path] = &e.defs[i]
 	}
 	return result, nil
+}
+
+// LookupWebhook returns the pipeline definition for a webhook path
+// (without the /webhook/ prefix). Paths are matched with leading slashes trimmed.
+// The returned pointer is only valid until the next Reload.
+func (e *Engine) LookupWebhook(path string) (*Definition, bool) {
+	if e == nil {
+		return nil, false
+	}
+	want := normalizeWebhookPath(path)
+	if want == "" {
+		return nil, false
+	}
+	e.reloadMu.Lock()
+	defer e.reloadMu.Unlock()
+	for i := range e.defs {
+		wh := e.defs[i].Trigger.Webhook
+		if wh == nil {
+			continue
+		}
+		if normalizeWebhookPath(wh.Path) == want {
+			return &e.defs[i], true
+		}
+	}
+	return nil, false
+}
+
+func normalizeWebhookPath(path string) string {
+	return strings.TrimPrefix(strings.TrimSpace(path), "/")
 }
 
 // Stop shuts down the cron scheduler. It waits up to 30 seconds for

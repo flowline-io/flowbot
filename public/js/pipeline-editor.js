@@ -1,4 +1,33 @@
 (function () {
+  function normalizeWebhookConfig(webhook) {
+    var src = webhook || {};
+    var auth = src.auth || {};
+    return {
+      path: src.path || '',
+      method: src.method || 'POST',
+      auth: {
+        token: auth.token || '',
+        hmac_secret: auth.hmac_secret || '',
+      },
+    };
+  }
+
+  function generateWebhookToken() {
+    var bytes = new Uint8Array(16);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(bytes);
+    } else {
+      for (var i = 0; i < bytes.length; i++) {
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    return Array.prototype.map
+      .call(bytes, function (b) {
+        return b.toString(16).padStart(2, '0');
+      })
+      .join('');
+  }
+
   function register() {
     Alpine.data('pipelineEditor', () => ({
       pipelineURL(suffix) {
@@ -1008,11 +1037,7 @@
             enabled: t.enabled !== false,
             event: t.event || '',
             cron: t.cron || '',
-            webhook: t.webhook || {
-              path: '',
-              method: 'POST',
-              auth: { token: '', hmac_secret: '' },
-            },
+            webhook: normalizeWebhookConfig(t.webhook),
           }));
           this.steps = (obj.steps || []).map((s) => ({
             name: s.name || '',
@@ -1095,13 +1120,23 @@
           enabled: true,
           event: '',
           cron: '',
-          webhook: {
-            path: '',
-            method: 'POST',
-            auth: { token: '', hmac_secret: '' },
-          },
+          webhook: normalizeWebhookConfig(null),
         });
         this.markDirty();
+      },
+
+      onTriggerTypeChange() {
+        this.drawerDirty = true;
+        var t = this.selectedTrigger();
+        if (!t) {
+          return;
+        }
+        if (t.type === 'webhook') {
+          t.webhook = normalizeWebhookConfig(t.webhook);
+          if (!t.webhook.auth.token && !t.webhook.auth.hmac_secret) {
+            t.webhook.auth.token = generateWebhookToken();
+          }
+        }
       },
 
       syncDrawerAfterListRemoval(type, removedIdx) {
@@ -1256,19 +1291,15 @@
             return;
           }
         }
-        this.validate();
-        const nodeErrors = this.errors.filter(
-          (e) => e.node.type === type && e.node.index === index,
-        );
-        if (nodeErrors.length > 0) {
-          showToast(nodeErrors[0].message, 'error');
-          return;
-        }
+        // Drawer Save persists draft work-in-progress. Publish-readiness
+        // errors (auth, missing steps, etc.) still surface via validate()
+        // and disable Publish — they must not block draft save.
         if (this.drawerDirty) {
           this.pushUndo();
           this.markDirty();
         }
         this.finishDrawerSession();
+        this.validate();
         await this.saveDraft();
       },
 
@@ -1397,16 +1428,14 @@
               node: { type: 'trigger', index: i },
               message: 'Webhook path is required',
             });
-          if (
-            t.type === 'webhook' &&
-            t.webhook &&
-            !t.webhook.auth.token &&
-            !t.webhook.auth.hmac_secret
-          )
-            this.errors.push({
-              node: { type: 'trigger', index: i },
-              message: 'At least one auth method is required',
-            });
+          if (t.type === 'webhook') {
+            var auth = t.webhook && t.webhook.auth ? t.webhook.auth : null;
+            if (!auth || (!auth.token && !auth.hmac_secret))
+              this.errors.push({
+                node: { type: 'trigger', index: i },
+                message: 'At least one auth method is required',
+              });
+          }
           if (t.type === 'cron' && !t.cron)
             this.errors.push({
               node: { type: 'trigger', index: i },
@@ -1489,6 +1518,132 @@
         return err ? err.message : '';
       },
 
+      // webhookURL builds the absolute pipeline webhook endpoint for a path
+      // (routes are served as /webhook/{path}). When token is set, append
+      // ?token= so the URL is ready to call (GET-friendly; also accepted on POST).
+      webhookURL(path, token) {
+        if (!path) {
+          return '';
+        }
+        var trimmed = String(path).replace(/^\/+/, '');
+        if (!trimmed) {
+          return '';
+        }
+        var url = window.location.origin + '/webhook/' + trimmed;
+        if (token) {
+          url += '?token=' + encodeURIComponent(token);
+        }
+        return url;
+      },
+
+      webhookMethod(t) {
+        if (!t || !t.webhook || !t.webhook.method) {
+          return 'POST';
+        }
+        return String(t.webhook.method).toUpperCase();
+      },
+
+      webhookToken(t) {
+        if (!t || !t.webhook || !t.webhook.auth) {
+          return '';
+        }
+        return t.webhook.auth.token || '';
+      },
+
+      webhookTriggerLabel(t) {
+        if (!t || !t.webhook || !t.webhook.path) {
+          return 'Webhook: ...';
+        }
+        var url = this.webhookURL(t.webhook.path, this.webhookToken(t));
+        if (!url) {
+          return 'Webhook: ...';
+        }
+        return this.webhookMethod(t) + ' ' + url;
+      },
+
+      webhookAuthHint(t) {
+        if (!t || !t.webhook) {
+          return '';
+        }
+        var auth = t.webhook.auth || {};
+        if (auth.token) {
+          return 'Auth: ?token=... or header X-Webhook-Token';
+        }
+        if (auth.hmac_secret) {
+          return 'Auth: header X-Hub-Signature-256';
+        }
+        return 'Auth: configure Token or HMAC Secret';
+      },
+
+      webhookCurlExample(t) {
+        if (!t || !t.webhook || !t.webhook.path) {
+          return '';
+        }
+        var token = this.webhookToken(t);
+        var url = this.webhookURL(t.webhook.path, token);
+        if (!url) {
+          return '';
+        }
+        var method = this.webhookMethod(t);
+        var parts = ['curl', '-X', method];
+        if (method === 'POST' || method === 'PUT') {
+          parts.push('-H', '"Content-Type: application/json"', '-d', "'{}'");
+        }
+        parts.push('"' + url + '"');
+        return parts.join(' ');
+      },
+
+      async copyTextValue(text, okMessage) {
+        if (!text) {
+          return;
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            var area = document.createElement('textarea');
+            area.value = text;
+            area.setAttribute('readonly', '');
+            area.style.position = 'fixed';
+            area.style.left = '-9999px';
+            document.body.appendChild(area);
+            area.select();
+            try {
+              if (!document.execCommand('copy')) {
+                throw new Error('copy failed');
+              }
+            } finally {
+              document.body.removeChild(area);
+            }
+          }
+          showToast(okMessage || 'Copied', 'success');
+        } catch {
+          showToast('Failed to copy', 'error');
+        }
+      },
+
+      async copyWebhookURL(t) {
+        if (!t || !t.webhook || !t.webhook.path) {
+          showToast('Webhook path is required', 'error');
+          return;
+        }
+        var url = this.webhookURL(t.webhook.path, this.webhookToken(t));
+        if (!url) {
+          showToast('Webhook path is required', 'error');
+          return;
+        }
+        await this.copyTextValue(url, 'Webhook URL copied');
+      },
+
+      async copyWebhookCurl(t) {
+        var example = this.webhookCurlExample(t);
+        if (!example) {
+          showToast('Webhook path is required', 'error');
+          return;
+        }
+        await this.copyTextValue(example, 'curl example copied');
+      },
+
       formatErrorMessage(err) {
         const { type, index } = err.node;
         if (index < 0) {
@@ -1569,7 +1724,11 @@
           this.version = data.version;
           this.status = data.status;
           this.dirty = false;
-          showToast('Draft saved', 'success');
+          if (this.status === 'published') {
+            showToast('Draft saved. Click Publish to update the live webhook.', 'success');
+          } else {
+            showToast('Draft saved', 'success');
+          }
         } catch (e) {
           console.error('Auto-save failed:', e);
           showToast('Save failed. Your changes are not saved yet.', 'error');

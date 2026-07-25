@@ -338,6 +338,116 @@ func TestEngine_RegisterWebhooks(t *testing.T) {
 	}
 }
 
+func TestEngine_ReloadUpdatesWebhookMethod(t *testing.T) {
+	t.Parallel()
+	e := NewEngine([]Definition{{
+		Name: "wh", Enabled: true,
+		Trigger: Trigger{Webhook: &WebhookConfig{
+			Path: "a", Method: "POST", Auth: WebhookAuthConfig{Token: "tok"},
+		}},
+	}}, nil, nil, noopPC, noopEC)
+	defer e.Stop()
+
+	def, ok := e.LookupWebhook("a")
+	require.True(t, ok)
+	require.NotNil(t, def.Trigger.Webhook)
+	assert.Equal(t, "POST", def.Trigger.Webhook.Method)
+
+	require.NoError(t, e.Reload([]Definition{{
+		Name: "wh", Enabled: true,
+		Trigger: Trigger{Webhook: &WebhookConfig{
+			Path: "a", Method: "GET", Auth: WebhookAuthConfig{Token: "tok"},
+		}},
+	}}))
+
+	def, ok = e.LookupWebhook("a")
+	require.True(t, ok)
+	require.NotNil(t, def.Trigger.Webhook)
+	assert.Equal(t, "GET", def.Trigger.Webhook.Method)
+}
+
+func TestEngine_LookupWebhook(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		defs     []Definition
+		path     string
+		wantName string
+		wantOK   bool
+	}{
+		{
+			name: "finds by exact path",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "hooks/a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			path:     "hooks/a",
+			wantName: "wh1",
+			wantOK:   true,
+		},
+		{
+			name: "normalizes leading slash on lookup",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "/a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			path:     "a",
+			wantName: "wh1",
+			wantOK:   true,
+		},
+		{
+			name: "normalizes leading slash on stored path",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			path:     "/a",
+			wantName: "wh1",
+			wantOK:   true,
+		},
+		{
+			name: "missing path",
+			defs: []Definition{
+				{
+					Name: "wh1", Enabled: true,
+					Trigger: Trigger{Webhook: &WebhookConfig{Path: "a", Method: "POST", Auth: WebhookAuthConfig{Token: "t"}}},
+				},
+			},
+			path:   "b",
+			wantOK: false,
+		},
+		{
+			name: "skips non-webhook definitions",
+			defs: []Definition{
+				{Name: "ev1", Enabled: true, Trigger: Trigger{Event: "e1"}},
+			},
+			path:   "a",
+			wantOK: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			e := NewEngine(tt.defs, nil, nil, noopPC, noopEC)
+			defer e.Stop()
+			def, ok := e.LookupWebhook(tt.path)
+			assert.Equal(t, tt.wantOK, ok)
+			if !tt.wantOK {
+				assert.Nil(t, def)
+				return
+			}
+			require.NotNil(t, def)
+			assert.Equal(t, tt.wantName, def.Name)
+		})
+	}
+}
+
 func TestEngine_ExecuteWebhook(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

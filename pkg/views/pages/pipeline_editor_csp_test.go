@@ -72,3 +72,33 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 		}
 	})
 }
+
+func TestPipelineEditorWebhookURLCopyMarkup(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	if err := pages.PipelineEditorPage("demo").Render(context.Background(), &buf); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	tests := []struct {
+		name string
+		want string
+	}{
+		{name: "trigger card url", want: `data-testid="webhook-trigger-url"`},
+		{name: "trigger card label helper", want: `x-text="webhookTriggerLabel(t)"`},
+		{name: "trigger card copy button", want: `data-testid="btn-copy-webhook-url"`},
+		{name: "drawer url display", want: `data-testid="webhook-url-display"`},
+		{name: "drawer copy button", want: `data-testid="btn-copy-webhook-url-drawer"`},
+		{name: "trigger type change helper", want: `@change="onTriggerTypeChange()"`},
+		{name: "auth hint on card", want: `data-testid="webhook-auth-hint"`},
+		{name: "copy curl example", want: `data-testid="btn-copy-webhook-curl"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if !strings.Contains(html, tt.want) {
+				t.Fatalf("want %q in pipeline editor HTML", tt.want)
+			}
+		})
+	}
+}

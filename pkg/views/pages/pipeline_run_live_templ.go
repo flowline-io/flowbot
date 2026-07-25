@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/version"
 )
 
 // StepState represents the initial state of one pipeline step for Alpine.js.
@@ -66,46 +67,59 @@ func PipelineRunLivePage(p PipelineRunLiveParams) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"/static/js/pipeline-run-live.js\"></script> <div class=\"max-w-6xl mx-auto\" x-data=\"pipelineRunLive\" x-init=\"init()\" data-testid=\"live-dashboard\"><!-- Header --><div class=\"flex items-center justify-between mb-4\"><div><h1 class=\"text-xl font-semibold text-base-content\">Live: <a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 templ.SafeURL
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/service/web/pipelines/" + p.PipelineName))
+			var templ_7745c5c3_Var3 string
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.ResolveAttributeValue("/static/js/pipeline-run-live.js?v=" + version.Buildtags)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 36, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 31, Col: 72}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"link link-hover text-primary\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"></script> <div class=\"max-w-6xl mx-auto\" x-data=\"pipelineRunLive\" x-init=\"init()\" data-testid=\"live-dashboard\"><!-- Header --><div class=\"flex items-center justify-between mb-4\"><div><h1 class=\"text-xl font-semibold text-base-content\">Live: <a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(p.PipelineName)
+			var templ_7745c5c3_Var4 templ.SafeURL
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/service/web/pipelines/" + p.PipelineName))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 37, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 37, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</a></h1><p class=\"text-sm text-base-content/60 mt-1\">Trigger: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"link link-hover text-primary\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.Trigger)
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(p.PipelineName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 39, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 38, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p></div><div class=\"flex items-center gap-4\"><span class=\"text-lg font-mono tabular-nums\" x-text=\"formattedElapsed\">0s</span> <span class=\"badge\" :class=\"runStatusClass()\" x-text=\"runStatus\" data-testid=\"run-status-badge\">Running</span></div></div><div class=\"grid grid-cols-12 gap-4\"><div class=\"col-span-4 space-y-1 max-h-[28rem] overflow-y-auto\" data-testid=\"step-list\"><template x-for=\"(step, idx) in steps\" :key=\"idx\"><div class=\"flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-base-300\" :class=\"stepRowClass(idx)\" :data-step-index=\"idx\" @click=\"selectStep(idx)\" data-testid=\"step-row\"><span class=\"w-6 h-6 flex items-center justify-center text-sm\" :class=\"stepStatusIndicator(step.status)\" x-text=\"stepStatusIcon(step.status)\">○</span> <span class=\"text-sm font-medium\" x-text=\"step.name\" data-testid=\"step-name\"></span></div></template></div><div class=\"col-span-8 bg-base-200 rounded-box p-4\" data-testid=\"step-detail\"><template x-if=\"selectedStep\"><div><h3 class=\"font-semibold mb-2\" x-text=\"selectedStep.name\" data-testid=\"detail-name\"></h3><div class=\"space-y-2 text-sm\"><div><span class=\"text-base-content/60\">Status: </span> <span x-text=\"selectedStep.status\" data-testid=\"detail-status\"></span></div><div x-show=\"selectedStep.elapsed_ms\"><span class=\"text-base-content/60\">Elapsed: </span> <span x-text=\"(selectedStep.elapsed_ms / 1000).toFixed(1) + 's'\" data-testid=\"detail-elapsed\"></span></div><div x-show=\"selectedStep.input\"><span class=\"text-base-content/60\">Input: </span><pre class=\"text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40\" x-text=\"JSON.stringify(selectedStep.input, null, 2)\" data-testid=\"detail-input\"></pre></div><div x-show=\"selectedStep.output\"><span class=\"text-base-content/60\">Output: </span><pre class=\"text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40\" x-text=\"JSON.stringify(selectedStep.output, null, 2)\" data-testid=\"detail-output\"></pre></div><div x-show=\"selectedStep.error\"><span class=\"text-base-content/60\">Error: </span> <span class=\"text-error\" x-text=\"selectedStep.error\" data-testid=\"detail-error\"></span></div></div></div></template><template x-if=\"!selectedStep\"><p class=\"text-base-content/60\">Select a step to view details</p></template></div></div><div class=\"mt-4 bg-base-200 rounded-box p-3 flex items-center gap-3 text-sm\" data-testid=\"summary-bar\"><span x-text=\"completed + ' done'\"></span> <span class=\"text-base-content/40\">|</span> <span x-text=\"(steps.length - completed - failedSteps) + ' pending'\"></span> <span class=\"text-base-content/40\">|</span> <span x-show=\"failedSteps > 0\" x-text=\"failedSteps + ' failed'\" class=\"text-error\"></span> <span class=\"ml-auto\">Steps: <span x-text=\"completed + '/' + steps.length\" data-testid=\"summary-progress\"></span></span></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</a></h1><p class=\"text-sm text-base-content/60 mt-1\">Trigger: ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(p.Trigger)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_run_live.templ`, Line: 40, Col: 70}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p></div><div class=\"flex items-center gap-4\"><span class=\"text-lg font-mono tabular-nums\" x-text=\"formattedElapsed\">0s</span> <span class=\"badge\" :class=\"runStatusClass()\" x-text=\"runStatus\" data-testid=\"run-status-badge\">Running</span></div></div><div class=\"grid grid-cols-12 gap-4\"><div class=\"col-span-4 space-y-1 max-h-[28rem] overflow-y-auto\" data-testid=\"step-list\"><template x-for=\"(step, idx) in steps\" :key=\"idx\"><div class=\"flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-base-300\" :class=\"stepRowClass(idx)\" :data-step-index=\"idx\" @click=\"selectStep(idx)\" data-testid=\"step-row\"><span class=\"w-6 h-6 flex items-center justify-center text-sm\" :class=\"stepStatusIndicator(step.status)\" x-text=\"stepStatusIcon(step.status)\">○</span> <span class=\"text-sm font-medium\" x-text=\"step.name\" data-testid=\"step-name\"></span></div></template></div><div class=\"col-span-8 bg-base-200 rounded-box p-4\" data-testid=\"step-detail\"><template x-if=\"selectedStep\"><div><h3 class=\"font-semibold mb-2\" x-text=\"selectedStep.name\" data-testid=\"detail-name\"></h3><div class=\"space-y-2 text-sm\"><div><span class=\"text-base-content/60\">Status: </span> <span x-text=\"selectedStep.status\" data-testid=\"detail-status\"></span></div><div x-show=\"selectedStep.elapsed_ms\"><span class=\"text-base-content/60\">Elapsed: </span> <span x-text=\"formatStepElapsed(selectedStep.elapsed_ms)\" data-testid=\"detail-elapsed\"></span></div><div x-show=\"selectedStep.input\"><span class=\"text-base-content/60\">Input: </span><pre class=\"text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40\" x-text=\"prettyJSON(selectedStep.input)\" data-testid=\"detail-input\"></pre></div><div x-show=\"selectedStep.output\"><span class=\"text-base-content/60\">Output: </span><pre class=\"text-xs bg-base-300 rounded p-2 mt-1 overflow-x-auto max-h-40\" x-text=\"prettyJSON(selectedStep.output)\" data-testid=\"detail-output\"></pre></div><div x-show=\"selectedStep.error\"><span class=\"text-base-content/60\">Error: </span> <span class=\"text-error\" x-text=\"selectedStep.error\" data-testid=\"detail-error\"></span></div></div></div></template><template x-if=\"!selectedStep\"><p class=\"text-base-content/60\">Select a step to view details</p></template></div></div><div class=\"mt-4 bg-base-200 rounded-box p-3 flex items-center gap-3 text-sm\" data-testid=\"summary-bar\"><span x-text=\"completed + ' done'\"></span> <span class=\"text-base-content/40\">|</span> <span x-text=\"(steps.length - completed - failedSteps) + ' pending'\"></span> <span class=\"text-base-content/40\">|</span> <span x-show=\"failedSteps > 0\" x-text=\"failedSteps + ' failed'\" class=\"text-error\"></span> <span class=\"ml-auto\">Steps: <span x-text=\"completed + '/' + steps.length\" data-testid=\"summary-progress\"></span></span></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
