@@ -55,7 +55,10 @@ Task `params` use Go `text/template` delimiters `{{ }}` (same engine as pipeline
 | Run inputs | `{{input "url"}}` / `{{input.url}}` / `{{.Input.url}}` | `workflow run --input` (keys = declared `inputs`) |
 | Prior steps | `{{step "id" "result"}}` / `{{.Steps.id.result}}` | Completed task outputs (`result` and `id` hold the same payload) |
 
-Not set for workflows: `event` / `.Event`, `env` / `.Env`. Helpers: `jsonpath`, `default`, `json`, `join`, `if`/`else`. Full list: [references/steps.md](references/steps.md#templates).
+Not set for workflows: `event` / `.Event`, `env` / `.Env`.
+Helpers (closed set): `input`, `step`, `event`, `jsonpath`, `jsonpathExists`, `jsonpathRaw`, `default`, `json`, `len`, `join`, `split`, `contains`, `now`, plus Go builtins `if`/`else`/`range`/`eq`/`printf`.
+Full list: [references/steps.md](references/steps.md#templates).
+**Never invent** a helper absent from that list (no Sprig / `date` / other template libraries).
 
 ## Workflows
 
@@ -64,11 +67,12 @@ Not set for workflows: `event` / `.Event`, `env` / `.Env`. Helpers: `jsonpath`, 
 When the user needs a new or updated workflow definition:
 1. Load references/schema.md and copy the skeleton (name, enabled, triggers, pipeline, tasks, inputs).
 2. For each capability: action, open references/capabilities/<type>.md first; never invent types missing from the capabilities index.
-3. Use examples/echo_mapper.yaml, examples/save_and_track.yaml, or examples/parallel_example.yaml as starting points.
-4. Declare inputs for every {{input.*}} key; use jsonpath for prior capability results (see capabilities.md Common data paths).
-5. `flowbot workflow apply --file path/to/workflow.yaml`
-6. `flowbot workflow get <name>`
-7. Optional: flowbot workflow run <name> --input '{...}' then flowbot workflow runs <name>.
+3. Use only documented template helpers from references/steps.md; never invent helpers.
+4. Use examples/echo_mapper.yaml, examples/save_and_track.yaml, or examples/parallel_example.yaml as starting points.
+5. Declare inputs for every {{input.*}} key; use jsonpath for prior capability results (see capabilities.md Common data paths).
+6. `flowbot workflow apply --file path/to/workflow.yaml`
+7. `flowbot workflow get <name>`
+8. Optional: flowbot workflow run <name> --input '{...}' then flowbot workflow runs <name>.
 
 ### Apply a definition from YAML
 
@@ -106,4 +110,5 @@ When the user wants to remove a definition (run history is kept):
 | insufficient scope | token needs `workflow:read` and/or `workflow:run` |
 | workflow name is required / not found | apply first; check `list` |
 | input validation failed | supply all required `inputs` with correct types |
+| `function "…" not defined` | replace with a helper from [references/steps.md](references/steps.md#templates); do not invent helpers |
 | webhook rejected | workflow must be `enabled`; trigger needs `auth.token` or `auth.hmac_secret` |

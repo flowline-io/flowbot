@@ -1,8 +1,10 @@
 package template
 
 import (
+	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1137,6 +1139,26 @@ func TestRender_MaxDepth(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRenderString_Now(t *testing.T) {
+	t.Parallel()
+	before := time.Now().UTC().Add(-2 * time.Second)
+	e := New()
+	result, err := e.RenderString(`{{now}}`, nil)
+	require.NoError(t, err)
+	after := time.Now().UTC().Add(2 * time.Second)
+
+	parsed, err := time.Parse(time.RFC3339, result)
+	require.NoError(t, err, "now must render RFC3339 UTC: %q", result)
+	assert.False(t, parsed.Before(before), "got %v before %v", parsed, before)
+	assert.False(t, parsed.After(after), "got %v after %v", parsed, after)
+
+	prefixed, err := e.RenderString(`ts={{now}}`, nil)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(prefixed, "ts="))
+	_, err = time.Parse(time.RFC3339, strings.TrimPrefix(prefixed, "ts="))
+	require.NoError(t, err)
 }
 
 func TestSharedCacheAcrossInstances(t *testing.T) {

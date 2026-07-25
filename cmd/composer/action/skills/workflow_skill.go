@@ -114,7 +114,10 @@ Task ` + "`" + `params` + "`" + ` use Go ` + "`" + `text/template` + "`" + ` del
 | Run inputs | ` + "`" + `{{"{{input \"url\"}}"}}` + "`" + ` / ` + "`" + `{{"{{input.url}}"}}` + "`" + ` / ` + "`" + `{{"{{.Input.url}}"}}` + "`" + ` | ` + "`" + `workflow run --input` + "`" + ` (keys = declared ` + "`" + `inputs` + "`" + `) |
 | Prior steps | ` + "`" + `{{"{{step \"id\" \"result\"}}"}}` + "`" + ` / ` + "`" + `{{"{{.Steps.id.result}}"}}` + "`" + ` | Completed task outputs (` + "`" + `result` + "`" + ` and ` + "`" + `id` + "`" + ` hold the same payload) |
 
-Not set for workflows: ` + "`" + `event` + "`" + ` / ` + "`" + `.Event` + "`" + `, ` + "`" + `env` + "`" + ` / ` + "`" + `.Env` + "`" + `. Helpers: ` + "`" + `jsonpath` + "`" + `, ` + "`" + `default` + "`" + `, ` + "`" + `json` + "`" + `, ` + "`" + `join` + "`" + `, ` + "`" + `if` + "`" + `/` + "`" + `else` + "`" + `. Full list: [references/steps.md](references/steps.md#templates).
+Not set for workflows: ` + "`" + `event` + "`" + ` / ` + "`" + `.Event` + "`" + `, ` + "`" + `env` + "`" + ` / ` + "`" + `.Env` + "`" + `.
+Helpers (closed set): ` + "`" + `input` + "`" + `, ` + "`" + `step` + "`" + `, ` + "`" + `event` + "`" + `, ` + "`" + `jsonpath` + "`" + `, ` + "`" + `jsonpathExists` + "`" + `, ` + "`" + `jsonpathRaw` + "`" + `, ` + "`" + `default` + "`" + `, ` + "`" + `json` + "`" + `, ` + "`" + `len` + "`" + `, ` + "`" + `join` + "`" + `, ` + "`" + `split` + "`" + `, ` + "`" + `contains` + "`" + `, ` + "`" + `now` + "`" + `, plus Go builtins ` + "`" + `if` + "`" + `/` + "`" + `else` + "`" + `/` + "`" + `range` + "`" + `/` + "`" + `eq` + "`" + `/` + "`" + `printf` + "`" + `.
+Full list: [references/steps.md](references/steps.md#templates).
+**Never invent** a helper absent from that list (no Sprig / ` + "`" + `date` + "`" + ` / other template libraries).
 
 ## Workflows
 {{- range .Workflows}}
@@ -136,6 +139,7 @@ Not set for workflows: ` + "`" + `event` + "`" + ` / ` + "`" + `.Event` + "`" + 
 | insufficient scope | token needs ` + "`" + `workflow:read` + "`" + ` and/or ` + "`" + `workflow:run` + "`" + ` |
 | workflow name is required / not found | apply first; check ` + "`" + `list` + "`" + ` |
 | input validation failed | supply all required ` + "`" + `inputs` + "`" + ` with correct types |
+| ` + "`" + `function "…" not defined` + "`" + ` | replace with a helper from [references/steps.md](references/steps.md#templates); do not invent helpers |
 | webhook rejected | workflow must be ` + "`" + `enabled` + "`" + `; trigger needs ` + "`" + `auth.token` + "`" + ` or ` + "`" + `auth.hmac_secret` + "`" + ` |
 `
 
@@ -207,6 +211,8 @@ Root context is ` + "`" + `TemplateData` + "`" + `: ` + "`" + `.Input` + "`" + `
 
 ### Helper functions
 
+**Closed set only.** Use helpers from this table (plus Go ` + "`" + `text/template` + "`" + ` builtins like ` + "`" + `if` + "`" + `/` + "`" + `else` + "`" + `/` + "`" + `range` + "`" + `/` + "`" + `eq` + "`" + `/` + "`" + `printf` + "`" + `). **Never invent** unlisted helpers (no Sprig, no ` + "`" + `date` + "`" + `, no invented aliases). Missing helpers fail at run time with ` + "`" + `function "…" not defined` + "`" + `.
+
 Data accessors: ` + "`" + `input` + "`" + `, ` + "`" + `step` + "`" + `, ` + "`" + `event` + "`" + `.
 
 | Helper | Example |
@@ -219,6 +225,7 @@ Data accessors: ` + "`" + `input` + "`" + `, ` + "`" + `step` + "`" + `, ` + "`"
 | ` + "`" + `len` + "`" + ` | ` + "`" + `{{"{{len (input \"tags\")}}"}}` + "`" + ` |
 | ` + "`" + `join` + "`" + ` / ` + "`" + `split` + "`" + ` | ` + "`" + `{{"{{join (split (input \"tags\") \",\") \";\")}}"}}` + "`" + ` |
 | ` + "`" + `contains` + "`" + ` | ` + "`" + `{{"{{if contains (input \"title\") \"ERROR\"}}alert{{end}}"}}` + "`" + ` |
+| ` + "`" + `now` + "`" + ` | ` + "`" + `{{"{{now}}"}}` + "`" + ` (UTC RFC3339 string, e.g. ` + "`" + `2026-07-26T03:19:00Z` + "`" + `) |
 | ` + "`" + `if` + "`" + ` / ` + "`" + `else` + "`" + ` | ` + "`" + `{{"{{if (input \"url\")}}has{{else}}missing{{end}}"}}` + "`" + ` |
 
 YAML tip: when an expression contains quotes, wrap the param value in single quotes:
@@ -490,11 +497,12 @@ func platformWorkflowSpec() platformSpec {
 				Steps: []workflowStep{
 					{Step: 1, Note: "Load references/schema.md and copy the skeleton (name, enabled, triggers, pipeline, tasks, inputs)."},
 					{Step: 2, Note: "For each capability: action, open references/capabilities/<type>.md first; never invent types missing from the capabilities index."},
-					{Step: 3, Note: "Use examples/echo_mapper.yaml, examples/save_and_track.yaml, or examples/parallel_example.yaml as starting points."},
-					{Step: 4, Note: "Declare inputs for every {{input.*}} key; use jsonpath for prior capability results (see capabilities.md Common data paths)."},
-					{Step: 5, Command: "flowbot workflow apply --file path/to/workflow.yaml"},
-					{Step: 6, Command: "flowbot workflow get <name>"},
-					{Step: 7, Note: "Optional: flowbot workflow run <name> --input '{...}' then flowbot workflow runs <name>."},
+					{Step: 3, Note: "Use only documented template helpers from references/steps.md; never invent helpers."},
+					{Step: 4, Note: "Use examples/echo_mapper.yaml, examples/save_and_track.yaml, or examples/parallel_example.yaml as starting points."},
+					{Step: 5, Note: "Declare inputs for every {{input.*}} key; use jsonpath for prior capability results (see capabilities.md Common data paths)."},
+					{Step: 6, Command: "flowbot workflow apply --file path/to/workflow.yaml"},
+					{Step: 7, Command: "flowbot workflow get <name>"},
+					{Step: 8, Note: "Optional: flowbot workflow run <name> --input '{...}' then flowbot workflow runs <name>."},
 				},
 			},
 			{

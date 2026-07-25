@@ -43,6 +43,8 @@ Root context is `TemplateData`: `.Input`, `.Steps`, `.Event`, `.Env`. Workflows 
 
 ### Helper functions
 
+**Closed set only.** Use helpers from this table (plus Go `text/template` builtins like `if`/`else`/`range`/`eq`/`printf`). **Never invent** unlisted helpers (no Sprig, no `date`, no invented aliases). Missing helpers fail at run time with `function "…" not defined`.
+
 Data accessors: `input`, `step`, `event`.
 
 | Helper | Example |
@@ -55,6 +57,7 @@ Data accessors: `input`, `step`, `event`.
 | `len` | `{{len (input "tags")}}` |
 | `join` / `split` | `{{join (split (input "tags") ",") ";")}}` |
 | `contains` | `{{if contains (input "title") "ERROR"}}alert{{end}}` |
+| `now` | `{{now}}` (UTC RFC3339 string, e.g. `2026-07-26T03:19:00Z`) |
 | `if` / `else` | `{{if (input "url")}}has{{else}}missing{{end}}` |
 
 YAML tip: when an expression contains quotes, wrap the param value in single quotes:

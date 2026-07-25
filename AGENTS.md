@@ -31,6 +31,7 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 * Never call hub / pipeline / emit DataEvent from a provider or capability adapter; never return provider-private types from an adapter.
 * Never write database query code outside `internal/store` (`store.go` facades + `postgres/adapter.go`).
 * Never edit generated code.
+* Never edit `docs/skills/` directly — it is generated. Change `cmd/composer/action/skills/` then run `go tool task skills`.
 * Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic` (`json.RawMessage` from stdlib is allowed).
 * Never use `panic` outside initialization; never ignore errors.
 * Never block in event handlers; never use Redis Stream as the sole event store — persist to PostgreSQL `data_events`.
@@ -59,6 +60,7 @@ go tool task test             # Unit tests
 go tool task test:specs       # BDD acceptance tests (requires Docker)
 go tool task test:specs:ci    # BDD with retry + JUnit
 go tool task ent              # Generate ent code from database
+go tool task skills           # Regenerate docs/skills from cmd/composer
 ```
 
 ## Configuration

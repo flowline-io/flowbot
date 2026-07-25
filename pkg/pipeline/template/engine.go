@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	txtpl "text/template"
+	"time"
 
 	"github.com/bytedance/sonic"
 
@@ -63,6 +64,7 @@ func makeFuncs(data *TemplateData) txtpl.FuncMap {
 		"jsonpath":       funcJsonpath,
 		"jsonpathExists": funcJsonpathExists,
 		"jsonpathRaw":    funcJsonpathRaw,
+		"now":            funcNow,
 	}
 
 	fm["input"] = func(field string) any {
@@ -153,6 +155,10 @@ func funcJsonpathExists(jsonStr, path string) bool {
 
 func funcJsonpathRaw(jsonStr, path string) any {
 	return gjson.Get(jsonStr, path).Value()
+}
+
+func funcNow() string {
+	return time.Now().UTC().Format(time.RFC3339)
 }
 
 // RenderString renders a template string with the given TemplateData.

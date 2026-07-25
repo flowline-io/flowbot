@@ -90,12 +90,13 @@ Index notation for keys that contain special characters:
 {{index .Steps "step-1" "result-field"}}
 ```
 
-### Built-in Functions (12)
+### Built-in Functions (13)
 
 | Function                      | Description                                   | Example                                                      |
 | ----------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
 | `event field`                 | Read a field from the event                   | `{{event "url"}}`                                            |
 | `step name field`             | Read a field from a step result               | `{{step "archive" "url"}}`                                   |
+| `input field`                 | Read a field from workflow run input          | `{{input "url"}}`                                            |
 | `join elems sep`              | Join a slice into a string                    | `{{join .Event.tags ","}}`                                   |
 | `split str sep`               | Split a string into a slice                   | `{{index (split .Event.csv ",") 0}}`                         |
 | `contains str substr`         | Check if a substring is present               | `{{if contains .Event.title "ERROR"}}alert{{end}}`           |
@@ -105,6 +106,7 @@ Index notation for keys that contain special characters:
 | `jsonpath jsonStr path`       | Extract string value from JSON via gjson path | `{{jsonpath (json .Event.data) "items.0.id"}}`               |
 | `jsonpathExists jsonStr path` | Check if a JSON path exists                   | `{{if jsonpathExists (json .Event.data) "error"}}...{{end}}` |
 | `jsonpathRaw jsonStr path`    | Extract raw value from JSON (interface{})     | `{{json (jsonpathRaw (json .Event.data) "nested")}}`         |
+| `now`                         | Current UTC time as RFC3339 string            | `{{now}}` → `2026-07-26T03:19:00Z`                           |
 
 These functions are registered into `text/template.FuncMap` and are available in any template expression.
 
@@ -475,4 +477,4 @@ Each agent step uses a temporary session with the same autonomous permission rul
 go test ./pkg/pipeline/template/...
 ```
 
-Test coverage includes: plain text passthrough, event fields, step fields, env fields, conditions (if/else/eq/ne/and/or/not/gt), loops (range/range-index/range-else), nested condition+loop, all 12 built-in functions (including jsonpath, jsonpathExists, jsonpathRaw for gjson-based JSON extraction), old syntax compatibility, error propagation, invalid templates, and nil/empty data.
+Test coverage includes: plain text passthrough, event fields, step fields, env fields, conditions (if/else/eq/ne/and/or/not/gt), loops (range/range-index/range-else), nested condition+loop, all 13 built-in functions (including jsonpath, jsonpathExists, jsonpathRaw for gjson-based JSON extraction, and now for UTC RFC3339), old syntax compatibility, error propagation, invalid templates, and nil/empty data.
