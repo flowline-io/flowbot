@@ -365,7 +365,7 @@ templ workflowDAGConnector(fromCount, toCount int) {
 	</div>
 }
 
-templ WorkflowTriggersTable(workflowName string, triggers []*gen.WorkflowTrigger) {
+templ WorkflowTriggersTable(workflowName string, triggers []*gen.WorkflowTrigger, publicOrigin string) {
 	if len(triggers) == 0 {
 		<div class="py-6" data-testid="workflow-triggers-empty">
 			@EmptyState("No triggers configured.")
@@ -392,7 +392,19 @@ templ WorkflowTriggersTable(workflowName string, triggers []*gen.WorkflowTrigger
 								<td class="text-center">
 									@StatusIcon(EnabledStatusIcon(tr.Enabled), "workflow-trigger-enabled-"+fmt.Sprint(tr.ID))
 								</td>
-								<td class="font-mono text-xs text-base-content/50 max-w-md truncate">{ valuePreview(tr.Rule) }</td>
+								<td class="max-w-xl">
+									if webhookURL := WorkflowWebhookURL(tr, publicOrigin); webhookURL != "" {
+										<div class="flex items-center gap-1 min-w-0">
+											<span
+												class="min-w-0 flex-1 font-mono text-xs text-base-content break-all"
+												data-testid={ "workflow-webhook-url-" + fmt.Sprint(tr.ID) }
+											>{ webhookURL }</span>
+											@ClipCopyIconButton("btn-copy-workflow-webhook-url-"+fmt.Sprint(tr.ID), webhookURL, "Copy webhook URL")
+										</div>
+									} else {
+										<span class="font-mono text-xs text-base-content/50 truncate block">{ valuePreview(tr.Rule) }</span>
+									}
+								</td>
 								<td class="text-right">
 									if tr.Enabled {
 										<button type="button"

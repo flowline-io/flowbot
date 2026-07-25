@@ -6,6 +6,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/gofiber/fiber/v3"
+
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 )
 
 func TestGenerateCSRFToken(t *testing.T) {
@@ -235,6 +239,47 @@ func TestAttachCSRFForTest(t *testing.T) {
 			}
 			if req.Header.Get(csrfHeaderName) != c.Value {
 				t.Fatal("header must match cookie")
+			}
+		})
+	}
+}
+
+func TestRequestPublicOrigin(t *testing.T) {
+	tests := []struct {
+		name       string
+		configURL  string
+		host       string
+		proto      string
+		wantOrigin string
+	}{
+		{name: "prefers config url", configURL: "https://bot.example/", host: "localhost", wantOrigin: "https://bot.example"},
+		{name: "http from request", configURL: "", host: "flowbot.local:8080", wantOrigin: "http://flowbot.local:8080"},
+		{name: "https from forwarded proto", configURL: "", host: "bot.example", proto: "https", wantOrigin: "https://bot.example"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := pkgconfig.App.Flowbot.URL
+			pkgconfig.App.Flowbot.URL = tt.configURL
+			t.Cleanup(func() { pkgconfig.App.Flowbot.URL = prev })
+
+			app := fiber.New()
+			var got string
+			app.Get("/t", func(c fiber.Ctx) error {
+				got = requestPublicOrigin(c)
+				return nil
+			})
+			req := httptest.NewRequest(http.MethodGet, "http://"+tt.host+"/t", http.NoBody)
+			req.Host = tt.host
+			if tt.proto != "" {
+				req.Header.Set("X-Forwarded-Proto", tt.proto)
+			}
+			resp, err := app.Test(req)
+			if err != nil {
+				t.Fatalf("app.Test: %v", err)
+			}
+			defer resp.Body.Close()
+			if got != tt.wantOrigin {
+				t.Fatalf("origin=%q want %q", got, tt.wantOrigin)
 			}
 		})
 	}

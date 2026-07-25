@@ -218,7 +218,7 @@ func workflowDetailPage(c fiber.Ctx) error {
 		runs = runs[:10]
 	}
 	c.Type("html")
-	return pages.WorkflowDetailPage(meta, dto.Triggers, runs, string(yamlBytes)).Render(c.Context(), c.Response().BodyWriter())
+	return pages.WorkflowDetailPage(meta, dto.Triggers, runs, string(yamlBytes), requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func setWorkflowEnabled(c fiber.Ctx) error {
@@ -300,7 +300,7 @@ func setWorkflowTriggerEnabled(c fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get workflow: %v", err)
 	}
 	c.Type("html")
-	return partials.WorkflowTriggersTable(name, dto.Triggers).Render(c.Context(), c.Response().BodyWriter())
+	return partials.WorkflowTriggersTable(name, dto.Triggers, requestPublicOrigin(c)).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowRunsPage(c fiber.Ctx) error {

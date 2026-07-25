@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
+
+	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 )
 
 const (
@@ -47,6 +49,23 @@ func requestIsHTTPS(ctx fiber.Ctx) bool {
 		return true
 	}
 	return strings.EqualFold(ctx.Protocol(), "https")
+}
+
+// requestPublicOrigin returns the absolute site origin for links shown in the UI.
+// Prefers config.App.Flowbot.URL; otherwise scheme + host from the request.
+func requestPublicOrigin(ctx fiber.Ctx) string {
+	if base := strings.TrimRight(strings.TrimSpace(pkgconfig.App.Flowbot.URL), "/"); base != "" {
+		return base
+	}
+	host := strings.TrimSpace(ctx.Host())
+	if host == "" {
+		return ""
+	}
+	scheme := "http"
+	if requestIsHTTPS(ctx) {
+		scheme = "https"
+	}
+	return scheme + "://" + host
 }
 
 // csrfCookieSecure decides the Secure flag for the CSRF cookie.

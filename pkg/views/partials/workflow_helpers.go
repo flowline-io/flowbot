@@ -134,6 +134,56 @@ func workflowRuleString(rule map[string]any, key string) string {
 	return s
 }
 
+// WorkflowWebhookURLPath returns the relative workflow webhook URL path
+// (/webhook/workflow/{path}), appending ?token= when auth.token is set.
+// Returns empty when the trigger is not a webhook or path is missing.
+func WorkflowWebhookURLPath(tr *gen.WorkflowTrigger) string {
+	if tr == nil || !strings.EqualFold(tr.Type, "webhook") {
+		return ""
+	}
+	path := strings.TrimPrefix(workflowRuleString(tr.Rule, "path"), "/")
+	if path == "" {
+		return ""
+	}
+	out := "/webhook/workflow/" + path
+	if token := workflowRuleAuthString(tr.Rule, "token"); token != "" {
+		out += "?token=" + url.QueryEscape(token)
+	}
+	return out
+}
+
+// WorkflowWebhookURL returns the absolute webhook URL when publicOrigin is set,
+// otherwise the relative path from WorkflowWebhookURLPath.
+func WorkflowWebhookURL(tr *gen.WorkflowTrigger, publicOrigin string) string {
+	path := WorkflowWebhookURLPath(tr)
+	if path == "" {
+		return ""
+	}
+	base := strings.TrimRight(strings.TrimSpace(publicOrigin), "/")
+	if base == "" {
+		return path
+	}
+	return base + path
+}
+
+func workflowRuleAuthString(rule map[string]any, key string) string {
+	if rule == nil {
+		return ""
+	}
+	auth, ok := rule["auth"]
+	if !ok || auth == nil {
+		return ""
+	}
+	switch m := auth.(type) {
+	case map[string]any:
+		return workflowRuleString(m, key)
+	case types.KV:
+		return workflowRuleString(map[string]any(m), key)
+	default:
+		return ""
+	}
+}
+
 // WorkflowRunStatusClass returns the flowbot-chip CSS class for a workflow run status.
 func WorkflowRunStatusClass(status int) string {
 	if c, ok := workflowRunStatusMeta[schema.WorkflowRunState(status)]; ok {

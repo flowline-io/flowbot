@@ -113,3 +113,15 @@ func TestEventFilterScriptsIncludesClipCopy(t *testing.T) {
 		t.Fatalf("want event-filters.js in event filter scripts\nhtml=%s", html)
 	}
 }
+
+func TestClipCopyScripts(t *testing.T) {
+	t.Parallel()
+	var buf bytes.Buffer
+	if err := partials.ClipCopyScripts().Render(context.Background(), &buf); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	html := buf.String()
+	if !strings.Contains(html, "/static/js/clip-copy.js") {
+		t.Fatalf("want clip-copy.js\nhtml=%s", html)
+	}
+}

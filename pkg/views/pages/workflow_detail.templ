@@ -9,8 +9,9 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
-templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowTrigger, recentRuns []*gen.WorkflowRun, yamlText string) {
+templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowTrigger, recentRuns []*gen.WorkflowRun, yamlText string, publicOrigin string) {
 	@layout.Base("Workflow: " + meta.Name) {
+		@partials.ClipCopyScripts()
 		<div class="max-w-4xl mx-auto space-y-6">
 			@partials.PageHeader(meta.Name, meta.Describe) {
 				<a href="/service/web/workflows" class="btn btn-ghost btn-sm" data-testid="workflow-back">← Workflows</a>
@@ -45,7 +46,7 @@ templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowT
 
 					<section>
 						<h2 class="text-base font-semibold tracking-tight mb-2">Triggers</h2>
-						@partials.WorkflowTriggersTable(meta.Name, triggers)
+						@partials.WorkflowTriggersTable(meta.Name, triggers, publicOrigin)
 					</section>
 
 					<section>

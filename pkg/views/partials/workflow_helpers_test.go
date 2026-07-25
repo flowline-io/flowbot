@@ -1,6 +1,9 @@
 package partials
 
 import (
+	"bytes"
+	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -118,6 +121,130 @@ func TestWorkflowTriggerSummaries(t *testing.T) {
 			}
 			assert.Equal(t, tt.wantLabel, got[0].Label)
 			assert.Equal(t, tt.wantLetter, got[0].Letter)
+		})
+	}
+}
+
+func TestWorkflowWebhookURLPath(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		tr   *gen.WorkflowTrigger
+		want string
+	}{
+		{name: "nil", tr: nil, want: ""},
+		{name: "manual", tr: &gen.WorkflowTrigger{Type: "manual"}, want: ""},
+		{name: "webhook missing path", tr: &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"payload": "raw"}}, want: ""},
+		{
+			name: "path without leading slash",
+			tr:   &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "hooks/a"}},
+			want: "/webhook/workflow/hooks/a",
+		},
+		{
+			name: "path with leading slash and token",
+			tr: &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+				"path": "/hooks/my-workflow",
+				"auth": map[string]any{"token": "secret+value"},
+			}},
+			want: "/webhook/workflow/hooks/my-workflow?token=secret%2Bvalue",
+		},
+		{
+			name: "hmac only skips token query",
+			tr: &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{
+				"path": "hooks/b",
+				"auth": map[string]any{"hmac_secret": "hmac"},
+			}},
+			want: "/webhook/workflow/hooks/b",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, WorkflowWebhookURLPath(tt.tr))
+		})
+	}
+}
+
+func TestWorkflowWebhookURL(t *testing.T) {
+	t.Parallel()
+	tr := &gen.WorkflowTrigger{Type: "webhook", Rule: map[string]any{"path": "hooks/a", "auth": map[string]any{"token": "t"}}}
+	tests := []struct {
+		name   string
+		tr     *gen.WorkflowTrigger
+		origin string
+		want   string
+	}{
+		{name: "nil", tr: nil, origin: "https://bot.example", want: ""},
+		{name: "relative when origin empty", tr: tr, origin: "", want: "/webhook/workflow/hooks/a?token=t"},
+		{name: "absolute", tr: tr, origin: "https://bot.example/", want: "https://bot.example/webhook/workflow/hooks/a?token=t"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, WorkflowWebhookURL(tt.tr, tt.origin))
+		})
+	}
+}
+
+func TestWorkflowTriggersTable_webhookURLAndCopy(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		tr     *gen.WorkflowTrigger
+		origin string
+		want   []string
+		absent []string
+	}{
+		{
+			name: "webhook shows absolute url and copy",
+			tr: &gen.WorkflowTrigger{
+				ID:   7,
+				Type: "webhook",
+				Rule: map[string]any{
+					"path": "/hooks/bookmark",
+					"auth": map[string]any{"token": "tok"},
+				},
+			},
+			origin: "https://bot.example",
+			want: []string{
+				`data-testid="workflow-webhook-url-7"`,
+				`https://bot.example/webhook/workflow/hooks/bookmark?token=tok`,
+				`data-testid="btn-copy-workflow-webhook-url-7"`,
+				`data-clip-copy`,
+				`data-clip-markdown="https://bot.example/webhook/workflow/hooks/bookmark?token=tok"`,
+			},
+			absent: []string{`"payload"`, `data-absolute-url-path`, `POST`},
+		},
+		{
+			name: "manual keeps rule preview",
+			tr: &gen.WorkflowTrigger{
+				ID:   1,
+				Type: "manual",
+				Rule: nil,
+			},
+			origin: "https://bot.example",
+			want:   []string{`data-testid="workflow-trigger-1"`, `manual`},
+			absent: []string{`data-clip-markdown`, `workflow-webhook-url`},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var buf bytes.Buffer
+			if err := WorkflowTriggersTable("demo", []*gen.WorkflowTrigger{tt.tr}, tt.origin).Render(context.Background(), &buf); err != nil {
+				t.Fatalf("render: %v", err)
+			}
+			html := buf.String()
+			for _, w := range tt.want {
+				if !strings.Contains(html, w) {
+					t.Fatalf("want %q in html\nhtml=%s", w, html)
+				}
+			}
+			for _, a := range tt.absent {
+				if strings.Contains(html, a) {
+					t.Fatalf("did not want %q in html\nhtml=%s", a, html)
+				}
+			}
 		})
 	}
 }

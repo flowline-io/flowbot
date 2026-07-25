@@ -2,7 +2,6 @@ package layout
 
 import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
-	"github.com/flowline-io/flowbot/version"
 )
 
 // Clip is a fixed light-shell layout for public clip pages (no ops nav, no theme toggle).
@@ -19,7 +18,7 @@ templ Clip(title string, description string, actions templ.Component) {
 		<meta property="og:type" content="article"/>
 		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
 		<link href="/static/css/clip.css" rel="stylesheet"/>
-		<script src={ "/static/js/clip-copy.js?v=" + version.Buildtags } defer></script>
+		@partials.ClipCopyScripts()
 	</head>
 	<body class="clip-shell">
 		<header class="clip-header">
