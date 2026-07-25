@@ -24,6 +24,19 @@
     return mediaURL.replace(/\/$/, '') + '/' + encodeURIComponent(fileID);
   }
 
+  function safeMediaSrc(src) {
+    if (!src || typeof src !== 'string') {
+      return '';
+    }
+    if (/^(blob:|https?:)/i.test(src)) {
+      return src;
+    }
+    if (src.charAt(0) === '/' && src.charAt(1) !== '/') {
+      return src;
+    }
+    return '';
+  }
+
   function appendUserMessage(container, text, attachments, mediaURL) {
     var wrap = document.createElement('div');
     wrap.className = 'chat chat-end';
@@ -51,8 +64,12 @@
             src = mediaPreviewURL(mediaURL, item.file_id);
           }
           if (src) {
+            var safeSrc = safeMediaSrc(src);
+            if (!safeSrc) {
+              return;
+            }
             var img = document.createElement('img');
-            img.src = src;
+            img.src = safeSrc;
             img.alt = '';
             img.className = 'chatagent-message-attach-img';
             img.setAttribute('data-testid', 'chatagent-message-attach-img');

@@ -57,3 +57,26 @@ func TestNewTransmission(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidRedirect(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		raw  string
+		want bool
+	}{
+		{name: "https ok", raw: "https://tracker.example.com/file.torrent", want: true},
+		{name: "http ok", raw: "http://cdn.example.com/a.torrent", want: true},
+		{name: "loopback http ok for homelab", raw: "http://127.0.0.1:8080/x.torrent", want: true},
+		{name: "magnet rejected here", raw: "magnet:?xt=urn:btih:abc", want: false},
+		{name: "file scheme blocked", raw: "file:///etc/passwd", want: false},
+		{name: "empty blocked", raw: "", want: false},
+		{name: "no host blocked", raw: "https:///nohost", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, isValidRedirect(tt.raw))
+		})
+	}
+}

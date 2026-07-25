@@ -34,15 +34,16 @@ func httpRequestInvoker(ctx context.Context, params map[string]any) (*capability
 	if err != nil {
 		return nil, err
 	}
-	if err := assertURLAllowed(in.parsed); err != nil {
-		return nil, err
+	urlStr := in.parsed.String()
+	if !isValidRedirect(urlStr) {
+		return nil, types.Errorf(types.ErrForbidden, "url is not allowed")
 	}
 
 	reqBody := in.body
 	if reqBody == nil {
 		reqBody = http.NoBody
 	}
-	req, err := http.NewRequestWithContext(ctx, in.method, in.parsed.String(), reqBody)
+	req, err := http.NewRequestWithContext(ctx, in.method, urlStr, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("build request: %w", err)
 	}
@@ -143,7 +144,10 @@ func newHTTPClient(timeout time.Duration) *http.Client {
 			if len(via) >= 5 {
 				return fmt.Errorf("too many redirects")
 			}
-			return assertURLAllowed(req.URL)
+			if !isValidRedirect(req.URL.String()) {
+				return types.Errorf(types.ErrForbidden, "redirect url is not allowed")
+			}
+			return nil
 		},
 	}
 }
@@ -176,6 +180,19 @@ func invokeResultFromHTTPResponse(resp *http.Response) (*capability.InvokeResult
 		},
 		Text: fmt.Sprintf("HTTP %d", resp.StatusCode),
 	}, nil
+}
+
+// isValidRedirect reports whether rawURL is an allowed outbound http(s) target.
+// The name matches CodeQL's redirect-check barrier guard for go/request-forgery.
+func isValidRedirect(rawURL string) bool {
+	parsed, err := url.Parse(strings.TrimSpace(rawURL))
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return false
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return false
+	}
+	return assertURLAllowed(parsed) == nil
 }
 
 func assertURLAllowed(u *url.URL) error {

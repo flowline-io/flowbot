@@ -176,6 +176,21 @@ func TestOSExecutionEnvExec(t *testing.T) {
 	}
 }
 
+func TestOSExecutionEnvExecRejectsNullByte(t *testing.T) {
+	t.Parallel()
+	got := env.Default().Exec(context.Background(), env.ExecOptions{
+		Command: "echo\x00hi",
+	})
+	require.False(t, got.IsOk())
+	assert.Equal(t, "spawn_error", got.ErrorValue().Code())
+
+	gotArgv := env.Default().Exec(context.Background(), env.ExecOptions{
+		Argv: []string{"echo\x00", "hi"},
+	})
+	require.False(t, gotArgv.IsOk())
+	assert.Equal(t, "spawn_error", gotArgv.ErrorValue().Code())
+}
+
 func TestFormatExecOutput(t *testing.T) {
 	t.Parallel()
 
@@ -208,4 +223,54 @@ func slowCommand() string {
 func TestToFileErrorCodes(t *testing.T) {
 	t.Parallel()
 	assert.Equal(t, "not_found", result.NewFileError("not_found", "x", os.ErrNotExist).Code())
+}
+
+func TestOSExecutionEnvRejectsPathEscape(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	relEscape := filepath.Join("..", "secret.txt")
+	absWithDotDot := filepath.Join(dir, "sub", "..", "ok.txt")
+
+	execEnv := env.Default()
+	ctx := context.Background()
+
+	t.Run("write rejects relative escape", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.WriteFile(ctx, relEscape, []byte("x"), 0o644)
+		require.False(t, got.IsOk())
+		assert.Equal(t, "path_escape", got.ErrorValue().Code())
+	})
+	t.Run("mkdir rejects relative escape", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.MkdirAll(ctx, filepath.Join("..", "outside-dir"), 0o755)
+		require.False(t, got.IsOk())
+		assert.Equal(t, "path_escape", got.ErrorValue().Code())
+	})
+	t.Run("remove rejects relative escape", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.Remove(ctx, relEscape)
+		require.False(t, got.IsOk())
+		assert.Equal(t, "path_escape", got.ErrorValue().Code())
+	})
+	t.Run("read rejects relative escape", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.ReadFile(ctx, relEscape)
+		require.False(t, got.IsOk())
+		assert.Equal(t, "path_escape", got.ErrorValue().Code())
+	})
+	t.Run("readdir rejects relative escape", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.ReadDir(ctx, filepath.Join("..", "outside"))
+		require.False(t, got.IsOk())
+		assert.Equal(t, "path_escape", got.ErrorValue().Code())
+	})
+	t.Run("write accepts cleaned absolute path", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.WriteFile(ctx, absWithDotDot, []byte("ok"), 0o644)
+		require.True(t, got.IsOk(), "cleaned absolute path should be allowed")
+		data, err := os.ReadFile(filepath.Join(dir, "ok.txt"))
+		require.NoError(t, err)
+		assert.Equal(t, "ok", string(data))
+	})
 }
