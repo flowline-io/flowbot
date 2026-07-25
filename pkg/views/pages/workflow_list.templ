@@ -7,9 +7,13 @@ import (
 
 templ WorkflowListPage(entries []partials.WorkflowListEntry) {
 	@layout.Base("Workflows") {
+		@partials.WorkflowStatsScripts()
 		<div class="max-w-6xl mx-auto">
-			@partials.PageHeader("Workflows", "Stored workflow definitions.") {
+			@partials.PageHeader("Workflows", "") {
 			}
+			<div hx-get={ partials.WorkflowStatsURL("", 30, "day") } hx-trigger="revealed" hx-swap="outerHTML">
+				@partials.PanelSkeleton()
+			</div>
 			<div
 				id="workflow-list-panel"
 				hx-get="/service/web/workflows/list"

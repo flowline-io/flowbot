@@ -83,12 +83,16 @@ templ WorkflowDetailPage(meta *types.WorkflowMetadata, triggers []*gen.WorkflowT
 
 templ WorkflowRunsPage(name string, runs []*gen.WorkflowRun) {
 	@layout.Base("Runs: " + name) {
+		@partials.WorkflowStatsScripts()
 		<div class="max-w-4xl mx-auto">
 			@partials.PageHeader("Run History", name) {
 				<a href={ templ.URL(partials.WorkflowWebPath(name)) }
 					class="btn btn-ghost btn-sm"
 					data-testid="workflow-runs-back">{ name }</a>
 			}
+			<div hx-get={ templ.URL(partials.WorkflowStatsURL(name, 30, "day")) } hx-trigger="revealed" hx-swap="outerHTML">
+				@partials.PanelSkeleton()
+			</div>
 			<div
 				id="workflow-runs-panel"
 				hx-get={ templ.URL(partials.WorkflowWebPath(name) + "/runs/list") }

@@ -13,7 +13,7 @@ templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
 			@partials.PageHeader("Run History", "") {
 				<a href={ templ.URL("/service/web/pipelines/" + name) } class="btn btn-ghost btn-sm">{ name }</a>
 			}
-			<div hx-get={ templ.URL("/service/web/pipelines/" + name + "/stats?groupBy=day") } hx-trigger="revealed" hx-swap="outerHTML">
+			<div hx-get={ templ.URL(partials.PipelineStatsURL(name, 30, "day")) } hx-trigger="revealed" hx-swap="outerHTML">
 				@partials.PanelSkeleton()
 			</div>
 			<div id="pipeline-runs-container" data-testid="pipeline-runs-container">

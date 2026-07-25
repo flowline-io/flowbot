@@ -19,6 +19,12 @@ templ PipelineStatsScripts() {
 	<script src="/static/js/pipeline-stats.js" defer></script>
 }
 
+// WorkflowStatsScripts loads workflow stats chart helpers.
+templ WorkflowStatsScripts() {
+	@ChartScripts()
+	<script src="/static/js/workflow-stats.js" defer></script>
+}
+
 // EventFilterScripts loads event timeline filter controls and clip-copy for payloads.
 // event-filters.js is loaded synchronously (no defer) so Alpine.data registers before alpine:init.
 templ EventFilterScripts() {

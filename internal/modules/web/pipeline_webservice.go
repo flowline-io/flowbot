@@ -742,18 +742,9 @@ func pipelineStats(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	sinceStr := c.Query("since", "")
-	since := time.Time{}
-	if sinceStr != "" {
-		parsed, err := time.Parse("2006-01-02", sinceStr)
-		if err != nil {
-			return types.Errorf(types.ErrInvalidArgument, "invalid since date: %v", err)
-		}
-		since = parsed
-	}
-	groupBy := c.Query("groupBy", "day")
-	if groupBy != "day" && groupBy != "week" && groupBy != "month" {
-		return types.Errorf(types.ErrInvalidArgument, "groupBy must be day, week, or month")
+	since, tabs, err := parseStatsTabQuery(c)
+	if err != nil {
+		return err
 	}
 
 	s := getPipelineDefStore()
@@ -770,7 +761,7 @@ func pipelineStats(c fiber.Ctx) error {
 		}
 	}
 
-	stats, err := s.PipelineStats(context.Background(), name, since, groupBy)
+	stats, err := s.PipelineStats(context.Background(), name, since, tabs.GroupBy)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "pipeline stats: %v", err)
 	}
@@ -780,7 +771,7 @@ func pipelineStats(c fiber.Ctx) error {
 		return c.JSON(stats)
 	}
 	c.Type("html")
-	return partials.PipelineStats(name, stats).Render(context.Background(), c.Response().BodyWriter())
+	return partials.PipelineStats(name, stats, tabs).Render(context.Background(), c.Response().BodyWriter())
 }
 
 // stepRunStatusLabel converts an ent PipelineStepRun status int to a display string.

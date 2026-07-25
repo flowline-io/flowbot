@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v3"
@@ -112,3 +113,52 @@ func pipelineNameParam(c fiber.Ctx) (string, error) {
 	}
 	return name, nil
 }
+
+// parseStatsTabQuery reads days/since/groupBy for pipeline and workflow stats endpoints.
+// Prefer days=0|30|90 for tab UI; since=YYYY-MM-DD remains supported for callers that pass absolute dates.
+func parseStatsTabQuery(c fiber.Ctx) (since time.Time, tabs partials.StatsTabState, err error) {
+	tabs.GroupBy = c.Query("groupBy", "day")
+	if tabs.GroupBy != "day" && tabs.GroupBy != "week" && tabs.GroupBy != "month" {
+		return time.Time{}, tabs, types.Errorf(types.ErrInvalidArgument, "groupBy must be day, week, or month")
+	}
+
+	daysStr := c.Query("days", "")
+	sinceStr := c.Query("since", "")
+	switch {
+	case daysStr != "":
+		days, parseErr := strconv.Atoi(daysStr)
+		if parseErr != nil || (days != 0 && days != 30 && days != 90) {
+			return time.Time{}, tabs, types.Errorf(types.ErrInvalidArgument, "days must be 0, 30, or 90")
+		}
+		tabs.RangeDays = days
+		if days > 0 {
+			since = time.Now().AddDate(0, 0, -days)
+		}
+	case sinceStr != "":
+		parsed, parseErr := time.Parse("2006-01-02", sinceStr)
+		if parseErr != nil {
+			return time.Time{}, tabs, types.Errorf(types.ErrInvalidArgument, "invalid since date: %v", parseErr)
+		}
+		since = parsed
+		tabs.RangeDays = inferStatsRangeDays(parsed)
+	default:
+		tabs.RangeDays = 0
+	}
+	return since, tabs, nil
+}
+
+func inferStatsRangeDays(since time.Time) int {
+	if since.IsZero() {
+		return 0
+	}
+	elapsed := time.Since(since)
+	switch {
+	case elapsed <= 45*24*time.Hour:
+		return 30
+	case elapsed <= 120*24*time.Hour:
+		return 90
+	default:
+		return 0
+	}
+}
+

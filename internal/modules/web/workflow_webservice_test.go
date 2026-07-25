@@ -71,6 +71,8 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 				"web-demo",
 				`data-testid="workflow-table"`,
 				`data-testid="btn-disable-workflow-web-demo"`,
+				"/static/js/workflow-stats.js",
+				`hx-get="/service/web/workflows/stats?days=30&amp;groupBy=day"`,
 			},
 		},
 		{
@@ -82,6 +84,45 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 			wantContains: []string{
 				`data-testid="workflow-row-web-demo"`,
 				`data-testid="btn-disable-workflow-web-demo"`,
+			},
+		},
+		{
+			name:       "global stats html",
+			method:     http.MethodGet,
+			path:       "/service/web/workflows/stats?days=30&groupBy=day",
+			withCookie: true,
+			wantStatus: http.StatusOK,
+			wantContains: []string{
+				`data-testid="workflow-stats-container"`,
+				`data-testid="workflow-stats-summary"`,
+				"Total Workflows",
+				"Success Rate Trend",
+				"Duration Distribution",
+				"Trigger Sources",
+				`data-testid="btn-range-30d"`,
+				`btn-active`,
+			},
+		},
+		{
+			name:       "global stats all marks all active",
+			method:     http.MethodGet,
+			path:       "/service/web/workflows/stats?days=0&groupBy=week",
+			withCookie: true,
+			wantStatus: http.StatusOK,
+			wantContains: []string{
+				`data-testid="btn-range-all"`,
+				`data-testid="btn-groupby-week"`,
+			},
+		},
+		{
+			name:       "workflow stats html",
+			method:     http.MethodGet,
+			path:       "/service/web/workflows/web-demo/stats?days=30&groupBy=day",
+			withCookie: true,
+			wantStatus: http.StatusOK,
+			wantContains: []string{
+				`data-testid="workflow-stats-container"`,
+				"Success Rate Trend",
 			},
 		},
 		{
@@ -111,6 +152,7 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 			wantContains: []string{
 				"Run History",
 				`data-testid="workflow-runs-empty"`,
+				"/stats?days=30&amp;groupBy=day",
 			},
 		},
 		{
@@ -532,7 +574,9 @@ func TestWorkflowWebserviceRulesRegistered(t *testing.T) {
 	}{
 		{name: "list", path: "/workflows"},
 		{name: "list partial", path: "/workflows/list"},
+		{name: "stats", path: "/workflows/stats"},
 		{name: "detail", path: "/workflows/:name"},
+		{name: "detail stats", path: "/workflows/:name/stats"},
 		{name: "runs", path: "/workflows/:name/runs"},
 		{name: "runs list", path: "/workflows/:name/runs/list"},
 		{name: "run", path: "/workflows/:name/run"},

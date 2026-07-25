@@ -2217,17 +2217,7 @@ func (s *PipelineStore) loadDurationBuckets(ctx context.Context, name string, si
 		if r.StartedAt.IsZero() || r.CompletedAt == nil {
 			continue
 		}
-		dur := r.CompletedAt.Sub(r.StartedAt)
-		switch {
-		case dur < time.Second:
-			result[0].Count++
-		case dur < 5*time.Second:
-			result[1].Count++
-		case dur < 30*time.Second:
-			result[2].Count++
-		default:
-			result[3].Count++
-		}
+		incrementDurationBucket(result, r.CompletedAt.Sub(r.StartedAt))
 	}
 	return result, nil
 }
@@ -2261,17 +2251,7 @@ func (s *PipelineStore) loadStepDurationBuckets(ctx context.Context, name string
 		if st.StartedAt.IsZero() || st.CompletedAt == nil {
 			continue
 		}
-		dur := st.CompletedAt.Sub(st.StartedAt)
-		switch {
-		case dur < time.Second:
-			result[0].Count++
-		case dur < 5*time.Second:
-			result[1].Count++
-		case dur < 30*time.Second:
-			result[2].Count++
-		default:
-			result[3].Count++
-		}
+		incrementDurationBucket(result, st.CompletedAt.Sub(st.StartedAt))
 	}
 	return result, nil
 }
@@ -2327,6 +2307,19 @@ func emptyPipelineStats() *types.PipelineStats {
 func emptyDurationBuckets() []types.DurationEntry {
 	return []types.DurationEntry{
 		{Bucket: "0-1s"}, {Bucket: "1-5s"}, {Bucket: "5-30s"}, {Bucket: "30s+"},
+	}
+}
+
+func incrementDurationBucket(result []types.DurationEntry, dur time.Duration) {
+	switch {
+	case dur < time.Second:
+		result[0].Count++
+	case dur < 5*time.Second:
+		result[1].Count++
+	case dur < 30*time.Second:
+		result[2].Count++
+	default:
+		result[3].Count++
 	}
 }
 
@@ -2810,6 +2803,202 @@ func (s *WorkflowStore) LatestRunStartedAtByNames(ctx context.Context, names []s
 		}
 	}
 	return result, nil
+}
+
+// WorkflowStats returns aggregated workflow run statistics for chart rendering.
+// name empty = all workflows. since zero = no time filter. groupBy = "day"|"week"|"month".
+func (s *WorkflowStore) WorkflowStats(ctx context.Context, name string, since time.Time, groupBy string) (*types.WorkflowStats, error) {
+	if s == nil || s.client == nil {
+		return emptyWorkflowStats(), nil
+	}
+	stats := &types.WorkflowStats{}
+
+	var err error
+	stats.Summary, err = s.loadWorkflowStatsSummary(ctx, name, since)
+	if err != nil {
+		return nil, fmt.Errorf("summary: %w", err)
+	}
+	stats.SuccessRateTrend, err = s.loadWorkflowSuccessRate(ctx, name, since, groupBy)
+	if err != nil {
+		return nil, fmt.Errorf("success rate: %w", err)
+	}
+	stats.DurationDistribution.Workflow, err = s.loadWorkflowDurationBuckets(ctx, name, since)
+	if err != nil {
+		return nil, fmt.Errorf("workflow duration: %w", err)
+	}
+	stats.TriggerSourcePie, err = s.loadWorkflowTriggerSources(ctx, name, since)
+	if err != nil {
+		return nil, fmt.Errorf("trigger sources: %w", err)
+	}
+	return stats, nil
+}
+
+func (s *WorkflowStore) loadWorkflowStatsSummary(ctx context.Context, name string, since time.Time) (types.WorkflowStatsSummary, error) {
+	summary := types.WorkflowStatsSummary{}
+	if name == "" {
+		count, err := s.client.Workflow.Query().Count(ctx)
+		if err != nil {
+			return summary, err
+		}
+		summary.TotalWorkflows = int64(count)
+	}
+
+	successful, err := s.countCompletedWorkflowRunsByStatus(ctx, name, since, int(schema.WorkflowRunDone))
+	if err != nil {
+		return summary, err
+	}
+	failed, err := s.countCompletedWorkflowRunsByStatus(ctx, name, since, int(schema.WorkflowRunFailed))
+	if err != nil {
+		return summary, err
+	}
+	summary.SuccessfulRuns = successful
+	summary.FailedRuns = failed
+	return summary, nil
+}
+
+func (s *WorkflowStore) countCompletedWorkflowRunsByStatus(ctx context.Context, name string, since time.Time, status int) (int64, error) {
+	q := s.client.WorkflowRun.Query().
+		Where(
+			workflowrun.CompletedAtNotNil(),
+			workflowrun.StatusEQ(status),
+		)
+	if name != "" {
+		q = q.Where(workflowrun.WorkflowNameEQ(name))
+	}
+	if !since.IsZero() {
+		q = q.Where(workflowrun.StartedAtGTE(since))
+	}
+	count, err := q.Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return int64(count), nil
+}
+
+func (s *WorkflowStore) loadWorkflowSuccessRate(ctx context.Context, name string, since time.Time, groupBy string) ([]types.SuccessRatePoint, error) {
+	runs, err := s.fetchCompletedWorkflowRuns(ctx, name, since)
+	if err != nil {
+		return nil, err
+	}
+	return computeWorkflowSuccessRate(runs, groupBy), nil
+}
+
+func (s *WorkflowStore) fetchCompletedWorkflowRuns(ctx context.Context, name string, since time.Time) ([]*gen.WorkflowRun, error) {
+	q := s.client.WorkflowRun.Query().Where(workflowrun.CompletedAtNotNil())
+	if name != "" {
+		q = q.Where(workflowrun.WorkflowNameEQ(name))
+	}
+	if !since.IsZero() {
+		q = q.Where(workflowrun.StartedAtGTE(since))
+	}
+	return q.All(ctx)
+}
+
+func computeWorkflowSuccessRate(runs []*gen.WorkflowRun, groupBy string) []types.SuccessRatePoint {
+	type dayStats struct {
+		total   int64
+		success int64
+	}
+	buckets := make(map[string]*dayStats)
+	for _, r := range runs {
+		if r.CompletedAt == nil {
+			continue
+		}
+		key := dateGroupKey(*r.CompletedAt, groupBy)
+		if buckets[key] == nil {
+			buckets[key] = &dayStats{}
+		}
+		buckets[key].total++
+		if r.Status == int(schema.WorkflowRunDone) {
+			buckets[key].success++
+		}
+	}
+	keys := make([]string, 0, len(buckets))
+	for k := range buckets {
+		keys = append(keys, k)
+	}
+	for i := 0; i < len(keys); i++ {
+		for j := i + 1; j < len(keys); j++ {
+			if keys[i] > keys[j] {
+				keys[i], keys[j] = keys[j], keys[i]
+			}
+		}
+	}
+	points := make([]types.SuccessRatePoint, 0, len(keys))
+	for _, k := range keys {
+		s := buckets[k]
+		rate := float64(0)
+		if s.total > 0 {
+			rate = float64(s.success) / float64(s.total)
+		}
+		points = append(points, types.SuccessRatePoint{
+			Date: k, Total: s.total, Success: s.success, Rate: rate,
+		})
+	}
+	if points == nil {
+		points = []types.SuccessRatePoint{}
+	}
+	return points
+}
+
+func (s *WorkflowStore) loadWorkflowDurationBuckets(ctx context.Context, name string, since time.Time) ([]types.DurationEntry, error) {
+	runs, err := s.fetchCompletedWorkflowRuns(ctx, name, since)
+	if err != nil {
+		return nil, err
+	}
+	result := emptyDurationBuckets()
+	for _, r := range runs {
+		if r.StartedAt.IsZero() || r.CompletedAt == nil {
+			continue
+		}
+		incrementDurationBucket(result, r.CompletedAt.Sub(r.StartedAt))
+	}
+	return result, nil
+}
+
+func (s *WorkflowStore) loadWorkflowTriggerSources(ctx context.Context, name string, since time.Time) ([]types.TriggerSourceCount, error) {
+	q := s.client.WorkflowRun.Query()
+	if name != "" {
+		q = q.Where(workflowrun.WorkflowNameEQ(name))
+	}
+	if !since.IsZero() {
+		q = q.Where(workflowrun.StartedAtGTE(since))
+	}
+
+	type row struct {
+		Source string `sql:"trigger_type"`
+		Count  int64  `sql:"count"`
+	}
+	var rows []row
+
+	err := q.GroupBy(workflowrun.FieldTriggerType).
+		Aggregate(gen.Count()).
+		Scan(ctx, &rows)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[string]int64{"cron": 0, "webhook": 0, "manual": 0}
+	for _, r := range rows {
+		result[r.Source] = r.Count
+	}
+	return []types.TriggerSourceCount{
+		{Source: "cron", Count: result["cron"]},
+		{Source: "webhook", Count: result["webhook"]},
+		{Source: "manual", Count: result["manual"]},
+	}, nil
+}
+
+func emptyWorkflowStats() *types.WorkflowStats {
+	return &types.WorkflowStats{
+		Summary: types.WorkflowStatsSummary{},
+		TriggerSourcePie: []types.TriggerSourceCount{
+			{Source: "cron"}, {Source: "webhook"}, {Source: "manual"},
+		},
+		DurationDistribution: types.WorkflowDurationDistribution{
+			Workflow: emptyDurationBuckets(),
+		},
+	}
 }
 
 // ---------------------------------------------------------------------------

@@ -17,7 +17,7 @@ templ PipelineListPage(entries []partials.PipelineListEntry) {
 					+ New Pipeline
 				</button>
 			}
-			<div hx-get="/service/web/pipelines/stats?groupBy=day" hx-trigger="revealed" hx-swap="outerHTML">
+			<div hx-get={ partials.PipelineStatsURL("", 30, "day") } hx-trigger="revealed" hx-swap="outerHTML">
 				@partials.PanelSkeleton()
 			</div>
 			<div id="pipeline-list-container" data-testid="pipeline-list-container">

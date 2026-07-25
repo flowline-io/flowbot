@@ -76,7 +76,20 @@ func PipelineListPage(entries []partials.PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div hx-get=\"/service/web/pipelines/stats?groupBy=day\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div hx-get=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(partials.PipelineStatsURL("", 30, "day"))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/pipeline_list.templ`, Line: 20, Col: 57}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" hx-trigger=\"revealed\" hx-swap=\"outerHTML\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -84,7 +97,7 @@ func PipelineListPage(entries []partials.PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</div><div id=\"pipeline-list-container\" data-testid=\"pipeline-list-container\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div><div id=\"pipeline-list-container\" data-testid=\"pipeline-list-container\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -92,7 +105,7 @@ func PipelineListPage(entries []partials.PipelineListEntry) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</div></div><dialog id=\"create-modal\" class=\"modal\" data-testid=\"create-modal\"><div class=\"modal-box\"><h3 class=\"text-lg font-medium text-base-content mb-4\">New Pipeline</h3><form id=\"create-form\" hx-post=\"/service/web/pipelines\" hx-target=\"body\" data-testid=\"create-form\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" name=\"name\" required minlength=\"1\" maxlength=\"128\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-pipeline\" title=\"Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit.\" data-testid=\"input-pipeline-name\"> <label class=\"label\"><span class=\"label-text\">Description (optional)</span></label> <input type=\"text\" name=\"description\" class=\"input input-bordered w-full mb-4\" placeholder=\"Brief description\" data-testid=\"input-pipeline-desc\"><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('create-modal').close()\" class=\"btn btn-ghost\" data-testid=\"btn-cancel-create\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\" data-testid=\"btn-submit-create\">Create</button></div></form></div></dialog>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div><dialog id=\"create-modal\" class=\"modal\" data-testid=\"create-modal\"><div class=\"modal-box\"><h3 class=\"text-lg font-medium text-base-content mb-4\">New Pipeline</h3><form id=\"create-form\" hx-post=\"/service/web/pipelines\" hx-target=\"body\" data-testid=\"create-form\"><div id=\"form-error\" data-testid=\"form-error-slot\"></div><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" name=\"name\" required minlength=\"1\" maxlength=\"128\" class=\"input input-bordered w-full mb-3\" placeholder=\"my-pipeline\" title=\"Letters or digits (including Chinese), hyphens, underscores. Must start with a letter or digit.\" data-testid=\"input-pipeline-name\"> <label class=\"label\"><span class=\"label-text\">Description (optional)</span></label> <input type=\"text\" name=\"description\" class=\"input input-bordered w-full mb-4\" placeholder=\"Brief description\" data-testid=\"input-pipeline-desc\"><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('create-modal').close()\" class=\"btn btn-ghost\" data-testid=\"btn-cancel-create\">Cancel</button> <button type=\"submit\" class=\"btn btn-primary\" data-testid=\"btn-submit-create\">Create</button></div></form></div></dialog>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

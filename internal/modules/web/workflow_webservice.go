@@ -27,8 +27,10 @@ import (
 var workflowWebserviceRules = []webservice.Rule{
 	webservice.Get("/workflows", workflowListPage, route.WithNotAuth()),
 	webservice.Get("/workflows/list", workflowListTable, route.WithNotAuth()),
+	webservice.Get("/workflows/stats", workflowStats, route.WithNotAuth()),
 	webservice.Put("/workflows/:name/enabled", setWorkflowEnabled, route.WithNotAuth()),
 	webservice.Put("/workflows/:name/triggers/:id/enabled", setWorkflowTriggerEnabled, route.WithNotAuth()),
+	webservice.Get("/workflows/:name/stats", workflowStats, route.WithNotAuth()),
 	webservice.Get("/workflows/:name", workflowDetailPage, route.WithNotAuth()),
 	webservice.Get("/workflows/:name/runs", workflowRunsPage, route.WithNotAuth()),
 	webservice.Get("/workflows/:name/runs/list", workflowRunsTable, route.WithNotAuth()),
@@ -135,6 +137,46 @@ func loadWorkflowListEntries(ctx context.Context) ([]partials.WorkflowListEntry,
 		return nil, err
 	}
 	return partials.AttachWorkflowRunLatencyStats(entries, stats), nil
+}
+
+func workflowStats(c fiber.Ctx) error {
+	if err := authenticateWeb(c); err != nil {
+		return err
+	}
+	name, err := decodePathParam(c.Params("name"))
+	if err != nil {
+		return types.Errorf(types.ErrInvalidArgument, "invalid workflow name")
+	}
+	since, tabs, err := parseStatsTabQuery(c)
+	if err != nil {
+		return err
+	}
+
+	s := getWorkflowStore()
+	if s == nil {
+		return types.Errorf(types.ErrInternal, "workflow store not available")
+	}
+	if name != "" {
+		_, err = s.GetDefinitionByName(c.Context(), name)
+		if err != nil {
+			if errors.Is(err, types.ErrNotFound) {
+				return types.Errorf(types.ErrNotFound, "workflow %s not found", name)
+			}
+			return types.Errorf(types.ErrInternal, "get workflow: %v", err)
+		}
+	}
+
+	stats, err := s.WorkflowStats(c.Context(), name, since, tabs.GroupBy)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "workflow stats: %v", err)
+	}
+
+	accept := c.Get("Accept", "")
+	if accept == "application/json" {
+		return c.JSON(stats)
+	}
+	c.Type("html")
+	return partials.WorkflowStats(name, stats, tabs).Render(c.Context(), c.Response().BodyWriter())
 }
 
 func workflowDetailPage(c fiber.Ctx) error {
