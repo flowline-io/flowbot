@@ -85,7 +85,18 @@ func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (tra
 	if err != nil {
 		return transmissionrpc.Torrent{}, err
 	}
-	httpClient := &http.Client{Transport: utils.HTTPTransport()}
+	httpClient := &http.Client{
+		Transport: utils.HTTPTransport(),
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 5 {
+				return fmt.Errorf("transmission: too many redirects")
+			}
+			if !isValidRedirect(req.URL.String()) {
+				return fmt.Errorf("transmission: invalid torrent redirect url")
+			}
+			return nil
+		},
+	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		return transmissionrpc.Torrent{}, err
@@ -106,8 +117,7 @@ func (v *Transmission) TorrentAddUrl(ctx context.Context, magnetUrl string) (tra
 	return v.c.TorrentAddFile(ctx, tempFile.Name())
 }
 
-// isValidRedirect reports whether rawURL is an http(s) download target.
-// The name matches CodeQL's redirect-check barrier guard for go/request-forgery.
+// isValidRedirect is named for CodeQL's redirect-check barrier (go/request-forgery).
 func isValidRedirect(rawURL string) bool {
 	parsed, err := url.Parse(strings.TrimSpace(rawURL))
 	if err != nil || parsed.Host == "" {

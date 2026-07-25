@@ -87,17 +87,29 @@ func (OSExecutionEnv) ReadDir(_ context.Context, path string) result.Result[[]Di
 	return result.Ok[[]DirEntry, result.FileError](out)
 }
 
-// validatedFSPath normalizes path and rejects residual ".." components so
-// relative traversal cannot reach os file APIs (CodeQL go/path-injection).
+// validatedFSPath normalizes path and rejects ".." path segments (not substrings
+// in filenames) so relative traversal cannot reach os file APIs.
 func validatedFSPath(path string) (string, result.FileError, bool) {
 	if path == "" || strings.ContainsRune(path, 0) {
 		return "", result.NewFileError("path_escape", "invalid path", nil), false
 	}
 	clean := filepath.Clean(path)
-	if strings.Contains(clean, "..") {
+	// strings.Contains keeps CodeQL go/path-injection DotDotCheck; segment check
+	// avoids rejecting names like "report..txt".
+	if strings.Contains(clean, "..") && hasDotDotSegment(clean) {
 		return "", result.NewFileError("path_escape", fmt.Sprintf("path %q escapes", path), nil), false
 	}
 	return clean, result.FileError{}, true
+}
+
+func hasDotDotSegment(path string) bool {
+	rest := path[len(filepath.VolumeName(path)):]
+	for _, part := range strings.Split(rest, string(filepath.Separator)) {
+		if part == ".." {
+			return true
+		}
+	}
+	return false
 }
 
 func validatedExecCommand(command string) (string, bool) {
@@ -134,7 +146,13 @@ func (OSExecutionEnv) Exec(ctx context.Context, opts ExecOptions) result.Result[
 		return result.Err[Capture, result.ExecutionError](ferr)
 	}
 	if opts.Dir != "" {
-		cmd.Dir = opts.Dir
+		safeDir, dirErr, dirOK := validatedFSPath(opts.Dir)
+		if !dirOK {
+			return result.Err[Capture, result.ExecutionError](
+				result.NewExecutionError("spawn_error", dirErr.Error(), nil),
+			)
+		}
+		cmd.Dir = safeDir
 	}
 
 	var buf bytes.Buffer

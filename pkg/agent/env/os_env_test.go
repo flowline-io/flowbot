@@ -273,4 +273,22 @@ func TestOSExecutionEnvRejectsPathEscape(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "ok", string(data))
 	})
+	t.Run("write accepts filename containing dotdot substring", func(t *testing.T) {
+		t.Parallel()
+		target := filepath.Join(dir, "report..txt")
+		got := execEnv.WriteFile(ctx, target, []byte("x"), 0o644)
+		require.True(t, got.IsOk())
+		data, err := os.ReadFile(target)
+		require.NoError(t, err)
+		assert.Equal(t, "x", string(data))
+	})
+	t.Run("exec rejects relative dir escape", func(t *testing.T) {
+		t.Parallel()
+		got := execEnv.Exec(ctx, env.ExecOptions{
+			Command: "echo ok",
+			Dir:     filepath.Join("..", "outside"),
+		})
+		require.False(t, got.IsOk())
+		assert.Equal(t, "spawn_error", got.ErrorValue().Code())
+	})
 }

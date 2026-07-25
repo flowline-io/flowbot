@@ -113,32 +113,6 @@
     return !!(mime && mime.indexOf('image/') === 0);
   }
 
-  function safeMediaSrc(src) {
-    if (!src || typeof src !== 'string') {
-      return '';
-    }
-    if (/^(blob:|https?:)/i.test(src)) {
-      return src;
-    }
-    if (src.charAt(0) === '/' && src.charAt(1) !== '/') {
-      return src;
-    }
-    return '';
-  }
-
-  function safeAppPath(url) {
-    if (!url || typeof url !== 'string') {
-      return '';
-    }
-    if (url.charAt(0) !== '/' || url.charAt(1) === '/') {
-      return '';
-    }
-    if (url.indexOf('\\') >= 0) {
-      return '';
-    }
-    return url;
-  }
-
   function revokePreviewURL(item) {
     if (item && item.previewURL) {
       URL.revokeObjectURL(item.previewURL);
@@ -217,12 +191,12 @@
         });
 
         if (item.previewURL && isImageMime(item.mime_type)) {
-          var safeSrc = safeMediaSrc(item.previewURL);
+          var safeSrc = ns.safeMediaSrc(item.previewURL);
           if (safeSrc) {
             var thumb = document.createElement('div');
             thumb.className = 'chatagent-pending-thumb';
             var img = document.createElement('img');
-            img.src = safeSrc;
+            img.src = encodeURI(safeSrc.replace(/[<>"']/g, ''));
             img.alt = item.name || 'Attached image';
             thumb.appendChild(img);
             thumb.appendChild(rm);
@@ -476,11 +450,11 @@
             if (text) {
               detailURL += '?prompt=' + encodeURIComponent(text);
             }
-            var safeURL = safeAppPath(detailURL);
+            var safeURL = ns.safeAppPath(detailURL);
             if (!safeURL) {
               throw new Error('Invalid redirect');
             }
-            window.location.href = safeURL;
+            window.location.href = encodeURI(safeURL.replace(/[<>"']/g, ''));
           });
         })
         .catch(function (err) {

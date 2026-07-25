@@ -165,4 +165,30 @@
       .toLowerCase();
     return s === 'error' || s === 'failed' || s === 'needs_approval';
   };
+
+  ns.safeMediaSrc = function (src) {
+    if (!src || typeof src !== 'string') {
+      return '';
+    }
+    if (/^(blob:|https?:)/i.test(src)) {
+      return src;
+    }
+    if (src.charAt(0) === '/' && src.charAt(1) !== '/') {
+      return src;
+    }
+    return '';
+  };
+
+  ns.safeAppPath = function (url) {
+    if (!url || typeof url !== 'string') {
+      return '';
+    }
+    if (url.charAt(0) !== '/' || url.charAt(1) === '/') {
+      return '';
+    }
+    if (url.indexOf('\\') >= 0) {
+      return '';
+    }
+    return url;
+  };
 })();
