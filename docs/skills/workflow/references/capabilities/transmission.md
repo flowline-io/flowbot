@@ -67,7 +67,7 @@ Remove torrents by ID (**mutation**)
 
 | Param | Type | Required | Description |
 |-------|------|----------|-------------|
-| `ids` | `array` | yes | Torrent IDs to remove |
+| `ids` | `[]int64` | yes | Torrent IDs to remove |
 
 **Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
 
@@ -88,7 +88,7 @@ Stop torrents by ID (**mutation**)
 
 | Param | Type | Required | Description |
 |-------|------|----------|-------------|
-| `ids` | `array` | yes | Torrent IDs to stop |
+| `ids` | `[]int64` | yes | Torrent IDs to stop |
 
 **Outputs:** `InvokeResult` JSON (see [../capabilities.md](../capabilities.md)). Read domain fields under `data`; use `text` when present.
 

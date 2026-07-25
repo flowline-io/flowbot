@@ -41,14 +41,14 @@ func buildSpec(app string, svc Service) capability.Spec {
 			{
 				Name: OpStop, Description: "Stop torrents by ID", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
 				Input: []hub.ParamDef{
-					{Name: "ids", Type: "array", Required: true, Description: "Torrent IDs to stop"},
+					{Name: "ids", Type: "[]int64", Required: true, Description: "Torrent IDs to stop"},
 				},
 				Handler: invokeStop(svc),
 			},
 			{
 				Name: OpRemove, Description: "Remove torrents by ID", Scopes: []string{auth.ScopeServiceTransmissionWrite}, Mutation: true,
 				Input: []hub.ParamDef{
-					{Name: "ids", Type: "array", Required: true, Description: "Torrent IDs to remove"},
+					{Name: "ids", Type: "[]int64", Required: true, Description: "Torrent IDs to remove"},
 				},
 				Handler: invokeRemove(svc),
 			},

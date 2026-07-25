@@ -76,6 +76,16 @@ func TestRegister_Operations(t *testing.T) {
 			assert.Contains(t, opNames, tt.op)
 		})
 	}
+
+	for _, op := range desc.Operations {
+		if op.Name != OpStop && op.Name != OpRemove {
+			continue
+		}
+		require.Len(t, op.Input, 1)
+		assert.Equal(t, "ids", op.Input[0].Name)
+		assert.Equal(t, "[]int64", op.Input[0].Type)
+		assert.True(t, op.Input[0].Required)
+	}
 }
 
 func TestInvokeAddStop(t *testing.T) {

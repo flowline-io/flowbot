@@ -47,6 +47,15 @@ func TestPipelineEditorPageCSPSafeExpressions(t *testing.T) {
 			t.Fatal("want pipeline-editor.js?v= cache buster")
 		}
 	})
+	t.Run("int list param input is rendered", func(t *testing.T) {
+		t.Parallel()
+		if !strings.Contains(html, `x-if="isParamTypeIntList(p)"`) {
+			t.Fatal("want []int64 param input branch")
+		}
+		if !strings.Contains(html, "setStepParamIntList") {
+			t.Fatal("want setStepParamIntList wiring")
+		}
+	})
 	t.Run("title click starts rename", func(t *testing.T) {
 		t.Parallel()
 		if !strings.Contains(html, `data-testid="pipeline-title"`) {

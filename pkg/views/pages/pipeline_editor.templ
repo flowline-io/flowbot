@@ -474,6 +474,21 @@ templ PipelineEditorPage(name string) {
 																:data-testid="'param-field-' + p.name"></textarea>
 														</div>
 													</template>
+													<template x-if="isParamTypeIntList(p)">
+														<div class="flex gap-2 items-start">
+															<textarea rows="3"
+																:value="getStepParamIntList(selectedStepIndex(), p.name)"
+																@input="setStepParamIntList(selectedStepIndex(), p.name, $event.target.value)"
+																class="textarea textarea-bordered textarea-sm w-full font-mono"
+																placeholder="comma-separated IDs"
+																:data-param-field="p.name"
+																:data-testid="'param-field-' + p.name"></textarea>
+															<button type="button"
+																@click="openVariablePicker(selectedStepIndex(), p.name)"
+																class="btn btn-ghost btn-sm text-primary shrink-0 mt-1"
+																:data-testid="'btn-var-' + p.name">&#123;x&#125;</button>
+														</div>
+													</template>
 													<template x-if="isParamTypeMap(p)">
 														<div>
 															<textarea rows="4"

@@ -332,6 +332,7 @@
           case 'bool':
             return false;
           case '[]string':
+          case '[]int64':
             return [];
           case 'map[string]any':
             return {};
@@ -435,6 +436,10 @@
         return p?.type === '[]string';
       },
 
+      isParamTypeIntList(p) {
+        return p?.type === '[]int64';
+      },
+
       isParamTypeMap(p) {
         return p?.type === 'map[string]any';
       },
@@ -466,6 +471,7 @@
           case 'bool':
             return value === def;
           case '[]string':
+          case '[]int64':
             return (
               Array.isArray(value) &&
               Array.isArray(def) &&
@@ -578,6 +584,7 @@
           case 'bool':
             return value === 'unset';
           case '[]string':
+          case '[]int64':
             return !Array.isArray(value) || value.length === 0;
           case 'map[string]any':
             return (
@@ -763,6 +770,49 @@
         );
       },
 
+      getStepParamIntList(idx, name) {
+        const val = this.getStepParam(idx, name);
+        if (this.isPipelineExpr(val)) {
+          return String(val);
+        }
+        if (!Array.isArray(val)) {
+          return '';
+        }
+        return val.join(', ');
+      },
+
+      setStepParamIntList(idx, name, text) {
+        const pDef = this.getParamDef(idx, name);
+        const required = pDef?.required ?? false;
+        const trimmed = (text || '').trim();
+        if (!trimmed) {
+          this.setStepParam(idx, name, [], '[]int64', required);
+          return;
+        }
+        if (this.isPipelineExpr(trimmed)) {
+          this.setStepParam(idx, name, trimmed, '[]int64', required);
+          return;
+        }
+        const values = [];
+        const parts = trimmed.split(',');
+        for (let i = 0; i < parts.length; i++) {
+          const item = parts[i].trim();
+          if (!item) {
+            continue;
+          }
+          if (this.isPipelineExpr(item)) {
+            values.push(item);
+            continue;
+          }
+          const num = Number(item);
+          if (Number.isNaN(num)) {
+            continue;
+          }
+          values.push(num);
+        }
+        this.setStepParam(idx, name, values, '[]int64', required);
+      },
+
       getStepParamMapJSON(idx, name) {
         const val = this.getStepParam(idx, name);
         if (val === undefined || val === null) {
@@ -850,6 +900,7 @@
           case 'bool':
             return false;
           case '[]string':
+          case '[]int64':
             return !Array.isArray(val) || val.length === 0;
           case 'map[string]any':
             return (
