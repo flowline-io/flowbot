@@ -2,28 +2,27 @@
 
 [![Build](https://github.com/flowline-io/flowbot/actions/workflows/build.yml/badge.svg)](https://github.com/flowline-io/flowbot/actions/workflows/build.yml)
 
-**Homelab Data Hub & Capability Orchestration Center**
+**Homelab data hub — discover apps, invoke capabilities, automate across them**
 
-Flowbot discovers self-hosted apps, exposes a unified invocation surface per integrated provider, and orchestrates cross-service automation via declarative Pipelines and Workflows.
+Flowbot scans your self-hosted stack, wraps each integrated service behind one `capability.Invoke` API, and runs cross-app automation with Pipelines, Workflows, and Agents — from the Web UI, REST, CLI, or chat.
 
 ## What Flowbot Solves
 
-In a typical homelab, dozens of self-hosted apps run under `/home/<user>/homelab/apps/`. Each has its own API, auth model, pagination convention, and data format. Flowbot answers a single question:
+A typical homelab runs dozens of apps under `/home/<user>/homelab/apps/`. Each has its own API, auth, and data shape — wiring them together usually means one-off scripts and fragile glue. Flowbot answers one question:
 
-> How do I make all these apps work together?
+> How do I make these apps work together — from one place, with a trail I can trust?
 
-| Problem                   | Flowbot Solution                                                                                            |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| App discovery & lifecycle | **Homelab Scanner** scans `docker-compose.yaml`, registers apps                                             |
-| Capability abstraction    | **Capability Layer** exposes each integrated provider (`karakeep`, `miniflux`, …) via `capability.Invoke` |
-| Unified interfaces        | REST, CLI, Chat, Webhook, Cron, Workflow, Agent                                                             |
-| Cross-service data flow   | **Declarative Pipeline** — event-driven, idempotent, auditable                                              |
-| Composable automation     | **Workflow Engine** — DAG of capability / docker / shell / machine steps                                    |
-| Auth boundary             | **AuthContext** subjects: `user` / `token` / `cron` / `pipeline` / `workflow` / `agent`                    |
-| Audit trail               | Durable events, execution history, audit logs — traceable, recoverable, replayable                          |
-| Provider differences      | Standard errors (`ErrNotFound`, `ErrForbidden`, `ErrProvider`) + unified pagination (limit + opaque cursor) |
+| Pain                                         | Flowbot                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Don't know what's running or healthy         | **Homelab Scanner + Hub** — discover from `docker-compose.yaml`, inspect apps / capabilities / health |
+| Every service has a different API            | **Capability Layer** — one `capability.Invoke` for `karakeep`, `miniflux`, `gitea`, …           |
+| Cross-app flows are ad-hoc scripts           | **Pipelines** (event-driven) and **Workflows** (capability / docker / shell / machine DAGs)      |
+| Need Web, CLI, chat, cron, and webhooks      | Same capabilities on every surface — plus Agents when you want a conversational loop             |
+| Hard to audit or replay what ran             | Durable events, execution history, and audit logs                                                |
 
-**Flowbot is not a chatbot.** It uses chat (Discord / Slack / Tailchat) as one of many interaction surfaces. At its core, it is a data hub and orchestration engine for your homelab.
+## Web UI
+
+![Flowbot Web UI — Home](docs/home-page.png)
 
 ## Architecture
 
