@@ -85,7 +85,7 @@ func TestLifeRarityClass(t *testing.T) {
 	assert.Equal(t, "rarity-uncommon", pages.LifeRarityClass("Uncommon"))
 	assert.Equal(t, "rarity-mythic", pages.LifeRarityClass("Mythic"))
 	assert.Equal(t, "rarity-common", pages.LifeRarityClass(""))
-	assert.Equal(t, "", pages.LifeSlotRarityClass(pages.LifeEquipSlot{}))
+	assert.Empty(t, pages.LifeSlotRarityClass(pages.LifeEquipSlot{}))
 	assert.Equal(t, "rarity-rare", pages.LifeSlotRarityClass(pages.LifeEquipSlot{
 		Item: &pages.LifeInventoryRow{Rarity: "Rare"},
 	}))
