@@ -1,5 +1,7 @@
 package llm
 
+import "maps"
+
 import "context"
 
 type thinkingLevelContextKey struct{}
@@ -35,9 +37,7 @@ func WithAssistantToolReasoning(ctx context.Context, reasoning map[string]string
 		return ctx
 	}
 	copied := make(map[string]string, len(reasoning))
-	for id, text := range reasoning {
-		copied[id] = text
-	}
+	maps.Copy(copied, reasoning)
 	return context.WithValue(ctx, assistantToolReasoningContextKey{}, copied)
 }
 

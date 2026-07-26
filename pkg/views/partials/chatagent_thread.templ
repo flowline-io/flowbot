@@ -154,39 +154,47 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		<div class="chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4" data-testid="chatagent-input-bar">
 			<div class="chatagent-input-stack">
 				@ChatAgentContextPopover(endpoints)
-				<div class="flex items-end gap-2">
-					<div class="chatagent-input-wrap flex-1 min-w-0">
-						<div id="chatagent-pending-attachments" class="chatagent-pending-attachments empty:hidden" data-testid="chatagent-pending-attachments"></div>
-						@ChatAgentRichInput(
-							"chatagent-followup-input",
-							"chatagent-followup-textarea chatagent-rich-input w-full min-h-12 max-h-40 leading-normal",
-							"Add follow-up... (Enter to send, Shift+Enter for newline; / for skills)",
-							"Add follow-up",
-							session.State != "Active",
-						)
-						<div class="chatagent-input-footer">
-							<div class="flex items-center gap-1 min-w-0">
-								<input type="file" id="chatagent-media-input" class="hidden" accept="image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm" data-testid="chatagent-media-input" multiple />
-								@ChatAgentAttachButton(
-									"chatagent-attach-media",
-									!chatAgentModelMultimodal(endpoints.SelectableModels, chatAgentSelectedModel(session.Model, endpoints.DefaultModel)),
+				<div class="chatagent-input-wrap">
+					<div id="chatagent-pending-attachments" class="chatagent-pending-attachments empty:hidden" data-testid="chatagent-pending-attachments"></div>
+					@ChatAgentRichInput(
+						"chatagent-followup-input",
+						"chatagent-followup-textarea chatagent-rich-input w-full min-h-12 max-h-40 leading-normal",
+						"Add follow-up... (Enter to send, Shift+Enter for newline; / for skills)",
+						"Add follow-up",
+						session.State != "Active",
+					)
+					<div class="chatagent-input-footer">
+						<div class="flex items-center gap-1 min-w-0">
+							<input type="file" id="chatagent-media-input" class="hidden" accept="image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm" data-testid="chatagent-media-input" multiple />
+							@ChatAgentAttachButton(
+								"chatagent-attach-media",
+								!chatAgentModelMultimodal(endpoints.SelectableModels, chatAgentSelectedModel(session.Model, endpoints.DefaultModel)),
+								false,
+							)
+							if endpoints.SettingsURL != "" {
+								@ChatAgentSettingsCluster(
+									"chatagent-thread-model",
+									"chatagent-thread-thinking",
+									endpoints.SelectableModels,
+									chatAgentSelectedModel(session.Model, endpoints.DefaultModel),
+									session.ThinkingLevel,
 									false,
 								)
-								if endpoints.SettingsURL != "" {
-									@ChatAgentSettingsCluster(
-										"chatagent-thread-model",
-										"chatagent-thread-thinking",
-										endpoints.SelectableModels,
-										chatAgentSelectedModel(session.Model, endpoints.DefaultModel),
-										session.ThinkingLevel,
-										false,
-									)
-								}
-							</div>
+							}
+						</div>
+						<div class="chatagent-input-footer-right">
 							@ChatAgentContextRing()
+							<button
+								type="button"
+								id="chatagent-cancel-run"
+								class="chatagent-stop-btn hidden"
+								aria-label="Stop"
+								title="Stop"
+								data-testid="chatagent-cancel-run">
+								<span class="chatagent-stop-square" aria-hidden="true"></span>
+							</button>
 						</div>
 					</div>
-					<button type="button" id="chatagent-cancel-run" class="btn btn-ghost btn-sm hidden shrink-0" data-testid="chatagent-cancel-run">Cancel</button>
 				</div>
 			</div>
 			<p class="text-xs text-error hidden mt-2" id="chatagent-thread-error" data-testid="chatagent-thread-error"></p>

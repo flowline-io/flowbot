@@ -1354,6 +1354,46 @@ body:has(.chatagent-page) > main {
   min-height: 1.75rem;
 }
 
+.chatagent-page .chatagent-input-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.chatagent-page .chatagent-stop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Match .chatagent-context-ring outer size: 26px SVG + 2px padding */
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 0;
+  background: var(--color-primary, oklch(var(--bc)));
+  color: var(--color-primary-content, oklch(var(--b1)));
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.chatagent-page .chatagent-stop-btn:hover {
+  opacity: 0.85;
+}
+
+.chatagent-page .chatagent-stop-btn.hidden {
+  display: none;
+}
+
+.chatagent-page .chatagent-stop-square {
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 0.1rem;
+  background: currentColor;
+}
+
 .chatagent-page .chatagent-context-ring-wrap {
   position: relative;
   right: auto;

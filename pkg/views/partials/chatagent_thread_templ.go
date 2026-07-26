@@ -445,7 +445,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"flex items-end gap-2\"><div class=\"chatagent-input-wrap flex-1 min-w-0\"><div id=\"chatagent-pending-attachments\" class=\"chatagent-pending-attachments empty:hidden\" data-testid=\"chatagent-pending-attachments\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"chatagent-input-wrap\"><div id=\"chatagent-pending-attachments\" class=\"chatagent-pending-attachments empty:hidden\" data-testid=\"chatagent-pending-attachments\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -484,7 +484,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</div><div class=\"chatagent-input-footer-right\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -492,7 +492,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div></div><button type=\"button\" id=\"chatagent-cancel-run\" class=\"btn btn-ghost btn-sm hidden shrink-0\" data-testid=\"chatagent-cancel-run\">Cancel</button></div></div><p class=\"text-xs text-error hidden mt-2\" id=\"chatagent-thread-error\" data-testid=\"chatagent-thread-error\"></p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<button type=\"button\" id=\"chatagent-cancel-run\" class=\"chatagent-stop-btn hidden\" aria-label=\"Stop\" title=\"Stop\" data-testid=\"chatagent-cancel-run\"><span class=\"chatagent-stop-square\" aria-hidden=\"true\"></span></button></div></div></div></div><p class=\"text-xs text-error hidden mt-2\" id=\"chatagent-thread-error\" data-testid=\"chatagent-thread-error\"></p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
