@@ -13,9 +13,9 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 - Auth: cookie `authenticateWeb()`; most routes use `route.WithNotAuth()` then authenticate in-handler. CSRF double-submit (`csrfToken` / `X-CSRF-Token`); helpers in `public/js/app.js`.
 - Chatagent SSE: `chatagent_web_stream.go`. Shared service: `chatagent_service.go` (installed by `server.ChatAgentService`).
 - Scripts order of truth: `pkg/views/partials/chatagent_scripts.templ`
-  - Composer: `util → chat`
+  - Composer: `util → slash → chat`
   - Approval: `util → approval → chat`
-  - Thread: `util → sse → markdown → codeblocks → context → approval → todos → thread → chat → clip-copy`
+  - Thread: `util → sse → markdown → codeblocks → context → approval → todos → thread → slash → chat → clip-copy`
 - Namespace: `window.FlowbotChatAgent` only — no monolithic chatagent JS.
 
 ## Non-obvious rules

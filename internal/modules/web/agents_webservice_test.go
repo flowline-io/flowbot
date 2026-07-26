@@ -80,6 +80,12 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 			wantBody: "Your sessions",
 		},
 		{
+			name:     "composer exposes skills slash picker hooks",
+			path:     "/service/web/agents",
+			sessions: nil,
+			wantBody: `data-skills-url="/service/web/agents/skills"`,
+		},
+		{
 			name: "list partial filters by uid",
 			path: "/service/web/agents/list",
 			sessions: []*gen.ChatSession{
@@ -99,6 +105,7 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			withChatAgentEnabled(t, func() {
+				ensureChatAgentServiceForTest()
 				ts := &testStore{chatSessions: tt.sessions}
 				app := setupAuthenticatedApp(t, ts)
 
@@ -115,6 +122,11 @@ func TestAgentsPageAuthenticated(t *testing.T) {
 				assert.Contains(t, text, tt.wantBody)
 				if tt.name == "list partial filters by uid" {
 					assert.NotContains(t, text, "Hidden")
+				}
+				if tt.name == "composer exposes skills slash picker hooks" {
+					assert.Contains(t, text, `contenteditable="true"`)
+					assert.Contains(t, text, "chatagent-slash.js")
+					assert.Contains(t, text, `data-testid="chatagent-composer-input"`)
 				}
 			})
 		})
@@ -769,6 +781,7 @@ func TestAgentsWebserviceStaticRoutesBeforeParam(t *testing.T) {
 		path string
 	}{
 		{name: "list is static", path: "/agents/list"},
+		{name: "skills is static", path: "/agents/skills"},
 		{name: "render-markdown is static", path: "/agents/render-markdown"},
 		{name: "create is collection", path: "/agents"},
 	}
@@ -1009,4 +1022,80 @@ func TestAgentsCreateReturnsJSON(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 		assert.Contains(t, resp.Header.Get("Content-Type"), "application/json")
 	})
+}
+
+type agentsSkillsListPayloadJSON struct {
+	Status string               `json:"status"`
+	Data   agentsSkillsListData `json:"data"`
+}
+
+func TestAgentsSkillsList(t *testing.T) {
+	tests := []struct {
+		name            string
+		skills          map[string]*gen.AgentSkill
+		wantStatus      int
+		wantNames       []string
+		wantAbsent      []string
+		unauthenticated bool
+	}{
+		{
+			name:            "unauthenticated redirects",
+			wantStatus:      http.StatusSeeOther,
+			unauthenticated: true,
+		},
+		{
+			name: "returns enabled invocable skills",
+			skills: map[string]*gen.AgentSkill{
+				"karakeep": {Flag: "karakeep", Name: "karakeep", Description: "Bookmarks", Enabled: true},
+				"hidden":   {Flag: "hidden", Name: "hidden", Description: "Hidden", Enabled: true, DisableModelInvocation: true},
+				"off":      {Flag: "off", Name: "off", Description: "Off", Enabled: false},
+			},
+			wantStatus: http.StatusOK,
+			wantNames:  []string{"karakeep"},
+			wantAbsent: []string{"hidden", "off"},
+		},
+		{
+			name:       "empty skills list",
+			skills:     map[string]*gen.AgentSkill{},
+			wantStatus: http.StatusOK,
+			wantNames:  nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ensureChatAgentServiceForTest()
+			ts := &testStore{agentSkills: tt.skills}
+			app := setupAuthenticatedApp(t, ts)
+			req := httptest.NewRequest(http.MethodGet, "/service/web/agents/skills", http.NoBody)
+			if !tt.unauthenticated {
+				req.Header.Set("Cookie", "accessToken=test-token")
+				AttachCSRFForTest(req)
+			}
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantStatus != http.StatusOK {
+				return
+			}
+			body, err := io.ReadAll(resp.Body)
+			require.NoError(t, err)
+			var payload agentsSkillsListPayloadJSON
+			require.NoError(t, sonic.Unmarshal(body, &payload))
+			assert.Equal(t, "ok", payload.Status)
+			got := make([]string, 0, len(payload.Data.Skills))
+			for _, s := range payload.Data.Skills {
+				got = append(got, s.Name)
+			}
+			for _, name := range tt.wantNames {
+				assert.Contains(t, got, name)
+			}
+			for _, name := range tt.wantAbsent {
+				assert.NotContains(t, got, name)
+			}
+			if tt.wantNames == nil {
+				assert.Empty(t, payload.Data.Skills)
+			}
+		})
+	}
 }

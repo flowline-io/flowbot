@@ -27,7 +27,11 @@
       ? threadRoot.querySelector('#chatagent-followup-input')
       : null;
     if (input) {
-      input.disabled = running;
+      if (typeof ns.setInputDisabled === 'function') {
+        ns.setInputDisabled(input, running);
+      } else {
+        input.disabled = running;
+      }
     }
     if (cancelBtn) {
       cancelBtn.classList.toggle('hidden', !running);

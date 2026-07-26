@@ -13,9 +13,9 @@ import (
 
 const (
 	// ChatAgentPendingPromptKeyPrefix stores the first user prompt before navigation.
-	// The create flow writes both ?prompt= and sessionStorage; the detail page must
-	// always clear the storage key after consuming either source, or revisiting the
-	// session from the list will re-send the first prompt.
+	// The create flow writes sessionStorage (and ?prompt= only if storage fails);
+	// the detail page must always clear the storage key after consuming either
+	// source, or revisiting the session from the list will re-send the first prompt.
 	ChatAgentPendingPromptKeyPrefix = "flowbot-chatagent-pending:"
 )
 

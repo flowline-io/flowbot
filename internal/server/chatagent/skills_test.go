@@ -26,6 +26,8 @@ func TestFormatSkillsForPrompt(t *testing.T) {
 				"<name>karakeep</name>",
 				"Manage bookmarks via Flowbot CLI",
 				"read_skill",
+				`name="gitea"`,
+				"Do not omit name",
 			},
 		},
 		{

@@ -47,6 +47,7 @@ func TestValidateArgs(t *testing.T) {
 	}{
 		{name: "valid", args: map[string]any{"path": "a.go", "count": float64(1), "enabled": true}},
 		{name: "missing required", args: map[string]any{}, wantErr: "missing required argument"},
+		{name: "nil required value", args: map[string]any{"path": nil}, wantErr: "missing required argument"},
 		{name: "wrong type", args: map[string]any{"path": "a.go", "enabled": "yes"}, wantErr: "must be type boolean"},
 	}
 	for _, tt := range tests {
@@ -61,4 +62,20 @@ func TestValidateArgs(t *testing.T) {
 			assert.Contains(t, err.Error(), tt.wantErr)
 		})
 	}
+}
+
+func TestValidateArgsRequiredStringSlice(t *testing.T) {
+	t.Parallel()
+	// Tool Parameters() use []string for required; validation must accept that shape.
+	schema := map[string]any{
+		"type": "object",
+		"properties": map[string]any{
+			"name": map[string]any{"type": "string"},
+		},
+		"required": []string{"name"},
+	}
+	err := tool.ValidateArgs(schema, map[string]any{})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), `missing required argument "name"`)
+	require.NoError(t, tool.ValidateArgs(schema, map[string]any{"name": "gitea"}))
 }

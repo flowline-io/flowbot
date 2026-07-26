@@ -12,6 +12,23 @@
     return PENDING_PREFIX + sessionID;
   }
 
+  function readInputText(input) {
+    if (typeof ns.getInputText === 'function') {
+      return (ns.getInputText(input) || '').trim();
+    }
+    return ((input && input.value) || '').trim();
+  }
+
+  function resetInput(input) {
+    if (typeof ns.clearInput === 'function') {
+      ns.clearInput(input);
+      return;
+    }
+    if (input) {
+      input.value = '';
+    }
+  }
+
   function parsePendingPayload(raw) {
     if (!raw) {
       return { text: '', attachments: [] };
@@ -37,12 +54,34 @@
     return { text: String(raw), attachments: [] };
   }
 
+  // decodePendingPromptText undoes residual percent-encoding from a bad
+  // encodeURI(encodeURIComponent(...)) redirect (e.g. "%2Fskill" → "/skill").
+  function decodePendingPromptText(text) {
+    var out = String(text || '');
+    for (var i = 0; i < 2; i++) {
+      if (!/%[0-9A-Fa-f]{2}/.test(out)) {
+        break;
+      }
+      try {
+        var once = decodeURIComponent(out.replace(/\+/g, ' '));
+        if (!once || once === out) {
+          break;
+        }
+        out = once;
+      } catch {
+        break;
+      }
+    }
+    return out;
+  }
+
   function consumePendingPrompt(sessionID) {
+    var urlText = '';
     var text = '';
     var attachments = [];
     var params = new URLSearchParams(window.location.search);
     if (params.has('prompt')) {
-      text = params.get('prompt') || '';
+      urlText = params.get('prompt') || '';
       params.delete('prompt');
       var suffix = params.toString();
       var cleanURL = window.location.pathname + (suffix ? '?' + suffix : '');
@@ -51,18 +90,19 @@
     try {
       var key = pendingKey(sessionID);
       var stored = parsePendingPayload(sessionStorage.getItem(key) || '');
-      // Always clear: create flow writes both ?prompt= and sessionStorage. If we
-      // only clear storage when the URL is empty, revisiting the session from the
-      // list re-sends the first prompt.
+      // Always clear: create flow writes sessionStorage (+ optional ?prompt= fallback).
+      // Revisiting the session from the list must not re-send the first prompt.
       sessionStorage.removeItem(key);
-      if (!text.trim()) {
-        text = stored.text || '';
-      }
+      // Prefer sessionStorage raw text; URL is only a fallback when storage failed.
+      text = (stored.text || '').trim() || urlText;
       attachments = stored.attachments || [];
     } catch {
-      /* storage may be unavailable */
+      text = urlText;
     }
-    return { text: text.trim(), attachments: attachments };
+    return {
+      text: decodePendingPromptText(text).trim(),
+      attachments: attachments,
+    };
   }
 
   function storePendingPrompt(sessionID, text, attachments) {
@@ -74,8 +114,10 @@
           attachments: attachments || [],
         }),
       );
+      return true;
     } catch {
       /* storage may be unavailable */
+      return false;
     }
   }
 
@@ -392,8 +434,12 @@
       errorEl: errorEl,
     });
 
+    if (ns.initSlashSkills) {
+      ns.initSlashSkills(root, input);
+    }
+
     function start() {
-      var text = (input.value || '').trim();
+      var text = readInputText(input);
       if (!text && queue.list.length === 0) {
         ns.showError(errorEl, 'Enter a prompt to start.');
         return;
@@ -445,16 +491,19 @@
           return upload.then(function (refs) {
             clearPendingAttachments(localAtts);
             queue.clear();
-            storePendingPrompt(sessionID, text, refs);
+            var stored = storePendingPrompt(sessionID, text, refs);
             var detailURL = detailTemplate.replace('{id}', sessionID);
-            if (text) {
+            // Avoid ?prompt= when sessionStorage works: encodeURI(encodeURIComponent)
+            // previously turned "/skill" into a literal "%2Fskill" in the thread.
+            // Keep a single-encoded query only as fallback when storage is unavailable.
+            if (text && !stored) {
               detailURL += '?prompt=' + encodeURIComponent(text);
             }
             var safeURL = ns.safeAppPath(detailURL);
             if (!safeURL) {
               throw new Error('Invalid redirect');
             }
-            window.location.href = encodeURI(safeURL.replace(/[<>"']/g, ''));
+            window.location.href = safeURL.replace(/[<>"']/g, '');
           });
         })
         .catch(function (err) {
@@ -465,6 +514,9 @@
 
     startBtn.addEventListener('click', start);
     input.addEventListener('keydown', function (ev) {
+      if (ns.slashPickerHandlesKey && ns.slashPickerHandlesKey(input, ev)) {
+        return;
+      }
       if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault();
         start();
@@ -639,6 +691,10 @@
       errorEl: errorEl,
     });
 
+    if (ns.initSlashSkills) {
+      ns.initSlashSkills(root, input);
+    }
+
     initThreadSettings(root, function () {
       queue.syncVisibility();
     });
@@ -703,16 +759,19 @@
     }
 
     function sendFollowUp() {
-      var text = (input.value || '').trim();
+      var text = readInputText(input);
       if (!text && queue.list.length === 0) {
         return;
       }
       var atts = queue.take();
-      input.value = '';
+      resetInput(input);
       ns.streamMessage(messagesURL, text, root, null, approval, atts);
     }
 
     input.addEventListener('keydown', function (ev) {
+      if (ns.slashPickerHandlesKey && ns.slashPickerHandlesKey(input, ev)) {
+        return;
+      }
       if (ev.key === 'Enter' && !ev.shiftKey) {
         ev.preventDefault();
         sendFollowUp();

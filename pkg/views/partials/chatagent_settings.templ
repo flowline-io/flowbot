@@ -66,6 +66,21 @@ templ ChatAgentAttachButton(id string, hidden bool, disabled bool) {
 	</button>
 }
 
+// ChatAgentRichInput is the contenteditable composer / follow-up shell with slash-skill support.
+templ ChatAgentRichInput(id, className, placeholder, ariaLabel string, disabled bool) {
+	<div class="chatagent-rich-shell is-empty">
+		<div class="chatagent-rich-placeholder" aria-hidden="true">{ placeholder }</div>
+		<div
+			id={ id }
+			class={ className }
+			contenteditable={ chatAgentMultimodalAttr(!disabled) }
+			role="textbox"
+			aria-multiline="true"
+			aria-label={ ariaLabel }
+			data-testid={ id }></div>
+	</div>
+}
+
 templ chatAgentThinkingOption(value, label, selectedThinking string) {
 	if chatAgentThinkingSelected(value, selectedThinking) {
 		<option value={ value } selected>{ label }</option>

@@ -18,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/types/protocol"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
@@ -29,6 +30,7 @@ var (
 		webservice.Get("/agents/list", agentsTable, route.WithNotAuth()),
 		webservice.Post("/agents", agentsCreate, route.WithNotAuth()),
 		// Static paths must be registered before /agents/:id.
+		webservice.Get("/agents/skills", agentsSkillsList, route.WithNotAuth()),
 		webservice.Post("/agents/render-markdown", agentRenderMarkdown, route.WithNotAuth()),
 		webservice.Get("/agents/:id", agentChatPage, route.WithNotAuth()),
 		webservice.Delete("/agents/:id", agentChatClose, route.WithNotAuth()),
@@ -70,6 +72,7 @@ func agentsEndpointsWithFilter(filter string) partials.ChatAgentEndpoints {
 		Filter:               normalizeAgentsListFilter(filter),
 		PendingApprovalCount: chatAgentService().CountPendingApprovalSessions(),
 		RenderMarkdownURL:    "/service/web/agents/render-markdown",
+		SkillsURL:            "/service/web/agents/skills",
 		SelectableModels:     selectableModelOptions(),
 		DefaultModel:         pkgconfig.ChatAgentChatModel(),
 	}
@@ -99,9 +102,25 @@ func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
 		RenderMarkdownURL: "/service/web/agents/render-markdown",
 		ContextURL:        prefix + "/context",
 		TodosURL:          prefix + "/todos",
+		SkillsURL:         "/service/web/agents/skills",
 		SelectableModels:  selectableModelOptions(),
 		DefaultModel:      pkgconfig.ChatAgentChatModel(),
 	}
+}
+
+type agentsSkillsListData struct {
+	Skills []model.AgentSubagentSkillOption `json:"skills"`
+}
+
+func agentsSkillsList(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	skills, err := listAgentSubagentSkillOptions(ctx.Context())
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": "failed to list skills"})
+	}
+	return ctx.JSON(protocol.NewSuccessResponse(agentsSkillsListData{Skills: skills}))
 }
 
 func selectableModelOptions() []partials.SelectableModelOption {

@@ -25,6 +25,8 @@ type ChatAgentEndpoints struct {
 	RenderMarkdownURL  string
 	ContextURL         string
 	TodosURL           string
+	// SkillsURL returns enabled skills for the composer slash picker.
+	SkillsURL string
 	// Filter is the active session list filter query value.
 	Filter string
 	// PendingApprovalCount is how many sessions currently wait on tool approval.

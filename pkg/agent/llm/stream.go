@@ -27,6 +27,10 @@ type StreamOptions struct {
 	Tools            []llms.Tool
 	OnTextDelta      func(delta string) error
 	OnReasoningDelta func(delta string) error
+	// AssistantToolReasoning maps tool_call id → reasoning_content for prior
+	// assistant turns that invoked tools. Required by DeepSeek/MiMo when
+	// continuing after tool results.
+	AssistantToolReasoning map[string]string
 	// Retry overrides the default transient retry policy when non-zero MaxAttempts is set.
 	Retry RetryConfig
 }
@@ -110,6 +114,7 @@ func streamAssistantOnce(
 	callOpts = append(callOpts, buildAssistantStreamOptions(wrapped, &textBuilder, &textMu)...)
 
 	streamCtx = WithThinkingLevel(streamCtx, opts.ThinkingLevel)
+	streamCtx = WithAssistantToolReasoning(streamCtx, opts.AssistantToolReasoning)
 
 	start := time.Now()
 	flog.Info("[agent-llm] generate start model=%s messages=%d tools=%d reasoning=%t ctx_deadline=%s",

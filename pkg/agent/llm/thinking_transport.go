@@ -63,6 +63,7 @@ func (t *thinkingTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	}
 
 	applyThinkingRequestFields(payload, ThinkingLevelFromContext(req.Context()))
+	injectAssistantReasoningContent(payload, AssistantToolReasoningFromContext(req.Context()))
 
 	patched, err := sonic.Marshal(payload)
 	if err != nil {
@@ -112,6 +113,78 @@ func applyThinkingRequestFields(payload map[string]any, level string) {
 		return
 	}
 	delete(payload, "reasoning_effort")
+}
+
+// injectAssistantReasoningContent writes reasoning_content onto prior assistant
+// messages that include tool_calls. DeepSeek/MiMo require this field to be echoed
+// back after tool results even when the current request disables thinking
+// (langchaingo MessageContent has no ReasoningContent field).
+func injectAssistantReasoningContent(payload map[string]any, reasoning map[string]string) {
+	modelName, hasModel := payload["model"].(string)
+	if !hasModel || !needsReasoningContentRoundTrip(modelName) {
+		return
+	}
+	messages, ok := payload["messages"].([]any)
+	if !ok {
+		return
+	}
+	for _, raw := range messages {
+		msg, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		role, ok := msg["role"].(string)
+		if !ok || role != "assistant" || !messageHasToolCalls(msg) {
+			continue
+		}
+		if existing, ok := msg["reasoning_content"].(string); ok && strings.TrimSpace(existing) != "" {
+			continue
+		}
+		msg["reasoning_content"] = reasoningForToolCalls(msg, reasoning)
+	}
+}
+
+func reasoningForToolCalls(msg map[string]any, reasoning map[string]string) string {
+	if len(reasoning) == 0 {
+		return ""
+	}
+	toolCalls, ok := msg["tool_calls"].([]any)
+	if !ok {
+		return ""
+	}
+	for _, raw := range toolCalls {
+		call, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		id, ok := call["id"].(string)
+		if !ok || strings.TrimSpace(id) == "" {
+			continue
+		}
+		if text, ok := reasoning[id]; ok {
+			return text
+		}
+	}
+	return ""
+}
+
+func needsReasoningContentRoundTrip(modelName string) bool {
+	return isDeepSeekV4ReasoningModel(modelName) || isMiMoReasoningModel(modelName)
+}
+
+func messageHasToolCalls(msg map[string]any) bool {
+	raw, ok := msg["tool_calls"]
+	if !ok || raw == nil {
+		return false
+	}
+	switch v := raw.(type) {
+	case []any:
+		return len(v) > 0
+	case []map[string]any:
+		return len(v) > 0
+	default:
+		return true
+	}
 }
 
 // ThinkingHTTPClientForTest exposes the thinking-enabled OpenAI-compatible HTTP client for tests.

@@ -5,6 +5,7 @@ import "github.com/flowline-io/flowbot/version"
 // ChatAgentComposerScripts loads JS for the agents home composer (create session).
 templ ChatAgentComposerScripts() {
 	<script src={ "/static/js/chatagent-util.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-slash.js?v=" + version.Buildtags } defer></script>
 	<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
 }
 
@@ -25,6 +26,7 @@ templ ChatAgentThreadScripts() {
 	<script src={ "/static/js/chatagent-approval.js?v=" + version.Buildtags } defer></script>
 	<script src={ "/static/js/chatagent-todos.js?v=" + version.Buildtags } defer></script>
 	<script src={ "/static/js/chatagent-thread.js?v=" + version.Buildtags } defer></script>
+	<script src={ "/static/js/chatagent-slash.js?v=" + version.Buildtags } defer></script>
 	<script src={ "/static/js/chatagent-chat.js?v=" + version.Buildtags } defer></script>
 	@ClipCopyScripts()
 }

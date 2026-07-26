@@ -22,15 +22,7 @@ func ValidateArgs(schema map[string]any, args map[string]any) error {
 }
 
 func validateRequired(schema map[string]any, args map[string]any) error {
-	requiredRaw, ok := schema["required"].([]any)
-	if !ok {
-		return nil
-	}
-	for _, item := range requiredRaw {
-		name, ok := item.(string)
-		if !ok || name == "" {
-			continue
-		}
+	for _, name := range requiredFieldNames(schema["required"]) {
 		value, exists := args[name]
 		if !exists || isEmptyArg(value) {
 			return fmt.Errorf("%s", FormatToolError(
@@ -41,6 +33,34 @@ func validateRequired(schema map[string]any, args map[string]any) error {
 		}
 	}
 	return nil
+}
+
+// requiredFieldNames accepts both []string (Go tool schemas) and []any (JSON-decoded schemas).
+func requiredFieldNames(raw any) []string {
+	switch required := raw.(type) {
+	case []string:
+		out := make([]string, 0, len(required))
+		for _, name := range required {
+			if name = strings.TrimSpace(name); name != "" {
+				out = append(out, name)
+			}
+		}
+		return out
+	case []any:
+		out := make([]string, 0, len(required))
+		for _, item := range required {
+			name, ok := item.(string)
+			if !ok {
+				continue
+			}
+			if name = strings.TrimSpace(name); name != "" {
+				out = append(out, name)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
 }
 
 func validatePropertyTypes(schema map[string]any, args map[string]any) error {

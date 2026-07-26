@@ -198,7 +198,7 @@ func streamAssistant(
 	ctx, span := trace.StartSpan(ctx, "agent.llm.stream")
 	defer span.End()
 
-	llmMessages, modelName, err := prepareLLMStreamInput(ctx, current, cfg)
+	llmMessages, modelName, toolReasoning, err := prepareLLMStreamInput(ctx, current, cfg)
 	if err != nil {
 		return AssistantMessage{}, err
 	}
@@ -214,6 +214,7 @@ func streamAssistant(
 
 	var capture reasoningCapture
 	streamOpts := buildStreamOptions(cfg, modelName, llmTools, emit, &capture)
+	streamOpts.AssistantToolReasoning = toolReasoning
 
 	start := time.Now()
 	llmModel, err := resolveTurnModel(ctx, deps, modelName)
@@ -239,27 +240,80 @@ func streamAssistant(
 	return assistant, nil
 }
 
-func prepareLLMStreamInput(ctx context.Context, current *Context, cfg Config) ([]llms.MessageContent, string, error) {
+func prepareLLMStreamInput(ctx context.Context, current *Context, cfg Config) ([]llms.MessageContent, string, map[string]string, error) {
 	messages := current.Messages
 	if cfg.TransformContext != nil {
 		transformed, err := cfg.TransformContext(messages)
 		if err != nil {
 			if abortErr := abortLoopError(err); abortErr != err {
-				return nil, "", abortErr
+				return nil, "", nil, abortErr
 			}
-			return nil, "", fmt.Errorf("agent loop: transform context: %w", err)
+			return nil, "", nil, fmt.Errorf("agent loop: transform context: %w", err)
 		}
 		messages = transformed
 	}
 
+	messages = withEnsuredToolCallIDs(messages)
 	llmMessages, err := cfg.ConvertToLLM(messages)
 	if err != nil {
-		return nil, "", fmt.Errorf("agent loop: convert to llm: %w", err)
+		return nil, "", nil, fmt.Errorf("agent loop: convert to llm: %w", err)
 	}
 
 	modelName := turnModelName(cfg, current)
 	trace.SetSpanAttributes(ctx, attribute.String("model", modelName))
-	return llmMessages, modelName, nil
+	return llmMessages, modelName, collectAssistantToolReasoning(messages), nil
+}
+
+func withEnsuredToolCallIDs(messages []msg.AgentMessage) []msg.AgentMessage {
+	out := make([]msg.AgentMessage, len(messages))
+	for i, message := range messages {
+		assistant, ok := message.(msg.AssistantMessage)
+		if !ok {
+			out[i] = message
+			continue
+		}
+		parts := make([]msg.ContentPart, len(assistant.Parts))
+		changed := false
+		for j, part := range assistant.Parts {
+			call, ok := part.(msg.ToolCallPart)
+			if !ok {
+				parts[j] = part
+				continue
+			}
+			id := msg.EnsureToolCallID(call.ID)
+			if id != call.ID {
+				call.ID = id
+				changed = true
+			}
+			parts[j] = call
+		}
+		if changed {
+			assistant.Parts = parts
+		}
+		out[i] = assistant
+	}
+	return out
+}
+
+func collectAssistantToolReasoning(messages []msg.AgentMessage) map[string]string {
+	out := map[string]string{}
+	for _, message := range messages {
+		assistant, ok := message.(msg.AssistantMessage)
+		if !ok {
+			continue
+		}
+		for _, call := range assistant.ToolCalls() {
+			id := strings.TrimSpace(call.ID)
+			if id == "" {
+				continue
+			}
+			out[id] = assistant.ThinkingText
+		}
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }
 
 func buildStreamOptions(cfg Config, modelName string, llmTools []llms.Tool, emit func(agentevent.Event) error, capture *reasoningCapture) agentllm.StreamOptions {

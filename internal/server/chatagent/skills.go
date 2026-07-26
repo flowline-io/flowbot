@@ -234,6 +234,7 @@ func FormatSkillsForPrompt(skills []Skill) string {
 	lines := []string{
 		"\n\nThe following skills provide specialized instructions for specific tasks.",
 		"Use read_skill to load a skill when the task matches its description.",
+		"Always call read_skill with a non-empty name equal to the skill <name> (example: read_skill with name=\"gitea\"). Do not omit name.",
 		"Use read_skill with the path argument to load auxiliary files listed under each skill.",
 		"When a skill references relative paths, resolve them against the skill base directory.",
 		"",

@@ -107,6 +107,8 @@ type AssistantMessage struct {
 	// ThinkingDurationMs is elapsed milliseconds for the reasoning stream phase.
 	ThinkingDurationMs int64
 	// ThinkingText is accumulated reasoning output for UI replay after refresh.
+	// It is also echoed back as reasoning_content for DeepSeek/MiMo thinking
+	// mode when the assistant message includes tool_calls.
 	ThinkingText string
 	// RunDurationMs is total run milliseconds; set on the final assistant message of a run.
 	RunDurationMs int64
