@@ -4,7 +4,10 @@
     "name": "Focus Spectacles",
     "rarity": "Uncommon",
     "slot_type": "Head",
-    "stat_buffs": {"INT": 5, "DropRate": 0.02},
+    "stat_buffs": {
+      "INT": 5,
+      "DropRate": 0.02
+    },
     "ai_lore_text": "Lenses ground for midnight architecture reviews."
   },
   {
@@ -12,7 +15,10 @@
     "name": "Mithril Keyboard",
     "rarity": "Rare",
     "slot_type": "Weapon",
-    "stat_buffs": {"INT": 8, "GoldMult": 0.1},
+    "stat_buffs": {
+      "INT": 8,
+      "GoldMult": 0.1
+    },
     "ai_lore_text": "Each keystroke rings like a forge hammer."
   },
   {
@@ -20,7 +26,9 @@
     "name": "Steady Hoodie",
     "rarity": "Common",
     "slot_type": "Armor",
-    "stat_buffs": {"WIL": 4},
+    "stat_buffs": {
+      "WIL": 4
+    },
     "ai_lore_text": "Soft armor against context-switch chill."
   },
   {
@@ -28,24 +36,34 @@
     "name": "Perpetual Sneakers",
     "rarity": "Rare",
     "slot_type": "Shoes",
-    "stat_buffs": {"PHY": 6, "DropRate": 0.03},
+    "stat_buffs": {
+      "PHY": 6,
+      "DropRate": 0.03
+    },
     "ai_lore_text": "They remember every walk that cleared your head."
   },
   {
     "flag": "eq-charm-token",
-    "name": "Charm Token",
+    "name": "Focus Ring",
     "rarity": "Uncommon",
     "slot_type": "Accessory",
-    "stat_buffs": {"CHA": 5},
-    "ai_lore_text": "A small coin that tips conversations open."
+    "stat_buffs": {
+      "CHA": 5
+    },
+    "ai_lore_text": "Spin once; silence the notifications."
   },
   {
     "flag": "eq-truth-codex",
     "name": "Truth Codex",
     "rarity": "Epic",
     "slot_type": "Artifact",
-    "stat_buffs": {"INT": 12, "DropRate": 0.05},
-    "ai_unlocked_privilege": {"ai_breakdown_depth": "deep"},
+    "stat_buffs": {
+      "INT": 12,
+      "DropRate": 0.05
+    },
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    },
     "ai_lore_text": "Margins filled with pseudo-code from hard-won nights."
   },
   {
@@ -53,7 +71,11 @@
     "name": "Legend Quill",
     "rarity": "Legendary",
     "slot_type": "Weapon",
-    "stat_buffs": {"WIL": 10, "INT": 10, "GoldMult": 0.25},
+    "stat_buffs": {
+      "WIL": 10,
+      "INT": 10,
+      "GoldMult": 0.25
+    },
     "ai_lore_text": "Writes destinies in commit messages."
   },
   {
@@ -61,8 +83,3961 @@
     "name": "Mythic Crown of Clarity",
     "rarity": "Mythic",
     "slot_type": "Head",
-    "stat_buffs": {"FOC": 15, "INT": 15, "DropRate": 0.08},
-    "ai_unlocked_privilege": {"ai_breakdown_depth": "mythic"},
+    "stat_buffs": {
+      "FOC": 15,
+      "INT": 15,
+      "DropRate": 0.08
+    },
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    },
     "ai_lore_text": "Forged from a year of unbroken focus."
+  },
+  {
+    "flag": "eq-canvas-cap",
+    "name": "Worn Knit Cap",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Pulled low on mornings that begin before courage arrives."
+  },
+  {
+    "flag": "eq-soft-beanie",
+    "name": "Secondhand Beanie",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Smells faintly of thrift shops and fresh starts."
+  },
+  {
+    "flag": "eq-noise-band",
+    "name": "Desk Visor",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Cuts monitor glare during the longest afternoons."
+  },
+  {
+    "flag": "eq-morning-visor",
+    "name": "Cloth Headband",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Keeps sweat and stray thoughts from the eyes."
+  },
+  {
+    "flag": "eq-reading-clip",
+    "name": "Reading Clip",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "Holds a page open while the mind catches up."
+  },
+  {
+    "flag": "eq-draft-pen",
+    "name": "Draft Pen",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Scratchy ink that forgives first attempts."
+  },
+  {
+    "flag": "eq-budget-mouse",
+    "name": "Budget Mouse",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "Clicks just loud enough to feel like progress."
+  },
+  {
+    "flag": "eq-sticky-pad",
+    "name": "Sticky-Note Pad",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Ideas survive only if they can stick."
+  },
+  {
+    "flag": "eq-office-mug",
+    "name": "Office Mug",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Steam rises; deadlines soften for a moment."
+  },
+  {
+    "flag": "eq-basic-stylus",
+    "name": "Basic Stylus",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Traces wireframes on fogged cafe windows."
+  },
+  {
+    "flag": "eq-timer-clicker",
+    "name": "Kitchen Timer",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "One twist starts a small, honest sprint."
+  },
+  {
+    "flag": "eq-linen-shirt",
+    "name": "Linen Work Shirt",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Breathes through long meeting days."
+  },
+  {
+    "flag": "eq-zip-fleece",
+    "name": "Zip Fleece",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Layer for drafts that have nothing to do with code."
+  },
+  {
+    "flag": "eq-softshell-vest",
+    "name": "Softshell Vest",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Keeps the core warm at standing desks."
+  },
+  {
+    "flag": "eq-denim-apron",
+    "name": "Denim Apron",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Pockets for pens and half-baked ideas."
+  },
+  {
+    "flag": "eq-tee-plain",
+    "name": "Plain Tee of Resolve",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "No logos. No excuses."
+  },
+  {
+    "flag": "eq-house-slippers",
+    "name": "House Slippers",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Quiet steps between kitchen and keyboard."
+  },
+  {
+    "flag": "eq-canvas-flats",
+    "name": "Canvas Flats",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Light enough for hallway conversations."
+  },
+  {
+    "flag": "eq-gym-socks",
+    "name": "Grip Socks",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Barely shoes; fully intentional."
+  },
+  {
+    "flag": "eq-rain-galoshes",
+    "name": "Rain Galoshes",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Commute armor for wet Mondays."
+  },
+  {
+    "flag": "eq-desk-slides",
+    "name": "Desk Slides",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Slide on; the world can wait one hour."
+  },
+  {
+    "flag": "eq-paperclip-ring",
+    "name": "Charm Token",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "A small coin that tips conversations open."
+  },
+  {
+    "flag": "eq-badge-lanyard",
+    "name": "Paperclip Ring",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Bent into a reminder to ship."
+  },
+  {
+    "flag": "eq-cable-tie",
+    "name": "Badge Lanyard",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Opens doors and small talk."
+  },
+  {
+    "flag": "eq-coin-purse",
+    "name": "Cable-Tie Charm",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Binds chaos into tidy bundles."
+  },
+  {
+    "flag": "eq-bookmark-ribbon",
+    "name": "Coin Purse",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Holds change and small wins."
+  },
+  {
+    "flag": "eq-key-fob",
+    "name": "Bookmark Ribbon",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Marks where the story paused."
+  },
+  {
+    "flag": "eq-pocket-notebook",
+    "name": "Pocket Notebook",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Ruled lines waiting for honesty."
+  },
+  {
+    "flag": "eq-habit-card",
+    "name": "Habit Card",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Checkboxes that compound if you let them."
+  },
+  {
+    "flag": "eq-seed-packet",
+    "name": "Seed Packet",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Plant an idea; water it daily."
+  },
+  {
+    "flag": "eq-receipt-ledger",
+    "name": "Receipt Ledger",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Tracks coffee taxes on ambition."
+  },
+  {
+    "flag": "eq-blue-blockers",
+    "name": "Blue-Light Blockers",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Filter night glow into something calmer."
+  },
+  {
+    "flag": "eq-studio-headphones",
+    "name": "Studio Headphones",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Seal out the open-plan storm."
+  },
+  {
+    "flag": "eq-architect-beret",
+    "name": "Architect's Beret",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "INT": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Tilted toward better abstractions."
+  },
+  {
+    "flag": "eq-sweatband-pro",
+    "name": "Runner's Sweatband",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Absorbs effort before it drips into doubt."
+  },
+  {
+    "flag": "eq-thinker-hood",
+    "name": "Thinker's Hood",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Pull up to disappear into a hard problem."
+  },
+  {
+    "flag": "eq-mechanical-pencil",
+    "name": "Mechanical Pencil of Clarity",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 5
+    },
+    "ai_lore_text": "Clicks once per thought that finally lands."
+  },
+  {
+    "flag": "eq-ergonomic-mouse",
+    "name": "Ergonomic Mouse",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Curves around tired wrists and long refactors."
+  },
+  {
+    "flag": "eq-standup-clicker",
+    "name": "Standup Clicker",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 5
+    },
+    "ai_lore_text": "Advances slides and courage alike."
+  },
+  {
+    "flag": "eq-pour-over-kettle",
+    "name": "Pour-Over Kettle",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FOC": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Ritual heat before deep work begins."
+  },
+  {
+    "flag": "eq-whiteboard-marker",
+    "name": "Whiteboard Marker",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 5
+    },
+    "ai_lore_text": "Squeaks diagrams into temporary truth."
+  },
+  {
+    "flag": "eq-compact-keyboard",
+    "name": "Compact Keyboard",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Sixty percent size; full intent."
+  },
+  {
+    "flag": "eq-flannel-overshirt",
+    "name": "Flannel Overshirt",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Soft armor for debugging nights."
+  },
+  {
+    "flag": "eq-tech-vest",
+    "name": "Tech Vest",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Pockets sorted by priority, not fashion."
+  },
+  {
+    "flag": "eq-yoga-wrap",
+    "name": "Yoga Wrap",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Stretches with every stretch goal."
+  },
+  {
+    "flag": "eq-blazer-soft",
+    "name": "Soft Blazer",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 5
+    },
+    "ai_lore_text": "Looks ready even when the day is not."
+  },
+  {
+    "flag": "eq-rain-shell",
+    "name": "Trail Rain Shell",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Keeps excuses from soaking in."
+  },
+  {
+    "flag": "eq-trail-runners",
+    "name": "Trail Runners",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Turn loops into clear decisions."
+  },
+  {
+    "flag": "eq-leather-loafers",
+    "name": "Leather Loafers",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 5
+    },
+    "ai_lore_text": "Quiet authority in meeting rooms."
+  },
+  {
+    "flag": "eq-cushion-trainers",
+    "name": "Cushion Trainers",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Absorb impact from hard days."
+  },
+  {
+    "flag": "eq-wool-mules",
+    "name": "Wool Mules",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Warm soles for winter focus."
+  },
+  {
+    "flag": "eq-bike-cleats",
+    "name": "Bike Cleats",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Lock into cadence and the commute home."
+  },
+  {
+    "flag": "eq-focus-ring",
+    "name": "Silver Estimate Watch",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Ticks toward honest timelines."
+  },
+  {
+    "flag": "eq-silver-watch",
+    "name": "Lapel Pin of Belonging",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "A tiny crest that opens rooms."
+  },
+  {
+    "flag": "eq-lapel-pin",
+    "name": "Calm Ear Cuff",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 5
+    },
+    "ai_lore_text": "Anchors breath when stress spikes."
+  },
+  {
+    "flag": "eq-earcuff-calm",
+    "name": "Stylus Holster",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Ready ink for sudden sketches."
+  },
+  {
+    "flag": "eq-stylus-holster",
+    "name": "Ledger Clip",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CRE": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Clamps budgets to uncomfortable truth."
+  },
+  {
+    "flag": "eq-ledger-clip",
+    "name": "Navigator's Compass Charm",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Points toward the next fair trade."
+  },
+  {
+    "flag": "eq-field-journal",
+    "name": "Field Journal",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Weatherproof pages for notes taken outside."
+  },
+  {
+    "flag": "eq-pomodoro-hourglass",
+    "name": "Pomodoro Hourglass",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Sand that respects twenty-five minutes."
+  },
+  {
+    "flag": "eq-idea-deck",
+    "name": "Idea Deck",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Shuffled prompts for minds stuck in mud."
+  },
+  {
+    "flag": "eq-budget-abacus",
+    "name": "Budget Abacus",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Beads that refuse to flatter."
+  },
+  {
+    "flag": "eq-anc-cans",
+    "name": "ANC Cans",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 7
+    },
+    "ai_lore_text": "Active silence forged for deep refactors."
+  },
+  {
+    "flag": "eq-prism-glasses",
+    "name": "Prism Glasses",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "INT": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Split problems into readable spectrums."
+  },
+  {
+    "flag": "eq-night-visor",
+    "name": "Night Visor of Restraint",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Keeps late hours from spilling into dawn."
+  },
+  {
+    "flag": "eq-runner-band",
+    "name": "Runner Bandana of Miles",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Tied before every hard mile of thought."
+  },
+  {
+    "flag": "eq-diplomat-hat",
+    "name": "Diplomat's Hat",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CHA": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Tips negotiations toward a quiet yes."
+  },
+  {
+    "flag": "eq-split-keyboard",
+    "name": "Split Keyboard of Ease",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 7
+    },
+    "ai_lore_text": "Shoulders drop; ideas rise."
+  },
+  {
+    "flag": "eq-fountain-pen",
+    "name": "Fountain Pen of Proofs",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 7,
+      "INT": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Ink flows only where courage leads."
+  },
+  {
+    "flag": "eq-trackball-relic",
+    "name": "Trackball Relic",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 7
+    },
+    "ai_lore_text": "Spins through menus like old rituals."
+  },
+  {
+    "flag": "eq-espresso-tamper",
+    "name": "Espresso Tamper of Focus",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FOC": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Compresses chaos into a single shot."
+  },
+  {
+    "flag": "eq-laser-pointer",
+    "name": "Laser of the Bright Point",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 7,
+      "INT": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Draws rooms to one necessary sentence."
+  },
+  {
+    "flag": "eq-tablet-brush",
+    "name": "Tablet Brush of Patience",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Paints pixels until they mean something."
+  },
+  {
+    "flag": "eq-merino-base",
+    "name": "Merino Base of Sprints",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Regulates heat through hard intervals."
+  },
+  {
+    "flag": "eq-quilted-jacket",
+    "name": "Quilted Jacket of Seasons",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 7
+    },
+    "ai_lore_text": "Stitched from finished winters."
+  },
+  {
+    "flag": "eq-conference-coat",
+    "name": "Conference Coat",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Travels well between stages and lobbies."
+  },
+  {
+    "flag": "eq-maker-smock",
+    "name": "Maker Smock of Scars",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CRE": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Paint and solder as quiet medals."
+  },
+  {
+    "flag": "eq-cashmere-crew",
+    "name": "Cashmere Crew of Frictionless Hours",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FOC": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Soft enough to forget the hard parts."
+  },
+  {
+    "flag": "eq-carbon-racers",
+    "name": "Carbon Racers",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 7,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "A plate that returns every honest push."
+  },
+  {
+    "flag": "eq-oxford-ink",
+    "name": "Ink Oxfords",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Polished for conversations that cost something."
+  },
+  {
+    "flag": "eq-barefoot-trainers",
+    "name": "Barefoot Trainers",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 7,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Ground feel for clear form and clear mind."
+  },
+  {
+    "flag": "eq-winter-boots",
+    "name": "Winter Boots of Blockers",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Stomp through ice that was once a ticket."
+  },
+  {
+    "flag": "eq-studio-clogs",
+    "name": "Studio Clogs of Craft",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CRE": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Stand for hours without losing the thread."
+  },
+  {
+    "flag": "eq-chrono-watch",
+    "name": "Chronograph of Deep Blocks",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 7,
+      "CHA": 3
+    },
+    "ai_lore_text": "Lap times for hours that vanish well."
+  },
+  {
+    "flag": "eq-gold-band",
+    "name": "Gold Focus Band",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 7,
+      "CHA": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Warm metal that recalls vows kept."
+  },
+  {
+    "flag": "eq-network-pin",
+    "name": "Network Pin",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 7,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Opens rooms you have not earned—yet."
+  },
+  {
+    "flag": "eq-portfolio-clasp",
+    "name": "Portfolio Clasp",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 7,
+      "CHA": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Secures proposals and the pay they deserve."
+  },
+  {
+    "flag": "eq-inkwell-charm",
+    "name": "Inkwell Charm",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 7,
+      "CHA": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Never runs dry mid-sentence."
+  },
+  {
+    "flag": "eq-palette-cuff",
+    "name": "Palette Cuff",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CRE": 7,
+      "CHA": 3
+    },
+    "ai_lore_text": "Colors ready at the wrist for sudden sketches."
+  },
+  {
+    "flag": "eq-blueprint-roll",
+    "name": "Blueprint Roll",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 7,
+      "CRE": 3
+    },
+    "ai_lore_text": "Plans that survive first contact."
+  },
+  {
+    "flag": "eq-voice-recorder",
+    "name": "Voice Recorder of Fleeing Thoughts",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 7,
+      "CRE": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Catches ideas before they escape."
+  },
+  {
+    "flag": "eq-market-compass",
+    "name": "Market Compass of Fair Trades",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 7,
+      "CRE": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Points past shiny distractions."
+  },
+  {
+    "flag": "eq-muse-stone",
+    "name": "Muse Stone of Warm Palms",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 7,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Heats when the page is emptiest."
+  },
+  {
+    "flag": "eq-oracle-headset",
+    "name": "Nightwhisper",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 10
+    },
+    "ai_lore_text": "It hears only the next useful step—and tells no one else."
+  },
+  {
+    "flag": "eq-lens-of-layers",
+    "name": "Lensshard",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "INT": 10,
+      "FOC": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Breaks a tangle into panes you can hold."
+  },
+  {
+    "flag": "eq-crownlet-calm",
+    "name": "Crown of Held Breath",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 10,
+      "FOC": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Panic waits outside until invited."
+  },
+  {
+    "flag": "eq-herald-circlet",
+    "name": "Frostherald",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CHA": 10,
+      "FOC": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Your voice carries; the room cools into listening."
+  },
+  {
+    "flag": "eq-obsidian-keyboard",
+    "name": "Obsidian Keyboard",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 10,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Keys cut from a cooled midnight release."
+  },
+  {
+    "flag": "eq-quill-of-proofs",
+    "name": "Proof Quill",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 10,
+      "INT": 5
+    },
+    "ai_lore_text": "Writes only what can be shown."
+  },
+  {
+    "flag": "eq-conductor-baton",
+    "name": "Roomcaller",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 10,
+      "INT": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Turns scattered people into one rhythm."
+  },
+  {
+    "flag": "eq-forge-mouse",
+    "name": "Ideaforge",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 10,
+      "INT": 5
+    },
+    "ai_lore_text": "Shapes molten thoughts before they harden wrong."
+  },
+  {
+    "flag": "eq-aegis-hoodie",
+    "name": "Ashmantle",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 10
+    },
+    "ai_lore_text": "Fails soft; rises with soot still on the sleeves."
+  },
+  {
+    "flag": "eq-silk-armor",
+    "name": "Quiet Silk",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "Confidence that does not need volume."
+  },
+  {
+    "flag": "eq-ironwood-vest",
+    "name": "Ironwood Guard",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "Grown slow; refuses cheap urgency."
+  },
+  {
+    "flag": "eq-atelier-cloak",
+    "name": "Atelier Veil",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CRE": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "Hides unfinished work until it can stand light."
+  },
+  {
+    "flag": "eq-pathfinder-boots",
+    "name": "Pathfinders",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 10,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Leave a trail through ambiguity."
+  },
+  {
+    "flag": "eq-stage-boots",
+    "name": "Footlight Boots",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 10,
+      "PHY": 5
+    },
+    "ai_lore_text": "Do not move when the lights get unkind."
+  },
+  {
+    "flag": "eq-monk-sandals",
+    "name": "Silence Sandals",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FOC": 10,
+      "PHY": 5
+    },
+    "ai_lore_text": "Each step is a chosen quiet."
+  },
+  {
+    "flag": "eq-sigil-amulet",
+    "name": "Promiseband",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 10,
+      "CHA": 5
+    },
+    "ai_lore_text": "Warms when a promise is being kept."
+  },
+  {
+    "flag": "eq-golden-abacus",
+    "name": "Leverage Beads",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 10,
+      "CHA": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Count luck into something you can spend."
+  },
+  {
+    "flag": "eq-echo-pendant",
+    "name": "Echothread",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 10,
+      "CHA": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Repeats the sentence until it is honest."
+  },
+  {
+    "flag": "eq-grimoire-api",
+    "name": "Living Contract",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 10,
+      "CRE": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "APIs bound in ink that remembers intent.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-vault-key",
+    "name": "Hourvault",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 10,
+      "CRE": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Opens ledgers where attention became gold.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-dream-loom",
+    "name": "Dawnweave",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 10,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Night ideas woven into morning work.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-halo-of-flow",
+    "name": "Flowstate, Circlet of Unbroken Hours",
+    "rarity": "Legendary",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 12,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Time thins; work becomes weather you can walk through."
+  },
+  {
+    "flag": "eq-helm-of-systems",
+    "name": "Systemsight, Helm of the Whole Graph",
+    "rarity": "Legendary",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "INT": 12,
+      "FOC": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Every dependency appears before it surprises you."
+  },
+  {
+    "flag": "eq-storm-keyboard",
+    "name": "Thunderkeys, Blessed Board of Release",
+    "rarity": "Legendary",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 12,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Every green build rolls like distant weather.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-scepter-narrative",
+    "name": "Ashdraft, Quill of Necessary Cuts",
+    "rarity": "Legendary",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 12,
+      "INT": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Burns away what the story does not need.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-mantle-resilience",
+    "name": "Mantle of Resilience",
+    "rarity": "Legendary",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 12,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Fails soft; rises harder; keeps the soot as memory."
+  },
+  {
+    "flag": "eq-regalia-presence",
+    "name": "Regalia of Presence",
+    "rarity": "Legendary",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 12,
+      "WIL": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Rooms rearrange around a calm that does not ask."
+  },
+  {
+    "flag": "eq-seven-league",
+    "name": "Seven-League Sneakers",
+    "rarity": "Legendary",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 12,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Close the distance between intent and done."
+  },
+  {
+    "flag": "eq-ring-of-compound",
+    "name": "Ring of Compounding",
+    "rarity": "Legendary",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 12,
+      "CHA": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Small habits stack until they bend a life."
+  },
+  {
+    "flag": "eq-brooch-muse",
+    "name": "Brooch of the Muse",
+    "rarity": "Legendary",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CRE": 12,
+      "CHA": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Ideas arrive already half-formed and breathing."
+  },
+  {
+    "flag": "eq-chronicle-stone",
+    "name": "Chronicle of Paid Lessons",
+    "rarity": "Legendary",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 12,
+      "CRE": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Remembers every tuition the hard way charged.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-atlas-core",
+    "name": "Atlas of Walkable Unknowns",
+    "rarity": "Legendary",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 12,
+      "CRE": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Folds fog into routes feet can trust.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-mythic-lens",
+    "name": "Foresight, Eye of Next Week",
+    "rarity": "Mythic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 15,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Sees next week as clearly as yesterday.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-mythic-blade-pen",
+    "name": "Blade-Pen of Absolute Cut",
+    "rarity": "Mythic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 15,
+      "INT": 7,
+      "GoldMult": 0.3
+    },
+    "ai_lore_text": "Severs truth from noise in a single stroke.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-mythic-aegis",
+    "name": "Aegis of Balance",
+    "rarity": "Mythic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 15,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Holds life and work in one unbroken frame.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-mythic-stride",
+    "name": "Mythic Stride",
+    "rarity": "Mythic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 15,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Each step completes a quest you once feared.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-mythic-sigil",
+    "name": "Sigil of Accord",
+    "rarity": "Mythic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 15,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Agreements write themselves in honest rooms.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-mythic-orb",
+    "name": "Orb of Plenty",
+    "rarity": "Mythic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 15,
+      "CRE": 7,
+      "GoldMult": 0.3
+    },
+    "ai_lore_text": "Turns attention into lasting gold.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-steady-cap",
+    "name": "Morning Cap",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "The first thing you grab when the day feels thin."
+  },
+  {
+    "flag": "eq-steady-stylus",
+    "name": "Spare Notebook",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Ruled lines waiting for an unpolished truth."
+  },
+  {
+    "flag": "eq-steady-smock",
+    "name": "Thrifted Cardigan",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Buttons mismatched; intent aligned."
+  },
+  {
+    "flag": "eq-steady-runners",
+    "name": "Old Running Shoes",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Miles of thinking still in the soles."
+  },
+  {
+    "flag": "eq-steady-fob",
+    "name": "Key Fob of Return",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Always finds the way back to the desk."
+  },
+  {
+    "flag": "eq-steady-card",
+    "name": "Index Card Deck",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Shuffled prompts for stuck afternoons."
+  },
+  {
+    "flag": "eq-quiet-beanie",
+    "name": "Noise Band",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "A soft strip that means: headphones later, quiet now."
+  },
+  {
+    "flag": "eq-quiet-marker",
+    "name": "Plastic Ruler",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Measures margins, not worth."
+  },
+  {
+    "flag": "eq-quiet-wrap",
+    "name": "Rain Shell",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Keeps excuses from soaking through."
+  },
+  {
+    "flag": "eq-quiet-mules",
+    "name": "Backup Sneakers",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Always by the door for sudden clarity walks."
+  },
+  {
+    "flag": "eq-quiet-bracelet",
+    "name": "Rubber Wristband",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Snaps once when attention drifts."
+  },
+  {
+    "flag": "eq-quiet-core",
+    "name": "Folded Map",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Of a city you keep meaning to walk."
+  },
+  {
+    "flag": "eq-bright-hood",
+    "name": "Spare Hood",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Borrowed warmth for cold open-plan winters."
+  },
+  {
+    "flag": "eq-bright-quill",
+    "name": "Cheap Mechanical Pencil",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Clicks once per almost-clarified thought."
+  },
+  {
+    "flag": "eq-bright-fleece",
+    "name": "Weekend Flannel",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Soft enough for debugging past midnight."
+  },
+  {
+    "flag": "eq-bright-oxfords",
+    "name": "Wool Indoor Mules",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Warm soles for winter deep work."
+  },
+  {
+    "flag": "eq-bright-seal",
+    "name": "Spare Hair Tie",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "Keeps more than hair out of the way."
+  },
+  {
+    "flag": "eq-bright-scroll",
+    "name": "Matchbook",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Empty; still sparks a ritual."
+  },
+  {
+    "flag": "eq-humble-visor",
+    "name": "Commute Cap",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Remembers every train where you sketched a plan."
+  },
+  {
+    "flag": "eq-humble-baton",
+    "name": "USB Desk Fan",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Moves air when the problem will not."
+  },
+  {
+    "flag": "eq-humble-blazer",
+    "name": "Courier Vest",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Pockets sorted by whatever felt urgent."
+  },
+  {
+    "flag": "eq-humble-slides",
+    "name": "Errand Loafers",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Polished just enough for quick meetings."
+  },
+  {
+    "flag": "eq-humble-badge",
+    "name": "Sticker Pin",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "A tiny crest of belonging."
+  },
+  {
+    "flag": "eq-humble-relic",
+    "name": "Pressed Leaf",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Bookmark from a walk that worked."
+  },
+  {
+    "flag": "eq-swift-band",
+    "name": "Study Cap",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Ink-stained brim from nights spent underlining."
+  },
+  {
+    "flag": "eq-swift-clicker",
+    "name": "Highlighter Stub",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Marks what mattered in yesterday's notes."
+  },
+  {
+    "flag": "eq-swift-shell",
+    "name": "Gym Wrap",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Stretches with every stretch goal."
+  },
+  {
+    "flag": "eq-swift-galoshes",
+    "name": "Gym Trainers",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Absorb impact from hard days and harder sets."
+  },
+  {
+    "flag": "eq-swift-coin",
+    "name": "Bus Pass Sleeve",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Worn soft by countless returns."
+  },
+  {
+    "flag": "eq-swift-talisman",
+    "name": "Lucky Marble",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Rolls toward whichever task you fear."
+  },
+  {
+    "flag": "eq-patient-headset",
+    "name": "Workshop Bandana",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Tied before soldering ideas into something real."
+  },
+  {
+    "flag": "eq-patient-mug",
+    "name": "Folding Umbrella",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Not a weapon, until rain becomes an excuse."
+  },
+  {
+    "flag": "eq-patient-mantle",
+    "name": "Conference Softshell",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Travels well between lobbies."
+  },
+  {
+    "flag": "eq-patient-socks",
+    "name": "Trail Spares",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Mud on the sides; clarity on the way back."
+  },
+  {
+    "flag": "eq-patient-clasp",
+    "name": "Receipt Clip",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Clamps budgets to reality."
+  },
+  {
+    "flag": "eq-patient-codex",
+    "name": "Train Ticket Stub",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Proof a journey was finished."
+  },
+  {
+    "flag": "eq-keen-circlet",
+    "name": "Errand Hat",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "For walks that pretend to be about errands."
+  },
+  {
+    "flag": "eq-keen-kettle",
+    "name": "Takeout Chopsticks",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Practiced patience between bites of work."
+  },
+  {
+    "flag": "eq-keen-apron",
+    "name": "Paint-Splattered Smock",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "Stains as proof of making."
+  },
+  {
+    "flag": "eq-keen-racers",
+    "name": "Boat Shoes",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "For days that feel like they might tip."
+  },
+  {
+    "flag": "eq-keen-ear-cuff",
+    "name": "Friendship Bracelet",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Woven from someone else's patience."
+  },
+  {
+    "flag": "eq-keen-journal",
+    "name": "Recipe Card",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Steps that somehow apply to projects."
+  },
+  {
+    "flag": "eq-soft-beret",
+    "name": "Night Shift Cap",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Keeps fluorescent light from winning."
+  },
+  {
+    "flag": "eq-soft-notebook",
+    "name": "Cable Clicker",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Advances slides and courage in equal measure."
+  },
+  {
+    "flag": "eq-soft-crew",
+    "name": "Office Cardigan",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "The unofficial blanket of open offices."
+  },
+  {
+    "flag": "eq-soft-waders",
+    "name": "Socks with Sandals",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Judged by others; loved by tired feet."
+  },
+  {
+    "flag": "eq-soft-sigil",
+    "name": "Old Library Card",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Proof you once returned what you borrowed."
+  },
+  {
+    "flag": "eq-soft-deck",
+    "name": "Postage Stamp",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 3
+    },
+    "ai_lore_text": "Unsent; still a promise of delivery."
+  },
+  {
+    "flag": "eq-iron-helm",
+    "name": "Garden Sunhat",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 3
+    },
+    "ai_lore_text": "Worn while watering both plants and patience."
+  },
+  {
+    "flag": "eq-iron-tablet",
+    "name": "Pocket Multitool",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Opens packages, bottles, and stubborn tasks."
+  },
+  {
+    "flag": "eq-iron-parka",
+    "name": "Commute Parka",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 3
+    },
+    "ai_lore_text": "Zips up against wind and unread messages."
+  },
+  {
+    "flag": "eq-iron-hikers",
+    "name": "Broken-In Boots",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Creases map every finished season."
+  },
+  {
+    "flag": "eq-iron-ring",
+    "name": "Lucky Screw",
+    "rarity": "Common",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "Found on a sidewalk; kept for no good reason."
+  },
+  {
+    "flag": "eq-iron-stone",
+    "name": "Candle Stub",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "Burned down beside one finished draft."
+  },
+  {
+    "flag": "eq-silver-crownlet",
+    "name": "Backup Beanie",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Always in the bag; rarely needed; oddly comforting."
+  },
+  {
+    "flag": "eq-silver-brush",
+    "name": "Ballpoint of Regret",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "Writes grocery lists and half-promises."
+  },
+  {
+    "flag": "eq-silver-poncho",
+    "name": "Kitchen Apron",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FIN": 3
+    },
+    "ai_lore_text": "For cooking focus as carefully as meals."
+  },
+  {
+    "flag": "eq-silver-pumps",
+    "name": "Yoga Socks",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 3
+    },
+    "ai_lore_text": "Quiet grip for quiet mornings."
+  },
+  {
+    "flag": "eq-silver-orb",
+    "name": "Wooden Token",
+    "rarity": "Common",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Carved with a word you needed that year."
+  },
+  {
+    "flag": "eq-copper-goggles",
+    "name": "Plain Watch Cap",
+    "rarity": "Common",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WRI": 3
+    },
+    "ai_lore_text": "No logo. No story yet. Waiting for yours."
+  },
+  {
+    "flag": "eq-copper-tamper",
+    "name": "Loaner Keyboard",
+    "rarity": "Common",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Keys softened by a hundred anonymous hands."
+  },
+  {
+    "flag": "eq-copper-cardigan",
+    "name": "Layered Tee",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 3
+    },
+    "ai_lore_text": "Two shirts, one decision: keep going."
+  },
+  {
+    "flag": "eq-copper-moccasins",
+    "name": "Spare Flip-Flops",
+    "rarity": "Common",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "INT": 3
+    },
+    "ai_lore_text": "Summer's reminder that urgency is optional."
+  },
+  {
+    "flag": "eq-copper-token",
+    "name": "Editor's Ribbon",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Marks the paragraph that still needs mercy."
+  },
+  {
+    "flag": "eq-copper-key",
+    "name": "Voice Memo Brick",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "PHY": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Catches thoughts before they flee."
+  },
+  {
+    "flag": "eq-cedar-earmuffs",
+    "name": "Editor's Visor",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Shades everything except the sentence that matters."
+  },
+  {
+    "flag": "eq-cedar-pointer",
+    "name": "Fountain Pen (Student)",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Ink that still believes in drafts."
+  },
+  {
+    "flag": "eq-cedar-tunic",
+    "name": "Merino Travel Layer",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Regulates heat through long sprints."
+  },
+  {
+    "flag": "eq-cedar-sneakers",
+    "name": "Studio Clogs",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Stand for hours of careful craft."
+  },
+  {
+    "flag": "eq-cedar-pin",
+    "name": "Runner's Race Chip",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Proof you finished something hard."
+  },
+  {
+    "flag": "eq-cedar-compass",
+    "name": "Market Compass",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Points toward fair trades, not shiny ones."
+  },
+  {
+    "flag": "eq-moss-headwrap",
+    "name": "Pilot's Soft Cap",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "For navigating foggy requirement skies."
+  },
+  {
+    "flag": "eq-moss-hammer",
+    "name": "Trackball of Patience",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Spins slowly through nested menus."
+  },
+  {
+    "flag": "eq-moss-gilet",
+    "name": "Maker's Smock",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Paint and solder stains worn as medals."
+  },
+  {
+    "flag": "eq-moss-boots",
+    "name": "Harbor Deck Shoes",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CRE": 5
+    },
+    "ai_lore_text": "Grip when the day feels slippery."
+  },
+  {
+    "flag": "eq-moss-charm",
+    "name": "Teacher's Chalk Holder",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Dust of lessons that stuck."
+  },
+  {
+    "flag": "eq-moss-hourglass",
+    "name": "Muse Stone",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CHA": 5
+    },
+    "ai_lore_text": "Warms in the palm when the page is blank."
+  },
+  {
+    "flag": "eq-dawn-tiara",
+    "name": "Scribe's Headwrap",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Keeps ink and intention from smearing."
+  },
+  {
+    "flag": "eq-dawn-wand",
+    "name": "Espresso Tamper",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Compresses chaos into one clean shot."
+  },
+  {
+    "flag": "eq-dawn-robe",
+    "name": "Debate Club Blazer",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Elbows patched with old arguments won."
+  },
+  {
+    "flag": "eq-dawn-slippers",
+    "name": "Archive Slippers",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Silent enough for rare-book rooms—and rare focus."
+  },
+  {
+    "flag": "eq-dawn-amulet",
+    "name": "Sailor's Knot Bracelet",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "PHY": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Tied once; holds under weather."
+  },
+  {
+    "flag": "eq-dawn-ledger",
+    "name": "Blueprint Tube",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Plans that survive first contact with reality."
+  },
+  {
+    "flag": "eq-dusk-halo",
+    "name": "Librarian's Clip",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 5
+    },
+    "ai_lore_text": "Holds attention the way it holds pages."
+  },
+  {
+    "flag": "eq-dusk-blade",
+    "name": "Laser Presenter",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 5
+    },
+    "ai_lore_text": "Draws a room toward a single bright point."
+  },
+  {
+    "flag": "eq-dusk-hoodie",
+    "name": "Garden Work Coat",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Dirt under the nails; clarity in the pockets."
+  },
+  {
+    "flag": "eq-dusk-trainers",
+    "name": "Pitch Night Oxfords",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CRE": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Polished for conversations that matter."
+  },
+  {
+    "flag": "eq-dusk-pendant",
+    "name": "Pharmacist's Vial Charm",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CRE": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Dose of calm, carefully measured."
+  },
+  {
+    "flag": "eq-dusk-loom",
+    "name": "Habit Chain Links",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Each link a day you did not break."
+  },
+  {
+    "flag": "eq-harbor-hat",
+    "name": "Climber's Bandana",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 5
+    },
+    "ai_lore_text": "Tied before ascending a backlog."
+  },
+  {
+    "flag": "eq-harbor-scepter",
+    "name": "Tablet Brush",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Paints pixels with practiced patience."
+  },
+  {
+    "flag": "eq-harbor-jacket",
+    "name": "Stagehand Vest",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Black enough to vanish; useful enough to stay."
+  },
+  {
+    "flag": "eq-harbor-flats",
+    "name": "Garden Clogs",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Mudproof boots for growing stubborn ideas."
+  },
+  {
+    "flag": "eq-harbor-cuff",
+    "name": "Pilot's Log Clip",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Keeps the day's true heading visible."
+  },
+  {
+    "flag": "eq-harbor-grimoire",
+    "name": "Train Conductor's Punch",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "PHY": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Validates tickets—and finished tasks."
+  },
+  {
+    "flag": "eq-summit-lens",
+    "name": "Barista's Cap",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Steam and deadlines share the same hour."
+  },
+  {
+    "flag": "eq-summit-chisel",
+    "name": "Chef's Timer Knife",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 5
+    },
+    "ai_lore_text": "Not sharp—just precise about minutes."
+  },
+  {
+    "flag": "eq-summit-vest",
+    "name": "Sailor's Smock",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Ties down loose ends before the wind rises."
+  },
+  {
+    "flag": "eq-summit-cleats",
+    "name": "Clinic Sneakers",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Soft soles for long corridors of care."
+  },
+  {
+    "flag": "eq-summit-band",
+    "name": "Gardener's Twine Ring",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Binds wandering vines—and wandering scope."
+  },
+  {
+    "flag": "eq-summit-atlas",
+    "name": "Apothecary Scale",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Weighs tradeoffs without drama."
+  },
+  {
+    "flag": "eq-valley-spectacles",
+    "name": "Cartographer's Hat",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CHA": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "For mapping unknowns without getting lost."
+  },
+  {
+    "flag": "eq-valley-keyboard",
+    "name": "Surveyor's Stylus",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Measures ideas before they are built."
+  },
+  {
+    "flag": "eq-valley-shirt",
+    "name": "Apprentice Apron",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Burn marks from learning the hard way."
+  },
+  {
+    "flag": "eq-valley-clogs",
+    "name": "Ferry Slip-Ons",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Made for crossings you almost skip."
+  },
+  {
+    "flag": "eq-valley-clip",
+    "name": "Archivist's Wax Seal",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 5
+    },
+    "ai_lore_text": "Closes loops that should stay closed."
+  },
+  {
+    "flag": "eq-valley-abacus",
+    "name": "Cartographer's Loupe",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Finds the path hidden in dense notes."
+  },
+  {
+    "flag": "eq-river-mask",
+    "name": "Monk's Circlet",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 5
+    },
+    "ai_lore_text": "Simple metal; serious silence."
+  },
+  {
+    "flag": "eq-river-pen",
+    "name": "Coach's Whistle Pen",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Writes plans; calls timeouts."
+  },
+  {
+    "flag": "eq-river-coat",
+    "name": "Clinic Cardigan",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Calm fabric for triage conversations."
+  },
+  {
+    "flag": "eq-river-sandals",
+    "name": "Climbing Approach Shoes",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "For the pitch before the hard pitch."
+  },
+  {
+    "flag": "eq-river-lanyard",
+    "name": "Musician's Capo Clip",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Changes the key without changing the song."
+  },
+  {
+    "flag": "eq-river-recorder",
+    "name": "Stage Manager's Book",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Cues for entrances you keep delaying."
+  },
+  {
+    "flag": "eq-forge-cowl",
+    "name": "Field Medic Band",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 5
+    },
+    "ai_lore_text": "Marks triage mode for chaotic days."
+  },
+  {
+    "flag": "eq-forge-cloak",
+    "name": "Night Courier Jacket",
+    "rarity": "Uncommon",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "INT": 5
+    },
+    "ai_lore_text": "Reflective strips for late deliveries of hope."
+  },
+  {
+    "flag": "eq-forge-loafers",
+    "name": "Rain-Sealed Hikers",
+    "rarity": "Uncommon",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 5
+    },
+    "ai_lore_text": "Stomp through frozen blockers."
+  },
+  {
+    "flag": "eq-forge-brooch",
+    "name": "Baker's Timer Band",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "PHY": 5,
+      "DropRate": 0.01
+    },
+    "ai_lore_text": "Knows when to pull things from heat."
+  },
+  {
+    "flag": "eq-forge-packet",
+    "name": "Ship's Bell Miniature",
+    "rarity": "Uncommon",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Rings once when it is time to ship."
+  },
+  {
+    "flag": "eq-studio-cap",
+    "name": "Night Watch Cap",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FIN": 5
+    },
+    "ai_lore_text": "Keeps late hours from spilling into morning."
+  },
+  {
+    "flag": "eq-studio-stylus",
+    "name": "Courier's Stamp",
+    "rarity": "Uncommon",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "PHY": 5,
+      "GoldMult": 0.05
+    },
+    "ai_lore_text": "Marks packages—and decisions—as sent."
+  },
+  {
+    "flag": "eq-studio-smock",
+    "name": "Aegis Hoodie",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 7
+    },
+    "ai_lore_text": "Shields against scope creep and cold air."
+  },
+  {
+    "flag": "eq-studio-runners",
+    "name": "Pathfinder Boots",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Find trails through ambiguity."
+  },
+  {
+    "flag": "eq-studio-fob",
+    "name": "Sigil Amulet",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 7,
+      "CHA": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Etched with a promise you still keep."
+  },
+  {
+    "flag": "eq-studio-card",
+    "name": "API Grimoire",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "PHY": 7,
+      "CRE": 3
+    },
+    "ai_lore_text": "Contracts bound in living ink."
+  },
+  {
+    "flag": "eq-library-beanie",
+    "name": "Oracle Softphones",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Whisper only the next useful step."
+  },
+  {
+    "flag": "eq-library-marker",
+    "name": "Quill of Honest Commits",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WIL": 7,
+      "INT": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Writes destinies in carefully worded diffs."
+  },
+  {
+    "flag": "eq-library-wrap",
+    "name": "Silk of Presence",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CRE": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Moves like confidence that does not shout."
+  },
+  {
+    "flag": "eq-library-mules",
+    "name": "Stage Boots",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WRI": 7,
+      "PHY": 3
+    },
+    "ai_lore_text": "Plant firmly under bright, unkind lights."
+  },
+  {
+    "flag": "eq-library-bracelet",
+    "name": "Golden Abacus Charm",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CRE": 7,
+      "CHA": 3
+    },
+    "ai_lore_text": "Counts luck into leverage."
+  },
+  {
+    "flag": "eq-library-core",
+    "name": "Vault Key",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 7,
+      "CRE": 3
+    },
+    "ai_lore_text": "Opens ledgers of compound time."
+  },
+  {
+    "flag": "eq-garden-hood",
+    "name": "Lens of Clean Layers",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 7,
+      "FOC": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Sees abstractions stacked without tangle."
+  },
+  {
+    "flag": "eq-garden-quill",
+    "name": "Conductor's Baton",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 7,
+      "INT": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Orchestrates a room into shared rhythm."
+  },
+  {
+    "flag": "eq-garden-fleece",
+    "name": "Ironwood Vest",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 7
+    },
+    "ai_lore_text": "Grown slow; worn for decades of work."
+  },
+  {
+    "flag": "eq-garden-oxfords",
+    "name": "Monk Sandals of Silence",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 7
+    },
+    "ai_lore_text": "Quiet with every deliberate step."
+  },
+  {
+    "flag": "eq-garden-seal",
+    "name": "Echo Pendant",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 7,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Repeats the true sentence until you hear it."
+  },
+  {
+    "flag": "eq-garden-scroll",
+    "name": "Dream Loom",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 7,
+      "CRE": 3
+    },
+    "ai_lore_text": "Weaves night ideas into day work."
+  },
+  {
+    "flag": "eq-harbor-visor",
+    "name": "Crownlet of Provisional Calm",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 7,
+      "FOC": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Holds panic at a respectful distance."
+  },
+  {
+    "flag": "eq-harbor-baton",
+    "name": "Forge Mouse",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FOC": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Shapes molten ideas before they cool wrong."
+  },
+  {
+    "flag": "eq-harbor-blazer",
+    "name": "Atelier Cloak",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FIN": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Hides unfinished work until it is ready."
+  },
+  {
+    "flag": "eq-harbor-slides",
+    "name": "Seven-League Intention Shoes",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FIN": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Close distance between intent and done."
+  },
+  {
+    "flag": "eq-harbor-badge",
+    "name": "Ring of Compounding Days",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WIL": 7,
+      "CHA": 3
+    },
+    "ai_lore_text": "Small habits stack into something heavy."
+  },
+  {
+    "flag": "eq-harbor-relic",
+    "name": "Chronicle Stone",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 7,
+      "CRE": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Remembers every lesson you paid for."
+  },
+  {
+    "flag": "eq-anchor-band",
+    "name": "Herald's Circlet",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Lets a voice carry without raising it."
+  },
+  {
+    "flag": "eq-anchor-clicker",
+    "name": "Scepter of Narrative",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Plots that bend audiences toward clarity."
+  },
+  {
+    "flag": "eq-anchor-shell",
+    "name": "Mantle of Soft Fails",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CRE": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Fails gently; rises harder."
+  },
+  {
+    "flag": "eq-anchor-galoshes",
+    "name": "Ferry Boots",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "INT": 7,
+      "PHY": 3
+    },
+    "ai_lore_text": "For crossings you almost talk yourself out of."
+  },
+  {
+    "flag": "eq-anchor-coin",
+    "name": "Brooch of the Working Muse",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 7,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Ideas arrive already half-formed."
+  },
+  {
+    "flag": "eq-anchor-talisman",
+    "name": "Atlas Core",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 7,
+      "CRE": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Maps unknowns into walkable routes."
+  },
+  {
+    "flag": "eq-compass-headset",
+    "name": "Helm of Partial Maps",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FIN": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Shows enough of the system to move."
+  },
+  {
+    "flag": "eq-compass-mug",
+    "name": "Chisel of Scope",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Cuts features down to what fits."
+  },
+  {
+    "flag": "eq-compass-mantle",
+    "name": "Regalia of the Quiet Room",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 7
+    },
+    "ai_lore_text": "People rearrange around your calm."
+  },
+  {
+    "flag": "eq-compass-socks",
+    "name": "Archive Softshoes",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WRI": 7,
+      "PHY": 3
+    },
+    "ai_lore_text": "Silent enough for sacred focus."
+  },
+  {
+    "flag": "eq-compass-clasp",
+    "name": "Stamp of Finished Business",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 7,
+      "CHA": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Marks done when done is actually done."
+  },
+  {
+    "flag": "eq-compass-codex",
+    "name": "Hourglass of Honest Estimates",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 7,
+      "CRE": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Sand that refuses flattery."
+  },
+  {
+    "flag": "eq-signal-circlet",
+    "name": "Goggles of Peer Review",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FOC": 7
+    },
+    "ai_lore_text": "Make kindness and rigor share one view."
+  },
+  {
+    "flag": "eq-signal-kettle",
+    "name": "Hammer of Small Releases",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WIL": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Taps progress into production."
+  },
+  {
+    "flag": "eq-signal-apron",
+    "name": "Parka of Late Deploys",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Warmth for nights that end in green."
+  },
+  {
+    "flag": "eq-signal-racers",
+    "name": "Pitch Night Brouges",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FOC": 7,
+      "PHY": 3
+    },
+    "ai_lore_text": "Creased by rooms that almost said no."
+  },
+  {
+    "flag": "eq-signal-ear-cuff",
+    "name": "Captain's Whistle Fob",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 7,
+      "CHA": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Calls a team back to the point."
+  },
+  {
+    "flag": "eq-signal-journal",
+    "name": "Ship's Log Miniature",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "INT": 7,
+      "CRE": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Records what actually happened."
+  },
+  {
+    "flag": "eq-pulse-beret",
+    "name": "Cap of the Long Standup",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WRI": 7,
+      "FOC": 3
+    },
+    "ai_lore_text": "Survives rooms that refuse to end."
+  },
+  {
+    "flag": "eq-pulse-notebook",
+    "name": "Wand of Soft Deletes",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 7,
+      "INT": 3
+    },
+    "ai_lore_text": "Undoes without drama—when it can."
+  },
+  {
+    "flag": "eq-pulse-crew",
+    "name": "Cardigan of Office Weather",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FOC": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Layer against political drafts."
+  },
+  {
+    "flag": "eq-pulse-waders",
+    "name": "Garden Spadeshoes",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Mudproof soles for growing stubborn work."
+  },
+  {
+    "flag": "eq-pulse-sigil",
+    "name": "Archivist's Keyring",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 7,
+      "CHA": 3
+    },
+    "ai_lore_text": "Opens drawers of forgotten decisions."
+  },
+  {
+    "flag": "eq-pulse-deck",
+    "name": "Apothecary Balance",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CHA": 7,
+      "CRE": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Weighs tradeoffs without theater."
+  },
+  {
+    "flag": "eq-echo-helm",
+    "name": "Hood of Deep Context",
+    "rarity": "Rare",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WRI": 7,
+      "FOC": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Pulls the world down to one problem."
+  },
+  {
+    "flag": "eq-echo-tablet",
+    "name": "Blade of the Outlined Draft",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WRI": 7,
+      "INT": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Cuts a path through blank pages."
+  },
+  {
+    "flag": "eq-echo-parka",
+    "name": "Smock of the Night Build",
+    "rarity": "Rare",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 7,
+      "WIL": 3
+    },
+    "ai_lore_text": "Pockets full of cables and hope."
+  },
+  {
+    "flag": "eq-echo-hikers",
+    "name": "Clinic Soft Runners",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 7,
+      "PHY": 3,
+      "DropRate": 0.02
+    },
+    "ai_lore_text": "Miles of care in soft foam."
+  },
+  {
+    "flag": "eq-echo-ring",
+    "name": "Runner's Split Band",
+    "rarity": "Rare",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "INT": 7,
+      "CHA": 3,
+      "GoldMult": 0.08
+    },
+    "ai_lore_text": "Knows when to surge and when to hold."
+  },
+  {
+    "flag": "eq-echo-stone",
+    "name": "Stage Bible",
+    "rarity": "Rare",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 7,
+      "CRE": 3
+    },
+    "ai_lore_text": "Cues for entrances you keep postponing."
+  },
+  {
+    "flag": "eq-mirror-crownlet",
+    "name": "Fairbeam",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 10,
+      "FOC": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Shows kindness and rigor in the same light."
+  },
+  {
+    "flag": "eq-mirror-brush",
+    "name": "Scopechisel",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "INT": 10,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Cuts features until the shape fits the time."
+  },
+  {
+    "flag": "eq-mirror-poncho",
+    "name": "Aegis Against Scope",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FOC": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "Turns creeping requirements aside like rain."
+  },
+  {
+    "flag": "eq-mirror-pumps",
+    "name": "Intention Striders",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CHA": 10,
+      "PHY": 5
+    },
+    "ai_lore_text": "Close the gap between vow and done."
+  },
+  {
+    "flag": "eq-mirror-watch",
+    "name": "Compound Ring",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CHA": 10
+    },
+    "ai_lore_text": "Days stack until they have weight."
+  },
+  {
+    "flag": "eq-mirror-orb",
+    "name": "Lessonstone",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FIN": 10,
+      "CRE": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Every paid-for mistake kept warm.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-lattice-goggles",
+    "name": "Hood of One Problem",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FIN": 10,
+      "FOC": 5
+    },
+    "ai_lore_text": "The world shrinks to a single worthy fight."
+  },
+  {
+    "flag": "eq-lattice-tamper",
+    "name": "Shiphammer",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WIL": 10,
+      "INT": 5
+    },
+    "ai_lore_text": "Taps progress into the world in small, true blows."
+  },
+  {
+    "flag": "eq-lattice-cardigan",
+    "name": "Nightpark",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 10
+    },
+    "ai_lore_text": "Warmth for the thin hour before the build goes green."
+  },
+  {
+    "flag": "eq-lattice-moccasins",
+    "name": "Icebreakers",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FOC": 10,
+      "PHY": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Tickets that were frozen crack underfoot."
+  },
+  {
+    "flag": "eq-lattice-token",
+    "name": "Musebroach",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "INT": 10,
+      "CHA": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Half-formed ideas arrive already breathing."
+  },
+  {
+    "flag": "eq-lattice-key",
+    "name": "Routemap",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WIL": 10,
+      "CRE": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Unknowns folded into walkable lines.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-prism-earmuffs",
+    "name": "Heldminute",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FIN": 10,
+      "FOC": 5
+    },
+    "ai_lore_text": "Time softens around a hard decision."
+  },
+  {
+    "flag": "eq-prism-pointer",
+    "name": "Undoing Wand",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 10,
+      "INT": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Reverses gently while reversal is still mercy."
+  },
+  {
+    "flag": "eq-prism-tunic",
+    "name": "Quietroom",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "People rearrange around your silence."
+  },
+  {
+    "flag": "eq-prism-sneakers",
+    "name": "Craftclogs",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "WIL": 10,
+      "PHY": 5
+    },
+    "ai_lore_text": "Hours of standing; none of drifting."
+  },
+  {
+    "flag": "eq-prism-pin",
+    "name": "Loopseal",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "PHY": 10,
+      "CHA": 5,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Stamps closed what should stay closed."
+  },
+  {
+    "flag": "eq-prism-compass",
+    "name": "Honest Sandglass",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 10,
+      "CRE": 5,
+      "GoldMult": 0.12
+    },
+    "ai_lore_text": "Sand that will not flatter a deadline.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-ember-headwrap",
+    "name": "Partial Map",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WIL": 10,
+      "FOC": 5
+    },
+    "ai_lore_text": "Enough of the system appears to move without fear."
+  },
+  {
+    "flag": "eq-ember-hammer",
+    "name": "Outlineblade",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "WIL": 10,
+      "INT": 5
+    },
+    "ai_lore_text": "Opens a path through the blankest page."
+  },
+  {
+    "flag": "eq-ember-gilet",
+    "name": "Buildsmock",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FIN": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "Pockets of cable, hope, and one lucky screw."
+  },
+  {
+    "flag": "eq-ember-boots",
+    "name": "Crossing Boots",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FIN": 10,
+      "PHY": 5
+    },
+    "ai_lore_text": "For the ferry you almost refused."
+  },
+  {
+    "flag": "eq-ember-charm",
+    "name": "Splitband",
+    "rarity": "Epic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FOC": 10,
+      "CHA": 5
+    },
+    "ai_lore_text": "Knows the surge and the hold."
+  },
+  {
+    "flag": "eq-ember-hourglass",
+    "name": "Lastbell",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 10,
+      "CRE": 5
+    },
+    "ai_lore_text": "Rings once—when it is truly time.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "deep"
+    }
+  },
+  {
+    "flag": "eq-frost-tiara",
+    "name": "Reviewer's Gaze",
+    "rarity": "Epic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WRI": 10,
+      "FOC": 5
+    },
+    "ai_lore_text": "Finds the true defect without finding a villain."
+  },
+  {
+    "flag": "eq-frost-wand",
+    "name": "Thunderkeys",
+    "rarity": "Epic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "PHY": 10,
+      "INT": 5
+    },
+    "ai_lore_text": "Every release build rolls like distant weather."
+  },
+  {
+    "flag": "eq-frost-robe",
+    "name": "Seasonquilt",
+    "rarity": "Epic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "PHY": 10,
+      "WIL": 5
+    },
+    "ai_lore_text": "Stitched from winters you finished honestly."
+  },
+  {
+    "flag": "eq-frost-slippers",
+    "name": "Carefoam",
+    "rarity": "Epic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 10,
+      "DropRate": 0.04
+    },
+    "ai_lore_text": "Miles of attention that never announce themselves."
+  },
+  {
+    "flag": "eq-frost-amulet",
+    "name": "Seal of Closed Loops",
+    "rarity": "Legendary",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "FIN": 12,
+      "CHA": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Done means done—and stays done."
+  },
+  {
+    "flag": "eq-frost-ledger",
+    "name": "Timevault of Compound Hours",
+    "rarity": "Legendary",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "WRI": 12,
+      "CRE": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Attention stored until it becomes lasting gold.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-solar-halo",
+    "name": "Peerlight, Crown of Fair Judgment",
+    "rarity": "Legendary",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "CRE": 12,
+      "FOC": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Finds the defect without inventing a villain.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-solar-blade",
+    "name": "Stormcaller, Baton of Rooms",
+    "rarity": "Legendary",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CRE": 12,
+      "INT": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "One gesture and a scattered team finds rhythm.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-solar-hoodie",
+    "name": "Ironwood, Aegis of Slow Growth",
+    "rarity": "Legendary",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 12,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Refuses cheap urgency; outlasts fashion."
+  },
+  {
+    "flag": "eq-solar-trainers",
+    "name": "Wayfinders of Ambiguity",
+    "rarity": "Legendary",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CRE": 12,
+      "PHY": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Leave a trail where maps refuse to exist."
+  },
+  {
+    "flag": "eq-solar-pendant",
+    "name": "Vowmetal, Band of Kept Promises",
+    "rarity": "Legendary",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "CRE": 12,
+      "CHA": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Warms only when the vow is being kept."
+  },
+  {
+    "flag": "eq-solar-loom",
+    "name": "Dayloom of Night Ideas",
+    "rarity": "Legendary",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 12,
+      "CRE": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Weaves what midnight whispered into daylight work.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-lunar-hat",
+    "name": "Oneproblem, Hood of Chosen Focus",
+    "rarity": "Legendary",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "WRI": 12,
+      "FOC": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "The rest of the world waits outside the door.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-lunar-scepter",
+    "name": "Enough, Chisel of the Fitting Week",
+    "rarity": "Legendary",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "FIN": 12,
+      "INT": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Carves features down to what time can hold.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-lunar-jacket",
+    "name": "Atelier, Veil of Hidden Drafts",
+    "rarity": "Legendary",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "FOC": 12,
+      "WIL": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Shows the work only when it can stand the light."
+  },
+  {
+    "flag": "eq-lunar-flats",
+    "name": "Stageplant, Boots of Unkind Light",
+    "rarity": "Legendary",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "FOC": 12,
+      "PHY": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Do not move when every eye turns sharp."
+  },
+  {
+    "flag": "eq-lunar-cuff",
+    "name": "True-Echo, Pendant of the Honest Sentence",
+    "rarity": "Legendary",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "PHY": 12,
+      "CHA": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "Repeats until the false words fall away."
+  },
+  {
+    "flag": "eq-lunar-grimoire",
+    "name": "Shipbell of Absolute Timing",
+    "rarity": "Legendary",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "FOC": 12,
+      "CRE": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Rings once—never early, never for show.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-tidal-lens",
+    "name": "Standstill, Halo of Kept Minutes",
+    "rarity": "Legendary",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "FIN": 12,
+      "FOC": 6,
+      "DropRate": 0.06
+    },
+    "ai_lore_text": "An hour becomes enough when it is truly kept.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-tidal-chisel",
+    "name": "Smalltruth, Mallet of Quiet Shipping",
+    "rarity": "Legendary",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 12,
+      "INT": 6,
+      "GoldMult": 0.2
+    },
+    "ai_lore_text": "Taps progress into the world without spectacle.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "legendary"
+    }
+  },
+  {
+    "flag": "eq-tidal-vest",
+    "name": "Mantle of the Unburnt Year",
+    "rarity": "Mythic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "CHA": 15,
+      "WIL": 7,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Survived a year that tried to ash every plan.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-tidal-cleats",
+    "name": "Boots of the Returning Path",
+    "rarity": "Mythic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "PHY": 15,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Always find the way back to what matters.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-tidal-band",
+    "name": "Ring of the Long Vow",
+    "rarity": "Mythic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "WRI": 15,
+      "CHA": 7,
+      "GoldMult": 0.3
+    },
+    "ai_lore_text": "A circle that outlasts seasons and excuses.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-tidal-atlas",
+    "name": "Codex of First Principles",
+    "rarity": "Mythic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "CRE": 15,
+      "GoldMult": 0.3
+    },
+    "ai_lore_text": "Every page a law the craft still obeys.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-cloud-spectacles",
+    "name": "Halo of the First Dawn",
+    "rarity": "Mythic",
+    "slot_type": "Head",
+    "stat_buffs": {
+      "PHY": 15,
+      "FOC": 7,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Kept faith through the night that would not end.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-cloud-keyboard",
+    "name": "The Absolute Quill",
+    "rarity": "Mythic",
+    "slot_type": "Weapon",
+    "stat_buffs": {
+      "CHA": 15,
+      "INT": 7,
+      "GoldMult": 0.3
+    },
+    "ai_lore_text": "Writes only what the future will refuse to erase.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-cloud-shirt",
+    "name": "Veil of the Finished Self",
+    "rarity": "Mythic",
+    "slot_type": "Armor",
+    "stat_buffs": {
+      "WIL": 15,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Shows who you are when the work is finally true.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-cloud-clogs",
+    "name": "Sandals of the Still Hour",
+    "rarity": "Mythic",
+    "slot_type": "Shoes",
+    "stat_buffs": {
+      "CRE": 15,
+      "PHY": 7,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Time stops politely while you finish.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-cloud-clip",
+    "name": "Pendant of Shared Weather",
+    "rarity": "Mythic",
+    "slot_type": "Accessory",
+    "stat_buffs": {
+      "INT": 15,
+      "CHA": 7,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Teams under it move like one climate.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
+  },
+  {
+    "flag": "eq-cloud-abacus",
+    "name": "Heartstone of Compounded Years",
+    "rarity": "Mythic",
+    "slot_type": "Artifact",
+    "stat_buffs": {
+      "PHY": 15,
+      "CRE": 7,
+      "DropRate": 0.08
+    },
+    "ai_lore_text": "Beats once for every habit that survived.",
+    "ai_unlocked_privilege": {
+      "ai_breakdown_depth": "mythic"
+    }
   }
 ]

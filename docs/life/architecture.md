@@ -28,10 +28,12 @@ internal/modules/fx.go          # Register()
 pkg/life/                       # cascade, loot, buffs (no I/O)
 pkg/capability/life/            # EvaluateQuest, GenerateInstanceLore
 internal/store/ent/schema/      # life_*.go (int64 PK + string flag)
-internal/store/store.go         # LifeStore facade methods
+internal/store/life.go         # LifeStore facade (package store)
 internal/store/postgres/        # only if methods are on Adapter (prefer LifeStore)
-internal/modules/web/           # life_*_webservice.go, SetLifeService, User nav
+internal/modules/web/           # life_*_webservice.go; SetLifeService via life.OnService
 pkg/views/pages|partials/       # life_*.templ
+public/js/life-radar.js         # Character radar chart
+public/css/custom.css           # Life page styles (`.life-*`)
 ```
 
 ## 3. Identity model
@@ -56,6 +58,7 @@ pkg/views/pages|partials/       # life_*.templ
 | Gear AI privilege unused | Equipped `ai_unlocked_privilege` merged into EvaluateQuest |
 | LifeGoal CRUD | Create / edit / pause / delete on Character; optional `goal_flag` on quest create |
 | Drop rate preview | Toast on create + pending card `~N% drop` |
+| AI lore on every drop | Lore outbox only for Boss quests or difficulty SS/SSS |
 
 ## 5. ER / tables
 
@@ -108,14 +111,24 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 
 Prefix: `/service/web`
 
-| Method | Path | Page |
-| ------ | ---- | ---- |
+| Method | Path | Purpose |
+| ------ | ---- | ------- |
 | GET | `/life` | Dashboard |
-| GET/POST | `/life/character` | Stats, class, equipped |
-| GET/POST | `/life/quests` | List / create / complete |
-| GET/POST | `/life/inventory` | Backpack / equip |
+| GET | `/life/character` | Stats, class, goals, equipped |
+| POST | `/life/character/class` | Set class type |
+| POST | `/life/goals` | Create goal |
+| POST | `/life/goals/:flag` | Update goal title/category |
+| POST | `/life/goals/:flag/status` | Pause / activate goal |
+| POST | `/life/goals/:flag/delete` | Delete goal |
+| GET | `/life/quests` | Quest list |
+| POST | `/life/quests` | Create quest from prompt |
+| POST | `/life/quests/:flag/complete` | Complete quest (cascade + loot) |
+| POST | `/life/quests/:flag/fail` | Fail quest (24h gear rust) |
+| GET | `/life/inventory` | Backpack |
+| POST | `/life/inventory/:flag/equip` | Equip inventory item |
+| POST | `/life/inventory/slots/:slot/unequip` | Clear equipped slot |
 
-Nav: convert session badge into User dropdown — Life, Character, Quests, Inventory. Mirror the same links under a **User** section in the mobile menu. Logout stays as today.
+Nav: session badge User dropdown — Life, Character, Quests, Inventory. Mirror under a **User** section in the mobile menu. Logout stays as today.
 
 ## 9. Core flows and outbox contract
 
@@ -145,7 +158,7 @@ In one transaction:
 2. Apply `pkg/life` cascade (skill → characteristic → profile).
 3. Roll loot with pity; maybe insert inventory.
 4. Write `life_action_logs`.
-5. If drop needs lore: set `lore_status=pending`, append `event_outbox`.
+5. If drop needs lore (Boss, or difficulty SS/SSS): set `lore_status=pending`, append `event_outbox`.
 6. If quest type is `Daily`, insert a fresh Pending clone (same title/prompt/rewards).
 
 HTMX returns immediate feedback (exp/gold/drop). Lore fills later. Completion-rate blend runs after commit.
@@ -157,15 +170,16 @@ HTMX returns immediate feedback (exp/gold/drop). Lore fills later. Completion-ra
 - Consumer: `modules/life` `ProcessPendingLore` (poll unpublished outbox rows of this type)
 - On success: set instance lore fields, `lore_status=ready`, mark outbox published
 - On LLM / transient failure: leave outbox unpublished for retry; do not mark `lore_status=failed`
-- On poison / malformed payload (or missing inventory): mark published to avoid infinite loops
+- On poison / malformed payload / malformed lore response / missing inventory: mark outbox published; if inventory is known and still `pending`, set `lore_status=failed`
 
 ## 10. Boundaries
 
 - Modules must not import `pkg/providers/*`.
 - Web handlers must not run ent queries; call `LifeService` only.
 - Formulas only in `pkg/life`.
-- Persistence: `LifeStore` in `store.go` (no `life_store.go` file); schemas `life_*`.
+- Persistence: `LifeStore` in package `store` (`internal/store/life.go`; not a separate `*_store.go` package); schemas `life_*`.
 - No JSON API under `/service/life` in v1.
+- Web installs the domain service via `life.OnService(web.SetLifeService)` at module register time.
 
 ## 11. Config
 
@@ -180,8 +194,8 @@ modules:
 
 - `pkg/life`: table-driven unit tests (cascade, loot, pity, buffs).
 - Module / web: package tests with fakes where needed.
-- Cross-boundary BDD under `tests/specs/` when Docker is available (optional for first land).
+- Cross-boundary BDD under `tests/specs/life_spec_test.go` (requires Docker).
 
 ## 13. Implementation status
 
-Implemented in-tree: schemas (`life_*`), `LifeStore`, `pkg/life`, `pkg/capability/life`, `internal/modules/life`, web routes/UI, User nav. BDD specs not yet added.
+Implemented in-tree: schemas (`life_*`), `LifeStore`, `pkg/life`, `pkg/capability/life`, `internal/modules/life`, web routes/UI, User nav, seed catalog, BDD specs.

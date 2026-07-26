@@ -13,11 +13,11 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 
 	webassets "github.com/flowline-io/flowbot"
+	lifemod "github.com/flowline-io/flowbot/internal/modules/life"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
-
-	"github.com/flowline-io/flowbot/internal/store"
 )
 
 const Name = "web"
@@ -28,6 +28,7 @@ var config configType
 // Register registers the web module handler.
 func Register() {
 	module.Register(Name, &handler)
+	lifemod.OnService(SetLifeService)
 }
 
 type moduleHandler struct {

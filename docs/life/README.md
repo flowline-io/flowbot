@@ -25,7 +25,7 @@ internal/modules/life/seed/     # embed JSON catalogs
 pkg/life/                       # cascade, loot, buffs (no I/O)
 pkg/capability/life/            # EvaluateQuest, GenerateInstanceLore
 internal/store/ent/schema/      # life_*.go
-internal/store/store.go         # LifeStore facade (no life_store.go)
+internal/store/life.go         # LifeStore facade (package store; not a separate *_store.go)
 internal/modules/web/           # life_*_webservice.go, SetLifeService, User nav
 pkg/views/pages|partials/       # life_*.templ
 ```
@@ -36,4 +36,4 @@ Signed-in **User** nav (session badge dropdown): Life, Character, Quests, Invent
 
 ## Reference docs
 
-Database reference / `task webdoc` links are updated after schema ships; see [Architecture](./architecture.md) for the table list until then.
+See [Architecture](./architecture.md) for the table list and HTTP routes. Catalog tables are also listed under [Database reference](../reference/database-reference.md).

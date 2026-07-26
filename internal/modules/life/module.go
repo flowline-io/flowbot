@@ -22,6 +22,7 @@ const Name = "life"
 var handler moduleHandler
 var config configType
 var lifeService *Service
+var serviceListeners []func(*Service)
 
 type configType struct {
 	Enabled      bool   `json:"enabled"`
@@ -37,6 +38,24 @@ type moduleHandler struct {
 // Register registers the life module.
 func Register() {
 	module.Register(Name, &handler)
+}
+
+// OnService registers a listener invoked whenever the Life service instance is assigned.
+func OnService(fn func(*Service)) {
+	if fn == nil {
+		return
+	}
+	serviceListeners = append(serviceListeners, fn)
+	if lifeService != nil {
+		fn(lifeService)
+	}
+}
+
+func setActiveService(s *Service) {
+	lifeService = s
+	for _, fn := range serviceListeners {
+		fn(s)
+	}
 }
 
 func (moduleHandler) Init(jsonconf json.RawMessage) error {
@@ -60,7 +79,7 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	if err := lifecap.Register(lifecap.NewLLM()); err != nil {
 		return fmt.Errorf("register life capability: %w", err)
 	}
-	lifeService = NewService(store.LifeStoreFromDB())
+	setActiveService(NewService(store.LifeStoreFromDB()))
 	handler.initialized = true
 	return nil
 }
@@ -83,6 +102,7 @@ func (moduleHandler) Bootstrap() error {
 	if err := seedCatalog(ctx, ls); err != nil {
 		return fmt.Errorf("life: seed catalog: %w", err)
 	}
+	setActiveService(lifeService)
 	flog.Info("life: bootstrap complete (catalog seeded, lore worker started)")
 	if handler.stopLore != nil {
 		close(handler.stopLore)

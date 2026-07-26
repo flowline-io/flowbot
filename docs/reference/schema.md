@@ -533,3 +533,164 @@
 | type        | varchar(20)     | NULL           | NO          |            |                   |                |
 | updated_at  | datetime        | NULL           | NO          |            |                   |                |
 | workflow_id | bigint          | 0              | NO          | MUL        | DEFAULT_GENERATED |                |
+
+## life_profiles
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| user_id | varchar | NULL | NO | UNI | | |
+| nickname | varchar | | NO | | | |
+| level | int | 1 | NO | | | |
+| exp | bigint | 0 | NO | | | |
+| gold | int | 0 | NO | | | |
+| class_type | varchar | Architect | NO | | | |
+| base_drop_rate_bonus | double | 0 | NO | | | |
+| pity_by_tier | json | NULL | YES | | | |
+| created_at | datetime | NULL | NO | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_characteristics
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| life_profile_id | bigint | NULL | NO | MUL | | |
+| code | varchar | NULL | NO | | | |
+| name | varchar | NULL | NO | | | |
+| level | int | 1 | NO | | | |
+| current_exp | bigint | 0 | NO | | | |
+| created_at | datetime | NULL | NO | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_skills
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| life_profile_id | bigint | NULL | NO | MUL | | |
+| characteristic_id | bigint | NULL | NO | | | |
+| name | varchar | NULL | NO | | | |
+| level | int | 1 | NO | | | |
+| current_exp | bigint | 0 | NO | | | |
+| exp_to_characteristic_ratio | double | 0.5 | NO | | | |
+| created_at | datetime | NULL | NO | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_goals
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| life_profile_id | bigint | NULL | NO | MUL | | |
+| title | varchar | NULL | NO | | | |
+| category | varchar | NULL | NO | | | |
+| status | varchar | Active | NO | | | |
+| created_at | datetime | NULL | NO | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_quests
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| life_profile_id | bigint | NULL | NO | MUL | | |
+| goal_id | bigint | NULL | YES | | | |
+| skill_id | bigint | NULL | NO | MUL | | |
+| title | varchar | NULL | NO | | | |
+| prompt | text | | NO | | | |
+| type | varchar | One-Time | NO | | | |
+| ai_evaluated_difficulty | varchar | E | NO | | | |
+| ai_evaluated_fear | int | 1 | NO | | | |
+| base_exp_reward | int | 10 | NO | | | |
+| base_gold_reward | int | 5 | NO | | | |
+| drop_tier | varchar | Common | NO | | | |
+| status | varchar | Pending | NO | | | |
+| created_at | datetime | NULL | NO | | | |
+| updated_at | datetime | NULL | NO | | | |
+| completed_at | datetime | NULL | YES | | | |
+
+## life_ai_contexts
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| life_profile_id | bigint | NULL | NO | UNI | | |
+| ai_dm_personality | text | | NO | | | |
+| historical_completion_rate | double | 0 | NO | | | |
+| recent_mood_and_burnout | json | NULL | YES | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_equipments
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| name | varchar | NULL | NO | | | |
+| rarity | varchar | Common | NO | MUL | | |
+| slot_type | varchar | NULL | NO | MUL | | |
+| stat_buffs | json | NULL | YES | | | |
+| ai_unlocked_privilege | json | NULL | YES | | | |
+| ai_lore_text | text | | NO | | | |
+| created_at | datetime | NULL | NO | | | |
+
+## life_inventories
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| life_profile_id | bigint | NULL | NO | MUL | | |
+| equipment_id | bigint | NULL | NO | MUL | | |
+| source_quest_id | bigint | NULL | YES | | | |
+| instance_name | varchar | | NO | | | |
+| instance_lore | text | | NO | | | |
+| instance_buffs | json | NULL | YES | | | |
+| lore_status | varchar | none | NO | MUL | | |
+| tarnished_until | datetime | NULL | YES | | | |
+| acquired_at | datetime | NULL | NO | | | |
+
+## life_equipped_slots
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| life_profile_id | bigint | NULL | NO | UNI | | |
+| head_slot | bigint | NULL | YES | | | |
+| weapon_slot | bigint | NULL | YES | | | |
+| armor_slot | bigint | NULL | YES | | | |
+| shoes_slot | bigint | NULL | YES | | | |
+| accessory_slot | bigint | NULL | YES | | | |
+| artifact_slot | bigint | NULL | YES | | | |
+| tarnished_until | datetime | NULL | YES | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_loot_tables
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| drop_tier | varchar | NULL | NO | UNI | | |
+| base_drop_chance | double | NULL | NO | | | |
+| item_pool_flags | json | NULL | YES | | | |
+| updated_at | datetime | NULL | NO | | | |
+
+## life_action_logs
+
+| COLUMN_NAME | COLUMN_TYPE | COLUMN_DEFAULT | IS_NULLABLE | COLUMN_KEY | EXTRA | COLUMN_COMMENT |
+| ----------- | ----------- | -------------- | ----------- | ---------- | ----- | -------------- |
+| id | bigint | NULL | NO | PRI | | |
+| flag | varchar | NULL | NO | UNI | | |
+| life_profile_id | bigint | NULL | NO | MUL | | |
+| quest_id | bigint | NULL | NO | | | |
+| gained_exp | int | NULL | NO | | | |
+| gained_gold | int | NULL | NO | | | |
+| dropped_inventory_id | bigint | NULL | YES | | | |
+| dice_roll_result | double | NULL | YES | | | |
+| created_at | datetime | NULL | NO | | | |

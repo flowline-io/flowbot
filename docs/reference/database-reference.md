@@ -69,6 +69,20 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `notify_rules` — Notification gateway rules
 - `notification_records` — Notification delivery history
 
+### Life (solo RPG productivity)
+
+- `life_profiles` — Operator profile (level, exp, gold, class, pity)
+- `life_characteristics` — Cascading stats (INT/PHY/WIL/CHA/CRE/FIN/WRI/FOC)
+- `life_skills` — Skills under a characteristic
+- `life_goals` — PARA goals
+- `life_quests` — One-Time / Daily / Boss quests
+- `life_ai_contexts` — DM personality + mood (1:1 profile)
+- `life_equipments` — Equipment catalog templates (seeded)
+- `life_inventories` — Owned equipment instances + lore overrides
+- `life_equipped_slots` — Worn inventory ids per slot
+- `life_loot_tables` — Drop tier → chance + item pool
+- `life_action_logs` — Completion / dice / drop audit
+
 ### Resources
 
 - `resource_links` — Tag/chain links between resources

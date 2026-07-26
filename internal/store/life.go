@@ -759,6 +759,17 @@ func (s *LifeStore) UpdateInventoryLore(ctx context.Context, id int64, name, lor
 	return err
 }
 
+// UpdateInventoryLoreStatus sets only lore_status (keeps instance name/lore).
+func (s *LifeStore) UpdateInventoryLoreStatus(ctx context.Context, id int64, status string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeInventory.UpdateOneID(id).
+		SetLoreStatus(status).
+		Save(ctx)
+	return err
+}
+
 // CreateActionLog inserts an action log row.
 func (s *LifeStore) CreateActionLog(ctx context.Context, profileID, questID int64, exp, gold int, invID *int64, dice *float64) (*gen.LifeActionLog, error) {
 	if !s.ready() {
@@ -835,9 +846,14 @@ func (s *LifeStore) ListPendingLoreOutbox(ctx context.Context, limit int) ([]*ge
 	}
 	out := make([]*gen.EventOutbox, 0)
 	for _, row := range rows {
-		raw, _ := sonic.Marshal(row.Payload)
+		raw, err := sonic.Marshal(row.Payload)
+		if err != nil {
+			continue
+		}
 		var payload map[string]any
-		_ = sonic.Unmarshal(raw, &payload)
+		if err := sonic.Unmarshal(raw, &payload); err != nil {
+			continue
+		}
 		t, ok := payload["type"].(string)
 		if ok && t == LifeLoreRequestedType {
 			out = append(out, row)

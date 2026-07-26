@@ -3,6 +3,7 @@ package life
 import (
 	"context"
 	"fmt"
+	"maps"
 	"math/rand"
 	"strings"
 	"time"
@@ -188,7 +189,13 @@ func (s *Service) CreateQuestFromPrompt(ctx context.Context, userID, prompt, goa
 	if err != nil {
 		return nil, nil, 0, err
 	}
-	chance, _ := s.dropChanceForQuest(ctx, p, q)
+	chance, err := s.dropChanceForQuest(ctx, p, q)
+	if err != nil {
+		flog.WarnFields("life: drop chance preview failed", map[string]any{
+			"profile_id": p.ID, "quest_flag": q.Flag, "error": err.Error(),
+		})
+		chance = 0
+	}
 	flog.InfoFields("life: quest created", map[string]any{
 		"uid":         userID,
 		"profile_id":  p.ID,
@@ -229,10 +236,21 @@ func (s *Service) resolveGoalBinding(ctx context.Context, profileID int64, goalF
 }
 
 func (s *Service) evaluateQuestPrompt(ctx context.Context, profileID int64, prompt string, goalTitles []string) (*lifecap.QuestEvaluation, error) {
-	_ = s.store.EnsureAIContext(ctx, profileID)
-	aiCtx, _ := s.store.GetAIContext(ctx, profileID)
-	slots, _ := s.store.GetEquippedSlots(ctx, profileID)
-	privs, _ := s.equippedPrivileges(ctx, slots)
+	if err := s.store.EnsureAIContext(ctx, profileID); err != nil {
+		return nil, err
+	}
+	aiCtx, err := s.store.GetAIContext(ctx, profileID)
+	if err != nil {
+		return nil, err
+	}
+	slots, err := s.store.GetEquippedSlots(ctx, profileID)
+	if err != nil {
+		return nil, err
+	}
+	privs, err := s.equippedPrivileges(ctx, slots)
+	if err != nil {
+		return nil, err
+	}
 	params := map[string]any{
 		"prompt":          prompt,
 		"active_goals":    goalTitles,
@@ -694,16 +712,14 @@ func (s *Service) ProcessPendingLore(ctx context.Context) (int, error) {
 func (s *Service) processOneLoreOutbox(ctx context.Context, row *gen.EventOutbox) (bool, error) {
 	invID, poison := parseLoreInventoryID(row)
 	if poison {
-		_ = s.store.MarkOutboxPublished(ctx, row.EventID)
-		return false, nil
+		return false, s.discardLoreOutbox(ctx, row, invID, "poison payload")
 	}
 	inv, err := s.store.GetInventory(ctx, invID)
 	if err != nil {
 		return false, err
 	}
 	if inv == nil {
-		_ = s.store.MarkOutboxPublished(ctx, row.EventID)
-		return false, nil
+		return false, s.discardLoreOutbox(ctx, row, 0, "missing inventory")
 	}
 	name, rarity, questTitle, err := s.lorePromptInputs(ctx, inv)
 	if err != nil {
@@ -723,7 +739,7 @@ func (s *Service) processOneLoreOutbox(ctx context.Context, row *gen.EventOutbox
 		flog.WarnFields("life: lore response decode failed", map[string]any{
 			"inventory_id": inv.ID, "error": err.Error(),
 		})
-		return false, nil
+		return false, s.discardLoreOutbox(ctx, row, inv.ID, "malformed lore response")
 	}
 	if err := s.store.UpdateInventoryLore(ctx, inv.ID, lore.Name, lore.Lore, "ready"); err != nil {
 		flog.WarnFields("life: lore persist failed", map[string]any{
@@ -741,6 +757,28 @@ func (s *Service) processOneLoreOutbox(ctx context.Context, row *gen.EventOutbox
 		"inventory_id": inv.ID, "instance_name": lore.Name, "event_id": row.EventID,
 	})
 	return true, nil
+}
+
+// discardLoreOutbox marks a poison/unrecoverable lore row published and fails pending inventory lore.
+func (s *Service) discardLoreOutbox(ctx context.Context, row *gen.EventOutbox, invID int64, reason string) error {
+	if invID > 0 {
+		inv, err := s.store.GetInventory(ctx, invID)
+		if err != nil {
+			return err
+		}
+		if inv != nil && inv.LoreStatus == "pending" {
+			if err := s.store.UpdateInventoryLoreStatus(ctx, inv.ID, "failed"); err != nil {
+				return err
+			}
+		}
+	}
+	if err := s.store.MarkOutboxPublished(ctx, row.EventID); err != nil {
+		return err
+	}
+	flog.WarnFields("life: lore outbox discarded", map[string]any{
+		"event_id": row.EventID, "inventory_id": invID, "reason": reason,
+	})
+	return nil
 }
 
 func parseLoreInventoryID(row *gen.EventOutbox) (invID int64, poison bool) {
@@ -857,25 +895,28 @@ func (s *Service) equippedBuffs(ctx context.Context, slots *gen.LifeEquippedSlot
 		return empty, nil
 	}
 	ids := slotInventoryIDPtrs(slots)
-	var maps []map[string]float64
+	var buffMaps []map[string]float64
 	for _, id := range ids {
 		if id == nil {
 			continue
 		}
 		inv, err := s.store.GetInventory(ctx, *id)
-		if err != nil || inv == nil {
-			continue
+		if err != nil {
+			return empty, err
 		}
-		if pkglife.IsTarnished(inv.TarnishedUntil, now) {
+		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
 			continue
 		}
 		eq, err := s.store.GetEquipment(ctx, inv.EquipmentID)
-		if err != nil || eq == nil {
+		if err != nil {
+			return empty, err
+		}
+		if eq == nil {
 			continue
 		}
-		maps = append(maps, pkglife.MergeBuffs(eq.StatBuffs, inv.InstanceBuffs))
+		buffMaps = append(buffMaps, pkglife.MergeBuffs(eq.StatBuffs, inv.InstanceBuffs))
 	}
-	return pkglife.SumEquippedBuffs(maps), nil
+	return pkglife.SumEquippedBuffs(buffMaps), nil
 }
 
 func (s *Service) equippedPrivileges(ctx context.Context, slots *gen.LifeEquippedSlots) (map[string]any, error) {
@@ -892,16 +933,20 @@ func (s *Service) equippedPrivileges(ctx context.Context, slots *gen.LifeEquippe
 			continue
 		}
 		inv, err := s.store.GetInventory(ctx, *id)
-		if err != nil || inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
+		if err != nil {
+			return nil, err
+		}
+		if inv == nil || pkglife.IsTarnished(inv.TarnishedUntil, now) {
 			continue
 		}
 		eq, err := s.store.GetEquipment(ctx, inv.EquipmentID)
-		if err != nil || eq == nil {
+		if err != nil {
+			return nil, err
+		}
+		if eq == nil {
 			continue
 		}
-		for k, v := range eq.AiUnlockedPrivilege {
-			out[k] = v
-		}
+		maps.Copy(out, eq.AiUnlockedPrivilege)
 	}
 	return out, nil
 }
@@ -971,10 +1016,15 @@ func (s *Service) applyRust(ctx context.Context, profileID int64, until time.Tim
 }
 
 func (s *Service) blendCompletionRate(ctx context.Context, profileID int64, success bool) error {
-	_ = s.store.EnsureAIContext(ctx, profileID)
-	ai, err := s.store.GetAIContext(ctx, profileID)
-	if err != nil || ai == nil {
+	if err := s.store.EnsureAIContext(ctx, profileID); err != nil {
 		return err
+	}
+	ai, err := s.store.GetAIContext(ctx, profileID)
+	if err != nil {
+		return err
+	}
+	if ai == nil {
+		return fmt.Errorf("life: ai context missing after ensure")
 	}
 	sample := 0.0
 	if success {
