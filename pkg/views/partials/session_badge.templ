@@ -1,11 +1,23 @@
 package partials
 
-// SessionBadge renders the signed-in operator identity for the navbar.
+// SessionBadge renders the signed-in operator identity as a User nav dropdown.
 templ SessionBadge(username string, expiresLabel string) {
-	<div class="hidden sm:flex flex-col items-end leading-tight px-2" data-testid="session-badge">
-		<span class="text-xs font-medium text-base-content truncate max-w-[10rem]" data-testid="session-username">{ username }</span>
-		if expiresLabel != "" {
-			<span class="text-[10px] text-base-content/50" data-testid="session-expires">{ expiresLabel }</span>
-		}
+	<div class="dropdown dropdown-end" data-testid="session-badge">
+		<div tabindex="0" role="button" class="btn btn-ghost btn-sm gap-1 max-w-[11rem]" data-testid="nav-user-menu" aria-label="User menu">
+			<span class="hidden sm:flex flex-col items-end leading-tight min-w-0">
+				<span class="text-xs font-medium text-base-content truncate max-w-[9rem]" data-testid="session-username">{ username }</span>
+				if expiresLabel != "" {
+					<span class="text-[10px] text-base-content/50" data-testid="session-expires">{ expiresLabel }</span>
+				}
+			</span>
+			<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 sm:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+		</div>
+		<ul tabindex="0" class="dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-44 z-50" data-testid="nav-user-menu-list">
+			<li class="menu-title"><span>User</span></li>
+			<li><a href="/service/web/life" data-testid="nav-life">Life</a></li>
+			<li><a href="/service/web/life/character" data-testid="nav-life-character">Character</a></li>
+			<li><a href="/service/web/life/quests" data-testid="nav-life-quests">Quests</a></li>
+			<li><a href="/service/web/life/inventory" data-testid="nav-life-inventory">Inventory</a></li>
+		</ul>
 	</div>
 }

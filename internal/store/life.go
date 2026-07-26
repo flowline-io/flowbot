@@ -1,0 +1,1078 @@
+package store
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/bytedance/sonic"
+
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
+	"github.com/flowline-io/flowbot/pkg/types"
+)
+
+// Life lore outbox event type (payload["type"]).
+const LifeLoreRequestedType = "life.inventory.lore_requested"
+
+// LifeStore persists Life domain entities.
+type LifeStore struct {
+	client *gen.Client
+}
+
+// NewLifeStore creates a LifeStore with the given ent client.
+func NewLifeStore(client *gen.Client) *LifeStore {
+	return &LifeStore{client: client}
+}
+
+// LifeStoreFromDB returns a LifeStore using the global database client.
+func LifeStoreFromDB() *LifeStore {
+	if Database == nil {
+		return NewLifeStore(nil)
+	}
+	client, ok := Database.GetDB().(*gen.Client)
+	if !ok || client == nil {
+		return NewLifeStore(nil)
+	}
+	return NewLifeStore(client)
+}
+
+// Client returns the underlying ent client for transactional use-cases.
+func (s *LifeStore) Client() *gen.Client {
+	if s == nil {
+		return nil
+	}
+	return s.client
+}
+
+func (s *LifeStore) ready() bool {
+	return s != nil && s.client != nil
+}
+
+// GetProfileByUserID returns the life profile for a platform user id.
+func (s *LifeStore) GetProfileByUserID(ctx context.Context, userID string) (*gen.LifeProfile, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeProfile.Query().Where(lifeprofile.UserIDEQ(userID)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("life: get profile: %w", err)
+	}
+	return row, nil
+}
+
+// GetProfileByID returns a profile by primary key.
+func (s *LifeStore) GetProfileByID(ctx context.Context, id int64) (*gen.LifeProfile, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeProfile.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("life: get profile by id: %w", err)
+	}
+	return row, nil
+}
+
+// CreateProfile inserts a new life profile.
+func (s *LifeStore) CreateProfile(ctx context.Context, userID, nickname, classType string) (*gen.LifeProfile, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	if classType == "" {
+		classType = "Architect"
+	}
+	row, err := s.client.LifeProfile.Create().
+		SetFlag(types.Id()).
+		SetUserID(userID).
+		SetNickname(nickname).
+		SetClassType(classType).
+		SetPityByTier(map[string]int{}).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create profile: %w", err)
+	}
+	return row, nil
+}
+
+// UpdateProfileStats updates level/exp/gold/pity on a profile.
+func (s *LifeStore) UpdateProfileStats(ctx context.Context, id int64, level int, exp int64, gold int, pity map[string]int) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	u := s.client.LifeProfile.UpdateOneID(id).
+		SetLevel(level).
+		SetExp(exp).
+		SetGold(gold)
+	if pity != nil {
+		u = u.SetPityByTier(pity)
+	}
+	_, err := u.Save(ctx)
+	if err != nil {
+		return fmt.Errorf("life: update profile stats: %w", err)
+	}
+	return nil
+}
+
+// UpdateProfileClass sets class_type.
+func (s *LifeStore) UpdateProfileClass(ctx context.Context, id int64, classType string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeProfile.UpdateOneID(id).SetClassType(classType).Save(ctx)
+	if err != nil {
+		return fmt.Errorf("life: update class: %w", err)
+	}
+	return nil
+}
+
+// CreateCharacteristic inserts a characteristic row.
+func (s *LifeStore) CreateCharacteristic(ctx context.Context, profileID int64, code, name string) (*gen.LifeCharacteristic, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	row, err := s.client.LifeCharacteristic.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(profileID).
+		SetCode(code).
+		SetName(name).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create characteristic: %w", err)
+	}
+	return row, nil
+}
+
+// ListCharacteristics returns characteristics for a profile.
+func (s *LifeStore) ListCharacteristics(ctx context.Context, profileID int64) ([]*gen.LifeCharacteristic, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	return s.client.LifeCharacteristic.Query().
+		Where(lifecharacteristic.LifeProfileIDEQ(profileID)).
+		All(ctx)
+}
+
+// GetCharacteristic returns one characteristic by id.
+func (s *LifeStore) GetCharacteristic(ctx context.Context, id int64) (*gen.LifeCharacteristic, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeCharacteristic.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpdateCharacteristicStats updates level/exp.
+func (s *LifeStore) UpdateCharacteristicStats(ctx context.Context, id int64, level int, exp int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeCharacteristic.UpdateOneID(id).SetLevel(level).SetCurrentExp(exp).Save(ctx)
+	return err
+}
+
+// GetSkillByName returns a skill by profile + name.
+func (s *LifeStore) GetSkillByName(ctx context.Context, profileID int64, name string) (*gen.LifeSkill, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeSkill.Query().
+		Where(lifeskill.LifeProfileIDEQ(profileID), lifeskill.NameEQ(name)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// CreateSkill inserts a skill.
+func (s *LifeStore) CreateSkill(ctx context.Context, profileID, characteristicID int64, name string, ratio float64) (*gen.LifeSkill, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	if ratio <= 0 {
+		ratio = 0.5
+	}
+	row, err := s.client.LifeSkill.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(profileID).
+		SetCharacteristicID(characteristicID).
+		SetName(name).
+		SetExpToCharacteristicRatio(ratio).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create skill: %w", err)
+	}
+	return row, nil
+}
+
+// ListSkills returns skills for a profile.
+func (s *LifeStore) ListSkills(ctx context.Context, profileID int64) ([]*gen.LifeSkill, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	return s.client.LifeSkill.Query().Where(lifeskill.LifeProfileIDEQ(profileID)).All(ctx)
+}
+
+// GetSkill returns a skill by id.
+func (s *LifeStore) GetSkill(ctx context.Context, id int64) (*gen.LifeSkill, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeSkill.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpdateSkillStats updates skill level/exp.
+func (s *LifeStore) UpdateSkillStats(ctx context.Context, id int64, level int, exp int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeSkill.UpdateOneID(id).SetLevel(level).SetCurrentExp(exp).Save(ctx)
+	return err
+}
+
+// EnsureAIContext creates AI context if missing.
+func (s *LifeStore) EnsureAIContext(ctx context.Context, profileID int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeAIContext.Query().Where(lifeaicontext.LifeProfileIDEQ(profileID)).Only(ctx)
+	if err == nil {
+		return nil
+	}
+	if !gen.IsNotFound(err) {
+		return err
+	}
+	_, err = s.client.LifeAIContext.Create().
+		SetLifeProfileID(profileID).
+		SetRecentMoodAndBurnout(map[string]any{}).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("life: ensure ai context: %w", err)
+	}
+	return nil
+}
+
+// GetAIContext returns the AI context row for a profile.
+func (s *LifeStore) GetAIContext(ctx context.Context, profileID int64) (*gen.LifeAIContext, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeAIContext.Query().Where(lifeaicontext.LifeProfileIDEQ(profileID)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpdateAIContext writes completion rate, mood, and personality.
+func (s *LifeStore) UpdateAIContext(ctx context.Context, profileID int64, rate float64, mood map[string]any, personality string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	u := s.client.LifeAIContext.Update().Where(lifeaicontext.LifeProfileIDEQ(profileID)).
+		SetHistoricalCompletionRate(rate)
+	if mood != nil {
+		u = u.SetRecentMoodAndBurnout(mood)
+	}
+	if personality != "" {
+		u = u.SetAiDmPersonality(personality)
+	}
+	_, err := u.Save(ctx)
+	return err
+}
+
+// CreateGoal inserts an active PARA goal.
+func (s *LifeStore) CreateGoal(ctx context.Context, profileID int64, title, category string) (*gen.LifeGoal, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	row, err := s.client.LifeGoal.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(profileID).
+		SetTitle(title).
+		SetCategory(category).
+		SetStatus("Active").
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create goal: %w", err)
+	}
+	return row, nil
+}
+
+// GetGoalByFlag returns a goal by flag for a profile.
+func (s *LifeStore) GetGoalByFlag(ctx context.Context, profileID int64, flag string) (*gen.LifeGoal, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeGoal.Query().
+		Where(lifegoal.LifeProfileIDEQ(profileID), lifegoal.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpdateGoalStatus sets goal status (Active / Paused / Completed).
+func (s *LifeStore) UpdateGoalStatus(ctx context.Context, id int64, status string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeGoal.UpdateOneID(id).SetStatus(status).Save(ctx)
+	return err
+}
+
+// MarkQuestStatus sets quest status and completed_at when Completed.
+func (s *LifeStore) MarkQuestStatus(ctx context.Context, id int64, status string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	u := s.client.LifeQuest.UpdateOneID(id).SetStatus(status)
+	if status == "Completed" {
+		now := time.Now()
+		u = u.SetCompletedAt(now)
+	}
+	_, err := u.Save(ctx)
+	return err
+}
+
+// SetInventoryTarnishedUntil sets or clears rust on an inventory row.
+func (s *LifeStore) SetInventoryTarnishedUntil(ctx context.Context, id int64, until *time.Time) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	u := s.client.LifeInventory.UpdateOneID(id)
+	if until == nil {
+		u = u.ClearTarnishedUntil()
+	} else {
+		u = u.SetTarnishedUntil(*until)
+	}
+	_, err := u.Save(ctx)
+	return err
+}
+
+// SetEquippedSlotsTarnishedUntil sets or clears rust on equipped slots.
+func (s *LifeStore) SetEquippedSlotsTarnishedUntil(ctx context.Context, profileID int64, until *time.Time) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	u := s.client.LifeEquippedSlots.Update().Where(lifeequippedslots.LifeProfileIDEQ(profileID))
+	if until == nil {
+		u = u.ClearTarnishedUntil()
+	} else {
+		u = u.SetTarnishedUntil(*until)
+	}
+	_, err := u.Save(ctx)
+	return err
+}
+
+// EnsureEquippedSlots creates empty slots row if missing.
+func (s *LifeStore) EnsureEquippedSlots(ctx context.Context, profileID int64) (*gen.LifeEquippedSlots, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	row, err := s.client.LifeEquippedSlots.Query().Where(lifeequippedslots.LifeProfileIDEQ(profileID)).Only(ctx)
+	if err == nil {
+		return row, nil
+	}
+	if !gen.IsNotFound(err) {
+		return nil, err
+	}
+	return s.client.LifeEquippedSlots.Create().SetLifeProfileID(profileID).Save(ctx)
+}
+
+// GetEquippedSlots returns equipped slots for a profile.
+func (s *LifeStore) GetEquippedSlots(ctx context.Context, profileID int64) (*gen.LifeEquippedSlots, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeEquippedSlots.Query().Where(lifeequippedslots.LifeProfileIDEQ(profileID)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// SetEquippedSlot writes one slot inventory id (nil clears).
+func (s *LifeStore) SetEquippedSlot(ctx context.Context, profileID int64, slotField string, inventoryID *int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	slots, err := s.EnsureEquippedSlots(ctx, profileID)
+	if err != nil {
+		return err
+	}
+	u := s.client.LifeEquippedSlots.UpdateOneID(slots.ID)
+	if err := applyEquippedSlotUpdate(u, slotField, inventoryID); err != nil {
+		return err
+	}
+	_, err = u.Save(ctx)
+	return err
+}
+
+func applyEquippedSlotUpdate(u *gen.LifeEquippedSlotsUpdateOne, slotField string, inventoryID *int64) error {
+	setters := map[string]func(*gen.LifeEquippedSlotsUpdateOne, *int64) *gen.LifeEquippedSlotsUpdateOne{
+		"head_slot": func(u *gen.LifeEquippedSlotsUpdateOne, id *int64) *gen.LifeEquippedSlotsUpdateOne {
+			if id == nil {
+				return u.ClearHeadSlot()
+			}
+			return u.SetHeadSlot(*id)
+		},
+		"weapon_slot": func(u *gen.LifeEquippedSlotsUpdateOne, id *int64) *gen.LifeEquippedSlotsUpdateOne {
+			if id == nil {
+				return u.ClearWeaponSlot()
+			}
+			return u.SetWeaponSlot(*id)
+		},
+		"armor_slot": func(u *gen.LifeEquippedSlotsUpdateOne, id *int64) *gen.LifeEquippedSlotsUpdateOne {
+			if id == nil {
+				return u.ClearArmorSlot()
+			}
+			return u.SetArmorSlot(*id)
+		},
+		"shoes_slot": func(u *gen.LifeEquippedSlotsUpdateOne, id *int64) *gen.LifeEquippedSlotsUpdateOne {
+			if id == nil {
+				return u.ClearShoesSlot()
+			}
+			return u.SetShoesSlot(*id)
+		},
+		"accessory_slot": func(u *gen.LifeEquippedSlotsUpdateOne, id *int64) *gen.LifeEquippedSlotsUpdateOne {
+			if id == nil {
+				return u.ClearAccessorySlot()
+			}
+			return u.SetAccessorySlot(*id)
+		},
+		"artifact_slot": func(u *gen.LifeEquippedSlotsUpdateOne, id *int64) *gen.LifeEquippedSlotsUpdateOne {
+			if id == nil {
+				return u.ClearArtifactSlot()
+			}
+			return u.SetArtifactSlot(*id)
+		},
+	}
+	fn, ok := setters[slotField]
+	if !ok {
+		return fmt.Errorf("life: unknown slot %q", slotField)
+	}
+	fn(u, inventoryID)
+	return nil
+}
+
+// ListGoals returns goals for a profile, optional status filter.
+func (s *LifeStore) ListGoals(ctx context.Context, profileID int64, status string) ([]*gen.LifeGoal, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	q := s.client.LifeGoal.Query().Where(lifegoal.LifeProfileIDEQ(profileID)).Order(gen.Desc(lifegoal.FieldCreatedAt))
+	if status != "" {
+		q = q.Where(lifegoal.StatusEQ(status))
+	}
+	return q.All(ctx)
+}
+
+// CreateQuest inserts a quest.
+func (s *LifeStore) CreateQuest(ctx context.Context, q *gen.LifeQuest) (*gen.LifeQuest, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	b := s.client.LifeQuest.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(q.LifeProfileID).
+		SetSkillID(q.SkillID).
+		SetTitle(q.Title).
+		SetPrompt(q.Prompt).
+		SetType(q.Type).
+		SetAiEvaluatedDifficulty(q.AiEvaluatedDifficulty).
+		SetAiEvaluatedFear(q.AiEvaluatedFear).
+		SetBaseExpReward(q.BaseExpReward).
+		SetBaseGoldReward(q.BaseGoldReward).
+		SetDropTier(q.DropTier).
+		SetStatus("Pending")
+	if q.GoalID != nil {
+		b = b.SetGoalID(*q.GoalID)
+	}
+	row, err := b.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create quest: %w", err)
+	}
+	return row, nil
+}
+
+// ListQuests lists quests for a profile, optional status filter.
+func (s *LifeStore) ListQuests(ctx context.Context, profileID int64, status string) ([]*gen.LifeQuest, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	q := s.client.LifeQuest.Query().Where(lifequest.LifeProfileIDEQ(profileID)).Order(gen.Desc(lifequest.FieldCreatedAt))
+	if status != "" {
+		q = q.Where(lifequest.StatusEQ(status))
+	}
+	return q.All(ctx)
+}
+
+// GetQuestByFlag returns a quest by flag scoped to profile.
+func (s *LifeStore) GetQuestByFlag(ctx context.Context, profileID int64, flag string) (*gen.LifeQuest, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeQuest.Query().
+		Where(lifequest.LifeProfileIDEQ(profileID), lifequest.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// MarkQuestCompleted sets status Completed.
+func (s *LifeStore) MarkQuestCompleted(ctx context.Context, id int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	now := time.Now()
+	_, err := s.client.LifeQuest.UpdateOneID(id).
+		SetStatus("Completed").
+		SetCompletedAt(now).
+		Save(ctx)
+	return err
+}
+
+// UpsertEquipment creates equipment if flag missing.
+func (s *LifeStore) UpsertEquipment(ctx context.Context, flag, name, rarity, slotType, lore string, buffs, priv map[string]any) (*gen.LifeEquipment, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	existing, err := s.client.LifeEquipment.Query().Where(lifeequipment.FlagEQ(flag)).Only(ctx)
+	if err == nil {
+		return existing, nil
+	}
+	if !gen.IsNotFound(err) {
+		return nil, err
+	}
+	if buffs == nil {
+		buffs = map[string]any{}
+	}
+	if priv == nil {
+		priv = map[string]any{}
+	}
+	return s.client.LifeEquipment.Create().
+		SetFlag(flag).
+		SetName(name).
+		SetRarity(rarity).
+		SetSlotType(slotType).
+		SetStatBuffs(buffs).
+		SetAiUnlockedPrivilege(priv).
+		SetAiLoreText(lore).
+		Save(ctx)
+}
+
+// GetEquipmentByFlag returns equipment by flag.
+func (s *LifeStore) GetEquipmentByFlag(ctx context.Context, flag string) (*gen.LifeEquipment, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeEquipment.Query().Where(lifeequipment.FlagEQ(flag)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// GetEquipment returns equipment by id.
+func (s *LifeStore) GetEquipment(ctx context.Context, id int64) (*gen.LifeEquipment, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeEquipment.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpsertLootTable creates or updates a loot table by tier.
+func (s *LifeStore) UpsertLootTable(ctx context.Context, tier string, chance float64, pool []string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	existing, err := s.client.LifeLootTable.Query().Where(lifeloottable.DropTierEQ(tier)).Only(ctx)
+	if err == nil {
+		_, err = s.client.LifeLootTable.UpdateOneID(existing.ID).
+			SetBaseDropChance(chance).
+			SetItemPoolFlags(pool).
+			Save(ctx)
+		return err
+	}
+	if !gen.IsNotFound(err) {
+		return err
+	}
+	_, err = s.client.LifeLootTable.Create().
+		SetDropTier(tier).
+		SetBaseDropChance(chance).
+		SetItemPoolFlags(pool).
+		Save(ctx)
+	return err
+}
+
+// GetLootTable returns loot table by tier.
+func (s *LifeStore) GetLootTable(ctx context.Context, tier string) (*gen.LifeLootTable, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeLootTable.Query().Where(lifeloottable.DropTierEQ(tier)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// CreateInventory inserts an inventory instance.
+func (s *LifeStore) CreateInventory(ctx context.Context, profileID, equipmentID int64, questID *int64, loreStatus string) (*gen.LifeInventory, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	if loreStatus == "" {
+		loreStatus = "none"
+	}
+	b := s.client.LifeInventory.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(profileID).
+		SetEquipmentID(equipmentID).
+		SetLoreStatus(loreStatus).
+		SetInstanceBuffs(map[string]any{})
+	if questID != nil {
+		b = b.SetSourceQuestID(*questID)
+	}
+	row, err := b.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create inventory: %w", err)
+	}
+	return row, nil
+}
+
+// ListInventory lists inventory for a profile.
+func (s *LifeStore) ListInventory(ctx context.Context, profileID int64) ([]*gen.LifeInventory, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	return s.client.LifeInventory.Query().
+		Where(lifeinventory.LifeProfileIDEQ(profileID)).
+		Order(gen.Desc(lifeinventory.FieldAcquiredAt)).
+		All(ctx)
+}
+
+// GetInventoryByFlag returns inventory by flag scoped to profile.
+func (s *LifeStore) GetInventoryByFlag(ctx context.Context, profileID int64, flag string) (*gen.LifeInventory, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeInventory.Query().
+		Where(lifeinventory.LifeProfileIDEQ(profileID), lifeinventory.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// GetInventory returns inventory by id.
+func (s *LifeStore) GetInventory(ctx context.Context, id int64) (*gen.LifeInventory, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeInventory.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpdateInventoryLore sets instance lore fields and status.
+func (s *LifeStore) UpdateInventoryLore(ctx context.Context, id int64, name, lore, status string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeInventory.UpdateOneID(id).
+		SetInstanceName(name).
+		SetInstanceLore(lore).
+		SetLoreStatus(status).
+		Save(ctx)
+	return err
+}
+
+// CreateActionLog inserts an action log row.
+func (s *LifeStore) CreateActionLog(ctx context.Context, profileID, questID int64, exp, gold int, invID *int64, dice *float64) (*gen.LifeActionLog, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	b := s.client.LifeActionLog.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(profileID).
+		SetQuestID(questID).
+		SetGainedExp(exp).
+		SetGainedGold(gold)
+	if invID != nil {
+		b = b.SetDroppedInventoryID(*invID)
+	}
+	if dice != nil {
+		b = b.SetDiceRollResult(*dice)
+	}
+	return b.Save(ctx)
+}
+
+// ListActionLogs returns recent action logs.
+func (s *LifeStore) ListActionLogs(ctx context.Context, profileID int64, limit int) ([]*gen.LifeActionLog, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	q := s.client.LifeActionLog.Query().
+		Where(lifeactionlog.LifeProfileIDEQ(profileID)).
+		Order(gen.Desc(lifeactionlog.FieldCreatedAt))
+	if limit > 0 {
+		q = q.Limit(limit)
+	}
+	return q.All(ctx)
+}
+
+// AppendLoreOutbox writes an unpublished outbox row for lore generation.
+func (s *LifeStore) AppendLoreOutbox(ctx context.Context, profileID, inventoryID int64) (string, error) {
+	if !s.ready() {
+		return "", fmt.Errorf("life: store not available")
+	}
+	eventID := types.Id()
+	payload := map[string]any{
+		"event_id":        eventID,
+		"type":            LifeLoreRequestedType,
+		"life_profile_id": profileID,
+		"inventory_id":    inventoryID,
+	}
+	_, err := s.client.EventOutbox.Create().
+		SetEventID(eventID).
+		SetPayload(payload).
+		SetPublished(false).
+		SetCreatedAt(time.Now()).
+		Save(ctx)
+	if err != nil {
+		return "", fmt.Errorf("life: append lore outbox: %w", err)
+	}
+	return eventID, nil
+}
+
+// ListPendingLoreOutbox returns unpublished lore outbox rows.
+func (s *LifeStore) ListPendingLoreOutbox(ctx context.Context, limit int) ([]*gen.EventOutbox, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	rows, err := s.client.EventOutbox.Query().
+		Where(eventoutbox.PublishedEQ(false)).
+		Order(gen.Asc(eventoutbox.FieldCreatedAt)).
+		Limit(limit * 5).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*gen.EventOutbox, 0)
+	for _, row := range rows {
+		raw, _ := sonic.Marshal(row.Payload)
+		var payload map[string]any
+		_ = sonic.Unmarshal(raw, &payload)
+		t, ok := payload["type"].(string)
+		if ok && t == LifeLoreRequestedType {
+			out = append(out, row)
+			if len(out) >= limit {
+				break
+			}
+		}
+	}
+	return out, nil
+}
+
+// MarkOutboxPublished marks an outbox event published.
+func (s *LifeStore) MarkOutboxPublished(ctx context.Context, eventID string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.EventOutbox.Update().
+		Where(eventoutbox.EventID(eventID)).
+		SetPublished(true).
+		Save(ctx)
+	return err
+}
+
+// GetQuest returns a quest by id.
+func (s *LifeStore) GetQuest(ctx context.Context, id int64) (*gen.LifeQuest, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeQuest.Get(ctx, id)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return row, nil
+}
+
+// UpdateGoal updates title and category for a goal.
+func (s *LifeStore) UpdateGoal(ctx context.Context, id int64, title, category string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeGoal.UpdateOneID(id).SetTitle(title).SetCategory(category).Save(ctx)
+	return err
+}
+
+// DeleteGoal removes a goal row.
+func (s *LifeStore) DeleteGoal(ctx context.Context, id int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	return s.client.LifeGoal.DeleteOneID(id).Exec(ctx)
+}
+
+// LifeCompletePersist is the write-set for an atomic quest completion.
+type LifeCompletePersist struct {
+	ProfileID   int64
+	QuestID     int64
+	SkillID     int64
+	CharID      int64
+	SkillLevel  int
+	SkillExp    int64
+	CharLevel   int
+	CharExp     int64
+	ProfLevel   int
+	ProfExp     int64
+	ProfGold    int
+	Pity        map[string]int
+	RustInvIDs  []int64
+	DropEquipID int64 // 0 = no drop
+	DropQuestID int64
+	LoreStatus  string
+	NeedLore    bool
+	ActionExp   int
+	ActionGold  int
+	Dice        float64
+	// DailyRespawn clones a pending Daily quest after completion when non-nil.
+	DailyRespawn *gen.LifeQuest
+}
+
+// LifeCompleteResult is returned from PersistCompleteQuest.
+type LifeCompleteResult struct {
+	Inventory *gen.LifeInventory
+	Equipment *gen.LifeEquipment
+}
+
+// PersistCompleteQuest applies cascade, loot inventory, action log, and rust clear in one transaction.
+func (s *LifeStore) PersistCompleteQuest(ctx context.Context, in LifeCompletePersist) (*LifeCompleteResult, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: begin complete tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+	if err := persistCompleteCascade(ctx, tx, in); err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	if _, err := tx.LifeQuest.UpdateOneID(in.QuestID).SetStatus("Completed").SetCompletedAt(now).Save(ctx); err != nil {
+		return nil, fmt.Errorf("life: mark completed: %w", err)
+	}
+	if err := clearCompleteRust(ctx, tx, in); err != nil {
+		return nil, err
+	}
+	out, invID, err := persistCompleteDrop(ctx, tx, in, now)
+	if err != nil {
+		return nil, err
+	}
+	if err := persistCompleteActionLog(ctx, tx, in, invID); err != nil {
+		return nil, err
+	}
+	if err := persistDailyRespawn(ctx, tx, in.DailyRespawn); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("life: commit complete: %w", err)
+	}
+	committed = true
+	return out, nil
+}
+
+func persistCompleteCascade(ctx context.Context, tx *gen.Tx, in LifeCompletePersist) error {
+	if _, err := tx.LifeSkill.UpdateOneID(in.SkillID).SetLevel(in.SkillLevel).SetCurrentExp(in.SkillExp).Save(ctx); err != nil {
+		return fmt.Errorf("life: update skill: %w", err)
+	}
+	if _, err := tx.LifeCharacteristic.UpdateOneID(in.CharID).SetLevel(in.CharLevel).SetCurrentExp(in.CharExp).Save(ctx); err != nil {
+		return fmt.Errorf("life: update characteristic: %w", err)
+	}
+	if _, err := tx.LifeProfile.UpdateOneID(in.ProfileID).
+		SetLevel(in.ProfLevel).SetExp(in.ProfExp).SetGold(in.ProfGold).SetPityByTier(in.Pity).Save(ctx); err != nil {
+		return fmt.Errorf("life: update profile: %w", err)
+	}
+	return nil
+}
+
+func clearCompleteRust(ctx context.Context, tx *gen.Tx, in LifeCompletePersist) error {
+	if _, err := tx.LifeEquippedSlots.Update().Where(lifeequippedslots.LifeProfileIDEQ(in.ProfileID)).ClearTarnishedUntil().Save(ctx); err != nil {
+		return fmt.Errorf("life: clear slots rust: %w", err)
+	}
+	for _, id := range in.RustInvIDs {
+		if _, err := tx.LifeInventory.UpdateOneID(id).ClearTarnishedUntil().Save(ctx); err != nil {
+			return fmt.Errorf("life: clear inventory rust: %w", err)
+		}
+	}
+	return nil
+}
+
+func persistCompleteDrop(ctx context.Context, tx *gen.Tx, in LifeCompletePersist, now time.Time) (*LifeCompleteResult, *int64, error) {
+	out := &LifeCompleteResult{}
+	if in.DropEquipID <= 0 {
+		return out, nil, nil
+	}
+	loreStatus := in.LoreStatus
+	if loreStatus == "" {
+		loreStatus = "none"
+	}
+	inv, err := tx.LifeInventory.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(in.ProfileID).
+		SetEquipmentID(in.DropEquipID).
+		SetLoreStatus(loreStatus).
+		SetInstanceBuffs(map[string]any{}).
+		SetSourceQuestID(in.DropQuestID).
+		Save(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("life: create inventory: %w", err)
+	}
+	out.Inventory = inv
+	invID := inv.ID
+	eq, err := tx.LifeEquipment.Get(ctx, in.DropEquipID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("life: load equipment: %w", err)
+	}
+	out.Equipment = eq
+	if in.NeedLore {
+		eventID := types.Id()
+		payload := map[string]any{
+			"event_id": eventID, "type": LifeLoreRequestedType,
+			"life_profile_id": in.ProfileID, "inventory_id": inv.ID,
+		}
+		if _, err := tx.EventOutbox.Create().
+			SetEventID(eventID).SetPayload(payload).SetPublished(false).SetCreatedAt(now).Save(ctx); err != nil {
+			return nil, nil, fmt.Errorf("life: lore outbox: %w", err)
+		}
+	}
+	return out, &invID, nil
+}
+
+func persistCompleteActionLog(ctx context.Context, tx *gen.Tx, in LifeCompletePersist, invID *int64) error {
+	ab := tx.LifeActionLog.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(in.ProfileID).
+		SetQuestID(in.QuestID).
+		SetGainedExp(in.ActionExp).
+		SetGainedGold(in.ActionGold).
+		SetDiceRollResult(in.Dice)
+	if invID != nil {
+		ab = ab.SetDroppedInventoryID(*invID)
+	}
+	if _, err := ab.Save(ctx); err != nil {
+		return fmt.Errorf("life: action log: %w", err)
+	}
+	return nil
+}
+
+func persistDailyRespawn(ctx context.Context, tx *gen.Tx, dq *gen.LifeQuest) error {
+	if dq == nil {
+		return nil
+	}
+	cb := tx.LifeQuest.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(dq.LifeProfileID).
+		SetSkillID(dq.SkillID).
+		SetTitle(dq.Title).
+		SetPrompt(dq.Prompt).
+		SetType("Daily").
+		SetAiEvaluatedDifficulty(dq.AiEvaluatedDifficulty).
+		SetAiEvaluatedFear(dq.AiEvaluatedFear).
+		SetBaseExpReward(dq.BaseExpReward).
+		SetBaseGoldReward(dq.BaseGoldReward).
+		SetDropTier(dq.DropTier).
+		SetStatus("Pending")
+	if dq.GoalID != nil {
+		cb = cb.SetGoalID(*dq.GoalID)
+	}
+	if _, err := cb.Save(ctx); err != nil {
+		return fmt.Errorf("life: daily respawn: %w", err)
+	}
+	return nil
+}

@@ -108,6 +108,39 @@ type Instruct func(*sql.Selector)
 // LLMUsageRecord is the predicate function for llmusagerecord builders.
 type LLMUsageRecord func(*sql.Selector)
 
+// LifeAIContext is the predicate function for lifeaicontext builders.
+type LifeAIContext func(*sql.Selector)
+
+// LifeActionLog is the predicate function for lifeactionlog builders.
+type LifeActionLog func(*sql.Selector)
+
+// LifeCharacteristic is the predicate function for lifecharacteristic builders.
+type LifeCharacteristic func(*sql.Selector)
+
+// LifeEquipment is the predicate function for lifeequipment builders.
+type LifeEquipment func(*sql.Selector)
+
+// LifeEquippedSlots is the predicate function for lifeequippedslots builders.
+type LifeEquippedSlots func(*sql.Selector)
+
+// LifeGoal is the predicate function for lifegoal builders.
+type LifeGoal func(*sql.Selector)
+
+// LifeInventory is the predicate function for lifeinventory builders.
+type LifeInventory func(*sql.Selector)
+
+// LifeLootTable is the predicate function for lifeloottable builders.
+type LifeLootTable func(*sql.Selector)
+
+// LifeProfile is the predicate function for lifeprofile builders.
+type LifeProfile func(*sql.Selector)
+
+// LifeQuest is the predicate function for lifequest builders.
+type LifeQuest func(*sql.Selector)
+
+// LifeSkill is the predicate function for lifeskill builders.
+type LifeSkill func(*sql.Selector)
+
 // Message is the predicate function for message builders.
 type Message func(*sql.Selector)
 

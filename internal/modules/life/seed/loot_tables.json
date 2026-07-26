@@ -1,0 +1,7 @@
+[
+  {"drop_tier": "Common", "base_drop_chance": 0.25, "item_pool_flags": ["eq-steady-hoodie", "eq-charm-token"]},
+  {"drop_tier": "Rare", "base_drop_chance": 0.2, "item_pool_flags": ["eq-focus-spectacles", "eq-perpetual-sneakers", "eq-mithril-keyboard"]},
+  {"drop_tier": "Epic", "base_drop_chance": 0.15, "item_pool_flags": ["eq-truth-codex", "eq-mithril-keyboard"]},
+  {"drop_tier": "Legendary", "base_drop_chance": 0.12, "item_pool_flags": ["eq-legend-quill", "eq-truth-codex"]},
+  {"drop_tier": "Mythic", "base_drop_chance": 0.08, "item_pool_flags": ["eq-mythic-crown"]}
+]

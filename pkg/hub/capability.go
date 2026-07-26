@@ -19,6 +19,8 @@ const (
 	CapExample      CapabilityType = "example"
 	// CapCore is the internal multi-op capability (notify, clip, agent, http, run_*, kv_*).
 	CapCore CapabilityType = "core"
+	// CapLife is the solo Life gamification AI capability (quest eval, lore).
+	CapLife CapabilityType = "life"
 )
 
 // EventDef describes an event that a capability emits.

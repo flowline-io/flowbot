@@ -13,6 +13,8 @@ PlantUML diagrams for Flowbot system architecture. Render with any PlantUML-comp
 
 Agent engine (`pkg/agent/`) has dedicated docs and diagrams under [docs/agent/](../agent/) (`architecture.md`, `agent.puml`).
 
+Life (solo gamified productivity) has dedicated docs under [docs/life/](../life/) (`architecture.md`).
+
 ## Rendering
 
 ```bash

@@ -284,6 +284,10 @@ modules:
       # brute_force:
       #   enabled: false   # set false only to disable login lockout
 
+  - name: life
+    enabled: true
+    default_class: Architect
+
 # Third-party service configuration
 vendors:
   # GitHub OAuth configuration

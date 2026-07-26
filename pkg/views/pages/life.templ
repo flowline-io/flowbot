@@ -1,0 +1,555 @@
+package pages
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ LifeDashboardPage(data LifeCharacterData) {
+	@layout.Base("Life — Flowbot") {
+		@partials.LifeRadarScripts()
+		@lifeModuleShell("life", data.PendingCount) {
+			<div class="life-dashboard" data-testid="life-identity">
+				<div class="life-identity-title">
+					<div class="life-identity-title-box" data-testid="life-identity-title">Character Identity</div>
+				</div>
+				<div class="life-dashboard-grid">
+					<section class="life-panel" data-testid="life-profile-card">
+						@lifeProfileSummary(data)
+					</section>
+					<section class="life-panel life-radar-wrap" data-testid="life-radar-panel">
+						<canvas
+							data-testid="life-radar-chart"
+							data-labels={ data.RadarLabelsJSON }
+							data-values={ data.RadarValuesJSON }
+							width="360"
+							height="360"
+						></canvas>
+					</section>
+				</div>
+				<section class="life-panel" data-testid="life-stats-list">
+					<ul class="life-stat-list" data-testid="life-characteristics">
+						for _, c := range data.Characteristics {
+							<li class="life-stat-row">
+								<span class="life-stat-name">
+									@lifeStatIcon(c.Code)
+									{ c.Name }
+								</span>
+								<div class="life-seg-bar" aria-hidden="true">
+									for i := range LifeSegmentIndexes(c.TotalSegs) {
+										if i < c.FilledSegs {
+											<span class="life-seg is-filled"></span>
+										} else {
+											<span class="life-seg"></span>
+										}
+									}
+								</div>
+								<span class="life-seg-nums">{ fmt.Sprintf("%d / %d", c.Exp, c.ExpToNext) }</span>
+								<span class="life-stat-lv">LV{ fmt.Sprintf("%d", c.Level) }</span>
+							</li>
+						}
+					</ul>
+				</section>
+			</div>
+		}
+	}
+}
+
+templ LifeCharacterPage(data LifeCharacterData) {
+	@layout.Base("Character — Life") {
+		@lifeModuleShell("character", data.PendingCount) {
+			<div class="life-identity" data-testid="life-character">
+				<div class="life-identity-title">
+					<div class="life-identity-title-box" data-testid="life-identity-title">Character</div>
+				</div>
+				<section class="life-panel life-profile-panel" data-testid="life-profile-card">
+					@lifeProfileSummary(data)
+					<form
+						hx-post="/service/web/life/character/class"
+						hx-swap="none"
+						class="life-class-form"
+						data-testid="life-class-form"
+					>
+						<label class="life-field">
+							<span class="life-field-label">Class</span>
+							<select name="class_type" class="life-field-control" data-testid="life-class-select">
+								<option value="Architect" selected?={ data.ClassType == "Architect" }>Architect</option>
+								<option value="Mage" selected?={ data.ClassType == "Mage" }>Mage</option>
+								<option value="Warrior" selected?={ data.ClassType == "Warrior" }>Warrior</option>
+								<option value="Rogue" selected?={ data.ClassType == "Rogue" }>Rogue</option>
+							</select>
+						</label>
+						<button type="submit" class="btn btn-sm btn-primary" data-testid="life-class-save">Save</button>
+					</form>
+					<section class="life-goals" data-testid="life-goals">
+						<header class="life-goals-head">
+							<div>
+								<h2 class="life-goals-title">Goals</h2>
+								<p class="life-goals-sub">PARA · Project, Area, Resource</p>
+							</div>
+							if len(data.Goals) > 0 {
+								<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Goals)) }</span>
+							}
+						</header>
+						<form
+							hx-post="/service/web/life/goals"
+							hx-swap="none"
+							hx-disabled-elt="find button[type='submit'], find input, find select"
+							class="life-goals-compose"
+							data-testid="life-goal-form"
+						>
+							<input
+								name="title"
+								class="life-goals-compose-title"
+								required
+								placeholder="Ship the book this year"
+								autocomplete="off"
+								data-testid="life-goal-title"
+							/>
+							<select name="category" class="life-goals-compose-cat" data-testid="life-goal-category" aria-label="Category">
+								<option value="Project">Project</option>
+								<option value="Area">Area</option>
+								<option value="Resource">Resource</option>
+							</select>
+							<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-goal-create">
+								@partials.HtmxIndicator()
+								Add
+							</button>
+						</form>
+						if len(data.Goals) == 0 {
+							<p class="life-goals-empty">No goals yet — add one above.</p>
+						} else {
+							<ul class="life-goal-list">
+								for _, g := range data.Goals {
+									<li class="life-goal-card" data-testid={ "life-goal-card-" + g.Flag }>
+										<form
+											hx-post={ "/service/web/life/goals/" + g.Flag }
+											hx-swap="none"
+											hx-disabled-elt="find button, find input, find select"
+											class="life-goal-card-main"
+											data-testid={ "life-goal-edit-" + g.Flag }
+										>
+											<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label="Goal title"/>
+											<div class="life-goal-card-meta">
+												<select name="category" class="life-goal-card-cat" aria-label="Category">
+													<option value="Project" selected?={ g.Category == "Project" }>Project</option>
+													<option value="Area" selected?={ g.Category == "Area" }>Area</option>
+													<option value="Resource" selected?={ g.Category == "Resource" }>Resource</option>
+												</select>
+												<span class="life-meta-chip">{ g.Status }</span>
+											</div>
+											<button type="submit" class="life-goal-link" data-testid={ "life-goal-save-" + g.Flag }>
+												@partials.HtmxIndicator()
+												Save
+											</button>
+										</form>
+										<div class="life-goal-actions">
+											if g.Status == "Active" {
+												<button
+													type="button"
+													class="life-goal-link"
+													hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
+													hx-vals='{"status":"Paused"}'
+													hx-swap="none"
+													data-testid={ "life-goal-pause-" + g.Flag }
+												>Pause</button>
+											}
+											if g.Status == "Paused" {
+												<button
+													type="button"
+													class="life-goal-link"
+													hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
+													hx-vals='{"status":"Active"}'
+													hx-swap="none"
+													data-testid={ "life-goal-resume-" + g.Flag }
+												>Resume</button>
+											}
+											<button
+												type="button"
+												class="life-goal-link life-goal-link-danger"
+												hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
+												hx-swap="none"
+												hx-confirm="Delete this goal?"
+												data-testid={ "life-goal-delete-" + g.Flag }
+											>Delete</button>
+										</div>
+									</li>
+								}
+							</ul>
+						}
+						<p class="life-goals-foot">
+							Drop buff +{ fmt.Sprintf("%.0f%%", data.DropRateBonus*100) } · Gold ×{ fmt.Sprintf("%.2f", data.GoldMult) }
+						</p>
+					</section>
+				</section>
+			</div>
+		}
+	}
+}
+
+templ lifeModuleShell(active string, pendingCount int) {
+	<div class="life-module" data-testid="life-module">
+		<aside class="life-sidebar" aria-label="Life navigation">
+			<p class="life-sidebar-brand">Life</p>
+			<nav class="life-sidebar-nav">
+				<a
+					href="/service/web/life"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "life") }
+					data-testid="life-goto-home"
+				>Life</a>
+				<a
+					href="/service/web/life/quests"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "quests") }
+					data-testid="life-goto-quests"
+				>
+					Quests
+					if pendingCount > 0 {
+						<span class="life-sidebar-badge">{ fmt.Sprintf("%d", pendingCount) }</span>
+					}
+				</a>
+				<a
+					href="/service/web/life/inventory"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "inventory") }
+					data-testid="life-goto-inventory"
+				>Inventory</a>
+				<a
+					href="/service/web/life/character"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "character") }
+					data-testid="life-goto-character"
+				>Character</a>
+			</nav>
+		</aside>
+		<div class="life-module-main">
+			{ children... }
+		</div>
+	</div>
+}
+
+templ lifeProfileSummary(data LifeCharacterData) {
+	<div class="life-avatar" aria-hidden="true">
+		<img
+			src="/static/img/life-avatar.svg"
+			alt=""
+			width="120"
+			height="120"
+			data-testid="life-avatar-img"
+		/>
+	</div>
+	<p class="life-meta-line" data-testid="life-meta-line">
+		<span data-testid="life-nickname">{ data.Nickname }</span>
+		<span class="life-meta-sep">•</span>
+		<span data-testid="life-level">Level { fmt.Sprintf("%d", data.Level) }</span>
+		<span class="life-meta-sep">•</span>
+		<span data-testid="life-gold">{ fmt.Sprintf("%d", data.Gold) } Coins</span>
+	</p>
+	<div class="life-hp-row" data-testid="life-hp-row">
+		<span class="life-hp-label">HP:</span>
+		<span class="life-hearts" aria-hidden="true">
+			for i := range LifeSegmentIndexes(data.HeartsTotal) {
+				if i < data.HeartsFilled {
+					<svg class="life-heart is-filled" viewBox="0 0 16 16" fill="currentColor"><path d="M8 14s-5.5-3.3-7-6.2C-.2 5.4.8 2.8 3.2 2.3 4.7 2 6.1 2.8 8 4.6c1.9-1.8 3.3-2.6 4.8-2.3 2.4.5 3.4 3.1 2.2 5.5C13.5 10.7 8 14 8 14z"/></svg>
+				} else {
+					<svg class="life-heart" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M8 14s-5.5-3.3-7-6.2C-.2 5.4.8 2.8 3.2 2.3 4.7 2 6.1 2.8 8 4.6c1.9-1.8 3.3-2.6 4.8-2.3 2.4.5 3.4 3.1 2.2 5.5C13.5 10.7 8 14 8 14z"/></svg>
+				}
+			}
+		</span>
+		<span class="life-hp-nums" data-testid="life-hp">{ fmt.Sprintf("%d / %d", data.HPCurrent, data.HPMax) }</span>
+	</div>
+	<ul class="life-trait-list">
+		<li class="life-trait-row">
+			<span class="life-trait-label">Master Objective</span>
+			<span class="life-trait-value" data-testid="life-master-objective">{ data.MasterObjective }</span>
+		</li>
+		<li class="life-trait-row">
+			<span class="life-trait-label">Minor Objective</span>
+			<span class="life-trait-value" data-testid="life-minor-objective">{ data.MinorObjective }</span>
+		</li>
+		<li class="life-trait-row">
+			<span class="life-trait-label">Strength</span>
+			<span class="life-trait-value" data-testid="life-strength">{ data.Strength }</span>
+		</li>
+		<li class="life-trait-row">
+			<span class="life-trait-label">Weaknesses</span>
+			<span class="life-trait-value" data-testid="life-weakness">{ data.Weakness }</span>
+		</li>
+	</ul>
+	<div class="life-level-row" data-testid="life-level-progress">
+		<span class="life-level-label">Level UP:</span>
+		<div class="life-seg-bar" aria-hidden="true">
+			for i := range LifeSegmentIndexes(data.LevelTotalSegs) {
+				if i < data.LevelFilledSegs {
+					<span class="life-seg is-filled"></span>
+				} else {
+					<span class="life-seg"></span>
+				}
+			}
+		</div>
+		<span class="life-seg-nums">{ fmt.Sprintf("%d / %d", data.Exp, data.ExpToNext) }</span>
+	</div>
+}
+
+templ lifeStatIcon(code string) {
+	switch code {
+		case "PHY":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c-2 3-6 5-6 10a6 6 0 0 0 12 0c0-5-4-7-6-10z"/><path d="M12 13v7"/></svg>
+		case "INT":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 3a7 7 0 0 1 4 12c-.8.7-1.2 1.5-1.4 2.5H9.4C9.2 16.5 8.8 15.7 8 15a7 7 0 0 1 4-12z"/></svg>
+		case "WIL":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.2 6.6H21l-5.4 4 2.1 6.4L12 16.8 6.3 20l2.1-6.4L3 9.6h6.8L12 3z"/></svg>
+		case "CHA":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="2.5"/><path d="M3 19c1.5-3 4-4.5 6-4.5s4.5 1.5 6 4.5"/><path d="M13 19c.7-1.8 2-3 3.5-3 1.8 0 3.2 1.2 4.5 3"/></svg>
+		case "CRE":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6"/><path d="M12 2v2"/><path d="M12 14a4 4 0 0 0 4-4 4.2 4.2 0 0 0-2.5-3.8L12 2l-1.5 4.2A4.2 4.2 0 0 0 8 10a4 4 0 0 0 4 4z"/><path d="M10 22h4"/></svg>
+		case "FIN":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 7v10"/><path d="M9.5 9.5c.5-1 1.5-1.5 2.5-1.5 1.4 0 2.5.8 2.5 2s-1.1 2-2.5 2-2.5.8-2.5 2 1.1 2 2.5 2c1 0 2-.5 2.5-1.5"/></svg>
+		case "WRI":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5V5a2 2 0 0 1 2-2h9l5 5v11.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z"/><path d="M14 3v5h5"/><path d="M8 13h8"/><path d="M8 17h6"/></svg>
+		case "FOC":
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+		default:
+			<svg class="life-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/></svg>
+	}
+}
+
+templ LifeQuestsPage(data LifeQuestsData) {
+	@layout.Base("Quests — Life") {
+		@lifeModuleShell("quests", data.PendingCount) {
+			<div class="life-shell" data-testid="life-quests-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Quests</h1>
+						<p>Describe work; the Life DM rates difficulty and loot.</p>
+					</div>
+				</header>
+
+				<section class="life-panel life-section life-composer">
+					<form
+						hx-post="/service/web/life/quests"
+						hx-swap="none"
+						hx-disabled-elt="find button[type='submit'], find textarea, find select"
+						data-testid="life-quest-form"
+					>
+						<label class="form-control w-full">
+							<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">What will you do?</span>
+							<textarea
+								name="prompt"
+								class="textarea textarea-bordered w-full mt-1"
+								rows="3"
+								required
+								placeholder="e.g. Finish the API architecture diagram tonight"
+								data-testid="life-quest-prompt"
+							></textarea>
+						</label>
+						if len(data.Goals) > 0 {
+							<label class="form-control w-full mt-2">
+								<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">Link goal (optional)</span>
+								<select name="goal_flag" class="select select-bordered select-sm w-full mt-1" data-testid="life-quest-goal">
+									<option value="">None</option>
+									for _, g := range data.Goals {
+										<option value={ g.Flag }>{ g.Category }: { g.Title }</option>
+									}
+								</select>
+							</label>
+						}
+						<div class="life-composer-actions">
+							<p class="life-composer-hint">AI evaluates difficulty; server sets rewards and drop chance.</p>
+							<button type="submit" class="btn btn-primary btn-sm" data-testid="life-quest-create">
+								@partials.HtmxIndicator()
+								Create quest
+							</button>
+						</div>
+					</form>
+				</section>
+
+			<section class="life-panel life-section">
+				<div class="life-section-head">
+					<h2>Pending</h2>
+					<span class="life-section-count" data-testid="life-pending-count">{ fmt.Sprintf("%d", len(data.Pending)) }</span>
+				</div>
+				if len(data.Pending) == 0 {
+					<p class="life-empty">No pending quests. Write one above to begin.</p>
+				} else {
+					<ul class="life-quest-list" data-testid="life-quests-pending">
+						for _, q := range data.Pending {
+							<li class="life-quest-card">
+								<div class="life-quest-card-body">
+									<p class="life-quest-title">{ q.Title }</p>
+									if q.Prompt != "" {
+										<p class="life-quest-prompt" title={ q.Prompt }>{ q.Prompt }</p>
+									}
+									<div class="life-quest-meta">
+										<span class="life-meta-chip">{ q.Type }</span>
+										<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
+										<span class="life-meta-chip">Fear { fmt.Sprintf("%d", q.Fear) }</span>
+										<span class="life-meta-chip">{ q.DropTier }</span>
+									</div>
+									<div class="life-quest-rewards">
+										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>
+										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
+										<span class="life-quest-reward">~<strong>{ fmt.Sprintf("%.0f%%", q.DropChance*100) }</strong> drop</span>
+									</div>
+								</div>
+								<div class="life-quest-actions">
+									<button
+										type="button"
+										class="btn btn-sm btn-primary"
+										hx-post={ "/service/web/life/quests/" + q.Flag + "/complete" }
+										hx-swap="none"
+										hx-disabled-elt="this"
+										data-testid={ "life-quest-complete-" + q.Flag }
+									>
+										@partials.HtmxIndicator()
+										Complete
+									</button>
+									<button
+										type="button"
+										class="btn btn-sm btn-ghost"
+										hx-post={ "/service/web/life/quests/" + q.Flag + "/fail" }
+										hx-swap="none"
+										hx-disabled-elt="this"
+										data-testid={ "life-quest-fail-" + q.Flag }
+									>
+										@partials.HtmxIndicator()
+										Fail
+									</button>
+								</div>
+							</li>
+						}
+					</ul>
+				}
+			</section>
+
+			<section class="life-panel life-section">
+				<div class="life-section-head">
+					<h2>Recently completed</h2>
+					<span class="life-section-count">{ fmt.Sprintf("%d", len(data.Completed)) }</span>
+				</div>
+				if len(data.Completed) == 0 {
+					<p class="life-empty">Nothing completed yet.</p>
+				} else {
+					<ul class="life-done-list" data-testid="life-quests-completed">
+						for _, q := range data.Completed {
+							<li class="life-done-row">
+								<div class="life-done-main">
+									<span class="life-done-title" title={ q.Title }>{ q.Title }</span>
+									if q.Prompt != "" {
+										<span class="life-done-prompt" title={ q.Prompt }>{ q.Prompt }</span>
+									}
+								</div>
+								<div class="life-done-meta">
+									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>
+									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
+									<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
+								</div>
+							</li>
+						}
+					</ul>
+				}
+			</section>
+
+			<section class="life-panel life-section">
+				<div class="life-section-head">
+					<h2>Action log</h2>
+					<span class="life-section-count">{ fmt.Sprintf("%d", len(data.ActionLogs)) }</span>
+				</div>
+				if len(data.ActionLogs) == 0 {
+					<p class="life-empty">No completions logged yet.</p>
+				} else {
+					<ul class="life-done-list" data-testid="life-action-logs">
+						for _, l := range data.ActionLogs {
+							<li class="life-done-row">
+								<div class="life-done-main">
+									<span class="life-done-title" title={ l.QuestTitle }>{ l.QuestTitle }</span>
+									<span class="life-done-prompt">{ l.When }</span>
+								</div>
+								<div class="life-done-meta">
+									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedExp) }</strong> EXP</span>
+									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedGold) }</strong> gold</span>
+									if l.HasDice {
+										<span class="life-meta-chip">dice { fmt.Sprintf("%.2f", l.Dice) }</span>
+									}
+									if l.Dropped {
+										<span class="life-meta-chip">drop</span>
+									}
+								</div>
+							</li>
+						}
+					</ul>
+				}
+			</section>
+		</div>
+		}
+	}
+}
+
+templ LifeInventoryPage(data LifeInventoryData) {
+	@layout.Base("Inventory — Life") {
+		@lifeModuleShell("inventory", data.PendingCount) {
+			<div class="life-shell" data-testid="life-inventory-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Inventory</h1>
+						<p>Equip gear to raise drop rate and rewards.</p>
+					</div>
+				</header>
+
+				<section class="life-panel life-section" data-testid="life-inventory">
+					<div class="life-section-head">
+						<h2>Backpack</h2>
+						<span class="life-section-count">{ fmt.Sprintf("%d", len(data.Items)) }</span>
+					</div>
+					if len(data.Items) == 0 {
+						<p class="life-empty">Backpack empty — complete quests to earn loot.</p>
+					} else {
+						<ul class="life-inv-list">
+							for _, it := range data.Items {
+								<li class="life-inv-card">
+									<div class="min-w-0">
+										<p class="life-inv-title">
+											{ it.Name }
+											if it.Equipped {
+												<span class="flowbot-chip flowbot-chip-info text-xs ml-1 align-middle">Equipped</span>
+											}
+										</p>
+										<div class="life-quest-meta">
+											<span class="life-meta-chip">{ it.Rarity }</span>
+											<span class="life-meta-chip">{ it.Slot }</span>
+											<span class="life-meta-chip">Lore { it.LoreStatus }</span>
+											if it.Tarnished {
+												<span class="life-meta-chip life-meta-chip-warn">Tarnished</span>
+											}
+										</div>
+										if it.Lore != "" {
+											<p class="life-inv-lore">{ it.Lore }</p>
+										}
+									</div>
+									<div class="life-quest-actions">
+										if it.Equipped {
+											<button
+												type="button"
+												class="btn btn-sm"
+												hx-post={ "/service/web/life/inventory/slots/" + it.SlotField + "/unequip" }
+												hx-swap="none"
+												data-testid={ "life-unequip-" + it.Flag }
+											>Unequip</button>
+										} else {
+											<button
+												type="button"
+												class="btn btn-sm btn-primary"
+												hx-post={ "/service/web/life/inventory/" + it.Flag + "/equip" }
+												hx-swap="none"
+												data-testid={ "life-equip-" + it.Flag }
+											>Equip</button>
+										}
+									</div>
+								</li>
+							}
+						</ul>
+					}
+				</section>
+			</div>
+		}
+	}
+}

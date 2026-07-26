@@ -1,0 +1,132 @@
+package life_test
+
+import (
+	"context"
+	"errors"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/tmc/langchaingo/llms"
+
+	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
+)
+
+func testLLM(fake *agentllm.FakeModel) *lifecap.LLMService {
+	return &lifecap.LLMService{
+		ChatModel: func() string { return "test-model" },
+		ResolveModel: func(_ context.Context, name string) (llms.Model, string, error) {
+			return fake, name, nil
+		},
+	}
+}
+
+func evalReq(prompt string) lifecap.EvaluateQuestRequest {
+	return lifecap.EvaluateQuestRequest{Prompt: prompt}
+}
+
+func TestLLMEvaluateQuestSuccess(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"title":"Ship Auth Gateway","skill_name":"Systems Craft","stat_code":"int","difficulty":"A","quest_type":"One-Time"}`,
+	})
+	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("refactor the payment API gateway carefully"))
+	require.NoError(t, err)
+	assert.Equal(t, "Ship Auth Gateway", ev.Title)
+	assert.Equal(t, "INT", ev.StatCode)
+	assert.Equal(t, "A", ev.Difficulty)
+	assert.Equal(t, "Epic", ev.DropTier)
+	assert.Equal(t, 150, ev.BaseExp)
+	assert.Equal(t, 40, ev.BaseGold)
+	assert.Equal(t, 4, ev.Fear)
+	assert.Equal(t, 1, fake.Calls())
+}
+
+func TestLLMEvaluateQuestServerOwnsRewards(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"title":"实现 AIContext","skill_name":"系统设计","stat_code":"INT","difficulty":"A","quest_type":"One-Time","fear":1,"base_exp":40,"base_gold":15,"drop_tier":"Common"}`,
+	})
+	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("实现AIContext功能"))
+	require.NoError(t, err)
+	assert.Equal(t, "A", ev.Difficulty)
+	assert.Equal(t, "Epic", ev.DropTier)
+	assert.Equal(t, 150, ev.BaseExp)
+	assert.Equal(t, 40, ev.BaseGold)
+	assert.Equal(t, 4, ev.Fear)
+}
+
+func TestLLMEvaluateQuestExtractsEmbeddedJSON(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `这里是评估：{"title":"研究水的滑与涩","skill_name":"科学探究","stat_code":"INT","difficulty":"B","quest_type":"One-Time"}`,
+	})
+	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("研究为什么水可以很滑，也可以很涩?"))
+	require.NoError(t, err)
+	assert.Equal(t, "B", ev.Difficulty)
+	assert.Equal(t, "Rare", ev.DropTier)
+	assert.Equal(t, 80, ev.BaseExp)
+	assert.Equal(t, 3, ev.Fear)
+}
+
+func TestLLMEvaluateQuestErrorsOnModelFailure(t *testing.T) {
+	t.Parallel()
+	svc := &lifecap.LLMService{
+		ChatModel: func() string { return "test-model" },
+		ResolveModel: func(context.Context, string) (llms.Model, string, error) {
+			return nil, "", errors.New("boom")
+		},
+	}
+	_, err := svc.EvaluateQuest(context.Background(), evalReq("go for a long run at the gym"))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "boom")
+}
+
+func TestLLMEvaluateQuestErrorsOnBadJSON(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "not-json"})
+	_, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("draft a blog essay"))
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "parse evaluate json")
+}
+
+func TestLLMEvaluateQuestNormalizesUnknownStat(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"title":"Mystery Task","skill_name":"Odd Job","stat_code":"XYZ","difficulty":"Z","quest_type":"Raid"}`,
+	})
+	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("do something vague"))
+	require.NoError(t, err)
+	assert.Equal(t, "FOC", ev.StatCode)
+	assert.Equal(t, "C", ev.Difficulty)
+	assert.Equal(t, "Common", ev.DropTier)
+	assert.Equal(t, "One-Time", ev.QuestType)
+	assert.Equal(t, 2, ev.Fear)
+	assert.Equal(t, 40, ev.BaseExp)
+}
+
+func TestLLMEvaluateQuestEmptyPrompt(t *testing.T) {
+	t.Parallel()
+	_, err := lifecap.NewLLM().EvaluateQuest(context.Background(), evalReq("  "))
+	require.Error(t, err)
+}
+
+func TestLLMGenerateInstanceLoreSuccess(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"name":"Truth Codex of Finish API","lore":"Forged when the gateway finally held."}`,
+	})
+	lore, err := testLLM(fake).GenerateInstanceLore(context.Background(), "Finish API", "Truth Codex", "Epic")
+	require.NoError(t, err)
+	assert.Equal(t, "Truth Codex of Finish API", lore.Name)
+	assert.Contains(t, lore.Lore, "gateway")
+	assert.Equal(t, 1, fake.Calls())
+}
+
+func TestLLMGenerateInstanceLoreErrorsOnBadJSON(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "{}"})
+	_, err := testLLM(fake).GenerateInstanceLore(context.Background(), "Q", "Sword", "Rare")
+	require.Error(t, err)
+}

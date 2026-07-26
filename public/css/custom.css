@@ -2985,3 +2985,840 @@ body:has(.chatagent-page) > main {
 .flowbot-command-palette-kbd-esc {
   flex-shrink: 0;
 }
+
+/* Life — Character Identity layout */
+.life-dashboard {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
+.life-identity {
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+.life-identity-title {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.life-identity-title-box {
+  display: inline-block;
+  padding: 0.4rem 1.25rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-base-content, #111);
+}
+
+.life-dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .life-dashboard-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: stretch;
+  }
+}
+
+.life-profile-panel {
+  margin-bottom: 1.25rem;
+}
+
+.life-panel {
+  background: var(--color-base-100, #fff);
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+  padding: 1.25rem 1.35rem;
+}
+
+.life-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.85rem;
+}
+
+.life-avatar img {
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.life-meta-line {
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0 0 0.85rem;
+  color: var(--color-base-content, #111);
+}
+
+.life-meta-sep {
+  margin: 0 0.35rem;
+  color: color-mix(in oklab, var(--color-base-content) 35%, transparent);
+}
+
+.life-hp-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+  font-size: 0.8rem;
+}
+
+.life-hp-label {
+  font-weight: 600;
+  min-width: 1.75rem;
+}
+
+.life-hearts {
+  display: inline-flex;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+}
+
+.life-heart {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: color-mix(in oklab, var(--color-base-content) 22%, transparent);
+}
+
+.life-heart.is-filled {
+  color: var(--color-base-content, #111);
+}
+
+.life-hp-nums {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-base-content) 65%, transparent);
+}
+
+.life-trait-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.life-trait-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.8125rem;
+}
+
+.life-trait-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 90%, transparent);
+  border: 1px solid var(--color-base-300, #d1d5db);
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 7.5rem;
+}
+
+.life-trait-value {
+  font-weight: 500;
+  color: var(--color-base-content, #111);
+}
+
+.life-level-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+}
+
+.life-level-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.life-seg-bar {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.life-seg {
+  flex: 1;
+  height: 0.55rem;
+  min-width: 3px;
+  border-radius: 1px;
+  background: color-mix(in oklab, var(--color-base-content) 12%, transparent);
+}
+
+.life-seg.is-filled {
+  background: var(--color-base-content, #111);
+}
+
+.life-seg-nums {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+  font-size: 0.75rem;
+}
+
+.life-radar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 16rem;
+}
+
+.life-radar-wrap canvas {
+  max-width: 100%;
+  max-height: 20rem;
+}
+
+.life-stat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.life-stat-row {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 640px) {
+  .life-stat-row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
+
+.life-stat-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 500;
+}
+
+.life-stat-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  color: var(--color-base-content, #111);
+}
+
+.life-stat-lv {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.life-identity-nav {
+  display: none;
+}
+
+/* Life module shell — left sidebar */
+.life-module {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  max-width: 68rem;
+  margin-inline: auto;
+}
+
+.life-sidebar {
+  position: sticky;
+  top: 1rem;
+  padding: 0.85rem 0.7rem;
+  background: var(--color-base-100, #fff);
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius-box, 0.5rem);
+}
+
+.life-sidebar-brand {
+  margin: 0 0.55rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.life-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.life-sidebar-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-base-content, #111);
+  text-decoration: none;
+}
+
+.life-sidebar-link:hover {
+  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 80%, transparent);
+}
+
+.life-sidebar-link.is-active {
+  background: var(--color-primary, #0f766e);
+  color: var(--color-primary-content, #fff);
+}
+
+.life-sidebar-badge {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  background: color-mix(in oklab, currentColor 18%, transparent);
+}
+
+.life-module-main {
+  min-width: 0;
+}
+
+.life-dashboard,
+.life-identity,
+.life-shell {
+  max-width: none;
+  margin-inline: 0;
+}
+
+.life-module-main .life-identity {
+  max-width: 28rem;
+}
+
+@media (max-width: 768px) {
+  .life-module {
+    grid-template-columns: 1fr;
+  }
+
+  .life-sidebar {
+    position: static;
+  }
+
+  .life-sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .life-sidebar-link {
+    flex: 1 1 auto;
+  }
+}
+
+.life-class-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-base-300, #d1d5db);
+}
+
+.life-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 8rem;
+}
+
+.life-field-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.life-field-control {
+  height: 2rem;
+  padding: 0 0.65rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+  font-size: 0.8125rem;
+  color: var(--color-base-content, #111);
+}
+
+.life-goals {
+  margin-top: 1.15rem;
+  padding-top: 1.15rem;
+  border-top: 1px solid var(--color-base-300, #d1d5db);
+}
+
+.life-goals-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.life-goals-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.life-goals-sub {
+  margin: 0.2rem 0 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+}
+
+.life-goals-count {
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}
+
+.life-goals-compose {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.45rem;
+  align-items: stretch;
+  margin-bottom: 0.85rem;
+}
+
+.life-goals-compose-title,
+.life-goals-compose-cat,
+.life-goal-card-title,
+.life-goal-card-cat {
+  height: 2.15rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+  color: var(--color-base-content, #111);
+  font-size: 0.8125rem;
+}
+
+.life-goals-compose-title,
+.life-goal-card-title {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0.75rem;
+}
+
+.life-goals-compose-title:focus,
+.life-goals-compose-cat:focus,
+.life-goal-card-title:focus,
+.life-goal-card-cat:focus {
+  outline: 2px solid color-mix(in oklab, var(--color-primary, #0f766e) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.life-goals-compose-cat,
+.life-goal-card-cat {
+  padding: 0 0.55rem;
+  min-width: 6.5rem;
+}
+
+.life-goals-compose-btn {
+  min-width: 3.5rem;
+}
+
+.life-goals-empty {
+  margin: 0;
+  padding: 0.75rem 0.15rem;
+  font-size: 0.8125rem;
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+}
+
+.life-goals-foot {
+  margin: 0.85rem 0 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.life-goal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.life-goal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 55%, var(--color-base-100, #fff));
+}
+
+.life-goal-card-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.life-goal-card-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.life-goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding-top: 0.15rem;
+  border-top: 1px dashed color-mix(in oklab, var(--color-base-300, #d1d5db) 80%, transparent);
+}
+
+.life-goal-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+  cursor: pointer;
+}
+
+.life-goal-link:hover {
+  color: var(--color-primary, #0f766e);
+}
+
+.life-goal-link-danger:hover {
+  color: var(--color-error, #b91c1c);
+}
+
+@media (max-width: 420px) {
+  .life-goals-compose,
+  .life-goal-card-main {
+    grid-template-columns: 1fr;
+  }
+
+  .life-goals-compose-cat,
+  .life-goal-card-cat,
+  .life-goals-compose-btn {
+    width: 100%;
+  }
+
+  .life-goal-card-meta {
+    justify-content: space-between;
+  }
+}
+
+/* Life — Quests / Inventory shell */
+.life-shell-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.life-shell-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.life-shell-header p {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}
+
+.life-section {
+  margin-bottom: 0.85rem;
+}
+
+.life-section:last-child {
+  margin-bottom: 0;
+}
+
+.life-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.life-section-head h2 {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+}
+
+.life-section-count {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.life-composer textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.life-composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.life-composer-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 45%, transparent);
+}
+
+.life-quest-list,
+.life-done-list,
+.life-inv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.life-quest-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 35%, var(--color-base-100, #fff));
+}
+
+.life-quest-card-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.life-quest-title {
+  margin: 0 0 0.45rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.life-quest-prompt {
+  margin: -0.15rem 0 0.55rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.life-quest-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0 0 0.55rem;
+}
+
+.life-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+  line-height: 1.4;
+}
+
+.life-meta-chip-diff {
+  border-color: color-mix(in oklab, var(--color-primary, #0f766e) 35%, var(--color-base-300));
+  color: var(--color-primary, #0f766e);
+}
+
+.life-quest-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+}
+
+.life-quest-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.life-quest-reward strong {
+  font-weight: 600;
+  color: var(--color-base-content, #111);
+}
+
+.life-meta-chip-warn {
+  border-color: color-mix(in oklab, var(--color-warning, #ca8a04) 55%, transparent);
+  color: var(--color-warning, #a16207);
+}
+
+.life-quest-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.life-done-list {
+  gap: 0;
+}
+
+.life-done-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  font-size: 0.875rem;
+}
+
+.life-done-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.life-done-row:first-child {
+  padding-top: 0;
+}
+
+.life-done-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.life-done-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--color-base-content) 78%, transparent);
+}
+
+.life-done-prompt {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+}
+
+.life-done-meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--color-base-content) 70%, transparent);
+}
+
+.life-empty {
+  margin: 0;
+  padding: 1.25rem 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+}
+
+.life-inv-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+}
+
+.life-inv-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.life-inv-lore {
+  margin: 0.45rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+}

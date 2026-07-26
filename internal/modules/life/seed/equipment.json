@@ -1,0 +1,68 @@
+[
+  {
+    "flag": "eq-focus-spectacles",
+    "name": "Focus Spectacles",
+    "rarity": "Uncommon",
+    "slot_type": "Head",
+    "stat_buffs": {"INT": 5, "DropRate": 0.02},
+    "ai_lore_text": "Lenses ground for midnight architecture reviews."
+  },
+  {
+    "flag": "eq-mithril-keyboard",
+    "name": "Mithril Keyboard",
+    "rarity": "Rare",
+    "slot_type": "Weapon",
+    "stat_buffs": {"INT": 8, "GoldMult": 0.1},
+    "ai_lore_text": "Each keystroke rings like a forge hammer."
+  },
+  {
+    "flag": "eq-steady-hoodie",
+    "name": "Steady Hoodie",
+    "rarity": "Common",
+    "slot_type": "Armor",
+    "stat_buffs": {"WIL": 4},
+    "ai_lore_text": "Soft armor against context-switch chill."
+  },
+  {
+    "flag": "eq-perpetual-sneakers",
+    "name": "Perpetual Sneakers",
+    "rarity": "Rare",
+    "slot_type": "Shoes",
+    "stat_buffs": {"PHY": 6, "DropRate": 0.03},
+    "ai_lore_text": "They remember every walk that cleared your head."
+  },
+  {
+    "flag": "eq-charm-token",
+    "name": "Charm Token",
+    "rarity": "Uncommon",
+    "slot_type": "Accessory",
+    "stat_buffs": {"CHA": 5},
+    "ai_lore_text": "A small coin that tips conversations open."
+  },
+  {
+    "flag": "eq-truth-codex",
+    "name": "Truth Codex",
+    "rarity": "Epic",
+    "slot_type": "Artifact",
+    "stat_buffs": {"INT": 12, "DropRate": 0.05},
+    "ai_unlocked_privilege": {"ai_breakdown_depth": "deep"},
+    "ai_lore_text": "Margins filled with pseudo-code from hard-won nights."
+  },
+  {
+    "flag": "eq-legend-quill",
+    "name": "Legend Quill",
+    "rarity": "Legendary",
+    "slot_type": "Weapon",
+    "stat_buffs": {"WIL": 10, "INT": 10, "GoldMult": 0.25},
+    "ai_lore_text": "Writes destinies in commit messages."
+  },
+  {
+    "flag": "eq-mythic-crown",
+    "name": "Mythic Crown of Clarity",
+    "rarity": "Mythic",
+    "slot_type": "Head",
+    "stat_buffs": {"FOC": 15, "INT": 15, "DropRate": 0.08},
+    "ai_unlocked_privilege": {"ai_breakdown_depth": "mythic"},
+    "ai_lore_text": "Forged from a year of unbroken focus."
+  }
+]

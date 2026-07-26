@@ -898,6 +898,338 @@ var (
 			},
 		},
 	}
+	// LifeAiContextsColumns holds the columns for the "life_ai_contexts" table.
+	LifeAiContextsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "life_profile_id", Type: field.TypeInt64, Unique: true},
+		{Name: "historical_completion_rate", Type: field.TypeFloat64, Default: 0},
+		{Name: "recent_mood_and_burnout", Type: field.TypeJSON, Nullable: true},
+		{Name: "ai_dm_personality", Type: field.TypeString, Default: "gentle guide"},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeAiContextsTable holds the schema information for the "life_ai_contexts" table.
+	LifeAiContextsTable = &schema.Table{
+		Name:       "life_ai_contexts",
+		Columns:    LifeAiContextsColumns,
+		PrimaryKey: []*schema.Column{LifeAiContextsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeaicontext_life_profile_id",
+				Unique:  true,
+				Columns: []*schema.Column{LifeAiContextsColumns[1]},
+			},
+		},
+	}
+	// LifeActionLogsColumns holds the columns for the "life_action_logs" table.
+	LifeActionLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "quest_id", Type: field.TypeInt64},
+		{Name: "gained_exp", Type: field.TypeInt, Default: 0},
+		{Name: "gained_gold", Type: field.TypeInt, Default: 0},
+		{Name: "dropped_inventory_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "dice_roll_result", Type: field.TypeFloat64, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LifeActionLogsTable holds the schema information for the "life_action_logs" table.
+	LifeActionLogsTable = &schema.Table{
+		Name:       "life_action_logs",
+		Columns:    LifeActionLogsColumns,
+		PrimaryKey: []*schema.Column{LifeActionLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeactionlog_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionLogsColumns[2]},
+			},
+			{
+				Name:    "lifeactionlog_quest_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionLogsColumns[3]},
+			},
+		},
+	}
+	// LifeCharacteristicsColumns holds the columns for the "life_characteristics" table.
+	LifeCharacteristicsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "name", Type: field.TypeString},
+		{Name: "code", Type: field.TypeString},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "current_exp", Type: field.TypeInt64, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeCharacteristicsTable holds the schema information for the "life_characteristics" table.
+	LifeCharacteristicsTable = &schema.Table{
+		Name:       "life_characteristics",
+		Columns:    LifeCharacteristicsColumns,
+		PrimaryKey: []*schema.Column{LifeCharacteristicsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifecharacteristic_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeCharacteristicsColumns[2]},
+			},
+			{
+				Name:    "lifecharacteristic_life_profile_id_code",
+				Unique:  true,
+				Columns: []*schema.Column{LifeCharacteristicsColumns[2], LifeCharacteristicsColumns[4]},
+			},
+		},
+	}
+	// LifeEquipmentsColumns holds the columns for the "life_equipments" table.
+	LifeEquipmentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "rarity", Type: field.TypeString, Default: "Common"},
+		{Name: "slot_type", Type: field.TypeString},
+		{Name: "stat_buffs", Type: field.TypeJSON, Nullable: true},
+		{Name: "ai_unlocked_privilege", Type: field.TypeJSON, Nullable: true},
+		{Name: "ai_lore_text", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LifeEquipmentsTable holds the schema information for the "life_equipments" table.
+	LifeEquipmentsTable = &schema.Table{
+		Name:       "life_equipments",
+		Columns:    LifeEquipmentsColumns,
+		PrimaryKey: []*schema.Column{LifeEquipmentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeequipment_rarity",
+				Unique:  false,
+				Columns: []*schema.Column{LifeEquipmentsColumns[3]},
+			},
+			{
+				Name:    "lifeequipment_slot_type",
+				Unique:  false,
+				Columns: []*schema.Column{LifeEquipmentsColumns[4]},
+			},
+		},
+	}
+	// LifeEquippedSlotsColumns holds the columns for the "life_equipped_slots" table.
+	LifeEquippedSlotsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "life_profile_id", Type: field.TypeInt64, Unique: true},
+		{Name: "head_slot", Type: field.TypeInt64, Nullable: true},
+		{Name: "weapon_slot", Type: field.TypeInt64, Nullable: true},
+		{Name: "armor_slot", Type: field.TypeInt64, Nullable: true},
+		{Name: "shoes_slot", Type: field.TypeInt64, Nullable: true},
+		{Name: "accessory_slot", Type: field.TypeInt64, Nullable: true},
+		{Name: "artifact_slot", Type: field.TypeInt64, Nullable: true},
+		{Name: "tarnished_until", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeEquippedSlotsTable holds the schema information for the "life_equipped_slots" table.
+	LifeEquippedSlotsTable = &schema.Table{
+		Name:       "life_equipped_slots",
+		Columns:    LifeEquippedSlotsColumns,
+		PrimaryKey: []*schema.Column{LifeEquippedSlotsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeequippedslots_life_profile_id",
+				Unique:  true,
+				Columns: []*schema.Column{LifeEquippedSlotsColumns[1]},
+			},
+		},
+	}
+	// LifeGoalsColumns holds the columns for the "life_goals" table.
+	LifeGoalsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "title", Type: field.TypeString},
+		{Name: "category", Type: field.TypeString, Default: "Project"},
+		{Name: "status", Type: field.TypeString, Default: "Active"},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeGoalsTable holds the schema information for the "life_goals" table.
+	LifeGoalsTable = &schema.Table{
+		Name:       "life_goals",
+		Columns:    LifeGoalsColumns,
+		PrimaryKey: []*schema.Column{LifeGoalsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifegoal_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeGoalsColumns[2]},
+			},
+			{
+				Name:    "lifegoal_life_profile_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{LifeGoalsColumns[2], LifeGoalsColumns[5]},
+			},
+		},
+	}
+	// LifeInventoriesColumns holds the columns for the "life_inventories" table.
+	LifeInventoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "equipment_id", Type: field.TypeInt64},
+		{Name: "source_quest_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "instance_name", Type: field.TypeString, Default: ""},
+		{Name: "instance_lore", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "instance_buffs", Type: field.TypeJSON, Nullable: true},
+		{Name: "lore_status", Type: field.TypeString, Default: "none"},
+		{Name: "tarnished_until", Type: field.TypeTime, Nullable: true},
+		{Name: "acquired_at", Type: field.TypeTime},
+	}
+	// LifeInventoriesTable holds the schema information for the "life_inventories" table.
+	LifeInventoriesTable = &schema.Table{
+		Name:       "life_inventories",
+		Columns:    LifeInventoriesColumns,
+		PrimaryKey: []*schema.Column{LifeInventoriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeinventory_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeInventoriesColumns[2]},
+			},
+			{
+				Name:    "lifeinventory_equipment_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeInventoriesColumns[3]},
+			},
+			{
+				Name:    "lifeinventory_lore_status",
+				Unique:  false,
+				Columns: []*schema.Column{LifeInventoriesColumns[8]},
+			},
+		},
+	}
+	// LifeLootTablesColumns holds the columns for the "life_loot_tables" table.
+	LifeLootTablesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "drop_tier", Type: field.TypeString, Unique: true},
+		{Name: "base_drop_chance", Type: field.TypeFloat64, Default: 0.2},
+		{Name: "item_pool_flags", Type: field.TypeJSON, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeLootTablesTable holds the schema information for the "life_loot_tables" table.
+	LifeLootTablesTable = &schema.Table{
+		Name:       "life_loot_tables",
+		Columns:    LifeLootTablesColumns,
+		PrimaryKey: []*schema.Column{LifeLootTablesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeloottable_drop_tier",
+				Unique:  true,
+				Columns: []*schema.Column{LifeLootTablesColumns[1]},
+			},
+		},
+	}
+	// LifeProfilesColumns holds the columns for the "life_profiles" table.
+	LifeProfilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "user_id", Type: field.TypeString, Unique: true},
+		{Name: "nickname", Type: field.TypeString, Default: ""},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "exp", Type: field.TypeInt64, Default: 0},
+		{Name: "gold", Type: field.TypeInt, Default: 0},
+		{Name: "class_type", Type: field.TypeString, Default: "Architect"},
+		{Name: "base_drop_rate_bonus", Type: field.TypeFloat64, Default: 0},
+		{Name: "pity_by_tier", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeProfilesTable holds the schema information for the "life_profiles" table.
+	LifeProfilesTable = &schema.Table{
+		Name:       "life_profiles",
+		Columns:    LifeProfilesColumns,
+		PrimaryKey: []*schema.Column{LifeProfilesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeprofile_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{LifeProfilesColumns[2]},
+			},
+		},
+	}
+	// LifeQuestsColumns holds the columns for the "life_quests" table.
+	LifeQuestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "goal_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "skill_id", Type: field.TypeInt64},
+		{Name: "title", Type: field.TypeString},
+		{Name: "prompt", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "type", Type: field.TypeString, Default: "One-Time"},
+		{Name: "ai_evaluated_difficulty", Type: field.TypeString, Default: "E"},
+		{Name: "ai_evaluated_fear", Type: field.TypeInt, Default: 1},
+		{Name: "base_exp_reward", Type: field.TypeInt, Default: 10},
+		{Name: "base_gold_reward", Type: field.TypeInt, Default: 5},
+		{Name: "drop_tier", Type: field.TypeString, Default: "Common"},
+		{Name: "status", Type: field.TypeString, Default: "Pending"},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+	}
+	// LifeQuestsTable holds the schema information for the "life_quests" table.
+	LifeQuestsTable = &schema.Table{
+		Name:       "life_quests",
+		Columns:    LifeQuestsColumns,
+		PrimaryKey: []*schema.Column{LifeQuestsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifequest_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeQuestsColumns[2]},
+			},
+			{
+				Name:    "lifequest_life_profile_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{LifeQuestsColumns[2], LifeQuestsColumns[13]},
+			},
+			{
+				Name:    "lifequest_skill_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeQuestsColumns[4]},
+			},
+		},
+	}
+	// LifeSkillsColumns holds the columns for the "life_skills" table.
+	LifeSkillsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "characteristic_id", Type: field.TypeInt64},
+		{Name: "name", Type: field.TypeString},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "current_exp", Type: field.TypeInt64, Default: 0},
+		{Name: "exp_to_characteristic_ratio", Type: field.TypeFloat64, Default: 0.5},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeSkillsTable holds the schema information for the "life_skills" table.
+	LifeSkillsTable = &schema.Table{
+		Name:       "life_skills",
+		Columns:    LifeSkillsColumns,
+		PrimaryKey: []*schema.Column{LifeSkillsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeskill_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeSkillsColumns[2]},
+			},
+			{
+				Name:    "lifeskill_characteristic_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeSkillsColumns[3]},
+			},
+			{
+				Name:    "lifeskill_life_profile_id_name",
+				Unique:  true,
+				Columns: []*schema.Column{LifeSkillsColumns[2], LifeSkillsColumns[4]},
+			},
+		},
+	}
 	// MessagesColumns holds the columns for the "messages" table.
 	MessagesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1697,6 +2029,17 @@ var (
 		FormTable,
 		InstructTable,
 		LlmUsageRecordsTable,
+		LifeAiContextsTable,
+		LifeActionLogsTable,
+		LifeCharacteristicsTable,
+		LifeEquipmentsTable,
+		LifeEquippedSlotsTable,
+		LifeGoalsTable,
+		LifeInventoriesTable,
+		LifeLootTablesTable,
+		LifeProfilesTable,
+		LifeQuestsTable,
+		LifeSkillsTable,
 		MessagesTable,
 		NotificationRecordsTable,
 		NotifyChannelsTable,
@@ -1830,6 +2173,39 @@ func init() {
 	}
 	LlmUsageRecordsTable.Annotation = &entsql.Annotation{
 		Table: "llm_usage_records",
+	}
+	LifeAiContextsTable.Annotation = &entsql.Annotation{
+		Table: "life_ai_contexts",
+	}
+	LifeActionLogsTable.Annotation = &entsql.Annotation{
+		Table: "life_action_logs",
+	}
+	LifeCharacteristicsTable.Annotation = &entsql.Annotation{
+		Table: "life_characteristics",
+	}
+	LifeEquipmentsTable.Annotation = &entsql.Annotation{
+		Table: "life_equipments",
+	}
+	LifeEquippedSlotsTable.Annotation = &entsql.Annotation{
+		Table: "life_equipped_slots",
+	}
+	LifeGoalsTable.Annotation = &entsql.Annotation{
+		Table: "life_goals",
+	}
+	LifeInventoriesTable.Annotation = &entsql.Annotation{
+		Table: "life_inventories",
+	}
+	LifeLootTablesTable.Annotation = &entsql.Annotation{
+		Table: "life_loot_tables",
+	}
+	LifeProfilesTable.Annotation = &entsql.Annotation{
+		Table: "life_profiles",
+	}
+	LifeQuestsTable.Annotation = &entsql.Annotation{
+		Table: "life_quests",
+	}
+	LifeSkillsTable.Annotation = &entsql.Annotation{
+		Table: "life_skills",
 	}
 	MessagesTable.Annotation = &entsql.Annotation{
 		Table: "messages",

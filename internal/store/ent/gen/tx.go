@@ -80,6 +80,28 @@ type Tx struct {
 	Instruct *InstructClient
 	// LLMUsageRecord is the client for interacting with the LLMUsageRecord builders.
 	LLMUsageRecord *LLMUsageRecordClient
+	// LifeAIContext is the client for interacting with the LifeAIContext builders.
+	LifeAIContext *LifeAIContextClient
+	// LifeActionLog is the client for interacting with the LifeActionLog builders.
+	LifeActionLog *LifeActionLogClient
+	// LifeCharacteristic is the client for interacting with the LifeCharacteristic builders.
+	LifeCharacteristic *LifeCharacteristicClient
+	// LifeEquipment is the client for interacting with the LifeEquipment builders.
+	LifeEquipment *LifeEquipmentClient
+	// LifeEquippedSlots is the client for interacting with the LifeEquippedSlots builders.
+	LifeEquippedSlots *LifeEquippedSlotsClient
+	// LifeGoal is the client for interacting with the LifeGoal builders.
+	LifeGoal *LifeGoalClient
+	// LifeInventory is the client for interacting with the LifeInventory builders.
+	LifeInventory *LifeInventoryClient
+	// LifeLootTable is the client for interacting with the LifeLootTable builders.
+	LifeLootTable *LifeLootTableClient
+	// LifeProfile is the client for interacting with the LifeProfile builders.
+	LifeProfile *LifeProfileClient
+	// LifeQuest is the client for interacting with the LifeQuest builders.
+	LifeQuest *LifeQuestClient
+	// LifeSkill is the client for interacting with the LifeSkill builders.
+	LifeSkill *LifeSkillClient
 	// Message is the client for interacting with the Message builders.
 	Message *MessageClient
 	// NotificationRecord is the client for interacting with the NotificationRecord builders.
@@ -301,6 +323,17 @@ func (tx *Tx) init() {
 	tx.Form = NewFormClient(tx.config)
 	tx.Instruct = NewInstructClient(tx.config)
 	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
+	tx.LifeAIContext = NewLifeAIContextClient(tx.config)
+	tx.LifeActionLog = NewLifeActionLogClient(tx.config)
+	tx.LifeCharacteristic = NewLifeCharacteristicClient(tx.config)
+	tx.LifeEquipment = NewLifeEquipmentClient(tx.config)
+	tx.LifeEquippedSlots = NewLifeEquippedSlotsClient(tx.config)
+	tx.LifeGoal = NewLifeGoalClient(tx.config)
+	tx.LifeInventory = NewLifeInventoryClient(tx.config)
+	tx.LifeLootTable = NewLifeLootTableClient(tx.config)
+	tx.LifeProfile = NewLifeProfileClient(tx.config)
+	tx.LifeQuest = NewLifeQuestClient(tx.config)
+	tx.LifeSkill = NewLifeSkillClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.NotificationRecord = NewNotificationRecordClient(tx.config)
 	tx.NotifyChannel = NewNotifyChannelClient(tx.config)

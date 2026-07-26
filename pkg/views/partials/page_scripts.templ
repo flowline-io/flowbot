@@ -25,6 +25,12 @@ templ WorkflowStatsScripts() {
 	<script src="/static/js/workflow-stats.js" defer></script>
 }
 
+// LifeRadarScripts loads Chart.js and the Life dashboard radar helper.
+templ LifeRadarScripts() {
+	@ChartScripts()
+	<script src={ "/static/js/life-radar.js?v=" + version.Buildtags } defer></script>
+}
+
 // ClipCopyScripts loads clipboard helpers for data-clip-copy buttons.
 templ ClipCopyScripts() {
 	<script src={ "/static/js/clip-copy.js?v=" + version.Buildtags } defer></script>
