@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -117,10 +118,91 @@ type LifeInventoryRow struct {
 	Tarnished  bool
 }
 
+// LifeEquipSlot is one wear-position cell on the inventory equipment board.
+type LifeEquipSlot struct {
+	Label     string
+	SlotField string
+	Item      *LifeInventoryRow
+}
+
 // LifeInventoryData is the inventory page model.
 type LifeInventoryData struct {
+	Slots        []LifeEquipSlot
 	Items        []LifeInventoryRow
 	PendingCount int
+}
+
+// lifeEquipSlotOrder is the paper-doll display order for wear positions.
+var lifeEquipSlotOrder = []struct {
+	label string
+	field string
+}{
+	{"Head", "head_slot"},
+	{"Weapon", "weapon_slot"},
+	{"Armor", "armor_slot"},
+	{"Shoes", "shoes_slot"},
+	{"Accessory", "accessory_slot"},
+	{"Artifact", "artifact_slot"},
+}
+
+// LifeBuildEquipSlots builds the six wear-position cells from backpack rows.
+// Empty positions keep a labeled empty cell; equipped items fill their slot.
+func LifeBuildEquipSlots(items []LifeInventoryRow) []LifeEquipSlot {
+	byField := make(map[string]LifeInventoryRow, len(items))
+	for _, it := range items {
+		if !it.Equipped || it.SlotField == "" {
+			continue
+		}
+		byField[it.SlotField] = it
+	}
+	out := make([]LifeEquipSlot, 0, len(lifeEquipSlotOrder))
+	for _, def := range lifeEquipSlotOrder {
+		cell := LifeEquipSlot{Label: def.label, SlotField: def.field}
+		if it, ok := byField[def.field]; ok {
+			cp := it
+			cell.Item = &cp
+		}
+		out = append(out, cell)
+	}
+	return out
+}
+
+func lifeEquippedCount(slots []LifeEquipSlot) string {
+	n := 0
+	for _, s := range slots {
+		if s.Item != nil {
+			n++
+		}
+	}
+	return fmt.Sprintf("%d / %d", n, len(slots))
+}
+
+// LifeRarityClass maps equipment rarity to a CSS modifier class.
+func LifeRarityClass(rarity string) string {
+	switch strings.ToLower(strings.TrimSpace(rarity)) {
+	case "common":
+		return "rarity-common"
+	case "uncommon":
+		return "rarity-uncommon"
+	case "rare":
+		return "rarity-rare"
+	case "epic":
+		return "rarity-epic"
+	case "legendary":
+		return "rarity-legendary"
+	case "mythic":
+		return "rarity-mythic"
+	default:
+		return "rarity-common"
+	}
+}
+
+// LifeSlotRarityClass returns the rarity CSS class for a filled equip slot.
+func LifeSlotRarityClass(slot LifeEquipSlot) string {
+	if slot.Item == nil {
+		return ""
+	}
+	return LifeRarityClass(slot.Item.Rarity)
 }
 
 const lifeSegmentCount = 24

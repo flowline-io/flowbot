@@ -43,6 +43,54 @@ func TestLifeDisplayNameAndClassTraits(t *testing.T) {
 	assert.Equal(t, "Impatient", pages.LifeClassWeakness("Architect"))
 }
 
+func TestLifeBuildEquipSlots(t *testing.T) {
+	t.Parallel()
+	empty := pages.LifeBuildEquipSlots(nil)
+	assert.Len(t, empty, 6)
+	assert.Equal(t, "Head", empty[0].Label)
+	assert.Equal(t, "head_slot", empty[0].SlotField)
+	assert.Nil(t, empty[0].Item)
+	assert.Equal(t, "Artifact", empty[5].Label)
+
+	filled := pages.LifeBuildEquipSlots([]pages.LifeInventoryRow{
+		{Flag: "inv-1", Name: "Steady Hoodie", Rarity: "Common", Slot: "Armor", SlotField: "armor_slot", Equipped: true},
+		{Flag: "inv-2", Name: "Spare Hoodie", Rarity: "Common", Slot: "Armor", SlotField: "", Equipped: false},
+		{Flag: "inv-3", Name: "Focus Ring", Rarity: "Rare", Slot: "Accessory", SlotField: "accessory_slot", Equipped: true, Tarnished: true},
+	})
+	assert.Len(t, filled, 6)
+	assert.Nil(t, filled[0].Item)
+	requireSlot := func(label string) pages.LifeEquipSlot {
+		t.Helper()
+		for _, s := range filled {
+			if s.Label == label {
+				return s
+			}
+		}
+		t.Fatalf("missing slot %s", label)
+		return pages.LifeEquipSlot{}
+	}
+	armor := requireSlot("Armor")
+	assert.NotNil(t, armor.Item)
+	assert.Equal(t, "Steady Hoodie", armor.Item.Name)
+	assert.Equal(t, "armor_slot", armor.SlotField)
+	acc := requireSlot("Accessory")
+	assert.NotNil(t, acc.Item)
+	assert.True(t, acc.Item.Tarnished)
+	assert.Equal(t, "Focus Ring", acc.Item.Name)
+}
+
+func TestLifeRarityClass(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "rarity-common", pages.LifeRarityClass("Common"))
+	assert.Equal(t, "rarity-uncommon", pages.LifeRarityClass("Uncommon"))
+	assert.Equal(t, "rarity-mythic", pages.LifeRarityClass("Mythic"))
+	assert.Equal(t, "rarity-common", pages.LifeRarityClass(""))
+	assert.Equal(t, "", pages.LifeSlotRarityClass(pages.LifeEquipSlot{}))
+	assert.Equal(t, "rarity-rare", pages.LifeSlotRarityClass(pages.LifeEquipSlot{
+		Item: &pages.LifeInventoryRow{Rarity: "Rare"},
+	}))
+}
+
 func TestLifeHPFromStats(t *testing.T) {
 	t.Parallel()
 	stats := []pages.LifeStatRow{pages.LifeBuildStatRow("WIL", "Willpower", 4, 20)}

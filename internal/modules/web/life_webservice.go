@@ -443,7 +443,7 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 	}
 	ctx.Type("html")
 	return pages.LifeInventoryPage(pages.LifeInventoryData{
-		Items: rows, PendingCount: len(pending),
+		Slots: pages.LifeBuildEquipSlots(rows), Items: rows, PendingCount: len(pending),
 	}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
