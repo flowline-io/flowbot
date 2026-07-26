@@ -8,7 +8,7 @@ package partials
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// SessionBadge renders the signed-in operator identity as a User nav dropdown.
+// SessionBadge renders the signed-in operator identity as a link to Life.
 func SessionBadge(username string, expiresLabel string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -30,14 +30,14 @@ func SessionBadge(username string, expiresLabel string) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"dropdown dropdown-end\" data-testid=\"session-badge\"><div tabindex=\"0\" role=\"button\" class=\"btn btn-ghost btn-sm gap-1 max-w-[11rem]\" data-testid=\"nav-user-menu\" aria-label=\"User menu\"><span class=\"hidden sm:flex flex-col items-end leading-tight min-w-0\"><span class=\"text-xs font-medium text-base-content truncate max-w-[9rem]\" data-testid=\"session-username\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<a href=\"/service/web/life\" class=\"btn btn-ghost btn-sm gap-1 max-w-[11rem]\" data-testid=\"session-badge\" aria-label=\"Open Life\"><span class=\"hidden sm:flex flex-col items-end leading-tight min-w-0\"><span class=\"text-xs font-medium text-base-content truncate max-w-[9rem]\" data-testid=\"session-username\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 8, Col: 119}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 12, Col: 118}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -55,7 +55,7 @@ func SessionBadge(username string, expiresLabel string) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(expiresLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 10, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/session_badge.templ`, Line: 14, Col: 95}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -66,7 +66,7 @@ func SessionBadge(username string, expiresLabel string) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4 shrink-0 sm:hidden\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"></path><circle cx=\"12\" cy=\"7\" r=\"4\"></circle></svg></div><ul tabindex=\"0\" class=\"dropdown-content menu p-2 shadow-sm border border-base-300 bg-base-100 rounded-box w-44 z-50\" data-testid=\"nav-user-menu-list\"><li class=\"menu-title\"><span>User</span></li><li><a href=\"/service/web/life\" data-testid=\"nav-life\">Life</a></li><li><a href=\"/service/web/life/character\" data-testid=\"nav-life-character\">Character</a></li><li><a href=\"/service/web/life/quests\" data-testid=\"nav-life-quests\">Quests</a></li><li><a href=\"/service/web/life/inventory\" data-testid=\"nav-life-inventory\">Inventory</a></li></ul></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span> <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4 shrink-0 sm:hidden\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"></path><circle cx=\"12\" cy=\"7\" r=\"4\"></circle></svg></a>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
