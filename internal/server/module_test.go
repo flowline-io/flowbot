@@ -192,6 +192,10 @@ func (*testStoreAdapter) ListChatSessions(_ context.Context, opts store.ListChat
 	return listTestChatSessions(testChatSessions, opts)
 }
 
+func (*testStoreAdapter) CountChatSessions(_ context.Context, opts store.ListChatSessionsOptions) (int, error) {
+	return len(filterTestChatSessions(testChatSessions, opts)), nil
+}
+
 func listTestChatSessions(sessions map[string]*gen.ChatSession, opts store.ListChatSessionsOptions) ([]*gen.ChatSession, string, error) {
 	limit := opts.Limit
 	if limit <= 0 || limit > 100 {

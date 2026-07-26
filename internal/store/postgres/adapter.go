@@ -726,7 +726,7 @@ func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessi
 		}
 	}
 
-	q := a.client.ChatSession.Query().
+	q := a.chatSessionFilterQuery(opts).
 		Order(order...).
 		Limit(opts.Limit + 1)
 
@@ -735,18 +735,6 @@ func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessi
 		if err == nil {
 			q = q.Where(chatsession.IDLT(id))
 		}
-	}
-	if opts.UID != "" {
-		q = q.Where(chatsession.UIDEQ(opts.UID))
-	}
-	if opts.State != nil {
-		q = q.Where(chatsession.StateEQ(*opts.State))
-	}
-	if opts.Archived != nil {
-		q = q.Where(chatsession.ArchivedEQ(*opts.Archived))
-	}
-	if len(opts.Flags) > 0 {
-		q = q.Where(chatsession.FlagIn(opts.Flags...))
 	}
 
 	rows, err := q.All(ctx)
@@ -761,6 +749,31 @@ func (a *adapter) ListChatSessions(ctx context.Context, opts store.ListChatSessi
 	}
 
 	return rows, nextCursor, nil
+}
+
+func (a *adapter) CountChatSessions(ctx context.Context, opts store.ListChatSessionsOptions) (int, error) {
+	n, err := a.chatSessionFilterQuery(opts).Count(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("postgres: count chat sessions: %w", err)
+	}
+	return n, nil
+}
+
+func (a *adapter) chatSessionFilterQuery(opts store.ListChatSessionsOptions) *gen.ChatSessionQuery {
+	q := a.client.ChatSession.Query()
+	if opts.UID != "" {
+		q = q.Where(chatsession.UIDEQ(opts.UID))
+	}
+	if opts.State != nil {
+		q = q.Where(chatsession.StateEQ(*opts.State))
+	}
+	if opts.Archived != nil {
+		q = q.Where(chatsession.ArchivedEQ(*opts.Archived))
+	}
+	if len(opts.Flags) > 0 {
+		q = q.Where(chatsession.FlagIn(opts.Flags...))
+	}
+	return q
 }
 
 func (a *adapter) UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error {

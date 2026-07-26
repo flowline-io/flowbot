@@ -1,20 +1,16 @@
 package partials
 
-import "fmt"
-
 // HomeDashboard is the view model for the authenticated home page.
 type HomeDashboard struct {
+	ActiveSessions   int
 	PipelineTotal    int64
 	PipelineOK       int64
 	PipelineFailed   int64
-	Events24h        int64
-	PostgresOK       bool
-	RedisOK          bool
-	UnhealthyCaps    int
-	HubAppsTotal     int
-	HubAppsRunning   int
-	PendingApprovals int
-	Checklist        []HomeChecklistItem
+	WorkflowTotal    int64
+	WorkflowOK       int64
+	WorkflowFailed   int64
+	Events24h int64
+	Checklist []HomeChecklistItem
 }
 
 // HomeChecklistItem is a setup step shown when the instance looks empty.
@@ -33,25 +29,14 @@ type HomeQuickLink struct {
 	Detail string
 	Href   string
 	TestID string
-	Badge  int
 }
 
 // HomeQuickLinks returns the standard home shortcut set.
-func HomeQuickLinks(pendingApprovals int) []HomeQuickLink {
-	agents := HomeQuickLink{
-		Title:  "Agents",
-		Detail: "Chat and orchestrate",
-		Href:   "/service/web/agents",
-		TestID: "home-link-agents",
-		Badge:  pendingApprovals,
-	}
-	if pendingApprovals > 0 {
-		agents.Detail = fmt.Sprintf("%d awaiting approval", pendingApprovals)
-	}
+func HomeQuickLinks() []HomeQuickLink {
 	return []HomeQuickLink{
-		agents,
-		{Title: "Pipelines", Detail: "Automate event flows", Href: "/service/web/pipelines", TestID: "home-link-pipelines"},
-		{Title: "Hub", Detail: "Apps and capabilities", Href: "/service/web/hub", TestID: "home-link-hub"},
+		{Title: "Knowledge", Detail: "Markdown docs for agent retrieval", Href: "/service/web/agent-knowledge", TestID: "home-link-knowledge"},
+		{Title: "Skills", Detail: "Reusable agent skill packages", Href: "/service/web/agent-skills", TestID: "home-link-skills"},
+		{Title: "Notifications", Detail: "Channels, rules, and delivery", Href: "/service/web/notifications", TestID: "home-link-notifications"},
 		{Title: "Health", Detail: "Infrastructure status", Href: "/service/web/healthz", TestID: "home-link-healthz"},
 	}
 }

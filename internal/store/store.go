@@ -381,6 +381,8 @@ type Adapter interface {
 	CreateChatSession(ctx context.Context, session *gen.ChatSession) error
 	GetChatSession(ctx context.Context, flag string) (*gen.ChatSession, error)
 	ListChatSessions(ctx context.Context, opts ListChatSessionsOptions) ([]*gen.ChatSession, string, error)
+	// CountChatSessions returns how many sessions match the filter (Limit/Cursor ignored).
+	CountChatSessions(ctx context.Context, opts ListChatSessionsOptions) (int, error)
 	UpdateChatSessionLeaf(ctx context.Context, flag, leafID string) error
 	UpdateChatSessionMode(ctx context.Context, flag, mode string) error
 	UpdateChatSessionSettings(ctx context.Context, flag, modelName, thinkingLevel string) error

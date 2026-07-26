@@ -7,9 +7,14 @@ templ HomeDashboardBlock(d HomeDashboard) {
 
 templ HomeDashboardSummary(d HomeDashboard) {
 	<div class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-5 mb-8 pb-6 border-b border-base-300" data-testid="home-dashboard-summary">
-		<div>
-			<p class="text-sm text-base-content/55 m-0">Pipelines (7d)</p>
-			<p class="text-2xl font-semibold tracking-tight m-0 mt-1" data-testid="home-stat-pipelines">{ d.PipelineTotal }</p>
+		<a href="/service/web/agents" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-agents-link">
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Agents</p>
+			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-agents">{ d.ActiveSessions }</p>
+			<p class="text-sm text-base-content/60 m-0 mt-1">active sessions</p>
+		</a>
+		<a href="/service/web/pipelines" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-pipelines-link">
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Pipelines (7d)</p>
+			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-pipelines">{ d.PipelineTotal }</p>
 			<p class="text-sm text-base-content/60 m-0 mt-1">
 				<span class="text-success">{ d.PipelineOK } ok</span>
 				<span class="mx-1">·</span>
@@ -19,33 +24,25 @@ templ HomeDashboardSummary(d HomeDashboard) {
 					<span>{ d.PipelineFailed } failed</span>
 				}
 			</p>
-		</div>
-		<div>
-			<p class="text-sm text-base-content/55 m-0">Events (24h)</p>
-			<p class="text-2xl font-semibold tracking-tight m-0 mt-1" data-testid="home-stat-events">{ d.Events24h }</p>
-			<a href="/service/web/events" class="link link-hover text-sm mt-1 inline-block">View timeline</a>
-		</div>
-		<div>
-			<p class="text-sm text-base-content/55 m-0">Infrastructure</p>
-			<p class="text-sm m-0 mt-2 flex flex-wrap gap-1.5" data-testid="home-stat-infra">
-				if d.PostgresOK {
-					<span class="flowbot-chip flowbot-chip-success">PostgreSQL</span>
+		</a>
+		<a href="/service/web/workflows" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-workflows-link">
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Workflows (7d)</p>
+			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-workflows">{ d.WorkflowTotal }</p>
+			<p class="text-sm text-base-content/60 m-0 mt-1">
+				<span class="text-success">{ d.WorkflowOK } ok</span>
+				<span class="mx-1">·</span>
+				if d.WorkflowFailed > 0 {
+					<span class="text-error">{ d.WorkflowFailed } failed</span>
 				} else {
-					<span class="flowbot-chip flowbot-chip-error">PostgreSQL</span>
-				}
-				if d.RedisOK {
-					<span class="flowbot-chip flowbot-chip-success">Redis</span>
-				} else {
-					<span class="flowbot-chip flowbot-chip-error">Redis</span>
+					<span>{ d.WorkflowFailed } failed</span>
 				}
 			</p>
-			<a href="/service/web/healthz" class="link link-hover text-sm mt-2 inline-block">Full health check</a>
-		</div>
-		<div>
-			<p class="text-sm text-base-content/55 m-0">Hub apps</p>
-			<p class="text-2xl font-semibold tracking-tight m-0 mt-1" data-testid="home-stat-hub">{ d.HubAppsRunning }/{ d.HubAppsTotal }</p>
-			<p class="text-sm text-base-content/60 m-0 mt-1">running</p>
-		</div>
+		</a>
+		<a href="/service/web/events" class="group block rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary" data-testid="home-stat-events-link">
+			<p class="text-sm text-base-content/55 m-0 group-hover:text-primary transition-colors">Events (24h)</p>
+			<p class="text-2xl font-semibold tracking-tight m-0 mt-1 group-hover:text-primary transition-colors" data-testid="home-stat-events">{ d.Events24h }</p>
+			<p class="text-sm text-base-content/60 m-0 mt-1">View timeline</p>
+		</a>
 	</div>
 }
 
@@ -84,12 +81,7 @@ templ HomeQuickLinksSection(links []HomeQuickLink) {
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 mb-8" data-testid="home-quick-links">
 		for _, link := range links {
 			<a href={ link.Href } class="group block py-2 border-b border-base-200 hover:border-primary transition-colors" data-testid={ link.TestID }>
-				<p class="font-medium m-0 group-hover:text-primary transition-colors flex items-center gap-1">
-					{ link.Title }
-					if link.Badge > 0 {
-						@ApprovalCountBadge(link.Badge)
-					}
-				</p>
+				<p class="font-medium m-0 group-hover:text-primary transition-colors">{ link.Title }</p>
 				<p class="text-sm text-base-content/60 m-0 mt-0.5">{ link.Detail }</p>
 			</a>
 		}

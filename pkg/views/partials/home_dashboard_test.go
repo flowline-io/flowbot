@@ -4,44 +4,32 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestHomeQuickLinksPendingApprovals(t *testing.T) {
+func TestHomeQuickLinks(t *testing.T) {
 	t.Parallel()
+	links := HomeQuickLinks()
+	require.Len(t, links, 4)
+
 	tests := []struct {
-		name             string
-		pendingApprovals int
-		wantAgentsDetail string
-		wantAgentsBadge  int
+		idx    int
+		title  string
+		href   string
+		testID string
 	}{
-		{
-			name:             "idle agents detail unchanged",
-			pendingApprovals: 0,
-			wantAgentsDetail: "Chat and orchestrate",
-			wantAgentsBadge:  0,
-		},
-		{
-			name:             "one pending updates agents detail",
-			pendingApprovals: 1,
-			wantAgentsDetail: "1 awaiting approval",
-			wantAgentsBadge:  1,
-		},
-		{
-			name:             "multiple pending updates agents detail",
-			pendingApprovals: 4,
-			wantAgentsDetail: "4 awaiting approval",
-			wantAgentsBadge:  4,
-		},
+		{0, "Knowledge", "/service/web/agent-knowledge", "home-link-knowledge"},
+		{1, "Skills", "/service/web/agent-skills", "home-link-skills"},
+		{2, "Notifications", "/service/web/notifications", "home-link-notifications"},
+		{3, "Health", "/service/web/healthz", "home-link-healthz"},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
-			links := HomeQuickLinks(tt.pendingApprovals)
-			assert.GreaterOrEqual(t, len(links), 1)
-			assert.Equal(t, "Agents", links[0].Title)
-			assert.Equal(t, tt.wantAgentsDetail, links[0].Detail)
-			assert.Equal(t, tt.wantAgentsBadge, links[0].Badge)
-			assert.Equal(t, "home-link-agents", links[0].TestID)
+			assert.Equal(t, tt.title, links[tt.idx].Title)
+			assert.Equal(t, tt.href, links[tt.idx].Href)
+			assert.Equal(t, tt.testID, links[tt.idx].TestID)
+			assert.NotEmpty(t, links[tt.idx].Detail)
 		})
 	}
 }

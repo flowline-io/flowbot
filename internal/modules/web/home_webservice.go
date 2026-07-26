@@ -10,8 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -50,25 +49,24 @@ func homeDashboardPartial(ctx fiber.Ctx) error {
 func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 	d := partials.HomeDashboard{}
 
-	pingCtx, cancel := context.WithTimeout(ctx, 500*time.Millisecond)
-	defer cancel()
-	if store.Database != nil && store.Database.IsOpen() {
-		_, err := store.Database.Ping(pingCtx)
-		d.PostgresOK = err == nil
-	}
-	if rs := cache.DefaultRedisStore(); rs != nil {
-		_, err := rs.Ping(pingCtx)
-		d.RedisOK = err == nil
-	}
-
 	if store.Database != nil {
+		active := int(schema.ChatSessionActive)
+		if n, err := store.Database.CountChatSessions(ctx, store.ListChatSessionsOptions{State: &active}); err == nil {
+			d.ActiveSessions = n
+		}
 		if client, ok := store.Database.GetDB().(*store.Client); ok && client != nil {
-			ps := store.NewPipelineStore(client)
 			since7d := time.Now().Add(-7 * 24 * time.Hour)
+			ps := store.NewPipelineStore(client)
 			if stats, err := ps.PipelineStats(ctx, "", since7d, "day"); err == nil && stats != nil {
 				d.PipelineTotal = stats.Summary.TotalPipelines
 				d.PipelineOK = stats.Summary.SuccessfulRuns
 				d.PipelineFailed = stats.Summary.FailedRuns
+			}
+			ws := store.NewWorkflowStore(client)
+			if stats, err := ws.WorkflowStats(ctx, "", since7d, "day"); err == nil && stats != nil {
+				d.WorkflowTotal = stats.Summary.TotalWorkflows
+				d.WorkflowOK = stats.Summary.SuccessfulRuns
+				d.WorkflowFailed = stats.Summary.FailedRuns
 			}
 			es := store.NewEventStore(client)
 			since24h := time.Now().Add(-24 * time.Hour)
@@ -78,36 +76,27 @@ func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 		}
 	}
 
-	apps := homelab.DefaultRegistry.List()
-	d.HubAppsTotal = len(apps)
-	for _, a := range apps {
-		if a.Status == homelab.AppStatusRunning {
-			d.HubAppsRunning++
-		}
-	}
-
-	d.PendingApprovals = chatAgentService().CountPendingApprovalSessions()
 	d.Checklist = buildHomeChecklist(ctx, d)
 	return d
 }
 
 func buildHomeChecklist(ctx context.Context, d partials.HomeDashboard) []partials.HomeChecklistItem {
 	hasPipelines := d.PipelineTotal > 0
-	hasHub := d.HubAppsTotal > 0
-	hasAgentsReady := false
-	if store.Database != nil {
+	hasWorkflows := d.WorkflowTotal > 0
+	hasAgentsReady := d.ActiveSessions > 0
+	if !hasAgentsReady && store.Database != nil {
 		if skills, err := store.Database.ListAgentSkills(ctx, false); err == nil && len(skills) > 0 {
 			hasAgentsReady = true
 		}
 	}
 	items := []partials.HomeChecklistItem{
 		{
-			Done:   hasHub,
-			Title:  "Connect Hub apps",
-			Detail: "Start or register integrations this instance will orchestrate.",
-			Href:   "/service/web/hub",
-			CTA:    "Open Hub",
-			TestID: "home-check-hub",
+			Done:   hasWorkflows,
+			Title:  "Create a workflow",
+			Detail: "Define multi-step automation with triggers and tasks.",
+			Href:   "/service/web/workflows",
+			CTA:    "Open Workflows",
+			TestID: "home-check-workflows",
 		},
 		{
 			Done:   hasPipelines,

@@ -28,6 +28,13 @@ func (s *testStore) ListChatSessions(_ context.Context, opts store.ListChatSessi
 	return page, cursor, nil
 }
 
+func (s *testStore) CountChatSessions(_ context.Context, opts store.ListChatSessionsOptions) (int, error) {
+	if s.chatSessionsErr != nil {
+		return 0, s.chatSessionsErr
+	}
+	return len(filterWebTestChatSessions(s.chatSessions, opts)), nil
+}
+
 func listWebTestChatSessions(sessions []*gen.ChatSession, opts store.ListChatSessionsOptions) ([]*gen.ChatSession, string) {
 	limit := opts.Limit
 	if limit <= 0 || limit > 100 {

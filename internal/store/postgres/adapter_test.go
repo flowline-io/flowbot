@@ -695,6 +695,48 @@ func TestListChatSessions(t *testing.T) {
 	}
 }
 
+func TestCountChatSessions(t *testing.T) {
+	t.Parallel()
+	now := time.Now().UTC()
+	a := testAdapter(t)
+	require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+		Flag: "count-active", UID: "user:count", State: int(schema.ChatSessionActive),
+		CreatedAt: now, UpdatedAt: now,
+	}))
+	require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+		Flag: "count-closed", UID: "user:count", State: int(schema.ChatSessionClosed),
+		CreatedAt: now, UpdatedAt: now,
+	}))
+	require.NoError(t, a.CreateChatSession(context.Background(), &gen.ChatSession{
+		Flag: "count-other", UID: "user:other", State: int(schema.ChatSessionActive),
+		CreatedAt: now, UpdatedAt: now,
+	}))
+
+	tests := []struct {
+		name    string
+		opts    store.ListChatSessionsOptions
+		want    int
+	}{
+		{name: "all sessions", opts: store.ListChatSessionsOptions{}, want: 3},
+		{
+			name: "active only",
+			opts: func() store.ListChatSessionsOptions {
+				active := int(schema.ChatSessionActive)
+				return store.ListChatSessionsOptions{State: &active}
+			}(),
+			want: 2,
+		},
+		{name: "by uid", opts: store.ListChatSessionsOptions{UID: "user:count"}, want: 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := a.CountChatSessions(context.Background(), tt.opts)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestUpdateChatSessionTitle(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
