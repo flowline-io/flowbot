@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -18,6 +19,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
 const Name = "web"
@@ -58,6 +60,24 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 		return err
 	}
 	config.Auth.BruteForce.applyDefaults()
+
+	keyDir := config.Auth.EncryptionDir
+	if keyDir == "" {
+		keyDir = "."
+	}
+	enc, fromFile, created, err := webauth.LoadEncryptor(config.Auth.EncryptionKey, keyDir)
+	if err != nil {
+		return fmt.Errorf("web auth encryption key: %w", err)
+	}
+	if fromFile {
+		if created {
+			flog.Warn("web auth: generated encryption key file under %s (prefer modules.web.auth.encryption_key via env)", keyDir)
+		} else {
+			flog.Warn("web auth: using encryption key file under %s (prefer modules.web.auth.encryption_key via env)", keyDir)
+		}
+	}
+	setWebEncryptor(enc)
+
 	handler.initialized = true
 	handler.authConfig = config.Auth
 	wireLoginRateLimiter()
@@ -69,11 +89,20 @@ func (moduleHandler) IsReady() bool {
 	return handler.initialized
 }
 
-// Bootstrap performs post-initialization setup.
+// Bootstrap performs post-initialization setup including YAML→DB credential migration.
 func (moduleHandler) Bootstrap() error {
 	if !handler.initialized {
 		return nil
 	}
+	if err := migrateYAMLCredentials(); err != nil {
+		return err
+	}
+	if n, err := store.WebAccountStoreFromDB().RevokeLegacyWebSessions(context.Background()); err != nil {
+		flog.Error(fmt.Errorf("web auth: revoke legacy sessions: %w", err))
+	} else if n > 0 {
+		flog.Info("web auth: revoked %d legacy or pending web session(s); re-login required", n)
+	}
+	warnResidualYAMLAuth()
 	if store.Database != nil && store.Database.GetDB() != nil {
 		if client, ok := store.Database.GetDB().(*store.Client); ok {
 			es := store.NewEventStore(client)
@@ -87,6 +116,50 @@ func (moduleHandler) Bootstrap() error {
 		}
 	}
 	return nil
+}
+
+func migrateYAMLCredentials() error {
+	ws := store.WebAccountStoreFromDB()
+	n, err := ws.Count(context.Background())
+	if err != nil {
+		flog.Debug("web auth: skip yaml migration: %v", err)
+		return nil
+	}
+	if n > 0 {
+		return nil
+	}
+	cfg := config.Auth
+	if strings.TrimSpace(cfg.Username) == "" || (cfg.Password == "" && cfg.PasswordHash == "") {
+		flog.Info("web auth: no accounts in database; use /service/web/setup to create the first admin")
+		return nil
+	}
+	hash, err := yamlMigrationHash(cfg)
+	if err != nil {
+		return fmt.Errorf("web auth migrate: %w", err)
+	}
+	if _, err := ws.CreateFirstAccount(context.Background(), store.CreateAccountInput{
+		Username:     cfg.Username,
+		PasswordHash: hash,
+	}); err != nil {
+		return fmt.Errorf("web auth migrate: %w", err)
+	}
+	flog.Info("web auth: migrated YAML credentials for user %q into database; remove password from flowbot.yaml", cfg.Username)
+	return nil
+}
+
+func warnResidualYAMLAuth() {
+	ws := store.WebAccountStoreFromDB()
+	n, err := ws.Count(context.Background())
+	if err != nil || n == 0 {
+		return
+	}
+	cfg := config.Auth
+	if cfg.Password != "" {
+		flog.Warn("web auth: modules.web.auth.password is still set in config but accounts live in the database; remove the plaintext password")
+	}
+	if cfg.PasswordHash != "" {
+		flog.Warn("web auth: modules.web.auth.password_hash is still set in config but accounts live in the database; remove it after migration")
+	}
 }
 
 // Webservice mounts web module routes on the fiber app.

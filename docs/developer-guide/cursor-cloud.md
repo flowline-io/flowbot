@@ -35,7 +35,7 @@ Non-obvious validation gotchas (see `pkg/config/config.go` tags / `validate.go`)
 
 ## Run / build / lint / test
 
-- Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (creds from `modules.web.auth`; reference config uses `admin` / `flowbot-dev-pass`, or set `password_hash`).
+- Run dev server: `go tool task run` (uses `go run -tags swagger ./cmd`). Health: `/livez`, `/readyz`. Web UI: `/service/web/login` (credentials live in the `web_accounts` database after first setup or YAML migration; use `/service/web/setup` when no account exists).
 - Lint (`go tool task lint`) includes a JS step (`oxlint ./public`); `oxlint` is installed globally via npm. If missing, run `npm install -g oxlint` (npm prefix must point inside the nvm node dir, e.g. `npm config set prefix "$HOME/.nvm/versions/node/v22.22.2"`, and that bin dir must be on PATH).
 - Unit tests (`go tool task test`) pass without Docker and use the running Redis.
 - `go tool task test:specs` (BDD) needs Docker/testcontainers, which is NOT installed here; install Docker first if you must run them. Without Docker, run unit tests and explicitly state that specs were not run.

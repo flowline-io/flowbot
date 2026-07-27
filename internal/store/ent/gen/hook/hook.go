@@ -825,6 +825,18 @@ func (f UserFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error)
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.UserMutation", m)
 }
 
+// The WebAccountFunc type is an adapter to allow the use of ordinary
+// function as WebAccount mutator.
+type WebAccountFunc func(context.Context, *gen.WebAccountMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WebAccountFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.WebAccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.WebAccountMutation", m)
+}
+
 // The WorkflowFunc type is an adapter to allow the use of ordinary
 // function as Workflow mutator.
 type WorkflowFunc func(context.Context, *gen.WorkflowMutation) (gen.Value, error)

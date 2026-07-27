@@ -742,7 +742,7 @@ func setupAuthenticatedApp(t *testing.T, ts *testStore) *fiber.App {
 		return gen.Parameter{
 			ID:        1,
 			Flag:      flag,
-			Params:    map[string]any{"uid": "testuser", "topic": "test", "scopes": []string{"admin:*"}},
+			Params:    testFullWebSessionParams("testuser"),
 			ExpiredAt: time.Now().Add(time.Hour),
 		}, nil
 	}

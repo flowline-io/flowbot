@@ -18,6 +18,7 @@ import (
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
 type testStore struct {
@@ -102,11 +103,7 @@ func (s *testStore) ParameterGet(ctx context.Context, flag string) (gen.Paramete
 	return gen.Parameter{
 		ID:   1,
 		Flag: flag,
-		Params: map[string]any{
-			"uid":    "testuser",
-			"topic":  "test",
-			"scopes": []string{"admin:*"},
-		},
+		Params: testFullWebSessionParams("testuser"),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }
@@ -445,18 +442,21 @@ func ensureChatAgentServiceForTest() {
 func setupTestApp() (*fiber.App, *testStore) {
 	ensureChatAgentServiceForTest()
 	ts := &testStore{}
-	// Drain async session-summary jobs before swapping the global adapter.
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
-	// Intentionally bypasses validateAuthConfig (Init); weak creds are for login-path unit tests only.
+	secure := false
 	handler = moduleHandler{
-		authConfig: AuthConfig{Username: "admin", Password: "admin"},
+		initialized: true,
+		authConfig:  AuthConfig{CookieSecure: &secure},
 	}
 	config = configType{
 		Enabled: true,
-		Auth:    AuthConfig{Username: "admin", Password: "admin"},
+		Auth:    AuthConfig{CookieSecure: &secure},
 	}
 	loginLimiter = nil
+	totpLimiter = nil
+	enc, _, _, _ := webauth.LoadEncryptor("test-encryption-key-for-unit-tests", ".")
+	setWebEncryptor(enc)
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
@@ -469,15 +469,20 @@ func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore)
 	ts := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
+	secure := false
 	handler = moduleHandler{
-		authConfig: AuthConfig{Username: "admin", Password: "admin"},
+		initialized: true,
+		authConfig:  AuthConfig{CookieSecure: &secure},
 	}
 	config = configType{
 		Enabled: true,
-		Auth:    AuthConfig{Username: "admin", Password: "admin"},
+		Auth:    AuthConfig{CookieSecure: &secure},
 	}
 	mockStore := newMockRateLimitStore()
 	loginLimiter = newLoginRateLimiter(mockStore, 5, 10, cache.TTL(15*time.Minute), cache.TTL(15*time.Minute))
+	totpLimiter = newLoginRateLimiter(mockStore, 3, 10, cache.TTL(15*time.Minute), cache.TTL(15*time.Minute))
+	enc, _, _, _ := webauth.LoadEncryptor("test-encryption-key-for-unit-tests", ".")
+	setWebEncryptor(enc)
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
@@ -485,8 +490,7 @@ func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore)
 }
 
 // setupTestAppWithDB creates a Fiber test app wired with an in-memory SQLite
-// database for tests that need real PageDataStore operations (view handlers).
-// Each call opens a private in-memory database identified by t.Name().
+// database for tests that need real PageDataStore / web account operations.
 func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	t.Helper()
 	ensureChatAgentServiceForTest()
@@ -497,17 +501,70 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	ts := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
+	secure := false
 	handler = moduleHandler{
-		authConfig: AuthConfig{Username: "admin", Password: "admin"},
+		initialized: true,
+		authConfig:  AuthConfig{CookieSecure: &secure},
 	}
 	config = configType{
 		Enabled: true,
-		Auth:    AuthConfig{Username: "admin", Password: "admin"},
+		Auth:    AuthConfig{CookieSecure: &secure},
 	}
+	loginLimiter = nil
+	totpLimiter = nil
+	enc, _, _, err := webauth.LoadEncryptor("test-encryption-key-for-unit-tests", t.TempDir())
+	if err != nil {
+		t.Fatalf("encryptor: %v", err)
+	}
+	setWebEncryptor(enc)
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
 	return app, ts, dbClient
+}
+
+func seedWebAccount(t *testing.T, client *store.Client, username, password string, totpEnabled bool) {
+	t.Helper()
+	hash, err := webauth.HashPassword(password)
+	if err != nil {
+		t.Fatalf("hash password: %v", err)
+	}
+	ws := store.NewWebAccountStore(client)
+	_, err = ws.CreateFirstAccount(context.Background(), store.CreateAccountInput{
+		Username:     username,
+		PasswordHash: hash,
+	})
+	if err != nil {
+		t.Fatalf("create account: %v", err)
+	}
+	if !totpEnabled {
+		return
+	}
+	enc := getEncryptor()
+	secret, err := webauth.GenerateTOTPSecret()
+	if err != nil {
+		t.Fatalf("totp secret: %v", err)
+	}
+	ct, nonce, err := enc.Encrypt([]byte(secret))
+	if err != nil {
+		t.Fatalf("encrypt: %v", err)
+	}
+	_, hashes, err := enc.GenerateBackupCodes(2)
+	if err != nil {
+		t.Fatalf("backup codes: %v", err)
+	}
+	if err := ws.EnableTOTP(context.Background(), username, ct, nonce, hashes, 0); err != nil {
+		t.Fatalf("enable totp: %v", err)
+	}
+}
+
+func testFullWebSessionParams(uid string) map[string]any {
+	return map[string]any{
+		"uid":    uid,
+		"topic":  "web",
+		"kind":   webauth.KindFull,
+		"scopes": []string{"admin:*"},
+	}
 }
 
 func createTestConfig(uid, topic, key string) model.ConfigItem {

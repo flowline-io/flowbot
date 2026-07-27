@@ -82,6 +82,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/webaccount"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
@@ -230,6 +231,8 @@ type Client struct {
 	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// WebAccount is the client for interacting with the WebAccount builders.
+	WebAccount *WebAccountClient
 	// Workflow is the client for interacting with the Workflow builders.
 	Workflow *WorkflowClient
 	// WorkflowRun is the client for interacting with the WorkflowRun builders.
@@ -319,6 +322,7 @@ func (c *Client) init() {
 	c.Topic = NewTopicClient(c.config)
 	c.Url = NewURLClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.WebAccount = NewWebAccountClient(c.config)
 	c.Workflow = NewWorkflowClient(c.config)
 	c.WorkflowRun = NewWorkflowRunClient(c.config)
 	c.WorkflowStepRun = NewWorkflowStepRunClient(c.config)
@@ -484,6 +488,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Topic:                     NewTopicClient(cfg),
 		Url:                       NewURLClient(cfg),
 		User:                      NewUserClient(cfg),
+		WebAccount:                NewWebAccountClient(cfg),
 		Workflow:                  NewWorkflowClient(cfg),
 		WorkflowRun:               NewWorkflowRunClient(cfg),
 		WorkflowStepRun:           NewWorkflowStepRunClient(cfg),
@@ -576,6 +581,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Topic:                     NewTopicClient(cfg),
 		Url:                       NewURLClient(cfg),
 		User:                      NewUserClient(cfg),
+		WebAccount:                NewWebAccountClient(cfg),
 		Workflow:                  NewWorkflowClient(cfg),
 		WorkflowRun:               NewWorkflowRunClient(cfg),
 		WorkflowStepRun:           NewWorkflowStepRunClient(cfg),
@@ -624,8 +630,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
 		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
 		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.Workflow,
-		c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask, c.WorkflowTrigger,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
+		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
+		c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -649,8 +656,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
 		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
 		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.Workflow,
-		c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask, c.WorkflowTrigger,
+		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
+		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
+		c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -795,6 +803,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Url.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *WebAccountMutation:
+		return c.WebAccount.mutate(ctx, m)
 	case *WorkflowMutation:
 		return c.Workflow.mutate(ctx, m)
 	case *WorkflowRunMutation:
@@ -9854,6 +9864,139 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// WebAccountClient is a client for the WebAccount schema.
+type WebAccountClient struct {
+	config
+}
+
+// NewWebAccountClient returns a client for the WebAccount from the given config.
+func NewWebAccountClient(c config) *WebAccountClient {
+	return &WebAccountClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `webaccount.Hooks(f(g(h())))`.
+func (c *WebAccountClient) Use(hooks ...Hook) {
+	c.hooks.WebAccount = append(c.hooks.WebAccount, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `webaccount.Intercept(f(g(h())))`.
+func (c *WebAccountClient) Intercept(interceptors ...Interceptor) {
+	c.inters.WebAccount = append(c.inters.WebAccount, interceptors...)
+}
+
+// Create returns a builder for creating a WebAccount entity.
+func (c *WebAccountClient) Create() *WebAccountCreate {
+	mutation := newWebAccountMutation(c.config, OpCreate)
+	return &WebAccountCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of WebAccount entities.
+func (c *WebAccountClient) CreateBulk(builders ...*WebAccountCreate) *WebAccountCreateBulk {
+	return &WebAccountCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WebAccountClient) MapCreateBulk(slice any, setFunc func(*WebAccountCreate, int)) *WebAccountCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WebAccountCreateBulk{err: fmt.Errorf("calling to WebAccountClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WebAccountCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &WebAccountCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for WebAccount.
+func (c *WebAccountClient) Update() *WebAccountUpdate {
+	mutation := newWebAccountMutation(c.config, OpUpdate)
+	return &WebAccountUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WebAccountClient) UpdateOne(_m *WebAccount) *WebAccountUpdateOne {
+	mutation := newWebAccountMutation(c.config, OpUpdateOne, withWebAccount(_m))
+	return &WebAccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WebAccountClient) UpdateOneID(id int64) *WebAccountUpdateOne {
+	mutation := newWebAccountMutation(c.config, OpUpdateOne, withWebAccountID(id))
+	return &WebAccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WebAccount.
+func (c *WebAccountClient) Delete() *WebAccountDelete {
+	mutation := newWebAccountMutation(c.config, OpDelete)
+	return &WebAccountDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *WebAccountClient) DeleteOne(_m *WebAccount) *WebAccountDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *WebAccountClient) DeleteOneID(id int64) *WebAccountDeleteOne {
+	builder := c.Delete().Where(webaccount.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WebAccountDeleteOne{builder}
+}
+
+// Query returns a query builder for WebAccount.
+func (c *WebAccountClient) Query() *WebAccountQuery {
+	return &WebAccountQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeWebAccount},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a WebAccount entity by its id.
+func (c *WebAccountClient) Get(ctx context.Context, id int64) (*WebAccount, error) {
+	return c.Query().Where(webaccount.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WebAccountClient) GetX(ctx context.Context, id int64) *WebAccount {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *WebAccountClient) Hooks() []Hook {
+	return c.hooks.WebAccount
+}
+
+// Interceptors returns the client interceptors.
+func (c *WebAccountClient) Interceptors() []Interceptor {
+	return c.inters.WebAccount
+}
+
+func (c *WebAccountClient) mutate(ctx context.Context, m *WebAccountMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WebAccountCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WebAccountUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WebAccountUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WebAccountDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown WebAccount mutation op: %q", m.Op())
+	}
+}
+
 // WorkflowClient is a client for the Workflow schema.
 type WorkflowClient struct {
 	config
@@ -10534,8 +10677,8 @@ type (
 		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
 		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
 		PlatformChannel, PlatformChannelUser, PlatformUser, PollingState, ResourceLink,
-		Topic, Url, User, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
-		WorkflowTrigger []ent.Hook
+		Topic, Url, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
+		WorkflowTask, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
@@ -10550,7 +10693,7 @@ type (
 		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
 		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
 		PlatformChannel, PlatformChannelUser, PlatformUser, PollingState, ResourceLink,
-		Topic, Url, User, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
-		WorkflowTrigger []ent.Interceptor
+		Topic, Url, User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun,
+		WorkflowTask, WorkflowTrigger []ent.Interceptor
 	}
 )

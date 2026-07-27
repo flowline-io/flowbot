@@ -21,6 +21,7 @@ flowbot-agent.yaml
 flowbot-agent.json
 flowbot-app.yaml
 flowbot-app.json
+web_auth_encryption.key
 /rules/
 /rules_bak/
 pipelines.yaml

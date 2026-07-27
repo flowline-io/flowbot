@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
 const (
@@ -135,9 +136,9 @@ func csrfMiddleware(ctx fiber.Ctx) error {
 		}
 		return ctx.Next()
 	}
-	hasSession := ctx.Cookies("accessToken") != ""
-	isLoginPost := ctx.Method() == http.MethodPost && strings.HasSuffix(path, "/login")
-	if !hasSession && !isLoginPost {
+	hasSession := ctx.Cookies(webauth.CookieAccessToken) != "" || ctx.Cookies(webauth.CookiePending) != ""
+	isAuthPost := ctx.Method() == http.MethodPost && isWebAuthMutationPath(path)
+	if !hasSession && !isAuthPost {
 		return ctx.Next()
 	}
 	cookieTok := ctx.Cookies(csrfCookieName)
@@ -146,6 +147,21 @@ func csrfMiddleware(ctx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusForbidden, "invalid CSRF token")
 	}
 	return ctx.Next()
+}
+
+func isWebAuthMutationPath(path string) bool {
+	switch {
+	case strings.HasSuffix(path, "/login"),
+		strings.HasSuffix(path, "/login/2fa"),
+		strings.HasSuffix(path, "/setup"),
+		strings.HasSuffix(path, "/setup/2fa"),
+		strings.HasSuffix(path, "/setup/backup-codes/ack"),
+		strings.HasSuffix(path, "/account/password"),
+		strings.HasSuffix(path, "/account/backup-codes"):
+		return true
+	default:
+		return false
+	}
 }
 
 // csrfTokenJSON returns the current CSRF token as JSON and ensures the cookie is set.

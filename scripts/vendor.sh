@@ -9,6 +9,7 @@ HTMX_VERSION=2.0.4
 ALPINE_VERSION=3.15.12
 JS_YAML_VERSION=4.1.0
 DAISYUI_VERSION=5.0.9
+QRCODEJS_VERSION=1.0.0
 
 VENDOR_DIR=public/vendor
 mkdir -p "$VENDOR_DIR"
@@ -30,6 +31,9 @@ curl -sL "https://cdn.jsdelivr.net/npm/daisyui@${DAISYUI_VERSION}/daisyui.css" -
 
 echo "Downloading DaisyUI ${DAISYUI_VERSION} themes CSS..."
 curl -sL "https://cdn.jsdelivr.net/npm/daisyui@${DAISYUI_VERSION}/themes.css" -o "${VENDOR_DIR}/themes.css"
+
+echo "Downloading qrcodejs ${QRCODEJS_VERSION}..."
+curl -sL "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/${QRCODEJS_VERSION}/qrcode.min.js" -o "${VENDOR_DIR}/qrcode.min.js"
 
 echo ""
 echo "Vendor files downloaded to ${VENDOR_DIR}/"

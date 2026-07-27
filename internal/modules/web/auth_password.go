@@ -1,88 +1,33 @@
 package web
 
 import (
-	"crypto/subtle"
 	"fmt"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
-// minPasswordLength is the minimum allowed length for plaintext auth.password.
-const minPasswordLength = 12
-
-// minBcryptCost is the minimum accepted bcrypt cost for auth.password_hash.
-const minBcryptCost = 10
-
-// knownWeakPasswords are rejected for plaintext password and password_hash configs.
-var knownWeakPasswords = map[string]struct{}{
-	"admin":        {},
-	"password":     {},
-	"password123":  {},
-	"password1234": {},
-	"123456":       {},
-	"12345678":     {},
-	"1234567890":   {},
-	"123456789012": {},
-	"qwerty":       {},
-	"letmein":      {},
-	"welcome":      {},
-	"changeme":     {},
-	"flowbot":      {},
-	"adminadmin":   {},
-	"adminadmin12": {},
-	"root":         {},
-	"toor":         {},
-	"passw0rd":     {},
-	"default":      {},
-}
-
-// knownWeakCredentialPairs are rejected username/password combinations.
-var knownWeakCredentialPairs = []struct {
-	username string
-	password string
-}{
-	{"admin", "admin"},
-	{"admin", "password"},
-	{"admin", "123456"},
-	{"root", "root"},
-	{"root", "password"},
-	{"user", "user"},
-	{"test", "test"},
-}
-
-// validateAuthConfig checks modules.web.auth credentials at module Init.
+// validateAuthConfig checks modules.web.auth at module Init.
+// YAML username/password are optional (used only for one-time migration); setup covers empty DB.
 func validateAuthConfig(cfg AuthConfig) error {
-	if strings.TrimSpace(cfg.Username) == "" {
-		return fmt.Errorf("web auth: username is required")
-	}
+	hasUser := strings.TrimSpace(cfg.Username) != ""
 	hasPassword := cfg.Password != ""
 	hasHash := cfg.PasswordHash != ""
-	if !hasPassword && !hasHash {
-		return fmt.Errorf("web auth: password or password_hash is required")
-	}
 	if hasPassword && hasHash {
 		return fmt.Errorf("web auth: set either password or password_hash, not both")
+	}
+	if !hasPassword && !hasHash {
+		return nil
+	}
+	if !hasUser {
+		return fmt.Errorf("web auth: username is required when password or password_hash is set")
 	}
 	if hasHash {
 		return validatePasswordHash(cfg.PasswordHash)
 	}
-	return validatePlaintextPassword(cfg.Username, cfg.Password)
-}
-
-func validatePlaintextPassword(username, password string) error {
-	for _, pair := range knownWeakCredentialPairs {
-		if username == pair.username && password == pair.password {
-			return fmt.Errorf("web auth: known weak default credentials %q/%q are not allowed", pair.username, pair.password)
-		}
-	}
-	if len(password) < minPasswordLength {
-		return fmt.Errorf("web auth: password must be at least %d characters", minPasswordLength)
-	}
-	if _, weak := knownWeakPasswords[strings.ToLower(password)]; weak {
-		return fmt.Errorf("web auth: known weak password is not allowed")
-	}
-	return nil
+	return webauth.ValidatePasswordStrength(cfg.Username, cfg.Password)
 }
 
 func validatePasswordHash(hash string) error {
@@ -93,20 +38,21 @@ func validatePasswordHash(hash string) error {
 	if err != nil {
 		return fmt.Errorf("web auth: invalid password_hash (expected bcrypt)")
 	}
-	if cost < minBcryptCost {
-		return fmt.Errorf("web auth: password_hash bcrypt cost must be at least %d", minBcryptCost)
+	if cost < webauth.MinBcryptCost {
+		return fmt.Errorf("web auth: password_hash bcrypt cost must be at least %d", webauth.MinBcryptCost)
 	}
-	// Hash length does not reveal plaintext length; empty is the only cheap length check.
 	if bcrypt.CompareHashAndPassword([]byte(hash), []byte("")) == nil {
 		return fmt.Errorf("web auth: password_hash must not match an empty password")
 	}
-	for weak := range knownWeakPasswords {
-		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(weak)) == nil {
-			return fmt.Errorf("web auth: password_hash matches a known weak password")
-		}
+	weak := []string{
+		"admin", "password", "password123", "password1234",
+		"123456", "12345678", "1234567890", "123456789012",
+		"qwerty", "letmein", "welcome", "changeme",
+		"flowbot", "adminadmin", "adminadmin12", "root",
+		"toor", "passw0rd", "default",
 	}
-	for _, pair := range knownWeakCredentialPairs {
-		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(pair.password)) == nil {
+	for _, w := range weak {
+		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(w)) == nil {
 			return fmt.Errorf("web auth: password_hash matches a known weak password")
 		}
 	}
@@ -125,20 +71,13 @@ func isBcryptHash(hash string) bool {
 	}
 }
 
-// verifyCredentials reports whether username and password match the configured credentials.
-// Password verification always runs so failed username checks do not skip the expensive compare.
-func (a AuthConfig) verifyCredentials(username, password string) bool {
-	userOK := subtle.ConstantTimeCompare([]byte(username), []byte(a.Username)) == 1
-	passOK := a.verifyPassword(password)
-	return userOK && passOK
-}
-
-// verifyPassword reports whether password matches the configured credentials.
-// When PasswordHash is set, bcrypt.CompareHashAndPassword is used.
-// Otherwise a constant-time comparison against plaintext Password is used.
-func (a AuthConfig) verifyPassword(password string) bool {
-	if a.PasswordHash != "" {
-		return bcrypt.CompareHashAndPassword([]byte(a.PasswordHash), []byte(password)) == nil
+// yamlMigrationHash returns a bcrypt hash for YAML migration credentials.
+func yamlMigrationHash(cfg AuthConfig) (string, error) {
+	if cfg.PasswordHash != "" {
+		return cfg.PasswordHash, nil
 	}
-	return subtle.ConstantTimeCompare([]byte(password), []byte(a.Password)) == 1
+	if cfg.Password == "" {
+		return "", fmt.Errorf("no yaml password")
+	}
+	return webauth.HashPassword(cfg.Password)
 }

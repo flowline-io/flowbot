@@ -1858,6 +1858,38 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// WebAccountsColumns holds the columns for the "web_accounts" table.
+	WebAccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "username", Type: field.TypeString},
+		{Name: "uid", Type: field.TypeString},
+		{Name: "password_hash", Type: field.TypeString},
+		{Name: "totp_secret_ciphertext", Type: field.TypeBytes, Nullable: true},
+		{Name: "totp_secret_nonce", Type: field.TypeBytes, Nullable: true},
+		{Name: "totp_enabled", Type: field.TypeBool, Default: false},
+		{Name: "totp_last_step", Type: field.TypeInt64, Default: 0},
+		{Name: "backup_code_hashes", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// WebAccountsTable holds the schema information for the "web_accounts" table.
+	WebAccountsTable = &schema.Table{
+		Name:       "web_accounts",
+		Columns:    WebAccountsColumns,
+		PrimaryKey: []*schema.Column{WebAccountsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "webaccount_username",
+				Unique:  true,
+				Columns: []*schema.Column{WebAccountsColumns[1]},
+			},
+			{
+				Name:    "webaccount_uid",
+				Unique:  true,
+				Columns: []*schema.Column{WebAccountsColumns[2]},
+			},
+		},
+	}
 	// WorkflowsColumns holds the columns for the "workflows" table.
 	WorkflowsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2063,6 +2095,7 @@ var (
 		TopicsTable,
 		UrlsTable,
 		UsersTable,
+		WebAccountsTable,
 		WorkflowsTable,
 		WorkflowRunsTable,
 		WorkflowStepRunsTable,
@@ -2275,6 +2308,9 @@ func init() {
 	}
 	UsersTable.Annotation = &entsql.Annotation{
 		Table: "users",
+	}
+	WebAccountsTable.Annotation = &entsql.Annotation{
+		Table: "web_accounts",
 	}
 	WorkflowsTable.Annotation = &entsql.Annotation{
 		Table: "workflows",

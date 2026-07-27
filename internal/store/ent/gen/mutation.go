@@ -80,6 +80,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/webaccount"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
@@ -165,6 +166,7 @@ const (
 	TypeTopic                     = "Topic"
 	TypeURL                       = "Url"
 	TypeUser                      = "User"
+	TypeWebAccount                = "WebAccount"
 	TypeWorkflow                  = "Workflow"
 	TypeWorkflowRun               = "WorkflowRun"
 	TypeWorkflowStepRun           = "WorkflowStepRun"
@@ -52497,6 +52499,917 @@ func (m *UserMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// WebAccountMutation represents an operation that mutates the WebAccount nodes in the graph.
+type WebAccountMutation struct {
+	config
+	op                       Op
+	typ                      string
+	id                       *int64
+	username                 *string
+	uid                      *string
+	password_hash            *string
+	totp_secret_ciphertext   *[]byte
+	totp_secret_nonce        *[]byte
+	totp_enabled             *bool
+	totp_last_step           *int64
+	addtotp_last_step        *int64
+	backup_code_hashes       *[]string
+	appendbackup_code_hashes []string
+	created_at               *time.Time
+	updated_at               *time.Time
+	clearedFields            map[string]struct{}
+	done                     bool
+	oldValue                 func(context.Context) (*WebAccount, error)
+	predicates               []predicate.WebAccount
+}
+
+var _ ent.Mutation = (*WebAccountMutation)(nil)
+
+// webaccountOption allows management of the mutation configuration using functional options.
+type webaccountOption func(*WebAccountMutation)
+
+// newWebAccountMutation creates new mutation for the WebAccount entity.
+func newWebAccountMutation(c config, op Op, opts ...webaccountOption) *WebAccountMutation {
+	m := &WebAccountMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWebAccount,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWebAccountID sets the ID field of the mutation.
+func withWebAccountID(id int64) webaccountOption {
+	return func(m *WebAccountMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *WebAccount
+		)
+		m.oldValue = func(ctx context.Context) (*WebAccount, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WebAccount.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWebAccount sets the old WebAccount of the mutation.
+func withWebAccount(node *WebAccount) webaccountOption {
+	return func(m *WebAccountMutation) {
+		m.oldValue = func(context.Context) (*WebAccount, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WebAccountMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WebAccountMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of WebAccount entities.
+func (m *WebAccountMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *WebAccountMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *WebAccountMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().WebAccount.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUsername sets the "username" field.
+func (m *WebAccountMutation) SetUsername(s string) {
+	m.username = &s
+}
+
+// Username returns the value of the "username" field in the mutation.
+func (m *WebAccountMutation) Username() (r string, exists bool) {
+	v := m.username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUsername returns the old "username" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUsername: %w", err)
+	}
+	return oldValue.Username, nil
+}
+
+// ResetUsername resets all changes to the "username" field.
+func (m *WebAccountMutation) ResetUsername() {
+	m.username = nil
+}
+
+// SetUID sets the "uid" field.
+func (m *WebAccountMutation) SetUID(s string) {
+	m.uid = &s
+}
+
+// UID returns the value of the "uid" field in the mutation.
+func (m *WebAccountMutation) UID() (r string, exists bool) {
+	v := m.uid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUID returns the old "uid" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldUID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUID: %w", err)
+	}
+	return oldValue.UID, nil
+}
+
+// ResetUID resets all changes to the "uid" field.
+func (m *WebAccountMutation) ResetUID() {
+	m.uid = nil
+}
+
+// SetPasswordHash sets the "password_hash" field.
+func (m *WebAccountMutation) SetPasswordHash(s string) {
+	m.password_hash = &s
+}
+
+// PasswordHash returns the value of the "password_hash" field in the mutation.
+func (m *WebAccountMutation) PasswordHash() (r string, exists bool) {
+	v := m.password_hash
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPasswordHash returns the old "password_hash" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldPasswordHash(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPasswordHash is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPasswordHash requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPasswordHash: %w", err)
+	}
+	return oldValue.PasswordHash, nil
+}
+
+// ResetPasswordHash resets all changes to the "password_hash" field.
+func (m *WebAccountMutation) ResetPasswordHash() {
+	m.password_hash = nil
+}
+
+// SetTotpSecretCiphertext sets the "totp_secret_ciphertext" field.
+func (m *WebAccountMutation) SetTotpSecretCiphertext(b []byte) {
+	m.totp_secret_ciphertext = &b
+}
+
+// TotpSecretCiphertext returns the value of the "totp_secret_ciphertext" field in the mutation.
+func (m *WebAccountMutation) TotpSecretCiphertext() (r []byte, exists bool) {
+	v := m.totp_secret_ciphertext
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotpSecretCiphertext returns the old "totp_secret_ciphertext" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldTotpSecretCiphertext(ctx context.Context) (v *[]byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotpSecretCiphertext is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotpSecretCiphertext requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotpSecretCiphertext: %w", err)
+	}
+	return oldValue.TotpSecretCiphertext, nil
+}
+
+// ClearTotpSecretCiphertext clears the value of the "totp_secret_ciphertext" field.
+func (m *WebAccountMutation) ClearTotpSecretCiphertext() {
+	m.totp_secret_ciphertext = nil
+	m.clearedFields[webaccount.FieldTotpSecretCiphertext] = struct{}{}
+}
+
+// TotpSecretCiphertextCleared returns if the "totp_secret_ciphertext" field was cleared in this mutation.
+func (m *WebAccountMutation) TotpSecretCiphertextCleared() bool {
+	_, ok := m.clearedFields[webaccount.FieldTotpSecretCiphertext]
+	return ok
+}
+
+// ResetTotpSecretCiphertext resets all changes to the "totp_secret_ciphertext" field.
+func (m *WebAccountMutation) ResetTotpSecretCiphertext() {
+	m.totp_secret_ciphertext = nil
+	delete(m.clearedFields, webaccount.FieldTotpSecretCiphertext)
+}
+
+// SetTotpSecretNonce sets the "totp_secret_nonce" field.
+func (m *WebAccountMutation) SetTotpSecretNonce(b []byte) {
+	m.totp_secret_nonce = &b
+}
+
+// TotpSecretNonce returns the value of the "totp_secret_nonce" field in the mutation.
+func (m *WebAccountMutation) TotpSecretNonce() (r []byte, exists bool) {
+	v := m.totp_secret_nonce
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotpSecretNonce returns the old "totp_secret_nonce" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldTotpSecretNonce(ctx context.Context) (v *[]byte, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotpSecretNonce is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotpSecretNonce requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotpSecretNonce: %w", err)
+	}
+	return oldValue.TotpSecretNonce, nil
+}
+
+// ClearTotpSecretNonce clears the value of the "totp_secret_nonce" field.
+func (m *WebAccountMutation) ClearTotpSecretNonce() {
+	m.totp_secret_nonce = nil
+	m.clearedFields[webaccount.FieldTotpSecretNonce] = struct{}{}
+}
+
+// TotpSecretNonceCleared returns if the "totp_secret_nonce" field was cleared in this mutation.
+func (m *WebAccountMutation) TotpSecretNonceCleared() bool {
+	_, ok := m.clearedFields[webaccount.FieldTotpSecretNonce]
+	return ok
+}
+
+// ResetTotpSecretNonce resets all changes to the "totp_secret_nonce" field.
+func (m *WebAccountMutation) ResetTotpSecretNonce() {
+	m.totp_secret_nonce = nil
+	delete(m.clearedFields, webaccount.FieldTotpSecretNonce)
+}
+
+// SetTotpEnabled sets the "totp_enabled" field.
+func (m *WebAccountMutation) SetTotpEnabled(b bool) {
+	m.totp_enabled = &b
+}
+
+// TotpEnabled returns the value of the "totp_enabled" field in the mutation.
+func (m *WebAccountMutation) TotpEnabled() (r bool, exists bool) {
+	v := m.totp_enabled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotpEnabled returns the old "totp_enabled" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldTotpEnabled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotpEnabled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotpEnabled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotpEnabled: %w", err)
+	}
+	return oldValue.TotpEnabled, nil
+}
+
+// ResetTotpEnabled resets all changes to the "totp_enabled" field.
+func (m *WebAccountMutation) ResetTotpEnabled() {
+	m.totp_enabled = nil
+}
+
+// SetTotpLastStep sets the "totp_last_step" field.
+func (m *WebAccountMutation) SetTotpLastStep(i int64) {
+	m.totp_last_step = &i
+	m.addtotp_last_step = nil
+}
+
+// TotpLastStep returns the value of the "totp_last_step" field in the mutation.
+func (m *WebAccountMutation) TotpLastStep() (r int64, exists bool) {
+	v := m.totp_last_step
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotpLastStep returns the old "totp_last_step" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldTotpLastStep(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotpLastStep is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotpLastStep requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotpLastStep: %w", err)
+	}
+	return oldValue.TotpLastStep, nil
+}
+
+// AddTotpLastStep adds i to the "totp_last_step" field.
+func (m *WebAccountMutation) AddTotpLastStep(i int64) {
+	if m.addtotp_last_step != nil {
+		*m.addtotp_last_step += i
+	} else {
+		m.addtotp_last_step = &i
+	}
+}
+
+// AddedTotpLastStep returns the value that was added to the "totp_last_step" field in this mutation.
+func (m *WebAccountMutation) AddedTotpLastStep() (r int64, exists bool) {
+	v := m.addtotp_last_step
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotpLastStep resets all changes to the "totp_last_step" field.
+func (m *WebAccountMutation) ResetTotpLastStep() {
+	m.totp_last_step = nil
+	m.addtotp_last_step = nil
+}
+
+// SetBackupCodeHashes sets the "backup_code_hashes" field.
+func (m *WebAccountMutation) SetBackupCodeHashes(s []string) {
+	m.backup_code_hashes = &s
+	m.appendbackup_code_hashes = nil
+}
+
+// BackupCodeHashes returns the value of the "backup_code_hashes" field in the mutation.
+func (m *WebAccountMutation) BackupCodeHashes() (r []string, exists bool) {
+	v := m.backup_code_hashes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBackupCodeHashes returns the old "backup_code_hashes" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldBackupCodeHashes(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBackupCodeHashes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBackupCodeHashes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBackupCodeHashes: %w", err)
+	}
+	return oldValue.BackupCodeHashes, nil
+}
+
+// AppendBackupCodeHashes adds s to the "backup_code_hashes" field.
+func (m *WebAccountMutation) AppendBackupCodeHashes(s []string) {
+	m.appendbackup_code_hashes = append(m.appendbackup_code_hashes, s...)
+}
+
+// AppendedBackupCodeHashes returns the list of values that were appended to the "backup_code_hashes" field in this mutation.
+func (m *WebAccountMutation) AppendedBackupCodeHashes() ([]string, bool) {
+	if len(m.appendbackup_code_hashes) == 0 {
+		return nil, false
+	}
+	return m.appendbackup_code_hashes, true
+}
+
+// ResetBackupCodeHashes resets all changes to the "backup_code_hashes" field.
+func (m *WebAccountMutation) ResetBackupCodeHashes() {
+	m.backup_code_hashes = nil
+	m.appendbackup_code_hashes = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *WebAccountMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *WebAccountMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *WebAccountMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *WebAccountMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *WebAccountMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the WebAccount entity.
+// If the WebAccount object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *WebAccountMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *WebAccountMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the WebAccountMutation builder.
+func (m *WebAccountMutation) Where(ps ...predicate.WebAccount) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the WebAccountMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WebAccountMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.WebAccount, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *WebAccountMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WebAccountMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (WebAccount).
+func (m *WebAccountMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *WebAccountMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.username != nil {
+		fields = append(fields, webaccount.FieldUsername)
+	}
+	if m.uid != nil {
+		fields = append(fields, webaccount.FieldUID)
+	}
+	if m.password_hash != nil {
+		fields = append(fields, webaccount.FieldPasswordHash)
+	}
+	if m.totp_secret_ciphertext != nil {
+		fields = append(fields, webaccount.FieldTotpSecretCiphertext)
+	}
+	if m.totp_secret_nonce != nil {
+		fields = append(fields, webaccount.FieldTotpSecretNonce)
+	}
+	if m.totp_enabled != nil {
+		fields = append(fields, webaccount.FieldTotpEnabled)
+	}
+	if m.totp_last_step != nil {
+		fields = append(fields, webaccount.FieldTotpLastStep)
+	}
+	if m.backup_code_hashes != nil {
+		fields = append(fields, webaccount.FieldBackupCodeHashes)
+	}
+	if m.created_at != nil {
+		fields = append(fields, webaccount.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, webaccount.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *WebAccountMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case webaccount.FieldUsername:
+		return m.Username()
+	case webaccount.FieldUID:
+		return m.UID()
+	case webaccount.FieldPasswordHash:
+		return m.PasswordHash()
+	case webaccount.FieldTotpSecretCiphertext:
+		return m.TotpSecretCiphertext()
+	case webaccount.FieldTotpSecretNonce:
+		return m.TotpSecretNonce()
+	case webaccount.FieldTotpEnabled:
+		return m.TotpEnabled()
+	case webaccount.FieldTotpLastStep:
+		return m.TotpLastStep()
+	case webaccount.FieldBackupCodeHashes:
+		return m.BackupCodeHashes()
+	case webaccount.FieldCreatedAt:
+		return m.CreatedAt()
+	case webaccount.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *WebAccountMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case webaccount.FieldUsername:
+		return m.OldUsername(ctx)
+	case webaccount.FieldUID:
+		return m.OldUID(ctx)
+	case webaccount.FieldPasswordHash:
+		return m.OldPasswordHash(ctx)
+	case webaccount.FieldTotpSecretCiphertext:
+		return m.OldTotpSecretCiphertext(ctx)
+	case webaccount.FieldTotpSecretNonce:
+		return m.OldTotpSecretNonce(ctx)
+	case webaccount.FieldTotpEnabled:
+		return m.OldTotpEnabled(ctx)
+	case webaccount.FieldTotpLastStep:
+		return m.OldTotpLastStep(ctx)
+	case webaccount.FieldBackupCodeHashes:
+		return m.OldBackupCodeHashes(ctx)
+	case webaccount.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case webaccount.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown WebAccount field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WebAccountMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case webaccount.FieldUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUsername(v)
+		return nil
+	case webaccount.FieldUID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUID(v)
+		return nil
+	case webaccount.FieldPasswordHash:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPasswordHash(v)
+		return nil
+	case webaccount.FieldTotpSecretCiphertext:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotpSecretCiphertext(v)
+		return nil
+	case webaccount.FieldTotpSecretNonce:
+		v, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotpSecretNonce(v)
+		return nil
+	case webaccount.FieldTotpEnabled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotpEnabled(v)
+		return nil
+	case webaccount.FieldTotpLastStep:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotpLastStep(v)
+		return nil
+	case webaccount.FieldBackupCodeHashes:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBackupCodeHashes(v)
+		return nil
+	case webaccount.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case webaccount.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown WebAccount field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *WebAccountMutation) AddedFields() []string {
+	var fields []string
+	if m.addtotp_last_step != nil {
+		fields = append(fields, webaccount.FieldTotpLastStep)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *WebAccountMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case webaccount.FieldTotpLastStep:
+		return m.AddedTotpLastStep()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *WebAccountMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case webaccount.FieldTotpLastStep:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotpLastStep(v)
+		return nil
+	}
+	return fmt.Errorf("unknown WebAccount numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *WebAccountMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(webaccount.FieldTotpSecretCiphertext) {
+		fields = append(fields, webaccount.FieldTotpSecretCiphertext)
+	}
+	if m.FieldCleared(webaccount.FieldTotpSecretNonce) {
+		fields = append(fields, webaccount.FieldTotpSecretNonce)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *WebAccountMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WebAccountMutation) ClearField(name string) error {
+	switch name {
+	case webaccount.FieldTotpSecretCiphertext:
+		m.ClearTotpSecretCiphertext()
+		return nil
+	case webaccount.FieldTotpSecretNonce:
+		m.ClearTotpSecretNonce()
+		return nil
+	}
+	return fmt.Errorf("unknown WebAccount nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *WebAccountMutation) ResetField(name string) error {
+	switch name {
+	case webaccount.FieldUsername:
+		m.ResetUsername()
+		return nil
+	case webaccount.FieldUID:
+		m.ResetUID()
+		return nil
+	case webaccount.FieldPasswordHash:
+		m.ResetPasswordHash()
+		return nil
+	case webaccount.FieldTotpSecretCiphertext:
+		m.ResetTotpSecretCiphertext()
+		return nil
+	case webaccount.FieldTotpSecretNonce:
+		m.ResetTotpSecretNonce()
+		return nil
+	case webaccount.FieldTotpEnabled:
+		m.ResetTotpEnabled()
+		return nil
+	case webaccount.FieldTotpLastStep:
+		m.ResetTotpLastStep()
+		return nil
+	case webaccount.FieldBackupCodeHashes:
+		m.ResetBackupCodeHashes()
+		return nil
+	case webaccount.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case webaccount.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown WebAccount field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *WebAccountMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *WebAccountMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *WebAccountMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *WebAccountMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *WebAccountMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *WebAccountMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *WebAccountMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown WebAccount unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *WebAccountMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown WebAccount edge %s", name)
 }
 
 // WorkflowMutation represents an operation that mutates the Workflow nodes in the graph.

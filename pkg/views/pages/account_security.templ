@@ -1,0 +1,153 @@
+package pages
+
+import (
+	"fmt"
+
+	"github.com/flowline-io/flowbot/pkg/views/layout"
+	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+templ AccountSecurityPage(username string, totpEnabled bool, backupRemaining int, flash string, errorMsg string, csrfToken string) {
+	@layout.Base("Account security — Flowbot") {
+		@partials.PageHeader("Account security", "Password and backup codes for web login.")
+		<div class="max-w-xl space-y-6" data-testid="account-security-page">
+			if flash != "" {
+				<div class="alert alert-success text-sm" data-testid="account-security-flash">
+					<span>{ flash }</span>
+				</div>
+			}
+			if errorMsg != "" {
+				<div class="alert alert-error text-sm" data-testid="account-security-error">
+					<span>{ errorMsg }</span>
+				</div>
+			}
+			<section class="flowbot-surface" data-testid="account-2fa-section">
+				<div class="card-body gap-3">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<h2 class="text-base font-semibold tracking-tight m-0">Two-factor authentication</h2>
+						if totpEnabled {
+							<span class="flowbot-chip flowbot-chip-success" data-testid="account-2fa-status">Enabled</span>
+						} else {
+							<span class="flowbot-chip flowbot-chip-warning" data-testid="account-2fa-status">Not enabled</span>
+						}
+					</div>
+					if totpEnabled {
+						<p class="text-sm text-base-content/60 m-0">
+							Authenticator app is bound. To reset, run
+							<code class="font-mono text-xs bg-base-200/60 px-1 py-0.5 rounded">composer admin auth reset-2fa</code>
+							on the server.
+						</p>
+					} else {
+						<p class="text-sm text-base-content/60 m-0">Complete TOTP setup before using backup codes.</p>
+					}
+				</div>
+			</section>
+			<section class="flowbot-surface">
+				<div class="card-body gap-4">
+					<div>
+						<h2 class="text-base font-semibold tracking-tight m-0">Password</h2>
+						<p class="text-sm text-base-content/60 mt-1 mb-0">
+							Signed in as <strong data-testid="account-username">{ username }</strong>.
+						</p>
+					</div>
+					<form method="post" action="/service/web/account/password"
+						data-testid="change-password-form"
+						class="space-y-4">
+						<input type="hidden" name="csrf_token" value={ csrfToken }/>
+						<div class="form-control">
+							<label class="label py-0" for="current_password">
+								<span class="label-text">Current password</span>
+							</label>
+							<input type="password" id="current_password" name="current_password" required
+								data-testid="current-password" class="input input-bordered input-sm w-full"/>
+						</div>
+						<div class="form-control">
+							<label class="label py-0" for="new_password">
+								<span class="label-text">New password</span>
+							</label>
+							<input type="password" id="new_password" name="new_password" required minlength="12"
+								data-testid="new-password" class="input input-bordered input-sm w-full"/>
+						</div>
+						<div>
+							<button type="submit" class="btn btn-primary btn-sm" data-testid="change-password-submit">Update password</button>
+						</div>
+					</form>
+				</div>
+			</section>
+			<section class="flowbot-surface">
+				<div class="card-body gap-4">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<h2 class="text-base font-semibold tracking-tight m-0">Backup codes</h2>
+						<span class={ backupRemainingChipClass(backupRemaining) } data-testid="backup-remaining">
+							{ backupRemainingChipLabel(backupRemaining) }
+						</span>
+					</div>
+					<p class="text-sm text-base-content/60 m-0">One-time codes if you lose access to your authenticator.</p>
+					<form method="post" action="/service/web/account/backup-codes"
+						data-testid="regen-backup-form" class="space-y-4">
+						<input type="hidden" name="csrf_token" value={ csrfToken }/>
+						<div class="form-control">
+							<label class="label py-0" for="confirm_password">
+								<span class="label-text">Confirm with password</span>
+							</label>
+							<input type="password" id="confirm_password" name="password" required
+								data-testid="regen-password" class="input input-bordered input-sm w-full"
+								disabled?={ !totpEnabled }/>
+						</div>
+						<div>
+							<button type="submit"
+								class="btn btn-outline btn-sm"
+								data-testid="regen-backup-submit"
+								disabled?={ !totpEnabled }
+								data-confirm="This invalidates all existing backup codes. Continue?"
+								data-confirm-title="Regenerate backup codes"
+								data-confirm-btn="Regenerate"
+								data-confirm-class="btn-warning">
+								Regenerate backup codes
+							</button>
+						</div>
+					</form>
+				</div>
+			</section>
+		</div>
+	}
+}
+
+templ RegeneratedBackupCodesPage(codes []string) {
+	@layout.Base("Backup codes — Flowbot") {
+		@partials.PageHeader("New backup codes", "Store these one-time codes somewhere safe. They will not be shown again.")
+		<div class="max-w-xl space-y-6" data-testid="regen-backup-codes-page">
+			<div class="flowbot-surface">
+				<div class="card-body">
+					<ul class="font-mono text-sm space-y-1 m-0 list-none p-0" data-testid="backup-codes-list">
+						for _, c := range codes {
+							<li>{ c }</li>
+						}
+					</ul>
+				</div>
+			</div>
+			<a href="/service/web/account" class="btn btn-primary btn-sm" data-testid="backup-codes-done">Back to account security</a>
+		</div>
+	}
+}
+
+func backupRemainingChipLabel(n int) string {
+	if n == 0 {
+		return "None remaining"
+	}
+	if n == 1 {
+		return "1 remaining"
+	}
+	return fmt.Sprintf("%d remaining", n)
+}
+
+func backupRemainingChipClass(n int) string {
+	switch {
+	case n == 0:
+		return "flowbot-chip flowbot-chip-error"
+	case n <= 3:
+		return "flowbot-chip flowbot-chip-warning"
+	default:
+		return "flowbot-chip flowbot-chip-muted"
+	}
+}

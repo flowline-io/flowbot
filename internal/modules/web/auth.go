@@ -12,16 +12,19 @@ import (
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
-// AuthConfig holds web login authentication credentials read from the module config.
-// Configure either Password (development plaintext) or PasswordHash (bcrypt, production).
+// AuthConfig holds web login authentication settings.
+// Username/Password/PasswordHash are migration-only after accounts exist in the database.
 type AuthConfig struct {
-	Username     string           `json:"username"`
-	Password     string           `json:"password"`
-	PasswordHash string           `json:"password_hash"`
-	CookieSecure *bool            `json:"cookie_secure"`
-	BruteForce   BruteForceConfig `json:"brute_force"`
+	Username       string           `json:"username"`
+	Password       string           `json:"password"`
+	PasswordHash   string           `json:"password_hash"`
+	EncryptionKey  string           `json:"encryption_key"`
+	EncryptionDir  string           `json:"encryption_key_dir"`
+	CookieSecure   *bool            `json:"cookie_secure"`
+	BruteForce     BruteForceConfig `json:"brute_force"`
 }
 
 // cookieSecureEnabled reports whether the accessToken cookie should set Secure.
@@ -106,6 +109,7 @@ func wireLoginRateLimiter() {
 		windowTTL = 15 * time.Minute
 	}
 	loginLimiter = newLoginRateLimiter(loginLimiterStore, bf.MaxAttempts, bf.LockoutAttempts, cache.TTL(windowTTL), cache.TTL(lockoutTTL))
+	wireTOTPRateLimiter()
 }
 
 // authConfig returns the parsed authentication configuration.
@@ -117,7 +121,7 @@ func isAuthenticated(ctx fiber.Ctx) bool {
 	if route.GetRequestContext(ctx) != nil {
 		return true
 	}
-	token := ctx.Cookies("accessToken")
+	token := ctx.Cookies(webauth.CookieAccessToken)
 	if token == "" {
 		return false
 	}
@@ -126,6 +130,10 @@ func isAuthenticated(ctx fiber.Ctx) bool {
 		return false
 	}
 	paramKV := types.KV(p.Params)
+	kind, _ := paramKV.String("kind")
+	if kind != webauth.KindFull {
+		return false
+	}
 	uidStr, _ := paramKV.String("uid")
 	uid := types.Uid(uidStr)
 	if uid.IsZero() {

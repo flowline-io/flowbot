@@ -148,6 +148,8 @@ type Tx struct {
 	Url *URLClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// WebAccount is the client for interacting with the WebAccount builders.
+	WebAccount *WebAccountClient
 	// Workflow is the client for interacting with the Workflow builders.
 	Workflow *WorkflowClient
 	// WorkflowRun is the client for interacting with the WorkflowRun builders.
@@ -357,6 +359,7 @@ func (tx *Tx) init() {
 	tx.Topic = NewTopicClient(tx.config)
 	tx.Url = NewURLClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.WebAccount = NewWebAccountClient(tx.config)
 	tx.Workflow = NewWorkflowClient(tx.config)
 	tx.WorkflowRun = NewWorkflowRunClient(tx.config)
 	tx.WorkflowStepRun = NewWorkflowStepRunClient(tx.config)

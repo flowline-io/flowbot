@@ -73,6 +73,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/topic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/url"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/user"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/webaccount"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflow"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowrun"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/workflowsteprun"
@@ -2093,6 +2094,42 @@ func init() {
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
+	webaccountFields := schema.WebAccount{}.Fields()
+	_ = webaccountFields
+	// webaccountDescUsername is the schema descriptor for username field.
+	webaccountDescUsername := webaccountFields[1].Descriptor()
+	// webaccount.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	webaccount.UsernameValidator = webaccountDescUsername.Validators[0].(func(string) error)
+	// webaccountDescUID is the schema descriptor for uid field.
+	webaccountDescUID := webaccountFields[2].Descriptor()
+	// webaccount.UIDValidator is a validator for the "uid" field. It is called by the builders before save.
+	webaccount.UIDValidator = webaccountDescUID.Validators[0].(func(string) error)
+	// webaccountDescPasswordHash is the schema descriptor for password_hash field.
+	webaccountDescPasswordHash := webaccountFields[3].Descriptor()
+	// webaccount.PasswordHashValidator is a validator for the "password_hash" field. It is called by the builders before save.
+	webaccount.PasswordHashValidator = webaccountDescPasswordHash.Validators[0].(func(string) error)
+	// webaccountDescTotpEnabled is the schema descriptor for totp_enabled field.
+	webaccountDescTotpEnabled := webaccountFields[6].Descriptor()
+	// webaccount.DefaultTotpEnabled holds the default value on creation for the totp_enabled field.
+	webaccount.DefaultTotpEnabled = webaccountDescTotpEnabled.Default.(bool)
+	// webaccountDescTotpLastStep is the schema descriptor for totp_last_step field.
+	webaccountDescTotpLastStep := webaccountFields[7].Descriptor()
+	// webaccount.DefaultTotpLastStep holds the default value on creation for the totp_last_step field.
+	webaccount.DefaultTotpLastStep = webaccountDescTotpLastStep.Default.(int64)
+	// webaccountDescBackupCodeHashes is the schema descriptor for backup_code_hashes field.
+	webaccountDescBackupCodeHashes := webaccountFields[8].Descriptor()
+	// webaccount.DefaultBackupCodeHashes holds the default value on creation for the backup_code_hashes field.
+	webaccount.DefaultBackupCodeHashes = webaccountDescBackupCodeHashes.Default.([]string)
+	// webaccountDescCreatedAt is the schema descriptor for created_at field.
+	webaccountDescCreatedAt := webaccountFields[9].Descriptor()
+	// webaccount.DefaultCreatedAt holds the default value on creation for the created_at field.
+	webaccount.DefaultCreatedAt = webaccountDescCreatedAt.Default.(func() time.Time)
+	// webaccountDescUpdatedAt is the schema descriptor for updated_at field.
+	webaccountDescUpdatedAt := webaccountFields[10].Descriptor()
+	// webaccount.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	webaccount.DefaultUpdatedAt = webaccountDescUpdatedAt.Default.(func() time.Time)
+	// webaccount.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	webaccount.UpdateDefaultUpdatedAt = webaccountDescUpdatedAt.UpdateDefault.(func() time.Time)
 	workflowFields := schema.Workflow{}.Fields()
 	_ = workflowFields
 	// workflowDescName is the schema descriptor for name field.

@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
 func TestCookieSecureEnabled(t *testing.T) {
@@ -236,7 +237,7 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 				return gen.Parameter{
 					ID:        1,
 					Flag:      flag,
-					Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+					Params:    map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}},
 					ExpiredAt: time.Now().Add(time.Hour),
 				}, nil
 			},
@@ -268,7 +269,7 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 				return gen.Parameter{
 					ID:        2,
 					Flag:      flag,
-					Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+					Params:    map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}},
 					ExpiredAt: time.Now().Add(-time.Hour),
 				}, nil
 			},
@@ -293,6 +294,22 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 			wantBodyContains: "",
 		},
 		{
+			name:        "legacy session without kind redirects to login",
+			cookieToken: "legacy-no-kind",
+			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
+				if flag != auth.HashToken("legacy-no-kind") {
+					return gen.Parameter{}, types.ErrNotFound
+				}
+				return gen.Parameter{
+					ID:        5,
+					Flag:      flag,
+					Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+					ExpiredAt: time.Now().Add(time.Hour),
+				}, nil
+			},
+			wantStatus: http.StatusSeeOther,
+		},
+		{
 			name:        "legacy plaintext token migrates and allows access",
 			cookieToken: "legacy-plain-token",
 			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
@@ -300,7 +317,7 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 					return gen.Parameter{
 						ID:        3,
 						Flag:      flag,
-						Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
+						Params:    map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}},
 						ExpiredAt: time.Now().Add(time.Hour),
 					}, nil
 				}

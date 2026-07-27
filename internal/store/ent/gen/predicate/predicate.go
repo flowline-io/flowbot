@@ -210,6 +210,9 @@ type Url func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
+// WebAccount is the predicate function for webaccount builders.
+type WebAccount func(*sql.Selector)
+
 // Workflow is the predicate function for workflow builders.
 type Workflow func(*sql.Selector)
 

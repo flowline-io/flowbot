@@ -21,6 +21,10 @@ String values in `flowbot.yaml` may use `${VAR}` / `$VAR` placeholders. They are
 
 Omitting `modules.web.auth.brute_force` used to disable lockout. It now **defaults to enabled**. Set `brute_force.enabled: false` to turn it off.
 
+### Semantic change: web accounts in PostgreSQL
+
+Web UI credentials live in the `web_accounts` table (not YAML for day-to-day login). On first start with an empty table, YAML `username`/`password` (or `password_hash`) are migrated once; afterward remove plaintext passwords from config. New installs with no YAML password use `/service/web/setup`. TOTP is mandatory. Prefer `modules.web.auth.encryption_key` (env) for AES-GCM of TOTP secrets; otherwise a key file is created under `encryption_key_dir` (default `.`).
+
 ## Daily minimum
 
 ```yaml
@@ -35,6 +39,7 @@ modules:
     auth:
       username: admin
       password: "flowbot-dev-pass"
+      encryption_key: "${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}"
 ```
 
 ## File Descriptions
@@ -86,6 +91,8 @@ See [examples/workflows/](../examples/workflows/) for workflow configuration exa
 | `postgres` pool / `sql_timeout` | adapter/pool.go defaults |
 | `media.max_size` / `gc_period` / `gc_block_size` | 100 MiB / 60 / 100 |
 | `modules.web.auth.cookie_secure` | true |
+| `modules.web.auth.encryption_key` | empty (generates key file; prefer env) |
+| `modules.web.auth.encryption_key_dir` | `.` |
 | `modules.web.auth.brute_force` | enabled; 5 / 10 / 15m / 15m |
 | `metrics.enabled` | false (prefer false without a metrics backend) |
 

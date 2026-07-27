@@ -1,0 +1,138 @@
+package pages
+
+import "github.com/flowline-io/flowbot/pkg/views/layout"
+
+templ Login2FAPage(nextURL string, errorMsg string, csrfToken string) {
+	@layout.Auth("Flowbot — Two-factor") {
+		@Login2FAForm(nextURL, errorMsg, csrfToken)
+	}
+}
+
+templ Login2FAForm(nextURL string, errorMsg string, csrfToken string) {
+	<form hx-post="/service/web/login/2fa"
+		hx-target="this"
+		hx-swap="outerHTML"
+		data-testid="login-2fa-form"
+		class="w-full max-w-sm border-t border-base-300 pt-6">
+		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Two-factor authentication</h1>
+		<p class="text-sm text-base-content/60 mb-5">Enter the 6-digit code from your authenticator app, or a backup code.</p>
+		<input type="hidden" name="next" value={ nextURL }/>
+		<input type="hidden" name="csrf_token" value={ csrfToken } data-testid="login-2fa-csrf"/>
+		<div class="mb-5">
+			<label for="code" class="block text-sm font-medium mb-1.5">Verification code</label>
+			<input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric"
+				required maxlength="16"
+				data-testid="login-2fa-code"
+				class="input input-bordered w-full"/>
+		</div>
+		if errorMsg != "" {
+			<p class="text-error text-sm mb-4" data-testid="login-2fa-error">{ errorMsg }</p>
+		}
+		<button type="submit" data-testid="login-2fa-submit" class="btn btn-primary w-full">Verify</button>
+	</form>
+}
+
+templ SetupPage(errorMsg string, csrfToken string) {
+	@layout.Auth("Flowbot — Setup") {
+		@SetupForm(errorMsg, csrfToken)
+	}
+}
+
+templ SetupForm(errorMsg string, csrfToken string) {
+	<form hx-post="/service/web/setup"
+		hx-target="this"
+		hx-swap="outerHTML"
+		data-testid="setup-form"
+		class="w-full max-w-sm border-t border-base-300 pt-6">
+		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Create admin account</h1>
+		<p class="text-sm text-base-content/60 mb-5">First-time setup. You will bind TOTP next.</p>
+		<input type="hidden" name="csrf_token" value={ csrfToken } data-testid="setup-csrf"/>
+		<div class="mb-4">
+			<label for="username" class="block text-sm font-medium mb-1.5">Username</label>
+			<input type="text" id="username" name="username" autocomplete="username"
+				required maxlength="128"
+				data-testid="setup-username"
+				class="input input-bordered w-full"/>
+		</div>
+		<div class="mb-5">
+			<label for="password" class="block text-sm font-medium mb-1.5">Password</label>
+			<input type="password" id="password" name="password" autocomplete="new-password"
+				required maxlength="256" minlength="12"
+				data-testid="setup-password"
+				class="input input-bordered w-full"/>
+		</div>
+		if errorMsg != "" {
+			<p class="text-error text-sm mb-4" data-testid="setup-error">{ errorMsg }</p>
+		}
+		<button type="submit" data-testid="setup-submit" class="btn btn-primary w-full">Continue</button>
+	</form>
+}
+
+templ Enroll2FAPage(secret string, otpauthURI string, errorMsg string, csrfToken string) {
+	@layout.Auth("Flowbot — Enable 2FA") {
+		<form hx-post="/service/web/setup/2fa"
+			hx-target="this"
+			hx-swap="outerHTML"
+			data-testid="enroll-2fa-form"
+			class="w-full max-w-sm border-t border-base-300 pt-6">
+			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Enable authenticator</h1>
+			<p class="text-sm text-base-content/60 mb-4">Scan the QR code with your authenticator app, then enter a code to confirm.</p>
+			<input type="hidden" name="csrf_token" value={ csrfToken }/>
+			<div class="flex justify-center mb-4">
+				<div data-testid="enroll-2fa-qr" data-otpauth-uri={ otpauthURI } class="bg-white p-2 border border-base-300 inline-block min-h-[216px] min-w-[216px]"></div>
+			</div>
+			<div class="mb-4">
+				<label class="block text-sm font-medium mb-1.5">Or enter secret manually</label>
+				<code class="block text-xs break-all bg-base-300/40 p-3 rounded" data-testid="enroll-2fa-secret">{ secret }</code>
+			</div>
+			<div class="mb-5">
+				<label for="code" class="block text-sm font-medium mb-1.5">Verification code</label>
+				<input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric"
+					required maxlength="8"
+					data-testid="enroll-2fa-code"
+					class="input input-bordered w-full"/>
+			</div>
+			if errorMsg != "" {
+				<p class="text-error text-sm mb-4" data-testid="enroll-2fa-error">{ errorMsg }</p>
+			}
+			<button type="submit" data-testid="enroll-2fa-submit" class="btn btn-primary w-full">Confirm and continue</button>
+		</form>
+		<script src="/static/vendor/qrcode.min.js"></script>
+		<script src="/static/js/totp-enroll.js"></script>
+	}
+}
+
+templ BackupCodesPage(codes []string, csrfToken string) {
+	@layout.Auth("Flowbot — Backup codes") {
+		<div class="w-full max-w-sm border-t border-base-300 pt-6" data-testid="backup-codes-page">
+			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Save backup codes</h1>
+			<p class="text-sm text-base-content/60 mb-4">Store these one-time codes somewhere safe. They will not be shown again.</p>
+			<ul class="font-mono text-sm space-y-1 mb-6 bg-base-300/40 p-3 rounded" data-testid="backup-codes-list">
+				for _, c := range codes {
+					<li>{ c }</li>
+				}
+			</ul>
+			<form method="post" action="/service/web/setup/backup-codes/ack"
+				data-testid="backup-codes-ack-form"
+				class="w-full">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
+				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">Continue to Flowbot</button>
+			</form>
+		</div>
+	}
+}
+
+templ BackupCodesAckPage(csrfToken string) {
+	@layout.Auth("Flowbot — Backup codes") {
+		<div class="w-full max-w-sm border-t border-base-300 pt-6" data-testid="backup-codes-ack-page">
+			<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Confirm backup codes saved</h1>
+			<p class="text-sm text-base-content/60 mb-6">Backup codes were already shown. Continue only after you stored them somewhere safe.</p>
+			<form method="post" action="/service/web/setup/backup-codes/ack"
+				data-testid="backup-codes-ack-form"
+				class="w-full">
+				<input type="hidden" name="csrf_token" value={ csrfToken }/>
+				<button type="submit" class="btn btn-primary w-full" data-testid="backup-codes-continue">Continue to Flowbot</button>
+			</form>
+		</div>
+	}
+}

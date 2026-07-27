@@ -43,6 +43,7 @@ func AdminCommand() *cobra.Command {
 		Short: "admin management tools",
 	}
 	cmd.AddCommand(tokenCreateCommand())
+	cmd.AddCommand(authCommand())
 	return cmd
 }
 

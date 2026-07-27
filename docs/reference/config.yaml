@@ -275,11 +275,14 @@ modules:
   - name: web
     enabled: true
     auth:
+      # One-time migration only. Prefer DB accounts + /service/web/setup on new installs.
+      # After migration, remove plaintext password from this file.
       username: admin
       # Dev plaintext example only — change before any real deployment (min 12 chars).
-      # Prefer password_hash (bcrypt cost >= 10) in production.
       password: "flowbot-dev-pass"
-      # password_hash: "$2a$10$..."
+      # Prefer encryption_key via env in production (AES-GCM for TOTP secrets).
+      # encryption_key: "${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}"
+      # encryption_key_dir: "."   # fallback key file when encryption_key unset
       # cookie_secure defaults to true; brute_force defaults to enabled (omit both).
       # brute_force:
       #   enabled: false   # set false only to disable login lockout

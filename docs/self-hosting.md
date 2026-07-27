@@ -29,11 +29,12 @@ modules:
     auth:
       enabled: true
       username: admin
-      password: ${WEB_PASSWORD}
+      password: ${WEB_PASSWORD}   # migrated into DB on first boot; remove after
+      encryption_key: ${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}
       cookie_secure: false   # set true behind HTTPS
 ```
 
-`${REDIS_PASSWORD}` and `${WEB_PASSWORD}` are expanded from the process environment (see compose `environment`).
+`${REDIS_PASSWORD}`, `${WEB_PASSWORD}`, and `${FLOWBOT_WEB_AUTH_ENCRYPTION_KEY}` are expanded from the process environment (see compose `environment`).
 
 2. Start the stack from `deployments/`:
 
@@ -42,7 +43,7 @@ cd deployments
 docker compose up -d --build
 ```
 
-3. Open `http://localhost:6060/service/web/login` (default reference username `admin`).
+3. Open `http://localhost:6060/service/web/login` (or `/service/web/setup` on a fresh DB). Complete TOTP enrollment. Do not expose the management port to the public internet before the first admin account exists.
 
 Health probes:
 
@@ -94,8 +95,10 @@ modules:
 
 ## Security baseline checklist
 
-- [ ] Use `modules.web.auth.password_hash` (bcrypt) or a strong `${WEB_PASSWORD}` — never leave weak defaults on a public host
+- [ ] Prefer `modules.web.auth.encryption_key` via env; after first boot remove plaintext `password` from YAML (accounts live in PostgreSQL)
 - [ ] Keep login brute-force protection enabled (`modules.web.auth.brute_force.enabled`, default on)
+- [ ] Do not expose `/service/web/setup` on a public network before the first account exists
+- [ ] Lost TOTP: use backup codes, or `composer admin auth reset-2fa --username … --yes` on the host
 - [ ] `cookie_secure: true` when serving HTTPS
 - [ ] Inject secrets via `${ENV}` rather than committing them to YAML
 - [ ] Restrict `/metrics` (`metrics.bearer_token` or scoped access token)

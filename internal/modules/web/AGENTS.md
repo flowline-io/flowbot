@@ -10,7 +10,7 @@ Server-rendered HTML under `/service/web/*` (HTMX + Alpine). Templates live in `
 ## Entry points
 
 - Routes: `*_webservice.go` rule slices → aggregated in `rules.go` (`allWebserviceRules`) → `module.go` registers each group.
-- Auth: cookie `authenticateWeb()`; most routes use `route.WithNotAuth()` then authenticate in-handler. CSRF double-submit (`csrfToken` / `X-CSRF-Token`); helpers in `public/js/app.js`.
+- Auth: DB `web_accounts` + cookie `authenticateWeb()`; setup/TOTP enroll; CSRF double-submit (`csrfToken` / `X-CSRF-Token`); helpers in `public/js/app.js`.
 - Chatagent SSE: `chatagent_web_stream.go`. Shared service: `chatagent_service.go` (installed by `server.ChatAgentService`).
 - Scripts order of truth: `pkg/views/partials/chatagent_scripts.templ`
   - Composer: `util → slash → chat`

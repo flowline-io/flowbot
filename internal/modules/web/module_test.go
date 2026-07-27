@@ -34,19 +34,19 @@ func TestInit(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "enabled with valid plaintext password succeeds",
-			jsonCfg: `{"enabled": true, "auth": {"username": "admin", "password": "flowbot-dev-pass"}}`,
+			name:    "enabled with empty auth allowed for setup path",
+			jsonCfg: `{"enabled": true, "auth": {"encryption_key": "unit-test-encryption-key-value"}}`,
 			wantErr: false,
 		},
 		{
-			name:    "enabled with empty auth rejected",
-			jsonCfg: `{"enabled": true}`,
+			name:    "enabled with admin/admin rejected",
+			jsonCfg: `{"enabled": true, "auth": {"username": "admin", "password": "admin", "encryption_key": "unit-test-encryption-key-value"}}`,
 			wantErr: true,
 		},
 		{
-			name:    "enabled with admin/admin rejected",
-			jsonCfg: `{"enabled": true, "auth": {"username": "admin", "password": "admin"}}`,
-			wantErr: true,
+			name:    "enabled with valid plaintext password succeeds",
+			jsonCfg: `{"enabled": true, "auth": {"username": "admin", "password": "flowbot-dev-pass", "encryption_key": "unit-test-encryption-key-value"}}`,
+			wantErr: false,
 		},
 		{
 			name:    "disabled skips initialization",
