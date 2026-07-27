@@ -154,12 +154,13 @@ func TestDetachContext(t *testing.T) {
 func TestDetachWithTimeout(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name    string
-		timeout time.Duration
+		name        string
+		timeout     time.Duration
+		expectError bool
 	}{
-		{name: "short timeout", timeout: time.Millisecond},
-		{name: "one second", timeout: time.Second},
-		{name: "ten minutes", timeout: 10 * time.Minute},
+		{name: "short timeout expires", timeout: 5 * time.Millisecond, expectError: true},
+		{name: "one second", timeout: time.Second, expectError: false},
+		{name: "ten minutes", timeout: 10 * time.Minute, expectError: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -172,6 +173,18 @@ func TestDetachWithTimeout(t *testing.T) {
 
 			detached, stop := DetachWithTimeout(ctx, tt.timeout)
 			defer stop()
+
+			if tt.expectError {
+				select {
+				case <-detached.Done():
+				case <-time.After(500 * time.Millisecond):
+					t.Fatal("timeout did not fire in time")
+				}
+				require.Error(t, detached.Err())
+				require.ErrorIs(t, detached.Err(), context.DeadlineExceeded)
+				return
+			}
+
 			cancel()
 			require.NoError(t, detached.Err())
 			assert.Equal(t, span.SpanContext().TraceID(), oteltrace.SpanFromContext(detached).SpanContext().TraceID())
