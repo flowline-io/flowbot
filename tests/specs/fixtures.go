@@ -9,7 +9,19 @@ import (
 	"strings"
 
 	. "github.com/onsi/gomega"
+
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
+
+// bddWebAuthParams builds Parameter.Params for BDD web auth stubs.
+func bddWebAuthParams(uid string, scopes []string) map[string]any {
+	return map[string]any{
+		"uid":    uid,
+		"topic":  "test",
+		"kind":   webauth.KindFull,
+		"scopes": scopes,
+	}
+}
 
 // MakeRequest creates an HTTP request for testing.
 func MakeRequest(method, path string, body []byte) *http.Request {

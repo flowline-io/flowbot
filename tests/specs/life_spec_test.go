@@ -38,11 +38,7 @@ func (a *lifeWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Param
 	return gen.Parameter{
 		ID:   1,
 		Flag: flag,
-		Params: map[string]any{
-			"uid":    a.uid,
-			"topic":  "test",
-			"scopes": a.scopes,
-		},
+		Params: bddWebAuthParams(a.uid, a.scopes),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

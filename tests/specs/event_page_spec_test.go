@@ -38,11 +38,7 @@ func (a *eventWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Para
 	return gen.Parameter{
 		ID:    1,
 		Flag:  flag,
-		Params: map[string]any{
-			"uid":    a.uid,
-			"topic":  "test",
-			"scopes": a.scopes,
-		},
+		Params: bddWebAuthParams(a.uid, a.scopes),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

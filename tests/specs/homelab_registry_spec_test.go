@@ -37,11 +37,7 @@ func (a *homelabWebAdapter) ParameterGet(_ context.Context, _ string) (gen.Param
 	return gen.Parameter{
 		ID:   1,
 		Flag: "bdd-homelab",
-		Params: map[string]any{
-			"uid":    "bdd-homelab-uid",
-			"topic":  "test",
-			"scopes": []string{"admin:*"},
-		},
+		Params: bddWebAuthParams("bdd-homelab-uid", []string{"admin:*"}),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

@@ -40,11 +40,7 @@ func (a *viewPageAdapter) ParameterGet(_ context.Context, _ string) (gen.Paramet
 	return gen.Parameter{
 		ID:   1,
 		Flag: "bdd-test",
-		Params: map[string]any{
-			"uid":    "testuser",
-			"topic":  "test",
-			"scopes": []string{"admin:*"},
-		},
+		Params: bddWebAuthParams("testuser", []string{"admin:*"}),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }
