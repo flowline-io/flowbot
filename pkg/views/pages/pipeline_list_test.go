@@ -67,6 +67,7 @@ func TestPipelineRunsPageIncludesStatsScripts(t *testing.T) {
 		{name: "chart.js", want: "/static/vendor/chart.js.min.js"},
 		{name: "pipeline-stats.js", want: "/static/js/pipeline-stats.js"},
 		{name: "stats hx loader", want: "/stats?days=30&amp;groupBy=day"},
+		{name: "list back link", want: `data-testid="pipeline-runs-list-back"`},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

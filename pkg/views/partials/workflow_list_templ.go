@@ -50,7 +50,7 @@ func WorkflowListTable(entries []WorkflowListEntry) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div id=\"workflow-list-container\" class=\"flowbot-surface\" data-testid=\"workflow-table\"><div class=\"overflow-x-auto\"><table class=\"table table-fixed w-full min-w-[56rem]\"><thead><tr><th class=\"w-[24%]\">Name</th><th class=\"w-12 text-center\">Status</th><th class=\"w-16\">Triggers</th><th class=\"w-12 text-center\">Tasks</th><th class=\"w-[18%]\" title=\"Last 7 days: success rate · P50 / P95 duration\"><span class=\"border-b border-dotted border-base-content/35 cursor-help\">Runs (7d)</span></th><th class=\"w-36\">Last Run</th><th class=\"w-40 text-right\">Actions</th></tr></thead> <tbody>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div id=\"workflow-list-container\" class=\"flowbot-surface\" data-testid=\"workflow-table\"><div class=\"overflow-x-auto\"><table class=\"table table-fixed w-full min-w-[56rem]\"><thead><tr><th class=\"w-[24%]\">Name</th><th class=\"w-12 text-center\">Status</th><th class=\"w-16\">Triggers</th><th class=\"w-12 text-center\">Tasks</th><th class=\"w-[18%]\" title=\"Last 7 days: success rate · P50 / P95 duration\"><span class=\"border-b border-dotted border-base-content/35 cursor-help\">Runs (7d)</span></th><th class=\"w-36\">Last Run</th><th class=\"w-48 text-right\">Actions</th></tr></thead> <tbody>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -373,7 +373,7 @@ func WorkflowListTable(entries []WorkflowListEntry) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\">Runs</a></div></td></tr>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\">Run History</a></div></td></tr>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

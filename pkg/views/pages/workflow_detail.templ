@@ -87,6 +87,7 @@ templ WorkflowRunsPage(name string, runs []*gen.WorkflowRun) {
 		@partials.WorkflowStatsScripts()
 		<div class="max-w-4xl mx-auto">
 			@partials.PageHeader("Run History", name) {
+				<a href="/service/web/workflows" class="btn btn-ghost btn-sm" data-testid="workflow-runs-list-back">← Workflows</a>
 				<a href={ templ.URL(partials.WorkflowWebPath(name)) }
 					class="btn btn-ghost btn-sm"
 					data-testid="workflow-runs-back">{ name }</a>

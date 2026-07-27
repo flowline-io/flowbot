@@ -157,6 +157,19 @@ func TestPipelineListUsesChipsNotBadges(t *testing.T) {
 			want:   "pipeline-triggers-with-triggers",
 			absent: "badge-success",
 		},
+		{
+			name: "run history action links to runs page",
+			entries: []partials.PipelineListEntry{
+				{
+					Definition: &gen.PipelineDefinition{
+						Name:   "demo-pipeline",
+						Status: pipelinedefinition.StatusDraft,
+					},
+				},
+			},
+			want:   `data-testid="pipeline-runs-link-demo-pipeline"`,
+			absent: "badge-success",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

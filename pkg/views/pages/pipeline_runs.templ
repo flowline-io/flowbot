@@ -10,8 +10,9 @@ templ PipelineRunsPage(name string, runs []*gen.PipelineRun) {
 	@layout.Base("Runs: " + name) {
 		@partials.PipelineStatsScripts()
 		<div class="max-w-4xl mx-auto">
-			@partials.PageHeader("Run History", "") {
-				<a href={ templ.URL("/service/web/pipelines/" + name) } class="btn btn-ghost btn-sm">{ name }</a>
+			@partials.PageHeader("Run History", name) {
+				<a href="/service/web/pipelines" class="btn btn-ghost btn-sm" data-testid="pipeline-runs-list-back">← Pipelines</a>
+				<a href={ templ.URL(partials.PipelineWebPath(name)) } class="btn btn-ghost btn-sm" data-testid="pipeline-runs-back">{ name }</a>
 			}
 			<div hx-get={ templ.URL(partials.PipelineStatsURL(name, 30, "day")) } hx-trigger="revealed" hx-swap="outerHTML">
 				@partials.PanelSkeleton()

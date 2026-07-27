@@ -151,6 +151,7 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 			wantStatus: http.StatusOK,
 			wantContains: []string{
 				"Run History",
+				`data-testid="workflow-runs-list-back"`,
 				`data-testid="workflow-runs-empty"`,
 				"/stats?days=30&amp;groupBy=day",
 			},

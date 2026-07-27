@@ -26,7 +26,7 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 							<span class="border-b border-dotted border-base-content/35 cursor-help">Runs (7d)</span>
 						</th>
 						<th class="w-36">Last Run</th>
-						<th class="w-40 text-right">Actions</th>
+						<th class="w-48 text-right">Actions</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -93,7 +93,7 @@ templ WorkflowListTable(entries []WorkflowListEntry) {
 									}
 									<a href={ templ.URL(WorkflowWebPath(entry.Name) + "/runs") }
 										class="btn btn-ghost btn-xs"
-										data-testid={ "workflow-runs-link-" + entry.Name }>Runs</a>
+										data-testid={ "workflow-runs-link-" + entry.Name }>Run History</a>
 								</div>
 							</td>
 						</tr>
