@@ -16,6 +16,9 @@ var equipmentSeedJSON []byte
 //go:embed seed/loot_tables.json
 var lootSeedJSON []byte
 
+//go:embed seed/achievements.json
+var achievementsSeedJSON []byte
+
 type equipmentSeed struct {
 	Flag                string         `json:"flag"`
 	Name                string         `json:"name"`
@@ -30,6 +33,18 @@ type lootSeed struct {
 	DropTier       string   `json:"drop_tier"`
 	BaseDropChance float64  `json:"base_drop_chance"`
 	ItemPoolFlags  []string `json:"item_pool_flags"`
+}
+
+type achievementSeed struct {
+	Flag        string `json:"flag"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Active      bool   `json:"active"`
+	Kind        string `json:"kind"`
+	QuestType   string `json:"quest_type"`
+	Difficulty  string `json:"difficulty"`
+	Threshold   int    `json:"threshold"`
+	SortOrder   int    `json:"sort_order"`
 }
 
 func seedCatalog(ctx context.Context, ls *store.LifeStore) error {
@@ -50,6 +65,24 @@ func seedCatalog(ctx context.Context, ls *store.LifeStore) error {
 		if err := ls.UpsertLootTable(ctx, t.DropTier, t.BaseDropChance, t.ItemPoolFlags); err != nil {
 			return err
 		}
+	}
+	var achievements []achievementSeed
+	if err := sonic.Unmarshal(achievementsSeedJSON, &achievements); err != nil {
+		return fmt.Errorf("parse achievements seed: %w", err)
+	}
+	keepFlags := make([]string, 0, len(achievements))
+	for _, a := range achievements {
+		keepFlags = append(keepFlags, a.Flag)
+		if err := ls.UpsertAchievement(ctx, store.LifeAchievementUpsert{
+			Flag: a.Flag, Name: a.Name, Description: a.Description, Active: a.Active,
+			Kind: a.Kind, QuestType: a.QuestType, Difficulty: a.Difficulty,
+			Threshold: a.Threshold, SortOrder: a.SortOrder,
+		}); err != nil {
+			return err
+		}
+	}
+	if err := ls.DeactivateAchievementsNotInFlags(ctx, keepFlags); err != nil {
+		return fmt.Errorf("deactivate retired achievements: %w", err)
 	}
 	return nil
 }

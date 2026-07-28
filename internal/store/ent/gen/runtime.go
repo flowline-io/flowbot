@@ -38,6 +38,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
@@ -1165,6 +1168,84 @@ func init() {
 	lifeaicontext.DefaultUpdatedAt = lifeaicontextDescUpdatedAt.Default.(func() time.Time)
 	// lifeaicontext.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifeaicontext.UpdateDefaultUpdatedAt = lifeaicontextDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeachievementFields := schema.LifeAchievement{}.Fields()
+	_ = lifeachievementFields
+	// lifeachievementDescFlag is the schema descriptor for flag field.
+	lifeachievementDescFlag := lifeachievementFields[1].Descriptor()
+	// lifeachievement.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeachievement.FlagValidator = lifeachievementDescFlag.Validators[0].(func(string) error)
+	// lifeachievementDescName is the schema descriptor for name field.
+	lifeachievementDescName := lifeachievementFields[2].Descriptor()
+	// lifeachievement.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	lifeachievement.NameValidator = lifeachievementDescName.Validators[0].(func(string) error)
+	// lifeachievementDescDescription is the schema descriptor for description field.
+	lifeachievementDescDescription := lifeachievementFields[3].Descriptor()
+	// lifeachievement.DefaultDescription holds the default value on creation for the description field.
+	lifeachievement.DefaultDescription = lifeachievementDescDescription.Default.(string)
+	// lifeachievementDescActive is the schema descriptor for active field.
+	lifeachievementDescActive := lifeachievementFields[4].Descriptor()
+	// lifeachievement.DefaultActive holds the default value on creation for the active field.
+	lifeachievement.DefaultActive = lifeachievementDescActive.Default.(bool)
+	// lifeachievementDescKind is the schema descriptor for kind field.
+	lifeachievementDescKind := lifeachievementFields[5].Descriptor()
+	// lifeachievement.DefaultKind holds the default value on creation for the kind field.
+	lifeachievement.DefaultKind = lifeachievementDescKind.Default.(string)
+	// lifeachievementDescQuestType is the schema descriptor for quest_type field.
+	lifeachievementDescQuestType := lifeachievementFields[6].Descriptor()
+	// lifeachievement.DefaultQuestType holds the default value on creation for the quest_type field.
+	lifeachievement.DefaultQuestType = lifeachievementDescQuestType.Default.(string)
+	// lifeachievementDescDifficulty is the schema descriptor for difficulty field.
+	lifeachievementDescDifficulty := lifeachievementFields[7].Descriptor()
+	// lifeachievement.DefaultDifficulty holds the default value on creation for the difficulty field.
+	lifeachievement.DefaultDifficulty = lifeachievementDescDifficulty.Default.(string)
+	// lifeachievementDescThreshold is the schema descriptor for threshold field.
+	lifeachievementDescThreshold := lifeachievementFields[8].Descriptor()
+	// lifeachievement.DefaultThreshold holds the default value on creation for the threshold field.
+	lifeachievement.DefaultThreshold = lifeachievementDescThreshold.Default.(int)
+	// lifeachievementDescSortOrder is the schema descriptor for sort_order field.
+	lifeachievementDescSortOrder := lifeachievementFields[9].Descriptor()
+	// lifeachievement.DefaultSortOrder holds the default value on creation for the sort_order field.
+	lifeachievement.DefaultSortOrder = lifeachievementDescSortOrder.Default.(int)
+	// lifeachievementDescUpdatedAt is the schema descriptor for updated_at field.
+	lifeachievementDescUpdatedAt := lifeachievementFields[10].Descriptor()
+	// lifeachievement.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifeachievement.DefaultUpdatedAt = lifeachievementDescUpdatedAt.Default.(func() time.Time)
+	// lifeachievement.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifeachievement.UpdateDefaultUpdatedAt = lifeachievementDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeachievementprogressFields := schema.LifeAchievementProgress{}.Fields()
+	_ = lifeachievementprogressFields
+	// lifeachievementprogressDescFlag is the schema descriptor for flag field.
+	lifeachievementprogressDescFlag := lifeachievementprogressFields[1].Descriptor()
+	// lifeachievementprogress.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeachievementprogress.FlagValidator = lifeachievementprogressDescFlag.Validators[0].(func(string) error)
+	// lifeachievementprogressDescConditionKey is the schema descriptor for condition_key field.
+	lifeachievementprogressDescConditionKey := lifeachievementprogressFields[3].Descriptor()
+	// lifeachievementprogress.ConditionKeyValidator is a validator for the "condition_key" field. It is called by the builders before save.
+	lifeachievementprogress.ConditionKeyValidator = lifeachievementprogressDescConditionKey.Validators[0].(func(string) error)
+	// lifeachievementprogressDescCurrentCount is the schema descriptor for current_count field.
+	lifeachievementprogressDescCurrentCount := lifeachievementprogressFields[4].Descriptor()
+	// lifeachievementprogress.DefaultCurrentCount holds the default value on creation for the current_count field.
+	lifeachievementprogress.DefaultCurrentCount = lifeachievementprogressDescCurrentCount.Default.(int)
+	// lifeachievementprogressDescUpdatedAt is the schema descriptor for updated_at field.
+	lifeachievementprogressDescUpdatedAt := lifeachievementprogressFields[5].Descriptor()
+	// lifeachievementprogress.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifeachievementprogress.DefaultUpdatedAt = lifeachievementprogressDescUpdatedAt.Default.(func() time.Time)
+	// lifeachievementprogress.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifeachievementprogress.UpdateDefaultUpdatedAt = lifeachievementprogressDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeachievementunlockFields := schema.LifeAchievementUnlock{}.Fields()
+	_ = lifeachievementunlockFields
+	// lifeachievementunlockDescFlag is the schema descriptor for flag field.
+	lifeachievementunlockDescFlag := lifeachievementunlockFields[1].Descriptor()
+	// lifeachievementunlock.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeachievementunlock.FlagValidator = lifeachievementunlockDescFlag.Validators[0].(func(string) error)
+	// lifeachievementunlockDescAchievementFlag is the schema descriptor for achievement_flag field.
+	lifeachievementunlockDescAchievementFlag := lifeachievementunlockFields[3].Descriptor()
+	// lifeachievementunlock.AchievementFlagValidator is a validator for the "achievement_flag" field. It is called by the builders before save.
+	lifeachievementunlock.AchievementFlagValidator = lifeachievementunlockDescAchievementFlag.Validators[0].(func(string) error)
+	// lifeachievementunlockDescUnlockedAt is the schema descriptor for unlocked_at field.
+	lifeachievementunlockDescUnlockedAt := lifeachievementunlockFields[4].Descriptor()
+	// lifeachievementunlock.DefaultUnlockedAt holds the default value on creation for the unlocked_at field.
+	lifeachievementunlock.DefaultUnlockedAt = lifeachievementunlockDescUnlockedAt.Default.(func() time.Time)
 	lifeactiondependencyFields := schema.LifeActionDependency{}.Fields()
 	_ = lifeactiondependencyFields
 	// lifeactiondependencyDescCreatedAt is the schema descriptor for created_at field.

@@ -481,6 +481,11 @@ templ lifeModuleShell(active string, pendingCount int) {
 					data-testid="life-goto-inventory"
 				>Inventory</a>
 				<a
+					href="/service/web/life/achievements"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "achievements") }
+					data-testid="life-goto-achievements"
+				>Achievements</a>
+				<a
 					href="/service/web/life/character"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "character") }
 					data-testid="life-goto-character"
@@ -1084,6 +1089,70 @@ templ LifeInventoryPage(data LifeInventoryData) {
 											>Equip</button>
 										}
 									</div>
+								</li>
+							}
+						</ul>
+					}
+				</section>
+			</div>
+		}
+	}
+}
+
+templ LifeAchievementsPage(data LifeAchievementsData) {
+	@layout.Base("Achievements — Life") {
+		@lifeModuleShell("achievements", data.PendingCount) {
+			<div class="life-shell" data-testid="life-achievements-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Achievements</h1>
+						<p>Memorial milestones from quest completions.</p>
+					</div>
+					<span class="life-section-count" data-testid="life-achievements-count">
+						{ fmt.Sprintf("%d / %d unlocked", data.UnlockedCount, len(data.Items)) }
+					</span>
+				</header>
+
+				<section class="life-panel life-section" data-testid="life-achievements-list">
+					if len(data.Items) == 0 {
+						<p class="life-empty">No achievements seeded yet.</p>
+					} else {
+						<ul class="life-achievement-list">
+							for _, item := range data.Items {
+								<li
+									class={
+										"life-achievement-card",
+										templ.KV("is-unlocked", item.Unlocked),
+										templ.KV("is-retired", item.Retired),
+									}
+									data-testid={ "life-achievement-" + item.Flag }
+								>
+									<div class="life-achievement-head">
+										<h2 class="life-achievement-name">{ item.Name }</h2>
+										if item.Unlocked {
+											<span class="flowbot-chip flowbot-chip-success">Unlocked</span>
+										} else {
+											<span class="flowbot-chip">Locked</span>
+										}
+									</div>
+									<p class="life-achievement-desc">{ item.Description }</p>
+									if item.ShowProgress {
+										<div class="life-achievement-progress" data-testid={ "life-achievement-progress-" + item.Flag }>
+											<div class="life-seg-bar" aria-hidden="true">
+												<div
+													class="life-achievement-progress-fill"
+													style={ fmt.Sprintf("width:%d%%", lifeAchievementProgressPct(item.Current, item.Target)) }
+												></div>
+											</div>
+											<span class="life-seg-nums">{ fmt.Sprintf("%d / %d", item.Current, item.Target) }</span>
+										</div>
+									}
+									if item.Unlocked && item.UnlockedAt != "" {
+										<p class="life-achievement-meta">Unlocked { item.UnlockedAt }</p>
+									}
+									if item.Retired {
+										<p class="life-achievement-meta">Retired from catalog</p>
+									}
 								</li>
 							}
 						</ul>

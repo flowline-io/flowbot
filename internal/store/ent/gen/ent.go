@@ -45,6 +45,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
@@ -188,6 +191,9 @@ func checkColumn(t, c string) error {
 			instruct.Table:                  instruct.ValidColumn,
 			llmusagerecord.Table:            llmusagerecord.ValidColumn,
 			lifeaicontext.Table:             lifeaicontext.ValidColumn,
+			lifeachievement.Table:           lifeachievement.ValidColumn,
+			lifeachievementprogress.Table:   lifeachievementprogress.ValidColumn,
+			lifeachievementunlock.Table:     lifeachievementunlock.ValidColumn,
 			lifeactiondependency.Table:      lifeactiondependency.ValidColumn,
 			lifeactionlog.Table:             lifeactionlog.ValidColumn,
 			lifeactionoccurrence.Table:      lifeactionoccurrence.ValidColumn,

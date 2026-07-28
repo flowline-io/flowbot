@@ -920,6 +920,91 @@ var (
 			},
 		},
 	}
+	// LifeAchievementsColumns holds the columns for the "life_achievements" table.
+	LifeAchievementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "kind", Type: field.TypeString, Default: "first"},
+		{Name: "quest_type", Type: field.TypeString, Default: ""},
+		{Name: "difficulty", Type: field.TypeString, Default: ""},
+		{Name: "threshold", Type: field.TypeInt, Default: 1},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeAchievementsTable holds the schema information for the "life_achievements" table.
+	LifeAchievementsTable = &schema.Table{
+		Name:       "life_achievements",
+		Columns:    LifeAchievementsColumns,
+		PrimaryKey: []*schema.Column{LifeAchievementsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeachievement_active",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAchievementsColumns[4]},
+			},
+			{
+				Name:    "lifeachievement_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAchievementsColumns[9]},
+			},
+		},
+	}
+	// LifeAchievementProgressColumns holds the columns for the "life_achievement_progress" table.
+	LifeAchievementProgressColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "condition_key", Type: field.TypeString},
+		{Name: "current_count", Type: field.TypeInt, Default: 0},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeAchievementProgressTable holds the schema information for the "life_achievement_progress" table.
+	LifeAchievementProgressTable = &schema.Table{
+		Name:       "life_achievement_progress",
+		Columns:    LifeAchievementProgressColumns,
+		PrimaryKey: []*schema.Column{LifeAchievementProgressColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeachievementprogress_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAchievementProgressColumns[2]},
+			},
+			{
+				Name:    "lifeachievementprogress_life_profile_id_condition_key",
+				Unique:  true,
+				Columns: []*schema.Column{LifeAchievementProgressColumns[2], LifeAchievementProgressColumns[3]},
+			},
+		},
+	}
+	// LifeAchievementUnlocksColumns holds the columns for the "life_achievement_unlocks" table.
+	LifeAchievementUnlocksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "achievement_flag", Type: field.TypeString},
+		{Name: "unlocked_at", Type: field.TypeTime},
+	}
+	// LifeAchievementUnlocksTable holds the schema information for the "life_achievement_unlocks" table.
+	LifeAchievementUnlocksTable = &schema.Table{
+		Name:       "life_achievement_unlocks",
+		Columns:    LifeAchievementUnlocksColumns,
+		PrimaryKey: []*schema.Column{LifeAchievementUnlocksColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeachievementunlock_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAchievementUnlocksColumns[2]},
+			},
+			{
+				Name:    "lifeachievementunlock_life_profile_id_achievement_flag",
+				Unique:  true,
+				Columns: []*schema.Column{LifeAchievementUnlocksColumns[2], LifeAchievementUnlocksColumns[3]},
+			},
+		},
+	}
 	// LifeActionDependenciesColumns holds the columns for the "life_action_dependencies" table.
 	LifeActionDependenciesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2329,6 +2414,9 @@ var (
 		InstructTable,
 		LlmUsageRecordsTable,
 		LifeAiContextsTable,
+		LifeAchievementsTable,
+		LifeAchievementProgressTable,
+		LifeAchievementUnlocksTable,
 		LifeActionDependenciesTable,
 		LifeActionLogsTable,
 		LifeActionOccurrencesTable,
@@ -2483,6 +2571,15 @@ func init() {
 	}
 	LifeAiContextsTable.Annotation = &entsql.Annotation{
 		Table: "life_ai_contexts",
+	}
+	LifeAchievementsTable.Annotation = &entsql.Annotation{
+		Table: "life_achievements",
+	}
+	LifeAchievementProgressTable.Annotation = &entsql.Annotation{
+		Table: "life_achievement_progress",
+	}
+	LifeAchievementUnlocksTable.Annotation = &entsql.Annotation{
+		Table: "life_achievement_unlocks",
 	}
 	LifeActionDependenciesTable.Annotation = &entsql.Annotation{
 		Table: "life_action_dependencies",

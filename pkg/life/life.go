@@ -1,4 +1,4 @@
-// Package life provides pure formulas for Flowbot Life (cascade, loot, buffs).
+// Package life provides pure formulas for Flowbot Life (cascade, loot, buffs, achievements).
 package life
 
 import (

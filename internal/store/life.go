@@ -9,15 +9,18 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
@@ -25,6 +28,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
+	pkglife "github.com/flowline-io/flowbot/pkg/life"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
 
@@ -1068,6 +1072,90 @@ func (s *LifeStore) UpsertLootTable(ctx context.Context, tier string, chance flo
 	return err
 }
 
+// UpsertAchievement inserts or updates a catalog achievement by flag.
+func (s *LifeStore) UpsertAchievement(ctx context.Context, in LifeAchievementUpsert) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	kind := in.Kind
+	if kind == "" {
+		kind = pkglife.AchievementKindFirst
+	}
+	threshold := max(in.Threshold, 1)
+	existing, err := s.client.LifeAchievement.Query().Where(lifeachievement.FlagEQ(in.Flag)).Only(ctx)
+	if err == nil {
+		_, err = s.client.LifeAchievement.UpdateOneID(existing.ID).
+			SetName(in.Name).
+			SetDescription(in.Description).
+			SetActive(in.Active).
+			SetKind(kind).
+			SetQuestType(in.QuestType).
+			SetDifficulty(in.Difficulty).
+			SetThreshold(threshold).
+			SetSortOrder(in.SortOrder).
+			Save(ctx)
+		return err
+	}
+	if !gen.IsNotFound(err) {
+		return err
+	}
+	_, err = s.client.LifeAchievement.Create().
+		SetFlag(in.Flag).
+		SetName(in.Name).
+		SetDescription(in.Description).
+		SetActive(in.Active).
+		SetKind(kind).
+		SetQuestType(in.QuestType).
+		SetDifficulty(in.Difficulty).
+		SetThreshold(threshold).
+		SetSortOrder(in.SortOrder).
+		Save(ctx)
+	return err
+}
+
+// ListAchievements returns the achievement catalog ordered by sort_order.
+func (s *LifeStore) ListAchievements(ctx context.Context) ([]*gen.LifeAchievement, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	return s.client.LifeAchievement.Query().
+		Order(lifeachievement.BySortOrder(), lifeachievement.ByFlag()).
+		All(ctx)
+}
+
+// DeactivateAchievementsNotInFlags sets active=false for catalog rows whose flag is not listed.
+func (s *LifeStore) DeactivateAchievementsNotInFlags(ctx context.Context, keepFlags []string) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	q := s.client.LifeAchievement.Update().SetActive(false)
+	if len(keepFlags) > 0 {
+		q = q.Where(lifeachievement.FlagNotIn(keepFlags...))
+	}
+	_, err := q.Save(ctx)
+	return err
+}
+
+// ListAchievementProgress returns progress rows for a profile.
+func (s *LifeStore) ListAchievementProgress(ctx context.Context, profileID int64) ([]*gen.LifeAchievementProgress, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	return s.client.LifeAchievementProgress.Query().
+		Where(lifeachievementprogress.LifeProfileIDEQ(profileID)).
+		All(ctx)
+}
+
+// ListAchievementUnlocks returns unlock rows for a profile.
+func (s *LifeStore) ListAchievementUnlocks(ctx context.Context, profileID int64) ([]*gen.LifeAchievementUnlock, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	return s.client.LifeAchievementUnlock.Query().
+		Where(lifeachievementunlock.LifeProfileIDEQ(profileID)).
+		All(ctx)
+}
+
 // GetLootTable returns loot table by tier.
 func (s *LifeStore) GetLootTable(ctx context.Context, tier string) (*gen.LifeLootTable, error) {
 	if !s.ready() {
@@ -1336,14 +1424,30 @@ type LifeCompletePersist struct {
 	ActionExp   int
 	ActionGold  int
 	Dice        float64
+	QuestType   string
+	Difficulty  string
 	// DailyRespawn clones a pending Daily quest after completion when non-nil.
 	DailyRespawn *gen.LifeQuest
 }
 
 // LifeCompleteResult is returned from PersistCompleteQuest.
 type LifeCompleteResult struct {
-	Inventory *gen.LifeInventory
-	Equipment *gen.LifeEquipment
+	Inventory     *gen.LifeInventory
+	Equipment     *gen.LifeEquipment
+	NewlyUnlocked []*gen.LifeAchievement
+}
+
+// LifeAchievementUpsert is the seed write shape for one catalog achievement.
+type LifeAchievementUpsert struct {
+	Flag        string
+	Name        string
+	Description string
+	Active      bool
+	Kind        string
+	QuestType   string
+	Difficulty  string
+	Threshold   int
+	SortOrder   int
 }
 
 // PersistCompleteQuest applies cascade, loot inventory, action log, and rust clear in one transaction.
@@ -1381,6 +1485,11 @@ func (s *LifeStore) PersistCompleteQuest(ctx context.Context, in LifeCompletePer
 	if err := persistDailyRespawn(ctx, tx, in.DailyRespawn); err != nil {
 		return nil, err
 	}
+	unlocked, err := persistCompleteAchievements(ctx, tx, in.ProfileID, in.QuestType, in.Difficulty)
+	if err != nil {
+		return nil, err
+	}
+	out.NewlyUnlocked = unlocked
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("life: commit complete: %w", err)
 	}
@@ -1496,6 +1605,82 @@ func persistDailyRespawn(ctx context.Context, tx *gen.Tx, dq *gen.LifeQuest) err
 		return fmt.Errorf("life: daily respawn: %w", err)
 	}
 	return nil
+}
+
+func persistCompleteAchievements(ctx context.Context, tx *gen.Tx, profileID int64, questType, difficulty string) ([]*gen.LifeAchievement, error) {
+	catalogRows, err := tx.LifeAchievement.Query().All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list achievements: %w", err)
+	}
+	catalog := make([]pkglife.AchievementDef, 0, len(catalogRows))
+	byFlag := make(map[string]*gen.LifeAchievement, len(catalogRows))
+	for _, row := range catalogRows {
+		byFlag[row.Flag] = row
+		catalog = append(catalog, pkglife.AchievementDef{
+			Flag: row.Flag, Name: row.Name, Description: row.Description, Active: row.Active,
+			Kind: row.Kind, QuestType: row.QuestType, Difficulty: row.Difficulty,
+			Threshold: row.Threshold, SortOrder: row.SortOrder,
+		})
+	}
+	keys := pkglife.AchievementKeysForCompletion(questType, difficulty)
+	progressRows, err := tx.LifeAchievementProgress.Query().
+		Where(
+			lifeachievementprogress.LifeProfileIDEQ(profileID),
+			lifeachievementprogress.ConditionKeyIn(keys...),
+		).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list achievement progress: %w", err)
+	}
+	progress := make(map[string]int, len(progressRows))
+	progressByKey := make(map[string]*gen.LifeAchievementProgress, len(progressRows))
+	for _, row := range progressRows {
+		progress[row.ConditionKey] = row.CurrentCount
+		progressByKey[row.ConditionKey] = row
+	}
+	unlockRows, err := tx.LifeAchievementUnlock.Query().
+		Where(lifeachievementunlock.LifeProfileIDEQ(profileID)).All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list achievement unlocks: %w", err)
+	}
+	unlocked := make(map[string]struct{}, len(unlockRows))
+	for _, row := range unlockRows {
+		unlocked[row.AchievementFlag] = struct{}{}
+	}
+	eval := pkglife.EvaluateAchievements(pkglife.AchievementEvalInput{
+		QuestType: questType, Difficulty: difficulty,
+		Catalog: catalog, Progress: progress, Unlocked: unlocked,
+	})
+	for key, count := range eval.ProgressAfter {
+		if existing, ok := progressByKey[key]; ok {
+			if _, err := tx.LifeAchievementProgress.UpdateOneID(existing.ID).
+				SetCurrentCount(count).Save(ctx); err != nil {
+				return nil, fmt.Errorf("life: update achievement progress: %w", err)
+			}
+			continue
+		}
+		if _, err := tx.LifeAchievementProgress.Create().
+			SetFlag(types.Id()).
+			SetLifeProfileID(profileID).
+			SetConditionKey(key).
+			SetCurrentCount(count).
+			Save(ctx); err != nil {
+			return nil, fmt.Errorf("life: create achievement progress: %w", err)
+		}
+	}
+	out := make([]*gen.LifeAchievement, 0, len(eval.NewlyUnlocked))
+	for _, def := range eval.NewlyUnlocked {
+		if _, err := tx.LifeAchievementUnlock.Create().
+			SetFlag(types.Id()).
+			SetLifeProfileID(profileID).
+			SetAchievementFlag(def.Flag).
+			Save(ctx); err != nil {
+			return nil, fmt.Errorf("life: unlock achievement: %w", err)
+		}
+		if row := byFlag[def.Flag]; row != nil {
+			out = append(out, row)
+		}
+	}
+	return out, nil
 }
 
 func createPlanNodeWithClient(ctx context.Context, client *gen.Client, in LifeCreatePlanNodeInput) (*gen.LifePlanNode, error) {

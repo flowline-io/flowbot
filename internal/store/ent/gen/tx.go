@@ -82,6 +82,12 @@ type Tx struct {
 	LLMUsageRecord *LLMUsageRecordClient
 	// LifeAIContext is the client for interacting with the LifeAIContext builders.
 	LifeAIContext *LifeAIContextClient
+	// LifeAchievement is the client for interacting with the LifeAchievement builders.
+	LifeAchievement *LifeAchievementClient
+	// LifeAchievementProgress is the client for interacting with the LifeAchievementProgress builders.
+	LifeAchievementProgress *LifeAchievementProgressClient
+	// LifeAchievementUnlock is the client for interacting with the LifeAchievementUnlock builders.
+	LifeAchievementUnlock *LifeAchievementUnlockClient
 	// LifeActionDependency is the client for interacting with the LifeActionDependency builders.
 	LifeActionDependency *LifeActionDependencyClient
 	// LifeActionLog is the client for interacting with the LifeActionLog builders.
@@ -340,6 +346,9 @@ func (tx *Tx) init() {
 	tx.Instruct = NewInstructClient(tx.config)
 	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
 	tx.LifeAIContext = NewLifeAIContextClient(tx.config)
+	tx.LifeAchievement = NewLifeAchievementClient(tx.config)
+	tx.LifeAchievementProgress = NewLifeAchievementProgressClient(tx.config)
+	tx.LifeAchievementUnlock = NewLifeAchievementUnlockClient(tx.config)
 	tx.LifeActionDependency = NewLifeActionDependencyClient(tx.config)
 	tx.LifeActionLog = NewLifeActionLogClient(tx.config)
 	tx.LifeActionOccurrence = NewLifeActionOccurrenceClient(tx.config)

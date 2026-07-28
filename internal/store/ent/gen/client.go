@@ -47,6 +47,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
@@ -172,6 +175,12 @@ type Client struct {
 	LLMUsageRecord *LLMUsageRecordClient
 	// LifeAIContext is the client for interacting with the LifeAIContext builders.
 	LifeAIContext *LifeAIContextClient
+	// LifeAchievement is the client for interacting with the LifeAchievement builders.
+	LifeAchievement *LifeAchievementClient
+	// LifeAchievementProgress is the client for interacting with the LifeAchievementProgress builders.
+	LifeAchievementProgress *LifeAchievementProgressClient
+	// LifeAchievementUnlock is the client for interacting with the LifeAchievementUnlock builders.
+	LifeAchievementUnlock *LifeAchievementUnlockClient
 	// LifeActionDependency is the client for interacting with the LifeActionDependency builders.
 	LifeActionDependency *LifeActionDependencyClient
 	// LifeActionLog is the client for interacting with the LifeActionLog builders.
@@ -310,6 +319,9 @@ func (c *Client) init() {
 	c.Instruct = NewInstructClient(c.config)
 	c.LLMUsageRecord = NewLLMUsageRecordClient(c.config)
 	c.LifeAIContext = NewLifeAIContextClient(c.config)
+	c.LifeAchievement = NewLifeAchievementClient(c.config)
+	c.LifeAchievementProgress = NewLifeAchievementProgressClient(c.config)
+	c.LifeAchievementUnlock = NewLifeAchievementUnlockClient(c.config)
 	c.LifeActionDependency = NewLifeActionDependencyClient(c.config)
 	c.LifeActionLog = NewLifeActionLogClient(c.config)
 	c.LifeActionOccurrence = NewLifeActionOccurrenceClient(c.config)
@@ -483,6 +495,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
+		LifeAchievement:           NewLifeAchievementClient(cfg),
+		LifeAchievementProgress:   NewLifeAchievementProgressClient(cfg),
+		LifeAchievementUnlock:     NewLifeAchievementUnlockClient(cfg),
 		LifeActionDependency:      NewLifeActionDependencyClient(cfg),
 		LifeActionLog:             NewLifeActionLogClient(cfg),
 		LifeActionOccurrence:      NewLifeActionOccurrenceClient(cfg),
@@ -583,6 +598,9 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
+		LifeAchievement:           NewLifeAchievementClient(cfg),
+		LifeAchievementProgress:   NewLifeAchievementProgressClient(cfg),
+		LifeAchievementUnlock:     NewLifeAchievementUnlockClient(cfg),
 		LifeActionDependency:      NewLifeActionDependencyClient(cfg),
 		LifeActionLog:             NewLifeActionLogClient(cfg),
 		LifeActionOccurrence:      NewLifeActionOccurrenceClient(cfg),
@@ -665,8 +683,9 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionDependency, c.LifeActionLog,
-		c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
+		c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
+		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
+		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
 		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
 		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
 		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
@@ -693,8 +712,9 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionDependency, c.LifeActionLog,
-		c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
+		c.LLMUsageRecord, c.LifeAIContext, c.LifeAchievement,
+		c.LifeAchievementProgress, c.LifeAchievementUnlock, c.LifeActionDependency,
+		c.LifeActionLog, c.LifeActionOccurrence, c.LifeActionSpec, c.LifeAdjudication,
 		c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots, c.LifeEvidence,
 		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
 		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
@@ -783,6 +803,12 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LLMUsageRecord.mutate(ctx, m)
 	case *LifeAIContextMutation:
 		return c.LifeAIContext.mutate(ctx, m)
+	case *LifeAchievementMutation:
+		return c.LifeAchievement.mutate(ctx, m)
+	case *LifeAchievementProgressMutation:
+		return c.LifeAchievementProgress.mutate(ctx, m)
+	case *LifeAchievementUnlockMutation:
+		return c.LifeAchievementUnlock.mutate(ctx, m)
 	case *LifeActionDependencyMutation:
 		return c.LifeActionDependency.mutate(ctx, m)
 	case *LifeActionLogMutation:
@@ -5532,6 +5558,405 @@ func (c *LifeAIContextClient) mutate(ctx context.Context, m *LifeAIContextMutati
 		return (&LifeAIContextDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown LifeAIContext mutation op: %q", m.Op())
+	}
+}
+
+// LifeAchievementClient is a client for the LifeAchievement schema.
+type LifeAchievementClient struct {
+	config
+}
+
+// NewLifeAchievementClient returns a client for the LifeAchievement from the given config.
+func NewLifeAchievementClient(c config) *LifeAchievementClient {
+	return &LifeAchievementClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeachievement.Hooks(f(g(h())))`.
+func (c *LifeAchievementClient) Use(hooks ...Hook) {
+	c.hooks.LifeAchievement = append(c.hooks.LifeAchievement, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeachievement.Intercept(f(g(h())))`.
+func (c *LifeAchievementClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeAchievement = append(c.inters.LifeAchievement, interceptors...)
+}
+
+// Create returns a builder for creating a LifeAchievement entity.
+func (c *LifeAchievementClient) Create() *LifeAchievementCreate {
+	mutation := newLifeAchievementMutation(c.config, OpCreate)
+	return &LifeAchievementCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeAchievement entities.
+func (c *LifeAchievementClient) CreateBulk(builders ...*LifeAchievementCreate) *LifeAchievementCreateBulk {
+	return &LifeAchievementCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeAchievementClient) MapCreateBulk(slice any, setFunc func(*LifeAchievementCreate, int)) *LifeAchievementCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeAchievementCreateBulk{err: fmt.Errorf("calling to LifeAchievementClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeAchievementCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeAchievementCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeAchievement.
+func (c *LifeAchievementClient) Update() *LifeAchievementUpdate {
+	mutation := newLifeAchievementMutation(c.config, OpUpdate)
+	return &LifeAchievementUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeAchievementClient) UpdateOne(_m *LifeAchievement) *LifeAchievementUpdateOne {
+	mutation := newLifeAchievementMutation(c.config, OpUpdateOne, withLifeAchievement(_m))
+	return &LifeAchievementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeAchievementClient) UpdateOneID(id int64) *LifeAchievementUpdateOne {
+	mutation := newLifeAchievementMutation(c.config, OpUpdateOne, withLifeAchievementID(id))
+	return &LifeAchievementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeAchievement.
+func (c *LifeAchievementClient) Delete() *LifeAchievementDelete {
+	mutation := newLifeAchievementMutation(c.config, OpDelete)
+	return &LifeAchievementDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeAchievementClient) DeleteOne(_m *LifeAchievement) *LifeAchievementDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeAchievementClient) DeleteOneID(id int64) *LifeAchievementDeleteOne {
+	builder := c.Delete().Where(lifeachievement.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeAchievementDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeAchievement.
+func (c *LifeAchievementClient) Query() *LifeAchievementQuery {
+	return &LifeAchievementQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeAchievement},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeAchievement entity by its id.
+func (c *LifeAchievementClient) Get(ctx context.Context, id int64) (*LifeAchievement, error) {
+	return c.Query().Where(lifeachievement.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeAchievementClient) GetX(ctx context.Context, id int64) *LifeAchievement {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeAchievementClient) Hooks() []Hook {
+	return c.hooks.LifeAchievement
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeAchievementClient) Interceptors() []Interceptor {
+	return c.inters.LifeAchievement
+}
+
+func (c *LifeAchievementClient) mutate(ctx context.Context, m *LifeAchievementMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeAchievementCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeAchievementUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeAchievementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeAchievementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeAchievement mutation op: %q", m.Op())
+	}
+}
+
+// LifeAchievementProgressClient is a client for the LifeAchievementProgress schema.
+type LifeAchievementProgressClient struct {
+	config
+}
+
+// NewLifeAchievementProgressClient returns a client for the LifeAchievementProgress from the given config.
+func NewLifeAchievementProgressClient(c config) *LifeAchievementProgressClient {
+	return &LifeAchievementProgressClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeachievementprogress.Hooks(f(g(h())))`.
+func (c *LifeAchievementProgressClient) Use(hooks ...Hook) {
+	c.hooks.LifeAchievementProgress = append(c.hooks.LifeAchievementProgress, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeachievementprogress.Intercept(f(g(h())))`.
+func (c *LifeAchievementProgressClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeAchievementProgress = append(c.inters.LifeAchievementProgress, interceptors...)
+}
+
+// Create returns a builder for creating a LifeAchievementProgress entity.
+func (c *LifeAchievementProgressClient) Create() *LifeAchievementProgressCreate {
+	mutation := newLifeAchievementProgressMutation(c.config, OpCreate)
+	return &LifeAchievementProgressCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeAchievementProgress entities.
+func (c *LifeAchievementProgressClient) CreateBulk(builders ...*LifeAchievementProgressCreate) *LifeAchievementProgressCreateBulk {
+	return &LifeAchievementProgressCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeAchievementProgressClient) MapCreateBulk(slice any, setFunc func(*LifeAchievementProgressCreate, int)) *LifeAchievementProgressCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeAchievementProgressCreateBulk{err: fmt.Errorf("calling to LifeAchievementProgressClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeAchievementProgressCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeAchievementProgressCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeAchievementProgress.
+func (c *LifeAchievementProgressClient) Update() *LifeAchievementProgressUpdate {
+	mutation := newLifeAchievementProgressMutation(c.config, OpUpdate)
+	return &LifeAchievementProgressUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeAchievementProgressClient) UpdateOne(_m *LifeAchievementProgress) *LifeAchievementProgressUpdateOne {
+	mutation := newLifeAchievementProgressMutation(c.config, OpUpdateOne, withLifeAchievementProgress(_m))
+	return &LifeAchievementProgressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeAchievementProgressClient) UpdateOneID(id int64) *LifeAchievementProgressUpdateOne {
+	mutation := newLifeAchievementProgressMutation(c.config, OpUpdateOne, withLifeAchievementProgressID(id))
+	return &LifeAchievementProgressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeAchievementProgress.
+func (c *LifeAchievementProgressClient) Delete() *LifeAchievementProgressDelete {
+	mutation := newLifeAchievementProgressMutation(c.config, OpDelete)
+	return &LifeAchievementProgressDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeAchievementProgressClient) DeleteOne(_m *LifeAchievementProgress) *LifeAchievementProgressDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeAchievementProgressClient) DeleteOneID(id int64) *LifeAchievementProgressDeleteOne {
+	builder := c.Delete().Where(lifeachievementprogress.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeAchievementProgressDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeAchievementProgress.
+func (c *LifeAchievementProgressClient) Query() *LifeAchievementProgressQuery {
+	return &LifeAchievementProgressQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeAchievementProgress},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeAchievementProgress entity by its id.
+func (c *LifeAchievementProgressClient) Get(ctx context.Context, id int64) (*LifeAchievementProgress, error) {
+	return c.Query().Where(lifeachievementprogress.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeAchievementProgressClient) GetX(ctx context.Context, id int64) *LifeAchievementProgress {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeAchievementProgressClient) Hooks() []Hook {
+	return c.hooks.LifeAchievementProgress
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeAchievementProgressClient) Interceptors() []Interceptor {
+	return c.inters.LifeAchievementProgress
+}
+
+func (c *LifeAchievementProgressClient) mutate(ctx context.Context, m *LifeAchievementProgressMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeAchievementProgressCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeAchievementProgressUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeAchievementProgressUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeAchievementProgressDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeAchievementProgress mutation op: %q", m.Op())
+	}
+}
+
+// LifeAchievementUnlockClient is a client for the LifeAchievementUnlock schema.
+type LifeAchievementUnlockClient struct {
+	config
+}
+
+// NewLifeAchievementUnlockClient returns a client for the LifeAchievementUnlock from the given config.
+func NewLifeAchievementUnlockClient(c config) *LifeAchievementUnlockClient {
+	return &LifeAchievementUnlockClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeachievementunlock.Hooks(f(g(h())))`.
+func (c *LifeAchievementUnlockClient) Use(hooks ...Hook) {
+	c.hooks.LifeAchievementUnlock = append(c.hooks.LifeAchievementUnlock, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeachievementunlock.Intercept(f(g(h())))`.
+func (c *LifeAchievementUnlockClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeAchievementUnlock = append(c.inters.LifeAchievementUnlock, interceptors...)
+}
+
+// Create returns a builder for creating a LifeAchievementUnlock entity.
+func (c *LifeAchievementUnlockClient) Create() *LifeAchievementUnlockCreate {
+	mutation := newLifeAchievementUnlockMutation(c.config, OpCreate)
+	return &LifeAchievementUnlockCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeAchievementUnlock entities.
+func (c *LifeAchievementUnlockClient) CreateBulk(builders ...*LifeAchievementUnlockCreate) *LifeAchievementUnlockCreateBulk {
+	return &LifeAchievementUnlockCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeAchievementUnlockClient) MapCreateBulk(slice any, setFunc func(*LifeAchievementUnlockCreate, int)) *LifeAchievementUnlockCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeAchievementUnlockCreateBulk{err: fmt.Errorf("calling to LifeAchievementUnlockClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeAchievementUnlockCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeAchievementUnlockCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeAchievementUnlock.
+func (c *LifeAchievementUnlockClient) Update() *LifeAchievementUnlockUpdate {
+	mutation := newLifeAchievementUnlockMutation(c.config, OpUpdate)
+	return &LifeAchievementUnlockUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeAchievementUnlockClient) UpdateOne(_m *LifeAchievementUnlock) *LifeAchievementUnlockUpdateOne {
+	mutation := newLifeAchievementUnlockMutation(c.config, OpUpdateOne, withLifeAchievementUnlock(_m))
+	return &LifeAchievementUnlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeAchievementUnlockClient) UpdateOneID(id int64) *LifeAchievementUnlockUpdateOne {
+	mutation := newLifeAchievementUnlockMutation(c.config, OpUpdateOne, withLifeAchievementUnlockID(id))
+	return &LifeAchievementUnlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeAchievementUnlock.
+func (c *LifeAchievementUnlockClient) Delete() *LifeAchievementUnlockDelete {
+	mutation := newLifeAchievementUnlockMutation(c.config, OpDelete)
+	return &LifeAchievementUnlockDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeAchievementUnlockClient) DeleteOne(_m *LifeAchievementUnlock) *LifeAchievementUnlockDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeAchievementUnlockClient) DeleteOneID(id int64) *LifeAchievementUnlockDeleteOne {
+	builder := c.Delete().Where(lifeachievementunlock.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeAchievementUnlockDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeAchievementUnlock.
+func (c *LifeAchievementUnlockClient) Query() *LifeAchievementUnlockQuery {
+	return &LifeAchievementUnlockQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeAchievementUnlock},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeAchievementUnlock entity by its id.
+func (c *LifeAchievementUnlockClient) Get(ctx context.Context, id int64) (*LifeAchievementUnlock, error) {
+	return c.Query().Where(lifeachievementunlock.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeAchievementUnlockClient) GetX(ctx context.Context, id int64) *LifeAchievementUnlock {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeAchievementUnlockClient) Hooks() []Hook {
+	return c.hooks.LifeAchievementUnlock
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeAchievementUnlockClient) Interceptors() []Interceptor {
+	return c.inters.LifeAchievementUnlock
+}
+
+func (c *LifeAchievementUnlockClient) mutate(ctx context.Context, m *LifeAchievementUnlockMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeAchievementUnlockCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeAchievementUnlockUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeAchievementUnlockUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeAchievementUnlockDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeAchievementUnlock mutation op: %q", m.Op())
 	}
 }
 
@@ -11662,16 +12087,16 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeActionDependency, LifeActionLog, LifeActionOccurrence,
-		LifeActionSpec, LifeAdjudication, LifeCharacteristic, LifeEquipment,
-		LifeEquippedSlots, LifeEvidence, LifeGoal, LifeHabitCheckin, LifeInventory,
-		LifeLootTable, LifePlanNode, LifeProfile, LifeQuest, LifeSkill, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
-		PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
-		WorkflowTrigger []ent.Hook
+		LifeAIContext, LifeAchievement, LifeAchievementProgress, LifeAchievementUnlock,
+		LifeActionDependency, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
+		LifeAdjudication, LifeCharacteristic, LifeEquipment, LifeEquippedSlots,
+		LifeEvidence, LifeGoal, LifeHabitCheckin, LifeInventory, LifeLootTable,
+		LifePlanNode, LifeProfile, LifeQuest, LifeSkill, Message, NotificationRecord,
+		NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
+		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
+		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
+		PollingState, ResourceLink, Topic, Url, User, WebAccount, Workflow,
+		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Hook
 	}
 	inters struct {
 		Agent, AgentKnowledge, AgentMemoryFact, AgentPlan, AgentSessionSummary,
@@ -11680,15 +12105,15 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeActionDependency, LifeActionLog, LifeActionOccurrence,
-		LifeActionSpec, LifeAdjudication, LifeCharacteristic, LifeEquipment,
-		LifeEquippedSlots, LifeEvidence, LifeGoal, LifeHabitCheckin, LifeInventory,
-		LifeLootTable, LifePlanNode, LifeProfile, LifeQuest, LifeSkill, Message,
-		NotificationRecord, NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page,
-		PageData, Parameter, PipelineDefinition, PipelineDefinitionVersion,
-		PipelineRun, PipelineStepRun, Platform, PlatformBot, PlatformChannel,
-		PlatformChannelUser, PlatformUser, PollingState, ResourceLink, Topic, Url,
-		User, WebAccount, Workflow, WorkflowRun, WorkflowStepRun, WorkflowTask,
-		WorkflowTrigger []ent.Interceptor
+		LifeAIContext, LifeAchievement, LifeAchievementProgress, LifeAchievementUnlock,
+		LifeActionDependency, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
+		LifeAdjudication, LifeCharacteristic, LifeEquipment, LifeEquippedSlots,
+		LifeEvidence, LifeGoal, LifeHabitCheckin, LifeInventory, LifeLootTable,
+		LifePlanNode, LifeProfile, LifeQuest, LifeSkill, Message, NotificationRecord,
+		NotifyChannel, NotifyRule, NotifyTemplate, OAuth, Page, PageData, Parameter,
+		PipelineDefinition, PipelineDefinitionVersion, PipelineRun, PipelineStepRun,
+		Platform, PlatformBot, PlatformChannel, PlatformChannelUser, PlatformUser,
+		PollingState, ResourceLink, Topic, Url, User, WebAccount, Workflow,
+		WorkflowRun, WorkflowStepRun, WorkflowTask, WorkflowTrigger []ent.Interceptor
 	}
 )

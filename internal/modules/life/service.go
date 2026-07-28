@@ -452,14 +452,21 @@ func (s *Service) FailQuest(ctx context.Context, userID, questFlag string) error
 
 // CompleteResult is returned to the UI after completion.
 type CompleteResult struct {
-	Quest      *gen.LifeQuest
-	GainedExp  int
-	GainedGold int
-	Dropped    bool
-	ItemName   string
-	ItemFlag   string
-	Dice       float64
-	PityForced bool
+	Quest         *gen.LifeQuest
+	GainedExp     int
+	GainedGold    int
+	Dropped       bool
+	ItemName      string
+	ItemFlag      string
+	Dice          float64
+	PityForced    bool
+	NewlyUnlocked []UnlockedAchievement
+}
+
+// UnlockedAchievement is one memorial unlock surfaced to the UI.
+type UnlockedAchievement struct {
+	Flag string
+	Name string
 }
 
 // QuestEvidenceView is one quest evidence item for the UI.
@@ -542,6 +549,7 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 		Pity: pity, RustInvIDs: slotInventoryIDs(slots),
 		DropEquipID: dropEquipID, DropQuestID: q.ID, LoreStatus: loreStatus, NeedLore: needLore,
 		ActionExp: casc.GainedExp, ActionGold: casc.GainedGold, Dice: roll, DailyRespawn: daily,
+		QuestType: q.Type, Difficulty: q.AiEvaluatedDifficulty,
 	})
 	if err != nil {
 		return nil, err
@@ -584,6 +592,14 @@ func fillCompleteResult(q *gen.LifeQuest, casc pkglife.CascadeResult, loot pkgli
 		result.ItemFlag = persisted.Inventory.Flag
 		if persisted.Equipment != nil {
 			result.ItemName = persisted.Equipment.Name
+		}
+	}
+	if persisted != nil {
+		for _, a := range persisted.NewlyUnlocked {
+			if a == nil {
+				continue
+			}
+			result.NewlyUnlocked = append(result.NewlyUnlocked, UnlockedAchievement{Flag: a.Flag, Name: a.Name})
 		}
 	}
 	return result
@@ -848,6 +864,73 @@ func (s *Service) buildQuestDMView(ctx context.Context, profileID int64, q *gen.
 type InventoryItem struct {
 	Inv   *gen.LifeInventory
 	Equip *gen.LifeEquipment
+}
+
+// AchievementView is one memorial achievement row for the UI.
+type AchievementView struct {
+	Flag         string
+	Name         string
+	Description  string
+	Unlocked     bool
+	UnlockedAt   *time.Time
+	ShowProgress bool
+	Current      int
+	Target       int
+	Retired      bool
+}
+
+// ListAchievements returns catalog rows with progress and unlock state for the user.
+func (s *Service) ListAchievements(ctx context.Context, userID string) ([]AchievementView, error) {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return nil, err
+	}
+	catalog, err := s.store.ListAchievements(ctx)
+	if err != nil {
+		return nil, err
+	}
+	progressRows, err := s.store.ListAchievementProgress(ctx, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	progress := make(map[string]int, len(progressRows))
+	for _, row := range progressRows {
+		progress[row.ConditionKey] = row.CurrentCount
+	}
+	unlockRows, err := s.store.ListAchievementUnlocks(ctx, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	unlockedAt := make(map[string]time.Time, len(unlockRows))
+	for _, row := range unlockRows {
+		unlockedAt[row.AchievementFlag] = row.UnlockedAt
+	}
+	out := make([]AchievementView, 0, len(catalog))
+	for _, row := range catalog {
+		at, unlocked := unlockedAt[row.Flag]
+		if !row.Active && !unlocked {
+			continue
+		}
+		def := pkglife.AchievementDef{
+			Flag: row.Flag, Name: row.Name, Description: row.Description, Active: row.Active,
+			Kind: row.Kind, QuestType: row.QuestType, Difficulty: row.Difficulty, Threshold: row.Threshold,
+		}
+		key := pkglife.AchievementConditionKey(row.QuestType, row.Difficulty)
+		view := AchievementView{
+			Flag: row.Flag, Name: row.Name, Description: row.Description,
+			Unlocked: unlocked, ShowProgress: pkglife.AchievementShowsProgress(def),
+			Current: progress[key], Target: row.Threshold, Retired: unlocked && !row.Active,
+		}
+		if view.Target < 1 {
+			view.Target = 1
+		}
+		if unlocked {
+			ts := at
+			view.UnlockedAt = &ts
+		}
+		out = append(out, view)
+	}
+	return out, nil
 }
 
 // ListInventory returns inventory with templates.

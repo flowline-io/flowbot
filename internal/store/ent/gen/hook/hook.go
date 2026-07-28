@@ -429,6 +429,42 @@ func (f LifeAIContextFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeAIContextMutation", m)
 }
 
+// The LifeAchievementFunc type is an adapter to allow the use of ordinary
+// function as LifeAchievement mutator.
+type LifeAchievementFunc func(context.Context, *gen.LifeAchievementMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeAchievementFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeAchievementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeAchievementMutation", m)
+}
+
+// The LifeAchievementProgressFunc type is an adapter to allow the use of ordinary
+// function as LifeAchievementProgress mutator.
+type LifeAchievementProgressFunc func(context.Context, *gen.LifeAchievementProgressMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeAchievementProgressFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeAchievementProgressMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeAchievementProgressMutation", m)
+}
+
+// The LifeAchievementUnlockFunc type is an adapter to allow the use of ordinary
+// function as LifeAchievementUnlock mutator.
+type LifeAchievementUnlockFunc func(context.Context, *gen.LifeAchievementUnlockMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeAchievementUnlockFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeAchievementUnlockMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeAchievementUnlockMutation", m)
+}
+
 // The LifeActionDependencyFunc type is an adapter to allow the use of ordinary
 // function as LifeActionDependency mutator.
 type LifeActionDependencyFunc func(context.Context, *gen.LifeActionDependencyMutation) (gen.Value, error)

@@ -272,6 +272,26 @@ type LifeInventoryData struct {
 	PendingCount int
 }
 
+// LifeAchievementRow is one memorial achievement on the achievements page.
+type LifeAchievementRow struct {
+	Flag         string
+	Name         string
+	Description  string
+	Unlocked     bool
+	UnlockedAt   string
+	ShowProgress bool
+	Current      int
+	Target       int
+	Retired      bool
+}
+
+// LifeAchievementsData is the achievements page model.
+type LifeAchievementsData struct {
+	Items         []LifeAchievementRow
+	UnlockedCount int
+	PendingCount  int
+}
+
 // lifeEquipSlotOrder is the paper-doll display order for wear positions.
 var lifeEquipSlotOrder = []struct {
 	label string
@@ -315,6 +335,19 @@ func lifeEquippedCount(slots []LifeEquipSlot) string {
 		}
 	}
 	return fmt.Sprintf("%d / %d", n, len(slots))
+}
+
+func lifeAchievementProgressPct(current, target int) int {
+	if target <= 0 {
+		return 0
+	}
+	if current <= 0 {
+		return 0
+	}
+	if current >= target {
+		return 100
+	}
+	return int(math.Round(float64(current) / float64(target) * 100))
 }
 
 // LifeRarityClass maps equipment rarity to a CSS modifier class.

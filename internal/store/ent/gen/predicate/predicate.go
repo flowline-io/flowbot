@@ -111,6 +111,15 @@ type LLMUsageRecord func(*sql.Selector)
 // LifeAIContext is the predicate function for lifeaicontext builders.
 type LifeAIContext func(*sql.Selector)
 
+// LifeAchievement is the predicate function for lifeachievement builders.
+type LifeAchievement func(*sql.Selector)
+
+// LifeAchievementProgress is the predicate function for lifeachievementprogress builders.
+type LifeAchievementProgress func(*sql.Selector)
+
+// LifeAchievementUnlock is the predicate function for lifeachievementunlock builders.
+type LifeAchievementUnlock func(*sql.Selector)
+
 // LifeActionDependency is the predicate function for lifeactiondependency builders.
 type LifeActionDependency func(*sql.Selector)
 

@@ -44,6 +44,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievement"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementprogress"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeachievementunlock"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
@@ -140,6 +143,9 @@ const (
 	TypeInstruct                  = "Instruct"
 	TypeLLMUsageRecord            = "LLMUsageRecord"
 	TypeLifeAIContext             = "LifeAIContext"
+	TypeLifeAchievement           = "LifeAchievement"
+	TypeLifeAchievementProgress   = "LifeAchievementProgress"
+	TypeLifeAchievementUnlock     = "LifeAchievementUnlock"
 	TypeLifeActionDependency      = "LifeActionDependency"
 	TypeLifeActionLog             = "LifeActionLog"
 	TypeLifeActionOccurrence      = "LifeActionOccurrence"
@@ -25708,6 +25714,2040 @@ func (m *LifeAIContextMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *LifeAIContextMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeAIContext edge %s", name)
+}
+
+// LifeAchievementMutation represents an operation that mutates the LifeAchievement nodes in the graph.
+type LifeAchievementMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int64
+	flag          *string
+	name          *string
+	description   *string
+	active        *bool
+	kind          *string
+	quest_type    *string
+	difficulty    *string
+	threshold     *int
+	addthreshold  *int
+	sort_order    *int
+	addsort_order *int
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*LifeAchievement, error)
+	predicates    []predicate.LifeAchievement
+}
+
+var _ ent.Mutation = (*LifeAchievementMutation)(nil)
+
+// lifeachievementOption allows management of the mutation configuration using functional options.
+type lifeachievementOption func(*LifeAchievementMutation)
+
+// newLifeAchievementMutation creates new mutation for the LifeAchievement entity.
+func newLifeAchievementMutation(c config, op Op, opts ...lifeachievementOption) *LifeAchievementMutation {
+	m := &LifeAchievementMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeAchievement,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeAchievementID sets the ID field of the mutation.
+func withLifeAchievementID(id int64) lifeachievementOption {
+	return func(m *LifeAchievementMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeAchievement
+		)
+		m.oldValue = func(ctx context.Context) (*LifeAchievement, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeAchievement.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeAchievement sets the old LifeAchievement of the mutation.
+func withLifeAchievement(node *LifeAchievement) lifeachievementOption {
+	return func(m *LifeAchievementMutation) {
+		m.oldValue = func(context.Context) (*LifeAchievement, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeAchievementMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeAchievementMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeAchievement entities.
+func (m *LifeAchievementMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeAchievementMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeAchievementMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeAchievement.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeAchievementMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeAchievementMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeAchievementMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetName sets the "name" field.
+func (m *LifeAchievementMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *LifeAchievementMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *LifeAchievementMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *LifeAchievementMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *LifeAchievementMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *LifeAchievementMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetActive sets the "active" field.
+func (m *LifeAchievementMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *LifeAchievementMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *LifeAchievementMutation) ResetActive() {
+	m.active = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *LifeAchievementMutation) SetKind(s string) {
+	m.kind = &s
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *LifeAchievementMutation) Kind() (r string, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *LifeAchievementMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetQuestType sets the "quest_type" field.
+func (m *LifeAchievementMutation) SetQuestType(s string) {
+	m.quest_type = &s
+}
+
+// QuestType returns the value of the "quest_type" field in the mutation.
+func (m *LifeAchievementMutation) QuestType() (r string, exists bool) {
+	v := m.quest_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuestType returns the old "quest_type" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldQuestType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuestType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuestType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuestType: %w", err)
+	}
+	return oldValue.QuestType, nil
+}
+
+// ResetQuestType resets all changes to the "quest_type" field.
+func (m *LifeAchievementMutation) ResetQuestType() {
+	m.quest_type = nil
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (m *LifeAchievementMutation) SetDifficulty(s string) {
+	m.difficulty = &s
+}
+
+// Difficulty returns the value of the "difficulty" field in the mutation.
+func (m *LifeAchievementMutation) Difficulty() (r string, exists bool) {
+	v := m.difficulty
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDifficulty returns the old "difficulty" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldDifficulty(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDifficulty is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDifficulty requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDifficulty: %w", err)
+	}
+	return oldValue.Difficulty, nil
+}
+
+// ResetDifficulty resets all changes to the "difficulty" field.
+func (m *LifeAchievementMutation) ResetDifficulty() {
+	m.difficulty = nil
+}
+
+// SetThreshold sets the "threshold" field.
+func (m *LifeAchievementMutation) SetThreshold(i int) {
+	m.threshold = &i
+	m.addthreshold = nil
+}
+
+// Threshold returns the value of the "threshold" field in the mutation.
+func (m *LifeAchievementMutation) Threshold() (r int, exists bool) {
+	v := m.threshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldThreshold returns the old "threshold" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldThreshold(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldThreshold is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldThreshold requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldThreshold: %w", err)
+	}
+	return oldValue.Threshold, nil
+}
+
+// AddThreshold adds i to the "threshold" field.
+func (m *LifeAchievementMutation) AddThreshold(i int) {
+	if m.addthreshold != nil {
+		*m.addthreshold += i
+	} else {
+		m.addthreshold = &i
+	}
+}
+
+// AddedThreshold returns the value that was added to the "threshold" field in this mutation.
+func (m *LifeAchievementMutation) AddedThreshold() (r int, exists bool) {
+	v := m.addthreshold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetThreshold resets all changes to the "threshold" field.
+func (m *LifeAchievementMutation) ResetThreshold() {
+	m.threshold = nil
+	m.addthreshold = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *LifeAchievementMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *LifeAchievementMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *LifeAchievementMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *LifeAchievementMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *LifeAchievementMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeAchievementMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeAchievementMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeAchievement entity.
+// If the LifeAchievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeAchievementMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifeAchievementMutation builder.
+func (m *LifeAchievementMutation) Where(ps ...predicate.LifeAchievement) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeAchievementMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeAchievementMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeAchievement, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeAchievementMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeAchievementMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeAchievement).
+func (m *LifeAchievementMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeAchievementMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.flag != nil {
+		fields = append(fields, lifeachievement.FieldFlag)
+	}
+	if m.name != nil {
+		fields = append(fields, lifeachievement.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, lifeachievement.FieldDescription)
+	}
+	if m.active != nil {
+		fields = append(fields, lifeachievement.FieldActive)
+	}
+	if m.kind != nil {
+		fields = append(fields, lifeachievement.FieldKind)
+	}
+	if m.quest_type != nil {
+		fields = append(fields, lifeachievement.FieldQuestType)
+	}
+	if m.difficulty != nil {
+		fields = append(fields, lifeachievement.FieldDifficulty)
+	}
+	if m.threshold != nil {
+		fields = append(fields, lifeachievement.FieldThreshold)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, lifeachievement.FieldSortOrder)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifeachievement.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeAchievementMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeachievement.FieldFlag:
+		return m.Flag()
+	case lifeachievement.FieldName:
+		return m.Name()
+	case lifeachievement.FieldDescription:
+		return m.Description()
+	case lifeachievement.FieldActive:
+		return m.Active()
+	case lifeachievement.FieldKind:
+		return m.Kind()
+	case lifeachievement.FieldQuestType:
+		return m.QuestType()
+	case lifeachievement.FieldDifficulty:
+		return m.Difficulty()
+	case lifeachievement.FieldThreshold:
+		return m.Threshold()
+	case lifeachievement.FieldSortOrder:
+		return m.SortOrder()
+	case lifeachievement.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeAchievementMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeachievement.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeachievement.FieldName:
+		return m.OldName(ctx)
+	case lifeachievement.FieldDescription:
+		return m.OldDescription(ctx)
+	case lifeachievement.FieldActive:
+		return m.OldActive(ctx)
+	case lifeachievement.FieldKind:
+		return m.OldKind(ctx)
+	case lifeachievement.FieldQuestType:
+		return m.OldQuestType(ctx)
+	case lifeachievement.FieldDifficulty:
+		return m.OldDifficulty(ctx)
+	case lifeachievement.FieldThreshold:
+		return m.OldThreshold(ctx)
+	case lifeachievement.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case lifeachievement.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeAchievement field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAchievementMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeachievement.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeachievement.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case lifeachievement.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case lifeachievement.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	case lifeachievement.FieldKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case lifeachievement.FieldQuestType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuestType(v)
+		return nil
+	case lifeachievement.FieldDifficulty:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDifficulty(v)
+		return nil
+	case lifeachievement.FieldThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetThreshold(v)
+		return nil
+	case lifeachievement.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case lifeachievement.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievement field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeAchievementMutation) AddedFields() []string {
+	var fields []string
+	if m.addthreshold != nil {
+		fields = append(fields, lifeachievement.FieldThreshold)
+	}
+	if m.addsort_order != nil {
+		fields = append(fields, lifeachievement.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeAchievementMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeachievement.FieldThreshold:
+		return m.AddedThreshold()
+	case lifeachievement.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAchievementMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeachievement.FieldThreshold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddThreshold(v)
+		return nil
+	case lifeachievement.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievement numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeAchievementMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeAchievementMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeAchievementMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LifeAchievement nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeAchievementMutation) ResetField(name string) error {
+	switch name {
+	case lifeachievement.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeachievement.FieldName:
+		m.ResetName()
+		return nil
+	case lifeachievement.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case lifeachievement.FieldActive:
+		m.ResetActive()
+		return nil
+	case lifeachievement.FieldKind:
+		m.ResetKind()
+		return nil
+	case lifeachievement.FieldQuestType:
+		m.ResetQuestType()
+		return nil
+	case lifeachievement.FieldDifficulty:
+		m.ResetDifficulty()
+		return nil
+	case lifeachievement.FieldThreshold:
+		m.ResetThreshold()
+		return nil
+	case lifeachievement.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case lifeachievement.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievement field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeAchievementMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeAchievementMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeAchievementMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeAchievementMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeAchievementMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeAchievementMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeAchievementMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeAchievement unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeAchievementMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeAchievement edge %s", name)
+}
+
+// LifeAchievementProgressMutation represents an operation that mutates the LifeAchievementProgress nodes in the graph.
+type LifeAchievementProgressMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	condition_key      *string
+	current_count      *int
+	addcurrent_count   *int
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifeAchievementProgress, error)
+	predicates         []predicate.LifeAchievementProgress
+}
+
+var _ ent.Mutation = (*LifeAchievementProgressMutation)(nil)
+
+// lifeachievementprogressOption allows management of the mutation configuration using functional options.
+type lifeachievementprogressOption func(*LifeAchievementProgressMutation)
+
+// newLifeAchievementProgressMutation creates new mutation for the LifeAchievementProgress entity.
+func newLifeAchievementProgressMutation(c config, op Op, opts ...lifeachievementprogressOption) *LifeAchievementProgressMutation {
+	m := &LifeAchievementProgressMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeAchievementProgress,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeAchievementProgressID sets the ID field of the mutation.
+func withLifeAchievementProgressID(id int64) lifeachievementprogressOption {
+	return func(m *LifeAchievementProgressMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeAchievementProgress
+		)
+		m.oldValue = func(ctx context.Context) (*LifeAchievementProgress, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeAchievementProgress.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeAchievementProgress sets the old LifeAchievementProgress of the mutation.
+func withLifeAchievementProgress(node *LifeAchievementProgress) lifeachievementprogressOption {
+	return func(m *LifeAchievementProgressMutation) {
+		m.oldValue = func(context.Context) (*LifeAchievementProgress, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeAchievementProgressMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeAchievementProgressMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeAchievementProgress entities.
+func (m *LifeAchievementProgressMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeAchievementProgressMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeAchievementProgressMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeAchievementProgress.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeAchievementProgressMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeAchievementProgressMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeAchievementProgress entity.
+// If the LifeAchievementProgress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementProgressMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeAchievementProgressMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeAchievementProgressMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeAchievementProgressMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeAchievementProgress entity.
+// If the LifeAchievementProgress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementProgressMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeAchievementProgressMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeAchievementProgressMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeAchievementProgressMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetConditionKey sets the "condition_key" field.
+func (m *LifeAchievementProgressMutation) SetConditionKey(s string) {
+	m.condition_key = &s
+}
+
+// ConditionKey returns the value of the "condition_key" field in the mutation.
+func (m *LifeAchievementProgressMutation) ConditionKey() (r string, exists bool) {
+	v := m.condition_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConditionKey returns the old "condition_key" field's value of the LifeAchievementProgress entity.
+// If the LifeAchievementProgress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementProgressMutation) OldConditionKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConditionKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConditionKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConditionKey: %w", err)
+	}
+	return oldValue.ConditionKey, nil
+}
+
+// ResetConditionKey resets all changes to the "condition_key" field.
+func (m *LifeAchievementProgressMutation) ResetConditionKey() {
+	m.condition_key = nil
+}
+
+// SetCurrentCount sets the "current_count" field.
+func (m *LifeAchievementProgressMutation) SetCurrentCount(i int) {
+	m.current_count = &i
+	m.addcurrent_count = nil
+}
+
+// CurrentCount returns the value of the "current_count" field in the mutation.
+func (m *LifeAchievementProgressMutation) CurrentCount() (r int, exists bool) {
+	v := m.current_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCurrentCount returns the old "current_count" field's value of the LifeAchievementProgress entity.
+// If the LifeAchievementProgress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementProgressMutation) OldCurrentCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCurrentCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCurrentCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCurrentCount: %w", err)
+	}
+	return oldValue.CurrentCount, nil
+}
+
+// AddCurrentCount adds i to the "current_count" field.
+func (m *LifeAchievementProgressMutation) AddCurrentCount(i int) {
+	if m.addcurrent_count != nil {
+		*m.addcurrent_count += i
+	} else {
+		m.addcurrent_count = &i
+	}
+}
+
+// AddedCurrentCount returns the value that was added to the "current_count" field in this mutation.
+func (m *LifeAchievementProgressMutation) AddedCurrentCount() (r int, exists bool) {
+	v := m.addcurrent_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCurrentCount resets all changes to the "current_count" field.
+func (m *LifeAchievementProgressMutation) ResetCurrentCount() {
+	m.current_count = nil
+	m.addcurrent_count = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeAchievementProgressMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeAchievementProgressMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeAchievementProgress entity.
+// If the LifeAchievementProgress object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementProgressMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeAchievementProgressMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifeAchievementProgressMutation builder.
+func (m *LifeAchievementProgressMutation) Where(ps ...predicate.LifeAchievementProgress) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeAchievementProgressMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeAchievementProgressMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeAchievementProgress, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeAchievementProgressMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeAchievementProgressMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeAchievementProgress).
+func (m *LifeAchievementProgressMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeAchievementProgressMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.flag != nil {
+		fields = append(fields, lifeachievementprogress.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifeachievementprogress.FieldLifeProfileID)
+	}
+	if m.condition_key != nil {
+		fields = append(fields, lifeachievementprogress.FieldConditionKey)
+	}
+	if m.current_count != nil {
+		fields = append(fields, lifeachievementprogress.FieldCurrentCount)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifeachievementprogress.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeAchievementProgressMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeachievementprogress.FieldFlag:
+		return m.Flag()
+	case lifeachievementprogress.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifeachievementprogress.FieldConditionKey:
+		return m.ConditionKey()
+	case lifeachievementprogress.FieldCurrentCount:
+		return m.CurrentCount()
+	case lifeachievementprogress.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeAchievementProgressMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeachievementprogress.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeachievementprogress.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifeachievementprogress.FieldConditionKey:
+		return m.OldConditionKey(ctx)
+	case lifeachievementprogress.FieldCurrentCount:
+		return m.OldCurrentCount(ctx)
+	case lifeachievementprogress.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeAchievementProgress field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAchievementProgressMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeachievementprogress.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeachievementprogress.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifeachievementprogress.FieldConditionKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConditionKey(v)
+		return nil
+	case lifeachievementprogress.FieldCurrentCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCurrentCount(v)
+		return nil
+	case lifeachievementprogress.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievementProgress field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeAchievementProgressMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifeachievementprogress.FieldLifeProfileID)
+	}
+	if m.addcurrent_count != nil {
+		fields = append(fields, lifeachievementprogress.FieldCurrentCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeAchievementProgressMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeachievementprogress.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifeachievementprogress.FieldCurrentCount:
+		return m.AddedCurrentCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAchievementProgressMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeachievementprogress.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifeachievementprogress.FieldCurrentCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCurrentCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievementProgress numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeAchievementProgressMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeAchievementProgressMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeAchievementProgressMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LifeAchievementProgress nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeAchievementProgressMutation) ResetField(name string) error {
+	switch name {
+	case lifeachievementprogress.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeachievementprogress.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifeachievementprogress.FieldConditionKey:
+		m.ResetConditionKey()
+		return nil
+	case lifeachievementprogress.FieldCurrentCount:
+		m.ResetCurrentCount()
+		return nil
+	case lifeachievementprogress.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievementProgress field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeAchievementProgressMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeAchievementProgressMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeAchievementProgressMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeAchievementProgressMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeAchievementProgressMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeAchievementProgressMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeAchievementProgressMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeAchievementProgress unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeAchievementProgressMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeAchievementProgress edge %s", name)
+}
+
+// LifeAchievementUnlockMutation represents an operation that mutates the LifeAchievementUnlock nodes in the graph.
+type LifeAchievementUnlockMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	achievement_flag   *string
+	unlocked_at        *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifeAchievementUnlock, error)
+	predicates         []predicate.LifeAchievementUnlock
+}
+
+var _ ent.Mutation = (*LifeAchievementUnlockMutation)(nil)
+
+// lifeachievementunlockOption allows management of the mutation configuration using functional options.
+type lifeachievementunlockOption func(*LifeAchievementUnlockMutation)
+
+// newLifeAchievementUnlockMutation creates new mutation for the LifeAchievementUnlock entity.
+func newLifeAchievementUnlockMutation(c config, op Op, opts ...lifeachievementunlockOption) *LifeAchievementUnlockMutation {
+	m := &LifeAchievementUnlockMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeAchievementUnlock,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeAchievementUnlockID sets the ID field of the mutation.
+func withLifeAchievementUnlockID(id int64) lifeachievementunlockOption {
+	return func(m *LifeAchievementUnlockMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeAchievementUnlock
+		)
+		m.oldValue = func(ctx context.Context) (*LifeAchievementUnlock, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeAchievementUnlock.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeAchievementUnlock sets the old LifeAchievementUnlock of the mutation.
+func withLifeAchievementUnlock(node *LifeAchievementUnlock) lifeachievementunlockOption {
+	return func(m *LifeAchievementUnlockMutation) {
+		m.oldValue = func(context.Context) (*LifeAchievementUnlock, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeAchievementUnlockMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeAchievementUnlockMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeAchievementUnlock entities.
+func (m *LifeAchievementUnlockMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeAchievementUnlockMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeAchievementUnlockMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeAchievementUnlock.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeAchievementUnlockMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeAchievementUnlockMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeAchievementUnlock entity.
+// If the LifeAchievementUnlock object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementUnlockMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeAchievementUnlockMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeAchievementUnlockMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeAchievementUnlockMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeAchievementUnlock entity.
+// If the LifeAchievementUnlock object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementUnlockMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeAchievementUnlockMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeAchievementUnlockMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeAchievementUnlockMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetAchievementFlag sets the "achievement_flag" field.
+func (m *LifeAchievementUnlockMutation) SetAchievementFlag(s string) {
+	m.achievement_flag = &s
+}
+
+// AchievementFlag returns the value of the "achievement_flag" field in the mutation.
+func (m *LifeAchievementUnlockMutation) AchievementFlag() (r string, exists bool) {
+	v := m.achievement_flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAchievementFlag returns the old "achievement_flag" field's value of the LifeAchievementUnlock entity.
+// If the LifeAchievementUnlock object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementUnlockMutation) OldAchievementFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAchievementFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAchievementFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAchievementFlag: %w", err)
+	}
+	return oldValue.AchievementFlag, nil
+}
+
+// ResetAchievementFlag resets all changes to the "achievement_flag" field.
+func (m *LifeAchievementUnlockMutation) ResetAchievementFlag() {
+	m.achievement_flag = nil
+}
+
+// SetUnlockedAt sets the "unlocked_at" field.
+func (m *LifeAchievementUnlockMutation) SetUnlockedAt(t time.Time) {
+	m.unlocked_at = &t
+}
+
+// UnlockedAt returns the value of the "unlocked_at" field in the mutation.
+func (m *LifeAchievementUnlockMutation) UnlockedAt() (r time.Time, exists bool) {
+	v := m.unlocked_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUnlockedAt returns the old "unlocked_at" field's value of the LifeAchievementUnlock entity.
+// If the LifeAchievementUnlock object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAchievementUnlockMutation) OldUnlockedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUnlockedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUnlockedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUnlockedAt: %w", err)
+	}
+	return oldValue.UnlockedAt, nil
+}
+
+// ResetUnlockedAt resets all changes to the "unlocked_at" field.
+func (m *LifeAchievementUnlockMutation) ResetUnlockedAt() {
+	m.unlocked_at = nil
+}
+
+// Where appends a list predicates to the LifeAchievementUnlockMutation builder.
+func (m *LifeAchievementUnlockMutation) Where(ps ...predicate.LifeAchievementUnlock) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeAchievementUnlockMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeAchievementUnlockMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeAchievementUnlock, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeAchievementUnlockMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeAchievementUnlockMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeAchievementUnlock).
+func (m *LifeAchievementUnlockMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeAchievementUnlockMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.flag != nil {
+		fields = append(fields, lifeachievementunlock.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifeachievementunlock.FieldLifeProfileID)
+	}
+	if m.achievement_flag != nil {
+		fields = append(fields, lifeachievementunlock.FieldAchievementFlag)
+	}
+	if m.unlocked_at != nil {
+		fields = append(fields, lifeachievementunlock.FieldUnlockedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeAchievementUnlockMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeachievementunlock.FieldFlag:
+		return m.Flag()
+	case lifeachievementunlock.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifeachievementunlock.FieldAchievementFlag:
+		return m.AchievementFlag()
+	case lifeachievementunlock.FieldUnlockedAt:
+		return m.UnlockedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeAchievementUnlockMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeachievementunlock.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeachievementunlock.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifeachievementunlock.FieldAchievementFlag:
+		return m.OldAchievementFlag(ctx)
+	case lifeachievementunlock.FieldUnlockedAt:
+		return m.OldUnlockedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeAchievementUnlock field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAchievementUnlockMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeachievementunlock.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeachievementunlock.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifeachievementunlock.FieldAchievementFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAchievementFlag(v)
+		return nil
+	case lifeachievementunlock.FieldUnlockedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUnlockedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievementUnlock field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeAchievementUnlockMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifeachievementunlock.FieldLifeProfileID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeAchievementUnlockMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeachievementunlock.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAchievementUnlockMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeachievementunlock.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievementUnlock numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeAchievementUnlockMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeAchievementUnlockMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeAchievementUnlockMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LifeAchievementUnlock nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeAchievementUnlockMutation) ResetField(name string) error {
+	switch name {
+	case lifeachievementunlock.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeachievementunlock.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifeachievementunlock.FieldAchievementFlag:
+		m.ResetAchievementFlag()
+		return nil
+	case lifeachievementunlock.FieldUnlockedAt:
+		m.ResetUnlockedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAchievementUnlock field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeAchievementUnlockMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeAchievementUnlockMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeAchievementUnlockMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeAchievementUnlockMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeAchievementUnlockMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeAchievementUnlockMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeAchievementUnlockMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeAchievementUnlock unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeAchievementUnlockMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeAchievementUnlock edge %s", name)
 }
 
 // LifeActionDependencyMutation represents an operation that mutates the LifeActionDependency nodes in the graph.

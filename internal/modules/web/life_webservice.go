@@ -43,6 +43,7 @@ var lifeWebserviceRules = []webservice.Rule{
 	webservice.Post("/life/actions/:flag/skip", lifeSkipActionOccurrence, route.WithNotAuth()),
 	webservice.Post("/life/habits/:flag/checkin", lifeCheckInHabit, route.WithNotAuth()),
 	webservice.Get("/life/inventory", lifeInventoryPage, route.WithNotAuth()),
+	webservice.Get("/life/achievements", lifeAchievementsPage, route.WithNotAuth()),
 	webservice.Post("/life/inventory/:flag/equip", lifeEquipItem, route.WithNotAuth()),
 	webservice.Post("/life/inventory/slots/:slot/unequip", lifeUnequipSlot, route.WithNotAuth()),
 }
@@ -783,6 +784,13 @@ func lifeCompleteQuest(ctx fiber.Ctx) error {
 	if res.Dropped {
 		msg = fmt.Sprintf("Loot drop! %s — +%d EXP, +%d gold", res.ItemName, res.GainedExp, res.GainedGold)
 	}
+	if len(res.NewlyUnlocked) > 0 {
+		names := make([]string, 0, len(res.NewlyUnlocked))
+		for _, a := range res.NewlyUnlocked {
+			names = append(names, a.Name)
+		}
+		msg = fmt.Sprintf("%s · Achievement: %s", msg, strings.Join(names, ", "))
+	}
 	setShowToast(ctx, "success", msg)
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
@@ -908,6 +916,44 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 	ctx.Type("html")
 	return pages.LifeInventoryPage(pages.LifeInventoryData{
 		Slots: pages.LifeBuildEquipSlots(rows), Items: rows, PendingCount: len(pending),
+	}).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+func lifeAchievementsPage(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	items, err := lifeService().ListAchievements(context.Background(), uid)
+	if err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
+	if err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	rows := make([]pages.LifeAchievementRow, 0, len(items))
+	unlockedCount := 0
+	for _, it := range items {
+		if it.Unlocked {
+			unlockedCount++
+		}
+		unlockedAt := ""
+		if it.UnlockedAt != nil {
+			unlockedAt = it.UnlockedAt.Format("2006-01-02")
+		}
+		rows = append(rows, pages.LifeAchievementRow{
+			Flag: it.Flag, Name: it.Name, Description: it.Description,
+			Unlocked: it.Unlocked, UnlockedAt: unlockedAt,
+			ShowProgress: it.ShowProgress, Current: it.Current, Target: it.Target, Retired: it.Retired,
+		})
+	}
+	ctx.Type("html")
+	return pages.LifeAchievementsPage(pages.LifeAchievementsData{
+		Items: rows, UnlockedCount: unlockedCount, PendingCount: len(pending),
 	}).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
