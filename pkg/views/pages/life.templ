@@ -12,10 +12,7 @@ templ LifeDashboardPage(data LifeCharacterData) {
 	@layout.Base("Life — Flowbot") {
 		@partials.LifeRadarScripts()
 		@lifeModuleShell("life", data.PendingCount) {
-			<div class="life-dashboard" data-testid="life-identity">
-				<div class="life-identity-title">
-					<div class="life-identity-title-box" data-testid="life-identity-title">Character Identity</div>
-				</div>
+			<div class="life-dashboard" data-testid="life-dashboard">
 				<div class="life-dashboard-grid">
 					<section class="life-panel" data-testid="life-profile-card">
 						@lifeProfileSummary(data)

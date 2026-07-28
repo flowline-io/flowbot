@@ -2986,7 +2986,7 @@ body:has(.chatagent-page) > main {
   flex-shrink: 0;
 }
 
-/* Life — Character Identity layout */
+/* Life — dashboard / character layout */
 .life-dashboard {
   max-width: 56rem;
   margin-inline: auto;

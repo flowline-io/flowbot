@@ -11,7 +11,7 @@ import (
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
 )
 
-// LifeDashboardData is the Life home dashboard model (Character Identity layout).
+// LifeDashboardData is the Life home dashboard model.
 type LifeDashboardData = LifeCharacterData
 
 // LifeStatRow is one characteristic row with progress for segmented bars.
@@ -42,7 +42,7 @@ type LifeSkillTreeData struct {
 	TrackedLeafCount int
 }
 
-// LifeCharacterData is the Character Identity page model.
+// LifeCharacterData is the Life character / dashboard page model.
 type LifeCharacterData struct {
 	Nickname         string
 	ClassType        string
