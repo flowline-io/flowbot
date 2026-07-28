@@ -5,6 +5,7 @@ import "github.com/flowline-io/flowbot/pkg/views/layout"
 templ Login2FAPage(nextURL string, errorMsg string, csrfToken string) {
 	@layout.Auth("Flowbot — Two-factor") {
 		@Login2FAForm(nextURL, errorMsg, csrfToken)
+		<script src="/static/js/login-2fa.js"></script>
 	}
 }
 
@@ -15,15 +16,38 @@ templ Login2FAForm(nextURL string, errorMsg string, csrfToken string) {
 		data-testid="login-2fa-form"
 		class="w-full max-w-sm border-t border-base-300 pt-6">
 		<h1 class="text-lg font-semibold text-base-content mb-2 tracking-tight">Two-factor authentication</h1>
-		<p class="text-sm text-base-content/60 mb-5">Enter the 6-digit code from your authenticator app, or a backup code.</p>
+		<p class="text-sm text-base-content/60 mb-5">Enter the 6-digit code from your authenticator app.</p>
 		<input type="hidden" name="next" value={ nextURL }/>
 		<input type="hidden" name="csrf_token" value={ csrfToken } data-testid="login-2fa-csrf"/>
-		<div class="mb-5">
-			<label for="code" class="block text-sm font-medium mb-1.5">Verification code</label>
-			<input type="text" id="code" name="code" autocomplete="one-time-code" inputmode="numeric"
-				required maxlength="16"
-				data-testid="login-2fa-code"
-				class="input input-bordered w-full"/>
+		<input type="hidden" name="code" value="" data-testid="login-2fa-code" data-login-2fa-value/>
+		<div class="mb-5" data-login-2fa-otp-panel>
+			<label class="block text-sm font-medium mb-1.5">Verification code</label>
+			<div class="flex gap-2" role="group" aria-label="6-digit verification code" data-testid="login-2fa-otp" data-login-2fa-otp>
+				<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1"
+					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
+				<input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 2"
+					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
+				<input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 3"
+					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
+				<input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 4"
+					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
+				<input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 5"
+					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
+				<input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 6"
+					data-login-2fa-digit class="input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0"/>
+			</div>
+			<button type="button" class="btn btn-link btn-sm px-0 mt-3 h-auto min-h-0" data-testid="login-2fa-use-backup" data-login-2fa-show-backup>
+				Use a backup code
+			</button>
+		</div>
+		<div class="mb-5 hidden" hidden data-login-2fa-backup-panel>
+			<label for="login-2fa-backup" class="block text-sm font-medium mb-1.5">Backup code</label>
+			<input type="text" id="login-2fa-backup" autocomplete="off" maxlength="16"
+				data-testid="login-2fa-backup-code" data-login-2fa-backup
+				class="input input-bordered w-full font-mono"/>
+			<button type="button" class="btn btn-link btn-sm px-0 mt-3 h-auto min-h-0" data-testid="login-2fa-use-otp" data-login-2fa-show-otp>
+				Use authenticator code
+			</button>
 		</div>
 		if errorMsg != "" {
 			<p class="text-error text-sm mb-4" data-testid="login-2fa-error">{ errorMsg }</p>

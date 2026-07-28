@@ -47,6 +47,10 @@ func Login2FAPage(nextURL string, errorMsg string, csrfToken string) templ.Compo
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, " <script src=\"/static/js/login-2fa.js\"></script>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			return nil
 		})
 		templ_7745c5c3_Err = layout.Auth("Flowbot — Two-factor").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
@@ -78,56 +82,56 @@ func Login2FAForm(nextURL string, errorMsg string, csrfToken string) templ.Compo
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/service/web/login/2fa\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"login-2fa-form\" class=\"w-full max-w-sm border-t border-base-300 pt-6\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Two-factor authentication</h1><p class=\"text-sm text-base-content/60 mb-5\">Enter the 6-digit code from your authenticator app, or a backup code.</p><input type=\"hidden\" name=\"next\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<form hx-post=\"/service/web/login/2fa\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"login-2fa-form\" class=\"w-full max-w-sm border-t border-base-300 pt-6\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Two-factor authentication</h1><p class=\"text-sm text-base-content/60 mb-5\">Enter the 6-digit code from your authenticator app.</p><input type=\"hidden\" name=\"next\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(nextURL)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 19, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 20, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\"> <input type=\"hidden\" name=\"csrf_token\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"> <input type=\"hidden\" name=\"csrf_token\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 20, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 21, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" data-testid=\"login-2fa-csrf\"><div class=\"mb-5\"><label for=\"code\" class=\"block text-sm font-medium mb-1.5\">Verification code</label> <input type=\"text\" id=\"code\" name=\"code\" autocomplete=\"one-time-code\" inputmode=\"numeric\" required maxlength=\"16\" data-testid=\"login-2fa-code\" class=\"input input-bordered w-full\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" data-testid=\"login-2fa-csrf\"> <input type=\"hidden\" name=\"code\" value=\"\" data-testid=\"login-2fa-code\" data-login-2fa-value><div class=\"mb-5\" data-login-2fa-otp-panel><label class=\"block text-sm font-medium mb-1.5\">Verification code</label><div class=\"flex gap-2\" role=\"group\" aria-label=\"6-digit verification code\" data-testid=\"login-2fa-otp\" data-login-2fa-otp><input type=\"text\" inputmode=\"numeric\" autocomplete=\"one-time-code\" maxlength=\"1\" aria-label=\"Digit 1\" data-login-2fa-digit class=\"input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0\"> <input type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" maxlength=\"1\" aria-label=\"Digit 2\" data-login-2fa-digit class=\"input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0\"> <input type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" maxlength=\"1\" aria-label=\"Digit 3\" data-login-2fa-digit class=\"input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0\"> <input type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" maxlength=\"1\" aria-label=\"Digit 4\" data-login-2fa-digit class=\"input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0\"> <input type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" maxlength=\"1\" aria-label=\"Digit 5\" data-login-2fa-digit class=\"input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0\"> <input type=\"text\" inputmode=\"numeric\" autocomplete=\"off\" maxlength=\"1\" aria-label=\"Digit 6\" data-login-2fa-digit class=\"input input-bordered flex-1 min-w-0 h-12 text-center text-lg font-semibold px-0\"></div><button type=\"button\" class=\"btn btn-link btn-sm px-0 mt-3 h-auto min-h-0\" data-testid=\"login-2fa-use-backup\" data-login-2fa-show-backup>Use a backup code</button></div><div class=\"mb-5 hidden\" hidden data-login-2fa-backup-panel><label for=\"login-2fa-backup\" class=\"block text-sm font-medium mb-1.5\">Backup code</label> <input type=\"text\" id=\"login-2fa-backup\" autocomplete=\"off\" maxlength=\"16\" data-testid=\"login-2fa-backup-code\" data-login-2fa-backup class=\"input input-bordered w-full font-mono\"> <button type=\"button\" class=\"btn btn-link btn-sm px-0 mt-3 h-auto min-h-0\" data-testid=\"login-2fa-use-otp\" data-login-2fa-show-otp>Use authenticator code</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if errorMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<p class=\"text-error text-sm mb-4\" data-testid=\"login-2fa-error\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"text-error text-sm mb-4\" data-testid=\"login-2fa-error\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 29, Col: 78}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 53, Col: 78}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<button type=\"submit\" data-testid=\"login-2fa-submit\" class=\"btn btn-primary w-full\">Verify</button></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<button type=\"submit\" data-testid=\"login-2fa-submit\" class=\"btn btn-primary w-full\">Verify</button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -203,43 +207,43 @@ func SetupForm(errorMsg string, csrfToken string) templ.Component {
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<form hx-post=\"/service/web/setup\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"setup-form\" class=\"w-full max-w-sm border-t border-base-300 pt-6\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Create admin account</h1><p class=\"text-sm text-base-content/60 mb-5\">First-time setup. You will bind TOTP next.</p><input type=\"hidden\" name=\"csrf_token\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<form hx-post=\"/service/web/setup\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"setup-form\" class=\"w-full max-w-sm border-t border-base-300 pt-6\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Create admin account</h1><p class=\"text-sm text-base-content/60 mb-5\">First-time setup. You will bind TOTP next.</p><input type=\"hidden\" name=\"csrf_token\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 49, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 73, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" data-testid=\"setup-csrf\"><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1.5\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" required maxlength=\"128\" data-testid=\"setup-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-5\"><label for=\"password\" class=\"block text-sm font-medium mb-1.5\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"new-password\" required maxlength=\"256\" minlength=\"12\" data-testid=\"setup-password\" class=\"input input-bordered w-full\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" data-testid=\"setup-csrf\"><div class=\"mb-4\"><label for=\"username\" class=\"block text-sm font-medium mb-1.5\">Username</label> <input type=\"text\" id=\"username\" name=\"username\" autocomplete=\"username\" required maxlength=\"128\" data-testid=\"setup-username\" class=\"input input-bordered w-full\"></div><div class=\"mb-5\"><label for=\"password\" class=\"block text-sm font-medium mb-1.5\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" autocomplete=\"new-password\" required maxlength=\"256\" minlength=\"12\" data-testid=\"setup-password\" class=\"input input-bordered w-full\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if errorMsg != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<p class=\"text-error text-sm mb-4\" data-testid=\"setup-error\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<p class=\"text-error text-sm mb-4\" data-testid=\"setup-error\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 65, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 89, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<button type=\"submit\" data-testid=\"setup-submit\" class=\"btn btn-primary w-full\">Continue</button></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<button type=\"submit\" data-testid=\"setup-submit\" class=\"btn btn-primary w-full\">Continue</button></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -280,69 +284,69 @@ func Enroll2FAPage(secret string, otpauthURI string, errorMsg string, csrfToken 
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<form hx-post=\"/service/web/setup/2fa\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"enroll-2fa-form\" class=\"w-full max-w-sm border-t border-base-300 pt-6\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Enable authenticator</h1><p class=\"text-sm text-base-content/60 mb-4\">Scan the QR code with your authenticator app, then enter a code to confirm.</p><input type=\"hidden\" name=\"csrf_token\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<form hx-post=\"/service/web/setup/2fa\" hx-target=\"this\" hx-swap=\"outerHTML\" data-testid=\"enroll-2fa-form\" class=\"w-full max-w-sm border-t border-base-300 pt-6\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Enable authenticator</h1><p class=\"text-sm text-base-content/60 mb-4\">Scan the QR code with your authenticator app, then enter a code to confirm.</p><input type=\"hidden\" name=\"csrf_token\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 80, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 104, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><div class=\"flex justify-center mb-4\"><div data-testid=\"enroll-2fa-qr\" data-otpauth-uri=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"><div class=\"flex justify-center mb-4\"><div data-testid=\"enroll-2fa-qr\" data-otpauth-uri=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(otpauthURI)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 82, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 106, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" class=\"bg-white p-2 border border-base-300 inline-block min-h-[216px] min-w-[216px]\"></div></div><div class=\"mb-4\"><label class=\"block text-sm font-medium mb-1.5\">Or enter secret manually</label> <code class=\"block text-xs break-all bg-base-300/40 p-3 rounded\" data-testid=\"enroll-2fa-secret\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" class=\"bg-white p-2 border border-base-300 inline-block min-h-[216px] min-w-[216px]\"></div></div><div class=\"mb-4\"><label class=\"block text-sm font-medium mb-1.5\">Or enter secret manually</label> <code class=\"block text-xs break-all bg-base-300/40 p-3 rounded\" data-testid=\"enroll-2fa-secret\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(secret)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 86, Col: 109}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 110, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</code></div><div class=\"mb-5\"><label for=\"code\" class=\"block text-sm font-medium mb-1.5\">Verification code</label> <input type=\"text\" id=\"code\" name=\"code\" autocomplete=\"one-time-code\" inputmode=\"numeric\" required maxlength=\"8\" data-testid=\"enroll-2fa-code\" class=\"input input-bordered w-full\"></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</code></div><div class=\"mb-5\"><label for=\"code\" class=\"block text-sm font-medium mb-1.5\">Verification code</label> <input type=\"text\" id=\"code\" name=\"code\" autocomplete=\"one-time-code\" inputmode=\"numeric\" required maxlength=\"8\" data-testid=\"enroll-2fa-code\" class=\"input input-bordered w-full\"></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			if errorMsg != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<p class=\"text-error text-sm mb-4\" data-testid=\"enroll-2fa-error\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<p class=\"text-error text-sm mb-4\" data-testid=\"enroll-2fa-error\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 96, Col: 80}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 120, Col: 80}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</p>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "<button type=\"submit\" data-testid=\"enroll-2fa-submit\" class=\"btn btn-primary w-full\">Confirm and continue</button></form><script src=\"/static/vendor/qrcode.min.js\"></script> <script src=\"/static/js/totp-enroll.js\"></script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<button type=\"submit\" data-testid=\"enroll-2fa-submit\" class=\"btn btn-primary w-full\">Confirm and continue</button></form><script src=\"/static/vendor/qrcode.min.js\"></script> <script src=\"/static/js/totp-enroll.js\"></script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -389,43 +393,43 @@ func BackupCodesPage(codes []string, csrfToken string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div class=\"w-full max-w-sm border-t border-base-300 pt-6\" data-testid=\"backup-codes-page\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Save backup codes</h1><p class=\"text-sm text-base-content/60 mb-4\">Store these one-time codes somewhere safe. They will not be shown again.</p><ul class=\"font-mono text-sm space-y-1 mb-6 bg-base-300/40 p-3 rounded\" data-testid=\"backup-codes-list\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div class=\"w-full max-w-sm border-t border-base-300 pt-6\" data-testid=\"backup-codes-page\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Save backup codes</h1><p class=\"text-sm text-base-content/60 mb-4\">Store these one-time codes somewhere safe. They will not be shown again.</p><ul class=\"font-mono text-sm space-y-1 mb-6 bg-base-300/40 p-3 rounded\" data-testid=\"backup-codes-list\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, c := range codes {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<li>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<li>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(c)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 112, Col: 12}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 136, Col: 12}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</li>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</li>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "</ul><form method=\"post\" action=\"/service/web/setup/backup-codes/ack\" data-testid=\"backup-codes-ack-form\" class=\"w-full\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</ul><form method=\"post\" action=\"/service/web/setup/backup-codes/ack\" data-testid=\"backup-codes-ack-form\" class=\"w-full\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 118, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 142, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var21)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\"> <button type=\"submit\" class=\"btn btn-primary w-full\" data-testid=\"backup-codes-continue\">Continue to Flowbot</button></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\"> <button type=\"submit\" class=\"btn btn-primary w-full\" data-testid=\"backup-codes-continue\">Continue to Flowbot</button></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -472,20 +476,20 @@ func BackupCodesAckPage(csrfToken string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<div class=\"w-full max-w-sm border-t border-base-300 pt-6\" data-testid=\"backup-codes-ack-page\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Confirm backup codes saved</h1><p class=\"text-sm text-base-content/60 mb-6\">Backup codes were already shown. Continue only after you stored them somewhere safe.</p><form method=\"post\" action=\"/service/web/setup/backup-codes/ack\" data-testid=\"backup-codes-ack-form\" class=\"w-full\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"w-full max-w-sm border-t border-base-300 pt-6\" data-testid=\"backup-codes-ack-page\"><h1 class=\"text-lg font-semibold text-base-content mb-2 tracking-tight\">Confirm backup codes saved</h1><p class=\"text-sm text-base-content/60 mb-6\">Backup codes were already shown. Continue only after you stored them somewhere safe.</p><form method=\"post\" action=\"/service/web/setup/backup-codes/ack\" data-testid=\"backup-codes-ack-form\" class=\"w-full\"><input type=\"hidden\" name=\"csrf_token\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var24 string
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.ResolveAttributeValue(csrfToken)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 133, Col: 60}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/auth_extra.templ`, Line: 157, Col: 60}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var24)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "\"> <button type=\"submit\" class=\"btn btn-primary w-full\" data-testid=\"backup-codes-continue\">Continue to Flowbot</button></form></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\"> <button type=\"submit\" class=\"btn btn-primary w-full\" data-testid=\"backup-codes-continue\">Continue to Flowbot</button></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
