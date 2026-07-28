@@ -173,8 +173,12 @@ func LookupAccessToken(ctx context.Context, raw string) (gen.Parameter, error) {
 	if raw == "" {
 		return gen.Parameter{}, types.ErrNotFound
 	}
+	db := store.Database
+	if db == nil {
+		return gen.Parameter{}, types.ErrNotFound
+	}
 	hashed := auth.HashToken(raw)
-	p, err := store.Database.ParameterGet(ctx, hashed)
+	p, err := db.ParameterGet(ctx, hashed)
 	if err == nil {
 		return p, nil
 	}
@@ -182,16 +186,16 @@ func LookupAccessToken(ctx context.Context, raw string) (gen.Parameter, error) {
 		return gen.Parameter{}, err
 	}
 
-	p, err = store.Database.ParameterGet(ctx, raw)
+	p, err = db.ParameterGet(ctx, raw)
 	if err != nil {
 		return gen.Parameter{}, err
 	}
 
 	params := types.KV(p.Params)
-	if setErr := store.Database.ParameterSet(ctx, hashed, params, p.ExpiredAt); setErr != nil {
+	if setErr := db.ParameterSet(ctx, hashed, params, p.ExpiredAt); setErr != nil {
 		return gen.Parameter{}, setErr
 	}
-	_ = store.Database.ParameterDelete(ctx, raw)
+	_ = db.ParameterDelete(ctx, raw)
 	p.Flag = hashed
 	return p, nil
 }
@@ -201,11 +205,15 @@ func DeleteAccessToken(ctx context.Context, raw string) error {
 	if raw == "" {
 		return nil
 	}
+	db := store.Database
+	if db == nil {
+		return nil
+	}
 	hashed := auth.HashToken(raw)
-	if err := store.Database.ParameterDelete(ctx, hashed); err != nil {
+	if err := db.ParameterDelete(ctx, hashed); err != nil {
 		return err
 	}
-	return store.Database.ParameterDelete(ctx, raw)
+	return db.ParameterDelete(ctx, raw)
 }
 
 // resolveAccessToken extracts the access token from cookies or the HTTP request.
@@ -254,10 +262,15 @@ func parseScopes(paramKV types.KV) []string {
 // throttledUpdateLastUsed updates last_used_at in params with a 60s throttle
 // to avoid a database write on every request. tokenFlag must be the storage key (hash).
 func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string, expiredAt time.Time) {
-	if shouldUpdateLastUsed(paramKV) {
-		paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-		_ = store.Database.ParameterSet(context.Background(), tokenFlag, paramKV, expiredAt)
+	if !shouldUpdateLastUsed(paramKV) {
+		return
 	}
+	db := store.Database
+	if db == nil {
+		return
+	}
+	paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
+	_ = db.ParameterSet(context.Background(), tokenFlag, paramKV, expiredAt)
 }
 
 // shouldUpdateLastUsed returns true when last_used_at is missing, unparseable,

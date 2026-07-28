@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -17,9 +16,7 @@ import (
 
 func withTestScheduleStore(t *testing.T, fn func()) {
 	t.Helper()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	defer func() { store.Database = origDB }()
+	withIsolatedTestStore(t)
 	fn()
 }
 

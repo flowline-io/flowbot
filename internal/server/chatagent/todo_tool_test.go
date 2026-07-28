@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,14 +11,12 @@ import (
 
 func withTestTodoStore(t *testing.T, fn func()) {
 	t.Helper()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	defer func() { store.Database = origDB }()
+	withIsolatedTestStore(t)
 	fn()
 }
 
 func TestTodoWriteToolValidation(t *testing.T) {
-	t.Parallel()
+	// Mutates package-level store.Database; must not run subtests in parallel.
 	tool := TodoWriteTool{deps: TodoToolDeps{SessionID: "sess-1"}}
 
 	tests := []struct {
@@ -37,7 +33,6 @@ func TestTodoWriteToolValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			withTestTodoStore(t, func() {
 				result, err := tool.Execute(context.Background(), "call-1", tt.args, nil)
 				require.NoError(t, err)

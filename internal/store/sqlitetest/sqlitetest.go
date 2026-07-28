@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"entgo.io/ent/dialect"
@@ -25,17 +26,20 @@ var (
 	schemaDDLOnce sync.Once
 	schemaDDL     []string
 	schemaDDLErr  error
+	openSeq       atomic.Uint64
 )
 
 // OpenClient opens a private in-memory SQLite database and returns an ent client with schema applied.
-// dbName isolates databases when tests run in parallel (use t.Name() or a stable per-suite name).
+// dbName is a caller hint only; a unique suffix is always appended so shared-memory SQLite
+// databases never collide across parallel tests or -count>1 (raw CREATE TABLE is not idempotent).
 //
 // Schema DDL is generated once via ent WriteTo and replayed with Exec. Repeated Atlas
 // Schema.Create under -race is prohibitively slow when many tests open SQLite adapters.
 func OpenClient(t *testing.T, dbName string) *gen.Client {
 	t.Helper()
 
-	sqlDB, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=memory&cache=shared", dbName))
+	unique := fmt.Sprintf("%s_%d", sanitizeDBName(dbName), openSeq.Add(1))
+	sqlDB, err := sql.Open("sqlite", fmt.Sprintf("file:%s?mode=memory&cache=shared", unique))
 	if err != nil {
 		t.Fatalf("failed opening connection to sqlite: %v", err)
 	}
@@ -58,6 +62,13 @@ func OpenClient(t *testing.T, dbName string) *gen.Client {
 	client := gen.NewClient(gen.Driver(drv))
 	t.Cleanup(func() { client.Close() })
 	return client
+}
+
+func sanitizeDBName(dbName string) string {
+	if dbName == "" {
+		return "ent"
+	}
+	return strings.NewReplacer("/", "_", " ", "_", "?", "_", "&", "_", "=", "_").Replace(dbName)
 }
 
 func cachedSchemaDDL() ([]string, error) {

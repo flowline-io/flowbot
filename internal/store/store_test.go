@@ -20,7 +20,8 @@ import (
 )
 
 func getTestClient(t *testing.T) *gen.Client {
-	return sqlitetest.OpenClient(t, "ent")
+	t.Helper()
+	return sqlitetest.OpenClient(t, t.Name())
 }
 
 // ---------------------------------------------------------------------------

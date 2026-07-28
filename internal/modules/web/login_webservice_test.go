@@ -365,7 +365,13 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	AttachCSRFForTest(req)
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("app.Test: %v", err)
+	}
+	if resp == nil {
+		t.Fatal("app.Test returned nil response")
+	}
 	defer resp.Body.Close()
 	found := false
 	for _, c := range resp.Header.Values("Set-Cookie") {
@@ -377,7 +383,8 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Fatal("expected pendingAuth cookie")
+		body, _ := io.ReadAll(resp.Body)
+		t.Fatalf("expected pendingAuth cookie, status=%d body=%s", resp.StatusCode, body)
 	}
 }
 

@@ -14,11 +14,22 @@ func TestOpenClientAppliesSchema(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, n)
 
-	// Second open must reuse cached DDL (and remain isolated).
-	client2 := OpenClient(t, t.Name()+"_b")
+	// Same logical name must still isolate (unique suffix); cached DDL is reused.
+	client2 := OpenClient(t, t.Name())
 	n, err = client2.User.Query().Count(context.Background())
 	require.NoError(t, err)
 	require.Zero(t, n)
+}
+
+func TestOpenClientSameNameDoesNotCollide(t *testing.T) {
+	t.Parallel()
+	const shared = "ent"
+	c1 := OpenClient(t, shared)
+	c2 := OpenClient(t, shared)
+	require.NoError(t, c1.User.Create().SetID(1).SetFlag("a").SetName("a").Exec(context.Background()))
+	n, err := c2.User.Query().Count(context.Background())
+	require.NoError(t, err)
+	require.Zero(t, n, "second OpenClient with same hint must be a separate database")
 }
 
 func TestSplitSQLStatements(t *testing.T) {

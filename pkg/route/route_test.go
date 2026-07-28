@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,6 +22,19 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
+
+var testStoreMu sync.Mutex
+
+func withTestStore(t *testing.T) {
+	t.Helper()
+	testStoreMu.Lock()
+	orig := store.Database
+	store.Database = postgres.NewSQLiteTestAdapter(t)
+	t.Cleanup(func() {
+		store.Database = orig
+		testStoreMu.Unlock()
+	})
+}
 
 type mockAuditor struct {
 	entries []audit.Entry
@@ -204,9 +218,7 @@ func TestLookupAccessToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
-			t.Cleanup(func() { store.Database = orig })
+			withTestStore(t)
 
 			params := types.KV{"uid": "user-1", "scopes": []string{"admin:*"}}
 			exp := time.Now().Add(time.Hour)
@@ -266,9 +278,7 @@ func TestDeleteAccessToken(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
-			t.Cleanup(func() { store.Database = orig })
+			withTestStore(t)
 
 			params := types.KV{"uid": "user-1", "scopes": []string{"admin:*"}}
 			exp := time.Now().Add(time.Hour)
@@ -328,9 +338,7 @@ func TestCheckAccessToken_Hashed(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
-			t.Cleanup(func() { store.Database = orig })
+			withTestStore(t)
 
 			tt.seed(context.Background(), tt.raw)
 			uid, ok := CheckAccessToken(tt.raw)
@@ -465,9 +473,7 @@ func TestAuthorize_RejectsEmptyScopes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
-			t.Cleanup(func() { store.Database = orig })
+			withTestStore(t)
 
 			raw := "fb_empty_scope_" + strings.ReplaceAll(tt.name, " ", "_")
 			params := types.KV{"uid": "user-1"}
@@ -504,9 +510,7 @@ func TestRequireServiceScope(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
-			t.Cleanup(func() { store.Database = orig })
+			withTestStore(t)
 
 			raw := "fb_svc_scope_" + strings.ReplaceAll(tt.name, " ", "_")
 			require.NoError(t, store.Database.ParameterSet(context.Background(), auth.HashToken(raw), types.KV{
