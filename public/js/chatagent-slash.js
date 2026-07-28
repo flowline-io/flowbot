@@ -12,7 +12,11 @@
   var pickerByInput = new WeakMap();
 
   function isRichInput(el) {
-    return !!(el && el.getAttribute && el.getAttribute('contenteditable') != null);
+    return !!(
+      el &&
+      el.getAttribute &&
+      el.getAttribute('contenteditable') != null
+    );
   }
 
   function isSkillChip(node) {
@@ -92,7 +96,9 @@
   };
 
   function richShell(el) {
-    return el && el.parentElement && el.parentElement.classList.contains('chatagent-rich-shell')
+    return el &&
+      el.parentElement &&
+      el.parentElement.classList.contains('chatagent-rich-shell')
       ? el.parentElement
       : null;
   }
@@ -231,7 +237,11 @@
     var out = [];
     for (var i = 0; i < skills.length; i++) {
       var s = skills[i];
-      if (!q || s.name.toLowerCase().indexOf(q) >= 0 || s.description.toLowerCase().indexOf(q) >= 0) {
+      if (
+        !q ||
+        s.name.toLowerCase().indexOf(q) >= 0 ||
+        s.description.toLowerCase().indexOf(q) >= 0
+      ) {
         out.push(s);
         if (out.length >= 8) {
           break;
@@ -246,7 +256,9 @@
     if (!state.items.length) {
       var empty = document.createElement('div');
       empty.className = 'chatagent-slash-empty';
-      empty.textContent = state.query ? 'No matching skills' : 'No skills available';
+      empty.textContent = state.query
+        ? 'No matching skills'
+        : 'No skills available';
       state.picker.appendChild(empty);
       state.picker.classList.remove('hidden');
       state.open = true;
@@ -291,7 +303,8 @@
     if (!state.items.length) {
       return;
     }
-    state.active = ((idx % state.items.length) + state.items.length) % state.items.length;
+    state.active =
+      ((idx % state.items.length) + state.items.length) % state.items.length;
     var kids = state.picker.querySelectorAll('.chatagent-slash-item');
     for (var i = 0; i < kids.length; i++) {
       kids[i].classList.toggle('is-active', i === state.active);
@@ -661,12 +674,16 @@
           return;
         }
       }
-      var text = (ev.clipboardData && ev.clipboardData.getData('text/plain')) || '';
+      var text =
+        (ev.clipboardData && ev.clipboardData.getData('text/plain')) || '';
       if (!text) {
         return;
       }
       ev.preventDefault();
-      if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+      if (
+        document.queryCommandSupported &&
+        document.queryCommandSupported('insertText')
+      ) {
         document.execCommand('insertText', false, text);
       } else {
         var sel = window.getSelection();

@@ -599,7 +599,7 @@ func TestMetaSpecsUseCapabilityIDs(t *testing.T) {
 			string(hub.CapGitea):        {},
 			string(hub.CapGithub):       {},
 			string(hub.CapTrilium):      {},
-			string(hub.CapCore): {},
+			string(hub.CapCore):         {},
 			string(hub.CapExample):      {},
 		}
 		for _, m := range metaSpecs {

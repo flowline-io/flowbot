@@ -56,6 +56,6 @@ func TestWithEnsuredToolCallIDs(t *testing.T) {
 	assert.Equal(t, "keep", calls[1].ID)
 	assert.Equal(t, map[string]string{
 		calls[0].ID: "plan",
-		"keep":       "plan",
+		"keep":      "plan",
 	}, collectAssistantToolReasoning(messages))
 }

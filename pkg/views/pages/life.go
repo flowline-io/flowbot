@@ -33,6 +33,15 @@ type LifeSkillRow struct {
 	Exp   int64
 }
 
+// LifeSkillTreeData is the skills tree page model.
+type LifeSkillTreeData struct {
+	PendingCount     int
+	Roots            []LifeSkillTreeNodeRow
+	SelectedNode     *LifeSkillTreeNodeDetail
+	ActiveLeafCount  int
+	TrackedLeafCount int
+}
+
 // LifeCharacterData is the Character Identity page model.
 type LifeCharacterData struct {
 	Nickname         string
@@ -63,6 +72,38 @@ type LifeCharacterData struct {
 	PlanTree         []LifePlanNodeRow
 	PlanParents      []LifePlanParentOption
 	BreakdownPreview *LifeBreakdownPreviewData
+}
+
+// LifeSkillTreeNodeRow is one rendered tree node.
+type LifeSkillTreeNodeRow struct {
+	Key               string
+	Title             string
+	Subtitle          string
+	Status            string
+	PracticeCount     int
+	SkillCount        int
+	LastActivityLabel string
+	IsSelected        bool
+	Children          []LifeSkillTreeNodeRow
+}
+
+// LifeSkillTreeNodeDetail is the evidence panel for one selected node.
+type LifeSkillTreeNodeDetail struct {
+	Title             string
+	Subtitle          string
+	Status            string
+	PracticeCount     int
+	SkillCount        int
+	LastActivityLabel string
+	Evidence          []LifeSkillEvidenceRow
+}
+
+// LifeSkillEvidenceRow is one recent training record linked to a tree node.
+type LifeSkillEvidenceRow struct {
+	Title      string
+	SourceType string
+	Detail     string
+	When       string
 }
 
 // LifeGoalRow is one PARA goal for Character / Quests UI.
@@ -338,6 +379,30 @@ func LifeOccurrenceKindLabel(kind string) string {
 	default:
 		return kind
 	}
+}
+
+// LifeSkillStatusClass maps skill activity status to a chip modifier class.
+func LifeSkillStatusClass(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "active":
+		return "life-skill-status-active"
+	case "cooling":
+		return "life-skill-status-cooling"
+	default:
+		return "life-skill-status-quiet"
+	}
+}
+
+// LifeSkillMonogram returns a short badge label for one skill node title.
+func LifeSkillMonogram(title string) string {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return "?"
+	}
+	for _, r := range title {
+		return strings.ToUpper(string(r))
+	}
+	return "?"
 }
 
 // LifeIndentStyle returns a simple indent style for tree rows.

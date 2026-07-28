@@ -101,9 +101,9 @@ func (s *testStore) ParameterGet(ctx context.Context, flag string) (gen.Paramete
 		return s.paramGetFn(ctx, flag)
 	}
 	return gen.Parameter{
-		ID:   1,
-		Flag: flag,
-		Params: testFullWebSessionParams("testuser"),
+		ID:        1,
+		Flag:      flag,
+		Params:    testFullWebSessionParams("testuser"),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }

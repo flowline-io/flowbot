@@ -2,15 +2,15 @@ package partials
 
 // HomeDashboard is the view model for the authenticated home page.
 type HomeDashboard struct {
-	ActiveSessions   int
-	PipelineTotal    int64
-	PipelineOK       int64
-	PipelineFailed   int64
-	WorkflowTotal    int64
-	WorkflowOK       int64
-	WorkflowFailed   int64
-	Events24h int64
-	Checklist []HomeChecklistItem
+	ActiveSessions int
+	PipelineTotal  int64
+	PipelineOK     int64
+	PipelineFailed int64
+	WorkflowTotal  int64
+	WorkflowOK     int64
+	WorkflowFailed int64
+	Events24h      int64
+	Checklist      []HomeChecklistItem
 }
 
 // HomeChecklistItem is a setup step shown when the instance looks empty.

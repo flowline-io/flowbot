@@ -18,13 +18,13 @@ import (
 // AuthConfig holds web login authentication settings.
 // Username/Password/PasswordHash are migration-only after accounts exist in the database.
 type AuthConfig struct {
-	Username       string           `json:"username"`
-	Password       string           `json:"password"`
-	PasswordHash   string           `json:"password_hash"`
-	EncryptionKey  string           `json:"encryption_key"`
-	EncryptionDir  string           `json:"encryption_key_dir"`
-	CookieSecure   *bool            `json:"cookie_secure"`
-	BruteForce     BruteForceConfig `json:"brute_force"`
+	Username      string           `json:"username"`
+	Password      string           `json:"password"`
+	PasswordHash  string           `json:"password_hash"`
+	EncryptionKey string           `json:"encryption_key"`
+	EncryptionDir string           `json:"encryption_key_dir"`
+	CookieSecure  *bool            `json:"cookie_secure"`
+	BruteForce    BruteForceConfig `json:"brute_force"`
 }
 
 // cookieSecureEnabled reports whether the accessToken cookie should set Secure.

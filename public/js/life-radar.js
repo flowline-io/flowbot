@@ -38,12 +38,18 @@
     }
     var labels = parseJSONAttr(canvas, 'labels');
     var values = parseJSONAttr(canvas, 'values');
-    if (!Array.isArray(labels) || !Array.isArray(values) || labels.length === 0) {
+    if (
+      !Array.isArray(labels) ||
+      !Array.isArray(values) ||
+      labels.length === 0
+    ) {
       return;
     }
     var rootStyles = getComputedStyle(document.documentElement);
-    var ink = rootStyles.getPropertyValue('--color-base-content').trim() || '#111827';
-    var accent = rootStyles.getPropertyValue('--color-primary').trim() || '#0f766e';
+    var ink =
+      rootStyles.getPropertyValue('--color-base-content').trim() || '#111827';
+    var accent =
+      rootStyles.getPropertyValue('--color-primary').trim() || '#0f766e';
     var maxR = radarScaleMax(values);
     var step = Math.max(1, Math.ceil(maxR / 5));
     canvas.chartInstance = new Chart(canvas, {
@@ -103,7 +109,9 @@
   }
 
   function boot() {
-    document.querySelectorAll('[data-testid="life-radar-chart"]').forEach(initLifeRadar);
+    document
+      .querySelectorAll('[data-testid="life-radar-chart"]')
+      .forEach(initLifeRadar);
   }
 
   if (document.readyState === 'loading') {

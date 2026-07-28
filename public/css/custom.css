@@ -3122,7 +3122,11 @@ body:has(.chatagent-page) > main {
   align-items: center;
   padding: 0.15rem 0.55rem;
   border-radius: var(--flowbot-radius, 0.375rem);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 90%, transparent);
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 90%,
+    transparent
+  );
   border: 1px solid var(--color-base-300, #d1d5db);
   color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
   font-size: 0.7rem;
@@ -3283,7 +3287,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-sidebar-link:hover {
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 80%, transparent);
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 80%,
+    transparent
+  );
 }
 
 .life-sidebar-link.is-active {
@@ -3447,7 +3455,8 @@ body:has(.chatagent-page) > main {
 .life-goals-compose-cat:focus,
 .life-goal-card-title:focus,
 .life-goal-card-cat:focus {
-  outline: 2px solid color-mix(in oklab, var(--color-primary, #0f766e) 45%, transparent);
+  outline: 2px solid
+    color-mix(in oklab, var(--color-primary, #0f766e) 45%, transparent);
   outline-offset: 1px;
 }
 
@@ -3550,7 +3559,11 @@ body:has(.chatagent-page) > main {
 .life-tree-branch {
   border: 1px solid var(--color-base-300, #d1d5db);
   border-radius: var(--flowbot-radius, 0.375rem);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 55%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 55%,
+    var(--color-base-100, #fff)
+  );
 }
 
 .life-tree-summary {
@@ -3564,7 +3577,7 @@ body:has(.chatagent-page) > main {
 }
 
 .life-tree-summary::before {
-  content: "▸";
+  content: '▸';
   display: inline-block;
   margin-right: 0.45rem;
   color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
@@ -3604,7 +3617,11 @@ body:has(.chatagent-page) > main {
   padding: 0.7rem 0.75rem;
   border: 1px solid var(--color-base-300, #d1d5db);
   border-radius: var(--flowbot-radius, 0.375rem);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 55%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 55%,
+    var(--color-base-100, #fff)
+  );
 }
 
 .life-goal-card-main {
@@ -3626,7 +3643,8 @@ body:has(.chatagent-page) > main {
   justify-content: flex-end;
   gap: 0.65rem;
   padding-top: 0.15rem;
-  border-top: 1px dashed color-mix(in oklab, var(--color-base-300, #d1d5db) 80%, transparent);
+  border-top: 1px dashed
+    color-mix(in oklab, var(--color-base-300, #d1d5db) 80%, transparent);
 }
 
 .life-goal-link {
@@ -3706,6 +3724,264 @@ body:has(.chatagent-page) > main {
   color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
 }
 
+.life-skills-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.life-skills-grid {
+  display: grid;
+  grid-template-columns: minmax(20rem, 1.12fr) minmax(18rem, 0.88fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.life-skills-tree-panel,
+.life-skills-detail-panel {
+  min-height: 34rem;
+}
+
+.life-skills-detail-panel {
+  position: sticky;
+  top: 1rem;
+}
+
+.life-skill-node-list,
+.life-skill-evidence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.life-skills-tree-panel .life-tree-branch,
+.life-skills-tree-panel .life-goal-card {
+  border-radius: 0.85rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-base-100, #fff) 94%, var(--color-primary, #0f766e) 6%),
+    var(--color-base-100, #fff)
+  );
+  box-shadow: 0 1px 2px oklch(0 0 0 / 0.04);
+}
+
+.life-skills-tree-panel .life-tree-summary {
+  padding: 0.8rem 0.9rem;
+}
+
+.life-skills-tree-panel .life-tree-children {
+  padding: 0 0.9rem 0.9rem 1rem;
+  margin-left: 0.35rem;
+  border-left: 1px dashed
+    color-mix(in oklab, var(--color-base-content, #111) 16%, transparent);
+}
+
+.life-skill-node-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: start;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 0.75rem;
+  padding: 0.2rem;
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.life-skill-node-link:hover {
+  background: color-mix(in oklab, var(--color-primary, #0f766e) 6%, transparent);
+}
+
+.life-skill-node-link.is-selected {
+  background: color-mix(in oklab, var(--color-primary, #0f766e) 10%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--color-primary, #0f766e) 35%, transparent);
+}
+
+.life-skill-node-main,
+.life-skill-detail-head,
+.life-skill-evidence-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.life-skill-node-copy {
+  min-width: 0;
+}
+
+.life-skill-node-badge,
+.life-skill-detail-badge,
+.life-skill-evidence-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-primary, #0f766e);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-primary, #0f766e) 16%, white),
+    color-mix(in oklab, var(--color-primary, #0f766e) 8%, white)
+  );
+  border: 1px solid color-mix(in oklab, var(--color-primary, #0f766e) 22%, transparent);
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.65),
+    0 1px 2px oklch(0 0 0 / 0.05);
+}
+
+.life-skill-detail-badge {
+  width: 2.4rem;
+  height: 2.4rem;
+  font-size: 0.92rem;
+}
+
+.life-skill-status-active {
+  background: color-mix(in oklab, var(--color-primary, #0f766e) 12%, transparent);
+  color: var(--color-primary, #0f766e);
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 30%,
+    transparent
+  );
+}
+
+.life-skill-status-cooling {
+  background: color-mix(in oklab, var(--color-warning, #d97706) 12%, transparent);
+  color: var(--color-warning, #d97706);
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 28%,
+    transparent
+  );
+}
+
+.life-skill-status-quiet {
+  background: color-mix(in oklab, var(--color-base-content, #111) 5%, transparent);
+  color: color-mix(in oklab, var(--color-base-content, #111) 56%, transparent);
+  border-color: color-mix(
+    in oklab,
+    var(--color-base-content, #111) 12%,
+    transparent
+  );
+}
+
+.life-skills-tree-panel .life-goal-card-meta,
+.life-skills-detail-panel .life-goal-card-meta {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.life-skill-node-meta {
+  align-self: center;
+}
+
+.life-skill-detail-card {
+  gap: 0.65rem;
+  border-radius: 0.95rem;
+  padding: 1rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--color-base-100, #fff) 93%, var(--color-primary, #0f766e) 7%),
+    var(--color-base-100, #fff)
+  );
+}
+
+.life-skill-detail-main,
+.life-skill-evidence-main {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.life-skill-detail-title,
+.life-skill-evidence-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-base-content, #111);
+  word-break: break-word;
+}
+
+.life-skill-detail-subtitle,
+.life-skill-evidence-detail,
+.life-skill-detail-foot {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: color-mix(in oklab, var(--color-base-content, #111) 58%, transparent);
+}
+
+.life-skill-evidence-card {
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--color-base-100, #fff) 92%, var(--color-base-200, #f3f4f6));
+}
+
+.life-skill-detail-card .life-goal-card-meta,
+.life-skill-evidence-card .life-goal-card-meta {
+  align-self: start;
+}
+
+.life-skill-evidence-card:hover,
+.life-skills-tree-panel .life-goal-card:hover,
+.life-skills-tree-panel .life-tree-branch:hover {
+  box-shadow:
+    0 10px 24px oklch(0 0 0 / 0.04),
+    0 1px 2px oklch(0 0 0 / 0.04);
+}
+
+.life-skills-tree-panel .life-tree-title,
+.life-skill-detail-title,
+.life-skill-evidence-title {
+  letter-spacing: -0.01em;
+}
+
+.life-skills-tree-panel .life-tree-description,
+.life-skill-detail-subtitle,
+.life-skill-evidence-detail {
+  max-width: 54ch;
+}
+
+@media (max-width: 1100px) {
+  .life-skills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .life-skills-detail-panel {
+    position: static;
+    top: auto;
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .life-skill-node-link,
+  .life-skill-detail-main,
+  .life-skill-evidence-main {
+    grid-template-columns: 1fr;
+  }
+
+  .life-skill-node-meta,
+  .life-skill-detail-card .life-goal-card-meta,
+  .life-skill-evidence-card .life-goal-card-meta {
+    justify-content: flex-start;
+  }
+}
+
 .life-section {
   margin-bottom: 0.85rem;
 }
@@ -3777,7 +4053,11 @@ body:has(.chatagent-page) > main {
   padding: 0.9rem 1rem;
   border: 1px solid var(--color-base-300, #d1d5db);
   border-radius: var(--flowbot-radius, 0.375rem);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 35%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 35%,
+    var(--color-base-100, #fff)
+  );
 }
 
 .life-action-card {
@@ -3820,7 +4100,11 @@ body:has(.chatagent-page) > main {
 
 .life-action-context {
   margin-top: -0.1rem;
-  color: color-mix(in oklab, var(--color-primary, #0f766e) 48%, var(--color-base-content) 52%);
+  color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 48%,
+    var(--color-base-content) 52%
+  );
 }
 
 .life-action-description {
@@ -3856,7 +4140,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-meta-chip-diff {
-  border-color: color-mix(in oklab, var(--color-primary, #0f766e) 35%, var(--color-base-300));
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 35%,
+    var(--color-base-300)
+  );
   color: var(--color-primary, #0f766e);
 }
 
@@ -3882,7 +4170,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-meta-chip-warn {
-  border-color: color-mix(in oklab, var(--color-warning, #ca8a04) 55%, transparent);
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #ca8a04) 55%,
+    transparent
+  );
   color: var(--color-warning, #a16207);
 }
 
@@ -3911,7 +4203,8 @@ body:has(.chatagent-page) > main {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.65rem 0;
-  border-bottom: 1px solid color-mix(in oklab, var(--color-base-300) 70%, transparent);
+  border-bottom: 1px solid
+    color-mix(in oklab, var(--color-base-300) 70%, transparent);
   font-size: 0.875rem;
 }
 
@@ -3977,13 +4270,27 @@ body:has(.chatagent-page) > main {
   border-radius: var(--flowbot-radius, 0.375rem);
   background: var(--color-base-100, #fff);
   border-left-width: 3px;
-  border-left-color: color-mix(in oklab, var(--color-base-content) 18%, transparent);
-  transition: border-color 120ms ease, background-color 120ms ease;
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-base-content) 18%,
+    transparent
+  );
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
 }
 
 .life-inv-card.is-equipped {
-  background: color-mix(in oklab, var(--color-primary, #0f766e) 6%, var(--color-base-100, #fff));
-  border-color: color-mix(in oklab, var(--color-primary, #0f766e) 28%, var(--color-base-300));
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 6%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 28%,
+    var(--color-base-300)
+  );
 }
 
 .life-inv-card.rarity-uncommon {
@@ -3991,7 +4298,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-inv-card.rarity-rare {
-  border-left-color: color-mix(in oklab, var(--color-info, #0284c7) 85%, var(--color-primary, #0f766e));
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 85%,
+    var(--color-primary, #0f766e)
+  );
 }
 
 .life-inv-card.rarity-epic {
@@ -3999,7 +4310,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-inv-card.rarity-legendary {
-  border-left-color: color-mix(in oklab, var(--color-warning, #ca8a04) 70%, var(--color-error, #dc2626));
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-warning, #ca8a04) 70%,
+    var(--color-error, #dc2626)
+  );
 }
 
 .life-inv-card.rarity-mythic {
@@ -4014,14 +4329,26 @@ body:has(.chatagent-page) > main {
   height: 2.5rem;
   border-radius: var(--flowbot-radius, 0.375rem);
   border: 1px solid var(--color-base-300, #d1d5db);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 55%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 55%,
+    var(--color-base-100, #fff)
+  );
   color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
 }
 
 .life-inv-card.is-equipped .life-inv-icon {
-  border-color: color-mix(in oklab, var(--color-primary, #0f766e) 35%, var(--color-base-300));
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 35%,
+    var(--color-base-300)
+  );
   color: var(--color-primary, #0f766e);
-  background: color-mix(in oklab, var(--color-primary, #0f766e) 10%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 10%,
+    var(--color-base-100, #fff)
+  );
 }
 
 .life-inv-body {
@@ -4047,12 +4374,15 @@ body:has(.chatagent-page) > main {
   --life-equip-slot-min: 6.5rem;
   position: relative;
   display: grid;
-  grid-template-columns: minmax(8.25rem, 1fr) minmax(8.5rem, 11rem) minmax(8.25rem, 1fr);
+  grid-template-columns: minmax(8.25rem, 1fr) minmax(8.5rem, 11rem) minmax(
+      8.25rem,
+      1fr
+    );
   grid-template-rows: auto auto auto;
   grid-template-areas:
-    ". head artifact"
-    "weapon armor accessory"
-    ". shoes .";
+    '. head artifact'
+    'weapon armor accessory'
+    '. shoes .';
   gap: 0.65rem 0.75rem;
   align-items: stretch;
   justify-items: stretch;
@@ -4060,8 +4390,13 @@ body:has(.chatagent-page) > main {
   margin: 0.15rem auto 0;
   padding: 1.1rem 0.85rem 1.15rem;
   border-radius: var(--flowbot-radius, 0.375rem);
-  border: 1px solid color-mix(in oklab, var(--color-base-300, #d1d5db) 85%, transparent);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 45%, var(--color-base-100, #fff));
+  border: 1px solid
+    color-mix(in oklab, var(--color-base-300, #d1d5db) 85%, transparent);
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 45%,
+    var(--color-base-100, #fff)
+  );
 }
 
 .life-equip-slot-head {
@@ -4099,11 +4434,16 @@ body:has(.chatagent-page) > main {
   gap: 0.35rem;
   min-height: var(--life-equip-slot-min);
   padding: 0.7rem 0.75rem 0.75rem;
-  border: 1px dashed color-mix(in oklab, var(--color-base-content) 16%, transparent);
+  border: 1px dashed
+    color-mix(in oklab, var(--color-base-content) 16%, transparent);
   border-radius: var(--flowbot-radius, 0.375rem);
   background: color-mix(in oklab, var(--color-base-100, #fff) 92%, transparent);
   border-left-width: 3px;
-  border-left-color: color-mix(in oklab, var(--color-base-content) 14%, transparent);
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-base-content) 14%,
+    transparent
+  );
 }
 
 .life-equip-slot.is-filled {
@@ -4111,7 +4451,10 @@ body:has(.chatagent-page) > main {
   border-color: var(--color-base-300, #d1d5db);
   border-left-width: 3px;
   background: var(--color-base-100, #fff);
-  box-shadow: var(--flowbot-shadow, 0 1px 2px color-mix(in oklab, #000 6%, transparent));
+  box-shadow: var(
+    --flowbot-shadow,
+    0 1px 2px color-mix(in oklab, #000 6%, transparent)
+  );
 }
 
 .life-equip-slot.is-filled.rarity-uncommon {
@@ -4119,7 +4462,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-equip-slot.is-filled.rarity-rare {
-  border-left-color: color-mix(in oklab, var(--color-info, #0284c7) 85%, var(--color-primary, #0f766e));
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 85%,
+    var(--color-primary, #0f766e)
+  );
 }
 
 .life-equip-slot.is-filled.rarity-epic {
@@ -4127,7 +4474,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-equip-slot.is-filled.rarity-legendary {
-  border-left-color: color-mix(in oklab, var(--color-warning, #ca8a04) 70%, var(--color-error, #dc2626));
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-warning, #ca8a04) 70%,
+    var(--color-error, #dc2626)
+  );
 }
 
 .life-equip-slot.is-filled.rarity-mythic {
@@ -4147,13 +4498,21 @@ body:has(.chatagent-page) > main {
   width: 1.85rem;
   height: 1.85rem;
   border-radius: var(--flowbot-radius, 0.375rem);
-  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 70%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 70%,
+    var(--color-base-100, #fff)
+  );
   color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
 }
 
 .life-equip-slot.is-filled .life-equip-slot-icon {
   color: var(--color-primary, #0f766e);
-  background: color-mix(in oklab, var(--color-primary, #0f766e) 12%, var(--color-base-100, #fff));
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    var(--color-base-100, #fff)
+  );
 }
 
 .life-equip-icon {
@@ -4202,27 +4561,55 @@ body:has(.chatagent-page) > main {
 }
 
 .life-rarity-chip.rarity-uncommon {
-  border-color: color-mix(in oklab, var(--color-primary, #0f766e) 40%, var(--color-base-300));
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 40%,
+    var(--color-base-300)
+  );
   color: var(--color-primary, #0f766e);
 }
 
 .life-rarity-chip.rarity-rare {
-  border-color: color-mix(in oklab, var(--color-info, #0284c7) 45%, var(--color-base-300));
-  color: color-mix(in oklab, var(--color-info, #0284c7) 90%, var(--color-base-content));
+  border-color: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 45%,
+    var(--color-base-300)
+  );
+  color: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 90%,
+    var(--color-base-content)
+  );
 }
 
 .life-rarity-chip.rarity-epic {
-  border-color: color-mix(in oklab, var(--color-warning, #ca8a04) 50%, var(--color-base-300));
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #ca8a04) 50%,
+    var(--color-base-300)
+  );
   color: var(--color-warning, #a16207);
 }
 
 .life-rarity-chip.rarity-legendary {
-  border-color: color-mix(in oklab, var(--color-warning, #ca8a04) 55%, var(--color-error, #dc2626));
-  color: color-mix(in oklab, var(--color-warning, #a16207) 55%, var(--color-error, #b91c1c));
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #ca8a04) 55%,
+    var(--color-error, #dc2626)
+  );
+  color: color-mix(
+    in oklab,
+    var(--color-warning, #a16207) 55%,
+    var(--color-error, #b91c1c)
+  );
 }
 
 .life-rarity-chip.rarity-mythic {
-  border-color: color-mix(in oklab, var(--color-error, #dc2626) 50%, var(--color-base-300));
+  border-color: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 50%,
+    var(--color-base-300)
+  );
   color: var(--color-error, #b91c1c);
 }
 
@@ -4230,9 +4617,9 @@ body:has(.chatagent-page) > main {
   .life-equip-stage {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
-      "head artifact"
-      "weapon armor"
-      "accessory shoes";
+      'head artifact'
+      'weapon armor'
+      'accessory shoes';
     max-width: none;
     padding: 0.85rem 0.65rem 1rem;
   }

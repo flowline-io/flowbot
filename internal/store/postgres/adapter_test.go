@@ -713,9 +713,9 @@ func TestCountChatSessions(t *testing.T) {
 	}))
 
 	tests := []struct {
-		name    string
-		opts    store.ListChatSessionsOptions
-		want    int
+		name string
+		opts store.ListChatSessionsOptions
+		want int
 	}{
 		{name: "all sessions", opts: store.ListChatSessionsOptions{}, want: 3},
 		{

@@ -1725,7 +1725,10 @@
           this.status = data.status;
           this.dirty = false;
           if (this.status === 'published') {
-            showToast('Draft saved. Click Publish to update the live webhook.', 'success');
+            showToast(
+              'Draft saved. Click Publish to update the live webhook.',
+              'success',
+            );
           } else {
             showToast('Draft saved', 'success');
           }

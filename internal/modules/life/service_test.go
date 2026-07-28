@@ -16,9 +16,9 @@ import (
 func TestParseLoreInventoryID(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		payload  map[string]any
-		wantID   int64
+		name       string
+		payload    map[string]any
+		wantID     int64
 		wantPoison bool
 	}{
 		{
@@ -60,10 +60,10 @@ func TestParseLoreInventoryID(t *testing.T) {
 func TestResolveDropEquip_NeedLore(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
+		name      string
 		questType string
-		diff     string
-		wantLore bool
+		diff      string
+		wantLore  bool
 	}{
 		{name: "daily common", questType: "Daily", diff: "B", wantLore: false},
 		{name: "boss", questType: "Boss", diff: "A", wantLore: true},
@@ -201,8 +201,8 @@ func TestImportGoalBreakdownNormalizesInvalidHierarchy(t *testing.T) {
 						NodeType: "action",
 						Title:    "Write dialogue core",
 						Action: &lifecap.GoalBreakdownActionSuggestion{
-							IsRepeatable: false,
-							TrackingMode: "completion",
+							IsRepeatable:  false,
+							TrackingMode:  "completion",
 							RepeatTrigger: "none",
 						},
 					},

@@ -30,8 +30,8 @@ func TestLifeImportBreakdownRefreshesPage(t *testing.T) {
 	SetLifeService(lifemod.NewService(store.NewLifeStore(client)))
 	svc := lifeService()
 	preflightSuggestion := &lifecap.GoalBreakdownSuggestion{
-		NodeType: "goal",
-		Title:    "Ship AI DM",
+		NodeType:    "goal",
+		Title:       "Ship AI DM",
 		Description: "Root goal",
 		Children: []lifecap.GoalBreakdownSuggestion{
 			{
@@ -42,10 +42,10 @@ func TestLifeImportBreakdownRefreshesPage(t *testing.T) {
 						NodeType: "action",
 						Title:    "Write dialogue core",
 						Action: &lifecap.GoalBreakdownActionSuggestion{
-							IsRepeatable: false,
-							TrackingMode: "completion",
+							IsRepeatable:  false,
+							TrackingMode:  "completion",
 							RepeatTrigger: "none",
-							Reason: "bootstrap",
+							Reason:        "bootstrap",
 						},
 					},
 				},
@@ -80,4 +80,32 @@ func TestLifeImportBreakdownRefreshesPage(t *testing.T) {
 		Count(req.Context())
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
+}
+
+func TestLifeSkillsPageRenders(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		setWebEncryptor(nil)
+		SetLifeService(nil)
+	}()
+	SetLifeService(lifemod.NewService(store.NewLifeStore(client)))
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/life/skills", http.NoBody)
+	addWebAuth(req)
+
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Contains(t, string(body), "Skill Tree")
+	require.Contains(t, string(body), "Practice Evidence")
+	require.Contains(t, string(body), "/service/web/life/skills")
 }

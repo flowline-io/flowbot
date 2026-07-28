@@ -161,4 +161,3 @@ func inferStatsRangeDays(since time.Time) int {
 		return 0
 	}
 }
-

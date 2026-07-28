@@ -156,13 +156,13 @@ func TestLoginSubmit(t *testing.T) {
 			wantPending:    true,
 		},
 		{
-			name:          "wrong password shows error",
-			username:      "admin",
-			password:      "wrong-password",
-			totpEnabled:   true,
-			wantStatus:    http.StatusOK,
-			wantContains:  "Invalid username or password",
-			wantPending:   false,
+			name:         "wrong password shows error",
+			username:     "admin",
+			password:     "wrong-password",
+			totpEnabled:  true,
+			wantStatus:   http.StatusOK,
+			wantContains: "Invalid username or password",
+			wantPending:  false,
 		},
 		{
 			name:           "correct credentials with valid next preserves next on 2fa",
@@ -175,14 +175,14 @@ func TestLoginSubmit(t *testing.T) {
 			wantPending:    true,
 		},
 		{
-			name:          "param set error renders error",
-			username:      "admin",
-			password:      "flowbot-dev-pass",
-			totpEnabled:   true,
-			paramSetErr:   fmt.Errorf("db down"),
-			wantStatus:    http.StatusOK,
-			wantContains:  "Internal error",
-			wantPending:   false,
+			name:         "param set error renders error",
+			username:     "admin",
+			password:     "flowbot-dev-pass",
+			totpEnabled:  true,
+			paramSetErr:  fmt.Errorf("db down"),
+			wantStatus:   http.StatusOK,
+			wantContains: "Internal error",
+			wantPending:  false,
 		},
 	}
 	for _, tt := range tests {
@@ -287,7 +287,13 @@ func TestLogin2FASubmit(t *testing.T) {
 
 func TestLogin2FABackupCodeBypassesTOTPLock(t *testing.T) {
 	app, ts, client := setupTestAppWithDB(t)
-	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil); totpLimiter = nil }()
+	defer func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		setWebEncryptor(nil)
+		totpLimiter = nil
+	}()
 
 	mockStore := newMockRateLimitStore()
 	totpLimiter = newLoginRateLimiter(mockStore, 3, 10, cache.TTL(15*time.Minute), cache.TTL(15*time.Minute))

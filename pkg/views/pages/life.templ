@@ -266,6 +266,102 @@ templ LifeCharacterPage(data LifeCharacterData) {
 	}
 }
 
+templ LifeSkillsPage(data LifeSkillTreeData) {
+	@layout.Base("Skills — Life") {
+		@lifeModuleShell("skills", data.PendingCount) {
+			<div class="life-shell" data-testid="life-skills-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Skill Tree</h1>
+						<p>See which branches are actively trained and inspect the recent practice evidence behind each one.</p>
+					</div>
+					<div class="life-skills-summary">
+						<span class="life-meta-chip">{ fmt.Sprintf("%d", data.ActiveLeafCount) } active</span>
+						<span class="life-meta-chip">{ fmt.Sprintf("%d", data.TrackedLeafCount) } tracked</span>
+					</div>
+				</header>
+				<div class="life-skills-grid">
+					<section class="life-panel life-section life-skills-tree-panel" data-testid="life-skills-tree">
+						<header class="life-goals-head">
+							<div>
+								<h2 class="life-goals-title">Growth Map</h2>
+								<p class="life-goals-sub">The whole tree stays visible; active branches are highlighted by recent practice.</p>
+							</div>
+						</header>
+						if len(data.Roots) == 0 {
+							<p class="life-goals-empty">No tracked skills yet — complete quests or build action plans to grow the tree.</p>
+						} else {
+							<div class="life-skill-node-list">
+								for _, node := range data.Roots {
+									@lifeSkillTreeNode(node, 0)
+								}
+							</div>
+						}
+					</section>
+					<section class="life-panel life-section life-skills-detail-panel" data-testid="life-skill-detail">
+						<header class="life-goals-head">
+							<div>
+								<h2 class="life-goals-title">Practice Evidence</h2>
+								<p class="life-goals-sub">Click a node to inspect the recent quests, actions, and habits that keep it active.</p>
+							</div>
+						</header>
+						if data.SelectedNode == nil {
+							<p class="life-goals-empty">Select a branch to inspect its recent practice evidence.</p>
+						} else {
+							<div class="life-goal-card life-skill-detail-card">
+								<div class="life-goal-card-main life-skill-detail-main">
+									<div class="life-skill-detail-head">
+										<span class="life-skill-detail-badge" aria-hidden="true">{ LifeSkillMonogram(data.SelectedNode.Title) }</span>
+										<div>
+											<p class="life-skill-detail-title">{ data.SelectedNode.Title }</p>
+											if data.SelectedNode.Subtitle != "" {
+												<p class="life-skill-detail-subtitle">{ data.SelectedNode.Subtitle }</p>
+											}
+										</div>
+									</div>
+									<div class="life-goal-card-meta">
+										<span class={ "life-meta-chip", LifeSkillStatusClass(data.SelectedNode.Status) }>{ data.SelectedNode.Status }</span>
+										<span class="life-meta-chip">{ fmt.Sprintf("%d", data.SelectedNode.PracticeCount) } records</span>
+										<span class="life-meta-chip">{ fmt.Sprintf("%d", data.SelectedNode.SkillCount) } skills</span>
+									</div>
+								</div>
+								if data.SelectedNode.LastActivityLabel != "" {
+									<p class="life-skill-detail-foot">Last activity: { data.SelectedNode.LastActivityLabel }</p>
+								}
+							</div>
+							if len(data.SelectedNode.Evidence) == 0 {
+								<p class="life-goals-empty">No recent evidence linked to this branch yet.</p>
+							} else {
+								<ul class="life-skill-evidence-list">
+									for _, evidence := range data.SelectedNode.Evidence {
+										<li class="life-goal-card life-skill-evidence-card">
+											<div class="life-goal-card-main life-skill-evidence-main">
+												<div class="life-skill-evidence-head">
+													<span class="life-skill-evidence-badge" aria-hidden="true">{ LifeSkillMonogram(evidence.Title) }</span>
+													<div>
+														<p class="life-skill-evidence-title">{ evidence.Title }</p>
+														if evidence.Detail != "" {
+															<p class="life-skill-evidence-detail">{ evidence.Detail }</p>
+														}
+													</div>
+												</div>
+												<div class="life-goal-card-meta">
+													<span class="life-meta-chip">{ evidence.SourceType }</span>
+													<span class="life-meta-chip">{ evidence.When }</span>
+												</div>
+											</div>
+										</li>
+									}
+								</ul>
+							}
+						}
+					</section>
+				</div>
+			</div>
+		}
+	}
+}
+
 templ lifePlanNode(node LifePlanNodeRow, depth int) {
 	if len(node.Children) > 0 {
 		<details class="life-tree-node life-tree-branch" style={ LifeIndentStyle(depth) } open?={ depth > 0 && depth < 2 } data-testid={ "life-plan-node-" + node.Flag }>
@@ -375,6 +471,11 @@ templ lifeModuleShell(active string, pendingCount int) {
 					}
 				</a>
 				<a
+					href="/service/web/life/skills"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "skills") }
+					data-testid="life-goto-skills"
+				>Skills</a>
+				<a
 					href="/service/web/life/inventory"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "inventory") }
 					data-testid="life-goto-inventory"
@@ -390,6 +491,52 @@ templ lifeModuleShell(active string, pendingCount int) {
 			{ children... }
 		</div>
 	</div>
+}
+
+templ lifeSkillTreeNode(node LifeSkillTreeNodeRow, depth int) {
+	if len(node.Children) > 0 {
+		<details class="life-tree-node life-tree-branch" style={ LifeIndentStyle(depth) } open?={ depth < 1 } data-testid={ "life-skill-node-" + node.Key }>
+			<summary class="life-tree-summary">
+				@lifeSkillTreeNodeCard(node)
+			</summary>
+			<div class="life-tree-children">
+				for _, child := range node.Children {
+					@lifeSkillTreeNode(child, depth + 1)
+				}
+			</div>
+		</details>
+	} else {
+		<div class="life-tree-node life-goal-card" style={ LifeIndentStyle(depth) } data-testid={ "life-skill-node-" + node.Key }>
+			@lifeSkillTreeNodeCard(node)
+		</div>
+	}
+}
+
+templ lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) {
+	<a
+		href={ "/service/web/life/skills?node=" + node.Key }
+		class={ "life-skill-node-link", templ.KV("is-selected", node.IsSelected) }
+	>
+		<div class="life-skill-node-main">
+			<span class="life-skill-node-badge" aria-hidden="true">{ LifeSkillMonogram(node.Title) }</span>
+			<div class="life-skill-node-copy">
+				<p class="life-tree-title">{ node.Title }</p>
+				if node.Subtitle != "" {
+					<p class="life-tree-description">{ node.Subtitle }</p>
+				}
+			</div>
+		</div>
+		<div class="life-goal-card-meta life-skill-node-meta">
+			<span class={ "life-meta-chip", LifeSkillStatusClass(node.Status) }>{ node.Status }</span>
+			<span class="life-meta-chip">{ fmt.Sprintf("%d", node.PracticeCount) } records</span>
+			if node.SkillCount > 0 {
+				<span class="life-meta-chip">{ fmt.Sprintf("%d", node.SkillCount) } skills</span>
+			}
+			if node.LastActivityLabel != "" {
+				<span class="life-meta-chip">{ node.LastActivityLabel }</span>
+			}
+		</div>
+	</a>
 }
 
 templ lifeProfileSummary(data LifeCharacterData) {

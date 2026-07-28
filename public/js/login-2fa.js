@@ -4,11 +4,15 @@
   var submitting = false;
 
   function findForm(el) {
-    return el && el.closest ? el.closest('[data-testid="login-2fa-form"]') : null;
+    return el && el.closest
+      ? el.closest('[data-testid="login-2fa-form"]')
+      : null;
   }
 
   function digits(form) {
-    return Array.prototype.slice.call(form.querySelectorAll('[data-login-2fa-digit]'));
+    return Array.prototype.slice.call(
+      form.querySelectorAll('[data-login-2fa-digit]'),
+    );
   }
 
   function valueInput(form) {
@@ -28,7 +32,9 @@
     }
     var code = digits(form)
       .map(function (input) {
-        return String(input.value || '').replace(/\D/g, '').slice(0, 1);
+        return String(input.value || '')
+          .replace(/\D/g, '')
+          .slice(0, 1);
       })
       .join('');
     hidden.value = code;
@@ -86,7 +92,9 @@
     if (typeof form.requestSubmit === 'function') {
       form.requestSubmit();
     } else {
-      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      form.dispatchEvent(
+        new Event('submit', { bubbles: true, cancelable: true }),
+      );
     }
   }
 
@@ -153,7 +161,11 @@
 
   document.addEventListener('keydown', function (evt) {
     var target = evt.target;
-    if (!target || !target.hasAttribute || !target.hasAttribute('data-login-2fa-digit')) {
+    if (
+      !target ||
+      !target.hasAttribute ||
+      !target.hasAttribute('data-login-2fa-digit')
+    ) {
       return;
     }
     var form = findForm(target);
@@ -192,7 +204,11 @@
 
   document.addEventListener('paste', function (evt) {
     var target = evt.target;
-    if (!target || !target.hasAttribute || !target.hasAttribute('data-login-2fa-digit')) {
+    if (
+      !target ||
+      !target.hasAttribute ||
+      !target.hasAttribute('data-login-2fa-digit')
+    ) {
       return;
     }
     var form = findForm(target);
@@ -210,7 +226,10 @@
   });
 
   document.addEventListener('click', function (evt) {
-    var showBackup = evt.target && evt.target.closest && evt.target.closest('[data-login-2fa-show-backup]');
+    var showBackup =
+      evt.target &&
+      evt.target.closest &&
+      evt.target.closest('[data-login-2fa-show-backup]');
     if (showBackup) {
       var form = findForm(showBackup);
       if (form) {
@@ -218,7 +237,10 @@
       }
       return;
     }
-    var showOtp = evt.target && evt.target.closest && evt.target.closest('[data-login-2fa-show-otp]');
+    var showOtp =
+      evt.target &&
+      evt.target.closest &&
+      evt.target.closest('[data-login-2fa-show-otp]');
     if (showOtp) {
       var otpForm = findForm(showOtp);
       if (otpForm) {
@@ -257,7 +279,11 @@
     var form = scope.querySelector
       ? scope.querySelector('[data-testid="login-2fa-form"]')
       : null;
-    if (!form && scope.getAttribute && scope.getAttribute('data-testid') === 'login-2fa-form') {
+    if (
+      !form &&
+      scope.getAttribute &&
+      scope.getAttribute('data-testid') === 'login-2fa-form'
+    ) {
       form = scope;
     }
     focusFirst(form);
@@ -272,7 +298,10 @@
     if (!el) {
       return;
     }
-    if (el.getAttribute && el.getAttribute('data-testid') === 'login-2fa-form') {
+    if (
+      el.getAttribute &&
+      el.getAttribute('data-testid') === 'login-2fa-form'
+    ) {
       init(el);
       return;
     }

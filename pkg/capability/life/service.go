@@ -44,11 +44,11 @@ type GoalBreakdownActionSuggestion struct {
 
 // GoalBreakdownSuggestion is one suggested tree node.
 type GoalBreakdownSuggestion struct {
-	NodeType    string                          `json:"node_type"`
-	Title       string                          `json:"title"`
-	Description string                          `json:"description,omitempty"`
-	Action      *GoalBreakdownActionSuggestion  `json:"action,omitempty"`
-	Children    []GoalBreakdownSuggestion       `json:"children,omitempty"`
+	NodeType    string                         `json:"node_type"`
+	Title       string                         `json:"title"`
+	Description string                         `json:"description,omitempty"`
+	Action      *GoalBreakdownActionSuggestion `json:"action,omitempty"`
+	Children    []GoalBreakdownSuggestion      `json:"children,omitempty"`
 }
 
 // EvaluateQuestRequest carries prompt plus optional DM context and gear privileges.
