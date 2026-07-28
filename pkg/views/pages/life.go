@@ -140,17 +140,19 @@ type LifePlanNodeRow struct {
 
 // LifeQuestRow is one quest list row.
 type LifeQuestRow struct {
-	Flag       string
-	Title      string
-	Prompt     string
-	Type       string
-	Difficulty string
-	Fear       int
-	Exp        int
-	Gold       int
-	DropTier   string
-	DropChance float64
-	Status     string
+	Flag         string
+	Title        string
+	Prompt       string
+	Type         string
+	Difficulty   string
+	Fear         int
+	Exp          int
+	Gold         int
+	DropTier     string
+	DropChance   float64
+	Status       string
+	Evidence     []LifeQuestEvidenceRow
+	Adjudication *LifeQuestAdjudicationRow
 }
 
 // LifeQuestsData is the quests page model.
@@ -162,6 +164,28 @@ type LifeQuestsData struct {
 	TodayHabits  []LifeTodayHabitRow
 	ActionLogs   []LifeActionLogRow
 	PendingCount int
+}
+
+// LifeQuestEvidenceRow is one submitted evidence item.
+type LifeQuestEvidenceRow struct {
+	Flag       string
+	SourceType string
+	Content    string
+	SourceURL  string
+	Summary    string
+	When       string
+}
+
+// LifeQuestAdjudicationRow is one AI ruling shown on the quests page.
+type LifeQuestAdjudicationRow struct {
+	Flag               string
+	Status             string
+	Verdict            string
+	Reason             string
+	SuggestedExp       int
+	SuggestedGold      int
+	SuggestedNextSteps []string
+	When               string
 }
 
 // LifeActionLogRow is one completion audit row.

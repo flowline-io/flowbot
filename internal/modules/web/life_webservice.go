@@ -34,6 +34,9 @@ var lifeWebserviceRules = []webservice.Rule{
 	webservice.Post("/life/goals/:flag/delete", lifeDeleteGoal, route.WithNotAuth()),
 	webservice.Get("/life/quests", lifeQuestsPage, route.WithNotAuth()),
 	webservice.Post("/life/quests", lifeCreateQuest, route.WithNotAuth()),
+	webservice.Post("/life/quests/:flag/evidence", lifeSubmitQuestEvidence, route.WithNotAuth()),
+	webservice.Post("/life/quests/:flag/adjudicate", lifeAdjudicateQuest, route.WithNotAuth()),
+	webservice.Post("/life/quests/:flag/adjudication/:adjudicationFlag/apply", lifeApplyQuestAdjudication, route.WithNotAuth()),
 	webservice.Post("/life/quests/:flag/complete", lifeCompleteQuest, route.WithNotAuth()),
 	webservice.Post("/life/quests/:flag/fail", lifeFailQuest, route.WithNotAuth()),
 	webservice.Post("/life/actions/:flag/complete", lifeCompleteActionOccurrence, route.WithNotAuth()),
@@ -488,7 +491,7 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 		return err
 	}
 	svc := lifeService()
-	pending, err := svc.ListQuests(context.Background(), uid, "Pending")
+	pending, err := svc.ListPendingQuestDMViews(context.Background(), uid)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
@@ -513,7 +516,7 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	return pages.LifeQuestsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
-func buildLifeQuestsData(svc *lifemod.Service, uid string, char *lifemod.CharacterView, pending, done []*gen.LifeQuest, today *lifemod.TodayBoardView, logs []lifemod.ActionLogView) pages.LifeQuestsData {
+func buildLifeQuestsData(svc *lifemod.Service, uid string, char *lifemod.CharacterView, pending []lifemod.QuestDMView, done []*gen.LifeQuest, today *lifemod.TodayBoardView, logs []lifemod.ActionLogView) pages.LifeQuestsData {
 	goalRows := mapActiveGoalRows(char)
 	rowsPending := mapPendingQuestRows(svc, uid, pending)
 	rowsDone := mapCompletedQuestRows(done)
@@ -537,15 +540,25 @@ func mapActiveGoalRows(char *lifemod.CharacterView) []pages.LifeGoalRow {
 	return goalRows
 }
 
-func mapPendingQuestRows(svc *lifemod.Service, uid string, pending []*gen.LifeQuest) []pages.LifeQuestRow {
+func mapPendingQuestRows(svc *lifemod.Service, uid string, pending []lifemod.QuestDMView) []pages.LifeQuestRow {
 	rows := make([]pages.LifeQuestRow, 0, len(pending))
-	for _, q := range pending {
+	for _, item := range pending {
+		if item.Quest == nil {
+			continue
+		}
+		q := item.Quest
 		chance, _ := svc.PreviewDropChance(context.Background(), uid, q.Flag)
-		rows = append(rows, pages.LifeQuestRow{
+		row := pages.LifeQuestRow{
 			Flag: q.Flag, Title: q.Title, Prompt: q.Prompt, Type: q.Type, Difficulty: q.AiEvaluatedDifficulty,
 			Fear: q.AiEvaluatedFear, Exp: q.BaseExpReward, Gold: q.BaseGoldReward, DropTier: q.DropTier,
 			DropChance: chance, Status: q.Status,
-		})
+			Evidence: mapQuestEvidenceRows(item.Evidence),
+		}
+		if item.Adjudication != nil {
+			adjudication := mapQuestAdjudicationRow(*item.Adjudication)
+			row.Adjudication = &adjudication
+		}
+		rows = append(rows, row)
 	}
 	return rows
 }
@@ -651,6 +664,34 @@ func mapTodayHabitRows(today *lifemod.TodayBoardView) []pages.LifeTodayHabitRow 
 	return rows
 }
 
+func mapQuestEvidenceRows(items []lifemod.QuestEvidenceView) []pages.LifeQuestEvidenceRow {
+	rows := make([]pages.LifeQuestEvidenceRow, 0, len(items))
+	for _, item := range items {
+		rows = append(rows, pages.LifeQuestEvidenceRow{
+			Flag:       item.Flag,
+			SourceType: item.SourceType,
+			Content:    item.Content,
+			SourceURL:  item.SourceURL,
+			Summary:    item.Summary,
+			When:       item.CreatedAt.UTC().Format("2006-01-02 15:04"),
+		})
+	}
+	return rows
+}
+
+func mapQuestAdjudicationRow(item lifemod.QuestAdjudicationView) pages.LifeQuestAdjudicationRow {
+	return pages.LifeQuestAdjudicationRow{
+		Flag:               item.Flag,
+		Status:             item.Status,
+		Verdict:            item.Verdict,
+		Reason:             item.Reason,
+		SuggestedExp:       item.SuggestedExp,
+		SuggestedGold:      item.SuggestedGold,
+		SuggestedNextSteps: append([]string(nil), item.SuggestedNextSteps...),
+		When:               item.CreatedAt.UTC().Format("2006-01-02 15:04"),
+	}
+}
+
 func lifeCreateQuest(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
@@ -670,6 +711,57 @@ func lifeCreateQuest(ctx fiber.Ctx) error {
 	}
 	msg := fmt.Sprintf("Quest rated %s — ~%.0f%% chance of %s loot", q.AiEvaluatedDifficulty, chance*100, q.DropTier)
 	setShowToast(ctx, "success", msg)
+	ctx.Set("HX-Redirect", "/service/web/life/quests")
+	return ctx.SendStatus(http.StatusOK)
+}
+
+func lifeSubmitQuestEvidence(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	content := strings.TrimSpace(ctx.FormValue("content"))
+	sourceType := strings.TrimSpace(ctx.FormValue("source_type"))
+	sourceURL := strings.TrimSpace(ctx.FormValue("source_url"))
+	if _, err := lifeService().SubmitQuestEvidence(context.Background(), uid, ctx.Params("flag"), sourceType, content, sourceURL); err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	setShowToast(ctx, "success", "Evidence recorded for the quest.")
+	ctx.Set("HX-Redirect", "/service/web/life/quests")
+	return ctx.SendStatus(http.StatusOK)
+}
+
+func lifeAdjudicateQuest(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	if _, err := lifeService().AdjudicateQuest(context.Background(), uid, ctx.Params("flag")); err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	setShowToast(ctx, "success", "The dungeon master issued a suggested ruling.")
+	ctx.Set("HX-Redirect", "/service/web/life/quests")
+	return ctx.SendStatus(http.StatusOK)
+}
+
+func lifeApplyQuestAdjudication(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	if err := lifeService().ApplyQuestAdjudication(context.Background(), uid, ctx.Params("flag"), ctx.Params("adjudicationFlag")); err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	setShowToast(ctx, "success", "Suggested ruling applied.")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }

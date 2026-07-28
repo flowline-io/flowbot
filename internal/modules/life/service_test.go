@@ -223,3 +223,92 @@ func TestImportGoalBreakdownNormalizesInvalidHierarchy(t *testing.T) {
 	assert.Equal(t, "project", nodes[1].NodeType)
 	assert.Equal(t, "action", nodes[2].NodeType)
 }
+
+func TestSubmitQuestEvidenceStoresPendingQuestProof(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "evidence-user", "", "")
+	require.NoError(t, err)
+	chars, err := svc.store.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := svc.store.CreateSkill(ctx, profile.ID, chars[0].ID, "Systems Design", 0.5)
+	require.NoError(t, err)
+	quest, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID:         profile.ID,
+		SkillID:               skill.ID,
+		Title:                 "Ship quest adjudication",
+		Prompt:                "Ship the evidence flow",
+		Type:                  "One-Time",
+		AiEvaluatedDifficulty: "A",
+		BaseExpReward:         150,
+		BaseGoldReward:        40,
+		DropTier:              "Epic",
+	})
+	require.NoError(t, err)
+
+	view, err := svc.SubmitQuestEvidence(ctx, "evidence-user", quest.Flag, "note", "Finished the flow and added tests.", "")
+	require.NoError(t, err)
+	assert.Equal(t, "note", view.SourceType)
+	assert.Contains(t, view.Content, "added tests")
+
+	rows, err := svc.store.ListEvidenceByQuest(ctx, profile.ID, quest.ID)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+	assert.Equal(t, "note", rows[0].SourceType)
+}
+
+func TestApplyQuestAdjudicationCompletesQuest(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "apply-user", "", "")
+	require.NoError(t, err)
+	chars, err := svc.store.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := svc.store.CreateSkill(ctx, profile.ID, chars[0].ID, "Execution", 0.5)
+	require.NoError(t, err)
+	quest, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID:         profile.ID,
+		SkillID:               skill.ID,
+		Title:                 "Ship DM MVP",
+		Prompt:                "Ship the first DM MVP",
+		Type:                  "One-Time",
+		AiEvaluatedDifficulty: "B",
+		BaseExpReward:         80,
+		BaseGoldReward:        25,
+		DropTier:              "Rare",
+	})
+	require.NoError(t, err)
+	adjudication, err := svc.store.CreateAdjudication(ctx, store.LifeAdjudicationInput{
+		ProfileID:          profile.ID,
+		QuestID:            quest.ID,
+		Status:             "suggested",
+		Verdict:            "completed",
+		Reason:             "The evidence was accepted.",
+		SuggestedExp:       quest.BaseExpReward,
+		SuggestedGold:      quest.BaseGoldReward,
+		SuggestedNextSteps: []string{"Write a retro"},
+		EvidenceSnapshot:   []map[string]any{{"summary": "Finished implementation"}},
+	})
+	require.NoError(t, err)
+
+	err = svc.ApplyQuestAdjudication(ctx, "apply-user", quest.Flag, adjudication.Flag)
+	require.NoError(t, err)
+
+	gotQuest, err := svc.store.GetQuestByFlag(ctx, profile.ID, quest.Flag)
+	require.NoError(t, err)
+	require.NotNil(t, gotQuest)
+	assert.Equal(t, "Completed", gotQuest.Status)
+
+	gotAdj, err := svc.store.GetAdjudicationByFlag(ctx, profile.ID, adjudication.Flag)
+	require.NoError(t, err)
+	require.NotNil(t, gotAdj)
+	assert.Equal(t, "applied", gotAdj.Status)
+}

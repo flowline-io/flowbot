@@ -34,6 +34,26 @@ func Register(svc Service) error {
 				Handler: invokeEvaluate(svc),
 			},
 			{
+				Name:        OpAdjudicateQuest,
+				Description: "Adjudicate quest evidence into a suggested ruling",
+				Mutation:    false,
+				Input: []hub.ParamDef{
+					{Name: "quest_title", Type: "string", Required: true, Description: "Quest title"},
+					{Name: "quest_prompt", Type: "string", Required: false, Description: "Original quest prompt"},
+					{Name: "quest_type", Type: "string", Required: false, Description: "Quest type"},
+					{Name: "difficulty", Type: "string", Required: false, Description: "Quest difficulty"},
+					{Name: "base_exp", Type: "number", Required: false, Description: "Quest base exp"},
+					{Name: "base_gold", Type: "number", Required: false, Description: "Quest base gold"},
+					{Name: "ai_personality", Type: "string", Required: false, Description: "DM personality"},
+					{Name: "completion_rate", Type: "number", Required: false, Description: "Historical completion rate"},
+					{Name: "mood", Type: "object", Required: false, Description: "Recent mood JSON"},
+					{Name: "active_goals", Type: "array", Required: false, Description: "Active goal titles"},
+					{Name: "recent_action_log", Type: "array", Required: false, Description: "Recent action log summaries"},
+					{Name: "evidence", Type: "array", Required: false, Description: "Quest evidence items"},
+				},
+				Handler: invokeAdjudicate(svc),
+			},
+			{
 				Name:        OpGenerateInstanceLore,
 				Description: "Generate instance lore for a dropped item",
 				Mutation:    false,
@@ -100,6 +120,55 @@ func invokeEvaluate(svc Service) capability.Invoker {
 	}
 }
 
+func invokeAdjudicate(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		title, err := capability.RequiredString(params, "quest_title")
+		if err != nil {
+			return nil, err
+		}
+		req := AdjudicateQuestRequest{
+			QuestTitle:    title,
+			QuestPrompt:   optionalStringParam(params, "quest_prompt"),
+			QuestType:     optionalStringParam(params, "quest_type"),
+			Difficulty:    optionalStringParam(params, "difficulty"),
+			AIPersonality: optionalStringParam(params, "ai_personality"),
+		}
+		if v, ok := params["base_exp"].(float64); ok {
+			req.BaseExp = int(v)
+		}
+		if v, ok := params["base_gold"].(float64); ok {
+			req.BaseGold = int(v)
+		}
+		if v, ok := params["completion_rate"].(float64); ok {
+			req.CompletionRate = v
+		}
+		if m, ok := params["mood"].(map[string]any); ok {
+			req.Mood = m
+		}
+		if arr, ok := params["active_goals"].([]any); ok {
+			for _, item := range arr {
+				if s, ok := item.(string); ok && s != "" {
+					req.ActiveGoals = append(req.ActiveGoals, s)
+				}
+			}
+		}
+		if arr, ok := params["active_goals"].([]string); ok {
+			req.ActiveGoals = append(req.ActiveGoals, arr...)
+		}
+		if arr, ok := params["recent_action_log"].([]any); ok {
+			req.RecentActionLog = appendActionLogMaps(req.RecentActionLog, arr)
+		}
+		if arr, ok := params["evidence"].([]any); ok {
+			req.Evidence = appendEvidence(req.Evidence, arr)
+		}
+		adjudication, err := svc.AdjudicateQuest(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("life capability: adjudicate: %w", err)
+		}
+		return &capability.InvokeResult{Data: adjudication}, nil
+	}
+}
+
 func invokeLore(svc Service) capability.Invoker {
 	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
 		equip, err := capability.RequiredString(params, "equipment_name")
@@ -154,6 +223,40 @@ func invokeBreakdown(svc Service) capability.Invoker {
 
 func optionalStringParam(params map[string]any, key string) string {
 	v, ok := params[key].(string)
+	if !ok {
+		return ""
+	}
+	return v
+}
+
+func appendActionLogMaps(dst []map[string]any, items []any) []map[string]any {
+	for _, item := range items {
+		if m, ok := item.(map[string]any); ok {
+			dst = append(dst, m)
+		}
+	}
+	return dst
+}
+
+func appendEvidence(dst []QuestEvidence, items []any) []QuestEvidence {
+	for _, item := range items {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		ev := QuestEvidence{
+			SourceType: optionalStringFromMap(m, "source_type"),
+			Content:    optionalStringFromMap(m, "content"),
+			SourceURL:  optionalStringFromMap(m, "source_url"),
+			Summary:    optionalStringFromMap(m, "summary"),
+		}
+		dst = append(dst, ev)
+	}
+	return dst
+}
+
+func optionalStringFromMap(m map[string]any, key string) string {
+	v, ok := m[key].(string)
 	if !ok {
 		return ""
 	}

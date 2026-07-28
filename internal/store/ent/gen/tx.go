@@ -90,12 +90,16 @@ type Tx struct {
 	LifeActionOccurrence *LifeActionOccurrenceClient
 	// LifeActionSpec is the client for interacting with the LifeActionSpec builders.
 	LifeActionSpec *LifeActionSpecClient
+	// LifeAdjudication is the client for interacting with the LifeAdjudication builders.
+	LifeAdjudication *LifeAdjudicationClient
 	// LifeCharacteristic is the client for interacting with the LifeCharacteristic builders.
 	LifeCharacteristic *LifeCharacteristicClient
 	// LifeEquipment is the client for interacting with the LifeEquipment builders.
 	LifeEquipment *LifeEquipmentClient
 	// LifeEquippedSlots is the client for interacting with the LifeEquippedSlots builders.
 	LifeEquippedSlots *LifeEquippedSlotsClient
+	// LifeEvidence is the client for interacting with the LifeEvidence builders.
+	LifeEvidence *LifeEvidenceClient
 	// LifeGoal is the client for interacting with the LifeGoal builders.
 	LifeGoal *LifeGoalClient
 	// LifeHabitCheckin is the client for interacting with the LifeHabitCheckin builders.
@@ -340,9 +344,11 @@ func (tx *Tx) init() {
 	tx.LifeActionLog = NewLifeActionLogClient(tx.config)
 	tx.LifeActionOccurrence = NewLifeActionOccurrenceClient(tx.config)
 	tx.LifeActionSpec = NewLifeActionSpecClient(tx.config)
+	tx.LifeAdjudication = NewLifeAdjudicationClient(tx.config)
 	tx.LifeCharacteristic = NewLifeCharacteristicClient(tx.config)
 	tx.LifeEquipment = NewLifeEquipmentClient(tx.config)
 	tx.LifeEquippedSlots = NewLifeEquippedSlotsClient(tx.config)
+	tx.LifeEvidence = NewLifeEvidenceClient(tx.config)
 	tx.LifeGoal = NewLifeGoalClient(tx.config)
 	tx.LifeHabitCheckin = NewLifeHabitCheckinClient(tx.config)
 	tx.LifeInventory = NewLifeInventoryClient(tx.config)

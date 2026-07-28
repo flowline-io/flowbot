@@ -48,10 +48,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
@@ -142,9 +144,11 @@ const (
 	TypeLifeActionLog             = "LifeActionLog"
 	TypeLifeActionOccurrence      = "LifeActionOccurrence"
 	TypeLifeActionSpec            = "LifeActionSpec"
+	TypeLifeAdjudication          = "LifeAdjudication"
 	TypeLifeCharacteristic        = "LifeCharacteristic"
 	TypeLifeEquipment             = "LifeEquipment"
 	TypeLifeEquippedSlots         = "LifeEquippedSlots"
+	TypeLifeEvidence              = "LifeEvidence"
 	TypeLifeGoal                  = "LifeGoal"
 	TypeLifeHabitCheckin          = "LifeHabitCheckin"
 	TypeLifeInventory             = "LifeInventory"
@@ -29404,6 +29408,1175 @@ func (m *LifeActionSpecMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeActionSpec edge %s", name)
 }
 
+// LifeAdjudicationMutation represents an operation that mutates the LifeAdjudication nodes in the graph.
+type LifeAdjudicationMutation struct {
+	config
+	op                         Op
+	typ                        string
+	id                         *int64
+	flag                       *string
+	life_profile_id            *int64
+	addlife_profile_id         *int64
+	quest_id                   *int64
+	addquest_id                *int64
+	status                     *string
+	verdict                    *string
+	reason                     *string
+	suggested_exp              *int
+	addsuggested_exp           *int
+	suggested_gold             *int
+	addsuggested_gold          *int
+	suggested_next_steps       *[]string
+	appendsuggested_next_steps []string
+	evidence_snapshot          *[]map[string]interface{}
+	appendevidence_snapshot    []map[string]interface{}
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	applied_at                 *time.Time
+	clearedFields              map[string]struct{}
+	done                       bool
+	oldValue                   func(context.Context) (*LifeAdjudication, error)
+	predicates                 []predicate.LifeAdjudication
+}
+
+var _ ent.Mutation = (*LifeAdjudicationMutation)(nil)
+
+// lifeadjudicationOption allows management of the mutation configuration using functional options.
+type lifeadjudicationOption func(*LifeAdjudicationMutation)
+
+// newLifeAdjudicationMutation creates new mutation for the LifeAdjudication entity.
+func newLifeAdjudicationMutation(c config, op Op, opts ...lifeadjudicationOption) *LifeAdjudicationMutation {
+	m := &LifeAdjudicationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeAdjudication,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeAdjudicationID sets the ID field of the mutation.
+func withLifeAdjudicationID(id int64) lifeadjudicationOption {
+	return func(m *LifeAdjudicationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeAdjudication
+		)
+		m.oldValue = func(ctx context.Context) (*LifeAdjudication, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeAdjudication.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeAdjudication sets the old LifeAdjudication of the mutation.
+func withLifeAdjudication(node *LifeAdjudication) lifeadjudicationOption {
+	return func(m *LifeAdjudicationMutation) {
+		m.oldValue = func(context.Context) (*LifeAdjudication, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeAdjudicationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeAdjudicationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeAdjudication entities.
+func (m *LifeAdjudicationMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeAdjudicationMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeAdjudicationMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeAdjudication.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeAdjudicationMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeAdjudicationMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeAdjudicationMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeAdjudicationMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeAdjudicationMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeAdjudicationMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeAdjudicationMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeAdjudicationMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetQuestID sets the "quest_id" field.
+func (m *LifeAdjudicationMutation) SetQuestID(i int64) {
+	m.quest_id = &i
+	m.addquest_id = nil
+}
+
+// QuestID returns the value of the "quest_id" field in the mutation.
+func (m *LifeAdjudicationMutation) QuestID() (r int64, exists bool) {
+	v := m.quest_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuestID returns the old "quest_id" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldQuestID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuestID: %w", err)
+	}
+	return oldValue.QuestID, nil
+}
+
+// AddQuestID adds i to the "quest_id" field.
+func (m *LifeAdjudicationMutation) AddQuestID(i int64) {
+	if m.addquest_id != nil {
+		*m.addquest_id += i
+	} else {
+		m.addquest_id = &i
+	}
+}
+
+// AddedQuestID returns the value that was added to the "quest_id" field in this mutation.
+func (m *LifeAdjudicationMutation) AddedQuestID() (r int64, exists bool) {
+	v := m.addquest_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetQuestID resets all changes to the "quest_id" field.
+func (m *LifeAdjudicationMutation) ResetQuestID() {
+	m.quest_id = nil
+	m.addquest_id = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *LifeAdjudicationMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *LifeAdjudicationMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *LifeAdjudicationMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetVerdict sets the "verdict" field.
+func (m *LifeAdjudicationMutation) SetVerdict(s string) {
+	m.verdict = &s
+}
+
+// Verdict returns the value of the "verdict" field in the mutation.
+func (m *LifeAdjudicationMutation) Verdict() (r string, exists bool) {
+	v := m.verdict
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerdict returns the old "verdict" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldVerdict(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldVerdict is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldVerdict requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerdict: %w", err)
+	}
+	return oldValue.Verdict, nil
+}
+
+// ResetVerdict resets all changes to the "verdict" field.
+func (m *LifeAdjudicationMutation) ResetVerdict() {
+	m.verdict = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *LifeAdjudicationMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *LifeAdjudicationMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *LifeAdjudicationMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetSuggestedExp sets the "suggested_exp" field.
+func (m *LifeAdjudicationMutation) SetSuggestedExp(i int) {
+	m.suggested_exp = &i
+	m.addsuggested_exp = nil
+}
+
+// SuggestedExp returns the value of the "suggested_exp" field in the mutation.
+func (m *LifeAdjudicationMutation) SuggestedExp() (r int, exists bool) {
+	v := m.suggested_exp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuggestedExp returns the old "suggested_exp" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldSuggestedExp(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuggestedExp is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuggestedExp requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuggestedExp: %w", err)
+	}
+	return oldValue.SuggestedExp, nil
+}
+
+// AddSuggestedExp adds i to the "suggested_exp" field.
+func (m *LifeAdjudicationMutation) AddSuggestedExp(i int) {
+	if m.addsuggested_exp != nil {
+		*m.addsuggested_exp += i
+	} else {
+		m.addsuggested_exp = &i
+	}
+}
+
+// AddedSuggestedExp returns the value that was added to the "suggested_exp" field in this mutation.
+func (m *LifeAdjudicationMutation) AddedSuggestedExp() (r int, exists bool) {
+	v := m.addsuggested_exp
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSuggestedExp resets all changes to the "suggested_exp" field.
+func (m *LifeAdjudicationMutation) ResetSuggestedExp() {
+	m.suggested_exp = nil
+	m.addsuggested_exp = nil
+}
+
+// SetSuggestedGold sets the "suggested_gold" field.
+func (m *LifeAdjudicationMutation) SetSuggestedGold(i int) {
+	m.suggested_gold = &i
+	m.addsuggested_gold = nil
+}
+
+// SuggestedGold returns the value of the "suggested_gold" field in the mutation.
+func (m *LifeAdjudicationMutation) SuggestedGold() (r int, exists bool) {
+	v := m.suggested_gold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuggestedGold returns the old "suggested_gold" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldSuggestedGold(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuggestedGold is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuggestedGold requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuggestedGold: %w", err)
+	}
+	return oldValue.SuggestedGold, nil
+}
+
+// AddSuggestedGold adds i to the "suggested_gold" field.
+func (m *LifeAdjudicationMutation) AddSuggestedGold(i int) {
+	if m.addsuggested_gold != nil {
+		*m.addsuggested_gold += i
+	} else {
+		m.addsuggested_gold = &i
+	}
+}
+
+// AddedSuggestedGold returns the value that was added to the "suggested_gold" field in this mutation.
+func (m *LifeAdjudicationMutation) AddedSuggestedGold() (r int, exists bool) {
+	v := m.addsuggested_gold
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSuggestedGold resets all changes to the "suggested_gold" field.
+func (m *LifeAdjudicationMutation) ResetSuggestedGold() {
+	m.suggested_gold = nil
+	m.addsuggested_gold = nil
+}
+
+// SetSuggestedNextSteps sets the "suggested_next_steps" field.
+func (m *LifeAdjudicationMutation) SetSuggestedNextSteps(s []string) {
+	m.suggested_next_steps = &s
+	m.appendsuggested_next_steps = nil
+}
+
+// SuggestedNextSteps returns the value of the "suggested_next_steps" field in the mutation.
+func (m *LifeAdjudicationMutation) SuggestedNextSteps() (r []string, exists bool) {
+	v := m.suggested_next_steps
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuggestedNextSteps returns the old "suggested_next_steps" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldSuggestedNextSteps(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuggestedNextSteps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuggestedNextSteps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuggestedNextSteps: %w", err)
+	}
+	return oldValue.SuggestedNextSteps, nil
+}
+
+// AppendSuggestedNextSteps adds s to the "suggested_next_steps" field.
+func (m *LifeAdjudicationMutation) AppendSuggestedNextSteps(s []string) {
+	m.appendsuggested_next_steps = append(m.appendsuggested_next_steps, s...)
+}
+
+// AppendedSuggestedNextSteps returns the list of values that were appended to the "suggested_next_steps" field in this mutation.
+func (m *LifeAdjudicationMutation) AppendedSuggestedNextSteps() ([]string, bool) {
+	if len(m.appendsuggested_next_steps) == 0 {
+		return nil, false
+	}
+	return m.appendsuggested_next_steps, true
+}
+
+// ResetSuggestedNextSteps resets all changes to the "suggested_next_steps" field.
+func (m *LifeAdjudicationMutation) ResetSuggestedNextSteps() {
+	m.suggested_next_steps = nil
+	m.appendsuggested_next_steps = nil
+}
+
+// SetEvidenceSnapshot sets the "evidence_snapshot" field.
+func (m *LifeAdjudicationMutation) SetEvidenceSnapshot(value []map[string]interface{}) {
+	m.evidence_snapshot = &value
+	m.appendevidence_snapshot = nil
+}
+
+// EvidenceSnapshot returns the value of the "evidence_snapshot" field in the mutation.
+func (m *LifeAdjudicationMutation) EvidenceSnapshot() (r []map[string]interface{}, exists bool) {
+	v := m.evidence_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEvidenceSnapshot returns the old "evidence_snapshot" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldEvidenceSnapshot(ctx context.Context) (v []map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEvidenceSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEvidenceSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEvidenceSnapshot: %w", err)
+	}
+	return oldValue.EvidenceSnapshot, nil
+}
+
+// AppendEvidenceSnapshot adds value to the "evidence_snapshot" field.
+func (m *LifeAdjudicationMutation) AppendEvidenceSnapshot(value []map[string]interface{}) {
+	m.appendevidence_snapshot = append(m.appendevidence_snapshot, value...)
+}
+
+// AppendedEvidenceSnapshot returns the list of values that were appended to the "evidence_snapshot" field in this mutation.
+func (m *LifeAdjudicationMutation) AppendedEvidenceSnapshot() ([]map[string]interface{}, bool) {
+	if len(m.appendevidence_snapshot) == 0 {
+		return nil, false
+	}
+	return m.appendevidence_snapshot, true
+}
+
+// ResetEvidenceSnapshot resets all changes to the "evidence_snapshot" field.
+func (m *LifeAdjudicationMutation) ResetEvidenceSnapshot() {
+	m.evidence_snapshot = nil
+	m.appendevidence_snapshot = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifeAdjudicationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifeAdjudicationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifeAdjudicationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeAdjudicationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeAdjudicationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeAdjudicationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetAppliedAt sets the "applied_at" field.
+func (m *LifeAdjudicationMutation) SetAppliedAt(t time.Time) {
+	m.applied_at = &t
+}
+
+// AppliedAt returns the value of the "applied_at" field in the mutation.
+func (m *LifeAdjudicationMutation) AppliedAt() (r time.Time, exists bool) {
+	v := m.applied_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAppliedAt returns the old "applied_at" field's value of the LifeAdjudication entity.
+// If the LifeAdjudication object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeAdjudicationMutation) OldAppliedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAppliedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAppliedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAppliedAt: %w", err)
+	}
+	return oldValue.AppliedAt, nil
+}
+
+// ClearAppliedAt clears the value of the "applied_at" field.
+func (m *LifeAdjudicationMutation) ClearAppliedAt() {
+	m.applied_at = nil
+	m.clearedFields[lifeadjudication.FieldAppliedAt] = struct{}{}
+}
+
+// AppliedAtCleared returns if the "applied_at" field was cleared in this mutation.
+func (m *LifeAdjudicationMutation) AppliedAtCleared() bool {
+	_, ok := m.clearedFields[lifeadjudication.FieldAppliedAt]
+	return ok
+}
+
+// ResetAppliedAt resets all changes to the "applied_at" field.
+func (m *LifeAdjudicationMutation) ResetAppliedAt() {
+	m.applied_at = nil
+	delete(m.clearedFields, lifeadjudication.FieldAppliedAt)
+}
+
+// Where appends a list predicates to the LifeAdjudicationMutation builder.
+func (m *LifeAdjudicationMutation) Where(ps ...predicate.LifeAdjudication) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeAdjudicationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeAdjudicationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeAdjudication, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeAdjudicationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeAdjudicationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeAdjudication).
+func (m *LifeAdjudicationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeAdjudicationMutation) Fields() []string {
+	fields := make([]string, 0, 13)
+	if m.flag != nil {
+		fields = append(fields, lifeadjudication.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifeadjudication.FieldLifeProfileID)
+	}
+	if m.quest_id != nil {
+		fields = append(fields, lifeadjudication.FieldQuestID)
+	}
+	if m.status != nil {
+		fields = append(fields, lifeadjudication.FieldStatus)
+	}
+	if m.verdict != nil {
+		fields = append(fields, lifeadjudication.FieldVerdict)
+	}
+	if m.reason != nil {
+		fields = append(fields, lifeadjudication.FieldReason)
+	}
+	if m.suggested_exp != nil {
+		fields = append(fields, lifeadjudication.FieldSuggestedExp)
+	}
+	if m.suggested_gold != nil {
+		fields = append(fields, lifeadjudication.FieldSuggestedGold)
+	}
+	if m.suggested_next_steps != nil {
+		fields = append(fields, lifeadjudication.FieldSuggestedNextSteps)
+	}
+	if m.evidence_snapshot != nil {
+		fields = append(fields, lifeadjudication.FieldEvidenceSnapshot)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifeadjudication.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifeadjudication.FieldUpdatedAt)
+	}
+	if m.applied_at != nil {
+		fields = append(fields, lifeadjudication.FieldAppliedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeAdjudicationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeadjudication.FieldFlag:
+		return m.Flag()
+	case lifeadjudication.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifeadjudication.FieldQuestID:
+		return m.QuestID()
+	case lifeadjudication.FieldStatus:
+		return m.Status()
+	case lifeadjudication.FieldVerdict:
+		return m.Verdict()
+	case lifeadjudication.FieldReason:
+		return m.Reason()
+	case lifeadjudication.FieldSuggestedExp:
+		return m.SuggestedExp()
+	case lifeadjudication.FieldSuggestedGold:
+		return m.SuggestedGold()
+	case lifeadjudication.FieldSuggestedNextSteps:
+		return m.SuggestedNextSteps()
+	case lifeadjudication.FieldEvidenceSnapshot:
+		return m.EvidenceSnapshot()
+	case lifeadjudication.FieldCreatedAt:
+		return m.CreatedAt()
+	case lifeadjudication.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case lifeadjudication.FieldAppliedAt:
+		return m.AppliedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeAdjudicationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeadjudication.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeadjudication.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifeadjudication.FieldQuestID:
+		return m.OldQuestID(ctx)
+	case lifeadjudication.FieldStatus:
+		return m.OldStatus(ctx)
+	case lifeadjudication.FieldVerdict:
+		return m.OldVerdict(ctx)
+	case lifeadjudication.FieldReason:
+		return m.OldReason(ctx)
+	case lifeadjudication.FieldSuggestedExp:
+		return m.OldSuggestedExp(ctx)
+	case lifeadjudication.FieldSuggestedGold:
+		return m.OldSuggestedGold(ctx)
+	case lifeadjudication.FieldSuggestedNextSteps:
+		return m.OldSuggestedNextSteps(ctx)
+	case lifeadjudication.FieldEvidenceSnapshot:
+		return m.OldEvidenceSnapshot(ctx)
+	case lifeadjudication.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lifeadjudication.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case lifeadjudication.FieldAppliedAt:
+		return m.OldAppliedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeAdjudication field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAdjudicationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeadjudication.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeadjudication.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifeadjudication.FieldQuestID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuestID(v)
+		return nil
+	case lifeadjudication.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case lifeadjudication.FieldVerdict:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerdict(v)
+		return nil
+	case lifeadjudication.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case lifeadjudication.FieldSuggestedExp:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuggestedExp(v)
+		return nil
+	case lifeadjudication.FieldSuggestedGold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuggestedGold(v)
+		return nil
+	case lifeadjudication.FieldSuggestedNextSteps:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuggestedNextSteps(v)
+		return nil
+	case lifeadjudication.FieldEvidenceSnapshot:
+		v, ok := value.([]map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEvidenceSnapshot(v)
+		return nil
+	case lifeadjudication.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lifeadjudication.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case lifeadjudication.FieldAppliedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAppliedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAdjudication field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeAdjudicationMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifeadjudication.FieldLifeProfileID)
+	}
+	if m.addquest_id != nil {
+		fields = append(fields, lifeadjudication.FieldQuestID)
+	}
+	if m.addsuggested_exp != nil {
+		fields = append(fields, lifeadjudication.FieldSuggestedExp)
+	}
+	if m.addsuggested_gold != nil {
+		fields = append(fields, lifeadjudication.FieldSuggestedGold)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeAdjudicationMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeadjudication.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifeadjudication.FieldQuestID:
+		return m.AddedQuestID()
+	case lifeadjudication.FieldSuggestedExp:
+		return m.AddedSuggestedExp()
+	case lifeadjudication.FieldSuggestedGold:
+		return m.AddedSuggestedGold()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeAdjudicationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeadjudication.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifeadjudication.FieldQuestID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuestID(v)
+		return nil
+	case lifeadjudication.FieldSuggestedExp:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSuggestedExp(v)
+		return nil
+	case lifeadjudication.FieldSuggestedGold:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSuggestedGold(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAdjudication numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeAdjudicationMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(lifeadjudication.FieldAppliedAt) {
+		fields = append(fields, lifeadjudication.FieldAppliedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeAdjudicationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeAdjudicationMutation) ClearField(name string) error {
+	switch name {
+	case lifeadjudication.FieldAppliedAt:
+		m.ClearAppliedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAdjudication nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeAdjudicationMutation) ResetField(name string) error {
+	switch name {
+	case lifeadjudication.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeadjudication.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifeadjudication.FieldQuestID:
+		m.ResetQuestID()
+		return nil
+	case lifeadjudication.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case lifeadjudication.FieldVerdict:
+		m.ResetVerdict()
+		return nil
+	case lifeadjudication.FieldReason:
+		m.ResetReason()
+		return nil
+	case lifeadjudication.FieldSuggestedExp:
+		m.ResetSuggestedExp()
+		return nil
+	case lifeadjudication.FieldSuggestedGold:
+		m.ResetSuggestedGold()
+		return nil
+	case lifeadjudication.FieldSuggestedNextSteps:
+		m.ResetSuggestedNextSteps()
+		return nil
+	case lifeadjudication.FieldEvidenceSnapshot:
+		m.ResetEvidenceSnapshot()
+		return nil
+	case lifeadjudication.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lifeadjudication.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case lifeadjudication.FieldAppliedAt:
+		m.ResetAppliedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeAdjudication field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeAdjudicationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeAdjudicationMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeAdjudicationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeAdjudicationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeAdjudicationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeAdjudicationMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeAdjudicationMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeAdjudication unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeAdjudicationMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeAdjudication edge %s", name)
+}
+
 // LifeCharacteristicMutation represents an operation that mutates the LifeCharacteristic nodes in the graph.
 type LifeCharacteristicMutation struct {
 	config
@@ -32105,6 +33278,808 @@ func (m *LifeEquippedSlotsMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *LifeEquippedSlotsMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeEquippedSlots edge %s", name)
+}
+
+// LifeEvidenceMutation represents an operation that mutates the LifeEvidence nodes in the graph.
+type LifeEvidenceMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	quest_id           *int64
+	addquest_id        *int64
+	source_type        *string
+	content            *string
+	source_url         *string
+	summary            *string
+	created_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifeEvidence, error)
+	predicates         []predicate.LifeEvidence
+}
+
+var _ ent.Mutation = (*LifeEvidenceMutation)(nil)
+
+// lifeevidenceOption allows management of the mutation configuration using functional options.
+type lifeevidenceOption func(*LifeEvidenceMutation)
+
+// newLifeEvidenceMutation creates new mutation for the LifeEvidence entity.
+func newLifeEvidenceMutation(c config, op Op, opts ...lifeevidenceOption) *LifeEvidenceMutation {
+	m := &LifeEvidenceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeEvidence,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeEvidenceID sets the ID field of the mutation.
+func withLifeEvidenceID(id int64) lifeevidenceOption {
+	return func(m *LifeEvidenceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeEvidence
+		)
+		m.oldValue = func(ctx context.Context) (*LifeEvidence, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeEvidence.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeEvidence sets the old LifeEvidence of the mutation.
+func withLifeEvidence(node *LifeEvidence) lifeevidenceOption {
+	return func(m *LifeEvidenceMutation) {
+		m.oldValue = func(context.Context) (*LifeEvidence, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeEvidenceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeEvidenceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeEvidence entities.
+func (m *LifeEvidenceMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeEvidenceMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeEvidenceMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeEvidence.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeEvidenceMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeEvidenceMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeEvidenceMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeEvidenceMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeEvidenceMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeEvidenceMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeEvidenceMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeEvidenceMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetQuestID sets the "quest_id" field.
+func (m *LifeEvidenceMutation) SetQuestID(i int64) {
+	m.quest_id = &i
+	m.addquest_id = nil
+}
+
+// QuestID returns the value of the "quest_id" field in the mutation.
+func (m *LifeEvidenceMutation) QuestID() (r int64, exists bool) {
+	v := m.quest_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldQuestID returns the old "quest_id" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldQuestID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldQuestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldQuestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldQuestID: %w", err)
+	}
+	return oldValue.QuestID, nil
+}
+
+// AddQuestID adds i to the "quest_id" field.
+func (m *LifeEvidenceMutation) AddQuestID(i int64) {
+	if m.addquest_id != nil {
+		*m.addquest_id += i
+	} else {
+		m.addquest_id = &i
+	}
+}
+
+// AddedQuestID returns the value that was added to the "quest_id" field in this mutation.
+func (m *LifeEvidenceMutation) AddedQuestID() (r int64, exists bool) {
+	v := m.addquest_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearQuestID clears the value of the "quest_id" field.
+func (m *LifeEvidenceMutation) ClearQuestID() {
+	m.quest_id = nil
+	m.addquest_id = nil
+	m.clearedFields[lifeevidence.FieldQuestID] = struct{}{}
+}
+
+// QuestIDCleared returns if the "quest_id" field was cleared in this mutation.
+func (m *LifeEvidenceMutation) QuestIDCleared() bool {
+	_, ok := m.clearedFields[lifeevidence.FieldQuestID]
+	return ok
+}
+
+// ResetQuestID resets all changes to the "quest_id" field.
+func (m *LifeEvidenceMutation) ResetQuestID() {
+	m.quest_id = nil
+	m.addquest_id = nil
+	delete(m.clearedFields, lifeevidence.FieldQuestID)
+}
+
+// SetSourceType sets the "source_type" field.
+func (m *LifeEvidenceMutation) SetSourceType(s string) {
+	m.source_type = &s
+}
+
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *LifeEvidenceMutation) SourceType() (r string, exists bool) {
+	v := m.source_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceType returns the old "source_type" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldSourceType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
+	}
+	return oldValue.SourceType, nil
+}
+
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *LifeEvidenceMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
+// SetContent sets the "content" field.
+func (m *LifeEvidenceMutation) SetContent(s string) {
+	m.content = &s
+}
+
+// Content returns the value of the "content" field in the mutation.
+func (m *LifeEvidenceMutation) Content() (r string, exists bool) {
+	v := m.content
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContent returns the old "content" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldContent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContent: %w", err)
+	}
+	return oldValue.Content, nil
+}
+
+// ResetContent resets all changes to the "content" field.
+func (m *LifeEvidenceMutation) ResetContent() {
+	m.content = nil
+}
+
+// SetSourceURL sets the "source_url" field.
+func (m *LifeEvidenceMutation) SetSourceURL(s string) {
+	m.source_url = &s
+}
+
+// SourceURL returns the value of the "source_url" field in the mutation.
+func (m *LifeEvidenceMutation) SourceURL() (r string, exists bool) {
+	v := m.source_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceURL returns the old "source_url" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldSourceURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceURL: %w", err)
+	}
+	return oldValue.SourceURL, nil
+}
+
+// ResetSourceURL resets all changes to the "source_url" field.
+func (m *LifeEvidenceMutation) ResetSourceURL() {
+	m.source_url = nil
+}
+
+// SetSummary sets the "summary" field.
+func (m *LifeEvidenceMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *LifeEvidenceMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *LifeEvidenceMutation) ResetSummary() {
+	m.summary = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifeEvidenceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifeEvidenceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifeEvidence entity.
+// If the LifeEvidence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeEvidenceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifeEvidenceMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// Where appends a list predicates to the LifeEvidenceMutation builder.
+func (m *LifeEvidenceMutation) Where(ps ...predicate.LifeEvidence) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeEvidenceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeEvidenceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeEvidence, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeEvidenceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeEvidenceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeEvidence).
+func (m *LifeEvidenceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeEvidenceMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.flag != nil {
+		fields = append(fields, lifeevidence.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifeevidence.FieldLifeProfileID)
+	}
+	if m.quest_id != nil {
+		fields = append(fields, lifeevidence.FieldQuestID)
+	}
+	if m.source_type != nil {
+		fields = append(fields, lifeevidence.FieldSourceType)
+	}
+	if m.content != nil {
+		fields = append(fields, lifeevidence.FieldContent)
+	}
+	if m.source_url != nil {
+		fields = append(fields, lifeevidence.FieldSourceURL)
+	}
+	if m.summary != nil {
+		fields = append(fields, lifeevidence.FieldSummary)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifeevidence.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeEvidenceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeevidence.FieldFlag:
+		return m.Flag()
+	case lifeevidence.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifeevidence.FieldQuestID:
+		return m.QuestID()
+	case lifeevidence.FieldSourceType:
+		return m.SourceType()
+	case lifeevidence.FieldContent:
+		return m.Content()
+	case lifeevidence.FieldSourceURL:
+		return m.SourceURL()
+	case lifeevidence.FieldSummary:
+		return m.Summary()
+	case lifeevidence.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeEvidenceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeevidence.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeevidence.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifeevidence.FieldQuestID:
+		return m.OldQuestID(ctx)
+	case lifeevidence.FieldSourceType:
+		return m.OldSourceType(ctx)
+	case lifeevidence.FieldContent:
+		return m.OldContent(ctx)
+	case lifeevidence.FieldSourceURL:
+		return m.OldSourceURL(ctx)
+	case lifeevidence.FieldSummary:
+		return m.OldSummary(ctx)
+	case lifeevidence.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeEvidence field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeEvidenceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeevidence.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeevidence.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifeevidence.FieldQuestID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetQuestID(v)
+		return nil
+	case lifeevidence.FieldSourceType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceType(v)
+		return nil
+	case lifeevidence.FieldContent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContent(v)
+		return nil
+	case lifeevidence.FieldSourceURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceURL(v)
+		return nil
+	case lifeevidence.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
+		return nil
+	case lifeevidence.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeEvidence field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeEvidenceMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifeevidence.FieldLifeProfileID)
+	}
+	if m.addquest_id != nil {
+		fields = append(fields, lifeevidence.FieldQuestID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeEvidenceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeevidence.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifeevidence.FieldQuestID:
+		return m.AddedQuestID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeEvidenceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeevidence.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifeevidence.FieldQuestID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddQuestID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeEvidence numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeEvidenceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(lifeevidence.FieldQuestID) {
+		fields = append(fields, lifeevidence.FieldQuestID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeEvidenceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeEvidenceMutation) ClearField(name string) error {
+	switch name {
+	case lifeevidence.FieldQuestID:
+		m.ClearQuestID()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeEvidence nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeEvidenceMutation) ResetField(name string) error {
+	switch name {
+	case lifeevidence.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeevidence.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifeevidence.FieldQuestID:
+		m.ResetQuestID()
+		return nil
+	case lifeevidence.FieldSourceType:
+		m.ResetSourceType()
+		return nil
+	case lifeevidence.FieldContent:
+		m.ResetContent()
+		return nil
+	case lifeevidence.FieldSourceURL:
+		m.ResetSourceURL()
+		return nil
+	case lifeevidence.FieldSummary:
+		m.ResetSummary()
+		return nil
+	case lifeevidence.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeEvidence field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeEvidenceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeEvidenceMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeEvidenceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeEvidenceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeEvidenceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeEvidenceMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeEvidenceMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeEvidence unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeEvidenceMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeEvidence edge %s", name)
 }
 
 // LifeGoalMutation represents an operation that mutates the LifeGoal nodes in the graph.

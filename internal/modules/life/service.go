@@ -289,6 +289,21 @@ func decodeQuestEvaluation(data any) (*lifecap.QuestEvaluation, error) {
 	return ev, nil
 }
 
+func decodeQuestAdjudication(data any) (*lifecap.QuestAdjudication, error) {
+	if ruling, ok := data.(*lifecap.QuestAdjudication); ok {
+		return ruling, nil
+	}
+	raw, err := sonic.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("life: unexpected adjudication payload")
+	}
+	ruling := &lifecap.QuestAdjudication{}
+	if err := sonic.Unmarshal(raw, ruling); err != nil {
+		return nil, fmt.Errorf("life: decode adjudication payload: %w", err)
+	}
+	return ruling, nil
+}
+
 func (s *Service) resolveSkillForEvaluation(ctx context.Context, profileID int64, ev *lifecap.QuestEvaluation) (*gen.LifeSkill, error) {
 	chars, err := s.store.ListCharacteristics(ctx, profileID)
 	if err != nil {
@@ -445,6 +460,35 @@ type CompleteResult struct {
 	ItemFlag   string
 	Dice       float64
 	PityForced bool
+}
+
+// QuestEvidenceView is one quest evidence item for the UI.
+type QuestEvidenceView struct {
+	Flag       string
+	SourceType string
+	Content    string
+	SourceURL  string
+	Summary    string
+	CreatedAt  time.Time
+}
+
+// QuestAdjudicationView is the latest AI ruling for one quest.
+type QuestAdjudicationView struct {
+	Flag               string
+	Status             string
+	Verdict            string
+	Reason             string
+	SuggestedExp       int
+	SuggestedGold      int
+	SuggestedNextSteps []string
+	CreatedAt          time.Time
+}
+
+// QuestDMView bundles a pending quest with its evidence and latest ruling.
+type QuestDMView struct {
+	Quest        *gen.LifeQuest
+	Evidence     []QuestEvidenceView
+	Adjudication *QuestAdjudicationView
 }
 
 // CompleteQuest runs cascade + loot + action log in one store transaction.
@@ -606,6 +650,198 @@ func (s *Service) ListQuests(ctx context.Context, userID, status string) ([]*gen
 		return nil, err
 	}
 	return s.store.ListQuests(ctx, p.ID, status)
+}
+
+// ListPendingQuestDMViews returns pending quests with evidence and latest rulings.
+func (s *Service) ListPendingQuestDMViews(ctx context.Context, userID string) ([]QuestDMView, error) {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return nil, err
+	}
+	quests, err := s.store.ListQuests(ctx, p.ID, "Pending")
+	if err != nil {
+		return nil, err
+	}
+	out := make([]QuestDMView, 0, len(quests))
+	for _, q := range quests {
+		view, err := s.buildQuestDMView(ctx, p.ID, q)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, view)
+	}
+	return out, nil
+}
+
+// SubmitQuestEvidence stores a new evidence item for a pending quest.
+func (s *Service) SubmitQuestEvidence(ctx context.Context, userID, questFlag, sourceType, content, sourceURL string) (*QuestEvidenceView, error) {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return nil, err
+	}
+	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
+	if err != nil || q == nil {
+		return nil, fmt.Errorf("life: quest not found")
+	}
+	if q.Status != "Pending" {
+		return nil, fmt.Errorf("life: quest not pending")
+	}
+	content = strings.TrimSpace(content)
+	if content == "" {
+		return nil, fmt.Errorf("life: evidence content required")
+	}
+	sourceType = normalizeEvidenceSourceType(sourceType)
+	row, err := s.store.CreateEvidence(ctx, store.LifeEvidenceInput{
+		ProfileID:  p.ID,
+		QuestID:    &q.ID,
+		SourceType: sourceType,
+		Content:    content,
+		SourceURL:  strings.TrimSpace(sourceURL),
+		Summary:    summarizeEvidence(content),
+	})
+	if err != nil {
+		return nil, err
+	}
+	view := mapQuestEvidenceView(row)
+	return &view, nil
+}
+
+// AdjudicateQuest asks the Life DM for a suggested quest ruling.
+func (s *Service) AdjudicateQuest(ctx context.Context, userID, questFlag string) (*QuestAdjudicationView, error) {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return nil, err
+	}
+	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
+	if err != nil || q == nil {
+		return nil, fmt.Errorf("life: quest not found")
+	}
+	if q.Status != "Pending" {
+		return nil, fmt.Errorf("life: quest not pending")
+	}
+	evidenceRows, err := s.store.ListEvidenceByQuest(ctx, p.ID, q.ID)
+	if err != nil {
+		return nil, err
+	}
+	if len(evidenceRows) == 0 {
+		return nil, fmt.Errorf("life: evidence required before adjudication")
+	}
+	if err := s.store.EnsureAIContext(ctx, p.ID); err != nil {
+		return nil, err
+	}
+	aiCtx, err := s.store.GetAIContext(ctx, p.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, activeGoalTitles, err := s.resolveGoalBinding(ctx, p.ID, "")
+	if err != nil {
+		return nil, err
+	}
+	actionRows, err := s.store.ListActionLogs(ctx, p.ID, 5)
+	if err != nil {
+		return nil, err
+	}
+	params := map[string]any{
+		"quest_title":       q.Title,
+		"quest_prompt":      q.Prompt,
+		"quest_type":        q.Type,
+		"difficulty":        q.AiEvaluatedDifficulty,
+		"base_exp":          q.BaseExpReward,
+		"base_gold":         q.BaseGoldReward,
+		"active_goals":      activeGoalTitles,
+		"evidence":          buildQuestEvidencePayload(evidenceRows),
+		"recent_action_log": buildRecentActionLogPayload(actionRows),
+	}
+	if aiCtx != nil {
+		params["ai_personality"] = aiCtx.AiDmPersonality
+		params["completion_rate"] = aiCtx.HistoricalCompletionRate
+		params["mood"] = aiCtx.RecentMoodAndBurnout
+	}
+	res, err := caplife.Invoke(ctx, hub.CapLife, lifecap.OpAdjudicateQuest, params)
+	if err != nil {
+		return nil, fmt.Errorf("life: adjudicate quest: %w", err)
+	}
+	ruling, err := decodeQuestAdjudication(res.Data)
+	if err != nil {
+		return nil, err
+	}
+	row, err := s.store.CreateAdjudication(ctx, store.LifeAdjudicationInput{
+		ProfileID:          p.ID,
+		QuestID:            q.ID,
+		Status:             "suggested",
+		Verdict:            ruling.Verdict,
+		Reason:             ruling.Reason,
+		SuggestedExp:       ruling.SuggestedExp,
+		SuggestedGold:      ruling.SuggestedGold,
+		SuggestedNextSteps: ruling.SuggestedNextSteps,
+		EvidenceSnapshot:   buildQuestEvidencePayload(evidenceRows),
+	})
+	if err != nil {
+		return nil, err
+	}
+	view := mapQuestAdjudicationView(row)
+	return &view, nil
+}
+
+// ApplyQuestAdjudication accepts a suggested ruling and applies its effect.
+func (s *Service) ApplyQuestAdjudication(ctx context.Context, userID, questFlag, adjudicationFlag string) error {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return err
+	}
+	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
+	if err != nil || q == nil {
+		return fmt.Errorf("life: quest not found")
+	}
+	adjudication, err := s.store.GetAdjudicationByFlag(ctx, p.ID, adjudicationFlag)
+	if err != nil || adjudication == nil {
+		return fmt.Errorf("life: adjudication not found")
+	}
+	if adjudication.QuestID != q.ID {
+		return fmt.Errorf("life: adjudication does not match quest")
+	}
+	if adjudication.Status != "suggested" {
+		return fmt.Errorf("life: adjudication not pending")
+	}
+	switch adjudication.Verdict {
+	case "completed":
+		if _, err := s.CompleteQuest(ctx, userID, questFlag); err != nil {
+			return err
+		}
+	case "failed":
+		if err := s.FailQuest(ctx, userID, questFlag); err != nil {
+			return err
+		}
+	case "partial", "needs_more_evidence":
+		// Keep the quest pending; applying the ruling just acknowledges the feedback.
+	default:
+		return fmt.Errorf("life: unsupported adjudication verdict")
+	}
+	return s.store.MarkAdjudicationApplied(ctx, adjudication.ID)
+}
+
+func (s *Service) buildQuestDMView(ctx context.Context, profileID int64, q *gen.LifeQuest) (QuestDMView, error) {
+	view := QuestDMView{Quest: q}
+	if q == nil {
+		return view, nil
+	}
+	evidenceRows, err := s.store.ListEvidenceByQuest(ctx, profileID, q.ID)
+	if err != nil {
+		return view, err
+	}
+	view.Evidence = make([]QuestEvidenceView, 0, len(evidenceRows))
+	for _, row := range evidenceRows {
+		view.Evidence = append(view.Evidence, mapQuestEvidenceView(row))
+	}
+	adjudication, err := s.store.GetLatestAdjudicationByQuest(ctx, profileID, q.ID)
+	if err != nil {
+		return view, err
+	}
+	if adjudication != nil {
+		mapped := mapQuestAdjudicationView(adjudication)
+		view.Adjudication = &mapped
+	}
+	return view, nil
 }
 
 // InventoryItem pairs inventory with equipment template.
@@ -841,6 +1077,91 @@ func decodeInstanceLore(data any) (*lifecap.InstanceLore, error) {
 		return nil, err
 	}
 	return lore, nil
+}
+
+func mapQuestEvidenceView(row *gen.LifeEvidence) QuestEvidenceView {
+	if row == nil {
+		return QuestEvidenceView{}
+	}
+	return QuestEvidenceView{
+		Flag:       row.Flag,
+		SourceType: row.SourceType,
+		Content:    row.Content,
+		SourceURL:  row.SourceURL,
+		Summary:    row.Summary,
+		CreatedAt:  row.CreatedAt,
+	}
+}
+
+func mapQuestAdjudicationView(row *gen.LifeAdjudication) QuestAdjudicationView {
+	if row == nil {
+		return QuestAdjudicationView{}
+	}
+	return QuestAdjudicationView{
+		Flag:               row.Flag,
+		Status:             row.Status,
+		Verdict:            row.Verdict,
+		Reason:             row.Reason,
+		SuggestedExp:       row.SuggestedExp,
+		SuggestedGold:      row.SuggestedGold,
+		SuggestedNextSteps: append([]string(nil), row.SuggestedNextSteps...),
+		CreatedAt:          row.CreatedAt,
+	}
+}
+
+func buildQuestEvidencePayload(rows []*gen.LifeEvidence) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		out = append(out, map[string]any{
+			"source_type": row.SourceType,
+			"content":     row.Content,
+			"source_url":  row.SourceURL,
+			"summary":     row.Summary,
+		})
+	}
+	return out
+}
+
+func buildRecentActionLogPayload(rows []*gen.LifeActionLog) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if row == nil {
+			continue
+		}
+		payload := map[string]any{
+			"source_type": row.SourceType,
+			"summary":     row.Summary,
+			"gained_exp":  row.GainedExp,
+			"gained_gold": row.GainedGold,
+		}
+		if row.QuestID != nil {
+			payload["quest_id"] = *row.QuestID
+		}
+		out = append(out, payload)
+	}
+	return out
+}
+
+func normalizeEvidenceSourceType(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "link":
+		return "link"
+	case "artifact":
+		return "artifact"
+	default:
+		return "note"
+	}
+}
+
+func summarizeEvidence(content string) string {
+	content = strings.TrimSpace(content)
+	if len(content) <= 120 {
+		return content
+	}
+	return content[:120]
 }
 
 // ListActionLogs returns recent completion audit rows for the user.

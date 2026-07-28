@@ -9,11 +9,13 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
@@ -59,6 +61,29 @@ type LifeCreatePlanNodeInput struct {
 	SortOrder             int
 	ActionSpec            *LifePlanActionSpecInput
 	DependencyPlanNodeIDs []int64
+}
+
+// LifeEvidenceInput is the write shape for quest evidence.
+type LifeEvidenceInput struct {
+	ProfileID  int64
+	QuestID    *int64
+	SourceType string
+	Content    string
+	SourceURL  string
+	Summary    string
+}
+
+// LifeAdjudicationInput is the write shape for a suggested quest ruling.
+type LifeAdjudicationInput struct {
+	ProfileID          int64
+	QuestID            int64
+	Status             string
+	Verdict            string
+	Reason             string
+	SuggestedExp       int
+	SuggestedGold      int
+	SuggestedNextSteps []string
+	EvidenceSnapshot   []map[string]any
 }
 
 // NewLifeStore creates a LifeStore with the given ent client.
@@ -829,6 +854,122 @@ func (s *LifeStore) GetQuestByFlag(ctx context.Context, profileID int64, flag st
 		return nil, err
 	}
 	return row, nil
+}
+
+// CreateEvidence inserts one quest evidence row.
+func (s *LifeStore) CreateEvidence(ctx context.Context, in LifeEvidenceInput) (*gen.LifeEvidence, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	b := s.client.LifeEvidence.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(in.ProfileID).
+		SetSourceType(in.SourceType).
+		SetContent(in.Content).
+		SetSourceURL(in.SourceURL).
+		SetSummary(in.Summary)
+	if in.QuestID != nil {
+		b = b.SetQuestID(*in.QuestID)
+	}
+	row, err := b.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create evidence: %w", err)
+	}
+	return row, nil
+}
+
+// ListEvidenceByQuest returns recent evidence rows for one quest.
+func (s *LifeStore) ListEvidenceByQuest(ctx context.Context, profileID int64, questID int64) ([]*gen.LifeEvidence, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	return s.client.LifeEvidence.Query().
+		Where(
+			lifeevidence.LifeProfileIDEQ(profileID),
+			lifeevidence.QuestIDEQ(questID),
+		).
+		Order(gen.Desc(lifeevidence.FieldCreatedAt)).
+		All(ctx)
+}
+
+// CreateAdjudication inserts one suggested quest ruling.
+func (s *LifeStore) CreateAdjudication(ctx context.Context, in LifeAdjudicationInput) (*gen.LifeAdjudication, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	row, err := s.client.LifeAdjudication.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(in.ProfileID).
+		SetQuestID(in.QuestID).
+		SetStatus(in.Status).
+		SetVerdict(in.Verdict).
+		SetReason(in.Reason).
+		SetSuggestedExp(in.SuggestedExp).
+		SetSuggestedGold(in.SuggestedGold).
+		SetSuggestedNextSteps(in.SuggestedNextSteps).
+		SetEvidenceSnapshot(in.EvidenceSnapshot).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create adjudication: %w", err)
+	}
+	return row, nil
+}
+
+// GetLatestAdjudicationByQuest returns the newest ruling for one quest.
+func (s *LifeStore) GetLatestAdjudicationByQuest(ctx context.Context, profileID int64, questID int64) (*gen.LifeAdjudication, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeAdjudication.Query().
+		Where(
+			lifeadjudication.LifeProfileIDEQ(profileID),
+			lifeadjudication.QuestIDEQ(questID),
+		).
+		Order(gen.Desc(lifeadjudication.FieldCreatedAt)).
+		First(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("life: get adjudication: %w", err)
+	}
+	return row, nil
+}
+
+// GetAdjudicationByFlag returns a quest ruling by flag scoped to profile.
+func (s *LifeStore) GetAdjudicationByFlag(ctx context.Context, profileID int64, flag string) (*gen.LifeAdjudication, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeAdjudication.Query().
+		Where(
+			lifeadjudication.LifeProfileIDEQ(profileID),
+			lifeadjudication.FlagEQ(flag),
+		).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("life: get adjudication by flag: %w", err)
+	}
+	return row, nil
+}
+
+// MarkAdjudicationApplied records that the ruling was accepted.
+func (s *LifeStore) MarkAdjudicationApplied(ctx context.Context, id int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	now := time.Now()
+	_, err := s.client.LifeAdjudication.UpdateOneID(id).
+		SetStatus("applied").
+		SetAppliedAt(now).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("life: apply adjudication: %w", err)
+	}
+	return nil
 }
 
 // MarkQuestCompleted sets status Completed.

@@ -1065,6 +1065,51 @@ var (
 			},
 		},
 	}
+	// LifeAdjudicationsColumns holds the columns for the "life_adjudications" table.
+	LifeAdjudicationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "quest_id", Type: field.TypeInt64},
+		{Name: "status", Type: field.TypeString, Default: "suggested"},
+		{Name: "verdict", Type: field.TypeString, Default: "needs_more_evidence"},
+		{Name: "reason", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "suggested_exp", Type: field.TypeInt, Default: 0},
+		{Name: "suggested_gold", Type: field.TypeInt, Default: 0},
+		{Name: "suggested_next_steps", Type: field.TypeJSON},
+		{Name: "evidence_snapshot", Type: field.TypeJSON},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "applied_at", Type: field.TypeTime, Nullable: true},
+	}
+	// LifeAdjudicationsTable holds the schema information for the "life_adjudications" table.
+	LifeAdjudicationsTable = &schema.Table{
+		Name:       "life_adjudications",
+		Columns:    LifeAdjudicationsColumns,
+		PrimaryKey: []*schema.Column{LifeAdjudicationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeadjudication_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAdjudicationsColumns[2]},
+			},
+			{
+				Name:    "lifeadjudication_quest_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAdjudicationsColumns[3]},
+			},
+			{
+				Name:    "lifeadjudication_quest_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAdjudicationsColumns[3], LifeAdjudicationsColumns[4]},
+			},
+			{
+				Name:    "lifeadjudication_life_profile_id_quest_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeAdjudicationsColumns[2], LifeAdjudicationsColumns[3]},
+			},
+		},
+	}
 	// LifeCharacteristicsColumns holds the columns for the "life_characteristics" table.
 	LifeCharacteristicsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1148,6 +1193,41 @@ var (
 				Name:    "lifeequippedslots_life_profile_id",
 				Unique:  true,
 				Columns: []*schema.Column{LifeEquippedSlotsColumns[1]},
+			},
+		},
+	}
+	// LifeEvidenceColumns holds the columns for the "life_evidence" table.
+	LifeEvidenceColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "quest_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "source_type", Type: field.TypeString, Default: "note"},
+		{Name: "content", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "source_url", Type: field.TypeString, Default: ""},
+		{Name: "summary", Type: field.TypeString, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LifeEvidenceTable holds the schema information for the "life_evidence" table.
+	LifeEvidenceTable = &schema.Table{
+		Name:       "life_evidence",
+		Columns:    LifeEvidenceColumns,
+		PrimaryKey: []*schema.Column{LifeEvidenceColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeevidence_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeEvidenceColumns[2]},
+			},
+			{
+				Name:    "lifeevidence_quest_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeEvidenceColumns[3]},
+			},
+			{
+				Name:    "lifeevidence_life_profile_id_quest_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeEvidenceColumns[2], LifeEvidenceColumns[3]},
 			},
 		},
 	}
@@ -2253,9 +2333,11 @@ var (
 		LifeActionLogsTable,
 		LifeActionOccurrencesTable,
 		LifeActionSpecsTable,
+		LifeAdjudicationsTable,
 		LifeCharacteristicsTable,
 		LifeEquipmentsTable,
 		LifeEquippedSlotsTable,
+		LifeEvidenceTable,
 		LifeGoalsTable,
 		LifeHabitCheckinsTable,
 		LifeInventoriesTable,
@@ -2414,6 +2496,9 @@ func init() {
 	LifeActionSpecsTable.Annotation = &entsql.Annotation{
 		Table: "life_action_specs",
 	}
+	LifeAdjudicationsTable.Annotation = &entsql.Annotation{
+		Table: "life_adjudications",
+	}
 	LifeCharacteristicsTable.Annotation = &entsql.Annotation{
 		Table: "life_characteristics",
 	}
@@ -2422,6 +2507,9 @@ func init() {
 	}
 	LifeEquippedSlotsTable.Annotation = &entsql.Annotation{
 		Table: "life_equipped_slots",
+	}
+	LifeEvidenceTable.Annotation = &entsql.Annotation{
+		Table: "life_evidence",
 	}
 	LifeGoalsTable.Annotation = &entsql.Annotation{
 		Table: "life_goals",

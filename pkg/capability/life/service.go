@@ -62,9 +62,43 @@ type EvaluateQuestRequest struct {
 	BreakdownDepth string         `json:"breakdown_depth,omitempty"`
 }
 
+// QuestEvidence is one user-submitted proof item for adjudication.
+type QuestEvidence struct {
+	SourceType string `json:"source_type"`
+	Content    string `json:"content"`
+	SourceURL  string `json:"source_url,omitempty"`
+	Summary    string `json:"summary,omitempty"`
+}
+
+// AdjudicateQuestRequest carries one quest plus its evidence context.
+type AdjudicateQuestRequest struct {
+	QuestTitle      string                 `json:"quest_title"`
+	QuestPrompt     string                 `json:"quest_prompt,omitempty"`
+	QuestType       string                 `json:"quest_type,omitempty"`
+	Difficulty      string                 `json:"difficulty,omitempty"`
+	BaseExp         int                    `json:"base_exp,omitempty"`
+	BaseGold        int                    `json:"base_gold,omitempty"`
+	AIPersonality   string                 `json:"ai_personality,omitempty"`
+	CompletionRate  float64                `json:"completion_rate,omitempty"`
+	Mood            map[string]any         `json:"mood,omitempty"`
+	RecentActionLog []map[string]any       `json:"recent_action_log,omitempty"`
+	Evidence        []QuestEvidence        `json:"evidence,omitempty"`
+	ActiveGoals     []string               `json:"active_goals,omitempty"`
+}
+
+// QuestAdjudication is the structured AI ruling for one quest.
+type QuestAdjudication struct {
+	Verdict           string   `json:"verdict"`
+	Reason            string   `json:"reason"`
+	SuggestedExp      int      `json:"suggested_exp"`
+	SuggestedGold     int      `json:"suggested_gold"`
+	SuggestedNextSteps []string `json:"suggested_next_steps,omitempty"`
+}
+
 // Service is the life capability contract.
 type Service interface {
 	EvaluateQuest(ctx context.Context, req EvaluateQuestRequest) (*QuestEvaluation, error)
+	AdjudicateQuest(ctx context.Context, req AdjudicateQuestRequest) (*QuestAdjudication, error)
 	GenerateInstanceLore(ctx context.Context, questTitle, equipmentName, rarity string) (*InstanceLore, error)
 	BreakdownGoalTree(ctx context.Context, req GoalBreakdownRequest) (*GoalBreakdownSuggestion, error)
 }

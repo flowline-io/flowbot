@@ -123,6 +123,9 @@ type LifeActionOccurrence func(*sql.Selector)
 // LifeActionSpec is the predicate function for lifeactionspec builders.
 type LifeActionSpec func(*sql.Selector)
 
+// LifeAdjudication is the predicate function for lifeadjudication builders.
+type LifeAdjudication func(*sql.Selector)
+
 // LifeCharacteristic is the predicate function for lifecharacteristic builders.
 type LifeCharacteristic func(*sql.Selector)
 
@@ -131,6 +134,9 @@ type LifeEquipment func(*sql.Selector)
 
 // LifeEquippedSlots is the predicate function for lifeequippedslots builders.
 type LifeEquippedSlots func(*sql.Selector)
+
+// LifeEvidence is the predicate function for lifeevidence builders.
+type LifeEvidence func(*sql.Selector)
 
 // LifeGoal is the predicate function for lifegoal builders.
 type LifeGoal func(*sql.Selector)

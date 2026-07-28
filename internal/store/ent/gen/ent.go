@@ -49,10 +49,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
@@ -190,9 +192,11 @@ func checkColumn(t, c string) error {
 			lifeactionlog.Table:             lifeactionlog.ValidColumn,
 			lifeactionoccurrence.Table:      lifeactionoccurrence.ValidColumn,
 			lifeactionspec.Table:            lifeactionspec.ValidColumn,
+			lifeadjudication.Table:          lifeadjudication.ValidColumn,
 			lifecharacteristic.Table:        lifecharacteristic.ValidColumn,
 			lifeequipment.Table:             lifeequipment.ValidColumn,
 			lifeequippedslots.Table:         lifeequippedslots.ValidColumn,
+			lifeevidence.Table:              lifeevidence.ValidColumn,
 			lifegoal.Table:                  lifegoal.ValidColumn,
 			lifehabitcheckin.Table:          lifehabitcheckin.ValidColumn,
 			lifeinventory.Table:             lifeinventory.ValidColumn,

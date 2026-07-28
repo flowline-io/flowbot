@@ -18,9 +18,11 @@ import (
 
 const (
 	evaluateMaxTokens   = 512
+	adjudicateMaxTokens = 900
 	loreMaxTokens       = 256
 	breakdownMaxTokens  = 1600
 	evaluateTimeout     = 45 * time.Second
+	adjudicateTimeout   = 45 * time.Second
 	loreTimeout         = 45 * time.Second
 	breakdownTimeout    = 60 * time.Second
 	evaluatePromptLimit = 4000
@@ -32,6 +34,10 @@ var allowedDifficulties = map[string]struct{}{
 
 var allowedQuestTypes = map[string]struct{}{
 	"One-Time": {}, "Daily": {}, "Boss": {},
+}
+
+var allowedAdjudicationVerdicts = map[string]struct{}{
+	"completed": {}, "partial": {}, "failed": {}, "needs_more_evidence": {},
 }
 
 var allowedStatCodes = func() map[string]struct{} {
@@ -91,6 +97,19 @@ Rules:
 - lore should feel earned and specific to the quest, under 280 characters.
 - plain text only; no markdown.
 - Prefer English unless the quest title clearly uses another language.`
+
+const adjudicationSystemPrompt = `You are the Life dungeon master adjudicating whether a real-world quest should count as cleared.
+Respond with ONE JSON object only, no markdown fences:
+{"verdict":"completed|partial|failed|needs_more_evidence","reason":"...","suggested_exp":0,"suggested_gold":0,"suggested_next_steps":["..."]}
+
+Rules:
+- Base your ruling on the supplied evidence only.
+- Use "needs_more_evidence" when proof is too weak or too vague.
+- Use "partial" when real progress exists but the quest is not fully cleared.
+- suggested_exp and suggested_gold must be integers between 0 and the supplied base rewards.
+- suggested_next_steps should contain 0-3 short concrete steps.
+- Keep reason under 240 characters.
+- Plain text only.`
 
 const breakdownSystemPrompt = `You are the Life planning dungeon master.
 Break one concrete result goal into an execution tree. Respond with ONE JSON object only, no markdown fences.
@@ -160,6 +179,36 @@ func (s *LLMService) EvaluateQuest(ctx context.Context, req EvaluateQuestRequest
 		return nil, err
 	}
 	return normalizeEvaluation(ev, prompt), nil
+}
+
+// AdjudicateQuest asks the LLM to turn quest evidence into a structured ruling.
+func (s *LLMService) AdjudicateQuest(ctx context.Context, req AdjudicateQuestRequest) (*QuestAdjudication, error) {
+	title := strings.TrimSpace(req.QuestTitle)
+	if title == "" {
+		return nil, fmt.Errorf("life capability: empty quest title")
+	}
+	model, resolvedName, err := s.resolveChatModel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	genCtx, cancel := context.WithTimeout(ctx, adjudicateTimeout)
+	defer cancel()
+	raw, err := agentllm.Complete(genCtx, model, adjudicationSystemPrompt, []llms.MessageContent{
+		llms.TextParts(llms.ChatMessageTypeHuman, buildAdjudicationUserMessage(req, title)),
+	}, resolvedName, adjudicateMaxTokens)
+	if err != nil {
+		return nil, err
+	}
+	flog.InfoFields("life: adjudicate quest llm raw", map[string]any{
+		"model": resolvedName,
+		"quest": truncate(title, 120),
+		"raw":   truncate(raw, 800),
+	})
+	adjudication, err := parseAdjudicationJSON(raw)
+	if err != nil {
+		return nil, err
+	}
+	return normalizeAdjudication(adjudication, req), nil
 }
 
 // GenerateInstanceLore asks the LLM for memorial item name and lore.
@@ -298,6 +347,59 @@ func buildBreakdownUserMessage(req GoalBreakdownRequest, title string) string {
 	return strings.Join(parts, "\n")
 }
 
+func buildAdjudicationUserMessage(req AdjudicateQuestRequest, title string) string {
+	parts := []string{
+		"Quest:",
+		title,
+		"",
+		"Quest context:",
+		fmt.Sprintf("- type: %s", defaultString(req.QuestType, "One-Time")),
+		fmt.Sprintf("- difficulty: %s", defaultString(req.Difficulty, "E")),
+		fmt.Sprintf("- base rewards: %d exp, %d gold", max(req.BaseExp, 0), max(req.BaseGold, 0)),
+	}
+	if prompt := strings.TrimSpace(req.QuestPrompt); prompt != "" {
+		parts = append(parts, "- prompt: "+truncateRunes(prompt, evaluatePromptLimit))
+	}
+	if req.AIPersonality != "" {
+		parts = append(parts, "- DM personality: "+req.AIPersonality)
+	}
+	if req.CompletionRate > 0 {
+		parts = append(parts, fmt.Sprintf("- historical completion rate: %.2f", req.CompletionRate))
+	}
+	if len(req.ActiveGoals) > 0 {
+		parts = append(parts, "- active goals: "+strings.Join(req.ActiveGoals, " | "))
+	}
+	if len(req.Mood) > 0 {
+		if raw, err := sonic.Marshal(req.Mood); err == nil {
+			parts = append(parts, "- recent mood: "+string(raw))
+		}
+	}
+	parts = append(parts, "", "Evidence:")
+	if len(req.Evidence) == 0 {
+		parts = append(parts, "- none submitted")
+	} else {
+		for _, ev := range req.Evidence {
+			line := fmt.Sprintf("- [%s] %s", defaultString(ev.SourceType, "note"), truncateRunes(strings.TrimSpace(ev.Content), 500))
+			if summary := strings.TrimSpace(ev.Summary); summary != "" {
+				line += " | summary: " + truncateRunes(summary, 120)
+			}
+			if sourceURL := strings.TrimSpace(ev.SourceURL); sourceURL != "" {
+				line += " | url: " + truncateRunes(sourceURL, 160)
+			}
+			parts = append(parts, line)
+		}
+	}
+	if len(req.RecentActionLog) > 0 {
+		parts = append(parts, "", "Recent action log context:")
+		for _, row := range req.RecentActionLog {
+			if raw, err := sonic.Marshal(row); err == nil {
+				parts = append(parts, "- "+truncateRunes(string(raw), 220))
+			}
+		}
+	}
+	return strings.Join(parts, "\n")
+}
+
 func (s *LLMService) resolveChatModel(ctx context.Context) (llms.Model, string, error) {
 	if s == nil {
 		return nil, "", fmt.Errorf("life capability: llm service is nil")
@@ -342,6 +444,18 @@ func parseLoreJSON(raw string) (*InstanceLore, error) {
 		return nil, fmt.Errorf("parse lore json: missing name or lore")
 	}
 	return &lore, nil
+}
+
+func parseAdjudicationJSON(raw string) (*QuestAdjudication, error) {
+	raw = extractJSONObject(raw)
+	var ruling QuestAdjudication
+	if err := sonic.Unmarshal([]byte(raw), &ruling); err != nil {
+		return nil, fmt.Errorf("parse adjudication json: %w", err)
+	}
+	if strings.TrimSpace(ruling.Verdict) == "" {
+		return nil, fmt.Errorf("parse adjudication json: missing verdict")
+	}
+	return &ruling, nil
 }
 
 func parseBreakdownJSON(raw string) (*GoalBreakdownSuggestion, error) {
@@ -508,6 +622,84 @@ func normalizeLore(lore *InstanceLore, questTitle, equipmentName string) *Instan
 	return lore
 }
 
+func normalizeAdjudication(ruling *QuestAdjudication, req AdjudicateQuestRequest) *QuestAdjudication {
+	if ruling == nil {
+		ruling = &QuestAdjudication{}
+	}
+	ruling.Verdict = normalizeAdjudicationVerdict(ruling.Verdict, len(req.Evidence) > 0)
+	ruling.Reason = normalizeAdjudicationReason(ruling.Reason, ruling.Verdict)
+	if len(ruling.Reason) > 240 {
+		ruling.Reason = truncate(ruling.Reason, 240)
+	}
+	ruling.SuggestedExp, ruling.SuggestedGold = normalizeAdjudicationRewards(
+		ruling.Verdict,
+		ruling.SuggestedExp,
+		ruling.SuggestedGold,
+		req.BaseExp,
+		req.BaseGold,
+	)
+	ruling.SuggestedNextSteps = normalizeNextSteps(ruling.SuggestedNextSteps)
+	return ruling
+}
+
+func normalizeAdjudicationVerdict(raw string, hasEvidence bool) string {
+	verdict := strings.ToLower(strings.TrimSpace(raw))
+	if _, ok := allowedAdjudicationVerdicts[verdict]; ok {
+		return verdict
+	}
+	if hasEvidence {
+		return "partial"
+	}
+	return "needs_more_evidence"
+}
+
+func normalizeAdjudicationReason(raw, verdict string) string {
+	reason := strings.TrimSpace(raw)
+	if reason != "" {
+		return reason
+	}
+	switch verdict {
+	case "completed":
+		return "Evidence suggests the quest objective was completed."
+	case "failed":
+		return "Evidence does not show the quest objective was completed."
+	case "partial":
+		return "Evidence shows meaningful progress, but not full completion yet."
+	default:
+		return "More specific evidence is required before this quest can be cleared."
+	}
+}
+
+func normalizeAdjudicationRewards(verdict string, suggestedExp, suggestedGold, baseExp, baseGold int) (int, int) {
+	maxExp := max(baseExp, 0)
+	maxGold := max(baseGold, 0)
+	suggestedExp = clampInt(suggestedExp, 0, maxExp)
+	suggestedGold = clampInt(suggestedGold, 0, maxGold)
+	switch verdict {
+	case "completed":
+		if maxExp > 0 && suggestedExp == 0 {
+			suggestedExp = maxExp
+		}
+		if maxGold > 0 && suggestedGold == 0 {
+			suggestedGold = maxGold
+		}
+	case "failed", "needs_more_evidence":
+		suggestedExp = 0
+		suggestedGold = 0
+	}
+	return suggestedExp, suggestedGold
+}
+
+func normalizeNextSteps(items []string) []string {
+	if len(items) > 3 {
+		items = items[:3]
+	}
+	for i := range items {
+		items[i] = strings.TrimSpace(items[i])
+	}
+	return compactStrings(items)
+}
+
 func defaultRewards(diff string) (fear, exp, gold int, tier string) {
 	switch diff {
 	case "SSS":
@@ -561,4 +753,33 @@ func truncateRunes(s string, limit int) string {
 		n++
 	}
 	return s
+}
+
+func defaultString(v, fallback string) string {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return fallback
+	}
+	return v
+}
+
+func clampInt(v, minValue, maxValue int) int {
+	if v < minValue {
+		return minValue
+	}
+	if v > maxValue {
+		return maxValue
+	}
+	return v
+}
+
+func compactStrings(items []string) []string {
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		if item == "" {
+			continue
+		}
+		out = append(out, item)
+	}
+	return out
 }

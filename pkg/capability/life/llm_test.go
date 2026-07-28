@@ -155,3 +155,46 @@ func TestLLMBreakdownGoalTreeEmptyTitle(t *testing.T) {
 	_, err := lifecap.NewLLM().BreakdownGoalTree(context.Background(), lifecap.GoalBreakdownRequest{RootTitle: " "})
 	require.Error(t, err)
 }
+
+func TestLLMAdjudicateQuestSuccess(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"verdict":"completed","reason":"The evidence shows the feature shipped.","suggested_exp":150,"suggested_gold":40,"suggested_next_steps":["Write a short retro"]}`,
+	})
+	ruling, err := testLLM(fake).AdjudicateQuest(context.Background(), lifecap.AdjudicateQuestRequest{
+		QuestTitle: "Ship AI DM MVP",
+		QuestPrompt: "Ship the first quest adjudication flow",
+		BaseExp:    150,
+		BaseGold:   40,
+		Evidence: []lifecap.QuestEvidence{
+			{SourceType: "note", Content: "Implemented and tested the flow."},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, ruling)
+	assert.Equal(t, "completed", ruling.Verdict)
+	assert.Equal(t, 150, ruling.SuggestedExp)
+	assert.Equal(t, 40, ruling.SuggestedGold)
+	assert.Equal(t, []string{"Write a short retro"}, ruling.SuggestedNextSteps)
+}
+
+func TestLLMAdjudicateQuestClampsUnsupportedOutput(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"verdict":"legendary","reason":"","suggested_exp":999,"suggested_gold":999,"suggested_next_steps":["one","two","three","four"]}`,
+	})
+	ruling, err := testLLM(fake).AdjudicateQuest(context.Background(), lifecap.AdjudicateQuestRequest{
+		QuestTitle: "Collect evidence",
+		BaseExp:    40,
+		BaseGold:   15,
+		Evidence: []lifecap.QuestEvidence{
+			{SourceType: "note", Content: "Made progress, but not done."},
+		},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "partial", ruling.Verdict)
+	assert.Equal(t, 40, ruling.SuggestedExp)
+	assert.Equal(t, 15, ruling.SuggestedGold)
+	assert.Len(t, ruling.SuggestedNextSteps, 3)
+	assert.NotEmpty(t, ruling.Reason)
+}

@@ -42,10 +42,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeadjudication"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeevidence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
@@ -1267,6 +1269,50 @@ func init() {
 	lifeactionspec.DefaultUpdatedAt = lifeactionspecDescUpdatedAt.Default.(func() time.Time)
 	// lifeactionspec.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifeactionspec.UpdateDefaultUpdatedAt = lifeactionspecDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeadjudicationFields := schema.LifeAdjudication{}.Fields()
+	_ = lifeadjudicationFields
+	// lifeadjudicationDescFlag is the schema descriptor for flag field.
+	lifeadjudicationDescFlag := lifeadjudicationFields[1].Descriptor()
+	// lifeadjudication.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeadjudication.FlagValidator = lifeadjudicationDescFlag.Validators[0].(func(string) error)
+	// lifeadjudicationDescStatus is the schema descriptor for status field.
+	lifeadjudicationDescStatus := lifeadjudicationFields[4].Descriptor()
+	// lifeadjudication.DefaultStatus holds the default value on creation for the status field.
+	lifeadjudication.DefaultStatus = lifeadjudicationDescStatus.Default.(string)
+	// lifeadjudicationDescVerdict is the schema descriptor for verdict field.
+	lifeadjudicationDescVerdict := lifeadjudicationFields[5].Descriptor()
+	// lifeadjudication.DefaultVerdict holds the default value on creation for the verdict field.
+	lifeadjudication.DefaultVerdict = lifeadjudicationDescVerdict.Default.(string)
+	// lifeadjudicationDescReason is the schema descriptor for reason field.
+	lifeadjudicationDescReason := lifeadjudicationFields[6].Descriptor()
+	// lifeadjudication.DefaultReason holds the default value on creation for the reason field.
+	lifeadjudication.DefaultReason = lifeadjudicationDescReason.Default.(string)
+	// lifeadjudicationDescSuggestedExp is the schema descriptor for suggested_exp field.
+	lifeadjudicationDescSuggestedExp := lifeadjudicationFields[7].Descriptor()
+	// lifeadjudication.DefaultSuggestedExp holds the default value on creation for the suggested_exp field.
+	lifeadjudication.DefaultSuggestedExp = lifeadjudicationDescSuggestedExp.Default.(int)
+	// lifeadjudicationDescSuggestedGold is the schema descriptor for suggested_gold field.
+	lifeadjudicationDescSuggestedGold := lifeadjudicationFields[8].Descriptor()
+	// lifeadjudication.DefaultSuggestedGold holds the default value on creation for the suggested_gold field.
+	lifeadjudication.DefaultSuggestedGold = lifeadjudicationDescSuggestedGold.Default.(int)
+	// lifeadjudicationDescSuggestedNextSteps is the schema descriptor for suggested_next_steps field.
+	lifeadjudicationDescSuggestedNextSteps := lifeadjudicationFields[9].Descriptor()
+	// lifeadjudication.DefaultSuggestedNextSteps holds the default value on creation for the suggested_next_steps field.
+	lifeadjudication.DefaultSuggestedNextSteps = lifeadjudicationDescSuggestedNextSteps.Default.([]string)
+	// lifeadjudicationDescEvidenceSnapshot is the schema descriptor for evidence_snapshot field.
+	lifeadjudicationDescEvidenceSnapshot := lifeadjudicationFields[10].Descriptor()
+	// lifeadjudication.DefaultEvidenceSnapshot holds the default value on creation for the evidence_snapshot field.
+	lifeadjudication.DefaultEvidenceSnapshot = lifeadjudicationDescEvidenceSnapshot.Default.([]map[string]interface{})
+	// lifeadjudicationDescCreatedAt is the schema descriptor for created_at field.
+	lifeadjudicationDescCreatedAt := lifeadjudicationFields[11].Descriptor()
+	// lifeadjudication.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifeadjudication.DefaultCreatedAt = lifeadjudicationDescCreatedAt.Default.(func() time.Time)
+	// lifeadjudicationDescUpdatedAt is the schema descriptor for updated_at field.
+	lifeadjudicationDescUpdatedAt := lifeadjudicationFields[12].Descriptor()
+	// lifeadjudication.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifeadjudication.DefaultUpdatedAt = lifeadjudicationDescUpdatedAt.Default.(func() time.Time)
+	// lifeadjudication.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifeadjudication.UpdateDefaultUpdatedAt = lifeadjudicationDescUpdatedAt.UpdateDefault.(func() time.Time)
 	lifecharacteristicFields := schema.LifeCharacteristic{}.Fields()
 	_ = lifecharacteristicFields
 	// lifecharacteristicDescFlag is the schema descriptor for flag field.
@@ -1333,6 +1379,32 @@ func init() {
 	lifeequippedslots.DefaultUpdatedAt = lifeequippedslotsDescUpdatedAt.Default.(func() time.Time)
 	// lifeequippedslots.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifeequippedslots.UpdateDefaultUpdatedAt = lifeequippedslotsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeevidenceFields := schema.LifeEvidence{}.Fields()
+	_ = lifeevidenceFields
+	// lifeevidenceDescFlag is the schema descriptor for flag field.
+	lifeevidenceDescFlag := lifeevidenceFields[1].Descriptor()
+	// lifeevidence.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeevidence.FlagValidator = lifeevidenceDescFlag.Validators[0].(func(string) error)
+	// lifeevidenceDescSourceType is the schema descriptor for source_type field.
+	lifeevidenceDescSourceType := lifeevidenceFields[4].Descriptor()
+	// lifeevidence.DefaultSourceType holds the default value on creation for the source_type field.
+	lifeevidence.DefaultSourceType = lifeevidenceDescSourceType.Default.(string)
+	// lifeevidenceDescContent is the schema descriptor for content field.
+	lifeevidenceDescContent := lifeevidenceFields[5].Descriptor()
+	// lifeevidence.DefaultContent holds the default value on creation for the content field.
+	lifeevidence.DefaultContent = lifeevidenceDescContent.Default.(string)
+	// lifeevidenceDescSourceURL is the schema descriptor for source_url field.
+	lifeevidenceDescSourceURL := lifeevidenceFields[6].Descriptor()
+	// lifeevidence.DefaultSourceURL holds the default value on creation for the source_url field.
+	lifeevidence.DefaultSourceURL = lifeevidenceDescSourceURL.Default.(string)
+	// lifeevidenceDescSummary is the schema descriptor for summary field.
+	lifeevidenceDescSummary := lifeevidenceFields[7].Descriptor()
+	// lifeevidence.DefaultSummary holds the default value on creation for the summary field.
+	lifeevidence.DefaultSummary = lifeevidenceDescSummary.Default.(string)
+	// lifeevidenceDescCreatedAt is the schema descriptor for created_at field.
+	lifeevidenceDescCreatedAt := lifeevidenceFields[8].Descriptor()
+	// lifeevidence.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifeevidence.DefaultCreatedAt = lifeevidenceDescCreatedAt.Default.(func() time.Time)
 	lifegoalFields := schema.LifeGoal{}.Fields()
 	_ = lifegoalFields
 	// lifegoalDescFlag is the schema descriptor for flag field.

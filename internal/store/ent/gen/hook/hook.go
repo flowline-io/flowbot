@@ -477,6 +477,18 @@ func (f LifeActionSpecFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Val
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeActionSpecMutation", m)
 }
 
+// The LifeAdjudicationFunc type is an adapter to allow the use of ordinary
+// function as LifeAdjudication mutator.
+type LifeAdjudicationFunc func(context.Context, *gen.LifeAdjudicationMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeAdjudicationFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeAdjudicationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeAdjudicationMutation", m)
+}
+
 // The LifeCharacteristicFunc type is an adapter to allow the use of ordinary
 // function as LifeCharacteristic mutator.
 type LifeCharacteristicFunc func(context.Context, *gen.LifeCharacteristicMutation) (gen.Value, error)
@@ -511,6 +523,18 @@ func (f LifeEquippedSlotsFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeEquippedSlotsMutation", m)
+}
+
+// The LifeEvidenceFunc type is an adapter to allow the use of ordinary
+// function as LifeEvidence mutator.
+type LifeEvidenceFunc func(context.Context, *gen.LifeEvidenceMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeEvidenceFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeEvidenceMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeEvidenceMutation", m)
 }
 
 // The LifeGoalFunc type is an adapter to allow the use of ordinary
