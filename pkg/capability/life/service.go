@@ -40,6 +40,9 @@ type GoalBreakdownActionSuggestion struct {
 	SuggestedCadence   string `json:"suggested_cadence,omitempty"`
 	IsIdentityBuilding bool   `json:"is_identity_building,omitempty"`
 	Reason             string `json:"reason,omitempty"`
+	Difficulty         string `json:"difficulty,omitempty"`
+	BaseExp            int    `json:"base_exp,omitempty"`
+	BaseGold           int    `json:"base_gold,omitempty"`
 }
 
 // GoalBreakdownSuggestion is one suggested tree node.

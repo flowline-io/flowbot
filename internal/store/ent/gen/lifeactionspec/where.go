@@ -99,6 +99,21 @@ func NeedsUserConfirmation(v bool) predicate.LifeActionSpec {
 	return predicate.LifeActionSpec(sql.FieldEQ(FieldNeedsUserConfirmation, v))
 }
 
+// Difficulty applies equality check predicate on the "difficulty" field. It's identical to DifficultyEQ.
+func Difficulty(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEQ(FieldDifficulty, v))
+}
+
+// BaseExpReward applies equality check predicate on the "base_exp_reward" field. It's identical to BaseExpRewardEQ.
+func BaseExpReward(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEQ(FieldBaseExpReward, v))
+}
+
+// BaseGoldReward applies equality check predicate on the "base_gold_reward" field. It's identical to BaseGoldRewardEQ.
+func BaseGoldReward(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEQ(FieldBaseGoldReward, v))
+}
+
 // ConfirmedAt applies equality check predicate on the "confirmed_at" field. It's identical to ConfirmedAtEQ.
 func ConfirmedAt(v time.Time) predicate.LifeActionSpec {
 	return predicate.LifeActionSpec(sql.FieldEQ(FieldConfirmedAt, v))
@@ -507,6 +522,151 @@ func NeedsUserConfirmationEQ(v bool) predicate.LifeActionSpec {
 // NeedsUserConfirmationNEQ applies the NEQ predicate on the "needs_user_confirmation" field.
 func NeedsUserConfirmationNEQ(v bool) predicate.LifeActionSpec {
 	return predicate.LifeActionSpec(sql.FieldNEQ(FieldNeedsUserConfirmation, v))
+}
+
+// DifficultyEQ applies the EQ predicate on the "difficulty" field.
+func DifficultyEQ(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEQ(FieldDifficulty, v))
+}
+
+// DifficultyNEQ applies the NEQ predicate on the "difficulty" field.
+func DifficultyNEQ(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldNEQ(FieldDifficulty, v))
+}
+
+// DifficultyIn applies the In predicate on the "difficulty" field.
+func DifficultyIn(vs ...string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldIn(FieldDifficulty, vs...))
+}
+
+// DifficultyNotIn applies the NotIn predicate on the "difficulty" field.
+func DifficultyNotIn(vs ...string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldNotIn(FieldDifficulty, vs...))
+}
+
+// DifficultyGT applies the GT predicate on the "difficulty" field.
+func DifficultyGT(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldGT(FieldDifficulty, v))
+}
+
+// DifficultyGTE applies the GTE predicate on the "difficulty" field.
+func DifficultyGTE(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldGTE(FieldDifficulty, v))
+}
+
+// DifficultyLT applies the LT predicate on the "difficulty" field.
+func DifficultyLT(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldLT(FieldDifficulty, v))
+}
+
+// DifficultyLTE applies the LTE predicate on the "difficulty" field.
+func DifficultyLTE(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldLTE(FieldDifficulty, v))
+}
+
+// DifficultyContains applies the Contains predicate on the "difficulty" field.
+func DifficultyContains(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldContains(FieldDifficulty, v))
+}
+
+// DifficultyHasPrefix applies the HasPrefix predicate on the "difficulty" field.
+func DifficultyHasPrefix(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldHasPrefix(FieldDifficulty, v))
+}
+
+// DifficultyHasSuffix applies the HasSuffix predicate on the "difficulty" field.
+func DifficultyHasSuffix(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldHasSuffix(FieldDifficulty, v))
+}
+
+// DifficultyEqualFold applies the EqualFold predicate on the "difficulty" field.
+func DifficultyEqualFold(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEqualFold(FieldDifficulty, v))
+}
+
+// DifficultyContainsFold applies the ContainsFold predicate on the "difficulty" field.
+func DifficultyContainsFold(v string) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldContainsFold(FieldDifficulty, v))
+}
+
+// BaseExpRewardEQ applies the EQ predicate on the "base_exp_reward" field.
+func BaseExpRewardEQ(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEQ(FieldBaseExpReward, v))
+}
+
+// BaseExpRewardNEQ applies the NEQ predicate on the "base_exp_reward" field.
+func BaseExpRewardNEQ(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldNEQ(FieldBaseExpReward, v))
+}
+
+// BaseExpRewardIn applies the In predicate on the "base_exp_reward" field.
+func BaseExpRewardIn(vs ...int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldIn(FieldBaseExpReward, vs...))
+}
+
+// BaseExpRewardNotIn applies the NotIn predicate on the "base_exp_reward" field.
+func BaseExpRewardNotIn(vs ...int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldNotIn(FieldBaseExpReward, vs...))
+}
+
+// BaseExpRewardGT applies the GT predicate on the "base_exp_reward" field.
+func BaseExpRewardGT(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldGT(FieldBaseExpReward, v))
+}
+
+// BaseExpRewardGTE applies the GTE predicate on the "base_exp_reward" field.
+func BaseExpRewardGTE(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldGTE(FieldBaseExpReward, v))
+}
+
+// BaseExpRewardLT applies the LT predicate on the "base_exp_reward" field.
+func BaseExpRewardLT(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldLT(FieldBaseExpReward, v))
+}
+
+// BaseExpRewardLTE applies the LTE predicate on the "base_exp_reward" field.
+func BaseExpRewardLTE(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldLTE(FieldBaseExpReward, v))
+}
+
+// BaseGoldRewardEQ applies the EQ predicate on the "base_gold_reward" field.
+func BaseGoldRewardEQ(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldEQ(FieldBaseGoldReward, v))
+}
+
+// BaseGoldRewardNEQ applies the NEQ predicate on the "base_gold_reward" field.
+func BaseGoldRewardNEQ(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldNEQ(FieldBaseGoldReward, v))
+}
+
+// BaseGoldRewardIn applies the In predicate on the "base_gold_reward" field.
+func BaseGoldRewardIn(vs ...int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldIn(FieldBaseGoldReward, vs...))
+}
+
+// BaseGoldRewardNotIn applies the NotIn predicate on the "base_gold_reward" field.
+func BaseGoldRewardNotIn(vs ...int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldNotIn(FieldBaseGoldReward, vs...))
+}
+
+// BaseGoldRewardGT applies the GT predicate on the "base_gold_reward" field.
+func BaseGoldRewardGT(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldGT(FieldBaseGoldReward, v))
+}
+
+// BaseGoldRewardGTE applies the GTE predicate on the "base_gold_reward" field.
+func BaseGoldRewardGTE(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldGTE(FieldBaseGoldReward, v))
+}
+
+// BaseGoldRewardLT applies the LT predicate on the "base_gold_reward" field.
+func BaseGoldRewardLT(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldLT(FieldBaseGoldReward, v))
+}
+
+// BaseGoldRewardLTE applies the LTE predicate on the "base_gold_reward" field.
+func BaseGoldRewardLTE(v int) predicate.LifeActionSpec {
+	return predicate.LifeActionSpec(sql.FieldLTE(FieldBaseGoldReward, v))
 }
 
 // ConfirmedAtEQ applies the EQ predicate on the "confirmed_at" field.

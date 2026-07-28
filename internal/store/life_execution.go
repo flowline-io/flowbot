@@ -35,6 +35,15 @@ type LifeCompleteOccurrenceInput struct {
 	Summary      string
 	GainedExp    int
 	GainedGold   int
+	SkillID      int64
+	CharID       int64
+	SkillLevel   int
+	SkillExp     int64
+	CharLevel    int
+	CharExp      int64
+	ProfLevel    int
+	ProfExp      int64
+	ProfGold     int
 }
 
 // LifeSkipOccurrenceInput is the write shape for skipping one occurrence.
@@ -213,6 +222,18 @@ func (s *LifeStore) CompleteActionOccurrence(ctx context.Context, in LifeComplet
 		SetGainedGold(in.GainedGold).
 		Save(ctx); err != nil {
 		return fmt.Errorf("life: occurrence action log: %w", err)
+	}
+	if in.SkillID > 0 {
+		if _, err := tx.LifeSkill.UpdateOneID(in.SkillID).SetLevel(in.SkillLevel).SetCurrentExp(in.SkillExp).Save(ctx); err != nil {
+			return fmt.Errorf("life: update skill: %w", err)
+		}
+		if _, err := tx.LifeCharacteristic.UpdateOneID(in.CharID).SetLevel(in.CharLevel).SetCurrentExp(in.CharExp).Save(ctx); err != nil {
+			return fmt.Errorf("life: update characteristic: %w", err)
+		}
+		if _, err := tx.LifeProfile.UpdateOneID(in.ProfileID).
+			SetLevel(in.ProfLevel).SetExp(in.ProfExp).SetGold(in.ProfGold).Save(ctx); err != nil {
+			return fmt.Errorf("life: update profile: %w", err)
+		}
 	}
 	if err := completeReadyCheckpoints(ctx, tx.Client(), checkpointCompletionInput{
 		ProfileID:  in.ProfileID,

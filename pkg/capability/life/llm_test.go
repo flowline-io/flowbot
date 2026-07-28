@@ -37,9 +37,9 @@ func TestLLMEvaluateQuestSuccess(t *testing.T) {
 	assert.Equal(t, "INT", ev.StatCode)
 	assert.Equal(t, "A", ev.Difficulty)
 	assert.Equal(t, "Epic", ev.DropTier)
-	assert.Equal(t, 150, ev.BaseExp)
-	assert.Equal(t, 40, ev.BaseGold)
-	assert.Equal(t, 4, ev.Fear)
+	assert.Equal(t, 65, ev.BaseExp)
+	assert.Equal(t, 20, ev.BaseGold)
+	assert.Equal(t, 3, ev.Fear)
 	assert.Equal(t, 1, fake.Calls())
 }
 
@@ -52,9 +52,9 @@ func TestLLMEvaluateQuestServerOwnsRewards(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "A", ev.Difficulty)
 	assert.Equal(t, "Epic", ev.DropTier)
-	assert.Equal(t, 150, ev.BaseExp)
-	assert.Equal(t, 40, ev.BaseGold)
-	assert.Equal(t, 4, ev.Fear)
+	assert.Equal(t, 65, ev.BaseExp)
+	assert.Equal(t, 20, ev.BaseGold)
+	assert.Equal(t, 3, ev.Fear)
 }
 
 func TestLLMEvaluateQuestExtractsEmbeddedJSON(t *testing.T) {
@@ -66,7 +66,7 @@ func TestLLMEvaluateQuestExtractsEmbeddedJSON(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "B", ev.Difficulty)
 	assert.Equal(t, "Rare", ev.DropTier)
-	assert.Equal(t, 80, ev.BaseExp)
+	assert.Equal(t, 40, ev.BaseExp)
 	assert.Equal(t, 3, ev.Fear)
 }
 
@@ -103,7 +103,7 @@ func TestLLMEvaluateQuestNormalizesUnknownStat(t *testing.T) {
 	assert.Equal(t, "Common", ev.DropTier)
 	assert.Equal(t, "One-Time", ev.QuestType)
 	assert.Equal(t, 2, ev.Fear)
-	assert.Equal(t, 40, ev.BaseExp)
+	assert.Equal(t, 25, ev.BaseExp)
 }
 
 func TestLLMEvaluateQuestEmptyPrompt(t *testing.T) {
@@ -134,7 +134,7 @@ func TestLLMGenerateInstanceLoreErrorsOnBadJSON(t *testing.T) {
 func TestLLMBreakdownGoalTreeSuccess(t *testing.T) {
 	t.Parallel()
 	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
-		Content: `{"node_type":"goal","title":"Ship Flowbot V2","description":"Deliver the execution layer","children":[{"node_type":"project","title":"Implement execution layer","children":[{"node_type":"action","title":"Add occurrence store","action":{"is_repeatable":false,"tracking_mode":"completion","repeat_trigger":"none","reason":"Unblock today board"}}]}]}`,
+		Content: `{"node_type":"goal","title":"Ship Flowbot V2","description":"Deliver the execution layer","children":[{"node_type":"project","title":"Implement execution layer","children":[{"node_type":"action","title":"Add occurrence store","action":{"is_repeatable":false,"tracking_mode":"completion","repeat_trigger":"none","difficulty":"B","base_exp":999,"base_gold":999,"reason":"Unblock today board"}}]}]}`,
 	})
 	tree, err := testLLM(fake).BreakdownGoalTree(context.Background(), lifecap.GoalBreakdownRequest{
 		RootTitle:   "Ship Flowbot V2",
@@ -147,7 +147,10 @@ func TestLLMBreakdownGoalTreeSuccess(t *testing.T) {
 	require.Len(t, tree.Children, 1)
 	require.Len(t, tree.Children[0].Children, 1)
 	assert.Equal(t, "action", tree.Children[0].Children[0].NodeType)
-	assert.NotNil(t, tree.Children[0].Children[0].Action)
+	require.NotNil(t, tree.Children[0].Children[0].Action)
+	assert.Equal(t, "B", tree.Children[0].Children[0].Action.Difficulty)
+	assert.Equal(t, 40, tree.Children[0].Children[0].Action.BaseExp)
+	assert.Equal(t, 12, tree.Children[0].Children[0].Action.BaseGold)
 }
 
 func TestLLMBreakdownGoalTreeEmptyTitle(t *testing.T) {

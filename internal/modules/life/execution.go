@@ -13,6 +13,7 @@ import (
 	caplife "github.com/flowline-io/flowbot/pkg/capability"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
 	"github.com/flowline-io/flowbot/pkg/hub"
+	pkglife "github.com/flowline-io/flowbot/pkg/life"
 )
 
 // TodayActionView is one pending action occurrence with definition metadata.
@@ -69,7 +70,7 @@ func (s *Service) ListTodayActions(ctx context.Context, userID string) (*TodayBo
 	return &TodayBoardView{Actions: actions, Habits: habits}, nil
 }
 
-// CompleteActionOccurrence marks an execution occurrence completed.
+// CompleteActionOccurrence marks an execution occurrence completed and grants rewards.
 func (s *Service) CompleteActionOccurrence(ctx context.Context, userID, occurrenceFlag string) error {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
@@ -89,12 +90,73 @@ func (s *Service) CompleteActionOccurrence(ctx context.Context, userID, occurren
 	if node == nil {
 		return fmt.Errorf("life: action not found")
 	}
+	spec, err := s.store.GetActionSpecByPlanNodeID(ctx, node.ID)
+	if err != nil {
+		return err
+	}
+	baseExp, baseGold := defaultActionRewards(spec)
+	slots, err := s.store.GetEquippedSlots(ctx, p.ID)
+	if err != nil {
+		return err
+	}
+	buffs, err := s.equippedBuffs(ctx, slots)
+	if err != nil {
+		return err
+	}
+	goldReward := max(int(float64(baseGold)*buffs.GoldMult), 0)
+	skill, char, err := s.resolveDefaultActionSkill(ctx, p.ID)
+	if err != nil {
+		return err
+	}
+	casc := pkglife.ApplyCascade(pkglife.CascadeInput{
+		BaseExp:                  baseExp,
+		BaseGold:                 goldReward,
+		Skill:                    pkglife.StatSnapshot{Level: skill.Level, CurrentExp: skill.CurrentExp},
+		Characteristic:           pkglife.StatSnapshot{Level: char.Level, CurrentExp: char.CurrentExp},
+		Profile:                  pkglife.StatSnapshot{Level: p.Level, CurrentExp: p.Exp},
+		ProfileGold:              p.Gold,
+		ExpToCharacteristicRatio: skill.ExpToCharacteristicRatio,
+	})
 	return s.store.CompleteActionOccurrence(ctx, store.LifeCompleteOccurrenceInput{
 		OccurrenceID: occurrence.ID,
 		ProfileID:    p.ID,
 		PlanNodeID:   node.ID,
 		Summary:      node.Title,
+		GainedExp:    casc.GainedExp,
+		GainedGold:   casc.GainedGold,
+		SkillID:      skill.ID,
+		CharID:       char.ID,
+		SkillLevel:   casc.Skill.Level,
+		SkillExp:     casc.Skill.CurrentExp,
+		CharLevel:    casc.Characteristic.Level,
+		CharExp:      casc.Characteristic.CurrentExp,
+		ProfLevel:    casc.Profile.Level,
+		ProfExp:      casc.Profile.CurrentExp,
+		ProfGold:     casc.ProfileGold,
 	})
+}
+
+func defaultActionRewards(spec *gen.LifeActionSpec) (baseExp int, baseGold int) {
+	if spec == nil {
+		_, baseExp, baseGold, _ = pkglife.DefaultRewards("C")
+		return baseExp, baseGold
+	}
+	return spec.BaseExpReward, spec.BaseGoldReward
+}
+
+func (s *Service) resolveDefaultActionSkill(ctx context.Context, profileID int64) (*gen.LifeSkill, *gen.LifeCharacteristic, error) {
+	skill, err := s.resolveSkillForEvaluation(ctx, profileID, &lifecap.QuestEvaluation{
+		SkillName: "Exploration",
+		StatCode:  "FOC",
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	char, err := s.store.GetCharacteristic(ctx, skill.CharacteristicID)
+	if err != nil || char == nil {
+		return nil, nil, fmt.Errorf("life: characteristic missing")
+	}
+	return skill, char, nil
 }
 
 // SkipActionOccurrence marks a pending occurrence skipped.
@@ -235,6 +297,9 @@ func (s *Service) importGoalBreakdownNode(ctx context.Context, userID, parentFla
 			SuggestedCadence:   suggestion.Action.SuggestedCadence,
 			IsIdentityBuilding: suggestion.Action.IsIdentityBuilding,
 			Reason:             suggestion.Action.Reason,
+			Difficulty:         suggestion.Action.Difficulty,
+			BaseExp:            suggestion.Action.BaseExp,
+			BaseGold:           suggestion.Action.BaseGold,
 		}
 	}
 	row, err := s.CreatePlanNode(ctx, userID, parentFlag, suggestion.NodeType, suggestion.Title, suggestion.Description, action)

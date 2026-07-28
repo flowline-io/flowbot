@@ -140,6 +140,48 @@ func (_c *LifeActionSpecCreate) SetNillableNeedsUserConfirmation(v *bool) *LifeA
 	return _c
 }
 
+// SetDifficulty sets the "difficulty" field.
+func (_c *LifeActionSpecCreate) SetDifficulty(v string) *LifeActionSpecCreate {
+	_c.mutation.SetDifficulty(v)
+	return _c
+}
+
+// SetNillableDifficulty sets the "difficulty" field if the given value is not nil.
+func (_c *LifeActionSpecCreate) SetNillableDifficulty(v *string) *LifeActionSpecCreate {
+	if v != nil {
+		_c.SetDifficulty(*v)
+	}
+	return _c
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (_c *LifeActionSpecCreate) SetBaseExpReward(v int) *LifeActionSpecCreate {
+	_c.mutation.SetBaseExpReward(v)
+	return _c
+}
+
+// SetNillableBaseExpReward sets the "base_exp_reward" field if the given value is not nil.
+func (_c *LifeActionSpecCreate) SetNillableBaseExpReward(v *int) *LifeActionSpecCreate {
+	if v != nil {
+		_c.SetBaseExpReward(*v)
+	}
+	return _c
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (_c *LifeActionSpecCreate) SetBaseGoldReward(v int) *LifeActionSpecCreate {
+	_c.mutation.SetBaseGoldReward(v)
+	return _c
+}
+
+// SetNillableBaseGoldReward sets the "base_gold_reward" field if the given value is not nil.
+func (_c *LifeActionSpecCreate) SetNillableBaseGoldReward(v *int) *LifeActionSpecCreate {
+	if v != nil {
+		_c.SetBaseGoldReward(*v)
+	}
+	return _c
+}
+
 // SetConfirmedAt sets the "confirmed_at" field.
 func (_c *LifeActionSpecCreate) SetConfirmedAt(v time.Time) *LifeActionSpecCreate {
 	_c.mutation.SetConfirmedAt(v)
@@ -255,6 +297,18 @@ func (_c *LifeActionSpecCreate) defaults() {
 		v := lifeactionspec.DefaultNeedsUserConfirmation
 		_c.mutation.SetNeedsUserConfirmation(v)
 	}
+	if _, ok := _c.mutation.Difficulty(); !ok {
+		v := lifeactionspec.DefaultDifficulty
+		_c.mutation.SetDifficulty(v)
+	}
+	if _, ok := _c.mutation.BaseExpReward(); !ok {
+		v := lifeactionspec.DefaultBaseExpReward
+		_c.mutation.SetBaseExpReward(v)
+	}
+	if _, ok := _c.mutation.BaseGoldReward(); !ok {
+		v := lifeactionspec.DefaultBaseGoldReward
+		_c.mutation.SetBaseGoldReward(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := lifeactionspec.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -293,6 +347,15 @@ func (_c *LifeActionSpecCreate) check() error {
 	}
 	if _, ok := _c.mutation.NeedsUserConfirmation(); !ok {
 		return &ValidationError{Name: "needs_user_confirmation", err: errors.New(`gen: missing required field "LifeActionSpec.needs_user_confirmation"`)}
+	}
+	if _, ok := _c.mutation.Difficulty(); !ok {
+		return &ValidationError{Name: "difficulty", err: errors.New(`gen: missing required field "LifeActionSpec.difficulty"`)}
+	}
+	if _, ok := _c.mutation.BaseExpReward(); !ok {
+		return &ValidationError{Name: "base_exp_reward", err: errors.New(`gen: missing required field "LifeActionSpec.base_exp_reward"`)}
+	}
+	if _, ok := _c.mutation.BaseGoldReward(); !ok {
+		return &ValidationError{Name: "base_gold_reward", err: errors.New(`gen: missing required field "LifeActionSpec.base_gold_reward"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "LifeActionSpec.created_at"`)}
@@ -368,6 +431,18 @@ func (_c *LifeActionSpecCreate) createSpec() (*LifeActionSpec, *sqlgraph.CreateS
 	if value, ok := _c.mutation.NeedsUserConfirmation(); ok {
 		_spec.SetField(lifeactionspec.FieldNeedsUserConfirmation, field.TypeBool, value)
 		_node.NeedsUserConfirmation = value
+	}
+	if value, ok := _c.mutation.Difficulty(); ok {
+		_spec.SetField(lifeactionspec.FieldDifficulty, field.TypeString, value)
+		_node.Difficulty = value
+	}
+	if value, ok := _c.mutation.BaseExpReward(); ok {
+		_spec.SetField(lifeactionspec.FieldBaseExpReward, field.TypeInt, value)
+		_node.BaseExpReward = value
+	}
+	if value, ok := _c.mutation.BaseGoldReward(); ok {
+		_spec.SetField(lifeactionspec.FieldBaseGoldReward, field.TypeInt, value)
+		_node.BaseGoldReward = value
 	}
 	if value, ok := _c.mutation.ConfirmedAt(); ok {
 		_spec.SetField(lifeactionspec.FieldConfirmedAt, field.TypeTime, value)
@@ -544,6 +619,54 @@ func (u *LifeActionSpecUpsert) SetNeedsUserConfirmation(v bool) *LifeActionSpecU
 // UpdateNeedsUserConfirmation sets the "needs_user_confirmation" field to the value that was provided on create.
 func (u *LifeActionSpecUpsert) UpdateNeedsUserConfirmation() *LifeActionSpecUpsert {
 	u.SetExcluded(lifeactionspec.FieldNeedsUserConfirmation)
+	return u
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (u *LifeActionSpecUpsert) SetDifficulty(v string) *LifeActionSpecUpsert {
+	u.Set(lifeactionspec.FieldDifficulty, v)
+	return u
+}
+
+// UpdateDifficulty sets the "difficulty" field to the value that was provided on create.
+func (u *LifeActionSpecUpsert) UpdateDifficulty() *LifeActionSpecUpsert {
+	u.SetExcluded(lifeactionspec.FieldDifficulty)
+	return u
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (u *LifeActionSpecUpsert) SetBaseExpReward(v int) *LifeActionSpecUpsert {
+	u.Set(lifeactionspec.FieldBaseExpReward, v)
+	return u
+}
+
+// UpdateBaseExpReward sets the "base_exp_reward" field to the value that was provided on create.
+func (u *LifeActionSpecUpsert) UpdateBaseExpReward() *LifeActionSpecUpsert {
+	u.SetExcluded(lifeactionspec.FieldBaseExpReward)
+	return u
+}
+
+// AddBaseExpReward adds v to the "base_exp_reward" field.
+func (u *LifeActionSpecUpsert) AddBaseExpReward(v int) *LifeActionSpecUpsert {
+	u.Add(lifeactionspec.FieldBaseExpReward, v)
+	return u
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (u *LifeActionSpecUpsert) SetBaseGoldReward(v int) *LifeActionSpecUpsert {
+	u.Set(lifeactionspec.FieldBaseGoldReward, v)
+	return u
+}
+
+// UpdateBaseGoldReward sets the "base_gold_reward" field to the value that was provided on create.
+func (u *LifeActionSpecUpsert) UpdateBaseGoldReward() *LifeActionSpecUpsert {
+	u.SetExcluded(lifeactionspec.FieldBaseGoldReward)
+	return u
+}
+
+// AddBaseGoldReward adds v to the "base_gold_reward" field.
+func (u *LifeActionSpecUpsert) AddBaseGoldReward(v int) *LifeActionSpecUpsert {
+	u.Add(lifeactionspec.FieldBaseGoldReward, v)
 	return u
 }
 
@@ -758,6 +881,62 @@ func (u *LifeActionSpecUpsertOne) SetNeedsUserConfirmation(v bool) *LifeActionSp
 func (u *LifeActionSpecUpsertOne) UpdateNeedsUserConfirmation() *LifeActionSpecUpsertOne {
 	return u.Update(func(s *LifeActionSpecUpsert) {
 		s.UpdateNeedsUserConfirmation()
+	})
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (u *LifeActionSpecUpsertOne) SetDifficulty(v string) *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.SetDifficulty(v)
+	})
+}
+
+// UpdateDifficulty sets the "difficulty" field to the value that was provided on create.
+func (u *LifeActionSpecUpsertOne) UpdateDifficulty() *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.UpdateDifficulty()
+	})
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (u *LifeActionSpecUpsertOne) SetBaseExpReward(v int) *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.SetBaseExpReward(v)
+	})
+}
+
+// AddBaseExpReward adds v to the "base_exp_reward" field.
+func (u *LifeActionSpecUpsertOne) AddBaseExpReward(v int) *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.AddBaseExpReward(v)
+	})
+}
+
+// UpdateBaseExpReward sets the "base_exp_reward" field to the value that was provided on create.
+func (u *LifeActionSpecUpsertOne) UpdateBaseExpReward() *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.UpdateBaseExpReward()
+	})
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (u *LifeActionSpecUpsertOne) SetBaseGoldReward(v int) *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.SetBaseGoldReward(v)
+	})
+}
+
+// AddBaseGoldReward adds v to the "base_gold_reward" field.
+func (u *LifeActionSpecUpsertOne) AddBaseGoldReward(v int) *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.AddBaseGoldReward(v)
+	})
+}
+
+// UpdateBaseGoldReward sets the "base_gold_reward" field to the value that was provided on create.
+func (u *LifeActionSpecUpsertOne) UpdateBaseGoldReward() *LifeActionSpecUpsertOne {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.UpdateBaseGoldReward()
 	})
 }
 
@@ -1143,6 +1322,62 @@ func (u *LifeActionSpecUpsertBulk) SetNeedsUserConfirmation(v bool) *LifeActionS
 func (u *LifeActionSpecUpsertBulk) UpdateNeedsUserConfirmation() *LifeActionSpecUpsertBulk {
 	return u.Update(func(s *LifeActionSpecUpsert) {
 		s.UpdateNeedsUserConfirmation()
+	})
+}
+
+// SetDifficulty sets the "difficulty" field.
+func (u *LifeActionSpecUpsertBulk) SetDifficulty(v string) *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.SetDifficulty(v)
+	})
+}
+
+// UpdateDifficulty sets the "difficulty" field to the value that was provided on create.
+func (u *LifeActionSpecUpsertBulk) UpdateDifficulty() *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.UpdateDifficulty()
+	})
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (u *LifeActionSpecUpsertBulk) SetBaseExpReward(v int) *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.SetBaseExpReward(v)
+	})
+}
+
+// AddBaseExpReward adds v to the "base_exp_reward" field.
+func (u *LifeActionSpecUpsertBulk) AddBaseExpReward(v int) *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.AddBaseExpReward(v)
+	})
+}
+
+// UpdateBaseExpReward sets the "base_exp_reward" field to the value that was provided on create.
+func (u *LifeActionSpecUpsertBulk) UpdateBaseExpReward() *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.UpdateBaseExpReward()
+	})
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (u *LifeActionSpecUpsertBulk) SetBaseGoldReward(v int) *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.SetBaseGoldReward(v)
+	})
+}
+
+// AddBaseGoldReward adds v to the "base_gold_reward" field.
+func (u *LifeActionSpecUpsertBulk) AddBaseGoldReward(v int) *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.AddBaseGoldReward(v)
+	})
+}
+
+// UpdateBaseGoldReward sets the "base_gold_reward" field to the value that was provided on create.
+func (u *LifeActionSpecUpsertBulk) UpdateBaseGoldReward() *LifeActionSpecUpsertBulk {
+	return u.Update(func(s *LifeActionSpecUpsert) {
+		s.UpdateBaseGoldReward()
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	pkglife "github.com/flowline-io/flowbot/pkg/life"
 )
 
 // ActionInput captures the structured fields used to classify an action node.
@@ -20,6 +21,9 @@ type ActionInput struct {
 	SuggestedCadence   string
 	IsIdentityBuilding bool
 	Reason             string
+	Difficulty         string
+	BaseExp            int
+	BaseGold           int
 	DependencyFlags    []string
 }
 
@@ -245,6 +249,7 @@ func isAllowedPlanChild(parentType, nodeType string) bool {
 }
 
 func classifyActionInput(in *ActionInput) *store.LifePlanActionSpecInput {
+	difficulty, baseExp, baseGold := actionRewardFields(in)
 	if strings.EqualFold(strings.TrimSpace(in.TaskType), "checkpoint") {
 		return &store.LifePlanActionSpecInput{
 			TaskType:           "checkpoint",
@@ -252,6 +257,9 @@ func classifyActionInput(in *ActionInput) *store.LifePlanActionSpecInput {
 			RepeatTrigger:      "condition",
 			IsIdentityBuilding: in.IsIdentityBuilding,
 			Reason:             strings.TrimSpace(in.Reason),
+			Difficulty:         difficulty,
+			BaseExpReward:      baseExp,
+			BaseGoldReward:     baseGold,
 		}
 	}
 	taskType := "todo"
@@ -274,7 +282,20 @@ func classifyActionInput(in *ActionInput) *store.LifePlanActionSpecInput {
 		IsIdentityBuilding:    in.IsIdentityBuilding,
 		Reason:                strings.TrimSpace(in.Reason),
 		NeedsUserConfirmation: needsConfirmation,
+		Difficulty:            difficulty,
+		BaseExpReward:         baseExp,
+		BaseGoldReward:        baseGold,
 	}
+}
+
+func actionRewardFields(in *ActionInput) (difficulty string, baseExp int, baseGold int) {
+	if in == nil {
+		_, baseExp, baseGold, _ = pkglife.DefaultRewards("C")
+		return "C", baseExp, baseGold
+	}
+	difficulty = pkglife.NormalizeDifficulty(in.Difficulty)
+	_, baseExp, baseGold, _ = pkglife.DefaultRewards(difficulty)
+	return difficulty, baseExp, baseGold
 }
 
 func normalizeDependencyFlags(flags []string) []string {

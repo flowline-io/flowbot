@@ -134,6 +134,9 @@ type LifePlanNodeRow struct {
 	TaskType          string
 	TrackingMode      string
 	SuggestedCadence  string
+	Difficulty        string
+	Exp               int
+	Gold              int
 	NeedsConfirmation bool
 	Children          []LifePlanNodeRow
 }
@@ -214,6 +217,9 @@ type LifeTodayActionRow struct {
 	TaskType         string
 	TrackingMode     string
 	SuggestedCadence string
+	Difficulty       string
+	Exp              int
+	Gold             int
 }
 
 // LifeTodayHabitRow is one habit plus today check-in state.
@@ -240,6 +246,9 @@ type LifeBreakdownSuggestionRow struct {
 	Description      string
 	TaskType         string
 	SuggestedCadence string
+	Difficulty       string
+	Exp              int
+	Gold             int
 	Children         []LifeBreakdownSuggestionRow
 }
 

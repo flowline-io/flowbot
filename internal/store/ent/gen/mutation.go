@@ -30484,6 +30484,11 @@ type LifeActionSpecMutation struct {
 	is_identity_building    *bool
 	reason                  *string
 	needs_user_confirmation *bool
+	difficulty              *string
+	base_exp_reward         *int
+	addbase_exp_reward      *int
+	base_gold_reward        *int
+	addbase_gold_reward     *int
 	confirmed_at            *time.Time
 	created_at              *time.Time
 	updated_at              *time.Time
@@ -30941,6 +30946,154 @@ func (m *LifeActionSpecMutation) ResetNeedsUserConfirmation() {
 	m.needs_user_confirmation = nil
 }
 
+// SetDifficulty sets the "difficulty" field.
+func (m *LifeActionSpecMutation) SetDifficulty(s string) {
+	m.difficulty = &s
+}
+
+// Difficulty returns the value of the "difficulty" field in the mutation.
+func (m *LifeActionSpecMutation) Difficulty() (r string, exists bool) {
+	v := m.difficulty
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDifficulty returns the old "difficulty" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldDifficulty(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDifficulty is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDifficulty requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDifficulty: %w", err)
+	}
+	return oldValue.Difficulty, nil
+}
+
+// ResetDifficulty resets all changes to the "difficulty" field.
+func (m *LifeActionSpecMutation) ResetDifficulty() {
+	m.difficulty = nil
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (m *LifeActionSpecMutation) SetBaseExpReward(i int) {
+	m.base_exp_reward = &i
+	m.addbase_exp_reward = nil
+}
+
+// BaseExpReward returns the value of the "base_exp_reward" field in the mutation.
+func (m *LifeActionSpecMutation) BaseExpReward() (r int, exists bool) {
+	v := m.base_exp_reward
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseExpReward returns the old "base_exp_reward" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldBaseExpReward(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseExpReward is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseExpReward requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseExpReward: %w", err)
+	}
+	return oldValue.BaseExpReward, nil
+}
+
+// AddBaseExpReward adds i to the "base_exp_reward" field.
+func (m *LifeActionSpecMutation) AddBaseExpReward(i int) {
+	if m.addbase_exp_reward != nil {
+		*m.addbase_exp_reward += i
+	} else {
+		m.addbase_exp_reward = &i
+	}
+}
+
+// AddedBaseExpReward returns the value that was added to the "base_exp_reward" field in this mutation.
+func (m *LifeActionSpecMutation) AddedBaseExpReward() (r int, exists bool) {
+	v := m.addbase_exp_reward
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBaseExpReward resets all changes to the "base_exp_reward" field.
+func (m *LifeActionSpecMutation) ResetBaseExpReward() {
+	m.base_exp_reward = nil
+	m.addbase_exp_reward = nil
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (m *LifeActionSpecMutation) SetBaseGoldReward(i int) {
+	m.base_gold_reward = &i
+	m.addbase_gold_reward = nil
+}
+
+// BaseGoldReward returns the value of the "base_gold_reward" field in the mutation.
+func (m *LifeActionSpecMutation) BaseGoldReward() (r int, exists bool) {
+	v := m.base_gold_reward
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBaseGoldReward returns the old "base_gold_reward" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldBaseGoldReward(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBaseGoldReward is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBaseGoldReward requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBaseGoldReward: %w", err)
+	}
+	return oldValue.BaseGoldReward, nil
+}
+
+// AddBaseGoldReward adds i to the "base_gold_reward" field.
+func (m *LifeActionSpecMutation) AddBaseGoldReward(i int) {
+	if m.addbase_gold_reward != nil {
+		*m.addbase_gold_reward += i
+	} else {
+		m.addbase_gold_reward = &i
+	}
+}
+
+// AddedBaseGoldReward returns the value that was added to the "base_gold_reward" field in this mutation.
+func (m *LifeActionSpecMutation) AddedBaseGoldReward() (r int, exists bool) {
+	v := m.addbase_gold_reward
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetBaseGoldReward resets all changes to the "base_gold_reward" field.
+func (m *LifeActionSpecMutation) ResetBaseGoldReward() {
+	m.base_gold_reward = nil
+	m.addbase_gold_reward = nil
+}
+
 // SetConfirmedAt sets the "confirmed_at" field.
 func (m *LifeActionSpecMutation) SetConfirmedAt(t time.Time) {
 	m.confirmed_at = &t
@@ -31096,7 +31249,7 @@ func (m *LifeActionSpecMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LifeActionSpecMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 15)
 	if m.plan_node_id != nil {
 		fields = append(fields, lifeactionspec.FieldPlanNodeID)
 	}
@@ -31123,6 +31276,15 @@ func (m *LifeActionSpecMutation) Fields() []string {
 	}
 	if m.needs_user_confirmation != nil {
 		fields = append(fields, lifeactionspec.FieldNeedsUserConfirmation)
+	}
+	if m.difficulty != nil {
+		fields = append(fields, lifeactionspec.FieldDifficulty)
+	}
+	if m.base_exp_reward != nil {
+		fields = append(fields, lifeactionspec.FieldBaseExpReward)
+	}
+	if m.base_gold_reward != nil {
+		fields = append(fields, lifeactionspec.FieldBaseGoldReward)
 	}
 	if m.confirmed_at != nil {
 		fields = append(fields, lifeactionspec.FieldConfirmedAt)
@@ -31159,6 +31321,12 @@ func (m *LifeActionSpecMutation) Field(name string) (ent.Value, bool) {
 		return m.Reason()
 	case lifeactionspec.FieldNeedsUserConfirmation:
 		return m.NeedsUserConfirmation()
+	case lifeactionspec.FieldDifficulty:
+		return m.Difficulty()
+	case lifeactionspec.FieldBaseExpReward:
+		return m.BaseExpReward()
+	case lifeactionspec.FieldBaseGoldReward:
+		return m.BaseGoldReward()
 	case lifeactionspec.FieldConfirmedAt:
 		return m.ConfirmedAt()
 	case lifeactionspec.FieldCreatedAt:
@@ -31192,6 +31360,12 @@ func (m *LifeActionSpecMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldReason(ctx)
 	case lifeactionspec.FieldNeedsUserConfirmation:
 		return m.OldNeedsUserConfirmation(ctx)
+	case lifeactionspec.FieldDifficulty:
+		return m.OldDifficulty(ctx)
+	case lifeactionspec.FieldBaseExpReward:
+		return m.OldBaseExpReward(ctx)
+	case lifeactionspec.FieldBaseGoldReward:
+		return m.OldBaseGoldReward(ctx)
 	case lifeactionspec.FieldConfirmedAt:
 		return m.OldConfirmedAt(ctx)
 	case lifeactionspec.FieldCreatedAt:
@@ -31270,6 +31444,27 @@ func (m *LifeActionSpecMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNeedsUserConfirmation(v)
 		return nil
+	case lifeactionspec.FieldDifficulty:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDifficulty(v)
+		return nil
+	case lifeactionspec.FieldBaseExpReward:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseExpReward(v)
+		return nil
+	case lifeactionspec.FieldBaseGoldReward:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBaseGoldReward(v)
+		return nil
 	case lifeactionspec.FieldConfirmedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -31302,6 +31497,12 @@ func (m *LifeActionSpecMutation) AddedFields() []string {
 	if m.addplan_node_id != nil {
 		fields = append(fields, lifeactionspec.FieldPlanNodeID)
 	}
+	if m.addbase_exp_reward != nil {
+		fields = append(fields, lifeactionspec.FieldBaseExpReward)
+	}
+	if m.addbase_gold_reward != nil {
+		fields = append(fields, lifeactionspec.FieldBaseGoldReward)
+	}
 	return fields
 }
 
@@ -31312,6 +31513,10 @@ func (m *LifeActionSpecMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case lifeactionspec.FieldPlanNodeID:
 		return m.AddedPlanNodeID()
+	case lifeactionspec.FieldBaseExpReward:
+		return m.AddedBaseExpReward()
+	case lifeactionspec.FieldBaseGoldReward:
+		return m.AddedBaseGoldReward()
 	}
 	return nil, false
 }
@@ -31327,6 +31532,20 @@ func (m *LifeActionSpecMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPlanNodeID(v)
+		return nil
+	case lifeactionspec.FieldBaseExpReward:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBaseExpReward(v)
+		return nil
+	case lifeactionspec.FieldBaseGoldReward:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddBaseGoldReward(v)
 		return nil
 	}
 	return fmt.Errorf("unknown LifeActionSpec numeric field %s", name)
@@ -31390,6 +31609,15 @@ func (m *LifeActionSpecMutation) ResetField(name string) error {
 		return nil
 	case lifeactionspec.FieldNeedsUserConfirmation:
 		m.ResetNeedsUserConfirmation()
+		return nil
+	case lifeactionspec.FieldDifficulty:
+		m.ResetDifficulty()
+		return nil
+	case lifeactionspec.FieldBaseExpReward:
+		m.ResetBaseExpReward()
+		return nil
+	case lifeactionspec.FieldBaseGoldReward:
+		m.ResetBaseGoldReward()
 		return nil
 	case lifeactionspec.FieldConfirmedAt:
 		m.ResetConfirmedAt()

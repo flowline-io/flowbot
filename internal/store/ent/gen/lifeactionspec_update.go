@@ -161,6 +161,62 @@ func (_u *LifeActionSpecUpdate) SetNillableNeedsUserConfirmation(v *bool) *LifeA
 	return _u
 }
 
+// SetDifficulty sets the "difficulty" field.
+func (_u *LifeActionSpecUpdate) SetDifficulty(v string) *LifeActionSpecUpdate {
+	_u.mutation.SetDifficulty(v)
+	return _u
+}
+
+// SetNillableDifficulty sets the "difficulty" field if the given value is not nil.
+func (_u *LifeActionSpecUpdate) SetNillableDifficulty(v *string) *LifeActionSpecUpdate {
+	if v != nil {
+		_u.SetDifficulty(*v)
+	}
+	return _u
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (_u *LifeActionSpecUpdate) SetBaseExpReward(v int) *LifeActionSpecUpdate {
+	_u.mutation.ResetBaseExpReward()
+	_u.mutation.SetBaseExpReward(v)
+	return _u
+}
+
+// SetNillableBaseExpReward sets the "base_exp_reward" field if the given value is not nil.
+func (_u *LifeActionSpecUpdate) SetNillableBaseExpReward(v *int) *LifeActionSpecUpdate {
+	if v != nil {
+		_u.SetBaseExpReward(*v)
+	}
+	return _u
+}
+
+// AddBaseExpReward adds value to the "base_exp_reward" field.
+func (_u *LifeActionSpecUpdate) AddBaseExpReward(v int) *LifeActionSpecUpdate {
+	_u.mutation.AddBaseExpReward(v)
+	return _u
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (_u *LifeActionSpecUpdate) SetBaseGoldReward(v int) *LifeActionSpecUpdate {
+	_u.mutation.ResetBaseGoldReward()
+	_u.mutation.SetBaseGoldReward(v)
+	return _u
+}
+
+// SetNillableBaseGoldReward sets the "base_gold_reward" field if the given value is not nil.
+func (_u *LifeActionSpecUpdate) SetNillableBaseGoldReward(v *int) *LifeActionSpecUpdate {
+	if v != nil {
+		_u.SetBaseGoldReward(*v)
+	}
+	return _u
+}
+
+// AddBaseGoldReward adds value to the "base_gold_reward" field.
+func (_u *LifeActionSpecUpdate) AddBaseGoldReward(v int) *LifeActionSpecUpdate {
+	_u.mutation.AddBaseGoldReward(v)
+	return _u
+}
+
 // SetConfirmedAt sets the "confirmed_at" field.
 func (_u *LifeActionSpecUpdate) SetConfirmedAt(v time.Time) *LifeActionSpecUpdate {
 	_u.mutation.SetConfirmedAt(v)
@@ -266,6 +322,21 @@ func (_u *LifeActionSpecUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.NeedsUserConfirmation(); ok {
 		_spec.SetField(lifeactionspec.FieldNeedsUserConfirmation, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Difficulty(); ok {
+		_spec.SetField(lifeactionspec.FieldDifficulty, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BaseExpReward(); ok {
+		_spec.SetField(lifeactionspec.FieldBaseExpReward, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedBaseExpReward(); ok {
+		_spec.AddField(lifeactionspec.FieldBaseExpReward, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.BaseGoldReward(); ok {
+		_spec.SetField(lifeactionspec.FieldBaseGoldReward, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedBaseGoldReward(); ok {
+		_spec.AddField(lifeactionspec.FieldBaseGoldReward, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ConfirmedAt(); ok {
 		_spec.SetField(lifeactionspec.FieldConfirmedAt, field.TypeTime, value)
@@ -429,6 +500,62 @@ func (_u *LifeActionSpecUpdateOne) SetNillableNeedsUserConfirmation(v *bool) *Li
 	return _u
 }
 
+// SetDifficulty sets the "difficulty" field.
+func (_u *LifeActionSpecUpdateOne) SetDifficulty(v string) *LifeActionSpecUpdateOne {
+	_u.mutation.SetDifficulty(v)
+	return _u
+}
+
+// SetNillableDifficulty sets the "difficulty" field if the given value is not nil.
+func (_u *LifeActionSpecUpdateOne) SetNillableDifficulty(v *string) *LifeActionSpecUpdateOne {
+	if v != nil {
+		_u.SetDifficulty(*v)
+	}
+	return _u
+}
+
+// SetBaseExpReward sets the "base_exp_reward" field.
+func (_u *LifeActionSpecUpdateOne) SetBaseExpReward(v int) *LifeActionSpecUpdateOne {
+	_u.mutation.ResetBaseExpReward()
+	_u.mutation.SetBaseExpReward(v)
+	return _u
+}
+
+// SetNillableBaseExpReward sets the "base_exp_reward" field if the given value is not nil.
+func (_u *LifeActionSpecUpdateOne) SetNillableBaseExpReward(v *int) *LifeActionSpecUpdateOne {
+	if v != nil {
+		_u.SetBaseExpReward(*v)
+	}
+	return _u
+}
+
+// AddBaseExpReward adds value to the "base_exp_reward" field.
+func (_u *LifeActionSpecUpdateOne) AddBaseExpReward(v int) *LifeActionSpecUpdateOne {
+	_u.mutation.AddBaseExpReward(v)
+	return _u
+}
+
+// SetBaseGoldReward sets the "base_gold_reward" field.
+func (_u *LifeActionSpecUpdateOne) SetBaseGoldReward(v int) *LifeActionSpecUpdateOne {
+	_u.mutation.ResetBaseGoldReward()
+	_u.mutation.SetBaseGoldReward(v)
+	return _u
+}
+
+// SetNillableBaseGoldReward sets the "base_gold_reward" field if the given value is not nil.
+func (_u *LifeActionSpecUpdateOne) SetNillableBaseGoldReward(v *int) *LifeActionSpecUpdateOne {
+	if v != nil {
+		_u.SetBaseGoldReward(*v)
+	}
+	return _u
+}
+
+// AddBaseGoldReward adds value to the "base_gold_reward" field.
+func (_u *LifeActionSpecUpdateOne) AddBaseGoldReward(v int) *LifeActionSpecUpdateOne {
+	_u.mutation.AddBaseGoldReward(v)
+	return _u
+}
+
 // SetConfirmedAt sets the "confirmed_at" field.
 func (_u *LifeActionSpecUpdateOne) SetConfirmedAt(v time.Time) *LifeActionSpecUpdateOne {
 	_u.mutation.SetConfirmedAt(v)
@@ -564,6 +691,21 @@ func (_u *LifeActionSpecUpdateOne) sqlSave(ctx context.Context) (_node *LifeActi
 	}
 	if value, ok := _u.mutation.NeedsUserConfirmation(); ok {
 		_spec.SetField(lifeactionspec.FieldNeedsUserConfirmation, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Difficulty(); ok {
+		_spec.SetField(lifeactionspec.FieldDifficulty, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.BaseExpReward(); ok {
+		_spec.SetField(lifeactionspec.FieldBaseExpReward, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedBaseExpReward(); ok {
+		_spec.AddField(lifeactionspec.FieldBaseExpReward, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.BaseGoldReward(); ok {
+		_spec.SetField(lifeactionspec.FieldBaseGoldReward, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedBaseGoldReward(); ok {
+		_spec.AddField(lifeactionspec.FieldBaseGoldReward, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ConfirmedAt(); ok {
 		_spec.SetField(lifeactionspec.FieldConfirmedAt, field.TypeTime, value)

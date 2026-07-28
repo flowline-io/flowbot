@@ -4,6 +4,7 @@ package life
 import (
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -57,7 +58,41 @@ type CascadeResult struct {
 	GainedGold     int
 }
 
-// ApplyCascade applies quest rewards through skill → characteristic → profile.
+// DefaultRewards returns fear, exp, gold, and drop tier for a difficulty code.
+// Everyday tiers (E–S) grow ~1.5x with gold near exp/3; SS/SSS jump harder for
+// boss-tier payoff (C still anchors ~4 completions to ExpToNextLevel(1)=100).
+func DefaultRewards(diff string) (fear, exp, gold int, tier string) {
+	switch NormalizeDifficulty(diff) {
+	case "SSS":
+		return 5, 350, 110, "Mythic"
+	case "SS":
+		return 5, 220, 70, "Legendary"
+	case "S":
+		return 4, 100, 30, "Epic"
+	case "A":
+		return 3, 65, 20, "Epic"
+	case "B":
+		return 3, 40, 12, "Rare"
+	case "D":
+		return 1, 15, 5, "Common"
+	case "E":
+		return 1, 10, 3, "Common"
+	default: // C
+		return 2, 25, 8, "Common"
+	}
+}
+
+// NormalizeDifficulty coerces a raw difficulty label to a known tier.
+func NormalizeDifficulty(raw string) string {
+	d := strings.ToUpper(strings.TrimSpace(raw))
+	switch d {
+	case "SSS", "SS", "S", "A", "B", "C", "D", "E":
+		return d
+	default:
+		return "C"
+	}
+}
+
 func ApplyCascade(in CascadeInput) CascadeResult {
 	ratio := in.ExpToCharacteristicRatio
 	if ratio <= 0 {

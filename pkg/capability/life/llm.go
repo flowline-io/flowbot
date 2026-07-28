@@ -130,6 +130,7 @@ Schema:
         "repeat_trigger":"time|condition|none",
         "suggested_cadence":"daily|weekly|",
         "is_identity_building":false,
+        "difficulty":"E|D|C|B|A|S|SS|SSS",
         "reason":"..."
       },
       "children":[]
@@ -148,7 +149,7 @@ Rules:
   - habit candidate: action with is_repeatable=true and tracking_mode="consistency"
 - Only use suggested_cadence when repeat_trigger="time"; prefer daily or weekly.
 - Titles should be concrete and concise.
-- Do not invent dates, estimates, or rewards.
+- Every action must include difficulty (E through SSS). Do not invent dates, estimates, or reward numbers.
 - Plain text only.`
 
 // modelResolver resolves a configured chat model name to a langchaingo client.
@@ -504,6 +505,8 @@ func normalizeBreakdownSuggestion(tree *GoalBreakdownSuggestion, fallbackTitle s
 		normalized.Action.RepeatTrigger = normalizeRepeatTriggerValue(normalized.Action.RepeatTrigger)
 		normalized.Action.SuggestedCadence = normalizeCadenceValue(normalized.Action.SuggestedCadence)
 		normalized.Action.Reason = strings.TrimSpace(normalized.Action.Reason)
+		normalized.Action.Difficulty = normalizeDifficulty(normalized.Action.Difficulty)
+		_, normalized.Action.BaseExp, normalized.Action.BaseGold, _ = pkglife.DefaultRewards(normalized.Action.Difficulty)
 	}
 	children := make([]GoalBreakdownSuggestion, 0, len(normalized.Children))
 	for _, child := range normalized.Children {
@@ -592,16 +595,12 @@ func normalizeEvaluation(ev *QuestEvaluation, prompt string) *QuestEvaluation {
 		ev.QuestType = "Boss"
 	}
 	// Rewards are owned by the server difficulty table, not the LLM.
-	ev.Fear, ev.BaseExp, ev.BaseGold, ev.DropTier = defaultRewards(ev.Difficulty)
+	ev.Fear, ev.BaseExp, ev.BaseGold, ev.DropTier = pkglife.DefaultRewards(ev.Difficulty)
 	return ev
 }
 
 func normalizeDifficulty(raw string) string {
-	d := strings.ToUpper(strings.TrimSpace(raw))
-	if _, ok := allowedDifficulties[d]; ok {
-		return d
-	}
-	return "C"
+	return pkglife.NormalizeDifficulty(raw)
 }
 
 func normalizeLore(lore *InstanceLore, questTitle, equipmentName string) *InstanceLore {
@@ -698,27 +697,6 @@ func normalizeNextSteps(items []string) []string {
 		items[i] = strings.TrimSpace(items[i])
 	}
 	return compactStrings(items)
-}
-
-func defaultRewards(diff string) (fear, exp, gold int, tier string) {
-	switch diff {
-	case "SSS":
-		return 5, 300, 80, "Mythic"
-	case "SS":
-		return 5, 220, 60, "Legendary"
-	case "S":
-		return 4, 180, 50, "Epic"
-	case "A":
-		return 4, 150, 40, "Epic"
-	case "B":
-		return 3, 80, 25, "Rare"
-	case "D":
-		return 2, 30, 10, "Common"
-	case "E":
-		return 1, 20, 8, "Common"
-	default: // C
-		return 2, 40, 15, "Common"
-	}
 }
 
 func firstSentence(s string) string {

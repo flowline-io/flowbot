@@ -51,6 +51,9 @@ type LifePlanActionSpecInput struct {
 	IsIdentityBuilding    bool
 	Reason                string
 	NeedsUserConfirmation bool
+	Difficulty            string
+	BaseExpReward         int
+	BaseGoldReward        int
 	ConfirmedAt           *time.Time
 }
 
@@ -1719,6 +1722,10 @@ func createActionSpecWithClient(ctx context.Context, client *gen.Client, planNod
 	if repeatTrigger == "" {
 		repeatTrigger = "none"
 	}
+	difficulty := in.Difficulty
+	if difficulty == "" {
+		difficulty = "C"
+	}
 	builder := client.LifeActionSpec.Create().
 		SetPlanNodeID(planNodeID).
 		SetTaskType(taskType).
@@ -1728,7 +1735,10 @@ func createActionSpecWithClient(ctx context.Context, client *gen.Client, planNod
 		SetSuggestedCadence(in.SuggestedCadence).
 		SetIsIdentityBuilding(in.IsIdentityBuilding).
 		SetReason(in.Reason).
-		SetNeedsUserConfirmation(in.NeedsUserConfirmation)
+		SetNeedsUserConfirmation(in.NeedsUserConfirmation).
+		SetDifficulty(difficulty).
+		SetBaseExpReward(in.BaseExpReward).
+		SetBaseGoldReward(in.BaseGoldReward)
 	if in.ConfirmedAt != nil {
 		builder = builder.SetConfirmedAt(*in.ConfirmedAt)
 	}

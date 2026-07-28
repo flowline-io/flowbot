@@ -405,6 +405,12 @@ templ lifePlanNode(node LifePlanNodeRow, depth int) {
 					if node.TrackingMode != "" && node.TaskType != "" {
 						<span class="life-meta-chip">{ node.TrackingMode }</span>
 					}
+					if node.Exp > 0 {
+						<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Exp) }</strong> EXP</span>
+					}
+					if node.Gold > 0 {
+						<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Gold) }</strong> gold</span>
+					}
 				</div>
 			</div>
 			if node.NeedsConfirmation {
@@ -438,6 +444,15 @@ templ lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) {
 				}
 				if node.SuggestedCadence != "" {
 					<span class="life-meta-chip">{ node.SuggestedCadence }</span>
+				}
+				if node.Difficulty != "" {
+					<span class="life-meta-chip">{ node.Difficulty }</span>
+				}
+				if node.Exp > 0 {
+					<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Exp) }</strong> EXP</span>
+				}
+				if node.Gold > 0 {
+					<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", node.Gold) }</strong> gold</span>
 				}
 			</div>
 		</div>
@@ -715,6 +730,15 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										if a.TrackingMode != "" {
 											<span class="life-meta-chip">{ a.TrackingMode }</span>
 										}
+										if a.Difficulty != "" {
+											<span class="life-meta-chip">{ a.Difficulty }</span>
+										}
+										if a.Exp > 0 {
+											<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", a.Exp) }</strong> EXP</span>
+										}
+										if a.Gold > 0 {
+											<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", a.Gold) }</strong> gold</span>
+										}
 										if a.DueLabel != "" {
 											<span class="life-meta-chip">Due { a.DueLabel }</span>
 										}
@@ -793,7 +817,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										<span class="life-meta-chip">{ q.Type }</span>
 										<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
 										<span class="life-meta-chip">Fear { fmt.Sprintf("%d", q.Fear) }</span>
-										<span class="life-meta-chip">{ q.DropTier }</span>
+										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(q.DropTier) }>{ q.DropTier }</span>
 									</div>
 									<div class="life-quest-rewards">
 										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>

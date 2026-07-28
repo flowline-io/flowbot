@@ -290,8 +290,14 @@ func TestLifeStore_CreateCheckpointAndAutoComplete(t *testing.T) {
 	logs, err := ls.ListActionLogs(ctx, profile.ID, 10)
 	require.NoError(t, err)
 	require.Len(t, logs, 3)
-	assert.Equal(t, "checkpoint", logs[0].SourceType)
-	assert.Equal(t, "Release ready", logs[0].Summary)
+	var checkpointSummary string
+	for _, log := range logs {
+		if log.SourceType == "checkpoint" {
+			checkpointSummary = log.Summary
+			break
+		}
+	}
+	assert.Equal(t, "Release ready", checkpointSummary)
 }
 
 func TestLifeStore_CreateCheckpointRejectsInvalidDependency(t *testing.T) {

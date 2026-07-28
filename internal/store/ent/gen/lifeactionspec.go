@@ -35,6 +35,12 @@ type LifeActionSpec struct {
 	Reason string `json:"reason,omitempty"`
 	// NeedsUserConfirmation holds the value of the "needs_user_confirmation" field.
 	NeedsUserConfirmation bool `json:"needs_user_confirmation,omitempty"`
+	// Difficulty holds the value of the "difficulty" field.
+	Difficulty string `json:"difficulty,omitempty"`
+	// BaseExpReward holds the value of the "base_exp_reward" field.
+	BaseExpReward int `json:"base_exp_reward,omitempty"`
+	// BaseGoldReward holds the value of the "base_gold_reward" field.
+	BaseGoldReward int `json:"base_gold_reward,omitempty"`
 	// ConfirmedAt holds the value of the "confirmed_at" field.
 	ConfirmedAt *time.Time `json:"confirmed_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -51,9 +57,9 @@ func (*LifeActionSpec) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case lifeactionspec.FieldIsRepeatable, lifeactionspec.FieldIsIdentityBuilding, lifeactionspec.FieldNeedsUserConfirmation:
 			values[i] = new(sql.NullBool)
-		case lifeactionspec.FieldID, lifeactionspec.FieldPlanNodeID:
+		case lifeactionspec.FieldID, lifeactionspec.FieldPlanNodeID, lifeactionspec.FieldBaseExpReward, lifeactionspec.FieldBaseGoldReward:
 			values[i] = new(sql.NullInt64)
-		case lifeactionspec.FieldTaskType, lifeactionspec.FieldTrackingMode, lifeactionspec.FieldRepeatTrigger, lifeactionspec.FieldSuggestedCadence, lifeactionspec.FieldReason:
+		case lifeactionspec.FieldTaskType, lifeactionspec.FieldTrackingMode, lifeactionspec.FieldRepeatTrigger, lifeactionspec.FieldSuggestedCadence, lifeactionspec.FieldReason, lifeactionspec.FieldDifficulty:
 			values[i] = new(sql.NullString)
 		case lifeactionspec.FieldConfirmedAt, lifeactionspec.FieldCreatedAt, lifeactionspec.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -131,6 +137,24 @@ func (_m *LifeActionSpec) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field needs_user_confirmation", values[i])
 			} else if value.Valid {
 				_m.NeedsUserConfirmation = value.Bool
+			}
+		case lifeactionspec.FieldDifficulty:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field difficulty", values[i])
+			} else if value.Valid {
+				_m.Difficulty = value.String
+			}
+		case lifeactionspec.FieldBaseExpReward:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field base_exp_reward", values[i])
+			} else if value.Valid {
+				_m.BaseExpReward = int(value.Int64)
+			}
+		case lifeactionspec.FieldBaseGoldReward:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field base_gold_reward", values[i])
+			} else if value.Valid {
+				_m.BaseGoldReward = int(value.Int64)
 			}
 		case lifeactionspec.FieldConfirmedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -213,6 +237,15 @@ func (_m *LifeActionSpec) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("needs_user_confirmation=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NeedsUserConfirmation))
+	builder.WriteString(", ")
+	builder.WriteString("difficulty=")
+	builder.WriteString(_m.Difficulty)
+	builder.WriteString(", ")
+	builder.WriteString("base_exp_reward=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BaseExpReward))
+	builder.WriteString(", ")
+	builder.WriteString("base_gold_reward=")
+	builder.WriteString(fmt.Sprintf("%v", _m.BaseGoldReward))
 	builder.WriteString(", ")
 	if v := _m.ConfirmedAt; v != nil {
 		builder.WriteString("confirmed_at=")

@@ -124,6 +124,9 @@ func TestClassifyActionInput(t *testing.T) {
 			assert.Equal(t, tt.wantType, got.TaskType)
 			assert.Equal(t, tt.wantMode, got.TrackingMode)
 			assert.Equal(t, tt.wantNeeds, got.NeedsUserConfirmation)
+			assert.Equal(t, 25, got.BaseExpReward)
+			assert.Equal(t, 8, got.BaseGoldReward)
+			assert.Equal(t, "C", got.Difficulty)
 		})
 	}
 }
@@ -222,6 +225,12 @@ func TestImportGoalBreakdownNormalizesInvalidHierarchy(t *testing.T) {
 	assert.Equal(t, "goal", nodes[0].NodeType)
 	assert.Equal(t, "project", nodes[1].NodeType)
 	assert.Equal(t, "action", nodes[2].NodeType)
+	specs, err := svc.store.ListActionSpecs(ctx, profile.ID)
+	require.NoError(t, err)
+	require.Len(t, specs, 1)
+	assert.Equal(t, 25, specs[0].BaseExpReward)
+	assert.Equal(t, 8, specs[0].BaseGoldReward)
+	assert.Equal(t, "C", specs[0].Difficulty)
 }
 
 func TestSubmitQuestEvidenceStoresPendingQuestProof(t *testing.T) {
@@ -311,4 +320,55 @@ func TestApplyQuestAdjudicationCompletesQuest(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, gotAdj)
 	assert.Equal(t, "applied", gotAdj.Status)
+}
+
+func TestCompleteActionOccurrenceGrantsRewards(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "action-reward-user", "", "")
+	require.NoError(t, err)
+	goal, _, err := svc.store.CreatePlanNode(ctx, store.LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		NodeType:  "goal",
+		Title:     "Ship plan rewards",
+		Status:    "Active",
+	})
+	require.NoError(t, err)
+	action, spec, err := svc.store.CreatePlanNode(ctx, store.LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &goal.ID,
+		NodeType:  "action",
+		Title:     "Wire rewards",
+		Status:    "Active",
+		ActionSpec: &store.LifePlanActionSpecInput{
+			TaskType:       "todo",
+			TrackingMode:   "completion",
+			RepeatTrigger:  "none",
+			Difficulty:     "B",
+			BaseExpReward:  80,
+			BaseGoldReward: 25,
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, spec)
+	occurrence, err := svc.store.EnsureTodoOccurrence(ctx, profile.ID, action.ID)
+	require.NoError(t, err)
+
+	err = svc.CompleteActionOccurrence(ctx, "action-reward-user", occurrence.Flag)
+	require.NoError(t, err)
+
+	updated, err := svc.store.GetProfileByUserID(ctx, "action-reward-user")
+	require.NoError(t, err)
+	require.NotNil(t, updated)
+	assert.Equal(t, 25, updated.Gold)
+	assert.Equal(t, int64(80), updated.Exp)
+
+	logs, err := svc.store.ListActionLogs(ctx, profile.ID, 10)
+	require.NoError(t, err)
+	require.Len(t, logs, 1)
+	assert.Equal(t, 80, logs[0].GainedExp)
+	assert.Equal(t, 25, logs[0].GainedGold)
 }

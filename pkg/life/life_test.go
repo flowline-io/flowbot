@@ -131,6 +131,29 @@ func TestExpToNextLevel(t *testing.T) {
 	assert.Equal(t, int64(200), life.ExpToNextLevel(2))
 }
 
+func TestDefaultRewards(t *testing.T) {
+	t.Parallel()
+	fear, exp, gold, tier := life.DefaultRewards("A")
+	assert.Equal(t, 3, fear)
+	assert.Equal(t, 65, exp)
+	assert.Equal(t, 20, gold)
+	assert.Equal(t, "Epic", tier)
+	fear, exp, gold, tier = life.DefaultRewards("SS")
+	assert.Equal(t, 5, fear)
+	assert.Equal(t, 220, exp)
+	assert.Equal(t, 70, gold)
+	assert.Equal(t, "Legendary", tier)
+	fear, exp, gold, tier = life.DefaultRewards("SSS")
+	assert.Equal(t, 5, fear)
+	assert.Equal(t, 350, exp)
+	assert.Equal(t, 110, gold)
+	assert.Equal(t, "Mythic", tier)
+	_, exp, gold, _ = life.DefaultRewards("unknown")
+	assert.Equal(t, 25, exp)
+	assert.Equal(t, 8, gold)
+	assert.Equal(t, "C", life.NormalizeDifficulty("z"))
+}
+
 func TestDefaultCharacteristics(t *testing.T) {
 	t.Parallel()
 	require.Len(t, life.DefaultCharacteristics, 8)

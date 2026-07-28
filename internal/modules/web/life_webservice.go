@@ -190,6 +190,9 @@ func mapLifePlanNodeRow(node *lifemod.PlanNodeView) pages.LifePlanNodeRow {
 		row.TrackingMode = node.Action.TrackingMode
 		row.SuggestedCadence = node.Action.SuggestedCadence
 		row.NeedsConfirmation = node.Action.NeedsUserConfirmation
+		row.Difficulty = node.Action.Difficulty
+		row.Exp = node.Action.BaseExpReward
+		row.Gold = node.Action.BaseGoldReward
 	}
 	row.Children = make([]pages.LifePlanNodeRow, 0, len(node.Children))
 	for _, child := range node.Children {
@@ -210,6 +213,9 @@ func mapLifeBreakdownSuggestionRow(node *lifecap.GoalBreakdownSuggestion) *pages
 	}
 	if node.Action != nil {
 		row.SuggestedCadence = node.Action.SuggestedCadence
+		row.Difficulty = node.Action.Difficulty
+		row.Exp = node.Action.BaseExp
+		row.Gold = node.Action.BaseGold
 		if node.Action.IsRepeatable {
 			if strings.EqualFold(node.Action.TrackingMode, "consistency") {
 				row.TaskType = "habit"
@@ -629,6 +635,9 @@ func mapTodayActionRows(today *lifemod.TodayBoardView, planTree []*lifemod.PlanN
 			row.TaskType = action.Spec.TaskType
 			row.TrackingMode = action.Spec.TrackingMode
 			row.SuggestedCadence = action.Spec.SuggestedCadence
+			row.Difficulty = action.Spec.Difficulty
+			row.Exp = action.Spec.BaseExpReward
+			row.Gold = action.Spec.BaseGoldReward
 		}
 		rows = append(rows, row)
 	}

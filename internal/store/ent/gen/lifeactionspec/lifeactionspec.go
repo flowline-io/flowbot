@@ -31,6 +31,12 @@ const (
 	FieldReason = "reason"
 	// FieldNeedsUserConfirmation holds the string denoting the needs_user_confirmation field in the database.
 	FieldNeedsUserConfirmation = "needs_user_confirmation"
+	// FieldDifficulty holds the string denoting the difficulty field in the database.
+	FieldDifficulty = "difficulty"
+	// FieldBaseExpReward holds the string denoting the base_exp_reward field in the database.
+	FieldBaseExpReward = "base_exp_reward"
+	// FieldBaseGoldReward holds the string denoting the base_gold_reward field in the database.
+	FieldBaseGoldReward = "base_gold_reward"
 	// FieldConfirmedAt holds the string denoting the confirmed_at field in the database.
 	FieldConfirmedAt = "confirmed_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -53,6 +59,9 @@ var Columns = []string{
 	FieldIsIdentityBuilding,
 	FieldReason,
 	FieldNeedsUserConfirmation,
+	FieldDifficulty,
+	FieldBaseExpReward,
+	FieldBaseGoldReward,
 	FieldConfirmedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -85,6 +94,12 @@ var (
 	DefaultReason string
 	// DefaultNeedsUserConfirmation holds the default value on creation for the "needs_user_confirmation" field.
 	DefaultNeedsUserConfirmation bool
+	// DefaultDifficulty holds the default value on creation for the "difficulty" field.
+	DefaultDifficulty string
+	// DefaultBaseExpReward holds the default value on creation for the "base_exp_reward" field.
+	DefaultBaseExpReward int
+	// DefaultBaseGoldReward holds the default value on creation for the "base_gold_reward" field.
+	DefaultBaseGoldReward int
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -144,6 +159,21 @@ func ByReason(opts ...sql.OrderTermOption) OrderOption {
 // ByNeedsUserConfirmation orders the results by the needs_user_confirmation field.
 func ByNeedsUserConfirmation(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNeedsUserConfirmation, opts...).ToFunc()
+}
+
+// ByDifficulty orders the results by the difficulty field.
+func ByDifficulty(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDifficulty, opts...).ToFunc()
+}
+
+// ByBaseExpReward orders the results by the base_exp_reward field.
+func ByBaseExpReward(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseExpReward, opts...).ToFunc()
+}
+
+// ByBaseGoldReward orders the results by the base_gold_reward field.
+func ByBaseGoldReward(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBaseGoldReward, opts...).ToFunc()
 }
 
 // ByConfirmedAt orders the results by the confirmed_at field.

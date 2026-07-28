@@ -1342,12 +1342,24 @@ func init() {
 	lifeactionspecDescNeedsUserConfirmation := lifeactionspecFields[9].Descriptor()
 	// lifeactionspec.DefaultNeedsUserConfirmation holds the default value on creation for the needs_user_confirmation field.
 	lifeactionspec.DefaultNeedsUserConfirmation = lifeactionspecDescNeedsUserConfirmation.Default.(bool)
+	// lifeactionspecDescDifficulty is the schema descriptor for difficulty field.
+	lifeactionspecDescDifficulty := lifeactionspecFields[10].Descriptor()
+	// lifeactionspec.DefaultDifficulty holds the default value on creation for the difficulty field.
+	lifeactionspec.DefaultDifficulty = lifeactionspecDescDifficulty.Default.(string)
+	// lifeactionspecDescBaseExpReward is the schema descriptor for base_exp_reward field.
+	lifeactionspecDescBaseExpReward := lifeactionspecFields[11].Descriptor()
+	// lifeactionspec.DefaultBaseExpReward holds the default value on creation for the base_exp_reward field.
+	lifeactionspec.DefaultBaseExpReward = lifeactionspecDescBaseExpReward.Default.(int)
+	// lifeactionspecDescBaseGoldReward is the schema descriptor for base_gold_reward field.
+	lifeactionspecDescBaseGoldReward := lifeactionspecFields[12].Descriptor()
+	// lifeactionspec.DefaultBaseGoldReward holds the default value on creation for the base_gold_reward field.
+	lifeactionspec.DefaultBaseGoldReward = lifeactionspecDescBaseGoldReward.Default.(int)
 	// lifeactionspecDescCreatedAt is the schema descriptor for created_at field.
-	lifeactionspecDescCreatedAt := lifeactionspecFields[11].Descriptor()
+	lifeactionspecDescCreatedAt := lifeactionspecFields[14].Descriptor()
 	// lifeactionspec.DefaultCreatedAt holds the default value on creation for the created_at field.
 	lifeactionspec.DefaultCreatedAt = lifeactionspecDescCreatedAt.Default.(func() time.Time)
 	// lifeactionspecDescUpdatedAt is the schema descriptor for updated_at field.
-	lifeactionspecDescUpdatedAt := lifeactionspecFields[12].Descriptor()
+	lifeactionspecDescUpdatedAt := lifeactionspecFields[15].Descriptor()
 	// lifeactionspec.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	lifeactionspec.DefaultUpdatedAt = lifeactionspecDescUpdatedAt.Default.(func() time.Time)
 	// lifeactionspec.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
