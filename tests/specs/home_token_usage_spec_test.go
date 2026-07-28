@@ -34,11 +34,15 @@ func (a *homeWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *homeWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:   1,
-		Flag: flag,
-		Params: bddWebAuthParams(a.uid, []string{"admin:*"}),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, bddWebScopesAdmin()),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *homeWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 var _ = Describe("Home Token Usage /home/token-usage", Label("home", "web"), func() {

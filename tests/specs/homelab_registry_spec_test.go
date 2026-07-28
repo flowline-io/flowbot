@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/homelab"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // homelabWebAdapter satisfies store.Adapter for BDD homelab registry page tests,
@@ -35,11 +36,15 @@ func (a *homelabWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *homelabWebAdapter) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:   1,
-		Flag: "bdd-homelab",
-		Params: bddWebAuthParams("bdd-homelab-uid", []string{"admin:*"}),
+		ID:        1,
+		Flag:      "bdd-homelab",
+		Params:    bddWebAuthParams("bdd-homelab-uid", bddWebScopesAdmin()),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *homelabWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {

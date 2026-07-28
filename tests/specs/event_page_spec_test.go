@@ -36,11 +36,15 @@ func (a *eventWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *eventWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:    1,
-		Flag:  flag,
-		Params: bddWebAuthParams(a.uid, a.scopes),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, a.scopes),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *eventWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 var _ = Describe("Events Pages", Label("module", "web"), func() {
@@ -56,12 +60,12 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 		adminAdapter = &eventWebAdapter{
 			ent:    EntClient,
 			uid:    "bdd-admin-uid-" + types.Id(),
-			scopes: []string{"admin:*", "read", "write"},
+			scopes: bddWebScopesAdmin(),
 		}
 		userAdapter = &eventWebAdapter{
 			ent:    EntClient,
 			uid:    "bdd-user-uid-" + types.Id(),
-			scopes: []string{"read", "write"},
+			scopes: bddWebScopesUser(),
 		}
 		store.Database = adminAdapter
 
@@ -97,7 +101,7 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 			SetEventType("webhook.issue").
 			SetSource("github").
 			SetData(map[string]any{
-				"_webhook_method": "POST",
+				"_webhook_method":  "POST",
 				"_webhook_headers": map[string]any{"X-Hub-Signature": "sha1=abc"},
 				"_webhook_body":    `{"action":"opened"}`,
 			}).

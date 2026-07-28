@@ -38,15 +38,15 @@ func (a *viewPageAdapter) GetDB() any                       { return a.ent }
 
 func (a *viewPageAdapter) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:   1,
-		Flag: "bdd-test",
-		Params: bddWebAuthParams("testuser", []string{"admin:*"}),
+		ID:        1,
+		Flag:      "bdd-test",
+		Params:    bddWebAuthParams("testuser", bddWebScopesAdmin()),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }
 
-func (a *viewPageAdapter) ParameterSet(_ context.Context, _ string, _ types.KV, _ time.Time) error {
-	return nil
+func (a *viewPageAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 func (a *viewPageAdapter) ParameterDelete(_ context.Context, _ string) error {
@@ -55,8 +55,8 @@ func (a *viewPageAdapter) ParameterDelete(_ context.Context, _ string) error {
 
 var _ = Describe("View Pages", Label("module", "web"), func() {
 	var (
-		origDB     store.Adapter
-		pageStore  *store.PageDataStore
+		origDB    store.Adapter
+		pageStore *store.PageDataStore
 	)
 
 	BeforeEach(func() {

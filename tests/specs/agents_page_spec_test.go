@@ -40,9 +40,9 @@ func (a *agentsWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *agentsWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:   1,
-		Flag: flag,
-		Params: bddWebAuthParams(a.uid, []string{"admin:*"}),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, bddWebScopesAdmin()),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
 }
@@ -171,12 +171,12 @@ func (a *agentsWebAdapter) ListChatSessionEntriesBySessions(ctx context.Context,
 
 var _ = Describe("Agents UI", Label("module", "web"), func() {
 	var (
-		origDB          store.Adapter
-		adapter         *agentsWebAdapter
-		sessionID       string
-		origModel       string
-		origWorkspace   string
-		workspaceDir    string
+		origDB        store.Adapter
+		adapter       *agentsWebAdapter
+		sessionID     string
+		origModel     string
+		origWorkspace string
+		workspaceDir  string
 	)
 
 	BeforeEach(func() {

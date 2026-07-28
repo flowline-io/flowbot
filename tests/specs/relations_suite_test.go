@@ -37,11 +37,15 @@ func (a *relationsWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *relationsWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:    1,
-		Flag:  flag,
-		Params: bddWebAuthParams(a.uid, a.scopes),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, a.scopes),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *relationsWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
@@ -59,7 +63,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 		adapter = &relationsWebAdapter{
 			ent:    EntClient,
 			uid:    "bdd-relations-uid-" + types.Id(),
-			scopes: []string{"read", "write"},
+			scopes: bddWebScopesUser(),
 		}
 		store.Database = adapter
 

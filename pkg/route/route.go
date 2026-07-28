@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -81,11 +82,23 @@ func WithNotAuth() Option {
 	}
 }
 
-var routeAuditor audit.Auditor
+var (
+	routeAuditorMu sync.RWMutex
+	routeAuditor   audit.Auditor
+)
 
 // SetAuditor sets the global auditor used for auth event recording.
 func SetAuditor(a audit.Auditor) {
+	routeAuditorMu.Lock()
 	routeAuditor = a
+	routeAuditorMu.Unlock()
+}
+
+func getRouteAuditor() audit.Auditor {
+	routeAuditorMu.RLock()
+	a := routeAuditor
+	routeAuditorMu.RUnlock()
+	return a
 }
 
 func ErrorResponse(ctx fiber.Ctx, text string) error {
@@ -414,12 +427,13 @@ func RequireScope(scope string, handler fiber.Handler) fiber.Handler {
 }
 
 func auditAuthReject(ctx fiber.Ctx, action, reason string) {
-	if routeAuditor == nil {
+	a := getRouteAuditor()
+	if a == nil {
 		return
 	}
 	ip := ctx.IP()
 	ua := string(ctx.Request().Header.UserAgent())
-	_ = routeAuditor.RecordRejected(context.Background(), audit.Entry{
+	_ = a.RecordRejected(context.Background(), audit.Entry{
 		Subject: &audit.Subject{
 			SubjectType: "token",
 			IPAddress:   ip,
@@ -431,7 +445,8 @@ func auditAuthReject(ctx fiber.Ctx, action, reason string) {
 }
 
 func auditScopeDeny(ctx fiber.Ctx, scope string) {
-	if routeAuditor == nil {
+	a := getRouteAuditor()
+	if a == nil {
 		return
 	}
 	rc := GetRequestContext(ctx)
@@ -441,7 +456,7 @@ func auditScopeDeny(ctx fiber.Ctx, scope string) {
 	}
 	ip := ctx.IP()
 	ua := string(ctx.Request().Header.UserAgent())
-	_ = routeAuditor.RecordRejected(context.Background(), audit.Entry{
+	_ = a.RecordRejected(context.Background(), audit.Entry{
 		Subject: &audit.Subject{
 			SubjectType: "token",
 			UID:         uid,

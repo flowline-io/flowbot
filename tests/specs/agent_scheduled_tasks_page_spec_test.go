@@ -38,11 +38,15 @@ func (a *agentScheduledTasksWebAdapter) GetDB() any                       { retu
 
 func (a *agentScheduledTasksWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:   1,
-		Flag: flag,
-		Params: bddWebAuthParams(a.uid, []string{"admin:*"}),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, bddWebScopesAdmin()),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *agentScheduledTasksWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 func (a *agentScheduledTasksWebAdapter) ListChatScheduledTasks(ctx context.Context, opts store.ListChatScheduledTasksOptions) ([]*gen.ChatScheduledTask, error) {

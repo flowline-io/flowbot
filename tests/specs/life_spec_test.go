@@ -36,11 +36,15 @@ func (a *lifeWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *lifeWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:   1,
-		Flag: flag,
-		Params: bddWebAuthParams(a.uid, a.scopes),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, a.scopes),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *lifeWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 var _ = Describe("Life Pages", Label("module", "web", "life"), func() {
@@ -56,7 +60,7 @@ var _ = Describe("Life Pages", Label("module", "web", "life"), func() {
 		lifeAdapter = &lifeWebAdapter{
 			ent:    EntClient,
 			uid:    testUID,
-			scopes: []string{"read", "write"},
+			scopes: bddWebScopesUser(),
 		}
 		store.Database = lifeAdapter
 

@@ -39,11 +39,15 @@ func (a *notifyWebAdapter) GetDB() any                       { return a.ent }
 
 func (a *notifyWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
-		ID:    1,
-		Flag:  flag,
-		Params: bddWebAuthParams(a.uid, a.scopes),
+		ID:        1,
+		Flag:      flag,
+		Params:    bddWebAuthParams(a.uid, a.scopes),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (a *notifyWebAdapter) ParameterSet(ctx context.Context, flag string, params types.KV, expiredAt time.Time) error {
+	return bddNoopParameterSet(ctx, flag, params, expiredAt)
 }
 
 // ListNotifyChannels satisfies History facet dropdown loading. The embedded
@@ -59,14 +63,14 @@ func (*notifyWebAdapter) ListNotifyRules(_ context.Context, _ store.ListNotifyRu
 
 var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 	var (
-		origDB            store.Adapter
-		notifyAdapter     *notifyWebAdapter
-		otherUserAdapter  *notifyWebAdapter
-		testUID           string
-		otherUID          string
-		seedRecords       []*gen.NotificationRecord
-		sentRecordID      int64
-		otherFailedRecID  int64
+		origDB           store.Adapter
+		notifyAdapter    *notifyWebAdapter
+		otherUserAdapter *notifyWebAdapter
+		testUID          string
+		otherUID         string
+		seedRecords      []*gen.NotificationRecord
+		sentRecordID     int64
+		otherFailedRecID int64
 	)
 
 	BeforeEach(func() {
@@ -77,12 +81,12 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 		notifyAdapter = &notifyWebAdapter{
 			ent:    EntClient,
 			uid:    testUID,
-			scopes: []string{"read", "write"},
+			scopes: bddWebScopesUser(),
 		}
 		otherUserAdapter = &notifyWebAdapter{
 			ent:    EntClient,
 			uid:    otherUID,
-			scopes: []string{"read", "write"},
+			scopes: bddWebScopesUser(),
 		}
 		store.Database = notifyAdapter
 

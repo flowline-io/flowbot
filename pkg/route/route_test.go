@@ -467,7 +467,7 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 }
 
 func TestAuthorizeWithLevel_WebUnauthorizedRedirect(t *testing.T) {
-	t.Parallel()
+	// Sequential: Authorize reads package-global routeAuditor / store.Database.
 	tests := []struct {
 		name       string
 		group      string
@@ -480,7 +480,6 @@ func TestAuthorizeWithLevel_WebUnauthorizedRedirect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			app := newTestApp()
 			app.Get("/page", authorizeWithLevel(0, tt.group, "GET", func(c fiber.Ctx) error {
 				return c.SendString("ok")
@@ -500,7 +499,7 @@ func TestAuthorizeWithLevel_WebUnauthorizedRedirect(t *testing.T) {
 }
 
 func TestAuthorize_RejectsEmptyScopes(t *testing.T) {
-	t.Parallel()
+	// Sequential: mutates package-global store.Database via withTestStore.
 	tests := []struct {
 		name   string
 		scopes any
@@ -535,7 +534,7 @@ func TestAuthorize_RejectsEmptyScopes(t *testing.T) {
 }
 
 func TestRequireServiceScope(t *testing.T) {
-	t.Parallel()
+	// Sequential: mutates package-global store.Database via withTestStore.
 	tests := []struct {
 		name   string
 		scopes []string
