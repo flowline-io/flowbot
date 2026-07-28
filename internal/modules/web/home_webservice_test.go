@@ -29,7 +29,7 @@ func TestHomePageAuth(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/home", http.NoBody)
@@ -64,7 +64,7 @@ func TestHomeDashboardPartial(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/home/dashboard", http.NoBody)
 			if tt.cookie != "" {
@@ -100,7 +100,7 @@ func TestSessionBadge(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/session-badge", http.NoBody)
 			if tt.cookie != "" {
@@ -131,7 +131,7 @@ func TestApprovalBadge(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/approval-badge", http.NoBody)
 			if tt.cookie != "" {

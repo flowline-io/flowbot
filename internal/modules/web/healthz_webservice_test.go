@@ -57,7 +57,7 @@ func TestHealthzPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clearHealthzSnapshot()
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
@@ -97,7 +97,7 @@ func TestHealthzPage(t *testing.T) {
 
 func TestHealthzCapabilitiesPartial(t *testing.T) {
 	clearHealthzSnapshot()
-	app, _ := setupTestApp()
+	app, _ := setupTestApp(t)
 	defer func() {
 		store.Database = nil
 		handler = moduleHandler{}

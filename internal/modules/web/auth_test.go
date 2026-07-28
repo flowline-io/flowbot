@@ -329,7 +329,7 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			if tt.paramGetFn != nil {
 				ts.paramGetFn = tt.paramGetFn
 			}

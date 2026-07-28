@@ -28,7 +28,7 @@ func TestNotifySettingsPageUnauthenticated(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications", http.NoBody)
@@ -102,7 +102,7 @@ func TestNotificationsPageRenders(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications"+tt.query, http.NoBody)
@@ -176,7 +176,7 @@ func TestNotifyChannelCreate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels", strings.NewReader(tt.form.Encode()))
@@ -257,7 +257,7 @@ func TestNotifyChannelUpdate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyChannels = map[int64]model.NotifyChannel{
 				1: {
@@ -334,7 +334,7 @@ func TestNotifyTemplatesTable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
@@ -399,7 +399,7 @@ func TestNotifyRulesTable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyRules = tt.rules
 
@@ -474,7 +474,7 @@ func TestNotifyTemplateCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
@@ -614,7 +614,7 @@ func TestNotifyRuleCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
@@ -720,7 +720,7 @@ func TestNotifyChannelTest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			if tt.channel != nil {
 				ts.notifyChannels = map[int64]model.NotifyChannel{tt.channel.ID: *tt.channel}
@@ -787,7 +787,7 @@ func TestNotifyChannelSetDefault(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyChannels = tt.channels
 
@@ -852,7 +852,7 @@ func TestNotifyTemplateSetDefault(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyTemplates = tt.templates
 

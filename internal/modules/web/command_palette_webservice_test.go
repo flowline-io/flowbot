@@ -92,7 +92,7 @@ func TestCommandPaletteSearch(t *testing.T) {
 				app, ts, client = setupTestAppWithDB(t)
 				require.NoError(t, store.NewPipelineStore(client).CreateDefinition(context.Background(), tt.seedPipeline, "", ""))
 			} else {
-				app, ts = setupTestApp()
+				app, ts = setupTestApp(t)
 			}
 			t.Cleanup(func() {
 				store.Database = nil

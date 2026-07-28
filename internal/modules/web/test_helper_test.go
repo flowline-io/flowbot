@@ -455,11 +455,9 @@ func lockWebTestGlobals(t *testing.T) {
 	})
 }
 
-func setupTestApp(ts ...*testing.T) (*fiber.App, *testStore) {
-	if len(ts) > 0 && ts[0] != nil {
-		ts[0].Helper()
-		lockWebTestGlobals(ts[0])
-	}
+func setupTestApp(t *testing.T) (*fiber.App, *testStore) {
+	t.Helper()
+	lockWebTestGlobals(t)
 	ensureChatAgentServiceForTest()
 	testDB := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()

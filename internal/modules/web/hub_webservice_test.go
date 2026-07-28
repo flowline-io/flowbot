@@ -27,7 +27,7 @@ func TestHubAppsPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			homelab.DefaultRegistry.Replace(nil)
 			defer func() {
@@ -63,7 +63,7 @@ func TestHubAppsList(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			homelab.DefaultRegistry.Replace(nil)
 			defer func() {
@@ -100,7 +100,7 @@ func TestHubAppDetailPageNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/"+tt.appName, http.NoBody)
 			addWebAuth(req)
@@ -128,7 +128,7 @@ func TestHubAppActionNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/hub/test-app/"+tt.action, http.NoBody)
 			addWebAuth(req)
@@ -153,7 +153,7 @@ func TestHubAppLogsSSENotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/hub/"+tt.appName+"/logs/stream", http.NoBody)
 			addWebAuth(req)
@@ -178,7 +178,7 @@ func TestHubAppsUnauthenticated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated pages render with valid token" {
@@ -209,7 +209,7 @@ func TestHubCapabilitiesPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/capabilities", http.NoBody)
 			addWebAuth(req)
@@ -238,7 +238,7 @@ func TestHubCapabilitiesGrid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			url := "/service/web/capabilities/grid"
 			if tt.name == "accepts type query param" {
@@ -294,7 +294,7 @@ func TestHubCapabilitiesGridFiltered(t *testing.T) {
 				Healthy:     true,
 			})
 
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			var url string
@@ -334,7 +334,7 @@ func TestHubCapabilitiesUnauthenticated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated capabilities page renders OK" {
@@ -385,7 +385,7 @@ func TestHubLifecycleAction_PermissionDenied(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			oldPerms := homelab.DefaultRegistry.Permissions()
 			defer func() {
@@ -448,7 +448,7 @@ func TestHubLifecycleAction_SuccessToast(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			oldPerms := homelab.DefaultRegistry.Permissions()
 			prevRuntime := homelab.DefaultRuntime
@@ -646,7 +646,7 @@ func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clearAppStatusCache()
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			prevRuntime := homelab.DefaultRuntime
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "status-app", Status: homelab.AppStatusUnknown}})

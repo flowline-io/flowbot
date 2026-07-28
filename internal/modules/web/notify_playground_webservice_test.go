@@ -124,7 +124,7 @@ func TestNotifyPlaygroundFormUnauthenticated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
@@ -176,7 +176,7 @@ func TestNotifyPlaygroundPreviewValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
@@ -231,7 +231,7 @@ func TestNotifyPlaygroundSamplePayload(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}

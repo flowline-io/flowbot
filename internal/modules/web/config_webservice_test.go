@@ -28,7 +28,7 @@ func TestConfigsPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			ts.configs = tt.storeConfigs
 			if tt.storeErr != nil {
 				ts.configErr = tt.storeErr
@@ -63,7 +63,7 @@ func TestListConfigs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			ts.configs = tt.storeConfigs
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/list", http.NoBody)
@@ -121,7 +121,7 @@ func TestDeleteConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			ts.configs = tt.configs
 			if tt.delErr != nil {
 				ts.delConfigFn = func(_ types.Uid, _ string, _ string) error { return tt.delErr }
@@ -160,7 +160,7 @@ func TestGetConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			ts.getConfigFn = tt.getFn
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/u1/t1/k1", http.NoBody)
@@ -203,7 +203,7 @@ func TestNewConfigFormIncludesCleanup(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs/new", http.NoBody)
 			addWebAuth(req)
@@ -311,7 +311,7 @@ func TestCreateConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			var setValue types.KV
 			ts.setConfigFn = func(uid types.Uid, topic, key string, value types.KV) error {
 				setValue = value
@@ -406,7 +406,7 @@ func TestUpdateConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			ts.getConfigFn = tt.getConfigFn
 			var setValue types.KV
 			ts.setConfigFn = func(uid types.Uid, topic, key string, value types.KV) error {

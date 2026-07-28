@@ -39,7 +39,7 @@ func TestRelationsPage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/relations", http.NoBody)
 			addWebAuth(req)
 			resp, err := app.Test(req)
@@ -120,7 +120,7 @@ func TestRelationsTree(t *testing.T) {
 			if tt.seedFn != nil {
 				app, _, _ = setupTestAppForRelations(t, tt.seedFn)
 			} else {
-				app, _ = setupTestApp()
+				app, _ = setupTestApp(t)
 			}
 			url := "/service/web/relations/tree"
 			if tt.nodeParam != "" {
@@ -200,7 +200,7 @@ func TestRelationsSearch(t *testing.T) {
 			if tt.seedFn != nil {
 				app, _, _ = setupTestAppForRelations(t, tt.seedFn)
 			} else {
-				app, _ = setupTestApp()
+				app, _ = setupTestApp(t)
 			}
 			url := "/service/web/relations/search?q=" + tt.query
 			req := httptest.NewRequest(http.MethodGet, url, http.NoBody)
@@ -246,7 +246,7 @@ func TestRelationsDetail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/relations/detail?"+tt.query, http.NoBody)
 			addWebAuth(req)
 			resp, err := app.Test(req)

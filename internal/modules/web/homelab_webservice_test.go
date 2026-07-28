@@ -23,7 +23,7 @@ func TestHomelabRegistryPage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			homelab.DefaultRegistry.Replace(nil)
 			defer func() {
@@ -59,7 +59,7 @@ func TestHomelabRegistryDetailPageNotFound(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/homelab/"+tt.appName, http.NoBody)
 			addWebAuth(req)
@@ -84,7 +84,7 @@ func TestHomelabRegistryUnauthenticated(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)
 			if tt.name == "authenticated pages render with valid token" {
@@ -139,7 +139,7 @@ func TestHomelabRegistryRescan(t *testing.T) {
 			homelab.SetRunRescan(func() error { return nil })
 			defer homelab.SetRunRescan(oldRunRescan)
 
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodPost, "/service/web/homelab/rescan", http.NoBody)
 			if tt.withAuth {
@@ -172,7 +172,7 @@ func TestHomelabRegistryPageShowsRuntimeStatus(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			clearAppStatusCache()
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			oldApps := homelab.DefaultRegistry.List()
 			prevRuntime := homelab.DefaultRuntime
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "homelab-status-app", Status: homelab.AppStatusUnknown}})

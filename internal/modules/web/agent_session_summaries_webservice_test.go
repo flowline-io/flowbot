@@ -13,7 +13,7 @@ import (
 )
 
 func TestAgentSessionSummariesListAuthenticated(t *testing.T) {
-	app, ts := setupTestApp()
+	app, ts := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
 	_, err := ts.UpsertAgentSessionSummaryPending(t.Context(), "sess-sum-1", "default", "Archive topic")
@@ -76,7 +76,7 @@ func TestAgentSessionSummaryRetry(t *testing.T) {
 		chatagent.WaitForSessionSummaryGenerationForTest()
 		restoreLLM()
 	})
-	app, _ := setupTestApp()
+	app, _ := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
 	tests := []struct {

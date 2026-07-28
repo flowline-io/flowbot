@@ -49,7 +49,7 @@ func TestAgentsPageUnauthenticated(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			defer func() { handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)

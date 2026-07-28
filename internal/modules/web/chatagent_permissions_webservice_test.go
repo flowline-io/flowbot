@@ -29,7 +29,7 @@ func TestChatAgentPermissionsPageUnauthenticated(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-permissions", http.NoBody)
 			resp, err := app.Test(req)
 			require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestChatAgentPermissionsPageAuthenticated(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _ := setupTestApp()
+			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/chatagent-permissions", http.NoBody)
 			req.Header.Set("Cookie", "accessToken=test-token")
@@ -110,7 +110,7 @@ func TestChatAgentPermissionsSaveForm(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
 			var saved permission.Config
 			ts.setConfigFn = func(_ types.Uid, topic, key string, value types.KV) error {
@@ -179,7 +179,7 @@ func TestChatAgentPermissionsSaveJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp()
+			app, ts := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
 			var saved bool
 			ts.setConfigFn = func(_ types.Uid, topic, key string, _ types.KV) error {

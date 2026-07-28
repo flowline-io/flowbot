@@ -16,7 +16,7 @@ import (
 )
 
 func TestAgentMemoryFactsAPI(t *testing.T) {
-	app, ts := setupTestApp()
+	app, ts := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
 	_, err := ts.UpsertAgentMemoryFact(t.Context(), store.AgentMemoryFactUpsert{
@@ -79,7 +79,7 @@ func TestAgentMemoryFactsAPI(t *testing.T) {
 }
 
 func TestAgentMemoryFactsFormSaveAndDelete(t *testing.T) {
-	app, ts := setupTestApp()
+	app, ts := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
 	_, err := ts.UpsertAgentMemoryFact(t.Context(), store.AgentMemoryFactUpsert{
@@ -147,7 +147,7 @@ func TestAgentMemoryFactsFormSaveAndDelete(t *testing.T) {
 }
 
 func TestAgentMemoryFactsUnauthenticated(t *testing.T) {
-	app, _ := setupTestApp()
+	app, _ := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
 	tests := []struct {
