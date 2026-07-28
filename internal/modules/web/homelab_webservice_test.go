@@ -171,16 +171,18 @@ func TestHomelabRegistryPageShowsRuntimeStatus(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			clearAppStatusCache()
 			app, _ := setupTestApp()
 			oldApps := homelab.DefaultRegistry.List()
 			prevRuntime := homelab.DefaultRuntime
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "homelab-status-app", Status: homelab.AppStatusUnknown}})
-			homelab.DefaultRuntime = stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+			homelab.DefaultRuntime = &stubHubRuntime{statusByName: map[string]homelab.AppStatus{
 				"homelab-status-app": tt.status,
 			}}
 			defer func() {
 				homelab.DefaultRegistry.Replace(oldApps)
 				homelab.DefaultRuntime = prevRuntime
+				clearAppStatusCache()
 				store.Database = nil
 				handler = moduleHandler{}
 				config = configType{}

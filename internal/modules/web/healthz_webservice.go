@@ -21,20 +21,41 @@ import (
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
+const (
+	healthzSnapshotTTL      = 30 * time.Second
+	healthzCapCacheTTL      = 30 * time.Second
+	healthzCapLookupTimeout = time.Second
+)
+
+var (
+	healthzSnapshotMu sync.Mutex
+	healthzSnapshot   partials.HealthzData
+	healthzSnapshotAt time.Time
+	healthzRefreshMu  sync.Mutex
+	healthzRefreshing bool
+
+	healthzCapMu         sync.Mutex
+	healthzCapSnapshot   []partials.HealthzCap
+	healthzCapSnapshotAt time.Time
+	healthzCapRefreshMu  sync.Mutex
+	healthzCapRefreshing bool
+)
+
 var healthzWebserviceRules = []webservice.Rule{
 	webservice.Get("/healthz", healthzPage, route.WithNotAuth()),
+	webservice.Get("/healthz/capabilities", healthzCapabilitiesPartial, route.WithNotAuth()),
 }
 
-// healthzPage renders the system health dashboard.
+// healthzPage renders the system health dashboard (infra metrics only; capabilities load async).
 func healthzPage(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
 
-	hctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	hctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	data := gatherHealthzData(hctx)
+	data := gatherInfraHealthzData(hctx)
 
 	ctx.Type("html")
 	if ctx.Get("HX-Request") != "" {
@@ -43,25 +64,144 @@ func healthzPage(ctx fiber.Ctx) error {
 	return pages.HealthzPage(data).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
-// gatherHealthzData collects all health metrics for the dashboard.
-func gatherHealthzData(ctx context.Context) partials.HealthzData {
+// healthzCapabilitiesPartial returns the capability health table for deferred HTMX loads.
+func healthzCapabilitiesPartial(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+
+	hctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	caps := gatherCapabilityHealth(hctx)
+	ctx.Type("html")
+	return partials.HealthzCapabilities(caps).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+// gatherInfraHealthzData returns infra metrics with stale-while-revalidate caching.
+func gatherInfraHealthzData(ctx context.Context) partials.HealthzData {
+	healthzSnapshotMu.Lock()
+	has := !healthzSnapshotAt.IsZero()
+	fresh := has && time.Since(healthzSnapshotAt) < healthzSnapshotTTL
+	data := healthzSnapshot
+	healthzSnapshotMu.Unlock()
+
+	if fresh {
+		return data
+	}
+	if has {
+		triggerInfraHealthzRefresh()
+		return data
+	}
+
+	data = collectInfraHealthzData(ctx)
+	storeInfraHealthzSnapshot(data)
+	return data
+}
+
+func triggerInfraHealthzRefresh() {
+	healthzRefreshMu.Lock()
+	if healthzRefreshing {
+		healthzRefreshMu.Unlock()
+		return
+	}
+	healthzRefreshing = true
+	healthzRefreshMu.Unlock()
+
+	go func() {
+		defer func() {
+			healthzRefreshMu.Lock()
+			healthzRefreshing = false
+			healthzRefreshMu.Unlock()
+		}()
+		rctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		storeInfraHealthzSnapshot(collectInfraHealthzData(rctx))
+	}()
+}
+
+func storeInfraHealthzSnapshot(data partials.HealthzData) {
+	healthzSnapshotMu.Lock()
+	defer healthzSnapshotMu.Unlock()
+	healthzSnapshot = data
+	healthzSnapshotAt = time.Now()
+}
+
+// gatherCapabilityHealth returns capability statuses with stale-while-revalidate caching.
+func gatherCapabilityHealth(ctx context.Context) []partials.HealthzCap {
+	healthzCapMu.Lock()
+	has := !healthzCapSnapshotAt.IsZero()
+	fresh := has && time.Since(healthzCapSnapshotAt) < healthzCapCacheTTL
+	caps := append([]partials.HealthzCap(nil), healthzCapSnapshot...)
+	healthzCapMu.Unlock()
+
+	if fresh {
+		return caps
+	}
+	if has {
+		triggerCapabilityHealthRefresh()
+		return caps
+	}
+
+	caps = collectCapabilityHealth(ctx)
+	storeCapabilityHealthSnapshot(caps)
+	return caps
+}
+
+func triggerCapabilityHealthRefresh() {
+	healthzCapRefreshMu.Lock()
+	if healthzCapRefreshing {
+		healthzCapRefreshMu.Unlock()
+		return
+	}
+	healthzCapRefreshing = true
+	healthzCapRefreshMu.Unlock()
+
+	go func() {
+		defer func() {
+			healthzCapRefreshMu.Lock()
+			healthzCapRefreshing = false
+			healthzCapRefreshMu.Unlock()
+		}()
+		rctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		storeCapabilityHealthSnapshot(collectCapabilityHealth(rctx))
+	}()
+}
+
+func storeCapabilityHealthSnapshot(caps []partials.HealthzCap) {
+	healthzCapMu.Lock()
+	defer healthzCapMu.Unlock()
+	healthzCapSnapshot = append([]partials.HealthzCap(nil), caps...)
+	healthzCapSnapshotAt = time.Now()
+}
+
+// collectInfraHealthzData collects Postgres/Redis/runtime/error metrics (no capability probes).
+func collectInfraHealthzData(ctx context.Context) partials.HealthzData {
 	data := partials.HealthzData{}
 
-	// PostgreSQL ping
-	if store.Database != nil && store.Database.IsOpen() {
-		latency, err := store.Database.Ping(ctx)
-		data.PostgresLatency = latency
-		data.PostgresOk = err == nil
-	}
+	var (
+		pgLatency, redisLatency time.Duration
+		pgOk, redisOk           bool
+		wg                      sync.WaitGroup
+	)
 
-	// Redis ping
-	if rs := cache.DefaultRedisStore(); rs != nil {
-		latency, err := rs.Ping(ctx)
-		data.RedisLatency = latency
-		data.RedisOk = err == nil
-	}
+	wg.Go(func() {
+		if store.Database != nil && store.Database.IsOpen() {
+			latency, err := store.Database.Ping(ctx)
+			pgLatency = latency
+			pgOk = err == nil
+		}
+	})
 
-	// Runtime metrics
+	wg.Go(func() {
+		if rs := cache.DefaultRedisStore(); rs != nil {
+			latency, err := rs.Ping(ctx)
+			redisLatency = latency
+			redisOk = err == nil
+		}
+	})
+
 	var memStats runtime.MemStats
 	runtime.ReadMemStats(&memStats)
 	data.Goroutines = runtime.NumGoroutine()
@@ -76,23 +216,38 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 		}
 	}
 
-	// Capability health checks
+	wg.Wait()
+
+	data.PostgresLatency = pgLatency
+	data.PostgresOk = pgOk
+	data.RedisLatency = redisLatency
+	data.RedisOk = redisOk
+
+	allErrors := flog.RecentErrors()
+	start := 0
+	if len(allErrors) > 10 {
+		start = len(allErrors) - 10
+	}
+	data.Errors = allErrors[start:]
+
+	return data
+}
+
+func collectCapabilityHealth(ctx context.Context) []partials.HealthzCap {
 	descriptors := hub.Default.List()
 	caps := make([]partials.HealthzCap, len(descriptors))
 	var wg sync.WaitGroup
 
 	for i, desc := range descriptors {
-		wg.Add(1)
-		go func(idx int, d hub.Descriptor) {
-			defer wg.Done()
-			capCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		wg.Go(func() {
+			capCtx, cancel := context.WithTimeout(ctx, healthzCapLookupTimeout)
 			defer cancel()
 
 			info := partials.HealthzCap{
-				Type: string(d.Type),
+				Type: string(desc.Type),
 			}
 
-			result, err := capability.Invoke(capCtx, d.Type, "health", map[string]any{})
+			result, err := capability.Invoke(capCtx, desc.Type, "health", map[string]any{})
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					info.Status = "timeout"
@@ -109,19 +264,26 @@ func gatherHealthzData(ctx context.Context) partials.HealthzData {
 			} else {
 				info.Status = "na"
 			}
-			caps[idx] = info
-		}(i, desc)
+			caps[i] = info
+		})
 	}
 	wg.Wait()
-	data.Capabilities = caps
+	return caps
+}
 
-	// Recent errors (last 10)
-	allErrors := flog.RecentErrors()
-	start := 0
-	if len(allErrors) > 10 {
-		start = len(allErrors) - 10
-	}
-	data.Errors = allErrors[start:]
+func clearHealthzSnapshot() {
+	healthzSnapshotMu.Lock()
+	healthzSnapshot = partials.HealthzData{}
+	healthzSnapshotAt = time.Time{}
+	healthzSnapshotMu.Unlock()
 
-	return data
+	healthzCapMu.Lock()
+	healthzCapSnapshot = nil
+	healthzCapSnapshotAt = time.Time{}
+	healthzCapMu.Unlock()
+}
+
+// gatherHealthzData is retained for tests that assert snapshot caching of infra metrics.
+func gatherHealthzData(ctx context.Context) partials.HealthzData {
+	return gatherInfraHealthzData(ctx)
 }

@@ -23,8 +23,7 @@ func homelabRegistryPage(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	apps := enrichAppStatuses(c.Context(), homelab.DefaultRegistry.List())
-	updatedAts := loadUpdatedAts(c.Context())
+	apps, updatedAts := loadAppsWithUpdatedAts(c.Context())
 	scannedAt := latestScannedAt(updatedAts)
 	c.Type("html")
 	return pages.HomelabPage(apps, scannedAt).Render(c.Context(), c.Response().BodyWriter())
@@ -64,6 +63,7 @@ func homelabRegistryRescan(c fiber.Ctx) error {
 		c.Set("HX-Redirect", "/service/web/homelab")
 		return c.SendStatus(http.StatusOK)
 	}
+	clearAppStatusCache()
 	c.Set("HX-Redirect", "/service/web/homelab")
 	return c.SendStatus(http.StatusOK)
 }

@@ -85,68 +85,86 @@ templ HealthzStatus(data HealthzData) {
 			</div>
 		</div>
 
-		<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-			<!-- Capability Status -->
-			<div class="flowbot-surface" data-testid="healthz-capabilities">
-				<div class="card-body">
-					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Capability Status</h2>
-					<div class="overflow-x-auto max-h-64 overflow-y-auto">
-						<table class="table table-sm">
-							<thead>
-								<tr>
-									<th>Capability</th>
-									<th>Status</th>
-								</tr>
-							</thead>
-							<tbody>
-								for _, cap := range data.Capabilities {
-									<tr>
-							<td class="font-medium">{ cap.Type }</td>
-							<td>
-								if cap.Status == "healthy" {
-									<span class="flowbot-chip flowbot-chip-success">healthy</span>
-								} else if cap.Status == "timeout" {
-									<span class="flowbot-chip flowbot-chip-warning">timeout</span>
-								} else if cap.Status == "na" {
-									<span class="flowbot-chip flowbot-chip-muted">n/a</span>
-								} else {
-									<span class="flowbot-chip flowbot-chip-error">{ cap.Status }</span>
-									if cap.Error != "" {
-										<span class="text-xs text-error ml-1">{ cap.Error }</span>
-									}
-								}
-										</td>
-									</tr>
-								}
-								if len(data.Capabilities) == 0 {
-									<tr>
-										<td colspan="3" class="text-center text-base-content/50">No capabilities registered</td>
-									</tr>
-								}
-							</tbody>
-						</table>
-					</div>
+		<div class="flowbot-surface mb-6" data-testid="healthz-errors">
+			<div class="card-body">
+				<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Recent Errors</h2>
+				<div class="overflow-x-auto max-h-64 overflow-y-auto">
+					if len(data.Errors) == 0 {
+						<p class="text-base-content/50 text-sm">No recent errors</p>
+					} else {
+						<ul class="list-disc list-inside space-y-1">
+							for _, e := range data.Errors {
+						<li class="text-xs text-error">
+							<span class="text-base-content/50">{ e.Time.Format("15:04:05") }</span> { e.Message }
+						</li>
+							}
+						</ul>
+					}
 				</div>
 			</div>
+		</div>
+	</div>
+}
 
-			<!-- Recent Errors -->
-			<div class="flowbot-surface" data-testid="healthz-errors">
-				<div class="card-body">
-					<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Recent Errors</h2>
-					<div class="overflow-x-auto max-h-64 overflow-y-auto">
-						if len(data.Errors) == 0 {
-							<p class="text-base-content/50 text-sm">No recent errors</p>
-						} else {
-							<ul class="list-disc list-inside space-y-1">
-								for _, e := range data.Errors {
-							<li class="text-xs text-error">
-								<span class="text-base-content/50">{ e.Time.Format("15:04:05") }</span> { e.Message }
-							</li>
-								}
-							</ul>
+// HealthzCapabilitiesPanel is the deferred capability probe panel (outside healthz-status swaps).
+templ HealthzCapabilitiesPanel() {
+	<div id="healthz-capabilities"
+		class="flowbot-surface mb-6"
+		data-testid="healthz-capabilities"
+		hx-get="/service/web/healthz/capabilities"
+		hx-trigger="load, every 30s"
+		hx-swap="outerHTML show:none">
+		<div class="card-body">
+			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Capability Status</h2>
+			@PanelSkeleton()
+		</div>
+	</div>
+}
+
+templ HealthzCapabilities(caps []HealthzCap) {
+	<div id="healthz-capabilities"
+		class="flowbot-surface mb-6"
+		data-testid="healthz-capabilities"
+		hx-get="/service/web/healthz/capabilities"
+		hx-trigger="every 30s"
+		hx-swap="outerHTML show:none">
+		<div class="card-body">
+			<h2 class="text-base font-semibold tracking-tight m-0 mb-2">Capability Status</h2>
+			<div class="overflow-x-auto max-h-64 overflow-y-auto">
+				<table class="table table-sm">
+					<thead>
+						<tr>
+							<th>Capability</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, cap := range caps {
+							<tr>
+								<td class="font-medium">{ cap.Type }</td>
+								<td>
+									if cap.Status == "healthy" {
+										<span class="flowbot-chip flowbot-chip-success">healthy</span>
+									} else if cap.Status == "timeout" {
+										<span class="flowbot-chip flowbot-chip-warning">timeout</span>
+									} else if cap.Status == "na" {
+										<span class="flowbot-chip flowbot-chip-muted">n/a</span>
+									} else {
+										<span class="flowbot-chip flowbot-chip-error">{ cap.Status }</span>
+										if cap.Error != "" {
+											<span class="text-xs text-error ml-1">{ cap.Error }</span>
+										}
+									}
+								</td>
+							</tr>
 						}
-					</div>
-				</div>
+						if len(caps) == 0 {
+							<tr>
+								<td colspan="2" class="text-center text-base-content/50">No capabilities registered</td>
+							</tr>
+						}
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>

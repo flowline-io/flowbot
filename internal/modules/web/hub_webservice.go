@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -21,6 +23,22 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
+)
+
+const (
+	appStatusCacheTTL      = 8 * time.Second
+	appStatusConcurrency   = 8
+	appStatusLookupTimeout = 3 * time.Second
+)
+
+type appStatusCacheEntry struct {
+	status    homelab.AppStatus
+	expiresAt time.Time
+}
+
+var (
+	appStatusCacheMu sync.Mutex
+	appStatusCache   = map[string]appStatusCacheEntry{}
 )
 
 var hubWebserviceRules = []webservice.Rule{
@@ -43,8 +61,7 @@ func hubAppsPage(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	apps := enrichAppStatuses(c.Context(), homelab.DefaultRegistry.List())
-	updatedAts := loadUpdatedAts(c.Context())
+	apps, updatedAts := loadAppsWithUpdatedAts(c.Context())
 	c.Type("html")
 	return pages.HubAppsPage(apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
 }
@@ -54,8 +71,7 @@ func hubAppsList(c fiber.Ctx) error {
 	if err := authenticateWeb(c); err != nil {
 		return err
 	}
-	apps := enrichAppStatuses(c.Context(), homelab.DefaultRegistry.List())
-	updatedAts := loadUpdatedAts(c.Context())
+	apps, updatedAts := loadAppsWithUpdatedAts(c.Context())
 	c.Type("html")
 	return partials.HubAppsTable(apps, updatedAts).Render(c.Context(), c.Response().BodyWriter())
 }
@@ -194,9 +210,12 @@ func hubLifecycleAction(c fiber.Ctx, fn func(ctx context.Context, app homelab.Ap
 		return toastError(c, "Could not "+operation+" "+name+": "+err.Error())
 	}
 
+	invalidateAppStatusCache(name)
 	status, err := homelab.DefaultRuntime.Status(c.Context(), app)
 	if err != nil {
 		status = app.Status
+	} else {
+		storeAppStatusCache(name, status)
 	}
 	setShowToast(c, "success", hubLifecycleSuccessMessage(name, operation))
 	c.Type("html")
@@ -239,6 +258,23 @@ func lifecycleScope(operation string) string {
 	}
 }
 
+// loadAppsWithUpdatedAts enriches app statuses and loads store timestamps in parallel.
+func loadAppsWithUpdatedAts(ctx context.Context) ([]homelab.App, map[string]string) {
+	var (
+		apps       []homelab.App
+		updatedAts map[string]string
+		wg         sync.WaitGroup
+	)
+	wg.Go(func() {
+		apps = enrichAppStatuses(ctx, homelab.DefaultRegistry.List())
+	})
+	wg.Go(func() {
+		updatedAts = loadUpdatedAts(ctx)
+	})
+	wg.Wait()
+	return apps, updatedAts
+}
+
 // loadUpdatedAts loads updated timestamps from the store and formats them.
 func loadUpdatedAts(ctx context.Context) map[string]string {
 	if store.Database == nil || store.Database.GetDB() == nil {
@@ -264,21 +300,78 @@ func loadUpdatedAts(ctx context.Context) map[string]string {
 }
 
 // enrichAppStatuses copies apps and fills Status from DefaultRuntime when available.
+// Lookups are bounded-concurrent and cached briefly to keep Apps/Registry pages responsive.
 func enrichAppStatuses(ctx context.Context, apps []homelab.App) []homelab.App {
 	if len(apps) == 0 {
 		return apps
 	}
 	out := make([]homelab.App, len(apps))
 	copy(out, apps)
+
+	misses := make([]int, 0, len(out))
 	for i := range out {
-		status, err := homelab.DefaultRuntime.Status(ctx, out[i])
-		if err != nil {
-			flog.Warn("hub: status lookup failed for %s: %v", out[i].Name, err)
+		if status, ok := lookupAppStatusCache(out[i].Name); ok {
+			out[i].Status = status
 			continue
 		}
-		out[i].Status = status
+		misses = append(misses, i)
 	}
+	if len(misses) == 0 {
+		return out
+	}
+
+	sem := make(chan struct{}, appStatusConcurrency)
+	var wg sync.WaitGroup
+	for _, idx := range misses {
+		wg.Go(func() {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			app := out[idx]
+			lookupCtx, cancel := context.WithTimeout(ctx, appStatusLookupTimeout)
+			defer cancel()
+			status, err := homelab.DefaultRuntime.Status(lookupCtx, app)
+			if err != nil {
+				flog.Warn("hub: status lookup failed for %s: %v", app.Name, err)
+				return
+			}
+			out[idx].Status = status
+			storeAppStatusCache(app.Name, status)
+		})
+	}
+	wg.Wait()
 	return out
+}
+
+func lookupAppStatusCache(name string) (homelab.AppStatus, bool) {
+	appStatusCacheMu.Lock()
+	defer appStatusCacheMu.Unlock()
+	entry, ok := appStatusCache[name]
+	if !ok || time.Now().After(entry.expiresAt) {
+		return "", false
+	}
+	return entry.status, true
+}
+
+func storeAppStatusCache(name string, status homelab.AppStatus) {
+	appStatusCacheMu.Lock()
+	defer appStatusCacheMu.Unlock()
+	appStatusCache[name] = appStatusCacheEntry{
+		status:    status,
+		expiresAt: time.Now().Add(appStatusCacheTTL),
+	}
+}
+
+func invalidateAppStatusCache(name string) {
+	appStatusCacheMu.Lock()
+	defer appStatusCacheMu.Unlock()
+	delete(appStatusCache, name)
+}
+
+func clearAppStatusCache() {
+	appStatusCacheMu.Lock()
+	defer appStatusCacheMu.Unlock()
+	appStatusCache = map[string]appStatusCacheEntry{}
 }
 
 // hubCapabilitiesPage renders the full capabilities browser page.

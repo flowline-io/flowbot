@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -461,9 +462,10 @@ func TestHubLifecycleAction_SuccessToast(t *testing.T) {
 			}()
 			homelab.DefaultRegistry.SetPermissions(tt.perms)
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "demo-app", Status: homelab.AppStatusRunning}})
-			homelab.DefaultRuntime = stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+			homelab.DefaultRuntime = &stubHubRuntime{statusByName: map[string]homelab.AppStatus{
 				"demo-app": homelab.AppStatusRunning,
 			}}
+			clearAppStatusCache()
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/hub/demo-app/"+tt.action, http.NoBody)
 			addWebAuth(req)
@@ -490,9 +492,18 @@ func TestHubLifecycleAction_SuccessToast(t *testing.T) {
 type stubHubRuntime struct {
 	statusByName map[string]homelab.AppStatus
 	errByName    map[string]error
+	callsMu      sync.Mutex
+	calls        map[string]int
 }
 
-func (s stubHubRuntime) Status(_ context.Context, app homelab.App) (homelab.AppStatus, error) {
+func (s *stubHubRuntime) Status(_ context.Context, app homelab.App) (homelab.AppStatus, error) {
+	s.callsMu.Lock()
+	if s.calls == nil {
+		s.calls = map[string]int{}
+	}
+	s.calls[app.Name]++
+	s.callsMu.Unlock()
+
 	if err, ok := s.errByName[app.Name]; ok {
 		return homelab.AppStatusUnknown, err
 	}
@@ -502,20 +513,26 @@ func (s stubHubRuntime) Status(_ context.Context, app homelab.App) (homelab.AppS
 	return homelab.AppStatusUnknown, nil
 }
 
-func (stubHubRuntime) Logs(context.Context, homelab.App, int) ([]string, error) {
+func (s *stubHubRuntime) callCount(name string) int {
+	s.callsMu.Lock()
+	defer s.callsMu.Unlock()
+	return s.calls[name]
+}
+
+func (*stubHubRuntime) Logs(context.Context, homelab.App, int) ([]string, error) {
 	return nil, nil
 }
-func (stubHubRuntime) Start(context.Context, homelab.App) error   { return nil }
-func (stubHubRuntime) Stop(context.Context, homelab.App) error    { return nil }
-func (stubHubRuntime) Restart(context.Context, homelab.App) error { return nil }
-func (stubHubRuntime) Pull(context.Context, homelab.App) error    { return nil }
-func (stubHubRuntime) Update(context.Context, homelab.App) error  { return nil }
+func (*stubHubRuntime) Start(context.Context, homelab.App) error   { return nil }
+func (*stubHubRuntime) Stop(context.Context, homelab.App) error    { return nil }
+func (*stubHubRuntime) Restart(context.Context, homelab.App) error { return nil }
+func (*stubHubRuntime) Pull(context.Context, homelab.App) error    { return nil }
+func (*stubHubRuntime) Update(context.Context, homelab.App) error  { return nil }
 
 func TestEnrichAppStatuses(t *testing.T) {
 	tests := []struct {
 		name         string
 		apps         []homelab.App
-		runtime      stubHubRuntime
+		runtime      *stubHubRuntime
 		wantStatuses []homelab.AppStatus
 	}{
 		{
@@ -524,7 +541,7 @@ func TestEnrichAppStatuses(t *testing.T) {
 				{Name: "atuin", Status: homelab.AppStatusUnknown},
 				{Name: "caddy", Status: homelab.AppStatusUnknown},
 			},
-			runtime: stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+			runtime: &stubHubRuntime{statusByName: map[string]homelab.AppStatus{
 				"atuin": homelab.AppStatusRunning,
 				"caddy": homelab.AppStatusStopped,
 			}},
@@ -535,7 +552,7 @@ func TestEnrichAppStatuses(t *testing.T) {
 			apps: []homelab.App{
 				{Name: "broken", Status: homelab.AppStatusUnknown},
 			},
-			runtime: stubHubRuntime{errByName: map[string]error{
+			runtime: &stubHubRuntime{errByName: map[string]error{
 				"broken": errors.New("docker unavailable"),
 			}},
 			wantStatuses: []homelab.AppStatus{homelab.AppStatusUnknown},
@@ -543,12 +560,13 @@ func TestEnrichAppStatuses(t *testing.T) {
 		{
 			name:         "empty input returns empty",
 			apps:         nil,
-			runtime:      stubHubRuntime{},
+			runtime:      &stubHubRuntime{},
 			wantStatuses: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			clearAppStatusCache()
 			prev := homelab.DefaultRuntime
 			homelab.DefaultRuntime = tt.runtime
 			defer func() { homelab.DefaultRuntime = prev }()
@@ -566,6 +584,55 @@ func TestEnrichAppStatuses(t *testing.T) {
 	}
 }
 
+func TestEnrichAppStatusesCache(t *testing.T) {
+	tests := []struct {
+		name           string
+		setup          func(rt *stubHubRuntime, apps []homelab.App)
+		wantSecondCall int
+		wantStatus     homelab.AppStatus
+	}{
+		{
+			name: "second enrich hits cache without runtime call",
+			setup: func(_ *stubHubRuntime, apps []homelab.App) {
+				_ = enrichAppStatuses(context.Background(), apps)
+			},
+			wantSecondCall: 1,
+			wantStatus:     homelab.AppStatusRunning,
+		},
+		{
+			name: "invalidate forces runtime refresh",
+			setup: func(rt *stubHubRuntime, apps []homelab.App) {
+				_ = enrichAppStatuses(context.Background(), apps)
+				invalidateAppStatusCache("cached-app")
+				rt.statusByName["cached-app"] = homelab.AppStatusStopped
+			},
+			wantSecondCall: 2,
+			wantStatus:     homelab.AppStatusStopped,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			clearAppStatusCache()
+			apps := []homelab.App{{Name: "cached-app", Status: homelab.AppStatusUnknown}}
+			rt := &stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+				"cached-app": homelab.AppStatusRunning,
+			}}
+			prev := homelab.DefaultRuntime
+			homelab.DefaultRuntime = rt
+			defer func() { homelab.DefaultRuntime = prev; clearAppStatusCache() }()
+
+			tt.setup(rt, apps)
+			got := enrichAppStatuses(context.Background(), apps)
+			if got[0].Status != tt.wantStatus {
+				t.Errorf("status: want %q, got %q", tt.wantStatus, got[0].Status)
+			}
+			if n := rt.callCount("cached-app"); n != tt.wantSecondCall {
+				t.Errorf("runtime calls: want %d, got %d", tt.wantSecondCall, n)
+			}
+		})
+	}
+}
+
 func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -578,16 +645,18 @@ func TestHubAppsListShowsRuntimeStatus(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			clearAppStatusCache()
 			app, _ := setupTestApp()
 			oldApps := homelab.DefaultRegistry.List()
 			prevRuntime := homelab.DefaultRuntime
 			homelab.DefaultRegistry.Replace([]homelab.App{{Name: "status-app", Status: homelab.AppStatusUnknown}})
-			homelab.DefaultRuntime = stubHubRuntime{statusByName: map[string]homelab.AppStatus{
+			homelab.DefaultRuntime = &stubHubRuntime{statusByName: map[string]homelab.AppStatus{
 				"status-app": tt.status,
 			}}
 			defer func() {
 				homelab.DefaultRegistry.Replace(oldApps)
 				homelab.DefaultRuntime = prevRuntime
+				clearAppStatusCache()
 				store.Database = nil
 				handler = moduleHandler{}
 				config = configType{}
