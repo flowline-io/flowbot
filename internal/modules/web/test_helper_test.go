@@ -443,9 +443,11 @@ var webTestGlobalsMu sync.Mutex
 
 func lockWebTestGlobals(t *testing.T) {
 	t.Helper()
+	waitHealthzRefresh()
 	webTestGlobalsMu.Lock()
 	t.Cleanup(func() {
 		chatagent.WaitForSessionSummaryGenerationForTest()
+		waitHealthzRefresh()
 		store.Database = nil
 		handler = moduleHandler{}
 		config = configType{}

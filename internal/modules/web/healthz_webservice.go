@@ -33,12 +33,14 @@ var (
 	healthzSnapshotAt time.Time
 	healthzRefreshMu  sync.Mutex
 	healthzRefreshing bool
+	healthzRefreshWG  sync.WaitGroup
 
 	healthzCapMu         sync.Mutex
 	healthzCapSnapshot   []partials.HealthzCap
 	healthzCapSnapshotAt time.Time
 	healthzCapRefreshMu  sync.Mutex
 	healthzCapRefreshing bool
+	healthzCapRefreshWG  sync.WaitGroup
 )
 
 var healthzWebserviceRules = []webservice.Rule{
@@ -106,6 +108,7 @@ func triggerInfraHealthzRefresh() {
 		return
 	}
 	healthzRefreshing = true
+	healthzRefreshWG.Add(1)
 	healthzRefreshMu.Unlock()
 
 	go func() {
@@ -113,6 +116,7 @@ func triggerInfraHealthzRefresh() {
 			healthzRefreshMu.Lock()
 			healthzRefreshing = false
 			healthzRefreshMu.Unlock()
+			healthzRefreshWG.Done()
 		}()
 		rctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -155,6 +159,7 @@ func triggerCapabilityHealthRefresh() {
 		return
 	}
 	healthzCapRefreshing = true
+	healthzCapRefreshWG.Add(1)
 	healthzCapRefreshMu.Unlock()
 
 	go func() {
@@ -162,6 +167,7 @@ func triggerCapabilityHealthRefresh() {
 			healthzCapRefreshMu.Lock()
 			healthzCapRefreshing = false
 			healthzCapRefreshMu.Unlock()
+			healthzCapRefreshWG.Done()
 		}()
 		rctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
@@ -271,7 +277,14 @@ func collectCapabilityHealth(ctx context.Context) []partials.HealthzCap {
 	return caps
 }
 
+func waitHealthzRefresh() {
+	healthzRefreshWG.Wait()
+	healthzCapRefreshWG.Wait()
+}
+
 func clearHealthzSnapshot() {
+	waitHealthzRefresh()
+
 	healthzSnapshotMu.Lock()
 	healthzSnapshot = partials.HealthzData{}
 	healthzSnapshotAt = time.Time{}

@@ -184,3 +184,28 @@ func TestGatherCapabilityHealthSnapshotCache(t *testing.T) {
 		t.Fatalf("want stale capability snapshot, got %+v", got)
 	}
 }
+
+func TestClearHealthzSnapshotWaitsForInfraRefresh(t *testing.T) {
+	clearHealthzSnapshot()
+	store.Database = &testStore{}
+	defer func() {
+		clearHealthzSnapshot()
+		store.Database = nil
+	}()
+
+	healthzSnapshotMu.Lock()
+	healthzSnapshot = partials.HealthzData{HeapAlloc: 1, PostgresOk: true}
+	healthzSnapshotAt = time.Now().Add(-(healthzSnapshotTTL + time.Second))
+	healthzSnapshotMu.Unlock()
+
+	_ = gatherInfraHealthzData(context.Background())
+	clearHealthzSnapshot()
+	store.Database = nil
+
+	healthzSnapshotMu.Lock()
+	cleared := healthzSnapshotAt.IsZero()
+	healthzSnapshotMu.Unlock()
+	if !cleared {
+		t.Fatal("want healthz snapshot cleared after wait")
+	}
+}
