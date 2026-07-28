@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -137,7 +138,6 @@ func TestCSRFMiddleware(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
-			defer func() { handler = moduleHandler{}; config = configType{} }()
 
 			var body *strings.Reader
 			if tt.formToken != "" {
@@ -158,7 +158,7 @@ func TestCSRFMiddleware(t *testing.T) {
 			if tt.header != "" {
 				req.Header.Set(csrfHeaderName, tt.header)
 			}
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 			if err != nil {
 				t.Fatalf("app.Test: %v", err)
 			}
@@ -183,7 +183,6 @@ func TestEnsureCSRFCookieSetsCookie(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, _ := setupTestApp(t)
-			defer func() { handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/login", http.NoBody)
 			if tt.existing != "" {
 				req.AddCookie(&http.Cookie{Name: csrfCookieName, Value: tt.existing})

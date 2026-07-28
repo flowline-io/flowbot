@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -74,7 +75,6 @@ func TestLoginPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts, client := setupTestAppWithDB(t)
-			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 			if tt.seedAccount {
 				seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)
 			}
@@ -86,7 +86,7 @@ func TestLoginPage(t *testing.T) {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
 				AttachCSRFForTest(req)
 			}
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
@@ -188,7 +188,6 @@ func TestLoginSubmit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts, client := setupTestAppWithDB(t)
-			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 			seedWebAccount(t, client, "admin", "flowbot-dev-pass", tt.totpEnabled)
 			if tt.paramSetErr != nil {
 				ts.paramSetFn = func(_ context.Context, _ string, _ types.KV, _ time.Time) error {
@@ -204,7 +203,7 @@ func TestLoginSubmit(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			AttachCSRFForTest(req)
-			resp, err := app.Test(req)
+			resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 			defer resp.Body.Close()
@@ -230,7 +229,6 @@ func TestLoginSubmit(t *testing.T) {
 
 func TestLogin2FASubmit(t *testing.T) {
 	app, ts, client := setupTestAppWithDB(t)
-	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 	seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)
 
 	ws := store.NewWebAccountStore(client)
@@ -272,7 +270,7 @@ func TestLogin2FASubmit(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.AddCookie(&http.Cookie{Name: webauth.CookiePending, Value: pendingToken})
 	AttachCSRFForTest(req)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -287,13 +285,6 @@ func TestLogin2FASubmit(t *testing.T) {
 
 func TestLogin2FABackupCodeBypassesTOTPLock(t *testing.T) {
 	app, ts, client := setupTestAppWithDB(t)
-	defer func() {
-		store.Database = nil
-		handler = moduleHandler{}
-		config = configType{}
-		setWebEncryptor(nil)
-		totpLimiter = nil
-	}()
 
 	mockStore := newMockRateLimitStore()
 	totpLimiter = newLoginRateLimiter(mockStore, 3, 10, cache.TTL(15*time.Minute), cache.TTL(15*time.Minute))
@@ -357,7 +348,7 @@ func TestLogin2FABackupCodeBypassesTOTPLock(t *testing.T) {
 	req.Header.Set("X-Forwarded-For", ip)
 	req.AddCookie(&http.Cookie{Name: webauth.CookiePending, Value: pendingToken})
 	AttachCSRFForTest(req)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -370,7 +361,6 @@ func TestLogin2FABackupCodeBypassesTOTPLock(t *testing.T) {
 func TestLoginSubmitCookieAttributes(t *testing.T) {
 	secureFalse := false
 	app, _, client := setupTestAppWithDB(t)
-	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 	handler.authConfig = AuthConfig{CookieSecure: &secureFalse}
 	config.Auth = handler.authConfig
 	seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)
@@ -381,7 +371,7 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	AttachCSRFForTest(req)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	if err != nil {
 		t.Fatalf("app.Test: %v", err)
 	}
@@ -406,7 +396,6 @@ func TestLoginSubmitCookieAttributes(t *testing.T) {
 
 func TestLoginSubmitStoresHashedToken(t *testing.T) {
 	app, ts, client := setupTestAppWithDB(t)
-	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 	seedWebAccount(t, client, "admin", "flowbot-dev-pass", true)
 	var storedFlag string
 	ts.paramSetFn = func(_ context.Context, flag string, _ types.KV, _ time.Time) error {
@@ -419,7 +408,7 @@ func TestLoginSubmitStoresHashedToken(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	AttachCSRFForTest(req)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -433,14 +422,13 @@ func TestLoginSubmitStoresHashedToken(t *testing.T) {
 
 func TestSetupCreatesFirstAccount(t *testing.T) {
 	app, _, _ := setupTestAppWithDB(t)
-	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 	form := url.Values{}
 	form.Set("username", "admin")
 	form.Set("password", "flowbot-dev-pass")
 	req := httptest.NewRequest(http.MethodPost, "/service/web/setup", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	AttachCSRFForTest(req)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer resp.Body.Close()
@@ -457,10 +445,9 @@ func TestSetupCreatesFirstAccount(t *testing.T) {
 
 func TestSetupBlockedWhenAccountExists(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
-	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 	seedWebAccount(t, client, "admin", "flowbot-dev-pass", false)
 	req := httptest.NewRequest(http.MethodGet, "/service/web/setup", http.NoBody)
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 5 * time.Second})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
 	defer resp.Body.Close()
