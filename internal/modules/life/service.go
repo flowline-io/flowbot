@@ -2,7 +2,6 @@ package life
 
 import (
 	"context"
-	"fmt"
 	"maps"
 	"math/rand"
 	"strings"
@@ -17,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // Service orchestrates Life use cases for the web UI.
@@ -36,7 +36,7 @@ func NewService(ls *store.LifeStore) *Service {
 // EnsureProfile creates the profile graph for a user if needed.
 func (s *Service) EnsureProfile(ctx context.Context, userID, nickname, defaultClass string) (*gen.LifeProfile, error) {
 	if s == nil || s.store == nil {
-		return nil, fmt.Errorf("life: service unavailable")
+		return nil, lifeUnavailable("service unavailable")
 	}
 	p, err := s.store.GetProfileByUserID(ctx, userID)
 	if err != nil {
@@ -235,7 +235,7 @@ func (s *Service) resolveGoalBinding(ctx context.Context, profileID int64, goalF
 		return nil, nil, err
 	}
 	if g == nil || g.Status != "Active" {
-		return nil, nil, fmt.Errorf("life: goal not found")
+		return nil, nil, lifeNotFound("goal not found")
 	}
 	return &g.ID, titles, nil
 }
@@ -269,7 +269,7 @@ func (s *Service) evaluateQuestPrompt(ctx context.Context, profileID int64, prom
 	}
 	res, err := caplife.Invoke(ctx, hub.CapLife, lifecap.OpEvaluateQuest, params)
 	if err != nil {
-		return nil, fmt.Errorf("life: evaluate quest: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "life: evaluate quest", err)
 	}
 	return decodeQuestEvaluation(res.Data)
 }
@@ -280,11 +280,11 @@ func decodeQuestEvaluation(data any) (*lifecap.QuestEvaluation, error) {
 	}
 	raw, err := sonic.Marshal(data)
 	if err != nil {
-		return nil, fmt.Errorf("life: unexpected evaluate payload")
+		return nil, lifeInvalid("unexpected evaluate payload")
 	}
 	ev := &lifecap.QuestEvaluation{}
 	if err := sonic.Unmarshal(raw, ev); err != nil {
-		return nil, fmt.Errorf("life: decode evaluate payload: %w", err)
+		return nil, types.WrapError(types.ErrInvalidArgument, "life: decode evaluate payload", err)
 	}
 	return ev, nil
 }
@@ -295,11 +295,11 @@ func decodeQuestAdjudication(data any) (*lifecap.QuestAdjudication, error) {
 	}
 	raw, err := sonic.Marshal(data)
 	if err != nil {
-		return nil, fmt.Errorf("life: unexpected adjudication payload")
+		return nil, lifeInvalid("unexpected adjudication payload")
 	}
 	ruling := &lifecap.QuestAdjudication{}
 	if err := sonic.Unmarshal(raw, ruling); err != nil {
-		return nil, fmt.Errorf("life: decode adjudication payload: %w", err)
+		return nil, types.WrapError(types.ErrInvalidArgument, "life: decode adjudication payload", err)
 	}
 	return ruling, nil
 }
@@ -337,7 +337,7 @@ func (s *Service) CreateGoal(ctx context.Context, userID, title, category string
 	}
 	title = strings.TrimSpace(title)
 	if title == "" {
-		return nil, fmt.Errorf("life: goal title required")
+		return nil, lifeInvalid("goal title required")
 	}
 	switch category {
 	case "Project", "Area", "Resource":
@@ -362,12 +362,12 @@ func (s *Service) SetGoalStatus(ctx context.Context, userID, goalFlag, status st
 	}
 	g, err := s.store.GetGoalByFlag(ctx, p.ID, goalFlag)
 	if err != nil || g == nil {
-		return fmt.Errorf("life: goal not found")
+		return lifeNotFound("goal not found")
 	}
 	switch status {
 	case "Active", "Paused", "Completed":
 	default:
-		return fmt.Errorf("life: invalid goal status")
+		return lifeInvalid("invalid goal status")
 	}
 	return s.store.UpdateGoalStatus(ctx, g.ID, status)
 }
@@ -380,11 +380,11 @@ func (s *Service) UpdateGoal(ctx context.Context, userID, goalFlag, title, categ
 	}
 	g, err := s.store.GetGoalByFlag(ctx, p.ID, goalFlag)
 	if err != nil || g == nil {
-		return fmt.Errorf("life: goal not found")
+		return lifeNotFound("goal not found")
 	}
 	title = strings.TrimSpace(title)
 	if title == "" {
-		return fmt.Errorf("life: goal title required")
+		return lifeInvalid("goal title required")
 	}
 	switch category {
 	case "Project", "Area", "Resource":
@@ -408,7 +408,7 @@ func (s *Service) DeleteGoal(ctx context.Context, userID, goalFlag string) error
 	}
 	g, err := s.store.GetGoalByFlag(ctx, p.ID, goalFlag)
 	if err != nil || g == nil {
-		return fmt.Errorf("life: goal not found")
+		return lifeNotFound("goal not found")
 	}
 	if err := s.store.DeleteGoal(ctx, g.ID); err != nil {
 		return err
@@ -427,16 +427,17 @@ func (s *Service) FailQuest(ctx context.Context, userID, questFlag string) error
 	}
 	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
 	if err != nil || q == nil {
-		return fmt.Errorf("life: quest not found")
+		return lifeNotFound("quest not found")
 	}
 	if q.Status != "Pending" {
-		return fmt.Errorf("life: quest not pending")
+		return lifeConflict("quest not pending")
 	}
-	if err := s.store.MarkQuestStatus(ctx, q.ID, "Failed"); err != nil {
+	slots, err := s.store.GetEquippedSlots(ctx, p.ID)
+	if err != nil {
 		return err
 	}
 	until := time.Now().Add(pkglife.RustDuration)
-	if err := s.applyRust(ctx, p.ID, until); err != nil {
+	if err := s.store.PersistFailQuest(ctx, p.ID, q.ID, slotInventoryIDs(slots), until); err != nil {
 		return err
 	}
 	if err := s.blendCompletionRate(ctx, p.ID, false); err != nil {
@@ -496,6 +497,7 @@ type QuestDMView struct {
 	Quest        *gen.LifeQuest
 	Evidence     []QuestEvidenceView
 	Adjudication *QuestAdjudicationView
+	DropChance   float64
 }
 
 // CompleteQuest runs cascade + loot + action log in one store transaction.
@@ -524,19 +526,17 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 		Profile:        pkglife.StatSnapshot{Level: p.Level, CurrentExp: p.Exp},
 		ProfileGold:    p.Gold, ExpToCharacteristicRatio: skill.ExpToCharacteristicRatio,
 	})
-	pity := p.PityByTier
-	if pity == nil {
-		pity = map[string]int{}
-	}
-	roll, loot, pool, err := s.rollLoot(ctx, p, q, buffs, pity)
+	lootTable, err := s.store.GetLootTable(ctx, q.DropTier)
 	if err != nil {
 		return nil, err
 	}
-	pity[q.DropTier] = loot.NextPity
-	dropEquipID, needLore, loreStatus, err := s.resolveDropEquip(ctx, q, loot, pool)
-	if err != nil {
-		return nil, err
+	baseChance := 0.15
+	pool := []string{}
+	if lootTable != nil {
+		baseChance = lootTable.BaseDropChance
+		pool = lootTable.ItemPoolFlags
 	}
+	roll := pkglife.RollUnit(s.rng)
 	var daily *gen.LifeQuest
 	if q.Type == "Daily" {
 		daily = q
@@ -546,10 +546,13 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 		SkillLevel: casc.Skill.Level, SkillExp: casc.Skill.CurrentExp,
 		CharLevel: casc.Characteristic.Level, CharExp: casc.Characteristic.CurrentExp,
 		ProfLevel: casc.Profile.Level, ProfExp: casc.Profile.CurrentExp, ProfGold: casc.ProfileGold,
-		Pity: pity, RustInvIDs: slotInventoryIDs(slots),
-		DropEquipID: dropEquipID, DropQuestID: q.ID, LoreStatus: loreStatus, NeedLore: needLore,
+		RustInvIDs: slotInventoryIDs(slots),
+		DropQuestID: q.ID,
 		ActionExp: casc.GainedExp, ActionGold: casc.GainedGold, Dice: roll, DailyRespawn: daily,
 		QuestType: q.Type, Difficulty: q.AiEvaluatedDifficulty,
+		ResolveLootInTx: true, DropTier: q.DropTier,
+		LootBaseChance: baseChance, LootPool: pool,
+		ProfileBonus: p.BaseDropRateBonus, EquippedDropRate: buffs.DropRate,
 	})
 	if err != nil {
 		return nil, err
@@ -559,26 +562,9 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 			"profile_id": p.ID, "error": err.Error(),
 		})
 	}
-	result := fillCompleteResult(q, casc, loot, roll, persisted)
+	result := fillCompleteResult(q, casc, persisted.Loot, persisted.Dice, persisted)
 	logQuestCompleted(userID, p.ID, casc.Profile.Level, result)
 	return result, nil
-}
-
-func (s *Service) resolveDropEquip(ctx context.Context, q *gen.LifeQuest, loot pkglife.LootResult, pool []string) (equipID int64, needLore bool, loreStatus string, err error) {
-	loreStatus = "none"
-	if !loot.Dropped {
-		return 0, false, loreStatus, nil
-	}
-	eqFlag := pool[loot.PoolIndex]
-	eq, err := s.store.GetEquipmentByFlag(ctx, eqFlag)
-	if err != nil || eq == nil {
-		return 0, false, "", fmt.Errorf("life: equipment %s missing", eqFlag)
-	}
-	needLore = q.Type == "Boss" || q.AiEvaluatedDifficulty == "SSS" || q.AiEvaluatedDifficulty == "SS"
-	if needLore {
-		loreStatus = "pending"
-	}
-	return eq.ID, needLore, loreStatus, nil
 }
 
 func fillCompleteResult(q *gen.LifeQuest, casc pkglife.CascadeResult, loot pkglife.LootResult, roll float64, persisted *store.LifeCompleteResult) *CompleteResult {
@@ -624,39 +610,20 @@ func (s *Service) loadCompletableQuest(ctx context.Context, profileID int64, que
 		return nil, nil, nil, err
 	}
 	if q == nil {
-		return nil, nil, nil, fmt.Errorf("life: quest not found")
+		return nil, nil, nil, lifeNotFound("quest not found")
 	}
 	if q.Status != "Pending" {
-		return nil, nil, nil, fmt.Errorf("life: quest not pending")
+		return nil, nil, nil, lifeConflict("quest not pending")
 	}
 	skill, err := s.store.GetSkill(ctx, q.SkillID)
 	if err != nil || skill == nil {
-		return nil, nil, nil, fmt.Errorf("life: skill missing")
+		return nil, nil, nil, lifeNotFound("skill missing")
 	}
 	char, err := s.store.GetCharacteristic(ctx, skill.CharacteristicID)
 	if err != nil || char == nil {
-		return nil, nil, nil, fmt.Errorf("life: characteristic missing")
+		return nil, nil, nil, lifeNotFound("characteristic missing")
 	}
 	return q, skill, char, nil
-}
-
-func (s *Service) rollLoot(ctx context.Context, p *gen.LifeProfile, q *gen.LifeQuest, buffs pkglife.BuffTotals, pity map[string]int) (float64, pkglife.LootResult, []string, error) {
-	lootTable, err := s.store.GetLootTable(ctx, q.DropTier)
-	if err != nil {
-		return 0, pkglife.LootResult{}, nil, err
-	}
-	baseChance := 0.15
-	pool := []string{}
-	if lootTable != nil {
-		baseChance = lootTable.BaseDropChance
-		pool = lootTable.ItemPoolFlags
-	}
-	roll := pkglife.RollUnit(s.rng)
-	loot := pkglife.ResolveLoot(pkglife.LootInput{
-		BaseDropChance: baseChance, ProfileBonus: p.BaseDropRateBonus, EquippedDropRate: buffs.DropRate,
-		PityCount: pity[q.DropTier], PityThreshold: pkglife.DefaultPityThreshold, Roll: roll, PoolSize: len(pool),
-	})
-	return roll, loot, pool, nil
 }
 
 // ListQuests lists quests for the user.
@@ -680,7 +647,7 @@ func (s *Service) ListPendingQuestDMViews(ctx context.Context, userID string) ([
 	}
 	out := make([]QuestDMView, 0, len(quests))
 	for _, q := range quests {
-		view, err := s.buildQuestDMView(ctx, p.ID, q)
+		view, err := s.buildQuestDMView(ctx, p, q)
 		if err != nil {
 			return nil, err
 		}
@@ -697,14 +664,14 @@ func (s *Service) SubmitQuestEvidence(ctx context.Context, userID, questFlag, so
 	}
 	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
 	if err != nil || q == nil {
-		return nil, fmt.Errorf("life: quest not found")
+		return nil, lifeNotFound("quest not found")
 	}
 	if q.Status != "Pending" {
-		return nil, fmt.Errorf("life: quest not pending")
+		return nil, lifeConflict("quest not pending")
 	}
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return nil, fmt.Errorf("life: evidence content required")
+		return nil, lifeInvalid("evidence content required")
 	}
 	sourceType = normalizeEvidenceSourceType(sourceType)
 	row, err := s.store.CreateEvidence(ctx, store.LifeEvidenceInput{
@@ -730,17 +697,17 @@ func (s *Service) AdjudicateQuest(ctx context.Context, userID, questFlag string)
 	}
 	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
 	if err != nil || q == nil {
-		return nil, fmt.Errorf("life: quest not found")
+		return nil, lifeNotFound("quest not found")
 	}
 	if q.Status != "Pending" {
-		return nil, fmt.Errorf("life: quest not pending")
+		return nil, lifeConflict("quest not pending")
 	}
 	evidenceRows, err := s.store.ListEvidenceByQuest(ctx, p.ID, q.ID)
 	if err != nil {
 		return nil, err
 	}
 	if len(evidenceRows) == 0 {
-		return nil, fmt.Errorf("life: evidence required before adjudication")
+		return nil, lifeInvalid("evidence required before adjudication")
 	}
 	if err := s.store.EnsureAIContext(ctx, p.ID); err != nil {
 		return nil, err
@@ -775,7 +742,7 @@ func (s *Service) AdjudicateQuest(ctx context.Context, userID, questFlag string)
 	}
 	res, err := caplife.Invoke(ctx, hub.CapLife, lifecap.OpAdjudicateQuest, params)
 	if err != nil {
-		return nil, fmt.Errorf("life: adjudicate quest: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "life: adjudicate quest", err)
 	}
 	ruling, err := decodeQuestAdjudication(res.Data)
 	if err != nil {
@@ -807,17 +774,17 @@ func (s *Service) ApplyQuestAdjudication(ctx context.Context, userID, questFlag,
 	}
 	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
 	if err != nil || q == nil {
-		return fmt.Errorf("life: quest not found")
+		return lifeNotFound("quest not found")
 	}
 	adjudication, err := s.store.GetAdjudicationByFlag(ctx, p.ID, adjudicationFlag)
 	if err != nil || adjudication == nil {
-		return fmt.Errorf("life: adjudication not found")
+		return lifeNotFound("adjudication not found")
 	}
 	if adjudication.QuestID != q.ID {
-		return fmt.Errorf("life: adjudication does not match quest")
+		return lifeInvalid("adjudication does not match quest")
 	}
 	if adjudication.Status != "suggested" {
-		return fmt.Errorf("life: adjudication not pending")
+		return lifeConflict("adjudication not pending")
 	}
 	switch adjudication.Verdict {
 	case "completed":
@@ -831,17 +798,17 @@ func (s *Service) ApplyQuestAdjudication(ctx context.Context, userID, questFlag,
 	case "partial", "needs_more_evidence":
 		// Keep the quest pending; applying the ruling just acknowledges the feedback.
 	default:
-		return fmt.Errorf("life: unsupported adjudication verdict")
+		return lifeInvalid("unsupported adjudication verdict")
 	}
 	return s.store.MarkAdjudicationApplied(ctx, adjudication.ID)
 }
 
-func (s *Service) buildQuestDMView(ctx context.Context, profileID int64, q *gen.LifeQuest) (QuestDMView, error) {
+func (s *Service) buildQuestDMView(ctx context.Context, p *gen.LifeProfile, q *gen.LifeQuest) (QuestDMView, error) {
 	view := QuestDMView{Quest: q}
-	if q == nil {
+	if q == nil || p == nil {
 		return view, nil
 	}
-	evidenceRows, err := s.store.ListEvidenceByQuest(ctx, profileID, q.ID)
+	evidenceRows, err := s.store.ListEvidenceByQuest(ctx, p.ID, q.ID)
 	if err != nil {
 		return view, err
 	}
@@ -849,7 +816,7 @@ func (s *Service) buildQuestDMView(ctx context.Context, profileID int64, q *gen.
 	for _, row := range evidenceRows {
 		view.Evidence = append(view.Evidence, mapQuestEvidenceView(row))
 	}
-	adjudication, err := s.store.GetLatestAdjudicationByQuest(ctx, profileID, q.ID)
+	adjudication, err := s.store.GetLatestAdjudicationByQuest(ctx, p.ID, q.ID)
 	if err != nil {
 		return view, err
 	}
@@ -857,6 +824,11 @@ func (s *Service) buildQuestDMView(ctx context.Context, profileID int64, q *gen.
 		mapped := mapQuestAdjudicationView(adjudication)
 		view.Adjudication = &mapped
 	}
+	chance, err := s.dropChanceForQuest(ctx, p, q)
+	if err != nil {
+		return view, err
+	}
+	view.DropChance = chance
 	return view, nil
 }
 
@@ -966,15 +938,15 @@ func (s *Service) Equip(ctx context.Context, userID, inventoryFlag string) error
 	}
 	inv, err := s.store.GetInventoryByFlag(ctx, p.ID, inventoryFlag)
 	if err != nil || inv == nil {
-		return fmt.Errorf("life: inventory not found")
+		return lifeNotFound("inventory not found")
 	}
 	eq, err := s.store.GetEquipment(ctx, inv.EquipmentID)
 	if err != nil || eq == nil {
-		return fmt.Errorf("life: equipment missing")
+		return lifeNotFound("equipment missing")
 	}
 	field := pkglife.SlotField(eq.SlotType)
 	if field == "" {
-		return fmt.Errorf("life: bad slot type %q", eq.SlotType)
+		return lifeInvalid("bad slot type %q", eq.SlotType)
 	}
 	id := inv.ID
 	if err := s.store.SetEquippedSlot(ctx, p.ID, field, &id); err != nil {
@@ -1404,28 +1376,9 @@ func (s *Service) PreviewDropChance(ctx context.Context, userID, questFlag strin
 	}
 	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
 	if err != nil || q == nil {
-		return 0, fmt.Errorf("life: quest not found")
+		return 0, lifeNotFound("quest not found")
 	}
 	return s.dropChanceForQuest(ctx, p, q)
-}
-
-func (s *Service) applyRust(ctx context.Context, profileID int64, until time.Time) error {
-	if err := s.store.SetEquippedSlotsTarnishedUntil(ctx, profileID, &until); err != nil {
-		return err
-	}
-	slots, err := s.store.GetEquippedSlots(ctx, profileID)
-	if err != nil || slots == nil {
-		return err
-	}
-	for _, id := range slotInventoryIDPtrs(slots) {
-		if id == nil {
-			continue
-		}
-		if err := s.store.SetInventoryTarnishedUntil(ctx, *id, &until); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (s *Service) blendCompletionRate(ctx context.Context, profileID int64, success bool) error {
@@ -1437,13 +1390,9 @@ func (s *Service) blendCompletionRate(ctx context.Context, profileID int64, succ
 		return err
 	}
 	if ai == nil {
-		return fmt.Errorf("life: ai context missing after ensure")
+		return lifeNotFound("ai context missing after ensure")
 	}
-	sample := 0.0
-	if success {
-		sample = 1.0
-	}
-	rate := ai.HistoricalCompletionRate*0.9 + sample*0.1
+	rate := pkglife.BlendCompletionRate(ai.HistoricalCompletionRate, success)
 	mood := ai.RecentMoodAndBurnout
 	if mood == nil {
 		mood = map[string]any{}

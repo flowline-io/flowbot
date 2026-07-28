@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/module"
 )
 
+// Name is the module registry key.
 const Name = "life"
 
 var handler moduleHandler

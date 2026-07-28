@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	pkglife "github.com/flowline-io/flowbot/pkg/life"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 )
 
@@ -98,8 +99,8 @@ func TestLifeHPFromStats(t *testing.T) {
 	t.Parallel()
 	stats := []pages.LifeStatRow{pages.LifeBuildStatRow("WIL", "Willpower", 4, 20)}
 	cur, maxHP, filled, total := pages.LifeHPFromStats(stats, 2)
-	assert.Equal(t, 1000, maxHP)
-	assert.Equal(t, 10, total)
+	assert.Equal(t, pkglife.SoftHPMax, maxHP)
+	assert.Equal(t, pkglife.SoftHPHeartCount, total)
 	assert.Positive(t, cur)
 	assert.GreaterOrEqual(t, filled, 0)
 }

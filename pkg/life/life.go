@@ -93,6 +93,7 @@ func NormalizeDifficulty(raw string) string {
 	}
 }
 
+// ApplyCascade distributes quest rewards into skill, characteristic, and profile snapshots.
 func ApplyCascade(in CascadeInput) CascadeResult {
 	ratio := in.ExpToCharacteristicRatio
 	if ratio <= 0 {
@@ -296,6 +297,96 @@ func SlotField(slotType string) string {
 		return "accessory_slot"
 	case "Artifact":
 		return "artifact_slot"
+	default:
+		return ""
+	}
+}
+
+// NeedsInstanceLore reports whether a drop should enqueue memorial lore generation.
+func NeedsInstanceLore(questType, difficulty string) bool {
+	return questType == "Boss" || difficulty == "SSS" || difficulty == "SS"
+}
+
+const (
+	// SoftHPMax is the soft HP ceiling used by the character HUD.
+	SoftHPMax = 1000
+	// SoftHPHeartCount is how many heart segments the HUD shows.
+	SoftHPHeartCount = 10
+)
+
+// SoftHPFromWillpower derives a soft HP pool from Willpower (or profile level fallback).
+func SoftHPFromWillpower(wilLevel int, wilExp, wilNeed int64, profileLevel int) (current, maxHP int) {
+	maxHP = SoftHPMax
+	if wilLevel < 1 {
+		wilLevel = profileLevel
+	}
+	if wilLevel < 1 {
+		wilLevel = 1
+	}
+	current = 400 + wilLevel*50
+	if wilNeed > 0 {
+		current += int((wilExp * 50) / wilNeed)
+	}
+	if current > maxHP {
+		current = maxHP
+	}
+	if current < 0 {
+		current = 0
+	}
+	return current, maxHP
+}
+
+// BlendCompletionRate applies a 90/10 exponential blend after a quest outcome.
+func BlendCompletionRate(rate float64, success bool) float64 {
+	sample := 0.0
+	if success {
+		sample = 1.0
+	}
+	return rate*0.9 + sample*0.1
+}
+
+// SkillTreeWindowDays maps a cadence hint to an activity window length in days.
+func SkillTreeWindowDays(cadence string) int {
+	value := strings.ToLower(strings.TrimSpace(cadence))
+	switch {
+	case strings.Contains(value, "daily"), strings.Contains(value, "day"):
+		return 7
+	case strings.Contains(value, "week"):
+		return 21
+	case strings.Contains(value, "month"):
+		return 45
+	default:
+		return 14
+	}
+}
+
+// SourceTypeLabel returns a concise label for one audit / skill-tree source.
+func SourceTypeLabel(sourceType string) string {
+	switch strings.ToLower(strings.TrimSpace(sourceType)) {
+	case "habit_checkin":
+		return "Habit"
+	case "occurrence":
+		return "Action"
+	case "checkpoint":
+		return "Checkpoint"
+	default:
+		return "Quest"
+	}
+}
+
+// TaskTypeLabel returns a concise label for one plan action type.
+func TaskTypeLabel(taskType string) string {
+	switch strings.ToLower(strings.TrimSpace(taskType)) {
+	case "todo":
+		return "Todo"
+	case "recurring":
+		return "Recurring"
+	case "habit_candidate":
+		return "Habit (pending)"
+	case "habit":
+		return "Habit"
+	case "checkpoint":
+		return "Checkpoint"
 	default:
 		return ""
 	}

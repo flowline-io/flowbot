@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,6 +15,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 )
@@ -59,31 +61,24 @@ func lifeUserError(err error) string {
 	if err == nil {
 		return "Something went wrong"
 	}
+	if errors.Is(err, types.ErrProvider) ||
+		errors.Is(err, types.ErrUnavailable) ||
+		errors.Is(err, types.ErrInternal) ||
+		errors.Is(err, types.ErrTimeout) {
+		return "Could not complete that action. Please try again."
+	}
 	msg := err.Error()
 	const prefix = "life: "
 	if !strings.HasPrefix(msg, prefix) {
 		return "Could not complete that action. Please try again."
 	}
 	rest := strings.TrimPrefix(msg, prefix)
-	switch {
-	case strings.Contains(rest, "store not available"),
-		strings.Contains(rest, "begin"),
-		strings.Contains(rest, "commit"),
-		strings.Contains(rest, "update "),
-		strings.Contains(rest, "create "),
-		strings.Contains(rest, "mark "),
-		strings.Contains(rest, "append"),
-		strings.Contains(rest, "lore"),
-		strings.Contains(rest, "action log"),
-		strings.Contains(rest, "daily respawn"),
-		strings.Contains(rest, "equipment"),
-		strings.Contains(rest, "skill missing"),
-		strings.Contains(rest, "characteristic missing"),
-		strings.Contains(rest, "service unavailable"):
-		return "Could not complete that action. Please try again."
-	default:
+	if errors.Is(err, types.ErrNotFound) ||
+		errors.Is(err, types.ErrInvalidArgument) ||
+		errors.Is(err, types.ErrConflict) {
 		return rest
 	}
+	return "Could not complete that action. Please try again."
 }
 
 func lifeUID(ctx fiber.Ctx) (string, error) {
@@ -525,14 +520,14 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	data := buildLifeQuestsData(svc, uid, char, pending, done, today, logs)
+	data := buildLifeQuestsData(char, pending, done, today, logs)
 	ctx.Type("html")
 	return pages.LifeQuestsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
-func buildLifeQuestsData(svc *lifemod.Service, uid string, char *lifemod.CharacterView, pending []lifemod.QuestDMView, done []*gen.LifeQuest, today *lifemod.TodayBoardView, logs []lifemod.ActionLogView) pages.LifeQuestsData {
+func buildLifeQuestsData(char *lifemod.CharacterView, pending []lifemod.QuestDMView, done []*gen.LifeQuest, today *lifemod.TodayBoardView, logs []lifemod.ActionLogView) pages.LifeQuestsData {
 	goalRows := mapActiveGoalRows(char)
-	rowsPending := mapPendingQuestRows(svc, uid, pending)
+	rowsPending := mapPendingQuestRows(pending)
 	rowsDone := mapCompletedQuestRows(done)
 	logRows := mapActionLogRows(logs)
 	todayActions := mapTodayActionRows(today, char.PlanTree)
@@ -554,18 +549,17 @@ func mapActiveGoalRows(char *lifemod.CharacterView) []pages.LifeGoalRow {
 	return goalRows
 }
 
-func mapPendingQuestRows(svc *lifemod.Service, uid string, pending []lifemod.QuestDMView) []pages.LifeQuestRow {
+func mapPendingQuestRows(pending []lifemod.QuestDMView) []pages.LifeQuestRow {
 	rows := make([]pages.LifeQuestRow, 0, len(pending))
 	for _, item := range pending {
 		if item.Quest == nil {
 			continue
 		}
 		q := item.Quest
-		chance, _ := svc.PreviewDropChance(context.Background(), uid, q.Flag)
 		row := pages.LifeQuestRow{
 			Flag: q.Flag, Title: q.Title, Prompt: q.Prompt, Type: q.Type, Difficulty: q.AiEvaluatedDifficulty,
 			Fear: q.AiEvaluatedFear, Exp: q.BaseExpReward, Gold: q.BaseGoldReward, DropTier: q.DropTier,
-			DropChance: chance, Status: q.Status,
+			DropChance: item.DropChance, Status: q.Status,
 			Evidence: mapQuestEvidenceRows(item.Evidence),
 		}
 		if item.Adjudication != nil {

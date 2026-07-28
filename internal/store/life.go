@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -1420,7 +1421,7 @@ type LifeCompletePersist struct {
 	ProfGold    int
 	Pity        map[string]int
 	RustInvIDs  []int64
-	DropEquipID int64 // 0 = no drop
+	DropEquipID int64 // 0 = no drop; set by ResolveLootInTx when enabled
 	DropQuestID int64
 	LoreStatus  string
 	NeedLore    bool
@@ -1431,6 +1432,14 @@ type LifeCompletePersist struct {
 	Difficulty  string
 	// DailyRespawn clones a pending Daily quest after completion when non-nil.
 	DailyRespawn *gen.LifeQuest
+
+	// ResolveLootInTx rolls loot from the live profile pity inside the completion transaction.
+	ResolveLootInTx  bool
+	DropTier         string
+	LootBaseChance   float64
+	LootPool         []string
+	ProfileBonus     float64
+	EquippedDropRate float64
 }
 
 // LifeCompleteResult is returned from PersistCompleteQuest.
@@ -1438,6 +1447,8 @@ type LifeCompleteResult struct {
 	Inventory     *gen.LifeInventory
 	Equipment     *gen.LifeEquipment
 	NewlyUnlocked []*gen.LifeAchievement
+	Dice          float64
+	Loot          pkglife.LootResult
 }
 
 // LifeAchievementUpsert is the seed write shape for one catalog achievement.
@@ -1468,6 +1479,10 @@ func (s *LifeStore) PersistCompleteQuest(ctx context.Context, in LifeCompletePer
 			_ = tx.Rollback()
 		}
 	}()
+	loot, err := resolveCompleteLoot(ctx, tx, &in)
+	if err != nil {
+		return nil, err
+	}
 	if err := persistCompleteCascade(ctx, tx, in); err != nil {
 		return nil, err
 	}
@@ -1493,11 +1508,89 @@ func (s *LifeStore) PersistCompleteQuest(ctx context.Context, in LifeCompletePer
 		return nil, err
 	}
 	out.NewlyUnlocked = unlocked
+	out.Dice = in.Dice
+	out.Loot = loot
 	if err := tx.Commit(); err != nil {
 		return nil, fmt.Errorf("life: commit complete: %w", err)
 	}
 	committed = true
 	return out, nil
+}
+
+func resolveCompleteLoot(ctx context.Context, tx *gen.Tx, in *LifeCompletePersist) (pkglife.LootResult, error) {
+	if in == nil {
+		return pkglife.LootResult{}, nil
+	}
+	if !in.ResolveLootInTx {
+		return pkglife.LootResult{Roll: in.Dice}, nil
+	}
+	prof, err := tx.LifeProfile.Get(ctx, in.ProfileID)
+	if err != nil {
+		return pkglife.LootResult{}, fmt.Errorf("life: load profile for loot: %w", err)
+	}
+	pity := map[string]int{}
+	if prof.PityByTier != nil {
+		maps.Copy(pity, prof.PityByTier)
+	}
+	loot := pkglife.ResolveLoot(pkglife.LootInput{
+		BaseDropChance: in.LootBaseChance, ProfileBonus: in.ProfileBonus, EquippedDropRate: in.EquippedDropRate,
+		PityCount: pity[in.DropTier], PityThreshold: pkglife.DefaultPityThreshold, Roll: in.Dice, PoolSize: len(in.LootPool),
+	})
+	pity[in.DropTier] = loot.NextPity
+	in.Pity = pity
+	in.DropEquipID = 0
+	in.NeedLore = false
+	in.LoreStatus = "none"
+	if !loot.Dropped || len(in.LootPool) == 0 {
+		return loot, nil
+	}
+	eqFlag := in.LootPool[loot.PoolIndex]
+	eq, err := tx.LifeEquipment.Query().Where(lifeequipment.FlagEQ(eqFlag)).Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return pkglife.LootResult{}, fmt.Errorf("life: equipment %s missing", eqFlag)
+		}
+		return pkglife.LootResult{}, fmt.Errorf("life: load equipment %s: %w", eqFlag, err)
+	}
+	in.DropEquipID = eq.ID
+	in.NeedLore = pkglife.NeedsInstanceLore(in.QuestType, in.Difficulty)
+	if in.NeedLore {
+		in.LoreStatus = "pending"
+	}
+	return loot, nil
+}
+
+// PersistFailQuest marks a quest failed and applies rust in one transaction.
+func (s *LifeStore) PersistFailQuest(ctx context.Context, profileID, questID int64, rustInvIDs []int64, until time.Time) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("life: begin fail tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+	if _, err := tx.LifeQuest.UpdateOneID(questID).SetStatus("Failed").Save(ctx); err != nil {
+		return fmt.Errorf("life: mark failed: %w", err)
+	}
+	if _, err := tx.LifeEquippedSlots.Update().Where(lifeequippedslots.LifeProfileIDEQ(profileID)).SetTarnishedUntil(until).Save(ctx); err != nil {
+		return fmt.Errorf("life: set slots rust: %w", err)
+	}
+	for _, id := range rustInvIDs {
+		if _, err := tx.LifeInventory.UpdateOneID(id).SetTarnishedUntil(until).Save(ctx); err != nil {
+			return fmt.Errorf("life: set inventory rust: %w", err)
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("life: commit fail: %w", err)
+	}
+	committed = true
+	return nil
 }
 
 func persistCompleteCascade(ctx context.Context, tx *gen.Tx, in LifeCompletePersist) error {

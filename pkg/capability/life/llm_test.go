@@ -11,6 +11,7 @@ import (
 
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func testLLM(fake *agentllm.FakeModel) *lifecap.LLMService {
@@ -80,7 +81,8 @@ func TestLLMEvaluateQuestErrorsOnModelFailure(t *testing.T) {
 	}
 	_, err := svc.EvaluateQuest(context.Background(), evalReq("go for a long run at the gym"))
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "boom")
+	require.ErrorIs(t, err, types.ErrProvider)
+	assert.Contains(t, err.Error(), "life llm model")
 }
 
 func TestLLMEvaluateQuestErrorsOnBadJSON(t *testing.T) {

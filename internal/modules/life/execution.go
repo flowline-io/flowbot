@@ -2,7 +2,6 @@ package life
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -14,6 +13,7 @@ import (
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
 	"github.com/flowline-io/flowbot/pkg/hub"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 // TodayActionView is one pending action occurrence with definition metadata.
@@ -81,14 +81,14 @@ func (s *Service) CompleteActionOccurrence(ctx context.Context, userID, occurren
 		return err
 	}
 	if occurrence == nil {
-		return fmt.Errorf("life: occurrence not found")
+		return lifeNotFound("occurrence not found")
 	}
 	node, err := s.store.GetPlanNode(ctx, occurrence.PlanNodeID)
 	if err != nil {
 		return err
 	}
 	if node == nil {
-		return fmt.Errorf("life: action not found")
+		return lifeNotFound("action not found")
 	}
 	spec, err := s.store.GetActionSpecByPlanNodeID(ctx, node.ID)
 	if err != nil {
@@ -154,7 +154,7 @@ func (s *Service) resolveDefaultActionSkill(ctx context.Context, profileID int64
 	}
 	char, err := s.store.GetCharacteristic(ctx, skill.CharacteristicID)
 	if err != nil || char == nil {
-		return nil, nil, fmt.Errorf("life: characteristic missing")
+		return nil, nil, lifeNotFound("characteristic missing")
 	}
 	return skill, char, nil
 }
@@ -170,7 +170,7 @@ func (s *Service) SkipActionOccurrence(ctx context.Context, userID, occurrenceFl
 		return err
 	}
 	if occurrence == nil {
-		return fmt.Errorf("life: occurrence not found")
+		return lifeNotFound("occurrence not found")
 	}
 	return s.store.SkipActionOccurrence(ctx, store.LifeSkipOccurrenceInput{
 		OccurrenceID: occurrence.ID,
@@ -189,14 +189,14 @@ func (s *Service) CheckInHabit(ctx context.Context, userID, nodeFlag string, at 
 		return err
 	}
 	if node == nil {
-		return fmt.Errorf("life: action not found")
+		return lifeNotFound("action not found")
 	}
 	spec, err := s.store.GetActionSpecByPlanNodeID(ctx, node.ID)
 	if err != nil {
 		return err
 	}
 	if spec == nil || spec.TaskType != "habit" {
-		return fmt.Errorf("life: habit check-in not available")
+		return lifeConflict("habit check-in not available")
 	}
 	_, err = s.store.UpsertHabitCheckin(ctx, store.LifeHabitCheckinInput{
 		ProfileID:  p.ID,
@@ -219,7 +219,7 @@ func (s *Service) ListHabitCheckins(ctx context.Context, userID, nodeFlag string
 		return nil, err
 	}
 	if node == nil {
-		return nil, fmt.Errorf("life: action not found")
+		return nil, lifeNotFound("action not found")
 	}
 	return s.store.ListHabitCheckins(ctx, p.ID, node.ID, from, to)
 }
@@ -265,7 +265,7 @@ func (s *Service) PreviewGoalBreakdown(ctx context.Context, userID, rootTitle, d
 	}
 	res, err := caplife.Invoke(ctx, hub.CapLife, lifecap.OpBreakdownGoalTree, params)
 	if err != nil {
-		return nil, fmt.Errorf("life: breakdown goal tree: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "life: breakdown goal tree", err)
 	}
 	return decodeGoalBreakdown(res.Data)
 }
@@ -273,11 +273,11 @@ func (s *Service) PreviewGoalBreakdown(ctx context.Context, userID, rootTitle, d
 // ImportGoalBreakdown persists a suggestion tree as plan nodes.
 func (s *Service) ImportGoalBreakdown(ctx context.Context, userID string, suggestion *lifecap.GoalBreakdownSuggestion) error {
 	if suggestion == nil {
-		return fmt.Errorf("life: breakdown suggestion required")
+		return lifeInvalid("breakdown suggestion required")
 	}
 	suggestion = normalizeBreakdownForImport(suggestion, "")
 	if suggestion == nil {
-		return fmt.Errorf("life: breakdown suggestion required")
+		return lifeInvalid("breakdown suggestion required")
 	}
 	return s.store.WithTx(ctx, func(txStore *store.LifeStore) error {
 		txService := *s
@@ -320,11 +320,11 @@ func decodeGoalBreakdown(data any) (*lifecap.GoalBreakdownSuggestion, error) {
 	}
 	raw, err := sonic.Marshal(data)
 	if err != nil {
-		return nil, fmt.Errorf("life: unexpected breakdown payload")
+		return nil, lifeInvalid("unexpected breakdown payload")
 	}
 	tree := &lifecap.GoalBreakdownSuggestion{}
 	if err := sonic.Unmarshal(raw, tree); err != nil {
-		return nil, fmt.Errorf("life: decode breakdown payload: %w", err)
+		return nil, types.WrapError(types.ErrInvalidArgument, "life: decode breakdown payload", err)
 	}
 	return tree, nil
 }

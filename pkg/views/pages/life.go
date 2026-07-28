@@ -440,34 +440,12 @@ func LifePlanNodeTypeLabel(nodeType string) string {
 
 // LifeTaskTypeLabel returns a concise label for one action type.
 func LifeTaskTypeLabel(taskType string) string {
-	switch strings.ToLower(strings.TrimSpace(taskType)) {
-	case "todo":
-		return "Todo"
-	case "recurring":
-		return "Recurring"
-	case "habit_candidate":
-		return "Habit (pending)"
-	case "habit":
-		return "Habit"
-	case "checkpoint":
-		return "Checkpoint"
-	default:
-		return ""
-	}
+	return pkglife.TaskTypeLabel(taskType)
 }
 
 // LifeActionLogSourceLabel returns a concise label for one audit source.
 func LifeActionLogSourceLabel(sourceType string) string {
-	switch strings.ToLower(strings.TrimSpace(sourceType)) {
-	case "occurrence":
-		return "Action"
-	case "habit_checkin":
-		return "Habit"
-	case "checkpoint":
-		return "Checkpoint"
-	default:
-		return "Quest"
-	}
+	return pkglife.SourceTypeLabel(sourceType)
 }
 
 // LifeOccurrenceKindLabel returns a human label for one occurrence kind.
@@ -582,8 +560,6 @@ func lifeFormatNumber(v float64) string {
 }
 
 const lifeSegmentCount = 24
-const lifeHeartCount = 10
-const lifeHPMax = 1000
 
 // LifeBuildStatRow builds a characteristic row with segment fill.
 // Bar fill and "exp / need" are within the current level (levels have no cap).
@@ -653,8 +629,7 @@ func LifeDisplayName(nickname, uid string) string {
 
 // LifeHPFromStats derives a soft HP pool from Willpower (or average level).
 func LifeHPFromStats(stats []LifeStatRow, profileLevel int) (current, maxHP, heartsFilled, heartsTotal int) {
-	maxHP = lifeHPMax
-	heartsTotal = lifeHeartCount
+	heartsTotal = pkglife.SoftHPHeartCount
 	wilLevel := profileLevel
 	wilExp := int64(0)
 	wilNeed := pkglife.ExpToNextLevel(profileLevel)
@@ -666,16 +641,7 @@ func LifeHPFromStats(stats []LifeStatRow, profileLevel int) (current, maxHP, hea
 			break
 		}
 	}
-	current = 400 + wilLevel*50
-	if wilNeed > 0 {
-		current += int((wilExp * 50) / wilNeed)
-	}
-	if current > maxHP {
-		current = maxHP
-	}
-	if current < 0 {
-		current = 0
-	}
+	current, maxHP = pkglife.SoftHPFromWillpower(wilLevel, wilExp, wilNeed, profileLevel)
 	heartsFilled = lifeFilledSegments(int64(current), int64(maxHP), heartsTotal)
 	return current, maxHP, heartsFilled, heartsTotal
 }

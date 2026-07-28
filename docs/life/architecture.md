@@ -78,6 +78,16 @@ public/css/custom.css           # Life page styles (`.life-*`)
 | `life_action_logs` | completion + dice + drop audit |
 | `life_rewards` | Player-defined real-life rewards (name, price, optional cooldown) |
 | `life_reward_redemptions` | Gold spend audit with name/price snapshots |
+| `life_achievements` | Memorial achievement catalog (seeded) |
+| `life_achievement_progress` | Per-profile counters toward unlocks |
+| `life_achievement_unlocks` | Unlocked memorial achievements |
+| `life_plan_nodes` | Goal / milestone / action plan tree |
+| `life_action_specs` | Action definitions (todo / recurring / habit / checkpoint) |
+| `life_action_occurrences` | Today-board occurrences for actions |
+| `life_action_dependencies` | Checkpoint dependency edges |
+| `life_evidence` | Quest evidence submissions |
+| `life_adjudications` | AI quest rulings (suggested → accepted) |
+| `life_habit_checkins` | Habit check-in audit |
 
 Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_status` ∈ `none` \| `pending` \| `ready` \| `failed`.
 
@@ -89,14 +99,19 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | ------ | ------- |
 | `EnsureProfile` | Create profile + seed characteristics + empty slots/ai context |
 | `CreateQuestFromPrompt` | Evaluate via capability → persist quest |
-| `CompleteQuest` | Cascade + loot + action log + optional lore outbox + Daily respawn (one DB tx) |
-| `UpdateGoal` / `DeleteGoal` | Edit or remove PARA goals |
+| `CompleteQuest` | Cascade + loot + action log + achievements + optional lore outbox + Daily respawn (one DB tx; loot resolved in-tx from live pity) |
+| `FailQuest` | Mark failed + 24h equipment rust (one DB tx) |
+| `CreateGoal` / `UpdateGoal` / `SetGoalStatus` / `DeleteGoal` | PARA goal CRUD + pause/activate |
 | `ListActionLogs` | Recent completion audit for Quests UI |
 | `ListAchievements` | Catalog + progress/unlock state for Achievements UI |
 | `ListRewardsPage` / `CreateReward` / `UpdateReward` / `DeactivateReward` / `RestoreReward` / `RedeemReward` | Real-life rewards market (gold sink) |
 | `GetStatsPage` | 30-day analytics aggregates for Stats UI |
+| `BuildSkillTree` | Skill-tree evidence UI model |
+| `CreatePlanNode` / `ConfirmHabitAction` / `PreviewGoalBreakdown` / `ImportGoalBreakdown` | Plan tree + AI breakdown |
+| `ListTodayActions` / `CompleteActionOccurrence` / `SkipActionOccurrence` / `CheckInHabit` | Today board execution |
+| `SubmitQuestEvidence` / `AdjudicateQuest` / `ApplyQuestAdjudication` | Quest evidence + DM ruling |
 | `Equip` / `Unequip` | Update `life_equipped_slots` |
-| `ListQuests` / `ListInventory` / `GetCharacter` | Read models for UI |
+| `ListQuests` / `ListPendingQuestDMViews` / `ListInventory` / `GetCharacter` | Read models for UI |
 | `SetClassType` | Update class (default `Architect`) |
 | `ProcessPendingLore` | Outbox consumer for lore (retries on LLM failure) |
 
@@ -105,13 +120,15 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | Op | Purpose |
 | -- | ------- |
 | `EvaluateQuest` | LLM JSON eval → difficulty, fear, rewards, drop_tier, skill/stat |
+| `AdjudicateQuest` | LLM JSON ruling from quest evidence |
 | `GenerateInstanceLore` | LLM JSON → instance name/lore for dropped gear |
+| `BreakdownGoalTree` | LLM JSON → suggested plan tree |
 
 ## 7. Bootstrap / seeds
 
 - `EnsureProfile`: seed (and backfill) characteristics `INT`, `PHY`, `WIL`, `CHA`, `CRE`, `FIN`, `WRI`, `FOC`; `class_type=Architect`; empty equipped slots + AI context.
 - Skills: `GetOrCreate` on evaluate/create (no default skill list).
-- `Bootstrap`: idempotent upsert of equipment + loot tables from `internal/modules/life/seed/*.json`.
+- `Bootstrap`: idempotent upsert of equipment + loot tables + achievements from `internal/modules/life/seed/*.json`.
 
 ## 8. HTTP routes and User nav
 
@@ -122,16 +139,27 @@ Prefix: `/service/web`
 | GET | `/life` | Dashboard |
 | GET | `/life/stats` | Stats shell (30-day analytics) |
 | GET | `/life/stats/panel` | Stats HTMX panel (`tz` IANA query) |
-| GET | `/life/character` | Stats, class, goals, equipped |
+| GET | `/life/character` | Stats, class, goals, equipped, plan tree |
 | POST | `/life/character/class` | Set class type |
+| POST | `/life/character/plan` | Create plan node |
+| POST | `/life/character/plan/:flag/confirm-habit` | Confirm habit candidate |
+| POST | `/life/character/plan/breakdown/preview` | AI plan breakdown preview |
+| POST | `/life/character/plan/breakdown/import` | Import AI plan breakdown |
 | POST | `/life/goals` | Create goal |
 | POST | `/life/goals/:flag` | Update goal title/category |
 | POST | `/life/goals/:flag/status` | Pause / activate goal |
 | POST | `/life/goals/:flag/delete` | Delete goal |
-| GET | `/life/quests` | Quest list |
+| GET | `/life/quests` | Quest list + today board + evidence/DM |
 | POST | `/life/quests` | Create quest from prompt |
 | POST | `/life/quests/:flag/complete` | Complete quest (cascade + loot) |
 | POST | `/life/quests/:flag/fail` | Fail quest (24h gear rust) |
+| POST | `/life/quests/:flag/evidence` | Submit quest evidence |
+| POST | `/life/quests/:flag/adjudicate` | Request AI adjudication |
+| POST | `/life/quests/:flag/adjudication/:adjudicationFlag/apply` | Apply adjudication verdict |
+| POST | `/life/actions/:flag/complete` | Complete today action occurrence |
+| POST | `/life/actions/:flag/skip` | Skip today action occurrence |
+| POST | `/life/habits/:flag/checkin` | Habit check-in |
+| GET | `/life/skills` | Skill tree |
 | GET | `/life/inventory` | Backpack |
 | POST | `/life/inventory/:flag/equip` | Equip inventory item |
 | POST | `/life/inventory/slots/:slot/unequip` | Clear equipped slot |
@@ -169,14 +197,20 @@ Web → `CreateQuestFromPrompt` → `capability.Invoke(EvaluateQuest)` → get-o
 
 In one transaction:
 
-1. Mark quest completed.
-2. Apply `pkg/life` cascade (skill → characteristic → profile).
-3. Roll loot with pity; maybe insert inventory.
-4. Write `life_action_logs`.
-5. If drop needs lore (Boss, or difficulty SS/SSS): set `lore_status=pending`, append `event_outbox`.
-6. If quest type is `Daily`, insert a fresh Pending clone (same title/prompt/rewards).
+1. Re-read profile pity; roll loot with pity; resolve drop equipment when needed.
+2. Apply `pkg/life` cascade (skill → characteristic → profile) including pity write.
+3. Mark quest completed.
+4. Clear rust on equipped gear.
+5. Maybe insert inventory + lore outbox (Boss, or difficulty SS/SSS).
+6. Write `life_action_logs`.
+7. Daily respawn clone when type is `Daily`.
+8. Update achievement progress / unlocks.
 
 HTMX returns immediate feedback (exp/gold/drop). Lore fills later. Completion-rate blend runs after commit.
+
+### Fail quest
+
+In one transaction: mark quest `Failed` and set 24h `tarnished_until` on equipped slots + equipped inventory. Completion-rate blend runs after commit.
 
 ### Outbox
 
@@ -195,6 +229,7 @@ HTMX returns immediate feedback (exp/gold/drop). Lore fills later. Completion-ra
 - Persistence: `LifeStore` in package `store` (`internal/store/life.go`; not a separate `*_store.go` package); schemas `life_*`.
 - No JSON API under `/service/life` in v1.
 - Web installs the domain service via `life.OnService(web.SetLifeService)` at module register time.
+- Capability LLM failures use `types.ErrProvider`; web maps them to a generic toast (no raw LLM text).
 
 ## 11. Config
 
@@ -207,7 +242,7 @@ modules:
 
 ## 12. Testing notes
 
-- `pkg/life`: table-driven unit tests (cascade, loot, pity, buffs).
+- `pkg/life`: table-driven unit tests (cascade, loot, pity, buffs, soft HP, blend).
 - Module / web: package tests with fakes where needed.
 - Cross-boundary BDD under `tests/specs/life_spec_test.go` (requires Docker).
 

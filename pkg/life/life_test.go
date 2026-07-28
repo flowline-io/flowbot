@@ -175,3 +175,19 @@ func TestPreviewDropChanceAndTarnish(t *testing.T) {
 	assert.True(t, life.IsTarnished(&until, time.Now()))
 	assert.False(t, life.IsTarnished(nil, time.Now()))
 }
+
+func TestSoftHPBlendAndLabels(t *testing.T) {
+	t.Parallel()
+	cur, maxHP := life.SoftHPFromWillpower(4, 20, 400, 2)
+	assert.Equal(t, life.SoftHPMax, maxHP)
+	assert.Equal(t, 400+4*50+int((20*50)/400), cur)
+	assert.InDelta(t, 0.91, life.BlendCompletionRate(0.9, true), 0.001)
+	assert.InDelta(t, 0.81, life.BlendCompletionRate(0.9, false), 0.001)
+	assert.Equal(t, 7, life.SkillTreeWindowDays("daily"))
+	assert.Equal(t, 21, life.SkillTreeWindowDays("weekly"))
+	assert.True(t, life.NeedsInstanceLore("Boss", "A"))
+	assert.True(t, life.NeedsInstanceLore("One-Time", "SS"))
+	assert.False(t, life.NeedsInstanceLore("Daily", "B"))
+	assert.Equal(t, "Habit", life.SourceTypeLabel("habit_checkin"))
+	assert.Equal(t, "Habit (pending)", life.TaskTypeLabel("habit_candidate"))
+}

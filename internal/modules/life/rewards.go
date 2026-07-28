@@ -2,7 +2,6 @@ package life
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -122,7 +121,7 @@ func (s *Service) UpdateReward(ctx context.Context, userID, rewardFlag string, i
 	}
 	row, err := s.store.GetRewardByFlag(ctx, p.ID, rewardFlag)
 	if err != nil || row == nil {
-		return fmt.Errorf("life: reward not found")
+		return lifeNotFound("reward not found")
 	}
 	normalized, err := normalizeRewardInput(in)
 	if err != nil {
@@ -157,7 +156,7 @@ func (s *Service) setRewardActive(ctx context.Context, userID, rewardFlag string
 	}
 	row, err := s.store.GetRewardByFlag(ctx, p.ID, rewardFlag)
 	if err != nil || row == nil {
-		return fmt.Errorf("life: reward not found")
+		return lifeNotFound("reward not found")
 	}
 	if row.Active == active {
 		return nil
@@ -188,20 +187,20 @@ func (s *Service) RedeemReward(ctx context.Context, userID, rewardFlag string) e
 			return err
 		}
 		if row == nil {
-			return fmt.Errorf("life: reward not found")
+			return lifeNotFound("reward not found")
 		}
 		if !row.Active {
-			return fmt.Errorf("life: reward is inactive")
+			return lifeConflict("reward is inactive")
 		}
 		profile, err := tx.GetProfileByID(ctx, p.ID)
 		if err != nil || profile == nil {
-			return fmt.Errorf("life: profile not found")
+			return lifeNotFound("profile not found")
 		}
 		if profile.Gold < row.Price {
-			return fmt.Errorf("life: insufficient gold")
+			return lifeConflict("insufficient gold")
 		}
 		if pkglife.RewardOnCooldown(row.LastRedeemedAt, row.CooldownHours, now) {
-			return fmt.Errorf("life: reward on cooldown")
+			return lifeConflict("reward on cooldown")
 		}
 		if err := tx.SetProfileGold(ctx, profile.ID, profile.Gold-row.Price); err != nil {
 			return err
@@ -224,14 +223,14 @@ func (s *Service) RedeemReward(ctx context.Context, userID, rewardFlag string) e
 func normalizeRewardInput(in CreateRewardInput) (CreateRewardInput, error) {
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
-		return CreateRewardInput{}, fmt.Errorf("life: reward name required")
+		return CreateRewardInput{}, lifeInvalid("reward name required")
 	}
 	if in.Price < 1 {
-		return CreateRewardInput{}, fmt.Errorf("life: reward price must be at least 1")
+		return CreateRewardInput{}, lifeInvalid("reward price must be at least 1")
 	}
 	cooldown := in.CooldownHours
 	if cooldown < 0 {
-		return CreateRewardInput{}, fmt.Errorf("life: reward cooldown cannot be negative")
+		return CreateRewardInput{}, lifeInvalid("reward cooldown cannot be negative")
 	}
 	return CreateRewardInput{
 		Name:          name,
@@ -265,11 +264,11 @@ func rewardToView(row *gen.LifeReward, gold int, now time.Time) RewardView {
 func ParseRewardPrice(raw string) (int, error) {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
-		return 0, fmt.Errorf("life: reward price required")
+		return 0, lifeInvalid("reward price required")
 	}
 	n, err := strconv.Atoi(raw)
 	if err != nil {
-		return 0, fmt.Errorf("life: invalid reward price")
+		return 0, lifeInvalid("invalid reward price")
 	}
 	return n, nil
 }
@@ -282,7 +281,7 @@ func ParseRewardCooldownHours(raw string) (int, error) {
 	}
 	n, err := strconv.Atoi(raw)
 	if err != nil {
-		return 0, fmt.Errorf("life: invalid reward cooldown")
+		return 0, lifeInvalid("invalid reward cooldown")
 	}
 	return n, nil
 }

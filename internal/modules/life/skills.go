@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	pkglife "github.com/flowline-io/flowbot/pkg/life"
 )
 
 // SkillTreeView is the aggregated skills page model.
@@ -487,43 +488,13 @@ func skillTreeNormalize(raw string) string {
 }
 
 func skillTreeWindowDays(cadence string) int {
-	value := strings.ToLower(strings.TrimSpace(cadence))
-	switch {
-	case strings.Contains(value, "daily"), strings.Contains(value, "day"):
-		return 7
-	case strings.Contains(value, "week"):
-		return 21
-	case strings.Contains(value, "month"):
-		return 45
-	default:
-		return 14
-	}
+	return pkglife.SkillTreeWindowDays(cadence)
 }
 
 func skillTreeSourceLabel(sourceType string) string {
-	switch strings.ToLower(strings.TrimSpace(sourceType)) {
-	case "habit_checkin":
-		return "Habit"
-	case "occurrence":
-		return "Action"
-	case "checkpoint":
-		return "Checkpoint"
-	default:
-		return "Quest"
-	}
+	return pkglife.SourceTypeLabel(sourceType)
 }
 
 func skillTreeTaskLabel(taskType string) string {
-	switch strings.ToLower(strings.TrimSpace(taskType)) {
-	case "todo":
-		return "Todo"
-	case "recurring":
-		return "Recurring"
-	case "habit_candidate", "habit":
-		return "Habit"
-	case "checkpoint":
-		return "Checkpoint"
-	default:
-		return ""
-	}
+	return pkglife.TaskTypeLabel(taskType)
 }

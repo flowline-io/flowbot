@@ -14,6 +14,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 const (
@@ -173,7 +174,7 @@ func NewLLM() *LLMService {
 func (s *LLMService) EvaluateQuest(ctx context.Context, req EvaluateQuestRequest) (*QuestEvaluation, error) {
 	prompt := strings.TrimSpace(req.Prompt)
 	if prompt == "" {
-		return nil, fmt.Errorf("life capability: empty prompt")
+		return nil, types.Errorf(types.ErrInvalidArgument, "life capability: empty prompt")
 	}
 	ev, err := s.evaluateWithLLM(ctx, req, prompt)
 	if err != nil {
@@ -186,7 +187,7 @@ func (s *LLMService) EvaluateQuest(ctx context.Context, req EvaluateQuestRequest
 func (s *LLMService) AdjudicateQuest(ctx context.Context, req AdjudicateQuestRequest) (*QuestAdjudication, error) {
 	title := strings.TrimSpace(req.QuestTitle)
 	if title == "" {
-		return nil, fmt.Errorf("life capability: empty quest title")
+		return nil, types.Errorf(types.ErrInvalidArgument, "life capability: empty quest title")
 	}
 	model, resolvedName, err := s.resolveChatModel(ctx)
 	if err != nil {
@@ -198,7 +199,7 @@ func (s *LLMService) AdjudicateQuest(ctx context.Context, req AdjudicateQuestReq
 		llms.TextParts(llms.ChatMessageTypeHuman, buildAdjudicationUserMessage(req, title)),
 	}, resolvedName, adjudicateMaxTokens)
 	if err != nil {
-		return nil, err
+		return nil, wrapLLMComplete(err)
 	}
 	flog.InfoFields("life: adjudicate quest llm raw", map[string]any{
 		"model": resolvedName,
@@ -216,7 +217,7 @@ func (s *LLMService) AdjudicateQuest(ctx context.Context, req AdjudicateQuestReq
 func (s *LLMService) GenerateInstanceLore(ctx context.Context, questTitle, equipmentName, rarity string) (*InstanceLore, error) {
 	equipmentName = strings.TrimSpace(equipmentName)
 	if equipmentName == "" {
-		return nil, fmt.Errorf("life capability: empty equipment name")
+		return nil, types.Errorf(types.ErrInvalidArgument, "life capability: empty equipment name")
 	}
 	if strings.TrimSpace(rarity) == "" {
 		rarity = "Common"
@@ -233,7 +234,7 @@ func (s *LLMService) GenerateInstanceLore(ctx context.Context, questTitle, equip
 		llms.TextParts(llms.ChatMessageTypeHuman, user),
 	}, resolvedName, loreMaxTokens)
 	if err != nil {
-		return nil, err
+		return nil, wrapLLMComplete(err)
 	}
 	lore, err := parseLoreJSON(raw)
 	if err != nil {
@@ -246,7 +247,7 @@ func (s *LLMService) GenerateInstanceLore(ctx context.Context, questTitle, equip
 func (s *LLMService) BreakdownGoalTree(ctx context.Context, req GoalBreakdownRequest) (*GoalBreakdownSuggestion, error) {
 	title := strings.TrimSpace(req.RootTitle)
 	if title == "" {
-		return nil, fmt.Errorf("life capability: empty root title")
+		return nil, types.Errorf(types.ErrInvalidArgument, "life capability: empty root title")
 	}
 	model, resolvedName, err := s.resolveChatModel(ctx)
 	if err != nil {
@@ -258,7 +259,7 @@ func (s *LLMService) BreakdownGoalTree(ctx context.Context, req GoalBreakdownReq
 		llms.TextParts(llms.ChatMessageTypeHuman, buildBreakdownUserMessage(req, title)),
 	}, resolvedName, breakdownMaxTokens)
 	if err != nil {
-		return nil, err
+		return nil, wrapLLMComplete(err)
 	}
 	flog.InfoFields("life: breakdown goal llm raw", map[string]any{
 		"model":      resolvedName,
@@ -284,7 +285,7 @@ func (s *LLMService) evaluateWithLLM(ctx context.Context, req EvaluateQuestReque
 		llms.TextParts(llms.ChatMessageTypeHuman, userPrompt),
 	}, resolvedName, evaluateMaxTokens)
 	if err != nil {
-		return nil, err
+		return nil, wrapLLMComplete(err)
 	}
 	flog.InfoFields("life: evaluate quest llm raw", map[string]any{
 		"model":  resolvedName,
@@ -403,14 +404,14 @@ func buildAdjudicationUserMessage(req AdjudicateQuestRequest, title string) stri
 
 func (s *LLMService) resolveChatModel(ctx context.Context) (llms.Model, string, error) {
 	if s == nil {
-		return nil, "", fmt.Errorf("life capability: llm service is nil")
+		return nil, "", types.Errorf(types.ErrProvider, "life capability: llm service is nil")
 	}
 	chatModel := ""
 	if s.ChatModel != nil {
 		chatModel = s.ChatModel()
 	}
 	if chatModel == "" {
-		return nil, "", fmt.Errorf("chat agent model is not configured")
+		return nil, "", types.Errorf(types.ErrProvider, "chat agent model is not configured")
 	}
 	resolve := s.ResolveModel
 	if resolve == nil {
@@ -418,19 +419,23 @@ func (s *LLMService) resolveChatModel(ctx context.Context) (llms.Model, string, 
 	}
 	model, resolvedName, err := resolve(ctx, chatModel)
 	if err != nil {
-		return nil, "", fmt.Errorf("life llm model: %w", err)
+		return nil, "", types.WrapError(types.ErrProvider, "life llm model", err)
 	}
 	return model, resolvedName, nil
+}
+
+func wrapLLMComplete(err error) error {
+	return types.WrapError(types.ErrProvider, "life llm complete", err)
 }
 
 func parseEvaluationJSON(raw string) (*QuestEvaluation, error) {
 	raw = extractJSONObject(raw)
 	var ev QuestEvaluation
 	if err := sonic.Unmarshal([]byte(raw), &ev); err != nil {
-		return nil, fmt.Errorf("parse evaluate json: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "parse evaluate json", err)
 	}
 	if strings.TrimSpace(ev.Title) == "" || strings.TrimSpace(ev.StatCode) == "" {
-		return nil, fmt.Errorf("parse evaluate json: missing title or stat_code")
+		return nil, types.Errorf(types.ErrProvider, "parse evaluate json: missing title or stat_code")
 	}
 	return &ev, nil
 }
@@ -439,10 +444,10 @@ func parseLoreJSON(raw string) (*InstanceLore, error) {
 	raw = extractJSONObject(raw)
 	var lore InstanceLore
 	if err := sonic.Unmarshal([]byte(raw), &lore); err != nil {
-		return nil, fmt.Errorf("parse lore json: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "parse lore json", err)
 	}
 	if strings.TrimSpace(lore.Name) == "" || strings.TrimSpace(lore.Lore) == "" {
-		return nil, fmt.Errorf("parse lore json: missing name or lore")
+		return nil, types.Errorf(types.ErrProvider, "parse lore json: missing name or lore")
 	}
 	return &lore, nil
 }
@@ -451,10 +456,10 @@ func parseAdjudicationJSON(raw string) (*QuestAdjudication, error) {
 	raw = extractJSONObject(raw)
 	var ruling QuestAdjudication
 	if err := sonic.Unmarshal([]byte(raw), &ruling); err != nil {
-		return nil, fmt.Errorf("parse adjudication json: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "parse adjudication json", err)
 	}
 	if strings.TrimSpace(ruling.Verdict) == "" {
-		return nil, fmt.Errorf("parse adjudication json: missing verdict")
+		return nil, types.Errorf(types.ErrProvider, "parse adjudication json: missing verdict")
 	}
 	return &ruling, nil
 }
@@ -463,10 +468,10 @@ func parseBreakdownJSON(raw string) (*GoalBreakdownSuggestion, error) {
 	raw = extractJSONObject(raw)
 	var tree GoalBreakdownSuggestion
 	if err := sonic.Unmarshal([]byte(raw), &tree); err != nil {
-		return nil, fmt.Errorf("parse breakdown json: %w", err)
+		return nil, types.WrapError(types.ErrProvider, "parse breakdown json", err)
 	}
 	if strings.TrimSpace(tree.Title) == "" {
-		return nil, fmt.Errorf("parse breakdown json: missing title")
+		return nil, types.Errorf(types.ErrProvider, "parse breakdown json: missing title")
 	}
 	return &tree, nil
 }

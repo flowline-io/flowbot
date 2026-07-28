@@ -2,7 +2,6 @@ package life
 
 import (
 	"context"
-	"fmt"
 	"slices"
 	"strings"
 	"time"
@@ -84,11 +83,11 @@ type preparedPlanNodeCreate struct {
 func (s *Service) preparePlanNodeCreate(ctx context.Context, profileID int64, parentFlag, nodeType, title, description string, action *ActionInput) (*preparedPlanNodeCreate, error) {
 	normalizedType := normalizePlanNodeType(nodeType)
 	if normalizedType == "" {
-		return nil, fmt.Errorf("life: invalid node type")
+		return nil, lifeInvalid("invalid node type")
 	}
 	normalizedTitle := strings.TrimSpace(title)
 	if normalizedTitle == "" {
-		return nil, fmt.Errorf("life: title required")
+		return nil, lifeInvalid("title required")
 	}
 	parentID, err := s.resolvePlanNodeParent(ctx, profileID, parentFlag, normalizedType)
 	if err != nil {
@@ -115,7 +114,7 @@ func (s *Service) preparePlanNodeCreate(ctx context.Context, profileID int64, pa
 func (s *Service) resolvePlanNodeParent(ctx context.Context, profileID int64, parentFlag, nodeType string) (*int64, error) {
 	if parentFlag == "" {
 		if nodeType != "goal" {
-			return nil, fmt.Errorf("life: non-goal node requires parent")
+			return nil, lifeInvalid("non-goal node requires parent")
 		}
 		return nil, nil
 	}
@@ -124,10 +123,10 @@ func (s *Service) resolvePlanNodeParent(ctx context.Context, profileID int64, pa
 		return nil, err
 	}
 	if parent == nil {
-		return nil, fmt.Errorf("life: parent not found")
+		return nil, lifeNotFound("parent not found")
 	}
 	if !isAllowedPlanChild(parent.NodeType, nodeType) {
-		return nil, fmt.Errorf("life: invalid parent child relation")
+		return nil, lifeInvalid("invalid parent child relation")
 	}
 	return &parent.ID, nil
 }
@@ -137,7 +136,7 @@ func buildPlanActionSpec(nodeType string, action *ActionInput) (*store.LifePlanA
 		return nil, nil
 	}
 	if action == nil {
-		return nil, fmt.Errorf("life: action details required")
+		return nil, lifeInvalid("action details required")
 	}
 	return classifyActionInput(action), nil
 }
@@ -147,11 +146,11 @@ func (s *Service) resolveActionDependencies(ctx context.Context, profileID int64
 		return nil, nil
 	}
 	if parentID == nil {
-		return nil, fmt.Errorf("life: checkpoint action requires parent")
+		return nil, lifeInvalid("checkpoint action requires parent")
 	}
 	flags := normalizeDependencyFlags(action.DependencyFlags)
 	if len(flags) == 0 {
-		return nil, fmt.Errorf("life: checkpoint dependencies required")
+		return nil, lifeInvalid("checkpoint dependencies required")
 	}
 	ids := make([]int64, 0, len(flags))
 	for _, flag := range flags {
@@ -160,7 +159,7 @@ func (s *Service) resolveActionDependencies(ctx context.Context, profileID int64
 			return nil, err
 		}
 		if node == nil {
-			return nil, fmt.Errorf("life: dependency action not found")
+			return nil, lifeNotFound("dependency action not found")
 		}
 		ids = append(ids, node.ID)
 	}
@@ -178,14 +177,14 @@ func (s *Service) ConfirmHabitAction(ctx context.Context, userID, nodeFlag strin
 		return err
 	}
 	if node == nil {
-		return fmt.Errorf("life: action not found")
+		return lifeNotFound("action not found")
 	}
 	spec, err := s.store.GetActionSpecByPlanNodeID(ctx, node.ID)
 	if err != nil {
 		return err
 	}
 	if spec == nil || spec.TaskType != "habit_candidate" {
-		return fmt.Errorf("life: habit confirmation not required")
+		return lifeConflict("habit confirmation not required")
 	}
 	_, err = s.store.ConfirmHabitAction(ctx, node.ID)
 	return err

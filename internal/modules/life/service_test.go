@@ -11,6 +11,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
+	pkglife "github.com/flowline-io/flowbot/pkg/life"
 )
 
 func TestParseLoreInventoryID(t *testing.T) {
@@ -73,8 +74,7 @@ func TestResolveDropEquip_NeedLore(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			q := &gen.LifeQuest{Type: tt.questType, AiEvaluatedDifficulty: tt.diff}
-			need := q.Type == "Boss" || q.AiEvaluatedDifficulty == "SSS" || q.AiEvaluatedDifficulty == "SS"
+			need := pkglife.NeedsInstanceLore(tt.questType, tt.diff)
 			assert.Equal(t, tt.wantLore, need)
 		})
 	}
