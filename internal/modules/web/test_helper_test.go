@@ -445,6 +445,7 @@ func lockWebTestGlobals(t *testing.T) {
 	t.Helper()
 	webTestGlobalsMu.Lock()
 	t.Cleanup(func() {
+		chatagent.WaitForSessionSummaryGenerationForTest()
 		store.Database = nil
 		handler = moduleHandler{}
 		config = configType{}
