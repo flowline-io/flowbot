@@ -44,6 +44,20 @@ func Register(svc Service) error {
 				},
 				Handler: invokeLore(svc),
 			},
+			{
+				Name:        OpBreakdownGoalTree,
+				Description: "Suggest a structured life plan tree",
+				Mutation:    false,
+				Input: []hub.ParamDef{
+					{Name: "root_title", Type: "string", Required: true, Description: "Root goal title"},
+					{Name: "description", Type: "string", Required: false, Description: "Goal detail"},
+					{Name: "ai_personality", Type: "string", Required: false, Description: "DM personality"},
+					{Name: "privileges", Type: "object", Required: false, Description: "Equipped AI privileges"},
+					{Name: "active_goals", Type: "array", Required: false, Description: "Active goal titles"},
+					{Name: "breakdown_depth", Type: "string", Required: false, Description: "AI breakdown depth hint"},
+				},
+				Handler: invokeBreakdown(svc),
+			},
 		},
 	})
 }
@@ -102,6 +116,39 @@ func invokeLore(svc Service) capability.Invoker {
 			return nil, fmt.Errorf("life capability: lore: %w", err)
 		}
 		return &capability.InvokeResult{Data: lore}, nil
+	}
+}
+
+func invokeBreakdown(svc Service) capability.Invoker {
+	return func(ctx context.Context, params map[string]any) (*capability.InvokeResult, error) {
+		title, err := capability.RequiredString(params, "root_title")
+		if err != nil {
+			return nil, err
+		}
+		req := GoalBreakdownRequest{
+			RootTitle:      title,
+			Description:    optionalStringParam(params, "description"),
+			AIPersonality:  optionalStringParam(params, "ai_personality"),
+			BreakdownDepth: optionalStringParam(params, "breakdown_depth"),
+		}
+		if m, ok := params["privileges"].(map[string]any); ok {
+			req.Privileges = m
+		}
+		if arr, ok := params["active_goals"].([]any); ok {
+			for _, item := range arr {
+				if s, ok := item.(string); ok && s != "" {
+					req.ActiveGoals = append(req.ActiveGoals, s)
+				}
+			}
+		}
+		if arr, ok := params["active_goals"].([]string); ok {
+			req.ActiveGoals = append(req.ActiveGoals, arr...)
+		}
+		tree, err := svc.BreakdownGoalTree(ctx, req)
+		if err != nil {
+			return nil, fmt.Errorf("life capability: breakdown: %w", err)
+		}
+		return &capability.InvokeResult{Data: tree}, nil
 	}
 }
 

@@ -40,6 +40,56 @@ func (_c *LifeActionLogCreate) SetQuestID(v int64) *LifeActionLogCreate {
 	return _c
 }
 
+// SetNillableQuestID sets the "quest_id" field if the given value is not nil.
+func (_c *LifeActionLogCreate) SetNillableQuestID(v *int64) *LifeActionLogCreate {
+	if v != nil {
+		_c.SetQuestID(*v)
+	}
+	return _c
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (_c *LifeActionLogCreate) SetPlanNodeID(v int64) *LifeActionLogCreate {
+	_c.mutation.SetPlanNodeID(v)
+	return _c
+}
+
+// SetNillablePlanNodeID sets the "plan_node_id" field if the given value is not nil.
+func (_c *LifeActionLogCreate) SetNillablePlanNodeID(v *int64) *LifeActionLogCreate {
+	if v != nil {
+		_c.SetPlanNodeID(*v)
+	}
+	return _c
+}
+
+// SetSourceType sets the "source_type" field.
+func (_c *LifeActionLogCreate) SetSourceType(v string) *LifeActionLogCreate {
+	_c.mutation.SetSourceType(v)
+	return _c
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (_c *LifeActionLogCreate) SetNillableSourceType(v *string) *LifeActionLogCreate {
+	if v != nil {
+		_c.SetSourceType(*v)
+	}
+	return _c
+}
+
+// SetSummary sets the "summary" field.
+func (_c *LifeActionLogCreate) SetSummary(v string) *LifeActionLogCreate {
+	_c.mutation.SetSummary(v)
+	return _c
+}
+
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (_c *LifeActionLogCreate) SetNillableSummary(v *string) *LifeActionLogCreate {
+	if v != nil {
+		_c.SetSummary(*v)
+	}
+	return _c
+}
+
 // SetGainedExp sets the "gained_exp" field.
 func (_c *LifeActionLogCreate) SetGainedExp(v int) *LifeActionLogCreate {
 	_c.mutation.SetGainedExp(v)
@@ -151,6 +201,14 @@ func (_c *LifeActionLogCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *LifeActionLogCreate) defaults() {
+	if _, ok := _c.mutation.SourceType(); !ok {
+		v := lifeactionlog.DefaultSourceType
+		_c.mutation.SetSourceType(v)
+	}
+	if _, ok := _c.mutation.Summary(); !ok {
+		v := lifeactionlog.DefaultSummary
+		_c.mutation.SetSummary(v)
+	}
 	if _, ok := _c.mutation.GainedExp(); !ok {
 		v := lifeactionlog.DefaultGainedExp
 		_c.mutation.SetGainedExp(v)
@@ -178,8 +236,11 @@ func (_c *LifeActionLogCreate) check() error {
 	if _, ok := _c.mutation.LifeProfileID(); !ok {
 		return &ValidationError{Name: "life_profile_id", err: errors.New(`gen: missing required field "LifeActionLog.life_profile_id"`)}
 	}
-	if _, ok := _c.mutation.QuestID(); !ok {
-		return &ValidationError{Name: "quest_id", err: errors.New(`gen: missing required field "LifeActionLog.quest_id"`)}
+	if _, ok := _c.mutation.SourceType(); !ok {
+		return &ValidationError{Name: "source_type", err: errors.New(`gen: missing required field "LifeActionLog.source_type"`)}
+	}
+	if _, ok := _c.mutation.Summary(); !ok {
+		return &ValidationError{Name: "summary", err: errors.New(`gen: missing required field "LifeActionLog.summary"`)}
 	}
 	if _, ok := _c.mutation.GainedExp(); !ok {
 		return &ValidationError{Name: "gained_exp", err: errors.New(`gen: missing required field "LifeActionLog.gained_exp"`)}
@@ -233,7 +294,19 @@ func (_c *LifeActionLogCreate) createSpec() (*LifeActionLog, *sqlgraph.CreateSpe
 	}
 	if value, ok := _c.mutation.QuestID(); ok {
 		_spec.SetField(lifeactionlog.FieldQuestID, field.TypeInt64, value)
-		_node.QuestID = value
+		_node.QuestID = &value
+	}
+	if value, ok := _c.mutation.PlanNodeID(); ok {
+		_spec.SetField(lifeactionlog.FieldPlanNodeID, field.TypeInt64, value)
+		_node.PlanNodeID = &value
+	}
+	if value, ok := _c.mutation.SourceType(); ok {
+		_spec.SetField(lifeactionlog.FieldSourceType, field.TypeString, value)
+		_node.SourceType = value
+	}
+	if value, ok := _c.mutation.Summary(); ok {
+		_spec.SetField(lifeactionlog.FieldSummary, field.TypeString, value)
+		_node.Summary = value
 	}
 	if value, ok := _c.mutation.GainedExp(); ok {
 		_spec.SetField(lifeactionlog.FieldGainedExp, field.TypeInt, value)
@@ -352,6 +425,60 @@ func (u *LifeActionLogUpsert) UpdateQuestID() *LifeActionLogUpsert {
 // AddQuestID adds v to the "quest_id" field.
 func (u *LifeActionLogUpsert) AddQuestID(v int64) *LifeActionLogUpsert {
 	u.Add(lifeactionlog.FieldQuestID, v)
+	return u
+}
+
+// ClearQuestID clears the value of the "quest_id" field.
+func (u *LifeActionLogUpsert) ClearQuestID() *LifeActionLogUpsert {
+	u.SetNull(lifeactionlog.FieldQuestID)
+	return u
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (u *LifeActionLogUpsert) SetPlanNodeID(v int64) *LifeActionLogUpsert {
+	u.Set(lifeactionlog.FieldPlanNodeID, v)
+	return u
+}
+
+// UpdatePlanNodeID sets the "plan_node_id" field to the value that was provided on create.
+func (u *LifeActionLogUpsert) UpdatePlanNodeID() *LifeActionLogUpsert {
+	u.SetExcluded(lifeactionlog.FieldPlanNodeID)
+	return u
+}
+
+// AddPlanNodeID adds v to the "plan_node_id" field.
+func (u *LifeActionLogUpsert) AddPlanNodeID(v int64) *LifeActionLogUpsert {
+	u.Add(lifeactionlog.FieldPlanNodeID, v)
+	return u
+}
+
+// ClearPlanNodeID clears the value of the "plan_node_id" field.
+func (u *LifeActionLogUpsert) ClearPlanNodeID() *LifeActionLogUpsert {
+	u.SetNull(lifeactionlog.FieldPlanNodeID)
+	return u
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *LifeActionLogUpsert) SetSourceType(v string) *LifeActionLogUpsert {
+	u.Set(lifeactionlog.FieldSourceType, v)
+	return u
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *LifeActionLogUpsert) UpdateSourceType() *LifeActionLogUpsert {
+	u.SetExcluded(lifeactionlog.FieldSourceType)
+	return u
+}
+
+// SetSummary sets the "summary" field.
+func (u *LifeActionLogUpsert) SetSummary(v string) *LifeActionLogUpsert {
+	u.Set(lifeactionlog.FieldSummary, v)
+	return u
+}
+
+// UpdateSummary sets the "summary" field to the value that was provided on create.
+func (u *LifeActionLogUpsert) UpdateSummary() *LifeActionLogUpsert {
+	u.SetExcluded(lifeactionlog.FieldSummary)
 	return u
 }
 
@@ -543,6 +670,69 @@ func (u *LifeActionLogUpsertOne) AddQuestID(v int64) *LifeActionLogUpsertOne {
 func (u *LifeActionLogUpsertOne) UpdateQuestID() *LifeActionLogUpsertOne {
 	return u.Update(func(s *LifeActionLogUpsert) {
 		s.UpdateQuestID()
+	})
+}
+
+// ClearQuestID clears the value of the "quest_id" field.
+func (u *LifeActionLogUpsertOne) ClearQuestID() *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.ClearQuestID()
+	})
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (u *LifeActionLogUpsertOne) SetPlanNodeID(v int64) *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.SetPlanNodeID(v)
+	})
+}
+
+// AddPlanNodeID adds v to the "plan_node_id" field.
+func (u *LifeActionLogUpsertOne) AddPlanNodeID(v int64) *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.AddPlanNodeID(v)
+	})
+}
+
+// UpdatePlanNodeID sets the "plan_node_id" field to the value that was provided on create.
+func (u *LifeActionLogUpsertOne) UpdatePlanNodeID() *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.UpdatePlanNodeID()
+	})
+}
+
+// ClearPlanNodeID clears the value of the "plan_node_id" field.
+func (u *LifeActionLogUpsertOne) ClearPlanNodeID() *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.ClearPlanNodeID()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *LifeActionLogUpsertOne) SetSourceType(v string) *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *LifeActionLogUpsertOne) UpdateSourceType() *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetSummary sets the "summary" field.
+func (u *LifeActionLogUpsertOne) SetSummary(v string) *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.SetSummary(v)
+	})
+}
+
+// UpdateSummary sets the "summary" field to the value that was provided on create.
+func (u *LifeActionLogUpsertOne) UpdateSummary() *LifeActionLogUpsertOne {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.UpdateSummary()
 	})
 }
 
@@ -914,6 +1104,69 @@ func (u *LifeActionLogUpsertBulk) AddQuestID(v int64) *LifeActionLogUpsertBulk {
 func (u *LifeActionLogUpsertBulk) UpdateQuestID() *LifeActionLogUpsertBulk {
 	return u.Update(func(s *LifeActionLogUpsert) {
 		s.UpdateQuestID()
+	})
+}
+
+// ClearQuestID clears the value of the "quest_id" field.
+func (u *LifeActionLogUpsertBulk) ClearQuestID() *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.ClearQuestID()
+	})
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (u *LifeActionLogUpsertBulk) SetPlanNodeID(v int64) *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.SetPlanNodeID(v)
+	})
+}
+
+// AddPlanNodeID adds v to the "plan_node_id" field.
+func (u *LifeActionLogUpsertBulk) AddPlanNodeID(v int64) *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.AddPlanNodeID(v)
+	})
+}
+
+// UpdatePlanNodeID sets the "plan_node_id" field to the value that was provided on create.
+func (u *LifeActionLogUpsertBulk) UpdatePlanNodeID() *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.UpdatePlanNodeID()
+	})
+}
+
+// ClearPlanNodeID clears the value of the "plan_node_id" field.
+func (u *LifeActionLogUpsertBulk) ClearPlanNodeID() *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.ClearPlanNodeID()
+	})
+}
+
+// SetSourceType sets the "source_type" field.
+func (u *LifeActionLogUpsertBulk) SetSourceType(v string) *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.SetSourceType(v)
+	})
+}
+
+// UpdateSourceType sets the "source_type" field to the value that was provided on create.
+func (u *LifeActionLogUpsertBulk) UpdateSourceType() *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.UpdateSourceType()
+	})
+}
+
+// SetSummary sets the "summary" field.
+func (u *LifeActionLogUpsertBulk) SetSummary(v string) *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.SetSummary(v)
+	})
+}
+
+// UpdateSummary sets the "summary" field to the value that was provided on create.
+func (u *LifeActionLogUpsertBulk) UpdateSummary() *LifeActionLogUpsertBulk {
+	return u.Update(func(s *LifeActionLogUpsert) {
+		s.UpdateSummary()
 	})
 }
 

@@ -3316,7 +3316,8 @@ body:has(.chatagent-page) > main {
 }
 
 .life-module-main .life-identity {
-  max-width: 28rem;
+  max-width: none;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -3460,6 +3461,66 @@ body:has(.chatagent-page) > main {
   min-width: 3.5rem;
 }
 
+.life-plan-compose,
+.life-breakdown-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+
+.life-plan-compose-row,
+.life-breakdown-compose-row {
+  display: grid;
+  gap: 0.45rem;
+  align-items: start;
+}
+
+.life-plan-compose-row {
+  grid-template-columns: minmax(0, 1.4fr) minmax(8rem, 0.7fr) minmax(10rem, 1fr);
+}
+
+.life-breakdown-compose-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.life-plan-compose-textarea {
+  min-height: 4.5rem;
+  height: auto;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+  resize: vertical;
+}
+
+.life-plan-compose-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.life-plan-compose-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.15rem;
+  padding: 0 0.6rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+  font-size: 0.8125rem;
+  color: var(--color-base-content, #111);
+}
+
+.life-plan-compose-check input {
+  margin: 0;
+}
+
+.life-plan-compose-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .life-goals-empty {
   margin: 0;
   padding: 0.75rem 0.15rem;
@@ -3480,6 +3541,60 @@ body:has(.chatagent-page) > main {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+}
+
+.life-tree-node {
+  margin: 0;
+}
+
+.life-tree-branch {
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 55%, var(--color-base-100, #fff));
+}
+
+.life-tree-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.7rem 0.75rem;
+}
+
+.life-tree-summary::-webkit-details-marker {
+  display: none;
+}
+
+.life-tree-summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.45rem;
+  color: color-mix(in oklab, var(--color-base-content) 58%, transparent);
+  transition: transform 0.16s ease;
+}
+
+.life-tree-branch[open] > .life-tree-summary::before {
+  transform: rotate(90deg);
+}
+
+.life-tree-children {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.life-tree-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-base-content, #111);
+}
+
+.life-tree-description {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-base-content) 56%, transparent);
 }
 
 .life-goal-card {
@@ -3548,6 +3663,23 @@ body:has(.chatagent-page) > main {
 
   .life-goal-card-meta {
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 640px) {
+  .life-plan-compose-row,
+  .life-breakdown-compose-row {
+    grid-template-columns: 1fr;
+  }
+
+  .life-plan-compose-options {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .life-plan-compose-actions .life-goals-compose-btn,
+  .life-breakdown-compose-row .life-goals-compose-btn {
+    width: 100%;
   }
 }
 
@@ -3648,9 +3780,20 @@ body:has(.chatagent-page) > main {
   background: color-mix(in oklab, var(--color-base-200, #f3f4f6) 35%, var(--color-base-100, #fff));
 }
 
+.life-action-card {
+  gap: 1.25rem;
+  padding: 1rem;
+  background: var(--color-base-100, #fff);
+}
+
 .life-quest-card-body {
   min-width: 0;
   flex: 1;
+}
+
+.life-action-body {
+  display: flex;
+  flex-direction: column;
 }
 
 .life-quest-title {
@@ -3675,11 +3818,28 @@ body:has(.chatagent-page) > main {
   word-break: break-word;
 }
 
+.life-action-context {
+  margin-top: -0.1rem;
+  color: color-mix(in oklab, var(--color-primary, #0f766e) 48%, var(--color-base-content) 52%);
+}
+
+.life-action-description {
+  margin: 0 0 0.7rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+}
+
 .life-quest-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   margin: 0 0 0.55rem;
+}
+
+.life-action-meta {
+  gap: 0.4rem;
+  margin-bottom: 0;
 }
 
 .life-meta-chip {
@@ -3730,6 +3890,15 @@ body:has(.chatagent-page) > main {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+}
+
+.life-action-actions {
+  min-width: 7rem;
+  align-items: stretch;
+}
+
+.life-action-actions .btn {
+  justify-content: center;
 }
 
 .life-done-list {

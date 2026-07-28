@@ -39,13 +39,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
@@ -1164,18 +1168,98 @@ func init() {
 	lifeactionlogDescFlag := lifeactionlogFields[1].Descriptor()
 	// lifeactionlog.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
 	lifeactionlog.FlagValidator = lifeactionlogDescFlag.Validators[0].(func(string) error)
+	// lifeactionlogDescSourceType is the schema descriptor for source_type field.
+	lifeactionlogDescSourceType := lifeactionlogFields[5].Descriptor()
+	// lifeactionlog.DefaultSourceType holds the default value on creation for the source_type field.
+	lifeactionlog.DefaultSourceType = lifeactionlogDescSourceType.Default.(string)
+	// lifeactionlogDescSummary is the schema descriptor for summary field.
+	lifeactionlogDescSummary := lifeactionlogFields[6].Descriptor()
+	// lifeactionlog.DefaultSummary holds the default value on creation for the summary field.
+	lifeactionlog.DefaultSummary = lifeactionlogDescSummary.Default.(string)
 	// lifeactionlogDescGainedExp is the schema descriptor for gained_exp field.
-	lifeactionlogDescGainedExp := lifeactionlogFields[4].Descriptor()
+	lifeactionlogDescGainedExp := lifeactionlogFields[7].Descriptor()
 	// lifeactionlog.DefaultGainedExp holds the default value on creation for the gained_exp field.
 	lifeactionlog.DefaultGainedExp = lifeactionlogDescGainedExp.Default.(int)
 	// lifeactionlogDescGainedGold is the schema descriptor for gained_gold field.
-	lifeactionlogDescGainedGold := lifeactionlogFields[5].Descriptor()
+	lifeactionlogDescGainedGold := lifeactionlogFields[8].Descriptor()
 	// lifeactionlog.DefaultGainedGold holds the default value on creation for the gained_gold field.
 	lifeactionlog.DefaultGainedGold = lifeactionlogDescGainedGold.Default.(int)
 	// lifeactionlogDescCreatedAt is the schema descriptor for created_at field.
-	lifeactionlogDescCreatedAt := lifeactionlogFields[8].Descriptor()
+	lifeactionlogDescCreatedAt := lifeactionlogFields[11].Descriptor()
 	// lifeactionlog.DefaultCreatedAt holds the default value on creation for the created_at field.
 	lifeactionlog.DefaultCreatedAt = lifeactionlogDescCreatedAt.Default.(func() time.Time)
+	lifeactionoccurrenceFields := schema.LifeActionOccurrence{}.Fields()
+	_ = lifeactionoccurrenceFields
+	// lifeactionoccurrenceDescFlag is the schema descriptor for flag field.
+	lifeactionoccurrenceDescFlag := lifeactionoccurrenceFields[1].Descriptor()
+	// lifeactionoccurrence.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeactionoccurrence.FlagValidator = lifeactionoccurrenceDescFlag.Validators[0].(func(string) error)
+	// lifeactionoccurrenceDescKind is the schema descriptor for kind field.
+	lifeactionoccurrenceDescKind := lifeactionoccurrenceFields[4].Descriptor()
+	// lifeactionoccurrence.DefaultKind holds the default value on creation for the kind field.
+	lifeactionoccurrence.DefaultKind = lifeactionoccurrenceDescKind.Default.(string)
+	// lifeactionoccurrenceDescState is the schema descriptor for state field.
+	lifeactionoccurrenceDescState := lifeactionoccurrenceFields[5].Descriptor()
+	// lifeactionoccurrence.DefaultState holds the default value on creation for the state field.
+	lifeactionoccurrence.DefaultState = lifeactionoccurrenceDescState.Default.(string)
+	// lifeactionoccurrenceDescCadenceSnapshot is the schema descriptor for cadence_snapshot field.
+	lifeactionoccurrenceDescCadenceSnapshot := lifeactionoccurrenceFields[8].Descriptor()
+	// lifeactionoccurrence.DefaultCadenceSnapshot holds the default value on creation for the cadence_snapshot field.
+	lifeactionoccurrence.DefaultCadenceSnapshot = lifeactionoccurrenceDescCadenceSnapshot.Default.(string)
+	// lifeactionoccurrenceDescCreatedAt is the schema descriptor for created_at field.
+	lifeactionoccurrenceDescCreatedAt := lifeactionoccurrenceFields[10].Descriptor()
+	// lifeactionoccurrence.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifeactionoccurrence.DefaultCreatedAt = lifeactionoccurrenceDescCreatedAt.Default.(func() time.Time)
+	// lifeactionoccurrenceDescUpdatedAt is the schema descriptor for updated_at field.
+	lifeactionoccurrenceDescUpdatedAt := lifeactionoccurrenceFields[11].Descriptor()
+	// lifeactionoccurrence.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifeactionoccurrence.DefaultUpdatedAt = lifeactionoccurrenceDescUpdatedAt.Default.(func() time.Time)
+	// lifeactionoccurrence.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifeactionoccurrence.UpdateDefaultUpdatedAt = lifeactionoccurrenceDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeactionspecFields := schema.LifeActionSpec{}.Fields()
+	_ = lifeactionspecFields
+	// lifeactionspecDescTaskType is the schema descriptor for task_type field.
+	lifeactionspecDescTaskType := lifeactionspecFields[2].Descriptor()
+	// lifeactionspec.DefaultTaskType holds the default value on creation for the task_type field.
+	lifeactionspec.DefaultTaskType = lifeactionspecDescTaskType.Default.(string)
+	// lifeactionspecDescTrackingMode is the schema descriptor for tracking_mode field.
+	lifeactionspecDescTrackingMode := lifeactionspecFields[3].Descriptor()
+	// lifeactionspec.DefaultTrackingMode holds the default value on creation for the tracking_mode field.
+	lifeactionspec.DefaultTrackingMode = lifeactionspecDescTrackingMode.Default.(string)
+	// lifeactionspecDescIsRepeatable is the schema descriptor for is_repeatable field.
+	lifeactionspecDescIsRepeatable := lifeactionspecFields[4].Descriptor()
+	// lifeactionspec.DefaultIsRepeatable holds the default value on creation for the is_repeatable field.
+	lifeactionspec.DefaultIsRepeatable = lifeactionspecDescIsRepeatable.Default.(bool)
+	// lifeactionspecDescRepeatTrigger is the schema descriptor for repeat_trigger field.
+	lifeactionspecDescRepeatTrigger := lifeactionspecFields[5].Descriptor()
+	// lifeactionspec.DefaultRepeatTrigger holds the default value on creation for the repeat_trigger field.
+	lifeactionspec.DefaultRepeatTrigger = lifeactionspecDescRepeatTrigger.Default.(string)
+	// lifeactionspecDescSuggestedCadence is the schema descriptor for suggested_cadence field.
+	lifeactionspecDescSuggestedCadence := lifeactionspecFields[6].Descriptor()
+	// lifeactionspec.DefaultSuggestedCadence holds the default value on creation for the suggested_cadence field.
+	lifeactionspec.DefaultSuggestedCadence = lifeactionspecDescSuggestedCadence.Default.(string)
+	// lifeactionspecDescIsIdentityBuilding is the schema descriptor for is_identity_building field.
+	lifeactionspecDescIsIdentityBuilding := lifeactionspecFields[7].Descriptor()
+	// lifeactionspec.DefaultIsIdentityBuilding holds the default value on creation for the is_identity_building field.
+	lifeactionspec.DefaultIsIdentityBuilding = lifeactionspecDescIsIdentityBuilding.Default.(bool)
+	// lifeactionspecDescReason is the schema descriptor for reason field.
+	lifeactionspecDescReason := lifeactionspecFields[8].Descriptor()
+	// lifeactionspec.DefaultReason holds the default value on creation for the reason field.
+	lifeactionspec.DefaultReason = lifeactionspecDescReason.Default.(string)
+	// lifeactionspecDescNeedsUserConfirmation is the schema descriptor for needs_user_confirmation field.
+	lifeactionspecDescNeedsUserConfirmation := lifeactionspecFields[9].Descriptor()
+	// lifeactionspec.DefaultNeedsUserConfirmation holds the default value on creation for the needs_user_confirmation field.
+	lifeactionspec.DefaultNeedsUserConfirmation = lifeactionspecDescNeedsUserConfirmation.Default.(bool)
+	// lifeactionspecDescCreatedAt is the schema descriptor for created_at field.
+	lifeactionspecDescCreatedAt := lifeactionspecFields[11].Descriptor()
+	// lifeactionspec.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifeactionspec.DefaultCreatedAt = lifeactionspecDescCreatedAt.Default.(func() time.Time)
+	// lifeactionspecDescUpdatedAt is the schema descriptor for updated_at field.
+	lifeactionspecDescUpdatedAt := lifeactionspecFields[12].Descriptor()
+	// lifeactionspec.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifeactionspec.DefaultUpdatedAt = lifeactionspecDescUpdatedAt.Default.(func() time.Time)
+	// lifeactionspec.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifeactionspec.UpdateDefaultUpdatedAt = lifeactionspecDescUpdatedAt.UpdateDefault.(func() time.Time)
 	lifecharacteristicFields := schema.LifeCharacteristic{}.Fields()
 	_ = lifecharacteristicFields
 	// lifecharacteristicDescFlag is the schema descriptor for flag field.
@@ -1270,6 +1354,30 @@ func init() {
 	lifegoal.DefaultUpdatedAt = lifegoalDescUpdatedAt.Default.(func() time.Time)
 	// lifegoal.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifegoal.UpdateDefaultUpdatedAt = lifegoalDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifehabitcheckinFields := schema.LifeHabitCheckin{}.Fields()
+	_ = lifehabitcheckinFields
+	// lifehabitcheckinDescFlag is the schema descriptor for flag field.
+	lifehabitcheckinDescFlag := lifehabitcheckinFields[1].Descriptor()
+	// lifehabitcheckin.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifehabitcheckin.FlagValidator = lifehabitcheckinDescFlag.Validators[0].(func(string) error)
+	// lifehabitcheckinDescStatus is the schema descriptor for status field.
+	lifehabitcheckinDescStatus := lifehabitcheckinFields[5].Descriptor()
+	// lifehabitcheckin.DefaultStatus holds the default value on creation for the status field.
+	lifehabitcheckin.DefaultStatus = lifehabitcheckinDescStatus.Default.(string)
+	// lifehabitcheckinDescNote is the schema descriptor for note field.
+	lifehabitcheckinDescNote := lifehabitcheckinFields[6].Descriptor()
+	// lifehabitcheckin.DefaultNote holds the default value on creation for the note field.
+	lifehabitcheckin.DefaultNote = lifehabitcheckinDescNote.Default.(string)
+	// lifehabitcheckinDescCreatedAt is the schema descriptor for created_at field.
+	lifehabitcheckinDescCreatedAt := lifehabitcheckinFields[7].Descriptor()
+	// lifehabitcheckin.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifehabitcheckin.DefaultCreatedAt = lifehabitcheckinDescCreatedAt.Default.(func() time.Time)
+	// lifehabitcheckinDescUpdatedAt is the schema descriptor for updated_at field.
+	lifehabitcheckinDescUpdatedAt := lifehabitcheckinFields[8].Descriptor()
+	// lifehabitcheckin.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifehabitcheckin.DefaultUpdatedAt = lifehabitcheckinDescUpdatedAt.Default.(func() time.Time)
+	// lifehabitcheckin.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifehabitcheckin.UpdateDefaultUpdatedAt = lifehabitcheckinDescUpdatedAt.UpdateDefault.(func() time.Time)
 	lifeinventoryFields := schema.LifeInventory{}.Fields()
 	_ = lifeinventoryFields
 	// lifeinventoryDescFlag is the schema descriptor for flag field.
@@ -1308,6 +1416,42 @@ func init() {
 	lifeloottable.DefaultUpdatedAt = lifeloottableDescUpdatedAt.Default.(func() time.Time)
 	// lifeloottable.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifeloottable.UpdateDefaultUpdatedAt = lifeloottableDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeplannodeFields := schema.LifePlanNode{}.Fields()
+	_ = lifeplannodeFields
+	// lifeplannodeDescFlag is the schema descriptor for flag field.
+	lifeplannodeDescFlag := lifeplannodeFields[1].Descriptor()
+	// lifeplannode.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifeplannode.FlagValidator = lifeplannodeDescFlag.Validators[0].(func(string) error)
+	// lifeplannodeDescNodeType is the schema descriptor for node_type field.
+	lifeplannodeDescNodeType := lifeplannodeFields[4].Descriptor()
+	// lifeplannode.NodeTypeValidator is a validator for the "node_type" field. It is called by the builders before save.
+	lifeplannode.NodeTypeValidator = lifeplannodeDescNodeType.Validators[0].(func(string) error)
+	// lifeplannodeDescTitle is the schema descriptor for title field.
+	lifeplannodeDescTitle := lifeplannodeFields[5].Descriptor()
+	// lifeplannode.TitleValidator is a validator for the "title" field. It is called by the builders before save.
+	lifeplannode.TitleValidator = lifeplannodeDescTitle.Validators[0].(func(string) error)
+	// lifeplannodeDescDescription is the schema descriptor for description field.
+	lifeplannodeDescDescription := lifeplannodeFields[6].Descriptor()
+	// lifeplannode.DefaultDescription holds the default value on creation for the description field.
+	lifeplannode.DefaultDescription = lifeplannodeDescDescription.Default.(string)
+	// lifeplannodeDescStatus is the schema descriptor for status field.
+	lifeplannodeDescStatus := lifeplannodeFields[7].Descriptor()
+	// lifeplannode.DefaultStatus holds the default value on creation for the status field.
+	lifeplannode.DefaultStatus = lifeplannodeDescStatus.Default.(string)
+	// lifeplannodeDescSortOrder is the schema descriptor for sort_order field.
+	lifeplannodeDescSortOrder := lifeplannodeFields[8].Descriptor()
+	// lifeplannode.DefaultSortOrder holds the default value on creation for the sort_order field.
+	lifeplannode.DefaultSortOrder = lifeplannodeDescSortOrder.Default.(int)
+	// lifeplannodeDescCreatedAt is the schema descriptor for created_at field.
+	lifeplannodeDescCreatedAt := lifeplannodeFields[9].Descriptor()
+	// lifeplannode.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifeplannode.DefaultCreatedAt = lifeplannodeDescCreatedAt.Default.(func() time.Time)
+	// lifeplannodeDescUpdatedAt is the schema descriptor for updated_at field.
+	lifeplannodeDescUpdatedAt := lifeplannodeFields[10].Descriptor()
+	// lifeplannode.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifeplannode.DefaultUpdatedAt = lifeplannodeDescUpdatedAt.Default.(func() time.Time)
+	// lifeplannode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifeplannode.UpdateDefaultUpdatedAt = lifeplannodeDescUpdatedAt.UpdateDefault.(func() time.Time)
 	lifeprofileFields := schema.LifeProfile{}.Fields()
 	_ = lifeprofileFields
 	// lifeprofileDescFlag is the schema descriptor for flag field.

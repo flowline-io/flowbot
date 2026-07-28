@@ -46,13 +46,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
@@ -182,12 +186,16 @@ func checkColumn(t, c string) error {
 			llmusagerecord.Table:            llmusagerecord.ValidColumn,
 			lifeaicontext.Table:             lifeaicontext.ValidColumn,
 			lifeactionlog.Table:             lifeactionlog.ValidColumn,
+			lifeactionoccurrence.Table:      lifeactionoccurrence.ValidColumn,
+			lifeactionspec.Table:            lifeactionspec.ValidColumn,
 			lifecharacteristic.Table:        lifecharacteristic.ValidColumn,
 			lifeequipment.Table:             lifeequipment.ValidColumn,
 			lifeequippedslots.Table:         lifeequippedslots.ValidColumn,
 			lifegoal.Table:                  lifegoal.ValidColumn,
+			lifehabitcheckin.Table:          lifehabitcheckin.ValidColumn,
 			lifeinventory.Table:             lifeinventory.ValidColumn,
 			lifeloottable.Table:             lifeloottable.ValidColumn,
+			lifeplannode.Table:              lifeplannode.ValidColumn,
 			lifeprofile.Table:               lifeprofile.ValidColumn,
 			lifequest.Table:                 lifequest.ValidColumn,
 			lifeskill.Table:                 lifeskill.ValidColumn,

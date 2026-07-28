@@ -69,6 +69,21 @@ func QuestID(v int64) predicate.LifeActionLog {
 	return predicate.LifeActionLog(sql.FieldEQ(FieldQuestID, v))
 }
 
+// PlanNodeID applies equality check predicate on the "plan_node_id" field. It's identical to PlanNodeIDEQ.
+func PlanNodeID(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEQ(FieldPlanNodeID, v))
+}
+
+// SourceType applies equality check predicate on the "source_type" field. It's identical to SourceTypeEQ.
+func SourceType(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEQ(FieldSourceType, v))
+}
+
+// Summary applies equality check predicate on the "summary" field. It's identical to SummaryEQ.
+func Summary(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEQ(FieldSummary, v))
+}
+
 // GainedExp applies equality check predicate on the "gained_exp" field. It's identical to GainedExpEQ.
 func GainedExp(v int) predicate.LifeActionLog {
 	return predicate.LifeActionLog(sql.FieldEQ(FieldGainedExp, v))
@@ -237,6 +252,196 @@ func QuestIDLT(v int64) predicate.LifeActionLog {
 // QuestIDLTE applies the LTE predicate on the "quest_id" field.
 func QuestIDLTE(v int64) predicate.LifeActionLog {
 	return predicate.LifeActionLog(sql.FieldLTE(FieldQuestID, v))
+}
+
+// QuestIDIsNil applies the IsNil predicate on the "quest_id" field.
+func QuestIDIsNil() predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldIsNull(FieldQuestID))
+}
+
+// QuestIDNotNil applies the NotNil predicate on the "quest_id" field.
+func QuestIDNotNil() predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNotNull(FieldQuestID))
+}
+
+// PlanNodeIDEQ applies the EQ predicate on the "plan_node_id" field.
+func PlanNodeIDEQ(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEQ(FieldPlanNodeID, v))
+}
+
+// PlanNodeIDNEQ applies the NEQ predicate on the "plan_node_id" field.
+func PlanNodeIDNEQ(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNEQ(FieldPlanNodeID, v))
+}
+
+// PlanNodeIDIn applies the In predicate on the "plan_node_id" field.
+func PlanNodeIDIn(vs ...int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldIn(FieldPlanNodeID, vs...))
+}
+
+// PlanNodeIDNotIn applies the NotIn predicate on the "plan_node_id" field.
+func PlanNodeIDNotIn(vs ...int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNotIn(FieldPlanNodeID, vs...))
+}
+
+// PlanNodeIDGT applies the GT predicate on the "plan_node_id" field.
+func PlanNodeIDGT(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldGT(FieldPlanNodeID, v))
+}
+
+// PlanNodeIDGTE applies the GTE predicate on the "plan_node_id" field.
+func PlanNodeIDGTE(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldGTE(FieldPlanNodeID, v))
+}
+
+// PlanNodeIDLT applies the LT predicate on the "plan_node_id" field.
+func PlanNodeIDLT(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldLT(FieldPlanNodeID, v))
+}
+
+// PlanNodeIDLTE applies the LTE predicate on the "plan_node_id" field.
+func PlanNodeIDLTE(v int64) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldLTE(FieldPlanNodeID, v))
+}
+
+// PlanNodeIDIsNil applies the IsNil predicate on the "plan_node_id" field.
+func PlanNodeIDIsNil() predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldIsNull(FieldPlanNodeID))
+}
+
+// PlanNodeIDNotNil applies the NotNil predicate on the "plan_node_id" field.
+func PlanNodeIDNotNil() predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNotNull(FieldPlanNodeID))
+}
+
+// SourceTypeEQ applies the EQ predicate on the "source_type" field.
+func SourceTypeEQ(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEQ(FieldSourceType, v))
+}
+
+// SourceTypeNEQ applies the NEQ predicate on the "source_type" field.
+func SourceTypeNEQ(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNEQ(FieldSourceType, v))
+}
+
+// SourceTypeIn applies the In predicate on the "source_type" field.
+func SourceTypeIn(vs ...string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldIn(FieldSourceType, vs...))
+}
+
+// SourceTypeNotIn applies the NotIn predicate on the "source_type" field.
+func SourceTypeNotIn(vs ...string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNotIn(FieldSourceType, vs...))
+}
+
+// SourceTypeGT applies the GT predicate on the "source_type" field.
+func SourceTypeGT(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldGT(FieldSourceType, v))
+}
+
+// SourceTypeGTE applies the GTE predicate on the "source_type" field.
+func SourceTypeGTE(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldGTE(FieldSourceType, v))
+}
+
+// SourceTypeLT applies the LT predicate on the "source_type" field.
+func SourceTypeLT(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldLT(FieldSourceType, v))
+}
+
+// SourceTypeLTE applies the LTE predicate on the "source_type" field.
+func SourceTypeLTE(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldLTE(FieldSourceType, v))
+}
+
+// SourceTypeContains applies the Contains predicate on the "source_type" field.
+func SourceTypeContains(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldContains(FieldSourceType, v))
+}
+
+// SourceTypeHasPrefix applies the HasPrefix predicate on the "source_type" field.
+func SourceTypeHasPrefix(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldHasPrefix(FieldSourceType, v))
+}
+
+// SourceTypeHasSuffix applies the HasSuffix predicate on the "source_type" field.
+func SourceTypeHasSuffix(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldHasSuffix(FieldSourceType, v))
+}
+
+// SourceTypeEqualFold applies the EqualFold predicate on the "source_type" field.
+func SourceTypeEqualFold(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEqualFold(FieldSourceType, v))
+}
+
+// SourceTypeContainsFold applies the ContainsFold predicate on the "source_type" field.
+func SourceTypeContainsFold(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldContainsFold(FieldSourceType, v))
+}
+
+// SummaryEQ applies the EQ predicate on the "summary" field.
+func SummaryEQ(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEQ(FieldSummary, v))
+}
+
+// SummaryNEQ applies the NEQ predicate on the "summary" field.
+func SummaryNEQ(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNEQ(FieldSummary, v))
+}
+
+// SummaryIn applies the In predicate on the "summary" field.
+func SummaryIn(vs ...string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldIn(FieldSummary, vs...))
+}
+
+// SummaryNotIn applies the NotIn predicate on the "summary" field.
+func SummaryNotIn(vs ...string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldNotIn(FieldSummary, vs...))
+}
+
+// SummaryGT applies the GT predicate on the "summary" field.
+func SummaryGT(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldGT(FieldSummary, v))
+}
+
+// SummaryGTE applies the GTE predicate on the "summary" field.
+func SummaryGTE(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldGTE(FieldSummary, v))
+}
+
+// SummaryLT applies the LT predicate on the "summary" field.
+func SummaryLT(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldLT(FieldSummary, v))
+}
+
+// SummaryLTE applies the LTE predicate on the "summary" field.
+func SummaryLTE(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldLTE(FieldSummary, v))
+}
+
+// SummaryContains applies the Contains predicate on the "summary" field.
+func SummaryContains(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldContains(FieldSummary, v))
+}
+
+// SummaryHasPrefix applies the HasPrefix predicate on the "summary" field.
+func SummaryHasPrefix(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldHasPrefix(FieldSummary, v))
+}
+
+// SummaryHasSuffix applies the HasSuffix predicate on the "summary" field.
+func SummaryHasSuffix(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldHasSuffix(FieldSummary, v))
+}
+
+// SummaryEqualFold applies the EqualFold predicate on the "summary" field.
+func SummaryEqualFold(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldEqualFold(FieldSummary, v))
+}
+
+// SummaryContainsFold applies the ContainsFold predicate on the "summary" field.
+func SummaryContainsFold(v string) predicate.LifeActionLog {
+	return predicate.LifeActionLog(sql.FieldContainsFold(FieldSummary, v))
 }
 
 // GainedExpEQ applies the EQ predicate on the "gained_exp" field.

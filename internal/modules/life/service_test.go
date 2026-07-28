@@ -1,11 +1,16 @@
 package life
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
+	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
 )
 
 func TestParseLoreInventoryID(t *testing.T) {
@@ -73,4 +78,148 @@ func TestResolveDropEquip_NeedLore(t *testing.T) {
 			assert.Equal(t, tt.wantLore, need)
 		})
 	}
+}
+
+func TestClassifyActionInput(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		in        *ActionInput
+		wantType  string
+		wantMode  string
+		wantNeeds bool
+	}{
+		{
+			name:      "todo by default",
+			in:        &ActionInput{},
+			wantType:  "todo",
+			wantMode:  "completion",
+			wantNeeds: false,
+		},
+		{
+			name: "recurring when repeatable completion",
+			in: &ActionInput{
+				IsRepeatable: true,
+				TrackingMode: "completion",
+			},
+			wantType:  "recurring",
+			wantMode:  "completion",
+			wantNeeds: false,
+		},
+		{
+			name: "habit candidate when consistency",
+			in: &ActionInput{
+				IsRepeatable: true,
+				TrackingMode: "consistency",
+			},
+			wantType:  "habit_candidate",
+			wantMode:  "consistency",
+			wantNeeds: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := classifyActionInput(tt.in)
+			assert.Equal(t, tt.wantType, got.TaskType)
+			assert.Equal(t, tt.wantMode, got.TrackingMode)
+			assert.Equal(t, tt.wantNeeds, got.NeedsUserConfirmation)
+		})
+	}
+}
+
+func TestBuildPlanTree(t *testing.T) {
+	t.Parallel()
+	parentID := int64(1)
+	projectID := int64(2)
+	nodes := []*gen.LifePlanNode{
+		{ID: 1, Flag: "goal-1", NodeType: "goal", Title: "Ship app"},
+		{ID: 2, Flag: "proj-1", ParentID: &parentID, NodeType: "project", Title: "Backend"},
+		{ID: 3, Flag: "act-1", ParentID: &projectID, NodeType: "action", Title: "Write handlers"},
+	}
+	specs := []*gen.LifeActionSpec{
+		{PlanNodeID: 3, TaskType: "todo", TrackingMode: "completion"},
+	}
+	tree := buildPlanTree(nodes, specs)
+	if assert.Len(t, tree, 1) {
+		assert.Equal(t, "goal-1", tree[0].Node.Flag)
+		if assert.Len(t, tree[0].Children, 1) {
+			assert.Equal(t, "proj-1", tree[0].Children[0].Node.Flag)
+			if assert.Len(t, tree[0].Children[0].Children, 1) {
+				action := tree[0].Children[0].Children[0]
+				assert.Equal(t, "act-1", action.Node.Flag)
+				assert.NotNil(t, action.Action)
+				assert.Equal(t, "todo", action.Action.TaskType)
+			}
+		}
+	}
+}
+
+func TestIsAllowedPlanChild(t *testing.T) {
+	t.Parallel()
+	assert.True(t, isAllowedPlanChild("goal", "milestone"))
+	assert.True(t, isAllowedPlanChild("goal", "project"))
+	assert.True(t, isAllowedPlanChild("project", "action"))
+	assert.False(t, isAllowedPlanChild("goal", "action"))
+	assert.False(t, isAllowedPlanChild("project", "project"))
+	assert.False(t, isAllowedPlanChild("action", "goal"))
+}
+
+func TestImportGoalBreakdownIsAtomic(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	suggestion := (*lifecap.GoalBreakdownSuggestion)(nil)
+
+	err := svc.ImportGoalBreakdown(ctx, "review-user", suggestion)
+	require.Error(t, err)
+
+	profile, err := svc.EnsureProfile(ctx, "review-user", "", "")
+	require.NoError(t, err)
+	nodes, err := svc.store.ListPlanNodes(ctx, profile.ID)
+	require.NoError(t, err)
+	assert.Empty(t, nodes)
+}
+
+func TestImportGoalBreakdownNormalizesInvalidHierarchy(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	suggestion := &lifecap.GoalBreakdownSuggestion{
+		NodeType: "goal",
+		Title:    "Ship V2",
+		Children: []lifecap.GoalBreakdownSuggestion{
+			{
+				NodeType: "action",
+				Title:    "Prototype dialogue",
+				Children: []lifecap.GoalBreakdownSuggestion{
+					{
+						NodeType: "action",
+						Title:    "Write dialogue core",
+						Action: &lifecap.GoalBreakdownActionSuggestion{
+							IsRepeatable: false,
+							TrackingMode: "completion",
+							RepeatTrigger: "none",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	err := svc.ImportGoalBreakdown(ctx, "normalize-user", suggestion)
+	require.NoError(t, err)
+
+	profile, err := svc.EnsureProfile(ctx, "normalize-user", "", "")
+	require.NoError(t, err)
+	nodes, err := svc.store.ListPlanNodes(ctx, profile.ID)
+	require.NoError(t, err)
+	require.Len(t, nodes, 3)
+	assert.Equal(t, "goal", nodes[0].NodeType)
+	assert.Equal(t, "project", nodes[1].NodeType)
+	assert.Equal(t, "action", nodes[2].NodeType)
 }

@@ -4,4 +4,5 @@ package life
 const (
 	OpEvaluateQuest        = "EvaluateQuest"
 	OpGenerateInstanceLore = "GenerateInstanceLore"
+	OpBreakdownGoalTree    = "BreakdownGoalTree"
 )

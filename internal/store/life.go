@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
@@ -17,6 +18,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
@@ -29,6 +31,32 @@ const LifeLoreRequestedType = "life.inventory.lore_requested"
 // LifeStore persists Life domain entities.
 type LifeStore struct {
 	client *gen.Client
+	inTx   bool
+}
+
+// LifePlanActionSpecInput is the write shape for action metadata.
+type LifePlanActionSpecInput struct {
+	TaskType              string
+	TrackingMode          string
+	IsRepeatable          bool
+	RepeatTrigger         string
+	SuggestedCadence      string
+	IsIdentityBuilding    bool
+	Reason                string
+	NeedsUserConfirmation bool
+	ConfirmedAt           *time.Time
+}
+
+// LifeCreatePlanNodeInput is the write shape for creating one plan node.
+type LifeCreatePlanNodeInput struct {
+	ProfileID    int64
+	ParentID     *int64
+	NodeType     string
+	Title        string
+	Description  string
+	Status       string
+	SortOrder    int
+	ActionSpec   *LifePlanActionSpecInput
 }
 
 // NewLifeStore creates a LifeStore with the given ent client.
@@ -54,6 +82,34 @@ func (s *LifeStore) Client() *gen.Client {
 		return nil
 	}
 	return s.client
+}
+
+// WithTx runs a callback inside one ent transaction.
+func (s *LifeStore) WithTx(ctx context.Context, fn func(*LifeStore) error) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	if s.inTx {
+		return fn(s)
+	}
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("life: begin tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+	if err := fn(&LifeStore{client: tx.Client(), inTx: true}); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("life: commit tx: %w", err)
+	}
+	committed = true
+	return nil
 }
 
 func (s *LifeStore) ready() bool {
@@ -350,6 +406,190 @@ func (s *LifeStore) GetGoalByFlag(ctx context.Context, profileID int64, flag str
 		return nil, err
 	}
 	return row, nil
+}
+
+// CreatePlanNode inserts one life plan node and its action spec when needed.
+func (s *LifeStore) CreatePlanNode(ctx context.Context, in LifeCreatePlanNodeInput) (*gen.LifePlanNode, *gen.LifeActionSpec, error) {
+	if !s.ready() {
+		return nil, nil, fmt.Errorf("life: store not available")
+	}
+	var row *gen.LifePlanNode
+	var spec *gen.LifeActionSpec
+	err := s.WithTx(ctx, func(txStore *LifeStore) error {
+		var innerErr error
+		row, innerErr = createPlanNodeWithClient(ctx, txStore.client, in)
+		if innerErr != nil {
+			return innerErr
+		}
+		if in.ActionSpec != nil {
+			spec, innerErr = createActionSpecWithClient(ctx, txStore.client, row.ID, *in.ActionSpec)
+			if innerErr != nil {
+				return innerErr
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return row, spec, nil
+}
+
+// ListPlanNodes returns plan nodes for one profile in stable tree order.
+func (s *LifeStore) ListPlanNodes(ctx context.Context, profileID int64) ([]*gen.LifePlanNode, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	rows, err := s.client.LifePlanNode.Query().
+		Where(lifeplannode.LifeProfileIDEQ(profileID)).
+		Order(
+			gen.Asc(lifeplannode.FieldParentID),
+			gen.Asc(lifeplannode.FieldSortOrder),
+			gen.Asc(lifeplannode.FieldCreatedAt),
+		).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list plan nodes: %w", err)
+	}
+	return rows, nil
+}
+
+// ListActionSpecs returns all action specs keyed by plan node id.
+func (s *LifeStore) ListActionSpecs(ctx context.Context, profileID int64) ([]*gen.LifeActionSpec, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	nodes, err := s.ListPlanNodes(ctx, profileID)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]int64, 0, len(nodes))
+	for _, row := range nodes {
+		ids = append(ids, row.ID)
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	rows, err := s.client.LifeActionSpec.Query().
+		Where(lifeactionspec.PlanNodeIDIn(ids...)).
+		Order(gen.Asc(lifeactionspec.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: list action specs: %w", err)
+	}
+	return rows, nil
+}
+
+// GetPlanNodeByFlag returns one plan node scoped to profile.
+func (s *LifeStore) GetPlanNodeByFlag(ctx context.Context, profileID int64, flag string) (*gen.LifePlanNode, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifePlanNode.Query().
+		Where(lifeplannode.LifeProfileIDEQ(profileID), lifeplannode.FlagEQ(flag)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("life: get plan node: %w", err)
+	}
+	return row, nil
+}
+
+// GetActionSpecByPlanNodeID returns one action spec by plan node id.
+func (s *LifeStore) GetActionSpecByPlanNodeID(ctx context.Context, planNodeID int64) (*gen.LifeActionSpec, error) {
+	if !s.ready() {
+		return nil, nil
+	}
+	row, err := s.client.LifeActionSpec.Query().
+		Where(lifeactionspec.PlanNodeIDEQ(planNodeID)).
+		Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("life: get action spec: %w", err)
+	}
+	return row, nil
+}
+
+// ConfirmHabitAction promotes a habit candidate to a confirmed habit.
+func (s *LifeStore) ConfirmHabitAction(ctx context.Context, planNodeID int64) (*gen.LifeActionSpec, error) {
+	if !s.ready() {
+		return nil, fmt.Errorf("life: store not available")
+	}
+	spec, err := s.GetActionSpecByPlanNodeID(ctx, planNodeID)
+	if err != nil {
+		return nil, err
+	}
+	if spec == nil {
+		return nil, nil
+	}
+	now := time.Now()
+	row, err := s.client.LifeActionSpec.UpdateOneID(spec.ID).
+		SetTaskType("habit").
+		SetNeedsUserConfirmation(false).
+		SetConfirmedAt(now).
+		Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: confirm habit: %w", err)
+	}
+	return row, nil
+}
+
+// UpdatePlanNode edits mutable fields on one plan node.
+func (s *LifeStore) UpdatePlanNode(ctx context.Context, id int64, title, description, status string, sortOrder int) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	u := s.client.LifePlanNode.UpdateOneID(id).
+		SetTitle(title).
+		SetDescription(description).
+		SetSortOrder(sortOrder)
+	if status != "" {
+		u = u.SetStatus(status)
+	}
+	if _, err := u.Save(ctx); err != nil {
+		return fmt.Errorf("life: update plan node: %w", err)
+	}
+	return nil
+}
+
+// DeletePlanNode removes one plan node and its descendants.
+func (s *LifeStore) DeletePlanNode(ctx context.Context, profileID, id int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	rows, err := s.ListPlanNodes(ctx, profileID)
+	if err != nil {
+		return err
+	}
+	toDelete := collectPlanDescendantIDs(rows, id)
+	if len(toDelete) == 0 {
+		return nil
+	}
+	tx, err := s.client.Tx(ctx)
+	if err != nil {
+		return fmt.Errorf("life: begin delete plan tx: %w", err)
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+	if _, err := tx.LifeActionSpec.Delete().Where(lifeactionspec.PlanNodeIDIn(toDelete...)).Exec(ctx); err != nil {
+		return fmt.Errorf("life: delete action specs: %w", err)
+	}
+	if _, err := tx.LifePlanNode.Delete().Where(lifeplannode.IDIn(toDelete...)).Exec(ctx); err != nil {
+		return fmt.Errorf("life: delete plan nodes: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("life: commit delete plan: %w", err)
+	}
+	committed = true
+	return nil
 }
 
 // UpdateGoalStatus sets goal status (Active / Paused / Completed).
@@ -779,6 +1019,7 @@ func (s *LifeStore) CreateActionLog(ctx context.Context, profileID, questID int6
 		SetFlag(types.Id()).
 		SetLifeProfileID(profileID).
 		SetQuestID(questID).
+		SetSourceType("quest").
 		SetGainedExp(exp).
 		SetGainedGold(gold)
 	if invID != nil {
@@ -1091,4 +1332,88 @@ func persistDailyRespawn(ctx context.Context, tx *gen.Tx, dq *gen.LifeQuest) err
 		return fmt.Errorf("life: daily respawn: %w", err)
 	}
 	return nil
+}
+
+func createPlanNodeWithClient(ctx context.Context, client *gen.Client, in LifeCreatePlanNodeInput) (*gen.LifePlanNode, error) {
+	status := in.Status
+	if status == "" {
+		status = "Active"
+	}
+	builder := client.LifePlanNode.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(in.ProfileID).
+		SetNodeType(in.NodeType).
+		SetTitle(in.Title).
+		SetDescription(in.Description).
+		SetStatus(status).
+		SetSortOrder(in.SortOrder)
+	if in.ParentID != nil {
+		builder = builder.SetParentID(*in.ParentID)
+	}
+	row, err := builder.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create plan node: %w", err)
+	}
+	return row, nil
+}
+
+func createActionSpecWithClient(ctx context.Context, client *gen.Client, planNodeID int64, in LifePlanActionSpecInput) (*gen.LifeActionSpec, error) {
+	taskType := in.TaskType
+	if taskType == "" {
+		taskType = "todo"
+	}
+	trackingMode := in.TrackingMode
+	if trackingMode == "" {
+		trackingMode = "completion"
+	}
+	repeatTrigger := in.RepeatTrigger
+	if repeatTrigger == "" {
+		repeatTrigger = "none"
+	}
+	builder := client.LifeActionSpec.Create().
+		SetPlanNodeID(planNodeID).
+		SetTaskType(taskType).
+		SetTrackingMode(trackingMode).
+		SetIsRepeatable(in.IsRepeatable).
+		SetRepeatTrigger(repeatTrigger).
+		SetSuggestedCadence(in.SuggestedCadence).
+		SetIsIdentityBuilding(in.IsIdentityBuilding).
+		SetReason(in.Reason).
+		SetNeedsUserConfirmation(in.NeedsUserConfirmation)
+	if in.ConfirmedAt != nil {
+		builder = builder.SetConfirmedAt(*in.ConfirmedAt)
+	}
+	row, err := builder.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("life: create action spec: %w", err)
+	}
+	return row, nil
+}
+
+func collectPlanDescendantIDs(rows []*gen.LifePlanNode, rootID int64) []int64 {
+	if rootID == 0 {
+		return nil
+	}
+	children := map[int64][]int64{}
+	for _, row := range rows {
+		if row.ParentID == nil {
+			continue
+		}
+		children[*row.ParentID] = append(children[*row.ParentID], row.ID)
+	}
+	out := make([]int64, 0, 8)
+	stack := []int64{rootID}
+	seen := map[int64]struct{}{}
+	for len(stack) > 0 {
+		last := len(stack) - 1
+		id := stack[last]
+		stack = stack[:last]
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		out = append(out, id)
+		stack = append(stack, children[id]...)
+	}
+	return out
 }

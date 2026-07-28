@@ -461,9 +461,9 @@ func setupTestApp(ts ...*testing.T) (*fiber.App, *testStore) {
 		lockWebTestGlobals(ts[0])
 	}
 	ensureChatAgentServiceForTest()
-	ts := &testStore{}
+	testDB := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()
-	store.Database = ts
+	store.Database = testDB
 	secure := false
 	handler = moduleHandler{
 		initialized: true,
@@ -480,7 +480,7 @@ func setupTestApp(ts ...*testing.T) (*fiber.App, *testStore) {
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
-	return app, ts
+	return app, testDB
 }
 
 // setupTestAppWithRateLimiter creates a Fiber test app with an active login rate limiter.
@@ -490,9 +490,9 @@ func setupTestAppWithRateLimiter(ts ...*testing.T) (*fiber.App, *testStore, *moc
 		lockWebTestGlobals(ts[0])
 	}
 	ensureChatAgentServiceForTest()
-	ts := &testStore{}
+	testDB := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()
-	store.Database = ts
+	store.Database = testDB
 	secure := false
 	handler = moduleHandler{
 		initialized: true,
@@ -510,7 +510,7 @@ func setupTestAppWithRateLimiter(ts ...*testing.T) (*fiber.App, *testStore, *moc
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
-	return app, ts, mockStore
+	return app, testDB, mockStore
 }
 
 // setupTestAppWithDB creates a Fiber test app wired with an in-memory SQLite

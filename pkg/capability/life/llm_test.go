@@ -130,3 +130,28 @@ func TestLLMGenerateInstanceLoreErrorsOnBadJSON(t *testing.T) {
 	_, err := testLLM(fake).GenerateInstanceLore(context.Background(), "Q", "Sword", "Rare")
 	require.Error(t, err)
 }
+
+func TestLLMBreakdownGoalTreeSuccess(t *testing.T) {
+	t.Parallel()
+	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
+		Content: `{"node_type":"goal","title":"Ship Flowbot V2","description":"Deliver the execution layer","children":[{"node_type":"project","title":"Implement execution layer","children":[{"node_type":"action","title":"Add occurrence store","action":{"is_repeatable":false,"tracking_mode":"completion","repeat_trigger":"none","reason":"Unblock today board"}}]}]}`,
+	})
+	tree, err := testLLM(fake).BreakdownGoalTree(context.Background(), lifecap.GoalBreakdownRequest{
+		RootTitle:   "Ship Flowbot V2",
+		Description: "Deliver the execution layer",
+	})
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+	assert.Equal(t, "goal", tree.NodeType)
+	assert.Equal(t, "Ship Flowbot V2", tree.Title)
+	require.Len(t, tree.Children, 1)
+	require.Len(t, tree.Children[0].Children, 1)
+	assert.Equal(t, "action", tree.Children[0].Children[0].NodeType)
+	assert.NotNil(t, tree.Children[0].Children[0].Action)
+}
+
+func TestLLMBreakdownGoalTreeEmptyTitle(t *testing.T) {
+	t.Parallel()
+	_, err := lifecap.NewLLM().BreakdownGoalTree(context.Background(), lifecap.GoalBreakdownRequest{RootTitle: " "})
+	require.Error(t, err)
+}

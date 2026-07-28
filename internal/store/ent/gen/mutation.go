@@ -45,13 +45,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
@@ -134,12 +138,16 @@ const (
 	TypeLLMUsageRecord            = "LLMUsageRecord"
 	TypeLifeAIContext             = "LifeAIContext"
 	TypeLifeActionLog             = "LifeActionLog"
+	TypeLifeActionOccurrence      = "LifeActionOccurrence"
+	TypeLifeActionSpec            = "LifeActionSpec"
 	TypeLifeCharacteristic        = "LifeCharacteristic"
 	TypeLifeEquipment             = "LifeEquipment"
 	TypeLifeEquippedSlots         = "LifeEquippedSlots"
 	TypeLifeGoal                  = "LifeGoal"
+	TypeLifeHabitCheckin          = "LifeHabitCheckin"
 	TypeLifeInventory             = "LifeInventory"
 	TypeLifeLootTable             = "LifeLootTable"
+	TypeLifePlanNode              = "LifePlanNode"
 	TypeLifeProfile               = "LifeProfile"
 	TypeLifeQuest                 = "LifeQuest"
 	TypeLifeSkill                 = "LifeSkill"
@@ -25707,6 +25715,10 @@ type LifeActionLogMutation struct {
 	addlife_profile_id      *int64
 	quest_id                *int64
 	addquest_id             *int64
+	plan_node_id            *int64
+	addplan_node_id         *int64
+	source_type             *string
+	summary                 *string
 	gained_exp              *int
 	addgained_exp           *int
 	gained_gold             *int
@@ -25936,7 +25948,7 @@ func (m *LifeActionLogMutation) QuestID() (r int64, exists bool) {
 // OldQuestID returns the old "quest_id" field's value of the LifeActionLog entity.
 // If the LifeActionLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LifeActionLogMutation) OldQuestID(ctx context.Context) (v int64, err error) {
+func (m *LifeActionLogMutation) OldQuestID(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldQuestID is only allowed on UpdateOne operations")
 	}
@@ -25968,10 +25980,166 @@ func (m *LifeActionLogMutation) AddedQuestID() (r int64, exists bool) {
 	return *v, true
 }
 
+// ClearQuestID clears the value of the "quest_id" field.
+func (m *LifeActionLogMutation) ClearQuestID() {
+	m.quest_id = nil
+	m.addquest_id = nil
+	m.clearedFields[lifeactionlog.FieldQuestID] = struct{}{}
+}
+
+// QuestIDCleared returns if the "quest_id" field was cleared in this mutation.
+func (m *LifeActionLogMutation) QuestIDCleared() bool {
+	_, ok := m.clearedFields[lifeactionlog.FieldQuestID]
+	return ok
+}
+
 // ResetQuestID resets all changes to the "quest_id" field.
 func (m *LifeActionLogMutation) ResetQuestID() {
 	m.quest_id = nil
 	m.addquest_id = nil
+	delete(m.clearedFields, lifeactionlog.FieldQuestID)
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (m *LifeActionLogMutation) SetPlanNodeID(i int64) {
+	m.plan_node_id = &i
+	m.addplan_node_id = nil
+}
+
+// PlanNodeID returns the value of the "plan_node_id" field in the mutation.
+func (m *LifeActionLogMutation) PlanNodeID() (r int64, exists bool) {
+	v := m.plan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanNodeID returns the old "plan_node_id" field's value of the LifeActionLog entity.
+// If the LifeActionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionLogMutation) OldPlanNodeID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanNodeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanNodeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanNodeID: %w", err)
+	}
+	return oldValue.PlanNodeID, nil
+}
+
+// AddPlanNodeID adds i to the "plan_node_id" field.
+func (m *LifeActionLogMutation) AddPlanNodeID(i int64) {
+	if m.addplan_node_id != nil {
+		*m.addplan_node_id += i
+	} else {
+		m.addplan_node_id = &i
+	}
+}
+
+// AddedPlanNodeID returns the value that was added to the "plan_node_id" field in this mutation.
+func (m *LifeActionLogMutation) AddedPlanNodeID() (r int64, exists bool) {
+	v := m.addplan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPlanNodeID clears the value of the "plan_node_id" field.
+func (m *LifeActionLogMutation) ClearPlanNodeID() {
+	m.plan_node_id = nil
+	m.addplan_node_id = nil
+	m.clearedFields[lifeactionlog.FieldPlanNodeID] = struct{}{}
+}
+
+// PlanNodeIDCleared returns if the "plan_node_id" field was cleared in this mutation.
+func (m *LifeActionLogMutation) PlanNodeIDCleared() bool {
+	_, ok := m.clearedFields[lifeactionlog.FieldPlanNodeID]
+	return ok
+}
+
+// ResetPlanNodeID resets all changes to the "plan_node_id" field.
+func (m *LifeActionLogMutation) ResetPlanNodeID() {
+	m.plan_node_id = nil
+	m.addplan_node_id = nil
+	delete(m.clearedFields, lifeactionlog.FieldPlanNodeID)
+}
+
+// SetSourceType sets the "source_type" field.
+func (m *LifeActionLogMutation) SetSourceType(s string) {
+	m.source_type = &s
+}
+
+// SourceType returns the value of the "source_type" field in the mutation.
+func (m *LifeActionLogMutation) SourceType() (r string, exists bool) {
+	v := m.source_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceType returns the old "source_type" field's value of the LifeActionLog entity.
+// If the LifeActionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionLogMutation) OldSourceType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceType: %w", err)
+	}
+	return oldValue.SourceType, nil
+}
+
+// ResetSourceType resets all changes to the "source_type" field.
+func (m *LifeActionLogMutation) ResetSourceType() {
+	m.source_type = nil
+}
+
+// SetSummary sets the "summary" field.
+func (m *LifeActionLogMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *LifeActionLogMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the LifeActionLog entity.
+// If the LifeActionLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionLogMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *LifeActionLogMutation) ResetSummary() {
+	m.summary = nil
 }
 
 // SetGainedExp sets the "gained_exp" field.
@@ -26296,7 +26464,7 @@ func (m *LifeActionLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LifeActionLogMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 11)
 	if m.flag != nil {
 		fields = append(fields, lifeactionlog.FieldFlag)
 	}
@@ -26305,6 +26473,15 @@ func (m *LifeActionLogMutation) Fields() []string {
 	}
 	if m.quest_id != nil {
 		fields = append(fields, lifeactionlog.FieldQuestID)
+	}
+	if m.plan_node_id != nil {
+		fields = append(fields, lifeactionlog.FieldPlanNodeID)
+	}
+	if m.source_type != nil {
+		fields = append(fields, lifeactionlog.FieldSourceType)
+	}
+	if m.summary != nil {
+		fields = append(fields, lifeactionlog.FieldSummary)
 	}
 	if m.gained_exp != nil {
 		fields = append(fields, lifeactionlog.FieldGainedExp)
@@ -26335,6 +26512,12 @@ func (m *LifeActionLogMutation) Field(name string) (ent.Value, bool) {
 		return m.LifeProfileID()
 	case lifeactionlog.FieldQuestID:
 		return m.QuestID()
+	case lifeactionlog.FieldPlanNodeID:
+		return m.PlanNodeID()
+	case lifeactionlog.FieldSourceType:
+		return m.SourceType()
+	case lifeactionlog.FieldSummary:
+		return m.Summary()
 	case lifeactionlog.FieldGainedExp:
 		return m.GainedExp()
 	case lifeactionlog.FieldGainedGold:
@@ -26360,6 +26543,12 @@ func (m *LifeActionLogMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldLifeProfileID(ctx)
 	case lifeactionlog.FieldQuestID:
 		return m.OldQuestID(ctx)
+	case lifeactionlog.FieldPlanNodeID:
+		return m.OldPlanNodeID(ctx)
+	case lifeactionlog.FieldSourceType:
+		return m.OldSourceType(ctx)
+	case lifeactionlog.FieldSummary:
+		return m.OldSummary(ctx)
 	case lifeactionlog.FieldGainedExp:
 		return m.OldGainedExp(ctx)
 	case lifeactionlog.FieldGainedGold:
@@ -26399,6 +26588,27 @@ func (m *LifeActionLogMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetQuestID(v)
+		return nil
+	case lifeactionlog.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanNodeID(v)
+		return nil
+	case lifeactionlog.FieldSourceType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceType(v)
+		return nil
+	case lifeactionlog.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
 		return nil
 	case lifeactionlog.FieldGainedExp:
 		v, ok := value.(int)
@@ -26449,6 +26659,9 @@ func (m *LifeActionLogMutation) AddedFields() []string {
 	if m.addquest_id != nil {
 		fields = append(fields, lifeactionlog.FieldQuestID)
 	}
+	if m.addplan_node_id != nil {
+		fields = append(fields, lifeactionlog.FieldPlanNodeID)
+	}
 	if m.addgained_exp != nil {
 		fields = append(fields, lifeactionlog.FieldGainedExp)
 	}
@@ -26473,6 +26686,8 @@ func (m *LifeActionLogMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedLifeProfileID()
 	case lifeactionlog.FieldQuestID:
 		return m.AddedQuestID()
+	case lifeactionlog.FieldPlanNodeID:
+		return m.AddedPlanNodeID()
 	case lifeactionlog.FieldGainedExp:
 		return m.AddedGainedExp()
 	case lifeactionlog.FieldGainedGold:
@@ -26503,6 +26718,13 @@ func (m *LifeActionLogMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddQuestID(v)
+		return nil
+	case lifeactionlog.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPlanNodeID(v)
 		return nil
 	case lifeactionlog.FieldGainedExp:
 		v, ok := value.(int)
@@ -26540,6 +26762,12 @@ func (m *LifeActionLogMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *LifeActionLogMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(lifeactionlog.FieldQuestID) {
+		fields = append(fields, lifeactionlog.FieldQuestID)
+	}
+	if m.FieldCleared(lifeactionlog.FieldPlanNodeID) {
+		fields = append(fields, lifeactionlog.FieldPlanNodeID)
+	}
 	if m.FieldCleared(lifeactionlog.FieldDroppedInventoryID) {
 		fields = append(fields, lifeactionlog.FieldDroppedInventoryID)
 	}
@@ -26560,6 +26788,12 @@ func (m *LifeActionLogMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *LifeActionLogMutation) ClearField(name string) error {
 	switch name {
+	case lifeactionlog.FieldQuestID:
+		m.ClearQuestID()
+		return nil
+	case lifeactionlog.FieldPlanNodeID:
+		m.ClearPlanNodeID()
+		return nil
 	case lifeactionlog.FieldDroppedInventoryID:
 		m.ClearDroppedInventoryID()
 		return nil
@@ -26582,6 +26816,15 @@ func (m *LifeActionLogMutation) ResetField(name string) error {
 		return nil
 	case lifeactionlog.FieldQuestID:
 		m.ResetQuestID()
+		return nil
+	case lifeactionlog.FieldPlanNodeID:
+		m.ResetPlanNodeID()
+		return nil
+	case lifeactionlog.FieldSourceType:
+		m.ResetSourceType()
+		return nil
+	case lifeactionlog.FieldSummary:
+		m.ResetSummary()
 		return nil
 	case lifeactionlog.FieldGainedExp:
 		m.ResetGainedExp()
@@ -26648,6 +26891,2006 @@ func (m *LifeActionLogMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *LifeActionLogMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeActionLog edge %s", name)
+}
+
+// LifeActionOccurrenceMutation represents an operation that mutates the LifeActionOccurrence nodes in the graph.
+type LifeActionOccurrenceMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int64
+	flag                    *string
+	life_profile_id         *int64
+	addlife_profile_id      *int64
+	plan_node_id            *int64
+	addplan_node_id         *int64
+	kind                    *string
+	state                   *string
+	due_at                  *time.Time
+	completed_at            *time.Time
+	cadence_snapshot        *string
+	source_occurrence_id    *int64
+	addsource_occurrence_id *int64
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	done                    bool
+	oldValue                func(context.Context) (*LifeActionOccurrence, error)
+	predicates              []predicate.LifeActionOccurrence
+}
+
+var _ ent.Mutation = (*LifeActionOccurrenceMutation)(nil)
+
+// lifeactionoccurrenceOption allows management of the mutation configuration using functional options.
+type lifeactionoccurrenceOption func(*LifeActionOccurrenceMutation)
+
+// newLifeActionOccurrenceMutation creates new mutation for the LifeActionOccurrence entity.
+func newLifeActionOccurrenceMutation(c config, op Op, opts ...lifeactionoccurrenceOption) *LifeActionOccurrenceMutation {
+	m := &LifeActionOccurrenceMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeActionOccurrence,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeActionOccurrenceID sets the ID field of the mutation.
+func withLifeActionOccurrenceID(id int64) lifeactionoccurrenceOption {
+	return func(m *LifeActionOccurrenceMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeActionOccurrence
+		)
+		m.oldValue = func(ctx context.Context) (*LifeActionOccurrence, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeActionOccurrence.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeActionOccurrence sets the old LifeActionOccurrence of the mutation.
+func withLifeActionOccurrence(node *LifeActionOccurrence) lifeactionoccurrenceOption {
+	return func(m *LifeActionOccurrenceMutation) {
+		m.oldValue = func(context.Context) (*LifeActionOccurrence, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeActionOccurrenceMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeActionOccurrenceMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeActionOccurrence entities.
+func (m *LifeActionOccurrenceMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeActionOccurrenceMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeActionOccurrenceMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeActionOccurrence.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeActionOccurrenceMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeActionOccurrenceMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeActionOccurrenceMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeActionOccurrenceMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeActionOccurrenceMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeActionOccurrenceMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeActionOccurrenceMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeActionOccurrenceMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (m *LifeActionOccurrenceMutation) SetPlanNodeID(i int64) {
+	m.plan_node_id = &i
+	m.addplan_node_id = nil
+}
+
+// PlanNodeID returns the value of the "plan_node_id" field in the mutation.
+func (m *LifeActionOccurrenceMutation) PlanNodeID() (r int64, exists bool) {
+	v := m.plan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanNodeID returns the old "plan_node_id" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldPlanNodeID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanNodeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanNodeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanNodeID: %w", err)
+	}
+	return oldValue.PlanNodeID, nil
+}
+
+// AddPlanNodeID adds i to the "plan_node_id" field.
+func (m *LifeActionOccurrenceMutation) AddPlanNodeID(i int64) {
+	if m.addplan_node_id != nil {
+		*m.addplan_node_id += i
+	} else {
+		m.addplan_node_id = &i
+	}
+}
+
+// AddedPlanNodeID returns the value that was added to the "plan_node_id" field in this mutation.
+func (m *LifeActionOccurrenceMutation) AddedPlanNodeID() (r int64, exists bool) {
+	v := m.addplan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPlanNodeID resets all changes to the "plan_node_id" field.
+func (m *LifeActionOccurrenceMutation) ResetPlanNodeID() {
+	m.plan_node_id = nil
+	m.addplan_node_id = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *LifeActionOccurrenceMutation) SetKind(s string) {
+	m.kind = &s
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *LifeActionOccurrenceMutation) Kind() (r string, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldKind(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *LifeActionOccurrenceMutation) ResetKind() {
+	m.kind = nil
+}
+
+// SetState sets the "state" field.
+func (m *LifeActionOccurrenceMutation) SetState(s string) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *LifeActionOccurrenceMutation) State() (r string, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldState(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *LifeActionOccurrenceMutation) ResetState() {
+	m.state = nil
+}
+
+// SetDueAt sets the "due_at" field.
+func (m *LifeActionOccurrenceMutation) SetDueAt(t time.Time) {
+	m.due_at = &t
+}
+
+// DueAt returns the value of the "due_at" field in the mutation.
+func (m *LifeActionOccurrenceMutation) DueAt() (r time.Time, exists bool) {
+	v := m.due_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDueAt returns the old "due_at" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldDueAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDueAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDueAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDueAt: %w", err)
+	}
+	return oldValue.DueAt, nil
+}
+
+// ResetDueAt resets all changes to the "due_at" field.
+func (m *LifeActionOccurrenceMutation) ResetDueAt() {
+	m.due_at = nil
+}
+
+// SetCompletedAt sets the "completed_at" field.
+func (m *LifeActionOccurrenceMutation) SetCompletedAt(t time.Time) {
+	m.completed_at = &t
+}
+
+// CompletedAt returns the value of the "completed_at" field in the mutation.
+func (m *LifeActionOccurrenceMutation) CompletedAt() (r time.Time, exists bool) {
+	v := m.completed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompletedAt returns the old "completed_at" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldCompletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompletedAt: %w", err)
+	}
+	return oldValue.CompletedAt, nil
+}
+
+// ClearCompletedAt clears the value of the "completed_at" field.
+func (m *LifeActionOccurrenceMutation) ClearCompletedAt() {
+	m.completed_at = nil
+	m.clearedFields[lifeactionoccurrence.FieldCompletedAt] = struct{}{}
+}
+
+// CompletedAtCleared returns if the "completed_at" field was cleared in this mutation.
+func (m *LifeActionOccurrenceMutation) CompletedAtCleared() bool {
+	_, ok := m.clearedFields[lifeactionoccurrence.FieldCompletedAt]
+	return ok
+}
+
+// ResetCompletedAt resets all changes to the "completed_at" field.
+func (m *LifeActionOccurrenceMutation) ResetCompletedAt() {
+	m.completed_at = nil
+	delete(m.clearedFields, lifeactionoccurrence.FieldCompletedAt)
+}
+
+// SetCadenceSnapshot sets the "cadence_snapshot" field.
+func (m *LifeActionOccurrenceMutation) SetCadenceSnapshot(s string) {
+	m.cadence_snapshot = &s
+}
+
+// CadenceSnapshot returns the value of the "cadence_snapshot" field in the mutation.
+func (m *LifeActionOccurrenceMutation) CadenceSnapshot() (r string, exists bool) {
+	v := m.cadence_snapshot
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCadenceSnapshot returns the old "cadence_snapshot" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldCadenceSnapshot(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCadenceSnapshot is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCadenceSnapshot requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCadenceSnapshot: %w", err)
+	}
+	return oldValue.CadenceSnapshot, nil
+}
+
+// ResetCadenceSnapshot resets all changes to the "cadence_snapshot" field.
+func (m *LifeActionOccurrenceMutation) ResetCadenceSnapshot() {
+	m.cadence_snapshot = nil
+}
+
+// SetSourceOccurrenceID sets the "source_occurrence_id" field.
+func (m *LifeActionOccurrenceMutation) SetSourceOccurrenceID(i int64) {
+	m.source_occurrence_id = &i
+	m.addsource_occurrence_id = nil
+}
+
+// SourceOccurrenceID returns the value of the "source_occurrence_id" field in the mutation.
+func (m *LifeActionOccurrenceMutation) SourceOccurrenceID() (r int64, exists bool) {
+	v := m.source_occurrence_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSourceOccurrenceID returns the old "source_occurrence_id" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldSourceOccurrenceID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSourceOccurrenceID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSourceOccurrenceID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSourceOccurrenceID: %w", err)
+	}
+	return oldValue.SourceOccurrenceID, nil
+}
+
+// AddSourceOccurrenceID adds i to the "source_occurrence_id" field.
+func (m *LifeActionOccurrenceMutation) AddSourceOccurrenceID(i int64) {
+	if m.addsource_occurrence_id != nil {
+		*m.addsource_occurrence_id += i
+	} else {
+		m.addsource_occurrence_id = &i
+	}
+}
+
+// AddedSourceOccurrenceID returns the value that was added to the "source_occurrence_id" field in this mutation.
+func (m *LifeActionOccurrenceMutation) AddedSourceOccurrenceID() (r int64, exists bool) {
+	v := m.addsource_occurrence_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearSourceOccurrenceID clears the value of the "source_occurrence_id" field.
+func (m *LifeActionOccurrenceMutation) ClearSourceOccurrenceID() {
+	m.source_occurrence_id = nil
+	m.addsource_occurrence_id = nil
+	m.clearedFields[lifeactionoccurrence.FieldSourceOccurrenceID] = struct{}{}
+}
+
+// SourceOccurrenceIDCleared returns if the "source_occurrence_id" field was cleared in this mutation.
+func (m *LifeActionOccurrenceMutation) SourceOccurrenceIDCleared() bool {
+	_, ok := m.clearedFields[lifeactionoccurrence.FieldSourceOccurrenceID]
+	return ok
+}
+
+// ResetSourceOccurrenceID resets all changes to the "source_occurrence_id" field.
+func (m *LifeActionOccurrenceMutation) ResetSourceOccurrenceID() {
+	m.source_occurrence_id = nil
+	m.addsource_occurrence_id = nil
+	delete(m.clearedFields, lifeactionoccurrence.FieldSourceOccurrenceID)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifeActionOccurrenceMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifeActionOccurrenceMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifeActionOccurrenceMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeActionOccurrenceMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeActionOccurrenceMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeActionOccurrence entity.
+// If the LifeActionOccurrence object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionOccurrenceMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeActionOccurrenceMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifeActionOccurrenceMutation builder.
+func (m *LifeActionOccurrenceMutation) Where(ps ...predicate.LifeActionOccurrence) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeActionOccurrenceMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeActionOccurrenceMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeActionOccurrence, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeActionOccurrenceMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeActionOccurrenceMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeActionOccurrence).
+func (m *LifeActionOccurrenceMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeActionOccurrenceMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.flag != nil {
+		fields = append(fields, lifeactionoccurrence.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifeactionoccurrence.FieldLifeProfileID)
+	}
+	if m.plan_node_id != nil {
+		fields = append(fields, lifeactionoccurrence.FieldPlanNodeID)
+	}
+	if m.kind != nil {
+		fields = append(fields, lifeactionoccurrence.FieldKind)
+	}
+	if m.state != nil {
+		fields = append(fields, lifeactionoccurrence.FieldState)
+	}
+	if m.due_at != nil {
+		fields = append(fields, lifeactionoccurrence.FieldDueAt)
+	}
+	if m.completed_at != nil {
+		fields = append(fields, lifeactionoccurrence.FieldCompletedAt)
+	}
+	if m.cadence_snapshot != nil {
+		fields = append(fields, lifeactionoccurrence.FieldCadenceSnapshot)
+	}
+	if m.source_occurrence_id != nil {
+		fields = append(fields, lifeactionoccurrence.FieldSourceOccurrenceID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifeactionoccurrence.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifeactionoccurrence.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeActionOccurrenceMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeactionoccurrence.FieldFlag:
+		return m.Flag()
+	case lifeactionoccurrence.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifeactionoccurrence.FieldPlanNodeID:
+		return m.PlanNodeID()
+	case lifeactionoccurrence.FieldKind:
+		return m.Kind()
+	case lifeactionoccurrence.FieldState:
+		return m.State()
+	case lifeactionoccurrence.FieldDueAt:
+		return m.DueAt()
+	case lifeactionoccurrence.FieldCompletedAt:
+		return m.CompletedAt()
+	case lifeactionoccurrence.FieldCadenceSnapshot:
+		return m.CadenceSnapshot()
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		return m.SourceOccurrenceID()
+	case lifeactionoccurrence.FieldCreatedAt:
+		return m.CreatedAt()
+	case lifeactionoccurrence.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeActionOccurrenceMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeactionoccurrence.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeactionoccurrence.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifeactionoccurrence.FieldPlanNodeID:
+		return m.OldPlanNodeID(ctx)
+	case lifeactionoccurrence.FieldKind:
+		return m.OldKind(ctx)
+	case lifeactionoccurrence.FieldState:
+		return m.OldState(ctx)
+	case lifeactionoccurrence.FieldDueAt:
+		return m.OldDueAt(ctx)
+	case lifeactionoccurrence.FieldCompletedAt:
+		return m.OldCompletedAt(ctx)
+	case lifeactionoccurrence.FieldCadenceSnapshot:
+		return m.OldCadenceSnapshot(ctx)
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		return m.OldSourceOccurrenceID(ctx)
+	case lifeactionoccurrence.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lifeactionoccurrence.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeActionOccurrence field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeActionOccurrenceMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeactionoccurrence.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeactionoccurrence.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifeactionoccurrence.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanNodeID(v)
+		return nil
+	case lifeactionoccurrence.FieldKind:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	case lifeactionoccurrence.FieldState:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case lifeactionoccurrence.FieldDueAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDueAt(v)
+		return nil
+	case lifeactionoccurrence.FieldCompletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompletedAt(v)
+		return nil
+	case lifeactionoccurrence.FieldCadenceSnapshot:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCadenceSnapshot(v)
+		return nil
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSourceOccurrenceID(v)
+		return nil
+	case lifeactionoccurrence.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lifeactionoccurrence.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionOccurrence field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeActionOccurrenceMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifeactionoccurrence.FieldLifeProfileID)
+	}
+	if m.addplan_node_id != nil {
+		fields = append(fields, lifeactionoccurrence.FieldPlanNodeID)
+	}
+	if m.addsource_occurrence_id != nil {
+		fields = append(fields, lifeactionoccurrence.FieldSourceOccurrenceID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeActionOccurrenceMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeactionoccurrence.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifeactionoccurrence.FieldPlanNodeID:
+		return m.AddedPlanNodeID()
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		return m.AddedSourceOccurrenceID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeActionOccurrenceMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeactionoccurrence.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifeactionoccurrence.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPlanNodeID(v)
+		return nil
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSourceOccurrenceID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionOccurrence numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeActionOccurrenceMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(lifeactionoccurrence.FieldCompletedAt) {
+		fields = append(fields, lifeactionoccurrence.FieldCompletedAt)
+	}
+	if m.FieldCleared(lifeactionoccurrence.FieldSourceOccurrenceID) {
+		fields = append(fields, lifeactionoccurrence.FieldSourceOccurrenceID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeActionOccurrenceMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeActionOccurrenceMutation) ClearField(name string) error {
+	switch name {
+	case lifeactionoccurrence.FieldCompletedAt:
+		m.ClearCompletedAt()
+		return nil
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		m.ClearSourceOccurrenceID()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionOccurrence nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeActionOccurrenceMutation) ResetField(name string) error {
+	switch name {
+	case lifeactionoccurrence.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeactionoccurrence.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifeactionoccurrence.FieldPlanNodeID:
+		m.ResetPlanNodeID()
+		return nil
+	case lifeactionoccurrence.FieldKind:
+		m.ResetKind()
+		return nil
+	case lifeactionoccurrence.FieldState:
+		m.ResetState()
+		return nil
+	case lifeactionoccurrence.FieldDueAt:
+		m.ResetDueAt()
+		return nil
+	case lifeactionoccurrence.FieldCompletedAt:
+		m.ResetCompletedAt()
+		return nil
+	case lifeactionoccurrence.FieldCadenceSnapshot:
+		m.ResetCadenceSnapshot()
+		return nil
+	case lifeactionoccurrence.FieldSourceOccurrenceID:
+		m.ResetSourceOccurrenceID()
+		return nil
+	case lifeactionoccurrence.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lifeactionoccurrence.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionOccurrence field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeActionOccurrenceMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeActionOccurrenceMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeActionOccurrenceMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeActionOccurrenceMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeActionOccurrenceMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeActionOccurrenceMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeActionOccurrenceMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeActionOccurrence unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeActionOccurrenceMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeActionOccurrence edge %s", name)
+}
+
+// LifeActionSpecMutation represents an operation that mutates the LifeActionSpec nodes in the graph.
+type LifeActionSpecMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int64
+	plan_node_id            *int64
+	addplan_node_id         *int64
+	task_type               *string
+	tracking_mode           *string
+	is_repeatable           *bool
+	repeat_trigger          *string
+	suggested_cadence       *string
+	is_identity_building    *bool
+	reason                  *string
+	needs_user_confirmation *bool
+	confirmed_at            *time.Time
+	created_at              *time.Time
+	updated_at              *time.Time
+	clearedFields           map[string]struct{}
+	done                    bool
+	oldValue                func(context.Context) (*LifeActionSpec, error)
+	predicates              []predicate.LifeActionSpec
+}
+
+var _ ent.Mutation = (*LifeActionSpecMutation)(nil)
+
+// lifeactionspecOption allows management of the mutation configuration using functional options.
+type lifeactionspecOption func(*LifeActionSpecMutation)
+
+// newLifeActionSpecMutation creates new mutation for the LifeActionSpec entity.
+func newLifeActionSpecMutation(c config, op Op, opts ...lifeactionspecOption) *LifeActionSpecMutation {
+	m := &LifeActionSpecMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeActionSpec,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeActionSpecID sets the ID field of the mutation.
+func withLifeActionSpecID(id int64) lifeactionspecOption {
+	return func(m *LifeActionSpecMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeActionSpec
+		)
+		m.oldValue = func(ctx context.Context) (*LifeActionSpec, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeActionSpec.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeActionSpec sets the old LifeActionSpec of the mutation.
+func withLifeActionSpec(node *LifeActionSpec) lifeactionspecOption {
+	return func(m *LifeActionSpecMutation) {
+		m.oldValue = func(context.Context) (*LifeActionSpec, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeActionSpecMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeActionSpecMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeActionSpec entities.
+func (m *LifeActionSpecMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeActionSpecMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeActionSpecMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeActionSpec.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (m *LifeActionSpecMutation) SetPlanNodeID(i int64) {
+	m.plan_node_id = &i
+	m.addplan_node_id = nil
+}
+
+// PlanNodeID returns the value of the "plan_node_id" field in the mutation.
+func (m *LifeActionSpecMutation) PlanNodeID() (r int64, exists bool) {
+	v := m.plan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanNodeID returns the old "plan_node_id" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldPlanNodeID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanNodeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanNodeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanNodeID: %w", err)
+	}
+	return oldValue.PlanNodeID, nil
+}
+
+// AddPlanNodeID adds i to the "plan_node_id" field.
+func (m *LifeActionSpecMutation) AddPlanNodeID(i int64) {
+	if m.addplan_node_id != nil {
+		*m.addplan_node_id += i
+	} else {
+		m.addplan_node_id = &i
+	}
+}
+
+// AddedPlanNodeID returns the value that was added to the "plan_node_id" field in this mutation.
+func (m *LifeActionSpecMutation) AddedPlanNodeID() (r int64, exists bool) {
+	v := m.addplan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPlanNodeID resets all changes to the "plan_node_id" field.
+func (m *LifeActionSpecMutation) ResetPlanNodeID() {
+	m.plan_node_id = nil
+	m.addplan_node_id = nil
+}
+
+// SetTaskType sets the "task_type" field.
+func (m *LifeActionSpecMutation) SetTaskType(s string) {
+	m.task_type = &s
+}
+
+// TaskType returns the value of the "task_type" field in the mutation.
+func (m *LifeActionSpecMutation) TaskType() (r string, exists bool) {
+	v := m.task_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskType returns the old "task_type" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldTaskType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskType: %w", err)
+	}
+	return oldValue.TaskType, nil
+}
+
+// ResetTaskType resets all changes to the "task_type" field.
+func (m *LifeActionSpecMutation) ResetTaskType() {
+	m.task_type = nil
+}
+
+// SetTrackingMode sets the "tracking_mode" field.
+func (m *LifeActionSpecMutation) SetTrackingMode(s string) {
+	m.tracking_mode = &s
+}
+
+// TrackingMode returns the value of the "tracking_mode" field in the mutation.
+func (m *LifeActionSpecMutation) TrackingMode() (r string, exists bool) {
+	v := m.tracking_mode
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTrackingMode returns the old "tracking_mode" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldTrackingMode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTrackingMode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTrackingMode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTrackingMode: %w", err)
+	}
+	return oldValue.TrackingMode, nil
+}
+
+// ResetTrackingMode resets all changes to the "tracking_mode" field.
+func (m *LifeActionSpecMutation) ResetTrackingMode() {
+	m.tracking_mode = nil
+}
+
+// SetIsRepeatable sets the "is_repeatable" field.
+func (m *LifeActionSpecMutation) SetIsRepeatable(b bool) {
+	m.is_repeatable = &b
+}
+
+// IsRepeatable returns the value of the "is_repeatable" field in the mutation.
+func (m *LifeActionSpecMutation) IsRepeatable() (r bool, exists bool) {
+	v := m.is_repeatable
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRepeatable returns the old "is_repeatable" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldIsRepeatable(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRepeatable is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRepeatable requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRepeatable: %w", err)
+	}
+	return oldValue.IsRepeatable, nil
+}
+
+// ResetIsRepeatable resets all changes to the "is_repeatable" field.
+func (m *LifeActionSpecMutation) ResetIsRepeatable() {
+	m.is_repeatable = nil
+}
+
+// SetRepeatTrigger sets the "repeat_trigger" field.
+func (m *LifeActionSpecMutation) SetRepeatTrigger(s string) {
+	m.repeat_trigger = &s
+}
+
+// RepeatTrigger returns the value of the "repeat_trigger" field in the mutation.
+func (m *LifeActionSpecMutation) RepeatTrigger() (r string, exists bool) {
+	v := m.repeat_trigger
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepeatTrigger returns the old "repeat_trigger" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldRepeatTrigger(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepeatTrigger is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepeatTrigger requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepeatTrigger: %w", err)
+	}
+	return oldValue.RepeatTrigger, nil
+}
+
+// ResetRepeatTrigger resets all changes to the "repeat_trigger" field.
+func (m *LifeActionSpecMutation) ResetRepeatTrigger() {
+	m.repeat_trigger = nil
+}
+
+// SetSuggestedCadence sets the "suggested_cadence" field.
+func (m *LifeActionSpecMutation) SetSuggestedCadence(s string) {
+	m.suggested_cadence = &s
+}
+
+// SuggestedCadence returns the value of the "suggested_cadence" field in the mutation.
+func (m *LifeActionSpecMutation) SuggestedCadence() (r string, exists bool) {
+	v := m.suggested_cadence
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuggestedCadence returns the old "suggested_cadence" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldSuggestedCadence(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuggestedCadence is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuggestedCadence requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuggestedCadence: %w", err)
+	}
+	return oldValue.SuggestedCadence, nil
+}
+
+// ResetSuggestedCadence resets all changes to the "suggested_cadence" field.
+func (m *LifeActionSpecMutation) ResetSuggestedCadence() {
+	m.suggested_cadence = nil
+}
+
+// SetIsIdentityBuilding sets the "is_identity_building" field.
+func (m *LifeActionSpecMutation) SetIsIdentityBuilding(b bool) {
+	m.is_identity_building = &b
+}
+
+// IsIdentityBuilding returns the value of the "is_identity_building" field in the mutation.
+func (m *LifeActionSpecMutation) IsIdentityBuilding() (r bool, exists bool) {
+	v := m.is_identity_building
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsIdentityBuilding returns the old "is_identity_building" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldIsIdentityBuilding(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsIdentityBuilding is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsIdentityBuilding requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsIdentityBuilding: %w", err)
+	}
+	return oldValue.IsIdentityBuilding, nil
+}
+
+// ResetIsIdentityBuilding resets all changes to the "is_identity_building" field.
+func (m *LifeActionSpecMutation) ResetIsIdentityBuilding() {
+	m.is_identity_building = nil
+}
+
+// SetReason sets the "reason" field.
+func (m *LifeActionSpecMutation) SetReason(s string) {
+	m.reason = &s
+}
+
+// Reason returns the value of the "reason" field in the mutation.
+func (m *LifeActionSpecMutation) Reason() (r string, exists bool) {
+	v := m.reason
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReason returns the old "reason" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldReason(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReason requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
+	}
+	return oldValue.Reason, nil
+}
+
+// ResetReason resets all changes to the "reason" field.
+func (m *LifeActionSpecMutation) ResetReason() {
+	m.reason = nil
+}
+
+// SetNeedsUserConfirmation sets the "needs_user_confirmation" field.
+func (m *LifeActionSpecMutation) SetNeedsUserConfirmation(b bool) {
+	m.needs_user_confirmation = &b
+}
+
+// NeedsUserConfirmation returns the value of the "needs_user_confirmation" field in the mutation.
+func (m *LifeActionSpecMutation) NeedsUserConfirmation() (r bool, exists bool) {
+	v := m.needs_user_confirmation
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNeedsUserConfirmation returns the old "needs_user_confirmation" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldNeedsUserConfirmation(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNeedsUserConfirmation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNeedsUserConfirmation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNeedsUserConfirmation: %w", err)
+	}
+	return oldValue.NeedsUserConfirmation, nil
+}
+
+// ResetNeedsUserConfirmation resets all changes to the "needs_user_confirmation" field.
+func (m *LifeActionSpecMutation) ResetNeedsUserConfirmation() {
+	m.needs_user_confirmation = nil
+}
+
+// SetConfirmedAt sets the "confirmed_at" field.
+func (m *LifeActionSpecMutation) SetConfirmedAt(t time.Time) {
+	m.confirmed_at = &t
+}
+
+// ConfirmedAt returns the value of the "confirmed_at" field in the mutation.
+func (m *LifeActionSpecMutation) ConfirmedAt() (r time.Time, exists bool) {
+	v := m.confirmed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConfirmedAt returns the old "confirmed_at" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldConfirmedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConfirmedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConfirmedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConfirmedAt: %w", err)
+	}
+	return oldValue.ConfirmedAt, nil
+}
+
+// ClearConfirmedAt clears the value of the "confirmed_at" field.
+func (m *LifeActionSpecMutation) ClearConfirmedAt() {
+	m.confirmed_at = nil
+	m.clearedFields[lifeactionspec.FieldConfirmedAt] = struct{}{}
+}
+
+// ConfirmedAtCleared returns if the "confirmed_at" field was cleared in this mutation.
+func (m *LifeActionSpecMutation) ConfirmedAtCleared() bool {
+	_, ok := m.clearedFields[lifeactionspec.FieldConfirmedAt]
+	return ok
+}
+
+// ResetConfirmedAt resets all changes to the "confirmed_at" field.
+func (m *LifeActionSpecMutation) ResetConfirmedAt() {
+	m.confirmed_at = nil
+	delete(m.clearedFields, lifeactionspec.FieldConfirmedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifeActionSpecMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifeActionSpecMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifeActionSpecMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeActionSpecMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeActionSpecMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeActionSpec entity.
+// If the LifeActionSpec object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeActionSpecMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeActionSpecMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifeActionSpecMutation builder.
+func (m *LifeActionSpecMutation) Where(ps ...predicate.LifeActionSpec) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeActionSpecMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeActionSpecMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeActionSpec, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeActionSpecMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeActionSpecMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeActionSpec).
+func (m *LifeActionSpecMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeActionSpecMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.plan_node_id != nil {
+		fields = append(fields, lifeactionspec.FieldPlanNodeID)
+	}
+	if m.task_type != nil {
+		fields = append(fields, lifeactionspec.FieldTaskType)
+	}
+	if m.tracking_mode != nil {
+		fields = append(fields, lifeactionspec.FieldTrackingMode)
+	}
+	if m.is_repeatable != nil {
+		fields = append(fields, lifeactionspec.FieldIsRepeatable)
+	}
+	if m.repeat_trigger != nil {
+		fields = append(fields, lifeactionspec.FieldRepeatTrigger)
+	}
+	if m.suggested_cadence != nil {
+		fields = append(fields, lifeactionspec.FieldSuggestedCadence)
+	}
+	if m.is_identity_building != nil {
+		fields = append(fields, lifeactionspec.FieldIsIdentityBuilding)
+	}
+	if m.reason != nil {
+		fields = append(fields, lifeactionspec.FieldReason)
+	}
+	if m.needs_user_confirmation != nil {
+		fields = append(fields, lifeactionspec.FieldNeedsUserConfirmation)
+	}
+	if m.confirmed_at != nil {
+		fields = append(fields, lifeactionspec.FieldConfirmedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifeactionspec.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifeactionspec.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeActionSpecMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeactionspec.FieldPlanNodeID:
+		return m.PlanNodeID()
+	case lifeactionspec.FieldTaskType:
+		return m.TaskType()
+	case lifeactionspec.FieldTrackingMode:
+		return m.TrackingMode()
+	case lifeactionspec.FieldIsRepeatable:
+		return m.IsRepeatable()
+	case lifeactionspec.FieldRepeatTrigger:
+		return m.RepeatTrigger()
+	case lifeactionspec.FieldSuggestedCadence:
+		return m.SuggestedCadence()
+	case lifeactionspec.FieldIsIdentityBuilding:
+		return m.IsIdentityBuilding()
+	case lifeactionspec.FieldReason:
+		return m.Reason()
+	case lifeactionspec.FieldNeedsUserConfirmation:
+		return m.NeedsUserConfirmation()
+	case lifeactionspec.FieldConfirmedAt:
+		return m.ConfirmedAt()
+	case lifeactionspec.FieldCreatedAt:
+		return m.CreatedAt()
+	case lifeactionspec.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeActionSpecMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeactionspec.FieldPlanNodeID:
+		return m.OldPlanNodeID(ctx)
+	case lifeactionspec.FieldTaskType:
+		return m.OldTaskType(ctx)
+	case lifeactionspec.FieldTrackingMode:
+		return m.OldTrackingMode(ctx)
+	case lifeactionspec.FieldIsRepeatable:
+		return m.OldIsRepeatable(ctx)
+	case lifeactionspec.FieldRepeatTrigger:
+		return m.OldRepeatTrigger(ctx)
+	case lifeactionspec.FieldSuggestedCadence:
+		return m.OldSuggestedCadence(ctx)
+	case lifeactionspec.FieldIsIdentityBuilding:
+		return m.OldIsIdentityBuilding(ctx)
+	case lifeactionspec.FieldReason:
+		return m.OldReason(ctx)
+	case lifeactionspec.FieldNeedsUserConfirmation:
+		return m.OldNeedsUserConfirmation(ctx)
+	case lifeactionspec.FieldConfirmedAt:
+		return m.OldConfirmedAt(ctx)
+	case lifeactionspec.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lifeactionspec.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeActionSpec field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeActionSpecMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeactionspec.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanNodeID(v)
+		return nil
+	case lifeactionspec.FieldTaskType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskType(v)
+		return nil
+	case lifeactionspec.FieldTrackingMode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTrackingMode(v)
+		return nil
+	case lifeactionspec.FieldIsRepeatable:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRepeatable(v)
+		return nil
+	case lifeactionspec.FieldRepeatTrigger:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepeatTrigger(v)
+		return nil
+	case lifeactionspec.FieldSuggestedCadence:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuggestedCadence(v)
+		return nil
+	case lifeactionspec.FieldIsIdentityBuilding:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsIdentityBuilding(v)
+		return nil
+	case lifeactionspec.FieldReason:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReason(v)
+		return nil
+	case lifeactionspec.FieldNeedsUserConfirmation:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNeedsUserConfirmation(v)
+		return nil
+	case lifeactionspec.FieldConfirmedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConfirmedAt(v)
+		return nil
+	case lifeactionspec.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lifeactionspec.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionSpec field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeActionSpecMutation) AddedFields() []string {
+	var fields []string
+	if m.addplan_node_id != nil {
+		fields = append(fields, lifeactionspec.FieldPlanNodeID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeActionSpecMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeactionspec.FieldPlanNodeID:
+		return m.AddedPlanNodeID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeActionSpecMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeactionspec.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPlanNodeID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionSpec numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeActionSpecMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(lifeactionspec.FieldConfirmedAt) {
+		fields = append(fields, lifeactionspec.FieldConfirmedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeActionSpecMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeActionSpecMutation) ClearField(name string) error {
+	switch name {
+	case lifeactionspec.FieldConfirmedAt:
+		m.ClearConfirmedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionSpec nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeActionSpecMutation) ResetField(name string) error {
+	switch name {
+	case lifeactionspec.FieldPlanNodeID:
+		m.ResetPlanNodeID()
+		return nil
+	case lifeactionspec.FieldTaskType:
+		m.ResetTaskType()
+		return nil
+	case lifeactionspec.FieldTrackingMode:
+		m.ResetTrackingMode()
+		return nil
+	case lifeactionspec.FieldIsRepeatable:
+		m.ResetIsRepeatable()
+		return nil
+	case lifeactionspec.FieldRepeatTrigger:
+		m.ResetRepeatTrigger()
+		return nil
+	case lifeactionspec.FieldSuggestedCadence:
+		m.ResetSuggestedCadence()
+		return nil
+	case lifeactionspec.FieldIsIdentityBuilding:
+		m.ResetIsIdentityBuilding()
+		return nil
+	case lifeactionspec.FieldReason:
+		m.ResetReason()
+		return nil
+	case lifeactionspec.FieldNeedsUserConfirmation:
+		m.ResetNeedsUserConfirmation()
+		return nil
+	case lifeactionspec.FieldConfirmedAt:
+		m.ResetConfirmedAt()
+		return nil
+	case lifeactionspec.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lifeactionspec.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeActionSpec field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeActionSpecMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeActionSpecMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeActionSpecMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeActionSpecMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeActionSpecMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeActionSpecMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeActionSpecMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeActionSpec unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeActionSpecMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeActionSpec edge %s", name)
 }
 
 // LifeCharacteristicMutation represents an operation that mutates the LifeCharacteristic nodes in the graph.
@@ -30045,6 +32288,785 @@ func (m *LifeGoalMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeGoal edge %s", name)
 }
 
+// LifeHabitCheckinMutation represents an operation that mutates the LifeHabitCheckin nodes in the graph.
+type LifeHabitCheckinMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	plan_node_id       *int64
+	addplan_node_id    *int64
+	checkin_date       *time.Time
+	status             *string
+	note               *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifeHabitCheckin, error)
+	predicates         []predicate.LifeHabitCheckin
+}
+
+var _ ent.Mutation = (*LifeHabitCheckinMutation)(nil)
+
+// lifehabitcheckinOption allows management of the mutation configuration using functional options.
+type lifehabitcheckinOption func(*LifeHabitCheckinMutation)
+
+// newLifeHabitCheckinMutation creates new mutation for the LifeHabitCheckin entity.
+func newLifeHabitCheckinMutation(c config, op Op, opts ...lifehabitcheckinOption) *LifeHabitCheckinMutation {
+	m := &LifeHabitCheckinMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeHabitCheckin,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeHabitCheckinID sets the ID field of the mutation.
+func withLifeHabitCheckinID(id int64) lifehabitcheckinOption {
+	return func(m *LifeHabitCheckinMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeHabitCheckin
+		)
+		m.oldValue = func(ctx context.Context) (*LifeHabitCheckin, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeHabitCheckin.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeHabitCheckin sets the old LifeHabitCheckin of the mutation.
+func withLifeHabitCheckin(node *LifeHabitCheckin) lifehabitcheckinOption {
+	return func(m *LifeHabitCheckinMutation) {
+		m.oldValue = func(context.Context) (*LifeHabitCheckin, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeHabitCheckinMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeHabitCheckinMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeHabitCheckin entities.
+func (m *LifeHabitCheckinMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeHabitCheckinMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeHabitCheckinMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeHabitCheckin.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeHabitCheckinMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeHabitCheckinMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeHabitCheckinMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeHabitCheckinMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeHabitCheckinMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeHabitCheckinMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeHabitCheckinMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeHabitCheckinMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (m *LifeHabitCheckinMutation) SetPlanNodeID(i int64) {
+	m.plan_node_id = &i
+	m.addplan_node_id = nil
+}
+
+// PlanNodeID returns the value of the "plan_node_id" field in the mutation.
+func (m *LifeHabitCheckinMutation) PlanNodeID() (r int64, exists bool) {
+	v := m.plan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPlanNodeID returns the old "plan_node_id" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldPlanNodeID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPlanNodeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPlanNodeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPlanNodeID: %w", err)
+	}
+	return oldValue.PlanNodeID, nil
+}
+
+// AddPlanNodeID adds i to the "plan_node_id" field.
+func (m *LifeHabitCheckinMutation) AddPlanNodeID(i int64) {
+	if m.addplan_node_id != nil {
+		*m.addplan_node_id += i
+	} else {
+		m.addplan_node_id = &i
+	}
+}
+
+// AddedPlanNodeID returns the value that was added to the "plan_node_id" field in this mutation.
+func (m *LifeHabitCheckinMutation) AddedPlanNodeID() (r int64, exists bool) {
+	v := m.addplan_node_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPlanNodeID resets all changes to the "plan_node_id" field.
+func (m *LifeHabitCheckinMutation) ResetPlanNodeID() {
+	m.plan_node_id = nil
+	m.addplan_node_id = nil
+}
+
+// SetCheckinDate sets the "checkin_date" field.
+func (m *LifeHabitCheckinMutation) SetCheckinDate(t time.Time) {
+	m.checkin_date = &t
+}
+
+// CheckinDate returns the value of the "checkin_date" field in the mutation.
+func (m *LifeHabitCheckinMutation) CheckinDate() (r time.Time, exists bool) {
+	v := m.checkin_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCheckinDate returns the old "checkin_date" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldCheckinDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCheckinDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCheckinDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCheckinDate: %w", err)
+	}
+	return oldValue.CheckinDate, nil
+}
+
+// ResetCheckinDate resets all changes to the "checkin_date" field.
+func (m *LifeHabitCheckinMutation) ResetCheckinDate() {
+	m.checkin_date = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *LifeHabitCheckinMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *LifeHabitCheckinMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *LifeHabitCheckinMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetNote sets the "note" field.
+func (m *LifeHabitCheckinMutation) SetNote(s string) {
+	m.note = &s
+}
+
+// Note returns the value of the "note" field in the mutation.
+func (m *LifeHabitCheckinMutation) Note() (r string, exists bool) {
+	v := m.note
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNote returns the old "note" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldNote(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNote is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNote requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNote: %w", err)
+	}
+	return oldValue.Note, nil
+}
+
+// ResetNote resets all changes to the "note" field.
+func (m *LifeHabitCheckinMutation) ResetNote() {
+	m.note = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifeHabitCheckinMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifeHabitCheckinMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifeHabitCheckinMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeHabitCheckinMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeHabitCheckinMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeHabitCheckin entity.
+// If the LifeHabitCheckin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeHabitCheckinMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeHabitCheckinMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifeHabitCheckinMutation builder.
+func (m *LifeHabitCheckinMutation) Where(ps ...predicate.LifeHabitCheckin) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeHabitCheckinMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeHabitCheckinMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeHabitCheckin, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeHabitCheckinMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeHabitCheckinMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeHabitCheckin).
+func (m *LifeHabitCheckinMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeHabitCheckinMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.flag != nil {
+		fields = append(fields, lifehabitcheckin.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifehabitcheckin.FieldLifeProfileID)
+	}
+	if m.plan_node_id != nil {
+		fields = append(fields, lifehabitcheckin.FieldPlanNodeID)
+	}
+	if m.checkin_date != nil {
+		fields = append(fields, lifehabitcheckin.FieldCheckinDate)
+	}
+	if m.status != nil {
+		fields = append(fields, lifehabitcheckin.FieldStatus)
+	}
+	if m.note != nil {
+		fields = append(fields, lifehabitcheckin.FieldNote)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifehabitcheckin.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifehabitcheckin.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeHabitCheckinMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifehabitcheckin.FieldFlag:
+		return m.Flag()
+	case lifehabitcheckin.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifehabitcheckin.FieldPlanNodeID:
+		return m.PlanNodeID()
+	case lifehabitcheckin.FieldCheckinDate:
+		return m.CheckinDate()
+	case lifehabitcheckin.FieldStatus:
+		return m.Status()
+	case lifehabitcheckin.FieldNote:
+		return m.Note()
+	case lifehabitcheckin.FieldCreatedAt:
+		return m.CreatedAt()
+	case lifehabitcheckin.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeHabitCheckinMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifehabitcheckin.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifehabitcheckin.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifehabitcheckin.FieldPlanNodeID:
+		return m.OldPlanNodeID(ctx)
+	case lifehabitcheckin.FieldCheckinDate:
+		return m.OldCheckinDate(ctx)
+	case lifehabitcheckin.FieldStatus:
+		return m.OldStatus(ctx)
+	case lifehabitcheckin.FieldNote:
+		return m.OldNote(ctx)
+	case lifehabitcheckin.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lifehabitcheckin.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeHabitCheckin field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeHabitCheckinMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifehabitcheckin.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifehabitcheckin.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifehabitcheckin.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPlanNodeID(v)
+		return nil
+	case lifehabitcheckin.FieldCheckinDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCheckinDate(v)
+		return nil
+	case lifehabitcheckin.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case lifehabitcheckin.FieldNote:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNote(v)
+		return nil
+	case lifehabitcheckin.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lifehabitcheckin.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeHabitCheckin field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeHabitCheckinMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifehabitcheckin.FieldLifeProfileID)
+	}
+	if m.addplan_node_id != nil {
+		fields = append(fields, lifehabitcheckin.FieldPlanNodeID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeHabitCheckinMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifehabitcheckin.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifehabitcheckin.FieldPlanNodeID:
+		return m.AddedPlanNodeID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeHabitCheckinMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifehabitcheckin.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifehabitcheckin.FieldPlanNodeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPlanNodeID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeHabitCheckin numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeHabitCheckinMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeHabitCheckinMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeHabitCheckinMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LifeHabitCheckin nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeHabitCheckinMutation) ResetField(name string) error {
+	switch name {
+	case lifehabitcheckin.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifehabitcheckin.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifehabitcheckin.FieldPlanNodeID:
+		m.ResetPlanNodeID()
+		return nil
+	case lifehabitcheckin.FieldCheckinDate:
+		m.ResetCheckinDate()
+		return nil
+	case lifehabitcheckin.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case lifehabitcheckin.FieldNote:
+		m.ResetNote()
+		return nil
+	case lifehabitcheckin.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lifehabitcheckin.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeHabitCheckin field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeHabitCheckinMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeHabitCheckinMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeHabitCheckinMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeHabitCheckinMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeHabitCheckinMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeHabitCheckinMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeHabitCheckinMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeHabitCheckin unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeHabitCheckinMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeHabitCheckin edge %s", name)
+}
+
 // LifeInventoryMutation represents an operation that mutates the LifeInventory nodes in the graph.
 type LifeInventoryMutation struct {
 	config
@@ -31593,6 +34615,949 @@ func (m *LifeLootTableMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *LifeLootTableMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeLootTable edge %s", name)
+}
+
+// LifePlanNodeMutation represents an operation that mutates the LifePlanNode nodes in the graph.
+type LifePlanNodeMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	parent_id          *int64
+	addparent_id       *int64
+	node_type          *string
+	title              *string
+	description        *string
+	status             *string
+	sort_order         *int
+	addsort_order      *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifePlanNode, error)
+	predicates         []predicate.LifePlanNode
+}
+
+var _ ent.Mutation = (*LifePlanNodeMutation)(nil)
+
+// lifeplannodeOption allows management of the mutation configuration using functional options.
+type lifeplannodeOption func(*LifePlanNodeMutation)
+
+// newLifePlanNodeMutation creates new mutation for the LifePlanNode entity.
+func newLifePlanNodeMutation(c config, op Op, opts ...lifeplannodeOption) *LifePlanNodeMutation {
+	m := &LifePlanNodeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifePlanNode,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifePlanNodeID sets the ID field of the mutation.
+func withLifePlanNodeID(id int64) lifeplannodeOption {
+	return func(m *LifePlanNodeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifePlanNode
+		)
+		m.oldValue = func(ctx context.Context) (*LifePlanNode, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifePlanNode.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifePlanNode sets the old LifePlanNode of the mutation.
+func withLifePlanNode(node *LifePlanNode) lifeplannodeOption {
+	return func(m *LifePlanNodeMutation) {
+		m.oldValue = func(context.Context) (*LifePlanNode, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifePlanNodeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifePlanNodeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifePlanNode entities.
+func (m *LifePlanNodeMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifePlanNodeMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifePlanNodeMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifePlanNode.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifePlanNodeMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifePlanNodeMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifePlanNodeMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifePlanNodeMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifePlanNodeMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifePlanNodeMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifePlanNodeMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifePlanNodeMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetParentID sets the "parent_id" field.
+func (m *LifePlanNodeMutation) SetParentID(i int64) {
+	m.parent_id = &i
+	m.addparent_id = nil
+}
+
+// ParentID returns the value of the "parent_id" field in the mutation.
+func (m *LifePlanNodeMutation) ParentID() (r int64, exists bool) {
+	v := m.parent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentID returns the old "parent_id" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldParentID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentID: %w", err)
+	}
+	return oldValue.ParentID, nil
+}
+
+// AddParentID adds i to the "parent_id" field.
+func (m *LifePlanNodeMutation) AddParentID(i int64) {
+	if m.addparent_id != nil {
+		*m.addparent_id += i
+	} else {
+		m.addparent_id = &i
+	}
+}
+
+// AddedParentID returns the value that was added to the "parent_id" field in this mutation.
+func (m *LifePlanNodeMutation) AddedParentID() (r int64, exists bool) {
+	v := m.addparent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (m *LifePlanNodeMutation) ClearParentID() {
+	m.parent_id = nil
+	m.addparent_id = nil
+	m.clearedFields[lifeplannode.FieldParentID] = struct{}{}
+}
+
+// ParentIDCleared returns if the "parent_id" field was cleared in this mutation.
+func (m *LifePlanNodeMutation) ParentIDCleared() bool {
+	_, ok := m.clearedFields[lifeplannode.FieldParentID]
+	return ok
+}
+
+// ResetParentID resets all changes to the "parent_id" field.
+func (m *LifePlanNodeMutation) ResetParentID() {
+	m.parent_id = nil
+	m.addparent_id = nil
+	delete(m.clearedFields, lifeplannode.FieldParentID)
+}
+
+// SetNodeType sets the "node_type" field.
+func (m *LifePlanNodeMutation) SetNodeType(s string) {
+	m.node_type = &s
+}
+
+// NodeType returns the value of the "node_type" field in the mutation.
+func (m *LifePlanNodeMutation) NodeType() (r string, exists bool) {
+	v := m.node_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNodeType returns the old "node_type" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldNodeType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNodeType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNodeType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNodeType: %w", err)
+	}
+	return oldValue.NodeType, nil
+}
+
+// ResetNodeType resets all changes to the "node_type" field.
+func (m *LifePlanNodeMutation) ResetNodeType() {
+	m.node_type = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *LifePlanNodeMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *LifePlanNodeMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *LifePlanNodeMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *LifePlanNodeMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *LifePlanNodeMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *LifePlanNodeMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *LifePlanNodeMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *LifePlanNodeMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *LifePlanNodeMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetSortOrder sets the "sort_order" field.
+func (m *LifePlanNodeMutation) SetSortOrder(i int) {
+	m.sort_order = &i
+	m.addsort_order = nil
+}
+
+// SortOrder returns the value of the "sort_order" field in the mutation.
+func (m *LifePlanNodeMutation) SortOrder() (r int, exists bool) {
+	v := m.sort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSortOrder returns the old "sort_order" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldSortOrder(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSortOrder is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSortOrder requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSortOrder: %w", err)
+	}
+	return oldValue.SortOrder, nil
+}
+
+// AddSortOrder adds i to the "sort_order" field.
+func (m *LifePlanNodeMutation) AddSortOrder(i int) {
+	if m.addsort_order != nil {
+		*m.addsort_order += i
+	} else {
+		m.addsort_order = &i
+	}
+}
+
+// AddedSortOrder returns the value that was added to the "sort_order" field in this mutation.
+func (m *LifePlanNodeMutation) AddedSortOrder() (r int, exists bool) {
+	v := m.addsort_order
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSortOrder resets all changes to the "sort_order" field.
+func (m *LifePlanNodeMutation) ResetSortOrder() {
+	m.sort_order = nil
+	m.addsort_order = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifePlanNodeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifePlanNodeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifePlanNodeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifePlanNodeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifePlanNodeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifePlanNode entity.
+// If the LifePlanNode object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifePlanNodeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifePlanNodeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifePlanNodeMutation builder.
+func (m *LifePlanNodeMutation) Where(ps ...predicate.LifePlanNode) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifePlanNodeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifePlanNodeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifePlanNode, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifePlanNodeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifePlanNodeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifePlanNode).
+func (m *LifePlanNodeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifePlanNodeMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.flag != nil {
+		fields = append(fields, lifeplannode.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifeplannode.FieldLifeProfileID)
+	}
+	if m.parent_id != nil {
+		fields = append(fields, lifeplannode.FieldParentID)
+	}
+	if m.node_type != nil {
+		fields = append(fields, lifeplannode.FieldNodeType)
+	}
+	if m.title != nil {
+		fields = append(fields, lifeplannode.FieldTitle)
+	}
+	if m.description != nil {
+		fields = append(fields, lifeplannode.FieldDescription)
+	}
+	if m.status != nil {
+		fields = append(fields, lifeplannode.FieldStatus)
+	}
+	if m.sort_order != nil {
+		fields = append(fields, lifeplannode.FieldSortOrder)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifeplannode.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifeplannode.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifePlanNodeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifeplannode.FieldFlag:
+		return m.Flag()
+	case lifeplannode.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifeplannode.FieldParentID:
+		return m.ParentID()
+	case lifeplannode.FieldNodeType:
+		return m.NodeType()
+	case lifeplannode.FieldTitle:
+		return m.Title()
+	case lifeplannode.FieldDescription:
+		return m.Description()
+	case lifeplannode.FieldStatus:
+		return m.Status()
+	case lifeplannode.FieldSortOrder:
+		return m.SortOrder()
+	case lifeplannode.FieldCreatedAt:
+		return m.CreatedAt()
+	case lifeplannode.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifePlanNodeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifeplannode.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifeplannode.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifeplannode.FieldParentID:
+		return m.OldParentID(ctx)
+	case lifeplannode.FieldNodeType:
+		return m.OldNodeType(ctx)
+	case lifeplannode.FieldTitle:
+		return m.OldTitle(ctx)
+	case lifeplannode.FieldDescription:
+		return m.OldDescription(ctx)
+	case lifeplannode.FieldStatus:
+		return m.OldStatus(ctx)
+	case lifeplannode.FieldSortOrder:
+		return m.OldSortOrder(ctx)
+	case lifeplannode.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lifeplannode.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifePlanNode field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifePlanNodeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifeplannode.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifeplannode.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifeplannode.FieldParentID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentID(v)
+		return nil
+	case lifeplannode.FieldNodeType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNodeType(v)
+		return nil
+	case lifeplannode.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case lifeplannode.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case lifeplannode.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case lifeplannode.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSortOrder(v)
+		return nil
+	case lifeplannode.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lifeplannode.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifePlanNode field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifePlanNodeMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifeplannode.FieldLifeProfileID)
+	}
+	if m.addparent_id != nil {
+		fields = append(fields, lifeplannode.FieldParentID)
+	}
+	if m.addsort_order != nil {
+		fields = append(fields, lifeplannode.FieldSortOrder)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifePlanNodeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifeplannode.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifeplannode.FieldParentID:
+		return m.AddedParentID()
+	case lifeplannode.FieldSortOrder:
+		return m.AddedSortOrder()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifePlanNodeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifeplannode.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifeplannode.FieldParentID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddParentID(v)
+		return nil
+	case lifeplannode.FieldSortOrder:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSortOrder(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifePlanNode numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifePlanNodeMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(lifeplannode.FieldParentID) {
+		fields = append(fields, lifeplannode.FieldParentID)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifePlanNodeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifePlanNodeMutation) ClearField(name string) error {
+	switch name {
+	case lifeplannode.FieldParentID:
+		m.ClearParentID()
+		return nil
+	}
+	return fmt.Errorf("unknown LifePlanNode nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifePlanNodeMutation) ResetField(name string) error {
+	switch name {
+	case lifeplannode.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifeplannode.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifeplannode.FieldParentID:
+		m.ResetParentID()
+		return nil
+	case lifeplannode.FieldNodeType:
+		m.ResetNodeType()
+		return nil
+	case lifeplannode.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case lifeplannode.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case lifeplannode.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case lifeplannode.FieldSortOrder:
+		m.ResetSortOrder()
+		return nil
+	case lifeplannode.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lifeplannode.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifePlanNode field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifePlanNodeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifePlanNodeMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifePlanNodeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifePlanNodeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifePlanNodeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifePlanNodeMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifePlanNodeMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifePlanNode unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifePlanNodeMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifePlanNode edge %s", name)
 }
 
 // LifeProfileMutation represents an operation that mutates the LifeProfile nodes in the graph.

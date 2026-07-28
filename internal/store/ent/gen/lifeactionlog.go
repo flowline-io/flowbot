@@ -22,7 +22,13 @@ type LifeActionLog struct {
 	// LifeProfileID holds the value of the "life_profile_id" field.
 	LifeProfileID int64 `json:"life_profile_id,omitempty"`
 	// QuestID holds the value of the "quest_id" field.
-	QuestID int64 `json:"quest_id,omitempty"`
+	QuestID *int64 `json:"quest_id,omitempty"`
+	// PlanNodeID holds the value of the "plan_node_id" field.
+	PlanNodeID *int64 `json:"plan_node_id,omitempty"`
+	// SourceType holds the value of the "source_type" field.
+	SourceType string `json:"source_type,omitempty"`
+	// Summary holds the value of the "summary" field.
+	Summary string `json:"summary,omitempty"`
 	// GainedExp holds the value of the "gained_exp" field.
 	GainedExp int `json:"gained_exp,omitempty"`
 	// GainedGold holds the value of the "gained_gold" field.
@@ -43,9 +49,9 @@ func (*LifeActionLog) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case lifeactionlog.FieldDiceRollResult:
 			values[i] = new(sql.NullFloat64)
-		case lifeactionlog.FieldID, lifeactionlog.FieldLifeProfileID, lifeactionlog.FieldQuestID, lifeactionlog.FieldGainedExp, lifeactionlog.FieldGainedGold, lifeactionlog.FieldDroppedInventoryID:
+		case lifeactionlog.FieldID, lifeactionlog.FieldLifeProfileID, lifeactionlog.FieldQuestID, lifeactionlog.FieldPlanNodeID, lifeactionlog.FieldGainedExp, lifeactionlog.FieldGainedGold, lifeactionlog.FieldDroppedInventoryID:
 			values[i] = new(sql.NullInt64)
-		case lifeactionlog.FieldFlag:
+		case lifeactionlog.FieldFlag, lifeactionlog.FieldSourceType, lifeactionlog.FieldSummary:
 			values[i] = new(sql.NullString)
 		case lifeactionlog.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -86,7 +92,27 @@ func (_m *LifeActionLog) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field quest_id", values[i])
 			} else if value.Valid {
-				_m.QuestID = value.Int64
+				_m.QuestID = new(int64)
+				*_m.QuestID = value.Int64
+			}
+		case lifeactionlog.FieldPlanNodeID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field plan_node_id", values[i])
+			} else if value.Valid {
+				_m.PlanNodeID = new(int64)
+				*_m.PlanNodeID = value.Int64
+			}
+		case lifeactionlog.FieldSourceType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field source_type", values[i])
+			} else if value.Valid {
+				_m.SourceType = value.String
+			}
+		case lifeactionlog.FieldSummary:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field summary", values[i])
+			} else if value.Valid {
+				_m.Summary = value.String
 			}
 		case lifeactionlog.FieldGainedExp:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -162,8 +188,21 @@ func (_m *LifeActionLog) String() string {
 	builder.WriteString("life_profile_id=")
 	builder.WriteString(fmt.Sprintf("%v", _m.LifeProfileID))
 	builder.WriteString(", ")
-	builder.WriteString("quest_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.QuestID))
+	if v := _m.QuestID; v != nil {
+		builder.WriteString("quest_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := _m.PlanNodeID; v != nil {
+		builder.WriteString("plan_node_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("source_type=")
+	builder.WriteString(_m.SourceType)
+	builder.WriteString(", ")
+	builder.WriteString("summary=")
+	builder.WriteString(_m.Summary)
 	builder.WriteString(", ")
 	builder.WriteString("gained_exp=")
 	builder.WriteString(fmt.Sprintf("%v", _m.GainedExp))

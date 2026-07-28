@@ -104,6 +104,7 @@ type CharacterView struct {
 	Slots           *gen.LifeEquippedSlots
 	Buffs           pkglife.BuffTotals
 	Goals           []*gen.LifeGoal
+	PlanTree        []*PlanNodeView
 }
 
 // GetCharacter loads character aggregates.
@@ -132,8 +133,12 @@ func (s *Service) GetCharacter(ctx context.Context, userID string) (*CharacterVi
 	if err != nil {
 		return nil, err
 	}
+	planTree, err := s.ListPlanTree(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
 	return &CharacterView{
-		Profile: p, Characteristics: chars, Skills: skills, Slots: slots, Buffs: buffs, Goals: goals,
+		Profile: p, Characteristics: chars, Skills: skills, Slots: slots, Buffs: buffs, Goals: goals, PlanTree: planTree,
 	}, nil
 }
 
@@ -851,7 +856,7 @@ func (s *Service) ListActionLogs(ctx context.Context, userID string, limit int) 
 	out := make([]ActionLogView, 0, len(rows))
 	for _, row := range rows {
 		view := ActionLogView{
-			Flag: row.Flag, GainedExp: row.GainedExp, GainedGold: row.GainedGold,
+			Flag: row.Flag, SourceType: row.SourceType, GainedExp: row.GainedExp, GainedGold: row.GainedGold,
 			CreatedAt: row.CreatedAt,
 		}
 		if row.DiceRollResult != nil {
@@ -859,13 +864,16 @@ func (s *Service) ListActionLogs(ctx context.Context, userID string, limit int) 
 			view.HasDice = true
 		}
 		view.Dropped = row.DroppedInventoryID != nil
-		q, qerr := s.store.GetQuest(ctx, row.QuestID)
-		if qerr != nil {
-			return nil, qerr
-		}
-		if q != nil {
-			view.QuestTitle = q.Title
-			view.QuestFlag = q.Flag
+		view.QuestTitle = strings.TrimSpace(row.Summary)
+		if row.QuestID != nil {
+			q, qerr := s.store.GetQuest(ctx, *row.QuestID)
+			if qerr != nil {
+				return nil, qerr
+			}
+			if q != nil {
+				view.QuestTitle = q.Title
+				view.QuestFlag = q.Flag
+			}
 		}
 		out = append(out, view)
 	}
@@ -875,6 +883,7 @@ func (s *Service) ListActionLogs(ctx context.Context, userID string, limit int) 
 // ActionLogView is one audit row for the UI.
 type ActionLogView struct {
 	Flag       string
+	SourceType string
 	QuestFlag  string
 	QuestTitle string
 	GainedExp  int

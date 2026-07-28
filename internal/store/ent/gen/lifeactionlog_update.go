@@ -83,6 +83,67 @@ func (_u *LifeActionLogUpdate) AddQuestID(v int64) *LifeActionLogUpdate {
 	return _u
 }
 
+// ClearQuestID clears the value of the "quest_id" field.
+func (_u *LifeActionLogUpdate) ClearQuestID() *LifeActionLogUpdate {
+	_u.mutation.ClearQuestID()
+	return _u
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (_u *LifeActionLogUpdate) SetPlanNodeID(v int64) *LifeActionLogUpdate {
+	_u.mutation.ResetPlanNodeID()
+	_u.mutation.SetPlanNodeID(v)
+	return _u
+}
+
+// SetNillablePlanNodeID sets the "plan_node_id" field if the given value is not nil.
+func (_u *LifeActionLogUpdate) SetNillablePlanNodeID(v *int64) *LifeActionLogUpdate {
+	if v != nil {
+		_u.SetPlanNodeID(*v)
+	}
+	return _u
+}
+
+// AddPlanNodeID adds value to the "plan_node_id" field.
+func (_u *LifeActionLogUpdate) AddPlanNodeID(v int64) *LifeActionLogUpdate {
+	_u.mutation.AddPlanNodeID(v)
+	return _u
+}
+
+// ClearPlanNodeID clears the value of the "plan_node_id" field.
+func (_u *LifeActionLogUpdate) ClearPlanNodeID() *LifeActionLogUpdate {
+	_u.mutation.ClearPlanNodeID()
+	return _u
+}
+
+// SetSourceType sets the "source_type" field.
+func (_u *LifeActionLogUpdate) SetSourceType(v string) *LifeActionLogUpdate {
+	_u.mutation.SetSourceType(v)
+	return _u
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (_u *LifeActionLogUpdate) SetNillableSourceType(v *string) *LifeActionLogUpdate {
+	if v != nil {
+		_u.SetSourceType(*v)
+	}
+	return _u
+}
+
+// SetSummary sets the "summary" field.
+func (_u *LifeActionLogUpdate) SetSummary(v string) *LifeActionLogUpdate {
+	_u.mutation.SetSummary(v)
+	return _u
+}
+
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (_u *LifeActionLogUpdate) SetNillableSummary(v *string) *LifeActionLogUpdate {
+	if v != nil {
+		_u.SetSummary(*v)
+	}
+	return _u
+}
+
 // SetGainedExp sets the "gained_exp" field.
 func (_u *LifeActionLogUpdate) SetGainedExp(v int) *LifeActionLogUpdate {
 	_u.mutation.ResetGainedExp()
@@ -248,6 +309,24 @@ func (_u *LifeActionLogUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.AddedQuestID(); ok {
 		_spec.AddField(lifeactionlog.FieldQuestID, field.TypeInt64, value)
 	}
+	if _u.mutation.QuestIDCleared() {
+		_spec.ClearField(lifeactionlog.FieldQuestID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.PlanNodeID(); ok {
+		_spec.SetField(lifeactionlog.FieldPlanNodeID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedPlanNodeID(); ok {
+		_spec.AddField(lifeactionlog.FieldPlanNodeID, field.TypeInt64, value)
+	}
+	if _u.mutation.PlanNodeIDCleared() {
+		_spec.ClearField(lifeactionlog.FieldPlanNodeID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.SourceType(); ok {
+		_spec.SetField(lifeactionlog.FieldSourceType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Summary(); ok {
+		_spec.SetField(lifeactionlog.FieldSummary, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.GainedExp(); ok {
 		_spec.SetField(lifeactionlog.FieldGainedExp, field.TypeInt, value)
 	}
@@ -351,6 +430,67 @@ func (_u *LifeActionLogUpdateOne) SetNillableQuestID(v *int64) *LifeActionLogUpd
 // AddQuestID adds value to the "quest_id" field.
 func (_u *LifeActionLogUpdateOne) AddQuestID(v int64) *LifeActionLogUpdateOne {
 	_u.mutation.AddQuestID(v)
+	return _u
+}
+
+// ClearQuestID clears the value of the "quest_id" field.
+func (_u *LifeActionLogUpdateOne) ClearQuestID() *LifeActionLogUpdateOne {
+	_u.mutation.ClearQuestID()
+	return _u
+}
+
+// SetPlanNodeID sets the "plan_node_id" field.
+func (_u *LifeActionLogUpdateOne) SetPlanNodeID(v int64) *LifeActionLogUpdateOne {
+	_u.mutation.ResetPlanNodeID()
+	_u.mutation.SetPlanNodeID(v)
+	return _u
+}
+
+// SetNillablePlanNodeID sets the "plan_node_id" field if the given value is not nil.
+func (_u *LifeActionLogUpdateOne) SetNillablePlanNodeID(v *int64) *LifeActionLogUpdateOne {
+	if v != nil {
+		_u.SetPlanNodeID(*v)
+	}
+	return _u
+}
+
+// AddPlanNodeID adds value to the "plan_node_id" field.
+func (_u *LifeActionLogUpdateOne) AddPlanNodeID(v int64) *LifeActionLogUpdateOne {
+	_u.mutation.AddPlanNodeID(v)
+	return _u
+}
+
+// ClearPlanNodeID clears the value of the "plan_node_id" field.
+func (_u *LifeActionLogUpdateOne) ClearPlanNodeID() *LifeActionLogUpdateOne {
+	_u.mutation.ClearPlanNodeID()
+	return _u
+}
+
+// SetSourceType sets the "source_type" field.
+func (_u *LifeActionLogUpdateOne) SetSourceType(v string) *LifeActionLogUpdateOne {
+	_u.mutation.SetSourceType(v)
+	return _u
+}
+
+// SetNillableSourceType sets the "source_type" field if the given value is not nil.
+func (_u *LifeActionLogUpdateOne) SetNillableSourceType(v *string) *LifeActionLogUpdateOne {
+	if v != nil {
+		_u.SetSourceType(*v)
+	}
+	return _u
+}
+
+// SetSummary sets the "summary" field.
+func (_u *LifeActionLogUpdateOne) SetSummary(v string) *LifeActionLogUpdateOne {
+	_u.mutation.SetSummary(v)
+	return _u
+}
+
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (_u *LifeActionLogUpdateOne) SetNillableSummary(v *string) *LifeActionLogUpdateOne {
+	if v != nil {
+		_u.SetSummary(*v)
+	}
 	return _u
 }
 
@@ -548,6 +688,24 @@ func (_u *LifeActionLogUpdateOne) sqlSave(ctx context.Context) (_node *LifeActio
 	}
 	if value, ok := _u.mutation.AddedQuestID(); ok {
 		_spec.AddField(lifeactionlog.FieldQuestID, field.TypeInt64, value)
+	}
+	if _u.mutation.QuestIDCleared() {
+		_spec.ClearField(lifeactionlog.FieldQuestID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.PlanNodeID(); ok {
+		_spec.SetField(lifeactionlog.FieldPlanNodeID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedPlanNodeID(); ok {
+		_spec.AddField(lifeactionlog.FieldPlanNodeID, field.TypeInt64, value)
+	}
+	if _u.mutation.PlanNodeIDCleared() {
+		_spec.ClearField(lifeactionlog.FieldPlanNodeID, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.SourceType(); ok {
+		_spec.SetField(lifeactionlog.FieldSourceType, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Summary(); ok {
+		_spec.SetField(lifeactionlog.FieldSummary, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.GainedExp(); ok {
 		_spec.SetField(lifeactionlog.FieldGainedExp, field.TypeInt, value)

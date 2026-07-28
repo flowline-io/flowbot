@@ -114,6 +114,12 @@ type LifeAIContext func(*sql.Selector)
 // LifeActionLog is the predicate function for lifeactionlog builders.
 type LifeActionLog func(*sql.Selector)
 
+// LifeActionOccurrence is the predicate function for lifeactionoccurrence builders.
+type LifeActionOccurrence func(*sql.Selector)
+
+// LifeActionSpec is the predicate function for lifeactionspec builders.
+type LifeActionSpec func(*sql.Selector)
+
 // LifeCharacteristic is the predicate function for lifecharacteristic builders.
 type LifeCharacteristic func(*sql.Selector)
 
@@ -126,11 +132,17 @@ type LifeEquippedSlots func(*sql.Selector)
 // LifeGoal is the predicate function for lifegoal builders.
 type LifeGoal func(*sql.Selector)
 
+// LifeHabitCheckin is the predicate function for lifehabitcheckin builders.
+type LifeHabitCheckin func(*sql.Selector)
+
 // LifeInventory is the predicate function for lifeinventory builders.
 type LifeInventory func(*sql.Selector)
 
 // LifeLootTable is the predicate function for lifeloottable builders.
 type LifeLootTable func(*sql.Selector)
+
+// LifePlanNode is the predicate function for lifeplannode builders.
+type LifePlanNode func(*sql.Selector)
 
 // LifeProfile is the predicate function for lifeprofile builders.
 type LifeProfile func(*sql.Selector)

@@ -19,6 +19,12 @@ const (
 	FieldLifeProfileID = "life_profile_id"
 	// FieldQuestID holds the string denoting the quest_id field in the database.
 	FieldQuestID = "quest_id"
+	// FieldPlanNodeID holds the string denoting the plan_node_id field in the database.
+	FieldPlanNodeID = "plan_node_id"
+	// FieldSourceType holds the string denoting the source_type field in the database.
+	FieldSourceType = "source_type"
+	// FieldSummary holds the string denoting the summary field in the database.
+	FieldSummary = "summary"
 	// FieldGainedExp holds the string denoting the gained_exp field in the database.
 	FieldGainedExp = "gained_exp"
 	// FieldGainedGold holds the string denoting the gained_gold field in the database.
@@ -39,6 +45,9 @@ var Columns = []string{
 	FieldFlag,
 	FieldLifeProfileID,
 	FieldQuestID,
+	FieldPlanNodeID,
+	FieldSourceType,
+	FieldSummary,
 	FieldGainedExp,
 	FieldGainedGold,
 	FieldDroppedInventoryID,
@@ -59,6 +68,10 @@ func ValidColumn(column string) bool {
 var (
 	// FlagValidator is a validator for the "flag" field. It is called by the builders before save.
 	FlagValidator func(string) error
+	// DefaultSourceType holds the default value on creation for the "source_type" field.
+	DefaultSourceType string
+	// DefaultSummary holds the default value on creation for the "summary" field.
+	DefaultSummary string
 	// DefaultGainedExp holds the default value on creation for the "gained_exp" field.
 	DefaultGainedExp int
 	// DefaultGainedGold holds the default value on creation for the "gained_gold" field.
@@ -88,6 +101,21 @@ func ByLifeProfileID(opts ...sql.OrderTermOption) OrderOption {
 // ByQuestID orders the results by the quest_id field.
 func ByQuestID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldQuestID, opts...).ToFunc()
+}
+
+// ByPlanNodeID orders the results by the plan_node_id field.
+func ByPlanNodeID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPlanNodeID, opts...).ToFunc()
+}
+
+// BySourceType orders the results by the source_type field.
+func BySourceType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSourceType, opts...).ToFunc()
+}
+
+// BySummary orders the results by the summary field.
+func BySummary(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSummary, opts...).ToFunc()
 }
 
 // ByGainedExp orders the results by the gained_exp field.

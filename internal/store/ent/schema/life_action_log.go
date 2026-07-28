@@ -21,7 +21,10 @@ func (LifeActionLog) Fields() []ent.Field {
 		field.Int64("id").Immutable(),
 		field.String("flag").NotEmpty().Unique(),
 		field.Int64("life_profile_id"),
-		field.Int64("quest_id"),
+		field.Int64("quest_id").Optional().Nillable(),
+		field.Int64("plan_node_id").Optional().Nillable(),
+		field.String("source_type").Default("quest"),
+		field.String("summary").Default(""),
 		field.Int("gained_exp").Default(0),
 		field.Int("gained_gold").Default(0),
 		field.Int64("dropped_inventory_id").Optional().Nillable(),
@@ -35,6 +38,8 @@ func (LifeActionLog) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("life_profile_id"),
 		index.Fields("quest_id"),
+		index.Fields("plan_node_id"),
+		index.Fields("source_type"),
 	}
 }
 

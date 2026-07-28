@@ -48,13 +48,17 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifecharacteristic"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequipment"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeequippedslots"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifegoal"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeinventory"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeloottable"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
@@ -167,6 +171,10 @@ type Client struct {
 	LifeAIContext *LifeAIContextClient
 	// LifeActionLog is the client for interacting with the LifeActionLog builders.
 	LifeActionLog *LifeActionLogClient
+	// LifeActionOccurrence is the client for interacting with the LifeActionOccurrence builders.
+	LifeActionOccurrence *LifeActionOccurrenceClient
+	// LifeActionSpec is the client for interacting with the LifeActionSpec builders.
+	LifeActionSpec *LifeActionSpecClient
 	// LifeCharacteristic is the client for interacting with the LifeCharacteristic builders.
 	LifeCharacteristic *LifeCharacteristicClient
 	// LifeEquipment is the client for interacting with the LifeEquipment builders.
@@ -175,10 +183,14 @@ type Client struct {
 	LifeEquippedSlots *LifeEquippedSlotsClient
 	// LifeGoal is the client for interacting with the LifeGoal builders.
 	LifeGoal *LifeGoalClient
+	// LifeHabitCheckin is the client for interacting with the LifeHabitCheckin builders.
+	LifeHabitCheckin *LifeHabitCheckinClient
 	// LifeInventory is the client for interacting with the LifeInventory builders.
 	LifeInventory *LifeInventoryClient
 	// LifeLootTable is the client for interacting with the LifeLootTable builders.
 	LifeLootTable *LifeLootTableClient
+	// LifePlanNode is the client for interacting with the LifePlanNode builders.
+	LifePlanNode *LifePlanNodeClient
 	// LifeProfile is the client for interacting with the LifeProfile builders.
 	LifeProfile *LifeProfileClient
 	// LifeQuest is the client for interacting with the LifeQuest builders.
@@ -290,12 +302,16 @@ func (c *Client) init() {
 	c.LLMUsageRecord = NewLLMUsageRecordClient(c.config)
 	c.LifeAIContext = NewLifeAIContextClient(c.config)
 	c.LifeActionLog = NewLifeActionLogClient(c.config)
+	c.LifeActionOccurrence = NewLifeActionOccurrenceClient(c.config)
+	c.LifeActionSpec = NewLifeActionSpecClient(c.config)
 	c.LifeCharacteristic = NewLifeCharacteristicClient(c.config)
 	c.LifeEquipment = NewLifeEquipmentClient(c.config)
 	c.LifeEquippedSlots = NewLifeEquippedSlotsClient(c.config)
 	c.LifeGoal = NewLifeGoalClient(c.config)
+	c.LifeHabitCheckin = NewLifeHabitCheckinClient(c.config)
 	c.LifeInventory = NewLifeInventoryClient(c.config)
 	c.LifeLootTable = NewLifeLootTableClient(c.config)
+	c.LifePlanNode = NewLifePlanNodeClient(c.config)
 	c.LifeProfile = NewLifeProfileClient(c.config)
 	c.LifeQuest = NewLifeQuestClient(c.config)
 	c.LifeSkill = NewLifeSkillClient(c.config)
@@ -456,12 +472,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
 		LifeActionLog:             NewLifeActionLogClient(cfg),
+		LifeActionOccurrence:      NewLifeActionOccurrenceClient(cfg),
+		LifeActionSpec:            NewLifeActionSpecClient(cfg),
 		LifeCharacteristic:        NewLifeCharacteristicClient(cfg),
 		LifeEquipment:             NewLifeEquipmentClient(cfg),
 		LifeEquippedSlots:         NewLifeEquippedSlotsClient(cfg),
 		LifeGoal:                  NewLifeGoalClient(cfg),
+		LifeHabitCheckin:          NewLifeHabitCheckinClient(cfg),
 		LifeInventory:             NewLifeInventoryClient(cfg),
 		LifeLootTable:             NewLifeLootTableClient(cfg),
+		LifePlanNode:              NewLifePlanNodeClient(cfg),
 		LifeProfile:               NewLifeProfileClient(cfg),
 		LifeQuest:                 NewLifeQuestClient(cfg),
 		LifeSkill:                 NewLifeSkillClient(cfg),
@@ -549,12 +569,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
 		LifeActionLog:             NewLifeActionLogClient(cfg),
+		LifeActionOccurrence:      NewLifeActionOccurrenceClient(cfg),
+		LifeActionSpec:            NewLifeActionSpecClient(cfg),
 		LifeCharacteristic:        NewLifeCharacteristicClient(cfg),
 		LifeEquipment:             NewLifeEquipmentClient(cfg),
 		LifeEquippedSlots:         NewLifeEquippedSlotsClient(cfg),
 		LifeGoal:                  NewLifeGoalClient(cfg),
+		LifeHabitCheckin:          NewLifeHabitCheckinClient(cfg),
 		LifeInventory:             NewLifeInventoryClient(cfg),
 		LifeLootTable:             NewLifeLootTableClient(cfg),
+		LifePlanNode:              NewLifePlanNodeClient(cfg),
 		LifeProfile:               NewLifeProfileClient(cfg),
 		LifeQuest:                 NewLifeQuestClient(cfg),
 		LifeSkill:                 NewLifeSkillClient(cfg),
@@ -623,9 +647,10 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionLog, c.LifeCharacteristic,
-		c.LifeEquipment, c.LifeEquippedSlots, c.LifeGoal, c.LifeInventory,
-		c.LifeLootTable, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
+		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionLog, c.LifeActionOccurrence,
+		c.LifeActionSpec, c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots,
+		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
+		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
 		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
 		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
 		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
@@ -649,9 +674,10 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionLog, c.LifeCharacteristic,
-		c.LifeEquipment, c.LifeEquippedSlots, c.LifeGoal, c.LifeInventory,
-		c.LifeLootTable, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
+		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionLog, c.LifeActionOccurrence,
+		c.LifeActionSpec, c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots,
+		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
+		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
 		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
 		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
 		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
@@ -739,6 +765,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LifeAIContext.mutate(ctx, m)
 	case *LifeActionLogMutation:
 		return c.LifeActionLog.mutate(ctx, m)
+	case *LifeActionOccurrenceMutation:
+		return c.LifeActionOccurrence.mutate(ctx, m)
+	case *LifeActionSpecMutation:
+		return c.LifeActionSpec.mutate(ctx, m)
 	case *LifeCharacteristicMutation:
 		return c.LifeCharacteristic.mutate(ctx, m)
 	case *LifeEquipmentMutation:
@@ -747,10 +777,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LifeEquippedSlots.mutate(ctx, m)
 	case *LifeGoalMutation:
 		return c.LifeGoal.mutate(ctx, m)
+	case *LifeHabitCheckinMutation:
+		return c.LifeHabitCheckin.mutate(ctx, m)
 	case *LifeInventoryMutation:
 		return c.LifeInventory.mutate(ctx, m)
 	case *LifeLootTableMutation:
 		return c.LifeLootTable.mutate(ctx, m)
+	case *LifePlanNodeMutation:
+		return c.LifePlanNode.mutate(ctx, m)
 	case *LifeProfileMutation:
 		return c.LifeProfile.mutate(ctx, m)
 	case *LifeQuestMutation:
@@ -5608,6 +5642,272 @@ func (c *LifeActionLogClient) mutate(ctx context.Context, m *LifeActionLogMutati
 	}
 }
 
+// LifeActionOccurrenceClient is a client for the LifeActionOccurrence schema.
+type LifeActionOccurrenceClient struct {
+	config
+}
+
+// NewLifeActionOccurrenceClient returns a client for the LifeActionOccurrence from the given config.
+func NewLifeActionOccurrenceClient(c config) *LifeActionOccurrenceClient {
+	return &LifeActionOccurrenceClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeactionoccurrence.Hooks(f(g(h())))`.
+func (c *LifeActionOccurrenceClient) Use(hooks ...Hook) {
+	c.hooks.LifeActionOccurrence = append(c.hooks.LifeActionOccurrence, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeactionoccurrence.Intercept(f(g(h())))`.
+func (c *LifeActionOccurrenceClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeActionOccurrence = append(c.inters.LifeActionOccurrence, interceptors...)
+}
+
+// Create returns a builder for creating a LifeActionOccurrence entity.
+func (c *LifeActionOccurrenceClient) Create() *LifeActionOccurrenceCreate {
+	mutation := newLifeActionOccurrenceMutation(c.config, OpCreate)
+	return &LifeActionOccurrenceCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeActionOccurrence entities.
+func (c *LifeActionOccurrenceClient) CreateBulk(builders ...*LifeActionOccurrenceCreate) *LifeActionOccurrenceCreateBulk {
+	return &LifeActionOccurrenceCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeActionOccurrenceClient) MapCreateBulk(slice any, setFunc func(*LifeActionOccurrenceCreate, int)) *LifeActionOccurrenceCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeActionOccurrenceCreateBulk{err: fmt.Errorf("calling to LifeActionOccurrenceClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeActionOccurrenceCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeActionOccurrenceCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeActionOccurrence.
+func (c *LifeActionOccurrenceClient) Update() *LifeActionOccurrenceUpdate {
+	mutation := newLifeActionOccurrenceMutation(c.config, OpUpdate)
+	return &LifeActionOccurrenceUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeActionOccurrenceClient) UpdateOne(_m *LifeActionOccurrence) *LifeActionOccurrenceUpdateOne {
+	mutation := newLifeActionOccurrenceMutation(c.config, OpUpdateOne, withLifeActionOccurrence(_m))
+	return &LifeActionOccurrenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeActionOccurrenceClient) UpdateOneID(id int64) *LifeActionOccurrenceUpdateOne {
+	mutation := newLifeActionOccurrenceMutation(c.config, OpUpdateOne, withLifeActionOccurrenceID(id))
+	return &LifeActionOccurrenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeActionOccurrence.
+func (c *LifeActionOccurrenceClient) Delete() *LifeActionOccurrenceDelete {
+	mutation := newLifeActionOccurrenceMutation(c.config, OpDelete)
+	return &LifeActionOccurrenceDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeActionOccurrenceClient) DeleteOne(_m *LifeActionOccurrence) *LifeActionOccurrenceDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeActionOccurrenceClient) DeleteOneID(id int64) *LifeActionOccurrenceDeleteOne {
+	builder := c.Delete().Where(lifeactionoccurrence.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeActionOccurrenceDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeActionOccurrence.
+func (c *LifeActionOccurrenceClient) Query() *LifeActionOccurrenceQuery {
+	return &LifeActionOccurrenceQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeActionOccurrence},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeActionOccurrence entity by its id.
+func (c *LifeActionOccurrenceClient) Get(ctx context.Context, id int64) (*LifeActionOccurrence, error) {
+	return c.Query().Where(lifeactionoccurrence.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeActionOccurrenceClient) GetX(ctx context.Context, id int64) *LifeActionOccurrence {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeActionOccurrenceClient) Hooks() []Hook {
+	return c.hooks.LifeActionOccurrence
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeActionOccurrenceClient) Interceptors() []Interceptor {
+	return c.inters.LifeActionOccurrence
+}
+
+func (c *LifeActionOccurrenceClient) mutate(ctx context.Context, m *LifeActionOccurrenceMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeActionOccurrenceCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeActionOccurrenceUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeActionOccurrenceUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeActionOccurrenceDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeActionOccurrence mutation op: %q", m.Op())
+	}
+}
+
+// LifeActionSpecClient is a client for the LifeActionSpec schema.
+type LifeActionSpecClient struct {
+	config
+}
+
+// NewLifeActionSpecClient returns a client for the LifeActionSpec from the given config.
+func NewLifeActionSpecClient(c config) *LifeActionSpecClient {
+	return &LifeActionSpecClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeactionspec.Hooks(f(g(h())))`.
+func (c *LifeActionSpecClient) Use(hooks ...Hook) {
+	c.hooks.LifeActionSpec = append(c.hooks.LifeActionSpec, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeactionspec.Intercept(f(g(h())))`.
+func (c *LifeActionSpecClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeActionSpec = append(c.inters.LifeActionSpec, interceptors...)
+}
+
+// Create returns a builder for creating a LifeActionSpec entity.
+func (c *LifeActionSpecClient) Create() *LifeActionSpecCreate {
+	mutation := newLifeActionSpecMutation(c.config, OpCreate)
+	return &LifeActionSpecCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeActionSpec entities.
+func (c *LifeActionSpecClient) CreateBulk(builders ...*LifeActionSpecCreate) *LifeActionSpecCreateBulk {
+	return &LifeActionSpecCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeActionSpecClient) MapCreateBulk(slice any, setFunc func(*LifeActionSpecCreate, int)) *LifeActionSpecCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeActionSpecCreateBulk{err: fmt.Errorf("calling to LifeActionSpecClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeActionSpecCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeActionSpecCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeActionSpec.
+func (c *LifeActionSpecClient) Update() *LifeActionSpecUpdate {
+	mutation := newLifeActionSpecMutation(c.config, OpUpdate)
+	return &LifeActionSpecUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeActionSpecClient) UpdateOne(_m *LifeActionSpec) *LifeActionSpecUpdateOne {
+	mutation := newLifeActionSpecMutation(c.config, OpUpdateOne, withLifeActionSpec(_m))
+	return &LifeActionSpecUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeActionSpecClient) UpdateOneID(id int64) *LifeActionSpecUpdateOne {
+	mutation := newLifeActionSpecMutation(c.config, OpUpdateOne, withLifeActionSpecID(id))
+	return &LifeActionSpecUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeActionSpec.
+func (c *LifeActionSpecClient) Delete() *LifeActionSpecDelete {
+	mutation := newLifeActionSpecMutation(c.config, OpDelete)
+	return &LifeActionSpecDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeActionSpecClient) DeleteOne(_m *LifeActionSpec) *LifeActionSpecDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeActionSpecClient) DeleteOneID(id int64) *LifeActionSpecDeleteOne {
+	builder := c.Delete().Where(lifeactionspec.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeActionSpecDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeActionSpec.
+func (c *LifeActionSpecClient) Query() *LifeActionSpecQuery {
+	return &LifeActionSpecQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeActionSpec},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeActionSpec entity by its id.
+func (c *LifeActionSpecClient) Get(ctx context.Context, id int64) (*LifeActionSpec, error) {
+	return c.Query().Where(lifeactionspec.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeActionSpecClient) GetX(ctx context.Context, id int64) *LifeActionSpec {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeActionSpecClient) Hooks() []Hook {
+	return c.hooks.LifeActionSpec
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeActionSpecClient) Interceptors() []Interceptor {
+	return c.inters.LifeActionSpec
+}
+
+func (c *LifeActionSpecClient) mutate(ctx context.Context, m *LifeActionSpecMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeActionSpecCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeActionSpecUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeActionSpecUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeActionSpecDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeActionSpec mutation op: %q", m.Op())
+	}
+}
+
 // LifeCharacteristicClient is a client for the LifeCharacteristic schema.
 type LifeCharacteristicClient struct {
 	config
@@ -6140,6 +6440,139 @@ func (c *LifeGoalClient) mutate(ctx context.Context, m *LifeGoalMutation) (Value
 	}
 }
 
+// LifeHabitCheckinClient is a client for the LifeHabitCheckin schema.
+type LifeHabitCheckinClient struct {
+	config
+}
+
+// NewLifeHabitCheckinClient returns a client for the LifeHabitCheckin from the given config.
+func NewLifeHabitCheckinClient(c config) *LifeHabitCheckinClient {
+	return &LifeHabitCheckinClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifehabitcheckin.Hooks(f(g(h())))`.
+func (c *LifeHabitCheckinClient) Use(hooks ...Hook) {
+	c.hooks.LifeHabitCheckin = append(c.hooks.LifeHabitCheckin, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifehabitcheckin.Intercept(f(g(h())))`.
+func (c *LifeHabitCheckinClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeHabitCheckin = append(c.inters.LifeHabitCheckin, interceptors...)
+}
+
+// Create returns a builder for creating a LifeHabitCheckin entity.
+func (c *LifeHabitCheckinClient) Create() *LifeHabitCheckinCreate {
+	mutation := newLifeHabitCheckinMutation(c.config, OpCreate)
+	return &LifeHabitCheckinCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeHabitCheckin entities.
+func (c *LifeHabitCheckinClient) CreateBulk(builders ...*LifeHabitCheckinCreate) *LifeHabitCheckinCreateBulk {
+	return &LifeHabitCheckinCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeHabitCheckinClient) MapCreateBulk(slice any, setFunc func(*LifeHabitCheckinCreate, int)) *LifeHabitCheckinCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeHabitCheckinCreateBulk{err: fmt.Errorf("calling to LifeHabitCheckinClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeHabitCheckinCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeHabitCheckinCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeHabitCheckin.
+func (c *LifeHabitCheckinClient) Update() *LifeHabitCheckinUpdate {
+	mutation := newLifeHabitCheckinMutation(c.config, OpUpdate)
+	return &LifeHabitCheckinUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeHabitCheckinClient) UpdateOne(_m *LifeHabitCheckin) *LifeHabitCheckinUpdateOne {
+	mutation := newLifeHabitCheckinMutation(c.config, OpUpdateOne, withLifeHabitCheckin(_m))
+	return &LifeHabitCheckinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeHabitCheckinClient) UpdateOneID(id int64) *LifeHabitCheckinUpdateOne {
+	mutation := newLifeHabitCheckinMutation(c.config, OpUpdateOne, withLifeHabitCheckinID(id))
+	return &LifeHabitCheckinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeHabitCheckin.
+func (c *LifeHabitCheckinClient) Delete() *LifeHabitCheckinDelete {
+	mutation := newLifeHabitCheckinMutation(c.config, OpDelete)
+	return &LifeHabitCheckinDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeHabitCheckinClient) DeleteOne(_m *LifeHabitCheckin) *LifeHabitCheckinDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeHabitCheckinClient) DeleteOneID(id int64) *LifeHabitCheckinDeleteOne {
+	builder := c.Delete().Where(lifehabitcheckin.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeHabitCheckinDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeHabitCheckin.
+func (c *LifeHabitCheckinClient) Query() *LifeHabitCheckinQuery {
+	return &LifeHabitCheckinQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeHabitCheckin},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeHabitCheckin entity by its id.
+func (c *LifeHabitCheckinClient) Get(ctx context.Context, id int64) (*LifeHabitCheckin, error) {
+	return c.Query().Where(lifehabitcheckin.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeHabitCheckinClient) GetX(ctx context.Context, id int64) *LifeHabitCheckin {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeHabitCheckinClient) Hooks() []Hook {
+	return c.hooks.LifeHabitCheckin
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeHabitCheckinClient) Interceptors() []Interceptor {
+	return c.inters.LifeHabitCheckin
+}
+
+func (c *LifeHabitCheckinClient) mutate(ctx context.Context, m *LifeHabitCheckinMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeHabitCheckinCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeHabitCheckinUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeHabitCheckinUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeHabitCheckinDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeHabitCheckin mutation op: %q", m.Op())
+	}
+}
+
 // LifeInventoryClient is a client for the LifeInventory schema.
 type LifeInventoryClient struct {
 	config
@@ -6403,6 +6836,139 @@ func (c *LifeLootTableClient) mutate(ctx context.Context, m *LifeLootTableMutati
 		return (&LifeLootTableDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown LifeLootTable mutation op: %q", m.Op())
+	}
+}
+
+// LifePlanNodeClient is a client for the LifePlanNode schema.
+type LifePlanNodeClient struct {
+	config
+}
+
+// NewLifePlanNodeClient returns a client for the LifePlanNode from the given config.
+func NewLifePlanNodeClient(c config) *LifePlanNodeClient {
+	return &LifePlanNodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeplannode.Hooks(f(g(h())))`.
+func (c *LifePlanNodeClient) Use(hooks ...Hook) {
+	c.hooks.LifePlanNode = append(c.hooks.LifePlanNode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeplannode.Intercept(f(g(h())))`.
+func (c *LifePlanNodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifePlanNode = append(c.inters.LifePlanNode, interceptors...)
+}
+
+// Create returns a builder for creating a LifePlanNode entity.
+func (c *LifePlanNodeClient) Create() *LifePlanNodeCreate {
+	mutation := newLifePlanNodeMutation(c.config, OpCreate)
+	return &LifePlanNodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifePlanNode entities.
+func (c *LifePlanNodeClient) CreateBulk(builders ...*LifePlanNodeCreate) *LifePlanNodeCreateBulk {
+	return &LifePlanNodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifePlanNodeClient) MapCreateBulk(slice any, setFunc func(*LifePlanNodeCreate, int)) *LifePlanNodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifePlanNodeCreateBulk{err: fmt.Errorf("calling to LifePlanNodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifePlanNodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifePlanNodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifePlanNode.
+func (c *LifePlanNodeClient) Update() *LifePlanNodeUpdate {
+	mutation := newLifePlanNodeMutation(c.config, OpUpdate)
+	return &LifePlanNodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifePlanNodeClient) UpdateOne(_m *LifePlanNode) *LifePlanNodeUpdateOne {
+	mutation := newLifePlanNodeMutation(c.config, OpUpdateOne, withLifePlanNode(_m))
+	return &LifePlanNodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifePlanNodeClient) UpdateOneID(id int64) *LifePlanNodeUpdateOne {
+	mutation := newLifePlanNodeMutation(c.config, OpUpdateOne, withLifePlanNodeID(id))
+	return &LifePlanNodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifePlanNode.
+func (c *LifePlanNodeClient) Delete() *LifePlanNodeDelete {
+	mutation := newLifePlanNodeMutation(c.config, OpDelete)
+	return &LifePlanNodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifePlanNodeClient) DeleteOne(_m *LifePlanNode) *LifePlanNodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifePlanNodeClient) DeleteOneID(id int64) *LifePlanNodeDeleteOne {
+	builder := c.Delete().Where(lifeplannode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifePlanNodeDeleteOne{builder}
+}
+
+// Query returns a query builder for LifePlanNode.
+func (c *LifePlanNodeClient) Query() *LifePlanNodeQuery {
+	return &LifePlanNodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifePlanNode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifePlanNode entity by its id.
+func (c *LifePlanNodeClient) Get(ctx context.Context, id int64) (*LifePlanNode, error) {
+	return c.Query().Where(lifeplannode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifePlanNodeClient) GetX(ctx context.Context, id int64) *LifePlanNode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifePlanNodeClient) Hooks() []Hook {
+	return c.hooks.LifePlanNode
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifePlanNodeClient) Interceptors() []Interceptor {
+	return c.inters.LifePlanNode
+}
+
+func (c *LifePlanNodeClient) mutate(ctx context.Context, m *LifePlanNodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifePlanNodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifePlanNodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifePlanNodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifePlanNodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifePlanNode mutation op: %q", m.Op())
 	}
 }
 
@@ -10671,8 +11237,9 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeActionLog, LifeCharacteristic, LifeEquipment,
-		LifeEquippedSlots, LifeGoal, LifeInventory, LifeLootTable, LifeProfile,
+		LifeAIContext, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
+		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeGoal,
+		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
 		LifeQuest, LifeSkill, Message, NotificationRecord, NotifyChannel, NotifyRule,
 		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
 		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,
@@ -10687,8 +11254,9 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeActionLog, LifeCharacteristic, LifeEquipment,
-		LifeEquippedSlots, LifeGoal, LifeInventory, LifeLootTable, LifeProfile,
+		LifeAIContext, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
+		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeGoal,
+		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
 		LifeQuest, LifeSkill, Message, NotificationRecord, NotifyChannel, NotifyRule,
 		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
 		PipelineDefinitionVersion, PipelineRun, PipelineStepRun, Platform, PlatformBot,

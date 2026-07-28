@@ -925,7 +925,10 @@ var (
 		{Name: "id", Type: field.TypeInt64, Increment: true},
 		{Name: "flag", Type: field.TypeString, Unique: true},
 		{Name: "life_profile_id", Type: field.TypeInt64},
-		{Name: "quest_id", Type: field.TypeInt64},
+		{Name: "quest_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "plan_node_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "source_type", Type: field.TypeString, Default: "quest"},
+		{Name: "summary", Type: field.TypeString, Default: ""},
 		{Name: "gained_exp", Type: field.TypeInt, Default: 0},
 		{Name: "gained_gold", Type: field.TypeInt, Default: 0},
 		{Name: "dropped_inventory_id", Type: field.TypeInt64, Nullable: true},
@@ -947,6 +950,93 @@ var (
 				Name:    "lifeactionlog_quest_id",
 				Unique:  false,
 				Columns: []*schema.Column{LifeActionLogsColumns[3]},
+			},
+			{
+				Name:    "lifeactionlog_plan_node_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionLogsColumns[4]},
+			},
+			{
+				Name:    "lifeactionlog_source_type",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionLogsColumns[5]},
+			},
+		},
+	}
+	// LifeActionOccurrencesColumns holds the columns for the "life_action_occurrences" table.
+	LifeActionOccurrencesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "plan_node_id", Type: field.TypeInt64},
+		{Name: "kind", Type: field.TypeString, Default: "one_time"},
+		{Name: "state", Type: field.TypeString, Default: "pending"},
+		{Name: "due_at", Type: field.TypeTime},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "cadence_snapshot", Type: field.TypeString, Default: ""},
+		{Name: "source_occurrence_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeActionOccurrencesTable holds the schema information for the "life_action_occurrences" table.
+	LifeActionOccurrencesTable = &schema.Table{
+		Name:       "life_action_occurrences",
+		Columns:    LifeActionOccurrencesColumns,
+		PrimaryKey: []*schema.Column{LifeActionOccurrencesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeactionoccurrence_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionOccurrencesColumns[2]},
+			},
+			{
+				Name:    "lifeactionoccurrence_life_profile_id_state",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionOccurrencesColumns[2], LifeActionOccurrencesColumns[5]},
+			},
+			{
+				Name:    "lifeactionoccurrence_plan_node_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionOccurrencesColumns[3]},
+			},
+			{
+				Name:    "lifeactionoccurrence_plan_node_id_due_at",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionOccurrencesColumns[3], LifeActionOccurrencesColumns[6]},
+			},
+		},
+	}
+	// LifeActionSpecsColumns holds the columns for the "life_action_specs" table.
+	LifeActionSpecsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "plan_node_id", Type: field.TypeInt64, Unique: true},
+		{Name: "task_type", Type: field.TypeString, Default: "todo"},
+		{Name: "tracking_mode", Type: field.TypeString, Default: "completion"},
+		{Name: "is_repeatable", Type: field.TypeBool, Default: false},
+		{Name: "repeat_trigger", Type: field.TypeString, Default: "none"},
+		{Name: "suggested_cadence", Type: field.TypeString, Default: ""},
+		{Name: "is_identity_building", Type: field.TypeBool, Default: false},
+		{Name: "reason", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "needs_user_confirmation", Type: field.TypeBool, Default: false},
+		{Name: "confirmed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeActionSpecsTable holds the schema information for the "life_action_specs" table.
+	LifeActionSpecsTable = &schema.Table{
+		Name:       "life_action_specs",
+		Columns:    LifeActionSpecsColumns,
+		PrimaryKey: []*schema.Column{LifeActionSpecsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeactionspec_task_type",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionSpecsColumns[2]},
+			},
+			{
+				Name:    "lifeactionspec_needs_user_confirmation",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionSpecsColumns[9]},
 			},
 		},
 	}
@@ -1065,6 +1155,41 @@ var (
 			},
 		},
 	}
+	// LifeHabitCheckinsColumns holds the columns for the "life_habit_checkins" table.
+	LifeHabitCheckinsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "plan_node_id", Type: field.TypeInt64},
+		{Name: "checkin_date", Type: field.TypeTime},
+		{Name: "status", Type: field.TypeString, Default: "done"},
+		{Name: "note", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeHabitCheckinsTable holds the schema information for the "life_habit_checkins" table.
+	LifeHabitCheckinsTable = &schema.Table{
+		Name:       "life_habit_checkins",
+		Columns:    LifeHabitCheckinsColumns,
+		PrimaryKey: []*schema.Column{LifeHabitCheckinsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifehabitcheckin_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeHabitCheckinsColumns[2]},
+			},
+			{
+				Name:    "lifehabitcheckin_plan_node_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeHabitCheckinsColumns[3]},
+			},
+			{
+				Name:    "lifehabitcheckin_plan_node_id_checkin_date",
+				Unique:  true,
+				Columns: []*schema.Column{LifeHabitCheckinsColumns[3], LifeHabitCheckinsColumns[4]},
+			},
+		},
+	}
 	// LifeInventoriesColumns holds the columns for the "life_inventories" table.
 	LifeInventoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -1120,6 +1245,43 @@ var (
 				Name:    "lifeloottable_drop_tier",
 				Unique:  true,
 				Columns: []*schema.Column{LifeLootTablesColumns[1]},
+			},
+		},
+	}
+	// LifePlanNodesColumns holds the columns for the "life_plan_nodes" table.
+	LifePlanNodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "parent_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "node_type", Type: field.TypeString},
+		{Name: "title", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 2147483647, Default: ""},
+		{Name: "status", Type: field.TypeString, Default: "Active"},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifePlanNodesTable holds the schema information for the "life_plan_nodes" table.
+	LifePlanNodesTable = &schema.Table{
+		Name:       "life_plan_nodes",
+		Columns:    LifePlanNodesColumns,
+		PrimaryKey: []*schema.Column{LifePlanNodesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeplannode_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifePlanNodesColumns[2]},
+			},
+			{
+				Name:    "lifeplannode_life_profile_id_node_type",
+				Unique:  false,
+				Columns: []*schema.Column{LifePlanNodesColumns[2], LifePlanNodesColumns[4]},
+			},
+			{
+				Name:    "lifeplannode_life_profile_id_parent_id_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{LifePlanNodesColumns[2], LifePlanNodesColumns[3], LifePlanNodesColumns[8]},
 			},
 		},
 	}
@@ -2063,12 +2225,16 @@ var (
 		LlmUsageRecordsTable,
 		LifeAiContextsTable,
 		LifeActionLogsTable,
+		LifeActionOccurrencesTable,
+		LifeActionSpecsTable,
 		LifeCharacteristicsTable,
 		LifeEquipmentsTable,
 		LifeEquippedSlotsTable,
 		LifeGoalsTable,
+		LifeHabitCheckinsTable,
 		LifeInventoriesTable,
 		LifeLootTablesTable,
+		LifePlanNodesTable,
 		LifeProfilesTable,
 		LifeQuestsTable,
 		LifeSkillsTable,
@@ -2213,6 +2379,12 @@ func init() {
 	LifeActionLogsTable.Annotation = &entsql.Annotation{
 		Table: "life_action_logs",
 	}
+	LifeActionOccurrencesTable.Annotation = &entsql.Annotation{
+		Table: "life_action_occurrences",
+	}
+	LifeActionSpecsTable.Annotation = &entsql.Annotation{
+		Table: "life_action_specs",
+	}
 	LifeCharacteristicsTable.Annotation = &entsql.Annotation{
 		Table: "life_characteristics",
 	}
@@ -2225,11 +2397,17 @@ func init() {
 	LifeGoalsTable.Annotation = &entsql.Annotation{
 		Table: "life_goals",
 	}
+	LifeHabitCheckinsTable.Annotation = &entsql.Annotation{
+		Table: "life_habit_checkins",
+	}
 	LifeInventoriesTable.Annotation = &entsql.Annotation{
 		Table: "life_inventories",
 	}
 	LifeLootTablesTable.Annotation = &entsql.Annotation{
 		Table: "life_loot_tables",
+	}
+	LifePlanNodesTable.Annotation = &entsql.Annotation{
+		Table: "life_plan_nodes",
 	}
 	LifeProfilesTable.Annotation = &entsql.Annotation{
 		Table: "life_profiles",

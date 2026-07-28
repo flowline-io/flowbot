@@ -122,3 +122,17 @@ func TestLifeFormatPerkText(t *testing.T) {
 	assert.Equal(t, "ai_breakdown_depth=deep", got)
 	assert.Empty(t, pages.LifeFormatPerkText(nil))
 }
+
+func TestLifePlanLabelsAndIndent(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "Goal", pages.LifePlanNodeTypeLabel("goal"))
+	assert.Equal(t, "Action", pages.LifePlanNodeTypeLabel("action"))
+	assert.Equal(t, "Habit (pending)", pages.LifeTaskTypeLabel("habit_candidate"))
+	assert.Equal(t, "Habit", pages.LifeTaskTypeLabel("habit"))
+	assert.Equal(t, "Action", pages.LifeActionLogSourceLabel("occurrence"))
+	assert.Equal(t, "Habit", pages.LifeActionLogSourceLabel("habit_checkin"))
+	assert.Equal(t, "One-time", pages.LifeOccurrenceKindLabel("one_time"))
+	assert.Equal(t, "Recurring", pages.LifeOccurrenceKindLabel("recurring"))
+	assert.Empty(t, pages.LifeIndentStyle(0))
+	assert.Equal(t, "margin-left:2rem;", pages.LifeIndentStyle(2))
+}

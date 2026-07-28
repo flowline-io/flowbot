@@ -60,6 +60,9 @@ type LifeCharacterData struct {
 	RadarValuesJSON string
 	ShowClassForm   bool
 	Goals           []LifeGoalRow
+	PlanTree        []LifePlanNodeRow
+	PlanParents     []LifePlanParentOption
+	BreakdownPreview *LifeBreakdownPreviewData
 }
 
 // LifeGoalRow is one PARA goal for Character / Quests UI.
@@ -68,6 +71,30 @@ type LifeGoalRow struct {
 	Title    string
 	Category string
 	Status   string
+}
+
+// LifePlanParentOption is one valid parent choice in the create form.
+type LifePlanParentOption struct {
+	Flag      string
+	Label     string
+	NodeType  string
+	Depth     int
+	AllowText string
+}
+
+// LifePlanNodeRow is one rendered plan node.
+type LifePlanNodeRow struct {
+	Flag                 string
+	ParentFlag           string
+	NodeType             string
+	Title                string
+	Description          string
+	Status               string
+	TaskType             string
+	TrackingMode         string
+	SuggestedCadence     string
+	NeedsConfirmation    bool
+	Children             []LifePlanNodeRow
 }
 
 // LifeQuestRow is one quest list row.
@@ -90,6 +117,8 @@ type LifeQuestsData struct {
 	Pending      []LifeQuestRow
 	Completed    []LifeQuestRow
 	Goals        []LifeGoalRow
+	TodayActions []LifeTodayActionRow
+	TodayHabits  []LifeTodayHabitRow
 	ActionLogs   []LifeActionLogRow
 	PendingCount int
 }
@@ -97,6 +126,7 @@ type LifeQuestsData struct {
 // LifeActionLogRow is one completion audit row.
 type LifeActionLogRow struct {
 	Flag       string
+	SourceType string
 	QuestTitle string
 	GainedExp  int
 	GainedGold int
@@ -104,6 +134,48 @@ type LifeActionLogRow struct {
 	HasDice    bool
 	Dropped    bool
 	When       string
+}
+
+// LifeTodayActionRow is one pending todo/recurring occurrence.
+type LifeTodayActionRow struct {
+	Flag             string
+	Title            string
+	NodeFlag         string
+	ContextPath      string
+	Description      string
+	Kind             string
+	State            string
+	DueLabel         string
+	TaskType         string
+	TrackingMode     string
+	SuggestedCadence string
+}
+
+// LifeTodayHabitRow is one habit plus today check-in state.
+type LifeTodayHabitRow struct {
+	NodeFlag         string
+	Title            string
+	CheckedIn        bool
+	TaskType         string
+	SuggestedCadence string
+}
+
+// LifeBreakdownPreviewData is the UI state for an AI suggestion preview.
+type LifeBreakdownPreviewData struct {
+	RootTitle   string
+	Description string
+	PayloadJSON string
+	Tree        *LifeBreakdownSuggestionRow
+}
+
+// LifeBreakdownSuggestionRow is one suggested AI tree node.
+type LifeBreakdownSuggestionRow struct {
+	NodeType         string
+	Title            string
+	Description      string
+	TaskType         string
+	SuggestedCadence string
+	Children         []LifeBreakdownSuggestionRow
 }
 
 // LifeInventoryRow is one backpack row.
@@ -206,6 +278,70 @@ func LifeSlotRarityClass(slot LifeEquipSlot) string {
 		return ""
 	}
 	return LifeRarityClass(slot.Item.Rarity)
+}
+
+// LifePlanNodeTypeLabel returns a human label for one node type.
+func LifePlanNodeTypeLabel(nodeType string) string {
+	switch strings.ToLower(strings.TrimSpace(nodeType)) {
+	case "goal":
+		return "Goal"
+	case "milestone":
+		return "Milestone"
+	case "project":
+		return "Project"
+	case "action":
+		return "Action"
+	default:
+		return "Node"
+	}
+}
+
+// LifeTaskTypeLabel returns a concise label for one action type.
+func LifeTaskTypeLabel(taskType string) string {
+	switch strings.ToLower(strings.TrimSpace(taskType)) {
+	case "todo":
+		return "Todo"
+	case "recurring":
+		return "Recurring"
+	case "habit_candidate":
+		return "Habit (pending)"
+	case "habit":
+		return "Habit"
+	default:
+		return ""
+	}
+}
+
+// LifeActionLogSourceLabel returns a concise label for one audit source.
+func LifeActionLogSourceLabel(sourceType string) string {
+	switch strings.ToLower(strings.TrimSpace(sourceType)) {
+	case "occurrence":
+		return "Action"
+	case "habit_checkin":
+		return "Habit"
+	default:
+		return "Quest"
+	}
+}
+
+// LifeOccurrenceKindLabel returns a human label for one occurrence kind.
+func LifeOccurrenceKindLabel(kind string) string {
+	switch strings.ToLower(strings.TrimSpace(kind)) {
+	case "one_time":
+		return "One-time"
+	case "recurring":
+		return "Recurring"
+	default:
+		return kind
+	}
+}
+
+// LifeIndentStyle returns a simple indent style for tree rows.
+func LifeIndentStyle(depth int) string {
+	if depth <= 0 {
+		return ""
+	}
+	return fmt.Sprintf("margin-left:%drem;", depth*1)
 }
 
 // LifeFormatBuffText formats equipment stat buffs for UI chips.

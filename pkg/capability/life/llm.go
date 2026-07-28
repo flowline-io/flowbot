@@ -19,8 +19,10 @@ import (
 const (
 	evaluateMaxTokens   = 512
 	loreMaxTokens       = 256
+	breakdownMaxTokens  = 1600
 	evaluateTimeout     = 45 * time.Second
 	loreTimeout         = 45 * time.Second
+	breakdownTimeout    = 60 * time.Second
 	evaluatePromptLimit = 4000
 )
 
@@ -90,6 +92,46 @@ Rules:
 - plain text only; no markdown.
 - Prefer English unless the quest title clearly uses another language.`
 
+const breakdownSystemPrompt = `You are the Life planning dungeon master.
+Break one concrete result goal into an execution tree. Respond with ONE JSON object only, no markdown fences.
+
+Schema:
+{
+  "node_type":"goal",
+  "title":"...",
+  "description":"...",
+  "children":[
+    {
+      "node_type":"milestone|project|action",
+      "title":"...",
+      "description":"...",
+      "action":{
+        "is_repeatable":true,
+        "tracking_mode":"completion|consistency",
+        "repeat_trigger":"time|condition|none",
+        "suggested_cadence":"daily|weekly|",
+        "is_identity_building":false,
+        "reason":"..."
+      },
+      "children":[]
+    }
+  ]
+}
+
+Rules:
+- Root node_type MUST be "goal".
+- Valid hierarchy only: goal -> milestone/project; milestone -> project; project -> action.
+- Keep trees practical and small. Usually 2-4 children per non-leaf, 1-3 action children per project.
+- Leaves must be action nodes only.
+- Use task semantics:
+  - todo: action with is_repeatable=false
+  - recurring: action with is_repeatable=true and tracking_mode="completion"
+  - habit candidate: action with is_repeatable=true and tracking_mode="consistency"
+- Only use suggested_cadence when repeat_trigger="time"; prefer daily or weekly.
+- Titles should be concrete and concise.
+- Do not invent dates, estimates, or rewards.
+- Plain text only.`
+
 // modelResolver resolves a configured chat model name to a langchaingo client.
 type modelResolver func(context.Context, string) (llms.Model, string, error)
 
@@ -150,6 +192,36 @@ func (s *LLMService) GenerateInstanceLore(ctx context.Context, questTitle, equip
 	return normalizeLore(lore, questTitle, equipmentName), nil
 }
 
+// BreakdownGoalTree asks the LLM for a structured suggested plan tree.
+func (s *LLMService) BreakdownGoalTree(ctx context.Context, req GoalBreakdownRequest) (*GoalBreakdownSuggestion, error) {
+	title := strings.TrimSpace(req.RootTitle)
+	if title == "" {
+		return nil, fmt.Errorf("life capability: empty root title")
+	}
+	model, resolvedName, err := s.resolveChatModel(ctx)
+	if err != nil {
+		return nil, err
+	}
+	genCtx, cancel := context.WithTimeout(ctx, breakdownTimeout)
+	defer cancel()
+	raw, err := agentllm.Complete(genCtx, model, breakdownSystemPrompt, []llms.MessageContent{
+		llms.TextParts(llms.ChatMessageTypeHuman, buildBreakdownUserMessage(req, title)),
+	}, resolvedName, breakdownMaxTokens)
+	if err != nil {
+		return nil, err
+	}
+	flog.InfoFields("life: breakdown goal llm raw", map[string]any{
+		"model":      resolvedName,
+		"root_title": truncate(title, 120),
+		"raw":        truncate(raw, 800),
+	})
+	tree, err := parseBreakdownJSON(raw)
+	if err != nil {
+		return nil, err
+	}
+	return normalizeBreakdownSuggestion(tree, title), nil
+}
+
 func (s *LLMService) evaluateWithLLM(ctx context.Context, req EvaluateQuestRequest, prompt string) (*QuestEvaluation, error) {
 	model, resolvedName, err := s.resolveChatModel(ctx)
 	if err != nil {
@@ -202,6 +274,30 @@ func buildEvaluateUserMessage(req EvaluateQuestRequest, prompt string) string {
 	return strings.Join(parts, "\n")
 }
 
+func buildBreakdownUserMessage(req GoalBreakdownRequest, title string) string {
+	parts := []string{
+		"Root goal:",
+		title,
+	}
+	if desc := strings.TrimSpace(req.Description); desc != "" {
+		parts = append(parts, "", "Goal description:", truncateRunes(desc, evaluatePromptLimit))
+	}
+	parts = append(parts, "", "Context:")
+	if req.AIPersonality != "" {
+		parts = append(parts, "- DM personality: "+req.AIPersonality)
+	}
+	if len(req.ActiveGoals) > 0 {
+		parts = append(parts, "- active goals: "+strings.Join(req.ActiveGoals, " | "))
+	}
+	if depth, ok := req.Privileges["ai_breakdown_depth"].(string); ok && depth != "" {
+		req.BreakdownDepth = depth
+	}
+	if req.BreakdownDepth != "" {
+		parts = append(parts, "- breakdown depth hint: "+req.BreakdownDepth)
+	}
+	return strings.Join(parts, "\n")
+}
+
 func (s *LLMService) resolveChatModel(ctx context.Context) (llms.Model, string, error) {
 	if s == nil {
 		return nil, "", fmt.Errorf("life capability: llm service is nil")
@@ -248,6 +344,18 @@ func parseLoreJSON(raw string) (*InstanceLore, error) {
 	return &lore, nil
 }
 
+func parseBreakdownJSON(raw string) (*GoalBreakdownSuggestion, error) {
+	raw = extractJSONObject(raw)
+	var tree GoalBreakdownSuggestion
+	if err := sonic.Unmarshal([]byte(raw), &tree); err != nil {
+		return nil, fmt.Errorf("parse breakdown json: %w", err)
+	}
+	if strings.TrimSpace(tree.Title) == "" {
+		return nil, fmt.Errorf("parse breakdown json: missing title")
+	}
+	return &tree, nil
+}
+
 func extractJSONObject(raw string) string {
 	raw = strings.TrimSpace(raw)
 	raw = strings.TrimPrefix(raw, "```json")
@@ -260,6 +368,82 @@ func extractJSONObject(raw string) string {
 		return raw[start : end+1]
 	}
 	return raw
+}
+
+func normalizeBreakdownSuggestion(tree *GoalBreakdownSuggestion, fallbackTitle string) *GoalBreakdownSuggestion {
+	if tree == nil {
+		return &GoalBreakdownSuggestion{NodeType: "goal", Title: fallbackTitle}
+	}
+	normalized := *tree
+	if normalizePlanNodeTypeValue(normalized.NodeType) == "" {
+		normalized.NodeType = "goal"
+	} else {
+		normalized.NodeType = normalizePlanNodeTypeValue(normalized.NodeType)
+	}
+	normalized.Title = strings.TrimSpace(normalized.Title)
+	if normalized.Title == "" {
+		normalized.Title = fallbackTitle
+	}
+	normalized.Description = strings.TrimSpace(normalized.Description)
+	if normalized.Action != nil {
+		normalized.Action.TrackingMode = normalizeTrackingModeValue(normalized.Action.TrackingMode)
+		normalized.Action.RepeatTrigger = normalizeRepeatTriggerValue(normalized.Action.RepeatTrigger)
+		normalized.Action.SuggestedCadence = normalizeCadenceValue(normalized.Action.SuggestedCadence)
+		normalized.Action.Reason = strings.TrimSpace(normalized.Action.Reason)
+	}
+	children := make([]GoalBreakdownSuggestion, 0, len(normalized.Children))
+	for _, child := range normalized.Children {
+		childCopy := normalizeBreakdownSuggestion(&child, child.Title)
+		children = append(children, *childCopy)
+	}
+	normalized.Children = children
+	return &normalized
+}
+
+func normalizePlanNodeTypeValue(nodeType string) string {
+	switch strings.ToLower(strings.TrimSpace(nodeType)) {
+	case "goal":
+		return "goal"
+	case "milestone":
+		return "milestone"
+	case "project":
+		return "project"
+	case "action":
+		return "action"
+	default:
+		return ""
+	}
+}
+
+func normalizeTrackingModeValue(mode string) string {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "consistency":
+		return "consistency"
+	default:
+		return "completion"
+	}
+}
+
+func normalizeRepeatTriggerValue(trigger string) string {
+	switch strings.ToLower(strings.TrimSpace(trigger)) {
+	case "time":
+		return "time"
+	case "condition":
+		return "condition"
+	default:
+		return "none"
+	}
+}
+
+func normalizeCadenceValue(cadence string) string {
+	switch strings.ToLower(strings.TrimSpace(cadence)) {
+	case "daily":
+		return "daily"
+	case "weekly":
+		return "weekly"
+	default:
+		return ""
+	}
 }
 
 func normalizeEvaluation(ev *QuestEvaluation, prompt string) *QuestEvaluation {
