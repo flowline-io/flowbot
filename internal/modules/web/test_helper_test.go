@@ -439,7 +439,27 @@ func ensureChatAgentServiceForTest() {
 	ensureChatAgentService()
 }
 
-func setupTestApp() (*fiber.App, *testStore) {
+var webTestGlobalsMu sync.Mutex
+
+func lockWebTestGlobals(t *testing.T) {
+	t.Helper()
+	webTestGlobalsMu.Lock()
+	t.Cleanup(func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		loginLimiter = nil
+		totpLimiter = nil
+		setWebEncryptor(nil)
+		webTestGlobalsMu.Unlock()
+	})
+}
+
+func setupTestApp(ts ...*testing.T) (*fiber.App, *testStore) {
+	if len(ts) > 0 && ts[0] != nil {
+		ts[0].Helper()
+		lockWebTestGlobals(ts[0])
+	}
 	ensureChatAgentServiceForTest()
 	ts := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()
@@ -464,7 +484,11 @@ func setupTestApp() (*fiber.App, *testStore) {
 }
 
 // setupTestAppWithRateLimiter creates a Fiber test app with an active login rate limiter.
-func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore) {
+func setupTestAppWithRateLimiter(ts ...*testing.T) (*fiber.App, *testStore, *mockRateLimitStore) {
+	if len(ts) > 0 && ts[0] != nil {
+		ts[0].Helper()
+		lockWebTestGlobals(ts[0])
+	}
 	ensureChatAgentServiceForTest()
 	ts := &testStore{}
 	chatagent.WaitForSessionSummaryGenerationForTest()
@@ -493,6 +517,7 @@ func setupTestAppWithRateLimiter() (*fiber.App, *testStore, *mockRateLimitStore)
 // database for tests that need real PageDataStore / web account operations.
 func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	t.Helper()
+	lockWebTestGlobals(t)
 	ensureChatAgentServiceForTest()
 
 	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())

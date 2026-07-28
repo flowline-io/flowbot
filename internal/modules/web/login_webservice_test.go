@@ -84,7 +84,9 @@ func TestLoginPage(t *testing.T) {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookieToken})
 				AttachCSRFForTest(req)
 			}
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			require.NotNil(t, resp)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("want %d got %d", tt.wantStatus, resp.StatusCode)
@@ -200,7 +202,9 @@ func TestLoginSubmit(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			AttachCSRFForTest(req)
-			resp, _ := app.Test(req)
+			resp, err := app.Test(req)
+			require.NoError(t, err)
+			require.NotNil(t, resp)
 			defer resp.Body.Close()
 			if tt.wantStatus != resp.StatusCode {
 				t.Errorf("want status %d, got %d", tt.wantStatus, resp.StatusCode)
@@ -266,7 +270,9 @@ func TestLogin2FASubmit(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.AddCookie(&http.Cookie{Name: webauth.CookiePending, Value: pendingToken})
 	AttachCSRFForTest(req)
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	defer resp.Body.Close()
 	if resp.Header.Get("HX-Redirect") != "/service/web/home" {
 		body, _ := io.ReadAll(resp.Body)
@@ -343,7 +349,9 @@ func TestLogin2FABackupCodeBypassesTOTPLock(t *testing.T) {
 	req.Header.Set("X-Forwarded-For", ip)
 	req.AddCookie(&http.Cookie{Name: webauth.CookiePending, Value: pendingToken})
 	AttachCSRFForTest(req)
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	defer resp.Body.Close()
 	if resp.Header.Get("HX-Redirect") != "/service/web/home" {
 		body, _ := io.ReadAll(resp.Body)
@@ -403,7 +411,9 @@ func TestLoginSubmitStoresHashedToken(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/service/web/login", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	AttachCSRFForTest(req)
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	defer resp.Body.Close()
 	if storedFlag == "" {
 		t.Fatal("expected ParameterSet to be called")
@@ -422,7 +432,9 @@ func TestSetupCreatesFirstAccount(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/service/web/setup", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	AttachCSRFForTest(req)
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	defer resp.Body.Close()
 	if resp.Header.Get("HX-Redirect") != "/service/web/setup/2fa" {
 		body, _ := io.ReadAll(resp.Body)
@@ -440,7 +452,9 @@ func TestSetupBlockedWhenAccountExists(t *testing.T) {
 	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{}; setWebEncryptor(nil) }()
 	seedWebAccount(t, client, "admin", "flowbot-dev-pass", false)
 	req := httptest.NewRequest(http.MethodGet, "/service/web/setup", http.NoBody)
-	resp, _ := app.Test(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.NotNil(t, resp)
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusSeeOther {
 		t.Fatalf("want redirect, got %d", resp.StatusCode)
