@@ -19,11 +19,11 @@ import (
 )
 
 var homeWebserviceRules = []webservice.Rule{
-	webservice.Get("/home", homePage, route.WithNotAuth()),
-	webservice.Get("/home/dashboard", homeDashboardPartial, route.WithNotAuth()),
-	webservice.Get("/home/token-usage", homeTokenUsage, route.WithNotAuth()),
-	webservice.Get("/session-badge", sessionBadge, route.WithNotAuth()),
-	webservice.Get("/approval-badge", approvalBadge, route.WithNotAuth()),
+	webservice.Get("/home", homePage),
+	webservice.Get("/home/dashboard", homeDashboardPartial),
+	webservice.Get("/home/token-usage", homeTokenUsage),
+	webservice.Get("/session-badge", sessionBadge),
+	webservice.Get("/approval-badge", approvalBadge),
 }
 
 func homePage(ctx fiber.Ctx) error {

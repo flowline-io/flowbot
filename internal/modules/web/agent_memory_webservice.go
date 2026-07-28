@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -22,13 +21,13 @@ import (
 )
 
 var agentMemoryWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-memory", agentMemoryPage, route.WithNotAuth()),
-	webservice.Get("/agent-memory/list", agentMemoryTable, route.WithNotAuth()),
-	webservice.Get("/agent-memory/facts", agentMemoryListFacts, route.WithNotAuth()),
-	webservice.Put("/agent-memory/facts", agentMemoryUpsertFact, route.WithNotAuth()),
-	webservice.Post("/agent-memory/facts/save", agentMemorySaveFactForm, route.WithNotAuth()),
-	webservice.Post("/agent-memory/facts/delete", agentMemoryDeleteFactForm, route.WithNotAuth()),
-	webservice.Delete("/agent-memory/facts", agentMemoryDeleteFact, route.WithNotAuth()),
+	webservice.Get("/agent-memory", agentMemoryPage),
+	webservice.Get("/agent-memory/list", agentMemoryTable),
+	webservice.Get("/agent-memory/facts", agentMemoryListFacts),
+	webservice.Put("/agent-memory/facts", agentMemoryUpsertFact),
+	webservice.Post("/agent-memory/facts/save", agentMemorySaveFactForm),
+	webservice.Post("/agent-memory/facts/delete", agentMemoryDeleteFactForm),
+	webservice.Delete("/agent-memory/facts", agentMemoryDeleteFact),
 }
 
 type agentMemoryFactRequest struct {

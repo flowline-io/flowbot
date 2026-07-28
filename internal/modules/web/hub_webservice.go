@@ -42,18 +42,18 @@ var (
 )
 
 var hubWebserviceRules = []webservice.Rule{
-	webservice.Get("/hub", hubAppsPage, route.WithNotAuth()),
-	webservice.Get("/hub/list", hubAppsList, route.WithNotAuth()),
-	webservice.Get("/capabilities", hubCapabilitiesPage, route.WithNotAuth()),
-	webservice.Get("/capabilities/grid", hubCapabilitiesGrid, route.WithNotAuth()),
-	webservice.Get("/hub/:name", hubAppDetailPage, route.WithNotAuth()),
-	webservice.Get("/hub/:name/status", hubAppStatusPartial, route.WithNotAuth()),
-	webservice.Get("/hub/:name/logs/stream", hubAppLogsSSE, route.WithNotAuth()),
-	webservice.Post("/hub/:name/start", hubAppStartAction, route.WithNotAuth()),
-	webservice.Post("/hub/:name/stop", hubAppStopAction, route.WithNotAuth()),
-	webservice.Post("/hub/:name/restart", hubAppRestartAction, route.WithNotAuth()),
-	webservice.Post("/hub/:name/pull", hubAppPullAction, route.WithNotAuth()),
-	webservice.Post("/hub/:name/update", hubAppUpdateAction, route.WithNotAuth()),
+	webservice.Get("/hub", hubAppsPage),
+	webservice.Get("/hub/list", hubAppsList),
+	webservice.Get("/capabilities", hubCapabilitiesPage),
+	webservice.Get("/capabilities/grid", hubCapabilitiesGrid),
+	webservice.Get("/hub/:name", hubAppDetailPage),
+	webservice.Get("/hub/:name/status", hubAppStatusPartial),
+	webservice.Get("/hub/:name/logs/stream", hubAppLogsSSE),
+	webservice.Post("/hub/:name/start", hubAppStartAction),
+	webservice.Post("/hub/:name/stop", hubAppStopAction),
+	webservice.Post("/hub/:name/restart", hubAppRestartAction),
+	webservice.Post("/hub/:name/pull", hubAppPullAction),
+	webservice.Post("/hub/:name/update", hubAppUpdateAction),
 }
 
 // hubAppsPage renders the full apps list page.

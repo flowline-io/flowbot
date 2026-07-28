@@ -20,9 +20,9 @@ import (
 )
 
 var chatAgentPermissionsWebserviceRules = []webservice.Rule{
-	webservice.Get("/chatagent-permissions", chatAgentPermissionsPage, route.WithNotAuth()),
-	webservice.Post("/chatagent-permissions", chatAgentPermissionsSave, route.WithNotAuth()),
-	webservice.Post("/chatagent-permissions/reset", chatAgentPermissionsReset, route.WithNotAuth()),
+	webservice.Get("/chatagent-permissions", chatAgentPermissionsPage),
+	webservice.Post("/chatagent-permissions", chatAgentPermissionsSave),
+	webservice.Post("/chatagent-permissions/reset", chatAgentPermissionsReset),
 }
 
 func chatAgentPermissionsPage(ctx fiber.Ctx) error {

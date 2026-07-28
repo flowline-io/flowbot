@@ -14,7 +14,6 @@ import (
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -22,27 +21,27 @@ import (
 )
 
 var notifySettingsWebserviceRules = []webservice.Rule{
-	webservice.Get("/notifications/channels/list", notifyChannelsTable, route.WithNotAuth()),
-	webservice.Get("/notifications/channels/new", notifyChannelNewForm, route.WithNotAuth()),
-	webservice.Post("/notifications/channels", notifyChannelCreate, route.WithNotAuth()),
-	webservice.Get("/notifications/channels/:id/edit", notifyChannelEditForm, route.WithNotAuth()),
-	webservice.Put("/notifications/channels/:id", notifyChannelUpdate, route.WithNotAuth()),
-	webservice.Delete("/notifications/channels/:id", notifyChannelDelete, route.WithNotAuth()),
-	webservice.Post("/notifications/channels/:id/test", notifyChannelTest, route.WithNotAuth()),
-	webservice.Post("/notifications/channels/:id/default", notifyChannelSetDefault, route.WithNotAuth()),
-	webservice.Get("/notifications/templates/list", notifyTemplatesTable, route.WithNotAuth()),
-	webservice.Get("/notifications/templates/new", notifyTemplateNewForm, route.WithNotAuth()),
-	webservice.Post("/notifications/templates", notifyTemplateCreate, route.WithNotAuth()),
-	webservice.Get("/notifications/templates/:id/edit", notifyTemplateEditForm, route.WithNotAuth()),
-	webservice.Put("/notifications/templates/:id", notifyTemplateUpdate, route.WithNotAuth()),
-	webservice.Delete("/notifications/templates/:id", notifyTemplateDelete, route.WithNotAuth()),
-	webservice.Post("/notifications/templates/:id/default", notifyTemplateSetDefault, route.WithNotAuth()),
-	webservice.Get("/notifications/rules/list", notifyRulesTable, route.WithNotAuth()),
-	webservice.Get("/notifications/rules/new", notifyRuleNewForm, route.WithNotAuth()),
-	webservice.Post("/notifications/rules", notifyRuleCreate, route.WithNotAuth()),
-	webservice.Get("/notifications/rules/:id/edit", notifyRuleEditForm, route.WithNotAuth()),
-	webservice.Put("/notifications/rules/:id", notifyRuleUpdate, route.WithNotAuth()),
-	webservice.Delete("/notifications/rules/:id", notifyRuleDelete, route.WithNotAuth()),
+	webservice.Get("/notifications/channels/list", notifyChannelsTable),
+	webservice.Get("/notifications/channels/new", notifyChannelNewForm),
+	webservice.Post("/notifications/channels", notifyChannelCreate),
+	webservice.Get("/notifications/channels/:id/edit", notifyChannelEditForm),
+	webservice.Put("/notifications/channels/:id", notifyChannelUpdate),
+	webservice.Delete("/notifications/channels/:id", notifyChannelDelete),
+	webservice.Post("/notifications/channels/:id/test", notifyChannelTest),
+	webservice.Post("/notifications/channels/:id/default", notifyChannelSetDefault),
+	webservice.Get("/notifications/templates/list", notifyTemplatesTable),
+	webservice.Get("/notifications/templates/new", notifyTemplateNewForm),
+	webservice.Post("/notifications/templates", notifyTemplateCreate),
+	webservice.Get("/notifications/templates/:id/edit", notifyTemplateEditForm),
+	webservice.Put("/notifications/templates/:id", notifyTemplateUpdate),
+	webservice.Delete("/notifications/templates/:id", notifyTemplateDelete),
+	webservice.Post("/notifications/templates/:id/default", notifyTemplateSetDefault),
+	webservice.Get("/notifications/rules/list", notifyRulesTable),
+	webservice.Get("/notifications/rules/new", notifyRuleNewForm),
+	webservice.Post("/notifications/rules", notifyRuleCreate),
+	webservice.Get("/notifications/rules/:id/edit", notifyRuleEditForm),
+	webservice.Put("/notifications/rules/:id", notifyRuleUpdate),
+	webservice.Delete("/notifications/rules/:id", notifyRuleDelete),
 }
 
 func notifySettingsPage(ctx fiber.Ctx) error {

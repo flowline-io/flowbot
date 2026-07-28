@@ -10,15 +10,14 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 var clipsListWebserviceRules = []webservice.Rule{
-	webservice.Get("/clips", clipsListPage, route.WithNotAuth()),
-	webservice.Get("/clips/list", clipsListPartial, route.WithNotAuth()),
+	webservice.Get("/clips", clipsListPage),
+	webservice.Get("/clips/list", clipsListPartial),
 }
 
 // clipsListPage renders the authenticated clips browser under Integrate.

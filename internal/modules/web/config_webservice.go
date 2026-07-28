@@ -10,7 +10,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -19,14 +18,14 @@ import (
 )
 
 var configWebserviceRules = []webservice.Rule{
-	webservice.Get("/configs", configsPage, route.WithNotAuth()),
-	webservice.Get("/configs/list", listConfigs, route.WithNotAuth()),
-	webservice.Get("/configs/new", newConfigForm, route.WithNotAuth()),
-	webservice.Post("/configs", createConfig, route.WithNotAuth()),
-	webservice.Get("/configs/:uid/:topic/:key", getConfig, route.WithNotAuth()),
-	webservice.Get("/configs/:uid/:topic/:key/edit", editConfigForm, route.WithNotAuth()),
-	webservice.Put("/configs/:uid/:topic/:key", updateConfig, route.WithNotAuth()),
-	webservice.Delete("/configs/:uid/:topic/:key", deleteConfig, route.WithNotAuth()),
+	webservice.Get("/configs", configsPage),
+	webservice.Get("/configs/list", listConfigs),
+	webservice.Get("/configs/new", newConfigForm),
+	webservice.Post("/configs", createConfig),
+	webservice.Get("/configs/:uid/:topic/:key", getConfig),
+	webservice.Get("/configs/:uid/:topic/:key/edit", editConfigForm),
+	webservice.Put("/configs/:uid/:topic/:key", updateConfig),
+	webservice.Delete("/configs/:uid/:topic/:key", deleteConfig),
 }
 
 func configsPage(ctx fiber.Ctx) error {

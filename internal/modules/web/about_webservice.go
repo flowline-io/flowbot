@@ -6,14 +6,13 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/version"
 )
 
 var aboutWebserviceRules = []webservice.Rule{
-	webservice.Get("/about", aboutPage, route.WithNotAuth()),
+	webservice.Get("/about", aboutPage),
 }
 
 // aboutPage renders version and build information for this instance.

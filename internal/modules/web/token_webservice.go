@@ -12,7 +12,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -21,11 +20,11 @@ import (
 )
 
 var tokenWebserviceRules = []webservice.Rule{
-	webservice.Get("/tokens", tokensPage, route.WithNotAuth()),
-	webservice.Get("/tokens/list", tokensList, route.WithNotAuth()),
-	webservice.Get("/tokens/new", tokensNewForm, route.WithNotAuth()),
-	webservice.Post("/tokens", tokensCreate, route.WithNotAuth()),
-	webservice.Delete("/tokens/:flag", tokensRevoke, route.WithNotAuth()),
+	webservice.Get("/tokens", tokensPage),
+	webservice.Get("/tokens/list", tokensList),
+	webservice.Get("/tokens/new", tokensNewForm),
+	webservice.Post("/tokens", tokensCreate),
+	webservice.Delete("/tokens/:flag", tokensRevoke),
 }
 
 func tokensPage(ctx fiber.Ctx) error {

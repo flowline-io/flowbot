@@ -10,6 +10,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 
 	"github.com/stretchr/testify/assert"
@@ -28,14 +29,16 @@ type authOnlyNotifyAdapter struct {
 func (a *authOnlyNotifyAdapter) GetDB() any { return a.client }
 
 func (a *authOnlyNotifyAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
-	params := testFullWebSessionParams(a.uid)
-	params["scopes"] = []string{"read", "write"}
 	return gen.Parameter{
 		ID:        1,
 		Flag:      flag,
-		Params:    params,
+		Params:    testFullWebSessionParams(a.uid),
 		ExpiredAt: time.Now().Add(time.Hour),
 	}, nil
+}
+
+func (*authOnlyNotifyAdapter) ParameterSet(_ context.Context, _ string, _ types.KV, _ time.Time) error {
+	return nil
 }
 
 func (*authOnlyNotifyAdapter) ListNotifyChannels(_ context.Context, _ store.ListNotifyChannelOptions) ([]model.NotifyChannel, error) {

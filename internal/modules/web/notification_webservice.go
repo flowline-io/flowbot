@@ -11,7 +11,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -19,10 +18,10 @@ import (
 )
 
 var notificationWebserviceRules = []webservice.Rule{
-	webservice.Get("/notifications", notifySettingsPage, route.WithNotAuth()),
-	webservice.Get("/notifications/list", notificationsTable, route.WithNotAuth()),
-	webservice.Post("/notifications/:id/retry", retryNotification, route.WithNotAuth()),
-	webservice.Post("/notifications/:id/read", markNotificationRead, route.WithNotAuth()),
+	webservice.Get("/notifications", notifySettingsPage),
+	webservice.Get("/notifications/list", notificationsTable),
+	webservice.Post("/notifications/:id/retry", retryNotification),
+	webservice.Post("/notifications/:id/read", markNotificationRead),
 }
 
 func notificationsTable(ctx fiber.Ctx) error {

@@ -5,10 +5,12 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/samber/oops"
 	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"github.com/flowline-io/flowbot/internal/store"
@@ -70,6 +72,9 @@ const (
 	NoAuth AuthLevel = 1
 )
 
+// WithNotAuth skips token/scope authorization. Use only for intentionally public
+// endpoints (login/setup/CSRF, inbound webhooks). Authenticated UI and APIs must
+// omit this option so Authorize runs by default.
 func WithNotAuth() Option {
 	return func(r *Router) {
 		r.AuthLevel = NoAuth
@@ -108,8 +113,27 @@ func authorizeWithLevel(authLevel AuthLevel, group, method string, handler fiber
 		if authLevel == NoAuth {
 			return handler(ctx)
 		}
-		return Authorize(RequireServiceScope(group, method, handler))(ctx)
+		err := Authorize(RequireServiceScope(group, method, handler))(ctx)
+		if err != nil && shouldRedirectWebUnauthorized(ctx, group, err) {
+			next := url.QueryEscape(string(ctx.Request().URI().RequestURI()))
+			ctx.Redirect().To("/service/web/login?next=" + next)
+			return fiber.NewError(fiber.StatusSeeOther, "redirect to login")
+		}
+		return err
 	}
+}
+
+// shouldRedirectWebUnauthorized reports whether an unauthorized /service/web
+// browser navigation should 303 to login (HTMX keeps 401 for client redirect).
+func shouldRedirectWebUnauthorized(ctx fiber.Ctx, group string, err error) bool {
+	if group != "web" || ctx.Get("HX-Request") != "" {
+		return false
+	}
+	var e oops.OopsError
+	if !errors.As(err, &e) {
+		return false
+	}
+	return e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized)
 }
 
 // Authorize validates the access token and rejects tokens with no scopes.

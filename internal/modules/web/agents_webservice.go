@@ -15,7 +15,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -26,28 +25,28 @@ import (
 
 var (
 	agentsWebserviceRules = []webservice.Rule{
-		webservice.Get("/agents", agentsPage, route.WithNotAuth()),
-		webservice.Get("/agents/list", agentsTable, route.WithNotAuth()),
-		webservice.Post("/agents", agentsCreate, route.WithNotAuth()),
+		webservice.Get("/agents", agentsPage),
+		webservice.Get("/agents/list", agentsTable),
+		webservice.Post("/agents", agentsCreate),
 		// Static paths must be registered before /agents/:id.
-		webservice.Get("/agents/skills", agentsSkillsList, route.WithNotAuth()),
-		webservice.Post("/agents/render-markdown", agentRenderMarkdown, route.WithNotAuth()),
-		webservice.Get("/agents/:id", agentChatPage, route.WithNotAuth()),
-		webservice.Delete("/agents/:id", agentChatClose, route.WithNotAuth()),
-		webservice.Post("/agents/:id/pin", agentChatPin, route.WithNotAuth()),
-		webservice.Delete("/agents/:id/pin", agentChatUnpin, route.WithNotAuth()),
-		webservice.Post("/agents/:id/archive", agentChatArchive, route.WithNotAuth()),
-		webservice.Delete("/agents/:id/archive", agentChatUnarchive, route.WithNotAuth()),
-		webservice.Get("/agents/:id/settings", agentChatGetSettings, route.WithNotAuth()),
-		webservice.Put("/agents/:id/settings", agentChatPutSettings, route.WithNotAuth()),
-		webservice.Post("/agents/:id/messages", agentChatSendMessage, route.WithNotAuth()),
-		webservice.Post("/agents/:id/media", agentChatUploadMedia, route.WithNotAuth()),
-		webservice.Get("/agents/:id/media/:file_id", agentChatGetMedia, route.WithNotAuth()),
-		webservice.Post("/agents/:id/cancel", agentChatCancel, route.WithNotAuth()),
-		webservice.Post("/agents/:id/confirm", agentChatConfirm, route.WithNotAuth()),
-		webservice.Get("/agents/:id/events", agentChatEvents, route.WithNotAuth()),
-		webservice.Get("/agents/:id/context", agentChatContext, route.WithNotAuth()),
-		webservice.Get("/agents/:id/todos", agentChatTodos, route.WithNotAuth()),
+		webservice.Get("/agents/skills", agentsSkillsList),
+		webservice.Post("/agents/render-markdown", agentRenderMarkdown),
+		webservice.Get("/agents/:id", agentChatPage),
+		webservice.Delete("/agents/:id", agentChatClose),
+		webservice.Post("/agents/:id/pin", agentChatPin),
+		webservice.Delete("/agents/:id/pin", agentChatUnpin),
+		webservice.Post("/agents/:id/archive", agentChatArchive),
+		webservice.Delete("/agents/:id/archive", agentChatUnarchive),
+		webservice.Get("/agents/:id/settings", agentChatGetSettings),
+		webservice.Put("/agents/:id/settings", agentChatPutSettings),
+		webservice.Post("/agents/:id/messages", agentChatSendMessage),
+		webservice.Post("/agents/:id/media", agentChatUploadMedia),
+		webservice.Get("/agents/:id/media/:file_id", agentChatGetMedia),
+		webservice.Post("/agents/:id/cancel", agentChatCancel),
+		webservice.Post("/agents/:id/confirm", agentChatConfirm),
+		webservice.Get("/agents/:id/events", agentChatEvents),
+		webservice.Get("/agents/:id/context", agentChatContext),
+		webservice.Get("/agents/:id/todos", agentChatTodos),
 	}
 )
 

@@ -14,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/capability"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/hub"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -44,8 +43,8 @@ var (
 )
 
 var healthzWebserviceRules = []webservice.Rule{
-	webservice.Get("/healthz", healthzPage, route.WithNotAuth()),
-	webservice.Get("/healthz/capabilities", healthzCapabilitiesPartial, route.WithNotAuth()),
+	webservice.Get("/healthz", healthzPage),
+	webservice.Get("/healthz/capabilities", healthzCapabilitiesPartial),
 }
 
 // healthzPage renders the system health dashboard (infra metrics only; capabilities load async).

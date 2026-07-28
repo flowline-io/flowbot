@@ -12,7 +12,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -22,13 +21,13 @@ import (
 )
 
 var agentSessionsWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-sessions", agentSessionsPage, route.WithNotAuth()),
-	webservice.Get("/agent-sessions/list", agentSessionsTable, route.WithNotAuth()),
-	webservice.Get("/agent-sessions/:id", agentSessionDetailPage, route.WithNotAuth()),
-	webservice.Get("/agent-sessions/:id/resources", agentSessionResourcePreview, route.WithNotAuth()),
-	webservice.Get("/agent-sessions/:id/entries/:entryID/payload", agentSessionEntryPayload, route.WithNotAuth()),
-	webservice.Get("/agent-sessions/:id/events", agentSessionEvents, route.WithNotAuth()),
-	webservice.Post("/agent-sessions/:id/confirm", agentSessionConfirm, route.WithNotAuth()),
+	webservice.Get("/agent-sessions", agentSessionsPage),
+	webservice.Get("/agent-sessions/list", agentSessionsTable),
+	webservice.Get("/agent-sessions/:id", agentSessionDetailPage),
+	webservice.Get("/agent-sessions/:id/resources", agentSessionResourcePreview),
+	webservice.Get("/agent-sessions/:id/entries/:entryID/payload", agentSessionEntryPayload),
+	webservice.Get("/agent-sessions/:id/events", agentSessionEvents),
+	webservice.Post("/agent-sessions/:id/confirm", agentSessionConfirm),
 }
 
 func agentSessionsPage(ctx fiber.Ctx) error {

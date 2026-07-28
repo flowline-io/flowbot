@@ -118,8 +118,8 @@ func authConfig() AuthConfig {
 }
 
 func isAuthenticated(ctx fiber.Ctx) bool {
-	if route.GetRequestContext(ctx) != nil {
-		return true
+	if rc := route.GetRequestContext(ctx); rc != nil {
+		return webRequestContextOK(ctx, rc)
 	}
 	token := ctx.Cookies(webauth.CookieAccessToken)
 	if token == "" {
@@ -163,6 +163,21 @@ func isAuthenticated(ctx fiber.Ctx) bool {
 		Scopes: scopes,
 	})
 	return true
+}
+
+// webRequestContextOK validates a RequestContext already set by route.Authorize.
+// Full web sessions require kind=full. API tokens omit kind and use the Authorization
+// header; legacy cookie sessions without kind must re-login.
+func webRequestContextOK(ctx fiber.Ctx, rc *route.RequestContext) bool {
+	kind, _ := rc.Param.String("kind")
+	switch kind {
+	case webauth.KindFull:
+		return true
+	case "":
+		return ctx.Cookies(webauth.CookieAccessToken) == ""
+	default:
+		return false
+	}
 }
 
 func authenticateWeb(ctx fiber.Ctx) error {

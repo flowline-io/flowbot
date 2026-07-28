@@ -12,16 +12,15 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 var notifyPlaygroundWebserviceRules = []webservice.Rule{
-	webservice.Get("/notifications/playground", notifyPlaygroundForm, route.WithNotAuth()),
-	webservice.Get("/notifications/playground/sample-payload", notifyPlaygroundSamplePayload, route.WithNotAuth()),
-	webservice.Post("/notifications/playground/preview", notifyPlaygroundPreview, route.WithNotAuth()),
-	webservice.Post("/notifications/playground/send", notifyPlaygroundSend, route.WithNotAuth()),
+	webservice.Get("/notifications/playground", notifyPlaygroundForm),
+	webservice.Get("/notifications/playground/sample-payload", notifyPlaygroundSamplePayload),
+	webservice.Post("/notifications/playground/preview", notifyPlaygroundPreview),
+	webservice.Post("/notifications/playground/send", notifyPlaygroundSend),
 }
 
 // playgroundRequest holds parsed Notifications playground form values.

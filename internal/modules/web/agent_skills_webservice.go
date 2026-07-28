@@ -17,7 +17,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -32,21 +31,21 @@ const maxAgentSkillContentBytes = 65536
 var agentSkillFilePathPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._/-]*[a-z0-9]$|^[a-z0-9]$`)
 
 var agentSkillsWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-skills", agentSkillsPage, route.WithNotAuth()),
-	webservice.Get("/agent-skills/list", agentSkillsTable, route.WithNotAuth()),
-	webservice.Get("/agent-skills/new", agentSkillNewForm, route.WithNotAuth()),
-	webservice.Post("/agent-skills", agentSkillCreate, route.WithNotAuth()),
-	webservice.Post("/agent-skills/import", agentSkillsImport, route.WithNotAuth()),
-	webservice.Get("/agent-skills/:flag/edit", agentSkillEditForm, route.WithNotAuth()),
-	webservice.Put("/agent-skills/:flag/enabled", agentSkillSetEnabled, route.WithNotAuth()),
-	webservice.Put("/agent-skills/:flag", agentSkillUpdate, route.WithNotAuth()),
-	webservice.Delete("/agent-skills/:flag", agentSkillDelete, route.WithNotAuth()),
-	webservice.Get("/agent-skills/:flag/files", agentSkillFilesTable, route.WithNotAuth()),
-	webservice.Get("/agent-skills/:flag/files/new", agentSkillFileNewForm, route.WithNotAuth()),
-	webservice.Post("/agent-skills/:flag/files", agentSkillFileCreate, route.WithNotAuth()),
-	webservice.Get("/agent-skills/:flag/files/edit", agentSkillFileEditForm, route.WithNotAuth()),
-	webservice.Put("/agent-skills/:flag/files", agentSkillFileUpdate, route.WithNotAuth()),
-	webservice.Delete("/agent-skills/:flag/files", agentSkillFileDelete, route.WithNotAuth()),
+	webservice.Get("/agent-skills", agentSkillsPage),
+	webservice.Get("/agent-skills/list", agentSkillsTable),
+	webservice.Get("/agent-skills/new", agentSkillNewForm),
+	webservice.Post("/agent-skills", agentSkillCreate),
+	webservice.Post("/agent-skills/import", agentSkillsImport),
+	webservice.Get("/agent-skills/:flag/edit", agentSkillEditForm),
+	webservice.Put("/agent-skills/:flag/enabled", agentSkillSetEnabled),
+	webservice.Put("/agent-skills/:flag", agentSkillUpdate),
+	webservice.Delete("/agent-skills/:flag", agentSkillDelete),
+	webservice.Get("/agent-skills/:flag/files", agentSkillFilesTable),
+	webservice.Get("/agent-skills/:flag/files/new", agentSkillFileNewForm),
+	webservice.Post("/agent-skills/:flag/files", agentSkillFileCreate),
+	webservice.Get("/agent-skills/:flag/files/edit", agentSkillFileEditForm),
+	webservice.Put("/agent-skills/:flag/files", agentSkillFileUpdate),
+	webservice.Delete("/agent-skills/:flag/files", agentSkillFileDelete),
 }
 
 func agentSkillsPage(ctx fiber.Ctx) error {

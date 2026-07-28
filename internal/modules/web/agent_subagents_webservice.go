@@ -16,7 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -27,15 +26,15 @@ import (
 var agentSubagentSlugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
 var agentSubagentsWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-subagents", agentSubagentsPage, route.WithNotAuth()),
-	webservice.Get("/agent-subagents/list", agentSubagentsTable, route.WithNotAuth()),
-	webservice.Get("/agent-subagents/new", agentSubagentNewForm, route.WithNotAuth()),
-	webservice.Post("/agent-subagents", agentSubagentCreate, route.WithNotAuth()),
-	webservice.Get("/agent-subagents/:flag/edit", agentSubagentEditForm, route.WithNotAuth()),
-	webservice.Put("/agent-subagents/:flag", agentSubagentUpdate, route.WithNotAuth()),
-	webservice.Delete("/agent-subagents/:flag", agentSubagentDelete, route.WithNotAuth()),
-	webservice.Get("/agent-subagents/tasks", agentSubagentTasksTable, route.WithNotAuth()),
-	webservice.Get("/agent-subagents/tasks/:id", agentSubagentTaskDetail, route.WithNotAuth()),
+	webservice.Get("/agent-subagents", agentSubagentsPage),
+	webservice.Get("/agent-subagents/list", agentSubagentsTable),
+	webservice.Get("/agent-subagents/new", agentSubagentNewForm),
+	webservice.Post("/agent-subagents", agentSubagentCreate),
+	webservice.Get("/agent-subagents/:flag/edit", agentSubagentEditForm),
+	webservice.Put("/agent-subagents/:flag", agentSubagentUpdate),
+	webservice.Delete("/agent-subagents/:flag", agentSubagentDelete),
+	webservice.Get("/agent-subagents/tasks", agentSubagentTasksTable),
+	webservice.Get("/agent-subagents/tasks/:id", agentSubagentTaskDetail),
 }
 
 func agentSubagentsPage(ctx fiber.Ctx) error {

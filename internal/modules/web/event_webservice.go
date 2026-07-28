@@ -20,11 +20,11 @@ import (
 )
 
 var eventWebserviceRules = []webservice.Rule{
-	webservice.Get("/events", eventsPage, route.WithNotAuth()),
-	webservice.Get("/events/filtered-events", filteredEventsTable, route.WithNotAuth()),
-	webservice.Get("/events/data-events", dataEventsTable, route.WithNotAuth()),
-	webservice.Get("/events/webhook-logs", webhookLogsTable, route.WithNotAuth()),
-	webservice.Get("/events/payload/:eventID", eventPayload, route.WithNotAuth()),
+	webservice.Get("/events", eventsPage),
+	webservice.Get("/events/filtered-events", filteredEventsTable),
+	webservice.Get("/events/data-events", dataEventsTable),
+	webservice.Get("/events/webhook-logs", webhookLogsTable),
+	webservice.Get("/events/payload/:eventID", eventPayload),
 }
 
 func requireAdmin(ctx fiber.Ctx) error {

@@ -9,7 +9,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -18,10 +17,10 @@ import (
 )
 
 var agentScheduledTasksWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-scheduled-tasks", agentScheduledTasksPage, route.WithNotAuth()),
-	webservice.Get("/agent-scheduled-tasks/list", agentScheduledTasksTable, route.WithNotAuth()),
-	webservice.Get("/agent-scheduled-tasks/:id", agentScheduledTaskDetailPage, route.WithNotAuth()),
-	webservice.Put("/agent-scheduled-tasks/:id/state", agentScheduledTaskSetState, route.WithNotAuth()),
+	webservice.Get("/agent-scheduled-tasks", agentScheduledTasksPage),
+	webservice.Get("/agent-scheduled-tasks/list", agentScheduledTasksTable),
+	webservice.Get("/agent-scheduled-tasks/:id", agentScheduledTaskDetailPage),
+	webservice.Put("/agent-scheduled-tasks/:id/state", agentScheduledTaskSetState),
 }
 
 func agentScheduledTasksPage(ctx fiber.Ctx) error {

@@ -7,15 +7,14 @@ import (
 
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/homelab"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 )
 
 var homelabWebserviceRules = []webservice.Rule{
-	webservice.Get("/homelab", homelabRegistryPage, route.WithNotAuth()),
-	webservice.Get("/homelab/:name", homelabRegistryDetailPage, route.WithNotAuth()),
-	webservice.Post("/homelab/rescan", homelabRegistryRescan, route.WithNotAuth()),
+	webservice.Get("/homelab", homelabRegistryPage),
+	webservice.Get("/homelab/:name", homelabRegistryDetailPage),
+	webservice.Post("/homelab/rescan", homelabRegistryRescan),
 }
 
 // homelabRegistryPage renders the full homelab registry card list page.

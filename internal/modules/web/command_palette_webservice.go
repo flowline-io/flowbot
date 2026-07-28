@@ -9,13 +9,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/homelab"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 )
 
 var commandPaletteWebserviceRules = []webservice.Rule{
-	webservice.Get("/command-palette/search", commandPaletteSearch, route.WithNotAuth()),
+	webservice.Get("/command-palette/search", commandPaletteSearch),
 }
 
 const commandPaletteSessionLimit = 50

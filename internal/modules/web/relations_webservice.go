@@ -10,17 +10,16 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
 	"github.com/flowline-io/flowbot/pkg/views/partials"
 )
 
 var relationsWebserviceRules = []webservice.Rule{
-	webservice.Get("/relations", relationsPage, route.WithNotAuth()),
-	webservice.Get("/relations/tree", relationsTree, route.WithNotAuth()),
-	webservice.Get("/relations/search", relationsSearch, route.WithNotAuth()),
-	webservice.Get("/relations/detail", relationsDetail, route.WithNotAuth()),
+	webservice.Get("/relations", relationsPage),
+	webservice.Get("/relations/tree", relationsTree),
+	webservice.Get("/relations/search", relationsSearch),
+	webservice.Get("/relations/detail", relationsDetail),
 }
 
 func getResourceChainStore() *store.ResourceChainStore {

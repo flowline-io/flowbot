@@ -79,6 +79,12 @@ func TestSetAuditor_NilSafe(t *testing.T) {
 func newTestApp() *fiber.App {
 	return fiber.New(fiber.Config{
 		ErrorHandler: func(c fiber.Ctx, err error) error {
+			var fiberErr *fiber.Error
+			if errors.As(err, &fiberErr) {
+				if fiberErr.Code >= 300 && fiberErr.Code < 400 {
+					return nil
+				}
+			}
 			var e oops.OopsError
 			if errors.As(err, &e) {
 				if e.Code() == protocol.ErrorCode(protocol.ErrNotAuthorized) {
@@ -455,6 +461,39 @@ func TestAuthorize_NoAuthLevel(t *testing.T) {
 				m, ok := tt.auditor.(*mockAuditor)
 				require.True(t, ok)
 				assert.Empty(t, m.entries)
+			}
+		})
+	}
+}
+
+func TestAuthorizeWithLevel_WebUnauthorizedRedirect(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		group      string
+		hxRequest  string
+		wantStatus int
+	}{
+		{name: "web browser redirects to login", group: "web", wantStatus: http.StatusSeeOther},
+		{name: "web HTMX keeps unauthorized", group: "web", hxRequest: "true", wantStatus: http.StatusUnauthorized},
+		{name: "non-web keeps unauthorized", group: "example", wantStatus: http.StatusUnauthorized},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			app := newTestApp()
+			app.Get("/page", authorizeWithLevel(0, tt.group, "GET", func(c fiber.Ctx) error {
+				return c.SendString("ok")
+			}))
+			hreq := httptest.NewRequest("GET", "/page", http.NoBody)
+			if tt.hxRequest != "" {
+				hreq.Header.Set("HX-Request", tt.hxRequest)
+			}
+			resp, err := app.Test(hreq)
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStatus, resp.StatusCode)
+			if tt.wantStatus == http.StatusSeeOther {
+				assert.Contains(t, resp.Header.Get("Location"), "/service/web/login?next=")
 			}
 		})
 	}

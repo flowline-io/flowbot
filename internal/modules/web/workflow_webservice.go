@@ -16,7 +16,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
 	"github.com/flowline-io/flowbot/pkg/views/pages"
@@ -25,17 +24,17 @@ import (
 )
 
 var workflowWebserviceRules = []webservice.Rule{
-	webservice.Get("/workflows", workflowListPage, route.WithNotAuth()),
-	webservice.Get("/workflows/list", workflowListTable, route.WithNotAuth()),
-	webservice.Get("/workflows/stats", workflowStats, route.WithNotAuth()),
-	webservice.Put("/workflows/:name/enabled", setWorkflowEnabled, route.WithNotAuth()),
-	webservice.Put("/workflows/:name/triggers/:id/enabled", setWorkflowTriggerEnabled, route.WithNotAuth()),
-	webservice.Get("/workflows/:name/stats", workflowStats, route.WithNotAuth()),
-	webservice.Get("/workflows/:name", workflowDetailPage, route.WithNotAuth()),
-	webservice.Get("/workflows/:name/runs", workflowRunsPage, route.WithNotAuth()),
-	webservice.Get("/workflows/:name/runs/list", workflowRunsTable, route.WithNotAuth()),
-	webservice.Get("/workflows/:name/runs/:runID/steps", workflowRunSteps, route.WithNotAuth()),
-	webservice.Post("/workflows/:name/run", workflowRunNow, route.WithNotAuth()),
+	webservice.Get("/workflows", workflowListPage),
+	webservice.Get("/workflows/list", workflowListTable),
+	webservice.Get("/workflows/stats", workflowStats),
+	webservice.Put("/workflows/:name/enabled", setWorkflowEnabled),
+	webservice.Put("/workflows/:name/triggers/:id/enabled", setWorkflowTriggerEnabled),
+	webservice.Get("/workflows/:name/stats", workflowStats),
+	webservice.Get("/workflows/:name", workflowDetailPage),
+	webservice.Get("/workflows/:name/runs", workflowRunsPage),
+	webservice.Get("/workflows/:name/runs/list", workflowRunsTable),
+	webservice.Get("/workflows/:name/runs/:runID/steps", workflowRunSteps),
+	webservice.Post("/workflows/:name/run", workflowRunNow),
 }
 
 func getWorkflowStore() *store.WorkflowStore {

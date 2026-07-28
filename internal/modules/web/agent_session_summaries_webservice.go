@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -20,9 +19,9 @@ import (
 )
 
 var agentSessionSummariesWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-session-summaries", agentSessionSummariesPage, route.WithNotAuth()),
-	webservice.Get("/agent-session-summaries/list", agentSessionSummariesTable, route.WithNotAuth()),
-	webservice.Post("/agent-session-summaries/:session/retry", agentSessionSummaryRetry, route.WithNotAuth()),
+	webservice.Get("/agent-session-summaries", agentSessionSummariesPage),
+	webservice.Get("/agent-session-summaries/list", agentSessionSummariesTable),
+	webservice.Post("/agent-session-summaries/:session/retry", agentSessionSummaryRetry),
 }
 
 func agentSessionSummariesPage(ctx fiber.Ctx) error {

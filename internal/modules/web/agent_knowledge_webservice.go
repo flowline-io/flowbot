@@ -14,7 +14,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/flog"
-	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -25,13 +24,13 @@ import (
 const maxAgentKnowledgeContentBytes = 65536
 
 var agentKnowledgeWebserviceRules = []webservice.Rule{
-	webservice.Get("/agent-knowledge", agentKnowledgePage, route.WithNotAuth()),
-	webservice.Get("/agent-knowledge/list", agentKnowledgeTable, route.WithNotAuth()),
-	webservice.Get("/agent-knowledge/new", agentKnowledgeNewForm, route.WithNotAuth()),
-	webservice.Post("/agent-knowledge", agentKnowledgeCreate, route.WithNotAuth()),
-	webservice.Get("/agent-knowledge/:id/edit", agentKnowledgeEditForm, route.WithNotAuth()),
-	webservice.Put("/agent-knowledge/:id", agentKnowledgeUpdate, route.WithNotAuth()),
-	webservice.Delete("/agent-knowledge/:id", agentKnowledgeDelete, route.WithNotAuth()),
+	webservice.Get("/agent-knowledge", agentKnowledgePage),
+	webservice.Get("/agent-knowledge/list", agentKnowledgeTable),
+	webservice.Get("/agent-knowledge/new", agentKnowledgeNewForm),
+	webservice.Post("/agent-knowledge", agentKnowledgeCreate),
+	webservice.Get("/agent-knowledge/:id/edit", agentKnowledgeEditForm),
+	webservice.Put("/agent-knowledge/:id", agentKnowledgeUpdate),
+	webservice.Delete("/agent-knowledge/:id", agentKnowledgeDelete),
 }
 
 func agentKnowledgePage(ctx fiber.Ctx) error {

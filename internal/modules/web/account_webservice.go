@@ -17,9 +17,9 @@ import (
 )
 
 var accountWebserviceRules = []webservice.Rule{
-	webservice.Get("/account", accountSecurityPage, route.WithNotAuth()),
-	webservice.Post("/account/password", accountChangePassword, route.WithNotAuth()),
-	webservice.Post("/account/backup-codes", accountRegenBackupCodes, route.WithNotAuth()),
+	webservice.Get("/account", accountSecurityPage),
+	webservice.Post("/account/password", accountChangePassword),
+	webservice.Post("/account/backup-codes", accountRegenBackupCodes),
 }
 
 func accountSecurityPage(ctx fiber.Ctx) error {
