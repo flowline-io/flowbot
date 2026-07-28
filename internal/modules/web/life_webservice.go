@@ -433,7 +433,11 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 		slotField := equipped[it.Inv.ID]
 		rows = append(rows, pages.LifeInventoryRow{
 			Flag: it.Inv.Flag, Name: name, Rarity: it.Equip.Rarity, Slot: it.Equip.SlotType,
-			SlotField: slotField, Lore: lore, LoreStatus: it.Inv.LoreStatus,
+			SlotField: slotField,
+			BuffText:  pages.LifeFormatBuffText(it.Equip.StatBuffs),
+			PerkText:  pages.LifeFormatPerkText(it.Equip.AiUnlockedPrivilege),
+			Lore:      lore,
+			LoreStatus: it.Inv.LoreStatus,
 			Equipped: slotField != "", Tarnished: pkglife.IsTarnished(it.Inv.TarnishedUntil, time.Now()),
 		})
 	}

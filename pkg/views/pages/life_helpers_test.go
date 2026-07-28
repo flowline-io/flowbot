@@ -100,3 +100,25 @@ func TestLifeHPFromStats(t *testing.T) {
 	assert.Positive(t, cur)
 	assert.GreaterOrEqual(t, filled, 0)
 }
+
+func TestLifeFormatBuffText(t *testing.T) {
+	t.Parallel()
+	got := pages.LifeFormatBuffText(map[string]any{
+		"INT":      float64(5),
+		"DropRate": float64(0.02),
+		"GoldMult": float64(0.1),
+	})
+	assert.Contains(t, got, "INT +5")
+	assert.Contains(t, got, "Drop +2%")
+	assert.Contains(t, got, "Gold +10%")
+	assert.Empty(t, pages.LifeFormatBuffText(nil))
+}
+
+func TestLifeFormatPerkText(t *testing.T) {
+	t.Parallel()
+	got := pages.LifeFormatPerkText(map[string]any{
+		"ai_breakdown_depth": "deep",
+	})
+	assert.Equal(t, "ai_breakdown_depth=deep", got)
+	assert.Empty(t, pages.LifeFormatPerkText(nil))
+}

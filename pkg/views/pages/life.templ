@@ -492,7 +492,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 				<header class="life-shell-header">
 					<div>
 						<h1>Inventory</h1>
-						<p>Equip gear to raise drop rate and rewards.</p>
+						<p>Equip gear to gain attribute and ability bonuses.</p>
 					</div>
 				</header>
 
@@ -522,6 +522,12 @@ templ LifeInventoryPage(data LifeInventoryData) {
 									<p class="life-equip-slot-name">{ slot.Item.Name }</p>
 									<div class="life-equip-slot-meta">
 										<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(slot.Item.Rarity) }>{ slot.Item.Rarity }</span>
+										if slot.Item.BuffText != "" {
+											<span class="life-meta-chip">{ slot.Item.BuffText }</span>
+										}
+										if slot.Item.PerkText != "" {
+											<span class="life-meta-chip">Perk { slot.Item.PerkText }</span>
+										}
 										if slot.Item.Tarnished {
 											<span class="life-meta-chip life-meta-chip-warn">Tarnished</span>
 										}
@@ -565,6 +571,12 @@ templ LifeInventoryPage(data LifeInventoryData) {
 										<div class="life-quest-meta">
 											<span class={ "life-meta-chip", "life-rarity-chip", LifeRarityClass(it.Rarity) }>{ it.Rarity }</span>
 											<span class="life-meta-chip">{ it.Slot }</span>
+											if it.BuffText != "" {
+												<span class="life-meta-chip">{ it.BuffText }</span>
+											}
+											if it.PerkText != "" {
+												<span class="life-meta-chip">Perk { it.PerkText }</span>
+											}
 											<span class="life-meta-chip">Lore { it.LoreStatus }</span>
 											if it.Tarnished {
 												<span class="life-meta-chip life-meta-chip-warn">Tarnished</span>

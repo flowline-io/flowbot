@@ -1692,7 +1692,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 					}()
 				}
 				ctx = templ.InitializeContext(ctx)
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "<div class=\"life-shell\" data-testid=\"life-inventory-page\"><header class=\"life-shell-header\"><div><h1>Inventory</h1><p>Equip gear to raise drop rate and rewards.</p></div></header><section class=\"life-panel life-section\" data-testid=\"life-equip-board\"><div class=\"life-section-head\"><h2>Equipped</h2><span class=\"life-section-count\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 158, "<div class=\"life-shell\" data-testid=\"life-inventory-page\"><header class=\"life-shell-header\"><div><h1>Inventory</h1><p>Equip gear to gain attribute and ability bonuses.</p></div></header><section class=\"life-panel life-section\" data-testid=\"life-equip-board\"><div class=\"life-section-head\"><h2>Equipped</h2><span class=\"life-section-count\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1823,100 +1823,138 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						if slot.Item.Tarnished {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "<span class=\"life-meta-chip life-meta-chip-warn\">Tarnished</span>")
+						if slot.Item.BuffText != "" {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 170, "<span class=\"life-meta-chip\">")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var96 string
+							templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Item.BuffText)
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 526, Col: 60}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "</span> ")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 171, "</div><button type=\"button\" class=\"btn btn-sm life-equip-slot-action\" hx-post=\"")
+						if slot.Item.PerkText != "" {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "<span class=\"life-meta-chip\">Perk ")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var97 string
+							templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Item.PerkText)
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 529, Col: 65}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var97))
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "</span> ")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						if slot.Item.Tarnished {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "<span class=\"life-meta-chip life-meta-chip-warn\">Tarnished</span>")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</div><button type=\"button\" class=\"btn btn-sm life-equip-slot-action\" hx-post=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var96 string
-						templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/slots/" + slot.SlotField + "/unequip")
+						var templ_7745c5c3_Var98 string
+						templ_7745c5c3_Var98, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/slots/" + slot.SlotField + "/unequip")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 532, Col: 86}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 538, Col: 86}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var96)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 172, "\" hx-swap=\"none\" data-testid=\"")
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var98)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var97 string
-						templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-slot-unequip-" + strings.ToLower(slot.Label))
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 534, Col: 74}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var97)
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "\" hx-swap=\"none\" data-testid=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 173, "\">Unequip</button>")
+						var templ_7745c5c3_Var99 string
+						templ_7745c5c3_Var99, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-slot-unequip-" + strings.ToLower(slot.Label))
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 540, Col: 74}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var99)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "\">Unequip</button>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 174, "<p class=\"life-equip-slot-empty\">Empty</p>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "<p class=\"life-equip-slot-empty\">Empty</p>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 175, "</div>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "</div>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 176, "</div></section><section class=\"life-panel life-section\" data-testid=\"life-inventory\"><div class=\"life-section-head\"><h2>Backpack</h2><span class=\"life-section-count\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "</div></section><section class=\"life-panel life-section\" data-testid=\"life-inventory\"><div class=\"life-section-head\"><h2>Backpack</h2><span class=\"life-section-count\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var98 string
-				templ_7745c5c3_Var98, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.Items)))
+				var templ_7745c5c3_Var100 string
+				templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.Items)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 547, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 553, Col: 75}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var98))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var100))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 177, "</span></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "</span></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if len(data.Items) == 0 {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 178, "<p class=\"life-empty\">Backpack empty — complete quests to earn loot.</p>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "<p class=\"life-empty\">Backpack empty — complete quests to earn loot.</p>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 179, "<ul class=\"life-inv-list\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, "<ul class=\"life-inv-list\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					for _, it := range data.Items {
-						var templ_7745c5c3_Var99 = []any{"life-inv-card", templ.KV("is-equipped", it.Equipped), LifeRarityClass(it.Rarity)}
-						templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var99...)
+						var templ_7745c5c3_Var101 = []any{"life-inv-card", templ.KV("is-equipped", it.Equipped), LifeRarityClass(it.Rarity)}
+						templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var101...)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 180, "<li class=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "<li class=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var100 string
-						templ_7745c5c3_Var100, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var99).String())
+						var templ_7745c5c3_Var102 string
+						templ_7745c5c3_Var102, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var101).String())
 						if templ_7745c5c3_Err != nil {
 							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1, Col: 0}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var100)
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var102)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 181, "\"><div class=\"life-inv-icon\" aria-hidden=\"true\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "\"><div class=\"life-inv-icon\" aria-hidden=\"true\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
@@ -1924,201 +1962,243 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 182, "</div><div class=\"life-inv-body min-w-0\"><p class=\"life-inv-title\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var101 string
-						templ_7745c5c3_Var101, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 560, Col: 20}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var101))
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 183, " ")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						if it.Equipped {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 184, "<span class=\"flowbot-chip flowbot-chip-info text-xs ml-1 align-middle\">Equipped</span>")
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 185, "</p><div class=\"life-quest-meta\">")
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						var templ_7745c5c3_Var102 = []any{"life-meta-chip", "life-rarity-chip", LifeRarityClass(it.Rarity)}
-						templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var102...)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "<span class=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 186, "</div><div class=\"life-inv-body min-w-0\"><p class=\"life-inv-title\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var103 string
-						templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var102).String())
+						templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1, Col: 0}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 566, Col: 20}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var103)
-						if templ_7745c5c3_Err != nil {
-							return templ_7745c5c3_Err
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, "\">")
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var103))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						var templ_7745c5c3_Var104 string
-						templ_7745c5c3_Var104, templ_7745c5c3_Err = templ.JoinStringErrs(it.Rarity)
-						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 566, Col: 103}
-						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var104))
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 187, " ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "</span> <span class=\"life-meta-chip\">")
+						if it.Equipped {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 188, "<span class=\"flowbot-chip flowbot-chip-info text-xs ml-1 align-middle\">Equipped</span>")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "</p><div class=\"life-quest-meta\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var104 = []any{"life-meta-chip", "life-rarity-chip", LifeRarityClass(it.Rarity)}
+						templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var104...)
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "<span class=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var105 string
-						templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.JoinStringErrs(it.Slot)
+						templ_7745c5c3_Var105, templ_7745c5c3_Err = templ.ResolveAttributeValue(templ.CSSClasses(templ_7745c5c3_Var104).String())
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 567, Col: 49}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1, Col: 0}
 						}
-						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var105))
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var105)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 189, "</span> <span class=\"life-meta-chip\">Lore ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var106 string
-						templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.JoinStringErrs(it.LoreStatus)
+						templ_7745c5c3_Var106, templ_7745c5c3_Err = templ.JoinStringErrs(it.Rarity)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 568, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 572, Col: 103}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var106))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 190, "</span> ")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "</span> <span class=\"life-meta-chip\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						if it.Tarnished {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 191, "<span class=\"life-meta-chip life-meta-chip-warn\">Tarnished</span>")
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
+						var templ_7745c5c3_Var107 string
+						templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.JoinStringErrs(it.Slot)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 573, Col: 49}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 192, "</div>")
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var107))
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						if it.Lore != "" {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "<p class=\"life-inv-lore\">")
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							var templ_7745c5c3_Var107 string
-							templ_7745c5c3_Var107, templ_7745c5c3_Err = templ.JoinStringErrs(it.Lore)
-							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 574, Col: 45}
-							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var107))
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "</p>")
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "</div><div class=\"life-quest-actions\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 193, "</span> ")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
-						if it.Equipped {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "<button type=\"button\" class=\"btn btn-sm\" hx-post=\"")
+						if it.BuffText != "" {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 194, "<span class=\"life-meta-chip\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var108 string
-							templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/slots/" + it.SlotField + "/unequip")
+							templ_7745c5c3_Var108, templ_7745c5c3_Err = templ.JoinStringErrs(it.BuffText)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 582, Col: 86}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 575, Col: 54}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var108)
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var108))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, "\" hx-swap=\"none\" data-testid=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 195, "</span> ")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						if it.PerkText != "" {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 196, "<span class=\"life-meta-chip\">Perk ")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var109 string
-							templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-unequip-" + it.Flag)
+							templ_7745c5c3_Var109, templ_7745c5c3_Err = templ.JoinStringErrs(it.PerkText)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 584, Col: 51}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 578, Col: 59}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var109)
-							if templ_7745c5c3_Err != nil {
-								return templ_7745c5c3_Err
-							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, "\">Unequip</button>")
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var109))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-						} else {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "<button type=\"button\" class=\"btn btn-sm btn-primary\" hx-post=\"")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 197, "</span> ")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							var templ_7745c5c3_Var110 string
-							templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/" + it.Flag + "/equip")
-							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 590, Col: 73}
-							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var110)
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 198, "<span class=\"life-meta-chip\">Lore ")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						var templ_7745c5c3_Var110 string
+						templ_7745c5c3_Var110, templ_7745c5c3_Err = templ.JoinStringErrs(it.LoreStatus)
+						if templ_7745c5c3_Err != nil {
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 580, Col: 60}
+						}
+						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var110))
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 199, "</span> ")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						if it.Tarnished {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, "<span class=\"life-meta-chip life-meta-chip-warn\">Tarnished</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 200, "\" hx-swap=\"none\" data-testid=\"")
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "</div>")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						if it.Lore != "" {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "<p class=\"life-inv-lore\">")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 							var templ_7745c5c3_Var111 string
-							templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-equip-" + it.Flag)
+							templ_7745c5c3_Var111, templ_7745c5c3_Err = templ.JoinStringErrs(it.Lore)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 592, Col: 49}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 586, Col: 45}
 							}
-							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var111)
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var111))
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 201, "\">Equip</button>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "</p>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						}
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 202, "</div></li>")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 204, "</div><div class=\"life-quest-actions\">")
+						if templ_7745c5c3_Err != nil {
+							return templ_7745c5c3_Err
+						}
+						if it.Equipped {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 205, "<button type=\"button\" class=\"btn btn-sm\" hx-post=\"")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var112 string
+							templ_7745c5c3_Var112, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/slots/" + it.SlotField + "/unequip")
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 594, Col: 86}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var112)
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 206, "\" hx-swap=\"none\" data-testid=\"")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var113 string
+							templ_7745c5c3_Var113, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-unequip-" + it.Flag)
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 596, Col: 51}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var113)
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 207, "\">Unequip</button>")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						} else {
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 208, "<button type=\"button\" class=\"btn btn-sm btn-primary\" hx-post=\"")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var114 string
+							templ_7745c5c3_Var114, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/" + it.Flag + "/equip")
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 602, Col: 73}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var114)
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "\" hx-swap=\"none\" data-testid=\"")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							var templ_7745c5c3_Var115 string
+							templ_7745c5c3_Var115, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-equip-" + it.Flag)
+							if templ_7745c5c3_Err != nil {
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 604, Col: 49}
+							}
+							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var115)
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 210, "\">Equip</button>")
+							if templ_7745c5c3_Err != nil {
+								return templ_7745c5c3_Err
+							}
+						}
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 211, "</div></li>")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 203, "</ul>")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 212, "</ul>")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 204, "</section></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 213, "</section></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -2154,44 +2234,44 @@ func lifeEquipSlotIcon(slot string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var112 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var112 == nil {
-			templ_7745c5c3_Var112 = templ.NopComponent
+		templ_7745c5c3_Var116 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var116 == nil {
+			templ_7745c5c3_Var116 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		switch slot {
 		case "Head":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 205, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 14v1.5A2.5 2.5 0 0 0 10.5 18h3A2.5 2.5 0 0 0 16 15.5V14\"></path><path d=\"M7 14c0-3.5 2.2-6 5-6s5 2.5 5 6\"></path><path d=\"M9.5 8.2C10 6.5 11 5.5 12 5.5s2 1 2.5 2.7\"></path><path d=\"M12 5.5V4\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 214, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 14v1.5A2.5 2.5 0 0 0 10.5 18h3A2.5 2.5 0 0 0 16 15.5V14\"></path><path d=\"M7 14c0-3.5 2.2-6 5-6s5 2.5 5 6\"></path><path d=\"M9.5 8.2C10 6.5 11 5.5 12 5.5s2 1 2.5 2.7\"></path><path d=\"M12 5.5V4\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "Weapon":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 206, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 4l5 5\"></path><path d=\"M14 6l4 4\"></path><path d=\"M12.5 7.5L5 15l-1.2 5.2L9 19l7.5-7.5\"></path><path d=\"M8 16l2.5 2.5\"></path><path d=\"M4.5 19.5l2-.5\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 215, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 4l5 5\"></path><path d=\"M14 6l4 4\"></path><path d=\"M12.5 7.5L5 15l-1.2 5.2L9 19l7.5-7.5\"></path><path d=\"M8 16l2.5 2.5\"></path><path d=\"M4.5 19.5l2-.5\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "Armor":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 207, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 5.5L12 4l3 1.5 2.5 2V10l-2 1v7.5H8.5V11l-2-1V7.5L9 5.5z\"></path><path d=\"M10 11h4\"></path><path d=\"M12 11v7.5\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 216, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 5.5L12 4l3 1.5 2.5 2V10l-2 1v7.5H8.5V11l-2-1V7.5L9 5.5z\"></path><path d=\"M10 11h4\"></path><path d=\"M12 11v7.5\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "Shoes":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 208, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13.5l1.5-5.5h5.5l1 3h5a2 2 0 0 1 0 4H6a1.5 1.5 0 0 1-1.5-1.5z\"></path><path d=\"M7.5 15v2\"></path><path d=\"M16.5 15v2\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 217, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 13.5l1.5-5.5h5.5l1 3h5a2 2 0 0 1 0 4H6a1.5 1.5 0 0 1-1.5-1.5z\"></path><path d=\"M7.5 15v2\"></path><path d=\"M16.5 15v2\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "Accessory":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 209, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"13\" r=\"5.5\"></circle><circle cx=\"12\" cy=\"13\" r=\"2\"></circle><path d=\"M12 4v3.2\"></path><path d=\"M10.2 5.2h3.6\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 218, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"13\" r=\"5.5\"></circle><circle cx=\"12\" cy=\"13\" r=\"2\"></circle><path d=\"M12 4v3.2\"></path><path d=\"M10.2 5.2h3.6\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		case "Artifact":
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 210, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3.5l2.8 5.6 6.2.6-4.7 4.2 1.4 6.1L12 17.2 6.3 20l1.4-6.1L3 9.7l6.2-.6L12 3.5z\"></path></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 219, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3.5l2.8 5.6 6.2.6-4.7 4.2 1.4 6.1L12 17.2 6.3 20l1.4-6.1L3 9.7l6.2-.6L12 3.5z\"></path></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		default:
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 211, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"5\" width=\"14\" height=\"14\" rx=\"2\"></rect></svg>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 220, "<svg class=\"life-equip-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"5\" width=\"14\" height=\"14\" rx=\"2\"></rect></svg>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

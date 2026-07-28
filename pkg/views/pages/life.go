@@ -3,6 +3,7 @@ package pages
 import (
 	"fmt"
 	"math"
+	"slices"
 	"strings"
 
 	"github.com/bytedance/sonic"
@@ -112,6 +113,8 @@ type LifeInventoryRow struct {
 	Rarity     string
 	Slot       string
 	SlotField  string
+	BuffText   string
+	PerkText   string
 	Lore       string
 	LoreStatus string
 	Equipped   bool
@@ -203,6 +206,73 @@ func LifeSlotRarityClass(slot LifeEquipSlot) string {
 		return ""
 	}
 	return LifeRarityClass(slot.Item.Rarity)
+}
+
+// LifeFormatBuffText formats equipment stat buffs for UI chips.
+func LifeFormatBuffText(statBuffs map[string]any) string {
+	if len(statBuffs) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(statBuffs))
+	for k := range statBuffs {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	parts := make([]string, 0, len(keys))
+	for _, key := range keys {
+		value, ok := lifeAnyToFloat(statBuffs[key])
+		if !ok {
+			continue
+		}
+		switch key {
+		case "DropRate":
+			parts = append(parts, fmt.Sprintf("Drop +%.0f%%", value*100))
+		case "GoldMult":
+			parts = append(parts, fmt.Sprintf("Gold +%.0f%%", value*100))
+		default:
+			parts = append(parts, fmt.Sprintf("%s +%s", key, lifeFormatNumber(value)))
+		}
+	}
+	return strings.Join(parts, " · ")
+}
+
+// LifeFormatPerkText formats AI unlocked privileges for UI chips.
+func LifeFormatPerkText(privileges map[string]any) string {
+	if len(privileges) == 0 {
+		return ""
+	}
+	keys := make([]string, 0, len(privileges))
+	for k := range privileges {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	parts := make([]string, 0, len(keys))
+	for _, key := range keys {
+		parts = append(parts, fmt.Sprintf("%s=%v", key, privileges[key]))
+	}
+	return strings.Join(parts, " · ")
+}
+
+func lifeAnyToFloat(v any) (float64, bool) {
+	switch n := v.(type) {
+	case float64:
+		return n, true
+	case float32:
+		return float64(n), true
+	case int:
+		return float64(n), true
+	case int64:
+		return float64(n), true
+	default:
+		return 0, false
+	}
+}
+
+func lifeFormatNumber(v float64) string {
+	if math.Mod(v, 1) == 0 {
+		return fmt.Sprintf("%.0f", v)
+	}
+	return fmt.Sprintf("%.1f", v)
 }
 
 const lifeSegmentCount = 24
