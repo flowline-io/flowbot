@@ -18,7 +18,7 @@ import (
 )
 
 // bddWebAuthParams builds Parameter.Params for BDD web auth stubs.
-// Scopes must satisfy route.RequireServiceScope for /service/web (pipeline:read
+// Scopes must satisfy route.RequireServiceScope for /service/web (pipeline:read/run
 // or admin:*). Stubs that override ParameterGet must also implement ParameterSet
 // (use bddNoopParameterSet) — Authorize updates last_used_at after token lookup.
 func bddWebAuthParams(uid string, scopes []string) map[string]any {
@@ -35,9 +35,10 @@ func bddWebScopesAdmin() []string {
 	return []string{auth.ScopeAdmin}
 }
 
-// bddWebScopesUser passes /service/web Authorize but not admin:*.
+// bddWebScopesUser passes /service/web Authorize (GET and POST) but not admin:*.
+// pipeline:run also satisfies pipeline:read for read routes.
 func bddWebScopesUser() []string {
-	return []string{auth.ScopePipelineRead}
+	return []string{auth.ScopePipelineRun}
 }
 
 // bddNoopParameterSet is a no-op ParameterSet for BDD stubs with a nil embedded Adapter.
