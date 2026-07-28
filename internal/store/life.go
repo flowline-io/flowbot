@@ -9,6 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/eventoutbox"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeaicontext"
@@ -49,14 +50,15 @@ type LifePlanActionSpecInput struct {
 
 // LifeCreatePlanNodeInput is the write shape for creating one plan node.
 type LifeCreatePlanNodeInput struct {
-	ProfileID    int64
-	ParentID     *int64
-	NodeType     string
-	Title        string
-	Description  string
-	Status       string
-	SortOrder    int
-	ActionSpec   *LifePlanActionSpecInput
+	ProfileID             int64
+	ParentID              *int64
+	NodeType              string
+	Title                 string
+	Description           string
+	Status                string
+	SortOrder             int
+	ActionSpec            *LifePlanActionSpecInput
+	DependencyPlanNodeIDs []int64
 }
 
 // NewLifeStore creates a LifeStore with the given ent client.
@@ -422,9 +424,20 @@ func (s *LifeStore) CreatePlanNode(ctx context.Context, in LifeCreatePlanNodeInp
 			return innerErr
 		}
 		if in.ActionSpec != nil {
+			if in.ActionSpec.TaskType == "checkpoint" && len(in.DependencyPlanNodeIDs) == 0 {
+				return fmt.Errorf("life: checkpoint dependencies required")
+			}
+			if in.ActionSpec.TaskType != "checkpoint" && len(in.DependencyPlanNodeIDs) > 0 {
+				return fmt.Errorf("life: only checkpoint actions can have dependencies")
+			}
 			spec, innerErr = createActionSpecWithClient(ctx, txStore.client, row.ID, *in.ActionSpec)
 			if innerErr != nil {
 				return innerErr
+			}
+			if len(in.DependencyPlanNodeIDs) > 0 {
+				if innerErr := txStore.createActionDependencies(ctx, in.ProfileID, row.ID, in.DependencyPlanNodeIDs); innerErr != nil {
+					return innerErr
+				}
 			}
 		}
 		return nil
@@ -581,6 +594,16 @@ func (s *LifeStore) DeletePlanNode(ctx context.Context, profileID, id int64) err
 	}()
 	if _, err := tx.LifeActionSpec.Delete().Where(lifeactionspec.PlanNodeIDIn(toDelete...)).Exec(ctx); err != nil {
 		return fmt.Errorf("life: delete action specs: %w", err)
+	}
+	if _, err := tx.LifeActionDependency.Delete().
+		Where(
+			lifeactiondependency.Or(
+				lifeactiondependency.ActionPlanNodeIDIn(toDelete...),
+				lifeactiondependency.DependsOnPlanNodeIDIn(toDelete...),
+			),
+		).
+		Exec(ctx); err != nil {
+		return fmt.Errorf("life: delete action dependencies: %w", err)
 	}
 	if _, err := tx.LifePlanNode.Delete().Where(lifeplannode.IDIn(toDelete...)).Exec(ctx); err != nil {
 		return fmt.Errorf("life: delete plan nodes: %w", err)

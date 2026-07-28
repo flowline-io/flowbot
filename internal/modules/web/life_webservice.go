@@ -308,12 +308,14 @@ func lifeCreatePlanNode(ctx fiber.Ctx) error {
 	title := strings.TrimSpace(ctx.FormValue("title"))
 	description := strings.TrimSpace(ctx.FormValue("description"))
 	action := &lifemod.ActionInput{
+		TaskType:           strings.TrimSpace(ctx.FormValue("task_type")),
 		IsRepeatable:       strings.EqualFold(strings.TrimSpace(ctx.FormValue("is_repeatable")), "on"),
 		TrackingMode:       strings.TrimSpace(ctx.FormValue("tracking_mode")),
 		RepeatTrigger:      strings.TrimSpace(ctx.FormValue("repeat_trigger")),
 		SuggestedCadence:   strings.TrimSpace(ctx.FormValue("suggested_cadence")),
 		IsIdentityBuilding: strings.EqualFold(strings.TrimSpace(ctx.FormValue("is_identity_building")), "on"),
 		Reason:             strings.TrimSpace(ctx.FormValue("reason")),
+		DependencyFlags:    parseLifeDependencyFlags(ctx.FormValue("dependency_flags")),
 	}
 	if nodeType != "action" {
 		action = nil
@@ -323,6 +325,21 @@ func lifeCreatePlanNode(ctx fiber.Ctx) error {
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/character")
 	return ctx.SendStatus(http.StatusOK)
+}
+
+func parseLifeDependencyFlags(raw string) []string {
+	parts := strings.FieldsFunc(raw, func(r rune) bool {
+		return r == ',' || r == '\n' || r == '\r' || r == '\t'
+	})
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		out = append(out, part)
+	}
+	return out
 }
 
 func lifeConfirmHabit(ctx fiber.Ctx) error {
@@ -783,12 +800,12 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 		slotField := equipped[it.Inv.ID]
 		rows = append(rows, pages.LifeInventoryRow{
 			Flag: it.Inv.Flag, Name: name, Rarity: it.Equip.Rarity, Slot: it.Equip.SlotType,
-			SlotField: slotField,
-			BuffText:  pages.LifeFormatBuffText(it.Equip.StatBuffs),
-			PerkText:  pages.LifeFormatPerkText(it.Equip.AiUnlockedPrivilege),
-			Lore:      lore,
+			SlotField:  slotField,
+			BuffText:   pages.LifeFormatBuffText(it.Equip.StatBuffs),
+			PerkText:   pages.LifeFormatPerkText(it.Equip.AiUnlockedPrivilege),
+			Lore:       lore,
 			LoreStatus: it.Inv.LoreStatus,
-			Equipped: slotField != "", Tarnished: pkglife.IsTarnished(it.Inv.TarnishedUntil, time.Now()),
+			Equipped:   slotField != "", Tarnished: pkglife.IsTarnished(it.Inv.TarnishedUntil, time.Now()),
 		})
 	}
 	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")

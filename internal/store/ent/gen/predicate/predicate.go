@@ -111,6 +111,9 @@ type LLMUsageRecord func(*sql.Selector)
 // LifeAIContext is the predicate function for lifeaicontext builders.
 type LifeAIContext func(*sql.Selector)
 
+// LifeActionDependency is the predicate function for lifeactiondependency builders.
+type LifeActionDependency func(*sql.Selector)
+
 // LifeActionLog is the predicate function for lifeactionlog builders.
 type LifeActionLog func(*sql.Selector)
 

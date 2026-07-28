@@ -38,6 +38,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
@@ -1162,6 +1163,12 @@ func init() {
 	lifeaicontext.DefaultUpdatedAt = lifeaicontextDescUpdatedAt.Default.(func() time.Time)
 	// lifeaicontext.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifeaicontext.UpdateDefaultUpdatedAt = lifeaicontextDescUpdatedAt.UpdateDefault.(func() time.Time)
+	lifeactiondependencyFields := schema.LifeActionDependency{}.Fields()
+	_ = lifeactiondependencyFields
+	// lifeactiondependencyDescCreatedAt is the schema descriptor for created_at field.
+	lifeactiondependencyDescCreatedAt := lifeactiondependencyFields[3].Descriptor()
+	// lifeactiondependency.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifeactiondependency.DefaultCreatedAt = lifeactiondependencyDescCreatedAt.Default.(func() time.Time)
 	lifeactionlogFields := schema.LifeActionLog{}.Fields()
 	_ = lifeactionlogFields
 	// lifeactionlogDescFlag is the schema descriptor for flag field.

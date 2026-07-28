@@ -920,6 +920,31 @@ var (
 			},
 		},
 	}
+	// LifeActionDependenciesColumns holds the columns for the "life_action_dependencies" table.
+	LifeActionDependenciesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "action_plan_node_id", Type: field.TypeInt64},
+		{Name: "depends_on_plan_node_id", Type: field.TypeInt64},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LifeActionDependenciesTable holds the schema information for the "life_action_dependencies" table.
+	LifeActionDependenciesTable = &schema.Table{
+		Name:       "life_action_dependencies",
+		Columns:    LifeActionDependenciesColumns,
+		PrimaryKey: []*schema.Column{LifeActionDependenciesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifeactiondependency_action_plan_node_id_depends_on_plan_node_id",
+				Unique:  true,
+				Columns: []*schema.Column{LifeActionDependenciesColumns[1], LifeActionDependenciesColumns[2]},
+			},
+			{
+				Name:    "lifeactiondependency_depends_on_plan_node_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeActionDependenciesColumns[2]},
+			},
+		},
+	}
 	// LifeActionLogsColumns holds the columns for the "life_action_logs" table.
 	LifeActionLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2224,6 +2249,7 @@ var (
 		InstructTable,
 		LlmUsageRecordsTable,
 		LifeAiContextsTable,
+		LifeActionDependenciesTable,
 		LifeActionLogsTable,
 		LifeActionOccurrencesTable,
 		LifeActionSpecsTable,
@@ -2375,6 +2401,9 @@ func init() {
 	}
 	LifeAiContextsTable.Annotation = &entsql.Annotation{
 		Table: "life_ai_contexts",
+	}
+	LifeActionDependenciesTable.Annotation = &entsql.Annotation{
+		Table: "life_action_dependencies",
 	}
 	LifeActionLogsTable.Annotation = &entsql.Annotation{
 		Table: "life_action_logs",

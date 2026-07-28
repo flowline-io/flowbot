@@ -35,33 +35,33 @@ type LifeSkillRow struct {
 
 // LifeCharacterData is the Character Identity page model.
 type LifeCharacterData struct {
-	Nickname        string
-	ClassType       string
-	Level           int
-	Exp             int64
-	ExpToNext       int64
-	LevelFilledSegs int
-	LevelTotalSegs  int
-	Gold            int
-	HPCurrent       int
-	HPMax           int
-	HeartsFilled    int
-	HeartsTotal     int
-	MasterObjective string
-	MinorObjective  string
-	Strength        string
-	Weakness        string
-	Characteristics []LifeStatRow
-	Skills          []LifeSkillRow
-	DropRateBonus   float64
-	GoldMult        float64
-	PendingCount    int
-	RadarLabelsJSON string
-	RadarValuesJSON string
-	ShowClassForm   bool
-	Goals           []LifeGoalRow
-	PlanTree        []LifePlanNodeRow
-	PlanParents     []LifePlanParentOption
+	Nickname         string
+	ClassType        string
+	Level            int
+	Exp              int64
+	ExpToNext        int64
+	LevelFilledSegs  int
+	LevelTotalSegs   int
+	Gold             int
+	HPCurrent        int
+	HPMax            int
+	HeartsFilled     int
+	HeartsTotal      int
+	MasterObjective  string
+	MinorObjective   string
+	Strength         string
+	Weakness         string
+	Characteristics  []LifeStatRow
+	Skills           []LifeSkillRow
+	DropRateBonus    float64
+	GoldMult         float64
+	PendingCount     int
+	RadarLabelsJSON  string
+	RadarValuesJSON  string
+	ShowClassForm    bool
+	Goals            []LifeGoalRow
+	PlanTree         []LifePlanNodeRow
+	PlanParents      []LifePlanParentOption
 	BreakdownPreview *LifeBreakdownPreviewData
 }
 
@@ -84,17 +84,17 @@ type LifePlanParentOption struct {
 
 // LifePlanNodeRow is one rendered plan node.
 type LifePlanNodeRow struct {
-	Flag                 string
-	ParentFlag           string
-	NodeType             string
-	Title                string
-	Description          string
-	Status               string
-	TaskType             string
-	TrackingMode         string
-	SuggestedCadence     string
-	NeedsConfirmation    bool
-	Children             []LifePlanNodeRow
+	Flag              string
+	ParentFlag        string
+	NodeType          string
+	Title             string
+	Description       string
+	Status            string
+	TaskType          string
+	TrackingMode      string
+	SuggestedCadence  string
+	NeedsConfirmation bool
+	Children          []LifePlanNodeRow
 }
 
 // LifeQuestRow is one quest list row.
@@ -307,6 +307,8 @@ func LifeTaskTypeLabel(taskType string) string {
 		return "Habit (pending)"
 	case "habit":
 		return "Habit"
+	case "checkpoint":
+		return "Checkpoint"
 	default:
 		return ""
 	}
@@ -319,6 +321,8 @@ func LifeActionLogSourceLabel(sourceType string) string {
 		return "Action"
 	case "habit_checkin":
 		return "Habit"
+	case "checkpoint":
+		return "Checkpoint"
 	default:
 		return "Quest"
 	}

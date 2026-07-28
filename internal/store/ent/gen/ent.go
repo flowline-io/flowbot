@@ -45,6 +45,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
@@ -185,6 +186,7 @@ func checkColumn(t, c string) error {
 			instruct.Table:                  instruct.ValidColumn,
 			llmusagerecord.Table:            llmusagerecord.ValidColumn,
 			lifeaicontext.Table:             lifeaicontext.ValidColumn,
+			lifeactiondependency.Table:      lifeactiondependency.ValidColumn,
 			lifeactionlog.Table:             lifeactionlog.ValidColumn,
 			lifeactionoccurrence.Table:      lifeactionoccurrence.ValidColumn,
 			lifeactionspec.Table:            lifeactionspec.ValidColumn,

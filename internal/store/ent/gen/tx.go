@@ -82,6 +82,8 @@ type Tx struct {
 	LLMUsageRecord *LLMUsageRecordClient
 	// LifeAIContext is the client for interacting with the LifeAIContext builders.
 	LifeAIContext *LifeAIContextClient
+	// LifeActionDependency is the client for interacting with the LifeActionDependency builders.
+	LifeActionDependency *LifeActionDependencyClient
 	// LifeActionLog is the client for interacting with the LifeActionLog builders.
 	LifeActionLog *LifeActionLogClient
 	// LifeActionOccurrence is the client for interacting with the LifeActionOccurrence builders.
@@ -334,6 +336,7 @@ func (tx *Tx) init() {
 	tx.Instruct = NewInstructClient(tx.config)
 	tx.LLMUsageRecord = NewLLMUsageRecordClient(tx.config)
 	tx.LifeAIContext = NewLifeAIContextClient(tx.config)
+	tx.LifeActionDependency = NewLifeActionDependencyClient(tx.config)
 	tx.LifeActionLog = NewLifeActionLogClient(tx.config)
 	tx.LifeActionOccurrence = NewLifeActionOccurrenceClient(tx.config)
 	tx.LifeActionSpec = NewLifeActionSpecClient(tx.config)

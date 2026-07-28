@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifehabitcheckin"
@@ -48,6 +50,12 @@ type LifeHabitCheckinInput struct {
 	CheckinAt  time.Time
 	Status     string
 	Note       string
+	Summary    string
+}
+
+type checkpointCompletionInput struct {
+	ProfileID  int64
+	PlanNodeID int64
 	Summary    string
 }
 
@@ -205,6 +213,13 @@ func (s *LifeStore) CompleteActionOccurrence(ctx context.Context, in LifeComplet
 		SetGainedGold(in.GainedGold).
 		Save(ctx); err != nil {
 		return fmt.Errorf("life: occurrence action log: %w", err)
+	}
+	if err := completeReadyCheckpoints(ctx, tx.Client(), checkpointCompletionInput{
+		ProfileID:  in.ProfileID,
+		PlanNodeID: in.PlanNodeID,
+		Summary:    in.Summary,
+	}); err != nil {
+		return err
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("life: commit occurrence: %w", err)
@@ -380,6 +395,187 @@ func (s *LifeStore) ListRecurringActionSpecs(ctx context.Context, profileID int6
 	return specs, nodeByID, nil
 }
 
+func (s *LifeStore) createActionDependencies(ctx context.Context, profileID, actionPlanNodeID int64, dependencyPlanNodeIDs []int64) error {
+	if len(dependencyPlanNodeIDs) == 0 {
+		return nil
+	}
+	actionNode, err := s.getCheckpointActionNode(ctx, actionPlanNodeID)
+	if err != nil {
+		return err
+	}
+	seen := make(map[int64]struct{}, len(dependencyPlanNodeIDs))
+	for _, dependencyID := range dependencyPlanNodeIDs {
+		if _, ok := seen[dependencyID]; ok {
+			continue
+		}
+		seen[dependencyID] = struct{}{}
+		if err := s.createActionDependency(ctx, profileID, actionNode, dependencyID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *LifeStore) getCheckpointActionNode(ctx context.Context, actionPlanNodeID int64) (*gen.LifePlanNode, error) {
+	actionNode, err := s.client.LifePlanNode.Get(ctx, actionPlanNodeID)
+	if err != nil {
+		return nil, fmt.Errorf("life: get checkpoint action: %w", err)
+	}
+	if actionNode.ParentID == nil {
+		return nil, fmt.Errorf("life: checkpoint action requires parent")
+	}
+	actionSpec, err := s.GetActionSpecByPlanNodeID(ctx, actionPlanNodeID)
+	if err != nil {
+		return nil, err
+	}
+	if actionSpec == nil || actionSpec.TaskType != "checkpoint" {
+		return nil, fmt.Errorf("life: dependencies require checkpoint action")
+	}
+	return actionNode, nil
+}
+
+func (s *LifeStore) createActionDependency(ctx context.Context, profileID int64, actionNode *gen.LifePlanNode, dependencyID int64) error {
+	if dependencyID == actionNode.ID {
+		return fmt.Errorf("life: checkpoint cannot depend on itself")
+	}
+	dependencyNode, err := s.client.LifePlanNode.Get(ctx, dependencyID)
+	if err != nil {
+		return fmt.Errorf("life: get dependency action: %w", err)
+	}
+	if dependencyNode.LifeProfileID != profileID {
+		return fmt.Errorf("life: dependency action not found")
+	}
+	if dependencyNode.ParentID == nil || *dependencyNode.ParentID != *actionNode.ParentID {
+		return fmt.Errorf("life: dependency action must share parent")
+	}
+	dependencySpec, err := s.GetActionSpecByPlanNodeID(ctx, dependencyID)
+	if err != nil {
+		return err
+	}
+	if dependencySpec == nil || dependencySpec.TaskType != "todo" {
+		return fmt.Errorf("life: dependency action must be todo")
+	}
+	if _, err := s.client.LifeActionDependency.Create().
+		SetActionPlanNodeID(actionNode.ID).
+		SetDependsOnPlanNodeID(dependencyID).
+		Save(ctx); err != nil {
+		return fmt.Errorf("life: create action dependency: %w", err)
+	}
+	return nil
+}
+
+func completeReadyCheckpoints(ctx context.Context, client *gen.Client, in checkpointCompletionInput) error {
+	rows, err := client.LifeActionDependency.Query().
+		Where(lifeactiondependency.DependsOnPlanNodeIDEQ(in.PlanNodeID)).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("life: list action dependencies: %w", err)
+	}
+	if len(rows) == 0 {
+		return nil
+	}
+	checkpointIDs := make([]int64, 0, len(rows))
+	seen := make(map[int64]struct{}, len(rows))
+	for _, row := range rows {
+		if _, ok := seen[row.ActionPlanNodeID]; ok {
+			continue
+		}
+		seen[row.ActionPlanNodeID] = struct{}{}
+		checkpointIDs = append(checkpointIDs, row.ActionPlanNodeID)
+	}
+	for _, checkpointID := range checkpointIDs {
+		ready, summary, err := checkpointReadyForCompletion(ctx, client, in.ProfileID, checkpointID)
+		if err != nil {
+			return err
+		}
+		if !ready {
+			continue
+		}
+		if err := completeCheckpointAction(ctx, client, checkpointCompletionInput{
+			ProfileID:  in.ProfileID,
+			PlanNodeID: checkpointID,
+			Summary:    summary,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkpointReadyForCompletion(ctx context.Context, client *gen.Client, profileID, checkpointID int64) (bool, string, error) {
+	node, err := client.LifePlanNode.Get(ctx, checkpointID)
+	if err != nil {
+		return false, "", fmt.Errorf("life: get checkpoint node: %w", err)
+	}
+	if node.LifeProfileID != profileID {
+		return false, "", fmt.Errorf("life: checkpoint action not found")
+	}
+	if strings.EqualFold(node.Status, "Completed") {
+		return false, "", nil
+	}
+	spec, err := client.LifeActionSpec.Query().
+		Where(lifeactionspec.PlanNodeIDEQ(checkpointID)).
+		Only(ctx)
+	if err != nil {
+		return false, "", fmt.Errorf("life: get checkpoint spec: %w", err)
+	}
+	if spec.TaskType != "checkpoint" {
+		return false, "", nil
+	}
+	rows, err := client.LifeActionDependency.Query().
+		Where(lifeactiondependency.ActionPlanNodeIDEQ(checkpointID)).
+		All(ctx)
+	if err != nil {
+		return false, "", fmt.Errorf("life: list checkpoint dependencies: %w", err)
+	}
+	if len(rows) == 0 {
+		return false, "", fmt.Errorf("life: checkpoint dependencies required")
+	}
+	for _, row := range rows {
+		exists, err := client.LifeActionLog.Query().
+			Where(
+				lifeactionlog.LifeProfileIDEQ(profileID),
+				lifeactionlog.PlanNodeIDEQ(row.DependsOnPlanNodeID),
+				lifeactionlog.SourceTypeEQ("occurrence"),
+			).
+			Exist(ctx)
+		if err != nil {
+			return false, "", fmt.Errorf("life: check dependency completion: %w", err)
+		}
+		if !exists {
+			return false, "", nil
+		}
+	}
+	return true, node.Title, nil
+}
+
+func completeCheckpointAction(ctx context.Context, client *gen.Client, in checkpointCompletionInput) error {
+	affected, err := client.LifePlanNode.Update().
+		Where(
+			lifeplannode.IDEQ(in.PlanNodeID),
+			lifeplannode.LifeProfileIDEQ(in.ProfileID),
+			lifeplannode.StatusNEQ("Completed"),
+		).
+		SetStatus("Completed").
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("life: complete checkpoint action: %w", err)
+	}
+	if affected == 0 {
+		return nil
+	}
+	if _, err := client.LifeActionLog.Create().
+		SetFlag(types.Id()).
+		SetLifeProfileID(in.ProfileID).
+		SetPlanNodeID(in.PlanNodeID).
+		SetSourceType("checkpoint").
+		SetSummary(strings.TrimSpace(in.Summary)).
+		Save(ctx); err != nil {
+		return fmt.Errorf("life: checkpoint action log: %w", err)
+	}
+	return completeReadyCheckpoints(ctx, client, in)
+}
+
 func normalizeOccurrenceKind(kind string) string {
 	switch strings.ToLower(strings.TrimSpace(kind)) {
 	case "recurring":
@@ -427,4 +623,3 @@ func startOfDayUTC(t time.Time) time.Time {
 	u := t.UTC()
 	return time.Date(u.Year(), u.Month(), u.Day(), 0, 0, 0, 0, time.UTC)
 }
-

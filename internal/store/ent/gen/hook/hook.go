@@ -429,6 +429,18 @@ func (f LifeAIContextFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeAIContextMutation", m)
 }
 
+// The LifeActionDependencyFunc type is an adapter to allow the use of ordinary
+// function as LifeActionDependency mutator.
+type LifeActionDependencyFunc func(context.Context, *gen.LifeActionDependencyMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeActionDependencyFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeActionDependencyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeActionDependencyMutation", m)
+}
+
 // The LifeActionLogFunc type is an adapter to allow the use of ordinary
 // function as LifeActionLog mutator.
 type LifeActionLogFunc func(context.Context, *gen.LifeActionLogMutation) (gen.Value, error)

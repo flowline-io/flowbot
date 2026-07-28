@@ -8,7 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 )
 
@@ -186,6 +188,191 @@ func TestLifeStore_EnsureRecurringOccurrencesAndComplete(t *testing.T) {
 		Summary:      action.Title,
 	})
 	require.Error(t, err)
+}
+
+func TestLifeStore_CreateCheckpointAndAutoComplete(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ls := NewLifeStore(client)
+	ctx := context.Background()
+
+	profile, err := ls.CreateProfile(ctx, "user-5", "Nia", "Architect")
+	require.NoError(t, err)
+	project, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		NodeType:  "goal",
+		Title:     "Ship release",
+		Status:    "Active",
+	})
+	require.NoError(t, err)
+
+	todoA, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &project.ID,
+		NodeType:  "action",
+		Title:     "Write changelog",
+		Status:    "Active",
+		ActionSpec: &LifePlanActionSpecInput{
+			TaskType:      "todo",
+			TrackingMode:  "completion",
+			RepeatTrigger: "none",
+		},
+	})
+	require.NoError(t, err)
+	todoB, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &project.ID,
+		NodeType:  "action",
+		Title:     "Tag release",
+		Status:    "Active",
+		ActionSpec: &LifePlanActionSpecInput{
+			TaskType:      "todo",
+			TrackingMode:  "completion",
+			RepeatTrigger: "none",
+		},
+	})
+	require.NoError(t, err)
+	checkpoint, checkpointSpec, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &project.ID,
+		NodeType:  "action",
+		Title:     "Release ready",
+		Status:    "Active",
+		ActionSpec: &LifePlanActionSpecInput{
+			TaskType:      "checkpoint",
+			TrackingMode:  "completion",
+			RepeatTrigger: "condition",
+		},
+		DependencyPlanNodeIDs: []int64{todoA.ID, todoB.ID},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, checkpointSpec)
+	assert.Equal(t, "checkpoint", checkpointSpec.TaskType)
+	_, err = ls.EnsureTodoOccurrence(ctx, profile.ID, todoA.ID)
+	require.NoError(t, err)
+	_, err = ls.EnsureTodoOccurrence(ctx, profile.ID, todoB.ID)
+	require.NoError(t, err)
+
+	deps, err := client.LifeActionDependency.Query().
+		Where(lifeactiondependency.ActionPlanNodeIDEQ(checkpoint.ID)).
+		All(ctx)
+	require.NoError(t, err)
+	require.Len(t, deps, 2)
+
+	occurrences, err := ls.ListActionOccurrences(ctx, profile.ID, "pending")
+	require.NoError(t, err)
+	require.Len(t, occurrences, 2)
+
+	err = ls.CompleteActionOccurrence(ctx, LifeCompleteOccurrenceInput{
+		OccurrenceID: occurrences[0].ID,
+		ProfileID:    profile.ID,
+		PlanNodeID:   occurrences[0].PlanNodeID,
+		Summary:      "first todo",
+	})
+	require.NoError(t, err)
+
+	checkpointNode, err := client.LifePlanNode.Get(ctx, checkpoint.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Active", checkpointNode.Status)
+
+	err = ls.CompleteActionOccurrence(ctx, LifeCompleteOccurrenceInput{
+		OccurrenceID: occurrences[1].ID,
+		ProfileID:    profile.ID,
+		PlanNodeID:   occurrences[1].PlanNodeID,
+		Summary:      "second todo",
+	})
+	require.NoError(t, err)
+
+	checkpointNode, err = client.LifePlanNode.Get(ctx, checkpoint.ID)
+	require.NoError(t, err)
+	assert.Equal(t, "Completed", checkpointNode.Status)
+
+	logs, err := ls.ListActionLogs(ctx, profile.ID, 10)
+	require.NoError(t, err)
+	require.Len(t, logs, 3)
+	assert.Equal(t, "checkpoint", logs[0].SourceType)
+	assert.Equal(t, "Release ready", logs[0].Summary)
+}
+
+func TestLifeStore_CreateCheckpointRejectsInvalidDependency(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ls := NewLifeStore(client)
+	ctx := context.Background()
+
+	profile, err := ls.CreateProfile(ctx, "user-6", "Rin", "Architect")
+	require.NoError(t, err)
+	goal, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		NodeType:  "goal",
+		Title:     "Get fit",
+		Status:    "Active",
+	})
+	require.NoError(t, err)
+	projectA, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &goal.ID,
+		NodeType:  "project",
+		Title:     "Morning routine",
+		Status:    "Active",
+	})
+	require.NoError(t, err)
+	projectB, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &goal.ID,
+		NodeType:  "project",
+		Title:     "Evening routine",
+		Status:    "Active",
+	})
+	require.NoError(t, err)
+	todoA, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &projectA.ID,
+		NodeType:  "action",
+		Title:     "Stretch",
+		Status:    "Active",
+		ActionSpec: &LifePlanActionSpecInput{
+			TaskType:      "todo",
+			TrackingMode:  "completion",
+			RepeatTrigger: "none",
+		},
+	})
+	require.NoError(t, err)
+	todoB, _, err := ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &projectB.ID,
+		NodeType:  "action",
+		Title:     "Read",
+		Status:    "Active",
+		ActionSpec: &LifePlanActionSpecInput{
+			TaskType:      "todo",
+			TrackingMode:  "completion",
+			RepeatTrigger: "none",
+		},
+	})
+	require.NoError(t, err)
+
+	_, _, err = ls.CreatePlanNode(ctx, LifeCreatePlanNodeInput{
+		ProfileID: profile.ID,
+		ParentID:  &projectA.ID,
+		NodeType:  "action",
+		Title:     "Routine done",
+		Status:    "Active",
+		ActionSpec: &LifePlanActionSpecInput{
+			TaskType:      "checkpoint",
+			TrackingMode:  "completion",
+			RepeatTrigger: "condition",
+		},
+		DependencyPlanNodeIDs: []int64{todoA.ID, todoB.ID},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "dependency action must share parent")
+
+	count, err := client.LifePlanNode.Query().
+		Where(lifeplannode.LifeProfileIDEQ(profile.ID), lifeplannode.TitleEQ("Routine done")).
+		Count(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, 0, count)
 }
 
 func TestLifeStore_UpsertHabitCheckinIsIdempotent(t *testing.T) {

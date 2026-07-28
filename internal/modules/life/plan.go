@@ -13,12 +13,14 @@ import (
 
 // ActionInput captures the structured fields used to classify an action node.
 type ActionInput struct {
+	TaskType           string
 	IsRepeatable       bool
 	TrackingMode       string
 	RepeatTrigger      string
 	SuggestedCadence   string
 	IsIdentityBuilding bool
 	Reason             string
+	DependencyFlags    []string
 }
 
 // PlanNodeView is one rendered tree node with optional action metadata.
@@ -46,13 +48,14 @@ func (s *Service) CreatePlanNode(ctx context.Context, userID, parentFlag, nodeTy
 		return nil, err
 	}
 	row, spec, err := s.store.CreatePlanNode(ctx, store.LifeCreatePlanNodeInput{
-		ProfileID:   p.ID,
-		ParentID:    planInput.ParentID,
-		NodeType:    planInput.NodeType,
-		Title:       planInput.Title,
-		Description: planInput.Description,
-		Status:      "Active",
-		ActionSpec:  planInput.ActionSpec,
+		ProfileID:             p.ID,
+		ParentID:              planInput.ParentID,
+		NodeType:              planInput.NodeType,
+		Title:                 planInput.Title,
+		Description:           planInput.Description,
+		Status:                "Active",
+		ActionSpec:            planInput.ActionSpec,
+		DependencyPlanNodeIDs: planInput.DependencyPlanNodeIDs,
 	})
 	if err != nil {
 		return nil, err
@@ -66,11 +69,12 @@ func (s *Service) CreatePlanNode(ctx context.Context, userID, parentFlag, nodeTy
 }
 
 type preparedPlanNodeCreate struct {
-	ParentID    *int64
-	ActionSpec  *store.LifePlanActionSpecInput
-	NodeType    string
-	Title       string
-	Description string
+	ParentID              *int64
+	ActionSpec            *store.LifePlanActionSpecInput
+	NodeType              string
+	Title                 string
+	Description           string
+	DependencyPlanNodeIDs []int64
 }
 
 func (s *Service) preparePlanNodeCreate(ctx context.Context, profileID int64, parentFlag, nodeType, title, description string, action *ActionInput) (*preparedPlanNodeCreate, error) {
@@ -90,12 +94,17 @@ func (s *Service) preparePlanNodeCreate(ctx context.Context, profileID int64, pa
 	if err != nil {
 		return nil, err
 	}
+	dependencyIDs, err := s.resolveActionDependencies(ctx, profileID, parentID, actionSpec, action)
+	if err != nil {
+		return nil, err
+	}
 	return &preparedPlanNodeCreate{
-		ParentID:    parentID,
-		ActionSpec:  actionSpec,
-		NodeType:    normalizedType,
-		Title:       normalizedTitle,
-		Description: strings.TrimSpace(description),
+		ParentID:              parentID,
+		ActionSpec:            actionSpec,
+		NodeType:              normalizedType,
+		Title:                 normalizedTitle,
+		Description:           strings.TrimSpace(description),
+		DependencyPlanNodeIDs: dependencyIDs,
 	}, nil
 }
 
@@ -127,6 +136,31 @@ func buildPlanActionSpec(nodeType string, action *ActionInput) (*store.LifePlanA
 		return nil, fmt.Errorf("life: action details required")
 	}
 	return classifyActionInput(action), nil
+}
+
+func (s *Service) resolveActionDependencies(ctx context.Context, profileID int64, parentID *int64, spec *store.LifePlanActionSpecInput, action *ActionInput) ([]int64, error) {
+	if spec == nil || spec.TaskType != "checkpoint" {
+		return nil, nil
+	}
+	if parentID == nil {
+		return nil, fmt.Errorf("life: checkpoint action requires parent")
+	}
+	flags := normalizeDependencyFlags(action.DependencyFlags)
+	if len(flags) == 0 {
+		return nil, fmt.Errorf("life: checkpoint dependencies required")
+	}
+	ids := make([]int64, 0, len(flags))
+	for _, flag := range flags {
+		node, err := s.store.GetPlanNodeByFlag(ctx, profileID, flag)
+		if err != nil {
+			return nil, err
+		}
+		if node == nil {
+			return nil, fmt.Errorf("life: dependency action not found")
+		}
+		ids = append(ids, node.ID)
+	}
+	return ids, nil
 }
 
 // ConfirmHabitAction marks a habit candidate as confirmed.
@@ -211,6 +245,15 @@ func isAllowedPlanChild(parentType, nodeType string) bool {
 }
 
 func classifyActionInput(in *ActionInput) *store.LifePlanActionSpecInput {
+	if strings.EqualFold(strings.TrimSpace(in.TaskType), "checkpoint") {
+		return &store.LifePlanActionSpecInput{
+			TaskType:           "checkpoint",
+			TrackingMode:       "completion",
+			RepeatTrigger:      "condition",
+			IsIdentityBuilding: in.IsIdentityBuilding,
+			Reason:             strings.TrimSpace(in.Reason),
+		}
+	}
 	taskType := "todo"
 	trackingMode := normalizeTrackingMode(in.TrackingMode)
 	needsConfirmation := false
@@ -232,6 +275,26 @@ func classifyActionInput(in *ActionInput) *store.LifePlanActionSpecInput {
 		Reason:                strings.TrimSpace(in.Reason),
 		NeedsUserConfirmation: needsConfirmation,
 	}
+}
+
+func normalizeDependencyFlags(flags []string) []string {
+	if len(flags) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(flags))
+	seen := make(map[string]struct{}, len(flags))
+	for _, flag := range flags {
+		normalized := strings.TrimSpace(flag)
+		if normalized == "" {
+			continue
+		}
+		if _, ok := seen[normalized]; ok {
+			continue
+		}
+		seen[normalized] = struct{}{}
+		out = append(out, normalized)
+	}
+	return out
 }
 
 func buildPlanTree(nodes []*gen.LifePlanNode, specs []*gen.LifeActionSpec) []*PlanNodeView {

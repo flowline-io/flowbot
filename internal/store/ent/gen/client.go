@@ -47,6 +47,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/fileupload"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/form"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/instruct"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactiondependency"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionlog"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionoccurrence"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeactionspec"
@@ -169,6 +170,8 @@ type Client struct {
 	LLMUsageRecord *LLMUsageRecordClient
 	// LifeAIContext is the client for interacting with the LifeAIContext builders.
 	LifeAIContext *LifeAIContextClient
+	// LifeActionDependency is the client for interacting with the LifeActionDependency builders.
+	LifeActionDependency *LifeActionDependencyClient
 	// LifeActionLog is the client for interacting with the LifeActionLog builders.
 	LifeActionLog *LifeActionLogClient
 	// LifeActionOccurrence is the client for interacting with the LifeActionOccurrence builders.
@@ -301,6 +304,7 @@ func (c *Client) init() {
 	c.Instruct = NewInstructClient(c.config)
 	c.LLMUsageRecord = NewLLMUsageRecordClient(c.config)
 	c.LifeAIContext = NewLifeAIContextClient(c.config)
+	c.LifeActionDependency = NewLifeActionDependencyClient(c.config)
 	c.LifeActionLog = NewLifeActionLogClient(c.config)
 	c.LifeActionOccurrence = NewLifeActionOccurrenceClient(c.config)
 	c.LifeActionSpec = NewLifeActionSpecClient(c.config)
@@ -471,6 +475,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
+		LifeActionDependency:      NewLifeActionDependencyClient(cfg),
 		LifeActionLog:             NewLifeActionLogClient(cfg),
 		LifeActionOccurrence:      NewLifeActionOccurrenceClient(cfg),
 		LifeActionSpec:            NewLifeActionSpecClient(cfg),
@@ -568,6 +573,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Instruct:                  NewInstructClient(cfg),
 		LLMUsageRecord:            NewLLMUsageRecordClient(cfg),
 		LifeAIContext:             NewLifeAIContextClient(cfg),
+		LifeActionDependency:      NewLifeActionDependencyClient(cfg),
 		LifeActionLog:             NewLifeActionLogClient(cfg),
 		LifeActionOccurrence:      NewLifeActionOccurrenceClient(cfg),
 		LifeActionSpec:            NewLifeActionSpecClient(cfg),
@@ -647,17 +653,17 @@ func (c *Client) Use(hooks ...Hook) {
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionLog, c.LifeActionOccurrence,
-		c.LifeActionSpec, c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots,
-		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
-		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
-		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
-		c.WorkflowTrigger,
+		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionDependency, c.LifeActionLog,
+		c.LifeActionOccurrence, c.LifeActionSpec, c.LifeCharacteristic,
+		c.LifeEquipment, c.LifeEquippedSlots, c.LifeGoal, c.LifeHabitCheckin,
+		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
+		c.LifeSkill, c.Message, c.NotificationRecord, c.NotifyChannel, c.NotifyRule,
+		c.NotifyTemplate, c.OAuth, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
+		c.WorkflowTask, c.WorkflowTrigger,
 	} {
 		n.Use(hooks...)
 	}
@@ -674,17 +680,17 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 		c.ChatScheduledTaskRun, c.ChatSession, c.ChatSessionEntry, c.Clip,
 		c.ConfigData, c.Connection, c.Counter, c.CounterRecord, c.Data, c.DataEvent,
 		c.EventConsumption, c.EventOutbox, c.Fileupload, c.Form, c.Instruct,
-		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionLog, c.LifeActionOccurrence,
-		c.LifeActionSpec, c.LifeCharacteristic, c.LifeEquipment, c.LifeEquippedSlots,
-		c.LifeGoal, c.LifeHabitCheckin, c.LifeInventory, c.LifeLootTable,
-		c.LifePlanNode, c.LifeProfile, c.LifeQuest, c.LifeSkill, c.Message,
-		c.NotificationRecord, c.NotifyChannel, c.NotifyRule, c.NotifyTemplate, c.OAuth,
-		c.Page, c.PageData, c.Parameter, c.PipelineDefinition,
-		c.PipelineDefinitionVersion, c.PipelineRun, c.PipelineStepRun, c.Platform,
-		c.PlatformBot, c.PlatformChannel, c.PlatformChannelUser, c.PlatformUser,
-		c.PollingState, c.ResourceLink, c.Topic, c.Url, c.User, c.WebAccount,
-		c.Workflow, c.WorkflowRun, c.WorkflowStepRun, c.WorkflowTask,
-		c.WorkflowTrigger,
+		c.LLMUsageRecord, c.LifeAIContext, c.LifeActionDependency, c.LifeActionLog,
+		c.LifeActionOccurrence, c.LifeActionSpec, c.LifeCharacteristic,
+		c.LifeEquipment, c.LifeEquippedSlots, c.LifeGoal, c.LifeHabitCheckin,
+		c.LifeInventory, c.LifeLootTable, c.LifePlanNode, c.LifeProfile, c.LifeQuest,
+		c.LifeSkill, c.Message, c.NotificationRecord, c.NotifyChannel, c.NotifyRule,
+		c.NotifyTemplate, c.OAuth, c.Page, c.PageData, c.Parameter,
+		c.PipelineDefinition, c.PipelineDefinitionVersion, c.PipelineRun,
+		c.PipelineStepRun, c.Platform, c.PlatformBot, c.PlatformChannel,
+		c.PlatformChannelUser, c.PlatformUser, c.PollingState, c.ResourceLink, c.Topic,
+		c.Url, c.User, c.WebAccount, c.Workflow, c.WorkflowRun, c.WorkflowStepRun,
+		c.WorkflowTask, c.WorkflowTrigger,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -763,6 +769,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LLMUsageRecord.mutate(ctx, m)
 	case *LifeAIContextMutation:
 		return c.LifeAIContext.mutate(ctx, m)
+	case *LifeActionDependencyMutation:
+		return c.LifeActionDependency.mutate(ctx, m)
 	case *LifeActionLogMutation:
 		return c.LifeActionLog.mutate(ctx, m)
 	case *LifeActionOccurrenceMutation:
@@ -5506,6 +5514,139 @@ func (c *LifeAIContextClient) mutate(ctx context.Context, m *LifeAIContextMutati
 		return (&LifeAIContextDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("gen: unknown LifeAIContext mutation op: %q", m.Op())
+	}
+}
+
+// LifeActionDependencyClient is a client for the LifeActionDependency schema.
+type LifeActionDependencyClient struct {
+	config
+}
+
+// NewLifeActionDependencyClient returns a client for the LifeActionDependency from the given config.
+func NewLifeActionDependencyClient(c config) *LifeActionDependencyClient {
+	return &LifeActionDependencyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lifeactiondependency.Hooks(f(g(h())))`.
+func (c *LifeActionDependencyClient) Use(hooks ...Hook) {
+	c.hooks.LifeActionDependency = append(c.hooks.LifeActionDependency, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lifeactiondependency.Intercept(f(g(h())))`.
+func (c *LifeActionDependencyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LifeActionDependency = append(c.inters.LifeActionDependency, interceptors...)
+}
+
+// Create returns a builder for creating a LifeActionDependency entity.
+func (c *LifeActionDependencyClient) Create() *LifeActionDependencyCreate {
+	mutation := newLifeActionDependencyMutation(c.config, OpCreate)
+	return &LifeActionDependencyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LifeActionDependency entities.
+func (c *LifeActionDependencyClient) CreateBulk(builders ...*LifeActionDependencyCreate) *LifeActionDependencyCreateBulk {
+	return &LifeActionDependencyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LifeActionDependencyClient) MapCreateBulk(slice any, setFunc func(*LifeActionDependencyCreate, int)) *LifeActionDependencyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LifeActionDependencyCreateBulk{err: fmt.Errorf("calling to LifeActionDependencyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LifeActionDependencyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LifeActionDependencyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LifeActionDependency.
+func (c *LifeActionDependencyClient) Update() *LifeActionDependencyUpdate {
+	mutation := newLifeActionDependencyMutation(c.config, OpUpdate)
+	return &LifeActionDependencyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LifeActionDependencyClient) UpdateOne(_m *LifeActionDependency) *LifeActionDependencyUpdateOne {
+	mutation := newLifeActionDependencyMutation(c.config, OpUpdateOne, withLifeActionDependency(_m))
+	return &LifeActionDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LifeActionDependencyClient) UpdateOneID(id int64) *LifeActionDependencyUpdateOne {
+	mutation := newLifeActionDependencyMutation(c.config, OpUpdateOne, withLifeActionDependencyID(id))
+	return &LifeActionDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LifeActionDependency.
+func (c *LifeActionDependencyClient) Delete() *LifeActionDependencyDelete {
+	mutation := newLifeActionDependencyMutation(c.config, OpDelete)
+	return &LifeActionDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LifeActionDependencyClient) DeleteOne(_m *LifeActionDependency) *LifeActionDependencyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LifeActionDependencyClient) DeleteOneID(id int64) *LifeActionDependencyDeleteOne {
+	builder := c.Delete().Where(lifeactiondependency.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LifeActionDependencyDeleteOne{builder}
+}
+
+// Query returns a query builder for LifeActionDependency.
+func (c *LifeActionDependencyClient) Query() *LifeActionDependencyQuery {
+	return &LifeActionDependencyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLifeActionDependency},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LifeActionDependency entity by its id.
+func (c *LifeActionDependencyClient) Get(ctx context.Context, id int64) (*LifeActionDependency, error) {
+	return c.Query().Where(lifeactiondependency.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LifeActionDependencyClient) GetX(ctx context.Context, id int64) *LifeActionDependency {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LifeActionDependencyClient) Hooks() []Hook {
+	return c.hooks.LifeActionDependency
+}
+
+// Interceptors returns the client interceptors.
+func (c *LifeActionDependencyClient) Interceptors() []Interceptor {
+	return c.inters.LifeActionDependency
+}
+
+func (c *LifeActionDependencyClient) mutate(ctx context.Context, m *LifeActionDependencyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LifeActionDependencyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LifeActionDependencyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LifeActionDependencyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LifeActionDependencyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("gen: unknown LifeActionDependency mutation op: %q", m.Op())
 	}
 }
 
@@ -11237,8 +11378,8 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
-		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeGoal,
+		LifeAIContext, LifeActionDependency, LifeActionLog, LifeActionOccurrence,
+		LifeActionSpec, LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeGoal,
 		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
 		LifeQuest, LifeSkill, Message, NotificationRecord, NotifyChannel, NotifyRule,
 		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
@@ -11254,8 +11395,8 @@ type (
 		ChatScheduledTask, ChatScheduledTaskRun, ChatSession, ChatSessionEntry, Clip,
 		ConfigData, Connection, Counter, CounterRecord, Data, DataEvent,
 		EventConsumption, EventOutbox, Fileupload, Form, Instruct, LLMUsageRecord,
-		LifeAIContext, LifeActionLog, LifeActionOccurrence, LifeActionSpec,
-		LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeGoal,
+		LifeAIContext, LifeActionDependency, LifeActionLog, LifeActionOccurrence,
+		LifeActionSpec, LifeCharacteristic, LifeEquipment, LifeEquippedSlots, LifeGoal,
 		LifeHabitCheckin, LifeInventory, LifeLootTable, LifePlanNode, LifeProfile,
 		LifeQuest, LifeSkill, Message, NotificationRecord, NotifyChannel, NotifyRule,
 		NotifyTemplate, OAuth, Page, PageData, Parameter, PipelineDefinition,
