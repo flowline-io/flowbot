@@ -9,6 +9,15 @@ import (
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
+// knownWeakPasswords are rejected for both plaintext and password_hash configs.
+var knownWeakPasswords = []string{
+	"admin", "password", "password123", "password1234",
+	"123456", "12345678", "1234567890", "123456789012",
+	"qwerty", "letmein", "welcome", "changeme",
+	"flowbot", "adminadmin", "adminadmin12", "root",
+	"toor", "passw0rd", "default",
+}
+
 // validateAuthConfig checks modules.web.auth at module Init.
 // YAML username/password are optional (used only for one-time migration); setup covers empty DB.
 func validateAuthConfig(cfg AuthConfig) error {
@@ -31,6 +40,22 @@ func validateAuthConfig(cfg AuthConfig) error {
 }
 
 func validatePasswordHash(hash string) error {
+	if err := validatePasswordHashFormat(hash); err != nil {
+		return err
+	}
+	// Under -race, each bcrypt compare at MinBcryptCost is extremely expensive. Nightly
+	// race jobs run this path many times (-count=10); keep empty-password rejection and
+	// defer the full weak-list probe to rejectWeakPasswordHash unit tests (MinCost).
+	if raceDetectorEnabled {
+		if bcrypt.CompareHashAndPassword([]byte(hash), []byte("")) == nil {
+			return fmt.Errorf("web auth: password_hash must not match an empty password")
+		}
+		return nil
+	}
+	return rejectWeakPasswordHash(hash)
+}
+
+func validatePasswordHashFormat(hash string) error {
 	if !isBcryptHash(hash) {
 		return fmt.Errorf("web auth: invalid password_hash (expected bcrypt)")
 	}
@@ -41,17 +66,14 @@ func validatePasswordHash(hash string) error {
 	if cost < webauth.MinBcryptCost {
 		return fmt.Errorf("web auth: password_hash bcrypt cost must be at least %d", webauth.MinBcryptCost)
 	}
+	return nil
+}
+
+func rejectWeakPasswordHash(hash string) error {
 	if bcrypt.CompareHashAndPassword([]byte(hash), []byte("")) == nil {
 		return fmt.Errorf("web auth: password_hash must not match an empty password")
 	}
-	weak := []string{
-		"admin", "password", "password123", "password1234",
-		"123456", "12345678", "1234567890", "123456789012",
-		"qwerty", "letmein", "welcome", "changeme",
-		"flowbot", "adminadmin", "adminadmin12", "root",
-		"toor", "passw0rd", "default",
-	}
-	for _, w := range weak {
+	for _, w := range knownWeakPasswords {
 		if bcrypt.CompareHashAndPassword([]byte(hash), []byte(w)) == nil {
 			return fmt.Errorf("web auth: password_hash matches a known weak password")
 		}

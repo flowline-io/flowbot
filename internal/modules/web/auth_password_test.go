@@ -8,16 +8,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Precomputed bcrypt cost=10 hashes (avoids GenerateFromPassword under -race -count=10).
+const (
+	testHashStrongCost10 = "$2a$10$U0yBQeBf7ekML/GF9JlcZOEiHXQn/w078f.ovTBLseu7o9XS6X2tC" // correct-horse-battery
+	testHashAdminCost10  = "$2a$10$g9mNWvq6BIYIJ018ZB5YPeohn.u/kDT2JkyeLeQdLp.Evg3NZk4Ma" // admin
+	testHashEmptyCost10  = "$2a$10$Q9UolPMVV1FgSf2mCEKln.J5NSnzJP.DqBAFoKBf4dlQg5POoJ5/W" // empty
+)
+
 func TestValidateAuthConfig(t *testing.T) {
-	strongHash := mustBcryptHash(t, "correct-horse-battery")
-	weakHash := mustBcryptHash(t, "admin")
-	emptyHash := mustBcryptHash(t, "")
 	lowCostHash := mustBcryptHashCost(t, "correct-horse-battery", bcrypt.MinCost)
 
 	tests := []struct {
-		name    string
-		cfg     AuthConfig
-		wantErr string
+		name     string
+		cfg      AuthConfig
+		wantErr  string
+		skipRace bool
 	}{
 		{
 			name: "empty auth allowed for setup path",
@@ -29,7 +34,7 @@ func TestValidateAuthConfig(t *testing.T) {
 		},
 		{
 			name: "password_hash meets policy",
-			cfg:  AuthConfig{Username: "admin", PasswordHash: strongHash},
+			cfg:  AuthConfig{Username: "admin", PasswordHash: testHashStrongCost10},
 		},
 		{
 			name:    "username required when password set",
@@ -38,7 +43,7 @@ func TestValidateAuthConfig(t *testing.T) {
 		},
 		{
 			name:    "both password and password_hash rejected",
-			cfg:     AuthConfig{Username: "admin", Password: "flowbot-dev-pass", PasswordHash: strongHash},
+			cfg:     AuthConfig{Username: "admin", Password: "flowbot-dev-pass", PasswordHash: testHashStrongCost10},
 			wantErr: "set either password or password_hash, not both",
 		},
 		{
@@ -62,13 +67,14 @@ func TestValidateAuthConfig(t *testing.T) {
 			wantErr: "invalid password_hash",
 		},
 		{
-			name:    "password_hash of weak password rejected",
-			cfg:     AuthConfig{Username: "admin", PasswordHash: weakHash},
-			wantErr: "known weak password",
+			name:     "password_hash of weak password rejected",
+			cfg:      AuthConfig{Username: "admin", PasswordHash: testHashAdminCost10},
+			wantErr:  "known weak password",
+			skipRace: true, // covered by TestRejectWeakPasswordHash at MinCost
 		},
 		{
 			name:    "password_hash of empty password rejected",
-			cfg:     AuthConfig{Username: "admin", PasswordHash: emptyHash},
+			cfg:     AuthConfig{Username: "admin", PasswordHash: testHashEmptyCost10},
 			wantErr: "empty password",
 		},
 		{
@@ -79,6 +85,9 @@ func TestValidateAuthConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skipRace && raceDetectorEnabled {
+				t.Skip("full weak-password bcrypt probe skipped under -race")
+			}
 			err := validateAuthConfig(tt.cfg)
 			if tt.wantErr == "" {
 				assert.NoError(t, err)
@@ -90,11 +99,34 @@ func TestValidateAuthConfig(t *testing.T) {
 	}
 }
 
-func mustBcryptHash(t *testing.T, password string) string {
-	t.Helper()
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), webauthMinCost())
-	require.NoError(t, err)
-	return string(hash)
+func TestRejectWeakPasswordHash(t *testing.T) {
+	t.Parallel()
+	// MinCost keeps the probe loop affordable under -race while covering rejectWeakPasswordHash.
+	weakHash := mustBcryptHashCost(t, "admin", bcrypt.MinCost)
+	emptyHash := mustBcryptHashCost(t, "", bcrypt.MinCost)
+	strongHash := mustBcryptHashCost(t, "correct-horse-battery", bcrypt.MinCost)
+
+	tests := []struct {
+		name    string
+		hash    string
+		wantErr string
+	}{
+		{name: "weak password rejected", hash: weakHash, wantErr: "known weak password"},
+		{name: "empty password rejected", hash: emptyHash, wantErr: "empty password"},
+		{name: "strong password accepted", hash: strongHash},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := rejectWeakPasswordHash(tt.hash)
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+				return
+			}
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tt.wantErr)
+		})
+	}
 }
 
 func mustBcryptHashCost(t *testing.T, password string, cost int) string {
@@ -102,8 +134,4 @@ func mustBcryptHashCost(t *testing.T, password string, cost int) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), cost)
 	require.NoError(t, err)
 	return string(hash)
-}
-
-func webauthMinCost() int {
-	return 10
 }

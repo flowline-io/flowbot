@@ -156,16 +156,18 @@ tasks:
     desc: Race testing (all packages, default count=3)
     vars:
       COUNT: '{{.COUNT | default "3"}}'
+      TIMEOUT: '{{.TIMEOUT | default "20m"}}'
     cmds:
-      - go tool gotestsum --hide-summary=skipped -- -race -count={{.COUNT}} ./...
+      - go tool gotestsum --hide-summary=skipped -- -race -count={{.COUNT}} -timeout={{.TIMEOUT}} ./...
 
   test:race:ci:
     desc: Race testing for a CI shard (requires PACKAGES var)
     vars:
       COUNT: '{{.COUNT | default "3"}}'
+      TIMEOUT: '{{.TIMEOUT | default "20m"}}'
       PACKAGES: '{{.PACKAGES}}'
     cmds:
-      - go tool gotestsum --hide-summary=skipped --packages="{{.PACKAGES}}" -- -race -count={{.COUNT}}
+      - go tool gotestsum --hide-summary=skipped --packages="{{.PACKAGES}}" -- -race -count={{.COUNT}} -timeout={{.TIMEOUT}}
 
   test:race:nightly:
     desc: Deep race scan for nightly cron
@@ -175,6 +177,7 @@ tasks:
       - task: test:race:ci
         vars:
           COUNT: "10"
+          TIMEOUT: "45m"
           PACKAGES: '{{.PACKAGES}}'
 
   # Documentation tasks
