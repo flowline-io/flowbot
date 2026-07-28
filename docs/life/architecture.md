@@ -75,6 +75,8 @@ public/css/custom.css           # Life page styles (`.life-*`)
 | `life_equipped_slots` | One row per profile; slot → inventory id |
 | `life_loot_tables` | drop_tier → base chance + item flag pool |
 | `life_action_logs` | completion + dice + drop audit |
+| `life_rewards` | Player-defined real-life rewards (name, price, optional cooldown) |
+| `life_reward_redemptions` | Gold spend audit with name/price snapshots |
 
 Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_status` ∈ `none` \| `pending` \| `ready` \| `failed`.
 
@@ -89,6 +91,8 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | `CompleteQuest` | Cascade + loot + action log + optional lore outbox + Daily respawn (one DB tx) |
 | `UpdateGoal` / `DeleteGoal` | Edit or remove PARA goals |
 | `ListActionLogs` | Recent completion audit for Quests UI |
+| `ListAchievements` | Catalog + progress/unlock state for Achievements UI |
+| `ListRewardsPage` / `CreateReward` / `UpdateReward` / `DeactivateReward` / `RestoreReward` / `RedeemReward` | Real-life rewards market (gold sink) |
 | `Equip` / `Unequip` | Update `life_equipped_slots` |
 | `ListQuests` / `ListInventory` / `GetCharacter` | Read models for UI |
 | `SetClassType` | Update class (default `Architect`) |
@@ -127,8 +131,15 @@ Prefix: `/service/web`
 | GET | `/life/inventory` | Backpack |
 | POST | `/life/inventory/:flag/equip` | Equip inventory item |
 | POST | `/life/inventory/slots/:slot/unequip` | Clear equipped slot |
+| GET | `/life/achievements` | Memorial achievements |
+| GET | `/life/rewards` | Player-defined real-life rewards market |
+| POST | `/life/rewards` | Create reward |
+| POST | `/life/rewards/:flag` | Update reward |
+| POST | `/life/rewards/:flag/deactivate` | Soft-delete reward |
+| POST | `/life/rewards/:flag/restore` | Restore soft-deleted reward |
+| POST | `/life/rewards/:flag/redeem` | Spend gold (honor system) |
 
-Nav: session badge User dropdown — Life, Character, Quests, Inventory. Mirror under a **User** section in the mobile menu. Logout stays as today.
+Nav: Life module sidebar — Life, Quests, Skills, Inventory, Achievements, Rewards, Character.
 
 ## 9. Core flows and outbox contract
 

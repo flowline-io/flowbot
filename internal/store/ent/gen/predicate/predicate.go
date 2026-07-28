@@ -168,6 +168,12 @@ type LifeProfile func(*sql.Selector)
 // LifeQuest is the predicate function for lifequest builders.
 type LifeQuest func(*sql.Selector)
 
+// LifeReward is the predicate function for lifereward builders.
+type LifeReward func(*sql.Selector)
+
+// LifeRewardRedemption is the predicate function for liferewardredemption builders.
+type LifeRewardRedemption func(*sql.Selector)
+
 // LifeSkill is the predicate function for lifeskill builders.
 type LifeSkill func(*sql.Selector)
 

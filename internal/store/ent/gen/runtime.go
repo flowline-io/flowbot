@@ -58,6 +58,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifereward"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/liferewardredemption"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
@@ -1708,6 +1710,52 @@ func init() {
 	lifequest.DefaultUpdatedAt = lifequestDescUpdatedAt.Default.(func() time.Time)
 	// lifequest.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	lifequest.UpdateDefaultUpdatedAt = lifequestDescUpdatedAt.UpdateDefault.(func() time.Time)
+	liferewardFields := schema.LifeReward{}.Fields()
+	_ = liferewardFields
+	// liferewardDescFlag is the schema descriptor for flag field.
+	liferewardDescFlag := liferewardFields[1].Descriptor()
+	// lifereward.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	lifereward.FlagValidator = liferewardDescFlag.Validators[0].(func(string) error)
+	// liferewardDescName is the schema descriptor for name field.
+	liferewardDescName := liferewardFields[3].Descriptor()
+	// lifereward.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	lifereward.NameValidator = liferewardDescName.Validators[0].(func(string) error)
+	// liferewardDescNotes is the schema descriptor for notes field.
+	liferewardDescNotes := liferewardFields[4].Descriptor()
+	// lifereward.DefaultNotes holds the default value on creation for the notes field.
+	lifereward.DefaultNotes = liferewardDescNotes.Default.(string)
+	// liferewardDescCooldownHours is the schema descriptor for cooldown_hours field.
+	liferewardDescCooldownHours := liferewardFields[6].Descriptor()
+	// lifereward.DefaultCooldownHours holds the default value on creation for the cooldown_hours field.
+	lifereward.DefaultCooldownHours = liferewardDescCooldownHours.Default.(int)
+	// liferewardDescActive is the schema descriptor for active field.
+	liferewardDescActive := liferewardFields[7].Descriptor()
+	// lifereward.DefaultActive holds the default value on creation for the active field.
+	lifereward.DefaultActive = liferewardDescActive.Default.(bool)
+	// liferewardDescCreatedAt is the schema descriptor for created_at field.
+	liferewardDescCreatedAt := liferewardFields[9].Descriptor()
+	// lifereward.DefaultCreatedAt holds the default value on creation for the created_at field.
+	lifereward.DefaultCreatedAt = liferewardDescCreatedAt.Default.(func() time.Time)
+	// liferewardDescUpdatedAt is the schema descriptor for updated_at field.
+	liferewardDescUpdatedAt := liferewardFields[10].Descriptor()
+	// lifereward.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	lifereward.DefaultUpdatedAt = liferewardDescUpdatedAt.Default.(func() time.Time)
+	// lifereward.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	lifereward.UpdateDefaultUpdatedAt = liferewardDescUpdatedAt.UpdateDefault.(func() time.Time)
+	liferewardredemptionFields := schema.LifeRewardRedemption{}.Fields()
+	_ = liferewardredemptionFields
+	// liferewardredemptionDescFlag is the schema descriptor for flag field.
+	liferewardredemptionDescFlag := liferewardredemptionFields[1].Descriptor()
+	// liferewardredemption.FlagValidator is a validator for the "flag" field. It is called by the builders before save.
+	liferewardredemption.FlagValidator = liferewardredemptionDescFlag.Validators[0].(func(string) error)
+	// liferewardredemptionDescRewardName is the schema descriptor for reward_name field.
+	liferewardredemptionDescRewardName := liferewardredemptionFields[4].Descriptor()
+	// liferewardredemption.RewardNameValidator is a validator for the "reward_name" field. It is called by the builders before save.
+	liferewardredemption.RewardNameValidator = liferewardredemptionDescRewardName.Validators[0].(func(string) error)
+	// liferewardredemptionDescRedeemedAt is the schema descriptor for redeemed_at field.
+	liferewardredemptionDescRedeemedAt := liferewardredemptionFields[6].Descriptor()
+	// liferewardredemption.DefaultRedeemedAt holds the default value on creation for the redeemed_at field.
+	liferewardredemption.DefaultRedeemedAt = liferewardredemptionDescRedeemedAt.Default.(func() time.Time)
 	lifeskillFields := schema.LifeSkill{}.Fields()
 	_ = lifeskillFields
 	// lifeskillDescFlag is the schema descriptor for flag field.

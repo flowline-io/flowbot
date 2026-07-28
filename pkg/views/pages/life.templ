@@ -486,6 +486,11 @@ templ lifeModuleShell(active string, pendingCount int) {
 					data-testid="life-goto-achievements"
 				>Achievements</a>
 				<a
+					href="/service/web/life/rewards"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "rewards") }
+					data-testid="life-goto-rewards"
+				>Rewards</a>
+				<a
 					href="/service/web/life/character"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "character") }
 					data-testid="life-goto-character"
@@ -1158,6 +1163,242 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 						</ul>
 					}
 				</section>
+			</div>
+		}
+	}
+}
+
+templ LifeRewardsPage(data LifeRewardsData) {
+	@layout.Base("Rewards — Life") {
+		@lifeModuleShell("rewards", data.PendingCount) {
+			<div class="life-shell" data-testid="life-rewards-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Rewards</h1>
+						<p>Spend gold on real-life treats you define. Honor system — redeem when you claim it.</p>
+					</div>
+					<div class="life-rewards-balance" data-testid="life-rewards-gold">
+						<span class="life-rewards-balance-label">Balance</span>
+						<span class="life-rewards-balance-value">{ fmt.Sprintf("%d", data.Gold) }</span>
+						<span class="life-rewards-balance-unit">gold</span>
+					</div>
+				</header>
+
+				<section class="life-panel life-section" data-testid="life-rewards-create">
+					<header class="life-goals-head">
+						<div>
+							<h2 class="life-goals-title">Add reward</h2>
+							<p class="life-goals-sub">Name it, price it, optional cooldown.</p>
+						</div>
+					</header>
+					<form
+						class="life-rewards-compose"
+						hx-post="/service/web/life/rewards"
+						hx-swap="none"
+						hx-disabled-elt="find button[type='submit'], find input"
+						data-testid="life-rewards-create-form"
+					>
+						<input
+							type="text"
+							name="name"
+							class="life-rewards-compose-name"
+							required
+							placeholder="Milk tea"
+							autocomplete="off"
+							data-testid="life-reward-name-input"
+						/>
+						<div class="life-rewards-compose-row">
+							<label class="life-rewards-compose-field">
+								<span class="life-field-label">Price</span>
+								<input type="number" name="price" class="life-rewards-compose-num" min="1" required value="10" data-testid="life-reward-price-input"/>
+							</label>
+							<label class="life-rewards-compose-field">
+								<span class="life-field-label">Cooldown h</span>
+								<input type="number" name="cooldown_hours" class="life-rewards-compose-num" min="0" value="0" data-testid="life-reward-cooldown-input"/>
+							</label>
+							<label class="life-rewards-compose-field life-rewards-compose-notes">
+								<span class="life-field-label">Notes</span>
+								<input type="text" name="notes" class="life-rewards-compose-text" placeholder="Weekends only" data-testid="life-reward-notes-input"/>
+							</label>
+							<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-reward-create-submit">
+								@partials.HtmxIndicator()
+								Add
+							</button>
+						</div>
+					</form>
+				</section>
+
+				<section class="life-panel life-section" data-testid="life-rewards-active">
+					<header class="life-goals-head">
+						<div>
+							<h2 class="life-goals-title">Active</h2>
+							<p class="life-goals-sub">Redeem when you take the treat.</p>
+						</div>
+						if len(data.Active) > 0 {
+							<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Active)) }</span>
+						}
+					</header>
+					if len(data.Active) == 0 {
+						<p class="life-empty">No rewards yet — add one above.</p>
+					} else {
+						<ul class="life-reward-list">
+							for _, item := range data.Active {
+								<li class="life-reward-card" data-testid={ "life-reward-" + item.Flag }>
+									<div class="life-reward-main">
+										<div class="life-reward-copy">
+											<div class="life-reward-head">
+												<h3 class="life-reward-name">{ item.Name }</h3>
+												<span class="life-meta-chip" data-testid={ "life-reward-price-" + item.Flag }>
+													{ fmt.Sprintf("%d gold", item.Price) }
+												</span>
+											</div>
+											if item.Notes != "" {
+												<p class="life-reward-notes">{ item.Notes }</p>
+											}
+											<div class="life-reward-meta-row">
+												if item.OnCooldown {
+													<span class="life-meta-chip life-meta-chip-warn" data-testid={ "life-reward-cooldown-" + item.Flag }>
+														if item.CooldownEndsAt != "" {
+															{ fmt.Sprintf("Cooldown · until %s", item.CooldownEndsAt) }
+														} else {
+															On cooldown
+														}
+													</span>
+												} else if item.CooldownHours > 0 {
+													<span class="life-meta-chip">{ fmt.Sprintf("%dh cooldown", item.CooldownHours) }</span>
+												} else {
+													<span class="life-meta-chip">No cooldown</span>
+												}
+												if !item.CanAfford && !item.OnCooldown {
+													<span class="life-meta-chip" data-testid={ "life-reward-unaffordable-" + item.Flag }>Need more gold</span>
+												}
+											</div>
+										</div>
+										<div class="life-reward-cta">
+											if item.CanRedeem {
+												<form
+													hx-post={ "/service/web/life/rewards/" + item.Flag + "/redeem" }
+													hx-swap="none"
+													data-testid={ "life-reward-redeem-" + item.Flag }
+												>
+													<button type="submit" class="btn btn-primary btn-sm">
+														@partials.HtmxIndicator()
+														Redeem
+													</button>
+												</form>
+											} else {
+												<button type="button" class="btn btn-ghost btn-sm" disabled>Redeem</button>
+											}
+										</div>
+									</div>
+									<div class="life-reward-footer">
+										<details class="life-reward-edit" data-testid={ "life-reward-edit-" + item.Flag }>
+											<summary class="life-goal-link">Edit</summary>
+											<form
+												class="life-rewards-edit-form"
+												hx-post={ "/service/web/life/rewards/" + item.Flag }
+												hx-swap="none"
+												hx-disabled-elt="find button[type='submit'], find input"
+											>
+												<label class="life-rewards-compose-field life-rewards-compose-notes">
+													<span class="life-field-label">Name</span>
+													<input type="text" name="name" class="life-rewards-compose-text" value={ item.Name } required aria-label="Name"/>
+												</label>
+												<label class="life-rewards-compose-field">
+													<span class="life-field-label">Price</span>
+													<input type="number" name="price" class="life-rewards-compose-num" min="1" value={ fmt.Sprintf("%d", item.Price) } required aria-label="Price"/>
+												</label>
+												<label class="life-rewards-compose-field">
+													<span class="life-field-label">Cooldown h</span>
+													<input type="number" name="cooldown_hours" class="life-rewards-compose-num" min="0" value={ fmt.Sprintf("%d", item.CooldownHours) } aria-label="Cooldown hours"/>
+												</label>
+												<label class="life-rewards-compose-field life-rewards-compose-notes">
+													<span class="life-field-label">Notes</span>
+													<input type="text" name="notes" class="life-rewards-compose-text" value={ item.Notes } aria-label="Notes"/>
+												</label>
+												<button type="submit" class="btn btn-sm btn-primary">
+													@partials.HtmxIndicator()
+													Save
+												</button>
+											</form>
+										</details>
+										<button
+											type="button"
+											class="life-goal-link life-goal-link-danger"
+											hx-post={ "/service/web/life/rewards/" + item.Flag + "/deactivate" }
+											hx-swap="none"
+											data-confirm="Deactivate this reward?"
+											data-testid={ "life-reward-deactivate-" + item.Flag }
+										>Deactivate</button>
+									</div>
+								</li>
+							}
+						</ul>
+					}
+				</section>
+
+				<section class="life-panel life-section" data-testid="life-rewards-history">
+					<header class="life-goals-head">
+						<div>
+							<h2 class="life-goals-title">Recent redemptions</h2>
+							<p class="life-goals-sub">Snapshot of what you claimed.</p>
+						</div>
+						if len(data.Redemptions) > 0 {
+							<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Redemptions)) }</span>
+						}
+					</header>
+					if len(data.Redemptions) == 0 {
+						<p class="life-empty">No redemptions yet.</p>
+					} else {
+						<ul class="life-reward-history" data-testid="life-rewards-history-list">
+							for _, item := range data.Redemptions {
+								<li data-testid={ "life-redemption-" + item.Flag }>
+									<span class="life-reward-history-name">{ item.RewardName }</span>
+									<span class="life-reward-history-meta">
+										<span class="life-reward-history-price">{ fmt.Sprintf("−%d gold", item.PricePaid) }</span>
+										<span class="life-reward-history-time">{ item.RedeemedAt }</span>
+									</span>
+								</li>
+							}
+						</ul>
+					}
+				</section>
+
+				if len(data.Inactive) > 0 {
+					<details class="life-panel life-section life-rewards-inactive" data-testid="life-rewards-inactive">
+						<summary class="life-rewards-inactive-summary">
+							<span class="life-goals-title">Deactivated</span>
+							<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Inactive)) }</span>
+						</summary>
+						<ul class="life-reward-list">
+							for _, item := range data.Inactive {
+								<li class="life-reward-card is-inactive" data-testid={ "life-reward-inactive-" + item.Flag }>
+									<div class="life-reward-main">
+										<div class="life-reward-copy">
+											<div class="life-reward-head">
+												<h3 class="life-reward-name">{ item.Name }</h3>
+												<span class="life-meta-chip">{ fmt.Sprintf("%d gold", item.Price) }</span>
+											</div>
+											if item.Notes != "" {
+												<p class="life-reward-notes">{ item.Notes }</p>
+											}
+										</div>
+										<form
+											hx-post={ "/service/web/life/rewards/" + item.Flag + "/restore" }
+											hx-swap="none"
+											data-testid={ "life-reward-restore-" + item.Flag }
+										>
+											<button type="submit" class="btn btn-sm btn-primary">
+												@partials.HtmxIndicator()
+												Restore
+											</button>
+										</form>
+									</div>
+								</li>
+							}
+						</ul>
+					</details>
+				}
 			</div>
 		}
 	}

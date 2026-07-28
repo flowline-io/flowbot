@@ -44,6 +44,12 @@ var lifeWebserviceRules = []webservice.Rule{
 	webservice.Post("/life/habits/:flag/checkin", lifeCheckInHabit, route.WithNotAuth()),
 	webservice.Get("/life/inventory", lifeInventoryPage, route.WithNotAuth()),
 	webservice.Get("/life/achievements", lifeAchievementsPage, route.WithNotAuth()),
+	webservice.Get("/life/rewards", lifeRewardsPage, route.WithNotAuth()),
+	webservice.Post("/life/rewards", lifeCreateReward, route.WithNotAuth()),
+	webservice.Post("/life/rewards/:flag", lifeUpdateReward, route.WithNotAuth()),
+	webservice.Post("/life/rewards/:flag/deactivate", lifeDeactivateReward, route.WithNotAuth()),
+	webservice.Post("/life/rewards/:flag/restore", lifeRestoreReward, route.WithNotAuth()),
+	webservice.Post("/life/rewards/:flag/redeem", lifeRedeemReward, route.WithNotAuth()),
 	webservice.Post("/life/inventory/:flag/equip", lifeEquipItem, route.WithNotAuth()),
 	webservice.Post("/life/inventory/slots/:slot/unequip", lifeUnequipSlot, route.WithNotAuth()),
 }

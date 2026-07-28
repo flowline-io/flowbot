@@ -4329,6 +4329,299 @@ body:has(.chatagent-page) > main {
   color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
 }
 
+.life-rewards-balance {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 8%,
+    var(--color-base-100, #fff)
+  );
+}
+
+.life-rewards-balance-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+}
+
+.life-rewards-balance-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--color-primary, #0f766e);
+  line-height: 1;
+}
+
+.life-rewards-balance-unit {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 52%, transparent);
+}
+
+.life-rewards-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.life-rewards-compose-name,
+.life-rewards-compose-num,
+.life-rewards-compose-text {
+  height: 2.15rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+  color: var(--color-base-content, #111);
+  font-size: 0.8125rem;
+}
+
+.life-rewards-compose-name,
+.life-rewards-compose-text {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0.75rem;
+}
+
+.life-rewards-compose-num {
+  width: 100%;
+  padding: 0 0.65rem;
+}
+
+.life-rewards-compose-name:focus,
+.life-rewards-compose-num:focus,
+.life-rewards-compose-text:focus {
+  outline: 2px solid
+    color-mix(in oklab, var(--color-primary, #0f766e) 45%, transparent);
+  outline-offset: 1px;
+}
+
+.life-rewards-compose-row {
+  display: grid;
+  grid-template-columns: 5.5rem 5.5rem minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: end;
+}
+
+.life-rewards-compose-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.life-reward-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.life-reward-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-left: 3px solid
+    color-mix(in oklab, var(--color-primary, #0f766e) 55%, transparent);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 45%,
+    var(--color-base-100, #fff)
+  );
+}
+
+.life-reward-card.is-inactive {
+  border-left-color: color-mix(
+    in oklab,
+    var(--color-base-content) 18%,
+    transparent
+  );
+  opacity: 0.82;
+}
+
+.life-reward-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.life-reward-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.life-reward-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+}
+
+.life-reward-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.life-reward-notes {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
+}
+
+.life-reward-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.life-reward-cta {
+  flex-shrink: 0;
+}
+
+.life-reward-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed
+    color-mix(in oklab, var(--color-base-300, #d1d5db) 80%, transparent);
+}
+
+.life-reward-edit {
+  min-width: 0;
+  flex: 1;
+}
+
+.life-reward-edit > summary {
+  list-style: none;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.life-reward-edit > summary::-webkit-details-marker {
+  display: none;
+}
+
+.life-rewards-edit-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 5.5rem 5.5rem minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: end;
+  margin-top: 0.65rem;
+  padding: 0.65rem;
+  border: 1px solid var(--color-base-300, #d1d5db);
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: var(--color-base-100, #fff);
+}
+
+.life-reward-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.life-reward-history li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--flowbot-radius, 0.375rem);
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 55%,
+    var(--color-base-100, #fff)
+  );
+  font-size: 0.875rem;
+}
+
+.life-reward-history-name {
+  font-weight: 500;
+  min-width: 0;
+}
+
+.life-reward-history-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  flex-shrink: 0;
+}
+
+.life-reward-history-price {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+}
+
+.life-reward-history-time {
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 48%, transparent);
+}
+
+.life-rewards-inactive > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.life-rewards-inactive > summary::-webkit-details-marker {
+  display: none;
+}
+
+.life-rewards-inactive-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.life-rewards-inactive .life-reward-list {
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .life-rewards-compose-row,
+  .life-rewards-edit-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .life-rewards-compose-notes,
+  .life-rewards-compose-row .life-goals-compose-btn,
+  .life-rewards-edit-form .btn {
+    grid-column: 1 / -1;
+  }
+
+  .life-reward-main {
+    flex-direction: column;
+  }
+
+  .life-reward-cta,
+  .life-reward-cta .btn {
+    width: 100%;
+  }
+}
+
 .life-inv-card {
   display: flex;
   align-items: flex-start;

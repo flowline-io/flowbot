@@ -1546,6 +1546,71 @@ var (
 			},
 		},
 	}
+	// LifeRewardsColumns holds the columns for the "life_rewards" table.
+	LifeRewardsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "name", Type: field.TypeString},
+		{Name: "notes", Type: field.TypeString, Default: ""},
+		{Name: "price", Type: field.TypeInt},
+		{Name: "cooldown_hours", Type: field.TypeInt, Default: 0},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "last_redeemed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// LifeRewardsTable holds the schema information for the "life_rewards" table.
+	LifeRewardsTable = &schema.Table{
+		Name:       "life_rewards",
+		Columns:    LifeRewardsColumns,
+		PrimaryKey: []*schema.Column{LifeRewardsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lifereward_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeRewardsColumns[2]},
+			},
+			{
+				Name:    "lifereward_life_profile_id_active",
+				Unique:  false,
+				Columns: []*schema.Column{LifeRewardsColumns[2], LifeRewardsColumns[7]},
+			},
+		},
+	}
+	// LifeRewardRedemptionsColumns holds the columns for the "life_reward_redemptions" table.
+	LifeRewardRedemptionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "flag", Type: field.TypeString, Unique: true},
+		{Name: "life_profile_id", Type: field.TypeInt64},
+		{Name: "life_reward_id", Type: field.TypeInt64},
+		{Name: "reward_name", Type: field.TypeString},
+		{Name: "price_paid", Type: field.TypeInt},
+		{Name: "redeemed_at", Type: field.TypeTime},
+	}
+	// LifeRewardRedemptionsTable holds the schema information for the "life_reward_redemptions" table.
+	LifeRewardRedemptionsTable = &schema.Table{
+		Name:       "life_reward_redemptions",
+		Columns:    LifeRewardRedemptionsColumns,
+		PrimaryKey: []*schema.Column{LifeRewardRedemptionsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "liferewardredemption_life_profile_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeRewardRedemptionsColumns[2]},
+			},
+			{
+				Name:    "liferewardredemption_life_profile_id_redeemed_at",
+				Unique:  false,
+				Columns: []*schema.Column{LifeRewardRedemptionsColumns[2], LifeRewardRedemptionsColumns[6]},
+			},
+			{
+				Name:    "liferewardredemption_life_reward_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeRewardRedemptionsColumns[3]},
+			},
+		},
+	}
 	// LifeSkillsColumns holds the columns for the "life_skills" table.
 	LifeSkillsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -2433,6 +2498,8 @@ var (
 		LifePlanNodesTable,
 		LifeProfilesTable,
 		LifeQuestsTable,
+		LifeRewardsTable,
+		LifeRewardRedemptionsTable,
 		LifeSkillsTable,
 		MessagesTable,
 		NotificationRecordsTable,
@@ -2628,6 +2695,12 @@ func init() {
 	}
 	LifeQuestsTable.Annotation = &entsql.Annotation{
 		Table: "life_quests",
+	}
+	LifeRewardsTable.Annotation = &entsql.Annotation{
+		Table: "life_rewards",
+	}
+	LifeRewardRedemptionsTable.Annotation = &entsql.Annotation{
+		Table: "life_reward_redemptions",
 	}
 	LifeSkillsTable.Annotation = &entsql.Annotation{
 		Table: "life_skills",

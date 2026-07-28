@@ -123,5 +123,18 @@ var _ = Describe("Life Pages", Label("module", "web", "life"), func() {
 			Expect(body).To(ContainSubstring("life-equip-slot-armor"))
 			Expect(body).To(ContainSubstring("Backpack"))
 		})
+
+		It("renders rewards page", func() {
+			req := MakeRequest(http.MethodGet, "/service/web/life/rewards", nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "life-token"})
+			webmod.AttachCSRFForTest(req)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			body := string(ReadBody(resp))
+			Expect(body).To(ContainSubstring("life-rewards-page"))
+			Expect(body).To(ContainSubstring("life-rewards-create-form"))
+			Expect(body).To(ContainSubstring("life-goto-rewards"))
+		})
 	})
 })

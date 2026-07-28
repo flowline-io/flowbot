@@ -657,6 +657,30 @@ func (f LifeQuestFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeQuestMutation", m)
 }
 
+// The LifeRewardFunc type is an adapter to allow the use of ordinary
+// function as LifeReward mutator.
+type LifeRewardFunc func(context.Context, *gen.LifeRewardMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeRewardFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeRewardMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeRewardMutation", m)
+}
+
+// The LifeRewardRedemptionFunc type is an adapter to allow the use of ordinary
+// function as LifeRewardRedemption mutator.
+type LifeRewardRedemptionFunc func(context.Context, *gen.LifeRewardRedemptionMutation) (gen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LifeRewardRedemptionFunc) Mutate(ctx context.Context, m gen.Mutation) (gen.Value, error) {
+	if mv, ok := m.(*gen.LifeRewardRedemptionMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *gen.LifeRewardRedemptionMutation", m)
+}
+
 // The LifeSkillFunc type is an adapter to allow the use of ordinary
 // function as LifeSkill mutator.
 type LifeSkillFunc func(context.Context, *gen.LifeSkillMutation) (gen.Value, error)

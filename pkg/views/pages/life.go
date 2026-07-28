@@ -292,6 +292,36 @@ type LifeAchievementsData struct {
 	PendingCount  int
 }
 
+// LifeRewardRow is one player-defined reward on the Rewards page.
+type LifeRewardRow struct {
+	Flag           string
+	Name           string
+	Notes          string
+	Price          int
+	CooldownHours  int
+	OnCooldown     bool
+	CooldownEndsAt string
+	CanAfford      bool
+	CanRedeem      bool
+}
+
+// LifeRedemptionRow is one redemption history entry.
+type LifeRedemptionRow struct {
+	Flag       string
+	RewardName string
+	PricePaid  int
+	RedeemedAt string
+}
+
+// LifeRewardsData is the Rewards market page model.
+type LifeRewardsData struct {
+	Gold         int
+	Active       []LifeRewardRow
+	Inactive     []LifeRewardRow
+	Redemptions  []LifeRedemptionRow
+	PendingCount int
+}
+
 // lifeEquipSlotOrder is the paper-doll display order for wear positions.
 var lifeEquipSlotOrder = []struct {
 	label string

@@ -120,6 +120,10 @@ type Tx struct {
 	LifeProfile *LifeProfileClient
 	// LifeQuest is the client for interacting with the LifeQuest builders.
 	LifeQuest *LifeQuestClient
+	// LifeReward is the client for interacting with the LifeReward builders.
+	LifeReward *LifeRewardClient
+	// LifeRewardRedemption is the client for interacting with the LifeRewardRedemption builders.
+	LifeRewardRedemption *LifeRewardRedemptionClient
 	// LifeSkill is the client for interacting with the LifeSkill builders.
 	LifeSkill *LifeSkillClient
 	// Message is the client for interacting with the Message builders.
@@ -365,6 +369,8 @@ func (tx *Tx) init() {
 	tx.LifePlanNode = NewLifePlanNodeClient(tx.config)
 	tx.LifeProfile = NewLifeProfileClient(tx.config)
 	tx.LifeQuest = NewLifeQuestClient(tx.config)
+	tx.LifeReward = NewLifeRewardClient(tx.config)
+	tx.LifeRewardRedemption = NewLifeRewardRedemptionClient(tx.config)
 	tx.LifeSkill = NewLifeSkillClient(tx.config)
 	tx.Message = NewMessageClient(tx.config)
 	tx.NotificationRecord = NewNotificationRecordClient(tx.config)

@@ -64,6 +64,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifereward"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/liferewardredemption"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
@@ -162,6 +164,8 @@ const (
 	TypeLifePlanNode              = "LifePlanNode"
 	TypeLifeProfile               = "LifeProfile"
 	TypeLifeQuest                 = "LifeQuest"
+	TypeLifeReward                = "LifeReward"
+	TypeLifeRewardRedemption      = "LifeRewardRedemption"
 	TypeLifeSkill                 = "LifeSkill"
 	TypeMessage                   = "Message"
 	TypeNotificationRecord        = "NotificationRecord"
@@ -42498,6 +42502,1652 @@ func (m *LifeQuestMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *LifeQuestMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown LifeQuest edge %s", name)
+}
+
+// LifeRewardMutation represents an operation that mutates the LifeReward nodes in the graph.
+type LifeRewardMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	name               *string
+	notes              *string
+	price              *int
+	addprice           *int
+	cooldown_hours     *int
+	addcooldown_hours  *int
+	active             *bool
+	last_redeemed_at   *time.Time
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifeReward, error)
+	predicates         []predicate.LifeReward
+}
+
+var _ ent.Mutation = (*LifeRewardMutation)(nil)
+
+// liferewardOption allows management of the mutation configuration using functional options.
+type liferewardOption func(*LifeRewardMutation)
+
+// newLifeRewardMutation creates new mutation for the LifeReward entity.
+func newLifeRewardMutation(c config, op Op, opts ...liferewardOption) *LifeRewardMutation {
+	m := &LifeRewardMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeReward,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeRewardID sets the ID field of the mutation.
+func withLifeRewardID(id int64) liferewardOption {
+	return func(m *LifeRewardMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeReward
+		)
+		m.oldValue = func(ctx context.Context) (*LifeReward, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeReward.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeReward sets the old LifeReward of the mutation.
+func withLifeReward(node *LifeReward) liferewardOption {
+	return func(m *LifeRewardMutation) {
+		m.oldValue = func(context.Context) (*LifeReward, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeRewardMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeRewardMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeReward entities.
+func (m *LifeRewardMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeRewardMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeRewardMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeReward.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeRewardMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeRewardMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeRewardMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeRewardMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeRewardMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeRewardMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeRewardMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeRewardMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *LifeRewardMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *LifeRewardMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *LifeRewardMutation) ResetName() {
+	m.name = nil
+}
+
+// SetNotes sets the "notes" field.
+func (m *LifeRewardMutation) SetNotes(s string) {
+	m.notes = &s
+}
+
+// Notes returns the value of the "notes" field in the mutation.
+func (m *LifeRewardMutation) Notes() (r string, exists bool) {
+	v := m.notes
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNotes returns the old "notes" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldNotes(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNotes is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNotes requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNotes: %w", err)
+	}
+	return oldValue.Notes, nil
+}
+
+// ResetNotes resets all changes to the "notes" field.
+func (m *LifeRewardMutation) ResetNotes() {
+	m.notes = nil
+}
+
+// SetPrice sets the "price" field.
+func (m *LifeRewardMutation) SetPrice(i int) {
+	m.price = &i
+	m.addprice = nil
+}
+
+// Price returns the value of the "price" field in the mutation.
+func (m *LifeRewardMutation) Price() (r int, exists bool) {
+	v := m.price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrice returns the old "price" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldPrice(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrice: %w", err)
+	}
+	return oldValue.Price, nil
+}
+
+// AddPrice adds i to the "price" field.
+func (m *LifeRewardMutation) AddPrice(i int) {
+	if m.addprice != nil {
+		*m.addprice += i
+	} else {
+		m.addprice = &i
+	}
+}
+
+// AddedPrice returns the value that was added to the "price" field in this mutation.
+func (m *LifeRewardMutation) AddedPrice() (r int, exists bool) {
+	v := m.addprice
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPrice resets all changes to the "price" field.
+func (m *LifeRewardMutation) ResetPrice() {
+	m.price = nil
+	m.addprice = nil
+}
+
+// SetCooldownHours sets the "cooldown_hours" field.
+func (m *LifeRewardMutation) SetCooldownHours(i int) {
+	m.cooldown_hours = &i
+	m.addcooldown_hours = nil
+}
+
+// CooldownHours returns the value of the "cooldown_hours" field in the mutation.
+func (m *LifeRewardMutation) CooldownHours() (r int, exists bool) {
+	v := m.cooldown_hours
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCooldownHours returns the old "cooldown_hours" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldCooldownHours(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCooldownHours is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCooldownHours requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCooldownHours: %w", err)
+	}
+	return oldValue.CooldownHours, nil
+}
+
+// AddCooldownHours adds i to the "cooldown_hours" field.
+func (m *LifeRewardMutation) AddCooldownHours(i int) {
+	if m.addcooldown_hours != nil {
+		*m.addcooldown_hours += i
+	} else {
+		m.addcooldown_hours = &i
+	}
+}
+
+// AddedCooldownHours returns the value that was added to the "cooldown_hours" field in this mutation.
+func (m *LifeRewardMutation) AddedCooldownHours() (r int, exists bool) {
+	v := m.addcooldown_hours
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCooldownHours resets all changes to the "cooldown_hours" field.
+func (m *LifeRewardMutation) ResetCooldownHours() {
+	m.cooldown_hours = nil
+	m.addcooldown_hours = nil
+}
+
+// SetActive sets the "active" field.
+func (m *LifeRewardMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *LifeRewardMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *LifeRewardMutation) ResetActive() {
+	m.active = nil
+}
+
+// SetLastRedeemedAt sets the "last_redeemed_at" field.
+func (m *LifeRewardMutation) SetLastRedeemedAt(t time.Time) {
+	m.last_redeemed_at = &t
+}
+
+// LastRedeemedAt returns the value of the "last_redeemed_at" field in the mutation.
+func (m *LifeRewardMutation) LastRedeemedAt() (r time.Time, exists bool) {
+	v := m.last_redeemed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastRedeemedAt returns the old "last_redeemed_at" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldLastRedeemedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastRedeemedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastRedeemedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastRedeemedAt: %w", err)
+	}
+	return oldValue.LastRedeemedAt, nil
+}
+
+// ClearLastRedeemedAt clears the value of the "last_redeemed_at" field.
+func (m *LifeRewardMutation) ClearLastRedeemedAt() {
+	m.last_redeemed_at = nil
+	m.clearedFields[lifereward.FieldLastRedeemedAt] = struct{}{}
+}
+
+// LastRedeemedAtCleared returns if the "last_redeemed_at" field was cleared in this mutation.
+func (m *LifeRewardMutation) LastRedeemedAtCleared() bool {
+	_, ok := m.clearedFields[lifereward.FieldLastRedeemedAt]
+	return ok
+}
+
+// ResetLastRedeemedAt resets all changes to the "last_redeemed_at" field.
+func (m *LifeRewardMutation) ResetLastRedeemedAt() {
+	m.last_redeemed_at = nil
+	delete(m.clearedFields, lifereward.FieldLastRedeemedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LifeRewardMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LifeRewardMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LifeRewardMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LifeRewardMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LifeRewardMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LifeReward entity.
+// If the LifeReward object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LifeRewardMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// Where appends a list predicates to the LifeRewardMutation builder.
+func (m *LifeRewardMutation) Where(ps ...predicate.LifeReward) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeRewardMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeRewardMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeReward, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeRewardMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeRewardMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeReward).
+func (m *LifeRewardMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeRewardMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.flag != nil {
+		fields = append(fields, lifereward.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, lifereward.FieldLifeProfileID)
+	}
+	if m.name != nil {
+		fields = append(fields, lifereward.FieldName)
+	}
+	if m.notes != nil {
+		fields = append(fields, lifereward.FieldNotes)
+	}
+	if m.price != nil {
+		fields = append(fields, lifereward.FieldPrice)
+	}
+	if m.cooldown_hours != nil {
+		fields = append(fields, lifereward.FieldCooldownHours)
+	}
+	if m.active != nil {
+		fields = append(fields, lifereward.FieldActive)
+	}
+	if m.last_redeemed_at != nil {
+		fields = append(fields, lifereward.FieldLastRedeemedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, lifereward.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lifereward.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeRewardMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lifereward.FieldFlag:
+		return m.Flag()
+	case lifereward.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case lifereward.FieldName:
+		return m.Name()
+	case lifereward.FieldNotes:
+		return m.Notes()
+	case lifereward.FieldPrice:
+		return m.Price()
+	case lifereward.FieldCooldownHours:
+		return m.CooldownHours()
+	case lifereward.FieldActive:
+		return m.Active()
+	case lifereward.FieldLastRedeemedAt:
+		return m.LastRedeemedAt()
+	case lifereward.FieldCreatedAt:
+		return m.CreatedAt()
+	case lifereward.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeRewardMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lifereward.FieldFlag:
+		return m.OldFlag(ctx)
+	case lifereward.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case lifereward.FieldName:
+		return m.OldName(ctx)
+	case lifereward.FieldNotes:
+		return m.OldNotes(ctx)
+	case lifereward.FieldPrice:
+		return m.OldPrice(ctx)
+	case lifereward.FieldCooldownHours:
+		return m.OldCooldownHours(ctx)
+	case lifereward.FieldActive:
+		return m.OldActive(ctx)
+	case lifereward.FieldLastRedeemedAt:
+		return m.OldLastRedeemedAt(ctx)
+	case lifereward.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lifereward.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeReward field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeRewardMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lifereward.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case lifereward.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case lifereward.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case lifereward.FieldNotes:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNotes(v)
+		return nil
+	case lifereward.FieldPrice:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrice(v)
+		return nil
+	case lifereward.FieldCooldownHours:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCooldownHours(v)
+		return nil
+	case lifereward.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	case lifereward.FieldLastRedeemedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastRedeemedAt(v)
+		return nil
+	case lifereward.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lifereward.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeReward field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeRewardMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, lifereward.FieldLifeProfileID)
+	}
+	if m.addprice != nil {
+		fields = append(fields, lifereward.FieldPrice)
+	}
+	if m.addcooldown_hours != nil {
+		fields = append(fields, lifereward.FieldCooldownHours)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeRewardMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case lifereward.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case lifereward.FieldPrice:
+		return m.AddedPrice()
+	case lifereward.FieldCooldownHours:
+		return m.AddedCooldownHours()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeRewardMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case lifereward.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case lifereward.FieldPrice:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPrice(v)
+		return nil
+	case lifereward.FieldCooldownHours:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCooldownHours(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeReward numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeRewardMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(lifereward.FieldLastRedeemedAt) {
+		fields = append(fields, lifereward.FieldLastRedeemedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeRewardMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeRewardMutation) ClearField(name string) error {
+	switch name {
+	case lifereward.FieldLastRedeemedAt:
+		m.ClearLastRedeemedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeReward nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeRewardMutation) ResetField(name string) error {
+	switch name {
+	case lifereward.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case lifereward.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case lifereward.FieldName:
+		m.ResetName()
+		return nil
+	case lifereward.FieldNotes:
+		m.ResetNotes()
+		return nil
+	case lifereward.FieldPrice:
+		m.ResetPrice()
+		return nil
+	case lifereward.FieldCooldownHours:
+		m.ResetCooldownHours()
+		return nil
+	case lifereward.FieldActive:
+		m.ResetActive()
+		return nil
+	case lifereward.FieldLastRedeemedAt:
+		m.ResetLastRedeemedAt()
+		return nil
+	case lifereward.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lifereward.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeReward field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeRewardMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeRewardMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeRewardMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeRewardMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeRewardMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeRewardMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeRewardMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeReward unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeRewardMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeReward edge %s", name)
+}
+
+// LifeRewardRedemptionMutation represents an operation that mutates the LifeRewardRedemption nodes in the graph.
+type LifeRewardRedemptionMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	flag               *string
+	life_profile_id    *int64
+	addlife_profile_id *int64
+	life_reward_id     *int64
+	addlife_reward_id  *int64
+	reward_name        *string
+	price_paid         *int
+	addprice_paid      *int
+	redeemed_at        *time.Time
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*LifeRewardRedemption, error)
+	predicates         []predicate.LifeRewardRedemption
+}
+
+var _ ent.Mutation = (*LifeRewardRedemptionMutation)(nil)
+
+// liferewardredemptionOption allows management of the mutation configuration using functional options.
+type liferewardredemptionOption func(*LifeRewardRedemptionMutation)
+
+// newLifeRewardRedemptionMutation creates new mutation for the LifeRewardRedemption entity.
+func newLifeRewardRedemptionMutation(c config, op Op, opts ...liferewardredemptionOption) *LifeRewardRedemptionMutation {
+	m := &LifeRewardRedemptionMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLifeRewardRedemption,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLifeRewardRedemptionID sets the ID field of the mutation.
+func withLifeRewardRedemptionID(id int64) liferewardredemptionOption {
+	return func(m *LifeRewardRedemptionMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LifeRewardRedemption
+		)
+		m.oldValue = func(ctx context.Context) (*LifeRewardRedemption, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LifeRewardRedemption.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLifeRewardRedemption sets the old LifeRewardRedemption of the mutation.
+func withLifeRewardRedemption(node *LifeRewardRedemption) liferewardredemptionOption {
+	return func(m *LifeRewardRedemptionMutation) {
+		m.oldValue = func(context.Context) (*LifeRewardRedemption, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LifeRewardRedemptionMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LifeRewardRedemptionMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("gen: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LifeRewardRedemption entities.
+func (m *LifeRewardRedemptionMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LifeRewardRedemptionMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LifeRewardRedemptionMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LifeRewardRedemption.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetFlag sets the "flag" field.
+func (m *LifeRewardRedemptionMutation) SetFlag(s string) {
+	m.flag = &s
+}
+
+// Flag returns the value of the "flag" field in the mutation.
+func (m *LifeRewardRedemptionMutation) Flag() (r string, exists bool) {
+	v := m.flag
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFlag returns the old "flag" field's value of the LifeRewardRedemption entity.
+// If the LifeRewardRedemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardRedemptionMutation) OldFlag(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFlag is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFlag requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFlag: %w", err)
+	}
+	return oldValue.Flag, nil
+}
+
+// ResetFlag resets all changes to the "flag" field.
+func (m *LifeRewardRedemptionMutation) ResetFlag() {
+	m.flag = nil
+}
+
+// SetLifeProfileID sets the "life_profile_id" field.
+func (m *LifeRewardRedemptionMutation) SetLifeProfileID(i int64) {
+	m.life_profile_id = &i
+	m.addlife_profile_id = nil
+}
+
+// LifeProfileID returns the value of the "life_profile_id" field in the mutation.
+func (m *LifeRewardRedemptionMutation) LifeProfileID() (r int64, exists bool) {
+	v := m.life_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeProfileID returns the old "life_profile_id" field's value of the LifeRewardRedemption entity.
+// If the LifeRewardRedemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardRedemptionMutation) OldLifeProfileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeProfileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeProfileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeProfileID: %w", err)
+	}
+	return oldValue.LifeProfileID, nil
+}
+
+// AddLifeProfileID adds i to the "life_profile_id" field.
+func (m *LifeRewardRedemptionMutation) AddLifeProfileID(i int64) {
+	if m.addlife_profile_id != nil {
+		*m.addlife_profile_id += i
+	} else {
+		m.addlife_profile_id = &i
+	}
+}
+
+// AddedLifeProfileID returns the value that was added to the "life_profile_id" field in this mutation.
+func (m *LifeRewardRedemptionMutation) AddedLifeProfileID() (r int64, exists bool) {
+	v := m.addlife_profile_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeProfileID resets all changes to the "life_profile_id" field.
+func (m *LifeRewardRedemptionMutation) ResetLifeProfileID() {
+	m.life_profile_id = nil
+	m.addlife_profile_id = nil
+}
+
+// SetLifeRewardID sets the "life_reward_id" field.
+func (m *LifeRewardRedemptionMutation) SetLifeRewardID(i int64) {
+	m.life_reward_id = &i
+	m.addlife_reward_id = nil
+}
+
+// LifeRewardID returns the value of the "life_reward_id" field in the mutation.
+func (m *LifeRewardRedemptionMutation) LifeRewardID() (r int64, exists bool) {
+	v := m.life_reward_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLifeRewardID returns the old "life_reward_id" field's value of the LifeRewardRedemption entity.
+// If the LifeRewardRedemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardRedemptionMutation) OldLifeRewardID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLifeRewardID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLifeRewardID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLifeRewardID: %w", err)
+	}
+	return oldValue.LifeRewardID, nil
+}
+
+// AddLifeRewardID adds i to the "life_reward_id" field.
+func (m *LifeRewardRedemptionMutation) AddLifeRewardID(i int64) {
+	if m.addlife_reward_id != nil {
+		*m.addlife_reward_id += i
+	} else {
+		m.addlife_reward_id = &i
+	}
+}
+
+// AddedLifeRewardID returns the value that was added to the "life_reward_id" field in this mutation.
+func (m *LifeRewardRedemptionMutation) AddedLifeRewardID() (r int64, exists bool) {
+	v := m.addlife_reward_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLifeRewardID resets all changes to the "life_reward_id" field.
+func (m *LifeRewardRedemptionMutation) ResetLifeRewardID() {
+	m.life_reward_id = nil
+	m.addlife_reward_id = nil
+}
+
+// SetRewardName sets the "reward_name" field.
+func (m *LifeRewardRedemptionMutation) SetRewardName(s string) {
+	m.reward_name = &s
+}
+
+// RewardName returns the value of the "reward_name" field in the mutation.
+func (m *LifeRewardRedemptionMutation) RewardName() (r string, exists bool) {
+	v := m.reward_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRewardName returns the old "reward_name" field's value of the LifeRewardRedemption entity.
+// If the LifeRewardRedemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardRedemptionMutation) OldRewardName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRewardName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRewardName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRewardName: %w", err)
+	}
+	return oldValue.RewardName, nil
+}
+
+// ResetRewardName resets all changes to the "reward_name" field.
+func (m *LifeRewardRedemptionMutation) ResetRewardName() {
+	m.reward_name = nil
+}
+
+// SetPricePaid sets the "price_paid" field.
+func (m *LifeRewardRedemptionMutation) SetPricePaid(i int) {
+	m.price_paid = &i
+	m.addprice_paid = nil
+}
+
+// PricePaid returns the value of the "price_paid" field in the mutation.
+func (m *LifeRewardRedemptionMutation) PricePaid() (r int, exists bool) {
+	v := m.price_paid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPricePaid returns the old "price_paid" field's value of the LifeRewardRedemption entity.
+// If the LifeRewardRedemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardRedemptionMutation) OldPricePaid(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPricePaid is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPricePaid requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPricePaid: %w", err)
+	}
+	return oldValue.PricePaid, nil
+}
+
+// AddPricePaid adds i to the "price_paid" field.
+func (m *LifeRewardRedemptionMutation) AddPricePaid(i int) {
+	if m.addprice_paid != nil {
+		*m.addprice_paid += i
+	} else {
+		m.addprice_paid = &i
+	}
+}
+
+// AddedPricePaid returns the value that was added to the "price_paid" field in this mutation.
+func (m *LifeRewardRedemptionMutation) AddedPricePaid() (r int, exists bool) {
+	v := m.addprice_paid
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPricePaid resets all changes to the "price_paid" field.
+func (m *LifeRewardRedemptionMutation) ResetPricePaid() {
+	m.price_paid = nil
+	m.addprice_paid = nil
+}
+
+// SetRedeemedAt sets the "redeemed_at" field.
+func (m *LifeRewardRedemptionMutation) SetRedeemedAt(t time.Time) {
+	m.redeemed_at = &t
+}
+
+// RedeemedAt returns the value of the "redeemed_at" field in the mutation.
+func (m *LifeRewardRedemptionMutation) RedeemedAt() (r time.Time, exists bool) {
+	v := m.redeemed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRedeemedAt returns the old "redeemed_at" field's value of the LifeRewardRedemption entity.
+// If the LifeRewardRedemption object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeRewardRedemptionMutation) OldRedeemedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRedeemedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRedeemedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRedeemedAt: %w", err)
+	}
+	return oldValue.RedeemedAt, nil
+}
+
+// ResetRedeemedAt resets all changes to the "redeemed_at" field.
+func (m *LifeRewardRedemptionMutation) ResetRedeemedAt() {
+	m.redeemed_at = nil
+}
+
+// Where appends a list predicates to the LifeRewardRedemptionMutation builder.
+func (m *LifeRewardRedemptionMutation) Where(ps ...predicate.LifeRewardRedemption) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LifeRewardRedemptionMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LifeRewardRedemptionMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LifeRewardRedemption, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LifeRewardRedemptionMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LifeRewardRedemptionMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LifeRewardRedemption).
+func (m *LifeRewardRedemptionMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LifeRewardRedemptionMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.flag != nil {
+		fields = append(fields, liferewardredemption.FieldFlag)
+	}
+	if m.life_profile_id != nil {
+		fields = append(fields, liferewardredemption.FieldLifeProfileID)
+	}
+	if m.life_reward_id != nil {
+		fields = append(fields, liferewardredemption.FieldLifeRewardID)
+	}
+	if m.reward_name != nil {
+		fields = append(fields, liferewardredemption.FieldRewardName)
+	}
+	if m.price_paid != nil {
+		fields = append(fields, liferewardredemption.FieldPricePaid)
+	}
+	if m.redeemed_at != nil {
+		fields = append(fields, liferewardredemption.FieldRedeemedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LifeRewardRedemptionMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case liferewardredemption.FieldFlag:
+		return m.Flag()
+	case liferewardredemption.FieldLifeProfileID:
+		return m.LifeProfileID()
+	case liferewardredemption.FieldLifeRewardID:
+		return m.LifeRewardID()
+	case liferewardredemption.FieldRewardName:
+		return m.RewardName()
+	case liferewardredemption.FieldPricePaid:
+		return m.PricePaid()
+	case liferewardredemption.FieldRedeemedAt:
+		return m.RedeemedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LifeRewardRedemptionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case liferewardredemption.FieldFlag:
+		return m.OldFlag(ctx)
+	case liferewardredemption.FieldLifeProfileID:
+		return m.OldLifeProfileID(ctx)
+	case liferewardredemption.FieldLifeRewardID:
+		return m.OldLifeRewardID(ctx)
+	case liferewardredemption.FieldRewardName:
+		return m.OldRewardName(ctx)
+	case liferewardredemption.FieldPricePaid:
+		return m.OldPricePaid(ctx)
+	case liferewardredemption.FieldRedeemedAt:
+		return m.OldRedeemedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown LifeRewardRedemption field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeRewardRedemptionMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case liferewardredemption.FieldFlag:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFlag(v)
+		return nil
+	case liferewardredemption.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeProfileID(v)
+		return nil
+	case liferewardredemption.FieldLifeRewardID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLifeRewardID(v)
+		return nil
+	case liferewardredemption.FieldRewardName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRewardName(v)
+		return nil
+	case liferewardredemption.FieldPricePaid:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPricePaid(v)
+		return nil
+	case liferewardredemption.FieldRedeemedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRedeemedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeRewardRedemption field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LifeRewardRedemptionMutation) AddedFields() []string {
+	var fields []string
+	if m.addlife_profile_id != nil {
+		fields = append(fields, liferewardredemption.FieldLifeProfileID)
+	}
+	if m.addlife_reward_id != nil {
+		fields = append(fields, liferewardredemption.FieldLifeRewardID)
+	}
+	if m.addprice_paid != nil {
+		fields = append(fields, liferewardredemption.FieldPricePaid)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LifeRewardRedemptionMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case liferewardredemption.FieldLifeProfileID:
+		return m.AddedLifeProfileID()
+	case liferewardredemption.FieldLifeRewardID:
+		return m.AddedLifeRewardID()
+	case liferewardredemption.FieldPricePaid:
+		return m.AddedPricePaid()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LifeRewardRedemptionMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case liferewardredemption.FieldLifeProfileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeProfileID(v)
+		return nil
+	case liferewardredemption.FieldLifeRewardID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLifeRewardID(v)
+		return nil
+	case liferewardredemption.FieldPricePaid:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPricePaid(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LifeRewardRedemption numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LifeRewardRedemptionMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LifeRewardRedemptionMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LifeRewardRedemptionMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LifeRewardRedemption nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LifeRewardRedemptionMutation) ResetField(name string) error {
+	switch name {
+	case liferewardredemption.FieldFlag:
+		m.ResetFlag()
+		return nil
+	case liferewardredemption.FieldLifeProfileID:
+		m.ResetLifeProfileID()
+		return nil
+	case liferewardredemption.FieldLifeRewardID:
+		m.ResetLifeRewardID()
+		return nil
+	case liferewardredemption.FieldRewardName:
+		m.ResetRewardName()
+		return nil
+	case liferewardredemption.FieldPricePaid:
+		m.ResetPricePaid()
+		return nil
+	case liferewardredemption.FieldRedeemedAt:
+		m.ResetRedeemedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown LifeRewardRedemption field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LifeRewardRedemptionMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LifeRewardRedemptionMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LifeRewardRedemptionMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LifeRewardRedemptionMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LifeRewardRedemptionMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LifeRewardRedemptionMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LifeRewardRedemptionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown LifeRewardRedemption unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LifeRewardRedemptionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown LifeRewardRedemption edge %s", name)
 }
 
 // LifeSkillMutation represents an operation that mutates the LifeSkill nodes in the graph.

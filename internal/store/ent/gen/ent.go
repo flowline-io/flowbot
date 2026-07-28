@@ -65,6 +65,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifequest"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifereward"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen/liferewardredemption"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeskill"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/llmusagerecord"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/message"
@@ -210,6 +212,8 @@ func checkColumn(t, c string) error {
 			lifeplannode.Table:              lifeplannode.ValidColumn,
 			lifeprofile.Table:               lifeprofile.ValidColumn,
 			lifequest.Table:                 lifequest.ValidColumn,
+			lifereward.Table:                lifereward.ValidColumn,
+			liferewardredemption.Table:      liferewardredemption.ValidColumn,
 			lifeskill.Table:                 lifeskill.ValidColumn,
 			message.Table:                   message.ValidColumn,
 			notificationrecord.Table:        notificationrecord.ValidColumn,

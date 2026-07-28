@@ -82,6 +82,8 @@ Tables are grouped by responsibility below. Each row corresponds to one Ent sche
 - `life_equipped_slots` — Worn inventory ids per slot
 - `life_loot_tables` — Drop tier → chance + item pool
 - `life_action_logs` — Completion / dice / drop audit
+- `life_rewards` — Player-defined real-life rewards (gold sink)
+- `life_reward_redemptions` — Reward redeem audit (name/price snapshots)
 
 ### Resources
 
