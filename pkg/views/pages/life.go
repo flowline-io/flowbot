@@ -322,6 +322,11 @@ type LifeRewardsData struct {
 	PendingCount int
 }
 
+// LifeStatsShellData is the Stats page shell before the HTMX panel loads.
+type LifeStatsShellData struct {
+	PendingCount int
+}
+
 // lifeEquipSlotOrder is the paper-doll display order for wear positions.
 var lifeEquipSlotOrder = []struct {
 	label string

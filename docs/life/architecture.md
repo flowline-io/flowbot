@@ -33,6 +33,7 @@ internal/store/postgres/        # only if methods are on Adapter (prefer LifeSto
 internal/modules/web/           # life_*_webservice.go; SetLifeService via life.OnService
 pkg/views/pages|partials/       # life_*.templ
 public/js/life-radar.js         # Character radar chart
+public/js/life-stats.js         # Stats dashboard charts (Chart.js)
 public/css/custom.css           # Life page styles (`.life-*`)
 ```
 
@@ -93,6 +94,7 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | `ListActionLogs` | Recent completion audit for Quests UI |
 | `ListAchievements` | Catalog + progress/unlock state for Achievements UI |
 | `ListRewardsPage` / `CreateReward` / `UpdateReward` / `DeactivateReward` / `RestoreReward` / `RedeemReward` | Real-life rewards market (gold sink) |
+| `GetStatsPage` | 30-day analytics aggregates for Stats UI |
 | `Equip` / `Unequip` | Update `life_equipped_slots` |
 | `ListQuests` / `ListInventory` / `GetCharacter` | Read models for UI |
 | `SetClassType` | Update class (default `Architect`) |
@@ -118,6 +120,8 @@ Prefix: `/service/web`
 | Method | Path | Purpose |
 | ------ | ---- | ------- |
 | GET | `/life` | Dashboard |
+| GET | `/life/stats` | Stats shell (30-day analytics) |
+| GET | `/life/stats/panel` | Stats HTMX panel (`tz` IANA query) |
 | GET | `/life/character` | Stats, class, goals, equipped |
 | POST | `/life/character/class` | Set class type |
 | POST | `/life/goals` | Create goal |
@@ -139,7 +143,7 @@ Prefix: `/service/web`
 | POST | `/life/rewards/:flag/restore` | Restore soft-deleted reward |
 | POST | `/life/rewards/:flag/redeem` | Spend gold (honor system) |
 
-Nav: Life module sidebar — Life, Quests, Skills, Inventory, Achievements, Rewards, Character.
+Nav: Life module sidebar — Life, Stats, Quests, Skills, Inventory, Achievements, Rewards, Character.
 
 ## 9. Core flows and outbox contract
 

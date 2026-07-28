@@ -21,6 +21,8 @@ import (
 
 var lifeWebserviceRules = []webservice.Rule{
 	webservice.Get("/life", lifeDashboardPage, route.WithNotAuth()),
+	webservice.Get("/life/stats", lifeStatsPage, route.WithNotAuth()),
+	webservice.Get("/life/stats/panel", lifeStatsPanel, route.WithNotAuth()),
 	webservice.Get("/life/character", lifeCharacterPage, route.WithNotAuth()),
 	webservice.Get("/life/skills", lifeSkillsPage, route.WithNotAuth()),
 	webservice.Post("/life/character/class", lifeSetClass, route.WithNotAuth()),

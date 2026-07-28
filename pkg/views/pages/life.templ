@@ -461,6 +461,11 @@ templ lifeModuleShell(active string, pendingCount int) {
 					data-testid="life-goto-home"
 				>Life</a>
 				<a
+					href="/service/web/life/stats"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "stats") }
+					data-testid="life-goto-stats"
+				>Stats</a>
+				<a
 					href="/service/web/life/quests"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "quests") }
 					data-testid="life-goto-quests"
@@ -1399,6 +1404,25 @@ templ LifeRewardsPage(data LifeRewardsData) {
 						</ul>
 					</details>
 				}
+			</div>
+		}
+	}
+}
+
+templ LifeStatsPage(data LifeStatsShellData) {
+	@layout.Base("Stats — Life") {
+		@partials.LifeStatsScripts()
+		@lifeModuleShell("stats", data.PendingCount) {
+			<div class="life-shell" data-testid="life-stats-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Stats</h1>
+						<p>Last 30 days of activity, growth, quests, gold, and loot.</p>
+					</div>
+				</header>
+				<div id="life-stats-container" data-testid="life-stats-loader">
+					@partials.PanelSkeleton()
+				</div>
 			</div>
 		}
 	}
