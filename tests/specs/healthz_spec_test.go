@@ -31,6 +31,7 @@ func (a *healthzWebAdapter) IsOpen() bool                     { return true }
 func (a *healthzWebAdapter) GetName() string                  { return "bdd-healthz" }
 func (a *healthzWebAdapter) Stats() any                       { return nil }
 func (a *healthzWebAdapter) GetDB() any                       { return a.ent }
+func (a *healthzWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *healthzWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -66,6 +67,7 @@ var _ = Describe("Health Dashboard /healthz", Label("health", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken("bdd-healthz-token", adapter.uid, bddWebScopesAdmin())
 	})
 
 	AfterEach(func() {

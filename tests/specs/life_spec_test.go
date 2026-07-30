@@ -33,6 +33,7 @@ func (a *lifeWebAdapter) IsOpen() bool                     { return true }
 func (a *lifeWebAdapter) GetName() string                  { return "bdd-life-page" }
 func (a *lifeWebAdapter) Stats() any                       { return nil }
 func (a *lifeWebAdapter) GetDB() any                       { return a.ent }
+func (a *lifeWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *lifeWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -68,6 +69,7 @@ var _ = Describe("Life Pages", Label("module", "web", "life"), func() {
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
 		webmod.SetLifeService(lifemod.NewService(store.NewLifeStore(EntClient)))
+		bddSeedAccessToken("life-token", lifeAdapter.uid, lifeAdapter.scopes)
 	})
 
 	AfterEach(func() {

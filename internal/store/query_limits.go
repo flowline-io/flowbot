@@ -33,9 +33,14 @@ func queryMaxMessageResults() int {
 }
 
 // ClientFromDB returns the ent client from the global Database adapter.
+// Prefer GetDB(*gen.Client) so BDD stubs that only implement GetDB work; calling
+// GetClient on a nil embedded Adapter panics. Fall back to GetClient otherwise.
 func ClientFromDB() *gen.Client {
 	if Database == nil {
 		return nil
+	}
+	if c, ok := Database.GetDB().(*gen.Client); ok && c != nil {
+		return c
 	}
 	return Database.GetClient()
 }

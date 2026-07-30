@@ -31,6 +31,7 @@ func (a *homeWebAdapter) IsOpen() bool                     { return true }
 func (a *homeWebAdapter) GetName() string                  { return "bdd-home-token-usage" }
 func (a *homeWebAdapter) Stats() any                       { return nil }
 func (a *homeWebAdapter) GetDB() any                       { return a.ent }
+func (a *homeWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *homeWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -62,6 +63,7 @@ var _ = Describe("Home Token Usage /home/token-usage", Label("home", "web"), fun
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken("bdd-home-token", adapter.uid, bddWebScopesAdmin())
 	})
 
 	AfterEach(func() {

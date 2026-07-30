@@ -34,6 +34,7 @@ func (a *relationsWebAdapter) IsOpen() bool                     { return true }
 func (a *relationsWebAdapter) GetName() string                  { return "bdd-relations-page" }
 func (a *relationsWebAdapter) Stats() any                       { return nil }
 func (a *relationsWebAdapter) GetDB() any                       { return a.ent }
+func (a *relationsWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *relationsWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -70,6 +71,7 @@ var _ = Describe("Resource Relations Page", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken(adapter.uid, adapter.uid, adapter.scopes)
 
 		ctx := context.Background()
 

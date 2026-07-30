@@ -37,6 +37,7 @@ func (a *agentsWebAdapter) IsOpen() bool                     { return true }
 func (a *agentsWebAdapter) GetName() string                  { return "bdd-agents" }
 func (a *agentsWebAdapter) Stats() any                       { return nil }
 func (a *agentsWebAdapter) GetDB() any                       { return a.ent }
+func (a *agentsWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *agentsWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -202,6 +203,7 @@ var _ = Describe("Agents UI", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken("bdd-agents-token", adapter.uid, bddWebScopesAdmin())
 
 		ctx := context.Background()
 		EntClient.ChatSession.Create().

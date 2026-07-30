@@ -12,15 +12,15 @@ import (
 
 	. "github.com/onsi/gomega"
 
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
-// bddWebAuthParams builds Parameter.Params for BDD web auth stubs.
+// bddWebAuthParams builds Parameter.Params for BDD web auth tokens.
 // Scopes must satisfy route.RequireServiceScope for /service/web (pipeline:read/run
-// or admin:*). Stubs that override ParameterGet must also implement ParameterSet
-// (use bddNoopParameterSet) — Authorize updates last_used_at after token lookup.
+// or admin:*).
 func bddWebAuthParams(uid string, scopes []string) map[string]any {
 	return map[string]any{
 		"uid":    uid,
@@ -41,9 +41,38 @@ func bddWebScopesUser() []string {
 	return []string{auth.ScopePipelineRun}
 }
 
-// bddNoopParameterSet is a no-op ParameterSet for BDD stubs with a nil embedded Adapter.
+// bddNoopParameterSet is a no-op ParameterSet for legacy BDD Adapter.ParameterSet stubs.
 func bddNoopParameterSet(_ context.Context, _ string, _ types.KV, _ time.Time) error {
 	return nil
+}
+
+// bddSeedAccessToken persists a hashed access token for Authorize / authenticateWeb.
+// After the store facade split, route lookup uses ModuleDataStore (not Adapter.ParameterGet).
+func bddSeedAccessToken(rawToken, uid string, scopes []string) {
+	Expect(store.NewModuleDataStore(EntClient).ParameterSet(
+		context.Background(),
+		auth.HashToken(rawToken),
+		types.KV(bddWebAuthParams(uid, scopes)),
+		time.Now().Add(time.Hour),
+	)).To(Succeed())
+}
+
+// bddEnsureWebAccount creates the first admin web account when the DB has none
+// (login BDD specs need a real row; InitForE2E does not run Bootstrap migration).
+func bddEnsureWebAccount(username, password string) {
+	ws := store.NewWebAccountStore(EntClient)
+	n, err := ws.Count(context.Background())
+	Expect(err).NotTo(HaveOccurred())
+	if n > 0 {
+		return
+	}
+	hash, err := webauth.HashPassword(password)
+	Expect(err).NotTo(HaveOccurred())
+	_, err = ws.CreateFirstAccount(context.Background(), store.CreateAccountInput{
+		Username:     username,
+		PasswordHash: hash,
+	})
+	Expect(err).NotTo(HaveOccurred())
 }
 
 // MakeRequest creates an HTTP request for testing.

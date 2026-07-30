@@ -33,6 +33,7 @@ func (a *homelabWebAdapter) IsOpen() bool                     { return true }
 func (a *homelabWebAdapter) GetName() string                  { return "bdd-homelab-registry" }
 func (a *homelabWebAdapter) Stats() any                       { return nil }
 func (a *homelabWebAdapter) GetDB() any                       { return a.ent }
+func (a *homelabWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *homelabWebAdapter) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -57,6 +58,7 @@ var _ = Describe("Homelab Registry UI", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken("bdd-homelab-token", "bdd-homelab-uid", bddWebScopesAdmin())
 
 		homelab.SetRunRescan(func() error { return nil })
 

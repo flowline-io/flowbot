@@ -33,6 +33,7 @@ func (a *eventWebAdapter) IsOpen() bool                     { return true }
 func (a *eventWebAdapter) GetName() string                  { return "bdd-event-page" }
 func (a *eventWebAdapter) Stats() any                       { return nil }
 func (a *eventWebAdapter) GetDB() any                       { return a.ent }
+func (a *eventWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *eventWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -72,6 +73,8 @@ var _ = Describe("Events Pages", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken(adminAdapter.uid, adminAdapter.uid, adminAdapter.scopes)
+		bddSeedAccessToken(userAdapter.uid, userAdapter.uid, userAdapter.scopes)
 
 		// Seed regular event
 		e1 := EntClient.DataEvent.Create().

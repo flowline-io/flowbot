@@ -35,6 +35,7 @@ func (a *agentScheduledTasksWebAdapter) IsOpen() bool                     { retu
 func (a *agentScheduledTasksWebAdapter) GetName() string                  { return "bdd-agent-scheduled-tasks" }
 func (a *agentScheduledTasksWebAdapter) Stats() any                       { return nil }
 func (a *agentScheduledTasksWebAdapter) GetDB() any                       { return a.ent }
+func (a *agentScheduledTasksWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *agentScheduledTasksWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -119,6 +120,7 @@ var _ = Describe("Agent Scheduled Tasks UI", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken("bdd-agent-scheduled-tasks-token", adapter.uid, bddWebScopesAdmin())
 
 		ctx := context.Background()
 		runAt := time.Now().UTC().Add(30 * time.Minute)

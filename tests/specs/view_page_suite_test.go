@@ -35,6 +35,7 @@ func (a *viewPageAdapter) IsOpen() bool                     { return true }
 func (a *viewPageAdapter) GetName() string                  { return "bdd-view-page" }
 func (a *viewPageAdapter) Stats() any                       { return nil }
 func (a *viewPageAdapter) GetDB() any                       { return a.ent }
+func (a *viewPageAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *viewPageAdapter) ParameterGet(_ context.Context, _ string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -67,6 +68,8 @@ var _ = Describe("View Pages", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf) // ignore "already initialized" on subsequent calls
 		webmod.MountForE2E(App)
+		bddSeedAccessToken("bdd-test-token", "testuser", bddWebScopesAdmin())
+		bddEnsureWebAccount("admin", "flowbot-dev-pass")
 	})
 
 	AfterEach(func() {

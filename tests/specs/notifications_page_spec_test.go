@@ -36,6 +36,7 @@ func (a *notifyWebAdapter) IsOpen() bool                     { return true }
 func (a *notifyWebAdapter) GetName() string                  { return "bdd-notify-page" }
 func (a *notifyWebAdapter) Stats() any                       { return nil }
 func (a *notifyWebAdapter) GetDB() any                       { return a.ent }
+func (a *notifyWebAdapter) GetClient() *gen.Client            { return a.ent }
 
 func (a *notifyWebAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -93,6 +94,8 @@ var _ = Describe("Notifications Pages", Label("module", "web"), func() {
 		conf := json.RawMessage(`{"enabled":true,"auth":{"username":"admin","password":"flowbot-dev-pass"}}`)
 		_ = webmod.InitForE2E(conf)
 		webmod.MountForE2E(App)
+		bddSeedAccessToken(notifyAdapter.uid, notifyAdapter.uid, notifyAdapter.scopes)
+		bddSeedAccessToken(otherUserAdapter.uid, otherUserAdapter.uid, otherUserAdapter.scopes)
 
 		ctx := context.Background()
 
