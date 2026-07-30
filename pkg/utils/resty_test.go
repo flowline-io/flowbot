@@ -556,7 +556,7 @@ func TestDetachHTTPRequestBody(t *testing.T) {
 		{
 			name: "bytes buffer with GetBody is copied",
 			setup: func() *http.Request {
-				req, err := http.NewRequest(http.MethodPost, "http://example.com", bytes.NewBufferString(`{"id":1}`))
+				req, err := http.NewRequest(http.MethodPost, "https://example.com", bytes.NewBufferString(`{"id":1}`))
 				require.NoError(t, err)
 				return req
 			},
@@ -566,7 +566,7 @@ func TestDetachHTTPRequestBody(t *testing.T) {
 		{
 			name: "empty buffer becomes NoBody and is skipped",
 			setup: func() *http.Request {
-				req, err := http.NewRequest(http.MethodPost, "http://example.com", bytes.NewBuffer(nil))
+				req, err := http.NewRequest(http.MethodPost, "https://example.com", bytes.NewBuffer(nil))
 				require.NoError(t, err)
 				return req
 			},

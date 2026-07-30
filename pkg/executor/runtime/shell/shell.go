@@ -220,7 +220,7 @@ func (r *Runtime) buildShellCommand(workdir string, t *types.Task) ([]string, []
 	if err := os.Rename(tmpPath, entrypointPath); err != nil {
 		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
 	}
-	if err := os.Chmod(entrypointPath, 0555); err != nil {
+	if err := os.Chmod(entrypointPath, 0o500); err != nil {
 		return nil, nil, fmt.Errorf("error writing the entrypoint, %w", err)
 	}
 

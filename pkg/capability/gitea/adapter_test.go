@@ -52,7 +52,7 @@ func (f *fakeClient) ListIssues(_ string, _, _ int) ([]*giteasdk.Issue, error) {
 	return f.issues, nil
 }
 
-func (f *fakeClient) GetDiff(_, _ string, commitID string) (*provider.CommitDiff, error) {
+func (f *fakeClient) GetDiff(_, _, commitID string) (*provider.CommitDiff, error) {
 	if f.diffErr != nil {
 		return nil, f.diffErr
 	}

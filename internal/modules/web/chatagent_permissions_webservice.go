@@ -126,9 +126,9 @@ func parsePermissionJSON(ctx fiber.Ctx) (permission.Config, map[string]string, e
 
 func collectFormArgs(ctx fiber.Ctx) map[string]string {
 	args := make(map[string]string)
-	ctx.Request().PostArgs().VisitAll(func(key, value []byte) {
+	for key, value := range ctx.Request().PostArgs().All() {
 		args[string(key)] = string(value)
-	})
+	}
 	return args
 }
 

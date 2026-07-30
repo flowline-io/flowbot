@@ -19,8 +19,8 @@ func TestNewSource(t *testing.T) {
 		wantLocal bool
 	}{
 		{name: "local source", cfg: SourceConfig{Type: "local", Path: "/tmp"}, wantLocal: true},
-		{name: "oci not implemented", cfg: SourceConfig{Type: "oci"}, wantErr: "OCI source not yet implemented"},
-		{name: "git not implemented", cfg: SourceConfig{Type: "git"}, wantErr: "Git source not yet implemented"},
+		{name: "oci not implemented", cfg: SourceConfig{Type: "oci"}, wantErr: "oci source not yet implemented"},
+		{name: "git not implemented", cfg: SourceConfig{Type: "git"}, wantErr: "git source not yet implemented"},
 		{name: "unknown type", cfg: SourceConfig{Type: "ftp"}, wantErr: "unknown source type"},
 	}
 	for _, tt := range tests {

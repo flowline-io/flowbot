@@ -3,7 +3,6 @@ package life
 import (
 	"context"
 	"maps"
-	"math/rand"
 	"strings"
 	"time"
 
@@ -22,15 +21,11 @@ import (
 // Service orchestrates Life use cases for the web UI.
 type Service struct {
 	store *store.LifeStore
-	rng   *rand.Rand
 }
 
 // NewService constructs a Life service.
 func NewService(ls *store.LifeStore) *Service {
-	return &Service{
-		store: ls,
-		rng:   rand.New(rand.NewSource(time.Now().UnixNano())),
-	}
+	return &Service{store: ls}
 }
 
 // EnsureProfile creates the profile graph for a user if needed.
@@ -536,7 +531,10 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 		baseChance = lootTable.BaseDropChance
 		pool = lootTable.ItemPoolFlags
 	}
-	roll := pkglife.RollUnit(s.rng)
+	roll, err := pkglife.RollUnit()
+	if err != nil {
+		return nil, err
+	}
 	var daily *gen.LifeQuest
 	if q.Type == "Daily" {
 		daily = q

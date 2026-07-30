@@ -118,7 +118,7 @@ func BuildUserConfigFromForm(defaults Config, form FormValues) (Config, map[stri
 	return out, nil, nil
 }
 
-func mergeSimpleFormRules(out Config, defaults Config, simple map[string]string, fieldErrors map[string]string) {
+func mergeSimpleFormRules(out, defaults Config, simple, fieldErrors map[string]string) {
 	for key, action := range simple {
 		if action == "" || action == FormActionInherit {
 			continue
@@ -136,7 +136,7 @@ func mergeSimpleFormRules(out Config, defaults Config, simple map[string]string,
 	}
 }
 
-func mergePatternFormRules(out Config, defaults Config, patterns map[string][]FormPatternRow, fieldErrors map[string]string) {
+func mergePatternFormRules(out, defaults Config, patterns map[string][]FormPatternRow, fieldErrors map[string]string) {
 	for key, rows := range patterns {
 		rs, ok := buildPatternRuleSet(key, rows, fieldErrors)
 		if !ok || len(rs.Patterns) == 0 {

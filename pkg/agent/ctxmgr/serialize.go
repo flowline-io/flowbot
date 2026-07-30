@@ -111,7 +111,7 @@ func SerializeConversation(messages []msg.AgentMessage) string {
 	return strings.Join(parts, "\n\n")
 }
 
-func buildSummarizationPrompt(messages []msg.AgentMessage, previousSummary string, basePrompt string) (string, error) {
+func buildSummarizationPrompt(messages []msg.AgentMessage, previousSummary, basePrompt string) (string, error) {
 	conversationText := SerializeConversation(messages)
 	var b strings.Builder
 	_, _ = b.WriteString("<conversation>\n")

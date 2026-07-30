@@ -191,3 +191,23 @@ func TestSoftHPBlendAndLabels(t *testing.T) {
 	assert.Equal(t, "Habit", life.SourceTypeLabel("habit_checkin"))
 	assert.Equal(t, "Habit (pending)", life.TaskTypeLabel("habit_candidate"))
 }
+
+func TestRollUnit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+	}{
+		{name: "in unit interval"},
+		{name: "second draw also in unit interval"},
+		{name: "third draw also in unit interval"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := life.RollUnit()
+			require.NoError(t, err)
+			assert.GreaterOrEqual(t, got, 0.0)
+			assert.Less(t, got, 1.0)
+		})
+	}
+}

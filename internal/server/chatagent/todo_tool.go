@@ -46,8 +46,8 @@ func NewTodoTools(deps TodoToolDeps) TodoTools {
 // Register adds checklist tools to the registry.
 func (t TodoTools) Register(registry *tool.Registry) error {
 	tools := []tool.Tool{
-		TodoWriteTool{deps: t.deps},
-		ListTodosTool{deps: t.deps},
+		TodoWriteTool(t),
+		ListTodosTool(t),
 	}
 	for _, td := range tools {
 		if err := registry.Register(td); err != nil {

@@ -121,7 +121,7 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		return partials.EmptyState("Resource not found").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	bodyHTML := content.Content
+	var bodyHTML string
 	if content.ContentType == "text/markdown" {
 		if html, mdErr := utils.MarkdownToSafeHTML([]byte(content.Content)); mdErr == nil {
 			bodyHTML = string(html)

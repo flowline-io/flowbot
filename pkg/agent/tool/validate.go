@@ -7,7 +7,7 @@ import (
 
 // ValidateArgs checks required fields and top-level JSON Schema types against args.
 // It does not implement a full JSON Schema engine.
-func ValidateArgs(schema map[string]any, args map[string]any) error {
+func ValidateArgs(schema, args map[string]any) error {
 	if schema == nil {
 		return nil
 	}
@@ -21,7 +21,7 @@ func ValidateArgs(schema map[string]any, args map[string]any) error {
 	return validatePropertyTypes(schema, args)
 }
 
-func validateRequired(schema map[string]any, args map[string]any) error {
+func validateRequired(schema, args map[string]any) error {
 	for _, name := range requiredFieldNames(schema["required"]) {
 		value, exists := args[name]
 		if !exists || isEmptyArg(value) {
@@ -63,7 +63,7 @@ func requiredFieldNames(raw any) []string {
 	}
 }
 
-func validatePropertyTypes(schema map[string]any, args map[string]any) error {
+func validatePropertyTypes(schema, args map[string]any) error {
 	properties, ok := schema["properties"].(map[string]any)
 	if !ok {
 		return nil

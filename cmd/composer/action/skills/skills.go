@@ -616,7 +616,7 @@ func extractArgsFromUse(use string) string {
 }
 
 // buildCLIString constructs the CLI command reference string.
-func buildCLIString(path string, argsUsage string, flags []flagSpec) string {
+func buildCLIString(path, argsUsage string, flags []flagSpec) string {
 	var cmd strings.Builder
 	_, _ = cmd.WriteString("flowbot " + path)
 	if argsUsage != "" {

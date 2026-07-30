@@ -152,13 +152,13 @@ func TestScannerRejectsSymlinkEscape(t *testing.T) {
 	}
 }
 
-func writeComposeApp(t *testing.T, appsDir string, name string) {
+func writeComposeApp(t *testing.T, appsDir, name string) {
 	t.Helper()
 	require.NoError(t, os.MkdirAll(filepath.Join(appsDir, name), 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(appsDir, name, "docker-compose.yaml"), []byte(`services: { app: { image: example/app:latest } }`), 0o644))
 }
 
-func writeComposeAppWithContent(t *testing.T, appsDir string, name string, content string) {
+func writeComposeAppWithContent(t *testing.T, appsDir, name, content string) {
 	t.Helper()
 	require.NoError(t, os.MkdirAll(filepath.Join(appsDir, name), 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(appsDir, name, "docker-compose.yaml"), []byte(content), 0o644))

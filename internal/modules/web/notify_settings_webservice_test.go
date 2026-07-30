@@ -640,7 +640,7 @@ func TestNotifyRuleCreate(t *testing.T) {
 }
 
 // assertNotifyRuleCreateResult checks create-rule HTTP response body and store state.
-func assertNotifyRuleCreateResult(t *testing.T, name string, wantStatus int, wantSub, wantNoSub string, wantStored bool, seeded int, status int, body string, rules map[int64]model.NotifyRule) {
+func assertNotifyRuleCreateResult(t *testing.T, name string, wantStatus int, wantSub, wantNoSub string, wantStored bool, seeded, status int, body string, rules map[int64]model.NotifyRule) {
 	t.Helper()
 	if status != wantStatus {
 		t.Errorf("want status %d, got %d", wantStatus, status)

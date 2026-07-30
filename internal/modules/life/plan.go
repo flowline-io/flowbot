@@ -287,7 +287,7 @@ func classifyActionInput(in *ActionInput) *store.LifePlanActionSpecInput {
 	}
 }
 
-func actionRewardFields(in *ActionInput) (difficulty string, baseExp int, baseGold int) {
+func actionRewardFields(in *ActionInput) (difficulty string, baseExp, baseGold int) {
 	if in == nil {
 		_, baseExp, baseGold, _ = pkglife.DefaultRewards("C")
 		return "C", baseExp, baseGold

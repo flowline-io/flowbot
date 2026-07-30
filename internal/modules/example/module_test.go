@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/bytedance/sonic"
@@ -163,7 +164,7 @@ func TestWebserviceEndpoints(t *testing.T) {
 					return ctx.Status(fiber.StatusUnauthorized).SendString(err.Error())
 				},
 			})
-			ruleSets := append(webserviceRules, webhookRules...)
+			ruleSets := slices.Concat(webserviceRules, webhookRules)
 			module.Webservice(app, Name, webservice.Ruleset(ruleSets))
 
 			req := httptest.NewRequest(tt.method, tt.path, http.NoBody)

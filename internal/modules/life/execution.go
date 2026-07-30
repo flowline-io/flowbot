@@ -136,7 +136,7 @@ func (s *Service) CompleteActionOccurrence(ctx context.Context, userID, occurren
 	})
 }
 
-func defaultActionRewards(spec *gen.LifeActionSpec) (baseExp int, baseGold int) {
+func defaultActionRewards(spec *gen.LifeActionSpec) (baseExp, baseGold int) {
 	if spec == nil {
 		_, baseExp, baseGold, _ = pkglife.DefaultRewards("C")
 		return baseExp, baseGold

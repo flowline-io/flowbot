@@ -12,19 +12,26 @@ func TestModule(t *testing.T) {
 
 	tests := []struct {
 		name string
+		run  func(t *testing.T)
 	}{
-		{name: "returns fx module option"},
-		{name: "module is non-nil"},
-		{name: "module can be composed"},
+		{
+			name: "returns non-nil fx module option",
+			run: func(t *testing.T) {
+				assert.NotNil(t, Module())
+			},
+		},
+		{
+			name: "module can be composed",
+			run: func(t *testing.T) {
+				assert.NotNil(t, fx.Options(Module()))
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			opt := Module()
-			assert.NotNil(t, opt)
-			_, ok := opt.(fx.Option)
-			assert.True(t, ok)
+			tt.run(t)
 		})
 	}
 }

@@ -51,7 +51,7 @@ func (a *Adapter) AddTorrent(ctx context.Context, in AddTorrentInput) (*capabili
 	if err != nil {
 		return nil, types.WrapError(types.ErrProvider, "transmission add torrent failed", err)
 	}
-	return toTorrent(torrent), nil
+	return toTorrent(&torrent), nil
 }
 
 // ListTorrents returns all torrents known to Transmission.
@@ -64,8 +64,8 @@ func (a *Adapter) ListTorrents(ctx context.Context) ([]*capability.Torrent, erro
 		return nil, types.WrapError(types.ErrProvider, "transmission list torrents failed", err)
 	}
 	out := make([]*capability.Torrent, 0, len(list))
-	for _, item := range list {
-		out = append(out, toTorrent(item))
+	for i := range list {
+		out = append(out, toTorrent(&list[i]))
 	}
 	return out, nil
 }
@@ -110,7 +110,7 @@ func (a *Adapter) HealthCheck(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func toTorrent(t transmissionrpc.Torrent) *capability.Torrent {
+func toTorrent(t *transmissionrpc.Torrent) *capability.Torrent {
 	out := &capability.Torrent{}
 	if t.ID != nil {
 		out.ID = *t.ID

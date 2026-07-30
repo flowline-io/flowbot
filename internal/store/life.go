@@ -887,7 +887,7 @@ func (s *LifeStore) CreateEvidence(ctx context.Context, in LifeEvidenceInput) (*
 }
 
 // ListEvidenceByQuest returns recent evidence rows for one quest.
-func (s *LifeStore) ListEvidenceByQuest(ctx context.Context, profileID int64, questID int64) ([]*gen.LifeEvidence, error) {
+func (s *LifeStore) ListEvidenceByQuest(ctx context.Context, profileID, questID int64) ([]*gen.LifeEvidence, error) {
 	if !s.ready() {
 		return nil, nil
 	}
@@ -924,7 +924,7 @@ func (s *LifeStore) CreateAdjudication(ctx context.Context, in LifeAdjudicationI
 }
 
 // GetLatestAdjudicationByQuest returns the newest ruling for one quest.
-func (s *LifeStore) GetLatestAdjudicationByQuest(ctx context.Context, profileID int64, questID int64) (*gen.LifeAdjudication, error) {
+func (s *LifeStore) GetLatestAdjudicationByQuest(ctx context.Context, profileID, questID int64) (*gen.LifeAdjudication, error) {
 	if !s.ready() {
 		return nil, nil
 	}

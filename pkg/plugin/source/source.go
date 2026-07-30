@@ -43,9 +43,9 @@ func NewSource(cfg SourceConfig) (Source, error) {
 	case "local":
 		return NewLocalSource(cfg.Path), nil
 	case "oci":
-		return nil, fmt.Errorf("OCI source not yet implemented")
+		return nil, fmt.Errorf("oci source not yet implemented")
 	case "git":
-		return nil, fmt.Errorf("Git source not yet implemented")
+		return nil, fmt.Errorf("git source not yet implemented")
 	default:
 		return nil, fmt.Errorf("unknown source type: %s", cfg.Type)
 	}

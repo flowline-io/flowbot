@@ -46,25 +46,24 @@ func shouldIgnoreServeError(err error, stopping *atomic.Bool) bool {
 	return errors.Is(err, http.ErrServerClosed)
 }
 
-// serveFiberListener runs app.Listener in the background. Unexpected exit triggers fx
+// serveFiberListener runs app.Listener until it returns. Unexpected exit triggers fx
 // shutdown so the process does not keep running without a listening HTTP port.
+// Callers must invoke it with go so OnStart / tests stay non-blocking.
 func serveFiberListener(app *fiber.App, ln net.Listener, shutdowner fx.Shutdowner, stopping *atomic.Bool) {
-	go func() {
-		flog.Info("start http server, listen on %s", ln.Addr().String())
-		// Do not pass fx OnStart context to GracefulContext: it is cancelled when
-		// startup hooks finish, which would stop the HTTP server shortly after boot.
-		serveErr := app.Listener(ln, fiber.ListenConfig{
-			DisableStartupMessage: true,
-			EnablePrintRoutes:     false,
-		})
-		if shouldIgnoreServeError(serveErr, stopping) {
-			return
-		}
-		flog.Error(fmt.Errorf("http server stopped unexpectedly: %w", serveErr))
-		if err := shutdowner.Shutdown(fx.ExitCode(1)); err != nil {
-			flog.Error(fmt.Errorf("fx shutdown after http server exit: %w", err))
-		}
-	}()
+	flog.Info("start http server, listen on %s", ln.Addr().String())
+	// Do not pass fx OnStart context to GracefulContext: it is cancelled when
+	// startup hooks finish, which would stop the HTTP server shortly after boot.
+	serveErr := app.Listener(ln, fiber.ListenConfig{
+		DisableStartupMessage: true,
+		EnablePrintRoutes:     false,
+	})
+	if shouldIgnoreServeError(serveErr, stopping) {
+		return
+	}
+	flog.Error(fmt.Errorf("http server stopped unexpectedly: %w", serveErr))
+	if err := shutdowner.Shutdown(fx.ExitCode(1)); err != nil {
+		flog.Error(fmt.Errorf("fx shutdown after http server exit: %w", err))
+	}
 }
 
 func RunServer(
@@ -105,7 +104,7 @@ func RunServer(
 				return err
 			}
 
-			serveFiberListener(app, ln, shutdowner, &stopping)
+			go serveFiberListener(app, ln, shutdowner, &stopping)
 
 			return nil
 		},

@@ -3472,7 +3472,7 @@ func (s *ResourceChainStore) FindRelations(ctx context.Context, appName, entityI
 
 // FindNodeRelations returns upstream and downstream edges for a node identified
 // by (appName, capability, entityID). Optional pipelineName filter and time window.
-func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, capability, entityID string, pipelineName string, since time.Duration) ([]schema.ResourceEdge, []schema.ResourceEdge, error) {
+func (s *ResourceChainStore) FindNodeRelations(ctx context.Context, appName, capability, entityID, pipelineName string, since time.Duration) ([]schema.ResourceEdge, []schema.ResourceEdge, error) {
 	if s == nil || s.client == nil {
 		return nil, nil, nil
 	}
@@ -3718,7 +3718,7 @@ func NewPageDataStore(client *gen.Client) *PageDataStore {
 }
 
 // CreatePageData inserts a new page_data row.
-func (s *PageDataStore) CreatePageData(ctx context.Context, token string, pageType string, title string, data types.KV, createdBy string, expiresAt *time.Time) error {
+func (s *PageDataStore) CreatePageData(ctx context.Context, token, pageType, title string, data types.KV, createdBy string, expiresAt *time.Time) error {
 	if s == nil || s.client == nil {
 		return nil
 	}

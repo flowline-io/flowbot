@@ -18,7 +18,7 @@ type VolumeMounter struct {
 
 // NewVolumeMounter creates a VolumeMounter with its own Docker client.
 func NewVolumeMounter() (*VolumeMounter, error) {
-	dc, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
+	dc, err := client.New(client.FromEnv)
 	if err != nil {
 		return nil, err
 	}

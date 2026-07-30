@@ -205,7 +205,7 @@ func TestAdapter_ListStopRemoveHealth(t *testing.T) {
 		{
 			name: "toTorrent maps empty fields",
 			run: func(t *testing.T) {
-				got := toTorrent(transmissionrpc.Torrent{})
+				got := toTorrent(&transmissionrpc.Torrent{})
 				require.NotNil(t, got)
 				assert.Equal(t, int64(0), got.ID)
 				assert.Empty(t, got.Name)

@@ -15,7 +15,7 @@ type mockChannelSender struct {
 	last string
 }
 
-func (m *mockChannelSender) ChannelMessageSend(_ string, content string, _ ...discordgo.RequestOption) (*discordgo.Message, error) {
+func (m *mockChannelSender) ChannelMessageSend(_, content string, _ ...discordgo.RequestOption) (*discordgo.Message, error) {
 	m.last = content
 	if m.err != nil {
 		return nil, m.err

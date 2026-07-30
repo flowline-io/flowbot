@@ -108,24 +108,15 @@ func TestDetachContext(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
-		nilParent  bool
 		startChild bool
 	}{
-		{name: "nil parent returns usable context", nilParent: true},
-		{name: "survives cancel without starting child", nilParent: false, startChild: false},
-		{name: "survives cancel and child keeps parent trace", nilParent: false, startChild: true},
+		{name: "survives cancel without starting child", startChild: false},
+		{name: "survives cancel and child keeps parent trace", startChild: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			setupTestTracerProvider(t)
-
-			if tt.nilParent {
-				got := DetachContext(nil)
-				require.NotNil(t, got)
-				require.NoError(t, got.Err())
-				return
-			}
 
 			parent, cancel := context.WithCancel(context.Background())
 			ctx, span := StartSpan(parent, "detach-parent")

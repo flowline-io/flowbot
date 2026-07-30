@@ -229,7 +229,7 @@ func (DockerRunner) Run(ctx context.Context, opts RunOptions) (env.Capture, erro
 	}
 	defer cleanup()
 
-	cli, err := client.New(client.FromEnv, client.WithAPIVersionNegotiation())
+	cli, err := client.New(client.FromEnv)
 	if err != nil {
 		return env.Capture{}, err
 	}

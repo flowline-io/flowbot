@@ -2,8 +2,9 @@
 package life
 
 import (
+	"crypto/rand"
+	"encoding/binary"
 	"math"
-	"math/rand"
 	"strings"
 	"time"
 )
@@ -222,12 +223,15 @@ func IsTarnished(until *time.Time, now time.Time) bool {
 	return until != nil && until.After(now)
 }
 
-// RollUnit returns a deterministic unit interval from rng (or math/rand if nil).
-func RollUnit(rng *rand.Rand) float64 {
-	if rng == nil {
-		return rand.Float64()
+// RollUnit returns a cryptographically strong unit interval in [0,1).
+func RollUnit() (float64, error) {
+	var b [8]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return 0, err
 	}
-	return rng.Float64()
+	// 53-bit mantissa → uniform [0,1), matching math/rand.Float64 spacing.
+	u := binary.LittleEndian.Uint64(b[:]) >> 11
+	return float64(u) / (1 << 53), nil
 }
 
 // BuffTotals aggregates equipped item buffs.

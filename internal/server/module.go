@@ -40,7 +40,7 @@ func handleModules(lc fx.Lifecycle, _ *config.Type, _ store.Adapter, _ *redis.Cl
 }
 
 // initialize modules
-func initializeModules(modulesConfig any, vendorsConfig any) {
+func initializeModules(modulesConfig, vendorsConfig any) {
 	b, err := sonic.Marshal(modulesConfig)
 	if err != nil {
 		flog.Fatal("Failed to marshal modules: %v", err)

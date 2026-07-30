@@ -311,11 +311,11 @@ func parsePlaygroundPayload(raw string) (map[string]any, error) {
 
 func attachPlaygroundChannelProto(ctx context.Context, req *playgroundRequest) error {
 	if req.ChannelID <= 0 {
-		return fmt.Errorf("Channel is required")
+		return fmt.Errorf("channel is required")
 	}
 	ch, err := store.Database.GetNotifyChannel(ctx, req.ChannelID)
 	if err != nil {
-		return fmt.Errorf("Channel not found")
+		return fmt.Errorf("channel not found")
 	}
 	req.ChannelProto = ch.Protocol
 	return nil

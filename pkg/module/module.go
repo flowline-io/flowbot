@@ -259,7 +259,7 @@ func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	return flag, store.Database.ParameterSet(context.Background(), flag, params, expiredAt)
 }
 
-func SettingGet(ctx types.Context, id string, key string) (types.KV, error) {
+func SettingGet(ctx types.Context, id, key string) (types.KV, error) {
 	return store.Database.ConfigGet(ctx.Context(), ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
 }
 

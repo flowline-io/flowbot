@@ -109,7 +109,7 @@ func TestHTTPRequestAllowHosts(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("ok"))
 	})
-	srv := &http.Server{Handler: mux}
+	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 3 * time.Second}
 	go func() { _ = srv.Serve(ln) }()
 	defer func() { _ = srv.Close() }()
 
@@ -135,7 +135,7 @@ func TestHTTPRequestBlocksRedirectToPrivate(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectTo, http.StatusFound)
 	})
-	srv := &http.Server{Handler: mux}
+	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 3 * time.Second}
 	go func() { _ = srv.Serve(ln) }()
 	defer func() { _ = srv.Close() }()
 
@@ -158,7 +158,7 @@ func TestHTTPRequestAllowPrivate(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("ok"))
 	})
-	srv := &http.Server{Handler: mux}
+	srv := &http.Server{Handler: mux, ReadHeaderTimeout: 3 * time.Second}
 	go func() { _ = srv.Serve(ln) }()
 	defer func() { _ = srv.Close() }()
 

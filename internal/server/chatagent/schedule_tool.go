@@ -32,10 +32,10 @@ func NewScheduleTools(deps ScheduleToolDeps) ScheduleTools {
 // Register adds all schedule tools to the registry.
 func (s ScheduleTools) Register(registry *tool.Registry) error {
 	tools := []tool.Tool{
-		ScheduleTaskTool{deps: s.deps},
-		UpdateScheduledTaskTool{deps: s.deps},
-		ListScheduledTasksTool{deps: s.deps},
-		CancelScheduledTaskTool{deps: s.deps},
+		ScheduleTaskTool(s),
+		UpdateScheduledTaskTool(s),
+		ListScheduledTasksTool(s),
+		CancelScheduledTaskTool(s),
 	}
 	for _, t := range tools {
 		if err := registry.Register(t); err != nil {

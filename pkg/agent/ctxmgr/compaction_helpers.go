@@ -88,7 +88,7 @@ func finalizeMessagesToSummarize(
 	cutPoint CutPointResult,
 	firstKept session.TreeEntry,
 	opts PrepareOptions,
-) (messagesToSummarize []msg.AgentMessage, turnPrefix []msg.AgentMessage, firstKeptEntry session.TreeEntry) {
+) (messagesToSummarize, turnPrefix []msg.AgentMessage, firstKeptEntry session.TreeEntry) {
 	historyEnd := cutPoint.FirstKeptEntryIndex
 	if cutPoint.IsSplitTurn && cutPoint.TurnStartIndex >= 0 {
 		historyEnd = cutPoint.TurnStartIndex

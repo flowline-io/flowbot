@@ -145,7 +145,7 @@ func (*Controller) hubHealth(ctx fiber.Ctx) error {
 	return ctx.JSON(protocol.NewSuccessResponse(result))
 }
 
-func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation string, scope string) (homelab.App, error) {
+func (c *Controller) requireAppWithLifecycleCheck(ctx fiber.Ctx, operation, scope string) (homelab.App, error) {
 	name := ctx.Params("name")
 	app, ok := homelab.DefaultRegistry.Get(name)
 	if !ok {

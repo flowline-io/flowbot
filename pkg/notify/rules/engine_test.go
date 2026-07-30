@@ -1,6 +1,7 @@
 package rules
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -189,7 +190,7 @@ func TestEngineEvaluate(t *testing.T) {
 			err := e.LoadConfig(tt.rules)
 			require.NoError(t, err)
 
-			result := e.Evaluate(nil, tt.eventType, tt.channel)
+			result := e.Evaluate(context.TODO(), tt.eventType, tt.channel)
 			if tt.wantNil {
 				assert.Nil(t, result)
 				return

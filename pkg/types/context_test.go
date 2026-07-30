@@ -9,6 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testCtxKey is an unexported context key type for WithValue in these tests.
+type testCtxKey struct{}
+
 func TestContext_EmptyContextReturnsTraceCtx(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -25,7 +28,7 @@ func TestContext_EmptyContextReturnsTraceCtx(t *testing.T) {
 		},
 		{
 			name:    "TraceCtx set without internal ctx returns TraceCtx",
-			ctx:     &Context{TraceCtx: context.WithValue(context.Background(), struct{}{}, "trace")},
+			ctx:     &Context{TraceCtx: context.WithValue(context.Background(), testCtxKey{}, "trace")},
 			wantNil: false,
 			wantBg:  false,
 		},
@@ -43,7 +46,7 @@ func TestContext_EmptyContextReturnsTraceCtx(t *testing.T) {
 			name: "both TraceCtx and internal ctx set returns internal ctx",
 			ctx: func() *Context {
 				c := &Context{
-					TraceCtx: context.WithValue(context.Background(), struct{}{}, "trace"),
+					TraceCtx: context.WithValue(context.Background(), testCtxKey{}, "trace"),
 				}
 				c.SetTimeout(time.Minute)
 				return c
@@ -91,7 +94,7 @@ func TestContext_ReturnsInternalCtxWhenSet(t *testing.T) {
 			name: "SetContext sets both fields",
 			setup: func() *Context {
 				c := &Context{}
-				parent := context.WithValue(context.Background(), struct{}{}, "parent")
+				parent := context.WithValue(context.Background(), testCtxKey{}, "parent")
 				c.SetContext(parent)
 				return c
 			},
@@ -120,7 +123,7 @@ func TestContext_SetContext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := &Context{}
-			parent := context.WithValue(context.Background(), struct{}{}, "val")
+			parent := context.WithValue(context.Background(), testCtxKey{}, "val")
 			c.SetContext(parent)
 
 			got := c.Context()
@@ -142,13 +145,13 @@ func TestContext_SetTraceContext(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := &Context{}
-			tc := context.WithValue(context.Background(), struct{}{}, "trace")
+			tc := context.WithValue(context.Background(), testCtxKey{}, "trace")
 			c.SetTraceContext(tc)
 
 			require.NotNil(t, c.TraceCtx)
-			assert.Equal(t, "trace", c.TraceCtx.Value(struct{}{}))
+			assert.Equal(t, "trace", c.TraceCtx.Value(testCtxKey{}))
 			// Context() should return TraceCtx as fallback since c.ctx is nil
-			assert.Equal(t, "trace", c.Context().Value(struct{}{}))
+			assert.Equal(t, "trace", c.Context().Value(testCtxKey{}))
 		})
 	}
 }
@@ -163,7 +166,7 @@ func TestContext_SetTimeoutUsesTraceCtxAsParent(t *testing.T) {
 			name: "uses TraceCtx as parent when internal ctx is nil",
 			setup: func() *Context {
 				c := &Context{
-					TraceCtx: context.WithValue(context.Background(), struct{}{}, "trace"),
+					TraceCtx: context.WithValue(context.Background(), testCtxKey{}, "trace"),
 				}
 				c.SetTimeout(time.Minute)
 				return c
@@ -181,7 +184,7 @@ func TestContext_SetTimeoutUsesTraceCtxAsParent(t *testing.T) {
 			name: "uses existing internal ctx when already set",
 			setup: func() *Context {
 				c := &Context{
-					TraceCtx: context.WithValue(context.Background(), struct{}{}, "trace"),
+					TraceCtx: context.WithValue(context.Background(), testCtxKey{}, "trace"),
 				}
 				c.SetTimeout(time.Second)
 				c.SetTimeout(time.Minute)

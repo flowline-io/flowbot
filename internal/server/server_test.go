@@ -114,7 +114,7 @@ func TestHTTPServerSurvivesOnStartContextCancel(t *testing.T) {
 	go func() {
 		close(ready)
 		serveErr := app.Listener(ln, fiber.ListenConfig{DisableStartupMessage: true})
-		assert.True(t, errors.Is(serveErr, http.ErrServerClosed) || serveErr == nil)
+		assert.True(t, serveErr == nil || errors.Is(serveErr, http.ErrServerClosed))
 	}()
 
 	<-ready
@@ -156,7 +156,7 @@ func TestServeFiberListenerGracefulStop(t *testing.T) {
 
 	var stopping atomic.Bool
 	shutdowner := &recordingShutdowner{}
-	serveFiberListener(app, ln, shutdowner, &stopping)
+	go serveFiberListener(app, ln, shutdowner, &stopping)
 
 	require.Eventually(t, func() bool {
 		resp, getErr := http.Get("http://" + ln.Addr().String() + "/ping")
@@ -187,7 +187,7 @@ func TestServeFiberListenerUnexpectedExit(t *testing.T) {
 	app := fiber.New()
 	var stopping atomic.Bool
 	shutdowner := &recordingShutdowner{}
-	serveFiberListener(app, ln, shutdowner, &stopping)
+	go serveFiberListener(app, ln, shutdowner, &stopping)
 
 	conn, err := net.DialTimeout("tcp4", base.Addr().String(), time.Second)
 	require.NoError(t, err)

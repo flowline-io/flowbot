@@ -59,7 +59,7 @@ type Encryptor struct {
 // LoadEncryptor resolves the encryption key from explicit config or a persistent file.
 // When encryptionKey is empty, a key file is created/read under keyDir (0600) and a warning
 // should be logged by the caller (FromFile reports created=true).
-func LoadEncryptor(encryptionKey, keyDir string) (enc *Encryptor, fromFile bool, created bool, err error) {
+func LoadEncryptor(encryptionKey, keyDir string) (enc *Encryptor, fromFile, created bool, err error) {
 	if strings.TrimSpace(encryptionKey) != "" {
 		key, err := parseKey(encryptionKey)
 		if err != nil {
@@ -170,7 +170,7 @@ func (e *Encryptor) HashBackupCode(code string) string {
 }
 
 // GenerateBackupCodes returns plaintext codes and their hashes.
-func (e *Encryptor) GenerateBackupCodes(n int) (codes []string, hashes []string, err error) {
+func (e *Encryptor) GenerateBackupCodes(n int) (codes, hashes []string, err error) {
 	if n <= 0 {
 		n = BackupCodeCount
 	}

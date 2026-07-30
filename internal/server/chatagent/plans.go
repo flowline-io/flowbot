@@ -13,7 +13,7 @@ import (
 )
 
 // maybePersistPlan stores the assistant reply as a plan document when session mode is plan.
-func maybePersistPlan(ctx context.Context, sessionID, reply string) (planID string, title string, ok bool) {
+func maybePersistPlan(ctx context.Context, sessionID, reply string) (planID, title string, ok bool) {
 	reply = strings.TrimSpace(reply)
 	if reply == "" || LoadSessionMode(ctx, sessionID) != ModePlan {
 		return "", "", false

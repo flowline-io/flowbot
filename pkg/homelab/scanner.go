@@ -145,7 +145,7 @@ func safeEval(path string) (string, error) {
 }
 
 // isInside reports whether path is equal to root or a descendant of root.
-func isInside(root string, path string) bool {
+func isInside(root, path string) bool {
 	root = filepath.Clean(root)
 	path = filepath.Clean(path)
 	if root == path {

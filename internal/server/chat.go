@@ -13,7 +13,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/command"
 )
 
-func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt string, session string, payload types.MsgPayload, uid types.Uid) (types.MsgPayload, string) {
+func manageChatSession(ctx types.Context, chatKey cache.Key, msgAlt, session string, payload types.MsgPayload, uid types.Uid) (types.MsgPayload, string) {
 	if strings.ToLower(msgAlt) == "chat" {
 		if session == "" {
 			session = types.Id()

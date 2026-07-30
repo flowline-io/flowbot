@@ -154,7 +154,7 @@ func (m *EventSourceManager) diffAndEmit(ctx context.Context, entry *pollEntry, 
 }
 
 // buildHashSet constructs a map of DiffKey to ContentHash from a batch of items.
-func buildHashSet(items []any, diffKeyFn func(any) string, contentHashFn func(any) string) map[string]string {
+func buildHashSet(items []any, diffKeyFn, contentHashFn func(any) string) map[string]string {
 	hashes := make(map[string]string, len(items))
 	for _, item := range items {
 		hashes[diffKeyFn(item)] = contentHashFn(item)

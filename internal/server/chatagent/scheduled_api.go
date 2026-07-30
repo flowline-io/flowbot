@@ -125,7 +125,7 @@ func CreateScheduledTaskForUID(ctx context.Context, uid types.Uid, sourceSession
 }
 
 // SetScheduledTaskStateForUID sets the lifecycle state of one owned task.
-func SetScheduledTaskStateForUID(ctx context.Context, uid types.Uid, taskID string, state string) (*ScheduledTaskView, error) {
+func SetScheduledTaskStateForUID(ctx context.Context, uid types.Uid, taskID, state string) (*ScheduledTaskView, error) {
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
 	}

@@ -121,7 +121,7 @@ func resolveDCGPath(path string) (string, error) {
 	return path, nil
 }
 
-func defaultRunner(ctx context.Context, name string, args []string, env []string) (string, int, error) {
+func defaultRunner(ctx context.Context, name string, args, env []string) (string, int, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Env = env
 	var stdout bytes.Buffer
