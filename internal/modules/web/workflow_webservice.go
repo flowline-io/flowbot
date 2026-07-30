@@ -513,11 +513,11 @@ func coerceWorkflowInputValue(def types.WorkflowInputDef, v any) (any, error) {
 		}
 		return b, nil
 	case types.WorkflowInputTypeJSON:
-		switch v.(type) {
+		switch v := v.(type) {
 		case map[string]any, []any, types.KV:
 			return v, nil
 		case string:
-			return coerceWorkflowInputString(def, v.(string))
+			return coerceWorkflowInputString(def, v)
 		default:
 			return nil, fmt.Errorf("input %q must be a json object or array", def.Name)
 		}

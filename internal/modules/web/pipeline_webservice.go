@@ -615,7 +615,7 @@ func watchPipelineRunLive(c fiber.Ctx) error {
 				return
 			default:
 				result, err := redisClient.XRead(ctx, broadcastStreamReadArgs(stream, lastID)).Result()
-				if done := handleStreamRead(w, result, err, &lastID); done {
+				if handleStreamRead(w, result, err, &lastID) {
 					return
 				}
 			}
@@ -648,7 +648,7 @@ func handleStreamRead(w *bufio.Writer, result []redis.XStream, err error, lastID
 		if !ok {
 			continue
 		}
-		if done := writeSSEEvent(w, data); done {
+		if writeSSEEvent(w, data) {
 			return true
 		}
 	}

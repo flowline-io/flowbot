@@ -97,7 +97,7 @@ func parseUpdateFile(lines []string, i, end int) (patchOp, int, error) {
 			i++
 			continue
 		}
-		if len(raw) > 0 && (raw[0] == ' ' || raw[0] == '-' || raw[0] == '+') {
+		if raw != "" && (raw[0] == ' ' || raw[0] == '-' || raw[0] == '+') {
 			current = append(current, raw)
 			i++
 			continue

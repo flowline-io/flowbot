@@ -29,28 +29,29 @@ type CompactionConfig struct {
 
 // WithDefaults fills zero compaction settings with package defaults.
 func (c CompactionConfig) WithDefaults() CompactionConfig {
-	if c.Auto == nil {
+	out := c
+	if out.Auto == nil {
 		enabled := true
-		if c.Enabled != nil {
-			enabled = *c.Enabled
+		if out.Enabled != nil {
+			enabled = *out.Enabled
 		}
-		c.Auto = &enabled
+		out.Auto = &enabled
 	}
-	if c.Prune == nil {
+	if out.Prune == nil {
 		prune := true
-		c.Prune = &prune
+		out.Prune = &prune
 	}
-	if c.Reserved <= 0 {
-		if c.ReserveTokens > 0 {
-			c.Reserved = c.ReserveTokens
+	if out.Reserved <= 0 {
+		if out.ReserveTokens > 0 {
+			out.Reserved = out.ReserveTokens
 		} else {
-			c.Reserved = defaultReserveTokens
+			out.Reserved = defaultReserveTokens
 		}
 	}
-	if c.KeepRecentTokens <= 0 {
-		c.KeepRecentTokens = defaultKeepRecentTokens
+	if out.KeepRecentTokens <= 0 {
+		out.KeepRecentTokens = defaultKeepRecentTokens
 	}
-	return c
+	return out
 }
 
 // AutoEnabled reports whether automatic pre-run compaction is enabled.

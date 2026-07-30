@@ -17,13 +17,14 @@ type Settings struct {
 
 // WithDefaults fills zero compaction settings.
 func (s Settings) WithDefaults() Settings {
-	if s.ReserveTokens <= 0 {
-		s.ReserveTokens = defaultReserveTokens
+	out := s
+	if out.ReserveTokens <= 0 {
+		out.ReserveTokens = defaultReserveTokens
 	}
-	if s.KeepRecentTokens <= 0 {
-		s.KeepRecentTokens = defaultKeepRecentTokens
+	if out.KeepRecentTokens <= 0 {
+		out.KeepRecentTokens = defaultKeepRecentTokens
 	}
-	return s
+	return out
 }
 
 // SettingsFromConfig converts chat agent compaction config into runtime settings.

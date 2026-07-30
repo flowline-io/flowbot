@@ -183,7 +183,7 @@ func TestEngine_ReloadDropsPausedCron(t *testing.T) {
 	active := []Definition{{
 		Name: "cron-pl", Enabled: true, Trigger: Trigger{Cron: "0 * * * *"},
 	}}
-	paused := []Definition{}
+	var paused []Definition
 
 	e := NewEngineWithClock(active, nil, nil, noopPC, noopEC, clock)
 	defer e.Stop()

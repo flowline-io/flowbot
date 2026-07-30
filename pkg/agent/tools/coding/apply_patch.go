@@ -308,7 +308,7 @@ func applyUpdateHunks(original string, hunks [][]string) (string, error) {
 
 func hunkBeforeAfter(hunk []string) (before, after []string, err error) {
 	for _, raw := range hunk {
-		if len(raw) == 0 {
+		if raw == "" {
 			continue
 		}
 		switch raw[0] {

@@ -37,17 +37,18 @@ type Config struct {
 
 // WithDefaults fills zero values with package defaults.
 func (c Config) WithDefaults() Config {
-	if c.MaxSteps <= 0 {
-		c.MaxSteps = defaultMaxSteps
+	out := c
+	if out.MaxSteps <= 0 {
+		out.MaxSteps = defaultMaxSteps
 	}
-	if c.ToolExecution == "" {
-		c.ToolExecution = ToolExecutionParallel
+	if out.ToolExecution == "" {
+		out.ToolExecution = ToolExecutionParallel
 	}
-	if c.SteeringMode == "" {
-		c.SteeringMode = QueueAll
+	if out.SteeringMode == "" {
+		out.SteeringMode = QueueAll
 	}
-	if c.FollowUpMode == "" {
-		c.FollowUpMode = QueueAll
+	if out.FollowUpMode == "" {
+		out.FollowUpMode = QueueAll
 	}
-	return c
+	return out
 }

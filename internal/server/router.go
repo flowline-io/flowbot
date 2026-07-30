@@ -259,7 +259,7 @@ func formAccessTokenAuthorized(raw string) bool {
 	if types.Uid(uidStr).IsZero() {
 		return false
 	}
-	rawScopes, _ := paramKV["scopes"]
+	rawScopes := paramKV["scopes"]
 	var scopes []string
 	switch v := rawScopes.(type) {
 	case []any:

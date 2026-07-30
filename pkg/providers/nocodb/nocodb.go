@@ -290,7 +290,7 @@ func decodeRecordBody(body []byte) (Record, error) {
 	if err := sonic.Unmarshal(body, &single); err != nil {
 		return nil, fmt.Errorf("decode record: %w", err)
 	}
-	if single == nil || len(single) == 0 {
+	if len(single) == 0 {
 		return nil, fmt.Errorf("empty record in response")
 	}
 	return single, nil

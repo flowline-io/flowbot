@@ -63,7 +63,7 @@ func buildCommandPaletteResults(
 }
 
 func filterCommandPalettePages(needle string, pages []commandPaletteItem) []commandPaletteItem {
-	out := []commandPaletteItem{}
+	var out []commandPaletteItem
 	for _, p := range pages {
 		if len(out) >= commandPaletteMaxPerGroup {
 			break
@@ -76,7 +76,7 @@ func filterCommandPalettePages(needle string, pages []commandPaletteItem) []comm
 }
 
 func filterCommandPalettePipelines(needle string, pipelines []*gen.PipelineDefinition) []commandPaletteItem {
-	out := []commandPaletteItem{}
+	var out []commandPaletteItem
 	for _, def := range pipelines {
 		if def == nil {
 			continue
@@ -99,7 +99,7 @@ func filterCommandPalettePipelines(needle string, pipelines []*gen.PipelineDefin
 }
 
 func filterCommandPaletteSessions(needle string, sessions []chatagent.SessionSummary) []commandPaletteItem {
-	out := []commandPaletteItem{}
+	var out []commandPaletteItem
 	for _, s := range sessions {
 		if len(out) >= commandPaletteMaxPerGroup {
 			break
@@ -123,7 +123,7 @@ func filterCommandPaletteSessions(needle string, sessions []chatagent.SessionSum
 }
 
 func filterCommandPaletteHomelab(needle string, apps []homelab.App) []commandPaletteItem {
-	out := []commandPaletteItem{}
+	var out []commandPaletteItem
 	for _, app := range apps {
 		if len(out) >= commandPaletteMaxPerGroup {
 			break

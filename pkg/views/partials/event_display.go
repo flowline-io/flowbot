@@ -202,10 +202,10 @@ func highlightJSONFallback(v any) string {
 	case "null":
 		return jsonSpan("flowbot-json-null", "null")
 	}
-	if len(s) > 0 && s[0] == '"' {
+	if s != "" && s[0] == '"' {
 		return jsonSpan("flowbot-json-string", html.EscapeString(s))
 	}
-	if len(s) > 0 && (s[0] == '{' || s[0] == '[') {
+	if s != "" && (s[0] == '{' || s[0] == '[') {
 		return html.EscapeString(s)
 	}
 	return jsonSpan("flowbot-json-number", html.EscapeString(s))

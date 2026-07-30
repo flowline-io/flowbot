@@ -526,7 +526,7 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 		return nil, err
 	}
 	baseChance := 0.15
-	pool := []string{}
+	var pool []string
 	if lootTable != nil {
 		baseChance = lootTable.BaseDropChance
 		pool = lootTable.ItemPoolFlags

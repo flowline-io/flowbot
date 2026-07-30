@@ -336,7 +336,7 @@ func triliumContentGetCommand() *cobra.Command {
 				return PrintJSON(map[string]string{"id": id, "content": content})
 			}
 			_, _ = fmt.Print(content)
-			if len(content) > 0 && content[len(content)-1] != '\n' {
+			if content != "" && content[len(content)-1] != '\n' {
 				_, _ = fmt.Println()
 			}
 			return nil
