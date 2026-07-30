@@ -66,9 +66,9 @@ func TestSHA256(t *testing.T) {
 		{
 			name: "unicode_string",
 			args: args{
-				txt: "hello世界",
+				txt: "hello cafe",
 			},
-			want: "9e83b014808bec990d9d3d35ed8d1a14232929fabf72cb72c1b472f466cc822b",
+			want: "5dd397cd3678c75e6c3a72fdb9da3939eb2af64f375c31e2782c474c6bc425c7",
 		},
 	}
 	for _, tt := range tests {

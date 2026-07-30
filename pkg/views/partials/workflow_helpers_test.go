@@ -24,7 +24,7 @@ func TestWorkflowWebPath(t *testing.T) {
 	}{
 		{name: "simple", in: "save-url", want: "/service/web/workflows/save-url"},
 		{name: "needs escape", in: "a b", want: "/service/web/workflows/a%20b"},
-		{name: "unicode", in: "工作流", want: "/service/web/workflows/%E5%B7%A5%E4%BD%9C%E6%B5%81"},
+		{name: "unicode", in: "café", want: "/service/web/workflows/caf%C3%A9"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

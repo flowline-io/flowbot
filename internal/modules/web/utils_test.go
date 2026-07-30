@@ -33,14 +33,14 @@ func TestDecodePathParam(t *testing.T) {
 			want: "my-pipeline",
 		},
 		{
-			name: "chinese percent-encoded",
-			raw:  "%E6%BC%94%E7%A4%BA1",
-			want: "演示1",
+			name: "unicode percent-encoded",
+			raw:  "donn%C3%A9es1",
+			want: "données1",
 		},
 		{
-			name: "already decoded chinese",
-			raw:  "演示1",
-			want: "演示1",
+			name: "already decoded unicode",
+			raw:  "données1",
+			want: "données1",
 		},
 		{
 			name:    "invalid escape sequence",

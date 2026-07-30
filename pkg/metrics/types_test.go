@@ -20,7 +20,7 @@ func TestSanitizeLabel(t *testing.T) {
 		{name: "special chars", input: "a/b?c:d#e", want: "a_b_c_d_e"},
 		{name: "truncate long values", input: strings.Repeat("x", 200), want: strings.Repeat("x", 128)},
 		{name: "empty string", input: "", want: ""},
-		{name: "chinese characters", input: "管道", want: "__"},
+		{name: "non-ascii characters", input: "αβ", want: "__"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

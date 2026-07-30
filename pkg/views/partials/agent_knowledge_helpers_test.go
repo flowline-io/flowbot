@@ -33,7 +33,7 @@ func TestAgentKnowledgeSummaryPreview(t *testing.T) {
 		want    string
 	}{
 		{name: "short ascii", summary: "hello", want: "hello"},
-		{name: "truncates runes not bytes", summary: repeatRune('你', 70), want: repeatRune('你', 57) + "..."},
+		{name: "truncates runes not bytes", summary: repeatRune('é', 70), want: repeatRune('é', 57) + "..."},
 		{name: "exact sixty runes", summary: repeatRune('a', 60), want: repeatRune('a', 60)},
 	}
 	for _, tt := range tests {

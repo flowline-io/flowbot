@@ -9,7 +9,7 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 * Exported symbols must have godoc. Unexported symbols: no comment by default; comment only to explain non-obvious why.
 * Do not write organizational or summary comments that restate the code.
 * Do not use emojis.
-* Text in English: comments, docs, commit messages.
+* Text in English: comments, docs, commit messages, code.
 * NEVER git commit unless asked.
 * Style that lint covers (imports, naming, JS quotes): follow `go tool task lint` / `revive.toml` / oxlint — do not restate here.
 

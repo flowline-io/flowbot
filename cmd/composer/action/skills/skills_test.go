@@ -374,9 +374,9 @@ func TestBuildTriggerDescription(t *testing.T) {
 		},
 		{
 			name:     "truncates over limit by runes",
-			what:     strings.Repeat("你", maxDescriptionLen),
-			keywords: "触发",
-			want:     strings.Repeat("你", maxDescriptionLen-3) + "...",
+			what:     strings.Repeat("é", maxDescriptionLen),
+			keywords: "trigger",
+			want:     strings.Repeat("é", maxDescriptionLen-3) + "...",
 		},
 		{
 			name:     "truncates ascii over limit",

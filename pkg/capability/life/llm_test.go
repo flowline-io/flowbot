@@ -47,9 +47,9 @@ func TestLLMEvaluateQuestSuccess(t *testing.T) {
 func TestLLMEvaluateQuestServerOwnsRewards(t *testing.T) {
 	t.Parallel()
 	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
-		Content: `{"title":"实现 AIContext","skill_name":"系统设计","stat_code":"INT","difficulty":"A","quest_type":"One-Time","fear":1,"base_exp":40,"base_gold":15,"drop_tier":"Common"}`,
+		Content: `{"title":"Implement AIContext","skill_name":"Systems Design","stat_code":"INT","difficulty":"A","quest_type":"One-Time","fear":1,"base_exp":40,"base_gold":15,"drop_tier":"Common"}`,
 	})
-	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("实现AIContext功能"))
+	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("implement the AIContext feature"))
 	require.NoError(t, err)
 	assert.Equal(t, "A", ev.Difficulty)
 	assert.Equal(t, "Epic", ev.DropTier)
@@ -61,9 +61,9 @@ func TestLLMEvaluateQuestServerOwnsRewards(t *testing.T) {
 func TestLLMEvaluateQuestExtractsEmbeddedJSON(t *testing.T) {
 	t.Parallel()
 	fake := agentllm.NewFakeModel(agentllm.ResponseScript{
-		Content: `这里是评估：{"title":"研究水的滑与涩","skill_name":"科学探究","stat_code":"INT","difficulty":"B","quest_type":"One-Time"}`,
+		Content: `Here is the evaluation:{"title":"Study water slipperiness and astringency","skill_name":"Scientific Inquiry","stat_code":"INT","difficulty":"B","quest_type":"One-Time"}`,
 	})
-	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("研究为什么水可以很滑，也可以很涩?"))
+	ev, err := testLLM(fake).EvaluateQuest(context.Background(), evalReq("Why can water feel both slippery and astringent?"))
 	require.NoError(t, err)
 	assert.Equal(t, "B", ev.Difficulty)
 	assert.Equal(t, "Rare", ev.DropTier)

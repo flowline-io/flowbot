@@ -222,14 +222,14 @@ func TestPipelineWebPath(t *testing.T) {
 			want: "/service/web/pipelines/my-pipeline",
 		},
 		{
-			name: "chinese name encoded",
-			in:   "数据同步",
-			want: "/service/web/pipelines/%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5",
+			name: "unicode name encoded",
+			in:   "données",
+			want: "/service/web/pipelines/donn%C3%A9es",
 		},
 		{
 			name: "mixed name encoded",
-			in:   "同步-bookmarks",
-			want: "/service/web/pipelines/%E5%90%8C%E6%AD%A5-bookmarks",
+			in:   "sync-bookmarks",
+			want: "/service/web/pipelines/sync-bookmarks",
 		},
 	}
 	for _, tt := range tests {

@@ -13,7 +13,7 @@ func TestChatAgentThreadHeaderMobile(t *testing.T) {
 	t.Parallel()
 	session := model.AgentSession{
 		Flag:          "sess-long-id",
-		Title:         "询问日期与目录结构",
+		Title:         "Ask about date and directory layout",
 		State:         "Active",
 		Model:         "deepseek-v4-flash",
 		ThinkingLevel: "default",

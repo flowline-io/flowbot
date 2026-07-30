@@ -203,9 +203,9 @@ func TestAgentsListShowsTodoProgress(t *testing.T) {
 				CreatedAt: now,
 			}},
 			agentTodos: map[string]*gen.AgentTodo{
-				"t1": {Flag: "t1", SessionID: "sess-todos", ItemID: "1", Content: "设计方案制定", Status: chatagent.TodoStatusCompleted, SortOrder: 0},
-				"t2": {Flag: "t2", SessionID: "sess-todos", ItemID: "2", Content: "编码实现", Status: chatagent.TodoStatusInProgress, SortOrder: 1},
-				"t3": {Flag: "t3", SessionID: "sess-todos", ItemID: "3", Content: "测试验证", Status: chatagent.TodoStatusPending, SortOrder: 2},
+				"t1": {Flag: "t1", SessionID: "sess-todos", ItemID: "1", Content: "Draft the design", Status: chatagent.TodoStatusCompleted, SortOrder: 0},
+				"t2": {Flag: "t2", SessionID: "sess-todos", ItemID: "2", Content: "Implement the code", Status: chatagent.TodoStatusInProgress, SortOrder: 1},
+				"t3": {Flag: "t3", SessionID: "sess-todos", ItemID: "3", Content: "Verify with tests", Status: chatagent.TodoStatusPending, SortOrder: 2},
 			},
 		}
 		app := setupAuthenticatedApp(t, ts)
@@ -222,7 +222,7 @@ func TestAgentsListShowsTodoProgress(t *testing.T) {
 		text := string(body)
 		assert.Contains(t, text, `data-testid="chatagent-session-todos"`)
 		assert.Contains(t, text, `data-testid="chatagent-session-todos-line"`)
-		assert.Contains(t, text, "33% · 2 active · 1/3 · 编码实现")
+		assert.Contains(t, text, "33% · 2 active · 1/3 · Implement the code")
 	})
 }
 

@@ -21,8 +21,8 @@ func TestChatAgentSessionTodoLineLabel(t *testing.T) {
 		},
 		{
 			name:    "in progress with current step",
-			summary: model.AgentTodoSummary{Total: 5, Done: 1, Active: 4, InProgress: "步骤二：设计方案制定"},
-			want:    "20% · 4 active · 1/5 · 步骤二：设计方案制定",
+			summary: model.AgentTodoSummary{Total: 5, Done: 1, Active: 4, InProgress: "Step 2: draft the design"},
+			want:    "20% · 4 active · 1/5 · Step 2: draft the design",
 		},
 		{
 			name:    "partial progress without current step",

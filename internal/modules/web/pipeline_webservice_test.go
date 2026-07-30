@@ -251,14 +251,14 @@ func TestGetAgentRunOptions(t *testing.T) {
 	assert.NotEmpty(t, payload.Data.Tools)
 }
 
-func TestCreatePipelineChineseName(t *testing.T) {
+func TestCreatePipelineUnicodeName(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
 
-	name := "数据同步"
+	name := "données"
 	body := strings.NewReader(url.Values{
 		"name":        {name},
-		"description": {"中文描述"},
+		"description": {"Unicode description"},
 	}.Encode())
 	req := httptest.NewRequest(http.MethodPost, "/service/web/pipelines", body)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -267,7 +267,7 @@ func TestCreatePipelineChineseName(t *testing.T) {
 	require.NoError(t, err)
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, "/service/web/pipelines/%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5", resp.Header.Get("HX-Redirect"))
+	assert.Equal(t, "/service/web/pipelines/donn%C3%A9es", resp.Header.Get("HX-Redirect"))
 
 	ctx := context.Background()
 	def, err := store.NewPipelineStore(client).GetDefinitionByName(ctx, name)
@@ -362,12 +362,12 @@ func TestRenamePipeline(t *testing.T) {
 	}
 }
 
-func TestPipelineEditorPageChineseName(t *testing.T) {
+func TestPipelineEditorPageUnicodeName(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	t.Cleanup(func() { store.Database = nil; handler = moduleHandler{}; config = configType{} })
 
 	ctx := context.Background()
-	name := "演示1"
+	name := "données1"
 	require.NoError(t, store.NewPipelineStore(client).CreateDefinition(ctx, name, "", ""))
 
 	req := httptest.NewRequest(http.MethodGet, "/service/web/pipelines/"+url.PathEscape(name), http.NoBody)

@@ -128,7 +128,7 @@ func TestIsToolCallPayload(t *testing.T) {
 		},
 		{
 			name: "plain assistant reply",
-			text: "这是第 5 次交互",
+			text: "This is the 5th turn",
 			want: false,
 		},
 		{
@@ -175,8 +175,8 @@ func TestSummarizeToolCallPayload(t *testing.T) {
 		},
 		{
 			name: "object arguments",
-			text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":{"query":"广州天气"}}}]`,
-			want: `web_search({"query":"广州天气"})`,
+			text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":{"query":"Guangzhou weather"}}}]`,
+			want: `web_search({"query":"Guangzhou weather"})`,
 		},
 		{
 			name: "empty string arguments",
@@ -265,9 +265,9 @@ func TestSummarizeToolCallParts(t *testing.T) {
 			calls: []msg.ToolCallPart{{
 				ID:        "call_00",
 				Name:      "web_search",
-				Arguments: `{"query":"广州天气"}`,
+				Arguments: `{"query":"Guangzhou weather"}`,
 			}},
-			want: `web_search({"query":"广州天气"})`,
+			want: `web_search({"query":"Guangzhou weather"})`,
 		},
 		{
 			name: "multiple calls",
@@ -301,10 +301,10 @@ func TestAssistantDisplayTextPrefersToolCalls(t *testing.T) {
 			msg: msg.AssistantMessage{
 				Parts: []msg.ContentPart{
 					msg.TextPart{Text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":""}}]`},
-					msg.ToolCallPart{ID: "call_00", Name: "web_search", Arguments: `{"query":"广州天气"}`},
+					msg.ToolCallPart{ID: "call_00", Name: "web_search", Arguments: `{"query":"Guangzhou weather"}`},
 				},
 			},
-			want: `web_search({"query":"广州天气"})`,
+			want: `web_search({"query":"Guangzhou weather"})`,
 		},
 		{
 			name: "plain text reply",
@@ -317,10 +317,10 @@ func TestAssistantDisplayTextPrefersToolCalls(t *testing.T) {
 			name: "json object arguments",
 			msg: msg.AssistantMessage{
 				Parts: []msg.ContentPart{
-					msg.TextPart{Text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":{"query":"广州天气"}}}]`},
+					msg.TextPart{Text: `[{"id":"call_00","type":"function","function":{"name":"web_search","arguments":{"query":"Guangzhou weather"}}}]`},
 				},
 			},
-			want: `web_search({"query":"广州天气"})`,
+			want: `web_search({"query":"Guangzhou weather"})`,
 		},
 	}
 	for _, tt := range tests {

@@ -15,7 +15,7 @@ func TestTruncateSessionPreview(t *testing.T) {
 	}{
 		{name: "empty", text: " \n\t ", limit: 40, want: ""},
 		{name: "collapses whitespace", text: "hello   world", limit: 40, want: "hello world"},
-		{name: "truncates runes", text: "一二三四五六七八九十", limit: 5, want: "一二三四…"},
+		{name: "truncates runes", text: "áéíóúàèìòù", limit: 5, want: "áéíó…"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

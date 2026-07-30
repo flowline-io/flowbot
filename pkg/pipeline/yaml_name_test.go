@@ -41,7 +41,7 @@ func TestSetNameInYAML(t *testing.T) {
 		{
 			name:    "supports unicode name",
 			yaml:    "name: old\ntriggers: []\nsteps: []",
-			newName: "数据同步",
+			newName: "données",
 		},
 	}
 	for _, tt := range tests {

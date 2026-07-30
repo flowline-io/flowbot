@@ -53,7 +53,7 @@ func TestChatAgentMessageCopyMarkdown(t *testing.T) {
 			msg: model.AgentChatMessage{
 				Role: "user",
 				Kind: "user",
-				Text: "这是什么",
+				Text: "What is this",
 				Attachments: []model.AgentChatAttachment{
 					{
 						FileID:   "img-1",

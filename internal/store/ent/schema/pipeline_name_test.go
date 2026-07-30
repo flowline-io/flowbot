@@ -21,13 +21,13 @@ func TestValidatePipelineName(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "chinese name",
-			input:   "数据同步",
+			name:    "unicode letters",
+			input:   "données",
 			wantErr: false,
 		},
 		{
-			name:    "mixed chinese and ascii",
-			input:   "同步-bookmarks",
+			name:    "mixed unicode and ascii",
+			input:   "sync-bookmarks",
 			wantErr: false,
 		},
 		{

@@ -120,7 +120,7 @@ func TestPipelineNameParamHandler(t *testing.T) {
 		wantStatus int
 	}{
 		{name: "plain name", raw: "demo-pipeline", want: "demo-pipeline", wantStatus: http.StatusOK},
-		{name: "encoded chinese", raw: "%E6%BC%94%E7%A4%BA1", want: "演示1", wantStatus: http.StatusOK},
+		{name: "encoded unicode", raw: "donn%C3%A9es1", want: "données1", wantStatus: http.StatusOK},
 		{name: "underscore name", raw: "pipe_v2", want: "pipe_v2", wantStatus: http.StatusOK},
 	}
 	for _, tt := range tests {
