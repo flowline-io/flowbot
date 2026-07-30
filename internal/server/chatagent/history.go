@@ -84,7 +84,7 @@ func entryCreatedAtMap(ctx context.Context, sessionID string) (map[string]time.T
 	if store.Database == nil {
 		return map[string]time.Time{}, nil
 	}
-	rows, err := store.Database.ListChatSessionEntries(ctx, sessionID)
+	rows, err := store.ChatStoreFromDB().ListChatSessionEntries(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}

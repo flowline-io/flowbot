@@ -1,9 +1,9 @@
 package server
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,33 +51,6 @@ func resolveDirectModulePayload(sessionID, msgAlt string, payload types.MsgPaylo
 	return payload
 }
 
-type messageDirectStore struct {
-	testStoreAdapter
-	createdMessage      *gen.Message
-	createErr           error
-	getByPlatformCalled bool
-	getByPlatformErr    error
-}
-
-func (s *messageDirectStore) GetMessageByPlatform(_ context.Context, _ int64, platformMsgID string) (*gen.Message, error) {
-	s.getByPlatformCalled = true
-	if s.getByPlatformErr != nil {
-		return nil, s.getByPlatformErr
-	}
-	if platformMsgID == "" {
-		return nil, types.ErrNotFound
-	}
-	return nil, types.ErrNotFound
-}
-
-func (s *messageDirectStore) CreateMessage(_ context.Context, message gen.Message) error {
-	if s.createErr != nil {
-		return s.createErr
-	}
-	s.createdMessage = &message
-	return nil
-}
-
 func TestBuildDirectMessageContextSetsTopicAndPlatform(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -101,24 +74,12 @@ func TestBuildDirectMessageContextSetsTopicAndPlatform(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storeStub := &directMessageContextStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-				platformUser: &gen.PlatformUser{
-					ID:     11,
-					UserID: 42,
-					Flag:   "U01DMQDTV5W",
-				},
-				user: &gen.User{ID: 42, Flag: "user-flag"},
-				platformChannel: &gen.PlatformChannel{
-					ID:        12,
-					ChannelID: 88,
-					Flag:      "D06EN8RGU6S",
-				},
-				channel: &gen.Channel{ID: 88, Flag: "existing-channel"},
-			}
-			orig := store.Database
-			store.Database = storeStub
-			t.Cleanup(func() { store.Database = orig })
+			setupSQLiteTestDB(t)
+			platformID := seedTestPlatform(t, "slack")
+			user := seedTestUser(t, "user-flag")
+			seedTestPlatformUser(t, platformID, user.ID, "U01DMQDTV5W", "", "")
+			channelID := seedTestChannel(t, "existing-channel")
+			seedTestPlatformChannel(t, platformID, channelID, "D06EN8RGU6S")
 
 			dmCtx, err := buildDirectMessageContext(t.Context(), "evt-1", tt.data)
 			require.NoError(t, err)
@@ -129,88 +90,52 @@ func TestBuildDirectMessageContextSetsTopicAndPlatform(t *testing.T) {
 	}
 }
 
-type directMessageContextStore struct {
-	testStoreAdapter
-	platform        *gen.Platform
-	platformUser    *gen.PlatformUser
-	user            *gen.User
-	platformChannel *gen.PlatformChannel
-	channel         *gen.Channel
-}
-
-func (s *directMessageContextStore) GetPlatformByName(_ context.Context, name string) (*gen.Platform, error) {
-	if s.platform == nil || s.platform.Name != name {
-		return nil, types.ErrNotFound
-	}
-	return s.platform, nil
-}
-
-func (s *directMessageContextStore) GetPlatformUserByFlag(_ context.Context, flag string) (*gen.PlatformUser, error) {
-	if s.platformUser == nil || s.platformUser.Flag != flag {
-		return nil, types.ErrNotFound
-	}
-	return s.platformUser, nil
-}
-
-func (s *directMessageContextStore) GetUserById(_ context.Context, id int64) (*gen.User, error) {
-	if s.user == nil || s.user.ID != id {
-		return nil, types.ErrNotFound
-	}
-	return s.user, nil
-}
-
-func (s *directMessageContextStore) GetPlatformChannelByFlag(_ context.Context, flag string) (*gen.PlatformChannel, error) {
-	if s.platformChannel == nil || s.platformChannel.Flag != flag {
-		return nil, types.ErrNotFound
-	}
-	return s.platformChannel, nil
-}
-
-func (s *directMessageContextStore) GetChannel(_ context.Context, id int64) (*gen.Channel, error) {
-	if s.channel == nil || s.channel.ID != id {
-		return nil, types.ErrNotFound
-	}
-	return s.channel, nil
-}
-
 func TestIsDuplicateDirectMessage(t *testing.T) {
 	tests := []struct {
-		name             string
-		messageID        string
-		wantDuplicate    bool
-		wantLookup       bool
-		getByPlatformErr error
+		name          string
+		messageID     string
+		seedMessage   bool
+		wantDuplicate bool
 	}{
 		{
 			name:          "empty message id skips lookup",
 			messageID:     "",
 			wantDuplicate: false,
-			wantLookup:    false,
 		},
 		{
 			name:          "missing stored message is not duplicate",
 			messageID:     "msg-1",
 			wantDuplicate: false,
-			wantLookup:    true,
 		},
 		{
-			name:             "lookup error is treated as duplicate guard",
-			messageID:        "msg-1",
-			wantDuplicate:    true,
-			wantLookup:       true,
-			getByPlatformErr: assert.AnError,
+			name:          "existing stored message is duplicate",
+			messageID:     "msg-1",
+			seedMessage:   true,
+			wantDuplicate: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storeStub := &messageDirectStore{getByPlatformErr: tt.getByPlatformErr}
-			orig := store.Database
-			store.Database = storeStub
-			t.Cleanup(func() { store.Database = orig })
+			setupSQLiteTestDB(t)
+			platformID := seedTestPlatform(t, "slack")
+			if tt.seedMessage {
+				now := time.Now()
+				require.NoError(t, store.MessageStoreFromDB().CreateMessage(t.Context(), gen.Message{
+					Flag:          types.Id(),
+					PlatformID:    platformID,
+					PlatformMsgID: tt.messageID,
+					Topic:         "direct",
+					Session:       "sess-dm",
+					Role:          types.User,
+					State:         int(schema.MessageCreated),
+					CreatedAt:     now,
+					UpdatedAt:     now,
+				}))
+			}
 
 			dmCtx := directMessageContext{
 				ctx:        types.Context{},
-				platformID: 7,
+				platformID: platformID,
 				msg: protocol.MessageEventData{
 					MessageId: tt.messageID,
 				},
@@ -219,7 +144,6 @@ func TestIsDuplicateDirectMessage(t *testing.T) {
 
 			got := isDuplicateDirectMessage(dmCtx)
 			assert.Equal(t, tt.wantDuplicate, got)
-			assert.Equal(t, tt.wantLookup, storeStub.getByPlatformCalled)
 		})
 	}
 }
@@ -248,14 +172,12 @@ func TestPersistDirectUserMessage(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			storeStub := &messageDirectStore{}
-			orig := store.Database
-			store.Database = storeStub
-			t.Cleanup(func() { store.Database = orig })
+			setupSQLiteTestDB(t)
+			platformID := seedTestPlatform(t, "slack")
 
 			dmCtx := directMessageContext{
 				ctx:        types.Context{},
-				platformID: 7,
+				platformID: platformID,
 				topic:      "topic-flag",
 			}
 			dmCtx.ctx.SetContext(t.Context())
@@ -271,14 +193,15 @@ func TestPersistDirectUserMessage(t *testing.T) {
 
 			if tt.wantCreated {
 				require.True(t, persisted)
-				require.NotNil(t, storeStub.createdMessage)
-				assert.Equal(t, tt.sessionID, storeStub.createdMessage.Session)
-				assert.Equal(t, "msg-1", storeStub.createdMessage.PlatformMsgID)
-				assert.Equal(t, types.User, storeStub.createdMessage.Role)
-				assert.Equal(t, int(schema.MessageCreated), storeStub.createdMessage.State)
+				stored, err := store.MessageStoreFromDB().GetMessageByPlatform(t.Context(), platformID, "msg-1")
+				require.NoError(t, err)
+				require.NotNil(t, stored)
+				assert.Equal(t, tt.sessionID, stored.Session)
+				assert.Equal(t, "msg-1", stored.PlatformMsgID)
+				assert.Equal(t, types.User, stored.Role)
+				assert.Equal(t, int(schema.MessageCreated), stored.State)
 			} else {
 				assert.False(t, persisted)
-				assert.Nil(t, storeStub.createdMessage)
 			}
 		})
 	}

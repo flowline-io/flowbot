@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/auth"
@@ -18,17 +17,8 @@ import (
 )
 
 func TestChatAgentHTTPGetSessionAndExport(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-export": {Flag: "sess-export", UID: "user-1", State: int(schema.ChatSessionActive), Title: "Deploy"},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
+	setupChatAgentHTTPTest(t, &gen.ChatSession{
+		Flag: "sess-export", UID: "user-1", State: int(schema.ChatSessionActive), Title: "Deploy",
 	})
 
 	h := newChatAgentHTTP(ChatAgentService())
@@ -95,9 +85,7 @@ func TestRequireChatAgentEnabled(t *testing.T) {
 }
 
 func TestBuildPollingStateWithDatabase(t *testing.T) {
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	t.Cleanup(func() { store.Database = origDB })
+	setupSQLiteTestDB(t)
 
 	state := buildPollingState()
 	require.NotNil(t, state)

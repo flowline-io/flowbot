@@ -1,7 +1,6 @@
 package web
 
 import (
-	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -10,10 +9,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
-	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
@@ -220,26 +216,19 @@ func TestWireLoginRateLimiter_WaitsForInit(t *testing.T) {
 }
 
 func TestAuthenticateWebRedirect(t *testing.T) {
+	fullSession := map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}}
 	tests := []struct {
 		name             string
 		cookieToken      string
-		paramGetFn       func(ctx context.Context, flag string) (gen.Parameter, error)
+		seedToken        func(t *testing.T, client *store.Client)
 		wantStatus       int
 		wantBodyContains string
 	}{
 		{
 			name:        "valid hashed token allows access to configs",
 			cookieToken: "valid-token",
-			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
-				if flag != auth.HashToken("valid-token") {
-					return gen.Parameter{}, types.ErrNotFound
-				}
-				return gen.Parameter{
-					ID:        1,
-					Flag:      flag,
-					Params:    map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}},
-					ExpiredAt: time.Now().Add(time.Hour),
-				}, nil
+			seedToken: func(t *testing.T, client *store.Client) {
+				seedTestAccessToken(t, client, "valid-token", fullSession, time.Now().Add(time.Hour))
 			},
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "Configs",
@@ -253,75 +242,37 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 		{
 			name:        "invalid token redirects to login",
 			cookieToken: "bad-token",
-			paramGetFn: func(_ context.Context, _ string) (gen.Parameter, error) {
-				return gen.Parameter{}, types.ErrNotFound
-			},
-			wantStatus:       http.StatusSeeOther,
-			wantBodyContains: "",
+			wantStatus:  http.StatusSeeOther,
 		},
 		{
 			name:        "expired token redirects to login",
 			cookieToken: "expired-token",
-			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
-				if flag != auth.HashToken("expired-token") {
-					return gen.Parameter{}, types.ErrNotFound
-				}
-				return gen.Parameter{
-					ID:        2,
-					Flag:      flag,
-					Params:    map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}},
-					ExpiredAt: time.Now().Add(-time.Hour),
-				}, nil
+			seedToken: func(t *testing.T, client *store.Client) {
+				seedTestAccessToken(t, client, "expired-token", fullSession, time.Now().Add(-time.Hour))
 			},
-			wantStatus:       http.StatusSeeOther,
-			wantBodyContains: "",
+			wantStatus: http.StatusSeeOther,
 		},
 		{
 			name:        "token without scopes redirects to login",
 			cookieToken: "no-scopes-token",
-			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
-				if flag != auth.HashToken("no-scopes-token") {
-					return gen.Parameter{}, types.ErrNotFound
-				}
-				return gen.Parameter{
-					ID:        4,
-					Flag:      flag,
-					Params:    map[string]any{"uid": "user-admin", "topic": "web"},
-					ExpiredAt: time.Now().Add(time.Hour),
-				}, nil
+			seedToken: func(t *testing.T, client *store.Client) {
+				seedTestAccessToken(t, client, "no-scopes-token", map[string]any{"uid": "user-admin", "topic": "web"}, time.Now().Add(time.Hour))
 			},
-			wantStatus:       http.StatusSeeOther,
-			wantBodyContains: "",
+			wantStatus: http.StatusSeeOther,
 		},
 		{
 			name:        "legacy session without kind redirects to login",
 			cookieToken: "legacy-no-kind",
-			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
-				if flag != auth.HashToken("legacy-no-kind") {
-					return gen.Parameter{}, types.ErrNotFound
-				}
-				return gen.Parameter{
-					ID:        5,
-					Flag:      flag,
-					Params:    map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}},
-					ExpiredAt: time.Now().Add(time.Hour),
-				}, nil
+			seedToken: func(t *testing.T, client *store.Client) {
+				seedTestAccessToken(t, client, "legacy-no-kind", map[string]any{"uid": "user-admin", "topic": "web", "scopes": []any{"admin:*"}}, time.Now().Add(time.Hour))
 			},
 			wantStatus: http.StatusSeeOther,
 		},
 		{
 			name:        "legacy plaintext token migrates and allows access",
 			cookieToken: "legacy-plain-token",
-			paramGetFn: func(_ context.Context, flag string) (gen.Parameter, error) {
-				if flag == "legacy-plain-token" {
-					return gen.Parameter{
-						ID:        3,
-						Flag:      flag,
-						Params:    map[string]any{"uid": "user-admin", "topic": "web", "kind": webauth.KindFull, "scopes": []any{"admin:*"}},
-						ExpiredAt: time.Now().Add(time.Hour),
-					}, nil
-				}
-				return gen.Parameter{}, types.ErrNotFound
+			seedToken: func(t *testing.T, client *store.Client) {
+				seedLegacyPlaintextAccessToken(t, client, "legacy-plain-token", fullSession, time.Now().Add(time.Hour))
 			},
 			wantStatus:       http.StatusOK,
 			wantBodyContains: "Configs",
@@ -330,8 +281,8 @@ func TestAuthenticateWebRedirect(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app, ts := setupTestApp(t)
-			if tt.paramGetFn != nil {
-				ts.paramGetFn = tt.paramGetFn
+			if tt.seedToken != nil {
+				tt.seedToken(t, ts.dbClient)
 			}
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			req := httptest.NewRequest(http.MethodGet, "/service/web/configs", http.NoBody)

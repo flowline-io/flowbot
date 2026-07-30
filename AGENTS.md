@@ -29,7 +29,7 @@ Homelab Data Hub & Capability Orchestration Center. Stack: Go 1.26.5+, PostgreSQ
 
 * Never import `pkg/providers/*` from `internal/modules/*` — use `capability.Invoke` (do not call provider clients from modules).
 * Never call hub / pipeline / emit DataEvent from a provider or capability adapter; never return provider-private types from an adapter.
-* Never write database query code outside `internal/store` (`store.go` facades + `postgres/adapter.go`).
+* Never write database query code outside `internal/store` (domain `*Store` facades in package `store`; `postgres` is connection-only).
 * Never edit generated code.
 * Never edit `docs/skills/` directly — it is generated. Change `cmd/composer/action/skills/` then run `go tool task skills`.
 * Never use `encoding/json` Marshal / Unmarshal — use `github.com/bytedance/sonic` (`json.RawMessage` from stdlib is allowed).

@@ -106,7 +106,7 @@ func agentSubagentCreate(ctx fiber.Ctx) error {
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
-	if err := store.Database.CreateAgentSubagent(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().CreateAgentSubagent(reqCtx, row); err != nil {
 		if fieldErrs := mapAgentSubagentUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -162,7 +162,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		return err
 	}
 	reqCtx := ctx.Context()
-	existing, err := store.Database.GetAgentSubagentByFlag(reqCtx, flag)
+	existing, err := store.AgentStoreFromDB().GetAgentSubagentByFlag(reqCtx, flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
@@ -195,7 +195,7 @@ func agentSubagentUpdate(ctx fiber.Ctx) error {
 		Enabled:      input.Enabled,
 		CreatedAt:    existing.CreatedAt,
 	}
-	if err := store.Database.UpdateAgentSubagent(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().UpdateAgentSubagent(reqCtx, row); err != nil {
 		if fieldErrs := mapAgentSubagentUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -228,7 +228,7 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 		return err
 	}
 	reqCtx := ctx.Context()
-	if err := store.Database.DeleteAgentSubagent(reqCtx, flag); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentSubagent(reqCtx, flag); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
 			return renderError(ctx, "Agent subagent not found")
@@ -238,7 +238,7 @@ func agentSubagentDelete(ctx fiber.Ctx) error {
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent subagent deleted uid=%s flag=%s", getUID(ctx), flag)
-	items, err := store.Database.ListAgentSubagents(reqCtx, false)
+	items, err := store.AgentStoreFromDB().ListAgentSubagents(reqCtx, false)
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
 		_ = partials.WriteTableEmptyOOB(
@@ -362,7 +362,7 @@ func buildAgentSubagentFormParams(ctx context.Context, item model.AgentSubagent,
 }
 
 func listAgentSubagentSkillOptions(ctx context.Context) ([]model.AgentSubagentSkillOption, error) {
-	rows, err := store.Database.ListAgentSkills(ctx, true)
+	rows, err := store.AgentStoreFromDB().ListAgentSkills(ctx, true)
 	if err != nil {
 		return nil, err
 	}
@@ -426,10 +426,10 @@ func defaultAgentSubagentSource(source string) string {
 func mapAgentSubagentUniqueError(err error) map[string]string {
 	msg := err.Error()
 	errs := make(map[string]string)
-	if strings.Contains(msg, "agent_subagents_flag_key") {
+	if strings.Contains(msg, "agent_subagents_flag_key") || strings.Contains(msg, "agent_subagents.flag") {
 		errs["flag"] = "Flag already exists"
 	}
-	if strings.Contains(msg, "agent_subagents_name_key") {
+	if strings.Contains(msg, "agent_subagents_name_key") || strings.Contains(msg, "agent_subagents.name") {
 		errs["name"] = "Name already exists"
 	}
 	if len(errs) == 0 {
@@ -439,7 +439,7 @@ func mapAgentSubagentUniqueError(err error) map[string]string {
 }
 
 func listAgentSubagentModels(ctx context.Context) ([]model.AgentSubagent, error) {
-	rows, err := store.Database.ListAgentSubagents(ctx, false)
+	rows, err := store.AgentStoreFromDB().ListAgentSubagents(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -451,7 +451,7 @@ func listAgentSubagentModels(ctx context.Context) ([]model.AgentSubagent, error)
 }
 
 func loadAgentSubagentModel(ctx context.Context, flag string) (model.AgentSubagent, error) {
-	row, err := store.Database.GetAgentSubagentByFlag(ctx, flag)
+	row, err := store.AgentStoreFromDB().GetAgentSubagentByFlag(ctx, flag)
 	if err != nil {
 		return model.AgentSubagent{}, err
 	}
@@ -482,7 +482,7 @@ func agentSubagentFromInput(item model.AgentSubagent, createdAt, updatedAt time.
 }
 
 func listAgentSubagentTaskModels(ctx context.Context, sessionID string, limit int) ([]model.AgentSubagentTask, error) {
-	rows, err := store.Database.ListAgentSubagentTasks(ctx, sessionID, limit)
+	rows, err := store.AgentStoreFromDB().ListAgentSubagentTasks(ctx, sessionID, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -494,7 +494,7 @@ func listAgentSubagentTaskModels(ctx context.Context, sessionID string, limit in
 }
 
 func loadAgentSubagentTaskModel(ctx context.Context, id int64) (model.AgentSubagentTask, error) {
-	row, err := store.Database.GetAgentSubagentTask(ctx, id)
+	row, err := store.AgentStoreFromDB().GetAgentSubagentTask(ctx, id)
 	if err != nil {
 		return model.AgentSubagentTask{}, err
 	}

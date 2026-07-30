@@ -33,7 +33,7 @@ func maybePersistPlan(ctx context.Context, sessionID, reply string) (planID, tit
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
-	if err := store.Database.CreateAgentPlan(ctx, row); err != nil {
+	if err := store.AgentStoreFromDB().CreateAgentPlan(ctx, row); err != nil {
 		flog.Warn("[chat-agent] persist plan session=%s: %v", sessionID, err)
 		return "", "", false
 	}
@@ -85,7 +85,7 @@ func ListPlanSummaries(ctx context.Context, sessionID string) ([]PlanSummary, er
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
 	}
-	rows, err := store.Database.ListAgentPlansBySession(ctx, sessionID)
+	rows, err := store.AgentStoreFromDB().ListAgentPlansBySession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}

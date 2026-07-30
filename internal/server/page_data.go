@@ -44,13 +44,10 @@ func initPageDataCleanup(lc fx.Lifecycle) {
 // runCleanup performs a single cleanup pass for expired page_data rows and
 // optional data_events retention (including related pipeline history).
 func runCleanup() {
-	if storepkg.Database == nil || storepkg.Database.GetDB() == nil {
+	if storepkg.Database == nil || storepkg.Database.GetClient() == nil {
 		return
 	}
-	client, ok := storepkg.Database.GetDB().(*storepkg.Client)
-	if !ok {
-		return
-	}
+	client := storepkg.Database.GetClient()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -67,7 +64,7 @@ func runCleanup() {
 	if days <= 0 {
 		return
 	}
-	events := storepkg.NewEventStore(client)
+	events := storepkg.EventStoreFromDB()
 	n, err := events.DeleteDataEventsOlderThan(ctx, time.Now().AddDate(0, 0, -days))
 	if err != nil {
 		flog.Err(fmt.Errorf("data_events retention: %w", err))

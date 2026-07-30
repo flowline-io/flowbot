@@ -403,11 +403,10 @@ func loadDatabase() store.Adapter {
 
 // UserNotifyChannels returns channel names configured for the user under notify:<channel> keys.
 func UserNotifyChannels(ctx context.Context, uid types.Uid) ([]string, error) {
-	db := loadDatabase()
-	if db == nil {
+	if loadDatabase() == nil {
 		return nil, nil
 	}
-	items, err := db.ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
+	items, err := store.ModuleDataStoreFromDB().ListConfigByPrefix(ctx, uid, "", notifyConfigKeyPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -455,11 +454,10 @@ func dispatchChannel(ctx context.Context, uid types.Uid, channel string, msg Mes
 
 // sendGlobalChannel looks up a channel by name in the global notify_channels table and sends.
 func sendGlobalChannel(ctx context.Context, channel string, msg Message) error {
-	db := loadDatabase()
-	if db == nil {
+	if loadDatabase() == nil {
 		return types.ErrNotFound
 	}
-	ch, err := db.GetNotifyChannelByNameRaw(ctx, channel)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannelByNameRaw(ctx, channel)
 	if err != nil {
 		return err
 	}
@@ -479,11 +477,10 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, channel string, msg M
 		return types.Errorf(types.ErrNotFound, "channel %s not found", channel)
 	}
 
-	db := loadDatabase()
-	if db == nil {
+	if loadDatabase() == nil {
 		return types.Errorf(types.ErrNotFound, "channel %s not found", channel)
 	}
-	kv, err := db.ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
+	kv, err := store.ModuleDataStoreFromDB().ConfigGet(ctx, uid, "", notifyConfigKeyPrefix+channel)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return types.Errorf(types.ErrNotFound, "channel %s not configured for user", channel)
@@ -506,14 +503,10 @@ func sendToUserChannel(ctx context.Context, uid types.Uid, channel string, msg M
 // or nil if the store is not available.
 func GetNotifyStore() *store.NotifyStore {
 	db := loadDatabase()
-	if db == nil || db.GetDB() == nil {
+	if db == nil || db.GetClient() == nil {
 		return nil
 	}
-	client, ok := db.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewNotifyStore(client)
+	return store.NotifyStoreFromDB()
 }
 
 // WaitForRecordAsyncForTest blocks until all in-flight recordAsync goroutines finish.

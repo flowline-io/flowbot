@@ -41,22 +41,14 @@ func getWorkflowStore() *store.WorkflowStore {
 	if store.Database == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewWorkflowStore(client)
+	return store.WorkflowStoreFromDB()
 }
 
 func getWorkflowRunStore() *store.WorkflowRunStore {
-	if store.Database == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewWorkflowRunStore(client)
+	return store.NewWorkflowRunStore(store.Database.GetClient())
 }
 
 func getWorkflowService() *pkgworkflow.Service {

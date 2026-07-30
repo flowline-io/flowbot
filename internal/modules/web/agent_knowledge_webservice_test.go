@@ -240,14 +240,9 @@ func TestAgentKnowledgeCreateAuthenticated(t *testing.T) {
 			respBody, _ := io.ReadAll(resp.Body)
 			assert.Contains(t, string(respBody), tt.wantBody)
 			if tt.wantPath != "" {
-				found := false
-				for _, doc := range ts.agentKnowledge {
-					if doc.Path == tt.wantPath {
-						found = true
-						assert.Equal(t, []string{"ops", "db"}, doc.Tags)
-					}
-				}
-				assert.True(t, found)
+				got, err := store.AgentStoreFromDB().GetAgentKnowledgeByPath(context.Background(), tt.wantPath)
+				require.NoError(t, err)
+				assert.Equal(t, []string{"ops", "db"}, got.Tags)
 			}
 		})
 	}
@@ -346,7 +341,8 @@ func TestAgentKnowledgeDeleteAuthenticated(t *testing.T) {
 			defer resp.Body.Close()
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantEmpty {
-				assert.Empty(t, ts.agentKnowledge)
+				_, err := store.AgentStoreFromDB().GetAgentKnowledgeByID(context.Background(), 1)
+				assert.ErrorIs(t, err, types.ErrNotFound)
 			}
 		})
 	}

@@ -84,7 +84,7 @@ func groupIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e 
 // This function will send a message to all users in the database.
 // If an error occurs, it will be logged and the function will continue to the next user.
 func notifyAll(message string) {
-	users, err := store.Database.GetUsers(context.Background())
+	users, err := store.UserStoreFromDB().GetUsers(context.Background())
 	if err != nil {
 		flog.Error(fmt.Errorf("notify error %w", err))
 		return

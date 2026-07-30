@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/auth"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/audit"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -210,12 +211,12 @@ func LookupAccessToken(ctx context.Context, raw string) (gen.Parameter, error) {
 	if raw == "" {
 		return gen.Parameter{}, types.ErrNotFound
 	}
-	db := store.Database
-	if db == nil {
+	if store.Database == nil {
 		return gen.Parameter{}, types.ErrNotFound
 	}
+	mds := store.ModuleDataStoreFromDB()
 	hashed := auth.HashToken(raw)
-	p, err := db.ParameterGet(ctx, hashed)
+	p, err := mds.ParameterGet(ctx, hashed)
 	if err == nil {
 		return p, nil
 	}
@@ -223,16 +224,18 @@ func LookupAccessToken(ctx context.Context, raw string) (gen.Parameter, error) {
 		return gen.Parameter{}, err
 	}
 
-	p, err = db.ParameterGet(ctx, raw)
+	p, err = mds.ParameterGet(ctx, raw)
 	if err != nil {
 		return gen.Parameter{}, err
 	}
 
 	params := types.KV(p.Params)
-	if setErr := db.ParameterSet(ctx, hashed, params, p.ExpiredAt); setErr != nil {
+	if setErr := mds.ParameterSet(ctx, hashed, params, p.ExpiredAt); setErr != nil {
 		return gen.Parameter{}, setErr
 	}
-	_ = db.ParameterDelete(ctx, raw)
+	if delErr := mds.ParameterDelete(ctx, raw); delErr != nil {
+		flog.Warn("route: delete legacy plaintext token param: %v", delErr)
+	}
 	p.Flag = hashed
 	return p, nil
 }
@@ -242,15 +245,15 @@ func DeleteAccessToken(ctx context.Context, raw string) error {
 	if raw == "" {
 		return nil
 	}
-	db := store.Database
-	if db == nil {
+	if store.Database == nil {
 		return nil
 	}
+	mds := store.ModuleDataStoreFromDB()
 	hashed := auth.HashToken(raw)
-	if err := db.ParameterDelete(ctx, hashed); err != nil {
+	if err := mds.ParameterDelete(ctx, hashed); err != nil {
 		return err
 	}
-	return db.ParameterDelete(ctx, raw)
+	return mds.ParameterDelete(ctx, raw)
 }
 
 // resolveAccessToken extracts the access token from cookies or the HTTP request.
@@ -302,12 +305,13 @@ func throttledUpdateLastUsed(paramKV types.KV, tokenFlag string, expiredAt time.
 	if !shouldUpdateLastUsed(paramKV) {
 		return
 	}
-	db := store.Database
-	if db == nil {
+	if store.Database == nil {
 		return
 	}
 	paramKV["last_used_at"] = time.Now().UTC().Format(time.RFC3339Nano)
-	_ = db.ParameterSet(context.Background(), tokenFlag, paramKV, expiredAt)
+	if err := store.ModuleDataStoreFromDB().ParameterSet(context.Background(), tokenFlag, paramKV, expiredAt); err != nil {
+		flog.Warn("route: update token last_used_at: %v", err)
+	}
 }
 
 // shouldUpdateLastUsed returns true when last_used_at is missing, unparseable,

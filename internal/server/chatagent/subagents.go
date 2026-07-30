@@ -9,8 +9,8 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/subagent"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )
 
@@ -30,7 +30,7 @@ func LoadSubagentsFromStore(ctx context.Context) ([]Subagent, error) {
 	if store.Database == nil {
 		return nil, nil
 	}
-	rows, err := store.Database.ListAgentSubagents(ctx, true)
+	rows, err := store.AgentStoreFromDB().ListAgentSubagents(ctx, true)
 	if err != nil {
 		return nil, fmt.Errorf("load agent subagents: %w", err)
 	}
@@ -47,7 +47,7 @@ func GetSubagentDefinition(ctx context.Context, name string) (subagent.Definitio
 	if store.Database == nil {
 		return subagent.Definition{}, fmt.Errorf("subagent store unavailable")
 	}
-	row, err := store.Database.GetAgentSubagentByName(ctx, name)
+	row, err := store.AgentStoreFromDB().GetAgentSubagentByName(ctx, name)
 	if err != nil {
 		return subagent.Definition{}, err
 	}
@@ -217,7 +217,7 @@ func SeedDefaultSubagents(ctx context.Context) error {
 	if store.Database == nil {
 		return nil
 	}
-	existing, err := store.Database.ListAgentSubagents(ctx, false)
+	existing, err := store.AgentStoreFromDB().ListAgentSubagents(ctx, false)
 	if err != nil {
 		return fmt.Errorf("list agent subagents: %w", err)
 	}
@@ -227,7 +227,7 @@ func SeedDefaultSubagents(ctx context.Context) error {
 			row := *item
 			row.CreatedAt = now
 			row.UpdatedAt = now
-			if err := store.Database.CreateAgentSubagent(ctx, &row); err != nil {
+			if err := store.AgentStoreFromDB().CreateAgentSubagent(ctx, &row); err != nil {
 				flog.Warn("[chat-agent] seed subagent %s: %v", row.Flag, err)
 				continue
 			}
@@ -257,7 +257,7 @@ func syncBuiltinSubagentPrompts(ctx context.Context, existing []*gen.AgentSubage
 		next := *row
 		next.SystemPrompt = migrated.SystemPrompt
 		next.Description = migrated.Description
-		if err := store.Database.UpdateAgentSubagent(ctx, &next); err != nil {
+		if err := store.AgentStoreFromDB().UpdateAgentSubagent(ctx, &next); err != nil {
 			flog.Warn("[chat-agent] migrate builtin subagent %s: %v", row.Flag, err)
 			continue
 		}

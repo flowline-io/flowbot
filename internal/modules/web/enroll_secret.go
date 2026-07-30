@@ -35,7 +35,7 @@ func stashEnrollSecret(_ fiber.Ctx, pending *pendingSession, secret string) erro
 	params[paramEnrollSecretCT] = base64.RawStdEncoding.EncodeToString(ct)
 	params[paramEnrollSecretNonce] = base64.RawStdEncoding.EncodeToString(nonce)
 	delete(params, "enroll_secret")
-	return store.Database.ParameterSet(context.Background(), auth.HashToken(pending.Token), params, p.ExpiredAt)
+	return store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(pending.Token), params, p.ExpiredAt)
 }
 
 func readEnrollSecret(params types.KV) (string, error) {

@@ -56,11 +56,10 @@ func fieldListContains(fields []string, want string) bool {
 
 // ResolveDefaultChannelName returns the name of the global default enabled channel.
 func ResolveDefaultChannelName(ctx context.Context) (string, error) {
-	db := loadDatabase()
-	if db == nil {
+	if loadDatabase() == nil {
 		return "", types.ErrUnavailable
 	}
-	ch, err := db.GetDefaultNotifyChannelRaw(ctx)
+	ch, err := store.NotifyConfigStoreFromDB().GetDefaultNotifyChannelRaw(ctx)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return "", ErrNoDefaultChannel
@@ -75,11 +74,10 @@ func ResolveDefaultChannelName(ctx context.Context) (string, error) {
 
 // ResolveDefaultTemplateID returns the template_id of the global default template.
 func ResolveDefaultTemplateID(ctx context.Context) (string, error) {
-	db := loadDatabase()
-	if db == nil {
+	if loadDatabase() == nil {
 		return "", types.ErrUnavailable
 	}
-	tmpl, err := db.GetDefaultNotifyTemplate(ctx)
+	tmpl, err := store.NotifyConfigStoreFromDB().GetDefaultNotifyTemplate(ctx)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return "", ErrNoDefaultTemplate
@@ -125,21 +123,18 @@ func WarnSkipNoDefault(err error, what string) bool {
 
 // SeedAgentNotifyTemplate ensures the agent.notify template exists (not marked default).
 func SeedAgentNotifyTemplate(ctx context.Context) error {
-	db := loadDatabase()
-	if db == nil {
-		db = store.Database
-	}
-	if db == nil {
+	if loadDatabase() == nil {
 		return nil
 	}
-	_, err := db.GetNotifyTemplateByTemplateID(ctx, AgentNotifyTemplateID)
+	ncs := store.NotifyConfigStoreFromDB()
+	_, err := ncs.GetNotifyTemplateByTemplateID(ctx, AgentNotifyTemplateID)
 	if err == nil {
 		return nil
 	}
 	if !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
-	_, err = db.CreateNotifyTemplate(ctx, model.NotifyTemplate{
+	_, err = ncs.CreateNotifyTemplate(ctx, model.NotifyTemplate{
 		TemplateID:      AgentNotifyTemplateID,
 		Name:            "Agent notify",
 		Description:     "Chatagent send_notification default-ready template ({{ .summary }})",

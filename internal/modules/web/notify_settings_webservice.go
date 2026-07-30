@@ -75,7 +75,7 @@ func notifyChannelsTable(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	channels, err := store.Database.ListNotifyChannels(ctx.Context(), store.ListNotifyChannelOptions{})
+	channels, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(ctx.Context(), store.ListNotifyChannelOptions{})
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Failed to load channels").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -108,7 +108,7 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 		return partials.NotifyChannelForm(model.NotifyChannel{Name: name, Protocol: protocol, URI: uri}, true, errs, protocols).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	id, err := store.Database.CreateNotifyChannel(ctx.Context(), name, protocol, uri)
+	id, err := store.NotifyConfigStoreFromDB().CreateNotifyChannel(ctx.Context(), name, protocol, uri)
 	if err != nil {
 		protocols := getProtocolsList()
 		ctx.Type("html")
@@ -116,7 +116,7 @@ func notifyChannelCreate(ctx fiber.Ctx) error {
 			notifyFormErrorsFromStore(err), protocols).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	ch, err := store.Database.GetNotifyChannel(ctx.Context(), id)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx.Context(), id)
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Channel created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -138,7 +138,7 @@ func notifyChannelEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	ch, err := store.Database.GetNotifyChannel(ctx.Context(), id)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -171,7 +171,7 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 		return partials.NotifyChannelForm(model.NotifyChannel{ID: id, Name: name, Protocol: protocol}, false, errs, protocols).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	if err := store.Database.UpdateNotifyChannel(ctx.Context(), id, name, protocol, uri, enabled); err != nil {
+	if err := store.NotifyConfigStoreFromDB().UpdateNotifyChannel(ctx.Context(), id, name, protocol, uri, enabled); err != nil {
 		if fieldErrs := mapNotifyChannelUniqueError(err); len(fieldErrs) > 0 {
 			protocols := getProtocolsList()
 			ctx.Type("html")
@@ -180,7 +180,7 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 		}
 		return storeError(ctx, err)
 	}
-	ch, err := store.Database.GetNotifyChannel(ctx.Context(), id)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -197,7 +197,7 @@ func notifyChannelDelete(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := store.Database.DeleteNotifyChannel(ctx.Context(), id); err != nil {
+	if err := store.NotifyConfigStoreFromDB().DeleteNotifyChannel(ctx.Context(), id); err != nil {
 		return storeError(ctx, err)
 	}
 	return ctx.SendString("")
@@ -211,7 +211,7 @@ func notifyChannelTest(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	ch, err := store.Database.GetNotifyChannelRaw(ctx.Context(), id)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -248,10 +248,10 @@ func notifyChannelSetDefault(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := store.Database.SetDefaultNotifyChannel(ctx.Context(), id); err != nil {
+	if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyChannel(ctx.Context(), id); err != nil {
 		return toastError(ctx, err.Error())
 	}
-	channels, err := store.Database.ListNotifyChannels(ctx.Context(), store.ListNotifyChannelOptions{})
+	channels, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(ctx.Context(), store.ListNotifyChannelOptions{})
 	if err != nil {
 		return storeError(ctx, err)
 	}
@@ -268,7 +268,7 @@ func notifyTemplatesTable(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	templates, err := store.Database.ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
+	templates, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Failed to load templates").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -297,14 +297,14 @@ func notifyTemplateCreate(ctx fiber.Ctx) error {
 		return partials.NotifyTemplateForm(tmpl, true, errs).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	id, err := store.Database.CreateNotifyTemplate(ctx.Context(), tmpl)
+	id, err := store.NotifyConfigStoreFromDB().CreateNotifyTemplate(ctx.Context(), tmpl)
 	if err != nil {
 		ctx.Type("html")
 		return partials.NotifyTemplateForm(tmpl, true, notifyFormErrorsFromStore(err)).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	reloadTemplateEngine(ctx.Context())
-	row, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	row, err := store.NotifyConfigStoreFromDB().GetNotifyTemplate(ctx.Context(), id)
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Template created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -326,7 +326,7 @@ func notifyTemplateEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	tmpl, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	tmpl, err := store.NotifyConfigStoreFromDB().GetNotifyTemplate(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -351,7 +351,7 @@ func notifyTemplateUpdate(ctx fiber.Ctx) error {
 		return partials.NotifyTemplateForm(tmpl, false, errs).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	if err := store.Database.UpdateNotifyTemplate(ctx.Context(), id, tmpl); err != nil {
+	if err := store.NotifyConfigStoreFromDB().UpdateNotifyTemplate(ctx.Context(), id, tmpl); err != nil {
 		if fieldErrs := mapNotifyTemplateUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Type("html")
 			return partials.NotifyTemplateForm(tmpl, false, fieldErrs).
@@ -360,7 +360,7 @@ func notifyTemplateUpdate(ctx fiber.Ctx) error {
 		return storeError(ctx, err)
 	}
 	reloadTemplateEngine(ctx.Context())
-	row, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	row, err := store.NotifyConfigStoreFromDB().GetNotifyTemplate(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -377,7 +377,7 @@ func notifyTemplateDelete(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := store.Database.DeleteNotifyTemplate(ctx.Context(), id); err != nil {
+	if err := store.NotifyConfigStoreFromDB().DeleteNotifyTemplate(ctx.Context(), id); err != nil {
 		return storeError(ctx, err)
 	}
 	reloadTemplateEngine(ctx.Context())
@@ -392,17 +392,17 @@ func notifyTemplateSetDefault(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	tmpl, err := store.Database.GetNotifyTemplate(ctx.Context(), id)
+	tmpl, err := store.NotifyConfigStoreFromDB().GetNotifyTemplate(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
 	if !notifypkg.TemplateReferencesSummary(tmpl.DefaultTemplate, tmpl.OverridesJSON) {
 		return toastError(ctx, "default template must reference {{ .summary }}")
 	}
-	if err := store.Database.SetDefaultNotifyTemplate(ctx.Context(), id); err != nil {
+	if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyTemplate(ctx.Context(), id); err != nil {
 		return toastError(ctx, err.Error())
 	}
-	templates, err := store.Database.ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
+	templates, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(ctx.Context(), store.ListNotifyTemplateOptions{})
 	if err != nil {
 		return storeError(ctx, err)
 	}
@@ -419,7 +419,7 @@ func notifyRulesTable(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	rules, err := store.Database.ListNotifyRules(ctx.Context(), store.ListNotifyRuleOptions{})
+	rules, err := store.NotifyConfigStoreFromDB().ListNotifyRules(ctx.Context(), store.ListNotifyRuleOptions{})
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Failed to load rules").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -451,14 +451,14 @@ func notifyRuleCreate(ctx fiber.Ctx) error {
 		return partials.NotifyRuleForm(rule, true, errs, templateIDs).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	id, err := store.Database.CreateNotifyRule(ctx.Context(), rule)
+	id, err := store.NotifyConfigStoreFromDB().CreateNotifyRule(ctx.Context(), rule)
 	if err != nil {
 		ctx.Type("html")
 		return partials.NotifyRuleForm(rule, true, notifyFormErrorsFromStore(err), templateIDs).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 	reloadRulesEngine(ctx.Context())
-	r, err := store.Database.GetNotifyRule(ctx.Context(), id)
+	r, err := store.NotifyConfigStoreFromDB().GetNotifyRule(ctx.Context(), id)
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Rule created but failed to load").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -480,7 +480,7 @@ func notifyRuleEditForm(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	rule, err := store.Database.GetNotifyRule(ctx.Context(), id)
+	rule, err := store.NotifyConfigStoreFromDB().GetNotifyRule(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -506,7 +506,7 @@ func notifyRuleUpdate(ctx fiber.Ctx) error {
 		return partials.NotifyRuleForm(rule, false, errs, templateIDs).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	if err := store.Database.UpdateNotifyRule(ctx.Context(), id, rule); err != nil {
+	if err := store.NotifyConfigStoreFromDB().UpdateNotifyRule(ctx.Context(), id, rule); err != nil {
 		if fieldErrs := mapNotifyRuleUniqueError(err); len(fieldErrs) > 0 {
 			rule.ID = id
 			ctx.Type("html")
@@ -516,7 +516,7 @@ func notifyRuleUpdate(ctx fiber.Ctx) error {
 		return storeError(ctx, err)
 	}
 	reloadRulesEngine(ctx.Context())
-	r, err := store.Database.GetNotifyRule(ctx.Context(), id)
+	r, err := store.NotifyConfigStoreFromDB().GetNotifyRule(ctx.Context(), id)
 	if err != nil {
 		return notFound(ctx)
 	}
@@ -533,7 +533,7 @@ func notifyRuleDelete(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if err := store.Database.DeleteNotifyRule(ctx.Context(), id); err != nil {
+	if err := store.NotifyConfigStoreFromDB().DeleteNotifyRule(ctx.Context(), id); err != nil {
 		return storeError(ctx, err)
 	}
 	reloadRulesEngine(ctx.Context())
@@ -608,7 +608,7 @@ func mapNotifyRuleUniqueError(err error) map[string]string {
 	if err == nil {
 		return nil
 	}
-	if strings.Contains(err.Error(), "notify_rules_rule_id_key") {
+	if strings.Contains(err.Error(), "notify_rules_rule_id_key") || strings.Contains(err.Error(), "notify_rules.rule_id") {
 		return map[string]string{"rule_id": "Rule ID already exists"}
 	}
 	return nil
@@ -837,7 +837,7 @@ func reloadRulesEngine(ctx context.Context) {
 		return
 	}
 	enabled := true
-	rules, err := store.Database.ListNotifyRules(ctx, store.ListNotifyRuleOptions{Enabled: &enabled})
+	rules, err := store.NotifyConfigStoreFromDB().ListNotifyRules(ctx, store.ListNotifyRuleOptions{Enabled: &enabled})
 	if err != nil {
 		flog.Warn("reload notify rules: list failed: %v", err)
 		return
@@ -873,7 +873,7 @@ func reloadRulesEngine(ctx context.Context) {
 }
 
 func reloadTemplateEngine(ctx context.Context) {
-	rows, err := store.Database.ListNotifyTemplates(ctx, store.ListNotifyTemplateOptions{})
+	rows, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(ctx, store.ListNotifyTemplateOptions{})
 	if err != nil {
 		flog.Warn("reload notify templates: list failed: %v", err)
 		return

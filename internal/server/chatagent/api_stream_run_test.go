@@ -323,7 +323,7 @@ func TestStreamAPIRun_CompletesWithFakeModel(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-stream-run"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 
@@ -345,7 +345,7 @@ func TestStreamAPIRun_EmptyMessageReturnsError(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-stream-empty"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 

@@ -59,7 +59,7 @@ func TestSessionGrantsPersistAndClear(t *testing.T) {
 	origDB := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	sessionID := "sess-grants"
-	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag:  sessionID,
 		UID:   "user-1",
 		State: int(schema.ChatSessionActive),

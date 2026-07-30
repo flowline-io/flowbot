@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
@@ -13,38 +12,26 @@ import (
 )
 
 func TestReadSkillTool_Execute(t *testing.T) {
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testAgentSkills = map[string]*gen.AgentSkill{
-		"karakeep": {
-			Flag:        "karakeep",
-			Name:        "karakeep",
-			Description: "Bookmark skill",
-			Content:     "# Bookmark\nUse flowbot bookmark list",
-			Enabled:     true,
-		},
-		"hidden": {
-			Flag:                   "hidden",
-			Name:                   "hidden",
-			Description:            "Hidden skill",
-			Content:                "secret",
-			Enabled:                true,
-			DisableModelInvocation: true,
-		},
-	}
-	testAgentSkillFiles = map[string]map[string]*gen.AgentSkillFile{
-		"karakeep": {
-			"reference.md": {
-				SkillFlag: "karakeep",
-				Path:      "reference.md",
-				Content:   "Reference body",
-			},
-		},
-	}
-	t.Cleanup(func() {
-		store.Database = origDB
-		testAgentSkills = map[string]*gen.AgentSkill{}
-		testAgentSkillFiles = map[string]map[string]*gen.AgentSkillFile{}
+	setupSQLiteTestDB(t)
+	seedTestAgentSkill(t, &gen.AgentSkill{
+		Flag:        "karakeep",
+		Name:        "karakeep",
+		Description: "Bookmark skill",
+		Content:     "# Bookmark\nUse flowbot bookmark list",
+		Enabled:     true,
+	})
+	seedTestAgentSkill(t, &gen.AgentSkill{
+		Flag:                   "hidden",
+		Name:                   "hidden",
+		Description:            "Hidden skill",
+		Content:                "secret",
+		Enabled:                true,
+		DisableModelInvocation: true,
+	})
+	seedTestAgentSkillFile(t, &gen.AgentSkillFile{
+		SkillFlag: "karakeep",
+		Path:      "reference.md",
+		Content:   "Reference body",
 	})
 
 	tool := chatagent.ReadSkillTool{}
@@ -77,28 +64,20 @@ func TestReadSkillTool_Execute(t *testing.T) {
 }
 
 func TestLoadSkillsFromStore(t *testing.T) {
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testAgentSkills = map[string]*gen.AgentSkill{
-		"visible": {
-			Flag:                   "visible",
-			Name:                   "visible",
-			Description:            "Visible skill",
-			Enabled:                true,
-			DisableModelInvocation: false,
-		},
-		"hidden": {
-			Flag:                   "hidden",
-			Name:                   "hidden",
-			Description:            "Hidden skill",
-			Enabled:                true,
-			DisableModelInvocation: true,
-		},
-	}
-	t.Cleanup(func() {
-		store.Database = origDB
-		testAgentSkills = map[string]*gen.AgentSkill{}
-		testAgentSkillFiles = map[string]map[string]*gen.AgentSkillFile{}
+	setupSQLiteTestDB(t)
+	seedTestAgentSkill(t, &gen.AgentSkill{
+		Flag:                   "visible",
+		Name:                   "visible",
+		Description:            "Visible skill",
+		Enabled:                true,
+		DisableModelInvocation: false,
+	})
+	seedTestAgentSkill(t, &gen.AgentSkill{
+		Flag:                   "hidden",
+		Name:                   "hidden",
+		Description:            "Hidden skill",
+		Enabled:                true,
+		DisableModelInvocation: true,
 	})
 
 	skills, err := chatagent.LoadSkillsFromStore(context.Background())

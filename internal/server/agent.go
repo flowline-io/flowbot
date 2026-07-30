@@ -46,7 +46,7 @@ func agentAction(eventCtx context.Context, uid types.Uid, data types.AgentData) 
 }
 
 func handlePullAction(ctx types.Context, uid types.Uid) (any, error) {
-	list, err := store.Database.ListInstruct(ctx.Context(), uid, false, 10)
+	list, err := store.ModuleDataStoreFromDB().ListInstruct(ctx.Context(), uid, false, 10)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func handleAckAction(ctx context.Context, data types.AgentData) error {
 		return errors.New("error instruct no")
 	}
 
-	err := store.Database.UpdateInstruct(ctx, &gen.Instruct{
+	err := store.ModuleDataStoreFromDB().UpdateInstruct(ctx, &gen.Instruct{
 		No:    no,
 		State: int(schema.InstructDone),
 	})
@@ -121,7 +121,7 @@ func handleOfflineAction(ctx types.Context, uid types.Uid, data types.AgentData)
 	}
 	hostname, _ := data.Content.String("hostname")
 
-	err := store.Database.UpdateAgentOnlineDuration(ctx.Context(), uid, "", hostid, time.Now())
+	err := store.RuntimeAgentStoreFromDB().UpdateAgentOnlineDuration(ctx.Context(), uid, "", hostid, time.Now())
 	if err != nil {
 		flog.Error(fmt.Errorf("update online duration error %w", err))
 	}

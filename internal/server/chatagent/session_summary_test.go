@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func seedSummarySession(t *testing.T, db store.Adapter, text string) string {
+func seedSummarySession(t *testing.T, text string) string {
 	t.Helper()
 	ctx := context.Background()
 	sessionID := types.Id()
-	require.NoError(t, db.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag:  sessionID,
 		UID:   "user-1",
 		State: int(schema.ChatSessionActive),
@@ -68,13 +68,13 @@ func TestSetSessionArchivedEnqueuesSummary(t *testing.T) {
 		{
 			name: "archive triggers ready summary",
 			run: func(t *testing.T) {
-				sessionID := seedSummarySession(t, db, "tell me about widgets")
+				sessionID := seedSummarySession(t, "tell me about widgets")
 				require.NoError(t, SetSessionArchived(ctx, sessionID, true))
 				require.Eventually(t, func() bool {
-					row, err := db.GetAgentSessionSummaryBySession(ctx, sessionID)
+					row, err := store.AgentStoreFromDB().GetAgentSessionSummaryBySession(ctx, sessionID)
 					return err == nil && row.Status == schema.AgentSessionSummaryReady
 				}, 3*time.Second, 20*time.Millisecond)
-				row, err := db.GetAgentSessionSummaryBySession(ctx, sessionID)
+				row, err := store.AgentStoreFromDB().GetAgentSessionSummaryBySession(ctx, sessionID)
 				require.NoError(t, err)
 				assert.Contains(t, row.Summary, "widgets")
 			},
@@ -82,14 +82,14 @@ func TestSetSessionArchivedEnqueuesSummary(t *testing.T) {
 		{
 			name: "unarchive keeps summary",
 			run: func(t *testing.T) {
-				sessionID := seedSummarySession(t, db, "tell me about widgets")
+				sessionID := seedSummarySession(t, "tell me about widgets")
 				require.NoError(t, SetSessionArchived(ctx, sessionID, true))
 				require.Eventually(t, func() bool {
-					row, err := db.GetAgentSessionSummaryBySession(ctx, sessionID)
+					row, err := store.AgentStoreFromDB().GetAgentSessionSummaryBySession(ctx, sessionID)
 					return err == nil && row.Status == schema.AgentSessionSummaryReady
 				}, 3*time.Second, 20*time.Millisecond)
 				require.NoError(t, SetSessionArchived(ctx, sessionID, false))
-				row, err := db.GetAgentSessionSummaryBySession(ctx, sessionID)
+				row, err := store.AgentStoreFromDB().GetAgentSessionSummaryBySession(ctx, sessionID)
 				require.NoError(t, err)
 				assert.NotEmpty(t, row.Summary)
 			},
@@ -97,15 +97,15 @@ func TestSetSessionArchivedEnqueuesSummary(t *testing.T) {
 		{
 			name: "retry requeues failed summary",
 			run: func(t *testing.T) {
-				sessionID := seedSummarySession(t, db, "tell me about widgets")
-				_, err := db.UpsertAgentSessionSummaryPending(ctx, sessionID, "default", "Widgets")
+				sessionID := seedSummarySession(t, "tell me about widgets")
+				_, err := store.AgentStoreFromDB().UpsertAgentSessionSummaryPending(ctx, sessionID, "default", "Widgets")
 				require.NoError(t, err)
-				_, err = db.ClaimAgentSessionSummaryPending(ctx, "fail-tok")
+				_, err = store.AgentStoreFromDB().ClaimAgentSessionSummaryPending(ctx, "fail-tok")
 				require.NoError(t, err)
-				require.NoError(t, db.MarkAgentSessionSummaryFailed(ctx, sessionID, "fail-tok", "boom"))
+				require.NoError(t, store.AgentStoreFromDB().MarkAgentSessionSummaryFailed(ctx, sessionID, "fail-tok", "boom"))
 				require.NoError(t, RetrySessionSummary(ctx, sessionID))
 				require.Eventually(t, func() bool {
-					row, err := db.GetAgentSessionSummaryBySession(ctx, sessionID)
+					row, err := store.AgentStoreFromDB().GetAgentSessionSummaryBySession(ctx, sessionID)
 					return err == nil && row.Status == schema.AgentSessionSummaryReady
 				}, 3*time.Second, 20*time.Millisecond)
 			},
@@ -126,7 +126,7 @@ func TestBuildSessionSummaryInputBudget(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := types.Id()
-	require.NoError(t, db.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag:  sessionID,
 		UID:   "user-1",
 		State: int(schema.ChatSessionActive),

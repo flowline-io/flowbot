@@ -62,11 +62,10 @@ func (moduleHandler) Init(jsonconf json.RawMessage) error {
 	if store.Database == nil {
 		return errors.New("store database not available")
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok || client == nil {
+	if store.Database.GetClient() == nil {
 		return errors.New("store client not available")
 	}
-	rcStore = store.NewResourceChainStore(client)
+	rcStore = store.NewResourceChainStore(store.Database.GetClient())
 
 	handler.initialized = true
 	return nil

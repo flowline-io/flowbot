@@ -22,7 +22,7 @@ func TestAgentActionPull(t *testing.T) {
 	ctx := context.Background()
 	uid := types.Uid("user-agent")
 	expireAt := time.Now().UTC().Add(time.Hour)
-	_, err := store.Database.CreateInstruct(ctx, &gen.Instruct{
+	_, err := store.ModuleDataStoreFromDB().CreateInstruct(ctx, &gen.Instruct{
 		No: "inst-1", UID: uid.String(), Object: string(schema.InstructObjectAgent),
 		Bot: "bot-a", Flag: "flag-1",
 		Content: map[string]any{"text": "run backup"}, State: int(schema.InstructCreate), ExpireAt: expireAt,
@@ -70,7 +70,7 @@ func TestAgentActionAck(t *testing.T) {
 
 	ctx := context.Background()
 	uid := types.Uid("user-agent")
-	_, err := store.Database.CreateInstruct(ctx, &gen.Instruct{
+	_, err := store.ModuleDataStoreFromDB().CreateInstruct(ctx, &gen.Instruct{
 		No: "inst-ack", UID: uid.String(), Object: string(schema.InstructObjectAgent),
 		Bot: "bot-a", Flag: "flag-ack", Content: map[string]any{"cmd": "run"},
 		State: int(schema.InstructCreate),

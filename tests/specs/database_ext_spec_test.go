@@ -520,7 +520,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
-			row, err := store.Database.GetAgentKnowledgeByPath(ctx, path)
+			row, err := store.AgentStoreFromDB().GetAgentKnowledgeByPath(ctx, path)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(row.Title).To(Equal("Get Doc"))
 
@@ -538,7 +538,7 @@ var _ = Describe("Database Extended Models", Label("database", "integration"), f
 				Save(ctx)
 			Expect(err).NotTo(HaveOccurred())
 
-			rows, err := store.Database.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{
+			rows, err := store.AgentStoreFromDB().SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{
 				Query: "unique-knowledge-token-xyz",
 				Limit: 10,
 			})

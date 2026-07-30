@@ -93,7 +93,7 @@ func agentKnowledgeCreate(ctx fiber.Ctx) error {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
-	if err := store.Database.CreateAgentKnowledge(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().CreateAgentKnowledge(reqCtx, row); err != nil {
 		if fieldErrs := mapAgentKnowledgeUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -138,7 +138,7 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 		return err
 	}
 	reqCtx := ctx.Context()
-	existing, err := store.Database.GetAgentKnowledgeByID(reqCtx, id)
+	existing, err := store.AgentStoreFromDB().GetAgentKnowledgeByID(reqCtx, id)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
@@ -160,7 +160,7 @@ func agentKnowledgeUpdate(ctx fiber.Ctx) error {
 	existing.Tags = input.Tags
 	existing.Summary = input.Summary
 	existing.Content = input.Content
-	if err := store.Database.UpdateAgentKnowledge(reqCtx, existing); err != nil {
+	if err := store.AgentStoreFromDB().UpdateAgentKnowledge(reqCtx, existing); err != nil {
 		if fieldErrs := mapAgentKnowledgeUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -186,14 +186,14 @@ func agentKnowledgeDelete(ctx fiber.Ctx) error {
 		return err
 	}
 	reqCtx := ctx.Context()
-	if err := store.Database.DeleteAgentKnowledge(reqCtx, id); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentKnowledge(reqCtx, id); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return toastError(ctx, "Knowledge document not found")
 		}
 		return toastError(ctx, "Failed to delete knowledge document")
 	}
 	flog.Info("[web] agent knowledge deleted uid=%s id=%d", getUID(ctx), id)
-	items, err := store.Database.ListAgentKnowledge(reqCtx, store.AgentKnowledgeListFilter{})
+	items, err := store.AgentStoreFromDB().ListAgentKnowledge(reqCtx, store.AgentKnowledgeListFilter{})
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
 		_ = partials.WriteTableEmptyOOB(
@@ -281,7 +281,7 @@ func mapAgentKnowledgeUniqueError(err error) map[string]string {
 }
 
 func listAgentKnowledgeModels(ctx context.Context, q string) ([]model.AgentKnowledge, error) {
-	rows, err := store.Database.ListAgentKnowledge(ctx, store.AgentKnowledgeListFilter{Q: q})
+	rows, err := store.AgentStoreFromDB().ListAgentKnowledge(ctx, store.AgentKnowledgeListFilter{Q: q})
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func listAgentKnowledgeModels(ctx context.Context, q string) ([]model.AgentKnowl
 }
 
 func loadAgentKnowledgeModel(ctx context.Context, id int64) (model.AgentKnowledge, error) {
-	row, err := store.Database.GetAgentKnowledgeByID(ctx, id)
+	row, err := store.AgentStoreFromDB().GetAgentKnowledgeByID(ctx, id)
 	if err != nil {
 		return model.AgentKnowledge{}, err
 	}

@@ -64,16 +64,16 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(reply).To(ContainSubstring("hello from agent"))
 
-		sess, err := store.Database.GetChatSession(ctx, sessionID)
+		sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(sess.LeafID).NotTo(BeEmpty())
 
-		entries, err := store.Database.ListChatSessionEntries(ctx, sessionID)
+		entries, err := store.ChatStoreFromDB().ListChatSessionEntries(ctx, sessionID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(entries).NotTo(BeEmpty())
 
 		Expect(svc.CloseSession(ctx, sessionID)).To(Succeed())
-		closed, err := store.Database.GetChatSession(ctx, sessionID)
+		closed, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(closed.State).To(Equal(int(schema.ChatSessionClosed)))
 	})
@@ -117,7 +117,7 @@ var _ = Describe("Chat Agent", Label("module", "chat-agent"), func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(reply).To(ContainSubstring("done after tool"))
 
-		entries, err := store.Database.ListChatSessionEntries(ctx, sessionID)
+		entries, err := store.ChatStoreFromDB().ListChatSessionEntries(ctx, sessionID)
 		Expect(err).NotTo(HaveOccurred())
 		assistantModels := make([]string, 0)
 		for _, row := range entries {

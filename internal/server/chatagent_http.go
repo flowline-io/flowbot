@@ -92,7 +92,7 @@ func (*chatAgentHTTP) ensureSessionOwner(c fiber.Ctx, sessionID string) error {
 	if store.Database == nil {
 		return types.ErrUnavailable
 	}
-	sess, err := store.Database.GetChatSession(c.Context(), sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(c.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return types.ErrNotFound

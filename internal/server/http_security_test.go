@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 
@@ -240,13 +239,11 @@ func TestMetricsAuth_BearerToken(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			prev := config.App.Metrics.BearerToken
-			origDB := store.Database
 			t.Cleanup(func() {
 				config.App.Metrics.BearerToken = prev
-				store.Database = origDB
 			})
 			config.App.Metrics.BearerToken = tt.bearerCfg
-			store.Database = &testStoreAdapter{}
+			setupSQLiteTestDB(t)
 
 			app := fiber.New(fiber.Config{
 				ErrorHandler: func(ctx fiber.Ctx, err error) error {

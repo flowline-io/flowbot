@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
@@ -257,8 +258,10 @@ func TestAgentSubagentTasksTableAuthenticated(t *testing.T) {
 			tasks: map[int64]*gen.AgentSubagentTask{
 				2: {
 					ID:           2,
+					SessionID:    "sess-subagent",
 					SubagentName: "general",
 					Description:  "Retry task",
+					Prompt:       "retry the task",
 					Status:       "failed",
 					ErrorText:    "model unavailable",
 					StartedAt:    time.Now().UTC(),
@@ -330,7 +333,7 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 			name: "duplicate flag rejected",
 			form: map[string]string{
 				"flag":          "existing",
-				"name":          "existing",
+				"name":          "another-name",
 				"description":   "Existing",
 				"system_prompt": "p",
 			},
@@ -368,7 +371,8 @@ func TestAgentSubagentCreateAuthenticated(t *testing.T) {
 			respBody, _ := io.ReadAll(resp.Body)
 			assert.Contains(t, string(respBody), tt.wantBody)
 			if tt.checkStore {
-				subagent := ts.agentSubagents[tt.form["flag"]]
+				subagent, err := store.AgentStoreFromDB().GetAgentSubagentByFlag(context.Background(), tt.form["flag"])
+				require.NoError(t, err)
 				require.NotNil(t, subagent)
 				assert.Equal(t, tt.wantEnabled, subagent.Enabled)
 				assert.Equal(t, []string{"read_file", "run_terminal"}, subagent.Tools)
@@ -423,8 +427,8 @@ func TestAgentSubagentDeleteAuthenticated(t *testing.T) {
 
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantEmpty {
-				_, ok := ts.agentSubagents[tt.flag]
-				assert.False(t, ok)
+				_, err := store.AgentStoreFromDB().GetAgentSubagentByFlag(context.Background(), tt.flag)
+				require.ErrorIs(t, err, types.ErrNotFound)
 				respBody, _ := io.ReadAll(resp.Body)
 				assert.Empty(t, string(respBody))
 			}

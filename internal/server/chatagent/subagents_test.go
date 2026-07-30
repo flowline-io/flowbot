@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -28,7 +28,7 @@ func TestBuildPermissionsView(t *testing.T) {
 	ctx := context.Background()
 	uid := types.Uid("user-perm")
 	sessionID := "sess-perm-view"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: uid.String(), State: int(schema.ChatSessionActive),
 	}))
 
@@ -108,7 +108,7 @@ func TestClearSessionPermissionGrants(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-clear-grants"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 

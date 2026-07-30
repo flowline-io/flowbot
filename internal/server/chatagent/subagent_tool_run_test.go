@@ -8,8 +8,8 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,10 +24,10 @@ func TestTaskToolExecuteWithFakeSubagent(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-subagent-tool"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user:alice", State: int(schema.ChatSessionActive),
 	}))
-	require.NoError(t, store.Database.CreateAgentSubagent(ctx, &gen.AgentSubagent{
+	require.NoError(t, store.AgentStoreFromDB().CreateAgentSubagent(ctx, &gen.AgentSubagent{
 		Flag: "helper", Name: "helper", Description: "General helper",
 		SystemPrompt: "You are a helper.", Source: "test", Enabled: true,
 	}))
@@ -72,7 +72,7 @@ func TestTaskToolExecuteWithFakeSubagent(t *testing.T) {
 		},
 	}
 
-	require.NoError(t, store.Database.CreateAgentSubagent(ctx, &gen.AgentSubagent{
+	require.NoError(t, store.AgentStoreFromDB().CreateAgentSubagent(ctx, &gen.AgentSubagent{
 		Flag: "disabled-one", Name: "disabled-one", Description: "off",
 		SystemPrompt: "off", Source: "test", Enabled: false,
 	}))
@@ -90,7 +90,7 @@ func TestTaskToolExecuteWithFakeSubagent(t *testing.T) {
 			assert.False(t, result.IsError)
 			assert.Contains(t, text, tt.wantSub)
 
-			tasks, listErr := store.Database.ListAgentSubagentTasks(ctx, sessionID, 5)
+			tasks, listErr := store.AgentStoreFromDB().ListAgentSubagentTasks(ctx, sessionID, 5)
 			require.NoError(t, listErr)
 			require.NotEmpty(t, tasks)
 			assert.Equal(t, subagentTaskStatusCompleted, tasks[0].Status)

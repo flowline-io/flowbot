@@ -127,6 +127,7 @@ func TestCommandPaletteSearch(t *testing.T) {
 					CreatedAt: now,
 					UpdatedAt: now,
 				}}
+				syncTestStoreToDB(t, ts)
 			}
 
 			path := "/service/web/command-palette/search"

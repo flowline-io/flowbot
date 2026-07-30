@@ -135,7 +135,7 @@ func issuePendingSession(ctx fiber.Ctx, kind, uid, username string) error {
 		"kind":     kind,
 	}
 	expiredAt := time.Now().Add(webauth.PendingSessionTTL)
-	if err := store.Database.ParameterSet(context.Background(), auth.HashToken(token), params, expiredAt); err != nil {
+	if err := store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(token), params, expiredAt); err != nil {
 		return err
 	}
 	setPendingCookie(ctx, token, int(webauth.PendingSessionTTL.Seconds()))
@@ -165,7 +165,7 @@ func issueFullSession(ctx fiber.Ctx, uid, username string) error {
 		"scopes":   []string{"admin:*"},
 	}
 	expiredAt := time.Now().Add(webauth.FullSessionTTL)
-	if err := store.Database.ParameterSet(context.Background(), auth.HashToken(token), params, expiredAt); err != nil {
+	if err := store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(token), params, expiredAt); err != nil {
 		return err
 	}
 	setAccessTokenCookie(ctx, token, int(webauth.FullSessionTTL.Seconds()), time.Time{})

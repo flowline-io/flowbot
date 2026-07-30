@@ -10,9 +10,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -93,7 +93,7 @@ func resolvePlanResource(ctx context.Context, sessionID, uri, planID string) (Re
 	if store.Database == nil {
 		return ResourceContent{}, types.ErrUnavailable
 	}
-	row, err := store.Database.GetAgentPlanInSession(ctx, sessionID, planID)
+	row, err := store.AgentStoreFromDB().GetAgentPlanInSession(ctx, sessionID, planID)
 	if err != nil {
 		return ResourceContent{}, err
 	}

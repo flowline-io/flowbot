@@ -34,7 +34,7 @@ func TestSettingGetAndStoreParameter(t *testing.T) {
 		{
 			name: "setting get returns stored config",
 			run: func(t *testing.T) {
-				require.NoError(t, store.Database.ConfigSet(runCtx.Context(), runCtx.AsUser, runCtx.Topic, "widget_theme", types.KV{"color": "blue"}))
+				require.NoError(t, store.ModuleDataStoreFromDB().ConfigSet(runCtx.Context(), runCtx.AsUser, runCtx.Topic, "widget_theme", types.KV{"color": "blue"}))
 				got, err := SettingGet(runCtx, "widget", "theme")
 				require.NoError(t, err)
 				assert.Equal(t, "blue", got["color"])
@@ -46,7 +46,7 @@ func TestSettingGetAndStoreParameter(t *testing.T) {
 				flag, err := StoreParameter(types.KV{"a": "1"}, time.Now().Add(time.Hour))
 				require.NoError(t, err)
 				assert.NotEmpty(t, flag)
-				row, getErr := store.Database.ParameterGet(context.Background(), flag)
+				row, getErr := store.ModuleDataStoreFromDB().ParameterGet(context.Background(), flag)
 				require.NoError(t, getErr)
 				assert.Equal(t, "1", types.KV(row.Params)["a"])
 			},
@@ -113,7 +113,7 @@ func TestBehaviorViaModuleHelper(t *testing.T) {
 		})
 	}
 
-	got, err := store.Database.BehaviorGet(context.Background(), uid, MessageBotIncomingBehavior)
+	got, err := store.ModuleDataStoreFromDB().BehaviorGet(context.Background(), uid, MessageBotIncomingBehavior)
 	require.NoError(t, err)
 	assert.Equal(t, int32(3), got.Count)
 }

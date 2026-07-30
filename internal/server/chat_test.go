@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/cache"
@@ -98,25 +97,19 @@ func TestManageChatSession(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			setupTestCacheStore(t)
-			origDB := store.Database
-			store.Database = &testStoreAdapter{}
-			testChatSessions = map[string]*gen.ChatSession{}
+			setupSQLiteTestDB(t)
 			if tt.session != "" {
 				mode := chatagent.ModeNormal
 				if tt.msgAlt == "proceed" {
 					mode = chatagent.ModePlan
 				}
-				testChatSessions[tt.session] = &gen.ChatSession{
+				seedTestChatSession(t, &gen.ChatSession{
 					Flag:  tt.session,
 					UID:   "uid-test",
 					State: int(schema.ChatSessionActive),
 					Mode:  mode,
-				}
+				})
 			}
-			t.Cleanup(func() {
-				store.Database = origDB
-				testChatSessions = map[string]*gen.ChatSession{}
-			})
 
 			ctx := types.Context{}
 			ctx.SetContext(t.Context())
@@ -134,13 +127,11 @@ func TestManageChatSession(t *testing.T) {
 				assert.Equal(t, tt.wantSession, session)
 			}
 			if tt.msgAlt == "plan" && tt.session != "" {
-				sess, ok := testChatSessions[tt.session]
-				require.True(t, ok)
+				sess := getTestChatSession(t, tt.session)
 				assert.Equal(t, chatagent.ModePlan, sess.Mode)
 			}
 			if tt.msgAlt == "proceed" && tt.session != "" {
-				sess, ok := testChatSessions[tt.session]
-				require.True(t, ok)
+				sess := getTestChatSession(t, tt.session)
 				assert.Equal(t, chatagent.ModeNormal, sess.Mode)
 			}
 		})

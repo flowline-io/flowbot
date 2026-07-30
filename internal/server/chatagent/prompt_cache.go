@@ -109,7 +109,7 @@ func loadMemoryFactsFingerprint(ctx context.Context, scope string) string {
 	if store.Database == nil {
 		return ""
 	}
-	fp, err := store.Database.GetAgentMemoryFactsFingerprint(ctx, scope)
+	fp, err := store.AgentStoreFromDB().GetAgentMemoryFactsFingerprint(ctx, scope)
 	if err != nil {
 		flog.Warn("[chat-agent] load memory facts fingerprint: %v", err)
 		return ""
@@ -121,7 +121,7 @@ func loadInjectableMemoryFacts(ctx context.Context, scope string) []InjectedMemo
 	if store.Database == nil {
 		return nil
 	}
-	rows, err := store.Database.ListInjectableAgentMemoryFacts(ctx, store.AgentMemoryInjectableParams{
+	rows, err := store.AgentStoreFromDB().ListInjectableAgentMemoryFacts(ctx, store.AgentMemoryInjectableParams{
 		Scope:    scope,
 		MaxCount: 30,
 		MaxChars: 4000,
@@ -286,7 +286,7 @@ func loadSkillsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
 	if store.Database == nil {
 		return time.Time{}, nil
 	}
-	rev, err := store.Database.GetAgentSkillsMaxUpdatedAt(ctx)
+	rev, err := store.AgentStoreFromDB().GetAgentSkillsMaxUpdatedAt(ctx)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("skills max updated_at: %w", err)
 	}
@@ -297,7 +297,7 @@ func loadSubagentsMaxUpdatedAt(ctx context.Context) (time.Time, error) {
 	if store.Database == nil {
 		return time.Time{}, nil
 	}
-	rev, err := store.Database.GetAgentSubagentsMaxUpdatedAt(ctx)
+	rev, err := store.AgentStoreFromDB().GetAgentSubagentsMaxUpdatedAt(ctx)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("subagents max updated_at: %w", err)
 	}

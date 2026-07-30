@@ -68,7 +68,7 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).SendString("session id required")
 	}
 
-	row, err := store.Database.GetChatSession(ctx.Context(), sessionID)
+	row, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(http.StatusNotFound).SendString("session not found")
@@ -76,7 +76,7 @@ func agentSessionDetailPage(ctx fiber.Ctx) error {
 		return types.Errorf(types.ErrInternal, "get chat session: %v", err)
 	}
 
-	entries, err := store.Database.ListChatSessionEntries(ctx.Context(), sessionID)
+	entries, err := store.ChatStoreFromDB().ListChatSessionEntries(ctx.Context(), sessionID)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list chat session entries: %v", err)
 	}
@@ -110,7 +110,7 @@ func agentSessionResourcePreview(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		return partials.EmptyState("Invalid session or resource URI").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
-	if _, err := store.Database.GetChatSession(ctx.Context(), sessionID); err != nil {
+	if _, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID); err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Session not found").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
@@ -168,7 +168,7 @@ func agentSessionEntryPayload(ctx fiber.Ctx) error {
 		return partials.EmptyState("Invalid session or entry id").Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
-	entry, err := store.Database.GetChatSessionEntryInSession(ctx.Context(), sessionID, entryID)
+	entry, err := store.ChatStoreFromDB().GetChatSessionEntryInSession(ctx.Context(), sessionID, entryID)
 	if err != nil {
 		ctx.Type("html")
 		return partials.EmptyState("Entry not found").Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -183,7 +183,7 @@ func listAgentSessionModels(ctx fiber.Ctx, cursor string) ([]model.AgentSession,
 	if store.Database == nil {
 		return nil, "", errors.New("store not available")
 	}
-	rows, nextCursor, err := store.Database.ListChatSessions(ctx.Context(), store.ListChatSessionsOptions{
+	rows, nextCursor, err := store.ChatStoreFromDB().ListChatSessions(ctx.Context(), store.ListChatSessionsOptions{
 		Limit:  20,
 		Cursor: cursor,
 	})

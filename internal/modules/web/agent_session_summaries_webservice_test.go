@@ -21,6 +21,7 @@ func TestAgentSessionSummariesListAuthenticated(t *testing.T) {
 	_, err = ts.ClaimAgentSessionSummaryPending(t.Context(), "web-tok")
 	require.NoError(t, err)
 	require.NoError(t, ts.MarkAgentSessionSummaryReady(t.Context(), "sess-sum-1", "web-tok", "Archive topic", "Discussed deploy rollback"))
+	syncTestStoreToDB(t, ts)
 
 	tests := []struct {
 		name       string

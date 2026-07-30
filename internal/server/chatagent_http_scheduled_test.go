@@ -57,7 +57,7 @@ func TestChatAgentHTTPScheduledTasksCRUD(t *testing.T) {
 	ctx := context.Background()
 	now := time.Now().UTC().Truncate(time.Second)
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
 		Flag: "task-http-1", UID: uid.String(), Name: "daily",
 		ScheduleKind: string(schema.ChatScheduledTaskKindCron),
 		Cron:         "0 9 * * *", Prompt: "check logs",
@@ -161,7 +161,7 @@ func TestChatAgentHTTPScheduledUnauthorized(t *testing.T) {
 func TestChatAgentHTTPScheduledInvalidLimit(t *testing.T) {
 	_, app, uid := setupScheduledHTTPTest(t)
 	ctx := context.Background()
-	require.NoError(t, store.Database.CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(ctx, &gen.ChatScheduledTask{
 		Flag: "task-limit", UID: uid.String(), Name: "daily",
 		ScheduleKind: string(schema.ChatScheduledTaskKindCron),
 		Cron:         "0 9 * * *", Prompt: "check",

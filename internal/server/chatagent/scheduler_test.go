@@ -21,7 +21,7 @@ func TestTaskSchedulerMarksMissedOnceTask(t *testing.T) {
 	past := time.Date(2026, 1, 1, 9, 0, 0, 0, time.UTC)
 	fixedNow := time.Date(2026, 1, 1, 9, 20, 0, 0, time.UTC)
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-missed",
 		UID:          "user:alice",
 		Name:         "late",
@@ -35,7 +35,7 @@ func TestTaskSchedulerMarksMissedOnceTask(t *testing.T) {
 	require.NoError(t, sched.Start(context.Background()))
 	defer func() { _ = sched.Stop(context.Background()) }()
 
-	task, err := store.Database.GetChatScheduledTask(context.Background(), "task-missed")
+	task, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), "task-missed")
 	require.NoError(t, err)
 	assert.Equal(t, string(schema.ChatScheduledTaskStateMissed), task.State)
 }
@@ -48,7 +48,7 @@ func TestTaskSchedulerRegistersFutureOnceTask(t *testing.T) {
 	base := time.Date(2026, 6, 20, 8, 0, 0, 0, time.UTC)
 	runAt := base.Add(30 * time.Minute)
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-future",
 		UID:          "user:alice",
 		Name:         "soon",
@@ -62,7 +62,7 @@ func TestTaskSchedulerRegistersFutureOnceTask(t *testing.T) {
 	require.NoError(t, sched.Start(context.Background()))
 	defer func() { _ = sched.Stop(context.Background()) }()
 
-	task, err := store.Database.GetChatScheduledTask(context.Background(), "task-future")
+	task, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), "task-future")
 	require.NoError(t, err)
 	assert.Equal(t, string(schema.ChatScheduledTaskStateActive), task.State)
 }
@@ -72,7 +72,7 @@ func TestTaskSchedulerUpdateTask(t *testing.T) {
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	defer func() { store.Database = origDB }()
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-cron",
 		UID:          "user:alice",
 		Name:         "job",
@@ -86,7 +86,7 @@ func TestTaskSchedulerUpdateTask(t *testing.T) {
 	require.NoError(t, sched.Start(context.Background()))
 	defer func() { _ = sched.Stop(context.Background()) }()
 
-	updated, err := store.Database.GetChatScheduledTask(context.Background(), "task-cron")
+	updated, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), "task-cron")
 	require.NoError(t, err)
 	updated.Cron = "0 10 * * *"
 	require.NoError(t, sched.UpdateTask(updated))
@@ -97,7 +97,7 @@ func TestSyncTaskWithSchedulerPause(t *testing.T) {
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	defer func() { store.Database = origDB }()
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-pause",
 		UID:          "user:alice",
 		Name:         "job",
@@ -112,7 +112,7 @@ func TestSyncTaskWithSchedulerPause(t *testing.T) {
 	require.NoError(t, sched.Start(context.Background()))
 	defer func() { _ = sched.Stop(context.Background()) }()
 
-	task, err := store.Database.GetChatScheduledTask(context.Background(), "task-pause")
+	task, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), "task-pause")
 	require.NoError(t, err)
 	paused := string(schema.ChatScheduledTaskStatePaused)
 	task.State = paused

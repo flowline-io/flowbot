@@ -92,18 +92,18 @@ func registerModules() {
 		if handler.IsReady() {
 			state = schema.BotActive
 		}
-		bot, _ := store.Database.GetBotByName(context.Background(), name)
+		bot, _ := store.PlatformStoreFromDB().GetBotByName(context.Background(), name)
 		if bot == nil {
 			bot = &gen.Bot{
 				Name:  name,
 				State: int(state),
 			}
-			if _, err := store.Database.CreateBot(context.Background(), bot); err != nil {
+			if _, err := store.PlatformStoreFromDB().CreateBot(context.Background(), bot); err != nil {
 				flog.Error(err)
 			}
 		} else {
 			bot.State = int(state)
-			err := store.Database.UpdateBot(context.Background(), bot)
+			err := store.PlatformStoreFromDB().UpdateBot(context.Background(), bot)
 			if err != nil {
 				flog.Error(err)
 			}
@@ -111,14 +111,14 @@ func registerModules() {
 	}
 
 	// inactive bot
-	list, err := store.Database.GetBots(context.Background())
+	list, err := store.PlatformStoreFromDB().GetBots(context.Background())
 	if err != nil {
 		flog.Error(err)
 	}
 	for _, bot := range list {
 		if !registerModuless.Has(bot.Name) {
 			bot.State = int(schema.BotInactive)
-			if err := store.Database.UpdateBot(context.Background(), bot); err != nil {
+			if err := store.PlatformStoreFromDB().UpdateBot(context.Background(), bot); err != nil {
 				flog.Error(err)
 			}
 		}

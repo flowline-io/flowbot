@@ -121,12 +121,12 @@ func (t TodoWriteTool) Execute(ctx context.Context, id string, args map[string]a
 	}
 	rows := parsed.toRows(t.deps.SessionID)
 	if parsed.merge {
-		if err := store.Database.MergeAgentTodosForSession(ctx, t.deps.SessionID, rows); err != nil {
+		if err := store.AgentStoreFromDB().MergeAgentTodosForSession(ctx, t.deps.SessionID, rows); err != nil {
 			flog.Warn("[chat-agent] todo_write merge failed session=%s: %v", t.deps.SessionID, err)
 			return todoToolError(id, todoWriteToolName, fmt.Sprintf("merge todos: %v", err)), nil
 		}
 	} else {
-		if err := store.Database.ReplaceAgentTodosForSession(ctx, t.deps.SessionID, rows); err != nil {
+		if err := store.AgentStoreFromDB().ReplaceAgentTodosForSession(ctx, t.deps.SessionID, rows); err != nil {
 			flog.Warn("[chat-agent] todo_write replace failed session=%s: %v", t.deps.SessionID, err)
 			return todoToolError(id, todoWriteToolName, fmt.Sprintf("replace todos: %v", err)), nil
 		}

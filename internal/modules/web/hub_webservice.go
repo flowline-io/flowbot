@@ -277,14 +277,10 @@ func loadAppsWithUpdatedAts(ctx context.Context) ([]homelab.App, map[string]stri
 
 // loadUpdatedAts loads updated timestamps from the store and formats them.
 func loadUpdatedAts(ctx context.Context) map[string]string {
-	if store.Database == nil || store.Database.GetDB() == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	infos, err := store.NewHubStore(client).ListApps(ctx)
+	infos, err := store.NewHubStore(store.Database.GetClient()).ListApps(ctx)
 	if err != nil {
 		flog.Warn("hub: loadUpdatedAts failed: %v", err)
 		return nil

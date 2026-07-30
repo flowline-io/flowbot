@@ -24,11 +24,10 @@ func clipPage(ctx fiber.Ctx) error {
 
 	authed := isAuthenticated(ctx)
 
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok || client == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return ctx.Status(http.StatusInternalServerError).SendString("store not available")
 	}
-	clipStore := store.NewClipStore(client)
+	clipStore := store.ClipStoreFromDB()
 
 	row, err := clipStore.GetClipBySlug(context.Background(), slug)
 	if err != nil {

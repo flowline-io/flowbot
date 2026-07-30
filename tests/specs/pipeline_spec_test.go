@@ -409,11 +409,7 @@ var _ = Describe("Webhook trigger", Label("pipeline"), func() {
 		if store.Database == nil {
 			Skip("database store not available")
 		}
-		client, ok := store.Database.GetDB().(*store.Client)
-		if !ok {
-			Skip("ent store not available")
-		}
-		runStore := store.NewPipelineStore(client)
+		runStore := store.PipelineStoreFromDB()
 
 		def := pipeline.Definition{
 			Name:    "webhook-spec-record-" + types.Id(),

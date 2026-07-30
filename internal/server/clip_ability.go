@@ -9,10 +9,8 @@ import (
 
 // initClipAbility wires clip persistence and other CapCore deps (registration is deferred to notify OnStart).
 func initClipAbility() error {
-	if storepkg.Database != nil {
-		if client, ok := storepkg.Database.GetDB().(*storepkg.Client); ok && client != nil {
-			core.SetPersister(&clipStorePersister{store: storepkg.NewClipStore(client)})
-		}
+	if storepkg.Database != nil && storepkg.Database.GetClient() != nil {
+		core.SetPersister(&clipStorePersister{store: storepkg.ClipStoreFromDB()})
 		wireCoreKVStore()
 	}
 	wireCoreExecProvider()

@@ -73,7 +73,7 @@ func TestScheduledRunPermissionOverlay(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := NewService()
 			sessionID := types.Id()
-			require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+			require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 				Flag:  sessionID,
 				UID:   "user-1",
 				State: int(schema.ChatSessionActive),

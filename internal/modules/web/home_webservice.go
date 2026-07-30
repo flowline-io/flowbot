@@ -51,24 +51,24 @@ func buildHomeDashboard(ctx context.Context) partials.HomeDashboard {
 
 	if store.Database != nil {
 		active := int(schema.ChatSessionActive)
-		if n, err := store.Database.CountChatSessions(ctx, store.ListChatSessionsOptions{State: &active}); err == nil {
+		if n, err := store.ChatStoreFromDB().CountChatSessions(ctx, store.ListChatSessionsOptions{State: &active}); err == nil {
 			d.ActiveSessions = n
 		}
-		if client, ok := store.Database.GetDB().(*store.Client); ok && client != nil {
+		if store.Database.GetClient() != nil {
 			since7d := time.Now().Add(-7 * 24 * time.Hour)
-			ps := store.NewPipelineStore(client)
+			ps := store.PipelineStoreFromDB()
 			if stats, err := ps.PipelineStats(ctx, "", since7d, "day"); err == nil && stats != nil {
 				d.PipelineTotal = stats.Summary.TotalPipelines
 				d.PipelineOK = stats.Summary.SuccessfulRuns
 				d.PipelineFailed = stats.Summary.FailedRuns
 			}
-			ws := store.NewWorkflowStore(client)
+			ws := store.WorkflowStoreFromDB()
 			if stats, err := ws.WorkflowStats(ctx, "", since7d, "day"); err == nil && stats != nil {
 				d.WorkflowTotal = stats.Summary.TotalWorkflows
 				d.WorkflowOK = stats.Summary.SuccessfulRuns
 				d.WorkflowFailed = stats.Summary.FailedRuns
 			}
-			es := store.NewEventStore(client)
+			es := store.EventStoreFromDB()
 			since24h := time.Now().Add(-24 * time.Hour)
 			if n, err := es.CountDataEvents(ctx, store.ListDataEventsOptions{TimeStart: &since24h}); err == nil {
 				d.Events24h = n
@@ -85,7 +85,7 @@ func buildHomeChecklist(ctx context.Context, d partials.HomeDashboard) []partial
 	hasWorkflows := d.WorkflowTotal > 0
 	hasAgentsReady := d.ActiveSessions > 0
 	if !hasAgentsReady && store.Database != nil {
-		if skills, err := store.Database.ListAgentSkills(ctx, false); err == nil && len(skills) > 0 {
+		if skills, err := store.AgentStoreFromDB().ListAgentSkills(ctx, false); err == nil && len(skills) > 0 {
 			hasAgentsReady = true
 		}
 	}

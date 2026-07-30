@@ -40,7 +40,7 @@ func beginSubagentTask(ctx context.Context, sessionID, subagentName, description
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
-	if err := store.Database.CreateAgentSubagentTask(ctx, task); err != nil {
+	if err := store.AgentStoreFromDB().CreateAgentSubagentTask(ctx, task); err != nil {
 		return nil, fmt.Errorf("create subagent task: %w", err)
 	}
 	return &subagentTaskRecord{id: task.ID}, nil
@@ -68,7 +68,7 @@ func finishSubagentTask(ctx context.Context, record *subagentTaskRecord, status,
 		ErrorText:  strings.TrimSpace(errText),
 		FinishedAt: &now,
 	}
-	_ = store.Database.UpdateAgentSubagentTask(ctx, task)
+	_ = store.AgentStoreFromDB().UpdateAgentSubagentTask(ctx, task)
 }
 
 // buildSubagentSystemPrompt appends filtered skills XML to the subagent system prompt.

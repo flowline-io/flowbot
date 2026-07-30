@@ -149,7 +149,7 @@ func (t UpdateScheduledTaskTool) Execute(ctx context.Context, id string, args ma
 		return scheduleToolError(id, updateScheduleToolName, "store unavailable"), nil
 	}
 
-	task, err := store.Database.GetChatScheduledTaskForUID(ctx, parsed.taskID, t.deps.UID.String())
+	task, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, parsed.taskID, t.deps.UID.String())
 	if err != nil {
 		return scheduleToolError(id, updateScheduleToolName, fmt.Sprintf("task not found: %v", err)), nil
 	}
@@ -194,7 +194,7 @@ func (t ListScheduledTasksTool) Execute(ctx context.Context, id string, _ map[st
 	if store.Database == nil {
 		return scheduleToolError(id, listScheduleToolName, "store unavailable"), nil
 	}
-	tasks, err := store.Database.ListChatScheduledTasks(ctx, store.ListChatScheduledTasksOptions{
+	tasks, err := store.ChatStoreFromDB().ListChatScheduledTasks(ctx, store.ListChatScheduledTasksOptions{
 		UID: t.deps.UID.String(),
 		States: []string{
 			string(schema.ChatScheduledTaskStateActive),
@@ -252,11 +252,11 @@ func (t CancelScheduledTaskTool) Execute(ctx context.Context, id string, args ma
 	if store.Database == nil {
 		return scheduleToolError(id, cancelScheduleToolName, "store unavailable"), nil
 	}
-	if _, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, t.deps.UID.String()); err != nil {
+	if _, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, taskID, t.deps.UID.String()); err != nil {
 		return scheduleToolError(id, cancelScheduleToolName, fmt.Sprintf("task not found: %v", err)), nil
 	}
 	cancelled := string(schema.ChatScheduledTaskStateCancelled)
-	if err := store.Database.UpdateChatScheduledTask(ctx, taskID, store.UpdateChatScheduledTaskParams{
+	if err := store.ChatStoreFromDB().UpdateChatScheduledTask(ctx, taskID, store.UpdateChatScheduledTaskParams{
 		State: &cancelled,
 	}); err != nil {
 		return scheduleToolError(id, cancelScheduleToolName, fmt.Sprintf("cancel task: %v", err)), nil

@@ -103,7 +103,7 @@ func loadSessionGrants(ctx context.Context, sessionID string) (map[string][]stri
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
 	}
-	raw, err := store.Database.ConfigGet(ctx, uid, PermissionTopic, sessionGrantsConfigKey(sessionID))
+	raw, err := store.ModuleDataStoreFromDB().ConfigGet(ctx, uid, PermissionTopic, sessionGrantsConfigKey(sessionID))
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return nil, nil
@@ -140,7 +140,7 @@ func saveSessionGrants(ctx context.Context, sessionID string, grants map[string]
 	if err := sonic.Unmarshal(data, &payload); err != nil {
 		return fmt.Errorf("session grants payload: %w", err)
 	}
-	return store.Database.ConfigSet(ctx, uid, PermissionTopic, sessionGrantsConfigKey(sessionID), types.KV(payload))
+	return store.ModuleDataStoreFromDB().ConfigSet(ctx, uid, PermissionTopic, sessionGrantsConfigKey(sessionID), types.KV(payload))
 }
 
 func deleteSessionGrants(ctx context.Context, sessionID string) error {
@@ -151,7 +151,7 @@ func deleteSessionGrants(ctx context.Context, sessionID string) error {
 	if store.Database == nil {
 		return types.ErrUnavailable
 	}
-	err = store.Database.ConfigDelete(ctx, uid, PermissionTopic, sessionGrantsConfigKey(sessionID))
+	err = store.ModuleDataStoreFromDB().ConfigDelete(ctx, uid, PermissionTopic, sessionGrantsConfigKey(sessionID))
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}

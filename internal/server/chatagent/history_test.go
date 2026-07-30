@@ -159,7 +159,7 @@ func TestListSessionMessages(t *testing.T) {
 			currentSessionID := "missing-history-session"
 			if !tt.skipCreate {
 				currentSessionID = types.Id()
-				require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 					Flag: currentSessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 				}))
 			}

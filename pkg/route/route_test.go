@@ -230,10 +230,10 @@ func TestLookupAccessToken(t *testing.T) {
 			exp := time.Now().Add(time.Hour)
 			ctx := context.Background()
 			if tt.seedHash {
-				require.NoError(t, store.Database.ParameterSet(ctx, auth.HashToken(tt.raw), params, exp))
+				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, auth.HashToken(tt.raw), params, exp))
 			}
 			if tt.seedPlain {
-				require.NoError(t, store.Database.ParameterSet(ctx, tt.raw, params, exp))
+				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, tt.raw, params, exp))
 			}
 
 			p, err := LookupAccessToken(ctx, tt.raw)
@@ -249,9 +249,9 @@ func TestLookupAccessToken(t *testing.T) {
 			assert.Equal(t, "user-1", uid)
 
 			if tt.wantMigr {
-				_, plainErr := store.Database.ParameterGet(ctx, tt.raw)
+				_, plainErr := store.ModuleDataStoreFromDB().ParameterGet(ctx, tt.raw)
 				require.ErrorIs(t, plainErr, types.ErrNotFound)
-				_, hashErr := store.Database.ParameterGet(ctx, auth.HashToken(tt.raw))
+				_, hashErr := store.ModuleDataStoreFromDB().ParameterGet(ctx, auth.HashToken(tt.raw))
 				require.NoError(t, hashErr)
 			}
 		})
@@ -290,16 +290,16 @@ func TestDeleteAccessToken(t *testing.T) {
 			exp := time.Now().Add(time.Hour)
 			ctx := context.Background()
 			if tt.seedHash {
-				require.NoError(t, store.Database.ParameterSet(ctx, auth.HashToken(tt.raw), params, exp))
+				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, auth.HashToken(tt.raw), params, exp))
 			}
 			if tt.seedPlain {
-				require.NoError(t, store.Database.ParameterSet(ctx, tt.raw, params, exp))
+				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, tt.raw, params, exp))
 			}
 
 			require.NoError(t, DeleteAccessToken(ctx, tt.raw))
-			_, err := store.Database.ParameterGet(ctx, auth.HashToken(tt.raw))
+			_, err := store.ModuleDataStoreFromDB().ParameterGet(ctx, auth.HashToken(tt.raw))
 			require.ErrorIs(t, err, types.ErrNotFound)
-			_, err = store.Database.ParameterGet(ctx, tt.raw)
+			_, err = store.ModuleDataStoreFromDB().ParameterGet(ctx, tt.raw)
 			require.ErrorIs(t, err, types.ErrNotFound)
 		})
 	}
@@ -316,7 +316,7 @@ func TestCheckAccessToken_Hashed(t *testing.T) {
 		{
 			name: "valid hashed token",
 			seed: func(ctx context.Context, raw string) {
-				require.NoError(t, store.Database.ParameterSet(ctx, auth.HashToken(raw), types.KV{
+				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, auth.HashToken(raw), types.KV{
 					"uid": "user-hashed", "scopes": []string{"admin:*"},
 				}, time.Now().Add(time.Hour)))
 			},
@@ -327,7 +327,7 @@ func TestCheckAccessToken_Hashed(t *testing.T) {
 		{
 			name: "legacy plaintext migrates and validates",
 			seed: func(ctx context.Context, raw string) {
-				require.NoError(t, store.Database.ParameterSet(ctx, raw, types.KV{
+				require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(ctx, raw, types.KV{
 					"uid": "user-plain", "scopes": []string{"admin:*"},
 				}, time.Now().Add(time.Hour)))
 			},
@@ -518,7 +518,7 @@ func TestAuthorize_RejectsEmptyScopes(t *testing.T) {
 			if tt.scopes != nil {
 				params["scopes"] = tt.scopes
 			}
-			require.NoError(t, store.Database.ParameterSet(context.Background(), auth.HashToken(raw), params, time.Now().Add(time.Hour)))
+			require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(raw), params, time.Now().Add(time.Hour)))
 
 			app := newTestApp()
 			app.Get("/test", Authorize(func(c fiber.Ctx) error {
@@ -551,7 +551,7 @@ func TestRequireServiceScope(t *testing.T) {
 			withTestStore(t)
 
 			raw := "fb_svc_scope_" + strings.ReplaceAll(tt.name, " ", "_")
-			require.NoError(t, store.Database.ParameterSet(context.Background(), auth.HashToken(raw), types.KV{
+			require.NoError(t, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), auth.HashToken(raw), types.KV{
 				"uid": "user-1", "scopes": tt.scopes,
 			}, time.Now().Add(time.Hour)))
 

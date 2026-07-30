@@ -153,7 +153,7 @@ func agentSkillCreate(ctx fiber.Ctx) error {
 		CreatedAt:              now,
 		UpdatedAt:              now,
 	}
-	if err := store.Database.CreateAgentSkill(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().CreateAgentSkill(reqCtx, row); err != nil {
 		if fieldErrs := mapAgentSkillUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -199,7 +199,7 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 		return err
 	}
 	reqCtx := ctx.Context()
-	existing, err := store.Database.GetAgentSkillByFlag(reqCtx, flag)
+	existing, err := store.AgentStoreFromDB().GetAgentSkillByFlag(reqCtx, flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
@@ -227,7 +227,7 @@ func agentSkillUpdate(ctx fiber.Ctx) error {
 		DisableModelInvocation: input.DisableModelInvocation,
 		CreatedAt:              existing.CreatedAt,
 	}
-	if err := store.Database.UpdateAgentSkill(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().UpdateAgentSkill(reqCtx, row); err != nil {
 		if fieldErrs := mapAgentSkillUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -260,7 +260,7 @@ func agentSkillSetEnabled(ctx fiber.Ctx) error {
 		return toastError(ctx, "Invalid enabled value")
 	}
 	reqCtx := ctx.Context()
-	existing, err := store.Database.GetAgentSkillByFlag(reqCtx, flag)
+	existing, err := store.AgentStoreFromDB().GetAgentSkillByFlag(reqCtx, flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return toastError(ctx, "Agent skill not found")
@@ -268,7 +268,7 @@ func agentSkillSetEnabled(ctx fiber.Ctx) error {
 		return toastError(ctx, "Failed to load agent skill")
 	}
 	existing.Enabled = body.Enabled
-	if err := store.Database.UpdateAgentSkill(reqCtx, existing); err != nil {
+	if err := store.AgentStoreFromDB().UpdateAgentSkill(reqCtx, existing); err != nil {
 		return toastError(ctx, "Failed to update agent skill")
 	}
 	chatagent.InvalidatePromptCache()
@@ -290,7 +290,7 @@ func agentSkillDelete(ctx fiber.Ctx) error {
 		return err
 	}
 	reqCtx := ctx.Context()
-	if err := store.Database.DeleteAgentSkill(reqCtx, flag); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentSkill(reqCtx, flag); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return toastError(ctx, "Agent skill not found")
 		}
@@ -298,7 +298,7 @@ func agentSkillDelete(ctx fiber.Ctx) error {
 	}
 	chatagent.InvalidatePromptCache()
 	flog.Info("[web] agent skill deleted uid=%s flag=%s", getUID(ctx), flag)
-	items, err := store.Database.ListAgentSkills(reqCtx, false)
+	items, err := store.AgentStoreFromDB().ListAgentSkills(reqCtx, false)
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
 		_ = partials.WriteTableEmptyOOB(
@@ -376,10 +376,10 @@ func defaultAgentSkillSource(source string) string {
 func mapAgentSkillUniqueError(err error) map[string]string {
 	msg := err.Error()
 	errs := make(map[string]string)
-	if strings.Contains(msg, "agent_skills_flag_key") {
+	if strings.Contains(msg, "agent_skills_flag_key") || strings.Contains(msg, "agent_skills.flag") {
 		errs["flag"] = "Flag already exists"
 	}
-	if strings.Contains(msg, "agent_skills_name_key") {
+	if strings.Contains(msg, "agent_skills_name_key") || strings.Contains(msg, "agent_skills.name") {
 		errs["name"] = "Name already exists"
 	}
 	if len(errs) == 0 {
@@ -389,7 +389,7 @@ func mapAgentSkillUniqueError(err error) map[string]string {
 }
 
 func listAgentSkillModels(ctx context.Context) ([]model.AgentSkill, error) {
-	rows, err := store.Database.ListAgentSkills(ctx, false)
+	rows, err := store.AgentStoreFromDB().ListAgentSkills(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -401,7 +401,7 @@ func listAgentSkillModels(ctx context.Context) ([]model.AgentSkill, error) {
 }
 
 func loadAgentSkillModel(ctx context.Context, flag string) (model.AgentSkill, error) {
-	row, err := store.Database.GetAgentSkillByFlag(ctx, flag)
+	row, err := store.AgentStoreFromDB().GetAgentSkillByFlag(ctx, flag)
 	if err != nil {
 		return model.AgentSkill{}, err
 	}
@@ -513,7 +513,7 @@ func agentSkillFileCreate(ctx fiber.Ctx) error {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
-	if err := store.Database.CreateAgentSkillFile(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().CreateAgentSkillFile(reqCtx, row); err != nil {
 		if fieldErrs := mapAgentSkillFileUniqueError(err); len(fieldErrs) > 0 {
 			ctx.Status(http.StatusUnprocessableEntity)
 			ctx.Type("html")
@@ -593,7 +593,7 @@ func agentSkillFileUpdate(ctx fiber.Ctx) error {
 		ctx.Type("html")
 		return partials.AgentSkillFileForm(item, input, false, errs).Render(reqCtx, ctx.Response().BodyWriter())
 	}
-	if _, err := store.Database.GetAgentSkillFile(reqCtx, flag, input.Path); err != nil {
+	if _, err := store.AgentStoreFromDB().GetAgentSkillFile(reqCtx, flag, input.Path); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
 			return renderError(ctx, "Agent skill file not found")
@@ -606,7 +606,7 @@ func agentSkillFileUpdate(ctx fiber.Ctx) error {
 		Path:      input.Path,
 		Content:   input.Content,
 	}
-	if err := store.Database.UpdateAgentSkillFile(reqCtx, row); err != nil {
+	if err := store.AgentStoreFromDB().UpdateAgentSkillFile(reqCtx, row); err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to update agent skill file")
 	}
@@ -643,7 +643,7 @@ func agentSkillFileDelete(ctx fiber.Ctx) error {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to load agent skill")
 	}
-	if err := store.Database.DeleteAgentSkillFile(reqCtx, flag, filePath); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentSkillFile(reqCtx, flag, filePath); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			ctx.Status(http.StatusNotFound)
 			return renderError(ctx, "Agent skill file not found")
@@ -716,7 +716,7 @@ func mapAgentSkillFileUniqueError(err error) map[string]string {
 }
 
 func listAgentSkillFileModels(ctx context.Context, skillFlag string) ([]model.AgentSkillFile, error) {
-	rows, err := store.Database.ListAgentSkillFiles(ctx, skillFlag)
+	rows, err := store.AgentStoreFromDB().ListAgentSkillFiles(ctx, skillFlag)
 	if err != nil {
 		return nil, err
 	}
@@ -728,7 +728,7 @@ func listAgentSkillFileModels(ctx context.Context, skillFlag string) ([]model.Ag
 }
 
 func loadAgentSkillFileModel(ctx context.Context, skillFlag, path string) (model.AgentSkillFile, error) {
-	row, err := store.Database.GetAgentSkillFile(ctx, skillFlag, path)
+	row, err := store.AgentStoreFromDB().GetAgentSkillFile(ctx, skillFlag, path)
 	if err != nil {
 		return model.AgentSkillFile{}, err
 	}

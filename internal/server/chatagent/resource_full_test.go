@@ -29,7 +29,7 @@ func TestResolveResourceFullOption(t *testing.T) {
 	config.App.ChatAgent = config.ChatAgentConfig{Workspace: root, ChatModel: "gpt-test"}
 	store.Database = postgres.NewSQLiteTestAdapter(t)
 	sessionID := types.Id()
-	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag:  sessionID,
 		UID:   "user-1",
 		State: int(schema.ChatSessionActive),

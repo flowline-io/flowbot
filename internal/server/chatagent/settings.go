@@ -47,7 +47,7 @@ func GetSessionSettings(ctx context.Context, sessionID string) (SessionSettings,
 	if store.Database == nil {
 		return SessionSettings{}, types.ErrUnavailable
 	}
-	sess, err := store.Database.GetChatSession(ctx, sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		return SessionSettings{}, err
 	}
@@ -61,7 +61,7 @@ func GetSessionSettings(ctx context.Context, sessionID string) (SessionSettings,
 func ResolveEffectiveSessionSettings(ctx context.Context, sessionID string) EffectiveSessionSettings {
 	stored := SessionSettings{}
 	if store.Database != nil && sessionID != "" {
-		if sess, err := store.Database.GetChatSession(ctx, sessionID); err == nil && sess != nil {
+		if sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID); err == nil && sess != nil {
 			stored = SessionSettings{Model: sess.Model, ThinkingLevel: sess.ThinkingLevel}
 		} else if err != nil {
 			flog.Debug("[chat-agent] resolve settings session=%s: %v", sessionID, err)
@@ -87,7 +87,7 @@ func SetSessionSettings(ctx context.Context, sessionID string, s SessionSettings
 	if !agentllm.ValidThinkingLevel(level) {
 		return fmt.Errorf("invalid thinking_level %q: %w", level, types.ErrInvalidArgument)
 	}
-	if err := store.Database.UpdateChatSessionSettings(ctx, sessionID, model, level); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatSessionSettings(ctx, sessionID, model, level); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] set session settings session=%s: %w", sessionID, err))
 		return err
 	}

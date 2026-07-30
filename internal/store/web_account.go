@@ -26,14 +26,7 @@ func NewWebAccountStore(client *gen.Client) *WebAccountStore {
 
 // WebAccountStoreFromDB returns a WebAccountStore using the global database client.
 func WebAccountStoreFromDB() *WebAccountStore {
-	if Database == nil {
-		return NewWebAccountStore(nil)
-	}
-	client, ok := Database.GetDB().(*gen.Client)
-	if !ok || client == nil {
-		return NewWebAccountStore(nil)
-	}
-	return NewWebAccountStore(client)
+	return NewWebAccountStore(ClientFromDB())
 }
 
 func (s *WebAccountStore) ready() bool {

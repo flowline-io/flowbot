@@ -10,7 +10,6 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
@@ -35,35 +34,33 @@ func TestChatAgentExportSession(t *testing.T) {
 		{
 			name: "exports all entries",
 			setup: func() {
-				testChatSessions["sess-1"] = &gen.ChatSession{
+				seedTestChatSession(t, &gen.ChatSession{
 					Flag: "sess-1", UID: "user-1", LeafID: "e2",
 					State: int(schema.ChatSessionActive), CreatedAt: now, UpdatedAt: now,
-				}
-				testChatSessionEntries["sess-1"] = []*gen.ChatSessionEntry{
-					{
-						Flag: "e1", SessionID: "sess-1", ParentID: "", EntryType: "message",
-						Payload: mustChatAgentExportEntry(t, session.TreeEntry{
-							ID: "e1", Type: session.EntryMessage,
-							Message: msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: "hello"}}},
-						}),
-					},
-					{
-						Flag: "e2", SessionID: "sess-1", ParentID: "e1", EntryType: "compaction",
-						Payload: mustChatAgentExportEntry(t, session.TreeEntry{
-							ID: "e2", ParentID: "e1", Type: session.EntryCompaction, Summary: "compact",
-						}),
-					},
-				}
+				})
+				seedTestChatSessionEntry(t, &gen.ChatSessionEntry{
+					Flag: "e1", SessionID: "sess-1", ParentID: "", EntryType: "message",
+					Payload: mustChatAgentExportEntry(t, session.TreeEntry{
+						ID: "e1", Type: session.EntryMessage,
+						Message: msg.UserMessage{Parts: []msg.ContentPart{msg.TextPart{Text: "hello"}}},
+					}),
+				})
+				seedTestChatSessionEntry(t, &gen.ChatSessionEntry{
+					Flag: "e2", SessionID: "sess-1", ParentID: "e1", EntryType: "compaction",
+					Payload: mustChatAgentExportEntry(t, session.TreeEntry{
+						ID: "e2", ParentID: "e1", Type: session.EntryCompaction, Summary: "compact",
+					}),
+				})
 			},
 			wantCount: 2,
 		},
 		{
 			name: "empty session",
 			setup: func() {
-				testChatSessions["sess-1"] = &gen.ChatSession{
+				seedTestChatSession(t, &gen.ChatSession{
 					Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive),
 					CreatedAt: now, UpdatedAt: now,
-				}
+				})
 			},
 			wantCount: 0,
 		},
@@ -75,17 +72,11 @@ func TestChatAgentExportSession(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			origDB := store.Database
 			origCfg := config.App.ChatAgent
-			store.Database = &testStoreAdapter{}
-			testChatSessions = map[string]*gen.ChatSession{}
-			testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
+			setupSQLiteTestDB(t)
 			config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
 			t.Cleanup(func() {
-				store.Database = origDB
 				config.App.ChatAgent = origCfg
-				testChatSessions = map[string]*gen.ChatSession{}
-				testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 			})
 
 			tt.setup()
@@ -104,19 +95,9 @@ func TestChatAgentExportSession(t *testing.T) {
 }
 
 func TestChatAgentHTTPExportSession(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
 	now := time.Date(2026, 6, 16, 12, 0, 0, 0, time.UTC)
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive), CreatedAt: now, UpdatedAt: now},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
-		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
+	setupChatAgentHTTPTest(t, &gen.ChatSession{
+		Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive), CreatedAt: now, UpdatedAt: now,
 	})
 
 	h := newChatAgentHTTP(ChatAgentService())

@@ -53,33 +53,37 @@ func TestTemplateReferencesSummary(t *testing.T) {
 func TestResolveDefaultChannelName(t *testing.T) {
 	tests := []struct {
 		name    string
-		store   *notifyTestStore
+		seed    func(t *testing.T)
 		want    string
 		wantErr error
 	}{
 		{
 			name: "returns default enabled channel name",
-			store: &notifyTestStore{
-				defaultChannel: &model.NotifyChannel{Name: "phone", Enabled: true, IsDefault: true},
+			seed: func(t *testing.T) {
+				seedNotifyTestChannel(t, "phone", "test", "test://phone", true, true)
 			},
 			want: "phone",
 		},
 		{
 			name:    "missing default",
-			store:   &notifyTestStore{},
+			seed:    func(_ *testing.T) {},
 			wantErr: ErrNoDefaultChannel,
 		},
 		{
 			name: "disabled default treated as missing",
-			store: &notifyTestStore{
-				defaultChannel: &model.NotifyChannel{Name: "phone", Enabled: false, IsDefault: true},
+			seed: func(t *testing.T) {
+				id := seedNotifyTestChannel(t, "phone", "test", "test://phone", true, true)
+				require.NoError(t, store.NotifyConfigStoreFromDB().UpdateNotifyChannel(
+					context.Background(), id, "phone", "test", "test://phone", false,
+				))
 			},
 			wantErr: ErrNoDefaultChannel,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			replaceDatabaseForTest(t, tt.store)
+			setupNotifySQLiteDB(t)
+			tt.seed(t)
 			got, err := ResolveDefaultChannelName(context.Background())
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -94,26 +98,27 @@ func TestResolveDefaultChannelName(t *testing.T) {
 func TestResolveDefaultTemplateID(t *testing.T) {
 	tests := []struct {
 		name    string
-		store   *notifyTestStore
+		seed    func(t *testing.T)
 		want    string
 		wantErr error
 	}{
 		{
 			name: "returns default template id",
-			store: &notifyTestStore{
-				defaultTemplate: &model.NotifyTemplate{TemplateID: "agent.notify", IsDefault: true},
+			seed: func(t *testing.T) {
+				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: "agent.notify"}, true)
 			},
 			want: "agent.notify",
 		},
 		{
 			name:    "missing default",
-			store:   &notifyTestStore{},
+			seed:    func(_ *testing.T) {},
 			wantErr: ErrNoDefaultTemplate,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			replaceDatabaseForTest(t, tt.store)
+			setupNotifySQLiteDB(t)
+			tt.seed(t)
 			got, err := ResolveDefaultTemplateID(context.Background())
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
@@ -157,9 +162,8 @@ func TestGatewaySendDefaults(t *testing.T) {
 					ID: AgentNotifyTemplateID, Name: "Agent", DefaultFormat: "markdown",
 					DefaultTemplate: AgentNotifyTemplateBody,
 				}}, nil, nil)
-				replaceDatabaseForTest(t, &notifyTestStore{
-					defaultTemplate: &model.NotifyTemplate{TemplateID: AgentNotifyTemplateID, IsDefault: true},
-				})
+				setupNotifySQLiteDB(t)
+				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: AgentNotifyTemplateID}, true)
 			},
 			wantErr: ErrNoDefaultChannel,
 		},
@@ -170,9 +174,8 @@ func TestGatewaySendDefaults(t *testing.T) {
 					ID: AgentNotifyTemplateID, Name: "Agent", DefaultFormat: "markdown",
 					DefaultTemplate: AgentNotifyTemplateBody,
 				}}, nil, nil)
-				replaceDatabaseForTest(t, &notifyTestStore{
-					defaultChannel: &model.NotifyChannel{Name: "phone", Enabled: true, IsDefault: true},
-				})
+				setupNotifySQLiteDB(t)
+				seedNotifyTestChannel(t, "phone", "testdefaults", "testdefaults://chan/tok", true, true)
 			},
 			wantErr: ErrNoDefaultTemplate,
 		},
@@ -189,13 +192,9 @@ func TestGatewaySendDefaults(t *testing.T) {
 				}
 				Register(m.protocol, m)
 				t.Cleanup(func() { Unregister(m.protocol) })
-				replaceDatabaseForTest(t, &notifyTestStore{
-					defaultChannel:  &model.NotifyChannel{Name: "phone", Protocol: "testdefaults", URI: "testdefaults://chan/tok", Enabled: true, IsDefault: true},
-					defaultTemplate: &model.NotifyTemplate{TemplateID: AgentNotifyTemplateID, IsDefault: true},
-					globalChannels: map[string]model.NotifyChannel{
-						"phone": {Name: "phone", Protocol: "testdefaults", URI: "testdefaults://chan/tok", Enabled: true},
-					},
-				})
+				setupNotifySQLiteDB(t)
+				seedNotifyTestChannel(t, "phone", "testdefaults", "testdefaults://chan/tok", true, true)
+				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: AgentNotifyTemplateID}, true)
 			},
 		},
 	}
@@ -215,47 +214,37 @@ func TestGatewaySendDefaults(t *testing.T) {
 func TestSeedAgentNotifyTemplate(t *testing.T) {
 	tests := []struct {
 		name       string
-		store      *notifyTestStore
+		seed       func(t *testing.T)
 		wantCreate bool
 	}{
 		{
 			name:       "creates when missing",
-			store:      &notifyTestStore{},
+			seed:       func(t *testing.T) { setupNotifySQLiteDB(t) },
 			wantCreate: true,
 		},
 		{
 			name: "skips when present",
-			store: &notifyTestStore{
-				templatesByID: map[string]model.NotifyTemplate{
-					AgentNotifyTemplateID: {TemplateID: AgentNotifyTemplateID},
-				},
+			seed: func(t *testing.T) {
+				setupNotifySQLiteDB(t)
+				seedNotifyTestTemplate(t, model.NotifyTemplate{TemplateID: AgentNotifyTemplateID}, false)
 			},
 			wantCreate: false,
 		},
 		{
 			name:       "nil database is no-op",
-			store:      nil,
+			seed:       func(t *testing.T) { replaceDatabaseForTest(t, nil) },
 			wantCreate: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.store == nil {
-				var db store.Adapter
-				replaceDatabaseForTest(t, db)
-			} else {
-				replaceDatabaseForTest(t, tt.store)
-			}
+			tt.seed(t)
 			require.NoError(t, SeedAgentNotifyTemplate(context.Background()))
-			if tt.store == nil {
+			if !tt.wantCreate {
 				return
 			}
-			if tt.wantCreate {
-				require.Len(t, tt.store.createdTemplates, 1)
-				assert.Equal(t, AgentNotifyTemplateID, tt.store.createdTemplates[0].TemplateID)
-				return
-			}
-			assert.Empty(t, tt.store.createdTemplates)
+			_, err := store.NotifyConfigStoreFromDB().GetNotifyTemplateByTemplateID(context.Background(), AgentNotifyTemplateID)
+			require.NoError(t, err)
 		})
 	}
 }

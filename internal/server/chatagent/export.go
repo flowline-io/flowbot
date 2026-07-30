@@ -28,7 +28,7 @@ type SessionExport struct {
 
 // ExportSession loads session metadata and all persisted tree entries.
 func ExportSession(ctx context.Context, sessionID string) (*SessionExport, error) {
-	sess, err := store.Database.GetChatSession(ctx, sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}

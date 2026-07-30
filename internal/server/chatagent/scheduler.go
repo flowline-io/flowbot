@@ -84,10 +84,10 @@ func (s *TaskScheduler) Start(_ context.Context) error {
 	if store.Database == nil {
 		return nil
 	}
-	if err := store.Database.FailStaleChatScheduledTaskRuns(context.Background()); err != nil {
+	if err := store.ChatStoreFromDB().FailStaleChatScheduledTaskRuns(context.Background()); err != nil {
 		flog.Warn("[chat-agent] scheduler stale run cleanup: %v", err)
 	}
-	tasks, err := store.Database.ListChatScheduledTasks(context.Background(), store.ListChatScheduledTasksOptions{
+	tasks, err := store.ChatStoreFromDB().ListChatScheduledTasks(context.Background(), store.ListChatScheduledTasksOptions{
 		States: []string{string(schema.ChatScheduledTaskStateActive)},
 	})
 	if err != nil {
@@ -192,7 +192,7 @@ func (s *TaskScheduler) registerCronLocked(task *gen.ChatScheduledTask) error {
 		next, nerr := cronutil.NextRun(task.Cron, s.now())
 		if nerr != nil {
 			flog.Warn("[chat-agent] scheduler next_run_at task=%s: %v", taskID, nerr)
-		} else if err := store.Database.UpdateChatScheduledTask(context.Background(), taskID, store.UpdateChatScheduledTaskParams{
+		} else if err := store.ChatStoreFromDB().UpdateChatScheduledTask(context.Background(), taskID, store.UpdateChatScheduledTaskParams{
 			NextRunAt: &next,
 		}); err != nil {
 			flog.Warn("[chat-agent] scheduler next_run_at update task=%s: %v", taskID, err)
@@ -219,7 +219,7 @@ func (s *TaskScheduler) registerOnceLocked(task *gen.ChatScheduledTask) error {
 		s.onceTimers[task.Flag] = timer
 		if store.Database != nil {
 			next := runAt
-			if err := store.Database.UpdateChatScheduledTask(context.Background(), taskID, store.UpdateChatScheduledTaskParams{
+			if err := store.ChatStoreFromDB().UpdateChatScheduledTask(context.Background(), taskID, store.UpdateChatScheduledTaskParams{
 				NextRunAt: &next,
 			}); err != nil {
 				flog.Warn("[chat-agent] scheduler next_run_at update task=%s: %v", taskID, err)
@@ -242,7 +242,7 @@ func (s *TaskScheduler) registerOnceLocked(task *gen.ChatScheduledTask) error {
 	}
 	if store.Database != nil {
 		missed := string(schema.ChatScheduledTaskStateMissed)
-		if err := store.Database.UpdateChatScheduledTask(context.Background(), task.Flag, store.UpdateChatScheduledTaskParams{
+		if err := store.ChatStoreFromDB().UpdateChatScheduledTask(context.Background(), task.Flag, store.UpdateChatScheduledTaskParams{
 			State: &missed,
 		}); err != nil {
 			flog.Warn("[chat-agent] scheduler mark missed task=%s: %v", task.Flag, err)
@@ -265,7 +265,7 @@ func (s *TaskScheduler) runTask(taskID string) {
 	if store.Database == nil {
 		return
 	}
-	task, err := store.Database.GetChatScheduledTask(context.Background(), taskID)
+	task, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), taskID)
 	if err != nil {
 		flog.Warn("[chat-agent] scheduled task load failed task=%s: %v", taskID, err)
 		return

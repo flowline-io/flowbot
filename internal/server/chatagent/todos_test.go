@@ -29,7 +29,7 @@ func TestSummarizeTodosBySessions(t *testing.T) {
 			name:       "single session progress",
 			sessionIDs: []string{"sess-a"},
 			seed: func(ctx context.Context) error {
-				return store.Database.ReplaceAgentTodosForSession(ctx, "sess-a", []*gen.AgentTodo{
+				return store.AgentStoreFromDB().ReplaceAgentTodosForSession(ctx, "sess-a", []*gen.AgentTodo{
 					{Flag: types.Id(), SessionID: "sess-a", ItemID: "1", Content: "Plan", Status: TodoStatusCompleted, SortOrder: 0},
 					{Flag: types.Id(), SessionID: "sess-a", ItemID: "2", Content: "Build", Status: TodoStatusInProgress, SortOrder: 1},
 					{Flag: types.Id(), SessionID: "sess-a", ItemID: "3", Content: "Ship", Status: TodoStatusPending, SortOrder: 2},
@@ -43,7 +43,7 @@ func TestSummarizeTodosBySessions(t *testing.T) {
 			name:       "cancelled items excluded from active count",
 			sessionIDs: []string{"sess-b"},
 			seed: func(ctx context.Context) error {
-				return store.Database.ReplaceAgentTodosForSession(ctx, "sess-b", []*gen.AgentTodo{
+				return store.AgentStoreFromDB().ReplaceAgentTodosForSession(ctx, "sess-b", []*gen.AgentTodo{
 					{Flag: types.Id(), SessionID: "sess-b", ItemID: "1", Content: "Done", Status: TodoStatusCompleted, SortOrder: 0},
 					{Flag: types.Id(), SessionID: "sess-b", ItemID: "2", Content: "Skip", Status: TodoStatusCancelled, SortOrder: 1},
 				})
@@ -83,7 +83,7 @@ func TestSummarizeTodosBySessions(t *testing.T) {
 func TestListTodoItemsOrdersBySortOrder(t *testing.T) {
 	withTestTodoStore(t, func() {
 		ctx := context.Background()
-		require.NoError(t, store.Database.ReplaceAgentTodosForSession(ctx, "sess-order", []*gen.AgentTodo{
+		require.NoError(t, store.AgentStoreFromDB().ReplaceAgentTodosForSession(ctx, "sess-order", []*gen.AgentTodo{
 			{Flag: types.Id(), SessionID: "sess-order", ItemID: "b", Content: "Second", Status: TodoStatusPending, SortOrder: 1},
 			{Flag: types.Id(), SessionID: "sess-order", ItemID: "a", Content: "First", Status: TodoStatusPending, SortOrder: 0},
 		}))

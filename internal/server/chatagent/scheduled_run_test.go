@@ -58,7 +58,7 @@ func TestExecuteScheduledTaskRunsPrompt(t *testing.T) {
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "scheduled task done")
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-run-1",
 		UID:          "user:alice",
 		Name:         "daily",
@@ -77,7 +77,7 @@ func TestExecuteScheduledTaskRunsPrompt(t *testing.T) {
 	})
 	WaitForSessionTitleGenerationForTest()
 
-	runs, err := store.Database.ListChatScheduledTaskRuns(context.Background(), "task-run-1", 10)
+	runs, err := store.ChatStoreFromDB().ListChatScheduledTaskRuns(context.Background(), "task-run-1", 10)
 	require.NoError(t, err)
 	require.Len(t, runs, 1)
 	assert.Equal(t, string(schema.ChatScheduledTaskRunStateCompleted), runs[0].State)
@@ -93,7 +93,7 @@ func TestExecuteScheduledTaskMarksFailedOnEmptyPrompt(t *testing.T) {
 	setupEphemeralRunTestDB(t)
 	setupEphemeralRunFakeModel(t, "unused")
 
-	require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-run-fail",
 		UID:          "user:alice",
 		Name:         "empty",
@@ -111,7 +111,7 @@ func TestExecuteScheduledTaskMarksFailedOnEmptyPrompt(t *testing.T) {
 		State:        string(schema.ChatScheduledTaskStateActive),
 	})
 
-	runs, err := store.Database.ListChatScheduledTaskRuns(context.Background(), "task-run-fail", 10)
+	runs, err := store.ChatStoreFromDB().ListChatScheduledTaskRuns(context.Background(), "task-run-fail", 10)
 	require.NoError(t, err)
 	require.Len(t, runs, 1)
 	assert.Equal(t, string(schema.ChatScheduledTaskRunStateFailed), runs[0].State)

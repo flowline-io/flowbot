@@ -21,11 +21,11 @@ func TestListPlanSummaries(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-plans"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 	now := time.Now().UTC()
-	require.NoError(t, store.Database.CreateAgentPlan(ctx, &gen.AgentPlan{
+	require.NoError(t, store.AgentStoreFromDB().CreateAgentPlan(ctx, &gen.AgentPlan{
 		Flag: "plan-1", SessionID: sessionID, Title: "Deploy Redis", Content: "steps",
 		CreatedAt: now, UpdatedAt: now,
 	}))
@@ -68,7 +68,7 @@ func TestMaybePersistPlan(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-plan-mode"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 	require.NoError(t, SetSessionMode(ctx, sessionID, ModePlan))

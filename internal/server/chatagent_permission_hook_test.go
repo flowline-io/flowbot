@@ -6,27 +6,20 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	setupChatAgentHTTPTest(t)
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
 		chatagent.ResetPermissionCacheForTest()
 		ChatAgentService().ResetPermissionSessionsForTest()
 	})
@@ -78,17 +71,8 @@ func TestChatAgentPermissionHookAskWithoutGateBlocks(t *testing.T) {
 }
 
 func TestChatAgentPermissionHookAlwaysGrantUsesSuggestedPattern(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
+	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 		chatagent.ResetPermissionCacheForTest()
 		ChatAgentService().ResetPermissionSessionsForTest()
 		ChatAgentService().ClearAPIRunState("sess-1", nil)

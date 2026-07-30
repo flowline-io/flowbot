@@ -78,7 +78,7 @@ func GetOAuthProvider(name string) (OAuthProvider, error) {
 // OAuthRefresher, it automatically refreshes the token and persists the
 // updated values before returning the fresh token.
 func GetOrRefreshToken(ctx context.Context, uid types.Uid, topic, t string) (*OAuthToken, error) {
-	oauth, err := store.Database.OAuthGet(ctx, uid, topic, t)
+	oauth, err := store.ModuleDataStoreFromDB().OAuthGet(ctx, uid, topic, t)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func GetOrRefreshToken(ctx context.Context, uid types.Uid, topic, t string) (*OA
 			}
 		}
 
-		if err := store.Database.OAuthSet(ctx, oauth); err != nil {
+		if err := store.ModuleDataStoreFromDB().OAuthSet(ctx, oauth); err != nil {
 			flog.Warn("providers: failed to persist refreshed oauth token for %s: %v", t, err)
 		}
 		return newToken, nil

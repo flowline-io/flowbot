@@ -73,7 +73,7 @@ func agentSessionSummaryRetry(ctx fiber.Ctx) error {
 }
 
 func listAgentSessionSummaryModels(ctx context.Context, q string) ([]model.AgentSessionSummary, error) {
-	rows, err := store.Database.ListAgentSessionSummaries(ctx, store.AgentSessionSummaryListFilter{
+	rows, err := store.AgentStoreFromDB().ListAgentSessionSummaries(ctx, store.AgentSessionSummaryListFilter{
 		Scope: "default",
 		Q:     q,
 	})

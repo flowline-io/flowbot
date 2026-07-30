@@ -51,7 +51,7 @@ func loadUserPermissionConfig(ctx context.Context, uid types.Uid) (permission.Co
 	if store.Database == nil {
 		return permission.Config{}, types.ErrUnavailable
 	}
-	raw, err := store.Database.ConfigGet(ctx, uid, PermissionTopic, PermissionKey)
+	raw, err := store.ModuleDataStoreFromDB().ConfigGet(ctx, uid, PermissionTopic, PermissionKey)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			storePermissionCache(uid, permission.Config{})
@@ -88,7 +88,7 @@ func SaveUserPermissions(ctx context.Context, uid types.Uid, cfg permission.Conf
 		return fmt.Errorf("permissions payload: %w", err)
 	}
 	kv := types.KV(payload)
-	if err := store.Database.ConfigSet(ctx, uid, PermissionTopic, PermissionKey, kv); err != nil {
+	if err := store.ModuleDataStoreFromDB().ConfigSet(ctx, uid, PermissionTopic, PermissionKey, kv); err != nil {
 		return err
 	}
 	invalidatePermissionCache(uid)
@@ -100,7 +100,7 @@ func DeleteUserPermissions(ctx context.Context, uid types.Uid) error {
 	if store.Database == nil {
 		return types.ErrUnavailable
 	}
-	if err := store.Database.ConfigDelete(ctx, uid, PermissionTopic, PermissionKey); err != nil {
+	if err := store.ModuleDataStoreFromDB().ConfigDelete(ctx, uid, PermissionTopic, PermissionKey); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			invalidatePermissionCache(uid)
 			return nil
@@ -145,7 +145,7 @@ func SessionOwnerUID(ctx context.Context, sessionID string) (types.Uid, error) {
 	if store.Database == nil {
 		return types.Uid(""), types.ErrUnavailable
 	}
-	row, err := store.Database.GetChatSession(ctx, sessionID)
+	row, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		return types.Uid(""), err
 	}

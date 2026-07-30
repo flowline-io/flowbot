@@ -38,10 +38,8 @@ func TestChatAgentHTTPDisabled(t *testing.T) {
 }
 
 func TestChatAgentHTTPCreateSession(t *testing.T) {
-	origDB := store.Database
 	origCfg := config.App
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{}
+	setupSQLiteTestDB(t)
 	config.App = config.Type{
 		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()},
 		Models: []config.Model{
@@ -49,9 +47,7 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 		},
 	}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
 	h := newChatAgentHTTP(ChatAgentService())
@@ -112,8 +108,7 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 			if tt.wantModel == "" && tt.wantLevel == "" {
 				return
 			}
-			sess := testChatSessions[parsed["session_id"]]
-			require.NotNil(t, sess)
+			sess := getTestChatSession(t, parsed["session_id"])
 			assert.Equal(t, tt.wantModel, sess.Model)
 			assert.Equal(t, tt.wantLevel, sess.ThinkingLevel)
 		})
@@ -121,12 +116,9 @@ func TestChatAgentHTTPCreateSession(t *testing.T) {
 }
 
 func TestChatAgentHTTPSessionSettings(t *testing.T) {
-	origDB := store.Database
 	origCfg := config.App
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
+	setupSQLiteTestDB(t)
+	seedTestChatSession(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	config.App = config.Type{
 		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()},
 		Models: []config.Model{
@@ -134,9 +126,7 @@ func TestChatAgentHTTPSessionSettings(t *testing.T) {
 		},
 	}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
 	h := newChatAgentHTTP(ChatAgentService())
@@ -195,33 +185,23 @@ func TestChatAgentHTTPSessionSettings(t *testing.T) {
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantStatus != fiber.StatusOK || tt.method == http.MethodGet && tt.wantModel == "" {
 				if tt.method == http.MethodPut && tt.wantStatus == fiber.StatusOK {
-					assert.Equal(t, tt.wantModel, testChatSessions["sess-1"].Model)
-					assert.Equal(t, tt.wantLevel, testChatSessions["sess-1"].ThinkingLevel)
+					sess := getTestChatSession(t, "sess-1")
+					assert.Equal(t, tt.wantModel, sess.Model)
+					assert.Equal(t, tt.wantLevel, sess.ThinkingLevel)
 				}
 				return
 			}
 			if tt.method == http.MethodPut {
-				assert.Equal(t, tt.wantModel, testChatSessions["sess-1"].Model)
-				assert.Equal(t, tt.wantLevel, testChatSessions["sess-1"].ThinkingLevel)
+				sess := getTestChatSession(t, "sess-1")
+				assert.Equal(t, tt.wantModel, sess.Model)
+				assert.Equal(t, tt.wantLevel, sess.ThinkingLevel)
 			}
 		})
 	}
 }
 
 func TestChatAgentHTTPListMessages(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
-	})
-
+	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Get("/chatagent/sessions/:id/messages", func(c fiber.Ctx) error {
@@ -239,18 +219,7 @@ func TestChatAgentHTTPListMessages(t *testing.T) {
 }
 
 func TestChatAgentHTTPConfirmNotFound(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-	})
-
+	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions/:id/confirm", func(c fiber.Ctx) error {
@@ -267,18 +236,7 @@ func TestChatAgentHTTPConfirmNotFound(t *testing.T) {
 }
 
 func TestChatAgentHTTPEmptyMessage(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-	})
-
+	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
 	app.Post("/chatagent/sessions/:id/messages", func(c fiber.Ctx) error {
@@ -297,16 +255,8 @@ func TestChatAgentHTTPEmptyMessage(t *testing.T) {
 }
 
 func TestChatAgentHTTPRunInFlight(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	setupChatAgentHTTPTest(t, &gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)})
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
 		ChatAgentService().ClearAPIRunState("sess-1", nil)
 	})
 
@@ -333,20 +283,11 @@ func TestChatAgentHTTPRunInFlight(t *testing.T) {
 
 func TestChatAgentHTTPListSessions(t *testing.T) {
 	now := time.Now().UTC()
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-a": {Flag: "sess-a", UID: "user-1", State: int(schema.ChatSessionActive), UpdatedAt: now},
-		"sess-b": {Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now},
-		"sess-c": {Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
-	})
+	setupChatAgentHTTPTest(t,
+		&gen.ChatSession{Flag: "sess-a", UID: "user-1", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		&gen.ChatSession{Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now},
+		&gen.ChatSession{Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now},
+	)
 
 	h := newChatAgentHTTP(ChatAgentService())
 
@@ -406,18 +347,11 @@ func TestChatAgentHTTPListSessions(t *testing.T) {
 }
 
 func TestChatAgentHTTPGetPermissionsSessionOwner(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-mine":  {Flag: "sess-mine", UID: "user-1", State: int(schema.ChatSessionActive)},
-		"sess-other": {Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
-	}
+	setupChatAgentHTTPTest(t,
+		&gen.ChatSession{Flag: "sess-mine", UID: "user-1", State: int(schema.ChatSessionActive)},
+		&gen.ChatSession{Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
+	)
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
@@ -451,13 +385,8 @@ func TestChatAgentHTTPGetPermissionsSessionOwner(t *testing.T) {
 }
 
 func TestChatAgentHTTPPermissionsMutations(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	setupChatAgentHTTPTest(t)
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
 		chatagent.ResetPermissionCacheForTest()
 		ChatAgentService().ResetPermissionSessionsForTest()
 	})
@@ -507,18 +436,11 @@ func TestChatAgentHTTPPermissionsMutations(t *testing.T) {
 }
 
 func TestChatAgentHTTPClearPermissionGrants(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-grants": {Flag: "sess-grants", UID: "user-1", State: int(schema.ChatSessionActive)},
-		"sess-other":  {Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	setupChatAgentHTTPTest(t,
+		&gen.ChatSession{Flag: "sess-grants", UID: "user-1", State: int(schema.ChatSessionActive)},
+		&gen.ChatSession{Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
+	)
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 		ChatAgentService().ResetPermissionSessionsForTest()
 	})
 
@@ -552,19 +474,10 @@ func TestChatAgentHTTPClearPermissionGrants(t *testing.T) {
 }
 
 func TestChatAgentHTTPCancelRun(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1":     {Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
-		"sess-other": {Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
-	})
+	setupChatAgentHTTPTest(t,
+		&gen.ChatSession{Flag: "sess-1", UID: "user-1", State: int(schema.ChatSessionActive)},
+		&gen.ChatSession{Flag: "sess-other", UID: "user-2", State: int(schema.ChatSessionActive)},
+	)
 
 	h := newChatAgentHTTP(ChatAgentService())
 	app := fiber.New()
@@ -597,17 +510,10 @@ func TestChatAgentHTTPCancelRun(t *testing.T) {
 
 func TestListUserActiveSessions(t *testing.T) {
 	now := time.Now().UTC()
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-a": {Flag: "sess-a", UID: "user-1", Title: "Redis setup", State: int(schema.ChatSessionActive), UpdatedAt: now},
-		"sess-b": {Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now},
-		"sess-c": {Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now},
-	}
-	t.Cleanup(func() {
-		store.Database = origDB
-		testChatSessions = map[string]*gen.ChatSession{}
-	})
+	setupSQLiteTestDB(t)
+	seedTestChatSession(t, &gen.ChatSession{Flag: "sess-a", UID: "user-1", Title: "Redis setup", State: int(schema.ChatSessionActive), UpdatedAt: now})
+	seedTestChatSession(t, &gen.ChatSession{Flag: "sess-b", UID: "user-2", State: int(schema.ChatSessionActive), UpdatedAt: now})
+	seedTestChatSession(t, &gen.ChatSession{Flag: "sess-c", UID: "user-1", State: int(schema.ChatSessionClosed), UpdatedAt: now})
 
 	tests := []struct {
 		name    string
@@ -622,10 +528,10 @@ func TestListUserActiveSessions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.setupDB {
-				store.Database = &testStoreAdapter{}
-			} else {
+			if !tt.setupDB {
+				orig := store.Database
 				store.Database = nil
+				t.Cleanup(func() { store.Database = orig })
 			}
 			got, _, err := chatagent.ListUserActiveSessions(context.Background(), tt.uid, 20, "")
 			if tt.wantErr {

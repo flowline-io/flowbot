@@ -296,7 +296,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 	if sessionID == "" {
 		return ctx.Status(http.StatusBadRequest).SendString("session id required")
 	}
-	row, err := store.Database.GetChatSession(ctx.Context(), sessionID)
+	row, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(http.StatusNotFound).SendString("session not found")
@@ -703,7 +703,7 @@ func listUserAgentSessionModels(ctx fiber.Ctx, cursor, filter string) ([]model.A
 		opts.Flags = flags
 		opts.Cursor = ""
 	}
-	rows, nextCursor, err := store.Database.ListChatSessions(ctx.Context(), opts)
+	rows, nextCursor, err := store.ChatStoreFromDB().ListChatSessions(ctx.Context(), opts)
 	if err != nil {
 		return nil, "", err
 	}
@@ -771,7 +771,7 @@ func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
 		}
 		return types.Errorf(types.ErrInternal, "pin session: %v", err)
 	}
-	if err := store.Database.UpdateChatSessionPinned(ctx.Context(), sessionID, pinned); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatSessionPinned(ctx.Context(), sessionID, pinned); err != nil {
 		return toastError(ctx, "Failed to update pin")
 	}
 	filter := normalizeAgentsListFilter(ctx.Query("filter"))

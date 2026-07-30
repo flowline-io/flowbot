@@ -37,19 +37,13 @@ func TestChatAgentService_Run(t *testing.T) {
 		chatagent.NewModelForTest = origNewModel
 	})
 
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{}
-	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
+	setupSQLiteTestDB(t)
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
 		chatagent.ResetSessionTitleGenerationForTest()
-		store.Database = origDB
-		testChatSessions = map[string]*gen.ChatSession{}
-		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 	})
 
-	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag: "sess-1", UID: "u1", State: int(schema.ChatSessionActive),
 		CreatedAt: time.Now(), UpdatedAt: time.Now(),
 	}))
@@ -90,15 +84,10 @@ func TestChatAgentService_RunRequiresWorkspace(t *testing.T) {
 		{Provider: agentllm.ProviderOpenAI, ApiKey: "test", ModelNames: []string{"fake-model"}},
 	}
 
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {Flag: "sess-1", State: int(schema.ChatSessionActive)},
-	}
+	setupSQLiteTestDB(t)
+	seedTestChatSession(t, &gen.ChatSession{Flag: "sess-1", State: int(schema.ChatSessionActive)})
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
-		store.Database = origDB
-		testChatSessions = map[string]*gen.ChatSession{}
 	})
 
 	_, err := chatagent.NewService().Run(context.Background(), chatagent.RunRequest{
@@ -135,20 +124,14 @@ func TestChatAgentService_CompactSession(t *testing.T) {
 		chatagent.NewModelForTest = origNewModel
 	})
 
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{}
-	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
+	setupSQLiteTestDB(t)
 	t.Cleanup(func() {
 		chatagent.WaitForSessionTitleGenerationForTest()
 		chatagent.ResetSessionTitleGenerationForTest()
-		store.Database = origDB
-		testChatSessions = map[string]*gen.ChatSession{}
-		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
 		ChatAgentService().ResetHarnessPoolForTest()
 	})
 
-	require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag: "sess-compact", UID: "u1", State: int(schema.ChatSessionActive),
 		CreatedAt: time.Now(), UpdatedAt: time.Now(),
 	}))

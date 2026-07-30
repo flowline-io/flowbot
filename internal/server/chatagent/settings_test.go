@@ -33,7 +33,7 @@ func TestSetSessionSettings(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: "sess-settings", UID: "u1", State: int(schema.ChatSessionActive),
 	}))
 
@@ -97,10 +97,10 @@ func TestResolveEffectiveSessionSettings(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: "sess-empty", UID: "u1", State: int(schema.ChatSessionActive),
 	}))
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: "sess-override", UID: "u1", State: int(schema.ChatSessionActive),
 	}))
 	require.NoError(t, SetSessionSettings(ctx, "sess-override", SessionSettings{

@@ -393,7 +393,7 @@ func ensureSessionActive(ctx context.Context, sessionID string) error {
 	if store.Database == nil {
 		return fmt.Errorf("chat session store unavailable")
 	}
-	sess, err := store.Database.GetChatSession(ctx, sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return fmt.Errorf("chat session not found")

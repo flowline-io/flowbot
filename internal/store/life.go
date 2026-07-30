@@ -101,14 +101,7 @@ func NewLifeStore(client *gen.Client) *LifeStore {
 
 // LifeStoreFromDB returns a LifeStore using the global database client.
 func LifeStoreFromDB() *LifeStore {
-	if Database == nil {
-		return NewLifeStore(nil)
-	}
-	client, ok := Database.GetDB().(*gen.Client)
-	if !ok || client == nil {
-		return NewLifeStore(nil)
-	}
-	return NewLifeStore(client)
+	return NewLifeStore(ClientFromDB())
 }
 
 // Client returns the underlying ent client for transactional use-cases.

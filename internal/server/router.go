@@ -94,7 +94,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 	name := ctx.Params("provider")
 	flag := ctx.Params("flag")
 
-	p, err := store.Database.ParameterGet(ctx.Context(), flag)
+	p, err := store.ModuleDataStoreFromDB().ParameterGet(ctx.Context(), flag)
 	if err != nil {
 		return protocol.ErrFlagError.Wrap(err)
 	}
@@ -140,7 +140,7 @@ func (*Controller) storeOAuth(ctx fiber.Ctx) error {
 			oauth.Extra = map[string]any{"extra": tk.Extra}
 		}
 	}
-	err = store.Database.OAuthSet(ctx.Context(), oauth)
+	err = store.ModuleDataStoreFromDB().OAuthSet(ctx.Context(), oauth)
 	if err != nil {
 		return protocol.ErrOAuthError.Wrap(err)
 	}
@@ -164,7 +164,7 @@ func (*Controller) postForm(ctx fiber.Ctx) error {
 		return protocol.ErrBadParam.New("topic is required")
 	}
 
-	formData, err := store.Database.FormGet(ctx.Context(), formId)
+	formData, err := store.ModuleDataStoreFromDB().FormGet(ctx.Context(), formId)
 	if err != nil {
 		return protocol.ErrBadParam.Wrap(err)
 	}

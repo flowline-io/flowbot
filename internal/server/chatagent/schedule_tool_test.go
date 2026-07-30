@@ -66,7 +66,7 @@ func TestScheduleTaskToolCreateCron(t *testing.T) {
 		require.False(t, result.IsError)
 		assert.Contains(t, scheduledToolResultText(result), "created")
 
-		tasks, err := store.Database.ListChatScheduledTasks(context.Background(), store.ListChatScheduledTasksOptions{
+		tasks, err := store.ChatStoreFromDB().ListChatScheduledTasks(context.Background(), store.ListChatScheduledTasksOptions{
 			UID: "user:alice",
 		})
 		require.NoError(t, err)
@@ -78,7 +78,7 @@ func TestScheduleTaskToolCreateCron(t *testing.T) {
 func TestUpdateScheduledTaskToolRejectsKindMismatch(t *testing.T) {
 	withTestScheduleStore(t, func() {
 		runAt := time.Now().UTC().Add(2 * time.Hour)
-		require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+		require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 			Flag:         "task-once",
 			UID:          "user:alice",
 			Name:         "reminder",
@@ -100,7 +100,7 @@ func TestUpdateScheduledTaskToolRejectsKindMismatch(t *testing.T) {
 
 func TestCancelScheduledTaskTool(t *testing.T) {
 	withTestScheduleStore(t, func() {
-		require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+		require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 			Flag:         "task-1",
 			UID:          "user:alice",
 			Name:         "job",
@@ -115,7 +115,7 @@ func TestCancelScheduledTaskTool(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, result.IsError)
 
-		task, err := store.Database.GetChatScheduledTask(context.Background(), "task-1")
+		task, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), "task-1")
 		require.NoError(t, err)
 		assert.Equal(t, string(schema.ChatScheduledTaskStateCancelled), task.State)
 	})
@@ -128,7 +128,7 @@ func TestUpdateScheduledTaskToolPause(t *testing.T) {
 		require.NoError(t, sched.Start(context.Background()))
 		defer func() { _ = sched.Stop(context.Background()) }()
 
-		require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+		require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 			Flag:         "task-pause",
 			UID:          "user:alice",
 			Name:         "job",
@@ -146,7 +146,7 @@ func TestUpdateScheduledTaskToolPause(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, result.IsError)
 
-		task, err := store.Database.GetChatScheduledTask(context.Background(), "task-pause")
+		task, err := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), "task-pause")
 		require.NoError(t, err)
 		assert.Equal(t, string(schema.ChatScheduledTaskStatePaused), task.State)
 	})

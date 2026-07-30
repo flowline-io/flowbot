@@ -15,7 +15,6 @@ import (
 	notifyrules "github.com/flowline-io/flowbot/pkg/notify/rules"
 	notifytmpl "github.com/flowline-io/flowbot/pkg/notify/template"
 	"github.com/flowline-io/flowbot/pkg/types"
-	"github.com/flowline-io/flowbot/pkg/types/model"
 )
 
 func TestParseSchema(t *testing.T) {
@@ -687,16 +686,8 @@ func TestGatewaySend(t *testing.T) {
 				}
 				Register(m.protocol, m)
 				t.Cleanup(func() { Unregister(m.protocol) })
-				replaceDatabaseForTest(t, &notifyTestStore{
-					globalChannels: map[string]model.NotifyChannel{
-						"slack": {
-							Name:     "slack",
-							Protocol: "testgatewaysend",
-							URI:      "testgatewaysend://chan/tok",
-							Enabled:  true,
-						},
-					},
-				})
+				replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+				seedNotifyTestChannel(t, "slack", "testgatewaysend", "testgatewaysend://chan/tok", true, false)
 			},
 			templateID: "test.event",
 			channels:   []string{"slack"},
@@ -706,7 +697,7 @@ func TestGatewaySend(t *testing.T) {
 			name: "missing channel without uid returns error",
 			setup: func(t *testing.T) {
 				setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, nil, nil)
-				replaceDatabaseForTest(t, &notifyTestStore{})
+				setupNotifySQLiteDB(t)
 			},
 			templateID: "test.event",
 			channels:   []string{"slack"},
@@ -729,16 +720,8 @@ func TestGatewaySend(t *testing.T) {
 				}
 				Register(m.protocol, m)
 				t.Cleanup(func() { Unregister(m.protocol) })
-				replaceDatabaseForTest(t, &notifyTestStore{
-					globalChannels: map[string]model.NotifyChannel{
-						"slack": {
-							Name:     "slack",
-							Protocol: "testgatewaythrottle",
-							URI:      "testgatewaythrottle://chan/tok",
-							Enabled:  true,
-						},
-					},
-				})
+				replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+				seedNotifyTestChannel(t, "slack", "testgatewaythrottle", "testgatewaythrottle://chan/tok", true, false)
 			},
 			templateID: "test.event",
 			channels:   []string{"slack"},
@@ -766,14 +749,9 @@ func TestGatewaySend(t *testing.T) {
 }
 
 func TestSendToUserChannel(t *testing.T) {
-	ns := &notifyTestStore{
-		configs: map[string]types.KV{
-			"notify:slack": {"value": "testuserchannelsend://chan/tok"},
-		},
-	}
-	replaceDatabaseForTest(t, ns)
-
+	setupNotifySQLiteDB(t)
 	uid := types.Uid("user-send-test")
+	seedUserNotifyConfig(t, uid, "slack", "testuserchannelsend://chan/tok")
 	ctx := context.Background()
 
 	m := &mockNotifyer{
@@ -820,7 +798,7 @@ func TestDispatchChannel(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		store     *notifyTestStore
+		seed      func(t *testing.T)
 		uid       types.Uid
 		channel   string
 		wantErr   bool
@@ -828,15 +806,9 @@ func TestDispatchChannel(t *testing.T) {
 	}{
 		{
 			name: "global channel sends without uid",
-			store: &notifyTestStore{
-				globalChannels: map[string]model.NotifyChannel{
-					"testing": {
-						Name:     "testing",
-						Protocol: "testdispatchglobal",
-						URI:      "testdispatchglobal://chan/tok",
-						Enabled:  true,
-					},
-				},
+			seed: func(t *testing.T) {
+				setupNotifySQLiteDB(t)
+				seedNotifyTestChannel(t, "testing", "testdispatchglobal", "testdispatchglobal://chan/tok", true, false)
 			},
 			uid:       types.Uid(""),
 			channel:   "testing",
@@ -845,15 +817,9 @@ func TestDispatchChannel(t *testing.T) {
 		},
 		{
 			name: "disabled global channel returns error",
-			store: &notifyTestStore{
-				globalChannels: map[string]model.NotifyChannel{
-					"testing": {
-						Name:     "testing",
-						Protocol: "testdispatchglobal",
-						URI:      "testdispatchglobal://chan/tok",
-						Enabled:  false,
-					},
-				},
+			seed: func(t *testing.T) {
+				setupNotifySQLiteDB(t)
+				seedNotifyTestChannel(t, "testing", "testdispatchglobal", "testdispatchglobal://chan/tok", false, false)
 			},
 			uid:       types.Uid(""),
 			channel:   "testing",
@@ -862,10 +828,9 @@ func TestDispatchChannel(t *testing.T) {
 		},
 		{
 			name: "falls back to user config when global missing",
-			store: &notifyTestStore{
-				configs: map[string]types.KV{
-					"notify:slack": {"value": "testdispatchglobal://chan/tok"},
-				},
+			seed: func(t *testing.T) {
+				setupNotifySQLiteDB(t)
+				seedUserNotifyConfig(t, types.Uid("user-1"), "slack", "testdispatchglobal://chan/tok")
 			},
 			uid:       types.Uid("user-1"),
 			channel:   "slack",
@@ -873,8 +838,10 @@ func TestDispatchChannel(t *testing.T) {
 			wantCalls: 1,
 		},
 		{
-			name:      "missing global and user channel returns error",
-			store:     &notifyTestStore{},
+			name: "missing global and user channel returns error",
+			seed: func(t *testing.T) {
+				setupNotifySQLiteDB(t)
+			},
 			uid:       types.Uid(""),
 			channel:   "missing",
 			wantErr:   true,
@@ -884,7 +851,7 @@ func TestDispatchChannel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			replaceDatabaseForTest(t, tt.store)
+			tt.seed(t)
 			before := m.calls
 			err := dispatchChannel(context.Background(), tt.uid, tt.channel, Message{Title: "T", Body: "B"})
 			if tt.wantErr {
@@ -898,11 +865,10 @@ func TestDispatchChannel(t *testing.T) {
 }
 
 func TestUserNotifyChannels_WithStore(t *testing.T) {
-	replaceDatabaseForTest(t, &notifyTestStore{
-		listKeys: []string{"notify:slack", "notify:ntfy"},
-	})
-
+	setupNotifySQLiteDB(t)
 	uid := types.Uid("user-channels-test")
+	seedUserNotifyConfig(t, uid, "slack", "test://slack")
+	seedUserNotifyConfig(t, uid, "ntfy", "test://ntfy")
 	ctx := context.Background()
 
 	tests := []struct {

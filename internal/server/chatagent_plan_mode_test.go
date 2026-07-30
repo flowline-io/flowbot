@@ -11,7 +11,6 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
@@ -19,7 +18,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/auth"
-	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/gofiber/fiber/v3"
@@ -28,22 +26,13 @@ import (
 )
 
 func TestPlanModePermissionHook(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-plan": {
-			Flag:  "sess-plan",
-			UID:   "user-1",
-			State: int(schema.ChatSessionActive),
-			Mode:  chatagent.ModePlan,
-		},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
+	setupChatAgentHTTPTest(t, &gen.ChatSession{
+		Flag:  "sess-plan",
+		UID:   "user-1",
+		State: int(schema.ChatSessionActive),
+		Mode:  chatagent.ModePlan,
+	})
 	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 		chatagent.ResetPermissionCacheForTest()
 		ChatAgentService().ResetPermissionSessionsForTest()
 	})
@@ -92,22 +81,11 @@ func TestPlanModePermissionHook(t *testing.T) {
 }
 
 func TestChatAgentHTTPSessionMode(t *testing.T) {
-	origDB := store.Database
-	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {
-			Flag:  "sess-1",
-			UID:   "user-1",
-			State: int(schema.ChatSessionActive),
-			Mode:  chatagent.ModeNormal,
-		},
-	}
-	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
-	t.Cleanup(func() {
-		store.Database = origDB
-		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
+	setupChatAgentHTTPTest(t, &gen.ChatSession{
+		Flag:  "sess-1",
+		UID:   "user-1",
+		State: int(schema.ChatSessionActive),
+		Mode:  chatagent.ModeNormal,
 	})
 
 	h := newChatAgentHTTP(ChatAgentService())
@@ -158,25 +136,20 @@ func TestChatAgentHTTPSessionMode(t *testing.T) {
 			var parsed map[string]string
 			require.NoError(t, sonic.Unmarshal(body, &parsed))
 			assert.Equal(t, tt.wantMode, parsed["mode"])
-			assert.Equal(t, tt.wantMode, testChatSessions["sess-1"].Mode)
+			assert.Equal(t, tt.wantMode, getTestChatSession(t, "sess-1").Mode)
 		})
 	}
 }
 
 func TestSetSessionModeAndNotify(t *testing.T) {
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-1": {
-			Flag:  "sess-1",
-			UID:   "user-1",
-			State: int(schema.ChatSessionActive),
-			Mode:  chatagent.ModeNormal,
-		},
-	}
+	setupSQLiteTestDB(t)
+	seedTestChatSession(t, &gen.ChatSession{
+		Flag:  "sess-1",
+		UID:   "user-1",
+		State: int(schema.ChatSessionActive),
+		Mode:  chatagent.ModeNormal,
+	})
 	t.Cleanup(func() {
-		store.Database = origDB
-		testChatSessions = map[string]*gen.ChatSession{}
 		ChatAgentService().ResetSessionEventHubsForTest()
 	})
 	ChatAgentService().ResetSessionEventHubsForTest()
@@ -195,5 +168,5 @@ func TestSetSessionModeAndNotify(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("expected mode_change event")
 	}
-	assert.Equal(t, chatagent.ModePlan, testChatSessions["sess-1"].Mode)
+	assert.Equal(t, chatagent.ModePlan, getTestChatSession(t, "sess-1").Mode)
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/bytedance/sonic"
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
@@ -445,7 +446,7 @@ func TestAgentsCloseSession(t *testing.T) {
 				assert.Equal(t, tt.wantStatus, resp.StatusCode)
 
 				if tt.wantStatus == http.StatusNoContent {
-					row, err := ts.GetChatSession(context.Background(), tt.sessionID)
+					row, err := store.ChatStoreFromDB().GetChatSession(context.Background(), tt.sessionID)
 					require.NoError(t, err)
 					assert.Equal(t, int(schema.ChatSessionClosed), row.State)
 				}
@@ -520,7 +521,9 @@ func TestAgentsCreateSession(t *testing.T) {
 			if tt.wantStatus == http.StatusCreated {
 				body, _ := io.ReadAll(resp.Body)
 				assert.Contains(t, string(body), "session_id")
-				assert.NotEmpty(t, ts.chatSessions)
+				sessions, _, err := store.ChatStoreFromDB().ListChatSessions(context.Background(), store.ListChatSessionsOptions{UID: "testuser"})
+				require.NoError(t, err)
+				assert.NotEmpty(t, sessions)
 			}
 		})
 	}

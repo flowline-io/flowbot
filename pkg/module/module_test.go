@@ -453,7 +453,7 @@ func TestRunForm(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.formID == "form-test-1" {
-				require.NoError(t, store.Database.FormSet(context.Background(), "form-test-1", gen.Form{
+				require.NoError(t, store.ModuleDataStoreFromDB().FormSet(context.Background(), "form-test-1", gen.Form{
 					FormID: "form-test-1",
 					UID:    uid,
 					Topic:  topic,

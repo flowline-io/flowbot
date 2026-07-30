@@ -112,7 +112,7 @@ func TestSessionTitleInflightDedupes(t *testing.T) {
 					continue
 				}
 				seen[sessionID] = struct{}{}
-				require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 					Flag:  sessionID,
 					UID:   "user-1",
 					State: int(schema.ChatSessionActive),

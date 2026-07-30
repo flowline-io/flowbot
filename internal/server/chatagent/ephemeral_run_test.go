@@ -36,7 +36,7 @@ func TestBeginEphemeralSessionCreatesActiveSession(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, sessionID)
 
-	sess, err := store.Database.GetChatSession(context.Background(), sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(context.Background(), sessionID)
 	require.NoError(t, err)
 	assert.Equal(t, "user-1", sess.UID)
 

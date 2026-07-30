@@ -59,7 +59,7 @@ func LoadSessionMode(ctx context.Context, sessionID string) string {
 	if store.Database == nil || sessionID == "" {
 		return ModeNormal
 	}
-	sess, err := store.Database.GetChatSession(ctx, sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		flog.Debug("[chat-agent] load session mode session=%s: %v", sessionID, err)
 		return ModeNormal
@@ -79,7 +79,7 @@ func SetSessionMode(ctx context.Context, sessionID, mode string) error {
 	if store.Database == nil {
 		return types.ErrUnavailable
 	}
-	return store.Database.UpdateChatSessionMode(ctx, sessionID, mode)
+	return store.ChatStoreFromDB().UpdateChatSessionMode(ctx, sessionID, mode)
 }
 
 // NotifySessionModeChange publishes a mode_change event to session SSE subscribers.

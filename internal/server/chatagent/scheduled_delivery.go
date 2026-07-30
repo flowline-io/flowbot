@@ -19,7 +19,7 @@ func ResolveDeliveryContext(ctx context.Context, sessionID string) ScheduledDeli
 	if store.Database == nil || sessionID == "" {
 		return ScheduledDelivery{}
 	}
-	messages, err := store.Database.GetMessagesBySession(ctx, sessionID)
+	messages, err := store.MessageStoreFromDB().GetMessagesBySession(ctx, sessionID)
 	if err != nil {
 		flog.Debug("[chat-agent] delivery context session=%s: %v", sessionID, err)
 		return ScheduledDelivery{}
@@ -34,7 +34,7 @@ func ResolveDeliveryContext(ctx context.Context, sessionID string) ScheduledDeli
 			PlatformID: msg.PlatformID,
 		}
 		if msg.PlatformID > 0 {
-			platformRow, perr := store.Database.GetPlatform(ctx, msg.PlatformID)
+			platformRow, perr := store.PlatformStoreFromDB().GetPlatform(ctx, msg.PlatformID)
 			if perr == nil && platformRow != nil {
 				delivery.Platform = platformRow.Name
 			}

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/auth"
@@ -21,17 +20,12 @@ import (
 )
 
 func TestChatAgentHTTPSessionEventsObserverFilter(t *testing.T) {
-	origDB := store.Database
 	origCfg := config.App.ChatAgent
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"sess-ev": {Flag: "sess-ev", UID: "user-1", State: int(schema.ChatSessionActive)},
-	}
+	setupSQLiteTestDB(t)
+	seedTestChatSession(t, &gen.ChatSession{Flag: "sess-ev", UID: "user-1", State: int(schema.ChatSessionActive)})
 	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App.ChatAgent = origCfg
-		testChatSessions = map[string]*gen.ChatSession{}
 		ChatAgentService().ResetSessionEventHubsForTest()
 	})
 	ChatAgentService().ResetSessionEventHubsForTest()

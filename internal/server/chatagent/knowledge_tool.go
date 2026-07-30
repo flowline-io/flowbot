@@ -10,9 +10,9 @@ import (
 	"github.com/bytedance/sonic"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -69,7 +69,7 @@ func (SearchKnowledgeTool) Execute(ctx context.Context, id string, args map[stri
 		return knowledgeToolError(searchKnowledgeToolName, id, "query or path_prefix is required"), nil
 	}
 	limit := knowledgeIntArg(args, "limit")
-	rows, err := store.Database.SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{
+	rows, err := store.AgentStoreFromDB().SearchAgentKnowledge(ctx, store.AgentKnowledgeSearchParams{
 		Query:      query,
 		PathPrefix: prefix,
 		Tag:        knowledgeStringArg(args, "tag"),
@@ -151,7 +151,7 @@ func (t GetKnowledgeTool) Execute(ctx context.Context, id string, args map[strin
 	if err := ValidateKnowledgePath(path); err != nil {
 		return knowledgeToolError(getKnowledgeToolName, id, err.Error()), nil
 	}
-	row, err := store.Database.GetAgentKnowledgeByPath(ctx, path)
+	row, err := store.AgentStoreFromDB().GetAgentKnowledgeByPath(ctx, path)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return knowledgeToolError(getKnowledgeToolName, id, "document not found"), nil

@@ -16,10 +16,10 @@ import (
 )
 
 func TestAgentMemoryFactsAPI(t *testing.T) {
-	app, ts := setupTestApp(t)
+	app, _ := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
-	_, err := ts.UpsertAgentMemoryFact(t.Context(), store.AgentMemoryFactUpsert{
+	_, err := store.AgentStoreFromDB().UpsertAgentMemoryFact(t.Context(), store.AgentMemoryFactUpsert{
 		Scope: "my-pipeline", Key: "pref.lang", Value: "en", Pinned: false,
 	})
 	require.NoError(t, err)
@@ -79,10 +79,10 @@ func TestAgentMemoryFactsAPI(t *testing.T) {
 }
 
 func TestAgentMemoryFactsFormSaveAndDelete(t *testing.T) {
-	app, ts := setupTestApp(t)
+	app, _ := setupTestApp(t)
 	defer func() { handler = moduleHandler{}; config = configType{} }()
 
-	_, err := ts.UpsertAgentMemoryFact(t.Context(), store.AgentMemoryFactUpsert{
+	_, err := store.AgentStoreFromDB().UpsertAgentMemoryFact(t.Context(), store.AgentMemoryFactUpsert{
 		Scope: "default", Key: "pref.tz", Value: "UTC", Pinned: false,
 	})
 	require.NoError(t, err)

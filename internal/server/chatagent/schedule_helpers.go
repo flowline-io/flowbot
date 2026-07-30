@@ -97,11 +97,11 @@ func persistScheduledTask(ctx context.Context, deps ScheduleToolDeps, parsed cre
 	if err != nil {
 		return nil, err
 	}
-	if err := store.Database.CreateChatScheduledTask(ctx, task); err != nil {
+	if err := store.ChatStoreFromDB().CreateChatScheduledTask(ctx, task); err != nil {
 		return nil, err
 	}
 	if err := syncTaskWithScheduler(task); err != nil {
-		if derr := store.Database.DeleteChatScheduledTask(ctx, task.Flag); derr != nil {
+		if derr := store.ChatStoreFromDB().DeleteChatScheduledTask(ctx, task.Flag); derr != nil {
 			return nil, fmt.Errorf("register task: %w (rollback failed: %v)", err, derr)
 		}
 		return nil, fmt.Errorf("register task: %w", err)
@@ -283,10 +283,10 @@ func formatScheduledTaskListLine(task *gen.ChatScheduledTask) string {
 }
 
 func applyScheduledTaskUpdate(ctx context.Context, taskID string, params store.UpdateChatScheduledTaskParams) (*gen.ChatScheduledTask, error) {
-	if err := store.Database.UpdateChatScheduledTask(ctx, taskID, params); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatScheduledTask(ctx, taskID, params); err != nil {
 		return nil, err
 	}
-	updated, err := store.Database.GetChatScheduledTask(ctx, taskID)
+	updated, err := store.ChatStoreFromDB().GetChatScheduledTask(ctx, taskID)
 	if err != nil {
 		return nil, err
 	}

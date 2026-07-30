@@ -23,14 +23,10 @@ var relationsWebserviceRules = []webservice.Rule{
 }
 
 func getResourceChainStore() *store.ResourceChainStore {
-	if store.Database == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewResourceChainStore(client)
+	return store.NewResourceChainStore(store.Database.GetClient())
 }
 
 func relationsPage(ctx fiber.Ctx) error {

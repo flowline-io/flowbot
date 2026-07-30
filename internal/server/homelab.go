@@ -39,11 +39,9 @@ func RunHomelabScan(cfg config.Homelab) error {
 
 	homelab.DefaultRegistry.Replace(apps)
 	homelab.DefaultRegistry.SetPermissions(homeConfig.Permissions)
-	if store.Database != nil && store.Database.GetDB() != nil {
-		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			if err := store.NewHubStore(client).SaveHomelabApps(context.Background(), apps); err != nil {
-				return fmt.Errorf("persist homelab apps: %w", err)
-			}
+	if store.Database != nil && store.Database.GetClient() != nil {
+		if err := store.NewHubStore(store.Database.GetClient()).SaveHomelabApps(context.Background(), apps); err != nil {
+			return fmt.Errorf("persist homelab apps: %w", err)
 		}
 	}
 	flog.Info("homelab app registry rescanned with %d apps", len(apps))

@@ -35,11 +35,10 @@ func viewPage(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).SendString("missing token")
 	}
 
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return ctx.Status(http.StatusInternalServerError).SendString("store not available")
 	}
-	pageDataStore := store.NewPageDataStore(client)
+	pageDataStore := store.NewPageDataStore(store.Database.GetClient())
 
 	pageData, err := pageDataStore.GetPageDataByToken(context.Background(), token)
 	if err != nil {
@@ -60,7 +59,7 @@ func viewPage(ctx fiber.Ctx) error {
 	dataKV := types.KV(pageData.Data)
 
 	if pageData.Type == "pipeline_run" {
-		dataKV = preFetchPipelineData(context.Background(), store.NewPipelineStore(client), dataKV)
+		dataKV = preFetchPipelineData(context.Background(), store.PipelineStoreFromDB(), dataKV)
 	}
 
 	fn, ok := viewTemplates[pageData.Type]
@@ -114,11 +113,10 @@ func createView(ctx fiber.Ctx) error {
 		req.Data = types.KV{}
 	}
 
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": "store not available"})
 	}
-	pageDataStore := store.NewPageDataStore(client)
+	pageDataStore := store.NewPageDataStore(store.Database.GetClient())
 
 	token := types.Id()
 
@@ -150,11 +148,10 @@ func deleteView(ctx fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(types.KV{"error": "missing token"})
 	}
 
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(types.KV{"error": "store not available"})
 	}
-	pageDataStore := store.NewPageDataStore(client)
+	pageDataStore := store.NewPageDataStore(store.Database.GetClient())
 
 	affected, err := pageDataStore.DeletePageData(context.Background(), token)
 	if err != nil {

@@ -1,10 +1,13 @@
 package web
 
 import (
+	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -176,7 +179,7 @@ func TestNotifyChannelCreate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp(t)
+			app, _ := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels", strings.NewReader(tt.form.Encode()))
@@ -202,12 +205,13 @@ func TestNotifyChannelCreate(t *testing.T) {
 			if tt.wantHX != "" && !strings.Contains(resp.Header.Get("HX-Trigger"), tt.wantHX) {
 				t.Errorf("want HX-Trigger containing %q, got %q", tt.wantHX, resp.Header.Get("HX-Trigger"))
 			}
-			if len(ts.notifyChannels) != 1 {
-				t.Fatalf("want 1 channel stored, got %d", len(ts.notifyChannels))
+			if len(listTestNotifyChannels(t)) != 1 {
+				t.Fatalf("want 1 channel stored, got %d", len(listTestNotifyChannels(t)))
 			}
-			for _, ch := range ts.notifyChannels {
-				if ch.URI != tt.wantURI {
-					t.Errorf("want uri %q, got %q", tt.wantURI, ch.URI)
+			for _, ch := range listTestNotifyChannels(t) {
+				raw := testNotifyChannelRaw(t, ch.ID)
+				if raw.URI != tt.wantURI {
+					t.Errorf("want uri %q, got %q", tt.wantURI, raw.URI)
 				}
 			}
 		})
@@ -268,8 +272,11 @@ func TestNotifyChannelUpdate(t *testing.T) {
 					Enabled:  true,
 				},
 			}
+			syncTestStoreToDB(t, ts)
+			chs := listTestNotifyChannels(t)
+			require.Len(t, chs, 1)
 
-			req := httptest.NewRequest(http.MethodPut, "/service/web/notifications/channels/1", strings.NewReader(tt.form.Encode()))
+			req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/service/web/notifications/channels/%d", chs[0].ID), strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			AttachCSRFForTest(req)
@@ -292,7 +299,7 @@ func TestNotifyChannelUpdate(t *testing.T) {
 			if strings.Contains(string(body), "URI is required") {
 				t.Fatalf("update unexpectedly rejected URI: %s", string(body))
 			}
-			ch := ts.notifyChannels[1]
+			ch := testNotifyChannelRaw(t, listTestNotifyChannels(t)[0].ID)
 			if ch.URI != tt.wantURI {
 				t.Errorf("want uri %q, got %q", tt.wantURI, ch.URI)
 			}
@@ -341,6 +348,7 @@ func TestNotifyTemplatesTable(t *testing.T) {
 				config = configType{}
 			}()
 			ts.notifyTemplates = tt.templates
+			syncTestStoreToDB(t, ts)
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/templates/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
@@ -402,6 +410,7 @@ func TestNotifyRulesTable(t *testing.T) {
 			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyRules = tt.rules
+			syncTestStoreToDB(t, ts)
 
 			req := httptest.NewRequest(http.MethodGet, "/service/web/notifications/rules/list", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
@@ -474,7 +483,7 @@ func TestNotifyTemplateCreate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp(t)
+			app, _ := setupTestApp(t)
 			defer func() {
 				store.Database = nil
 				handler = moduleHandler{}
@@ -504,8 +513,12 @@ func TestNotifyTemplateCreate(t *testing.T) {
 				if !strings.Contains(bodyStr, `hx-swap-oob="delete"`) {
 					t.Errorf("want empty-state oob delete, got %q", bodyStr)
 				}
-				if len(ts.notifyTemplates) != 1 {
-					t.Errorf("want 1 template stored, got %d", len(ts.notifyTemplates))
+				tmpls, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(context.Background(), store.ListNotifyTemplateOptions{})
+				if err != nil {
+					t.Fatalf("list templates: %v", err)
+				}
+				if len(tmpls) != 1 {
+					t.Errorf("want 1 template stored, got %d", len(tmpls))
 				}
 			}
 		})
@@ -623,6 +636,7 @@ func TestNotifyRuleCreate(t *testing.T) {
 			require.NoError(t, notifyrules.Init(nil, nil))
 			if tt.seed != nil {
 				ts.notifyRules = tt.seed
+				syncTestStoreToDB(t, ts)
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/rules", strings.NewReader(tt.form.Encode()))
@@ -640,7 +654,7 @@ func TestNotifyRuleCreate(t *testing.T) {
 }
 
 // assertNotifyRuleCreateResult checks create-rule HTTP response body and store state.
-func assertNotifyRuleCreateResult(t *testing.T, name string, wantStatus int, wantSub, wantNoSub string, wantStored bool, seeded, status int, body string, rules map[int64]model.NotifyRule) {
+func assertNotifyRuleCreateResult(t *testing.T, name string, wantStatus int, wantSub, wantNoSub string, wantStored bool, seeded, status int, body string, _ map[int64]model.NotifyRule) {
 	t.Helper()
 	if status != wantStatus {
 		t.Errorf("want status %d, got %d", wantStatus, status)
@@ -651,14 +665,18 @@ func assertNotifyRuleCreateResult(t *testing.T, name string, wantStatus int, wan
 	if wantNoSub != "" && strings.Contains(body, wantNoSub) {
 		t.Errorf("body must not contain %q, got %q", wantNoSub, body)
 	}
+	rules, err := store.NotifyConfigStoreFromDB().ListNotifyRules(context.Background(), store.ListNotifyRuleOptions{})
+	if err != nil {
+		t.Fatalf("list notify rules: %v", err)
+	}
 	if wantStored && len(rules) != seeded+1 {
 		t.Errorf("want %d rule stored, got %d", seeded+1, len(rules))
 	}
 	if !wantStored && len(rules) != seeded {
 		t.Errorf("want %d rules stored, got %d", seeded, len(rules))
 	}
-	if name == "creates throttle rule from structured params" {
-		rule := rules[1]
+	if name == "creates throttle rule from structured params" && len(rules) > 0 {
+		rule := rules[0]
 		if !strings.Contains(rule.ParamsJSON, `"window":"5m"`) || !strings.Contains(rule.ParamsJSON, `"limit":1`) {
 			t.Errorf("want structured params JSON, got %q", rule.ParamsJSON)
 		}
@@ -724,9 +742,17 @@ func TestNotifyChannelTest(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			if tt.channel != nil {
 				ts.notifyChannels = map[int64]model.NotifyChannel{tt.channel.ID: *tt.channel}
+				syncTestStoreToDB(t, ts)
 			}
 
-			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+tt.channelID+"/test", http.NoBody)
+			channelID := tt.channelID
+			if tt.channel != nil {
+				chs := listTestNotifyChannels(t)
+				require.Len(t, chs, 1)
+				channelID = strconv.FormatInt(chs[0].ID, 10)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+channelID+"/test", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
@@ -790,8 +816,26 @@ func TestNotifyChannelSetDefault(t *testing.T) {
 			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyChannels = tt.channels
+			syncTestStoreToDB(t, ts)
 
-			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+tt.id+"/default", http.NoBody)
+			channelID := tt.id
+			if tt.wantID != 0 {
+				for _, ch := range listTestNotifyChannels(t) {
+					if ch.Name == "phone" {
+						channelID = strconv.FormatInt(ch.ID, 10)
+						break
+					}
+				}
+			} else if len(tt.channels) > 0 {
+				for _, ch := range listTestNotifyChannels(t) {
+					if ch.Name == "phone" {
+						channelID = strconv.FormatInt(ch.ID, 10)
+						break
+					}
+				}
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/channels/"+channelID+"/default", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
@@ -803,9 +847,16 @@ func TestNotifyChannelSetDefault(t *testing.T) {
 			combined := string(body) + hx
 			require.Contains(t, combined, tt.wantSub)
 			if tt.wantID != 0 {
-				require.True(t, ts.notifyChannels[tt.wantID].IsDefault)
-				for id, ch := range ts.notifyChannels {
-					if id != tt.wantID {
+				var defaultCh model.NotifyChannel
+				for _, ch := range listTestNotifyChannels(t) {
+					if ch.IsDefault {
+						defaultCh = ch
+					}
+				}
+				require.True(t, defaultCh.IsDefault)
+				require.Equal(t, "phone", defaultCh.Name)
+				for _, ch := range listTestNotifyChannels(t) {
+					if ch.Name != "phone" {
 						require.False(t, ch.IsDefault)
 					}
 				}
@@ -855,8 +906,17 @@ func TestNotifyTemplateSetDefault(t *testing.T) {
 			app, ts := setupTestApp(t)
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 			ts.notifyTemplates = tt.templates
+			syncTestStoreToDB(t, ts)
 
-			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/templates/"+tt.id+"/default", http.NoBody)
+			templateID := tt.id
+			if len(tt.templates) > 0 {
+				tmpls, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(context.Background(), store.ListNotifyTemplateOptions{})
+				require.NoError(t, err)
+				require.NotEmpty(t, tmpls)
+				templateID = strconv.FormatInt(tmpls[0].ID, 10)
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/templates/"+templateID+"/default", http.NoBody)
 			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "valid-token"})
 			AttachCSRFForTest(req)
 			resp, err := app.Test(req)
@@ -869,7 +929,10 @@ func TestNotifyTemplateSetDefault(t *testing.T) {
 				require.Contains(t, string(body)+hx, tt.wantSub)
 			}
 			if tt.wantID != 0 {
-				require.True(t, ts.notifyTemplates[tt.wantID].IsDefault)
+				tmpls, err := store.NotifyConfigStoreFromDB().ListNotifyTemplates(context.Background(), store.ListNotifyTemplateOptions{})
+				require.NoError(t, err)
+				require.NotEmpty(t, tmpls)
+				require.True(t, tmpls[0].IsDefault)
 			}
 		})
 	}

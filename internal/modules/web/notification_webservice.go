@@ -191,7 +191,7 @@ func notifyHistoryChannelFacets(ctx context.Context) []string {
 	if store.Database == nil {
 		return nil
 	}
-	channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{})
+	channels, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(ctx, store.ListNotifyChannelOptions{})
 	if err != nil {
 		return nil
 	}
@@ -207,7 +207,7 @@ func notifyHistoryRuleFacets(ctx context.Context) []string {
 	if store.Database == nil {
 		return nil
 	}
-	rules, err := store.Database.ListNotifyRules(ctx, store.ListNotifyRuleOptions{})
+	rules, err := store.NotifyConfigStoreFromDB().ListNotifyRules(ctx, store.ListNotifyRuleOptions{})
 	if err != nil {
 		return nil
 	}
@@ -246,7 +246,7 @@ func lookupNotifyChannelRawByName(ctx context.Context, name string) (model.Notif
 	if store.Database == nil {
 		return model.NotifyChannel{}, fmt.Errorf("channel %q not found", name)
 	}
-	channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{})
+	channels, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(ctx, store.ListNotifyChannelOptions{})
 	if err != nil {
 		return model.NotifyChannel{}, err
 	}
@@ -254,7 +254,7 @@ func lookupNotifyChannelRawByName(ctx context.Context, name string) (model.Notif
 		if ch.Name != name {
 			continue
 		}
-		raw, err := store.Database.GetNotifyChannelRaw(ctx, ch.ID)
+		raw, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(ctx, ch.ID)
 		if err != nil {
 			return model.NotifyChannel{}, err
 		}

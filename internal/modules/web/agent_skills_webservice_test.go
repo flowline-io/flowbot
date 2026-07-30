@@ -322,7 +322,7 @@ func TestAgentSkillCreateAuthenticated(t *testing.T) {
 			name: "duplicate flag rejected",
 			form: map[string]string{
 				"flag":        "existing",
-				"name":        "existing",
+				"name":        "another-name",
 				"description": "Demo skill",
 				"content":     "body",
 			},
@@ -359,7 +359,8 @@ func TestAgentSkillCreateAuthenticated(t *testing.T) {
 			respBody, _ := io.ReadAll(resp.Body)
 			assert.Contains(t, string(respBody), tt.wantBody)
 			if tt.checkStore {
-				skill := ts.agentSkills[tt.form["flag"]]
+				skill, err := store.AgentStoreFromDB().GetAgentSkillByFlag(context.Background(), tt.form["flag"])
+				require.NoError(t, err)
 				require.NotNil(t, skill)
 				assert.Equal(t, tt.wantEnabled, skill.Enabled)
 			}
@@ -481,8 +482,8 @@ func TestAgentSkillUpdateAuthenticated(t *testing.T) {
 			respBody, _ := io.ReadAll(resp.Body)
 			assert.Contains(t, string(respBody), tt.wantBody)
 			if tt.wantStatus == http.StatusOK {
-				skill := ts.agentSkills["demo-skill"]
-				require.NotNil(t, skill)
+				skill, err := store.AgentStoreFromDB().GetAgentSkillByFlag(context.Background(), "demo-skill")
+				require.NoError(t, err)
 				assert.Equal(t, tt.wantEnabled, skill.Enabled)
 			}
 		})
@@ -536,8 +537,8 @@ func TestAgentSkillDeleteAuthenticated(t *testing.T) {
 				assert.Contains(t, resp.Header.Get("HX-Trigger"), tt.wantHX)
 			}
 			if tt.wantEmpty {
-				_, ok := ts.agentSkills[tt.flag]
-				assert.False(t, ok)
+				_, err := store.AgentStoreFromDB().GetAgentSkillByFlag(context.Background(), tt.flag)
+				require.ErrorIs(t, err, types.ErrNotFound)
 				respBody, _ := io.ReadAll(resp.Body)
 				assert.Empty(t, string(respBody))
 			}
@@ -618,8 +619,8 @@ func TestAgentSkillSetEnabledAuthenticated(t *testing.T) {
 			for _, sub := range tt.wantContains {
 				assert.Contains(t, html, sub)
 			}
-			skill := ts.agentSkills["demo-skill"]
-			require.NotNil(t, skill)
+			skill, err := store.AgentStoreFromDB().GetAgentSkillByFlag(context.Background(), "demo-skill")
+			require.NoError(t, err)
 			assert.Equal(t, tt.wantEnabled, skill.Enabled)
 		})
 	}
@@ -710,8 +711,8 @@ func TestAgentSkillsImportAuthenticated(t *testing.T) {
 				assert.Contains(t, resp.Header.Get("HX-Trigger"), tt.wantHX)
 			}
 			if tt.checkStore {
-				skill, ok := ts.agentSkills[tt.wantFlag]
-				require.True(t, ok)
+				skill, err := store.AgentStoreFromDB().GetAgentSkillByFlag(context.Background(), tt.wantFlag)
+				require.NoError(t, err)
 				assert.Equal(t, tt.wantSource, skill.Source)
 			}
 		})
@@ -734,18 +735,12 @@ func mustSkillZip(t *testing.T, files map[string]string) []byte {
 
 func setupAuthenticatedApp(t *testing.T, ts *testStore) *fiber.App {
 	t.Helper()
+	ensureTestStoreDB(t, ts)
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
+	syncTestStoreToDB(t, ts)
 	handler = moduleHandler{authConfig: AuthConfig{Username: "admin", Password: "admin"}}
 	config = configType{Enabled: true, Auth: AuthConfig{Username: "admin", Password: "admin"}}
-	ts.paramGetFn = func(_ context.Context, flag string) (gen.Parameter, error) {
-		return gen.Parameter{
-			ID:        1,
-			Flag:      flag,
-			Params:    testFullWebSessionParams("testuser"),
-			ExpiredAt: time.Now().Add(time.Hour),
-		}, nil
-	}
 	app := fiber.New()
 	var h moduleHandler
 	h.Webservice(app)
@@ -839,8 +834,8 @@ func TestAgentSkillFileCreateAuthenticated(t *testing.T) {
 
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantPath != "" {
-				file, ok := ts.agentSkillFiles["demo-skill"][tt.wantPath]
-				require.True(t, ok)
+				file, err := store.AgentStoreFromDB().GetAgentSkillFile(context.Background(), "demo-skill", tt.wantPath)
+				require.NoError(t, err)
 				assert.Equal(t, "reference body", file.Content)
 				assert.Greater(t, chatagent.PromptCacheVersion(), before)
 			}
@@ -886,8 +881,8 @@ func TestAgentSkillFileDeleteAuthenticated(t *testing.T) {
 
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 			if tt.wantGone {
-				_, ok := ts.agentSkillFiles["demo-skill"]["reference.md"]
-				assert.False(t, ok)
+				_, err := store.AgentStoreFromDB().GetAgentSkillFile(context.Background(), "demo-skill", "reference.md")
+				assert.ErrorIs(t, err, types.ErrNotFound)
 			}
 		})
 	}

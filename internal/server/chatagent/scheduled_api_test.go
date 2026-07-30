@@ -15,7 +15,7 @@ import (
 
 func TestSetScheduledTaskStateForUID(t *testing.T) {
 	withTestScheduleStore(t, func() {
-		require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+		require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 			Flag:         "task-set-state",
 			UID:          "user:alice",
 			Name:         "daily",
@@ -68,7 +68,7 @@ func TestSetScheduledTaskStateForUID(t *testing.T) {
 				require.NotNil(t, view)
 				assert.Equal(t, tt.wantState, view.State)
 
-				row, getErr := store.Database.GetChatScheduledTask(context.Background(), tt.taskID)
+				row, getErr := store.ChatStoreFromDB().GetChatScheduledTask(context.Background(), tt.taskID)
 				require.NoError(t, getErr)
 				assert.Equal(t, tt.wantState, row.State)
 			})
@@ -79,7 +79,7 @@ func TestSetScheduledTaskStateForUID(t *testing.T) {
 func TestSetScheduledTaskStateForUIDCompletedTask(t *testing.T) {
 	withTestScheduleStore(t, func() {
 		runAt := time.Now().UTC().Add(2 * time.Hour)
-		require.NoError(t, store.Database.CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
+		require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 			Flag:         "task-completed",
 			UID:          "user:alice",
 			Name:         "once",

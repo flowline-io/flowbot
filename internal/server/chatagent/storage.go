@@ -49,7 +49,7 @@ func (s *DBStorage) Append(ctx context.Context, entry session.TreeEntry) error {
 		EntryType: string(entry.Type),
 		Payload:   payloadMap,
 	}
-	if err := store.Database.AppendChatSessionEntry(ctx, row); err != nil {
+	if err := store.ChatStoreFromDB().AppendChatSessionEntry(ctx, row); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] append entry session=%s entry=%s type=%s: %w",
 			s.sessionID, entry.ID, entry.Type, err))
 		return err
@@ -94,7 +94,7 @@ func (s *DBStorage) GetBranch(ctx context.Context, leafID string) ([]session.Tre
 
 // GetLeafID returns the current leaf pointer for the session.
 func (s *DBStorage) GetLeafID(ctx context.Context) (string, error) {
-	sess, err := store.Database.GetChatSession(ctx, s.sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, s.sessionID)
 	if err != nil {
 		return "", err
 	}
@@ -103,12 +103,12 @@ func (s *DBStorage) GetLeafID(ctx context.Context) (string, error) {
 
 // SetLeafID updates the current leaf pointer for the session.
 func (s *DBStorage) SetLeafID(ctx context.Context, id string) error {
-	return store.Database.UpdateChatSessionLeaf(ctx, s.sessionID, id)
+	return store.ChatStoreFromDB().UpdateChatSessionLeaf(ctx, s.sessionID, id)
 }
 
 // ListEntries returns all entries for the session in storage order.
 func (s *DBStorage) ListEntries(ctx context.Context) ([]session.TreeEntry, error) {
-	rows, err := store.Database.ListChatSessionEntries(ctx, s.sessionID)
+	rows, err := store.ChatStoreFromDB().ListChatSessionEntries(ctx, s.sessionID)
 	if err != nil {
 		return nil, err
 	}

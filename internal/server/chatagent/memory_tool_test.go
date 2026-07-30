@@ -121,11 +121,11 @@ func TestSearchSessionSummariesTool(t *testing.T) {
 		{
 			name: "finds ready summary",
 			run: func(t *testing.T) {
-				_, err := db.UpsertAgentSessionSummaryPending(ctx, "sess-a", "default", "Widgets")
+				_, err := store.AgentStoreFromDB().UpsertAgentSessionSummaryPending(ctx, "sess-a", "default", "Widgets")
 				require.NoError(t, err)
-				_, err = db.ClaimAgentSessionSummaryPending(ctx, "search-tok")
+				_, err = store.AgentStoreFromDB().ClaimAgentSessionSummaryPending(ctx, "search-tok")
 				require.NoError(t, err)
-				require.NoError(t, db.MarkAgentSessionSummaryReady(ctx, "sess-a", "search-tok", "Widgets", "talked about widgets"))
+				require.NoError(t, store.AgentStoreFromDB().MarkAgentSessionSummaryReady(ctx, "sess-a", "search-tok", "Widgets", "talked about widgets"))
 				result, err := (SearchSessionSummariesTool{}).Execute(ctx, "id", map[string]any{"query": "widgets"}, nil)
 				require.NoError(t, err)
 				assert.False(t, result.IsError)

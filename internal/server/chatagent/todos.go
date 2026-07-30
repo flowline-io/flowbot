@@ -28,7 +28,7 @@ func ListTodoItems(ctx context.Context, sessionID string) ([]TodoItem, error) {
 	if store.Database == nil {
 		return nil, fmt.Errorf("store unavailable")
 	}
-	rows, err := store.Database.ListAgentTodosBySession(ctx, sessionID)
+	rows, err := store.AgentStoreFromDB().ListAgentTodosBySession(ctx, sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func SummarizeTodosBySessions(ctx context.Context, sessionIDs []string) (map[str
 	if store.Database == nil {
 		return nil, fmt.Errorf("store unavailable")
 	}
-	rows, err := store.Database.ListAgentTodosBySessions(ctx, sessionIDs)
+	rows, err := store.AgentStoreFromDB().ListAgentTodosBySessions(ctx, sessionIDs)
 	if err != nil {
 		return nil, err
 	}

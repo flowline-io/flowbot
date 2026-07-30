@@ -24,7 +24,7 @@ func TestPlanModeMemoryWriteBlock(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := types.Id()
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag:  sessionID,
 		UID:   "user-1",
 		State: int(schema.ChatSessionActive),
@@ -87,7 +87,7 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			svc := NewService()
 			sessionID := types.Id()
-			require.NoError(t, store.Database.CreateChatSession(context.Background(), &gen.ChatSession{
+			require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 				Flag:  sessionID,
 				UID:   "user-1",
 				State: int(schema.ChatSessionActive),

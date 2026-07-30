@@ -22,7 +22,7 @@ func TestGetOrCreateHarness(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-harness-pool"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 
@@ -84,7 +84,7 @@ func TestApplySessionModeUpdatesTools(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-mode"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive), Mode: ModePlan,
 	}))
 

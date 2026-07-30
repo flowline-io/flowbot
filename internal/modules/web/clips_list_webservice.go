@@ -49,11 +49,10 @@ func clipsListPartial(ctx fiber.Ctx) error {
 }
 
 func loadClipListItems(ctx context.Context) ([]partials.ClipListItem, error) {
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok || client == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil, fmt.Errorf("store not available")
 	}
-	rows, err := store.NewClipStore(client).ListClips(ctx, 200)
+	rows, err := store.ClipStoreFromDB().ListClips(ctx, 200)
 	if err != nil {
 		return nil, err
 	}

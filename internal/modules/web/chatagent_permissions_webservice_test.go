@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
+	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/types"
 )
@@ -110,19 +112,8 @@ func TestChatAgentPermissionsSaveForm(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp(t)
+			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
-			var saved permission.Config
-			ts.setConfigFn = func(_ types.Uid, topic, key string, value types.KV) error {
-				require.Equal(t, chatagent.PermissionTopic, topic)
-				require.Equal(t, chatagent.PermissionKey, key)
-				data, err := sonic.Marshal(value)
-				require.NoError(t, err)
-				cfg, err := permission.ParseConfig(data)
-				require.NoError(t, err)
-				saved = cfg
-				return nil
-			}
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/chatagent-permissions", strings.NewReader(tt.form.Encode()))
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -142,10 +133,25 @@ func TestChatAgentPermissionsSaveForm(t *testing.T) {
 				return
 			}
 			if tt.wantSaved {
+				kv, err := store.ModuleDataStoreFromDB().ConfigGet(context.Background(), "testuser", chatagent.PermissionTopic, chatagent.PermissionKey)
+				require.NoError(t, err)
+				data, err := sonic.Marshal(kv)
+				require.NoError(t, err)
+				saved, err := permission.ParseConfig(data)
+				require.NoError(t, err)
 				_, ok := saved["websearch"]
 				assert.True(t, ok)
 				return
 			}
+			kv, getErr := store.ModuleDataStoreFromDB().ConfigGet(context.Background(), "testuser", chatagent.PermissionTopic, chatagent.PermissionKey)
+			if getErr != nil {
+				assert.ErrorIs(t, getErr, types.ErrNotFound)
+				return
+			}
+			raw, err := sonic.Marshal(kv)
+			require.NoError(t, err)
+			saved, err := permission.ParseConfig(raw)
+			require.NoError(t, err)
 			assert.Empty(t, saved)
 		})
 	}
@@ -179,15 +185,8 @@ func TestChatAgentPermissionsSaveJSON(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, ts := setupTestApp(t)
+			app, _ := setupTestApp(t)
 			chatagent.ResetPermissionCacheForTest()
-			var saved bool
-			ts.setConfigFn = func(_ types.Uid, topic, key string, _ types.KV) error {
-				require.Equal(t, chatagent.PermissionTopic, topic)
-				require.Equal(t, chatagent.PermissionKey, key)
-				saved = true
-				return nil
-			}
 
 			form := url.Values{
 				"submit_mode": {"json"},
@@ -210,7 +209,8 @@ func TestChatAgentPermissionsSaveJSON(t *testing.T) {
 				}
 				return
 			}
-			assert.True(t, saved)
+			_, err = store.ModuleDataStoreFromDB().ConfigGet(context.Background(), "testuser", chatagent.PermissionTopic, chatagent.PermissionKey)
+			require.NoError(t, err)
 		})
 	}
 }

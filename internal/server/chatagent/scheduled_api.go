@@ -68,7 +68,7 @@ func ListScheduledTasksForUID(ctx context.Context, uid types.Uid, states []strin
 			string(schema.ChatScheduledTaskStatePaused),
 		}
 	}
-	rows, err := store.Database.ListChatScheduledTasks(ctx, store.ListChatScheduledTasksOptions{
+	rows, err := store.ChatStoreFromDB().ListChatScheduledTasks(ctx, store.ListChatScheduledTasksOptions{
 		UID:    uid.String(),
 		States: states,
 	})
@@ -88,7 +88,7 @@ func GetScheduledTaskForUID(ctx context.Context, uid types.Uid, taskID string) (
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
 	}
-	row, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String())
+	row, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, taskID, uid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func SetScheduledTaskStateForUID(ctx context.Context, uid types.Uid, taskID, sta
 	if !ValidScheduledTaskState(state) {
 		return nil, types.Errorf(types.ErrInvalidArgument, "invalid state")
 	}
-	if _, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
+	if _, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
 		return nil, err
 	}
 	updated, err := applyScheduledTaskUpdate(ctx, taskID, store.UpdateChatScheduledTaskParams{
@@ -151,11 +151,11 @@ func CancelScheduledTaskForUID(ctx context.Context, uid types.Uid, taskID string
 	if store.Database == nil {
 		return types.ErrUnavailable
 	}
-	if _, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
+	if _, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
 		return err
 	}
 	cancelled := string(schema.ChatScheduledTaskStateCancelled)
-	if err := store.Database.UpdateChatScheduledTask(ctx, taskID, store.UpdateChatScheduledTaskParams{
+	if err := store.ChatStoreFromDB().UpdateChatScheduledTask(ctx, taskID, store.UpdateChatScheduledTaskParams{
 		State: &cancelled,
 	}); err != nil {
 		return err
@@ -171,7 +171,7 @@ func PatchScheduledTaskForUID(ctx context.Context, uid types.Uid, taskID string,
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
 	}
-	task, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String())
+	task, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, taskID, uid.String())
 	if err != nil {
 		return nil, err
 	}
@@ -196,10 +196,10 @@ func ListScheduledTaskRuns(ctx context.Context, uid types.Uid, taskID string, li
 	if store.Database == nil {
 		return nil, types.ErrUnavailable
 	}
-	if _, err := store.Database.GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
+	if _, err := store.ChatStoreFromDB().GetChatScheduledTaskForUID(ctx, taskID, uid.String()); err != nil {
 		return nil, err
 	}
-	rows, err := store.Database.ListChatScheduledTaskRuns(ctx, taskID, limit)
+	rows, err := store.ChatStoreFromDB().ListChatScheduledTaskRuns(ctx, taskID, limit)
 	if err != nil {
 		return nil, err
 	}

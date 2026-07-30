@@ -13,7 +13,9 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -146,6 +148,10 @@ func (s *testStore) GetDB() any {
 		return s.dbClient
 	}
 	return nil
+}
+
+func (s *testStore) GetClient() *gen.Client {
+	return s.dbClient
 }
 
 // GetNotifyChannelRaw returns a channel with its raw URI for connectivity tests.
@@ -462,7 +468,12 @@ func setupTestApp(t *testing.T) (*fiber.App, *testStore) {
 	t.Helper()
 	lockWebTestGlobals(t)
 	ensureChatAgentServiceForTest()
-	testDB := &testStore{}
+	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+	dbClient := sqlitetest.OpenClient(t, dbName)
+	seedWebAuthToken(t, dbClient)
+	seedTestAccessToken(t, dbClient, "test-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+	seedTestAccessToken(t, dbClient, "valid-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+	testDB := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = testDB
 	secure := false
@@ -485,13 +496,14 @@ func setupTestApp(t *testing.T) (*fiber.App, *testStore) {
 }
 
 // setupTestAppWithRateLimiter creates a Fiber test app with an active login rate limiter.
-func setupTestAppWithRateLimiter(ts ...*testing.T) (*fiber.App, *testStore, *mockRateLimitStore) {
-	if len(ts) > 0 && ts[0] != nil {
-		ts[0].Helper()
-		lockWebTestGlobals(ts[0])
-	}
+func setupTestAppWithRateLimiter(t *testing.T) (*fiber.App, *testStore, *mockRateLimitStore) {
+	t.Helper()
+	lockWebTestGlobals(t)
 	ensureChatAgentServiceForTest()
-	testDB := &testStore{}
+	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+	dbClient := sqlitetest.OpenClient(t, dbName)
+	seedWebAuthToken(t, dbClient)
+	testDB := &testStore{dbClient: dbClient}
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = testDB
 	secure := false
@@ -525,6 +537,9 @@ func setupTestAppWithDB(t *testing.T) (*fiber.App, *testStore, *store.Client) {
 	dbClient := sqlitetest.OpenClient(t, dbName)
 
 	ts := &testStore{dbClient: dbClient}
+	seedWebAuthToken(t, dbClient)
+	seedTestAccessToken(t, dbClient, "test-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+	seedTestAccessToken(t, dbClient, "valid-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
 	chatagent.WaitForSessionSummaryGenerationForTest()
 	store.Database = ts
 	secure := false
@@ -593,6 +608,440 @@ func testFullWebSessionParams(uid string) map[string]any {
 	}
 }
 
+func seedWebAuthToken(t *testing.T, client *store.Client) {
+	t.Helper()
+	seedTestAccessToken(t, client, "valid-test-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+}
+
+func seedTestAccessToken(t *testing.T, client *store.Client, rawToken string, params types.KV, expiredAt time.Time) {
+	t.Helper()
+	if err := store.NewModuleDataStore(client).ParameterSet(
+		context.Background(),
+		auth.HashToken(rawToken),
+		params,
+		expiredAt,
+	); err != nil {
+		t.Fatalf("seed access token %q: %v", rawToken, err)
+	}
+}
+
+func seedLegacyPlaintextAccessToken(t *testing.T, client *store.Client, rawToken string, params types.KV, expiredAt time.Time) {
+	t.Helper()
+	if err := store.NewModuleDataStore(client).ParameterSet(
+		context.Background(),
+		rawToken,
+		params,
+		expiredAt,
+	); err != nil {
+		t.Fatalf("seed legacy access token %q: %v", rawToken, err)
+	}
+}
+
+// ensureTestStoreDB attaches an in-memory SQLite client when tests use testStore
+// without dbClient but handlers call XxxStoreFromDB().
+func ensureTestStoreDB(t *testing.T, ts *testStore) {
+	t.Helper()
+	if ts == nil || ts.dbClient != nil {
+		return
+	}
+	dbName := strings.NewReplacer("/", "_", " ", "_").Replace(t.Name())
+	ts.dbClient = sqlitetest.OpenClient(t, dbName)
+	seedWebAuthToken(t, ts.dbClient)
+	seedTestAccessToken(t, ts.dbClient, "test-token", testFullWebSessionParams("testuser"), time.Now().Add(time.Hour))
+}
+
+func collectTestChatSessions(ts *testStore) []*gen.ChatSession {
+	if ts == nil {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	out := make([]*gen.ChatSession, 0)
+	for _, sess := range ts.chatSessions {
+		if sess == nil {
+			continue
+		}
+		if _, ok := seen[sess.Flag]; ok {
+			continue
+		}
+		seen[sess.Flag] = struct{}{}
+		out = append(out, sess)
+	}
+	for _, sess := range ts.chatSessionsByFlag {
+		if sess == nil {
+			continue
+		}
+		if _, ok := seen[sess.Flag]; ok {
+			continue
+		}
+		seen[sess.Flag] = struct{}{}
+		out = append(out, sess)
+	}
+	return out
+}
+
+func collectTestChatScheduledTasks(ts *testStore) []*gen.ChatScheduledTask {
+	if ts == nil {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	out := make([]*gen.ChatScheduledTask, 0)
+	for _, task := range ts.chatScheduledTasks {
+		if task == nil {
+			continue
+		}
+		if _, ok := seen[task.Flag]; ok {
+			continue
+		}
+		seen[task.Flag] = struct{}{}
+		out = append(out, task)
+	}
+	for _, task := range ts.chatScheduledTasksByFlag {
+		if task == nil {
+			continue
+		}
+		if _, ok := seen[task.Flag]; ok {
+			continue
+		}
+		seen[task.Flag] = struct{}{}
+		out = append(out, task)
+	}
+	return out
+}
+
+func syncTestChatSession(t *testing.T, client *gen.Client, sess *gen.ChatSession) {
+	t.Helper()
+	if client == nil || sess == nil {
+		return
+	}
+	row := *sess
+	if row.UID == "" {
+		row.UID = "testuser"
+	}
+	builder := client.ChatSession.Create().
+		SetFlag(row.Flag).
+		SetUID(row.UID).
+		SetLeafID(row.LeafID).
+		SetState(row.State).
+		SetMode(row.Mode).
+		SetModel(row.Model).
+		SetThinkingLevel(row.ThinkingLevel).
+		SetTitle(row.Title).
+		SetPreview(row.Preview).
+		SetPinned(row.Pinned).
+		SetArchived(row.Archived)
+	if row.ID != 0 {
+		builder = builder.SetID(row.ID)
+	}
+	if !row.CreatedAt.IsZero() {
+		builder = builder.SetCreatedAt(row.CreatedAt)
+	}
+	if !row.UpdatedAt.IsZero() {
+		builder = builder.SetUpdatedAt(row.UpdatedAt)
+	}
+	if _, err := builder.Save(context.Background()); err != nil {
+		t.Fatalf("sync chat session %q: %v", row.Flag, err)
+	}
+}
+
+func syncTestChatScheduledTask(ctx context.Context, t *testing.T, task *gen.ChatScheduledTask) {
+	t.Helper()
+	row := *task
+	if row.UID == "" {
+		row.UID = "testuser"
+	}
+	if row.ScheduleKind == "" {
+		row.ScheduleKind = "cron"
+	}
+	if row.Prompt == "" {
+		row.Prompt = "test prompt"
+	}
+	if row.Name == "" {
+		row.Name = row.Flag
+	}
+	if err := store.ChatStoreFromDB().CreateChatScheduledTask(ctx, &row); err != nil {
+		t.Fatalf("sync chat scheduled task %q: %v", row.Flag, err)
+	}
+}
+
+// syncTestStoreToDB copies seeded in-memory testStore fixtures into SQLite so
+// handlers that call XxxStoreFromDB() see the same data as legacy mock methods.
+func syncTestStoreToDB(t *testing.T, ts *testStore) {
+	t.Helper()
+	if ts == nil {
+		return
+	}
+	ensureTestStoreDB(t, ts)
+	if ts.dbClient == nil {
+		return
+	}
+	ctx := context.Background()
+	syncTestStoreConfigs(ctx, t, ts)
+	syncTestStoreAgentKnowledge(ctx, t, ts)
+	syncTestStoreAgentSkills(ctx, t, ts)
+	syncTestStoreAgentMemory(ctx, t, ts)
+	syncTestStoreAgentSummaries(ctx, t, ts)
+	syncTestStoreChat(ctx, t, ts)
+	syncTestStoreAgentTodos(ctx, t, ts)
+	syncTestStoreAgentSubagents(ctx, t, ts)
+	syncTestStoreAgentPlans(ctx, t, ts)
+	syncTestStoreNotify(ctx, t, ts)
+}
+
+func syncTestStoreConfigs(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, item := range ts.configs {
+		if err := store.ModuleDataStoreFromDB().ConfigSet(ctx, types.Uid(item.UID), item.Topic, item.Key, item.Value); err != nil {
+			t.Fatalf("sync config %s/%s/%s: %v", item.UID, item.Topic, item.Key, err)
+		}
+	}
+}
+
+func syncTestStoreAgentKnowledge(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, doc := range ts.agentKnowledge {
+		row := *doc
+		if row.Content == "" {
+			row.Content = " "
+		}
+		if row.Title == "" {
+			row.Title = " "
+		}
+		if err := store.AgentStoreFromDB().CreateAgentKnowledge(ctx, &row); err != nil {
+			t.Fatalf("sync agent knowledge %q: %v", row.Path, err)
+		}
+	}
+}
+
+func syncTestStoreAgentSkills(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, skill := range ts.agentSkills {
+		row := *skill
+		if row.Content == "" {
+			row.Content = " "
+		}
+		if row.Name == "" {
+			row.Name = row.Flag
+		}
+		if row.Description == "" {
+			row.Description = " "
+		}
+		if err := store.AgentStoreFromDB().CreateAgentSkill(ctx, &row); err != nil {
+			t.Fatalf("sync agent skill %q: %v", row.Flag, err)
+		}
+	}
+	for skillFlag, files := range ts.agentSkillFiles {
+		for _, file := range files {
+			row := *file
+			row.SkillFlag = skillFlag
+			if err := store.AgentStoreFromDB().CreateAgentSkillFile(ctx, &row); err != nil {
+				t.Fatalf("sync agent skill file %q: %v", row.Path, err)
+			}
+		}
+	}
+}
+
+func syncTestStoreAgentMemory(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, fact := range ts.agentMemoryFacts {
+		row := *fact
+		if _, err := store.AgentStoreFromDB().UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+			Scope:  row.Scope,
+			Key:    row.Key,
+			Value:  row.Value,
+			Pinned: row.Pinned,
+		}); err != nil {
+			t.Fatalf("sync agent memory fact %s/%s: %v", row.Scope, row.Key, err)
+		}
+	}
+}
+
+func syncTestStoreAgentSummaries(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, summary := range ts.agentSessionSummaries {
+		row := *summary
+		if row.Scope == "" {
+			row.Scope = "default"
+		}
+		builder := ts.dbClient.AgentSessionSummary.Create().
+			SetSessionFlag(row.SessionFlag).
+			SetScope(row.Scope).
+			SetTitle(row.Title).
+			SetSummary(row.Summary).
+			SetStatus(string(row.Status)).
+			SetError(row.Error).
+			SetClaimToken(row.ClaimToken)
+		if row.ID != 0 {
+			builder = builder.SetID(row.ID)
+		}
+		if row.ClaimedAt != nil {
+			builder = builder.SetClaimedAt(*row.ClaimedAt)
+		}
+		if !row.CreatedAt.IsZero() {
+			builder = builder.SetCreatedAt(row.CreatedAt)
+		}
+		if !row.UpdatedAt.IsZero() {
+			builder = builder.SetUpdatedAt(row.UpdatedAt)
+		}
+		if _, err := builder.Save(ctx); err != nil {
+			t.Fatalf("sync agent session summary %q: %v", row.SessionFlag, err)
+		}
+	}
+}
+
+func syncTestStoreChat(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, sess := range collectTestChatSessions(ts) {
+		syncTestChatSession(t, ts.dbClient, sess)
+	}
+	for sessionID, entries := range ts.chatSessionEntries {
+		for _, entry := range entries {
+			row := *entry
+			row.SessionID = sessionID
+			if err := store.ChatStoreFromDB().CreateChatSessionEntry(ctx, &row); err != nil {
+				t.Fatalf("sync chat session entry %q: %v", row.Flag, err)
+			}
+		}
+	}
+	for _, task := range collectTestChatScheduledTasks(ts) {
+		syncTestChatScheduledTask(ctx, t, task)
+	}
+	for taskID, runs := range ts.chatScheduledTaskRuns {
+		for _, run := range runs {
+			row := *run
+			row.TaskID = taskID
+			if row.Flag == "" {
+				row.Flag = "run-" + taskID
+			}
+			if err := store.ChatStoreFromDB().CreateChatScheduledTaskRun(ctx, &row); err != nil {
+				t.Fatalf("sync chat scheduled task run: %v", err)
+			}
+		}
+	}
+}
+
+func syncTestStoreAgentTodos(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	todosBySession := map[string][]*gen.AgentTodo{}
+	for _, todo := range ts.agentTodos {
+		row := *todo
+		if row.SessionID == "" {
+			continue
+		}
+		if row.Content == "" {
+			row.Content = "todo"
+		}
+		if row.ItemID == "" {
+			row.ItemID = row.Flag
+		}
+		if row.Status == "" {
+			row.Status = "pending"
+		}
+		todosBySession[row.SessionID] = append(todosBySession[row.SessionID], &row)
+	}
+	for sessionID, todos := range todosBySession {
+		if err := store.AgentStoreFromDB().ReplaceAgentTodosForSession(ctx, sessionID, todos); err != nil {
+			t.Fatalf("sync agent todos for %q: %v", sessionID, err)
+		}
+	}
+}
+
+func syncTestStoreAgentSubagents(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, subagent := range ts.agentSubagents {
+		row := *subagent
+		if row.Name == "" {
+			row.Name = row.Flag
+		}
+		if row.Description == "" {
+			row.Description = " "
+		}
+		if row.SystemPrompt == "" {
+			row.SystemPrompt = " "
+		}
+		if err := store.AgentStoreFromDB().CreateAgentSubagent(ctx, &row); err != nil {
+			t.Fatalf("sync agent subagent %q: %v", row.Flag, err)
+		}
+	}
+	for _, task := range ts.agentSubagentTasks {
+		row := *task
+		if row.SessionID == "" {
+			row.SessionID = "sess-test"
+		}
+		if row.Prompt == "" {
+			row.Prompt = "test prompt"
+		}
+		if row.SubagentName == "" {
+			row.SubagentName = "test-subagent"
+		}
+		if row.Status == "" {
+			row.Status = string(schema.AgentSubagentTaskStatusRunning)
+		}
+		if err := store.AgentStoreFromDB().CreateAgentSubagentTask(ctx, &row); err != nil {
+			t.Fatalf("sync agent subagent task: %v", err)
+		}
+	}
+}
+
+func syncTestStoreAgentPlans(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	for _, plan := range ts.agentPlans {
+		row := *plan
+		if row.Content == "" {
+			row.Content = " "
+		}
+		if row.Title == "" {
+			row.Title = " "
+		}
+		if err := store.AgentStoreFromDB().CreateAgentPlan(ctx, &row); err != nil {
+			t.Fatalf("sync agent plan %q: %v", row.Flag, err)
+		}
+	}
+}
+
+func syncTestStoreNotify(ctx context.Context, t *testing.T, ts *testStore) {
+	t.Helper()
+	defaultNotifyChannelID := int64(0)
+	for _, ch := range ts.notifyChannels {
+		id, err := store.NotifyConfigStoreFromDB().CreateNotifyChannel(ctx, ch.Name, ch.Protocol, ch.URI)
+		if err != nil {
+			t.Fatalf("sync notify channel %q: %v", ch.Name, err)
+		}
+		if !ch.Enabled {
+			if err := store.NotifyConfigStoreFromDB().UpdateNotifyChannel(ctx, id, ch.Name, ch.Protocol, ch.URI, false); err != nil {
+				t.Fatalf("sync notify channel disabled %q: %v", ch.Name, err)
+			}
+		}
+		if ch.IsDefault {
+			defaultNotifyChannelID = id
+		}
+	}
+	if defaultNotifyChannelID != 0 {
+		if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyChannel(ctx, defaultNotifyChannelID); err != nil {
+			t.Fatalf("sync default notify channel: %v", err)
+		}
+	}
+	for _, rule := range ts.notifyRules {
+		if _, err := store.NotifyConfigStoreFromDB().CreateNotifyRule(ctx, rule); err != nil {
+			t.Fatalf("sync notify rule %q: %v", rule.RuleID, err)
+		}
+	}
+	defaultNotifyTemplateID := int64(0)
+	for _, tmpl := range ts.notifyTemplates {
+		id, err := store.NotifyConfigStoreFromDB().CreateNotifyTemplate(ctx, tmpl)
+		if err != nil {
+			t.Fatalf("sync notify template %q: %v", tmpl.TemplateID, err)
+		}
+		if tmpl.IsDefault {
+			defaultNotifyTemplateID = id
+		}
+	}
+	if defaultNotifyTemplateID != 0 {
+		if err := store.NotifyConfigStoreFromDB().SetDefaultNotifyTemplate(ctx, defaultNotifyTemplateID); err != nil {
+			t.Fatalf("sync default notify template: %v", err)
+		}
+	}
+}
+
 func createTestConfig(uid, topic, key string) model.ConfigItem {
 	return model.ConfigItem{ID: 1, UID: uid, Topic: topic, Key: key, Value: types.KV{"v": "test"}, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 }
@@ -608,4 +1057,22 @@ func setupTestAppForRelations(t *testing.T, seedFn func(context.Context, *store.
 		}
 	}
 	return app, ts, client
+}
+
+func listTestNotifyChannels(t *testing.T) []model.NotifyChannel {
+	t.Helper()
+	chs, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(context.Background(), store.ListNotifyChannelOptions{})
+	if err != nil {
+		t.Fatalf("list notify channels: %v", err)
+	}
+	return chs
+}
+
+func testNotifyChannelRaw(t *testing.T, id int64) model.NotifyChannel {
+	t.Helper()
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(context.Background(), id)
+	if err != nil {
+		t.Fatalf("get notify channel raw %d: %v", id, err)
+	}
+	return ch
 }

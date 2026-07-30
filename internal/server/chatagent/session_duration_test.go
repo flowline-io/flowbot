@@ -8,6 +8,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
@@ -81,23 +82,6 @@ func TestSumRunDurationFromBranch(t *testing.T) {
 	}
 }
 
-type durationListStore struct {
-	store.Adapter
-	entries map[string][]*gen.ChatSessionEntry
-	listErr error
-}
-
-func (s *durationListStore) ListChatSessionEntriesBySessions(_ context.Context, sessionIDs []string) ([]*gen.ChatSessionEntry, error) {
-	if s.listErr != nil {
-		return nil, s.listErr
-	}
-	out := make([]*gen.ChatSessionEntry, 0)
-	for _, sessionID := range sessionIDs {
-		out = append(out, s.entries[sessionID]...)
-	}
-	return out, nil
-}
-
 func TestSumSessionsRunDurationMs(t *testing.T) {
 	e1Payload, err := session.MarshalEntry(session.TreeEntry{
 		ID:       "e1",
@@ -138,39 +122,40 @@ func TestSumSessionsRunDurationMs(t *testing.T) {
 	tests := []struct {
 		name          string
 		leafBySession map[string]string
-		entries       map[string][]*gen.ChatSessionEntry
-		listErr       error
+		seed          func(t *testing.T)
 		want          map[string]int64
 		wantErr       bool
 	}{
 		{
 			name:          "sums multiple sessions",
 			leafBySession: map[string]string{"sess-a": "e2", "sess-b": "o1"},
-			entries: map[string][]*gen.ChatSessionEntry{
-				"sess-a": {
-					{Flag: "e1", SessionID: "sess-a", ParentID: "", EntryType: "message", Payload: e1Map},
-					{Flag: "e2", SessionID: "sess-a", ParentID: "e1", EntryType: "message", Payload: e2Map},
-				},
-				"sess-b": {
-					{Flag: "o1", SessionID: "sess-b", ParentID: "", EntryType: "message", Payload: otherMap},
-				},
+			seed: func(t *testing.T) {
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSessionEntry(context.Background(), &gen.ChatSessionEntry{
+					Flag: "e1", SessionID: "sess-a", ParentID: "", EntryType: "message", Payload: e1Map,
+				}))
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSessionEntry(context.Background(), &gen.ChatSessionEntry{
+					Flag: "e2", SessionID: "sess-a", ParentID: "e1", EntryType: "message", Payload: e2Map,
+				}))
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSessionEntry(context.Background(), &gen.ChatSessionEntry{
+					Flag: "o1", SessionID: "sess-b", ParentID: "", EntryType: "message", Payload: otherMap,
+				}))
 			},
 			want: map[string]int64{"sess-a": 4600, "sess-b": 500},
 		},
 		{
 			name:          "skips empty leaf and broken branch",
 			leafBySession: map[string]string{"empty": "", "broken": "missing", "ok": "o1"},
-			entries: map[string][]*gen.ChatSessionEntry{
-				"ok": {
-					{Flag: "o1", SessionID: "ok", ParentID: "", EntryType: "message", Payload: otherMap},
-				},
+			seed: func(t *testing.T) {
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSessionEntry(context.Background(), &gen.ChatSessionEntry{
+					Flag: "o1", SessionID: "ok", ParentID: "", EntryType: "message", Payload: otherMap,
+				}))
 			},
 			want: map[string]int64{"ok": 500},
 		},
 		{
-			name:          "returns list error",
+			name:          "returns list error when database unavailable",
 			leafBySession: map[string]string{"sess-a": "e1"},
-			listErr:       assert.AnError,
+			seed:          func(_ *testing.T) { store.Database = nil },
 			wantErr:       true,
 		},
 	}
@@ -178,8 +163,11 @@ func TestSumSessionsRunDurationMs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			orig := store.Database
-			store.Database = &durationListStore{entries: tt.entries, listErr: tt.listErr}
+			store.Database = postgres.NewSQLiteTestAdapter(t)
 			t.Cleanup(func() { store.Database = orig })
+			if tt.seed != nil {
+				tt.seed(t)
+			}
 
 			got, err := SumSessionsRunDurationMs(context.Background(), tt.leafBySession)
 			if tt.wantErr {

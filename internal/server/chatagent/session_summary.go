@@ -46,15 +46,14 @@ var (
 
 // SetSessionArchived updates the archive flag and enqueues summary generation when archiving.
 func SetSessionArchived(ctx context.Context, sessionID string, archived bool) error {
-	db := store.Database
-	if db == nil {
+	if store.Database == nil {
 		return fmt.Errorf("chatagent: database unavailable")
 	}
 	sessionID = strings.TrimSpace(sessionID)
 	if sessionID == "" {
 		return fmt.Errorf("chatagent: empty session id")
 	}
-	if err := db.UpdateChatSessionArchived(ctx, sessionID, archived); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatSessionArchived(ctx, sessionID, archived); err != nil {
 		return err
 	}
 	if archived {
@@ -82,15 +81,14 @@ func enqueueSessionSummary(ctx context.Context, sessionID string) error {
 	if sessionID == "" {
 		return fmt.Errorf("chatagent: empty session id")
 	}
-	db := store.Database
-	if db == nil {
+	if store.Database == nil {
 		return fmt.Errorf("chatagent: database unavailable")
 	}
 	title := ""
-	if sess, err := db.GetChatSession(ctx, sessionID); err == nil && sess != nil {
+	if sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID); err == nil && sess != nil {
 		title = strings.TrimSpace(sess.Title)
 	}
-	if _, err := db.UpsertAgentSessionSummaryPending(ctx, sessionID, sessionSummaryScopeDefault, title); err != nil {
+	if _, err := store.AgentStoreFromDB().UpsertAgentSessionSummaryPending(ctx, sessionID, sessionSummaryScopeDefault, title); err != nil {
 		return err
 	}
 	kickSessionSummaryWorker()
@@ -147,7 +145,7 @@ func runSessionSummaryWorker(stop <-chan struct{}) {
 			if store.Database == nil {
 				continue
 			}
-			if _, err := store.Database.RequeueStaleAgentSessionSummaryPending(context.Background(), sessionSummaryStaleClaimAge); err != nil {
+			if _, err := store.AgentStoreFromDB().RequeueStaleAgentSessionSummaryPending(context.Background(), sessionSummaryStaleClaimAge); err != nil {
 				flog.Warn("[chat-agent] requeue stale session summaries: %v", err)
 			}
 			for range 5 {
@@ -160,12 +158,12 @@ func runSessionSummaryWorker(stop <-chan struct{}) {
 }
 
 func processOneSessionSummary(ctx context.Context) bool {
-	db := store.Database
-	if db == nil {
+	if store.Database == nil {
 		return false
 	}
+	agentStore := store.AgentStoreFromDB()
 	claimToken := uuid.NewString()
-	row, err := db.ClaimAgentSessionSummaryPending(ctx, claimToken)
+	row, err := agentStore.ClaimAgentSessionSummaryPending(ctx, claimToken)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return false
@@ -177,12 +175,12 @@ func processOneSessionSummary(ctx context.Context) bool {
 	title, summary, genErr := generateSessionSummaryForSession(ctx, row.SessionFlag, row.Title)
 	if genErr != nil {
 		flog.Warn("[chat-agent] session summary failed session=%s: %v", row.SessionFlag, genErr)
-		if markErr := db.MarkAgentSessionSummaryFailed(ctx, row.SessionFlag, claimToken, genErr.Error()); markErr != nil {
+		if markErr := agentStore.MarkAgentSessionSummaryFailed(ctx, row.SessionFlag, claimToken, genErr.Error()); markErr != nil {
 			flog.Warn("[chat-agent] mark session summary failed session=%s: %v", row.SessionFlag, markErr)
 		}
 		return true
 	}
-	if err := db.MarkAgentSessionSummaryReady(ctx, row.SessionFlag, claimToken, title, summary); err != nil {
+	if err := agentStore.MarkAgentSessionSummaryReady(ctx, row.SessionFlag, claimToken, title, summary); err != nil {
 		flog.Warn("[chat-agent] mark session summary ready session=%s: %v", row.SessionFlag, err)
 	}
 	return true

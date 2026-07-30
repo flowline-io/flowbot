@@ -162,14 +162,10 @@ func initPipeline(
 }
 
 func loadPipelineDefinitions(ctx context.Context) []pipeline.Definition {
-	if store.Database == nil || store.Database.GetDB() == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	dbDefs, err := pipeline.LoadFromDB(ctx, store.NewPipelineStore(client))
+	dbDefs, err := pipeline.LoadFromDB(ctx, store.PipelineStoreFromDB())
 	if err != nil {
 		flog.Error(fmt.Errorf("load pipeline defs from db: %w", err))
 		return nil
@@ -185,10 +181,8 @@ func setupPipelineEngine(
 	ec *metrics.EventCollector,
 ) (*pipeline.Engine, error) {
 	var runStore pipeline.RunStore
-	if store.Database != nil && store.Database.GetDB() != nil {
-		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			runStore = store.NewPipelineStore(client)
-		}
+	if store.Database != nil && store.Database.GetClient() != nil {
+		runStore = store.PipelineStoreFromDB()
 	}
 
 	engine := pipeline.NewEngine(pipelineDefs, runStore, auditor, pc, ec)
@@ -243,7 +237,7 @@ func setupAbilityEmitter(cfg *config.Type, ac *metrics.CapabilityCollector) erro
 				CreatedAt:      time.Now(),
 			}
 
-			eventStore := store.NewEventStore(store.Database.GetDB().(*store.Client))
+			eventStore := store.EventStoreFromDB()
 			_ = eventStore.AppendDataEvent(ctx, dataEvent)
 			_ = eventStore.AppendEventOutbox(ctx, dataEvent)
 			_ = event.PublishMessage(ctx, DataEventTopic, dataEvent)
@@ -316,16 +310,11 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 
 	srcMgr := capability.NewEventSourceManager(
 		func(ctx context.Context, events []types.DataEvent) error {
-			if store.Database == nil || store.Database.GetDB() == nil {
+			if store.Database == nil || store.Database.GetClient() == nil {
 				flog.Warn("event_source: emitter skipped, store.Database not ready")
 				return nil
 			}
-			client, ok := store.Database.GetDB().(*store.Client)
-			if !ok {
-				flog.Warn("event_source: emitter skipped, store.Database is not *store.Client")
-				return nil
-			}
-			eventStore := store.NewEventStore(client)
+			eventStore := store.EventStoreFromDB()
 			for i := range events {
 				enrichDataEventApp(&events[i])
 				de := events[i]
@@ -371,13 +360,11 @@ func initEventSourceManager(lc fx.Lifecycle) error {
 }
 
 func buildPollingState() *capability.PollingState {
-	if store.Database != nil && store.Database.GetDB() != nil {
-		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			pollStore := store.NewPollingStateStore(client)
-			return capability.NewPollingState(
-				&pollingPersistenceAdapter{store: pollStore},
-			)
-		}
+	if store.Database != nil && store.Database.GetClient() != nil {
+		pollStore := store.NewPollingStateStore(store.Database.GetClient())
+		return capability.NewPollingState(
+			&pollingPersistenceAdapter{store: pollStore},
+		)
 	}
 	return capability.NewPollingState(nil)
 }

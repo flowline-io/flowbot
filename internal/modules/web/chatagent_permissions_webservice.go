@@ -175,7 +175,7 @@ func ensureWebSessionOwner(ctx fiber.Ctx, sessionID string) error {
 	if err != nil {
 		return err
 	}
-	row, err := store.Database.GetChatSession(ctx.Context(), sessionID)
+	row, err := store.ChatStoreFromDB().GetChatSession(ctx.Context(), sessionID)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return types.ErrNotFound

@@ -38,10 +38,10 @@ func TestBuildAgentInfo(t *testing.T) {
 	})
 
 	ctx := context.Background()
-	require.NoError(t, store.Database.CreateAgentSkill(ctx, &gen.AgentSkill{
+	require.NoError(t, store.AgentStoreFromDB().CreateAgentSkill(ctx, &gen.AgentSkill{
 		Name: "deploy", Description: "Deploy services", Content: "skill body", Enabled: true, Flag: "skill-deploy",
 	}))
-	require.NoError(t, store.Database.CreateAgentSubagent(ctx, &gen.AgentSubagent{
+	require.NoError(t, store.AgentStoreFromDB().CreateAgentSubagent(ctx, &gen.AgentSubagent{
 		Name: "researcher", Description: "Research helper", SystemPrompt: "You research.",
 		Enabled: true, Flag: "sub-research",
 	}))
@@ -108,11 +108,11 @@ func TestListUserActiveSessions(t *testing.T) {
 	ctx := context.Background()
 	uid := types.Uid("user-sessions")
 	now := time.Now().UTC()
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: "sess-active", UID: uid.String(), Title: "Active chat",
 		State: int(schema.ChatSessionActive), CreatedAt: now, UpdatedAt: now,
 	}))
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: "sess-closed", UID: uid.String(), State: int(schema.ChatSessionClosed), CreatedAt: now, UpdatedAt: now,
 	}))
 

@@ -32,20 +32,20 @@ func resolvePlatformUserFlag(data protocol.MessageEventData) string {
 // It also associates the platform user with the platform.
 // Returns the user flag and an error if any operation fails.
 func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
-	platform, err := store.Database.GetPlatformByName(context.Background(), data.Self.Platform)
+	platform, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), data.Self.Platform)
 	if err != nil {
 		return "", err
 	}
 
 	platformUserFlag := resolvePlatformUserFlag(data)
 
-	platformUser, err := store.Database.GetPlatformUserByFlag(context.Background(), platformUserFlag)
+	platformUser, err := store.UserStoreFromDB().GetPlatformUserByFlag(context.Background(), platformUserFlag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
 	if platformUser != nil && platformUser.ID > 0 {
-		user, err := store.Database.GetUserById(context.Background(), platformUser.UserID)
+		user, err := store.UserStoreFromDB().GetUserById(context.Background(), platformUser.UserID)
 		if err == nil {
 			return types.Uid(user.Flag), nil
 		}
@@ -57,7 +57,7 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 			return "", err
 		}
 		platformUser.UserID = user.ID
-		if err = store.Database.UpdatePlatformUser(context.Background(), platformUser); err != nil {
+		if err = store.UserStoreFromDB().UpdatePlatformUser(context.Background(), platformUser); err != nil {
 			return "", err
 		}
 		return types.Uid(user.Flag), nil
@@ -68,7 +68,7 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 	}
 
 	email, avatarURL := platformUserProfileDefaults(data.Self.Platform, platformUserFlag)
-	_, err = store.Database.CreatePlatformUser(context.Background(), &gen.PlatformUser{
+	_, err = store.UserStoreFromDB().CreatePlatformUser(context.Background(), &gen.PlatformUser{
 		PlatformID: platform.ID,
 		UserID:     user.ID,
 		Flag:       platformUserFlag,
@@ -91,7 +91,7 @@ func newUserRecord() (*gen.User, error) {
 		Tags:  "[]",
 		State: int(schema.UserActive),
 	}
-	if err := store.Database.UserCreate(context.Background(), user); err != nil {
+	if err := store.UserStoreFromDB().UserCreate(context.Background(), user); err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -104,7 +104,7 @@ func newChannelForTopic(data protocol.MessageEventData) (*gen.Channel, error) {
 		Name:  fmt.Sprintf("%s_%s", data.Self.Platform, data.TopicId),
 		State: int(schema.ChannelActive),
 	}
-	channelID, err := store.Database.CreateChannel(context.Background(), channel)
+	channelID, err := store.PlatformStoreFromDB().CreateChannel(context.Background(), channel)
 	if err != nil {
 		return nil, err
 	}
@@ -130,18 +130,18 @@ func platformUserProfileDefaults(platformName, flag string) (email, avatarURL st
 // It also associates the platform channel with the user who triggered the event.
 // Returns the channel flag and an error if any operation fails.
 func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
-	platform, err := store.Database.GetPlatformByName(context.Background(), data.Self.Platform)
+	platform, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), data.Self.Platform)
 	if err != nil {
 		return "", err
 	}
 
-	platformChannel, err := store.Database.GetPlatformChannelByFlag(context.Background(), data.TopicId)
+	platformChannel, err := store.PlatformStoreFromDB().GetPlatformChannelByFlag(context.Background(), data.TopicId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
 	if platformChannel != nil && platformChannel.ID > 0 {
-		channel, err := store.Database.GetChannel(context.Background(), platformChannel.ChannelID)
+		channel, err := store.PlatformStoreFromDB().GetChannel(context.Background(), platformChannel.ChannelID)
 		if err == nil {
 			return channel.Flag, nil
 		}
@@ -152,7 +152,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if err = store.Database.UpdatePlatformChannelChannelID(context.Background(), platformChannel.ID, channel.ID); err != nil {
+		if err = store.PlatformStoreFromDB().UpdatePlatformChannelChannelID(context.Background(), platformChannel.ID, channel.ID); err != nil {
 			return "", err
 		}
 		return channel.Flag, nil
@@ -162,7 +162,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 		return "", err
 	}
 
-	_, err = store.Database.CreatePlatformChannel(context.Background(), &gen.PlatformChannel{
+	_, err = store.PlatformStoreFromDB().CreatePlatformChannel(context.Background(), &gen.PlatformChannel{
 		PlatformID: platform.ID,
 		ChannelID:  channel.ID,
 		Flag:       data.TopicId,
@@ -171,7 +171,7 @@ func registerPlatformChannel(data protocol.MessageEventData) (string, error) {
 		return "", err
 	}
 
-	_, err = store.Database.CreatePlatformChannelUser(context.Background(), &gen.PlatformChannelUser{
+	_, err = store.PlatformStoreFromDB().CreatePlatformChannelUser(context.Background(), &gen.PlatformChannelUser{
 		PlatformID:  platform.ID,
 		ChannelFlag: data.TopicId,
 		UserFlag:    resolvePlatformUserFlag(data),
@@ -190,13 +190,13 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 	if hostid == "" {
 		return fmt.Errorf("hostid is empty")
 	}
-	agent, err := store.Database.GetAgentByHostid(context.Background(), uid, topic, hostid)
+	agent, err := store.RuntimeAgentStoreFromDB().GetAgentByHostid(context.Background(), uid, topic, hostid)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 
 	if agent != nil && agent.ID > 0 {
-		err = store.Database.UpdateAgentLastOnlineAt(context.Background(), uid, topic, hostid, time.Now())
+		err = store.RuntimeAgentStoreFromDB().UpdateAgentLastOnlineAt(context.Background(), uid, topic, hostid, time.Now())
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func registerAgent(uid types.Uid, topic, hostid, hostname string) error {
 			OnlineDuration: 0,
 			LastOnlineAt:   time.Now(),
 		}
-		_, err := store.Database.CreateAgent(context.Background(), agent)
+		_, err := store.RuntimeAgentStoreFromDB().CreateAgent(context.Background(), agent)
 		if err != nil {
 			return err
 		}

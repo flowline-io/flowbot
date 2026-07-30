@@ -188,7 +188,7 @@ func (MemorySetTool) Execute(ctx context.Context, id string, args map[string]any
 		return memoryToolError(memorySetToolName, id, "value is required"), nil
 	}
 	scope := resolveToolMemoryScope(ctx)
-	row, err := store.Database.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+	row, err := store.AgentStoreFromDB().UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
 		Scope:  scope,
 		Key:    key,
 		Value:  value,
@@ -234,7 +234,7 @@ func (MemoryGetTool) Execute(ctx context.Context, id string, args map[string]any
 	if err := validateMemoryKey(key); err != nil {
 		return memoryToolError(memoryGetToolName, id, err.Error()), nil
 	}
-	row, err := store.Database.GetAgentMemoryFact(ctx, resolveToolMemoryScope(ctx), key)
+	row, err := store.AgentStoreFromDB().GetAgentMemoryFact(ctx, resolveToolMemoryScope(ctx), key)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return memoryToolError(memoryGetToolName, id, "fact not found"), nil
@@ -276,7 +276,7 @@ func (MemoryListTool) Execute(ctx context.Context, id string, _ map[string]any, 
 	if store.Database == nil {
 		return memoryToolError(memoryListToolName, id, "memory store is not configured"), nil
 	}
-	rows, err := store.Database.ListAgentMemoryFacts(ctx, resolveToolMemoryScope(ctx))
+	rows, err := store.AgentStoreFromDB().ListAgentMemoryFacts(ctx, resolveToolMemoryScope(ctx))
 	if err != nil {
 		return memoryToolError(memoryListToolName, id, err.Error()), nil
 	}
@@ -333,7 +333,7 @@ func (MemoryDeleteTool) Execute(ctx context.Context, id string, args map[string]
 		return memoryToolError(memoryDeleteToolName, id, err.Error()), nil
 	}
 	scope := resolveToolMemoryScope(ctx)
-	if err := store.Database.DeleteAgentMemoryFact(ctx, scope, key); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentMemoryFact(ctx, scope, key); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return memoryToolError(memoryDeleteToolName, id, "fact not found"), nil
 		}
@@ -380,7 +380,7 @@ func (SearchSessionSummariesTool) Execute(ctx context.Context, id string, args m
 	if query == "" {
 		return memoryToolError(searchSessionSummariesToolName, id, "query is required"), nil
 	}
-	rows, err := store.Database.SearchAgentSessionSummaries(ctx, store.AgentSessionSummarySearchParams{
+	rows, err := store.AgentStoreFromDB().SearchAgentSessionSummaries(ctx, store.AgentSessionSummarySearchParams{
 		Query: query,
 		Scope: resolveToolMemoryScope(ctx),
 		Limit: memoryIntArg(args, "limit"),

@@ -10,6 +10,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 
@@ -27,6 +28,8 @@ type authOnlyNotifyAdapter struct {
 }
 
 func (a *authOnlyNotifyAdapter) GetDB() any { return a.client }
+
+func (a *authOnlyNotifyAdapter) GetClient() *gen.Client { return a.client }
 
 func (a *authOnlyNotifyAdapter) ParameterGet(_ context.Context, flag string) (gen.Parameter, error) {
 	return gen.Parameter{
@@ -54,6 +57,12 @@ func TestNotificationsTableWithAuthOnlyListAdapter(t *testing.T) {
 	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 	store.Database = &authOnlyNotifyAdapter{client: client, uid: "testuser"}
+	require.NoError(t, store.NewModuleDataStore(client).ParameterSet(
+		context.Background(),
+		auth.HashToken("valid-token"),
+		testFullWebSessionParams("testuser"),
+		time.Now().Add(time.Hour),
+	))
 
 	ns := store.NewNotifyStore(client)
 	_, err := ns.Record(context.Background(), "testuser", "slack", "tpl", "hello", "success", "", "", nil)

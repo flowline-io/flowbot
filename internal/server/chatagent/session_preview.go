@@ -16,7 +16,7 @@ func UpdateSessionPreview(ctx context.Context, sessionID, text string) {
 		return
 	}
 	preview := truncateSessionPreview(text, sessionPreviewMaxLen)
-	if err := store.Database.UpdateChatSessionPreview(ctx, sessionID, preview); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatSessionPreview(ctx, sessionID, preview); err != nil {
 		flog.Warn("[chat-agent] update session preview session=%s: %v", sessionID, err)
 	}
 }

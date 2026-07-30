@@ -69,15 +69,15 @@ var _ = Describe("Chat Agent Scheduled Tasks", Label("module", "chat-agent", "sc
 			SourceSessionID: "source-session",
 			State:           string(schema.ChatScheduledTaskStateActive),
 		}
-		Expect(store.Database.CreateChatScheduledTask(ctx, task)).To(Succeed())
+		Expect(store.ChatStoreFromDB().CreateChatScheduledTask(ctx, task)).To(Succeed())
 
 		chatagent.ExecuteScheduledTaskForTest(ctx, task)
 
-		updated, err := store.Database.GetChatScheduledTask(ctx, task.Flag)
+		updated, err := store.ChatStoreFromDB().GetChatScheduledTask(ctx, task.Flag)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(updated.State).To(Equal(string(schema.ChatScheduledTaskStateCompleted)))
 
-		runs, err := store.Database.ListChatScheduledTaskRuns(ctx, task.Flag, 5)
+		runs, err := store.ChatStoreFromDB().ListChatScheduledTaskRuns(ctx, task.Flag, 5)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(runs).NotTo(BeEmpty())
 		Expect(runs[0].Reply).To(ContainSubstring("scheduled reply"))

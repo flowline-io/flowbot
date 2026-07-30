@@ -127,7 +127,7 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 	}
 	fdef.Location = fname
 
-	if err = store.Database.FileStartUpload(context.Background(), fdef); err != nil {
+	if err = store.FileStoreFromDB().FileStartUpload(context.Background(), fdef); err != nil {
 		flog.Warn("failed to create file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to create file record %v, %w", fdef.Id, err)
 	}
@@ -136,13 +136,13 @@ func (ah *handler) Upload(fdef *types.FileDef, file io.ReadSeeker) (string, int6
 		ContentType: fdef.MimeType,
 	})
 	if err != nil {
-		if _, finishErr := store.Database.FileFinishUpload(context.Background(), fdef, false, 0); finishErr != nil {
+		if _, finishErr := store.FileStoreFromDB().FileFinishUpload(context.Background(), fdef, false, 0); finishErr != nil {
 			flog.Warn("failed to update file record %v %v", fdef.Id, finishErr)
 		}
 		return "", 0, fmt.Errorf("error uploading file %s, %w", fname, err)
 	}
 
-	if _, err = store.Database.FileFinishUpload(context.Background(), fdef, true, info.Size); err != nil {
+	if _, err = store.FileStoreFromDB().FileFinishUpload(context.Background(), fdef, true, info.Size); err != nil {
 		flog.Warn("failed to update file record %v %v", fdef.Id, err)
 		return "", 0, fmt.Errorf("failed to update file record %v, %w", fdef.Id, err)
 	}
@@ -163,7 +163,7 @@ func (ah *handler) Download(fUrl string) (*types.FileDef, media.ReadSeekCloser, 
 		return nil, nil, protocol.ErrNotFound.New("fid not found")
 	}
 
-	fd, err := store.Database.FileGet(context.Background(), fid.String())
+	fd, err := store.FileStoreFromDB().FileGet(context.Background(), fid.String())
 	if err != nil {
 		return nil, nil, fmt.Errorf("file not found %v, %w", fid, err)
 	}
@@ -231,7 +231,7 @@ func (ah *handler) presignedURLTTL(fdef *types.FileDef, ttl time.Duration) (stri
 
 // SignGetURL returns a MinIO presigned GET URL for the file id.
 func (ah *handler) SignGetURL(ctx context.Context, fileID string, ttl time.Duration) (string, error) {
-	fd, err := store.Database.FileGet(ctx, fileID)
+	fd, err := store.FileStoreFromDB().FileGet(ctx, fileID)
 	if err != nil {
 		return "", fmt.Errorf("file not found %v, %w", fileID, err)
 	}
@@ -246,7 +246,7 @@ func (ah *handler) SignGetURL(ctx context.Context, fileID string, ttl time.Durat
 
 // OpenByID opens a stored MinIO object by file id.
 func (ah *handler) OpenByID(ctx context.Context, fileID string) (*types.FileDef, media.ReadSeekCloser, error) {
-	fd, err := store.Database.FileGet(ctx, fileID)
+	fd, err := store.FileStoreFromDB().FileGet(ctx, fileID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("file not found %v, %w", fileID, err)
 	}

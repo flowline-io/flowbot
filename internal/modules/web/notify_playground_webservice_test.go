@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -185,6 +186,12 @@ func TestNotifyPlaygroundPreviewValidation(t *testing.T) {
 			}()
 			ts.notifyChannels = map[int64]model.NotifyChannel{
 				1: {ID: 1, Name: "alerts", Protocol: "slack", URI: "slack://T00/B00/xxx", Enabled: true},
+			}
+			syncTestStoreToDB(t, ts)
+			chs := listTestNotifyChannels(t)
+			require.NotEmpty(t, chs)
+			if tt.form.Get("channel_id") == "1" {
+				tt.form.Set("channel_id", strconv.FormatInt(chs[0].ID, 10))
 			}
 
 			req := httptest.NewRequest(http.MethodPost, "/service/web/notifications/playground/preview", strings.NewReader(tt.form.Encode()))

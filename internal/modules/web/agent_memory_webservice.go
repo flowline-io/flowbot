@@ -140,7 +140,7 @@ func agentMemoryDeleteFactForm(ctx fiber.Ctx) error {
 	if key == "" {
 		return toastError(ctx, "Key is required")
 	}
-	if err := store.Database.DeleteAgentMemoryFact(ctx.Context(), scope, key); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentMemoryFact(ctx.Context(), scope, key); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return toastError(ctx, "Fact not found")
 		}
@@ -159,7 +159,7 @@ func agentMemoryDeleteFact(ctx fiber.Ctx) error {
 	if scope == "" || key == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(protocol.NewFailedResponse(errors.New("scope and key are required")))
 	}
-	if err := store.Database.DeleteAgentMemoryFact(ctx.Context(), scope, key); err != nil {
+	if err := store.AgentStoreFromDB().DeleteAgentMemoryFact(ctx.Context(), scope, key); err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return ctx.Status(fiber.StatusNotFound).JSON(protocol.NewFailedResponse(errors.New("fact not found")))
 		}
@@ -170,10 +170,10 @@ func agentMemoryDeleteFact(ctx fiber.Ctx) error {
 }
 
 func updateExistingAgentMemoryFact(ctx context.Context, scope, key, value string, pinned bool) (*gen.AgentMemoryFact, error) {
-	if _, err := store.Database.GetAgentMemoryFact(ctx, scope, key); err != nil {
+	if _, err := store.AgentStoreFromDB().GetAgentMemoryFact(ctx, scope, key); err != nil {
 		return nil, err
 	}
-	return store.Database.UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
+	return store.AgentStoreFromDB().UpsertAgentMemoryFact(ctx, store.AgentMemoryFactUpsert{
 		Scope:  scope,
 		Key:    key,
 		Value:  value,
@@ -199,7 +199,7 @@ func agentMemoryScopeQuery(ctx fiber.Ctx) string {
 }
 
 func listAgentMemoryFactModels(ctx context.Context, scope string) ([]model.AgentMemoryFact, error) {
-	rows, err := store.Database.ListAgentMemoryFacts(ctx, scope)
+	rows, err := store.AgentStoreFromDB().ListAgentMemoryFacts(ctx, scope)
 	if err != nil {
 		return nil, err
 	}

@@ -125,7 +125,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 		return partials.NotifyPlayground(view).Render(ctx.Context(), ctx.Response().BodyWriter())
 	}
 
-	ch, err := store.Database.GetNotifyChannelRaw(ctx.Context(), req.ChannelID)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(ctx.Context(), req.ChannelID)
 	if err != nil {
 		view.Errors = map[string]string{"channel_id": "Channel not found"}
 		ctx.Type("html")
@@ -195,7 +195,7 @@ func notifyPlaygroundSend(ctx fiber.Ctx) error {
 
 func loadPlaygroundView(ctx context.Context) (partials.NotifyPlaygroundParams, error) {
 	enabled := true
-	channels, err := store.Database.ListNotifyChannels(ctx, store.ListNotifyChannelOptions{Enabled: &enabled})
+	channels, err := store.NotifyConfigStoreFromDB().ListNotifyChannels(ctx, store.ListNotifyChannelOptions{Enabled: &enabled})
 	if err != nil {
 		return partials.NotifyPlaygroundParams{}, err
 	}
@@ -313,7 +313,7 @@ func attachPlaygroundChannelProto(ctx context.Context, req *playgroundRequest) e
 	if req.ChannelID <= 0 {
 		return fmt.Errorf("channel is required")
 	}
-	ch, err := store.Database.GetNotifyChannel(ctx, req.ChannelID)
+	ch, err := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx, req.ChannelID)
 	if err != nil {
 		return fmt.Errorf("channel not found")
 	}

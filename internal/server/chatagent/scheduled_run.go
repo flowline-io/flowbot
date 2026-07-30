@@ -53,7 +53,7 @@ func beginScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask, svc
 		flog.Error(fmt.Errorf("[chat-agent] scheduled task session create task=%s: %w", task.Flag, err))
 		return "", "", false
 	}
-	if err := store.Database.CreateChatScheduledTaskRun(ctx, &gen.ChatScheduledTaskRun{
+	if err := store.ChatStoreFromDB().CreateChatScheduledTaskRun(ctx, &gen.ChatScheduledTaskRun{
 		Flag:         runFlag,
 		TaskID:       task.Flag,
 		RunSessionID: runSessionID,
@@ -76,7 +76,7 @@ func persistScheduledTaskRun(ctx context.Context, task *gen.ChatScheduledTask, r
 		reply = fmt.Sprintf("Scheduled task failed: %s", runErr.Error())
 		flog.Error(fmt.Errorf("[chat-agent] scheduled task run task=%s: %w", task.Flag, runErr))
 	}
-	if err := store.Database.UpdateChatScheduledTaskRun(ctx, runFlag, store.UpdateChatScheduledTaskRunParams{
+	if err := store.ChatStoreFromDB().UpdateChatScheduledTaskRun(ctx, runFlag, store.UpdateChatScheduledTaskRunParams{
 		State:      &runState,
 		Reply:      &reply,
 		Error:      &errText,
@@ -95,7 +95,7 @@ func updateScheduledTaskAfterRun(ctx context.Context, task *gen.ChatScheduledTas
 			flog.Warn("[chat-agent] scheduled task next_run_at task=%s: %v", task.Flag, nerr)
 		}
 	}
-	if err := store.Database.UpdateChatScheduledTask(ctx, task.Flag, taskUpdate); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatScheduledTask(ctx, task.Flag, taskUpdate); err != nil {
 		flog.Warn("[chat-agent] scheduled task metadata update task=%s: %v", task.Flag, err)
 	}
 }
@@ -114,7 +114,7 @@ func finalizeScheduledTask(ctx context.Context, task *gen.ChatScheduledTask, run
 	if runErr != nil {
 		finalState = string(schema.ChatScheduledTaskStateFailed)
 	}
-	if err := store.Database.UpdateChatScheduledTask(ctx, task.Flag, store.UpdateChatScheduledTaskParams{
+	if err := store.ChatStoreFromDB().UpdateChatScheduledTask(ctx, task.Flag, store.UpdateChatScheduledTaskParams{
 		State: &finalState,
 	}); err != nil {
 		flog.Warn("[chat-agent] scheduled task finalize task=%s: %v", task.Flag, err)

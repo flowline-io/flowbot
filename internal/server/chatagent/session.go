@@ -29,7 +29,7 @@ func ListUserActiveSessions(ctx context.Context, uid types.Uid, limit int, curso
 		return nil, "", types.ErrUnavailable
 	}
 	active := int(schema.ChatSessionActive)
-	rows, nextCursor, err := store.Database.ListChatSessions(ctx, store.ListChatSessionsOptions{
+	rows, nextCursor, err := store.ChatStoreFromDB().ListChatSessions(ctx, store.ListChatSessionsOptions{
 		UID:    uid.String(),
 		State:  &active,
 		Limit:  limit,
@@ -69,7 +69,7 @@ func IsChatControlCommand(text string) bool {
 // CreateSession persists a new chat session row for the user.
 func CreateSession(ctx context.Context, uid types.Uid, sessionID string) error {
 	now := time.Now().UTC()
-	err := store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	err := store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag:      sessionID,
 		UID:       uid.String(),
 		LeafID:    "",
@@ -92,7 +92,7 @@ func (s *Service) CloseSession(ctx context.Context, sessionID string) error {
 	s.EvictHarnessPool(sessionID)
 	s.permissionSessions.ClearPermissionSession(ctx, sessionID)
 	s.clearSessionEventHub(sessionID)
-	if err := store.Database.CloseChatSession(ctx, sessionID); err != nil {
+	if err := store.ChatStoreFromDB().CloseChatSession(ctx, sessionID); err != nil {
 		flog.Error(fmt.Errorf("[chat-agent] close session session=%s: %w", sessionID, err))
 		return err
 	}

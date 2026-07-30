@@ -57,7 +57,7 @@ func runChatAgent(
 	}
 
 	now := time.Now().UTC()
-	err = store.Database.CreateMessage(ctx, gen.Message{
+	err = store.MessageStoreFromDB().CreateMessage(ctx, gen.Message{
 		Flag:          types.Id(),
 		PlatformID:    platformID,
 		PlatformMsgID: platformMsgID,

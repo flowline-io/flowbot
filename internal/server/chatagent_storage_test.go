@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -13,21 +12,11 @@ import (
 )
 
 func TestDBStorageGetBranchBrokenChain(t *testing.T) {
-	origDB := store.Database
-	store.Database = &testStoreAdapter{}
-	testChatSessions = map[string]*gen.ChatSession{
-		"s1": {Flag: "s1", LeafID: "leaf"},
-	}
-	testChatSessionEntries = map[string][]*gen.ChatSessionEntry{
-		"s1": {{
-			Flag: "leaf", SessionID: "s1", ParentID: "missing", EntryType: "message",
-			Payload: map[string]any{"id": "leaf", "parentId": "missing", "type": "message"},
-		}},
-	}
-	t.Cleanup(func() {
-		store.Database = origDB
-		testChatSessions = map[string]*gen.ChatSession{}
-		testChatSessionEntries = map[string][]*gen.ChatSessionEntry{}
+	setupSQLiteTestDB(t)
+	seedTestChatSession(t, &gen.ChatSession{Flag: "s1", LeafID: "leaf"})
+	seedTestChatSessionEntry(t, &gen.ChatSessionEntry{
+		Flag: "leaf", SessionID: "s1", ParentID: "missing", EntryType: "message",
+		Payload: map[string]any{"id": "leaf", "parentId": "missing", "type": "message"},
 	})
 
 	storage := chatagent.NewDBStorage("s1", types.Uid(""), "")

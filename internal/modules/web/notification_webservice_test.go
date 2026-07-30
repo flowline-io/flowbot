@@ -71,8 +71,15 @@ func TestLookupNotifyChannelRawByName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ts := &testStore{notifyChannels: tt.channels}
+			ts := &testStore{}
+			ensureTestStoreDB(t, ts)
 			store.Database = ts
+			if tt.channels != nil {
+				for _, ch := range tt.channels {
+					_, err := store.NotifyConfigStoreFromDB().CreateNotifyChannel(context.Background(), ch.Name, ch.Protocol, ch.URI)
+					require.NoError(t, err)
+				}
+			}
 			t.Cleanup(func() { store.Database = nil })
 
 			got, err := lookupNotifyChannelRawByName(context.Background(), tt.lookup)
@@ -164,6 +171,7 @@ func TestRetryNotificationConnectivityTest(t *testing.T) {
 			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
 
 			ts.notifyChannels = map[int64]model.NotifyChannel{tt.channel.ID: tt.channel}
+			syncTestStoreToDB(t, ts)
 			notifypkg.Register(tt.register.protocol, tt.register)
 			t.Cleanup(func() { notifypkg.Unregister(tt.register.protocol) })
 

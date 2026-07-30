@@ -113,7 +113,7 @@ func RunCommand(commandRules []command.Rule, ctx types.Context, content any) (ty
 }
 
 func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.MsgPayload, error) {
-	exForm, err := store.Database.FormGet(ctx.Context(), ctx.FormId)
+	exForm, err := store.ModuleDataStoreFromDB().FormGet(ctx.Context(), ctx.FormId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func RunForm(formRules []form.Rule, ctx types.Context, values types.KV) (types.M
 		}
 	}
 	if !isLongTerm {
-		err = store.Database.FormSet(ctx.Context(), ctx.FormId, gen.Form{Values: values, State: int(schema.FormStateSubmitSuccess)})
+		err = store.ModuleDataStoreFromDB().FormSet(ctx.Context(), ctx.FormId, gen.Form{Values: values, State: int(schema.FormStateSubmitSuccess)})
 		if err != nil {
 			return nil, err
 		}
@@ -234,7 +234,7 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 	}
 	extra["signature"] = sig
 
-	err = store.Database.FormSet(ctx.Context(), formId, gen.Form{
+	err = store.ModuleDataStoreFromDB().FormSet(ctx.Context(), formId, gen.Form{
 		FormID: formId,
 		UID:    ctx.AsUser.String(),
 		Topic:  ctx.Topic,
@@ -256,11 +256,11 @@ func StoreForm(ctx types.Context, payload types.MsgPayload) types.MsgPayload {
 
 func StoreParameter(params types.KV, expiredAt time.Time) (string, error) {
 	flag := types.Id()
-	return flag, store.Database.ParameterSet(context.Background(), flag, params, expiredAt)
+	return flag, store.ModuleDataStoreFromDB().ParameterSet(context.Background(), flag, params, expiredAt)
 }
 
 func SettingGet(ctx types.Context, id, key string) (types.KV, error) {
-	return store.Database.ConfigGet(ctx.Context(), ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
+	return store.ModuleDataStoreFromDB().ConfigGet(ctx.Context(), ctx.AsUser, ctx.Topic, fmt.Sprintf("%s_%s", id, key))
 }
 
 func SettingMsg(ctx types.Context, id string) types.MsgPayload {
@@ -272,18 +272,22 @@ func Behavior(uid types.Uid, flag string, number int) {
 	if !ok {
 		return
 	}
-	b, err := store.Database.BehaviorGet(context.Background(), uid, flag)
+	b, err := store.ModuleDataStoreFromDB().BehaviorGet(context.Background(), uid, flag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return
 	}
 	if b.ID > 0 {
-		_ = store.Database.BehaviorIncrease(context.Background(), uid, flag, number)
-	} else {
-		_ = store.Database.BehaviorSet(context.Background(), gen.Behavior{
-			UID:   uid.String(),
-			Flag:  flag,
-			Count: count,
-		})
+		if err := store.ModuleDataStoreFromDB().BehaviorIncrease(context.Background(), uid, flag, number); err != nil {
+			flog.Warn("module: behavior increase %s/%s: %v", uid, flag, err)
+		}
+		return
+	}
+	if err := store.ModuleDataStoreFromDB().BehaviorSet(context.Background(), gen.Behavior{
+		UID:   uid.String(),
+		Flag:  flag,
+		Count: count,
+	}); err != nil {
+		flog.Warn("module: behavior set %s/%s: %v", uid, flag, err)
 	}
 }
 

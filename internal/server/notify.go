@@ -54,7 +54,7 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 			}
 
 			enabled := true
-			dbRules, err := storeDB.Database.ListNotifyRules(ctx, storeDB.ListNotifyRuleOptions{Enabled: &enabled})
+			dbRules, err := storeDB.NotifyConfigStoreFromDB().ListNotifyRules(ctx, storeDB.ListNotifyRuleOptions{Enabled: &enabled})
 			var rules []notify.Rule
 			if err != nil {
 				flog.Warn("failed to load notify rules from DB: %v", err)
@@ -76,7 +76,7 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 
 // loadNotifyTemplatesFromDB loads persisted templates and converts them to notify manifests.
 func loadNotifyTemplatesFromDB(ctx context.Context) ([]notify.Template, error) {
-	rows, err := storeDB.Database.ListNotifyTemplates(ctx, storeDB.ListNotifyTemplateOptions{})
+	rows, err := storeDB.NotifyConfigStoreFromDB().ListNotifyTemplates(ctx, storeDB.ListNotifyTemplateOptions{})
 	if err != nil {
 		return nil, err
 	}

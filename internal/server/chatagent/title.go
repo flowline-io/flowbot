@@ -79,7 +79,7 @@ func maybeGenerateSessionTitle(sessionID, userText, reply string) {
 		if store.Database == nil {
 			return
 		}
-		sess, err := store.Database.GetChatSession(context.Background(), sessionID)
+		sess, err := store.ChatStoreFromDB().GetChatSession(context.Background(), sessionID)
 		if err != nil {
 			flog.Warn("[chat-agent] title generation skipped session=%s: %v", sessionID, err)
 			return
@@ -138,7 +138,7 @@ func generateSessionTitleAsync(
 		flog.Warn("[chat-agent] title write skipped session=%s: database unavailable", sessionID)
 		return
 	}
-	sess, err := store.Database.GetChatSession(ctx, sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		flog.Warn("[chat-agent] title write skipped session=%s: %v", sessionID, err)
 		return
@@ -146,7 +146,7 @@ func generateSessionTitleAsync(
 	if strings.TrimSpace(sess.Title) != "" {
 		return
 	}
-	if err := store.Database.UpdateChatSessionTitle(ctx, sessionID, title); err != nil {
+	if err := store.ChatStoreFromDB().UpdateChatSessionTitle(ctx, sessionID, title); err != nil {
 		flog.Warn("[chat-agent] title write failed session=%s: %v", sessionID, err)
 		return
 	}
@@ -210,7 +210,7 @@ func LoadSessionTitle(ctx context.Context, sessionID string) string {
 	if store.Database == nil {
 		return ""
 	}
-	sess, err := store.Database.GetChatSession(ctx, sessionID)
+	sess, err := store.ChatStoreFromDB().GetChatSession(ctx, sessionID)
 	if err != nil {
 		return ""
 	}

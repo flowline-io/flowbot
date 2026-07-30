@@ -31,7 +31,7 @@ func tokensPage(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	items, err := store.Database.ListTokens(context.Background())
+	items, err := store.ModuleDataStoreFromDB().ListTokens(context.Background())
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list tokens: %v", err)
 	}
@@ -43,7 +43,7 @@ func tokensList(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
 	}
-	items, err := store.Database.ListTokens(context.Background())
+	items, err := store.ModuleDataStoreFromDB().ListTokens(context.Background())
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
 		return renderError(ctx, "Failed to load tokens")
@@ -117,7 +117,7 @@ func tokensCreate(ctx fiber.Ctx) error {
 		return partials.TokenForm(errorsMsg).Render(context.Background(), ctx.Response().BodyWriter())
 	}
 
-	token, err := store.Database.CreateToken(
+	token, err := store.ModuleDataStoreFromDB().CreateToken(
 		context.Background(),
 		types.Uid(uidVal),
 		time.Now().Add(expiresDuration),
@@ -154,14 +154,14 @@ func tokensRevoke(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	err = store.Database.RevokeToken(context.Background(), flag)
+	err = store.ModuleDataStoreFromDB().RevokeToken(context.Background(), flag)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			return toastError(ctx, "Token not found")
 		}
 		return toastError(ctx, "Failed to revoke token")
 	}
-	items, err := store.Database.ListTokens(context.Background())
+	items, err := store.ModuleDataStoreFromDB().ListTokens(context.Background())
 	if err == nil && len(items) == 0 {
 		ctx.Type("html")
 		_ = partials.WriteTableEmptyOOB(

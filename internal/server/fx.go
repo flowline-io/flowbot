@@ -72,14 +72,10 @@ func setAgentMetricsCollector(ac *metrics.AgentCollector) {
 // newAuditor creates an audit.Auditor from the global store database.
 // Returns nil if the database is not yet initialized.
 func newAuditor() audit.Auditor {
-	if storepkg.Database == nil || storepkg.Database.GetDB() == nil {
+	if storepkg.Database == nil || storepkg.Database.GetClient() == nil {
 		return nil
 	}
-	client, ok := storepkg.Database.GetDB().(*storepkg.Client)
-	if !ok {
-		return nil
-	}
-	return storepkg.NewAuditStore(client)
+	return storepkg.AuditStoreFromDB()
 }
 
 // setRouteAuditor injects the global auditor into the route package

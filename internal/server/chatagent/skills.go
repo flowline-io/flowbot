@@ -91,14 +91,14 @@ func LoadSkillsFromStore(ctx context.Context) ([]Skill, error) {
 	if store.Database == nil {
 		return nil, nil
 	}
-	rows, err := store.Database.ListAgentSkills(ctx, true)
+	rows, err := store.AgentStoreFromDB().ListAgentSkills(ctx, true)
 	if err != nil {
 		return nil, fmt.Errorf("load agent skills: %w", err)
 	}
 	skills := make([]Skill, 0, len(rows))
 	for _, row := range rows {
 		skill := skillFromRow(row)
-		files, err := store.Database.ListAgentSkillFiles(ctx, row.Flag)
+		files, err := store.AgentStoreFromDB().ListAgentSkillFiles(ctx, row.Flag)
 		if err != nil {
 			return nil, fmt.Errorf("load agent skill files for %q: %w", row.Name, err)
 		}
@@ -121,7 +121,7 @@ func GetSkillContent(ctx context.Context, name string) (SkillContent, error) {
 	if row.DisableModelInvocation {
 		return SkillContent{}, types.ErrForbidden
 	}
-	files, err := store.Database.ListAgentSkillFiles(ctx, row.Flag)
+	files, err := store.AgentStoreFromDB().ListAgentSkillFiles(ctx, row.Flag)
 	if err != nil {
 		return SkillContent{}, fmt.Errorf("load agent skill files: %w", err)
 	}
@@ -149,7 +149,7 @@ func GetSkillFile(ctx context.Context, name, filePath string) (SkillContent, err
 	if row.DisableModelInvocation {
 		return SkillContent{}, types.ErrForbidden
 	}
-	file, err := store.Database.GetAgentSkillFile(ctx, row.Flag, normalized)
+	file, err := store.AgentStoreFromDB().GetAgentSkillFile(ctx, row.Flag, normalized)
 	if err != nil {
 		return SkillContent{}, err
 	}
@@ -164,7 +164,7 @@ func GetSkillFile(ctx context.Context, name, filePath string) (SkillContent, err
 func getAgentSkillByName(ctx context.Context, name string) (*gen.AgentSkill, error) {
 	var lastErr error
 	for _, candidate := range skillNameCandidates(name) {
-		row, err := store.Database.GetAgentSkillByName(ctx, candidate)
+		row, err := store.AgentStoreFromDB().GetAgentSkillByName(ctx, candidate)
 		if err == nil {
 			return row, nil
 		}

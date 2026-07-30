@@ -43,7 +43,7 @@ func SumSessionsRunDurationMs(ctx context.Context, leafBySession map[string]stri
 		return map[string]int64{}, nil
 	}
 
-	rows, err := store.Database.ListChatSessionEntriesBySessions(ctx, sessionIDs)
+	rows, err := store.ChatStoreFromDB().ListChatSessionEntriesBySessions(ctx, sessionIDs)
 	if err != nil {
 		return nil, err
 	}

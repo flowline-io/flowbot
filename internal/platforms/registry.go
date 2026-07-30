@@ -13,12 +13,12 @@ import (
 var callers = make(map[string]*Caller)
 
 func PlatformRegister(name string, caller *Caller) error {
-	_, err := store.Database.GetPlatformByName(context.Background(), name)
+	_, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), name)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 	if errors.Is(err, types.ErrNotFound) {
-		_, err = store.Database.CreatePlatform(context.Background(), &gen.Platform{
+		_, err = store.PlatformStoreFromDB().CreatePlatform(context.Background(), &gen.Platform{
 			Name: name,
 		})
 		if err != nil {

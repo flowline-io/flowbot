@@ -224,12 +224,12 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string)
 	}
 
 	now := time.Now().UTC()
-	existing, err := store.Database.GetAgentSkillByFlag(ctx, name)
+	existing, err := store.AgentStoreFromDB().GetAgentSkillByFlag(ctx, name)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 	if errors.Is(err, types.ErrNotFound) {
-		err = store.Database.CreateAgentSkill(ctx, &gen.AgentSkill{
+		err = store.AgentStoreFromDB().CreateAgentSkill(ctx, &gen.AgentSkill{
 			Flag:                   name,
 			Name:                   name,
 			Description:            desc,
@@ -251,7 +251,7 @@ func upsertSkillFromFS(ctx context.Context, fsys fs.FS, skillDir, source string)
 		existing.BaseDir = baseDir
 		existing.Source = source
 		existing.UpdatedAt = now
-		if err := store.Database.UpdateAgentSkill(ctx, existing); err != nil {
+		if err := store.AgentStoreFromDB().UpdateAgentSkill(ctx, existing); err != nil {
 			return fmt.Errorf("update skill %s: %w", name, err)
 		}
 	}
@@ -328,12 +328,12 @@ func syncSkillAuxFilesFromFS(ctx context.Context, fsys fs.FS, skillFlag, skillDi
 }
 
 func upsertSkillFile(ctx context.Context, skillFlag, filePath, content string, now time.Time) error {
-	existing, err := store.Database.GetAgentSkillFile(ctx, skillFlag, filePath)
+	existing, err := store.AgentStoreFromDB().GetAgentSkillFile(ctx, skillFlag, filePath)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return err
 	}
 	if errors.Is(err, types.ErrNotFound) {
-		return store.Database.CreateAgentSkillFile(ctx, &gen.AgentSkillFile{
+		return store.AgentStoreFromDB().CreateAgentSkillFile(ctx, &gen.AgentSkillFile{
 			SkillFlag: skillFlag,
 			Path:      filePath,
 			Content:   content,
@@ -343,7 +343,7 @@ func upsertSkillFile(ctx context.Context, skillFlag, filePath, content string, n
 	}
 	existing.Content = content
 	existing.UpdatedAt = now
-	return store.Database.UpdateAgentSkillFile(ctx, existing)
+	return store.AgentStoreFromDB().UpdateAgentSkillFile(ctx, existing)
 }
 
 // parseSkillMarkdown splits SKILL.md into YAML frontmatter and markdown body.

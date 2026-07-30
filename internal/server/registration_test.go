@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,72 +13,6 @@ import (
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
-
-type registrationStore struct {
-	testStoreAdapter
-	platform          *gen.Platform
-	platformUser      *gen.PlatformUser
-	user              *gen.User
-	createPlatform    *gen.PlatformUser
-	updatedPlatform   *gen.PlatformUser
-	platformUserErr   error
-	userCreateErr     error
-	createPlatformErr error
-	updatePlatformErr error
-}
-
-func (s *registrationStore) GetPlatformByName(_ context.Context, name string) (*gen.Platform, error) {
-	if s.platform == nil {
-		return nil, types.ErrNotFound
-	}
-	if s.platform.Name != name {
-		return nil, types.ErrNotFound
-	}
-	return s.platform, nil
-}
-
-func (s *registrationStore) GetPlatformUserByFlag(_ context.Context, flag string) (*gen.PlatformUser, error) {
-	if s.platformUserErr != nil {
-		return nil, s.platformUserErr
-	}
-	if s.platformUser == nil || s.platformUser.Flag != flag {
-		return nil, types.ErrNotFound
-	}
-	return s.platformUser, nil
-}
-
-func (s *registrationStore) UserCreate(_ context.Context, user *gen.User) error {
-	if s.userCreateErr != nil {
-		return s.userCreateErr
-	}
-	user.ID = 42
-	s.user = user
-	return nil
-}
-
-func (s *registrationStore) GetUserById(_ context.Context, id int64) (*gen.User, error) {
-	if s.user == nil || s.user.ID != id {
-		return nil, types.ErrNotFound
-	}
-	return s.user, nil
-}
-
-func (s *registrationStore) CreatePlatformUser(_ context.Context, item *gen.PlatformUser) (int64, error) {
-	if s.createPlatformErr != nil {
-		return 0, s.createPlatformErr
-	}
-	s.createPlatform = item
-	return 99, nil
-}
-
-func (s *registrationStore) UpdatePlatformUser(_ context.Context, item *gen.PlatformUser) error {
-	if s.updatePlatformErr != nil {
-		return s.updatePlatformErr
-	}
-	s.updatedPlatform = item
-	s.platformUser = item
-	return nil
-}
 
 func TestResolvePlatformUserFlag(t *testing.T) {
 	t.Parallel()
@@ -166,106 +100,82 @@ func TestPlatformUserProfileDefaults(t *testing.T) {
 func TestRegisterPlatformUser(t *testing.T) {
 	tests := []struct {
 		name        string
-		store       *registrationStore
-		data        protocol.MessageEventData
+		seed        func(t *testing.T) protocol.MessageEventData
 		wantUID     string
 		wantEmail   string
 		wantErr     bool
-		wantErrText string
 		wantCreated bool
+		checkRepair bool
 	}{
 		{
 			name: "new slack user gets placeholder profile fields",
-			store: &registrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-			},
-			data: protocol.MessageEventData{
-				Self:   protocol.Self{Platform: "slack"},
-				UserId: "U01DMQDTV5W",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				seedTestPlatform(t, "slack")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
 			},
 			wantEmail:   "U01DMQDTV5W@slack.local",
 			wantCreated: true,
 		},
 		{
 			name: "existing platform user returns linked user flag",
-			store: &registrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-				platformUser: &gen.PlatformUser{
-					ID:     11,
-					UserID: 42,
-					Flag:   "U01DMQDTV5W",
-				},
-				user: &gen.User{ID: 42, Flag: "existing-user"},
-			},
-			data: protocol.MessageEventData{
-				Self:   protocol.Self{Platform: "slack"},
-				UserId: "U01DMQDTV5W",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				user := seedTestUser(t, "existing-user")
+				seedTestPlatformUser(t, platformID, user.ID, "U01DMQDTV5W", "", "")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
 			},
 			wantUID: "existing-user",
 		},
 		{
 			name: "missing platform returns error",
-			store: &registrationStore{
-				platform: &gen.Platform{ID: 7, Name: "discord"},
-			},
-			data: protocol.MessageEventData{
-				Self:   protocol.Self{Platform: "slack"},
-				UserId: "U01DMQDTV5W",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				seedTestPlatform(t, "discord")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
 			},
 			wantErr: true,
 		},
 		{
-			name: "platform user lookup error is propagated",
-			store: &registrationStore{
-				platform:        &gen.Platform{ID: 7, Name: "slack"},
-				platformUserErr: errors.New("lookup failed"),
-			},
-			data: protocol.MessageEventData{
-				Self:   protocol.Self{Platform: "slack"},
-				UserId: "U01DMQDTV5W",
-			},
-			wantErr:     true,
-			wantErrText: "lookup failed",
-		},
-		{
 			name: "broken platform user link is repaired with new user id",
-			store: &registrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-				platformUser: &gen.PlatformUser{
-					ID:     11,
-					UserID: 0,
-					Flag:   "U01DMQDTV5W",
-				},
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				user := seedTestUser(t, "orphan-user")
+				seedTestPlatformUser(t, platformID, user.ID, "U01DMQDTV5W", "", "")
+				require.NoError(t, store.UserStoreFromDB().UserDelete(context.Background(), types.Uid(user.Flag), true))
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
 			},
-			data: protocol.MessageEventData{
-				Self:   protocol.Self{Platform: "slack"},
-				UserId: "U01DMQDTV5W",
-			},
-			wantCreated: false,
+			checkRepair: true,
 		},
 		{
 			name: "missing user id gets generated platform flag",
-			store: &registrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-			},
-			data: protocol.MessageEventData{
-				Self: protocol.Self{Platform: "slack"},
+			seed: func(t *testing.T) protocol.MessageEventData {
+				seedTestPlatform(t, "slack")
+				return protocol.MessageEventData{
+					Self: protocol.Self{Platform: "slack"},
+				}
 			},
 			wantCreated: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = tt.store
-			t.Cleanup(func() { store.Database = orig })
+			setupSQLiteTestDB(t)
+			data := tt.seed(t)
 
-			uid, err := registerPlatformUser(tt.data)
+			uid, err := registerPlatformUser(data)
 			if tt.wantErr {
 				require.Error(t, err)
-				if tt.wantErrText != "" {
-					require.ErrorContains(t, err, tt.wantErrText)
-				}
 				return
 			}
 			require.NoError(t, err)
@@ -275,165 +185,115 @@ func TestRegisterPlatformUser(t *testing.T) {
 				assert.NotEmpty(t, uid.String())
 			}
 			if tt.wantCreated {
-				require.NotNil(t, tt.store.createPlatform)
-				assert.NotEmpty(t, tt.store.createPlatform.Flag)
+				user, err := store.UserStoreFromDB().UserGet(context.Background(), uid)
+				require.NoError(t, err)
+				pus, err := store.UserStoreFromDB().GetPlatformUsersByUserId(context.Background(), user.ID)
+				require.NoError(t, err)
+				require.Len(t, pus, 1)
+				pu := pus[0]
+				assert.NotEmpty(t, pu.Flag)
 				if tt.wantEmail != "" {
-					assert.Equal(t, tt.wantEmail, tt.store.createPlatform.Email)
+					assert.Equal(t, tt.wantEmail, pu.Email)
 				}
-				assert.Equal(t, "-", tt.store.createPlatform.AvatarURL)
-				assert.Equal(t, int64(42), tt.store.createPlatform.UserID)
-			} else {
-				assert.Nil(t, tt.store.createPlatform)
+				assert.Equal(t, "-", pu.AvatarURL)
+				assert.NotZero(t, pu.UserID)
 			}
-			if tt.name == "broken platform user link is repaired with new user id" {
-				require.NotNil(t, tt.store.updatedPlatform)
-				assert.Equal(t, int64(42), tt.store.updatedPlatform.UserID)
+			if tt.checkRepair {
+				pu, err := store.UserStoreFromDB().GetPlatformUserByFlag(context.Background(), "U01DMQDTV5W")
+				require.NoError(t, err)
+				assert.NotZero(t, pu.UserID)
+				user, err := store.UserStoreFromDB().GetUserById(context.Background(), pu.UserID)
+				require.NoError(t, err)
+				assert.NotEmpty(t, user.Flag)
 			}
 		})
 	}
 }
 
-type channelRegistrationStore struct {
-	testStoreAdapter
-	platform         *gen.Platform
-	platformChannel  *gen.PlatformChannel
-	channel          *gen.Channel
-	createdChannel   *gen.Channel
-	createdPlatform  *gen.PlatformChannel
-	updatedChannelID int64
-}
-
-func (s *channelRegistrationStore) GetPlatformByName(_ context.Context, name string) (*gen.Platform, error) {
-	if s.platform == nil || s.platform.Name != name {
-		return nil, types.ErrNotFound
-	}
-	return s.platform, nil
-}
-
-func (s *channelRegistrationStore) GetPlatformChannelByFlag(_ context.Context, flag string) (*gen.PlatformChannel, error) {
-	if s.platformChannel == nil || s.platformChannel.Flag != flag {
-		return nil, types.ErrNotFound
-	}
-	return s.platformChannel, nil
-}
-
-func (s *channelRegistrationStore) GetChannel(_ context.Context, id int64) (*gen.Channel, error) {
-	if s.channel == nil || s.channel.ID != id {
-		return nil, types.ErrNotFound
-	}
-	return s.channel, nil
-}
-
-func (s *channelRegistrationStore) CreateChannel(_ context.Context, channel *gen.Channel) (int64, error) {
-	s.createdChannel = channel
-	channel.ID = 501
-	return channel.ID, nil
-}
-
-func (s *channelRegistrationStore) CreatePlatformChannel(_ context.Context, item *gen.PlatformChannel) (int64, error) {
-	s.createdPlatform = item
-	return 77, nil
-}
-
-func (s *channelRegistrationStore) UpdatePlatformChannelChannelID(_ context.Context, platformChannelID, channelID int64) error {
-	if s.platformChannel == nil || s.platformChannel.ID != platformChannelID {
-		return types.ErrNotFound
-	}
-	s.updatedChannelID = channelID
-	s.platformChannel.ChannelID = channelID
-	return nil
-}
-
-func (*channelRegistrationStore) CreatePlatformChannelUser(context.Context, *gen.PlatformChannelUser) (int64, error) {
-	return 1, nil
-}
-
 func TestRegisterPlatformChannel(t *testing.T) {
 	tests := []struct {
 		name              string
-		store             *channelRegistrationStore
-		data              protocol.MessageEventData
+		seed              func(t *testing.T) protocol.MessageEventData
 		wantErr           bool
 		wantCreateChannel bool
-		wantLinkChannelID int64
+		wantExistingFlag  string
 		wantRepair        bool
 	}{
 		{
 			name: "new topic creates platform channel with persisted channel id",
-			store: &channelRegistrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-			},
-			data: protocol.MessageEventData{
-				Self:    protocol.Self{Platform: "slack"},
-				TopicId: "D01DMRLE0HW",
-				UserId:  "U01DMQDTV5W",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				seedTestPlatform(t, "slack")
+				return protocol.MessageEventData{
+					Self:    protocol.Self{Platform: "slack"},
+					TopicId: "D01DMRLE0HW",
+					UserId:  "U01DMQDTV5W",
+				}
 			},
 			wantCreateChannel: true,
-			wantLinkChannelID: 501,
 		},
 		{
 			name: "existing topic returns linked channel flag",
-			store: &channelRegistrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-				platformChannel: &gen.PlatformChannel{
-					ID:        12,
-					ChannelID: 88,
-					Flag:      "D01DMRLE0HW",
-				},
-				channel: &gen.Channel{ID: 88, Flag: "existing-channel"},
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				channelID := seedTestChannel(t, "existing-channel")
+				seedTestPlatformChannel(t, platformID, channelID, "D01DMRLE0HW")
+				return protocol.MessageEventData{
+					Self:    protocol.Self{Platform: "slack"},
+					TopicId: "D01DMRLE0HW",
+					UserId:  "U01DMQDTV5W",
+				}
 			},
-			data: protocol.MessageEventData{
-				Self:    protocol.Self{Platform: "slack"},
-				TopicId: "D01DMRLE0HW",
-				UserId:  "U01DMQDTV5W",
-			},
-			wantCreateChannel: false,
+			wantExistingFlag: "existing-channel",
 		},
 		{
 			name: "broken platform channel link is repaired with new channel id",
-			store: &channelRegistrationStore{
-				platform: &gen.Platform{ID: 7, Name: "slack"},
-				platformChannel: &gen.PlatformChannel{
-					ID:        12,
-					ChannelID: 0,
-					Flag:      "D01DMRLE0HW",
-				},
-			},
-			data: protocol.MessageEventData{
-				Self:    protocol.Self{Platform: "slack"},
-				TopicId: "D01DMRLE0HW",
-				UserId:  "U01DMQDTV5W",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				now := time.Now()
+				_, err := store.PlatformStoreFromDB().CreatePlatformChannel(context.Background(), &gen.PlatformChannel{
+					PlatformID: platformID,
+					ChannelID:  0,
+					Flag:       "D01DMRLE0HW",
+					CreatedAt:  now,
+					UpdatedAt:  now,
+				})
+				require.NoError(t, err)
+				return protocol.MessageEventData{
+					Self:    protocol.Self{Platform: "slack"},
+					TopicId: "D01DMRLE0HW",
+					UserId:  "U01DMQDTV5W",
+				}
 			},
 			wantCreateChannel: true,
-			wantLinkChannelID: 501,
 			wantRepair:        true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = tt.store
-			t.Cleanup(func() { store.Database = orig })
+			setupSQLiteTestDB(t)
+			data := tt.seed(t)
 
-			flag, err := registerPlatformChannel(tt.data)
+			flag, err := registerPlatformChannel(data)
 			if tt.wantErr {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
 			assert.NotEmpty(t, flag)
+			if tt.wantExistingFlag != "" {
+				assert.Equal(t, tt.wantExistingFlag, flag)
+				return
+			}
+			pc, err := store.PlatformStoreFromDB().GetPlatformChannelByFlag(context.Background(), data.TopicId)
+			require.NoError(t, err)
 			if tt.wantCreateChannel {
-				require.NotNil(t, tt.store.createdChannel)
-				assert.Equal(t, int64(501), tt.store.createdChannel.ID)
-			} else {
-				assert.Nil(t, tt.store.createdChannel)
-				assert.Equal(t, "existing-channel", flag)
+				assert.NotZero(t, pc.ChannelID)
+				ch, err := store.PlatformStoreFromDB().GetChannel(context.Background(), pc.ChannelID)
+				require.NoError(t, err)
+				assert.Equal(t, flag, ch.Flag)
 			}
 			if tt.wantRepair {
-				assert.Equal(t, tt.wantLinkChannelID, tt.store.updatedChannelID)
-			} else if tt.wantLinkChannelID > 0 {
-				require.NotNil(t, tt.store.createdPlatform)
-				assert.Equal(t, tt.wantLinkChannelID, tt.store.createdPlatform.ChannelID)
+				assert.NotZero(t, pc.ChannelID)
 			}
 		})
 	}

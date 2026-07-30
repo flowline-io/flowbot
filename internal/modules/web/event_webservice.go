@@ -39,14 +39,10 @@ func requireAdmin(ctx fiber.Ctx) error {
 }
 
 func getEventStore() *store.EventStore {
-	if store.Database == nil || store.Database.GetDB() == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewEventStore(client)
+	return store.EventStoreFromDB()
 }
 
 func hasWebhookData(e *gen.DataEvent) bool {

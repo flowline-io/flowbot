@@ -61,11 +61,7 @@ func getPipelineDefStore() *store.PipelineStore {
 	if store.Database == nil {
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok {
-		return nil
-	}
-	return store.NewPipelineStore(client)
+	return store.PipelineStoreFromDB()
 }
 
 func pipelineListPage(c fiber.Ctx) error {

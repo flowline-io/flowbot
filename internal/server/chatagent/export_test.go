@@ -86,7 +86,7 @@ func TestExportSession(t *testing.T) {
 				if state == 0 {
 					state = int(schema.ChatSessionActive)
 				}
-				require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+				require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 					Flag: sessionID, UID: "user-1", State: state, CreatedAt: now, UpdatedAt: now,
 				}))
 				require.NoError(t, tt.setup(sessionID))

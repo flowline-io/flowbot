@@ -28,18 +28,13 @@ func initWorkflow(
 	auditor audit.Auditor,
 	wc *metrics.WorkflowCollector,
 ) error {
-	if store.Database == nil || store.Database.GetDB() == nil {
+	if store.Database == nil || store.Database.GetClient() == nil {
 		flog.Warn("workflow service skipped: store.Database not ready")
 		return nil
 	}
-	client, ok := store.Database.GetDB().(*store.Client)
-	if !ok || client == nil {
-		flog.Warn("workflow service skipped: store client unavailable")
-		return nil
-	}
 
-	catalog := store.NewWorkflowStore(client)
-	runs := store.NewWorkflowRunStore(client)
+	catalog := store.WorkflowStoreFromDB()
+	runs := store.NewWorkflowRunStore(store.Database.GetClient())
 	svc := workflow.NewService(catalog, runs, auditor, wc)
 	if err := svc.ReloadTriggers(context.Background()); err != nil {
 		return fmt.Errorf("reload workflow triggers: %w", err)

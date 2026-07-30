@@ -94,7 +94,7 @@ func TestRunAPIWithFakeModel(t *testing.T) {
 
 	ctx := context.Background()
 	sessionID := "sess-api-run"
-	require.NoError(t, store.Database.CreateChatSession(ctx, &gen.ChatSession{
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
 		Flag: sessionID, UID: "user-1", State: int(schema.ChatSessionActive),
 	}))
 

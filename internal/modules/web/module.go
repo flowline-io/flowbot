@@ -103,15 +103,13 @@ func (moduleHandler) Bootstrap() error {
 		flog.Info("web auth: revoked %d legacy or pending web session(s); re-login required", n)
 	}
 	warnResidualYAMLAuth()
-	if store.Database != nil && store.Database.GetDB() != nil {
-		if client, ok := store.Database.GetDB().(*store.Client); ok {
-			es := store.NewEventStore(client)
-			sources, err := es.ListDistinctEventSources(context.Background(), 30*24*time.Hour)
-			if err == nil {
-				distinctTypes, err2 := es.ListDistinctEventTypes(context.Background(), 30*24*time.Hour)
-				if err2 == nil {
-					types.EventFilterCache.Hydrate(sources, distinctTypes)
-				}
+	if store.Database != nil {
+		es := store.EventStoreFromDB()
+		sources, err := es.ListDistinctEventSources(context.Background(), 30*24*time.Hour)
+		if err == nil {
+			distinctTypes, err2 := es.ListDistinctEventTypes(context.Background(), 30*24*time.Hour)
+			if err2 == nil {
+				types.EventFilterCache.Hydrate(sources, distinctTypes)
 			}
 		}
 	}

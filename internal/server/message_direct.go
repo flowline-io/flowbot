@@ -82,7 +82,7 @@ func buildDirectMessageContext(eventCtx context.Context, eventID string, msg pro
 	ctx.SetContext(eventCtx)
 	ctx.SetTimeout(10 * time.Minute)
 
-	platform, err := store.Database.GetPlatformByName(ctx.Context(), msg.Self.Platform)
+	platform, err := store.PlatformStoreFromDB().GetPlatformByName(ctx.Context(), msg.Self.Platform)
 	if err != nil {
 		return directMessageContext{}, err
 	}
@@ -100,7 +100,7 @@ func isDuplicateDirectMessage(dmCtx directMessageContext) bool {
 	if dmCtx.msg.MessageId == "" {
 		return false
 	}
-	findMessage, err := store.Database.GetMessageByPlatform(dmCtx.ctx.Context(), dmCtx.platformID, dmCtx.msg.MessageId)
+	findMessage, err := store.MessageStoreFromDB().GetMessageByPlatform(dmCtx.ctx.Context(), dmCtx.platformID, dmCtx.msg.MessageId)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		flog.Error(err)
 		return true
@@ -135,7 +135,7 @@ func refreshChatSessionCache(ctx types.Context, chatKey cache.Key, sessionID str
 }
 
 func persistDirectUserMessage(dmCtx directMessageContext, sessionID string, msg protocol.MessageEventData) bool {
-	err := store.Database.CreateMessage(dmCtx.ctx.Context(), gen.Message{
+	err := store.MessageStoreFromDB().CreateMessage(dmCtx.ctx.Context(), gen.Message{
 		Flag:          types.Id(),
 		PlatformID:    dmCtx.platformID,
 		PlatformMsgID: msg.MessageId,
