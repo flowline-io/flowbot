@@ -9,7 +9,7 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/subagent"
 	"github.com/flowline-io/flowbot/pkg/flog"
 )

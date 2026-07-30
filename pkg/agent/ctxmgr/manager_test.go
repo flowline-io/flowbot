@@ -5,7 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -25,12 +26,12 @@ func TestManagerEnsureWithinBudgetCompacts(t *testing.T) {
 			setup: func(ctx context.Context, s *session.Session) error {
 				long := strings.Repeat("word ", 5000)
 				if err := s.Append(ctx, session.TreeEntry{
-					ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage(long),
+					ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage(long),
 				}); err != nil {
 					return err
 				}
 				return s.Append(ctx, session.TreeEntry{
-					ID: "2", ParentID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("recent"),
+					ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("recent"),
 				})
 			},
 			contextWindow:  1000,
@@ -40,7 +41,7 @@ func TestManagerEnsureWithinBudgetCompacts(t *testing.T) {
 			name: "skips short history",
 			setup: func(ctx context.Context, s *session.Session) error {
 				return s.Append(ctx, session.TreeEntry{
-					ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("hi"),
+					ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("hi"),
 				})
 			},
 			contextWindow:  128000,
@@ -71,8 +72,8 @@ func TestManagerEnsureWithinBudgetCompacts(t *testing.T) {
 				SystemPrompt:  "system",
 			})
 
-			ag := agent.NewAgent(agent.Options{
-				InitialState: &agent.Context{SystemPrompt: "system"},
+			ag := loop.NewAgent(loop.Options{
+				InitialState: &msg.Context{SystemPrompt: "system"},
 			})
 			err := mgr.EnsureWithinBudget(ctx, sess, ag)
 			require.NoError(t, err)

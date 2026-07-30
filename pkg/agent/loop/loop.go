@@ -1,4 +1,4 @@
-package agent
+package loop
 
 import (
 	"context"
@@ -34,7 +34,7 @@ type LoopDeps struct {
 type ModelResolver func(ctx context.Context, modelName string) (llms.Model, error)
 
 // RunLoop starts a new agent loop from prompt messages.
-func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg Config, deps LoopDeps, stream *agentevent.Stream) ([]AgentMessage, error) {
+func RunLoop(ctx context.Context, prompts []msg.AgentMessage, agentCtx *msg.Context, cfg msg.Config, deps LoopDeps, stream *agentevent.Stream) ([]msg.AgentMessage, error) {
 	cfg = cfg.WithDefaults()
 	cfg = model.ApplyDefaultRouter(cfg)
 	if deps.Registry == nil {
@@ -47,7 +47,7 @@ func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg
 		cfg.TransformContext = transform.FilterContext
 	}
 
-	newMessages := append([]AgentMessage(nil), prompts...)
+	newMessages := append([]msg.AgentMessage(nil), prompts...)
 	current := cloneContext(agentCtx)
 	current.Messages = append(current.Messages, prompts...)
 
@@ -82,14 +82,14 @@ func RunLoop(ctx context.Context, prompts []AgentMessage, agentCtx *Context, cfg
 }
 
 // RunLoopContinue resumes a loop from existing context without adding prompts.
-func RunLoopContinue(ctx context.Context, agentCtx *Context, cfg Config, deps LoopDeps, stream *agentevent.Stream) ([]AgentMessage, error) {
+func RunLoopContinue(ctx context.Context, agentCtx *msg.Context, cfg msg.Config, deps LoopDeps, stream *agentevent.Stream) ([]msg.AgentMessage, error) {
 	cfg = cfg.WithDefaults()
 	cfg = model.ApplyDefaultRouter(cfg)
 	if agentCtx == nil || len(agentCtx.Messages) == 0 {
 		return nil, ErrEmptyContext
 	}
 	last := agentCtx.Messages[len(agentCtx.Messages)-1]
-	if _, ok := last.(AssistantMessage); ok {
+	if _, ok := last.(msg.AssistantMessage); ok {
 		return nil, ErrInvalidContinue
 	}
 	if deps.Registry == nil {
@@ -103,7 +103,7 @@ func RunLoopContinue(ctx context.Context, agentCtx *Context, cfg Config, deps Lo
 	}
 
 	current := cloneContext(agentCtx)
-	var newMessages []AgentMessage
+	var newMessages []msg.AgentMessage
 	emit := func(ev agentevent.Event) error {
 		if stream == nil {
 			return nil
@@ -133,15 +133,15 @@ func RunLoopContinue(ctx context.Context, agentCtx *Context, cfg Config, deps Lo
 
 func runLoopCore(
 	ctx context.Context,
-	current *Context,
-	cfg Config,
+	current *msg.Context,
+	cfg msg.Config,
 	deps LoopDeps,
 	emit func(agentevent.Event) error,
-	newMessages *[]AgentMessage,
+	newMessages *[]msg.AgentMessage,
 	continuing bool,
 ) error {
 	steps := 0
-	pending := []AgentMessage(nil)
+	pending := []msg.AgentMessage(nil)
 	state := innerLoopState{
 		ctx:         ctx,
 		current:     current,
@@ -190,25 +190,25 @@ func runLoopCore(
 
 func streamAssistant(
 	ctx context.Context,
-	current *Context,
-	cfg Config,
+	current *msg.Context,
+	cfg msg.Config,
 	deps LoopDeps,
 	emit func(agentevent.Event) error,
-) (AssistantMessage, error) {
+) (msg.AssistantMessage, error) {
 	ctx, span := trace.StartSpan(ctx, "agent.llm.stream")
 	defer span.End()
 
 	llmMessages, modelName, toolReasoning, err := prepareLLMStreamInput(ctx, current, cfg)
 	if err != nil {
-		return AssistantMessage{}, err
+		return msg.AssistantMessage{}, err
 	}
 
 	activeTools := deps.Registry.ActiveTools()
 	llmTools := tool.BuildLLMTools(activeTools)
 
 	if emit != nil {
-		if err := emit(agentevent.Event{Type: agentevent.TypeMessageStart, Message: AssistantMessage{}}); err != nil {
-			return AssistantMessage{}, err
+		if err := emit(agentevent.Event{Type: agentevent.TypeMessageStart, Message: msg.AssistantMessage{}}); err != nil {
+			return msg.AssistantMessage{}, err
 		}
 	}
 
@@ -221,7 +221,7 @@ func streamAssistant(
 	if err != nil {
 		metrics.Agent().IncLLMRequest(modelName, "error")
 		trace.RecordError(ctx, err)
-		return AssistantMessage{}, err
+		return msg.AssistantMessage{}, err
 	}
 	result, err := agentllm.StreamAssistant(ctx, llmModel, current.SystemPrompt, llmMessages, streamOpts)
 	metrics.Agent().ObserveLLMDuration(modelName, time.Since(start).Seconds())
@@ -229,18 +229,18 @@ func streamAssistant(
 		err = agentresult.WrapOverflowError(err)
 		metrics.Agent().IncLLMRequest(modelName, "error")
 		trace.RecordError(ctx, err)
-		return AssistantMessage{}, err
+		return msg.AssistantMessage{}, err
 	}
 	metrics.Agent().IncLLMRequest(modelName, "ok")
 
 	assistant := assistantFromStreamResult(result, capture)
 	if err := emitAssistantEnd(emit, assistant); err != nil {
-		return AssistantMessage{}, err
+		return msg.AssistantMessage{}, err
 	}
 	return assistant, nil
 }
 
-func prepareLLMStreamInput(ctx context.Context, current *Context, cfg Config) ([]llms.MessageContent, string, map[string]string, error) {
+func prepareLLMStreamInput(ctx context.Context, current *msg.Context, cfg msg.Config) ([]llms.MessageContent, string, map[string]string, error) {
 	messages := current.Messages
 	if cfg.TransformContext != nil {
 		transformed, err := cfg.TransformContext(messages)
@@ -316,7 +316,7 @@ func collectAssistantToolReasoning(messages []msg.AgentMessage) map[string]strin
 	return out
 }
 
-func buildStreamOptions(cfg Config, modelName string, llmTools []llms.Tool, emit func(agentevent.Event) error, capture *reasoningCapture) agentllm.StreamOptions {
+func buildStreamOptions(cfg msg.Config, modelName string, llmTools []llms.Tool, emit func(agentevent.Event) error, capture *reasoningCapture) agentllm.StreamOptions {
 	retry := llmRetryFromConfig(cfg)
 	retry.OnRetry = func(_ int, _ time.Duration, _ error) {
 		metrics.Agent().IncLLMRetry(modelName)
@@ -337,10 +337,10 @@ func buildStreamOptions(cfg Config, modelName string, llmTools []llms.Tool, emit
 	return streamOpts
 }
 
-func assistantFromStreamResult(result agentllm.AssistantResult, capture reasoningCapture) AssistantMessage {
-	parts := make([]ContentPart, 0, 1+len(result.ToolCalls))
+func assistantFromStreamResult(result agentllm.AssistantResult, capture reasoningCapture) msg.AssistantMessage {
+	parts := make([]msg.ContentPart, 0, 1+len(result.ToolCalls))
 	if trimmed := msg.TrimToolCallStreamContent(result.Content); trimmed != "" {
-		parts = append(parts, TextPart{Text: trimmed})
+		parts = append(parts, msg.TextPart{Text: trimmed})
 	}
 	for _, call := range result.ToolCalls {
 		args := ""
@@ -349,14 +349,14 @@ func assistantFromStreamResult(result agentllm.AssistantResult, capture reasonin
 			args = call.FunctionCall.Arguments
 			name = call.FunctionCall.Name
 		}
-		parts = append(parts, ToolCallPart{
+		parts = append(parts, msg.ToolCallPart{
 			ID:        msg.EnsureToolCallID(call.ID),
 			Name:      name,
 			Arguments: args,
 		})
 	}
 
-	assistant := AssistantMessage{
+	assistant := msg.AssistantMessage{
 		Parts:      parts,
 		Model:      result.ModelName,
 		StopReason: result.StopReason,
@@ -369,7 +369,7 @@ func assistantFromStreamResult(result agentllm.AssistantResult, capture reasonin
 	return assistant
 }
 
-func emitAssistantEnd(emit func(agentevent.Event) error, assistant AssistantMessage) error {
+func emitAssistantEnd(emit func(agentevent.Event) error, assistant msg.AssistantMessage) error {
 	if emit == nil {
 		return nil
 	}
@@ -427,7 +427,7 @@ func messageTextDeltaHandler(emit func(agentevent.Event) error) func(string) err
 	}
 }
 
-func llmRetryFromConfig(cfg Config) agentllm.RetryConfig {
+func llmRetryFromConfig(cfg msg.Config) agentllm.RetryConfig {
 	retry := agentllm.DefaultRetryConfig()
 	if cfg.LLMRetryMaxAttempts > 0 {
 		retry.MaxAttempts = cfg.LLMRetryMaxAttempts
@@ -444,11 +444,11 @@ func llmRetryFromConfig(cfg Config) agentllm.RetryConfig {
 	return retry
 }
 
-func usageToMsg(usage *agentllm.Usage) *Usage {
+func usageToMsg(usage *agentllm.Usage) *msg.Usage {
 	if usage == nil {
 		return nil
 	}
-	return &Usage{
+	return &msg.Usage{
 		PromptTokens:     usage.PromptTokens,
 		CompletionTokens: usage.CompletionTokens,
 		TotalTokens:      usage.TotalTokens,
@@ -457,34 +457,34 @@ func usageToMsg(usage *agentllm.Usage) *Usage {
 	}
 }
 
-func emitMessage(emit func(agentevent.Event) error, message AgentMessage) error {
+func emitMessage(emit func(agentevent.Event) error, message msg.AgentMessage) error {
 	if err := emit(agentevent.Event{Type: agentevent.TypeMessageStart, Message: message}); err != nil {
 		return err
 	}
 	return emit(agentevent.Event{Type: agentevent.TypeMessageEnd, Message: message})
 }
 
-func drainQueue(existing, incoming []AgentMessage, mode QueueMode) []AgentMessage {
-	combined := make([]AgentMessage, 0, len(existing)+len(incoming))
+func drainQueue(existing, incoming []msg.AgentMessage, mode msg.QueueMode) []msg.AgentMessage {
+	combined := make([]msg.AgentMessage, 0, len(existing)+len(incoming))
 	combined = append(combined, existing...)
 	combined = append(combined, incoming...)
-	if mode == QueueOne && len(combined) > 1 {
+	if mode == msg.QueueOne && len(combined) > 1 {
 		return combined[:1]
 	}
 	return combined
 }
 
-func cloneContext(src *Context) *Context {
+func cloneContext(src *msg.Context) *msg.Context {
 	if src == nil {
-		return &Context{}
+		return &msg.Context{}
 	}
 	clone := *src
-	clone.Messages = append([]AgentMessage(nil), src.Messages...)
+	clone.Messages = append([]msg.AgentMessage(nil), src.Messages...)
 	return &clone
 }
 
-func toAgentMessages(messages []AgentMessage) []AgentMessage {
-	return append([]AgentMessage(nil), messages...)
+func toAgentMessages(messages []msg.AgentMessage) []msg.AgentMessage {
+	return append([]msg.AgentMessage(nil), messages...)
 }
 
 func abortLoopError(err error) error {
@@ -495,7 +495,7 @@ func abortLoopError(err error) error {
 }
 
 // turnModelName returns the provider model name for the next LLM request.
-func turnModelName(cfg Config, current *Context) string {
+func turnModelName(cfg msg.Config, current *msg.Context) string {
 	if cfg.ModelName != "" {
 		return cfg.ModelName
 	}

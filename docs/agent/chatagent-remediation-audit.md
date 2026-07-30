@@ -64,7 +64,7 @@ Related acceptance boundary: `docs/agent/chatagent-feature-checklist.md`.
 
 Import hotspots (non-test, approximate):
 
-- `pkg/agent/msg`, `coding`, `tool`, `hooks`, `permission`, `session`, `harness`, `ctxmgr`, `event`, `llm`, `subagent`, `memory`, `env`, `sandbox`.
+- `pkg/agent/msg`, `tools/coding`, `tool`, `hooks`, `permission`, `session`, `harness`, `ctxmgr`, `event`, `llm`, `subagent`, `env`, `sandbox`; product tools under `internal/server/chatagent/tools/`.
 
 #### Findings
 

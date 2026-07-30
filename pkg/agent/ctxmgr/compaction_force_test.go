@@ -5,7 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -15,20 +16,20 @@ import (
 
 func TestPrepareCompactionForceAfterCompactionLeaf(t *testing.T) {
 	base := []session.TreeEntry{
-		{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("old")},
-		{ID: "2", ParentID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("kept")},
+		{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("old")},
+		{ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("kept")},
 		{ID: "3", ParentID: "2", Type: session.EntryCompaction, Summary: "summary", FirstKeptEntryID: "2"},
 	}
 
 	tests := []struct {
 		name      string
 		force     bool
-		extra     []agent.AgentMessage
+		extra     []msg.AgentMessage
 		wantNil   bool
 		wantFirst string
 	}{
 		{name: "force without extra", force: true, wantFirst: "2"},
-		{name: "force with extra messages", force: true, extra: []agent.AgentMessage{agent.NewUserMessage("pending turn")}, wantFirst: "2"},
+		{name: "force with extra messages", force: true, extra: []msg.AgentMessage{msg.NewUserMessage("pending turn")}, wantFirst: "2"},
 		{name: "no force returns nil", force: false, wantNil: true},
 	}
 
@@ -56,10 +57,10 @@ func TestCompactAndReloadForceWithExtraMessages(t *testing.T) {
 	store := session.NewMemoryStorage()
 	sess := session.New(store)
 	require.NoError(t, sess.Append(ctx, session.TreeEntry{
-		ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage(strings.Repeat("x ", 2000)),
+		ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage(strings.Repeat("x ", 2000)),
 	}))
 	require.NoError(t, sess.Append(ctx, session.TreeEntry{
-		ID: "2", ParentID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("kept"),
+		ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("kept"),
 	}))
 	require.NoError(t, sess.Append(ctx, session.TreeEntry{
 		ID: "3", ParentID: "2", Type: session.EntryCompaction, Summary: "old summary", FirstKeptEntryID: "2",
@@ -71,14 +72,14 @@ func TestCompactAndReloadForceWithExtraMessages(t *testing.T) {
 		Settings:     ctxmgr.Settings{Enabled: true, ReserveTokens: 100, KeepRecentTokens: 2},
 		SystemPrompt: "system",
 	})
-	ag := agent.NewAgent(agent.Options{
-		InitialState: &agent.Context{
+	ag := loop.NewAgent(loop.Options{
+		InitialState: &msg.Context{
 			SystemPrompt: "system",
 			Messages: append(session.BuildContext([]session.TreeEntry{
-				{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage(strings.Repeat("x ", 2000))},
-				{ID: "2", ParentID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("kept")},
+				{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage(strings.Repeat("x ", 2000))},
+				{ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("kept")},
 				{ID: "3", ParentID: "2", Type: session.EntryCompaction, Summary: "old summary", FirstKeptEntryID: "2"},
-			}).Messages, agent.NewUserMessage("unsaved user turn")),
+			}).Messages, msg.NewUserMessage("unsaved user turn")),
 		},
 	})
 
@@ -94,20 +95,20 @@ func TestCompactAndReloadForceWithExtraMessages(t *testing.T) {
 func TestIsContextOverflowMessage(t *testing.T) {
 	tests := []struct {
 		name    string
-		message agent.AssistantMessage
+		message msg.AssistantMessage
 		window  int
 		want    bool
 	}{
-		{name: "error text", message: agent.AssistantMessage{StopReason: "error", Parts: []agent.ContentPart{
-			agent.TextPart{Text: "prompt is too long"},
+		{name: "error text", message: msg.AssistantMessage{StopReason: "error", Parts: []msg.ContentPart{
+			msg.TextPart{Text: "prompt is too long"},
 		}}, window: 128000, want: true},
-		{name: "silent usage overflow", message: agent.AssistantMessage{
+		{name: "silent usage overflow", message: msg.AssistantMessage{
 			StopReason: "complete",
-			Usage:      &agent.Usage{PromptTokens: 130000},
+			Usage:      &msg.Usage{PromptTokens: 130000},
 		}, window: 128000, want: true},
-		{name: "normal", message: agent.AssistantMessage{
+		{name: "normal", message: msg.AssistantMessage{
 			StopReason: "complete",
-			Usage:      &agent.Usage{PromptTokens: 1000},
+			Usage:      &msg.Usage{PromptTokens: 1000},
 		}, window: 128000, want: false},
 	}
 

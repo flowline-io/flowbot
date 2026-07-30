@@ -1,12 +1,13 @@
-package agent_test
+package loop_test
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -35,26 +36,26 @@ func TestRunLoop_StreamingEvents(t *testing.T) {
 				return nil
 			})
 
-			cfg := agent.DefaultConfig()
+			cfg := loop.DefaultConfig()
 			cfg.MaxSteps = 5
 			cfg.ModelName = "fake"
 
-			_, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
-				agent.NewUserMessage("stream"),
-			}, &agent.Context{}, cfg, agent.LoopDeps{Model: model}, stream)
+			_, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+				loop.NewUserMessage("stream"),
+			}, &msg.Context{}, cfg, loop.LoopDeps{Model: model}, stream)
 			require.NoError(t, err)
 
 			var starts, updates, ends int
 			for _, ev := range events {
 				switch ev.Type {
 				case agentevent.TypeMessageStart:
-					if _, ok := ev.Message.(agent.AssistantMessage); ok {
+					if _, ok := ev.Message.(msg.AssistantMessage); ok {
 						starts++
 					}
 				case agentevent.TypeMessageUpdate:
 					updates++
 				case agentevent.TypeMessageEnd:
-					if _, ok := ev.Message.(agent.AssistantMessage); ok {
+					if _, ok := ev.Message.(msg.AssistantMessage); ok {
 						ends++
 					}
 				}
@@ -93,13 +94,13 @@ func TestRunLoop_ReasoningStream(t *testing.T) {
 				return nil
 			})
 
-			cfg := agent.DefaultConfig()
+			cfg := loop.DefaultConfig()
 			cfg.ModelName = "deepseek-v4-chat"
 			cfg.MaxSteps = 3
 
-			_, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
-				agent.NewUserMessage("reason"),
-			}, &agent.Context{}, cfg, agent.LoopDeps{Model: model}, stream)
+			_, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+				loop.NewUserMessage("reason"),
+			}, &msg.Context{}, cfg, loop.LoopDeps{Model: model}, stream)
 			require.NoError(t, err)
 
 			if tt.wantReasoning {
@@ -126,7 +127,7 @@ func TestRunLoop_StreamingCancelled(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 			stream := agentevent.NewStream(8)
-			_, err := agent.RunLoop(ctx, []agent.AgentMessage{agent.NewUserMessage("x")}, &agent.Context{}, agent.DefaultConfig(), agent.LoopDeps{
+			_, err := loop.RunLoop(ctx, []msg.AgentMessage{loop.NewUserMessage("x")}, &msg.Context{}, loop.DefaultConfig(), loop.LoopDeps{
 				Model: agentllm.NewFakeModel(agentllm.ResponseScript{Chunks: []string{"x"}}),
 			}, stream)
 			assert.Error(t, err)

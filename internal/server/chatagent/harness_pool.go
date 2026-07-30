@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"

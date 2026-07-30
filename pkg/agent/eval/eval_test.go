@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/eval"
-	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -95,14 +96,14 @@ func TestRunScenarios(t *testing.T) {
 			for _, item := range tt.scenario.Tools {
 				require.NoError(t, reg.Register(item))
 			}
-			cfg := agent.DefaultConfig()
+			cfg := loop.DefaultConfig()
 			cfg.ModelName = "eval-fake"
 			if tt.scenario.Expect.MaxSteps > 0 {
 				cfg.MaxSteps = tt.scenario.Expect.MaxSteps
 			}
-			messages, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
-				agent.NewUserMessage(tt.scenario.Prompt),
-			}, &agent.Context{}, cfg, agent.LoopDeps{Model: model, Registry: reg}, nil)
+			messages, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+				msg.NewUserMessage(tt.scenario.Prompt),
+			}, &msg.Context{}, cfg, loop.LoopDeps{Model: model, Registry: reg}, nil)
 			metrics := eval.Score(messages, tt.scenario.Expect, err)
 			assert.Equal(t, tt.wantToolSelection, metrics.ToolSelectionCorrect)
 			assert.Equal(t, tt.wantArgsValid, metrics.ArgsValid)

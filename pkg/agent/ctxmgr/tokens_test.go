@@ -3,7 +3,7 @@ package ctxmgr_test
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/stretchr/testify/assert"
 )
@@ -11,12 +11,12 @@ import (
 func TestEstimateTokens(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  agent.AgentMessage
+		msg  msg.AgentMessage
 		want int
 	}{
-		{name: "short user", msg: agent.NewUserMessage("hello"), want: 2},
-		{name: "assistant text", msg: agent.AssistantMessage{Parts: []agent.ContentPart{agent.TextPart{Text: "12345678"}}}, want: 2},
-		{name: "branch summary", msg: agent.BranchSummaryMessage{Summary: "1234"}, want: 1},
+		{name: "short user", msg: msg.NewUserMessage("hello"), want: 2},
+		{name: "assistant text", msg: msg.AssistantMessage{Parts: []msg.ContentPart{msg.TextPart{Text: "12345678"}}}, want: 2},
+		{name: "branch summary", msg: msg.BranchSummaryMessage{Summary: "1234"}, want: 1},
 	}
 
 	for _, tt := range tests {
@@ -30,25 +30,25 @@ func TestEstimateTokens(t *testing.T) {
 func TestEstimateContextTokens(t *testing.T) {
 	tests := []struct {
 		name string
-		msgs []agent.AgentMessage
+		msgs []msg.AgentMessage
 		want int
 	}{
 		{
 			name: "usage plus trailing",
-			msgs: []agent.AgentMessage{
-				agent.NewUserMessage("a"),
-				agent.AssistantMessage{
-					Parts: []agent.ContentPart{agent.TextPart{Text: "b"}},
-					Usage: &agent.Usage{TotalTokens: 100},
+			msgs: []msg.AgentMessage{
+				msg.NewUserMessage("a"),
+				msg.AssistantMessage{
+					Parts: []msg.ContentPart{msg.TextPart{Text: "b"}},
+					Usage: &msg.Usage{TotalTokens: 100},
 				},
-				agent.NewUserMessage("cccc"),
+				msg.NewUserMessage("cccc"),
 			},
 			want: 101,
 		},
 		{
 			name: "no usage heuristic",
-			msgs: []agent.AgentMessage{
-				agent.NewUserMessage("12345678"),
+			msgs: []msg.AgentMessage{
+				msg.NewUserMessage("12345678"),
 			},
 			want: 2,
 		},

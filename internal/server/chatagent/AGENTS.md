@@ -4,7 +4,7 @@ Binds `pkg/agent` to REST (`/chatagent/*`), Web (`/service/web/agents/*`), platf
 
 ## Boundaries
 
-- **Allowed**: `pkg/agent/*`, `internal/store/*`, views via handlers.
+- **Allowed**: `pkg/agent/*`, `internal/store/*`, views via handlers. Product tools: `tools/clip`, `tools/notify`.
 - **Forbidden**: `internal/store` inside `pkg/agent`; store types in engine APIs.
 
 ## Entry points

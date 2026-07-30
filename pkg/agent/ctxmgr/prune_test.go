@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
@@ -27,24 +26,24 @@ func TestPruneToolOutputs(t *testing.T) {
 		{
 			name:     "keeps messages when prune disabled",
 			settings: ctxmgr.Settings{PruneToolOutputs: false},
-			messages: []msg.AgentMessage{agent.NewUserMessage("hi"), toolResult("read", strings.Repeat("a", 120000))},
+			messages: []msg.AgentMessage{msg.NewUserMessage("hi"), toolResult("read", strings.Repeat("a", 120000))},
 			wantLen:  2,
 		},
 		{
 			name:     "keeps small tool output batches",
 			settings: ctxmgr.Settings{PruneToolOutputs: true},
-			messages: []msg.AgentMessage{agent.NewUserMessage("hi"), toolResult("read", strings.Repeat("a", 10000))},
+			messages: []msg.AgentMessage{msg.NewUserMessage("hi"), toolResult("read", strings.Repeat("a", 10000))},
 			wantLen:  2,
 		},
 		{
 			name:     "prunes old large tool outputs but keeps recent messages",
 			settings: ctxmgr.Settings{PruneToolOutputs: true},
 			messages: []msg.AgentMessage{
-				agent.NewUserMessage("first"),
+				msg.NewUserMessage("first"),
 				toolResult("read", strings.Repeat("a", 120000)),
-				agent.NewUserMessage("second"),
+				msg.NewUserMessage("second"),
 				toolResult("read", strings.Repeat("b", 120000)),
-				agent.NewUserMessage("recent"),
+				msg.NewUserMessage("recent"),
 			},
 			wantLen: 4,
 		},

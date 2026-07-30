@@ -10,8 +10,8 @@ import (
 	"github.com/tmc/langchaingo/llms"
 	"go.opentelemetry.io/otel/attribute"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	fbtrace "github.com/flowline-io/flowbot/pkg/trace"
@@ -48,7 +48,7 @@ type Deps struct {
 	// Registry holds the tools available to the subagent after allowlist filtering.
 	Registry *tool.Registry
 	// Config is the loop configuration; defaults are applied when zero.
-	Config agent.Config
+	Config msg.Config
 	// Depth is the current delegation depth of the caller (0 for the primary agent).
 	Depth int
 	// MaxDepth caps nested delegation; values <= 0 default to 1.
@@ -60,7 +60,7 @@ type Result struct {
 	// Text is the concatenated assistant text produced by the subagent.
 	Text string
 	// Messages are all messages generated during the subagent run.
-	Messages []agent.AgentMessage
+	Messages []msg.AgentMessage
 }
 
 // ProgressFn receives human-readable progress updates from the subagent run.
@@ -86,18 +86,18 @@ func Run(ctx context.Context, def Definition, deps Deps, prompt string, onProgre
 		return Result{}, ErrNoModel
 	}
 
-	agentCtx := &agent.Context{
+	agentCtx := &msg.Context{
 		SystemPrompt: def.SystemPrompt,
 		ModelName:    def.Model,
 	}
-	prompts := []agent.AgentMessage{agent.NewUserMessage(prompt)}
+	prompts := []msg.AgentMessage{msg.NewUserMessage(prompt)}
 
 	stream := agentevent.NewStream(64)
 	done := make(chan struct{})
-	var runMessages []agent.AgentMessage
+	var runMessages []msg.AgentMessage
 	var runErr error
 	go func() {
-		runMessages, runErr = agent.RunLoop(ctx, prompts, agentCtx, deps.Config, agent.LoopDeps{
+		runMessages, runErr = loop.RunLoop(ctx, prompts, agentCtx, deps.Config, loop.LoopDeps{
 			Model:    deps.Model,
 			Registry: deps.Registry,
 		}, stream)
@@ -118,9 +118,9 @@ func Run(ctx context.Context, def Definition, deps Deps, prompt string, onProgre
 }
 
 // FinalText returns the concatenated text of the last assistant message in the run.
-func FinalText(messages []agent.AgentMessage) string {
+func FinalText(messages []msg.AgentMessage) string {
 	for i := len(messages) - 1; i >= 0; i-- {
-		if assistant, ok := messages[i].(agent.AssistantMessage); ok {
+		if assistant, ok := messages[i].(msg.AssistantMessage); ok {
 			if text := assistant.TextContent(); text != "" {
 				return text
 			}

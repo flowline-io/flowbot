@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

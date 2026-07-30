@@ -3,7 +3,7 @@ package coding_test
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/stretchr/testify/assert"

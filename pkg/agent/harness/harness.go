@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	agentresult "github.com/flowline-io/flowbot/pkg/agent/result"
@@ -37,7 +37,7 @@ const (
 
 // Options configures a harness instance.
 type Options struct {
-	AgentOptions   agent.Options
+	AgentOptions   loop.Options
 	Session        *session.Session
 	Router         *model.Router
 	SystemPrompt   string
@@ -55,7 +55,7 @@ type Harness struct {
 	runStartedAt         time.Time
 	persistedPromptCount int
 	persistedToolCallIDs map[string]struct{}
-	agent                *agent.Agent
+	agent                *loop.Agent
 	session              *session.Session
 	registry             *tool.Registry
 	router               *model.Router
@@ -63,7 +63,7 @@ type Harness struct {
 	modelName            string
 	ctxMgr               *ctxmgr.Manager
 	hookRegistry         *hooks.Registry
-	loopBaseCfg          agent.Config
+	loopBaseCfg          msg.Config
 }
 
 // New creates a harness with optional session and router dependencies.
@@ -93,7 +93,7 @@ func New(opts Options) *Harness {
 		hookRegistry = hooks.NewRegistry()
 	}
 
-	agentInstance := agent.NewAgent(opts.AgentOptions)
+	agentInstance := loop.NewAgent(opts.AgentOptions)
 
 	return &Harness{
 		agent:                agentInstance,
@@ -145,7 +145,7 @@ func (h *Harness) SetSystemPrompt(systemPrompt string) {
 // MoveTo switches the session leaf, auto-summarizing abandoned branches when configured.
 func (h *Harness) MoveTo(ctx context.Context, entryID, summary string) error {
 	if h.session == nil {
-		return normalizeHarnessError("busy", "session unavailable", agent.ErrAborted)
+		return normalizeHarnessError("busy", "session unavailable", loop.ErrAborted)
 	}
 	if h.ctxMgr != nil {
 		if err := h.ctxMgr.MoveTo(ctx, h.session, entryID, summary); err != nil {
@@ -170,13 +170,13 @@ func (h *Harness) SetRunStartedAt(start time.Time) {
 }
 
 // Prompt starts an agent run with optional session persistence.
-func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*agentevent.Stream, error) {
+func (h *Harness) Prompt(ctx context.Context, prompts ...msg.AgentMessage) (*agentevent.Stream, error) {
 	if err := h.requireIdle(); err != nil {
 		return nil, err
 	}
 	h.setPhase(PhaseBusy)
 
-	prompts = append([]agent.AgentMessage(nil), prompts...)
+	prompts = append([]msg.AgentMessage(nil), prompts...)
 	startResult, err := h.hookRegistry.EmitBeforeAgentStart(ctx, hooks.BeforeAgentStartEvent{
 		Messages:     prompts,
 		SystemPrompt: h.systemPrompt,
@@ -215,7 +215,7 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 
 	routed := model.ApplyDefaultRouter(h.loopBaseCfg)
 	bridged := hooks.BridgeConfig(ctx, h.hookRegistry, routed)
-	h.agent.ApplyConfig(func(cfg *agent.Config) {
+	h.agent.ApplyConfig(func(cfg *msg.Config) {
 		steering := cfg.GetSteeringMessages
 		followUp := cfg.GetFollowUpMessages
 		hooks.MergeHookFields(cfg, &bridged)
@@ -225,7 +225,7 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 
 	if h.modelName != "" {
 		h.mu.Lock()
-		h.agent.ApplyState(func(state *agent.Context) {
+		h.agent.ApplyState(func(state *msg.Context) {
 			state.SystemPrompt = transform.MergeSystemPrompt(state.SystemPrompt, h.systemPrompt)
 			state.ModelName = h.modelName
 			if h.router != nil {
@@ -254,7 +254,7 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 		switch {
 		case result.Err == nil:
 			metrics.Agent().IncRunTotal("ok")
-		case errors.Is(result.Err, agent.ErrAborted), errors.Is(result.Err, context.Canceled):
+		case errors.Is(result.Err, loop.ErrAborted), errors.Is(result.Err, context.Canceled):
 			metrics.Agent().IncRunTotal("cancelled")
 			trace.RecordError(runCtx, result.Err)
 		default:
@@ -268,7 +268,7 @@ func (h *Harness) Prompt(ctx context.Context, prompts ...agent.AgentMessage) (*a
 }
 
 // Agent exposes the underlying stateful agent.
-func (h *Harness) Agent() *agent.Agent {
+func (h *Harness) Agent() *loop.Agent {
 	return h.agent
 }
 
@@ -349,7 +349,7 @@ func (h *Harness) emitContextUsage(ctx context.Context) {
 	})
 }
 
-func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, prompts []agent.AgentMessage, level int) agentevent.Result {
+func (h *Harness) watchStream(ctx context.Context, stream *agentevent.Stream, prompts []msg.AgentMessage, level int) agentevent.Result {
 	// Await with a detached context so a cancelled run ctx cannot race ahead of the
 	// agent loop and overwrite the loop's terminal error (for example ErrAborted).
 	result, awaitErr := stream.Await(context.Background())
@@ -425,7 +425,7 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 
 	parentID, _ := h.currentLeafID(ctx)
 	for _, item := range messages {
-		message, ok := item.(agent.AgentMessage)
+		message, ok := item.(msg.AgentMessage)
 		if !ok {
 			continue
 		}
@@ -450,7 +450,7 @@ func (h *Harness) finishStream(ctx context.Context, result agentevent.Result) {
 
 // persistPromptMessages writes the turn prompts to the session before the loop
 // runs so reloads can show the user message while a confirm gate is waiting.
-func (h *Harness) persistPromptMessages(ctx context.Context, prompts []agent.AgentMessage) error {
+func (h *Harness) persistPromptMessages(ctx context.Context, prompts []msg.AgentMessage) error {
 	if h.session == nil || len(prompts) == 0 {
 		return nil
 	}
@@ -490,7 +490,7 @@ func (h *Harness) persistPartialFromEvent(ctx context.Context, ev agentevent.Eve
 	h.persistOneMessage(ctx, result)
 }
 
-func (h *Harness) persistOneMessage(ctx context.Context, message agent.AgentMessage) {
+func (h *Harness) persistOneMessage(ctx context.Context, message msg.AgentMessage) {
 	if h.session == nil || message == nil {
 		return
 	}
@@ -567,7 +567,7 @@ func applyRunDuration(messages []any, runStart time.Time) []any {
 func agentMessagesFromResult(messages []any) []msg.AgentMessage {
 	result := make([]msg.AgentMessage, 0, len(messages))
 	for _, item := range messages {
-		message, ok := item.(agent.AgentMessage)
+		message, ok := item.(msg.AgentMessage)
 		if ok {
 			result = append(result, message)
 		}
@@ -579,7 +579,7 @@ func (h *Harness) requireIdle() error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if h.phase != PhaseIdle {
-		return agent.ErrAborted
+		return loop.ErrAborted
 	}
 	return nil
 }

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -15,11 +15,11 @@ import (
 
 func branchTree() []session.TreeEntry {
 	return []session.TreeEntry{
-		{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("root")},
-		{ID: "left", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("left")},
-		{ID: "old-leaf", ParentID: "left", Type: session.EntryMessage, Message: agent.NewUserMessage("old")},
-		{ID: "right", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("right")},
-		{ID: "new-leaf", ParentID: "right", Type: session.EntryMessage, Message: agent.NewUserMessage("new")},
+		{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("root")},
+		{ID: "left", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("left")},
+		{ID: "old-leaf", ParentID: "left", Type: session.EntryMessage, Message: msg.NewUserMessage("old")},
+		{ID: "right", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("right")},
+		{ID: "new-leaf", ParentID: "right", Type: session.EntryMessage, Message: msg.NewUserMessage("new")},
 	}
 }
 
@@ -64,8 +64,8 @@ func TestPrepareBranchSummary(t *testing.T) {
 
 	long := strings.Repeat("word ", 200)
 	entries := []session.TreeEntry{
-		{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage(long)},
-		{ID: "2", Type: session.EntryMessage, Message: agent.NewUserMessage("recent")},
+		{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage(long)},
+		{ID: "2", Type: session.EntryMessage, Message: msg.NewUserMessage("recent")},
 	}
 
 	tests := []struct {
@@ -96,15 +96,15 @@ func TestRunBranchSummary(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		messages []agent.AgentMessage
+		messages []msg.AgentMessage
 		wantOK   bool
 		wantText string
 	}{
 		{name: "empty messages returns empty summary", messages: nil, wantOK: true, wantText: ""},
-		{name: "generates summary text", messages: []agent.AgentMessage{agent.NewUserMessage("discuss plan")}, wantOK: true, wantText: "Branch recap"},
-		{name: "multiple messages summarized", messages: []agent.AgentMessage{
-			agent.NewUserMessage("one"),
-			agent.NewUserMessage("two"),
+		{name: "generates summary text", messages: []msg.AgentMessage{msg.NewUserMessage("discuss plan")}, wantOK: true, wantText: "Branch recap"},
+		{name: "multiple messages summarized", messages: []msg.AgentMessage{
+			msg.NewUserMessage("one"),
+			msg.NewUserMessage("two"),
 		}, wantOK: true, wantText: "Branch recap"},
 	}
 

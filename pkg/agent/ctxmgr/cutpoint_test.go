@@ -3,7 +3,7 @@ package ctxmgr_test
 import (
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
@@ -11,11 +11,11 @@ import (
 )
 
 func TestFindCutPoint(t *testing.T) {
-	longText := agent.NewUserMessage(string(make([]byte, 400)))
+	longText := msg.NewUserMessage(string(make([]byte, 400)))
 	entries := []session.TreeEntry{
-		{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("old")},
+		{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("old")},
 		{ID: "2", Type: session.EntryMessage, Message: longText},
-		{ID: "3", Type: session.EntryMessage, Message: agent.NewUserMessage("recent")},
+		{ID: "3", Type: session.EntryMessage, Message: msg.NewUserMessage("recent")},
 	}
 
 	tests := []struct {
@@ -43,9 +43,9 @@ func TestFindCutPoint(t *testing.T) {
 
 func TestPrepareCompaction(t *testing.T) {
 	entries := []session.TreeEntry{
-		{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("one")},
-		{ID: "2", Type: session.EntryMessage, Message: agent.NewUserMessage("two")},
-		{ID: "3", Type: session.EntryMessage, Message: agent.NewUserMessage("three")},
+		{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("one")},
+		{ID: "2", Type: session.EntryMessage, Message: msg.NewUserMessage("two")},
+		{ID: "3", Type: session.EntryMessage, Message: msg.NewUserMessage("three")},
 	}
 
 	tests := []struct {

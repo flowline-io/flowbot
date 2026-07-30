@@ -1,7 +1,8 @@
-package agent
+package loop
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"time"
 
 	agentevent "github.com/flowline-io/flowbot/pkg/agent/event"
@@ -13,12 +14,12 @@ import (
 
 type innerLoopState struct {
 	ctx         context.Context
-	current     *Context
-	cfg         Config
+	current     *msg.Context
+	cfg         msg.Config
 	deps        LoopDeps
 	emit        func(agentevent.Event) error
-	newMessages *[]AgentMessage
-	pending     *[]AgentMessage
+	newMessages *[]msg.AgentMessage
+	pending     *[]msg.AgentMessage
 	steps       *int
 }
 
@@ -107,7 +108,7 @@ func (s *innerLoopState) runTurn() (stopInner bool, err error) {
 	return stopInner, nil
 }
 
-func (s *innerLoopState) executeTools(assistant AssistantMessage) ([]ToolResultMessage, bool, bool, error) {
+func (s *innerLoopState) executeTools(assistant msg.AssistantMessage) ([]msg.ToolResultMessage, bool, bool, error) {
 	hasToolCalls := len(assistant.ToolCalls()) > 0
 	if !hasToolCalls {
 		return nil, false, false, nil
@@ -139,12 +140,12 @@ func (s *innerLoopState) executeTools(assistant AssistantMessage) ([]ToolResultM
 	return batch.Messages, batch.Terminate, hasToolCalls, nil
 }
 
-func (s *innerLoopState) applyTurnHooks(assistant AssistantMessage, toolResults []ToolResultMessage) error {
-	turnCtx := TurnContext{
+func (s *innerLoopState) applyTurnHooks(assistant msg.AssistantMessage, toolResults []msg.ToolResultMessage) error {
+	turnCtx := msg.TurnContext{
 		Message:     assistant,
 		ToolResults: toolResults,
 		Context:     s.current,
-		NewMessages: append([]AgentMessage(nil), *s.newMessages...),
+		NewMessages: append([]msg.AgentMessage(nil), *s.newMessages...),
 	}
 	if s.cfg.PrepareNextTurn != nil {
 		update, err := s.cfg.PrepareNextTurn(turnCtx)

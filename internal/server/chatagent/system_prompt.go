@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/agent/clip"
-	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 )
 

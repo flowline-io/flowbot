@@ -123,7 +123,7 @@ _ = reg.Register(MyTool{})
 reg.SetActive([]string{"disk_usage"}) // review mode: read-only tools only
 ```
 
-See reference: [pkg/agent/example/echo/](../../pkg/agent/example/echo/echo.go).
+See reference: [pkg/agent/tools/echo/](../../pkg/agent/tools/echo/echo.go).
 
 ## Persistent memory (fact memory + session summaries)
 

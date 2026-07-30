@@ -1,13 +1,14 @@
-package agent_test
+package loop_test
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/llms"
@@ -20,7 +21,7 @@ func TestRunLoop_ToolThenComplete(t *testing.T) {
 		wantError error
 	}{
 		{name: "completes after tool call", maxSteps: 10, wantError: nil},
-		{name: "respects max steps", maxSteps: 1, wantError: agent.ErrMaxSteps},
+		{name: "respects max steps", maxSteps: 1, wantError: loop.ErrMaxSteps},
 		{name: "default max steps", maxSteps: 0, wantError: nil},
 	}
 
@@ -44,13 +45,13 @@ func TestRunLoop_ToolThenComplete(t *testing.T) {
 			reg := tool.NewRegistry()
 			require.NoError(t, reg.Register(echo.Tool{}))
 
-			cfg := agent.DefaultConfig()
+			cfg := loop.DefaultConfig()
 			cfg.MaxSteps = tt.maxSteps
 			cfg.ModelName = "fake"
 
-			messages, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
-				agent.NewUserMessage("run echo"),
-			}, &agent.Context{}, cfg, agent.LoopDeps{Model: model, Registry: reg}, nil)
+			messages, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+				loop.NewUserMessage("run echo"),
+			}, &msg.Context{}, cfg, loop.LoopDeps{Model: model, Registry: reg}, nil)
 
 			if tt.wantError != nil {
 				assert.ErrorIs(t, err, tt.wantError)
@@ -76,10 +77,10 @@ func TestRunLoop_Aborted(t *testing.T) {
 			t.Parallel()
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
-			_, err := agent.RunLoop(ctx, []agent.AgentMessage{agent.NewUserMessage("x")}, &agent.Context{}, agent.DefaultConfig(), agent.LoopDeps{
+			_, err := loop.RunLoop(ctx, []msg.AgentMessage{loop.NewUserMessage("x")}, &msg.Context{}, loop.DefaultConfig(), loop.LoopDeps{
 				Model: agentllm.NewFakeModel(agentllm.ResponseScript{Content: "x"}),
 			}, nil)
-			assert.ErrorIs(t, err, agent.ErrAborted)
+			assert.ErrorIs(t, err, loop.ErrAborted)
 		})
 	}
 }
@@ -97,11 +98,11 @@ func TestAgent_Prompt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "hello"})
-			ag := agent.NewAgent(agent.Options{
+			ag := loop.NewAgent(loop.Options{
 				Model:  model,
-				Config: agent.Config{ModelName: "fake", MaxSteps: 5},
+				Config: msg.Config{ModelName: "fake", MaxSteps: 5},
 			})
-			stream, err := ag.Prompt(context.Background(), agent.NewUserMessage("hi"))
+			stream, err := ag.Prompt(context.Background(), loop.NewUserMessage("hi"))
 			require.NoError(t, err)
 			result, err := stream.Await(context.Background())
 			require.NoError(t, err)
@@ -114,19 +115,19 @@ func TestAgent_Prompt(t *testing.T) {
 func TestRunLoopContinue_Invalid(t *testing.T) {
 	tests := []struct {
 		name    string
-		ctx     *agent.Context
+		ctx     *msg.Context
 		wantErr error
 	}{
-		{name: "empty context", ctx: &agent.Context{}, wantErr: agent.ErrEmptyContext},
-		{name: "assistant last message", ctx: &agent.Context{Messages: []agent.AgentMessage{agent.AssistantMessage{}}}, wantErr: agent.ErrInvalidContinue},
-		{name: "valid continue", ctx: &agent.Context{Messages: []agent.AgentMessage{agent.NewUserMessage("x")}}, wantErr: nil},
+		{name: "empty context", ctx: &msg.Context{}, wantErr: loop.ErrEmptyContext},
+		{name: "assistant last message", ctx: &msg.Context{Messages: []msg.AgentMessage{msg.AssistantMessage{}}}, wantErr: loop.ErrInvalidContinue},
+		{name: "valid continue", ctx: &msg.Context{Messages: []msg.AgentMessage{loop.NewUserMessage("x")}}, wantErr: nil},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			model := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
-			_, err := agent.RunLoopContinue(context.Background(), tt.ctx, agent.DefaultConfig(), agent.LoopDeps{Model: model}, nil)
+			_, err := loop.RunLoopContinue(context.Background(), tt.ctx, loop.DefaultConfig(), loop.LoopDeps{Model: model}, nil)
 			if tt.wantErr != nil {
 				assert.ErrorIs(t, err, tt.wantErr)
 				return

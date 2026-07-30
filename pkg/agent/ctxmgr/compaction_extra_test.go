@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
@@ -15,15 +15,15 @@ func TestPrepareCompactionExtraOnly(t *testing.T) {
 	t.Parallel()
 
 	entries := []session.TreeEntry{
-		{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("kept")},
+		{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("kept")},
 		{ID: "2", Type: session.EntryCompaction, Summary: "prior", FirstKeptEntryID: "1"},
 	}
-	extra := []agent.AgentMessage{agent.NewUserMessage("in-flight turn")}
+	extra := []msg.AgentMessage{msg.NewUserMessage("in-flight turn")}
 
 	tests := []struct {
 		name    string
 		entries []session.TreeEntry
-		extra   []agent.AgentMessage
+		extra   []msg.AgentMessage
 		force   bool
 		wantNil bool
 	}{
@@ -56,18 +56,18 @@ func TestFindCutPointSplitTurn(t *testing.T) {
 
 	long := strings.Repeat("token ", 300)
 	entries := []session.TreeEntry{
-		{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("question")},
-		{ID: "2", Type: session.EntryMessage, Message: agent.AssistantMessage{
-			Parts: []agent.ContentPart{
-				agent.TextPart{Text: long},
-				agent.ToolCallPart{Name: "read_file", Arguments: `{}`},
+		{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("question")},
+		{ID: "2", Type: session.EntryMessage, Message: msg.AssistantMessage{
+			Parts: []msg.ContentPart{
+				msg.TextPart{Text: long},
+				msg.ToolCallPart{Name: "read_file", Arguments: `{}`},
 			},
 		}},
-		{ID: "3", Type: session.EntryMessage, Message: agent.ToolResultMessage{
-			Parts: []agent.ContentPart{agent.TextPart{Text: "file contents"}},
+		{ID: "3", Type: session.EntryMessage, Message: msg.ToolResultMessage{
+			Parts: []msg.ContentPart{msg.TextPart{Text: "file contents"}},
 		}},
-		{ID: "4", Type: session.EntryMessage, Message: agent.AssistantMessage{
-			Parts: []agent.ContentPart{agent.TextPart{Text: "final answer"}},
+		{ID: "4", Type: session.EntryMessage, Message: msg.AssistantMessage{
+			Parts: []msg.ContentPart{msg.TextPart{Text: "final answer"}},
 		}},
 	}
 
@@ -97,8 +97,8 @@ func TestSerializeConversationTruncatesToolOutput(t *testing.T) {
 	t.Parallel()
 
 	longText := strings.Repeat("x", 2500)
-	got := ctxmgr.SerializeConversation([]agent.AgentMessage{
-		agent.ToolResultMessage{Parts: []agent.ContentPart{agent.TextPart{Text: longText}}},
+	got := ctxmgr.SerializeConversation([]msg.AgentMessage{
+		msg.ToolResultMessage{Parts: []msg.ContentPart{msg.TextPart{Text: longText}}},
 	})
 
 	tests := []struct {

@@ -83,6 +83,22 @@ type UserMessage struct {
 	Timestamp time.Time
 }
 
+// NewUserMessage builds a text user message with the current timestamp.
+func NewUserMessage(text string) UserMessage {
+	return UserMessage{
+		Parts:     []ContentPart{TextPart{Text: text}},
+		Timestamp: time.Now().UTC(),
+	}
+}
+
+// NewUserMessageWithParts builds a multimodal user message.
+func NewUserMessageWithParts(parts ...ContentPart) UserMessage {
+	return UserMessage{
+		Parts:     parts,
+		Timestamp: time.Now().UTC(),
+	}
+}
+
 // Role returns RoleUser.
 func (UserMessage) Role() MessageRole { return RoleUser }
 

@@ -1,11 +1,12 @@
-package agent_test
+package loop_test
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,13 +14,13 @@ import (
 func TestAgentApplyConfigPersistsAcrossPrompts(t *testing.T) {
 	tests := []struct {
 		name      string
-		apply     func(*agent.Agent)
+		apply     func(*loop.Agent)
 		wantSteps int
 	}{
 		{
 			name: "updates max steps before prompt",
-			apply: func(a *agent.Agent) {
-				a.ApplyConfig(func(cfg *agent.Config) {
+			apply: func(a *loop.Agent) {
+				a.ApplyConfig(func(cfg *msg.Config) {
 					cfg.MaxSteps = 1
 				})
 			},
@@ -27,8 +28,8 @@ func TestAgentApplyConfigPersistsAcrossPrompts(t *testing.T) {
 		},
 		{
 			name: "preserves steering queue drains",
-			apply: func(a *agent.Agent) {
-				a.ApplyConfig(func(cfg *agent.Config) {
+			apply: func(a *loop.Agent) {
+				a.ApplyConfig(func(cfg *msg.Config) {
 					cfg.MaxSteps = 2
 				})
 			},
@@ -36,8 +37,8 @@ func TestAgentApplyConfigPersistsAcrossPrompts(t *testing.T) {
 		},
 		{
 			name: "config snapshot matches applied value",
-			apply: func(a *agent.Agent) {
-				a.ApplyConfig(func(cfg *agent.Config) {
+			apply: func(a *loop.Agent) {
+				a.ApplyConfig(func(cfg *msg.Config) {
 					cfg.MaxSteps = 3
 				})
 			},
@@ -50,11 +51,11 @@ func TestAgentApplyConfigPersistsAcrossPrompts(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
 			fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
-			ag := agent.NewAgent(agent.Options{Model: fakeModel, Config: agent.DefaultConfig()})
+			ag := loop.NewAgent(loop.Options{Model: fakeModel, Config: loop.DefaultConfig()})
 			tt.apply(ag)
 			assert.Equal(t, tt.wantSteps, ag.Config().MaxSteps)
 
-			stream, err := ag.Prompt(ctx, agent.NewUserMessage("hello"))
+			stream, err := ag.Prompt(ctx, loop.NewUserMessage("hello"))
 			require.NoError(t, err)
 			_, err = stream.Await(ctx)
 			require.NoError(t, err)
@@ -78,10 +79,10 @@ func TestAgentConsecutivePromptsAfterAwait(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
 			fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
-			ag := agent.NewAgent(agent.Options{Model: fakeModel, Config: agent.DefaultConfig()})
+			ag := loop.NewAgent(loop.Options{Model: fakeModel, Config: loop.DefaultConfig()})
 
 			for range tt.prompts {
-				stream, err := ag.Prompt(ctx, agent.NewUserMessage("hello"))
+				stream, err := ag.Prompt(ctx, loop.NewUserMessage("hello"))
 				require.NoError(t, err)
 				result, err := stream.Await(ctx)
 				require.NoError(t, err)

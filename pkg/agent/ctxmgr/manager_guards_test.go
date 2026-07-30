@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -76,8 +76,8 @@ func TestRunCompaction(t *testing.T) {
 			name: "split turn compacts prefix and history",
 			prep: &ctxmgr.CompactionPreparation{
 				FirstKeptEntryID:    "keep",
-				MessagesToSummarize: []agent.AgentMessage{agent.NewUserMessage("history")},
-				TurnPrefixMessages:  []agent.AgentMessage{agent.NewUserMessage("prefix")},
+				MessagesToSummarize: []msg.AgentMessage{msg.NewUserMessage("history")},
+				TurnPrefixMessages:  []msg.AgentMessage{msg.NewUserMessage("prefix")},
 				IsSplitTurn:         true,
 				FileOps:             ctxmgr.NewFileOperations(),
 				Settings:            ctxmgr.Settings{},
@@ -125,7 +125,7 @@ func TestManagerCompactAndReloadDisabled(t *testing.T) {
 	store := session.NewMemoryStorage()
 	sess := session.New(store)
 	require.NoError(t, sess.Append(ctx, session.TreeEntry{
-		ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("hello"),
+		ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("hello"),
 	}))
 
 	mgr := ctxmgr.New(ctxmgr.Options{

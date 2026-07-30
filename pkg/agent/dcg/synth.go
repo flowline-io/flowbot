@@ -10,7 +10,7 @@ import (
 const ReasonBlocked = "command blocked by dcg"
 
 // SynthCommand builds a shell-shaped command string for dcg from run_code inputs.
-// Language aliases match pkg/agent/coding run_code interpreters.
+// Language aliases match pkg/agent/tools/coding run_code interpreters.
 func SynthCommand(language, code string) (string, error) {
 	lang := strings.ToLower(strings.TrimSpace(language))
 	body := strings.TrimSpace(code)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,15 +20,15 @@ func TestSession_BuildContextAndMoveTo(t *testing.T) {
 		{
 			name: "linear branch",
 			setup: func(ctx context.Context, s *session.Session) error {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
-				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("b")})
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")}))
+				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("b")})
 			},
 			wantMessages: 2,
 		},
 		{
 			name: "branch summary",
 			setup: func(ctx context.Context, s *session.Session) error {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")}))
 				return s.MoveTo(ctx, "root", "rolled back summary")
 			},
 			wantMessages: 2,
@@ -36,8 +36,8 @@ func TestSession_BuildContextAndMoveTo(t *testing.T) {
 		{
 			name: "compaction boundary",
 			setup: func(ctx context.Context, s *session.Session) error {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "old", Type: session.EntryMessage, Message: agent.NewUserMessage("old")}))
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "keep", ParentID: "old", Type: session.EntryMessage, Message: agent.NewUserMessage("kept")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "old", Type: session.EntryMessage, Message: msg.NewUserMessage("old")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "keep", ParentID: "old", Type: session.EntryMessage, Message: msg.NewUserMessage("kept")}))
 				return s.Append(ctx, session.TreeEntry{
 					ID: "compact", ParentID: "keep", Type: session.EntryCompaction,
 					Summary: "summary", FirstKeptEntryID: "keep", TokensBefore: 100,
@@ -84,8 +84,8 @@ func TestSessionBranchCache(t *testing.T) {
 		{
 			name: "reuses branch without second storage load",
 			setup: func(ctx context.Context, s *session.Session) error {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
-				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("b")})
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")}))
+				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("b")})
 			},
 			wantGetCalls:  1,
 			wantBranchLen: 2,
@@ -93,10 +93,10 @@ func TestSessionBranchCache(t *testing.T) {
 		{
 			name: "append invalidates branch cache",
 			setup: func(ctx context.Context, s *session.Session) error {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")}))
 				_, err := s.GetBranch(ctx, "")
 				require.NoError(t, err)
-				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("b")})
+				return s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("b")})
 			},
 			wantGetCalls:  2,
 			wantBranchLen: 2,
@@ -104,7 +104,7 @@ func TestSessionBranchCache(t *testing.T) {
 		{
 			name: "move to invalidates branch cache",
 			setup: func(ctx context.Context, s *session.Session) error {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")}))
 				_, err := s.GetBranch(ctx, "")
 				require.NoError(t, err)
 				return s.MoveTo(ctx, "root", "summary")
@@ -165,7 +165,7 @@ func TestSessionLeafID(t *testing.T) {
 		{
 			name: "returns current leaf without loading branch",
 			setup: func(ctx context.Context, s *session.Session) error {
-				return s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("a")})
+				return s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("a")})
 			},
 			wantID: "root",
 		},
@@ -201,11 +201,11 @@ func TestJSONL_SerializeDeserialize(t *testing.T) {
 		name    string
 		entries []session.TreeEntry
 	}{
-		{name: "single message", entries: []session.TreeEntry{{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("hi")}}},
+		{name: "single message", entries: []session.TreeEntry{{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("hi")}}},
 		{name: "model change", entries: []session.TreeEntry{{ID: "1", Type: session.EntryModelChange, ModelName: "gpt"}}},
 		{name: "multiple entries", entries: []session.TreeEntry{
-			{ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("a")},
-			{ID: "2", ParentID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("b")},
+			{ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("a")},
+			{ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("b")},
 		}},
 	}
 

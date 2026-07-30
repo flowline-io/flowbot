@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/agent/clip"
-	"github.com/flowline-io/flowbot/pkg/agent/coding"
+	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
+	agentnotify "github.com/flowline-io/flowbot/internal/server/chatagent/tools/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/env"
-	agentnotify "github.com/flowline-io/flowbot/pkg/agent/notify"
 	"github.com/flowline-io/flowbot/pkg/agent/sandbox"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 )

@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +19,7 @@ func TestApplyRunDuration(t *testing.T) {
 		{
 			name: "sets run duration on final assistant with text",
 			messages: []any{
-				agent.NewUserMessage("hi"),
+				msg.NewUserMessage("hi"),
 				msg.AssistantMessage{Parts: []msg.ContentPart{msg.ToolCallPart{Name: "echo"}}},
 				msg.ToolResultMessage{Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "ok"}}},
 				msg.AssistantMessage{Parts: []msg.ContentPart{msg.TextPart{Text: "done"}}},

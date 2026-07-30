@@ -29,7 +29,7 @@ import (
     "context"
 
     "github.com/flowline-io/flowbot/pkg/agent"
-    "github.com/flowline-io/flowbot/pkg/agent/example/echo"
+    "github.com/flowline-io/flowbot/pkg/agent/tools/echo"
     agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
     "github.com/flowline-io/flowbot/pkg/agent/tool"
 )
@@ -56,20 +56,20 @@ _ = result
 
 ```
 pkg/agent/
-├── agent.go, loop.go, config.go, types.go   # Public API and loop
-├── msg/                                      # Shared domain types (breaks import cycles)
-├── event/                                    # Lifecycle event stream
-├── llm/                                      # langchaingo adapter + FakeModel
-├── tool/                                     # Registry, executor, schema
-├── session/                                  # Session tree + JSONL helpers
-├── model/                                    # Dual-model router
-├── transform/                                # convertToLLM + multimodal
-├── hooks/                                    # Typed hook registry (on/observe/emit)
-├── harness/                                  # Orchestration; bridges hooks into loop
-├── ctxmgr/                                   # Context budget and compaction
-├── example/echo/                             # Reference tool
-└── AGENTS.md                                 # Maintainer guide (in-repo)
+├── facade.go, types.go           # Public facade (re-exports loop + msg aliases)
+├── msg/                          # Shared domain types
+├── result/ event/                # Result pattern + lifecycle events
+├── loop/                         # Observe-Think-Act + stateful Agent
+├── llm/ tool/ session/ model/ transform/ hooks/
+├── ctxmgr/ harness/ subagent/    # Orchestration
+├── env/ sandbox/ permission/ dcg/
+├── tools/coding/                 # Engine coding tools
+├── tools/echo/                   # Reference tool
+├── eval/
+└── AGENTS.md
 ```
+
+Product tools (clip, notify) live under `internal/server/chatagent/tools/`.
 
 ## Testing
 

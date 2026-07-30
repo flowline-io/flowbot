@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
@@ -76,8 +77,8 @@ func TestManagerMoveTo(t *testing.T) {
 		{
 			name: "explicit summary skips generation",
 			setup: func(s *session.Session) (string, string) {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("root")}))
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("leaf")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("root")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "leaf", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("leaf")}))
 				return "leaf", "root"
 			},
 			withSummary: true,
@@ -85,17 +86,17 @@ func TestManagerMoveTo(t *testing.T) {
 		{
 			name: "same leaf is no-op",
 			setup: func(s *session.Session) (string, string) {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "only", Type: session.EntryMessage, Message: agent.NewUserMessage("only")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "only", Type: session.EntryMessage, Message: msg.NewUserMessage("only")}))
 				return "only", "only"
 			},
 		},
 		{
 			name: "branch switch summarizes abandoned path",
 			setup: func(s *session.Session) (string, string) {
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("root")}))
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "left", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("left")}))
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "old", ParentID: "left", Type: session.EntryMessage, Message: agent.NewUserMessage("old work")}))
-				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "right", ParentID: "root", Type: session.EntryMessage, Message: agent.NewUserMessage("right")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("root")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "left", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("left")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "old", ParentID: "left", Type: session.EntryMessage, Message: msg.NewUserMessage("old work")}))
+				require.NoError(t, s.Append(ctx, session.TreeEntry{ID: "right", ParentID: "root", Type: session.EntryMessage, Message: msg.NewUserMessage("right")}))
 				return "old", "right"
 			},
 		},
@@ -136,7 +137,7 @@ func TestManagerReloadAgentState(t *testing.T) {
 	store := session.NewMemoryStorage()
 	sess := session.New(store)
 	require.NoError(t, sess.Append(ctx, session.TreeEntry{
-		ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("stored"),
+		ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("stored"),
 	}))
 
 	mgr := ctxmgr.New(ctxmgr.Options{
@@ -145,8 +146,8 @@ func TestManagerReloadAgentState(t *testing.T) {
 		ContextWindow: 4096,
 		SystemPrompt:  "system",
 	})
-	ag := agent.NewAgent(agent.Options{
-		InitialState: &agent.Context{Messages: []agent.AgentMessage{agent.NewUserMessage("extra")}},
+	ag := loop.NewAgent(loop.Options{
+		InitialState: &msg.Context{Messages: []msg.AgentMessage{msg.NewUserMessage("extra")}},
 	})
 
 	require.NoError(t, mgr.ReloadAgentState(ctx, sess, ag))

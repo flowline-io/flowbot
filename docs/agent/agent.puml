@@ -25,13 +25,13 @@ package "Hooks\npkg/agent/hooks" as HooksPkg #E1F5FE {
   [Registry on/observe/emit] as HookReg
 }
 
-package "Agent\npkg/agent/agent.go" as AgentPkg #BBDEFB {
+package "Agent\npkg/agent/loop" as AgentPkg #BBDEFB {
   [Prompt / Continue] as Prompt
   [Steer / FollowUp Queues] as Queues
   [Subscribe Handlers] as Subs
 }
 
-package "Loop\npkg/agent/loop.go" as Loop #C5CAE9 {
+package "Loop\npkg/agent/loop" as Loop #C5CAE9 {
   [Observe-Think-Act] as OTA
   [MaxSteps Guard] as Guard
 }

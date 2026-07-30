@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent/tools/clip"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/agent/clip"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 )

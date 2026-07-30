@@ -4,12 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/tmc/langchaingo/llms"
 )
+
+// StatefulAgent is the seam ctxmgr needs to read and rewrite in-flight agent state
+// without importing the loop/runtime package.
+type StatefulAgent interface {
+	State() *msg.Context
+	ApplyState(fn func(*msg.Context))
+}
 
 // ContextUsage reports estimated context consumption for UI and hooks.
 type ContextUsage struct {
@@ -77,7 +83,7 @@ func (m *Manager) GetContextUsage(path []session.TreeEntry) ContextUsage {
 }
 
 // EnsureWithinBudget compacts session history when usage exceeds the threshold.
-func (m *Manager) EnsureWithinBudget(ctx context.Context, sess *session.Session, ag *agent.Agent) error {
+func (m *Manager) EnsureWithinBudget(ctx context.Context, sess *session.Session, ag StatefulAgent) error {
 	if sess == nil || !m.settings.Enabled {
 		return nil
 	}
@@ -93,7 +99,7 @@ func (m *Manager) EnsureWithinBudget(ctx context.Context, sess *session.Session,
 }
 
 // CompactAndReload compacts the current branch and reloads agent state.
-func (m *Manager) CompactAndReload(ctx context.Context, sess *session.Session, ag *agent.Agent, opts CompactOpts) error {
+func (m *Manager) CompactAndReload(ctx context.Context, sess *session.Session, ag StatefulAgent, opts CompactOpts) error {
 	if sess == nil {
 		return fmt.Errorf("ctxmgr: nil session")
 	}
@@ -161,7 +167,7 @@ func (m *Manager) MoveTo(ctx context.Context, sess *session.Session, targetEntry
 func (m *Manager) compactPath(
 	ctx context.Context,
 	sess *session.Session,
-	ag *agent.Agent,
+	ag StatefulAgent,
 	path []session.TreeEntry,
 	opts CompactOpts,
 	contextTokens int,
@@ -204,7 +210,7 @@ func (m *Manager) compactPath(
 	return nil
 }
 
-func agentExtraMessages(ag *agent.Agent, path []session.TreeEntry) []msg.AgentMessage {
+func agentExtraMessages(ag StatefulAgent, path []session.TreeEntry) []msg.AgentMessage {
 	if ag == nil {
 		return nil
 	}
@@ -216,7 +222,7 @@ func agentExtraMessages(ag *agent.Agent, path []session.TreeEntry) []msg.AgentMe
 	return append([]msg.AgentMessage(nil), agentMsgs[len(sessionMsgs):]...)
 }
 
-func (m *Manager) ReloadAgentState(ctx context.Context, sess *session.Session, ag *agent.Agent) error {
+func (m *Manager) ReloadAgentState(ctx context.Context, sess *session.Session, ag StatefulAgent) error {
 	branch, err := sess.GetBranch(ctx, "")
 	if err != nil {
 		return fmt.Errorf("ctxmgr: reload branch: %w", err)

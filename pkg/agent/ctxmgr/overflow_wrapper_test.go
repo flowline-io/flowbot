@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
 	"github.com/flowline-io/flowbot/pkg/agent/result"
 	"github.com/stretchr/testify/assert"
@@ -46,21 +46,21 @@ func TestWrapOverflowErrorAndResult(t *testing.T) {
 func TestIsOverflowResult(t *testing.T) {
 	t.Parallel()
 
-	overflowMsg := agent.AssistantMessage{
+	overflowMsg := msg.AssistantMessage{
 		StopReason: "error",
-		Parts:      []agent.ContentPart{agent.TextPart{Text: "maximum context length is 128000 tokens"}},
+		Parts:      []msg.ContentPart{msg.TextPart{Text: "maximum context length is 128000 tokens"}},
 	}
 
 	tests := []struct {
 		name     string
 		err      error
-		messages []agent.AgentMessage
+		messages []msg.AgentMessage
 		window   int
 		want     bool
 	}{
 		{name: "stream error overflow", err: result.NewOverflowError("overflow", nil), want: true},
-		{name: "assistant message overflow", messages: []agent.AgentMessage{overflowMsg}, window: 128000, want: true},
-		{name: "no overflow signals", messages: []agent.AgentMessage{agent.NewUserMessage("hi")}, window: 128000, want: false},
+		{name: "assistant message overflow", messages: []msg.AgentMessage{overflowMsg}, window: 128000, want: true},
+		{name: "no overflow signals", messages: []msg.AgentMessage{msg.NewUserMessage("hi")}, window: 128000, want: false},
 	}
 
 	for _, tt := range tests {

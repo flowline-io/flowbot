@@ -3,19 +3,20 @@ package harness_test
 import (
 	"context"
 	"fmt"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/ctxmgr"
-	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/llms"
@@ -63,10 +64,10 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 			sess := session.New(store)
 			long := strings.Repeat("word ", 5000)
 			require.NoError(t, sess.Append(ctx, session.TreeEntry{
-				ID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage(long),
+				ID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage(long),
 			}))
 			require.NoError(t, sess.Append(ctx, session.TreeEntry{
-				ID: "2", ParentID: "1", Type: session.EntryMessage, Message: agent.NewUserMessage("recent"),
+				ID: "2", ParentID: "1", Type: session.EntryMessage, Message: msg.NewUserMessage("recent"),
 			}))
 
 			fakeModel := agentllm.NewFakeModel(tt.scripts...)
@@ -78,14 +79,14 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 				SystemPrompt:  "system",
 			})
 			h := harness.New(harness.Options{
-				AgentOptions:   agent.Options{Model: fakeModel},
+				AgentOptions:   loop.Options{Model: fakeModel},
 				Session:        sess,
 				ContextManager: ctxMgr,
 				SystemPrompt:   "system",
 				ModelName:      "fake",
 			})
 
-			_, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
+			_, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
 			require.NoError(t, err)
 			require.NoError(t, h.WaitIdle(ctx))
 
@@ -97,7 +98,7 @@ func TestHarnessOverflowRetryUsesFinalResult(t *testing.T) {
 			require.NoError(t, result.Err)
 			reply := ""
 			for i := len(result.Messages) - 1; i >= 0; i-- {
-				assistant, ok := result.Messages[i].(agent.AssistantMessage)
+				assistant, ok := result.Messages[i].(msg.AssistantMessage)
 				if !ok {
 					continue
 				}
@@ -147,17 +148,17 @@ func TestHarnessPersistsUserBeforeToolApproval(t *testing.T) {
 			require.NoError(t, toolReg.Register(echo.Tool{}))
 
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{
+				AgentOptions: loop.Options{
 					Model:    fakeModel,
 					Registry: toolReg,
-					Config:   agent.Config{MaxSteps: 10},
+					Config:   msg.Config{MaxSteps: 10},
 				},
 				Session:   sess,
 				Hooks:     regHooks,
 				ModelName: "fake",
 			})
 
-			_, err := h.Prompt(ctx, agent.NewUserMessage("please echo"))
+			_, err := h.Prompt(ctx, msg.NewUserMessage("please echo"))
 			require.NoError(t, err)
 
 			select {
@@ -171,14 +172,14 @@ func TestHarnessPersistsUserBeforeToolApproval(t *testing.T) {
 			require.NotEmpty(t, branch, "user must be persisted before tool approval")
 			userCount := 0
 			for _, entry := range branch {
-				um, ok := entry.Message.(agent.UserMessage)
+				um, ok := entry.Message.(msg.UserMessage)
 				if !ok {
 					continue
 				}
 				userCount++
 				var got strings.Builder
 				for _, part := range um.Parts {
-					if tp, ok := part.(agent.TextPart); ok {
+					if tp, ok := part.(msg.TextPart); ok {
 						got.WriteString(tp.Text)
 					}
 				}
@@ -194,7 +195,7 @@ func TestHarnessPersistsUserBeforeToolApproval(t *testing.T) {
 				require.NoError(t, err)
 				userCount = 0
 				for _, entry := range branch {
-					if _, ok := entry.Message.(agent.UserMessage); ok {
+					if _, ok := entry.Message.(msg.UserMessage); ok {
 						userCount++
 					}
 				}
@@ -210,7 +211,7 @@ func TestHarnessPersistsUserBeforeToolApproval(t *testing.T) {
 			require.NoError(t, err)
 			userCount = 0
 			for _, entry := range branch {
-				if _, ok := entry.Message.(agent.UserMessage); ok {
+				if _, ok := entry.Message.(msg.UserMessage); ok {
 					userCount++
 				}
 			}
@@ -272,17 +273,17 @@ func runPersistsToolStepsBetweenApprovals(t *testing.T) {
 	require.NoError(t, toolReg.Register(echo.Tool{}))
 
 	h := harness.New(harness.Options{
-		AgentOptions: agent.Options{
+		AgentOptions: loop.Options{
 			Model:    fakeModel,
 			Registry: toolReg,
-			Config:   agent.Config{MaxSteps: 10},
+			Config:   msg.Config{MaxSteps: 10},
 		},
 		Session:   sess,
 		Hooks:     regHooks,
 		ModelName: "fake",
 	})
 
-	_, err := h.Prompt(ctx, agent.NewUserMessage("echo twice"))
+	_, err := h.Prompt(ctx, msg.NewUserMessage("echo twice"))
 	require.NoError(t, err)
 
 	select {
@@ -311,7 +312,7 @@ func branchHasToolResult(t *testing.T, sess *session.Session) bool {
 	branch, err := sess.GetBranch(context.Background(), "")
 	require.NoError(t, err)
 	for _, entry := range branch {
-		if _, ok := entry.Message.(agent.ToolResultMessage); ok {
+		if _, ok := entry.Message.(msg.ToolResultMessage); ok {
 			return true
 		}
 	}
@@ -323,10 +324,10 @@ func assertNoMidTurnToolPersist(t *testing.T, sess *session.Session) {
 	branch, err := sess.GetBranch(context.Background(), "")
 	require.NoError(t, err)
 	for _, entry := range branch {
-		if _, ok := entry.Message.(agent.ToolResultMessage); ok {
+		if _, ok := entry.Message.(msg.ToolResultMessage); ok {
 			t.Fatal("tool result must not exist before first approval")
 		}
-		if as, ok := entry.Message.(agent.AssistantMessage); ok && len(as.ToolCalls()) > 0 {
+		if as, ok := entry.Message.(msg.AssistantMessage); ok && len(as.ToolCalls()) > 0 {
 			t.Fatal("tool-call assistant must not be mid-persisted before approval")
 		}
 	}
@@ -338,11 +339,11 @@ func countBranchMessageKinds(t *testing.T, sess *session.Session) (userCount, to
 	require.NoError(t, err)
 	for _, entry := range branch {
 		switch m := entry.Message.(type) {
-		case agent.UserMessage:
+		case msg.UserMessage:
 			userCount++
-		case agent.ToolResultMessage:
+		case msg.ToolResultMessage:
 			toolCount++
-		case agent.AssistantMessage:
+		case msg.AssistantMessage:
 			if len(m.ToolCalls()) == 0 && m.TextContent() != "" {
 				textAssistant++
 			}
@@ -364,11 +365,11 @@ func TestHarnessRespectsCompactionDisabledOnOverflow(t *testing.T) {
 		Settings:      ctxmgr.Settings{Enabled: false},
 	})
 	h := harness.New(harness.Options{
-		AgentOptions:   agent.Options{Model: fakeModel},
+		AgentOptions:   loop.Options{Model: fakeModel},
 		ContextManager: ctxMgr,
 		ModelName:      "fake",
 	})
-	_, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
+	_, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
 	require.NoError(t, err)
 	require.NoError(t, h.WaitIdle(ctx))
 	require.Error(t, h.LastRunResult().Err)
@@ -423,23 +424,23 @@ func TestHarnessRouterDualModelRouting(t *testing.T) {
 			require.NoError(t, reg.Register(echo.Tool{}))
 
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{
+				AgentOptions: loop.Options{
 					Model:    fakeModel,
 					Registry: reg,
-					Config:   agent.Config{MaxSteps: 10},
+					Config:   msg.Config{MaxSteps: 10},
 				},
 				Router:    model.NewRouter("chat-model", "tool-model"),
 				ModelName: "chat-model",
 			})
 
-			_, err := h.Prompt(ctx, agent.NewUserMessage("run"))
+			_, err := h.Prompt(ctx, msg.NewUserMessage("run"))
 			require.NoError(t, err)
 			require.NoError(t, h.WaitIdle(ctx))
 			require.NoError(t, h.LastRunResult().Err)
 
 			got := make([]string, 0)
 			for _, item := range h.LastRunResult().Messages {
-				assistant, ok := item.(agent.AssistantMessage)
+				assistant, ok := item.(msg.AssistantMessage)
 				if !ok {
 					continue
 				}

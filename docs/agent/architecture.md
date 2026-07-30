@@ -25,12 +25,12 @@ The runtime separates concerns the same way pi-agent-core does:
 └──────────────────────────┬──────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────┐
-│  Agent (pkg/agent/agent.go)                             │
+│  Agent (pkg/agent/loop)                                 │
 │  Stateful wrapper: queues, subscribe, abort             │
 └──────────────────────────┬──────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────┐
-│  Loop (pkg/agent/loop.go, loop_inner.go)                │
+│  Loop (pkg/agent/loop)                                  │
 │  Stateless Observe-Think-Act cycle                        │
 └───────────────────────────────────────────────────────────┘
 ```
@@ -112,7 +112,7 @@ tool.ExecuteBatch
 
 On failure, the executor appends a `ToolResultMessage` with `IsError: true` so the model can self-correct. Missing tools produce an error result referencing `msg.ErrToolNotFound`.
 
-Reference tool: `pkg/agent/example/echo/`.
+Reference tool: `pkg/agent/tools/echo/`.
 
 ## Session Tree
 

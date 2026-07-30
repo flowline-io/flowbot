@@ -1,13 +1,14 @@
-package agent_test
+package loop_test
 
 import (
 	"context"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/llms"
@@ -24,10 +25,10 @@ func echoToolCall(id string) llms.ToolCall {
 	}
 }
 
-func assistantModels(messages []agent.AgentMessage) []string {
+func assistantModels(messages []msg.AgentMessage) []string {
 	models := make([]string, 0)
 	for _, message := range messages {
-		assistant, ok := message.(agent.AssistantMessage)
+		assistant, ok := message.(msg.AssistantMessage)
 		if !ok {
 			continue
 		}
@@ -80,7 +81,7 @@ func TestRunLoop_DualModelRouting(t *testing.T) {
 			reg := tool.NewRegistry()
 			require.NoError(t, reg.Register(echo.Tool{}))
 
-			cfg := agent.DefaultConfig()
+			cfg := loop.DefaultConfig()
 			cfg.MaxSteps = 10
 			if tt.dual {
 				cfg.ChatModel = "chat-model"
@@ -90,9 +91,9 @@ func TestRunLoop_DualModelRouting(t *testing.T) {
 				cfg.ModelName = "only-model"
 			}
 
-			messages, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
-				agent.NewUserMessage("run echo"),
-			}, &agent.Context{}, cfg, agent.LoopDeps{Model: model, Registry: reg}, nil)
+			messages, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+				loop.NewUserMessage("run echo"),
+			}, &msg.Context{}, cfg, loop.LoopDeps{Model: model, Registry: reg}, nil)
 			require.NoError(t, err)
 			assert.Equal(t, tt.wantModel, assistantModels(messages))
 		})
@@ -123,15 +124,15 @@ func TestRunLoop_DualModelResolvesPerTurnClient(t *testing.T) {
 			reg := tool.NewRegistry()
 			require.NoError(t, reg.Register(echo.Tool{}))
 
-			cfg := agent.DefaultConfig()
+			cfg := loop.DefaultConfig()
 			cfg.MaxSteps = 10
 			cfg.ChatModel = "chat-model"
 			cfg.ToolModel = "tool-model"
 			cfg.ModelName = "chat-model"
 
-			_, err := agent.RunLoop(context.Background(), []agent.AgentMessage{
-				agent.NewUserMessage("run echo"),
-			}, &agent.Context{}, cfg, agent.LoopDeps{
+			_, err := loop.RunLoop(context.Background(), []msg.AgentMessage{
+				loop.NewUserMessage("run echo"),
+			}, &msg.Context{}, cfg, loop.LoopDeps{
 				Model: chatModel,
 				ResolveModel: func(_ context.Context, name string) (llms.Model, error) {
 					switch name {

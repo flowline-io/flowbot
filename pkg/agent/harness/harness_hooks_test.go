@@ -3,15 +3,16 @@ package harness_test
 import (
 	"context"
 	"errors"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"sync/atomic"
 	"testing"
 
-	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/loop"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/llms"
@@ -58,13 +59,13 @@ func TestHarnessBeforeAgentStartMutatesSystemPrompt(t *testing.T) {
 			tt.setup(reg)
 			fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{Model: fakeModel},
+				AgentOptions: loop.Options{Model: fakeModel},
 				SystemPrompt: "base prompt",
 				ModelName:    "fake",
 				Hooks:        reg,
 			})
 
-			stream, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
+			stream, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
 			if tt.wantErr {
 				require.Error(t, err)
 				assert.ErrorIs(t, err, hooks.ErrRunCancelled)
@@ -124,12 +125,12 @@ func TestHarnessContextHookRunsDuringPrompt(t *testing.T) {
 			tt.setup(reg, &calls)
 			fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{Model: fakeModel},
+				AgentOptions: loop.Options{Model: fakeModel},
 				ModelName:    "fake",
 				Hooks:        reg,
 			})
 
-			_, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
+			_, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
 			require.NoError(t, err)
 			require.NoError(t, h.WaitIdle(ctx))
 			assert.Equal(t, tt.wantCalls, calls.Load())
@@ -160,13 +161,13 @@ func TestHarnessRepeatedPromptDoesNotDoubleWrapHooks(t *testing.T) {
 			})
 			fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{Model: fakeModel},
+				AgentOptions: loop.Options{Model: fakeModel},
 				ModelName:    "fake",
 				Hooks:        reg,
 			})
 
 			for range tt.prompts {
-				_, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
+				_, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
 				require.NoError(t, err)
 				require.NoError(t, h.WaitIdle(ctx))
 			}
@@ -205,16 +206,16 @@ func TestHarnessToolResultTerminateStopsLoop(t *testing.T) {
 			toolRegistry := tool.NewRegistry()
 			require.NoError(t, toolRegistry.Register(echo.Tool{}))
 			h := harness.New(harness.Options{
-				AgentOptions: agent.Options{
+				AgentOptions: loop.Options{
 					Model:    fakeModel,
 					Registry: toolRegistry,
-					Config:   agent.Config{MaxSteps: 5},
+					Config:   msg.Config{MaxSteps: 5},
 				},
 				ModelName: "fake",
 				Hooks:     reg,
 			})
 
-			_, err := h.Prompt(ctx, agent.NewUserMessage("run"))
+			_, err := h.Prompt(ctx, msg.NewUserMessage("run"))
 			require.NoError(t, err)
 			require.NoError(t, h.WaitIdle(ctx))
 			require.NoError(t, h.LastRunResult().Err)
@@ -236,14 +237,14 @@ func TestHarnessBridgeRespectsCancelledContext(t *testing.T) {
 	})
 	fakeModel := agentllm.NewFakeModel(agentllm.ResponseScript{Content: "ok"})
 	h := harness.New(harness.Options{
-		AgentOptions: agent.Options{Model: fakeModel},
+		AgentOptions: loop.Options{Model: fakeModel},
 		ModelName:    "fake",
 		Hooks:        reg,
 	})
 
-	_, err := h.Prompt(ctx, agent.NewUserMessage("hello"))
+	_, err := h.Prompt(ctx, msg.NewUserMessage("hello"))
 	require.NoError(t, err)
 	require.NoError(t, h.WaitIdle(context.Background()))
 	require.Error(t, h.LastRunResult().Err)
-	assert.ErrorIs(t, h.LastRunResult().Err, agent.ErrAborted)
+	assert.ErrorIs(t, h.LastRunResult().Err, loop.ErrAborted)
 }

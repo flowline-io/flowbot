@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
-	"github.com/flowline-io/flowbot/pkg/agent/example/echo"
+	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/tmc/langchaingo/llms"
