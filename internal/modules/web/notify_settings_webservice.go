@@ -615,8 +615,9 @@ func mapNotifyRuleUniqueError(err error) map[string]string {
 }
 
 func getProtocolsList() []string {
-	var protocols []string
-	for id := range notifypkg.List() {
+	list := notifypkg.List()
+	protocols := make([]string, 0, len(list))
+	for id := range list {
 		protocols = append(protocols, id)
 	}
 	return protocols
