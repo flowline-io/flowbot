@@ -20,6 +20,12 @@ const (
 	AgentNotifyTemplateID = "agent.notify"
 	// AgentNotifyTemplateBody is the default body for AgentNotifyTemplateID.
 	AgentNotifyTemplateBody = "{{ .summary }}"
+	// AgentApprovalTemplateID is the seeded template for tool-approval inbox alerts.
+	AgentApprovalTemplateID = "agent.approval"
+	// AgentApprovalTemplateBody is the default body for AgentApprovalTemplateID.
+	AgentApprovalTemplateBody = "{{ .summary }}"
+	// InappChannelURI is the seeded URI for the system inapp channel.
+	InappChannelURI = "inapp://inbox"
 )
 
 var (
@@ -123,11 +129,22 @@ func WarnSkipNoDefault(err error, what string) bool {
 
 // SeedAgentNotifyTemplate ensures the agent.notify template exists (not marked default).
 func SeedAgentNotifyTemplate(ctx context.Context) error {
+	return seedNotifyTemplate(ctx, AgentNotifyTemplateID, "Agent notify",
+		"Chatagent send_notification default-ready template ({{ .summary }})", AgentNotifyTemplateBody)
+}
+
+// SeedAgentApprovalTemplate ensures the agent.approval template exists.
+func SeedAgentApprovalTemplate(ctx context.Context) error {
+	return seedNotifyTemplate(ctx, AgentApprovalTemplateID, "Agent approval",
+		"Chatagent tool-approval inbox template ({{ .summary }})", AgentApprovalTemplateBody)
+}
+
+func seedNotifyTemplate(ctx context.Context, templateID, name, description, body string) error {
 	if loadDatabase() == nil {
 		return nil
 	}
 	ncs := store.NotifyConfigStoreFromDB()
-	_, err := ncs.GetNotifyTemplateByTemplateID(ctx, AgentNotifyTemplateID)
+	_, err := ncs.GetNotifyTemplateByTemplateID(ctx, templateID)
 	if err == nil {
 		return nil
 	}
@@ -135,16 +152,52 @@ func SeedAgentNotifyTemplate(ctx context.Context) error {
 		return err
 	}
 	_, err = ncs.CreateNotifyTemplate(ctx, model.NotifyTemplate{
-		TemplateID:      AgentNotifyTemplateID,
-		Name:            "Agent notify",
-		Description:     "Chatagent send_notification default-ready template ({{ .summary }})",
+		TemplateID:      templateID,
+		Name:            name,
+		Description:     description,
 		DefaultFormat:   "markdown",
-		DefaultTemplate: AgentNotifyTemplateBody,
+		DefaultTemplate: body,
 		OverridesJSON:   "[]",
 	})
 	if err != nil {
 		return err
 	}
-	flog.Info("[notify] seeded template %s", AgentNotifyTemplateID)
+	flog.Info("[notify] seeded template %s", templateID)
 	return nil
+}
+
+// SeedInappChannel ensures the system inapp channel exists (not marked default).
+func SeedInappChannel(ctx context.Context) error {
+	if loadDatabase() == nil {
+		return nil
+	}
+	ncs := store.NotifyConfigStoreFromDB()
+	_, err := ncs.GetNotifyChannelByNameRaw(ctx, ChannelInapp)
+	if err == nil {
+		return nil
+	}
+	if !errors.Is(err, types.ErrNotFound) {
+		return err
+	}
+	_, err = ncs.CreateNotifyChannel(ctx, ChannelInapp, ChannelInapp, InappChannelURI)
+	if err != nil {
+		return err
+	}
+	flog.Info("[notify] seeded channel %s", ChannelInapp)
+	return nil
+}
+
+// IsSystemNotifyChannel reports whether name is a protected system channel.
+func IsSystemNotifyChannel(name string) bool {
+	return name == ChannelInapp
+}
+
+// DefaultInboxChannels returns [inapp] plus the global default external channel when configured.
+func DefaultInboxChannels(ctx context.Context) []string {
+	channels := []string{ChannelInapp}
+	ext, err := ResolveDefaultChannelName(ctx)
+	if err != nil || ext == "" || ext == ChannelInapp {
+		return channels
+	}
+	return append(channels, ext)
 }

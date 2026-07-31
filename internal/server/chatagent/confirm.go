@@ -113,6 +113,7 @@ func (g *ConfirmGate) Wait(ctx context.Context, event hooks.ToolCallEvent, eval 
 	}
 	g.setPending(payload)
 	_ = g.emit(payload)
+	g.notifyApprovalPending(confirmID, summary)
 
 	timer := time.NewTimer(g.timeout)
 	defer timer.Stop()
@@ -179,14 +180,21 @@ func (g *ConfirmGate) Resolve(resp ConfirmResponse) bool {
 // Cancel closes the gate without approving, used when the run is aborted.
 func (g *ConfirmGate) Cancel() {
 	g.mu.Lock()
-	defer g.mu.Unlock()
 	if g.resolved {
+		g.mu.Unlock()
 		return
 	}
+	confirmID := g.id
+	if g.pending != nil && g.pending.ID != "" {
+		confirmID = g.pending.ID
+	}
+	sessionID := g.sessionID
 	g.resolved = true
 	g.waiting = false
 	g.clearPending()
 	close(g.done)
+	g.mu.Unlock()
+	markApprovalInboxRead(sessionID, confirmID)
 }
 
 func (g *ConfirmGate) publishResolved(confirmID string, resp ConfirmResponse) {
@@ -216,6 +224,7 @@ func (g *ConfirmGate) publishResolved(confirmID string, resp ConfirmResponse) {
 		Mode:     string(resp.Mode),
 	}
 	_ = g.emit(event)
+	markApprovalInboxRead(g.sessionID, confirmID)
 }
 
 func (g *ConfirmGate) emit(event StreamEvent) error {

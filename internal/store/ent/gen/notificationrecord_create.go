@@ -102,6 +102,34 @@ func (_c *NotificationRecordCreate) SetPayloadSnapshot(v map[string]interface{})
 	return _c
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (_c *NotificationRecordCreate) SetCorrelationID(v string) *NotificationRecordCreate {
+	_c.mutation.SetCorrelationID(v)
+	return _c
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_c *NotificationRecordCreate) SetNillableCorrelationID(v *string) *NotificationRecordCreate {
+	if v != nil {
+		_c.SetCorrelationID(*v)
+	}
+	return _c
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (_c *NotificationRecordCreate) SetEscalateAt(v time.Time) *NotificationRecordCreate {
+	_c.mutation.SetEscalateAt(v)
+	return _c
+}
+
+// SetNillableEscalateAt sets the "escalate_at" field if the given value is not nil.
+func (_c *NotificationRecordCreate) SetNillableEscalateAt(v *time.Time) *NotificationRecordCreate {
+	if v != nil {
+		_c.SetEscalateAt(*v)
+	}
+	return _c
+}
+
 // SetReadAt sets the "read_at" field.
 func (_c *NotificationRecordCreate) SetReadAt(v time.Time) *NotificationRecordCreate {
 	_c.mutation.SetReadAt(v)
@@ -187,6 +215,10 @@ func (_c *NotificationRecordCreate) defaults() {
 		v := notificationrecord.DefaultErrorMsg
 		_c.mutation.SetErrorMsg(v)
 	}
+	if _, ok := _c.mutation.CorrelationID(); !ok {
+		v := notificationrecord.DefaultCorrelationID
+		_c.mutation.SetCorrelationID(v)
+	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		v := notificationrecord.DefaultCreatedAt()
 		_c.mutation.SetCreatedAt(v)
@@ -235,6 +267,9 @@ func (_c *NotificationRecordCreate) check() error {
 	}
 	if _, ok := _c.mutation.ErrorMsg(); !ok {
 		return &ValidationError{Name: "error_msg", err: errors.New(`gen: missing required field "NotificationRecord.error_msg"`)}
+	}
+	if _, ok := _c.mutation.CorrelationID(); !ok {
+		return &ValidationError{Name: "correlation_id", err: errors.New(`gen: missing required field "NotificationRecord.correlation_id"`)}
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`gen: missing required field "NotificationRecord.created_at"`)}
@@ -303,6 +338,14 @@ func (_c *NotificationRecordCreate) createSpec() (*NotificationRecord, *sqlgraph
 	if value, ok := _c.mutation.PayloadSnapshot(); ok {
 		_spec.SetField(notificationrecord.FieldPayloadSnapshot, field.TypeJSON, value)
 		_node.PayloadSnapshot = value
+	}
+	if value, ok := _c.mutation.CorrelationID(); ok {
+		_spec.SetField(notificationrecord.FieldCorrelationID, field.TypeString, value)
+		_node.CorrelationID = value
+	}
+	if value, ok := _c.mutation.EscalateAt(); ok {
+		_spec.SetField(notificationrecord.FieldEscalateAt, field.TypeTime, value)
+		_node.EscalateAt = &value
 	}
 	if value, ok := _c.mutation.ReadAt(); ok {
 		_spec.SetField(notificationrecord.FieldReadAt, field.TypeTime, value)
@@ -463,6 +506,36 @@ func (u *NotificationRecordUpsert) UpdatePayloadSnapshot() *NotificationRecordUp
 // ClearPayloadSnapshot clears the value of the "payload_snapshot" field.
 func (u *NotificationRecordUpsert) ClearPayloadSnapshot() *NotificationRecordUpsert {
 	u.SetNull(notificationrecord.FieldPayloadSnapshot)
+	return u
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *NotificationRecordUpsert) SetCorrelationID(v string) *NotificationRecordUpsert {
+	u.Set(notificationrecord.FieldCorrelationID, v)
+	return u
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *NotificationRecordUpsert) UpdateCorrelationID() *NotificationRecordUpsert {
+	u.SetExcluded(notificationrecord.FieldCorrelationID)
+	return u
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (u *NotificationRecordUpsert) SetEscalateAt(v time.Time) *NotificationRecordUpsert {
+	u.Set(notificationrecord.FieldEscalateAt, v)
+	return u
+}
+
+// UpdateEscalateAt sets the "escalate_at" field to the value that was provided on create.
+func (u *NotificationRecordUpsert) UpdateEscalateAt() *NotificationRecordUpsert {
+	u.SetExcluded(notificationrecord.FieldEscalateAt)
+	return u
+}
+
+// ClearEscalateAt clears the value of the "escalate_at" field.
+func (u *NotificationRecordUpsert) ClearEscalateAt() *NotificationRecordUpsert {
+	u.SetNull(notificationrecord.FieldEscalateAt)
 	return u
 }
 
@@ -651,6 +724,41 @@ func (u *NotificationRecordUpsertOne) UpdatePayloadSnapshot() *NotificationRecor
 func (u *NotificationRecordUpsertOne) ClearPayloadSnapshot() *NotificationRecordUpsertOne {
 	return u.Update(func(s *NotificationRecordUpsert) {
 		s.ClearPayloadSnapshot()
+	})
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *NotificationRecordUpsertOne) SetCorrelationID(v string) *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetCorrelationID(v)
+	})
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *NotificationRecordUpsertOne) UpdateCorrelationID() *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateCorrelationID()
+	})
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (u *NotificationRecordUpsertOne) SetEscalateAt(v time.Time) *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetEscalateAt(v)
+	})
+}
+
+// UpdateEscalateAt sets the "escalate_at" field to the value that was provided on create.
+func (u *NotificationRecordUpsertOne) UpdateEscalateAt() *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateEscalateAt()
+	})
+}
+
+// ClearEscalateAt clears the value of the "escalate_at" field.
+func (u *NotificationRecordUpsertOne) ClearEscalateAt() *NotificationRecordUpsertOne {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.ClearEscalateAt()
 	})
 }
 
@@ -1008,6 +1116,41 @@ func (u *NotificationRecordUpsertBulk) UpdatePayloadSnapshot() *NotificationReco
 func (u *NotificationRecordUpsertBulk) ClearPayloadSnapshot() *NotificationRecordUpsertBulk {
 	return u.Update(func(s *NotificationRecordUpsert) {
 		s.ClearPayloadSnapshot()
+	})
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (u *NotificationRecordUpsertBulk) SetCorrelationID(v string) *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetCorrelationID(v)
+	})
+}
+
+// UpdateCorrelationID sets the "correlation_id" field to the value that was provided on create.
+func (u *NotificationRecordUpsertBulk) UpdateCorrelationID() *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateCorrelationID()
+	})
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (u *NotificationRecordUpsertBulk) SetEscalateAt(v time.Time) *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.SetEscalateAt(v)
+	})
+}
+
+// UpdateEscalateAt sets the "escalate_at" field to the value that was provided on create.
+func (u *NotificationRecordUpsertBulk) UpdateEscalateAt() *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.UpdateEscalateAt()
+	})
+}
+
+// ClearEscalateAt clears the value of the "escalate_at" field.
+func (u *NotificationRecordUpsertBulk) ClearEscalateAt() *NotificationRecordUpsertBulk {
+	return u.Update(func(s *NotificationRecordUpsert) {
+		s.ClearEscalateAt()
 	})
 }
 

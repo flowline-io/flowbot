@@ -66,6 +66,28 @@ func TestConfirmGateResolve(t *testing.T) {
 	}
 }
 
+func TestConfirmGateCancel(t *testing.T) {
+	pub := NewChannelPublisher(8)
+	gate := NewConfirmGate("sess-cancel", pub, nil)
+	gate.timeout = 2 * time.Second
+
+	done := make(chan ConfirmResponse, 1)
+	go func() {
+		resp, err := gate.Wait(context.Background(), hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+			Args:     map[string]any{"command": "ls"},
+		}, testEvalResult())
+		done <- resp
+		assert.Error(t, err)
+	}()
+
+	waitConfirmEvent(t, pub)
+	gate.Cancel()
+	resp := <-done
+	assert.False(t, resp.Approved)
+	assert.False(t, gate.IsWaiting())
+}
+
 func TestConfirmGateTimeout(t *testing.T) {
 	pub := NewChannelPublisher(4)
 	gate := NewConfirmGate("sess-1", pub, nil)

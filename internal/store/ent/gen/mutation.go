@@ -46306,6 +46306,8 @@ type NotificationRecordMutation struct {
 	status           *notificationrecord.Status
 	error_msg        *string
 	payload_snapshot *map[string]interface{}
+	correlation_id   *string
+	escalate_at      *time.Time
 	read_at          *time.Time
 	created_at       *time.Time
 	clearedFields    map[string]struct{}
@@ -46719,6 +46721,91 @@ func (m *NotificationRecordMutation) ResetPayloadSnapshot() {
 	delete(m.clearedFields, notificationrecord.FieldPayloadSnapshot)
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (m *NotificationRecordMutation) SetCorrelationID(s string) {
+	m.correlation_id = &s
+}
+
+// CorrelationID returns the value of the "correlation_id" field in the mutation.
+func (m *NotificationRecordMutation) CorrelationID() (r string, exists bool) {
+	v := m.correlation_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCorrelationID returns the old "correlation_id" field's value of the NotificationRecord entity.
+// If the NotificationRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationRecordMutation) OldCorrelationID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCorrelationID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCorrelationID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCorrelationID: %w", err)
+	}
+	return oldValue.CorrelationID, nil
+}
+
+// ResetCorrelationID resets all changes to the "correlation_id" field.
+func (m *NotificationRecordMutation) ResetCorrelationID() {
+	m.correlation_id = nil
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (m *NotificationRecordMutation) SetEscalateAt(t time.Time) {
+	m.escalate_at = &t
+}
+
+// EscalateAt returns the value of the "escalate_at" field in the mutation.
+func (m *NotificationRecordMutation) EscalateAt() (r time.Time, exists bool) {
+	v := m.escalate_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEscalateAt returns the old "escalate_at" field's value of the NotificationRecord entity.
+// If the NotificationRecord object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NotificationRecordMutation) OldEscalateAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEscalateAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEscalateAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEscalateAt: %w", err)
+	}
+	return oldValue.EscalateAt, nil
+}
+
+// ClearEscalateAt clears the value of the "escalate_at" field.
+func (m *NotificationRecordMutation) ClearEscalateAt() {
+	m.escalate_at = nil
+	m.clearedFields[notificationrecord.FieldEscalateAt] = struct{}{}
+}
+
+// EscalateAtCleared returns if the "escalate_at" field was cleared in this mutation.
+func (m *NotificationRecordMutation) EscalateAtCleared() bool {
+	_, ok := m.clearedFields[notificationrecord.FieldEscalateAt]
+	return ok
+}
+
+// ResetEscalateAt resets all changes to the "escalate_at" field.
+func (m *NotificationRecordMutation) ResetEscalateAt() {
+	m.escalate_at = nil
+	delete(m.clearedFields, notificationrecord.FieldEscalateAt)
+}
+
 // SetReadAt sets the "read_at" field.
 func (m *NotificationRecordMutation) SetReadAt(t time.Time) {
 	m.read_at = &t
@@ -46838,7 +46925,7 @@ func (m *NotificationRecordMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NotificationRecordMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 12)
 	if m.uid != nil {
 		fields = append(fields, notificationrecord.FieldUID)
 	}
@@ -46862,6 +46949,12 @@ func (m *NotificationRecordMutation) Fields() []string {
 	}
 	if m.payload_snapshot != nil {
 		fields = append(fields, notificationrecord.FieldPayloadSnapshot)
+	}
+	if m.correlation_id != nil {
+		fields = append(fields, notificationrecord.FieldCorrelationID)
+	}
+	if m.escalate_at != nil {
+		fields = append(fields, notificationrecord.FieldEscalateAt)
 	}
 	if m.read_at != nil {
 		fields = append(fields, notificationrecord.FieldReadAt)
@@ -46893,6 +46986,10 @@ func (m *NotificationRecordMutation) Field(name string) (ent.Value, bool) {
 		return m.ErrorMsg()
 	case notificationrecord.FieldPayloadSnapshot:
 		return m.PayloadSnapshot()
+	case notificationrecord.FieldCorrelationID:
+		return m.CorrelationID()
+	case notificationrecord.FieldEscalateAt:
+		return m.EscalateAt()
 	case notificationrecord.FieldReadAt:
 		return m.ReadAt()
 	case notificationrecord.FieldCreatedAt:
@@ -46922,6 +47019,10 @@ func (m *NotificationRecordMutation) OldField(ctx context.Context, name string) 
 		return m.OldErrorMsg(ctx)
 	case notificationrecord.FieldPayloadSnapshot:
 		return m.OldPayloadSnapshot(ctx)
+	case notificationrecord.FieldCorrelationID:
+		return m.OldCorrelationID(ctx)
+	case notificationrecord.FieldEscalateAt:
+		return m.OldEscalateAt(ctx)
 	case notificationrecord.FieldReadAt:
 		return m.OldReadAt(ctx)
 	case notificationrecord.FieldCreatedAt:
@@ -46991,6 +47092,20 @@ func (m *NotificationRecordMutation) SetField(name string, value ent.Value) erro
 		}
 		m.SetPayloadSnapshot(v)
 		return nil
+	case notificationrecord.FieldCorrelationID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCorrelationID(v)
+		return nil
+	case notificationrecord.FieldEscalateAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEscalateAt(v)
+		return nil
 	case notificationrecord.FieldReadAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -47038,6 +47153,9 @@ func (m *NotificationRecordMutation) ClearedFields() []string {
 	if m.FieldCleared(notificationrecord.FieldPayloadSnapshot) {
 		fields = append(fields, notificationrecord.FieldPayloadSnapshot)
 	}
+	if m.FieldCleared(notificationrecord.FieldEscalateAt) {
+		fields = append(fields, notificationrecord.FieldEscalateAt)
+	}
 	if m.FieldCleared(notificationrecord.FieldReadAt) {
 		fields = append(fields, notificationrecord.FieldReadAt)
 	}
@@ -47057,6 +47175,9 @@ func (m *NotificationRecordMutation) ClearField(name string) error {
 	switch name {
 	case notificationrecord.FieldPayloadSnapshot:
 		m.ClearPayloadSnapshot()
+		return nil
+	case notificationrecord.FieldEscalateAt:
+		m.ClearEscalateAt()
 		return nil
 	case notificationrecord.FieldReadAt:
 		m.ClearReadAt()
@@ -47092,6 +47213,12 @@ func (m *NotificationRecordMutation) ResetField(name string) error {
 		return nil
 	case notificationrecord.FieldPayloadSnapshot:
 		m.ResetPayloadSnapshot()
+		return nil
+	case notificationrecord.FieldCorrelationID:
+		m.ResetCorrelationID()
+		return nil
+	case notificationrecord.FieldEscalateAt:
+		m.ResetEscalateAt()
 		return nil
 	case notificationrecord.FieldReadAt:
 		m.ResetReadAt()

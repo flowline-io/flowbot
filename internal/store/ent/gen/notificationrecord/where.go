@@ -84,6 +84,16 @@ func ErrorMsg(v string) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldEQ(FieldErrorMsg, v))
 }
 
+// CorrelationID applies equality check predicate on the "correlation_id" field. It's identical to CorrelationIDEQ.
+func CorrelationID(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldCorrelationID, v))
+}
+
+// EscalateAt applies equality check predicate on the "escalate_at" field. It's identical to EscalateAtEQ.
+func EscalateAt(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldEscalateAt, v))
+}
+
 // ReadAt applies equality check predicate on the "read_at" field. It's identical to ReadAtEQ.
 func ReadAt(v time.Time) predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldEQ(FieldReadAt, v))
@@ -512,6 +522,121 @@ func PayloadSnapshotIsNil() predicate.NotificationRecord {
 // PayloadSnapshotNotNil applies the NotNil predicate on the "payload_snapshot" field.
 func PayloadSnapshotNotNil() predicate.NotificationRecord {
 	return predicate.NotificationRecord(sql.FieldNotNull(FieldPayloadSnapshot))
+}
+
+// CorrelationIDEQ applies the EQ predicate on the "correlation_id" field.
+func CorrelationIDEQ(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldCorrelationID, v))
+}
+
+// CorrelationIDNEQ applies the NEQ predicate on the "correlation_id" field.
+func CorrelationIDNEQ(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNEQ(FieldCorrelationID, v))
+}
+
+// CorrelationIDIn applies the In predicate on the "correlation_id" field.
+func CorrelationIDIn(vs ...string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldIn(FieldCorrelationID, vs...))
+}
+
+// CorrelationIDNotIn applies the NotIn predicate on the "correlation_id" field.
+func CorrelationIDNotIn(vs ...string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNotIn(FieldCorrelationID, vs...))
+}
+
+// CorrelationIDGT applies the GT predicate on the "correlation_id" field.
+func CorrelationIDGT(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGT(FieldCorrelationID, v))
+}
+
+// CorrelationIDGTE applies the GTE predicate on the "correlation_id" field.
+func CorrelationIDGTE(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGTE(FieldCorrelationID, v))
+}
+
+// CorrelationIDLT applies the LT predicate on the "correlation_id" field.
+func CorrelationIDLT(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLT(FieldCorrelationID, v))
+}
+
+// CorrelationIDLTE applies the LTE predicate on the "correlation_id" field.
+func CorrelationIDLTE(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLTE(FieldCorrelationID, v))
+}
+
+// CorrelationIDContains applies the Contains predicate on the "correlation_id" field.
+func CorrelationIDContains(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldContains(FieldCorrelationID, v))
+}
+
+// CorrelationIDHasPrefix applies the HasPrefix predicate on the "correlation_id" field.
+func CorrelationIDHasPrefix(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldHasPrefix(FieldCorrelationID, v))
+}
+
+// CorrelationIDHasSuffix applies the HasSuffix predicate on the "correlation_id" field.
+func CorrelationIDHasSuffix(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldHasSuffix(FieldCorrelationID, v))
+}
+
+// CorrelationIDEqualFold applies the EqualFold predicate on the "correlation_id" field.
+func CorrelationIDEqualFold(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEqualFold(FieldCorrelationID, v))
+}
+
+// CorrelationIDContainsFold applies the ContainsFold predicate on the "correlation_id" field.
+func CorrelationIDContainsFold(v string) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldContainsFold(FieldCorrelationID, v))
+}
+
+// EscalateAtEQ applies the EQ predicate on the "escalate_at" field.
+func EscalateAtEQ(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldEQ(FieldEscalateAt, v))
+}
+
+// EscalateAtNEQ applies the NEQ predicate on the "escalate_at" field.
+func EscalateAtNEQ(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNEQ(FieldEscalateAt, v))
+}
+
+// EscalateAtIn applies the In predicate on the "escalate_at" field.
+func EscalateAtIn(vs ...time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldIn(FieldEscalateAt, vs...))
+}
+
+// EscalateAtNotIn applies the NotIn predicate on the "escalate_at" field.
+func EscalateAtNotIn(vs ...time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNotIn(FieldEscalateAt, vs...))
+}
+
+// EscalateAtGT applies the GT predicate on the "escalate_at" field.
+func EscalateAtGT(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGT(FieldEscalateAt, v))
+}
+
+// EscalateAtGTE applies the GTE predicate on the "escalate_at" field.
+func EscalateAtGTE(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldGTE(FieldEscalateAt, v))
+}
+
+// EscalateAtLT applies the LT predicate on the "escalate_at" field.
+func EscalateAtLT(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLT(FieldEscalateAt, v))
+}
+
+// EscalateAtLTE applies the LTE predicate on the "escalate_at" field.
+func EscalateAtLTE(v time.Time) predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldLTE(FieldEscalateAt, v))
+}
+
+// EscalateAtIsNil applies the IsNil predicate on the "escalate_at" field.
+func EscalateAtIsNil() predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldIsNull(FieldEscalateAt))
+}
+
+// EscalateAtNotNil applies the NotNil predicate on the "escalate_at" field.
+func EscalateAtNotNil() predicate.NotificationRecord {
+	return predicate.NotificationRecord(sql.FieldNotNull(FieldEscalateAt))
 }
 
 // ReadAtEQ applies the EQ predicate on the "read_at" field.

@@ -5,7 +5,7 @@ import (
 )
 
 // allWebserviceRules lists every route group registered under /service/web.
-// Rules() exposes each slice separately (29 groups).
+// Rules() exposes each slice separately (30 groups).
 var allWebserviceRules = [][]webservice.Rule{
 	homeWebserviceRules,
 	loginWebserviceRules,
@@ -19,6 +19,7 @@ var allWebserviceRules = [][]webservice.Rule{
 	eventWebserviceRules,
 	relationsWebserviceRules,
 	notificationWebserviceRules,
+	inboxWebserviceRules,
 	notifySettingsWebserviceRules,
 	notifyPlaygroundWebserviceRules,
 	agentSkillsWebserviceRules,

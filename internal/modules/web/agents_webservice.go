@@ -312,6 +312,7 @@ func agentChatPage(ctx fiber.Ctx) error {
 		}
 		return types.Errorf(types.ErrInternal, "agent chat: %v", err)
 	}
+	chatagent.MarkApprovalInboxReadForSession(sessionID)
 	messages, err := chatagent.ListSessionMessages(ctx.Context(), sessionID)
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list messages: %v", err)

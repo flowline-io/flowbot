@@ -1691,9 +1691,11 @@ var (
 		{Name: "template_id", Type: field.TypeString},
 		{Name: "rule_id", Type: field.TypeString, Default: ""},
 		{Name: "summary", Type: field.TypeString, Default: ""},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"success", "failed", "dropped", "throttled", "aggregated", "muted"}, Default: "success"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"success", "failed", "dropped", "throttled", "aggregated", "muted", "deferred", "cancelled"}, Default: "success"},
 		{Name: "error_msg", Type: field.TypeString, Default: ""},
 		{Name: "payload_snapshot", Type: field.TypeJSON, Nullable: true},
+		{Name: "correlation_id", Type: field.TypeString, Default: ""},
+		{Name: "escalate_at", Type: field.TypeTime, Nullable: true},
 		{Name: "read_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 	}
@@ -1711,7 +1713,7 @@ var (
 			{
 				Name:    "notificationrecord_uid_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[10]},
+				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[12]},
 			},
 			{
 				Name:    "notificationrecord_uid_channel_id",
@@ -1726,7 +1728,22 @@ var (
 			{
 				Name:    "notificationrecord_uid_read_at",
 				Unique:  false,
+				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[11]},
+			},
+			{
+				Name:    "notificationrecord_uid_correlation_id",
+				Unique:  false,
 				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[9]},
+			},
+			{
+				Name:    "notificationrecord_uid_channel_read_at",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationRecordsColumns[1], NotificationRecordsColumns[2], NotificationRecordsColumns[11]},
+			},
+			{
+				Name:    "notificationrecord_status_escalate_at",
+				Unique:  false,
+				Columns: []*schema.Column{NotificationRecordsColumns[6], NotificationRecordsColumns[10]},
 			},
 		},
 	}

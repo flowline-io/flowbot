@@ -138,6 +138,40 @@ func (_u *NotificationRecordUpdate) ClearPayloadSnapshot() *NotificationRecordUp
 	return _u
 }
 
+// SetCorrelationID sets the "correlation_id" field.
+func (_u *NotificationRecordUpdate) SetCorrelationID(v string) *NotificationRecordUpdate {
+	_u.mutation.SetCorrelationID(v)
+	return _u
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_u *NotificationRecordUpdate) SetNillableCorrelationID(v *string) *NotificationRecordUpdate {
+	if v != nil {
+		_u.SetCorrelationID(*v)
+	}
+	return _u
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (_u *NotificationRecordUpdate) SetEscalateAt(v time.Time) *NotificationRecordUpdate {
+	_u.mutation.SetEscalateAt(v)
+	return _u
+}
+
+// SetNillableEscalateAt sets the "escalate_at" field if the given value is not nil.
+func (_u *NotificationRecordUpdate) SetNillableEscalateAt(v *time.Time) *NotificationRecordUpdate {
+	if v != nil {
+		_u.SetEscalateAt(*v)
+	}
+	return _u
+}
+
+// ClearEscalateAt clears the value of the "escalate_at" field.
+func (_u *NotificationRecordUpdate) ClearEscalateAt() *NotificationRecordUpdate {
+	_u.mutation.ClearEscalateAt()
+	return _u
+}
+
 // SetReadAt sets the "read_at" field.
 func (_u *NotificationRecordUpdate) SetReadAt(v time.Time) *NotificationRecordUpdate {
 	_u.mutation.SetReadAt(v)
@@ -253,6 +287,15 @@ func (_u *NotificationRecordUpdate) sqlSave(ctx context.Context) (_node int, err
 	}
 	if _u.mutation.PayloadSnapshotCleared() {
 		_spec.ClearField(notificationrecord.FieldPayloadSnapshot, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.CorrelationID(); ok {
+		_spec.SetField(notificationrecord.FieldCorrelationID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EscalateAt(); ok {
+		_spec.SetField(notificationrecord.FieldEscalateAt, field.TypeTime, value)
+	}
+	if _u.mutation.EscalateAtCleared() {
+		_spec.ClearField(notificationrecord.FieldEscalateAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.ReadAt(); ok {
 		_spec.SetField(notificationrecord.FieldReadAt, field.TypeTime, value)
@@ -387,6 +430,40 @@ func (_u *NotificationRecordUpdateOne) SetPayloadSnapshot(v map[string]interface
 // ClearPayloadSnapshot clears the value of the "payload_snapshot" field.
 func (_u *NotificationRecordUpdateOne) ClearPayloadSnapshot() *NotificationRecordUpdateOne {
 	_u.mutation.ClearPayloadSnapshot()
+	return _u
+}
+
+// SetCorrelationID sets the "correlation_id" field.
+func (_u *NotificationRecordUpdateOne) SetCorrelationID(v string) *NotificationRecordUpdateOne {
+	_u.mutation.SetCorrelationID(v)
+	return _u
+}
+
+// SetNillableCorrelationID sets the "correlation_id" field if the given value is not nil.
+func (_u *NotificationRecordUpdateOne) SetNillableCorrelationID(v *string) *NotificationRecordUpdateOne {
+	if v != nil {
+		_u.SetCorrelationID(*v)
+	}
+	return _u
+}
+
+// SetEscalateAt sets the "escalate_at" field.
+func (_u *NotificationRecordUpdateOne) SetEscalateAt(v time.Time) *NotificationRecordUpdateOne {
+	_u.mutation.SetEscalateAt(v)
+	return _u
+}
+
+// SetNillableEscalateAt sets the "escalate_at" field if the given value is not nil.
+func (_u *NotificationRecordUpdateOne) SetNillableEscalateAt(v *time.Time) *NotificationRecordUpdateOne {
+	if v != nil {
+		_u.SetEscalateAt(*v)
+	}
+	return _u
+}
+
+// ClearEscalateAt clears the value of the "escalate_at" field.
+func (_u *NotificationRecordUpdateOne) ClearEscalateAt() *NotificationRecordUpdateOne {
+	_u.mutation.ClearEscalateAt()
 	return _u
 }
 
@@ -535,6 +612,15 @@ func (_u *NotificationRecordUpdateOne) sqlSave(ctx context.Context) (_node *Noti
 	}
 	if _u.mutation.PayloadSnapshotCleared() {
 		_spec.ClearField(notificationrecord.FieldPayloadSnapshot, field.TypeJSON)
+	}
+	if value, ok := _u.mutation.CorrelationID(); ok {
+		_spec.SetField(notificationrecord.FieldCorrelationID, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.EscalateAt(); ok {
+		_spec.SetField(notificationrecord.FieldEscalateAt, field.TypeTime, value)
+	}
+	if _u.mutation.EscalateAtCleared() {
+		_spec.ClearField(notificationrecord.FieldEscalateAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.ReadAt(); ok {
 		_spec.SetField(notificationrecord.FieldReadAt, field.TypeTime, value)

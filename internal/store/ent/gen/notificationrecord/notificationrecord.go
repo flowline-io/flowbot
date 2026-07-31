@@ -30,6 +30,10 @@ const (
 	FieldErrorMsg = "error_msg"
 	// FieldPayloadSnapshot holds the string denoting the payload_snapshot field in the database.
 	FieldPayloadSnapshot = "payload_snapshot"
+	// FieldCorrelationID holds the string denoting the correlation_id field in the database.
+	FieldCorrelationID = "correlation_id"
+	// FieldEscalateAt holds the string denoting the escalate_at field in the database.
+	FieldEscalateAt = "escalate_at"
 	// FieldReadAt holds the string denoting the read_at field in the database.
 	FieldReadAt = "read_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -49,6 +53,8 @@ var Columns = []string{
 	FieldStatus,
 	FieldErrorMsg,
 	FieldPayloadSnapshot,
+	FieldCorrelationID,
+	FieldEscalateAt,
 	FieldReadAt,
 	FieldCreatedAt,
 }
@@ -76,6 +82,8 @@ var (
 	DefaultSummary string
 	// DefaultErrorMsg holds the default value on creation for the "error_msg" field.
 	DefaultErrorMsg string
+	// DefaultCorrelationID holds the default value on creation for the "correlation_id" field.
+	DefaultCorrelationID string
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 )
@@ -94,6 +102,8 @@ const (
 	StatusThrottled  Status = "throttled"
 	StatusAggregated Status = "aggregated"
 	StatusMuted      Status = "muted"
+	StatusDeferred   Status = "deferred"
+	StatusCancelled  Status = "cancelled"
 )
 
 func (s Status) String() string {
@@ -103,7 +113,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusSuccess, StatusFailed, StatusDropped, StatusThrottled, StatusAggregated, StatusMuted:
+	case StatusSuccess, StatusFailed, StatusDropped, StatusThrottled, StatusAggregated, StatusMuted, StatusDeferred, StatusCancelled:
 		return nil
 	default:
 		return fmt.Errorf("notificationrecord: invalid enum value for status field: %q", s)
@@ -151,6 +161,16 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByErrorMsg orders the results by the error_msg field.
 func ByErrorMsg(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldErrorMsg, opts...).ToFunc()
+}
+
+// ByCorrelationID orders the results by the correlation_id field.
+func ByCorrelationID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCorrelationID, opts...).ToFunc()
+}
+
+// ByEscalateAt orders the results by the escalate_at field.
+func ByEscalateAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEscalateAt, opts...).ToFunc()
 }
 
 // ByReadAt orders the results by the read_at field.

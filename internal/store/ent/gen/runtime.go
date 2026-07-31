@@ -1864,8 +1864,12 @@ func init() {
 	notificationrecordDescErrorMsg := notificationrecordFields[7].Descriptor()
 	// notificationrecord.DefaultErrorMsg holds the default value on creation for the error_msg field.
 	notificationrecord.DefaultErrorMsg = notificationrecordDescErrorMsg.Default.(string)
+	// notificationrecordDescCorrelationID is the schema descriptor for correlation_id field.
+	notificationrecordDescCorrelationID := notificationrecordFields[9].Descriptor()
+	// notificationrecord.DefaultCorrelationID holds the default value on creation for the correlation_id field.
+	notificationrecord.DefaultCorrelationID = notificationrecordDescCorrelationID.Default.(string)
 	// notificationrecordDescCreatedAt is the schema descriptor for created_at field.
-	notificationrecordDescCreatedAt := notificationrecordFields[10].Descriptor()
+	notificationrecordDescCreatedAt := notificationrecordFields[12].Descriptor()
 	// notificationrecord.DefaultCreatedAt holds the default value on creation for the created_at field.
 	notificationrecord.DefaultCreatedAt = notificationrecordDescCreatedAt.Default.(func() time.Time)
 	notifychannelFields := schema.NotifyChannel{}.Fields()

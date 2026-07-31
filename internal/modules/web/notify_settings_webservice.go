@@ -156,6 +156,16 @@ func notifyChannelUpdate(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	existing, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(ctx.Context(), id)
+	if err != nil {
+		return notFound(ctx)
+	}
+	if notifypkg.IsSystemNotifyChannel(existing.Name) {
+		setShowToast(ctx, "error", "System channel cannot be modified")
+		ch, _ := store.NotifyConfigStoreFromDB().GetNotifyChannel(ctx.Context(), id)
+		ctx.Type("html")
+		return partials.NotifyChannelRow(ch, false).Render(ctx.Context(), ctx.Response().BodyWriter())
+	}
 	name := ctx.FormValue("name")
 	protocol := ctx.FormValue("protocol")
 	uri := ctx.FormValue("uri")
@@ -196,6 +206,14 @@ func notifyChannelDelete(ctx fiber.Ctx) error {
 	id, err := parseID(ctx)
 	if err != nil {
 		return err
+	}
+	existing, err := store.NotifyConfigStoreFromDB().GetNotifyChannelRaw(ctx.Context(), id)
+	if err != nil {
+		return notFound(ctx)
+	}
+	if notifypkg.IsSystemNotifyChannel(existing.Name) {
+		setShowToast(ctx, "error", "System channel cannot be deleted")
+		return ctx.SendStatus(fiber.StatusForbidden)
 	}
 	if err := store.NotifyConfigStoreFromDB().DeleteNotifyChannel(ctx.Context(), id); err != nil {
 		return storeError(ctx, err)

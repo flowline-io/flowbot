@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/auth"
 	"github.com/flowline-io/flowbot/pkg/cache"
+	notifypkg "github.com/flowline-io/flowbot/pkg/notify"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/webauth"
@@ -182,6 +183,9 @@ func webRequestContextOK(ctx fiber.Ctx, rc *route.RequestContext) bool {
 
 func authenticateWeb(ctx fiber.Ctx) error {
 	if isAuthenticated(ctx) {
+		if uid := getUID(ctx); uid != "" {
+			notifypkg.TouchPresence(uid)
+		}
 		return nil
 	}
 	return redirectToLogin(ctx)

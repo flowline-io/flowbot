@@ -29,7 +29,7 @@ func (SendTool) Name() string { return SendToolName }
 
 // Description explains the tool to the model.
 func (SendTool) Description() string {
-	return "Send a push notification through the configured default notification channel and template. Use for reminders and alerts outside the current chat."
+	return "Send a notification to the user's inbox (and optional external channels). Use for reminders and alerts outside the current chat. Optional url deep-links the inbox item."
 }
 
 // Parameters returns the JSON schema for tool arguments.
@@ -41,21 +41,58 @@ func (SendTool) Parameters() map[string]any {
 				"type":        "string",
 				"description": "Notification body text (mapped to template summary)",
 			},
+			"title": map[string]any{
+				"type":        "string",
+				"description": "Optional notification title",
+			},
+			"url": map[string]any{
+				"type":        "string",
+				"description": "Optional deep-link URL shown in the inbox",
+			},
+			"channels": map[string]any{
+				"type":        "array",
+				"items":       map[string]any{"type": "string"},
+				"description": "Optional channel names; default is inapp plus the configured default external channel",
+			},
 		},
 		"required": []string{"message"},
 	}
 }
 
-// Execute sends the notification using global default channel and template.
+// Execute sends the notification using inbox defaults (inapp ± external).
 func (t SendTool) Execute(ctx context.Context, id string, args map[string]any, _ tool.UpdateHandler) (msg.ToolResultMessage, error) {
 	message := strings.TrimSpace(fmt.Sprint(args["message"]))
 	if message == "" || message == "<nil>" {
 		return tool.ErrorResult(id, t.Name(), "invalid_args", "message is required", "pass the notification text"), nil
 	}
 
-	err := pkgnotify.GatewaySendDefaults(ctx, t.UID, map[string]any{
+	payload := map[string]any{
 		pkgnotify.PayloadKeySummary: message,
-	})
+	}
+	if title := optionalStringArg(args, "title"); title != "" {
+		payload[pkgnotify.PayloadKeyTitle] = title
+	}
+	if url := optionalStringArg(args, "url"); url != "" {
+		payload[pkgnotify.PayloadKeyURL] = url
+	}
+
+	templateID, err := pkgnotify.ResolveDefaultTemplateID(ctx)
+	if err != nil {
+		if errors.Is(err, pkgnotify.ErrNoDefaultTemplate) {
+			templateID = pkgnotify.AgentNotifyTemplateID
+		} else {
+			return sendErrorResult(id, t.Name(), err), nil
+		}
+	}
+
+	channels := pkgnotify.DefaultInboxChannels(ctx)
+	if raw, ok := args["channels"]; ok {
+		if parsed, ok := parseStringSliceArg(raw); ok && len(parsed) > 0 {
+			channels = parsed
+		}
+	}
+
+	err = pkgnotify.GatewaySend(ctx, t.UID, templateID, channels, payload)
 	if err != nil {
 		return sendErrorResult(id, t.Name(), err), nil
 	}
@@ -77,6 +114,43 @@ func Register(registry *tool.Registry, uid types.Uid) error {
 // ActiveToolNames returns the default notify tool names.
 func ActiveToolNames() []string {
 	return []string{SendToolName}
+}
+
+func optionalStringArg(args map[string]any, key string) string {
+	v, ok := args[key]
+	if !ok || v == nil {
+		return ""
+	}
+	s := strings.TrimSpace(fmt.Sprint(v))
+	if s == "" || s == "<nil>" {
+		return ""
+	}
+	return s
+}
+
+func parseStringSliceArg(raw any) ([]string, bool) {
+	switch v := raw.(type) {
+	case []string:
+		out := make([]string, 0, len(v))
+		for _, s := range v {
+			s = strings.TrimSpace(s)
+			if s != "" {
+				out = append(out, s)
+			}
+		}
+		return out, true
+	case []any:
+		out := make([]string, 0, len(v))
+		for _, item := range v {
+			s := strings.TrimSpace(fmt.Sprint(item))
+			if s != "" && s != "<nil>" {
+				out = append(out, s)
+			}
+		}
+		return out, true
+	default:
+		return nil, false
+	}
 }
 
 func sendErrorResult(callID, name string, err error) msg.ToolResultMessage {

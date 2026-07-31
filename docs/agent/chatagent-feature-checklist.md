@@ -66,6 +66,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
 | W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
 | W-09a | Background attention for approval | Tab title `● Needs approval` while confirm pending; desktop `Notification` when tab is hidden (permission via user gesture) | Permission denied/default is silent; focus tab on notification click; clear title on resolve | `public/js/app.js`, `public/js/chatagent-approval.js` |
+| W-09b | Approval inbox + deferred external | Framework `agent.approval` via `GatewaySend` (`inapp` ± default); open session / resolve / cancel marks read and cancels deferred | Plan mode still blocks `send_notification`; ConfirmGate not persisted | `approval_notify.go`, `confirm_test.go`; Inbox `/service/web/inbox*` |
+| W-09c | Inbox UI | Global bell + `/service/web/inbox`; unread default; deep-link open marks read | System `inapp` channel immutable; open redirect only `/service/web/*` | `inbox_webservice.go` / `inbox_webservice_test.go` |
 
 ## 4. Permissions UI
 

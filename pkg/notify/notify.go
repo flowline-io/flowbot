@@ -221,6 +221,8 @@ func lookupNotifyer(protocol string) (Notifyer, bool) {
 // Channels are resolved from the global NotifyChannel registry first; when a UID is set,
 // per-user notify:<channel> config is used as a fallback.
 // Rules (throttle, mute, aggregate) are applied before sending (when rule engine is initialized).
+// When channels include a successful inapp delivery, other channels are deferred and flushed
+// by the escalation worker (presence / unread timeout), re-evaluating rules at flush time.
 func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels []string, payload map[string]any) error {
 	engine := notifytmpl.GetEngine()
 	if engine == nil {
@@ -232,48 +234,147 @@ func GatewaySend(ctx context.Context, uid types.Uid, templateID string, channels
 		return types.Errorf(types.ErrNotFound, "template %s not found", templateID)
 	}
 
+	payload = ensureCorrelationPayload(payload)
+	correlationID, ok := payload[PayloadKeyCorrelationID].(string)
+	if !ok {
+		correlationID = ""
+	}
+
 	var summary string
 	if s, ok := payload[PayloadKeySummary].(string); ok {
 		summary = s
 	}
 
-	var errs []error
-	for _, channel := range channels {
-		eval, err := evaluateAndRenderNotification(ctx, templateID, channel, payload)
-		if err != nil {
-			errs = append(errs, err)
-			ruleID := ""
-			if eval != nil {
-				ruleID = eval.ruleID
-			}
-			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), ruleID, payload)
+	inappName := ""
+	externals := make([]string, 0, len(channels))
+	for _, ch := range channels {
+		if ch == ChannelInapp {
+			inappName = ch
 			continue
 		}
-		if eval == nil {
-			continue
-		}
-		if eval.action != "" {
-			recordAsync(uid, channel, templateID, summary, eval.action, "", eval.ruleID, payload)
-			continue
-		}
-		if eval.renderResult == nil {
-			continue
-		}
-
-		msg := buildNotifyMessage(eval.renderResult, payload)
-
-		if err := dispatchChannel(ctx, uid, channel, msg); err != nil {
-			errs = append(errs, err)
-			recordAsync(uid, channel, templateID, summary, "failed", err.Error(), eval.ruleID, payload)
-		} else {
-			recordAsync(uid, channel, templateID, summary, "success", "", eval.ruleID, payload)
-		}
+		externals = append(externals, ch)
 	}
 
+	if inappName == "" {
+		return gatewaySendImmediate(ctx, uid, templateID, channels, summary, correlationID, payload)
+	}
+
+	inappOK, err := sendOneChannel(ctx, uid, templateID, inappName, summary, correlationID, payload)
+	if err != nil {
+		// still try immediate externals when inapp failed for non-rule reasons
+		extErr := gatewaySendImmediate(ctx, uid, templateID, externals, summary, correlationID, payload)
+		return errors.Join(err, extErr)
+	}
+	if !inappOK {
+		return gatewaySendImmediate(ctx, uid, templateID, externals, summary, correlationID, payload)
+	}
+
+	escalateAt := computeEscalateAt(uid, payload)
+	var errs []error
+	for _, channel := range externals {
+		if err := enqueueDeferredChannel(ctx, uid, templateID, channel, summary, correlationID, payload, escalateAt); err != nil {
+			errs = append(errs, err)
+		}
+	}
 	if len(errs) > 0 {
 		return types.Errorf(types.ErrInternal, "notification errors: %v", errs)
 	}
 	return nil
+}
+
+func gatewaySendImmediate(ctx context.Context, uid types.Uid, templateID string, channels []string, summary, correlationID string, payload map[string]any) error {
+	var errs []error
+	for _, channel := range channels {
+		if _, err := sendOneChannel(ctx, uid, templateID, channel, summary, correlationID, payload); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if len(errs) > 0 {
+		return types.Errorf(types.ErrInternal, "notification errors: %v", errs)
+	}
+	return nil
+}
+
+// sendOneChannel evaluates rules, dispatches, and records. ok is true only on success delivery.
+func sendOneChannel(ctx context.Context, uid types.Uid, templateID, channel, summary, correlationID string, payload map[string]any) (ok bool, err error) {
+	eval, err := evaluateAndRenderNotification(ctx, templateID, channel, payload)
+	if err != nil {
+		ruleID := ""
+		if eval != nil {
+			ruleID = eval.ruleID
+		}
+		recordAsyncParams(uid, channel, templateID, summary, "failed", err.Error(), ruleID, correlationID, payload, nil)
+		return false, err
+	}
+	if eval == nil {
+		return false, nil
+	}
+	if eval.action != "" {
+		recordAsyncParams(uid, channel, templateID, summary, eval.action, "", eval.ruleID, correlationID, payload, nil)
+		return false, nil
+	}
+	if eval.renderResult == nil {
+		return false, nil
+	}
+	msg := buildNotifyMessage(eval.renderResult, payload)
+	if err := dispatchChannel(ctx, uid, channel, msg); err != nil {
+		recordAsyncParams(uid, channel, templateID, summary, "failed", err.Error(), eval.ruleID, correlationID, payload, nil)
+		return false, err
+	}
+	recordAsyncParams(uid, channel, templateID, summary, "success", "", eval.ruleID, correlationID, payload, nil)
+	return true, nil
+}
+
+func enqueueDeferredChannel(ctx context.Context, uid types.Uid, templateID, channel, summary, correlationID string, payload map[string]any, escalateAt time.Time) error {
+	eval, err := evaluateForDeferredEnqueue(ctx, templateID, channel, payload)
+	if err != nil {
+		ruleID := ""
+		if eval != nil {
+			ruleID = eval.ruleID
+		}
+		recordAsyncParams(uid, channel, templateID, summary, "failed", err.Error(), ruleID, correlationID, payload, nil)
+		return err
+	}
+	if eval == nil {
+		return nil
+	}
+	if eval.action != "" {
+		recordAsyncParams(uid, channel, templateID, summary, eval.action, "", eval.ruleID, correlationID, payload, nil)
+		return nil
+	}
+	if eval.renderResult == nil {
+		return nil
+	}
+	ea := escalateAt
+	recordAsyncParams(uid, channel, templateID, summary, "deferred", "", eval.ruleID, correlationID, payload, &ea)
+	return nil
+}
+
+func ensureCorrelationPayload(payload map[string]any) map[string]any {
+	if payload == nil {
+		payload = map[string]any{}
+	} else {
+		cp := make(map[string]any, len(payload)+1)
+		maps.Copy(cp, payload)
+		payload = cp
+	}
+	if id, ok := payload[PayloadKeyCorrelationID].(string); !ok || strings.TrimSpace(id) == "" {
+		payload[PayloadKeyCorrelationID] = utils.NewUUID()
+	}
+	return payload
+}
+
+func computeEscalateAt(uid types.Uid, payload map[string]any) time.Time {
+	delay := EscalateAfter()
+	if raw, ok := payload[PayloadKeyEscalateAfter].(string); ok && strings.TrimSpace(raw) != "" {
+		if d, err := time.ParseDuration(strings.TrimSpace(raw)); err == nil && d >= 0 {
+			delay = d
+		}
+	}
+	if IsPresent(uid.String()) {
+		return time.Now().Add(delay)
+	}
+	return time.Now()
 }
 
 // evalResult holds the result of notification evaluation, including rule actions.
@@ -286,6 +387,16 @@ type evalResult struct {
 // evaluateAndRenderNotification applies rules and renders the template for a single channel.
 // Returns nil result and nil error when the message should be skipped due to rules.
 func evaluateAndRenderNotification(ctx context.Context, templateID, channel string, payload map[string]any) (*evalResult, error) {
+	return evaluateAndRender(ctx, templateID, channel, payload, true)
+}
+
+// evaluateForDeferredEnqueue applies drop/mute/aggregate at enqueue time but does not
+// consume throttle quota (throttle is enforced at flush).
+func evaluateForDeferredEnqueue(ctx context.Context, templateID, channel string, payload map[string]any) (*evalResult, error) {
+	return evaluateAndRender(ctx, templateID, channel, payload, false)
+}
+
+func evaluateAndRender(ctx context.Context, templateID, channel string, payload map[string]any, applyThrottle bool) (*evalResult, error) {
 	var matchedRuleID string
 	ruleEngine := notifyrules.GetEngine()
 	if ruleEngine != nil {
@@ -300,9 +411,12 @@ func evaluateAndRenderNotification(ctx context.Context, templateID, channel stri
 				flog.Info("[notify] message muted by rule %s for %s/%s", ruleResult.RuleID, templateID, channel)
 				return &evalResult{action: "muted", ruleID: matchedRuleID}, nil
 			case RuleActionThrottle:
-				if handleThrottleRule(ctx, ruleResult, templateID, channel) {
-					return &evalResult{action: "throttled", ruleID: matchedRuleID}, nil
+				if applyThrottle {
+					if handleThrottleRule(ctx, ruleResult, templateID, channel) {
+						return &evalResult{action: "throttled", ruleID: matchedRuleID}, nil
+					}
 				}
+				// Enqueue path: throttle match does not block deferred creation.
 			case RuleActionAggregate:
 				if handleAggregateRule(ctx, ruleResult, templateID, channel, payload) {
 					return &evalResult{action: "aggregated", ruleID: matchedRuleID}, nil
@@ -372,7 +486,12 @@ func buildNotifyMessage(result *notifytmpl.RenderResult, payload map[string]any)
 		Priority: Normal,
 	}
 
-	if url, ok := payload["url"].(string); ok {
+	if title, ok := payload[PayloadKeyTitle].(string); ok && strings.TrimSpace(title) != "" {
+		msg.Title = title
+	}
+	if url, ok := payload[PayloadKeyURL].(string); ok {
+		msg.Url = url
+	} else if url, ok := payload["url"].(string); ok {
 		msg.Url = url
 	}
 
@@ -517,7 +636,16 @@ func WaitForRecordAsyncForTest() {
 // recordAsync writes a notification delivery record in a goroutine with a 2s timeout.
 // It also triggers deferred rolling window cleanup (best-effort).
 func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg, ruleID string, payload map[string]any) {
-	// Shallow-copy payload to avoid data race if caller mutates the map after returning.
+	var correlationID string
+	if payload != nil {
+		if id, ok := payload[PayloadKeyCorrelationID].(string); ok {
+			correlationID = id
+		}
+	}
+	recordAsyncParams(uid, channel, templateID, summary, status, errMsg, ruleID, correlationID, payload, nil)
+}
+
+func recordAsyncParams(uid types.Uid, channel, templateID, summary, status, errMsg, ruleID, correlationID string, payload map[string]any, escalateAt *time.Time) {
 	payloadCopy := make(map[string]any, len(payload))
 	maps.Copy(payloadCopy, payload)
 	recordAsyncWG.Go(func() {
@@ -532,11 +660,21 @@ func recordAsync(uid types.Uid, channel, templateID, summary, status, errMsg, ru
 		if uid.IsZero() {
 			recordUID = systemNotifyUID
 		}
-		if _, err := ns.Record(ctx, recordUID, channel, templateID, summary, status, errMsg, ruleID, payloadCopy); err != nil {
+		if _, err := ns.RecordParams(ctx, store.RecordParams{
+			UID:           recordUID,
+			Channel:       channel,
+			TemplateID:    templateID,
+			Summary:       summary,
+			Status:        status,
+			ErrorMsg:      errMsg,
+			RuleID:        ruleID,
+			CorrelationID: correlationID,
+			Payload:       payloadCopy,
+			EscalateAt:    escalateAt,
+		}); err != nil {
 			flog.Warn("[notify] failed to record notification: %v", err)
 			return
 		}
-		// Rolling window cleanup (best-effort, keep last N per user)
 		if err := ns.DeleteOldest(ctx, recordUID, defaultKeepRecords); err != nil {
 			flog.Warn("[notify] failed to cleanup old notifications: %v", err)
 		}

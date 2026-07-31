@@ -37,27 +37,60 @@ type ListNotifyRecordsOptions struct {
 	Cursor     string // opaque cursor: ID value as string
 	Channel    string // exact channel name filter; empty means any
 	RuleID     string // exact rule_id filter; empty means any
+	Status     string // exact status filter; empty means any
 	UnreadOnly bool   // when true, only rows with nil read_at
+}
+
+// RecordParams holds fields for inserting a notification delivery record.
+type RecordParams struct {
+	UID           string
+	Channel       string
+	TemplateID    string
+	Summary       string
+	Status        string
+	ErrorMsg      string
+	RuleID        string
+	CorrelationID string
+	Payload       map[string]any
+	EscalateAt    *time.Time
 }
 
 // Record inserts a notification delivery record and returns the new row ID.
 // ruleID is the matched notify rule id when known; empty when no rule applied.
 // New records are unread (read_at nil) until MarkRead.
 func (s *NotifyStore) Record(ctx context.Context, uid, channel, templateID, summary, status, errorMsg, ruleID string, payload map[string]any) (int64, error) {
+	return s.RecordParams(ctx, RecordParams{
+		UID:        uid,
+		Channel:    channel,
+		TemplateID: templateID,
+		Summary:    summary,
+		Status:     status,
+		ErrorMsg:   errorMsg,
+		RuleID:     ruleID,
+		Payload:    payload,
+	})
+}
+
+// RecordParams inserts a notification delivery record with extended fields.
+func (s *NotifyStore) RecordParams(ctx context.Context, p RecordParams) (int64, error) {
 	if s == nil || s.client == nil {
 		return 0, nil
 	}
 	create := s.client.NotificationRecord.Create().
-		SetUID(uid).
-		SetChannel(channel).
-		SetTemplateID(templateID).
-		SetRuleID(ruleID).
-		SetSummary(summary).
-		SetStatus(notificationrecord.Status(status)).
-		SetErrorMsg(errorMsg).
+		SetUID(p.UID).
+		SetChannel(p.Channel).
+		SetTemplateID(p.TemplateID).
+		SetRuleID(p.RuleID).
+		SetSummary(p.Summary).
+		SetStatus(notificationrecord.Status(p.Status)).
+		SetErrorMsg(p.ErrorMsg).
+		SetCorrelationID(p.CorrelationID).
 		SetCreatedAt(time.Now())
-	if payload != nil {
-		create = create.SetPayloadSnapshot(payload)
+	if p.Payload != nil {
+		create = create.SetPayloadSnapshot(p.Payload)
+	}
+	if p.EscalateAt != nil {
+		create = create.SetEscalateAt(*p.EscalateAt)
 	}
 	rec, err := create.Save(ctx)
 	if err != nil {
@@ -86,6 +119,9 @@ func (s *NotifyStore) ListRecords(ctx context.Context, uid string, opts ListNoti
 	if opts.RuleID != "" {
 		q = q.Where(notificationrecord.RuleIDEQ(opts.RuleID))
 	}
+	if opts.Status != "" {
+		q = q.Where(notificationrecord.StatusEQ(notificationrecord.Status(opts.Status)))
+	}
 	if opts.UnreadOnly {
 		q = q.Where(notificationrecord.ReadAtIsNil())
 	}
@@ -110,13 +146,45 @@ func (s *NotifyStore) ListRecords(ctx context.Context, uid string, opts ListNoti
 	return records, nextCursor, nil
 }
 
-// MarkRead sets read_at on the given notification records owned by uid.
+// CountUnread returns how many unread records exist for uid on the given channel and status.
+func (s *NotifyStore) CountUnread(ctx context.Context, uid, channel, status string) (int, error) {
+	if s == nil || s.client == nil {
+		return 0, nil
+	}
+	q := s.client.NotificationRecord.Query().
+		Where(
+			notificationrecord.UID(uid),
+			notificationrecord.ReadAtIsNil(),
+		)
+	if channel != "" {
+		q = q.Where(notificationrecord.ChannelEQ(channel))
+	}
+	if status != "" {
+		q = q.Where(notificationrecord.StatusEQ(notificationrecord.Status(status)))
+	}
+	n, err := q.Count(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("count unread notifications: %w", err)
+	}
+	return n, nil
+}
+
+// MarkRead sets read_at on the given notification records owned by uid and cancels related deferred rows.
 func (s *NotifyStore) MarkRead(ctx context.Context, uid string, ids ...int64) error {
 	if s == nil || s.client == nil || len(ids) == 0 {
 		return nil
 	}
+	recs, err := s.client.NotificationRecord.Query().
+		Where(
+			notificationrecord.UID(uid),
+			notificationrecord.IDIn(ids...),
+		).
+		All(ctx)
+	if err != nil {
+		return fmt.Errorf("load notification records for mark read: %w", err)
+	}
 	now := time.Now()
-	_, err := s.client.NotificationRecord.Update().
+	_, err = s.client.NotificationRecord.Update().
 		Where(
 			notificationrecord.UID(uid),
 			notificationrecord.IDIn(ids...),
@@ -127,7 +195,121 @@ func (s *NotifyStore) MarkRead(ctx context.Context, uid string, ids ...int64) er
 	if err != nil {
 		return fmt.Errorf("mark notification records read: %w", err)
 	}
+	seen := make(map[string]struct{})
+	for _, rec := range recs {
+		if rec.CorrelationID == "" {
+			continue
+		}
+		if _, ok := seen[rec.CorrelationID]; ok {
+			continue
+		}
+		seen[rec.CorrelationID] = struct{}{}
+		if err := s.CancelDeferredByCorrelation(ctx, uid, rec.CorrelationID); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+// MarkReadByCorrelation marks unread inapp (or any) records with the correlation id as read and cancels deferred.
+func (s *NotifyStore) MarkReadByCorrelation(ctx context.Context, uid, correlationID string) error {
+	if s == nil || s.client == nil || correlationID == "" {
+		return nil
+	}
+	now := time.Now()
+	_, err := s.client.NotificationRecord.Update().
+		Where(
+			notificationrecord.UID(uid),
+			notificationrecord.CorrelationIDEQ(correlationID),
+			notificationrecord.ReadAtIsNil(),
+			notificationrecord.StatusEQ(notificationrecord.StatusSuccess),
+		).
+		SetReadAt(now).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("mark notification records read by correlation: %w", err)
+	}
+	return s.CancelDeferredByCorrelation(ctx, uid, correlationID)
+}
+
+// CancelDeferredByCorrelation sets deferred rows with the correlation id to cancelled.
+func (s *NotifyStore) CancelDeferredByCorrelation(ctx context.Context, uid, correlationID string) error {
+	if s == nil || s.client == nil || correlationID == "" {
+		return nil
+	}
+	_, err := s.client.NotificationRecord.Update().
+		Where(
+			notificationrecord.UID(uid),
+			notificationrecord.CorrelationIDEQ(correlationID),
+			notificationrecord.StatusEQ(notificationrecord.StatusDeferred),
+		).
+		SetStatus(notificationrecord.StatusCancelled).
+		ClearEscalateAt().
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("cancel deferred notifications: %w", err)
+	}
+	return nil
+}
+
+// ListDueDeferred returns deferred records whose escalate_at is at or before now.
+func (s *NotifyStore) ListDueDeferred(ctx context.Context, now time.Time, limit int) ([]*gen.NotificationRecord, error) {
+	if s == nil || s.client == nil {
+		return nil, nil
+	}
+	if limit <= 0 {
+		limit = 50
+	}
+	records, err := s.client.NotificationRecord.Query().
+		Where(
+			notificationrecord.StatusEQ(notificationrecord.StatusDeferred),
+			notificationrecord.EscalateAtNotNil(),
+			notificationrecord.EscalateAtLTE(now),
+		).
+		Order(gen.Asc(notificationrecord.FieldEscalateAt)).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list due deferred notifications: %w", err)
+	}
+	return records, nil
+}
+
+// UpdateRecordStatus sets status (and optional error) on a record by id.
+func (s *NotifyStore) UpdateRecordStatus(ctx context.Context, id int64, status, errorMsg string) error {
+	if s == nil || s.client == nil {
+		return nil
+	}
+	upd := s.client.NotificationRecord.UpdateOneID(id).
+		SetStatus(notificationrecord.Status(status)).
+		SetErrorMsg(errorMsg).
+		ClearEscalateAt()
+	if err := upd.Exec(ctx); err != nil {
+		if gen.IsNotFound(err) {
+			return types.ErrNotFound
+		}
+		return fmt.Errorf("update notification record status: %w", err)
+	}
+	return nil
+}
+
+// HasUnreadSuccessByCorrelation reports whether an unread success record exists for the correlation.
+func (s *NotifyStore) HasUnreadSuccessByCorrelation(ctx context.Context, uid, correlationID string) (bool, error) {
+	if s == nil || s.client == nil || correlationID == "" {
+		return false, nil
+	}
+	n, err := s.client.NotificationRecord.Query().
+		Where(
+			notificationrecord.UID(uid),
+			notificationrecord.CorrelationIDEQ(correlationID),
+			notificationrecord.StatusEQ(notificationrecord.StatusSuccess),
+			notificationrecord.ReadAtIsNil(),
+		).
+		Count(ctx)
+	if err != nil {
+		return false, fmt.Errorf("count unread success by correlation: %w", err)
+	}
+	return n > 0, nil
 }
 
 // GetRecord returns a single notification record by ID.
@@ -186,5 +368,3 @@ func (s *NotifyStore) DeleteOldest(ctx context.Context, uid string, keepN int) e
 	}
 	return nil
 }
-
-// LLMUsageStore persists and aggregates LLM token usage records.

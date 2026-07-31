@@ -10,6 +10,7 @@ import (
 	abilitycore "github.com/flowline-io/flowbot/pkg/capability/core"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/notify"
+	"github.com/flowline-io/flowbot/pkg/notify/inapp"
 	"github.com/flowline-io/flowbot/pkg/notify/messagepusher"
 	"github.com/flowline-io/flowbot/pkg/notify/ntfy"
 	"github.com/flowline-io/flowbot/pkg/notify/pushover"
@@ -27,6 +28,7 @@ var NotifyModules = fx.Options(
 		ntfy.Register,
 		pushover.Register,
 		slack.Register,
+		inapp.Register,
 		initNotificationGateway,
 	),
 )
@@ -42,14 +44,18 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 			if err := notifytmpl.Init(templates); err != nil {
 				return err
 			}
+			if err := notify.SeedInappChannel(ctx); err != nil {
+				flog.Warn("failed to seed inapp channel: %v", err)
+			}
 			if err := notify.SeedAgentNotifyTemplate(ctx); err != nil {
 				flog.Warn("failed to seed agent.notify template: %v", err)
-			} else {
-				// Reload so the seeded template is available without restart.
-				if reloaded, loadErr := loadNotifyTemplatesFromDB(ctx); loadErr == nil {
-					if initErr := notifytmpl.Init(reloaded); initErr != nil {
-						flog.Warn("failed to reload notify templates after seed: %v", initErr)
-					}
+			}
+			if err := notify.SeedAgentApprovalTemplate(ctx); err != nil {
+				flog.Warn("failed to seed agent.approval template: %v", err)
+			}
+			if reloaded, loadErr := loadNotifyTemplatesFromDB(ctx); loadErr == nil {
+				if initErr := notifytmpl.Init(reloaded); initErr != nil {
+					flog.Warn("failed to reload notify templates after seed: %v", initErr)
 				}
 			}
 
@@ -66,9 +72,11 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 			}
 
 			abilitycore.SetNotifierFunc(notify.GatewaySend)
+			notify.StartEscalationWorker()
 			return registerCoreCapability()
 		},
 		OnStop: func(_ context.Context) error {
+			notify.StopEscalationWorker()
 			return nil
 		},
 	})

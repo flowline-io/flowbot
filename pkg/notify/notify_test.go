@@ -748,6 +748,64 @@ func TestGatewaySend(t *testing.T) {
 	}
 }
 
+func TestGatewaySendDeferredInappAndMuteExternal(t *testing.T) {
+	ClearPresenceForTest()
+	t.Cleanup(ClearPresenceForTest)
+	TouchPresence("u-defer") // online → deferred with future escalate_at
+
+	setupNotifyTestEnv(t, []Template{testNotifyTemplate()}, []Rule{
+		{ID: "mute-slack", Action: RuleActionMute, Match: RuleMatch{Event: "test.event", Channel: "slack"}, Priority: 10},
+	}, nil)
+	m := &mockNotifyer{
+		protocol:  "testdefer",
+		templates: []string{"testdefer://{channel}/{token}", "inapp://inbox"},
+	}
+	Register(m.protocol, m)
+	Register(ChannelInapp, &pluginInappStub{})
+	t.Cleanup(func() {
+		Unregister(m.protocol)
+		Unregister(ChannelInapp)
+	})
+	replaceDatabaseForTest(t, postgres.NewSQLiteTestAdapter(t))
+	seedNotifyTestChannel(t, ChannelInapp, ChannelInapp, InappChannelURI, true, false)
+	seedNotifyTestChannel(t, "slack", "testdefer", "testdefer://chan/tok", true, false)
+
+	err := GatewaySend(context.Background(), types.Uid("u-defer"), "test.event", []string{ChannelInapp, "slack"}, map[string]any{
+		PayloadKeySummary: "hello",
+		"title":           "T",
+		"body":            "B",
+	})
+	require.NoError(t, err)
+	WaitForRecordAsyncForTest()
+
+	ns := GetNotifyStore()
+	require.NotNil(t, ns)
+	recs, _, err := ns.ListRecords(context.Background(), "u-defer", store.ListNotifyRecordsOptions{Limit: 20})
+	require.NoError(t, err)
+	var sawInapp, sawMutedSlack bool
+	for _, rec := range recs {
+		switch {
+		case rec.Channel == ChannelInapp && string(rec.Status) == "success":
+			sawInapp = true
+		case rec.Channel == "slack" && string(rec.Status) == "muted":
+			sawMutedSlack = true
+		case rec.Channel == "slack" && string(rec.Status) == "deferred":
+			t.Fatalf("slack should be muted at enqueue, not deferred")
+		}
+	}
+	assert.True(t, sawInapp)
+	assert.True(t, sawMutedSlack)
+	assert.Equal(t, 0, m.calls) // muted before send
+}
+
+type pluginInappStub struct{}
+
+func (*pluginInappStub) Protocol() string   { return ChannelInapp }
+func (*pluginInappStub) Templates() []string {
+	return []string{"{schema}://inbox"}
+}
+func (*pluginInappStub) Send(types.KV, Message) error { return nil }
+
 func TestSendToUserChannel(t *testing.T) {
 	setupNotifySQLiteDB(t)
 	uid := types.Uid("user-send-test")

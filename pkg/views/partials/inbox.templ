@@ -1,0 +1,118 @@
+package partials
+
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
+)
+
+// InboxItem is a view model for one inbox row.
+type InboxItem struct {
+	ID        int64
+	Summary   string
+	Title     string
+	URL       string
+	CreatedAt time.Time
+	Unread    bool
+}
+
+// InboxListParams holds inbox list render inputs.
+type InboxListParams struct {
+	Filter string
+	Items  []InboxItem
+	Cursor string
+}
+
+// InboxListURL builds the inbox list fragment URL.
+func InboxListURL(filter string) string {
+	u := "/service/web/inbox/list"
+	if filter == "" {
+		return u
+	}
+	return u + "?filter=" + url.QueryEscape(filter)
+}
+
+// InboxCountBadge renders the navbar unread count for the inbox.
+templ InboxCountBadge(count int) {
+	if count > 0 {
+		<span
+			class="flowbot-chip flowbot-chip-warning ml-1 tabular-nums"
+			data-testid="inbox-count-badge"
+			title={ fmt.Sprintf("%d unread", count) }
+			aria-label={ fmt.Sprintf("%d unread inbox messages", count) }>
+			{ strconv.Itoa(count) }
+		</span>
+	} else {
+		<span data-testid="inbox-count-badge-empty" aria-hidden="true"></span>
+	}
+}
+
+templ InboxList(p InboxListParams) {
+	<div class="space-y-3" id="inbox-list" data-testid="inbox-list">
+		<div class="flex flex-wrap items-center gap-2">
+			<a class={ "btn btn-sm", templ.KV("btn-primary", p.Filter == "" || p.Filter == "unread") }
+				href={ templ.URL(InboxListURL("unread")) }
+				hx-get={ templ.URL(InboxListURL("unread")) }
+				hx-target="#inbox-list"
+				hx-swap="outerHTML"
+				data-testid="inbox-filter-unread">Unread</a>
+			<a class={ "btn btn-sm", templ.KV("btn-primary", p.Filter == "all") }
+				href={ templ.URL(InboxListURL("all")) }
+				hx-get={ templ.URL(InboxListURL("all")) }
+				hx-target="#inbox-list"
+				hx-swap="outerHTML"
+				data-testid="inbox-filter-all">All</a>
+		</div>
+		if len(p.Items) == 0 {
+			@EmptyState("No messages")
+		} else {
+			<ul class="flowbot-surface divide-y divide-base-300" data-testid="inbox-items">
+				for _, item := range p.Items {
+					<li class="p-3" data-testid="inbox-item" data-id={ strconv.FormatInt(item.ID, 10) }>
+						if item.URL != "" {
+							<a class="block hover:bg-base-200/40 -m-1 p-1 rounded"
+								href={ templ.URL("/service/web/inbox/" + strconv.FormatInt(item.ID, 10) + "/open") }
+								data-testid="inbox-item-link">
+								@inboxItemBody(item)
+							</a>
+						} else {
+							<button type="button"
+								class="w-full text-left hover:bg-base-200/40 -m-1 p-1 rounded"
+								hx-post={ templ.URL("/service/web/inbox/" + strconv.FormatInt(item.ID, 10) + "/read") }
+								hx-target="#inbox-list"
+								hx-swap="outerHTML"
+								data-testid="inbox-item-read">
+								@inboxItemBody(item)
+							</button>
+						}
+					</li>
+				}
+			</ul>
+		}
+		if p.Cursor != "" {
+			<button class="btn btn-sm btn-ghost"
+				hx-get={ templ.URL(InboxListURL(p.Filter) + "&cursor=" + url.QueryEscape(p.Cursor)) }
+				hx-target="#inbox-list"
+				hx-swap="outerHTML"
+				data-testid="inbox-load-more">Load more</button>
+		}
+	</div>
+}
+
+templ inboxItemBody(item InboxItem) {
+	<div class="flex items-start justify-between gap-3">
+		<div class="min-w-0">
+			if item.Title != "" {
+				<div class="font-medium tracking-tight truncate">{ item.Title }</div>
+			}
+			<div class={ "text-sm", templ.KV("text-base-content/60", !item.Unread) }>{ item.Summary }</div>
+		</div>
+		<div class="shrink-0 text-xs text-base-content/50 tabular-nums">
+			{ item.CreatedAt.Local().Format("Jan 2 15:04") }
+			if item.Unread {
+				<span class="flowbot-chip flowbot-chip-warning ml-2">Unread</span>
+			}
+		</div>
+	</div>
+}

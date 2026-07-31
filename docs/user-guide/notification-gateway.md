@@ -14,6 +14,7 @@ The Notification Gateway inserts a processing layer between event producers and 
 2. **Rate-limit repetitive alerts** -- prevent a buggy script from sending 1000 messages in one minute
 3. **Aggregate batched events** -- collapse 20 RSS fetch events into a single digest every 15 minutes
 4. **Honor DND windows** -- silence all notifications during night hours
+5. **In-app inbox with deferred external push** -- deliver to Web Inbox first when `inapp` is in the channel list; escalate to external channels when the user is offline or leaves the item unread
 
 ```
 [Pipeline / Cron / Webhook / Agent]
@@ -36,13 +37,30 @@ The Notification Gateway inserts a processing layer between event producers and 
 │                    ▼                        │
 │  ┌───────────────────────────────────────┐  │
 │  │  Channel Router (pkg/notify/)         │  │
-│  │  Existing Notifyer registry           │  │
+│  │  inapp (immediate) + deferred external│  │
 │  └───────────────────────────────────────┘  │
 └─────────────────────────────────────────────┘
          │
          ▼
-[Slack Webhook] [ntfy] [Pushover] [Message Pusher]
+[Web Inbox] [Slack] [ntfy] [Pushover] [Message Pusher]
 ```
+
+## In-app inbox and deferred escalation
+
+The seeded system channel `inapp` writes to `notification_records` (Web `/service/web/inbox`). It cannot be deleted or have its protocol changed.
+
+When `GatewaySend` includes `inapp` and that channel delivers successfully:
+
+1. External channels in the same call are recorded as `deferred` (not sent yet).
+2. `escalate_at` is `now` if the user is not active on Web (last activity older than 5 minutes), otherwise `now + 10m` (override with payload `escalate_after`, e.g. `"5m"` for approval gates).
+3. The escalation worker re-evaluates notification rules, then dispatches if the correlated inapp row is still unread.
+4. Marking the inbox item read (or opening a deep link / pending agent session) cancels deferred rows (`cancelled`).
+
+If `inapp` is missing from the channel list, or rules block `inapp`, external channels send immediately (unchanged behavior).
+
+**Rules tips:** put night mute / throttle on external channel names (e.g. `slack`), not `*`, unless you intend to silence the Inbox too. Throttle counters are consumed at flush time for deferred sends, not at enqueue.
+
+**UI:** global Inbox bell (`/service/web/inbox-badge`); Agents nav keeps the pending-approval badge. Notification History still lists all statuses; Retry remains failed-only.
 
 ## Architecture
 

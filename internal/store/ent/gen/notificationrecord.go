@@ -34,6 +34,10 @@ type NotificationRecord struct {
 	ErrorMsg string `json:"error_msg,omitempty"`
 	// PayloadSnapshot holds the value of the "payload_snapshot" field.
 	PayloadSnapshot map[string]interface{} `json:"payload_snapshot,omitempty"`
+	// CorrelationID holds the value of the "correlation_id" field.
+	CorrelationID string `json:"correlation_id,omitempty"`
+	// EscalateAt holds the value of the "escalate_at" field.
+	EscalateAt *time.Time `json:"escalate_at,omitempty"`
 	// ReadAt holds the value of the "read_at" field.
 	ReadAt *time.Time `json:"read_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -50,9 +54,9 @@ func (*NotificationRecord) scanValues(columns []string) ([]any, error) {
 			values[i] = new([]byte)
 		case notificationrecord.FieldID:
 			values[i] = new(sql.NullInt64)
-		case notificationrecord.FieldUID, notificationrecord.FieldChannel, notificationrecord.FieldTemplateID, notificationrecord.FieldRuleID, notificationrecord.FieldSummary, notificationrecord.FieldStatus, notificationrecord.FieldErrorMsg:
+		case notificationrecord.FieldUID, notificationrecord.FieldChannel, notificationrecord.FieldTemplateID, notificationrecord.FieldRuleID, notificationrecord.FieldSummary, notificationrecord.FieldStatus, notificationrecord.FieldErrorMsg, notificationrecord.FieldCorrelationID:
 			values[i] = new(sql.NullString)
-		case notificationrecord.FieldReadAt, notificationrecord.FieldCreatedAt:
+		case notificationrecord.FieldEscalateAt, notificationrecord.FieldReadAt, notificationrecord.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -124,6 +128,19 @@ func (_m *NotificationRecord) assignValues(columns []string, values []any) error
 				if err := json.Unmarshal(*value, &_m.PayloadSnapshot); err != nil {
 					return fmt.Errorf("unmarshal field payload_snapshot: %w", err)
 				}
+			}
+		case notificationrecord.FieldCorrelationID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field correlation_id", values[i])
+			} else if value.Valid {
+				_m.CorrelationID = value.String
+			}
+		case notificationrecord.FieldEscalateAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field escalate_at", values[i])
+			} else if value.Valid {
+				_m.EscalateAt = new(time.Time)
+				*_m.EscalateAt = value.Time
 			}
 		case notificationrecord.FieldReadAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -197,6 +214,14 @@ func (_m *NotificationRecord) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("payload_snapshot=")
 	builder.WriteString(fmt.Sprintf("%v", _m.PayloadSnapshot))
+	builder.WriteString(", ")
+	builder.WriteString("correlation_id=")
+	builder.WriteString(_m.CorrelationID)
+	builder.WriteString(", ")
+	if v := _m.EscalateAt; v != nil {
+		builder.WriteString("escalate_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteString(", ")
 	if v := _m.ReadAt; v != nil {
 		builder.WriteString("read_at=")

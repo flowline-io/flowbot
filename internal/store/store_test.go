@@ -1633,6 +1633,53 @@ func TestNotifyStore_ListRecords_Filters(t *testing.T) {
 	}
 }
 
+func TestNotifyStore_DeferredAndCorrelation(t *testing.T) {
+	client := getTestClient(t)
+	ns := NewNotifyStore(client)
+	ctx := context.Background()
+	uid := "user_deferred"
+	corr := "corr-1"
+	past := time.Now().Add(-time.Minute)
+
+	inappID, err := ns.RecordParams(ctx, RecordParams{
+		UID: uid, Channel: "inapp", TemplateID: "agent.approval", Summary: "approve",
+		Status: "success", CorrelationID: corr,
+	})
+	require.NoError(t, err)
+	defID, err := ns.RecordParams(ctx, RecordParams{
+		UID: uid, Channel: "slack", TemplateID: "agent.approval", Summary: "approve",
+		Status: "deferred", CorrelationID: corr, EscalateAt: &past,
+	})
+	require.NoError(t, err)
+
+	n, err := ns.CountUnread(ctx, uid, "inapp", "success")
+	require.NoError(t, err)
+	assert.Equal(t, 1, n)
+
+	ok, err := ns.HasUnreadSuccessByCorrelation(ctx, uid, corr)
+	require.NoError(t, err)
+	assert.True(t, ok)
+
+	due, err := ns.ListDueDeferred(ctx, time.Now(), 10)
+	require.NoError(t, err)
+	found := false
+	for _, rec := range due {
+		if rec.ID == defID {
+			found = true
+		}
+	}
+	assert.True(t, found)
+
+	require.NoError(t, ns.MarkRead(ctx, uid, inappID))
+	ok, err = ns.HasUnreadSuccessByCorrelation(ctx, uid, corr)
+	require.NoError(t, err)
+	assert.False(t, ok)
+
+	rec, err := ns.GetRecord(ctx, defID)
+	require.NoError(t, err)
+	assert.Equal(t, "cancelled", string(rec.Status))
+}
+
 func TestNotifyStore_MarkRead(t *testing.T) {
 	client := getTestClient(t)
 	ns := NewNotifyStore(client)
