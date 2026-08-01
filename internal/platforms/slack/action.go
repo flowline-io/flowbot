@@ -54,7 +54,7 @@ func (a *Action) SendMessage(req protocol.Request) protocol.Response {
 		return protocol.NewSuccessResponse(nil)
 	}
 
-	threadId := getThreadContext(channel)
+	threadId, _ := params.String("thread_id")
 	ts, err := a.postRichMessage(channel, threadId, content)
 	if err != nil {
 		flog.Error(fmt.Errorf("failed to send message to %s, %w", channel, err))
@@ -420,7 +420,7 @@ func handleSegLink(segment protocol.MessageSegment) (string, []slack.Block, []st
 
 func handleSegMarkdown(segment protocol.MessageSegment) (string, []slack.Block, []string) {
 	title := safeStr(segment.Data, "title")
-	text := safeStr(segment.Data, "text")
+	text := utils.MarkdownToMrkdwn(safeStr(segment.Data, "text"))
 	var blocks []slack.Block
 	if title != "" {
 		blocks = append(blocks, header(title))

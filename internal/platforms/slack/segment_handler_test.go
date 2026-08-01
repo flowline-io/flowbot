@@ -435,6 +435,8 @@ func TestHandleSegMarkdownVarious(t *testing.T) {
 		name       string
 		segment    protocol.MessageSegment
 		wantBlocks int
+		wantSubstr string
+		wantNoSub  string
 	}{
 		{
 			name: "markdown with title and text",
@@ -468,12 +470,45 @@ func TestHandleSegMarkdownVarious(t *testing.T) {
 			},
 			wantBlocks: 0,
 		},
+		{
+			name: "gfm bold converts to mrkdwn",
+			segment: protocol.MessageSegment{
+				Type: "markdown",
+				Data: map[string]any{"text": "**bold**"},
+			},
+			wantBlocks: 1,
+			wantSubstr: "*bold*",
+			wantNoSub:  "**",
+		},
+		{
+			name: "gfm list bold converts to mrkdwn",
+			segment: protocol.MessageSegment{
+				Type: "markdown",
+				Data: map[string]any{"text": "- **读写文件**: 查看代码"},
+			},
+			wantBlocks: 1,
+			wantSubstr: "*读写文件*",
+			wantNoSub:  "**",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, blocks, _ := handleSegMarkdown(tt.segment)
 			if len(blocks) != tt.wantBlocks {
 				t.Errorf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
+			}
+			if tt.wantSubstr == "" || len(blocks) == 0 {
+				return
+			}
+			sec, ok := blocks[len(blocks)-1].(*slack.SectionBlock)
+			if !ok || sec.Text == nil {
+				t.Fatalf("expected section block with text")
+			}
+			if !strings.Contains(sec.Text.Text, tt.wantSubstr) {
+				t.Errorf("expected text to contain %q, got %q", tt.wantSubstr, sec.Text.Text)
+			}
+			if tt.wantNoSub != "" && strings.Contains(sec.Text.Text, tt.wantNoSub) {
+				t.Errorf("expected text not to contain %q, got %q", tt.wantNoSub, sec.Text.Text)
 			}
 		})
 	}

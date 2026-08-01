@@ -310,14 +310,16 @@ func TestConvertEventsAPIEvent(t *testing.T) {
 		name       string
 		input      slackevents.EventsAPIEvent
 		wantDetail string
+		wantThread string
 	}{
 		{
 			name: "IM returns direct event",
 			input: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
 				Type: "message",
-				Data: &slackevents.MessageEvent{ChannelType: "im", Channel: "D123", User: "U001", Text: "hello", ClientMsgID: "c1"},
+				Data: &slackevents.MessageEvent{ChannelType: "im", Channel: "D123", User: "U001", Text: "hello", ClientMsgID: "c1", TimeStamp: "1700000000.000100"},
 			}},
 			wantDetail: protocol.MessageDirectEvent,
+			wantThread: "1700000000.000100",
 		},
 		{
 			name: "non-message type returns empty",
@@ -330,9 +332,26 @@ func TestConvertEventsAPIEvent(t *testing.T) {
 			name: "channel returns group event",
 			input: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
 				Type: "message",
-				Data: &slackevents.MessageEvent{ChannelType: "channel", Channel: "C456", User: "U002", Text: "group", ClientMsgID: "c2"},
+				Data: &slackevents.MessageEvent{ChannelType: "channel", Channel: "C456", User: "U002", Text: "group", ClientMsgID: "c2", TimeStamp: "1700000000.000200"},
 			}},
 			wantDetail: protocol.MessageGroupEvent,
+			wantThread: "1700000000.000200",
+		},
+		{
+			name: "existing thread keeps parent ts",
+			input: slackevents.EventsAPIEvent{InnerEvent: slackevents.EventsAPIInnerEvent{
+				Type: "message",
+				Data: &slackevents.MessageEvent{
+					ChannelType:     "im",
+					Channel:         "D789",
+					User:            "U003",
+					Text:            "follow-up",
+					TimeStamp:       "1700000000.000300",
+					ThreadTimeStamp: "1700000000.000100",
+				},
+			}},
+			wantDetail: protocol.MessageDirectEvent,
+			wantThread: "1700000000.000100",
 		},
 	}
 	for _, tt := range tests {
@@ -340,6 +359,16 @@ func TestConvertEventsAPIEvent(t *testing.T) {
 			result := convertEventsAPIEvent(tt.input)
 			if result.DetailType != tt.wantDetail {
 				t.Errorf("expected DetailType %q, got %q", tt.wantDetail, result.DetailType)
+			}
+			if tt.wantThread == "" {
+				return
+			}
+			data, ok := result.Data.(protocol.MessageEventData)
+			if !ok {
+				t.Fatalf("expected MessageEventData, got %T", result.Data)
+			}
+			if data.ThreadId != tt.wantThread {
+				t.Errorf("expected ThreadId %q, got %q", tt.wantThread, data.ThreadId)
 			}
 		})
 	}
@@ -405,29 +434,6 @@ func TestConvertInteractiveEvent(t *testing.T) {
 			}
 			if tt.check != nil {
 				tt.check(t, evt)
-			}
-		})
-	}
-}
-
-func TestSetAndGetThreadContext(t *testing.T) {
-	tests := []struct {
-		name    string
-		channel string
-		thread  string
-	}{
-		{name: "store and retrieve", channel: "C123", thread: "1700000000.000100"},
-		{name: "empty thread ts", channel: "C456", thread: ""},
-		{name: "overwrite existing", channel: "C789", thread: "1700000000.000200"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "overwrite existing" {
-				setThreadContext(tt.channel, "old")
-			}
-			setThreadContext(tt.channel, tt.thread)
-			if got := getThreadContext(tt.channel); got != tt.thread {
-				t.Errorf("expected %q, got %q", tt.thread, got)
 			}
 		})
 	}

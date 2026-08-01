@@ -82,7 +82,7 @@ func runChatAgent(
 	flog.Info("[chat-agent] run complete uid=%s session=%s reply_len=%d duration=%s streaming=%t",
 		uid, sessionID, len(reply), time.Since(start).Round(time.Millisecond), streaming)
 	if !streaming {
-		sendChatReply(caller, msg, types.TextMsg{Text: reply})
+		sendChatReply(caller, msg, types.MarkdownMsg{Raw: reply})
 	}
 }
 
@@ -93,10 +93,11 @@ func startChatStream(caller *platforms.Caller, msg protocol.MessageEventData) (c
 
 	resp := caller.Do(protocol.Request{
 		Action: protocol.SendMessageAction,
-		Params: types.KV{
-			"topic":   msg.TopicId,
-			"message": caller.Adapter.MessageConvert(types.TextMsg{Text: "Thinking..."}),
-		},
+		Params: platformSendParams(
+			msg.TopicId,
+			msg.ThreadId,
+			caller.Adapter.MessageConvert(types.TextMsg{Text: "Thinking..."}),
+		),
 	})
 	messageID := platformMessageID(resp)
 	if messageID == "" {
@@ -175,10 +176,11 @@ func platformMessageID(resp protocol.Response) string {
 func sendChatReply(caller *platforms.Caller, msg protocol.MessageEventData, payload types.MsgPayload) {
 	resp := caller.Do(protocol.Request{
 		Action: protocol.SendMessageAction,
-		Params: types.KV{
-			"topic":   msg.TopicId,
-			"message": caller.Adapter.MessageConvert(payload),
-		},
+		Params: platformSendParams(
+			msg.TopicId,
+			msg.ThreadId,
+			caller.Adapter.MessageConvert(payload),
+		),
 	})
 	flog.Debug("[chat-agent] platform reply topic=%s resp=%+v", msg.TopicId, resp)
 }

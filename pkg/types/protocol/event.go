@@ -45,6 +45,9 @@ type MessageEventData struct {
 	TopicId   string `json:"topic_id,omitempty"`
 	TopicType string `json:"topic_type,omitempty"`
 
+	// ThreadId is the parent message id for threaded platform replies (e.g. Slack thread_ts).
+	ThreadId string `json:"thread_id,omitempty"`
+
 	Forwarded string `json:"forwarded,omitempty"`
 
 	Seq    float64 `json:"seq,omitempty"`

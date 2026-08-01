@@ -22,6 +22,7 @@ type ScheduledDelivery struct {
 	Platform   string `json:"platform,omitempty"`
 	Topic      string `json:"topic,omitempty"`
 	PlatformID int64  `json:"platform_id,omitempty"`
+	ThreadID   string `json:"thread_id,omitempty"`
 }
 
 // ValidScheduleKind reports whether kind is supported.

@@ -27,6 +27,7 @@ type mockStreamAction struct {
 	lastTopic   string
 	lastMsgID   string
 	lastText    string
+	lastSegType string
 }
 
 func (*mockStreamAction) SendMessage(protocol.Request) protocol.Response {
@@ -40,6 +41,7 @@ func (m *mockStreamAction) UpdateMessage(req protocol.Request) protocol.Response
 	m.lastMsgID, _ = params.String("message_id")
 	message, _ := params.Any("message")
 	if content, ok := message.(protocol.Message); ok && len(content) > 0 {
+		m.lastSegType = content[0].Type
 		if text, ok := content[0].Data["text"].(string); ok {
 			m.lastText = text
 		}
@@ -100,6 +102,7 @@ func TestSlackStreamSink_update(t *testing.T) {
 		{name: "delta update", text: "hello", wantLen: 5},
 		{name: "flush final text", text: "done", wantLen: 4},
 		{name: "truncates long text", text: strings.Repeat("x", slackTextLimit+10), wantLen: slackTextLimit},
+		{name: "preserves gfm bold for slack conversion", text: "- **读写文件**: 查看", wantLen: len("- **读写文件**: 查看")},
 	}
 
 	for _, tt := range tests {
@@ -119,6 +122,7 @@ func TestSlackStreamSink_update(t *testing.T) {
 			assert.Equal(t, 1, action.updateCalls)
 			assert.Equal(t, "C1", action.lastTopic)
 			assert.Equal(t, "ts-1", action.lastMsgID)
+			assert.Equal(t, "markdown", action.lastSegType)
 			assert.Len(t, action.lastText, tt.wantLen)
 		})
 	}

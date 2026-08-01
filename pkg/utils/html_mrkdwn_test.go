@@ -24,3 +24,25 @@ func TestHTMLToMrkdwn(t *testing.T) {
 		})
 	}
 }
+
+func TestMarkdownToMrkdwn(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{name: "empty", in: "", want: ""},
+		{name: "bold", in: "**bold**", want: "*bold*"},
+		{name: "link", in: "[Ex](https://ex.com)", want: "<https://ex.com|Ex>"},
+		{name: "list with bold", in: "- **读写文件**: 查看代码", want: "• *读写文件*: 查看代码"},
+		{name: "plain text", in: "hello", want: "hello"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := MarkdownToMrkdwn(tt.in)
+			if got != tt.want {
+				t.Fatalf("MarkdownToMrkdwn(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}

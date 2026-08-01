@@ -89,6 +89,15 @@ func slackMessageID(messageEvent *slackevents.MessageEvent) string {
 	return messageEvent.TimeStamp
 }
 
+// replyThreadTS picks the Slack thread parent for chat replies that opt into threading.
+// Top-level messages use their own ts so chat can start a thread under the user message.
+func replyThreadTS(messageEvent *slackevents.MessageEvent) string {
+	if messageEvent.ThreadTimeStamp != "" {
+		return messageEvent.ThreadTimeStamp
+	}
+	return messageEvent.TimeStamp
+}
+
 func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 	var result protocol.Event
 
@@ -115,8 +124,6 @@ func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 		result.DetailType = protocol.MessageGroupEvent
 	}
 
-	setThreadContext(messageEvent.Channel, messageEvent.ThreadTimeStamp)
-
 	result.Data = protocol.MessageEventData{
 		Self: protocol.Self{
 			Platform: ID,
@@ -127,6 +134,7 @@ func convertEventsAPIEvent(apiEvent slackevents.EventsAPIEvent) protocol.Event {
 		UserId:     messageEvent.User,
 		TopicId:    messageEvent.Channel,
 		TopicType:  messageEvent.ChannelType,
+		ThreadId:   replyThreadTS(messageEvent),
 	}
 
 	return result
@@ -143,7 +151,6 @@ func convertInteractiveEvent(callback *slack.InteractionCallback) protocol.Event
 			result.Time = time.Now().UnixMicro()
 			result.Type = protocol.MessageEventType
 			result.DetailType = protocol.MessageDirectEvent
-			setThreadContext(callback.Channel.ID, callback.MessageTs)
 
 			result.Data = protocol.MessageEventData{
 				Self: protocol.Self{
@@ -154,6 +161,7 @@ func convertInteractiveEvent(callback *slack.InteractionCallback) protocol.Event
 				UserId:     callback.User.ID,
 				TopicId:    callback.Channel.ID,
 				TopicType:  "im",
+				ThreadId:   callback.MessageTs,
 				Option:     action.ActionID,
 			}
 			flog.Info("Block action: user=%s action_id=%s value=%s",

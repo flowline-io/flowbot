@@ -406,3 +406,64 @@ func TestSendMessageIntegration(t *testing.T) {
 		t.Errorf("expected text 'integration test', got %q", msgText)
 	}
 }
+
+func TestSendMessageThreadIDParam(t *testing.T) {
+	var gotThread string
+	api := newTestSlackClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/chat.postMessage" {
+			_ = r.ParseForm()
+			gotThread = r.FormValue("thread_ts")
+			slackOK(w, map[string]any{"ok": true, "ts": "1700000000.001000", "channel": "C999"})
+			return
+		}
+		http.Error(w, "unexpected call", 500)
+	})
+
+	action := &Action{api: api}
+	resp := action.SendMessage(protocol.Request{
+		Action: protocol.SendMessageAction,
+		Params: map[string]any{
+			"topic":     "C999",
+			"thread_id": "1700000000.000500",
+			"message": protocol.Message{
+				{Type: "text", Data: map[string]any{"text": "threaded"}},
+			},
+		},
+	})
+	if resp.Status != protocol.Success {
+		t.Fatalf("expected success, got %s", resp.Status)
+	}
+	if gotThread != "1700000000.000500" {
+		t.Errorf("expected thread_ts from param, got %q", gotThread)
+	}
+}
+
+func TestSendMessageWithoutThreadIDIgnoresContext(t *testing.T) {
+	var gotThread string
+	api := newTestSlackClient(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/chat.postMessage" {
+			_ = r.ParseForm()
+			gotThread = r.FormValue("thread_ts")
+			slackOK(w, map[string]any{"ok": true, "ts": "1700000000.001100", "channel": "C888"})
+			return
+		}
+		http.Error(w, "unexpected call", 500)
+	})
+
+	action := &Action{api: api}
+	resp := action.SendMessage(protocol.Request{
+		Action: protocol.SendMessageAction,
+		Params: map[string]any{
+			"topic": "C888",
+			"message": protocol.Message{
+				{Type: "text", Data: map[string]any{"text": "channel reply"}},
+			},
+		},
+	})
+	if resp.Status != protocol.Success {
+		t.Fatalf("expected success, got %s", resp.Status)
+	}
+	if gotThread != "" {
+		t.Errorf("expected no thread_ts without thread_id param, got %q", gotThread)
+	}
+}

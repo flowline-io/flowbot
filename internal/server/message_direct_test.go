@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
@@ -43,12 +44,12 @@ func (h *helpDispatchTestModule) Command(ctx types.Context, content any) (types.
 	return module.RunCommand(h.Rules()[0].([]command.Rule), ctx, content)
 }
 
-// resolveDirectModulePayload mirrors dispatchDirectMessage payload resolution for tests.
-func resolveDirectModulePayload(sessionID, msgAlt string, payload types.MsgPayload, ctx types.Context) types.MsgPayload {
-	if sessionID == "" && payload == nil {
-		payload = dispatchToModules(ctx, msgAlt)
+// resolveDirectModulePayload mirrors module-first resolution used before agent dispatch.
+func resolveDirectModulePayload(msgAlt string, payload types.MsgPayload, ctx types.Context) types.MsgPayload {
+	if payload != nil || chatagent.IsChatControlCommand(msgAlt) {
+		return payload
 	}
-	return payload
+	return dispatchToModules(ctx, msgAlt)
 }
 
 func TestBuildDirectMessageContextSetsTopicAndPlatform(t *testing.T) {
@@ -184,6 +185,7 @@ func TestPersistDirectUserMessage(t *testing.T) {
 			msg := protocol.MessageEventData{
 				MessageId:  "msg-1",
 				AltMessage: "hello",
+				ThreadId:   "1700000000.000100",
 			}
 
 			var persisted bool
@@ -200,6 +202,7 @@ func TestPersistDirectUserMessage(t *testing.T) {
 				assert.Equal(t, "msg-1", stored.PlatformMsgID)
 				assert.Equal(t, types.User, stored.Role)
 				assert.Equal(t, int(schema.MessageCreated), stored.State)
+				assert.Equal(t, "1700000000.000100", stored.Content["thread_id"])
 			} else {
 				assert.False(t, persisted)
 			}
@@ -211,7 +214,6 @@ func TestResolveDirectModulePayload(t *testing.T) {
 	tests := []struct {
 		name        string
 		msgAlt      string
-		sessionID   string
 		wantNil     bool
 		wantHelpKey string
 		wantText    string
@@ -219,20 +221,17 @@ func TestResolveDirectModulePayload(t *testing.T) {
 		{
 			name:        "help keeps aggregated commands from all modules",
 			msgAlt:      "help",
-			sessionID:   "",
 			wantHelpKey: "`/alpha-cmd` — alpha help",
 		},
 		{
-			name:      "non-help command dispatches when payload is nil",
-			msgAlt:    "alpha-cmd",
-			sessionID: "",
-			wantText:  "command-ok",
+			name:     "non-help command dispatches when payload is nil",
+			msgAlt:   "alpha-cmd",
+			wantText: "command-ok",
 		},
 		{
-			name:      "active chat session skips module dispatch",
-			msgAlt:    "alpha-cmd",
-			sessionID: "sess-1",
-			wantNil:   true,
+			name:     "module command still resolves while chat session would be active",
+			msgAlt:   "alpha-cmd",
+			wantText: "command-ok",
 		},
 	}
 	for _, tt := range tests {
@@ -254,7 +253,7 @@ func TestResolveDirectModulePayload(t *testing.T) {
 
 			ctx := types.Context{}
 			payload := buildHelpMessage(tt.msgAlt, nil)
-			got := resolveDirectModulePayload(tt.sessionID, tt.msgAlt, payload, ctx)
+			got := resolveDirectModulePayload(tt.msgAlt, payload, ctx)
 
 			if tt.wantNil {
 				assert.Nil(t, got)
@@ -276,6 +275,28 @@ func TestResolveDirectModulePayload(t *testing.T) {
 				assert.Contains(t, md.Raw, "*help-mod-a*")
 				assert.Contains(t, md.Raw, "*help-mod-b*")
 				assert.Contains(t, md.Raw, "`/beta-cmd` — beta help")
+			}
+		})
+	}
+}
+
+func TestPlatformSendParams(t *testing.T) {
+	tests := []struct {
+		name     string
+		threadID string
+		wantKey  bool
+	}{
+		{name: "with thread", threadID: "1700000000.000100", wantKey: true},
+		{name: "without thread", threadID: "", wantKey: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			params := platformSendParams("C1", tt.threadID, protocol.Message{{Type: "text", Data: map[string]any{"text": "hi"}}})
+			assert.Equal(t, "C1", params["topic"])
+			_, ok := params["thread_id"]
+			assert.Equal(t, tt.wantKey, ok)
+			if tt.wantKey {
+				assert.Equal(t, tt.threadID, params["thread_id"])
 			}
 		})
 	}

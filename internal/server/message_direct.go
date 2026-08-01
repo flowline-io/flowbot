@@ -11,7 +11,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/pkg/cache"
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/module"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -49,10 +48,21 @@ func directIncomingMessage(eventCtx context.Context, caller *platforms.Caller, e
 
 	module.Behavior(dmCtx.uid, module.MessageBotIncomingBehavior, 1)
 
-	chatKey := cache.NewKey("chat", "session", dmCtx.uid.String())
-	sessionID := loadChatSessionID(dmCtx.ctx, chatKey, dmCtx.uid)
-	payload, sessionID := manageChatSession(dmCtx.ctx, chatKey, msg.AltMessage, sessionID, nil, dmCtx.uid)
-	refreshChatSessionCache(dmCtx.ctx, chatKey, sessionID)
+	scope := chatScope(msg)
+	sessionID := loadThreadSessionID(dmCtx.ctx, dmCtx.uid, scope)
+	payload, sessionID := manageChatSession(dmCtx.ctx, dmCtx.uid, scope, msg.AltMessage, sessionID, nil)
+
+	// Module commands (version, etc.) win over the agent even when chat is enabled,
+	// and always reply in the channel (no thread).
+	if payload == nil && !chatagent.IsChatControlCommand(msg.AltMessage) {
+		if modPayload := dispatchToModules(dmCtx.ctx, msg.AltMessage); modPayload != nil {
+			sendDirectPlatformReply(caller, msg, modPayload, "")
+			return
+		}
+	}
+
+	sessionID = ensureThreadSession(dmCtx.ctx, dmCtx.uid, scope, sessionID, msg.AltMessage)
+	refreshThreadSessionCache(dmCtx.ctx, dmCtx.uid, scope, sessionID)
 
 	if sessionID != "" && !persistDirectUserMessage(dmCtx, sessionID, msg) {
 		return
@@ -112,29 +122,11 @@ func isDuplicateDirectMessage(dmCtx directMessageContext) bool {
 	return false
 }
 
-func loadChatSessionID(ctx types.Context, chatKey cache.Key, uid types.Uid) string {
-	sessionID, ok, err := cacheStore.Get(ctx.Context(), chatKey)
-	if err != nil {
-		flog.Error(err)
-		return ""
-	}
-	if !ok {
-		return ""
-	}
-	flog.Debug("[chat-agent] session cache hit uid=%s session=%s", uid, sessionID)
-	return sessionID
-}
-
-func refreshChatSessionCache(ctx types.Context, chatKey cache.Key, sessionID string) {
-	if sessionID == "" {
-		return
-	}
-	if err := cacheStore.Set(ctx.Context(), chatKey, sessionID, cache.TTLSession); err != nil {
-		flog.Error(fmt.Errorf("refresh chat session cache: %w", err))
-	}
-}
-
 func persistDirectUserMessage(dmCtx directMessageContext, sessionID string, msg protocol.MessageEventData) bool {
+	content := schema.JSON{"text": msg.AltMessage}
+	if msg.ThreadId != "" {
+		content["thread_id"] = msg.ThreadId
+	}
 	err := store.MessageStoreFromDB().CreateMessage(dmCtx.ctx.Context(), gen.Message{
 		Flag:          types.Id(),
 		PlatformID:    dmCtx.platformID,
@@ -142,11 +134,11 @@ func persistDirectUserMessage(dmCtx directMessageContext, sessionID string, msg 
 		Topic:         dmCtx.topic,
 		Role:          types.User,
 		Session:       sessionID,
-		Content:       schema.JSON{"text": msg.AltMessage},
+		Content:       content,
 		State:         int(schema.MessageCreated),
 	})
 	if err != nil {
-		flog.Error(err)
+		flog.Error(fmt.Errorf("persist direct user message: %w", err))
 		return false
 	}
 	return true
@@ -166,20 +158,28 @@ func dispatchDirectMessage(
 		return
 	}
 
-	if sessionID == "" && payload == nil {
-		payload = dispatchToModules(dmCtx.ctx, msg.AltMessage)
-	}
 	if payload == nil {
 		return
 	}
+	sendDirectPlatformReply(caller, msg, payload, chatCommandThreadID(msg, msg.AltMessage))
+}
 
+func sendDirectPlatformReply(caller *platforms.Caller, msg protocol.MessageEventData, payload types.MsgPayload, threadID string) {
 	flog.Debug("incoming send message action topic %v payload %+v", msg.MessageId, payload)
 	resp := caller.Do(protocol.Request{
 		Action: protocol.SendMessageAction,
-		Params: types.KV{
-			"topic":   msg.TopicId,
-			"message": caller.Adapter.MessageConvert(payload),
-		},
+		Params: platformSendParams(msg.TopicId, threadID, caller.Adapter.MessageConvert(payload)),
 	})
 	flog.Info("[event] %+v  response: %+v", msg, resp)
+}
+
+func platformSendParams(topic, threadID string, message protocol.Message) types.KV {
+	params := types.KV{
+		"topic":   topic,
+		"message": message,
+	}
+	if threadID != "" {
+		params["thread_id"] = threadID
+	}
+	return params
 }

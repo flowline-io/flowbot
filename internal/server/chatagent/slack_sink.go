@@ -50,7 +50,7 @@ func (s *slackStreamSink) update(text string) error {
 		Params: types.KV{
 			"topic":      s.topic,
 			"message_id": s.messageID,
-			"message":    s.caller.Adapter.MessageConvert(types.TextMsg{Text: text}),
+			"message":    s.caller.Adapter.MessageConvert(types.MarkdownMsg{Raw: text}),
 		},
 	})
 	if resp.Status != protocol.Success {

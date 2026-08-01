@@ -20,6 +20,19 @@ var (
 	htmlScriptTag = regexp.MustCompile(`(?is)<(script|style)\b[^>]*>.*?</(script|style)>`)
 )
 
+// MarkdownToMrkdwn converts GitHub-flavored markdown into Slack mrkdwn.
+// On conversion failure it returns the original input unchanged.
+func MarkdownToMrkdwn(raw string) string {
+	if strings.TrimSpace(raw) == "" {
+		return ""
+	}
+	htmlBytes, err := MarkdownToSafeHTML([]byte(raw))
+	if err != nil {
+		return raw
+	}
+	return HTMLToMrkdwn(string(htmlBytes))
+}
+
 // HTMLToMrkdwn converts common HTML into Slack mrkdwn plain text.
 // Unsupported tags are stripped; entities are unescaped.
 func HTMLToMrkdwn(raw string) string {

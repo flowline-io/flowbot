@@ -32,6 +32,7 @@ func ResolveDeliveryContext(ctx context.Context, sessionID string) ScheduledDeli
 		delivery := ScheduledDelivery{
 			Topic:      msg.Topic,
 			PlatformID: msg.PlatformID,
+			ThreadID:   threadIDFromMessageContent(msg.Content),
 		}
 		if msg.PlatformID > 0 {
 			platformRow, perr := store.PlatformStoreFromDB().GetPlatform(ctx, msg.PlatformID)
@@ -44,6 +45,16 @@ func ResolveDeliveryContext(ctx context.Context, sessionID string) ScheduledDeli
 	return ScheduledDelivery{}
 }
 
+func threadIDFromMessageContent(content map[string]any) string {
+	if content == nil {
+		return ""
+	}
+	if v, ok := content["thread_id"].(string); ok {
+		return v
+	}
+	return ""
+}
+
 func deliveryFromTask(task *gen.ChatScheduledTask) ScheduledDelivery {
 	if task == nil || task.Delivery == nil {
 		return ScheduledDelivery{}
@@ -54,6 +65,9 @@ func deliveryFromTask(task *gen.ChatScheduledTask) ScheduledDelivery {
 	}
 	if v, ok := task.Delivery["topic"].(string); ok {
 		d.Topic = v
+	}
+	if v, ok := task.Delivery["thread_id"].(string); ok {
+		d.ThreadID = v
 	}
 	switch v := task.Delivery["platform_id"].(type) {
 	case float64:
@@ -71,14 +85,18 @@ func deliveryFromTask(task *gen.ChatScheduledTask) ScheduledDelivery {
 }
 
 func deliveryToMap(d ScheduledDelivery) map[string]any {
-	if d.Platform == "" && d.Topic == "" && d.PlatformID == 0 {
+	if d.Platform == "" && d.Topic == "" && d.PlatformID == 0 && d.ThreadID == "" {
 		return nil
 	}
-	return map[string]any{
+	m := map[string]any{
 		"platform":    d.Platform,
 		"topic":       d.Topic,
 		"platform_id": d.PlatformID,
 	}
+	if d.ThreadID != "" {
+		m["thread_id"] = d.ThreadID
+	}
+	return m
 }
 
 // deliverScheduledReply pushes the agent reply to the user's chat or notify channels.
@@ -117,12 +135,16 @@ func sendPlatformScheduledReply(delivery ScheduledDelivery, text string) error {
 	if err != nil {
 		return err
 	}
+	params := types.KV{
+		"topic":   delivery.Topic,
+		"message": caller.Adapter.MessageConvert(types.MarkdownMsg{Raw: text}),
+	}
+	if delivery.ThreadID != "" {
+		params["thread_id"] = delivery.ThreadID
+	}
 	resp := caller.Do(protocol.Request{
 		Action: protocol.SendMessageAction,
-		Params: types.KV{
-			"topic":   delivery.Topic,
-			"message": caller.Adapter.MessageConvert(types.TextMsg{Text: text}),
-		},
+		Params: params,
 	})
 	if resp.Status != protocol.Success {
 		return fmt.Errorf("platform send failed: %+v", resp)
