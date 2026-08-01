@@ -191,7 +191,7 @@ func TestAutoApprovalBreakerIgnoresEscalateWithoutGate(t *testing.T) {
 		ToolCall: msg.ToolCallPart{Name: permission.ToolWebFetch},
 		Args:     map[string]any{"url": "https://example.com"},
 	}
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		r, err := reg.EmitToolCall(context.Background(), event)
 		require.NoError(t, err)
 		require.NotNil(t, r)
