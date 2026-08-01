@@ -15,9 +15,7 @@ import (
 )
 
 func TestListPlanSummaries(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 	sessionID := "sess-plans"
@@ -43,8 +41,8 @@ func TestListPlanSummaries(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.wantErr {
-				store.Database = nil
-				t.Cleanup(func() { store.Database = postgres.NewSQLiteTestAdapter(t) })
+				restoreTestDatabase(nil)
+				t.Cleanup(func() { restoreTestDatabase(postgres.NewSQLiteTestAdapter(t)) })
 			}
 			rows, err := ListPlanSummaries(ctx, tt.session)
 			if tt.wantErr {
@@ -62,9 +60,7 @@ func TestListPlanSummaries(t *testing.T) {
 }
 
 func TestMaybePersistPlan(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 	sessionID := "sess-plan-mode"

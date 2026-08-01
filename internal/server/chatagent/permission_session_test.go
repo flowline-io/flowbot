@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -56,8 +55,7 @@ func TestPermissionSessionManagerPersists(t *testing.T) {
 
 func TestSessionGrantsPersistAndClear(t *testing.T) {
 	svc := NewService()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	sessionID := "sess-grants"
 	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag:  sessionID,
@@ -65,7 +63,6 @@ func TestSessionGrantsPersistAndClear(t *testing.T) {
 		State: int(schema.ChatSessionActive),
 	}))
 	t.Cleanup(func() {
-		store.Database = origDB
 		svc.ResetPermissionSessionsForTest()
 	})
 

@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -104,9 +103,7 @@ func TestHistoryMessagesFromMessage(t *testing.T) {
 }
 
 func TestListSessionMessages(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 

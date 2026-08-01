@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,9 +20,7 @@ func memoryToolResultText(result msg.ToolResultMessage) string {
 }
 
 func TestMemoryFactToolsCRUD(t *testing.T) {
-	orig := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = orig })
+	installSQLiteTestDatabase(t)
 
 	ctx := WithMemoryScope(context.Background(), "default")
 	tests := []struct {
@@ -100,10 +97,7 @@ func TestMemoryFactToolsCRUD(t *testing.T) {
 }
 
 func TestSearchSessionSummariesTool(t *testing.T) {
-	orig := store.Database
-	db := postgres.NewSQLiteTestAdapter(t)
-	store.Database = db
-	t.Cleanup(func() { store.Database = orig })
+	installSQLiteTestDatabase(t)
 
 	ctx := WithMemoryScope(context.Background(), "default")
 	tests := []struct {

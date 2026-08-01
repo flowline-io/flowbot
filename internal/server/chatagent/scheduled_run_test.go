@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +19,10 @@ func setupEphemeralRunTestDB(t *testing.T) store.Adapter {
 	t.Helper()
 	BindSharedService(NewService())
 	t.Cleanup(func() { BindSharedService(nil) })
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	t.Cleanup(func() {
 		WaitForSessionTitleGenerationForTest()
-		store.Database = origDB
+		WaitApprovalNotifyForTest()
 	})
 	return store.Database
 }

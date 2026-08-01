@@ -36,7 +36,10 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 				gate.timeout = 2 * time.Second
 				state := NewAPIRunState(pub, gate)
 				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
+				t.Cleanup(func() {
+					svc.ClearAPIRunState(sessionID, state)
+					WaitApprovalNotifyForTest()
+				})
 				go func() {
 					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
@@ -110,7 +113,10 @@ func TestSessionActivity(t *testing.T) {
 				gate.timeout = 2 * time.Second
 				state := NewAPIRunState(pub, gate)
 				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
-				t.Cleanup(func() { svc.ClearAPIRunState(sessionID, state) })
+				t.Cleanup(func() {
+					svc.ClearAPIRunState(sessionID, state)
+					WaitApprovalNotifyForTest()
+				})
 				go func() {
 					_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},

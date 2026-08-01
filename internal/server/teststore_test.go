@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
@@ -15,9 +16,14 @@ import (
 
 func setupSQLiteTestDB(t *testing.T) {
 	t.Helper()
+	chatagent.WaitApprovalNotifyForTest()
 	orig := store.Database
 	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = orig })
+	t.Cleanup(func() {
+		// Drain approval inbox goroutines before restoring Database (avoids data races).
+		chatagent.WaitApprovalNotifyForTest()
+		store.Database = orig
+	})
 }
 
 func setupChatAgentHTTPTest(t *testing.T, sessions ...*gen.ChatSession) {

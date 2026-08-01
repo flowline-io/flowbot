@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	agentmodel "github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -18,9 +17,8 @@ import (
 
 func TestSetSessionSettings(t *testing.T) {
 	LockAppConfigForTest(t)
-	origDB := store.Database
 	origCfg := config.App
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	config.App = config.Type{
 		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()},
 		Models: []config.Model{
@@ -28,7 +26,6 @@ func TestSetSessionSettings(t *testing.T) {
 		},
 	}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App = origCfg
 	})
 
@@ -92,9 +89,8 @@ func TestSetSessionSettings(t *testing.T) {
 
 func TestResolveEffectiveSessionSettings(t *testing.T) {
 	LockAppConfigForTest(t)
-	origDB := store.Database
 	origCfg := config.App
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	config.App = config.Type{
 		ChatAgent: config.ChatAgentConfig{ChatModel: "gpt-default", Workspace: t.TempDir()},
 		Models: []config.Model{
@@ -102,7 +98,6 @@ func TestResolveEffectiveSessionSettings(t *testing.T) {
 		},
 	}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App = origCfg
 	})
 

@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -22,12 +21,11 @@ func TestResolveResourceFullOption(t *testing.T) {
 	LockAppConfigForTest(t)
 
 	origCfg := config.App.ChatAgent
-	origDB := store.Database
 	root := t.TempDir()
 	large := strings.Repeat("x", coding.DefaultMaxOutput+200)
 	require.NoError(t, os.WriteFile(filepath.Join(root, "big.txt"), []byte(large), 0o600))
 	config.App.ChatAgent = config.ChatAgentConfig{Workspace: root, ChatModel: "gpt-test"}
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	sessionID := types.Id()
 	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag:  sessionID,
@@ -36,7 +34,6 @@ func TestResolveResourceFullOption(t *testing.T) {
 	}))
 	t.Cleanup(func() {
 		config.App.ChatAgent = origCfg
-		store.Database = origDB
 	})
 
 	tests := []struct {

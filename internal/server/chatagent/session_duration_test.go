@@ -8,7 +8,6 @@ import (
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/stretchr/testify/assert"
@@ -155,16 +154,14 @@ func TestSumSessionsRunDurationMs(t *testing.T) {
 		{
 			name:          "returns list error when database unavailable",
 			leafBySession: map[string]string{"sess-a": "e1"},
-			seed:          func(_ *testing.T) { store.Database = nil },
+			seed:          func(_ *testing.T) { restoreTestDatabase(nil) },
 			wantErr:       true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			orig := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
-			t.Cleanup(func() { store.Database = orig })
+			installSQLiteTestDatabase(t)
 			if tt.seed != nil {
 				tt.seed(t)
 			}

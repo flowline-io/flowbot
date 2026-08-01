@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
@@ -29,12 +27,10 @@ func (f fixedReviewer) Review(context.Context, approval.ReviewRequest) (approval
 func setupApprovalHookTest(t *testing.T) {
 	t.Helper()
 	LockAppConfigForTest(t)
-	origDB := store.Database
 	origCfg := config.App.ChatAgent
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: t.TempDir()}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		ResetPermissionCacheForTest()
 		ResetApprovalCacheForTest()

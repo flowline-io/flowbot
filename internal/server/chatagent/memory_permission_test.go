@@ -7,7 +7,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
@@ -18,9 +17,7 @@ import (
 )
 
 func TestPlanModeMemoryWriteBlock(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 	sessionID := types.Id()
@@ -62,13 +59,11 @@ func TestMemoryPermissionOverlay(t *testing.T) {
 	svc := NewService()
 	LockAppConfigForTest(t)
 
-	origDB := store.Database
 	origCfg := config.App.ChatAgent
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	root := t.TempDir()
 	config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-test", Workspace: root}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App.ChatAgent = origCfg
 		ResetPermissionCacheForTest()
 		svc.ResetPermissionSessionsForTest()

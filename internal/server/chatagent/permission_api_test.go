@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -17,10 +16,8 @@ import (
 
 func TestBuildPermissionsView(t *testing.T) {
 	svc := NewService()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	t.Cleanup(func() {
-		store.Database = origDB
 		ResetPermissionCacheForTest()
 		svc.ResetPermissionSessionsForTest()
 	})
@@ -99,10 +96,8 @@ func TestParsePermissionsBody(t *testing.T) {
 
 func TestClearSessionPermissionGrants(t *testing.T) {
 	svc := NewService()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	t.Cleanup(func() {
-		store.Database = origDB
 		svc.ResetPermissionSessionsForTest()
 	})
 
@@ -125,10 +120,8 @@ func TestClearSessionPermissionGrants(t *testing.T) {
 
 func TestSaveAndDeleteUserPermissions(t *testing.T) {
 	svc := NewService()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	t.Cleanup(func() {
-		store.Database = origDB
 		ResetPermissionCacheForTest()
 	})
 

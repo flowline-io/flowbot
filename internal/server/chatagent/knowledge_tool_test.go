@@ -23,8 +23,12 @@ func seedKnowledgeDoc(t *testing.T, doc *gen.AgentKnowledge) {
 func setupKnowledgeTestDB(t *testing.T) {
 	t.Helper()
 	orig := store.Database
+	chatagent.WaitApprovalNotifyForTest()
 	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = orig })
+	t.Cleanup(func() {
+		chatagent.WaitApprovalNotifyForTest()
+		store.Database = orig
+	})
 }
 
 func TestSearchKnowledgeTool(t *testing.T) {

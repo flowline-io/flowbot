@@ -18,9 +18,8 @@ import (
 func TestBuildAgentInfo(t *testing.T) {
 	LockAppConfigForTest(t)
 
-	origDB := store.Database
 	origCfg := config.App
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	ws := t.TempDir()
 	config.App = config.Type{
 		ChatAgent: config.ChatAgentConfig{
@@ -33,7 +32,6 @@ func TestBuildAgentInfo(t *testing.T) {
 		},
 	}
 	t.Cleanup(func() {
-		store.Database = origDB
 		config.App = origCfg
 	})
 
@@ -101,9 +99,7 @@ func TestResolveModelProvider(t *testing.T) {
 }
 
 func TestListUserActiveSessions(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 	uid := types.Uid("user-sessions")
@@ -130,8 +126,8 @@ func TestListUserActiveSessions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.wantErr {
-				store.Database = nil
-				t.Cleanup(func() { store.Database = postgres.NewSQLiteTestAdapter(t) })
+				restoreTestDatabase(nil)
+				t.Cleanup(func() { restoreTestDatabase(postgres.NewSQLiteTestAdapter(t)) })
 			}
 			rows, _, err := ListUserActiveSessions(ctx, tt.uid, tt.limit, "")
 			if tt.wantErr {

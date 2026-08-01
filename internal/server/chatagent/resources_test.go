@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/stretchr/testify/assert"
@@ -47,13 +46,12 @@ func TestResolveFileResource(t *testing.T) {
 	LockAppConfigForTest(t)
 
 	origCfg := config.App.ChatAgent
-	origDB := store.Database
 	root := t.TempDir()
 	require.NoError(t, os.WriteFile(filepath.Join(root, "note.txt"), []byte("hello file"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "secrets.env"), []byte("SECRET=1"), 0o600))
 	require.NoError(t, os.WriteFile(filepath.Join(root, "bad.bin"), []byte{0xff, 0xfe, 0x00}, 0o600))
 	config.App.ChatAgent = config.ChatAgentConfig{Workspace: root, ChatModel: "gpt-test"}
-	store.Database = postgres.NewSQLiteTestAdapter(t)
+	installSQLiteTestDatabase(t)
 	sessionID := types.Id()
 	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(context.Background(), &gen.ChatSession{
 		Flag:  sessionID,
@@ -62,7 +60,6 @@ func TestResolveFileResource(t *testing.T) {
 	}))
 	t.Cleanup(func() {
 		config.App.ChatAgent = origCfg
-		store.Database = origDB
 	})
 
 	tests := []struct {

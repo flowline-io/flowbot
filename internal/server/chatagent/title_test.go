@@ -10,7 +10,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/stretchr/testify/assert"
@@ -99,8 +98,7 @@ func TestSessionTitleInflightDedupes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			LockAppConfigForTest(t)
 
-			origDB := store.Database
-			store.Database = postgres.NewSQLiteTestAdapter(t)
+			installSQLiteTestDatabase(t)
 			origChatAgent := config.App.ChatAgent
 			origModels := config.App.Models
 			config.App.ChatAgent = config.ChatAgentConfig{ChatModel: "gpt-4o-mini"}
@@ -138,7 +136,7 @@ func TestSessionTitleInflightDedupes(t *testing.T) {
 				generateSessionTitleLLM = origLLM
 				sessionTitleLLMMu.Unlock()
 				WaitForSessionTitleGenerationForTest()
-				store.Database = origDB
+				WaitApprovalNotifyForTest()
 				config.App.ChatAgent = origChatAgent
 				config.App.Models = origModels
 			})

@@ -8,15 +8,12 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTaskSchedulerMarksMissedOnceTask(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	defer func() { store.Database = origDB }()
+	installSQLiteTestDatabase(t)
 
 	past := time.Date(2026, 1, 1, 9, 0, 0, 0, time.UTC)
 	fixedNow := time.Date(2026, 1, 1, 9, 20, 0, 0, time.UTC)
@@ -41,9 +38,7 @@ func TestTaskSchedulerMarksMissedOnceTask(t *testing.T) {
 }
 
 func TestTaskSchedulerRegistersFutureOnceTask(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	defer func() { store.Database = origDB }()
+	installSQLiteTestDatabase(t)
 
 	base := time.Date(2026, 6, 20, 8, 0, 0, 0, time.UTC)
 	runAt := base.Add(30 * time.Minute)
@@ -68,9 +63,7 @@ func TestTaskSchedulerRegistersFutureOnceTask(t *testing.T) {
 }
 
 func TestTaskSchedulerUpdateTask(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	defer func() { store.Database = origDB }()
+	installSQLiteTestDatabase(t)
 
 	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-cron",
@@ -93,9 +86,7 @@ func TestTaskSchedulerUpdateTask(t *testing.T) {
 }
 
 func TestSyncTaskWithSchedulerPause(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	defer func() { store.Database = origDB }()
+	installSQLiteTestDatabase(t)
 
 	require.NoError(t, store.ChatStoreFromDB().CreateChatScheduledTask(context.Background(), &gen.ChatScheduledTask{
 		Flag:         "task-pause",

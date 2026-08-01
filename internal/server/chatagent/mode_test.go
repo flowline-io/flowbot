@@ -118,8 +118,12 @@ func TestLoadSessionModeDefaults(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			origDB := store.Database
+			chatagent.WaitApprovalNotifyForTest()
 			store.Database = nil
-			t.Cleanup(func() { store.Database = origDB })
+			t.Cleanup(func() {
+				chatagent.WaitApprovalNotifyForTest()
+				store.Database = origDB
+			})
 			assert.Equal(t, tt.want, chatagent.LoadSessionMode(context.Background(), tt.sessionID))
 		})
 	}

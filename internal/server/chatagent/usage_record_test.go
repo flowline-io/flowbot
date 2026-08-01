@@ -4,8 +4,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/flowline-io/flowbot/internal/store"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -30,9 +28,7 @@ func TestTokenUsageSourceFromRunKind(t *testing.T) {
 }
 
 func TestRecordLLMUsageMessages(t *testing.T) {
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() { store.Database = origDB })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 	uid := types.Uid("user-usage")

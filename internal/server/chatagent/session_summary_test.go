@@ -8,7 +8,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/types"
@@ -48,12 +47,10 @@ func seedSummarySession(t *testing.T, text string) string {
 }
 
 func TestSetSessionArchivedEnqueuesSummary(t *testing.T) {
-	orig := store.Database
-	db := postgres.NewSQLiteTestAdapter(t)
-	store.Database = db
+	installSQLiteTestDatabase(t)
 	t.Cleanup(func() {
 		WaitForSessionSummaryGenerationForTest()
-		store.Database = orig
+		WaitApprovalNotifyForTest()
 	})
 	restore := SetSessionSummaryLLMForTest(func(context.Context, string, string, sessionTitleModelFunc) (string, error) {
 		return "Summary about widgets", nil
@@ -119,10 +116,7 @@ func TestSetSessionArchivedEnqueuesSummary(t *testing.T) {
 }
 
 func TestBuildSessionSummaryInputBudget(t *testing.T) {
-	orig := store.Database
-	db := postgres.NewSQLiteTestAdapter(t)
-	store.Database = db
-	t.Cleanup(func() { store.Database = orig })
+	installSQLiteTestDatabase(t)
 
 	ctx := context.Background()
 	sessionID := types.Id()
