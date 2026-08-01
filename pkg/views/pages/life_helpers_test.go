@@ -284,6 +284,95 @@ func TestLifeRewardsListURLAndPagers(t *testing.T) {
 	assert.Equal(t, "/service/web/life/rewards?archive_tab=deactivated&inactive_page=3&redemptions_page=4#life-rewards-archive", inactive.NextURL)
 }
 
+func TestLifeGroupGoals(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		in   []pages.LifeGoalRow
+		want []pages.LifeGoalGroup
+	}{
+		{
+			name: "empty",
+			in:   nil,
+			want: nil,
+		},
+		{
+			name: "area with children and ungrouped",
+			in: []pages.LifeGoalRow{
+				{Flag: "a1", Title: "Health", Category: "Area", Status: "Active"},
+				{Flag: "p1", Title: "Run 5k", Category: "Project", Status: "Active", AreaFlag: "a1", AreaTitle: "Health"},
+				{Flag: "r1", Title: "Nutrition notes", Category: "Resource", Status: "Active", AreaFlag: "a1", AreaTitle: "Health"},
+				{Flag: "p2", Title: "Solo project", Category: "Project", Status: "Active"},
+			},
+			want: []pages.LifeGoalGroup{
+				{
+					Area: &pages.LifeGoalRow{Flag: "a1", Title: "Health", Category: "Area", Status: "Active"},
+					Children: []pages.LifeGoalRow{
+						{Flag: "p1", Title: "Run 5k", Category: "Project", Status: "Active", AreaFlag: "a1", AreaTitle: "Health"},
+						{Flag: "r1", Title: "Nutrition notes", Category: "Resource", Status: "Active", AreaFlag: "a1", AreaTitle: "Health"},
+					},
+				},
+				{
+					Children: []pages.LifeGoalRow{
+						{Flag: "p2", Title: "Solo project", Category: "Project", Status: "Active"},
+					},
+				},
+			},
+		},
+		{
+			name: "empty area still grouped",
+			in: []pages.LifeGoalRow{
+				{Flag: "a1", Title: "Empty area", Category: "Area", Status: "Paused"},
+			},
+			want: []pages.LifeGoalGroup{
+				{
+					Area:     &pages.LifeGoalRow{Flag: "a1", Title: "Empty area", Category: "Area", Status: "Paused"},
+					Children: []pages.LifeGoalRow{},
+				},
+			},
+		},
+		{
+			name: "orphan area flag becomes ungrouped",
+			in: []pages.LifeGoalRow{
+				{Flag: "p1", Title: "Orphan", Category: "Project", Status: "Active", AreaFlag: "missing"},
+			},
+			want: []pages.LifeGoalGroup{
+				{
+					Children: []pages.LifeGoalRow{
+						{Flag: "p1", Title: "Orphan", Category: "Project", Status: "Active", AreaFlag: "missing"},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := pages.LifeGroupGoals(tt.in)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestLifeGoalStatusClass(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "life-meta-chip-ok", pages.LifeGoalStatusClass("Active"))
+	assert.Equal(t, "life-meta-chip-warn", pages.LifeGoalStatusClass("Paused"))
+	assert.Equal(t, "life-meta-chip-diff", pages.LifeGoalStatusClass("Completed"))
+	assert.Empty(t, pages.LifeGoalStatusClass("Other"))
+}
+
+func TestLifeGoalAreaOptions(t *testing.T) {
+	t.Parallel()
+	active := []pages.LifeGoalRow{{Flag: "a1", Title: "Health", Category: "Area"}}
+	assert.Equal(t, active, pages.LifeGoalAreaOptions(active, "", ""))
+	assert.Equal(t, active, pages.LifeGoalAreaOptions(active, "a1", "Health"))
+	got := pages.LifeGoalAreaOptions(active, "a2", "Legacy")
+	assert.Len(t, got, 2)
+	assert.Equal(t, "a2", got[1].Flag)
+	assert.Equal(t, "Legacy", got[1].Title)
+}
+
 func TestLifeInventoryListURLAndBackpackPager(t *testing.T) {
 	t.Parallel()
 	assert.Equal(t, "/service/web/life/inventory", pages.LifeInventoryListURL(1, ""))

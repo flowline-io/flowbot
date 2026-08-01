@@ -79,6 +79,11 @@ func Status(v string) predicate.LifeGoal {
 	return predicate.LifeGoal(sql.FieldEQ(FieldStatus, v))
 }
 
+// AreaID applies equality check predicate on the "area_id" field. It's identical to AreaIDEQ.
+func AreaID(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldEQ(FieldAreaID, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.LifeGoal {
 	return predicate.LifeGoal(sql.FieldEQ(FieldCreatedAt, v))
@@ -387,6 +392,56 @@ func StatusEqualFold(v string) predicate.LifeGoal {
 // StatusContainsFold applies the ContainsFold predicate on the "status" field.
 func StatusContainsFold(v string) predicate.LifeGoal {
 	return predicate.LifeGoal(sql.FieldContainsFold(FieldStatus, v))
+}
+
+// AreaIDEQ applies the EQ predicate on the "area_id" field.
+func AreaIDEQ(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldEQ(FieldAreaID, v))
+}
+
+// AreaIDNEQ applies the NEQ predicate on the "area_id" field.
+func AreaIDNEQ(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldNEQ(FieldAreaID, v))
+}
+
+// AreaIDIn applies the In predicate on the "area_id" field.
+func AreaIDIn(vs ...int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldIn(FieldAreaID, vs...))
+}
+
+// AreaIDNotIn applies the NotIn predicate on the "area_id" field.
+func AreaIDNotIn(vs ...int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldNotIn(FieldAreaID, vs...))
+}
+
+// AreaIDGT applies the GT predicate on the "area_id" field.
+func AreaIDGT(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldGT(FieldAreaID, v))
+}
+
+// AreaIDGTE applies the GTE predicate on the "area_id" field.
+func AreaIDGTE(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldGTE(FieldAreaID, v))
+}
+
+// AreaIDLT applies the LT predicate on the "area_id" field.
+func AreaIDLT(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldLT(FieldAreaID, v))
+}
+
+// AreaIDLTE applies the LTE predicate on the "area_id" field.
+func AreaIDLTE(v int64) predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldLTE(FieldAreaID, v))
+}
+
+// AreaIDIsNil applies the IsNil predicate on the "area_id" field.
+func AreaIDIsNil() predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldIsNull(FieldAreaID))
+}
+
+// AreaIDNotNil applies the NotNil predicate on the "area_id" field.
+func AreaIDNotNil() predicate.LifeGoal {
+	return predicate.LifeGoal(sql.FieldNotNull(FieldAreaID))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

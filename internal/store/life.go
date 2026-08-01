@@ -401,18 +401,21 @@ func (s *LifeStore) UpdateAIContext(ctx context.Context, profileID int64, rate f
 	return err
 }
 
-// CreateGoal inserts an active PARA goal.
-func (s *LifeStore) CreateGoal(ctx context.Context, profileID int64, title, category string) (*gen.LifeGoal, error) {
+// CreateGoal inserts an active PARA goal. areaID is optional parent Area for Project/Resource.
+func (s *LifeStore) CreateGoal(ctx context.Context, profileID int64, title, category string, areaID *int64) (*gen.LifeGoal, error) {
 	if !s.ready() {
 		return nil, fmt.Errorf("life: store not available")
 	}
-	row, err := s.client.LifeGoal.Create().
+	b := s.client.LifeGoal.Create().
 		SetFlag(types.Id()).
 		SetLifeProfileID(profileID).
 		SetTitle(title).
 		SetCategory(category).
-		SetStatus("Active").
-		Save(ctx)
+		SetStatus("Active")
+	if areaID != nil {
+		b = b.SetAreaID(*areaID)
+	}
+	row, err := b.Save(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("life: create goal: %w", err)
 	}
@@ -1446,12 +1449,31 @@ func (s *LifeStore) GetQuest(ctx context.Context, id int64) (*gen.LifeQuest, err
 	return row, nil
 }
 
-// UpdateGoal updates title and category for a goal.
-func (s *LifeStore) UpdateGoal(ctx context.Context, id int64, title, category string) error {
+// UpdateGoal updates title, category, and optional Area parent for a goal.
+// A nil areaID clears the parent link.
+func (s *LifeStore) UpdateGoal(ctx context.Context, id int64, title, category string, areaID *int64) error {
 	if !s.ready() {
 		return fmt.Errorf("life: store not available")
 	}
-	_, err := s.client.LifeGoal.UpdateOneID(id).SetTitle(title).SetCategory(category).Save(ctx)
+	u := s.client.LifeGoal.UpdateOneID(id).SetTitle(title).SetCategory(category)
+	if areaID == nil {
+		u = u.ClearAreaID()
+	} else {
+		u = u.SetAreaID(*areaID)
+	}
+	_, err := u.Save(ctx)
+	return err
+}
+
+// ClearGoalAreaRefs clears area_id on goals that point at the given Area goal id.
+func (s *LifeStore) ClearGoalAreaRefs(ctx context.Context, areaID int64) error {
+	if !s.ready() {
+		return fmt.Errorf("life: store not available")
+	}
+	_, err := s.client.LifeGoal.Update().
+		Where(lifegoal.AreaIDEQ(areaID)).
+		ClearAreaID().
+		Save(ctx)
 	return err
 }
 

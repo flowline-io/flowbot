@@ -27,6 +27,8 @@ type LifeGoal struct {
 	Category string `json:"category,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
+	// AreaID holds the value of the "area_id" field.
+	AreaID *int64 `json:"area_id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -39,7 +41,7 @@ func (*LifeGoal) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case lifegoal.FieldID, lifegoal.FieldLifeProfileID:
+		case lifegoal.FieldID, lifegoal.FieldLifeProfileID, lifegoal.FieldAreaID:
 			values[i] = new(sql.NullInt64)
 		case lifegoal.FieldFlag, lifegoal.FieldTitle, lifegoal.FieldCategory, lifegoal.FieldStatus:
 			values[i] = new(sql.NullString)
@@ -95,6 +97,13 @@ func (_m *LifeGoal) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				_m.Status = value.String
+			}
+		case lifegoal.FieldAreaID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field area_id", values[i])
+			} else if value.Valid {
+				_m.AreaID = new(int64)
+				*_m.AreaID = value.Int64
 			}
 		case lifegoal.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -158,6 +167,11 @@ func (_m *LifeGoal) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(_m.Status)
+	builder.WriteString(", ")
+	if v := _m.AreaID; v != nil {
+		builder.WriteString("area_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))

@@ -24,6 +24,7 @@ func (LifeGoal) Fields() []ent.Field {
 		field.String("title").NotEmpty(),
 		field.String("category").Default("Project"),
 		field.String("status").Default("Active"),
+		field.Int64("area_id").Optional().Nillable(),
 		field.Time("created_at").Immutable().Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -34,6 +35,7 @@ func (LifeGoal) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("life_profile_id"),
 		index.Fields("life_profile_id", "status"),
+		index.Fields("area_id"),
 	}
 }
 

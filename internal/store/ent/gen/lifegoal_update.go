@@ -105,6 +105,33 @@ func (_u *LifeGoalUpdate) SetNillableStatus(v *string) *LifeGoalUpdate {
 	return _u
 }
 
+// SetAreaID sets the "area_id" field.
+func (_u *LifeGoalUpdate) SetAreaID(v int64) *LifeGoalUpdate {
+	_u.mutation.ResetAreaID()
+	_u.mutation.SetAreaID(v)
+	return _u
+}
+
+// SetNillableAreaID sets the "area_id" field if the given value is not nil.
+func (_u *LifeGoalUpdate) SetNillableAreaID(v *int64) *LifeGoalUpdate {
+	if v != nil {
+		_u.SetAreaID(*v)
+	}
+	return _u
+}
+
+// AddAreaID adds value to the "area_id" field.
+func (_u *LifeGoalUpdate) AddAreaID(v int64) *LifeGoalUpdate {
+	_u.mutation.AddAreaID(v)
+	return _u
+}
+
+// ClearAreaID clears the value of the "area_id" field.
+func (_u *LifeGoalUpdate) ClearAreaID() *LifeGoalUpdate {
+	_u.mutation.ClearAreaID()
+	return _u
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *LifeGoalUpdate) SetUpdatedAt(v time.Time) *LifeGoalUpdate {
 	_u.mutation.SetUpdatedAt(v)
@@ -196,6 +223,15 @@ func (_u *LifeGoalUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(lifegoal.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AreaID(); ok {
+		_spec.SetField(lifegoal.FieldAreaID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedAreaID(); ok {
+		_spec.AddField(lifegoal.FieldAreaID, field.TypeInt64, value)
+	}
+	if _u.mutation.AreaIDCleared() {
+		_spec.ClearField(lifegoal.FieldAreaID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(lifegoal.FieldUpdatedAt, field.TypeTime, value)
@@ -294,6 +330,33 @@ func (_u *LifeGoalUpdateOne) SetNillableStatus(v *string) *LifeGoalUpdateOne {
 	if v != nil {
 		_u.SetStatus(*v)
 	}
+	return _u
+}
+
+// SetAreaID sets the "area_id" field.
+func (_u *LifeGoalUpdateOne) SetAreaID(v int64) *LifeGoalUpdateOne {
+	_u.mutation.ResetAreaID()
+	_u.mutation.SetAreaID(v)
+	return _u
+}
+
+// SetNillableAreaID sets the "area_id" field if the given value is not nil.
+func (_u *LifeGoalUpdateOne) SetNillableAreaID(v *int64) *LifeGoalUpdateOne {
+	if v != nil {
+		_u.SetAreaID(*v)
+	}
+	return _u
+}
+
+// AddAreaID adds value to the "area_id" field.
+func (_u *LifeGoalUpdateOne) AddAreaID(v int64) *LifeGoalUpdateOne {
+	_u.mutation.AddAreaID(v)
+	return _u
+}
+
+// ClearAreaID clears the value of the "area_id" field.
+func (_u *LifeGoalUpdateOne) ClearAreaID() *LifeGoalUpdateOne {
+	_u.mutation.ClearAreaID()
 	return _u
 }
 
@@ -418,6 +481,15 @@ func (_u *LifeGoalUpdateOne) sqlSave(ctx context.Context) (_node *LifeGoal, err 
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(lifegoal.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.AreaID(); ok {
+		_spec.SetField(lifegoal.FieldAreaID, field.TypeInt64, value)
+	}
+	if value, ok := _u.mutation.AddedAreaID(); ok {
+		_spec.AddField(lifegoal.FieldAreaID, field.TypeInt64, value)
+	}
+	if _u.mutation.AreaIDCleared() {
+		_spec.ClearField(lifegoal.FieldAreaID, field.TypeInt64)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(lifegoal.FieldUpdatedAt, field.TypeTime, value)

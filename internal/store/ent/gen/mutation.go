@@ -36366,6 +36366,8 @@ type LifeGoalMutation struct {
 	title              *string
 	category           *string
 	status             *string
+	area_id            *int64
+	addarea_id         *int64
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -36678,6 +36680,76 @@ func (m *LifeGoalMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetAreaID sets the "area_id" field.
+func (m *LifeGoalMutation) SetAreaID(i int64) {
+	m.area_id = &i
+	m.addarea_id = nil
+}
+
+// AreaID returns the value of the "area_id" field in the mutation.
+func (m *LifeGoalMutation) AreaID() (r int64, exists bool) {
+	v := m.area_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAreaID returns the old "area_id" field's value of the LifeGoal entity.
+// If the LifeGoal object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LifeGoalMutation) OldAreaID(ctx context.Context) (v *int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAreaID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAreaID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAreaID: %w", err)
+	}
+	return oldValue.AreaID, nil
+}
+
+// AddAreaID adds i to the "area_id" field.
+func (m *LifeGoalMutation) AddAreaID(i int64) {
+	if m.addarea_id != nil {
+		*m.addarea_id += i
+	} else {
+		m.addarea_id = &i
+	}
+}
+
+// AddedAreaID returns the value that was added to the "area_id" field in this mutation.
+func (m *LifeGoalMutation) AddedAreaID() (r int64, exists bool) {
+	v := m.addarea_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearAreaID clears the value of the "area_id" field.
+func (m *LifeGoalMutation) ClearAreaID() {
+	m.area_id = nil
+	m.addarea_id = nil
+	m.clearedFields[lifegoal.FieldAreaID] = struct{}{}
+}
+
+// AreaIDCleared returns if the "area_id" field was cleared in this mutation.
+func (m *LifeGoalMutation) AreaIDCleared() bool {
+	_, ok := m.clearedFields[lifegoal.FieldAreaID]
+	return ok
+}
+
+// ResetAreaID resets all changes to the "area_id" field.
+func (m *LifeGoalMutation) ResetAreaID() {
+	m.area_id = nil
+	m.addarea_id = nil
+	delete(m.clearedFields, lifegoal.FieldAreaID)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *LifeGoalMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -36784,7 +36856,7 @@ func (m *LifeGoalMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LifeGoalMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.flag != nil {
 		fields = append(fields, lifegoal.FieldFlag)
 	}
@@ -36799,6 +36871,9 @@ func (m *LifeGoalMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, lifegoal.FieldStatus)
+	}
+	if m.area_id != nil {
+		fields = append(fields, lifegoal.FieldAreaID)
 	}
 	if m.created_at != nil {
 		fields = append(fields, lifegoal.FieldCreatedAt)
@@ -36824,6 +36899,8 @@ func (m *LifeGoalMutation) Field(name string) (ent.Value, bool) {
 		return m.Category()
 	case lifegoal.FieldStatus:
 		return m.Status()
+	case lifegoal.FieldAreaID:
+		return m.AreaID()
 	case lifegoal.FieldCreatedAt:
 		return m.CreatedAt()
 	case lifegoal.FieldUpdatedAt:
@@ -36847,6 +36924,8 @@ func (m *LifeGoalMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldCategory(ctx)
 	case lifegoal.FieldStatus:
 		return m.OldStatus(ctx)
+	case lifegoal.FieldAreaID:
+		return m.OldAreaID(ctx)
 	case lifegoal.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case lifegoal.FieldUpdatedAt:
@@ -36895,6 +36974,13 @@ func (m *LifeGoalMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case lifegoal.FieldAreaID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAreaID(v)
+		return nil
 	case lifegoal.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -36920,6 +37006,9 @@ func (m *LifeGoalMutation) AddedFields() []string {
 	if m.addlife_profile_id != nil {
 		fields = append(fields, lifegoal.FieldLifeProfileID)
 	}
+	if m.addarea_id != nil {
+		fields = append(fields, lifegoal.FieldAreaID)
+	}
 	return fields
 }
 
@@ -36930,6 +37019,8 @@ func (m *LifeGoalMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case lifegoal.FieldLifeProfileID:
 		return m.AddedLifeProfileID()
+	case lifegoal.FieldAreaID:
+		return m.AddedAreaID()
 	}
 	return nil, false
 }
@@ -36946,6 +37037,13 @@ func (m *LifeGoalMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddLifeProfileID(v)
 		return nil
+	case lifegoal.FieldAreaID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAreaID(v)
+		return nil
 	}
 	return fmt.Errorf("unknown LifeGoal numeric field %s", name)
 }
@@ -36953,7 +37051,11 @@ func (m *LifeGoalMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *LifeGoalMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(lifegoal.FieldAreaID) {
+		fields = append(fields, lifegoal.FieldAreaID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -36966,6 +37068,11 @@ func (m *LifeGoalMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *LifeGoalMutation) ClearField(name string) error {
+	switch name {
+	case lifegoal.FieldAreaID:
+		m.ClearAreaID()
+		return nil
+	}
 	return fmt.Errorf("unknown LifeGoal nullable field %s", name)
 }
 
@@ -36987,6 +37094,9 @@ func (m *LifeGoalMutation) ResetField(name string) error {
 		return nil
 	case lifegoal.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case lifegoal.FieldAreaID:
+		m.ResetAreaID()
 		return nil
 	case lifegoal.FieldCreatedAt:
 		m.ResetCreatedAt()

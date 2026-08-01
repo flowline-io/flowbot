@@ -218,9 +218,13 @@ func (s *Service) resolveGoalBinding(ctx context.Context, profileID int64, goalF
 	if err != nil {
 		return nil, nil, err
 	}
+	byID := make(map[int64]*gen.LifeGoal, len(goals))
+	for _, g := range goals {
+		byID[g.ID] = g
+	}
 	titles := make([]string, 0, len(goals))
 	for _, g := range goals {
-		titles = append(titles, g.Title)
+		titles = append(titles, goalContextTitle(g, byID))
 	}
 	if goalFlag == "" {
 		return nil, titles, nil
@@ -233,6 +237,38 @@ func (s *Service) resolveGoalBinding(ctx context.Context, profileID int64, goalF
 		return nil, nil, lifeNotFound("goal not found")
 	}
 	return &g.ID, titles, nil
+}
+
+func goalContextTitle(g *gen.LifeGoal, byID map[int64]*gen.LifeGoal) string {
+	if g == nil {
+		return ""
+	}
+	if g.AreaID == nil {
+		return g.Title
+	}
+	area, ok := byID[*g.AreaID]
+	if !ok || area == nil {
+		return g.Title
+	}
+	return g.Title + " · " + area.Title
+}
+
+func (s *Service) resolveAreaID(ctx context.Context, profileID int64, category, areaFlag string) (*int64, error) {
+	if category != "Project" && category != "Resource" {
+		return nil, nil
+	}
+	areaFlag = strings.TrimSpace(areaFlag)
+	if areaFlag == "" {
+		return nil, nil
+	}
+	area, err := s.store.GetGoalByFlag(ctx, profileID, areaFlag)
+	if err != nil {
+		return nil, err
+	}
+	if area == nil || area.Category != "Area" || area.Status != "Active" {
+		return nil, lifeInvalid("area not found or not active")
+	}
+	return &area.ID, nil
 }
 
 func (s *Service) evaluateQuestPrompt(ctx context.Context, profileID int64, prompt string, goalTitles []string) (*lifecap.QuestEvaluation, error) {
@@ -324,8 +360,8 @@ func (s *Service) resolveSkillForEvaluation(ctx context.Context, profileID int64
 	return s.store.CreateSkill(ctx, profileID, charID, ev.SkillName, 0.5)
 }
 
-// CreateGoal creates an Active PARA goal.
-func (s *Service) CreateGoal(ctx context.Context, userID, title, category string) (*gen.LifeGoal, error) {
+// CreateGoal creates an Active PARA goal. areaFlag optionally links Project/Resource to an Active Area.
+func (s *Service) CreateGoal(ctx context.Context, userID, title, category, areaFlag string) (*gen.LifeGoal, error) {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
 		return nil, err
@@ -339,12 +375,17 @@ func (s *Service) CreateGoal(ctx context.Context, userID, title, category string
 	default:
 		category = "Project"
 	}
-	g, err := s.store.CreateGoal(ctx, p.ID, title, category)
+	areaID, err := s.resolveAreaID(ctx, p.ID, category, areaFlag)
+	if err != nil {
+		return nil, err
+	}
+	g, err := s.store.CreateGoal(ctx, p.ID, title, category, areaID)
 	if err != nil {
 		return nil, err
 	}
 	flog.InfoFields("life: goal created", map[string]any{
 		"uid": userID, "profile_id": p.ID, "goal_flag": g.Flag, "category": category, "title": title,
+		"area_flag": strings.TrimSpace(areaFlag),
 	})
 	return g, nil
 }
@@ -367,8 +408,8 @@ func (s *Service) SetGoalStatus(ctx context.Context, userID, goalFlag, status st
 	return s.store.UpdateGoalStatus(ctx, g.ID, status)
 }
 
-// UpdateGoal updates title and category for a goal by flag.
-func (s *Service) UpdateGoal(ctx context.Context, userID, goalFlag, title, category string) error {
+// UpdateGoal updates title, category, and optional Area parent for a goal by flag.
+func (s *Service) UpdateGoal(ctx context.Context, userID, goalFlag, title, category, areaFlag string) error {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
 		return err
@@ -386,16 +427,27 @@ func (s *Service) UpdateGoal(ctx context.Context, userID, goalFlag, title, categ
 	default:
 		category = g.Category
 	}
-	if err := s.store.UpdateGoal(ctx, g.ID, title, category); err != nil {
+	wasArea := g.Category == "Area"
+	if wasArea && category != "Area" {
+		if err := s.store.ClearGoalAreaRefs(ctx, g.ID); err != nil {
+			return err
+		}
+	}
+	areaID, err := s.resolveAreaID(ctx, p.ID, category, areaFlag)
+	if err != nil {
+		return err
+	}
+	if err := s.store.UpdateGoal(ctx, g.ID, title, category, areaID); err != nil {
 		return err
 	}
 	flog.InfoFields("life: goal updated", map[string]any{
 		"uid": userID, "profile_id": p.ID, "goal_flag": goalFlag, "category": category,
+		"area_flag": strings.TrimSpace(areaFlag),
 	})
 	return nil
 }
 
-// DeleteGoal removes a goal by flag.
+// DeleteGoal removes a goal by flag. Deleting an Area clears child area_id links first.
 func (s *Service) DeleteGoal(ctx context.Context, userID, goalFlag string) error {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
@@ -404,6 +456,11 @@ func (s *Service) DeleteGoal(ctx context.Context, userID, goalFlag string) error
 	g, err := s.store.GetGoalByFlag(ctx, p.ID, goalFlag)
 	if err != nil || g == nil {
 		return lifeNotFound("goal not found")
+	}
+	if g.Category == "Area" {
+		if err := s.store.ClearGoalAreaRefs(ctx, g.ID); err != nil {
+			return err
+		}
 	}
 	if err := s.store.DeleteGoal(ctx, g.ID); err != nil {
 		return err

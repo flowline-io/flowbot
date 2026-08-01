@@ -99,9 +99,17 @@ type LifeCharacterData struct {
 // LifeGoalsData is the Goals page model.
 type LifeGoalsData struct {
 	Goals         []LifeGoalRow
+	Groups        []LifeGoalGroup
+	ActiveAreas   []LifeGoalRow
 	DropRateBonus float64
 	GoldMult      float64
 	PendingCount  int
+}
+
+// LifeGoalGroup is one Area section (or the ungrouped section when Area is nil).
+type LifeGoalGroup struct {
+	Area     *LifeGoalRow
+	Children []LifeGoalRow
 }
 
 // LifePlanData is the Plan Tree page model.
@@ -146,10 +154,92 @@ type LifeSkillEvidenceRow struct {
 
 // LifeGoalRow is one PARA goal for Goals / Quests UI.
 type LifeGoalRow struct {
-	Flag     string
-	Title    string
-	Category string
-	Status   string
+	Flag      string
+	Title     string
+	Category  string
+	Status    string
+	AreaFlag  string
+	AreaTitle string
+}
+
+// LifeGoalGroupTestID returns a stable test id for a goals group section.
+func LifeGoalGroupTestID(group LifeGoalGroup) string {
+	if group.Area == nil {
+		return "life-goal-group-ungrouped"
+	}
+	return "life-goal-group-" + group.Area.Flag
+}
+
+// LifeGoalStatusClass maps goal status to a life-meta-chip modifier.
+func LifeGoalStatusClass(status string) string {
+	switch strings.TrimSpace(status) {
+	case "Active":
+		return "life-meta-chip-ok"
+	case "Paused":
+		return "life-meta-chip-warn"
+	case "Completed":
+		return "life-meta-chip-diff"
+	default:
+		return ""
+	}
+}
+
+// LifeGoalAreaOptions returns Active Areas for a picker, keeping the current Area if missing.
+func LifeGoalAreaOptions(active []LifeGoalRow, currentFlag, currentTitle string) []LifeGoalRow {
+	if currentFlag == "" {
+		return active
+	}
+	for _, a := range active {
+		if a.Flag == currentFlag {
+			return active
+		}
+	}
+	out := make([]LifeGoalRow, 0, len(active)+1)
+	out = append(out, active...)
+	out = append(out, LifeGoalRow{Flag: currentFlag, Title: currentTitle, Category: "Area"})
+	return out
+}
+
+// LifeGroupGoals groups Project/Resource rows under their Area; ungrouped items follow.
+func LifeGroupGoals(goals []LifeGoalRow) []LifeGoalGroup {
+	areas := make([]LifeGoalRow, 0)
+	for _, g := range goals {
+		if g.Category == "Area" {
+			areas = append(areas, g)
+		}
+	}
+	used := make(map[string]bool)
+	groups := make([]LifeGoalGroup, 0, len(areas)+1)
+	for i := range areas {
+		area := areas[i]
+		children := make([]LifeGoalRow, 0)
+		for _, g := range goals {
+			if g.Category == "Area" {
+				continue
+			}
+			if g.AreaFlag == area.Flag {
+				children = append(children, g)
+				used[g.Flag] = true
+			}
+		}
+		groups = append(groups, LifeGoalGroup{Area: &area, Children: children})
+	}
+	ungrouped := make([]LifeGoalRow, 0)
+	for _, g := range goals {
+		if g.Category == "Area" {
+			continue
+		}
+		if !used[g.Flag] {
+			ungrouped = append(ungrouped, g)
+		}
+	}
+	if len(ungrouped) > 0 {
+		groups = append(groups, LifeGoalGroup{Children: ungrouped})
+	}
+	if len(groups) == 0 {
+		return nil
+	}
+	return groups
 }
 
 // LifePlanParentOption is one valid parent choice in the create form.

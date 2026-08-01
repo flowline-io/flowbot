@@ -1327,6 +1327,7 @@ var (
 		{Name: "title", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString, Default: "Project"},
 		{Name: "status", Type: field.TypeString, Default: "Active"},
+		{Name: "area_id", Type: field.TypeInt64, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -1345,6 +1346,11 @@ var (
 				Name:    "lifegoal_life_profile_id_status",
 				Unique:  false,
 				Columns: []*schema.Column{LifeGoalsColumns[2], LifeGoalsColumns[5]},
+			},
+			{
+				Name:    "lifegoal_area_id",
+				Unique:  false,
+				Columns: []*schema.Column{LifeGoalsColumns[6]},
 			},
 		},
 	}

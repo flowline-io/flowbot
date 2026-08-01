@@ -115,12 +115,11 @@ func mapLifeCharacterData(uid string, char *lifemod.CharacterView, pendingCount 
 	for _, sk := range char.Skills {
 		skills = append(skills, pages.LifeSkillRow{Name: sk.Name, Level: sk.Level, Exp: sk.CurrentExp})
 	}
-	goals := make([]pages.LifeGoalRow, 0, len(char.Goals))
+	goals := mapLifeGoalRows(char.Goals)
 	planTree := make([]pages.LifePlanNodeRow, 0, len(char.PlanTree))
 	planParents := make([]pages.LifePlanParentOption, 0)
 	master, minor := "Set a Project goal", "Set an Area goal"
 	for _, g := range char.Goals {
-		goals = append(goals, pages.LifeGoalRow{Flag: g.Flag, Title: g.Title, Category: g.Category, Status: g.Status})
 		if g.Status != "Active" {
 			continue
 		}
@@ -334,8 +333,16 @@ func lifeGoalsPageData(uid string) (pages.LifeGoalsData, error) {
 	if err != nil {
 		return pages.LifeGoalsData{}, err
 	}
+	activeAreas := make([]pages.LifeGoalRow, 0)
+	for _, g := range identity.Goals {
+		if g.Category == "Area" && g.Status == "Active" {
+			activeAreas = append(activeAreas, g)
+		}
+	}
 	return pages.LifeGoalsData{
 		Goals:         identity.Goals,
+		Groups:        pages.LifeGroupGoals(identity.Goals),
+		ActiveAreas:   activeAreas,
 		DropRateBonus: identity.DropRateBonus,
 		GoldMult:      identity.GoldMult,
 		PendingCount:  identity.PendingCount,
@@ -498,7 +505,8 @@ func lifeCreateGoal(ctx fiber.Ctx) error {
 	}
 	title := strings.TrimSpace(ctx.FormValue("title"))
 	category := strings.TrimSpace(ctx.FormValue("category"))
-	if _, err := lifeService().CreateGoal(context.Background(), uid, title, category); err != nil {
+	areaFlag := strings.TrimSpace(ctx.FormValue("area_flag"))
+	if _, err := lifeService().CreateGoal(context.Background(), uid, title, category, areaFlag); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/goals")
@@ -515,7 +523,8 @@ func lifeUpdateGoal(ctx fiber.Ctx) error {
 	}
 	title := strings.TrimSpace(ctx.FormValue("title"))
 	category := strings.TrimSpace(ctx.FormValue("category"))
-	if err := lifeService().UpdateGoal(context.Background(), uid, ctx.Params("flag"), title, category); err != nil {
+	areaFlag := strings.TrimSpace(ctx.FormValue("area_flag"))
+	if err := lifeService().UpdateGoal(context.Background(), uid, ctx.Params("flag"), title, category, areaFlag); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Set("HX-Redirect", "/service/web/life/goals")
@@ -633,13 +642,33 @@ func buildLifeQuestsData(
 	}
 }
 
+func mapLifeGoalRows(goals []*gen.LifeGoal) []pages.LifeGoalRow {
+	byID := make(map[int64]*gen.LifeGoal, len(goals))
+	for _, g := range goals {
+		byID[g.ID] = g
+	}
+	rows := make([]pages.LifeGoalRow, 0, len(goals))
+	for _, g := range goals {
+		row := pages.LifeGoalRow{Flag: g.Flag, Title: g.Title, Category: g.Category, Status: g.Status}
+		if g.AreaID != nil {
+			if area, ok := byID[*g.AreaID]; ok && area != nil {
+				row.AreaFlag = area.Flag
+				row.AreaTitle = area.Title
+			}
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
 func mapActiveGoalRows(char *lifemod.CharacterView) []pages.LifeGoalRow {
-	goalRows := make([]pages.LifeGoalRow, 0, len(char.Goals))
-	for _, g := range char.Goals {
+	all := mapLifeGoalRows(char.Goals)
+	goalRows := make([]pages.LifeGoalRow, 0, len(all))
+	for _, g := range all {
 		if g.Status != "Active" {
 			continue
 		}
-		goalRows = append(goalRows, pages.LifeGoalRow{Flag: g.Flag, Title: g.Title, Category: g.Category, Status: g.Status})
+		goalRows = append(goalRows, g)
 	}
 	return goalRows
 }

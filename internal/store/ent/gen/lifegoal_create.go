@@ -68,6 +68,20 @@ func (_c *LifeGoalCreate) SetNillableStatus(v *string) *LifeGoalCreate {
 	return _c
 }
 
+// SetAreaID sets the "area_id" field.
+func (_c *LifeGoalCreate) SetAreaID(v int64) *LifeGoalCreate {
+	_c.mutation.SetAreaID(v)
+	return _c
+}
+
+// SetNillableAreaID sets the "area_id" field if the given value is not nil.
+func (_c *LifeGoalCreate) SetNillableAreaID(v *int64) *LifeGoalCreate {
+	if v != nil {
+		_c.SetAreaID(*v)
+	}
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *LifeGoalCreate) SetCreatedAt(v time.Time) *LifeGoalCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -241,6 +255,10 @@ func (_c *LifeGoalCreate) createSpec() (*LifeGoal, *sqlgraph.CreateSpec) {
 		_spec.SetField(lifegoal.FieldStatus, field.TypeString, value)
 		_node.Status = value
 	}
+	if value, ok := _c.mutation.AreaID(); ok {
+		_spec.SetField(lifegoal.FieldAreaID, field.TypeInt64, value)
+		_node.AreaID = &value
+	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(lifegoal.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -364,6 +382,30 @@ func (u *LifeGoalUpsert) SetStatus(v string) *LifeGoalUpsert {
 // UpdateStatus sets the "status" field to the value that was provided on create.
 func (u *LifeGoalUpsert) UpdateStatus() *LifeGoalUpsert {
 	u.SetExcluded(lifegoal.FieldStatus)
+	return u
+}
+
+// SetAreaID sets the "area_id" field.
+func (u *LifeGoalUpsert) SetAreaID(v int64) *LifeGoalUpsert {
+	u.Set(lifegoal.FieldAreaID, v)
+	return u
+}
+
+// UpdateAreaID sets the "area_id" field to the value that was provided on create.
+func (u *LifeGoalUpsert) UpdateAreaID() *LifeGoalUpsert {
+	u.SetExcluded(lifegoal.FieldAreaID)
+	return u
+}
+
+// AddAreaID adds v to the "area_id" field.
+func (u *LifeGoalUpsert) AddAreaID(v int64) *LifeGoalUpsert {
+	u.Add(lifegoal.FieldAreaID, v)
+	return u
+}
+
+// ClearAreaID clears the value of the "area_id" field.
+func (u *LifeGoalUpsert) ClearAreaID() *LifeGoalUpsert {
+	u.SetNull(lifegoal.FieldAreaID)
 	return u
 }
 
@@ -504,6 +546,34 @@ func (u *LifeGoalUpsertOne) SetStatus(v string) *LifeGoalUpsertOne {
 func (u *LifeGoalUpsertOne) UpdateStatus() *LifeGoalUpsertOne {
 	return u.Update(func(s *LifeGoalUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetAreaID sets the "area_id" field.
+func (u *LifeGoalUpsertOne) SetAreaID(v int64) *LifeGoalUpsertOne {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.SetAreaID(v)
+	})
+}
+
+// AddAreaID adds v to the "area_id" field.
+func (u *LifeGoalUpsertOne) AddAreaID(v int64) *LifeGoalUpsertOne {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.AddAreaID(v)
+	})
+}
+
+// UpdateAreaID sets the "area_id" field to the value that was provided on create.
+func (u *LifeGoalUpsertOne) UpdateAreaID() *LifeGoalUpsertOne {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.UpdateAreaID()
+	})
+}
+
+// ClearAreaID clears the value of the "area_id" field.
+func (u *LifeGoalUpsertOne) ClearAreaID() *LifeGoalUpsertOne {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.ClearAreaID()
 	})
 }
 
@@ -812,6 +882,34 @@ func (u *LifeGoalUpsertBulk) SetStatus(v string) *LifeGoalUpsertBulk {
 func (u *LifeGoalUpsertBulk) UpdateStatus() *LifeGoalUpsertBulk {
 	return u.Update(func(s *LifeGoalUpsert) {
 		s.UpdateStatus()
+	})
+}
+
+// SetAreaID sets the "area_id" field.
+func (u *LifeGoalUpsertBulk) SetAreaID(v int64) *LifeGoalUpsertBulk {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.SetAreaID(v)
+	})
+}
+
+// AddAreaID adds v to the "area_id" field.
+func (u *LifeGoalUpsertBulk) AddAreaID(v int64) *LifeGoalUpsertBulk {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.AddAreaID(v)
+	})
+}
+
+// UpdateAreaID sets the "area_id" field to the value that was provided on create.
+func (u *LifeGoalUpsertBulk) UpdateAreaID() *LifeGoalUpsertBulk {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.UpdateAreaID()
+	})
+}
+
+// ClearAreaID clears the value of the "area_id" field.
+func (u *LifeGoalUpsertBulk) ClearAreaID() *LifeGoalUpsertBulk {
+	return u.Update(func(s *LifeGoalUpsert) {
+		s.ClearAreaID()
 	})
 }
 

@@ -23,6 +23,8 @@ const (
 	FieldCategory = "category"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldAreaID holds the string denoting the area_id field in the database.
+	FieldAreaID = "area_id"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -39,6 +41,7 @@ var Columns = []string{
 	FieldTitle,
 	FieldCategory,
 	FieldStatus,
+	FieldAreaID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -101,6 +104,11 @@ func ByCategory(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByAreaID orders the results by the area_id field.
+func ByAreaID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAreaID, opts...).ToFunc()
 }
 
 // ByCreatedAt orders the results by the created_at field.

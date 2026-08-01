@@ -19,6 +19,13 @@ document.addEventListener('alpine:init', () => {
         document.documentElement.getAttribute('data-theme') || 'light';
     },
   }));
+
+  Alpine.data('lifeGoalCompose', () => ({
+    cat: 'Project',
+    get showArea() {
+      return this.cat === 'Project' || this.cat === 'Resource';
+    },
+  }));
 });
 
 // Toast notification system - used by pipeline-editor.js and other components

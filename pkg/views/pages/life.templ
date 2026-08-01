@@ -107,6 +107,7 @@ templ LifeGoalsPage(data LifeGoalsData) {
 						hx-disabled-elt="find button[type='submit'], find input, find select"
 						class="life-goals-compose"
 						data-testid="life-goal-form"
+						x-data="lifeGoalCompose"
 					>
 						<input
 							name="title"
@@ -116,10 +117,29 @@ templ LifeGoalsPage(data LifeGoalsData) {
 							autocomplete="off"
 							data-testid="life-goal-title"
 						/>
-						<select name="category" class="life-goals-compose-cat" data-testid="life-goal-category" aria-label="Category">
+						<select
+							name="category"
+							class="life-goals-compose-cat"
+							data-testid="life-goal-category"
+							aria-label="Category"
+							x-model="cat"
+						>
 							<option value="Project">Project</option>
 							<option value="Area">Area</option>
 							<option value="Resource">Resource</option>
+						</select>
+						<select
+							name="area_flag"
+							class="life-goals-compose-cat life-goals-compose-area"
+							data-testid="life-goal-area"
+							aria-label="Area"
+							x-show="showArea"
+							x-bind:disabled="!showArea"
+						>
+							<option value="">No area</option>
+							for _, a := range data.ActiveAreas {
+								<option value={ a.Flag }>{ a.Title }</option>
+							}
 						</select>
 						<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-goal-create">
 							@partials.HtmxIndicator()
@@ -129,63 +149,26 @@ templ LifeGoalsPage(data LifeGoalsData) {
 					if len(data.Goals) == 0 {
 						<p class="life-goals-empty">No goals yet — add one above.</p>
 					} else {
-						<ul class="life-goal-list">
-							for _, g := range data.Goals {
-								<li class="life-goal-card" data-testid={ "life-goal-card-" + g.Flag }>
-									<form
-										hx-post={ "/service/web/life/goals/" + g.Flag }
-										hx-swap="none"
-										hx-disabled-elt="find button, find input, find select"
-										class="life-goal-card-main"
-										data-testid={ "life-goal-edit-" + g.Flag }
-									>
-										<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label="Goal title"/>
-										<div class="life-goal-card-meta">
-											<select name="category" class="life-goal-card-cat" aria-label="Category">
-												<option value="Project" selected?={ g.Category == "Project" }>Project</option>
-												<option value="Area" selected?={ g.Category == "Area" }>Area</option>
-												<option value="Resource" selected?={ g.Category == "Resource" }>Resource</option>
-											</select>
-											<span class="life-meta-chip">{ g.Status }</span>
+						<div class="life-goal-groups" data-testid="life-goal-groups">
+							for _, group := range data.Groups {
+								<section class="life-goal-group" data-testid={ LifeGoalGroupTestID(group) }>
+									if group.Area != nil {
+										@lifeGoalCard(*group.Area, data.ActiveAreas)
+									} else {
+										<h2 class="life-goal-group-title">Ungrouped</h2>
+									}
+									if len(group.Children) > 0 {
+										<div class="life-goal-list">
+											for _, child := range group.Children {
+												@lifeGoalCard(child, data.ActiveAreas)
+											}
 										</div>
-										<button type="submit" class="life-goal-link" data-testid={ "life-goal-save-" + g.Flag }>
-											@partials.HtmxIndicator()
-											Save
-										</button>
-									</form>
-									<div class="life-goal-actions">
-										if g.Status == "Active" {
-											<button
-												type="button"
-												class="life-goal-link"
-												hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
-												hx-vals='{"status":"Paused"}'
-												hx-swap="none"
-												data-testid={ "life-goal-pause-" + g.Flag }
-											>Pause</button>
-										}
-										if g.Status == "Paused" {
-											<button
-												type="button"
-												class="life-goal-link"
-												hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
-												hx-vals='{"status":"Active"}'
-												hx-swap="none"
-												data-testid={ "life-goal-resume-" + g.Flag }
-											>Resume</button>
-										}
-										<button
-											type="button"
-											class="life-goal-link life-goal-link-danger"
-											hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
-											hx-swap="none"
-											hx-confirm="Delete this goal?"
-											data-testid={ "life-goal-delete-" + g.Flag }
-										>Delete</button>
-									</div>
-								</li>
+									} else if group.Area != nil {
+										<p class="life-goal-group-empty">No projects or resources in this area yet.</p>
+									}
+								</section>
 							}
-						</ul>
+						</div>
 					}
 					<p class="life-goals-foot">
 						Drop buff +{ fmt.Sprintf("%.0f%%", data.DropRateBonus*100) } · Gold ×{ fmt.Sprintf("%.2f", data.GoldMult) }
@@ -194,6 +177,75 @@ templ LifeGoalsPage(data LifeGoalsData) {
 			</div>
 		}
 	}
+}
+
+templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
+	<article
+		class={
+			"life-goal-card",
+			templ.KV("is-area", g.Category == "Area"),
+			templ.KV("is-paused", g.Status == "Paused"),
+		}
+		data-testid={ "life-goal-card-" + g.Flag }
+	>
+		<form
+			hx-post={ "/service/web/life/goals/" + g.Flag }
+			hx-swap="none"
+			hx-disabled-elt="find button, find input, find select"
+			class="life-goal-card-main"
+			data-testid={ "life-goal-edit-" + g.Flag }
+		>
+			<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label="Goal title"/>
+			<select name="category" class="life-goal-card-cat" aria-label="Category">
+				<option value="Project" selected?={ g.Category == "Project" }>Project</option>
+				<option value="Area" selected?={ g.Category == "Area" }>Area</option>
+				<option value="Resource" selected?={ g.Category == "Resource" }>Resource</option>
+			</select>
+			if g.Category == "Project" || g.Category == "Resource" {
+				<select name="area_flag" class="life-goal-card-cat life-goal-card-area" aria-label="Area" data-testid={ "life-goal-area-" + g.Flag }>
+					<option value="">No area</option>
+					for _, a := range LifeGoalAreaOptions(activeAreas, g.AreaFlag, g.AreaTitle) {
+						<option value={ a.Flag } selected?={ a.Flag == g.AreaFlag }>{ a.Title }</option>
+					}
+				</select>
+			}
+			<button type="submit" class="btn btn-sm life-goal-save" data-testid={ "life-goal-save-" + g.Flag }>
+				@partials.HtmxIndicator()
+				Save
+			</button>
+		</form>
+		<div class="life-goal-card-toolbar">
+			<span class={ "life-meta-chip", LifeGoalStatusClass(g.Status) }>{ g.Status }</span>
+			if g.Status == "Active" {
+				<button
+					type="button"
+					class="btn btn-ghost btn-sm"
+					hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
+					hx-vals='{"status":"Paused"}'
+					hx-swap="none"
+					data-testid={ "life-goal-pause-" + g.Flag }
+				>Pause</button>
+			}
+			if g.Status == "Paused" {
+				<button
+					type="button"
+					class="btn btn-ghost btn-sm"
+					hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
+					hx-vals='{"status":"Active"}'
+					hx-swap="none"
+					data-testid={ "life-goal-resume-" + g.Flag }
+				>Resume</button>
+			}
+			<button
+				type="button"
+				class="btn btn-ghost btn-sm life-goal-delete"
+				hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
+				hx-swap="none"
+				hx-confirm="Delete this goal?"
+				data-testid={ "life-goal-delete-" + g.Flag }
+			>Delete</button>
+		</div>
+	</article>
 }
 
 templ LifePlanPage(data LifePlanData) {

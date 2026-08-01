@@ -1519,11 +1519,11 @@ func init() {
 	// lifegoal.DefaultStatus holds the default value on creation for the status field.
 	lifegoal.DefaultStatus = lifegoalDescStatus.Default.(string)
 	// lifegoalDescCreatedAt is the schema descriptor for created_at field.
-	lifegoalDescCreatedAt := lifegoalFields[6].Descriptor()
+	lifegoalDescCreatedAt := lifegoalFields[7].Descriptor()
 	// lifegoal.DefaultCreatedAt holds the default value on creation for the created_at field.
 	lifegoal.DefaultCreatedAt = lifegoalDescCreatedAt.Default.(func() time.Time)
 	// lifegoalDescUpdatedAt is the schema descriptor for updated_at field.
-	lifegoalDescUpdatedAt := lifegoalFields[7].Descriptor()
+	lifegoalDescUpdatedAt := lifegoalFields[8].Descriptor()
 	// lifegoal.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	lifegoal.DefaultUpdatedAt = lifegoalDescUpdatedAt.Default.(func() time.Time)
 	// lifegoal.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
