@@ -170,6 +170,32 @@ func TestExecuteBatch_ParallelAfterHookError(t *testing.T) {
 	assert.False(t, result.Messages[1].IsError)
 }
 
+func TestExecuteBatch_BlockedTerminate(t *testing.T) {
+	t.Parallel()
+
+	reg := tool.NewRegistry()
+	stub := &stubTool{name: "echo", result: "ok"}
+	require.NoError(t, reg.Register(stub))
+
+	assistant := msg.AssistantMessage{Parts: []msg.ContentPart{
+		msg.ToolCallPart{ID: "1", Name: "echo", Arguments: `{}`},
+	}}
+
+	result, err := tool.ExecuteBatch(context.Background(), tool.BatchRequest{
+		Assistant: assistant,
+		Context:   &msg.Context{},
+		Registry:  reg,
+		Before: func(msg.BeforeToolContext) (*msg.BeforeToolResult, error) {
+			return &msg.BeforeToolResult{Block: true, Reason: "loop", Terminate: true}, nil
+		},
+	})
+	require.NoError(t, err)
+	require.Len(t, result.Messages, 1)
+	assert.True(t, result.Messages[0].IsError)
+	assert.True(t, result.Terminate)
+	assert.Equal(t, int32(0), stub.called.Load())
+}
+
 func TestExecuteBatch_MissingTool(t *testing.T) {
 	tests := []struct {
 		name string

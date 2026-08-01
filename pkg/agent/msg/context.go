@@ -51,6 +51,8 @@ type BeforeToolContext struct {
 type BeforeToolResult struct {
 	Block  bool
 	Reason string
+	// Terminate stops the agent loop after delivering the blocked tool result.
+	Terminate bool
 }
 
 // AfterToolContext is passed to after-tool hooks.

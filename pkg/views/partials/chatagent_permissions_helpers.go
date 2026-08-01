@@ -49,7 +49,7 @@ var permissionKeyCatalog = []PermissionKeyMeta{
 	{Key: "delegate", Label: "Delegate", Description: "Controls task (subagent) delegation.", DisallowAllow: true},
 	{Key: "schedule", Label: "Schedule Write", Description: "Controls schedule_task, update_scheduled_task, and cancel_scheduled_task.", DisallowAllow: true},
 	{Key: "schedule_read", Label: "Schedule Read", Description: "Controls list_scheduled_tasks.", DisallowAllow: false},
-	{Key: "doom_loop", Label: "Doom Loop", Description: "Controls repeated identical tool calls (3+ times).", DisallowAllow: false},
+	{Key: "doom_loop", Label: "Doom Loop", Description: "Controls loop-detection critical hits (ask/deny/allow). Global and post-compaction hard-stops ignore this key.", DisallowAllow: false},
 	{Key: "read", Label: "Read Files", Description: "Controls read_file access by file path pattern.", SupportsPatterns: true, DisallowAllow: true},
 	{Key: "edit", Label: "Edit Files", Description: "Controls write_file access by file path pattern.", SupportsPatterns: true, DisallowAllow: true},
 	{Key: "bash", Label: "Shell / Code", Description: "Controls run_terminal and run_code by command pattern.", SupportsPatterns: true, DisallowAllow: true},

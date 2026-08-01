@@ -37,7 +37,7 @@ func SuggestedPattern(key, primary string, bash ParseBashCommand) (string, bool)
 			return "", false
 		}
 		return pattern, true
-	case "websearch", "skill", KeyKnowledge:
+	case "websearch", "skill", KeyKnowledge, KeyDoomLoop:
 		if IsOverlyBroadPattern(primary) {
 			return "", false
 		}

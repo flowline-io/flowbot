@@ -25,6 +25,7 @@ func TestAgentCollectorNoop(t *testing.T) {
 		{name: "IncCompact", fn: func() { c.IncCompact("ok") }},
 		{name: "IncOverflowRetry", fn: func() { c.IncOverflowRetry("1") }},
 		{name: "IncDoomLoop", fn: func() { c.IncDoomLoop("run_terminal") }},
+		{name: "IncLoopDetect", fn: func() { c.IncLoopDetect("generic_repeat", "warn") }},
 		{name: "IncSensorLint", fn: func() { c.IncSensorLint("ok") }},
 		{name: "IncApprovalVerdict", fn: func() { c.IncApprovalVerdict("approve") }},
 	}

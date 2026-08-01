@@ -8,6 +8,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
+	"github.com/flowline-io/flowbot/pkg/agent/loopdetect"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/coding"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -42,6 +43,8 @@ type ChatHookDeps struct {
 	Breaker *approval.Breaker
 	// ApprovalMode overrides DB/YAML mode when Valid (tests and explicit wiring).
 	ApprovalMode approval.Mode
+	// LoopDetector is the per-run tool loop detector. Nil builds one from chat_agent.loop_detection.
+	LoopDetector *loopdetect.Detector
 }
 
 // RegisterHooks wires observational and API hooks for one chat agent harness run.
@@ -52,7 +55,11 @@ func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 	if deps.Breaker == nil {
 		deps.Breaker = approval.NewBreaker(approvalDenialThreshold())
 	}
+	if deps.LoopDetector == nil {
+		deps.LoopDetector = newLoopDetector()
+	}
 
+	registerLoopDetectHooks(reg, deps)
 	registerDCGHook(reg, deps)
 	registerPermissionHook(reg, deps)
 	registerPathSensors(reg)
@@ -211,10 +218,6 @@ func handleManualPermission(
 		WorkspaceRoot: workspaceRoot,
 		ExternalPath:  externalPath,
 	}, sessionState)
-
-	if result.DoomLoopTriggered {
-		metrics.Agent().IncDoomLoop(event.ToolCall.Name)
-	}
 
 	return evaluatePermissionResult(ctx, deps, event, result, sessionState)
 }

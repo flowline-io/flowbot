@@ -73,7 +73,8 @@ flowchart TB
 
 | Control | Config / behavior |
 | ------- | ----------------- |
-| **Max steps** | `Config.MaxSteps` (default 50) — prevents runaway self-iteration |
+| **Max steps** | `Config.MaxSteps` (default 50; chatagent defaults to 80) — prevents runaway self-iteration |
+| **Loop detection** | `pkg/agent/loopdetect` via chatagent hooks — warn/block repetitive tool patterns; global + post-compaction hard-stop (`BeforeToolResult.Terminate`) |
 | **Cancellation** | `context.Context` — aborts LLM streaming and tool execution |
 | **Tool batch mode** | `ToolExecutionParallel` (default) or `ToolExecutionSequential` |
 | **Steering** | `Agent.Steer()` — inject messages between inner-loop turns |
@@ -268,7 +269,7 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 
 ### Chat agent wiring
 
-`internal/server/chatagent` creates one `hooks.Registry` per run, calls `RegisterHooks` (permission, path sensors, progress injection, optional lint observation), and passes `harness.Options.Hooks`. See [Developer Guide — Typed Hooks](./developer-guide.md#typed-hooks-pkgagenthooks).
+`internal/server/chatagent` creates one `hooks.Registry` per run, calls `RegisterHooks` (loop detection, DCG, permission, path sensors, progress injection, optional lint observation), and passes `harness.Options.Hooks`. See [Developer Guide — Typed Hooks](./developer-guide.md#typed-hooks-pkgagenthooks).
 
 ## Reliability and Observability
 

@@ -34,17 +34,26 @@ func TestEvaluatorAlwaysGrant(t *testing.T) {
 	assert.Equal(t, permission.ActionAllow, got.Action)
 }
 
-func TestEvaluatorDoomLoop(t *testing.T) {
+func TestEvaluatorResolveDoomLoop(t *testing.T) {
 	eval := permission.NewEvaluator(permission.DefaultConfig())
-	sess := permission.NewSessionState()
-	args := map[string]any{"command": "ls"}
-	req := permission.Request{Tool: permission.ToolRunTerminal, Args: args}
-	var got permission.Result
-	for range 3 {
-		got = eval.Evaluate(req, sess)
-	}
+	got := eval.ResolveDoomLoop("fingerprint", nil)
 	assert.True(t, got.DoomLoopTriggered)
 	assert.Equal(t, permission.ActionAsk, got.Action)
+	assert.Equal(t, permission.KeyDoomLoop, got.PermissionKey)
+	assert.Equal(t, "fingerprint", got.Pattern)
+	assert.True(t, got.SuggestAlways)
+	assert.Equal(t, "fingerprint", got.SuggestedPattern)
+
+	denyEval := permission.NewEvaluator(permission.Config{
+		permission.KeyDoomLoop: {Default: permission.ActionDeny},
+	})
+	got = denyEval.ResolveDoomLoop("x", nil)
+	assert.Equal(t, permission.ActionDeny, got.Action)
+
+	sess := permission.NewSessionState()
+	require.NoError(t, sess.AddGrant(permission.KeyDoomLoop, "fingerprint"))
+	got = eval.ResolveDoomLoop("fingerprint", sess)
+	assert.Equal(t, permission.ActionAllow, got.Action)
 }
 
 func TestEvaluatorExternalPath(t *testing.T) {

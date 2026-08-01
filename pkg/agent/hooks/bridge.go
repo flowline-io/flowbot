@@ -57,7 +57,11 @@ func (r *Registry) beforeToolCallFn(runCtx context.Context) msg.BeforeToolCallFn
 		if result == nil {
 			return nil, nil
 		}
-		return &msg.BeforeToolResult{Block: result.Block, Reason: result.Reason}, nil
+		return &msg.BeforeToolResult{
+			Block:     result.Block,
+			Reason:    result.Reason,
+			Terminate: result.Terminate,
+		}, nil
 	}
 }
 

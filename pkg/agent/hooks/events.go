@@ -51,6 +51,8 @@ type ToolCallEvent struct {
 type ToolCallResult struct {
 	Block  bool
 	Reason string
+	// Terminate stops the agent loop after delivering the blocked tool result.
+	Terminate bool
 }
 
 // ToolResultEvent fires after a tool executes.

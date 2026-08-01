@@ -59,12 +59,3 @@ func TestSessionStateGrants(t *testing.T) {
 	}
 }
 
-func TestDoomLoop(t *testing.T) {
-	s := permission.NewSessionState()
-	args := map[string]any{"command": "ls"}
-	var triggered bool
-	for range 3 {
-		_, triggered = s.RecordDoomLoop(permission.ToolRunTerminal, args)
-	}
-	assert.True(t, triggered)
-}

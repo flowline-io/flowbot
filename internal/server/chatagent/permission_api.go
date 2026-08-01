@@ -32,7 +32,7 @@ func (s *Service) BuildPermissionsView(ctx context.Context, uid types.Uid, sessi
 	return view, nil
 }
 
-// ClearSessionPermissionGrants resets always grants and doom-loop counters for one session.
+// ClearSessionPermissionGrants resets always grants for one session.
 func (s *Service) ClearSessionPermissionGrants(ctx context.Context, sessionID string) {
 	state := s.permissionSessions.GetPermissionSession(ctx, sessionID)
 	state.Clear()

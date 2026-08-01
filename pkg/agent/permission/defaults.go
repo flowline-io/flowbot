@@ -1,6 +1,6 @@
 package permission
 
-// KeyDoomLoop is the permission key for repeated identical tool calls.
+// KeyDoomLoop is the permission key for loop-detection critical hits (ask/deny/allow).
 const KeyDoomLoop = "doom_loop"
 
 // KeyExternalDirectory is the permission key for workspace-external path access.

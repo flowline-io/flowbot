@@ -1,8 +1,6 @@
 package permission
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -10,22 +8,18 @@ import (
 	"sync"
 )
 
-const doomLoopThreshold = 3
-
 const maxGrantsPerKey = 32
 
-// SessionState holds per-session grants and doom-loop counters across runs.
+// SessionState holds per-session grants across runs.
 type SessionState struct {
-	mu         sync.Mutex
-	always     map[string][]string
-	doomCounts map[string]int
+	mu     sync.Mutex
+	always map[string][]string
 }
 
 // NewSessionState creates empty session permission state.
 func NewSessionState() *SessionState {
 	return &SessionState{
-		always:     make(map[string][]string),
-		doomCounts: make(map[string]int),
+		always: make(map[string][]string),
 	}
 }
 
@@ -66,12 +60,11 @@ func (s *SessionState) RestoreGrants(grants map[string][]string) {
 	}
 }
 
-// Clear removes all session grants and doom-loop counters.
+// Clear removes all session grants.
 func (s *SessionState) Clear() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.always = make(map[string][]string)
-	s.doomCounts = make(map[string]int)
 }
 
 // MatchesGrant reports whether input is covered by a session always grant.
@@ -84,35 +77,6 @@ func (s *SessionState) MatchesGrant(key, input string) bool {
 		}
 	}
 	return false
-}
-
-// RecordDoomLoop increments the counter for one tool invocation fingerprint.
-// It returns the new count and whether the doom-loop threshold was reached.
-func (s *SessionState) RecordDoomLoop(tool string, args map[string]any) (int, bool) {
-	key := doomFingerprint(tool, args)
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.doomCounts[key]++
-	count := s.doomCounts[key]
-	return count, count >= doomLoopThreshold
-}
-
-func doomFingerprint(tool string, args map[string]any) string {
-	h := sha256.New()
-	_, _ = h.Write([]byte(tool))
-	_, _ = h.Write([]byte{0})
-	keys := make([]string, 0, len(args))
-	for k := range args {
-		keys = append(keys, k)
-	}
-	slices.Sort(keys)
-	for _, k := range keys {
-		_, _ = h.Write([]byte(k))
-		_, _ = h.Write([]byte{0})
-		_, _ = h.Write(fmt.Append(nil, args[k]))
-		_, _ = h.Write([]byte{0})
-	}
-	return hex.EncodeToString(h.Sum(nil))
 }
 
 // ParentDirPattern returns a directory wildcard pattern for file paths.

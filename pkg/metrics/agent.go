@@ -22,6 +22,7 @@ type AgentCollector struct {
 	compactTotal         *prometheus.CounterVec
 	overflowRetryTotal   *prometheus.CounterVec
 	doomLoopTotal        *prometheus.CounterVec
+	loopDetectTotal      *prometheus.CounterVec
 	sensorLintTotal      *prometheus.CounterVec
 	approvalVerdictTotal *prometheus.CounterVec
 }
@@ -74,32 +75,45 @@ func NewAgentCollector(st *stats.Stats) *AgentCollector {
 		log.Printf("[metrics] agent: failed to register tool_duration: %v", err)
 		return &AgentCollector{}
 	}
+	if !c.registerGuardCounters(st) {
+		return &AgentCollector{}
+	}
+	return c
+}
+
+func (c *AgentCollector) registerGuardCounters(st *stats.Stats) bool {
+	var err error
 	c.compactTotal, err = st.RegisterCounterVec("agent_compact_total", "Context compaction events by status", "status")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register compact_total: %v", err)
-		return &AgentCollector{}
+		return false
 	}
 	c.overflowRetryTotal, err = st.RegisterCounterVec("agent_overflow_retry_total", "Overflow retries by level", "level")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register overflow_retry_total: %v", err)
-		return &AgentCollector{}
+		return false
 	}
 	c.doomLoopTotal, err = st.RegisterCounterVec("agent_doom_loop_total", "Doom loop detections by tool", "tool")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register doom_loop_total: %v", err)
-		return &AgentCollector{}
+		return false
+	}
+	c.loopDetectTotal, err = st.RegisterCounterVec("agent_loop_detect_total", "Tool loop detections by detector and level", "detector", "level")
+	if err != nil {
+		log.Printf("[metrics] agent: failed to register loop_detect_total: %v", err)
+		return false
 	}
 	c.sensorLintTotal, err = st.RegisterCounterVec("agent_sensor_lint_total", "Observation-only lint sensor events by status", "status")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register sensor_lint_total: %v", err)
-		return &AgentCollector{}
+		return false
 	}
 	c.approvalVerdictTotal, err = st.RegisterCounterVec("agent_approval_verdict_total", "Auto approval reviewer verdicts", "verdict")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register approval_verdict_total: %v", err)
-		return &AgentCollector{}
+		return false
 	}
-	return c
+	return true
 }
 
 // IncRunTotal increments the agent run counter.
@@ -199,6 +213,15 @@ func (c *AgentCollector) IncDoomLoop(tool string) {
 	}
 	defer recoverLog("agent_doom_loop_total")
 	c.doomLoopTotal.WithLabelValues(sanitizeLabel(tool)).Inc()
+}
+
+// IncLoopDetect increments the tool loop-detection counter.
+func (c *AgentCollector) IncLoopDetect(detector, level string) {
+	if c.loopDetectTotal == nil {
+		return
+	}
+	defer recoverLog("agent_loop_detect_total")
+	c.loopDetectTotal.WithLabelValues(sanitizeLabel(detector), sanitizeLabel(level)).Inc()
 }
 
 // IncSensorLint increments the observation-only lint sensor counter.

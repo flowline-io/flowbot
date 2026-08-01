@@ -613,6 +613,8 @@ type ChatAgentConfig struct {
 	LLMRetry LLMRetryConfig `json:"llm_retry" yaml:"llm_retry" mapstructure:"llm_retry"`
 	// Sensors configures post-tool computational sensors.
 	Sensors ChatAgentSensorsConfig `json:"sensors" yaml:"sensors" mapstructure:"sensors"`
+	// LoopDetection configures repetitive tool-call loop guardrails.
+	LoopDetection ChatAgentLoopDetectionConfig `json:"loop_detection" yaml:"loop_detection" mapstructure:"loop_detection"`
 	// Sandbox configures optional Docker isolation for shell and code tools.
 	Sandbox ChatAgentSandboxConfig `json:"sandbox" yaml:"sandbox" mapstructure:"sandbox"`
 	// WebSearch configures backends for the web_search tool.
@@ -653,6 +655,30 @@ type LLMRetryConfig struct {
 type ChatAgentSensorsConfig struct {
 	// LintOnWrite enables observation-only lint logging after writing Go files.
 	LintOnWrite bool `json:"lint_on_write" yaml:"lint_on_write" mapstructure:"lint_on_write"`
+}
+
+// ChatAgentLoopDetectionConfig configures tool-loop detection for the chat agent.
+type ChatAgentLoopDetectionConfig struct {
+	// Enabled master-switches all detectors including post-compaction. Nil defaults to true.
+	Enabled *bool `json:"enabled" yaml:"enabled" mapstructure:"enabled"`
+	// Window is the sliding tool-call history size.
+	Window int `json:"window" yaml:"window" mapstructure:"window"`
+	// GenericWarn warns when the same tool+args count reaches this value.
+	GenericWarn int `json:"generic_warn" yaml:"generic_warn" mapstructure:"generic_warn"`
+	// GenericCritical blocks when the same tool+args count reaches this value.
+	GenericCritical int `json:"generic_critical" yaml:"generic_critical" mapstructure:"generic_critical"`
+	// NoProgressCritical blocks when identical tool+args+result streak reaches this value.
+	NoProgressCritical int `json:"no_progress_critical" yaml:"no_progress_critical" mapstructure:"no_progress_critical"`
+	// PingPongWarn warns on alternating A/B no-progress streaks.
+	PingPongWarn int `json:"ping_pong_warn" yaml:"ping_pong_warn" mapstructure:"ping_pong_warn"`
+	// PingPongCritical blocks on alternating A/B no-progress streaks.
+	PingPongCritical int `json:"ping_pong_critical" yaml:"ping_pong_critical" mapstructure:"ping_pong_critical"`
+	// GlobalCircuitBreaker hard-stops on any no-progress streak of this length.
+	GlobalCircuitBreaker int `json:"global_circuit_breaker" yaml:"global_circuit_breaker" mapstructure:"global_circuit_breaker"`
+	// PostCompactionIdentical hard-stops when the same triple repeats while armed.
+	PostCompactionIdentical int `json:"post_compaction_identical" yaml:"post_compaction_identical" mapstructure:"post_compaction_identical"`
+	// PostCompactionWatch is how many completed tool calls are recorded after arming.
+	PostCompactionWatch int `json:"post_compaction_watch" yaml:"post_compaction_watch" mapstructure:"post_compaction_watch"`
 }
 
 // ChatAgentSandboxConfig configures Docker isolation for shell and code tools.

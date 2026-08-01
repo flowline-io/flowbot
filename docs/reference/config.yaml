@@ -141,6 +141,17 @@ chat_agent:
     # multiplier: 2.0
   sensors:
     lint_on_write: false         # observation-only lint log after write_file of *.go
+  loop_detection:
+    enabled: true                # master switch (false disables post-compaction guard too)
+    # window: 30
+    # generic_warn: 5
+    # generic_critical: 10
+    # no_progress_critical: 8
+    # ping_pong_warn: 6
+    # ping_pong_critical: 10
+    # global_circuit_breaker: 20
+    # post_compaction_identical: 3
+    # post_compaction_watch: 10
   media:
     # public_base_url: "https://bot.example.com"  # required for fs-signed LLM fetch URLs
     # signed_url_ttl: 60m

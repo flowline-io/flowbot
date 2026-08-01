@@ -29,8 +29,30 @@ func (e *Evaluator) Config() Config {
 	return e.config
 }
 
+// ResolveDoomLoop returns the configured doom_loop action for a loop-detection critical hit.
+// Session always-grants for KeyDoomLoop are honored when session is non-nil.
+func (e *Evaluator) ResolveDoomLoop(pattern string, session *SessionState) Result {
+	result := Result{
+		PermissionKey:     KeyDoomLoop,
+		Pattern:           pattern,
+		DoomLoopTriggered: true,
+	}
+	if session != nil && pattern != "" && session.MatchesGrant(KeyDoomLoop, pattern) {
+		result.Action = ActionAllow
+		return result
+	}
+	result.Action = e.resolveKey(KeyDoomLoop, "")
+	if result.Action == ActionAsk && pattern != "" {
+		if suggested, ok := SuggestedPattern(KeyDoomLoop, pattern, ParseBashCommand{}); ok {
+			result.SuggestedPattern = suggested
+			result.SuggestAlways = true
+		}
+	}
+	return result
+}
+
 // EvaluateDenyOnly reports ActionDeny when a deny rule wins for the tool or
-// external path. Session grants, doom-loop, bash-complex→ask, and external→ask
+// external path. Session grants, bash-complex→ask, and external→ask
 // escalations are skipped. Ask/allow resolutions become ActionAllow (not denied).
 func (e *Evaluator) EvaluateDenyOnly(req Request) Result {
 	inputs := ExtractInputs(req)
@@ -79,10 +101,6 @@ func (e *Evaluator) Evaluate(req Request, session *SessionState) Result {
 		return result
 	}
 
-	if done, out := e.evaluateDoomLoop(req, session, result); done {
-		return out
-	}
-
 	if e.evaluateExternal(req, inputs, &result) {
 		attachSuggestion(&result, inputs)
 		return result
@@ -100,25 +118,6 @@ func (e *Evaluator) Evaluate(req Request, session *SessionState) Result {
 	result.Pattern = inputs.Primary
 	attachSuggestion(&result, inputs)
 	return result
-}
-
-func (e *Evaluator) evaluateDoomLoop(req Request, session *SessionState, result Result) (bool, Result) {
-	if session == nil {
-		return false, result
-	}
-	count, triggered := session.RecordDoomLoop(req.Tool, req.Args)
-	if !triggered {
-		return false, result
-	}
-	result.DoomLoopTriggered = true
-	result.Action = e.resolveKey(KeyDoomLoop, "")
-	if result.Action != ActionAllow {
-		result.PermissionKey = KeyDoomLoop
-		result.Pattern = doomFingerprint(req.Tool, req.Args)
-		return true, result
-	}
-	_ = count
-	return false, result
 }
 
 func (e *Evaluator) evaluateExternal(req Request, inputs ExtractedInputs, result *Result) bool {

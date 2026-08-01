@@ -102,11 +102,12 @@ func executeParallel(ctx context.Context, req BatchRequest, calls []msg.ToolCall
 }
 
 type preparedCall struct {
-	call    msg.ToolCallPart
-	args    map[string]any
-	tool    Tool
-	blocked bool
-	reason  string
+	call      msg.ToolCallPart
+	args      map[string]any
+	tool      Tool
+	blocked   bool
+	reason    string
+	terminate bool
 }
 
 func prepareCall(_ context.Context, req BatchRequest, call msg.ToolCallPart) (preparedCall, error) {
@@ -145,11 +146,12 @@ func prepareCall(_ context.Context, req BatchRequest, call msg.ToolCallPart) (pr
 		}
 		if before != nil && before.Block {
 			return preparedCall{
-				call:    call,
-				args:    args,
-				tool:    t,
-				blocked: true,
-				reason:  before.Reason,
+				call:      call,
+				args:      args,
+				tool:      t,
+				blocked:   true,
+				reason:    before.Reason,
+				terminate: before.Terminate,
 			}, nil
 		}
 	}
@@ -173,7 +175,7 @@ func runPrepared(ctx context.Context, req BatchRequest, prepared preparedCall) (
 			reason = "tool call blocked"
 		}
 		metrics.Agent().IncToolTotal(call.Name, "blocked")
-		return blockedResult(call, reason), false, nil
+		return blockedResult(call, reason), prepared.terminate, nil
 	}
 
 	t, ok := req.Registry.Get(call.Name)
