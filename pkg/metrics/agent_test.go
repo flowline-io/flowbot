@@ -19,6 +19,7 @@ func TestAgentCollectorNoop(t *testing.T) {
 		{name: "IncLLMRequest", fn: func() { c.IncLLMRequest("m", "ok") }},
 		{name: "IncLLMRetry", fn: func() { c.IncLLMRetry("m") }},
 		{name: "ObserveLLMDuration", fn: func() { c.ObserveLLMDuration("m", 0.2) }},
+		{name: "ObserveLLMTTFT", fn: func() { c.ObserveLLMTTFT("m", 0.05) }},
 		{name: "IncToolTotal", fn: func() { c.IncToolTotal("echo", "ok") }},
 		{name: "ObserveToolDuration", fn: func() { c.ObserveToolDuration("echo", 0.3) }},
 		{name: "IncCompact", fn: func() { c.IncCompact("ok") }},

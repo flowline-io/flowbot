@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/backoff"
 	"github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/flog"
+	"github.com/flowline-io/flowbot/pkg/metrics"
 	"github.com/tmc/langchaingo/llms"
 )
 
@@ -101,10 +102,10 @@ func streamAssistantOnce(
 	callOpts := buildGenerateCallOptions(opts)
 	var textBuilder strings.Builder
 	var textMu sync.Mutex
-	tracker := &streamStartTracker{}
 	streamCtx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 
+	tracker := &streamStartTracker{modelName: opts.ModelName}
 	var progress *streamProgressTracker
 	if opts.OnTextDelta != nil || opts.OnReasoningDelta != nil {
 		progress = newStreamProgressTracker(opts.ModelName, streamIdleTimeout(), cancel)
@@ -117,6 +118,7 @@ func streamAssistantOnce(
 	streamCtx = WithAssistantToolReasoning(streamCtx, opts.AssistantToolReasoning)
 
 	start := time.Now()
+	tracker.start = start
 	flog.Info("[agent-llm] generate start model=%s messages=%d tools=%d reasoning=%t ctx_deadline=%s",
 		opts.ModelName, len(messages), len(opts.Tools), SupportsReasoningStream(opts.ModelName), formatLLMDeadline(ctx))
 
@@ -150,8 +152,10 @@ func formatLLMDeadline(ctx context.Context) string {
 }
 
 type streamStartTracker struct {
-	mu      sync.Mutex
-	started bool
+	mu        sync.Mutex
+	started   bool
+	start     time.Time
+	modelName string
 }
 
 func (t *streamStartTracker) mark() {
@@ -161,13 +165,21 @@ func (t *streamStartTracker) mark() {
 		return
 	}
 	t.started = true
-	flog.Info("[agent-llm] generate first stream delta received")
+	ttft := time.Since(t.start)
+	flog.Info("[agent-llm] generate first stream delta received model=%s ttft=%s",
+		t.modelName, ttft.Round(time.Millisecond))
+	recordLLMTTFT(t.modelName, ttft.Seconds())
 }
 
 func (t *streamStartTracker) hasStarted() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return t.started
+}
+
+// recordLLMTTFT is the process hook for TTFT observations (swapped in tests).
+var recordLLMTTFT = func(model string, seconds float64) {
+	metrics.Agent().ObserveLLMTTFT(model, seconds)
 }
 
 func buildGenerateCallOptions(opts StreamOptions) []llms.CallOption {

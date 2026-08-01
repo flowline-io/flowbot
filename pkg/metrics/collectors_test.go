@@ -56,6 +56,10 @@ func TestAgentCollector_HistogramAndRetryMetrics(t *testing.T) {
 		prometheus.HistogramOpts{Name: "agent_llm_duration_seconds_test", Buckets: prometheus.DefBuckets},
 		[]string{"model"},
 	)
+	llmTTFT := prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{Name: "agent_llm_ttft_seconds_test", Buckets: prometheus.DefBuckets},
+		[]string{"model"},
+	)
 	llmRetry := prometheus.NewCounterVec(
 		prometheus.CounterOpts{Name: "agent_llm_retry_total_test"},
 		[]string{"model"},
@@ -67,12 +71,14 @@ func TestAgentCollector_HistogramAndRetryMetrics(t *testing.T) {
 	c := &AgentCollector{
 		turnDuration:  turnDuration,
 		llmDuration:   llmDuration,
+		llmTTFT:       llmTTFT,
 		llmRetryTotal: llmRetry,
 		compactTotal:  compactTotal,
 	}
 
 	c.ObserveTurnDuration("ok", 1.5)
 	c.ObserveLLMDuration("claude", 2.0)
+	c.ObserveLLMTTFT("claude", 0.05)
 	c.IncLLMRetry("claude")
 	c.IncCompact("ok")
 	c.IncOverflowRetry("1")
@@ -80,6 +86,7 @@ func TestAgentCollector_HistogramAndRetryMetrics(t *testing.T) {
 	c.IncSensorLint("ok")
 	c.ObserveToolDuration("grep", 0.3)
 
+	assert.Equal(t, 1, testutil.CollectAndCount(llmTTFT))
 	assert.NotNil(t, c.turnDuration)
 	assert.NotNil(t, c.llmDuration)
 }

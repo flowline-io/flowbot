@@ -1,6 +1,7 @@
 package chatagent
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -11,32 +12,42 @@ import (
 )
 
 type apiEventRecorder struct {
+	mu     sync.Mutex
 	events []StreamEvent
 }
 
 func (r *apiEventRecorder) Publish(event StreamEvent) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.events = append(r.events, event)
 	return nil
 }
 
+func (r *apiEventRecorder) snapshot() []StreamEvent {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]StreamEvent, len(r.events))
+	copy(out, r.events)
+	return out
+}
+
 func TestHandleAPIStreamEventReasoning(t *testing.T) {
 	tests := []struct {
-		name      string
-		events    []agentevent.Event
-		wantType  string
-		wantText  string
-		wantCount int
+		name       string
+		events     []agentevent.Event
+		wantEvents []StreamEvent
 	}{
 		{
-			name: "accumulates reasoning deltas",
+			name: "first reasoning delta flushes immediately then accumulates",
 			events: []agentevent.Event{
 				{Type: agentevent.TypeMessageStart, Message: msg.AssistantMessage{}},
 				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "plan"},
 				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "ning"},
 			},
-			wantType:  EventTypeThinking,
-			wantText:  "planning",
-			wantCount: 1,
+			wantEvents: []StreamEvent{
+				{Type: EventTypeThinking, Text: "plan"},
+				{Type: EventTypeThinking, Text: "planning"},
+			},
 		},
 		{
 			name: "keeps reasoning separate from answer delta",
@@ -45,9 +56,10 @@ func TestHandleAPIStreamEventReasoning(t *testing.T) {
 				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "think"},
 				{Type: agentevent.TypeMessageUpdate, TextDelta: "hello"},
 			},
-			wantType:  EventTypeThinking,
-			wantText:  "think",
-			wantCount: 2,
+			wantEvents: []StreamEvent{
+				{Type: EventTypeThinking, Text: "think"},
+				{Type: EventTypeDelta, Text: "hello"},
+			},
 		},
 		{
 			name: "resets reasoning on assistant start",
@@ -57,9 +69,10 @@ func TestHandleAPIStreamEventReasoning(t *testing.T) {
 				{Type: agentevent.TypeMessageStart, Message: msg.AssistantMessage{}},
 				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "new"},
 			},
-			wantType:  EventTypeThinking,
-			wantText:  "new",
-			wantCount: 1,
+			wantEvents: []StreamEvent{
+				{Type: EventTypeThinking, Text: "old"},
+				{Type: EventTypeThinking, Text: "new"},
+			},
 		},
 	}
 
@@ -72,15 +85,12 @@ func TestHandleAPIStreamEventReasoning(t *testing.T) {
 				reasoningCoalescer: newStreamCoalescer(),
 			}
 			for _, ev := range tt.events {
-				handleAPIStreamEvent(pub, tracker, ev)
+				handleAPIStreamEvent(t.Context(), pub, tracker, ev)
 			}
 			publishAPIEvent(t.Context(), pub, tracker.coalescer)
 			publishAPIReasoningEvent(t.Context(), pub, tracker.reasoningCoalescer)
 
-			require.Len(t, pub.events, tt.wantCount)
-			last := pub.events[len(pub.events)-1]
-			assert.Equal(t, tt.wantType, last.Type)
-			assert.Equal(t, tt.wantText, last.Text)
+			require.Equal(t, tt.wantEvents, pub.snapshot())
 		})
 	}
 }
@@ -132,11 +142,12 @@ func TestHandleAPIStreamEventToolLifecycle(t *testing.T) {
 				reasoningCoalescer: newStreamCoalescer(),
 			}
 			for _, ev := range tt.events {
-				handleAPIStreamEvent(pub, tracker, ev)
+				handleAPIStreamEvent(t.Context(), pub, tracker, ev)
 			}
-			require.Len(t, pub.events, len(tt.wantTypes))
+			got := pub.snapshot()
+			require.Len(t, got, len(tt.wantTypes))
 			for i, want := range tt.wantTypes {
-				assert.Equal(t, want, pub.events[i].Type)
+				assert.Equal(t, want, got[i].Type)
 			}
 		})
 	}
@@ -169,9 +180,63 @@ func TestStartAPIEventStream(t *testing.T) {
 			ctx := t.Context()
 			wait := startAPIEventStream(ctx, tt.events, tt.publisher, time.Millisecond)
 			wait()
-			if rec, ok := tt.publisher.(*apiEventRecorder); ok && tt.wantMinLen > 0 {
-				assert.GreaterOrEqual(t, len(rec.events), tt.wantMinLen)
+			if _, ok := tt.publisher.(*apiEventRecorder); ok && tt.wantMinLen > 0 {
+				assert.GreaterOrEqual(t, len(tt.publisher.(*apiEventRecorder).snapshot()), tt.wantMinLen)
 			}
+		})
+	}
+}
+
+func TestStartAPIEventStreamFirstDeltaImmediate(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		updates    []agentevent.Event
+		wantFirst  StreamEvent
+		wantFinal  StreamEvent
+		wantCount  int
+	}{
+		{
+			name: "text first flush then coalesce on close",
+			updates: []agentevent.Event{
+				{Type: agentevent.TypeMessageUpdate, TextDelta: "hi"},
+				{Type: agentevent.TypeMessageUpdate, TextDelta: " there"},
+			},
+			wantFirst: StreamEvent{Type: EventTypeDelta, Text: "hi"},
+			wantFinal: StreamEvent{Type: EventTypeDelta, Text: "hi there"},
+			wantCount: 2,
+		},
+		{
+			name: "thinking first flush then coalesce on close",
+			updates: []agentevent.Event{
+				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "plan"},
+				{Type: agentevent.TypeMessageUpdate, ReasoningDelta: "ning"},
+			},
+			wantFirst: StreamEvent{Type: EventTypeThinking, Text: "plan"},
+			wantFinal: StreamEvent{Type: EventTypeThinking, Text: "planning"},
+			wantCount: 2,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			pub := &apiEventRecorder{}
+			events := make(chan agentevent.Event, 4)
+			wait := startAPIEventStream(t.Context(), events, pub, time.Hour)
+
+			events <- agentevent.Event{Type: agentevent.TypeMessageStart, Message: msg.AssistantMessage{}}
+			events <- tt.updates[0]
+			require.Eventually(t, func() bool {
+				return len(pub.snapshot()) >= 1
+			}, time.Second, 5*time.Millisecond)
+			assert.Equal(t, tt.wantFirst, pub.snapshot()[0])
+
+			events <- tt.updates[1]
+			close(events)
+			wait()
+			got := pub.snapshot()
+			require.Len(t, got, tt.wantCount)
+			assert.Equal(t, tt.wantFinal, got[len(got)-1])
 		})
 	}
 }
@@ -217,7 +282,7 @@ func TestHandleAPIStreamEventTiming(t *testing.T) {
 				Status:     "completed",
 				DurationMs: 450,
 			},
-			wantCount: 1,
+			wantCount: 2,
 		},
 		{
 			name: "turn end publishes step duration",
@@ -242,10 +307,11 @@ func TestHandleAPIStreamEventTiming(t *testing.T) {
 				reasoningCoalescer: newStreamCoalescer(),
 			}
 			for _, ev := range tt.events {
-				handleAPIStreamEvent(pub, tracker, ev)
+				handleAPIStreamEvent(t.Context(), pub, tracker, ev)
 			}
-			require.Len(t, pub.events, tt.wantCount)
-			assert.Equal(t, tt.wantLast, pub.events[len(pub.events)-1])
+			got := pub.snapshot()
+			require.Len(t, got, tt.wantCount)
+			assert.Equal(t, tt.wantLast, got[len(got)-1])
 		})
 	}
 }

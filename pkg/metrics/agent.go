@@ -16,6 +16,7 @@ type AgentCollector struct {
 	llmRequestTotal      *prometheus.CounterVec
 	llmRetryTotal        *prometheus.CounterVec
 	llmDuration          *prometheus.HistogramVec
+	llmTTFT              *prometheus.HistogramVec
 	toolTotal            *prometheus.CounterVec
 	toolDuration         *prometheus.HistogramVec
 	compactTotal         *prometheus.CounterVec
@@ -56,6 +57,11 @@ func NewAgentCollector(st *stats.Stats) *AgentCollector {
 	c.llmDuration, err = st.RegisterHistogramVec("agent_llm_duration_seconds", "LLM request duration by model", "model")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register llm_duration: %v", err)
+		return &AgentCollector{}
+	}
+	c.llmTTFT, err = st.RegisterHistogramVec("agent_llm_ttft_seconds", "LLM time to first stream delta by model", "model")
+	if err != nil {
+		log.Printf("[metrics] agent: failed to register llm_ttft: %v", err)
 		return &AgentCollector{}
 	}
 	c.toolTotal, err = st.RegisterCounterVec("agent_tool_total", "Tool executions by tool and status", "tool", "status")
@@ -139,6 +145,15 @@ func (c *AgentCollector) ObserveLLMDuration(model string, seconds float64) {
 	}
 	defer recoverLog("agent_llm_duration_seconds")
 	c.llmDuration.WithLabelValues(sanitizeLabel(model)).Observe(seconds)
+}
+
+// ObserveLLMTTFT records time from GenerateContent start to the first stream delta.
+func (c *AgentCollector) ObserveLLMTTFT(model string, seconds float64) {
+	if c.llmTTFT == nil {
+		return
+	}
+	defer recoverLog("agent_llm_ttft_seconds")
+	c.llmTTFT.WithLabelValues(sanitizeLabel(model)).Observe(seconds)
 }
 
 // IncToolTotal increments the tool execution counter.

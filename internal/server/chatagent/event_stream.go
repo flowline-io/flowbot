@@ -14,10 +14,12 @@ const apiStreamUpdateInterval = 150 * time.Millisecond
 
 // apiStreamTracker tracks subagent inner-tool progress for one API SSE connection.
 type apiStreamTracker struct {
-	coalescer          *streamCoalescer
-	reasoningCoalescer *streamCoalescer
-	subagentTool       string
-	reasoningStarted   bool
+	coalescer            *streamCoalescer
+	reasoningCoalescer   *streamCoalescer
+	subagentTool         string
+	reasoningStarted     bool
+	deltaFlushedOnce     bool
+	reasoningFlushedOnce bool
 }
 
 // startAPIEventStream consumes agent lifecycle events and publishes Chat Agent SSE payloads.
@@ -50,7 +52,7 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 					publishAPIReasoningEvent(ctx, publisher, tracker.reasoningCoalescer)
 					return
 				}
-				handleAPIStreamEvent(publisher, tracker, ev)
+				handleAPIStreamEvent(ctx, publisher, tracker, ev)
 			case <-ticker.C:
 				publishAPIEvent(ctx, publisher, tracker.coalescer)
 				publishAPIReasoningEvent(ctx, publisher, tracker.reasoningCoalescer)
@@ -61,12 +63,12 @@ func startAPIEventStream(ctx context.Context, events <-chan agentevent.Event, pu
 	return func() { <-done }
 }
 
-func handleAPIStreamEvent(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
+func handleAPIStreamEvent(ctx context.Context, publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
 	switch ev.Type {
 	case agentevent.TypeMessageStart:
 		handleAPIMessageStart(tracker, ev)
 	case agentevent.TypeMessageUpdate:
-		handleAPIMessageUpdate(tracker, ev)
+		handleAPIMessageUpdate(ctx, publisher, tracker, ev)
 	case agentevent.TypeMessageEnd:
 		publishAPIMessageEnd(publisher, tracker, ev)
 	case agentevent.TypeToolExecutionStart:
@@ -88,16 +90,34 @@ func handleAPIMessageStart(tracker *apiStreamTracker, ev agentevent.Event) {
 	tracker.reasoningCoalescer.reset()
 	tracker.subagentTool = ""
 	tracker.reasoningStarted = false
+	tracker.deltaFlushedOnce = false
+	tracker.reasoningFlushedOnce = false
 }
 
-func handleAPIMessageUpdate(tracker *apiStreamTracker, ev agentevent.Event) {
+func handleAPIMessageUpdate(ctx context.Context, publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
 	if ev.ReasoningDelta != "" {
 		tracker.reasoningStarted = true
 		tracker.reasoningCoalescer.appendDelta(ev.ReasoningDelta)
+		flushAPICoalescerOnce(ctx, publisher, tracker.reasoningCoalescer, &tracker.reasoningFlushedOnce, publishAPIReasoningEvent)
 	}
 	if ev.TextDelta != "" {
 		tracker.coalescer.appendDelta(ev.TextDelta)
+		flushAPICoalescerOnce(ctx, publisher, tracker.coalescer, &tracker.deltaFlushedOnce, publishAPIEvent)
 	}
+}
+
+func flushAPICoalescerOnce(
+	ctx context.Context,
+	publisher EventPublisher,
+	coalescer *streamCoalescer,
+	flushedOnce *bool,
+	publish func(context.Context, EventPublisher, *streamCoalescer),
+) {
+	if *flushedOnce {
+		return
+	}
+	publish(ctx, publisher, coalescer)
+	*flushedOnce = true
 }
 
 func publishAPIMessageEnd(publisher EventPublisher, tracker *apiStreamTracker, ev agentevent.Event) {
