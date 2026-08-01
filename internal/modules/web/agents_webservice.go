@@ -3,6 +3,7 @@ package web
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	pkgconfig "github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/model"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
@@ -58,10 +60,10 @@ const (
 )
 
 func agentsEndpoints() partials.ChatAgentEndpoints {
-	return agentsEndpointsWithFilter("")
+	return agentsEndpointsWithFilter("", types.Uid(""))
 }
 
-func agentsEndpointsWithFilter(filter string) partials.ChatAgentEndpoints {
+func agentsEndpointsWithFilter(filter string, uid types.Uid) partials.ChatAgentEndpoints {
 	return partials.ChatAgentEndpoints{
 		CreateURL:            "/service/web/agents",
 		ListURL:              "/service/web/agents/list",
@@ -74,7 +76,27 @@ func agentsEndpointsWithFilter(filter string) partials.ChatAgentEndpoints {
 		SkillsURL:            "/service/web/agents/skills",
 		SelectableModels:     selectableModelOptions(),
 		DefaultModel:         pkgconfig.ChatAgentChatModel(),
+		DefaultApprovalMode:  webApprovalDefault(uid),
 	}
+}
+
+func webApprovalDefault(uid types.Uid) string {
+	if uid.IsZero() {
+		return pkgconfig.ChatAgentApprovalModeDefault()
+	}
+	mode, err := chatagent.LoadUserApprovalMode(context.Background(), uid)
+	if err != nil {
+		return pkgconfig.ChatAgentApprovalModeDefault()
+	}
+	return string(mode)
+}
+
+func webRequestUID(ctx fiber.Ctx) types.Uid {
+	rc := route.GetRequestContext(ctx)
+	if rc == nil {
+		return types.Uid("")
+	}
+	return rc.UID
 }
 
 func normalizeAgentsListFilter(filter string) string {
@@ -86,24 +108,25 @@ func normalizeAgentsListFilter(filter string) string {
 	}
 }
 
-func agentChatEndpoints(sessionID string) partials.ChatAgentEndpoints {
+func agentChatEndpoints(sessionID string, uid types.Uid) partials.ChatAgentEndpoints {
 	prefix := "/service/web/agents/" + sessionID
 	return partials.ChatAgentEndpoints{
-		DetailURLTemplate: "/service/web/agents/{id}",
-		SettingsURL:       prefix + "/settings",
-		MessagesURL:       prefix + "/messages",
-		MediaURL:          prefix + "/media",
-		CancelURL:         prefix + "/cancel",
-		CloseURL:          prefix,
-		ConfirmURL:        prefix + "/confirm",
-		EventsURL:         prefix + "/events",
-		InspectURL:        "/service/web/agent-sessions/" + sessionID,
-		RenderMarkdownURL: "/service/web/agents/render-markdown",
-		ContextURL:        prefix + "/context",
-		TodosURL:          prefix + "/todos",
-		SkillsURL:         "/service/web/agents/skills",
-		SelectableModels:  selectableModelOptions(),
-		DefaultModel:      pkgconfig.ChatAgentChatModel(),
+		DetailURLTemplate:   "/service/web/agents/{id}",
+		SettingsURL:         prefix + "/settings",
+		MessagesURL:         prefix + "/messages",
+		MediaURL:            prefix + "/media",
+		CancelURL:           prefix + "/cancel",
+		CloseURL:            prefix,
+		ConfirmURL:          prefix + "/confirm",
+		EventsURL:           prefix + "/events",
+		InspectURL:          "/service/web/agent-sessions/" + sessionID,
+		RenderMarkdownURL:   "/service/web/agents/render-markdown",
+		ContextURL:          prefix + "/context",
+		TodosURL:            prefix + "/todos",
+		SkillsURL:           "/service/web/agents/skills",
+		SelectableModels:    selectableModelOptions(),
+		DefaultModel:        pkgconfig.ChatAgentChatModel(),
+		DefaultApprovalMode: webApprovalDefault(uid),
 	}
 }
 
@@ -167,7 +190,7 @@ func agentsPage(ctx fiber.Ctx) error {
 		}
 	}
 	ctx.Type("html")
-	return pages.AgentsPage(items, nextCursor, agentsEndpointsWithFilter(filter), enabled).
+	return pages.AgentsPage(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx)), enabled).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -187,7 +210,7 @@ func agentsTable(ctx fiber.Ctx) error {
 		return renderError(ctx, "Failed to load sessions")
 	}
 	ctx.Type("html")
-	endpoints := agentsEndpointsWithFilter(filter)
+	endpoints := agentsEndpointsWithFilter(filter, webRequestUID(ctx))
 	if cursor != "" {
 		return partials.ChatAgentSessionListAppend(items, nextCursor, endpoints).
 			Render(ctx.Context(), ctx.Response().BodyWriter())
@@ -210,6 +233,7 @@ func agentsCreate(ctx fiber.Ctx) error {
 	var body struct {
 		Model         string `json:"model"`
 		ThinkingLevel string `json:"thinking_level"`
+		ApprovalMode  string `json:"approval_mode"`
 	}
 	if len(ctx.Body()) > 0 {
 		if err := sonic.Unmarshal(ctx.Body(), &body); err != nil {
@@ -220,8 +244,12 @@ func agentsCreate(ctx fiber.Ctx) error {
 	if err := chatagent.CreateSession(ctx.Context(), uid, sessionID); err != nil {
 		return types.Errorf(types.ErrInternal, "create session: %v", err)
 	}
-	if body.Model != "" || body.ThinkingLevel != "" {
-		s := chatagent.SessionSettings{Model: body.Model, ThinkingLevel: body.ThinkingLevel}
+	if body.Model != "" || body.ThinkingLevel != "" || body.ApprovalMode != "" {
+		s := chatagent.SessionSettings{
+			Model:         body.Model,
+			ThinkingLevel: body.ThinkingLevel,
+			ApprovalMode:  body.ApprovalMode,
+		}
 		if err := chatagent.SetSessionSettings(ctx.Context(), sessionID, s); err != nil {
 			return chatAgentSettingsJSONError(ctx, err)
 		}
@@ -321,12 +349,19 @@ func agentChatPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "list todos: %v", err)
 	}
+	session := mapAgentSession(row)
+	settings, err := chatagent.GetSessionSettings(ctx.Context(), sessionID)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "get session settings: %v", err)
+	}
+	session.ApprovalMode = settings.ApprovalMode
+	uid := webRequestUID(ctx)
 	ctx.Type("html")
 	return pages.AgentChatPage(
-		mapAgentSession(row),
+		session,
 		mapChatMessages(sessionID, messages),
 		todos,
-		agentChatEndpoints(sessionID),
+		agentChatEndpoints(sessionID, uid),
 		pendingConfirmForSession(sessionID),
 	).Render(ctx.Context(), ctx.Response().BodyWriter())
 }
@@ -781,7 +816,7 @@ func setAgentChatPinned(ctx fiber.Ctx, pinned bool) error {
 		return toastError(ctx, "Failed to refresh sessions")
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter)).
+	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx))).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 
@@ -814,7 +849,7 @@ func setAgentChatArchived(ctx fiber.Ctx, archived bool) error {
 		return toastError(ctx, "Failed to refresh sessions")
 	}
 	ctx.Type("html")
-	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter)).
+	return partials.ChatAgentSessionList(items, nextCursor, agentsEndpointsWithFilter(filter, webRequestUID(ctx))).
 		Render(ctx.Context(), ctx.Response().BodyWriter())
 }
 

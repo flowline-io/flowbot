@@ -284,6 +284,7 @@ Loop-level `Config` fields (`TransformContext`, `BeforeToolCall`, …) remain av
 | Dynamic tools | `ApplyToolScope` — plan readonly; normal excludes schedule unless intent/RunKind |
 | Sandbox | Opt-in Docker `pkg/agent/sandbox` for `run_terminal` / `run_code` |
 | DCG guard | Always-on pre-permission check via `pkg/agent/dcg` (`dcg --robot test`) for `run_terminal` / `run_code`; requires `dcg` on `PATH` (bundled in [`deployments/Dockerfile`](../../deployments/Dockerfile) and the agent-sandbox image); embedded packs in `pkg/agent/dcg/config.toml`; no agent bypass |
+| Approval modes | Parallel modes `manual` \| `auto` \| `off` (session → user DB → YAML → `manual`). `manual` is DCG → full permission → ConfirmGate. `auto` is DCG → deny-only → readonly allow → flagged → aux LLM (`pkg/agent/approval`) → ConfirmGate on escalate (once/reject only). `off` is DCG → deny-only → allow. Autonomous runs ignore user auto/off and keep ScheduledRunOverlay. |
 | Eval | `pkg/agent/eval` FakeModel suite (`go test ./pkg/agent/eval/...`) |
 
 ## LLM Layer

@@ -220,3 +220,99 @@ func TestJSONL_SerializeDeserialize(t *testing.T) {
 		})
 	}
 }
+
+func TestSanitizeToolMessageOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		in   []msg.AgentMessage
+		want []string
+	}{
+		{
+			name: "already ordered",
+			in: []msg.AgentMessage{
+				msg.NewUserMessage("u"),
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`},
+				}},
+				msg.ToolResultMessage{ToolCallID: "c1", Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "ok"}}},
+			},
+			want: []string{"user", "assistant:c1", "tool:c1"},
+		},
+		{
+			name: "orphan tool before assistant",
+			in: []msg.AgentMessage{
+				msg.NewUserMessage("u"),
+				msg.ToolResultMessage{ToolCallID: "c1", Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "ok"}}},
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`},
+				}},
+			},
+			want: []string{"user", "assistant:c1", "tool:c1"},
+		},
+		{
+			name: "two orphan tools before assistants",
+			in: []msg.AgentMessage{
+				msg.NewUserMessage("u"),
+				msg.ToolResultMessage{ToolCallID: "c1", Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "one"}}},
+				msg.ToolResultMessage{ToolCallID: "c2", Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "two"}}},
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`},
+				}},
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c2", Name: "echo", Arguments: `{}`},
+				}},
+			},
+			want: []string{"user", "assistant:c1", "tool:c1", "assistant:c2", "tool:c2"},
+		},
+		{
+			name: "drops duplicate assistant tool_calls",
+			in: []msg.AgentMessage{
+				msg.NewUserMessage("u"),
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`},
+				}},
+				msg.ToolResultMessage{ToolCallID: "c1", Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "ok"}}},
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`},
+				}},
+				msg.AssistantMessage{Parts: []msg.ContentPart{msg.TextPart{Text: "done"}}},
+			},
+			want: []string{"user", "assistant:c1", "tool:c1", "assistant:"},
+		},
+		{
+			name: "fills missing tool results",
+			in: []msg.AgentMessage{
+				msg.NewUserMessage("u"),
+				msg.AssistantMessage{Parts: []msg.ContentPart{
+					msg.ToolCallPart{ID: "c1", Name: "echo", Arguments: `{}`},
+					msg.ToolCallPart{ID: "c2", Name: "echo", Arguments: `{}`},
+				}},
+				msg.ToolResultMessage{ToolCallID: "c1", Name: "echo", Parts: []msg.ContentPart{msg.TextPart{Text: "one"}}},
+			},
+			want: []string{"user", "assistant:c1", "tool:c1", "tool:c2"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := session.SanitizeToolMessageOrder(tt.in)
+			labels := make([]string, 0, len(got))
+			for _, m := range got {
+				switch v := m.(type) {
+				case msg.UserMessage:
+					labels = append(labels, "user")
+				case msg.AssistantMessage:
+					id := ""
+					if calls := v.ToolCalls(); len(calls) > 0 {
+						id = calls[0].ID
+					}
+					labels = append(labels, "assistant:"+id)
+				case msg.ToolResultMessage:
+					labels = append(labels, "tool:"+v.ToolCallID)
+				}
+			}
+			assert.Equal(t, tt.want, labels)
+		})
+	}
+}

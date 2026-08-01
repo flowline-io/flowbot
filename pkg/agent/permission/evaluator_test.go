@@ -71,6 +71,62 @@ func TestEvaluatorEnvFileDeny(t *testing.T) {
 	assert.Equal(t, permission.ActionDeny, got.Action)
 }
 
+func TestEvaluateDenyOnly(t *testing.T) {
+	eval := permission.NewEvaluator(permission.DefaultConfig())
+	tests := []struct {
+		name   string
+		req    permission.Request
+		action permission.Action
+	}{
+		{
+			name:   "env deny",
+			req:    permission.Request{Tool: permission.ToolReadFile, Args: map[string]any{"path": "secrets.env"}},
+			action: permission.ActionDeny,
+		},
+		{
+			name:   "env example allow",
+			req:    permission.Request{Tool: permission.ToolReadFile, Args: map[string]any{"path": ".env.example"}},
+			action: permission.ActionAllow,
+		},
+		{
+			name:   "edit ask becomes allow",
+			req:    permission.Request{Tool: permission.ToolWriteFile, Args: map[string]any{"path": "main.go"}},
+			action: permission.ActionAllow,
+		},
+		{
+			name: "bash chain does not escalate to deny",
+			req: permission.Request{
+				Tool: permission.ToolRunTerminal,
+				Args: map[string]any{"command": "git status && ls"},
+			},
+			action: permission.ActionAllow,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := eval.EvaluateDenyOnly(tt.req)
+			assert.Equal(t, tt.action, got.Action)
+		})
+	}
+}
+
+func TestEvaluateDenyOnlyIgnoresSessionGrants(t *testing.T) {
+	cfg := permission.Config{
+		"read": {
+			Patterns: []permission.PatternRule{
+				{Pattern: "*.env", Action: permission.ActionDeny},
+			},
+		},
+	}
+	eval := permission.NewEvaluator(cfg)
+	sess := permission.NewSessionState()
+	require.NoError(t, sess.AddGrant("read", "*.env"))
+	req := permission.Request{Tool: permission.ToolReadFile, Args: map[string]any{"path": "x.env"}}
+	// Full evaluate would allow via grant; deny-only must still deny.
+	assert.Equal(t, permission.ActionAllow, eval.Evaluate(req, sess).Action)
+	assert.Equal(t, permission.ActionDeny, eval.EvaluateDenyOnly(req).Action)
+}
+
 func TestEvaluatorChainStricter(t *testing.T) {
 	cfg := permission.Config{"bash": {Default: permission.ActionAllow}}
 	eval := permission.NewEvaluator(cfg)

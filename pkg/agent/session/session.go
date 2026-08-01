@@ -144,13 +144,90 @@ func BuildContext(path []TreeEntry) Context {
 	compaction := applyPathMetadata(path, &ctx)
 	if compaction != nil {
 		appendCompactionContext(&ctx, path, compaction)
+		ctx.Messages = SanitizeToolMessageOrder(ctx.Messages)
 		return ctx
 	}
 
 	for _, entry := range path {
 		appendContextMessage(&ctx, entry)
 	}
+	ctx.Messages = SanitizeToolMessageOrder(ctx.Messages)
 	return ctx
+}
+
+// SanitizeToolMessageOrder rebuilds LLM-valid assistant/tool pairing.
+// Mid-turn persistence may store tool results before their assistant tool_calls;
+// reload paths must not send that order to the provider.
+func SanitizeToolMessageOrder(messages []msg.AgentMessage) []msg.AgentMessage {
+	if len(messages) < 2 {
+		return messages
+	}
+
+	toolsByID := make(map[string]msg.ToolResultMessage)
+	for _, message := range messages {
+		tr, ok := message.(msg.ToolResultMessage)
+		if !ok || tr.ToolCallID == "" {
+			continue
+		}
+		toolsByID[tr.ToolCallID] = tr
+	}
+
+	out := make([]msg.AgentMessage, 0, len(messages))
+	emittedTools := make(map[string]struct{})
+
+	for _, message := range messages {
+		switch m := message.(type) {
+		case msg.ToolResultMessage:
+			// Re-emitted immediately after the owning assistant.
+			continue
+		case msg.AssistantMessage:
+			calls := m.ToolCalls()
+			if len(calls) == 0 {
+				out = append(out, m)
+				continue
+			}
+			if assistantToolsAlreadyEmitted(calls, emittedTools) {
+				continue
+			}
+			out = append(out, m)
+			for _, call := range calls {
+				if call.ID == "" {
+					continue
+				}
+				if tr, ok := toolsByID[call.ID]; ok {
+					out = append(out, tr)
+				} else {
+					out = append(out, msg.ToolResultMessage{
+						ToolCallID: call.ID,
+						Name:       call.Name,
+						Parts:      []msg.ContentPart{msg.TextPart{Text: "tool result unavailable"}},
+						IsError:    true,
+					})
+				}
+				emittedTools[call.ID] = struct{}{}
+			}
+		default:
+			out = append(out, m)
+		}
+	}
+	return out
+}
+
+func assistantToolsAlreadyEmitted(calls []msg.ToolCallPart, emitted map[string]struct{}) bool {
+	if len(emitted) == 0 {
+		return false
+	}
+	sawID := false
+	for _, call := range calls {
+		if call.ID == "" {
+			continue
+		}
+		sawID = true
+		if _, ok := emitted[call.ID]; !ok {
+			return false
+		}
+	}
+	return sawID
 }
 
 // MoveTo switches the active leaf and optionally appends a branch summary node.

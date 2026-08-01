@@ -35,6 +35,8 @@ type ChatAgentEndpoints struct {
 	SelectableModels []SelectableModelOption
 	// DefaultModel is the global chat_model used when no session override is set.
 	DefaultModel string
+	// DefaultApprovalMode is the effective user/YAML approval mode for new sessions.
+	DefaultApprovalMode string
 }
 
 // ChatAgentPendingConfirm is a tool approval still waiting on the active run.

@@ -419,6 +419,26 @@ func chatAgentThinkingSelected(value, selectedThinking string) bool {
 	return value == normalized
 }
 
+// chatAgentApprovalSelected reports whether value matches the session approval mode.
+func chatAgentApprovalSelected(value, selectedApproval string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(selectedApproval))
+	if normalized == "" {
+		normalized = "manual"
+	}
+	return value == normalized
+}
+
+// chatAgentSelectedApproval picks the session approval mode or the user/YAML default.
+func chatAgentSelectedApproval(stored, defaultMode string) string {
+	if strings.TrimSpace(stored) != "" {
+		return strings.ToLower(strings.TrimSpace(stored))
+	}
+	if strings.TrimSpace(defaultMode) != "" {
+		return strings.ToLower(strings.TrimSpace(defaultMode))
+	}
+	return "manual"
+}
+
 // ClassifyHistoryMessage splits one persisted history row into UI-friendly chat bubbles.
 func ClassifyHistoryMessage(role, text string, createdAt time.Time) []model.AgentChatMessage {
 	text = strings.TrimSpace(text)

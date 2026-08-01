@@ -63,6 +63,16 @@ func TestSetSessionSettings(t *testing.T) {
 			in:   SessionSettings{Model: "", ThinkingLevel: "low"},
 			want: SessionSettings{Model: "", ThinkingLevel: "low"},
 		},
+		{
+			name: "persists approval mode",
+			in:   SessionSettings{Model: "gpt-test", ThinkingLevel: "default", ApprovalMode: "auto"},
+			want: SessionSettings{Model: "gpt-test", ThinkingLevel: "default", ApprovalMode: "auto"},
+		},
+		{
+			name:    "rejects invalid approval mode",
+			in:      SessionSettings{Model: "gpt-test", ThinkingLevel: "default", ApprovalMode: "smart"},
+			wantErr: types.ErrInvalidArgument,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -15,7 +15,7 @@ Binds `pkg/agent` to REST (`/chatagent/*`), Web (`/service/web/agents/*`), platf
 - Shared `*Service`: `server.ChatAgentService()` (`chatagent_bootstrap.go`) → `BindSharedService` (`service_state.go`) + `web.SetChatAgentService`
 - Scripts: `pkg/views/partials/chatagent_scripts.templ` (`FlowbotChatAgent` only)
 
-Hot-path files: `service.go` (Run), `service_state.go`, `run_io.go` (`withRunIO`), `hooks.go`, `harness_pool.go`, `api_stream.go` / `api_run.go`, `protocol.go`, `confirm.go`, `session_events.go`. Non-interactive: `pipeline_run.go` (not Run phases), `ephemeral_run.go`, `scheduled_run.go`.
+Hot-path files: `service.go` (Run), `service_state.go`, `run_io.go` (`withRunIO`), `hooks.go` (approval modes + permission), `harness_pool.go`, `api_stream.go` / `api_run.go`, `protocol.go`, `confirm.go`, `approval_store.go` / `approval_reviewer.go`, `session_events.go`. Non-interactive: `pipeline_run.go` (not Run phases), `ephemeral_run.go`, `scheduled_run.go`.
 
 ## Run pipeline
 

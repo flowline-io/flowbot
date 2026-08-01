@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // ChatAgentChatModel returns the configured chat model for the chat agent.
@@ -61,4 +62,24 @@ func ResolveChatAgentModels() (chat, tool string, dual bool, err error) {
 		)
 	}
 	return chat, tool, true, nil
+}
+
+// ResolveApprovalModel returns the aux reviewer model: approval_model → tool_model → chat_model.
+func ResolveApprovalModel() string {
+	if m := strings.TrimSpace(App.ChatAgent.ApprovalModel); m != "" {
+		return m
+	}
+	if m := strings.TrimSpace(App.ChatAgent.ToolModel); m != "" {
+		return m
+	}
+	return ChatAgentChatModel()
+}
+
+// ChatAgentApprovalModeDefault returns the YAML default approval mode, or "manual".
+func ChatAgentApprovalModeDefault() string {
+	raw := strings.TrimSpace(App.ChatAgent.ApprovalMode)
+	if raw == "" {
+		return "manual"
+	}
+	return raw
 }

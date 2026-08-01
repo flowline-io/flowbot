@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
+	appconfig "github.com/flowline-io/flowbot/pkg/config"
 	"github.com/flowline-io/flowbot/pkg/route"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -37,7 +38,7 @@ func chatAgentPermissionsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return types.Errorf(types.ErrInternal, "load permissions: %v", err)
 	}
-	return renderChatAgentPermissionsPage(ctx, view, nil, permission.FormValues{})
+	return renderChatAgentPermissionsPage(ctx, uid, view, nil, permission.FormValues{})
 }
 
 func chatAgentPermissionsSave(ctx fiber.Ctx) error {
@@ -73,22 +74,31 @@ func chatAgentPermissionsSave(ctx fiber.Ctx) error {
 	if err != nil {
 		if len(fieldErrors) > 0 {
 			ctx.Status(http.StatusBadRequest)
-			return renderChatAgentPermissionsPage(ctx, view, fieldErrors, submitted)
+			return renderChatAgentPermissionsPage(ctx, uid, view, fieldErrors, submitted)
 		}
 		if errors.Is(err, types.ErrInvalidArgument) {
 			ctx.Status(http.StatusBadRequest)
-			return renderChatAgentPermissionsPage(ctx, view, map[string]string{"_form": err.Error()}, submitted)
+			return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": err.Error()}, submitted)
 		}
 		ctx.Status(http.StatusBadRequest)
-		return renderChatAgentPermissionsPage(ctx, view, map[string]string{"_form": err.Error()}, submitted)
+		return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": err.Error()}, submitted)
+	}
+
+	mode, modeErr := chatagent.ParseApprovalMode(strings.TrimSpace(ctx.FormValue("approval_mode")))
+	if modeErr != nil {
+		ctx.Status(http.StatusBadRequest)
+		return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": modeErr.Error()}, submitted)
 	}
 
 	if err := chatagent.SaveUserPermissions(ctx.Context(), uid, cfg); err != nil {
 		if errors.Is(err, types.ErrInvalidArgument) {
 			ctx.Status(http.StatusBadRequest)
-			return renderChatAgentPermissionsPage(ctx, view, map[string]string{"_form": err.Error()}, submitted)
+			return renderChatAgentPermissionsPage(ctx, uid, view, map[string]string{"_form": err.Error()}, submitted)
 		}
 		return types.Errorf(types.ErrInternal, "save permissions: %v", err)
+	}
+	if err := chatagent.SaveUserApprovalMode(ctx.Context(), uid, mode); err != nil {
+		return types.Errorf(types.ErrInternal, "save approval mode: %v", err)
 	}
 	ctx.Redirect().To("/service/web/chatagent-permissions")
 	return nil
@@ -134,6 +144,7 @@ func collectFormArgs(ctx fiber.Ctx) map[string]string {
 
 func renderChatAgentPermissionsPage(
 	ctx fiber.Ctx,
+	uid types.Uid,
 	view chatagent.PermissionsView,
 	fieldErrors map[string]string,
 	submitted permission.FormValues,
@@ -146,10 +157,21 @@ func renderChatAgentPermissionsPage(
 	if len(submitted.Simple) > 0 || len(submitted.Patterns) > 0 {
 		fields = partials.ApplySubmittedPermissionForm(fields, submitted)
 	}
+	mode, err := chatagent.LoadUserApprovalMode(ctx.Context(), uid)
+	if err != nil {
+		return types.Errorf(types.ErrInternal, "load approval mode: %v", err)
+	}
+	if submittedMode := strings.TrimSpace(ctx.FormValue("approval_mode")); submittedMode != "" {
+		if parsed, parseErr := chatagent.ParseApprovalMode(submittedMode); parseErr == nil {
+			mode = parsed
+		}
+	}
 	data := partials.PermissionFormPageData{
-		Fields:   fields,
-		UserJSON: userJSON,
-		Errors:   fieldErrors,
+		Fields:            fields,
+		UserJSON:          userJSON,
+		Errors:            fieldErrors,
+		ApprovalMode:      string(mode),
+		ApprovalServerDef: appconfig.ChatAgentApprovalModeDefault(),
 	}
 	ctx.Type("html")
 	return pages.ChatAgentPermissionsPage(data).Render(context.Background(), ctx.Response().BodyWriter())

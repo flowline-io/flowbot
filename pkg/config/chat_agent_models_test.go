@@ -140,6 +140,38 @@ func TestModelRegisteredAndProviderFor(t *testing.T) {
 	}
 }
 
+func TestResolveApprovalModel(t *testing.T) {
+	tests := []struct {
+		name      string
+		chatAgent config.ChatAgentConfig
+		want      string
+	}{
+		{
+			name:      "approval model wins",
+			chatAgent: config.ChatAgentConfig{ChatModel: "chat", ToolModel: "tool", ApprovalModel: "review"},
+			want:      "review",
+		},
+		{
+			name:      "fallback tool",
+			chatAgent: config.ChatAgentConfig{ChatModel: "chat", ToolModel: "tool"},
+			want:      "tool",
+		},
+		{
+			name:      "fallback chat",
+			chatAgent: config.ChatAgentConfig{ChatModel: "chat"},
+			want:      "chat",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			prev := config.App.ChatAgent
+			config.App.ChatAgent = tt.chatAgent
+			t.Cleanup(func() { config.App.ChatAgent = prev })
+			assert.Equal(t, tt.want, config.ResolveApprovalModel())
+		})
+	}
+}
+
 func TestChatAgentChatModelAndEnabled(t *testing.T) {
 	tests := []struct {
 		name      string

@@ -17,6 +17,7 @@ import (
 type createSessionBody struct {
 	Model         string `json:"model"`
 	ThinkingLevel string `json:"thinking_level"`
+	ApprovalMode  string `json:"approval_mode"`
 }
 
 func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
@@ -37,8 +38,12 @@ func (*chatAgentHTTP) createSession(c fiber.Ctx) error {
 	if err := chatagent.CreateSession(c.Context(), rc.UID, sessionID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	if body.Model != "" || body.ThinkingLevel != "" {
-		s := chatagent.SessionSettings{Model: body.Model, ThinkingLevel: body.ThinkingLevel}
+	if body.Model != "" || body.ThinkingLevel != "" || body.ApprovalMode != "" {
+		s := chatagent.SessionSettings{
+			Model:         body.Model,
+			ThinkingLevel: body.ThinkingLevel,
+			ApprovalMode:  body.ApprovalMode,
+		}
 		if err := chatagent.SetSessionSettings(c.Context(), sessionID, s); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}

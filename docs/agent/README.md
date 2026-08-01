@@ -62,7 +62,7 @@ pkg/agent/
 ├── loop/                         # Observe-Think-Act + stateful Agent
 ├── llm/ tool/ session/ model/ transform/ hooks/
 ├── ctxmgr/ harness/ subagent/    # Orchestration
-├── env/ sandbox/ permission/ dcg/
+├── env/ sandbox/ permission/ approval/ dcg/
 ├── tools/coding/                 # Engine coding tools
 ├── tools/echo/                   # Reference tool
 ├── eval/

@@ -35,6 +35,22 @@ templ ChatAgentPermissionsForm(data PermissionFormPageData) {
 			<span>Form edits store your override rules only. Keys set to <strong>Inherit default</strong> use the system baseline shown beside each field.</span>
 		</div>
 
+		<div class="space-y-2">
+			<h2 class="text-lg font-semibold">Approval Mode</h2>
+			<p class="text-sm text-base-content/70">
+				manual uses permission ask dialogs; auto uses a lightweight security reviewer for flagged side-effect tools; off skips ask (DCG and deny rules still apply). Server default: { data.ApprovalServerDef }.
+			</p>
+			<select
+				name="approval_mode"
+				class="select select-bordered select-sm w-full max-w-xs"
+				data-testid="chatagent-approval-mode"
+			>
+				<option value="manual" if data.ApprovalMode == "manual" || data.ApprovalMode == "" { selected }>manual</option>
+				<option value="auto" if data.ApprovalMode == "auto" { selected }>auto</option>
+				<option value="off" if data.ApprovalMode == "off" { selected }>off</option>
+			</select>
+		</div>
+
 		<div class="space-y-4">
 			<h2 class="text-lg font-semibold">General Permissions</h2>
 			<div class="overflow-x-auto">

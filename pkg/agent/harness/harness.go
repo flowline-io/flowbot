@@ -474,8 +474,8 @@ func (h *Harness) persistPromptMessages(ctx context.Context, prompts []msg.Agent
 }
 
 // persistPartialFromEvent writes mid-turn tool results so reloads between multiple
-// approvals can show completed steps. Tool-call assistants are not persisted here:
-// AssistantDisplayText would be classified as a completed tool card before approval.
+// approvals can show completed steps. Assistant tool_calls are persisted in
+// finishStream; BuildContext sanitizes order for LLM reloads.
 func (h *Harness) persistPartialFromEvent(ctx context.Context, ev agentevent.Event) {
 	if h.session == nil {
 		return

@@ -17,6 +17,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/agent/session"
 	"github.com/flowline-io/flowbot/pkg/agent/tool"
 	"github.com/flowline-io/flowbot/pkg/agent/tools/echo"
+	"github.com/flowline-io/flowbot/pkg/agent/transform"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tmc/langchaingo/llms"
@@ -305,6 +306,7 @@ func runPersistsToolStepsBetweenApprovals(t *testing.T) {
 	assert.Equal(t, 1, userCount)
 	assert.Equal(t, 2, toolCount)
 	assert.Equal(t, 1, textAssistant)
+	assertBranchToolOrderValidForLLM(t, sess)
 }
 
 func branchHasToolResult(t *testing.T, sess *session.Session) bool {
@@ -350,6 +352,115 @@ func countBranchMessageKinds(t *testing.T, sess *session.Session) (userCount, to
 		}
 	}
 	return userCount, toolCount, textAssistant
+}
+
+func assertBranchToolOrderValidForLLM(t *testing.T, sess *session.Session) {
+	t.Helper()
+	branch, err := sess.GetBranch(context.Background(), "")
+	require.NoError(t, err)
+	built := session.BuildContext(branch)
+	open := make([]string, 0)
+	for i, message := range built.Messages {
+		switch m := message.(type) {
+		case msg.AssistantMessage:
+			if len(open) > 0 {
+				t.Fatalf("message[%d]: assistant while tool_calls still open %v (insufficient tool messages)", i, open)
+			}
+			for _, call := range m.ToolCalls() {
+				if call.ID != "" {
+					open = append(open, call.ID)
+				}
+			}
+		case msg.ToolResultMessage:
+			if m.ToolCallID == "" {
+				continue
+			}
+			if len(open) == 0 {
+				t.Fatalf("message[%d]: tool result %q has no preceding assistant tool_calls", i, m.ToolCallID)
+			}
+			found := -1
+			for j, id := range open {
+				if id == m.ToolCallID {
+					found = j
+					break
+				}
+			}
+			if found < 0 {
+				t.Fatalf("message[%d]: tool result %q does not match open tool_calls %v", i, m.ToolCallID, open)
+			}
+			open = append(open[:found], open[found+1:]...)
+		default:
+			if len(open) > 0 {
+				t.Fatalf("message[%d]: non-tool message while tool_calls still open %v", i, open)
+			}
+		}
+	}
+	if len(open) > 0 {
+		t.Fatalf("unclosed tool_calls at end of branch: %v", open)
+	}
+}
+
+func TestHarnessPersistedToolOrderValidAfterReload(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	store := session.NewMemoryStorage()
+	sess := session.New(store)
+
+	fakeModel := agentllm.NewFakeModel(
+		agentllm.ResponseScript{ToolCalls: []llms.ToolCall{{
+			ID: "call-1", Type: "function",
+			FunctionCall: &llms.FunctionCall{Name: "echo", Arguments: `{"text":"hi"}`},
+		}}},
+		agentllm.ResponseScript{Content: "done"},
+	)
+	toolReg := tool.NewRegistry()
+	require.NoError(t, toolReg.Register(echo.Tool{}))
+
+	h := harness.New(harness.Options{
+		AgentOptions: loop.Options{
+			Model:    fakeModel,
+			Registry: toolReg,
+			Config:   msg.Config{MaxSteps: 10},
+		},
+		Session:   sess,
+		ModelName: "fake",
+	})
+
+	_, err := h.Prompt(ctx, msg.NewUserMessage("please echo"))
+	require.NoError(t, err)
+	require.NoError(t, h.WaitIdle(ctx))
+	require.NoError(t, h.LastRunResult().Err)
+
+	assertBranchToolOrderValidForLLM(t, sess)
+
+	// Simulate EvictHarnessPool: rebuild agent context from persisted branch.
+	branch, err := sess.GetBranch(ctx, "")
+	require.NoError(t, err)
+	agentCtx := session.ToAgentContext(session.BuildContext(branch), "system")
+	llmMessages, err := transform.DefaultConvertToLLM(agentCtx.Messages)
+	require.NoError(t, err)
+	openToolCalls := make(map[string]struct{})
+	for i, m := range llmMessages {
+		switch m.Role {
+		case llms.ChatMessageTypeAI:
+			for _, part := range m.Parts {
+				if tc, ok := part.(llms.ToolCall); ok && tc.ID != "" {
+					openToolCalls[tc.ID] = struct{}{}
+				}
+			}
+		case llms.ChatMessageTypeTool:
+			for _, part := range m.Parts {
+				tr, ok := part.(llms.ToolCallResponse)
+				if !ok {
+					continue
+				}
+				if _, ok := openToolCalls[tr.ToolCallID]; !ok {
+					t.Fatalf("llm message[%d]: tool response %q missing preceding tool_calls", i, tr.ToolCallID)
+				}
+				delete(openToolCalls, tr.ToolCallID)
+			}
+		}
+	}
 }
 
 func TestHarnessRespectsCompactionDisabledOnOverflow(t *testing.T) {

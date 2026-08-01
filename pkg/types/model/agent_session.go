@@ -13,6 +13,8 @@ type AgentSession struct {
 	Model string `json:"model,omitempty"`
 	// ThinkingLevel holds the session-level reasoning intensity (empty = default).
 	ThinkingLevel string `json:"thinking_level,omitempty"`
+	// ApprovalMode holds the session-level approval mode (manual|auto|off; empty = user default).
+	ApprovalMode string `json:"approval_mode,omitempty"`
 	// Preview is a short last-message snippet for session list rows.
 	Preview string `json:"preview,omitempty"`
 	// Pinned reports whether the session is pinned to the top of the list.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
 	agentmodel "github.com/flowline-io/flowbot/pkg/agent/model"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -20,6 +21,9 @@ type SessionSettings struct {
 	Model string `json:"model"`
 	// ThinkingLevel overrides the reasoning intensity; empty or "default" uses provider defaults.
 	ThinkingLevel string `json:"thinking_level"`
+	// ApprovalMode overrides the approval pipeline for this session (manual|auto|off).
+	// Empty means inherit the user/YAML default.
+	ApprovalMode string `json:"approval_mode,omitempty"`
 }
 
 // SelectableModel is one entry in the model picker returned to the UI.
@@ -51,10 +55,18 @@ func GetSessionSettings(ctx context.Context, sessionID string) (SessionSettings,
 	if err != nil {
 		return SessionSettings{}, err
 	}
-	return SessionSettings{
+	settings := SessionSettings{
 		Model:         sess.Model,
 		ThinkingLevel: sess.ThinkingLevel,
-	}, nil
+	}
+	mode, set, err := LoadSessionApprovalMode(ctx, sessionID)
+	if err != nil {
+		return SessionSettings{}, err
+	}
+	if set {
+		settings.ApprovalMode = string(mode)
+	}
+	return settings, nil
 }
 
 // ResolveEffectiveSessionSettings returns stored overrides plus runtime-resolved values.
@@ -91,7 +103,17 @@ func SetSessionSettings(ctx context.Context, sessionID string, s SessionSettings
 		flog.Error(fmt.Errorf("[chat-agent] set session settings session=%s: %w", sessionID, err))
 		return err
 	}
-	flog.Debug("[chat-agent] session settings updated session=%s model=%s thinking_level=%s", sessionID, model, level)
+	if raw := strings.TrimSpace(s.ApprovalMode); raw != "" {
+		mode, err := approval.ParseMode(raw)
+		if err != nil {
+			return fmt.Errorf("invalid approval_mode %q: %w", raw, types.ErrInvalidArgument)
+		}
+		if err := SaveSessionApprovalMode(ctx, sessionID, mode); err != nil {
+			return err
+		}
+	}
+	flog.Debug("[chat-agent] session settings updated session=%s model=%s thinking_level=%s approval_mode=%s",
+		sessionID, model, level, strings.TrimSpace(s.ApprovalMode))
 	return nil
 }
 

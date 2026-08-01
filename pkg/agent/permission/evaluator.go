@@ -29,6 +29,43 @@ func (e *Evaluator) Config() Config {
 	return e.config
 }
 
+// EvaluateDenyOnly reports ActionDeny when a deny rule wins for the tool or
+// external path. Session grants, doom-loop, bash-complex→ask, and external→ask
+// escalations are skipped. Ask/allow resolutions become ActionAllow (not denied).
+func (e *Evaluator) EvaluateDenyOnly(req Request) Result {
+	inputs := ExtractInputs(req)
+	result := Result{
+		Action:        ActionAllow,
+		PermissionKey: inputs.PermissionKey,
+		Pattern:       inputs.Primary,
+	}
+
+	if e.resolveKey(inputs.PermissionKey, inputs.Primary) == ActionDeny {
+		result.Action = ActionDeny
+		return result
+	}
+
+	for _, path := range inputs.ExternalPaths {
+		if e.resolveKey(KeyExternalDirectory, path) == ActionDeny {
+			result.Action = ActionDeny
+			result.PermissionKey = KeyExternalDirectory
+			result.Pattern = path
+			result.ExternalChecked = true
+			return result
+		}
+	}
+	if req.ExternalPath {
+		if e.resolveKey(KeyExternalDirectory, inputs.Primary) == ActionDeny {
+			result.Action = ActionDeny
+			result.PermissionKey = KeyExternalDirectory
+			result.Pattern = inputs.Primary
+			result.ExternalChecked = true
+			return result
+		}
+	}
+	return result
+}
+
 // Evaluate resolves the action for one tool invocation.
 func (e *Evaluator) Evaluate(req Request, session *SessionState) Result {
 	inputs := ExtractInputs(req)

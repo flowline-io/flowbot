@@ -1,13 +1,15 @@
 package partials
 
-// ChatAgentSettingsCluster renders compact model and thinking selects for the
+// ChatAgentSettingsCluster renders compact model, thinking, and approval selects for the
 // bottom-left corner of the agents composer and thread input dialogs.
 templ ChatAgentSettingsCluster(
 	modelID string,
 	thinkingID string,
+	approvalID string,
 	models []SelectableModelOption,
 	selectedModel string,
 	selectedThinking string,
+	selectedApproval string,
 	disabled bool,
 ) {
 	<div
@@ -44,6 +46,18 @@ templ ChatAgentSettingsCluster(
 			@chatAgentThinkingOption("low", "Low", selectedThinking)
 			@chatAgentThinkingOption("medium", "Medium", selectedThinking)
 			@chatAgentThinkingOption("high", "High", selectedThinking)
+		</select>
+		<span class="chatagent-settings-sep" aria-hidden="true">·</span>
+		<select
+			id={ approvalID }
+			class="chatagent-settings-select"
+			disabled?={ disabled }
+			data-session-approval={ selectedApproval }
+			data-testid={ approvalID }
+			aria-label="Approval mode">
+			@chatAgentApprovalOption("manual", "Manual", selectedApproval)
+			@chatAgentApprovalOption("auto", "Auto", selectedApproval)
+			@chatAgentApprovalOption("off", "Off", selectedApproval)
 		</select>
 	</div>
 }
@@ -83,6 +97,14 @@ templ ChatAgentRichInput(id, className, placeholder, ariaLabel string, disabled 
 
 templ chatAgentThinkingOption(value, label, selectedThinking string) {
 	if chatAgentThinkingSelected(value, selectedThinking) {
+		<option value={ value } selected>{ label }</option>
+	} else {
+		<option value={ value }>{ label }</option>
+	}
+}
+
+templ chatAgentApprovalOption(value, label, selectedApproval string) {
+	if chatAgentApprovalSelected(value, selectedApproval) {
 		<option value={ value } selected>{ label }</option>
 	} else {
 		<option value={ value }>{ label }</option>

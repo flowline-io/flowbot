@@ -115,6 +115,10 @@ chat_agent:
   max_steps: 30
   # chat_model: "gpt-4o-mini"   # enables chat agent when set
   # tool_model: "gpt-4o"        # enables dual-model routing when set (same provider as chat_model)
+  # approval_model: ""          # aux security reviewer for auto mode (fallback: tool_model → chat_model)
+  # approval_mode: "manual"     # server default: manual | auto | off (user DB override wins)
+  # approval_timeout: 10s       # aux reviewer call timeout
+  # approval_denial_threshold: 3  # consecutive auto DENYs before circuit breaker
   compaction:
     auto: true
     prune: true

@@ -50,9 +50,11 @@ templ ChatAgentComposer(endpoints ChatAgentEndpoints, placeholder string, disabl
 					@ChatAgentSettingsCluster(
 						"chatagent-composer-model",
 						"chatagent-composer-thinking",
+						"chatagent-composer-approval",
 						endpoints.SelectableModels,
 						endpoints.DefaultModel,
 						"",
+						endpoints.DefaultApprovalMode,
 						disabled,
 					)
 				</div>

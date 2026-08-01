@@ -3,9 +3,9 @@ package chatagent
 import (
 	"context"
 	"fmt"
-
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	"github.com/flowline-io/flowbot/pkg/agent/permission"
@@ -36,12 +36,21 @@ type ChatHookDeps struct {
 	Confirm *ConfirmGate
 	// DCG is the pre-permission command guard. Nil uses dcg.DefaultChecker().
 	DCG dcg.Checker
+	// Reviewer is the aux security reviewer for auto mode. Nil builds one lazily.
+	Reviewer approval.Reviewer
+	// Breaker is the per-run denial circuit breaker for auto mode. Nil creates a new one.
+	Breaker *approval.Breaker
+	// ApprovalMode overrides DB/YAML mode when Valid (tests and explicit wiring).
+	ApprovalMode approval.Mode
 }
 
 // RegisterHooks wires observational and API hooks for one chat agent harness run.
 func RegisterHooks(reg *hooks.Registry, deps ChatHookDeps) {
 	if reg == nil {
 		return
+	}
+	if deps.Breaker == nil {
+		deps.Breaker = approval.NewBreaker(approvalDenialThreshold())
 	}
 
 	registerDCGHook(reg, deps)
@@ -134,6 +143,13 @@ func registerDCGHook(reg *hooks.Registry, deps ChatHookDeps) {
 
 func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 	hooks.OnToolCall(reg, func(ctx context.Context, event hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+		if block := planModeToolBlock(ctx, deps.SessionID, event); block != nil {
+			return block, nil
+		}
+		if deps.Breaker != nil && deps.Breaker.Tripped() {
+			return &hooks.ToolCallResult{Block: true, Reason: approval.ReasonBreakerTripped}, nil
+		}
+
 		uid := deps.UID
 		if uid.IsZero() {
 			var err error
@@ -143,39 +159,220 @@ func registerPermissionHook(reg *hooks.Registry, deps ChatHookDeps) {
 			}
 		}
 
-		cfg, err := LoadUserPermissions(ctx, uid)
-		if err != nil {
-			return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
-		}
 		if IsAutonomousRunKind(deps.Kind) {
-			cfg = permission.Merge(cfg, permission.ScheduledRunOverlay())
-		}
-		evaluator := permission.NewEvaluator(cfg)
-		workspaceRoot := config.App.ChatAgent.Workspace
-		externalPath := detectExternalPath(event, workspaceRoot)
-
-		if block := planModeToolBlock(ctx, deps.SessionID, event); block != nil {
-			return block, nil
+			return handleManualPermission(ctx, deps, uid, event, true)
 		}
 
-		if deps.Service == nil {
-			return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
+		mode := deps.ApprovalMode
+		if !mode.Valid() {
+			var loadErr error
+			mode, loadErr = ResolveRunApprovalMode(ctx, deps.SessionID, uid)
+			if loadErr != nil {
+				return &hooks.ToolCallResult{Block: true, Reason: "approval mode unavailable"}, nil
+			}
 		}
-		sessionState := deps.Service.permissionSessions.GetPermissionSession(ctx, deps.SessionID)
-
-		result := evaluator.Evaluate(permission.Request{
-			Tool:          event.ToolCall.Name,
-			Args:          event.Args,
-			WorkspaceRoot: workspaceRoot,
-			ExternalPath:  externalPath,
-		}, sessionState)
-
-		if result.DoomLoopTriggered {
-			metrics.Agent().IncDoomLoop(event.ToolCall.Name)
+		switch mode {
+		case approval.ModeOff:
+			return handleOffApproval(ctx, uid, event)
+		case approval.ModeAuto:
+			return handleAutoApproval(ctx, deps, uid, event)
+		default:
+			return handleManualPermission(ctx, deps, uid, event, false)
 		}
-
-		return evaluatePermissionResult(ctx, deps, event, result, sessionState)
 	})
+}
+
+func handleManualPermission(
+	ctx context.Context,
+	deps ChatHookDeps,
+	uid types.Uid,
+	event hooks.ToolCallEvent,
+	autonomous bool,
+) (*hooks.ToolCallResult, error) {
+	cfg, err := LoadUserPermissions(ctx, uid)
+	if err != nil {
+		return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
+	}
+	if autonomous {
+		cfg = permission.Merge(cfg, permission.ScheduledRunOverlay())
+	}
+	evaluator := permission.NewEvaluator(cfg)
+	workspaceRoot := config.App.ChatAgent.Workspace
+	externalPath := detectExternalPath(event, workspaceRoot)
+
+	if deps.Service == nil {
+		return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, nil
+	}
+	sessionState := deps.Service.permissionSessions.GetPermissionSession(ctx, deps.SessionID)
+
+	result := evaluator.Evaluate(permission.Request{
+		Tool:          event.ToolCall.Name,
+		Args:          event.Args,
+		WorkspaceRoot: workspaceRoot,
+		ExternalPath:  externalPath,
+	}, sessionState)
+
+	if result.DoomLoopTriggered {
+		metrics.Agent().IncDoomLoop(event.ToolCall.Name)
+	}
+
+	return evaluatePermissionResult(ctx, deps, event, result, sessionState)
+}
+
+func handleOffApproval(ctx context.Context, uid types.Uid, event hooks.ToolCallEvent) (*hooks.ToolCallResult, error) {
+	block, _, err := evaluateDenyOnlyGate(ctx, uid, event)
+	return block, err
+}
+
+func handleAutoApproval(
+	ctx context.Context,
+	deps ChatHookDeps,
+	uid types.Uid,
+	event hooks.ToolCallEvent,
+) (*hooks.ToolCallResult, error) {
+	block, req, err := evaluateDenyOnlyGate(ctx, uid, event)
+	if err != nil || block != nil {
+		return block, err
+	}
+	if approval.IsReadonlyTool(event.ToolCall.Name) {
+		return nil, nil
+	}
+	flagged := approval.EvaluateFlagged(req)
+	if !flagged.Flagged {
+		return nil, nil
+	}
+
+	reviewer := deps.Reviewer
+	if reviewer == nil {
+		built, buildErr := NewApprovalReviewer(ctx)
+		if buildErr != nil {
+			flog.Warn("[chat-agent] approval reviewer unavailable session=%s: %v", deps.SessionID, buildErr)
+			metrics.Agent().IncApprovalVerdict("error")
+			return escalateAutoApproval(ctx, deps, event, flagged.Reason+" (reviewer unavailable)")
+		}
+		reviewer = built
+	}
+
+	reviewCtx, cancel := context.WithTimeout(ctx, approvalReviewTimeout())
+	defer cancel()
+	review, reviewErr := reviewer.Review(reviewCtx, approval.ReviewRequest{
+		ToolName:      event.ToolCall.Name,
+		Args:          event.Args,
+		FlaggedReason: flagged.Reason,
+	})
+	if reviewErr != nil {
+		flog.Warn("[chat-agent] approval review failed session=%s tool=%s: %v",
+			deps.SessionID, event.ToolCall.Name, reviewErr)
+		metrics.Agent().IncApprovalVerdict("error")
+		return escalateAutoApproval(ctx, deps, event, flagged.Reason+" (reviewer error)")
+	}
+
+	switch review.Verdict {
+	case approval.VerdictApprove:
+		metrics.Agent().IncApprovalVerdict("approve")
+		if deps.Breaker != nil {
+			deps.Breaker.Reset()
+		}
+		return nil, nil
+	case approval.VerdictDeny:
+		metrics.Agent().IncApprovalVerdict("deny")
+		reason := review.Reason
+		if reason == "" {
+			reason = flagged.Reason
+		}
+		return denyAutoApproval(deps, reason), nil
+	default:
+		metrics.Agent().IncApprovalVerdict("escalate")
+		return escalateAutoApproval(ctx, deps, event, review.Reason)
+	}
+}
+
+func evaluateDenyOnlyGate(
+	ctx context.Context,
+	uid types.Uid,
+	event hooks.ToolCallEvent,
+) (*hooks.ToolCallResult, permission.Request, error) {
+	cfg, err := LoadUserPermissions(ctx, uid)
+	if err != nil {
+		return &hooks.ToolCallResult{Block: true, Reason: "permission unavailable"}, permission.Request{}, nil
+	}
+	evaluator := permission.NewEvaluator(cfg)
+	workspaceRoot := config.App.ChatAgent.Workspace
+	req := permission.Request{
+		Tool:          event.ToolCall.Name,
+		Args:          event.Args,
+		WorkspaceRoot: workspaceRoot,
+		ExternalPath:  detectExternalPath(event, workspaceRoot),
+	}
+	result := evaluator.EvaluateDenyOnly(req)
+	if result.Action == permission.ActionDeny {
+		return &hooks.ToolCallResult{Block: true, Reason: "permission denied"}, req, nil
+	}
+	return nil, req, nil
+}
+
+// denyAutoApproval blocks after an aux-LLM DENY and advances the denial circuit breaker.
+func denyAutoApproval(deps ChatHookDeps, reason string) *hooks.ToolCallResult {
+	if reason == "" {
+		reason = "approval denied"
+	}
+	msg := "auto approval denied: " + reason
+	if deps.Breaker != nil && deps.Breaker.RecordDenial() {
+		msg = approval.ReasonBreakerTripped + " (" + reason + ")"
+	}
+	return &hooks.ToolCallResult{Block: true, Reason: msg}
+}
+
+// blockAutoApproval blocks without advancing the denial circuit breaker (user reject / escalate fallback).
+func blockAutoApproval(reason string) *hooks.ToolCallResult {
+	if reason == "" {
+		reason = "approval denied"
+	}
+	return &hooks.ToolCallResult{Block: true, Reason: "auto approval denied: " + reason}
+}
+
+func escalateAutoApproval(
+	ctx context.Context,
+	deps ChatHookDeps,
+	event hooks.ToolCallEvent,
+	reason string,
+) (*hooks.ToolCallResult, error) {
+	gate := resolveRunConfirm(ctx, deps)
+	if gate == nil {
+		flog.Debug("[chat-agent] auto escalate blocked without confirm gate session=%s tool=%s",
+			deps.SessionID, event.ToolCall.Name)
+		return &hooks.ToolCallResult{Block: true, Reason: ReasonConfirmRequiredPlatform}, nil
+	}
+	eval := permission.Result{
+		Action:           permission.ActionAsk,
+		PermissionKey:    permission.PermissionKeyForTool(event.ToolCall.Name),
+		Pattern:          strings.TrimSpace(fmt.Sprint(event.Args["command"])),
+		SuggestAlways:    false,
+		SuggestedPattern: "",
+	}
+	if eval.Pattern == "" || eval.Pattern == "<nil>" {
+		eval.Pattern = strings.TrimSpace(fmt.Sprint(event.Args["path"]))
+	}
+	if reason != "" {
+		flog.Debug("[chat-agent] auto escalate session=%s tool=%s reason=%s",
+			deps.SessionID, event.ToolCall.Name, reason)
+	}
+	resp, err := gate.Wait(ctx, event, eval)
+	if err != nil {
+		return blockAutoApproval(err.Error()), nil
+	}
+	if !resp.Approved {
+		return blockAutoApproval("user denied"), nil
+	}
+	if resp.Mode == ConfirmModeAlways {
+		flog.Warn("[chat-agent] always grant rejected in auto mode session=%s tool=%s",
+			deps.SessionID, event.ToolCall.Name)
+		// Treat as once if approved; do not persist grants.
+	}
+	if deps.Breaker != nil {
+		deps.Breaker.Reset()
+	}
+	return nil, nil
 }
 
 func evaluatePermissionResult(

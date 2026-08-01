@@ -20,6 +20,7 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 		data-default-model={ endpoints.DefaultModel }
 		data-session-model={ session.Model }
 		data-session-thinking={ session.ThinkingLevel }
+		data-session-approval={ chatAgentSelectedApproval(session.ApprovalMode, endpoints.DefaultApprovalMode) }
 		if endpoints.SettingsURL != "" {
 			data-settings-url={ endpoints.SettingsURL }
 		}
@@ -175,9 +176,11 @@ templ ChatAgentThread(session model.AgentSession, messages []model.AgentChatMess
 								@ChatAgentSettingsCluster(
 									"chatagent-thread-model",
 									"chatagent-thread-thinking",
+									"chatagent-thread-approval",
 									endpoints.SelectableModels,
 									chatAgentSelectedModel(session.Model, endpoints.DefaultModel),
 									session.ThinkingLevel,
+									chatAgentSelectedApproval(session.ApprovalMode, endpoints.DefaultApprovalMode),
 									false,
 								)
 							}

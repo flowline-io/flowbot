@@ -594,6 +594,15 @@ type ChatAgentConfig struct {
 	ChatModel string `json:"chat_model" yaml:"chat_model" mapstructure:"chat_model"`
 	// ToolModel enables dual-model routing when set; used after tool execution.
 	ToolModel string `json:"tool_model" yaml:"tool_model" mapstructure:"tool_model"`
+	// ApprovalModel selects the auxiliary security reviewer model for auto approval mode.
+	// Empty falls back to tool_model, then chat_model.
+	ApprovalModel string `json:"approval_model" yaml:"approval_model" mapstructure:"approval_model"`
+	// ApprovalMode is the server default approval mode (manual|auto|off) when the user has no override.
+	ApprovalMode string `json:"approval_mode" yaml:"approval_mode" mapstructure:"approval_mode"`
+	// ApprovalTimeout limits one aux reviewer call; zero defaults to 10s.
+	ApprovalTimeout time.Duration `json:"approval_timeout" yaml:"approval_timeout" mapstructure:"approval_timeout"`
+	// ApprovalDenialThreshold trips the auto-mode denial circuit breaker; zero defaults to 3.
+	ApprovalDenialThreshold int `json:"approval_denial_threshold" yaml:"approval_denial_threshold" mapstructure:"approval_denial_threshold"`
 	// SubagentMaxDepth caps nested task-tool delegation; defaults to 1 (no nested subagents).
 	SubagentMaxDepth int `json:"subagent_max_depth" yaml:"subagent_max_depth" mapstructure:"subagent_max_depth"`
 	// SubagentDefaultModel overrides the model used by subagents without an explicit model; defaults to ChatModel.

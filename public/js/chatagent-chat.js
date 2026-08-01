@@ -6,6 +6,7 @@
   var PENDING_PREFIX = 'flowbot-chatagent-pending:';
   var COMPOSER_MODEL_KEY = 'flowbot-chatagent-composer:model';
   var COMPOSER_THINKING_KEY = 'flowbot-chatagent-composer:thinking';
+  var COMPOSER_APPROVAL_KEY = 'flowbot-chatagent-composer:approval';
   var MAX_ATTACHMENTS = 8;
 
   function pendingKey(sessionID) {
@@ -393,6 +394,7 @@
     var startBtn = root.querySelector('#chatagent-composer-start');
     var modelSel = root.querySelector('#chatagent-composer-model');
     var thinkingSel = root.querySelector('#chatagent-composer-thinking');
+    var approvalSel = root.querySelector('#chatagent-composer-approval');
     var errorEl = root.querySelector('#chatagent-composer-error');
     var settingsEl = root.querySelector('[data-testid="chatagent-settings"]');
     if (!createURL || !detailTemplate || !input || !startBtn) {
@@ -423,6 +425,18 @@
         lsSet(COMPOSER_THINKING_KEY, thinkingSel.value);
       });
     }
+    if (approvalSel) {
+      var defaultApproval =
+        approvalSel.getAttribute('data-session-approval') || 'manual';
+      var savedApproval = lsGet(COMPOSER_APPROVAL_KEY) || defaultApproval;
+      approvalSel.value = savedApproval;
+      if (approvalSel.value !== savedApproval) {
+        approvalSel.value = defaultApproval;
+      }
+      approvalSel.addEventListener('change', function () {
+        lsSet(COMPOSER_APPROVAL_KEY, approvalSel.value);
+      });
+    }
 
     var queue = createAttachmentQueue({
       pendingEl: root.querySelector('#chatagent-composer-pending'),
@@ -451,6 +465,8 @@
         model: modelSel && modelSel.value ? modelSel.value : defaultModel || '',
         thinking_level:
           thinkingSel && thinkingSel.value ? thinkingSel.value : 'default',
+        approval_mode:
+          approvalSel && approvalSel.value ? approvalSel.value : 'manual',
       };
       var localAtts = queue.list.slice();
 
@@ -564,11 +580,14 @@
     var defaultModel = root.getAttribute('data-default-model') || '';
     var modelSel = root.querySelector('#chatagent-thread-model');
     var thinkingSel = root.querySelector('#chatagent-thread-thinking');
+    var approvalSel = root.querySelector('#chatagent-thread-approval');
     var modelLabel = root.querySelector('#chatagent-session-model-label');
     var errorEl = root.querySelector('#chatagent-thread-error');
 
     var currentModel = '';
     var currentThinking = 'default';
+    var currentApproval =
+      root.getAttribute('data-session-approval') || 'manual';
     if (modelSel) {
       currentModel =
         modelSel.getAttribute('data-session-model') ||
@@ -596,11 +615,24 @@
       thinkingSel.value = currentThinking || 'default';
       currentThinking = thinkingSel.value || 'default';
     }
+    if (approvalSel) {
+      currentApproval =
+        approvalSel.getAttribute('data-session-approval') ||
+        approvalSel.value ||
+        currentApproval ||
+        'manual';
+      approvalSel.value = currentApproval;
+      if (approvalSel.value !== currentApproval) {
+        approvalSel.value = 'manual';
+      }
+      currentApproval = approvalSel.value || 'manual';
+    }
 
-    function putSettings(nextModel, nextThinking) {
+    function putSettings(nextModel, nextThinking, nextApproval) {
       var body = {
         model: nextModel || '',
         thinking_level: nextThinking || 'default',
+        approval_mode: nextApproval || 'manual',
       };
       flowbotCSRFHeadersAsync()
         .then(function (headers) {
@@ -629,6 +661,7 @@
         .then(function (data) {
           currentModel = (data && data.model) || '';
           currentThinking = (data && data.thinking_level) || 'default';
+          currentApproval = (data && data.approval_mode) || currentApproval;
           if (modelLabel) {
             modelLabel.textContent = settingsHeaderLabel(
               currentModel,
@@ -653,13 +686,22 @@
     if (modelSel) {
       modelSel.addEventListener('change', function () {
         var thinking = thinkingSel ? thinkingSel.value : currentThinking;
-        putSettings(modelSel.value, thinking);
+        var approval = approvalSel ? approvalSel.value : currentApproval;
+        putSettings(modelSel.value, thinking, approval);
       });
     }
     if (thinkingSel) {
       thinkingSel.addEventListener('change', function () {
         var model = modelSel ? modelSel.value : currentModel;
-        putSettings(model, thinkingSel.value);
+        var approval = approvalSel ? approvalSel.value : currentApproval;
+        putSettings(model, thinkingSel.value, approval);
+      });
+    }
+    if (approvalSel) {
+      approvalSel.addEventListener('change', function () {
+        var model = modelSel ? modelSel.value : currentModel;
+        var thinking = thinkingSel ? thinkingSel.value : currentThinking;
+        putSettings(model, thinking, approvalSel.value);
       });
     }
   }

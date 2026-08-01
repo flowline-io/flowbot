@@ -11,17 +11,18 @@ import (
 // AgentCollector holds typed metrics for agent harness runs.
 // When initialized with a nil stats, all methods are no-op.
 type AgentCollector struct {
-	runTotal           *prometheus.CounterVec
-	turnDuration       *prometheus.HistogramVec
-	llmRequestTotal    *prometheus.CounterVec
-	llmRetryTotal      *prometheus.CounterVec
-	llmDuration        *prometheus.HistogramVec
-	toolTotal          *prometheus.CounterVec
-	toolDuration       *prometheus.HistogramVec
-	compactTotal       *prometheus.CounterVec
-	overflowRetryTotal *prometheus.CounterVec
-	doomLoopTotal      *prometheus.CounterVec
-	sensorLintTotal    *prometheus.CounterVec
+	runTotal             *prometheus.CounterVec
+	turnDuration         *prometheus.HistogramVec
+	llmRequestTotal      *prometheus.CounterVec
+	llmRetryTotal        *prometheus.CounterVec
+	llmDuration          *prometheus.HistogramVec
+	toolTotal            *prometheus.CounterVec
+	toolDuration         *prometheus.HistogramVec
+	compactTotal         *prometheus.CounterVec
+	overflowRetryTotal   *prometheus.CounterVec
+	doomLoopTotal        *prometheus.CounterVec
+	sensorLintTotal      *prometheus.CounterVec
+	approvalVerdictTotal *prometheus.CounterVec
 }
 
 // NewAgentCollector creates an AgentCollector backed by stats.
@@ -85,6 +86,11 @@ func NewAgentCollector(st *stats.Stats) *AgentCollector {
 	c.sensorLintTotal, err = st.RegisterCounterVec("agent_sensor_lint_total", "Observation-only lint sensor events by status", "status")
 	if err != nil {
 		log.Printf("[metrics] agent: failed to register sensor_lint_total: %v", err)
+		return &AgentCollector{}
+	}
+	c.approvalVerdictTotal, err = st.RegisterCounterVec("agent_approval_verdict_total", "Auto approval reviewer verdicts", "verdict")
+	if err != nil {
+		log.Printf("[metrics] agent: failed to register approval_verdict_total: %v", err)
 		return &AgentCollector{}
 	}
 	return c
@@ -187,4 +193,13 @@ func (c *AgentCollector) IncSensorLint(status string) {
 	}
 	defer recoverLog("agent_sensor_lint_total")
 	c.sensorLintTotal.WithLabelValues(sanitizeLabel(status)).Inc()
+}
+
+// IncApprovalVerdict increments the auto-approval reviewer verdict counter.
+func (c *AgentCollector) IncApprovalVerdict(verdict string) {
+	if c.approvalVerdictTotal == nil {
+		return
+	}
+	defer recoverLog("agent_approval_verdict_total")
+	c.approvalVerdictTotal.WithLabelValues(sanitizeLabel(verdict)).Inc()
 }

@@ -44,6 +44,7 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | R-07 | Session mode get/set | `GET\|PUT …/mode` | Plan vs normal | `chat_agent_chat_spec_test.go`, plan mode tests |
 | R-08 | Clear session permission grants | `DELETE …/permission-grants` | | permission session tests |
 | R-09 | Permissions get/put/delete | `GET\|PUT\|DELETE /chatagent/permissions` | Invalid config | HTTP + permission tests |
+| R-09a | Approval mode get/put/delete | `GET\|PUT\|DELETE /chatagent/approval` | Invalid mode | approval store/API + hook mode matrix |
 | R-10 | Context usage / compact | `GET …/context`, `POST …/compact` | Compaction no-op | context_usage tests, agents page context |
 | R-11 | Export session | `GET …/export` | | export tests |
 | R-12 | Resolve resource URI | `GET /chatagent/resources` | `plan://`, `file://` | `chat_agent_spec_test.go` resources It |
@@ -64,7 +65,8 @@ Auth: `ScopeChatAgentChat`. Owner checks on session-scoped routes.
 | W-06 | Streaming markdown + tool cards + thinking + todo panel | `public/js/chatagent-*.js` | Open code fence delay; tool upsert; tool/thinking collapse; codeblock chrome; jump-to-bottom | chat BDD stream done; `chatagent_message_test.go` |
 | W-07 | Close session | `DELETE /service/web/agents/:id` | | agents page |
 | W-08 | Model + thinking controls | Composer + thread settings bar; `GET\|PUT …/settings` | localStorage defaults; empty DB falls back to yaml chat_model | agents page + `chatagent-chat.js` |
-| W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
+| W-09 | Approval flow UX | Nav/Home pending-approval badge; docked session approval bar; Allow once / Always allow matching copy | Badge count from runtime gates; always button only when pattern suggested; auto-mode escalate hides Always | `session_activity_test.go`, helpers/home/message unit tests; `GET /service/web/approval-badge` |
+| W-09d | Auto approval mode | Permissions page mode selector; flagged tools reviewed by aux LLM; deny circuit breaker | Autonomous ignores auto; reviewer fail → escalate | `pkg/agent/approval`, `approval_hook_test.go` |
 | W-09a | Background attention for approval | Tab title `● Needs approval` while confirm pending; desktop `Notification` when tab is hidden (permission via user gesture) | Permission denied/default is silent; focus tab on notification click; clear title on resolve | `public/js/app.js`, `public/js/chatagent-approval.js` |
 | W-09b | Approval inbox + deferred external | Framework `agent.approval` via `GatewaySend` (`inapp` ± default); open session / resolve / cancel marks read and cancels deferred | Plan mode still blocks `send_notification`; ConfirmGate not persisted | `approval_notify.go`, `confirm_test.go`; Inbox `/service/web/inbox*` |
 | W-09c | Inbox UI | Global bell + `/service/web/inbox`; unread default; deep-link open marks read | System `inapp` channel immutable; open redirect only `/service/web/*` | `inbox_webservice.go` / `inbox_webservice_test.go` |

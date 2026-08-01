@@ -34,9 +34,11 @@ type PermissionFormField struct {
 
 // PermissionFormPageData is the full page model for the permissions editor.
 type PermissionFormPageData struct {
-	Fields   []PermissionFormField
-	UserJSON string
-	Errors   map[string]string
+	Fields            []PermissionFormField
+	UserJSON          string
+	Errors            map[string]string
+	ApprovalMode      string
+	ApprovalServerDef string
 }
 
 // permissionKeyCatalog is the ordered list of user-editable permission keys.

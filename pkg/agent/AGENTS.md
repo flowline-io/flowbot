@@ -24,6 +24,7 @@ agent/
 ├── hooks/                        # Typed hook registry (on/observe/emit) bridged to loop Config
 ├── harness/                      # High-level orchestration with hooks + overflow degrade
 ├── permission/                   # Tool permission evaluation, forms, session/scheduled policies
+├── approval/                     # Auto approval mode: flagged detector, aux reviewer, denial breaker
 ├── dcg/                          # Destructive Command Guard for run_terminal / run_code
 ├── subagent/                     # Subagent orchestration
 ├── env/                          # ExecutionEnv for FS/shell with Result

@@ -197,203 +197,216 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" data-session-approval=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var14 string
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(chatAgentSelectedApproval(session.ApprovalMode, endpoints.DefaultApprovalMode))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 23, Col: 104}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if endpoints.SettingsURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, " data-settings-url=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(endpoints.SettingsURL)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 24, Col: 44}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		if endpoints.TodosURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " data-todos-url=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, " data-settings-url=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
-			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(endpoints.TodosURL)
+			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(endpoints.SettingsURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 27, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 25, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		if endpoints.SkillsURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, " data-skills-url=\"")
+		if endpoints.TodosURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " data-todos-url=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
-			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(endpoints.SkillsURL)
+			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.ResolveAttributeValue(endpoints.TodosURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 30, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 28, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var16)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, " data-testid=\"chatagent-thread\"><header class=\"chatagent-thread-header shrink-0 px-1 mb-3 sm:mb-5\" data-testid=\"chatagent-thread-header\"><div class=\"flex items-start gap-2\"><div class=\"min-w-0 flex-1\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if session.Title != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "<h1 class=\"chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight text-base-content\" data-testid=\"chatagent-thread-title\">")
+		if endpoints.SkillsURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " data-skills-url=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(session.Title)
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.ResolveAttributeValue(endpoints.SkillsURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 37, Col: 160}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 31, Col: 40}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var17)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</h1><p class=\"hidden lg:flex font-mono text-xs sm:text-sm text-base-content/55 mt-0.5\" data-testid=\"chatagent-thread-session-id\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, " data-testid=\"chatagent-thread\"><header class=\"chatagent-thread-header shrink-0 px-1 mb-3 sm:mb-5\" data-testid=\"chatagent-thread-header\"><div class=\"flex items-start gap-2\"><div class=\"min-w-0 flex-1\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if session.Title != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<h1 class=\"chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight text-base-content\" data-testid=\"chatagent-thread-title\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(session.Flag)
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(session.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 38, Col: 145}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 38, Col: 160}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</p>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<h1 class=\"chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight font-mono text-base-content\" data-testid=\"chatagent-thread-title\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</h1><p class=\"hidden lg:flex font-mono text-xs sm:text-sm text-base-content/55 mt-0.5\" data-testid=\"chatagent-thread-session-id\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(session.Flag)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 40, Col: 169}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 39, Col: 145}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<h1 class=\"chatagent-thread-title text-lg sm:text-2xl font-semibold tracking-tight font-mono text-base-content\" data-testid=\"chatagent-thread-title\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var20 string
+			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(session.Flag)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 41, Col: 169}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</h1>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<p id=\"chatagent-session-model-label\" class=\"text-xs text-base-content/50 mt-0.5 truncate\" data-testid=\"chatagent-session-model-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<p id=\"chatagent-session-model-label\" class=\"text-xs text-base-content/50 mt-0.5 truncate\" data-testid=\"chatagent-session-model-label\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var20 string
-		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(chatAgentSessionSettingsLabel(session, endpoints.DefaultModel))
+		var templ_7745c5c3_Var21 string
+		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(chatAgentSessionSettingsLabel(session, endpoints.DefaultModel))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 43, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 44, Col: 70}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "</p></div><div class=\"hidden lg:flex flex-wrap justify-end gap-1 shrink-0 pt-0.5\" data-testid=\"chatagent-header-actions-desktop\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</p></div><div class=\"hidden lg:flex flex-wrap justify-end gap-1 shrink-0 pt-0.5\" data-testid=\"chatagent-header-actions-desktop\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if session.State == "Active" && endpoints.CloseURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<button type=\"button\" id=\"chatagent-close-session\" class=\"btn btn-ghost btn-sm text-error\" data-chatagent-close data-testid=\"chatagent-close-session\">Close session</button> ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<button type=\"button\" id=\"chatagent-close-session\" class=\"btn btn-ghost btn-sm text-error\" data-chatagent-close data-testid=\"chatagent-close-session\">Close session</button> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
 		if endpoints.InspectURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<a href=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var21 templ.SafeURL
-			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(endpoints.InspectURL))
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 56, Col: 47}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-inspect\">Inspect entries</a> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<a href=\"/service/web/agents\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-back\">Back to Agents</a></div><div class=\"flex lg:hidden items-center gap-0.5 shrink-0 pt-0.5\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if endpoints.ListURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<button type=\"button\" class=\"btn btn-ghost btn-sm btn-square\" aria-label=\"Sessions\" title=\"Sessions\" data-testid=\"chatagent-sessions-open\" onclick=\"document.getElementById('chatagent-sessions-drawer').showModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 6h13\"></path> <path d=\"M8 12h13\"></path> <path d=\"M8 18h13\"></path> <path d=\"M3 6h.01\"></path> <path d=\"M3 12h.01\"></path> <path d=\"M3 18h.01\"></path></svg></button> ")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<button type=\"button\" class=\"btn btn-ghost btn-sm btn-square\" aria-label=\"Session actions\" data-testid=\"chatagent-header-menu\" onclick=\"document.getElementById('chatagent-header-actions-dialog').showModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"5\" r=\"1\"></circle> <circle cx=\"12\" cy=\"12\" r=\"1\"></circle> <circle cx=\"12\" cy=\"19\" r=\"1\"></circle></svg></button></div></div></header><dialog id=\"chatagent-header-actions-dialog\" class=\"modal lg:hidden\" data-testid=\"chatagent-header-menu-panel\"><div class=\"modal-box max-w-xs p-2\"><ul class=\"menu menu-sm w-full p-0\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		if session.State == "Active" && endpoints.CloseURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<li><button type=\"button\" class=\"text-error\" data-chatagent-close data-testid=\"chatagent-close-session-mobile\">Close session</button></li>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		if endpoints.InspectURL != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<li><a href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<a href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var22 templ.SafeURL
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(endpoints.InspectURL))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 111, Col: 48}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 57, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" data-testid=\"chatagent-inspect-mobile\">Inspect entries</a></li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-inspect\">Inspect entries</a> ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<li><a href=\"/service/web/agents\" data-testid=\"chatagent-back-mobile\">Back to Agents</a></li></ul></div><form method=\"dialog\" class=\"modal-backdrop\"><button type=\"submit\">close</button></form></dialog> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<a href=\"/service/web/agents\" class=\"btn btn-ghost btn-sm\" data-testid=\"chatagent-back\">Back to Agents</a></div><div class=\"flex lg:hidden items-center gap-0.5 shrink-0 pt-0.5\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if endpoints.ListURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<button type=\"button\" class=\"btn btn-ghost btn-sm btn-square\" aria-label=\"Sessions\" title=\"Sessions\" data-testid=\"chatagent-sessions-open\" onclick=\"document.getElementById('chatagent-sessions-drawer').showModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 6h13\"></path> <path d=\"M8 12h13\"></path> <path d=\"M8 18h13\"></path> <path d=\"M3 6h.01\"></path> <path d=\"M3 12h.01\"></path> <path d=\"M3 18h.01\"></path></svg></button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<button type=\"button\" class=\"btn btn-ghost btn-sm btn-square\" aria-label=\"Session actions\" data-testid=\"chatagent-header-menu\" onclick=\"document.getElementById('chatagent-header-actions-dialog').showModal()\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-4 h-4\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"5\" r=\"1\"></circle> <circle cx=\"12\" cy=\"12\" r=\"1\"></circle> <circle cx=\"12\" cy=\"19\" r=\"1\"></circle></svg></button></div></div></header><dialog id=\"chatagent-header-actions-dialog\" class=\"modal lg:hidden\" data-testid=\"chatagent-header-menu-panel\"><div class=\"modal-box max-w-xs p-2\"><ul class=\"menu menu-sm w-full p-0\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if session.State == "Active" && endpoints.CloseURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<li><button type=\"button\" class=\"text-error\" data-chatagent-close data-testid=\"chatagent-close-session-mobile\">Close session</button></li>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		if endpoints.InspectURL != "" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<li><a href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var23 templ.SafeURL
+			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(endpoints.InspectURL))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/partials/chatagent_thread.templ`, Line: 112, Col: 48}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" data-testid=\"chatagent-inspect-mobile\">Inspect entries</a></li>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<li><a href=\"/service/web/agents\" data-testid=\"chatagent-back-mobile\">Back to Agents</a></li></ul></div><form method=\"dialog\" class=\"modal-backdrop\"><button type=\"submit\">close</button></form></dialog> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -403,7 +416,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div id=\"chatagent-status-toast\" class=\"chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm\" data-testid=\"chatagent-status-toast\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div id=\"chatagent-status-toast\" class=\"chatagent-status-toast hidden shrink-0 mx-1 mb-3 alert py-2 text-sm\" data-testid=\"chatagent-status-toast\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -413,12 +426,12 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<div class=\"chatagent-messages-wrap relative flex-1 min-h-0 flex flex-col\"><div id=\"chatagent-messages\" class=\"flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4\" data-testid=\"chatagent-messages\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"chatagent-messages-wrap relative flex-1 min-h-0 flex flex-col\"><div id=\"chatagent-messages\" class=\"flex-1 min-h-0 space-y-4 px-1 pr-1 pb-4\" data-testid=\"chatagent-messages\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if pending != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"chatagent-run-waiting text-sm text-base-content/60 px-1 py-2\" data-testid=\"chatagent-run-waiting\">Waiting for tool approval. The rest of this turn appears after it finishes.</div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "<div class=\"chatagent-run-waiting text-sm text-base-content/60 px-1 py-2\" data-testid=\"chatagent-run-waiting\">Waiting for tool approval. The rest of this turn appears after it finishes.</div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -429,7 +442,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "</div><button type=\"button\" id=\"chatagent-jump-bottom\" class=\"chatagent-jump-bottom hidden\" data-testid=\"chatagent-jump-bottom\" aria-label=\"Jump to bottom\">Jump to bottom</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</div><button type=\"button\" id=\"chatagent-jump-bottom\" class=\"chatagent-jump-bottom hidden\" data-testid=\"chatagent-jump-bottom\" aria-label=\"Jump to bottom\">Jump to bottom</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -437,7 +450,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4\" data-testid=\"chatagent-input-bar\"><div class=\"chatagent-input-stack\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"chatagent-input-bar shrink-0 border-t border-base-300 bg-base-100 px-1 pt-3 pb-4\" data-testid=\"chatagent-input-bar\"><div class=\"chatagent-input-stack\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -445,7 +458,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<div class=\"chatagent-input-wrap\"><div id=\"chatagent-pending-attachments\" class=\"chatagent-pending-attachments empty:hidden\" data-testid=\"chatagent-pending-attachments\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div class=\"chatagent-input-wrap\"><div id=\"chatagent-pending-attachments\" class=\"chatagent-pending-attachments empty:hidden\" data-testid=\"chatagent-pending-attachments\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -459,7 +472,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div class=\"chatagent-input-footer\"><div class=\"flex items-center gap-1 min-w-0\"><input type=\"file\" id=\"chatagent-media-input\" class=\"hidden\" accept=\"image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm\" data-testid=\"chatagent-media-input\" multiple>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "<div class=\"chatagent-input-footer\"><div class=\"flex items-center gap-1 min-w-0\"><input type=\"file\" id=\"chatagent-media-input\" class=\"hidden\" accept=\"image/jpeg,image/png,image/webp,image/gif,audio/*,video/mp4,video/webm\" data-testid=\"chatagent-media-input\" multiple>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -475,16 +488,18 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 			templ_7745c5c3_Err = ChatAgentSettingsCluster(
 				"chatagent-thread-model",
 				"chatagent-thread-thinking",
+				"chatagent-thread-approval",
 				endpoints.SelectableModels,
 				chatAgentSelectedModel(session.Model, endpoints.DefaultModel),
 				session.ThinkingLevel,
+				chatAgentSelectedApproval(session.ApprovalMode, endpoints.DefaultApprovalMode),
 				false,
 			).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 47, "</div><div class=\"chatagent-input-footer-right\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "</div><div class=\"chatagent-input-footer-right\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -492,7 +507,7 @@ func ChatAgentThread(session model.AgentSession, messages []model.AgentChatMessa
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<button type=\"button\" id=\"chatagent-cancel-run\" class=\"chatagent-stop-btn hidden\" aria-label=\"Stop\" title=\"Stop\" data-testid=\"chatagent-cancel-run\"><span class=\"chatagent-stop-square\" aria-hidden=\"true\"></span></button></div></div></div></div><p class=\"text-xs text-error hidden mt-2\" id=\"chatagent-thread-error\" data-testid=\"chatagent-thread-error\"></p></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<button type=\"button\" id=\"chatagent-cancel-run\" class=\"chatagent-stop-btn hidden\" aria-label=\"Stop\" title=\"Stop\" data-testid=\"chatagent-cancel-run\"><span class=\"chatagent-stop-square\" aria-hidden=\"true\"></span></button></div></div></div></div><p class=\"text-xs text-error hidden mt-2\" id=\"chatagent-thread-error\" data-testid=\"chatagent-thread-error\"></p></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
