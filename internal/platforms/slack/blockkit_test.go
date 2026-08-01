@@ -173,17 +173,31 @@ func TestMarkdownTextBlocks(t *testing.T) {
 		name       string
 		text       string
 		wantBlocks int
+		wantDiv    bool
 	}{
 		{name: "empty text", text: "", wantBlocks: 0},
 		{name: "short text one block", text: "*hub*\n`/version` — Print version", wantBlocks: 1},
 		{name: "long text splits into multiple blocks", text: strings.Repeat("line\n", 800), wantBlocks: 2},
 		{name: "multibyte line counted by runes", text: strings.Repeat("你", markdownMaxBlockLen+10), wantBlocks: 2},
+		{name: "hr becomes divider", text: "a\n---\nb", wantBlocks: 3, wantDiv: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			blocks := markdownTextBlocks(tt.text)
 			if len(blocks) != tt.wantBlocks {
 				t.Fatalf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
+			}
+			if tt.wantDiv {
+				found := false
+				for _, b := range blocks {
+					if _, ok := b.(*slack.DividerBlock); ok {
+						found = true
+						break
+					}
+				}
+				if !found {
+					t.Fatalf("expected a divider block among %d blocks", len(blocks))
+				}
 			}
 		})
 	}

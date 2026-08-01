@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/flowline-io/flowbot/pkg/utils"
 	"github.com/slack-go/slack"
 )
 
@@ -122,33 +123,38 @@ func markdownTextBlocks(text string) []slack.Block {
 	var blocks []slack.Block
 	var chunk []string
 	chunkLen := 0
+	flush := func() {
+		if len(chunk) == 0 {
+			return
+		}
+		blocks = append(blocks, section(strings.Join(chunk, "\n")))
+		chunk = nil
+		chunkLen = 0
+	}
 	for _, line := range lines {
+		if utils.IsMrkdwnHorizontalRule(line) {
+			flush()
+			blocks = append(blocks, divider())
+			continue
+		}
 		for runeLen(line) > markdownMaxBlockLen {
 			runes := []rune(line)
 			part := string(runes[:markdownMaxBlockLen])
 			if chunkLen+markdownMaxBlockLen+1 > markdownMaxBlockLen && len(chunk) > 0 {
-				blocks = append(blocks, section(strings.Join(chunk, "\n")))
-				chunk = nil
-				chunkLen = 0
+				flush()
 			}
 			chunk = append(chunk, part)
-			blocks = append(blocks, section(strings.Join(chunk, "\n")))
-			chunk = nil
-			chunkLen = 0
+			flush()
 			line = string(runes[markdownMaxBlockLen:])
 		}
 		extra := runeLen(line) + 1
 		if chunkLen+extra > markdownMaxBlockLen && len(chunk) > 0 {
-			blocks = append(blocks, section(strings.Join(chunk, "\n")))
-			chunk = nil
-			chunkLen = 0
+			flush()
 		}
 		chunk = append(chunk, line)
 		chunkLen += extra
 	}
-	if len(chunk) > 0 {
-		blocks = append(blocks, section(strings.Join(chunk, "\n")))
-	}
+	flush()
 	return blocks
 }
 
