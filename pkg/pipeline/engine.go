@@ -205,16 +205,7 @@ func (e *Engine) handleEvent(ctx context.Context, event types.DataEvent) error {
 }
 
 func (e *Engine) executePipeline(ctx context.Context, def Definition, event types.DataEvent, triggerSource string) error {
-	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".execute",
-		otelattr.String("pipeline.name", def.Name),
-		otelattr.String("event.id", event.EventID),
-		otelattr.String("event.type", event.EventType),
-	)
-	defer span.End()
-
 	applyDefinitionUID(def, &event)
-
-	runStart := time.Now()
 
 	e.auditPipelineEvent(ctx, def.Name, "pipeline.start", event.EventID, event.EventType)
 
@@ -230,7 +221,102 @@ func (e *Engine) executePipeline(ctx context.Context, def Definition, event type
 	if err != nil {
 		return err
 	}
+	return e.runPipelineSteps(ctx, def, event, runID)
+}
 
+// FindDefsByParentName returns loaded engine definitions for a parent pipeline name.
+func FindDefsByParentName(defs []Definition, parentName string) []Definition {
+	parentName = strings.TrimSpace(parentName)
+	if parentName == "" {
+		return nil
+	}
+	var matched []Definition
+	for _, d := range defs {
+		if d.ParentName == parentName || d.Name == parentName {
+			matched = append(matched, d)
+		}
+	}
+	return matched
+}
+
+// SelectManualDef chooses one loaded definition for a manual run.
+// When eventType is set, prefers an event trigger matching that type; otherwise the first match.
+func SelectManualDef(defs []Definition, parentName, eventType string) (*Definition, error) {
+	matched := FindDefsByParentName(defs, parentName)
+	if len(matched) == 0 {
+		return nil, types.Errorf(types.ErrNotFound, "pipeline %s", parentName)
+	}
+	eventType = strings.TrimSpace(eventType)
+	if eventType != "" {
+		for i := range matched {
+			if matched[i].Trigger.Event == eventType {
+				return &matched[i], nil
+			}
+		}
+	}
+	return &matched[0], nil
+}
+
+// ExecuteManual starts a manual pipeline run and returns the run ID immediately.
+// Steps continue in a detached goroutine. event.EventID must be non-empty and unique.
+func (e *Engine) ExecuteManual(ctx context.Context, parentName string, event types.DataEvent) (int64, error) {
+	if e == nil {
+		return 0, types.Errorf(types.ErrUnavailable, "pipeline engine not ready")
+	}
+	parentName = strings.TrimSpace(parentName)
+	if parentName == "" {
+		return 0, types.Errorf(types.ErrInvalidArgument, "pipeline name is required")
+	}
+	if strings.TrimSpace(event.EventID) == "" {
+		return 0, types.Errorf(types.ErrInvalidArgument, "event id is required")
+	}
+
+	e.reloadMu.Lock()
+	defs := e.defs
+	e.reloadMu.Unlock()
+
+	def, err := SelectManualDef(defs, parentName, event.EventType)
+	if err != nil {
+		return 0, err
+	}
+
+	applyDefinitionUID(*def, &event)
+	e.auditPipelineEvent(ctx, def.Name, "pipeline.start", event.EventID, event.EventType)
+
+	alreadyDone, err := e.checkDedupAndRecord(ctx, def.Name, event.EventID, event.EventType)
+	if err != nil {
+		return 0, err
+	}
+	if alreadyDone {
+		return 0, types.Errorf(types.ErrConflict, "pipeline %s already consumed event %s", def.Name, event.EventID)
+	}
+
+	runID, err := e.createRunRecord(ctx, def.Name, event.EventID, event.EventType, "manual")
+	if err != nil {
+		return 0, err
+	}
+	if runID == 0 {
+		return 0, types.Errorf(types.ErrInternal, "create pipeline run returned zero id")
+	}
+
+	runCtx := trace.DetachContext(ctx)
+	go func() {
+		if stepErr := e.runPipelineSteps(runCtx, *def, event, runID); stepErr != nil {
+			flog.Error(fmt.Errorf("manual pipeline %s run %d: %w", def.Name, runID, stepErr))
+		}
+	}()
+	return runID, nil
+}
+
+func (e *Engine) runPipelineSteps(ctx context.Context, def Definition, event types.DataEvent, runID int64) error {
+	ctx, span := trace.StartSpan(ctx, "pipeline."+def.Name+".execute",
+		otelattr.String("pipeline.name", def.Name),
+		otelattr.String("event.id", event.EventID),
+		otelattr.String("event.type", event.EventType),
+	)
+	defer span.End()
+
+	runStart := time.Now()
 	e.emitRunStart(ctx, runID, &def)
 
 	rc := NewRenderContext(event)

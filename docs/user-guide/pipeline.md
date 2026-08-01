@@ -27,42 +27,44 @@ Pipeline Engine (pkg/pipeline/engine.go)
 
 ## YAML Schema
 
-Pipelines are defined in a separate `pipelines.yaml` file in the working directory:
+Pipeline definitions are stored in PostgreSQL as published YAML (draft/publish in the Web UI, or `flowbot pipeline apply` which publishes immediately). The engine loads published definitions only. Schema examples: [docs/reference/pipelines.yaml](../reference/pipelines.yaml) and [docs/skills/pipeline/](../skills/pipeline/).
 
 ```yaml
-- name: rss_fetch_and_notify          # unique name, used as consumer_name
-  description: "Fetch RSS feeds and send notification"
-  enabled: true                        # false to skip loading
-  resumable: true                      # enable checkpoint + restart recovery
+name: rss_fetch_and_notify          # unique name, used as consumer_name
+description: "Fetch RSS feeds and send notification"
+enabled: true                        # false skips engine load (still listable when published)
+resumable: true                      # enable checkpoint + restart recovery
 
-  trigger:
+triggers:
+  - type: event
+    enabled: true
     event: rss.fetch.requested        # DataEvent.EventType to match
 
-  steps:
-    - name: fetch_feeds
-      capability: rss                  # capability type
-      operation: fetch                 # operation name
-      params:                          # template-rendered input
-        url: "{{event.url}}"
-        max_items: 10
-      retry:                           # step-level retry (optional)
-        max_attempts: 3
-        delay: 1s
-        backoff: exponential           # fixed | linear | exponential
-        max_delay: 60s
-        jitter: true
-        retry_on:                      # filter which errors to retry
-          - timeout
-          - rate_limited
+steps:
+  - name: fetch_feeds
+    capability: rss                  # capability type
+    operation: fetch                 # operation name
+    params:                          # template-rendered input
+      url: "{{event.url}}"
+      max_items: 10
+    retry:                           # step-level retry (optional)
+      max_attempts: 3
+      delay: 1s
+      backoff: exponential           # fixed | linear | exponential
+      max_delay: 60s
+      jitter: true
+      retry_on:                      # filter which errors to retry
+        - timeout
+        - rate_limited
 
-    - name: send_notification
-      capability: core
-      operation: notify_send
-      params:
-        template_id: "rss.new_feeds"
-        channels: ["slack"]
-        payload:
-          count: '{{step "fetch_feeds" "count"}}'
+  - name: send_notification
+    capability: core
+    operation: notify_send
+    params:
+      template_id: "rss.new_feeds"
+      channels: ["slack"]
+      payload:
+        count: '{{step "fetch_feeds" "count"}}'
 ```
 
 ## Retry Strategy

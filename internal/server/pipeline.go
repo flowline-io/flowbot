@@ -149,12 +149,26 @@ func initPipeline(
 	pipeline.SetReloadSource(func(ctx context.Context) ([]pipeline.Definition, error) {
 		return loadPipelineDefinitions(ctx), nil
 	}, engine)
+	pipeline.SetActiveEngine(engine)
+
+	if store.Database != nil && store.Database.GetClient() != nil {
+		svc := pipeline.NewService(store.PipelineStoreFromDB())
+		pipeline.SetActiveService(svc)
+	}
 
 	if err := setupAbilityEmitter(cfg, ac); err != nil {
 		return fmt.Errorf("setup ability emitter: %w", err)
 	}
 
 	registerPipelineHandler(router, subscriber, engine, ec)
+
+	lc.Append(fx.Hook{
+		OnStop: func(_ context.Context) error {
+			pipeline.SetActiveEngine(nil)
+			pipeline.SetActiveService(nil)
+			return nil
+		},
+	})
 
 	flog.Info("pipeline engine initialized with %d pipeline(s)", len(pipelineDefs))
 

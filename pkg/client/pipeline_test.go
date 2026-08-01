@@ -27,8 +27,8 @@ func TestPipelineList(t *testing.T) {
 					"status":"ok",
 					"data":{
 						"pipelines":[
-							{"name":"p1","description":"desc1","enabled":true,"trigger":{"event":"e1"},"steps":[]},
-							{"name":"p2","description":"desc2","enabled":false,"trigger":{"event":"e2"},"steps":[]}
+							{"name":"p1","description":"desc1","enabled":true,"triggers":["event:e1"]},
+							{"name":"p2","description":"desc2","enabled":false,"triggers":["cron:@daily"]}
 						]
 					}
 				}`))
@@ -85,7 +85,7 @@ func TestPipelineRun(t *testing.T) {
 	tests := []struct {
 		name       string
 		handler    http.HandlerFunc
-		wantMsg    string
+		wantRunID  int64
 		wantErr    bool
 		errContain string
 	}{
@@ -93,10 +93,10 @@ func TestPipelineRun(t *testing.T) {
 			name: "runs pipeline successfully",
 			handler: func(w http.ResponseWriter, _ *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				_, _ = w.Write([]byte(`{"status":"ok","data":{"message":"pipeline started"}}`))
+				_, _ = w.Write([]byte(`{"status":"ok","data":{"run_id":42}}`))
 			},
-			wantMsg: "pipeline started",
-			wantErr: false,
+			wantRunID: 42,
+			wantErr:   false,
 		},
 		{
 			name: "pipeline not found",
@@ -127,7 +127,7 @@ func TestPipelineRun(t *testing.T) {
 			defer server.Close()
 
 			c := NewClient(server.URL, "token")
-			result, err := c.Pipeline.Run(context.Background(), "my-pipeline")
+			result, err := c.Pipeline.Run(context.Background(), "my-pipeline", map[string]any{"url": "https://example.com"})
 
 			if tt.wantErr {
 				require.Error(t, err)
@@ -138,7 +138,22 @@ func TestPipelineRun(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.NotNil(t, result)
-			assert.Equal(t, tt.wantMsg, result.Message)
+			assert.Equal(t, tt.wantRunID, result.RunID)
 		})
 	}
+}
+
+func TestPipelineApply(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"ok","data":{"id":1,"name":"demo","enabled":true,"version":3}}`))
+	}))
+	defer server.Close()
+
+	c := NewClient(server.URL, "token")
+	result, err := c.Pipeline.Apply(context.Background(), []byte("name: demo\nenabled: true\ntriggers: []\nsteps: []\n"))
+	require.NoError(t, err)
+	assert.Equal(t, "demo", result.Name)
+	assert.Equal(t, 3, result.Version)
 }

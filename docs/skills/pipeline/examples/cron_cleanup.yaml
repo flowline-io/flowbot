@@ -1,0 +1,17 @@
+name: cron_cleanup_example
+description: "Daily marker write (teaching example)"
+enabled: true
+resumable: false
+triggers:
+  - type: cron
+    enabled: true
+    cron: "0 3 * * *"
+    cron_timeout: "30m"
+steps:
+  - name: mark_tick
+    capability: core
+    operation: kv_set
+    params:
+      namespace: "pipeline_examples"
+      key: "last_cleanup"
+      value: '{{now}}'

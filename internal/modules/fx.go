@@ -10,6 +10,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/modules/example"
 	"github.com/flowline-io/flowbot/internal/modules/hub"
 	"github.com/flowline-io/flowbot/internal/modules/life"
+	"github.com/flowline-io/flowbot/internal/modules/pipeline"
 	"github.com/flowline-io/flowbot/internal/modules/web"
 	"github.com/flowline-io/flowbot/internal/modules/workflow"
 	"github.com/flowline-io/flowbot/pkg/config"
@@ -48,5 +49,6 @@ var Modules = fx.Options(
 		web.Register,
 		web.SetLoginRateLimiterCache,
 		workflow.Register,
+		pipeline.Register,
 	),
 )

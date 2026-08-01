@@ -1,91 +1,79 @@
-# Pipeline configuration for cross-service event-driven automation.
-# This file is loaded separately from flowbot.yaml.
-# Specify the path with --pipelines-file CLI flag (default: pipelines.yaml).
+# Pipeline YAML schema / examples (reference only).
+# Runtime loads published definitions from PostgreSQL — not this file.
+# Apply with: flowbot pipeline apply --file <path>
+# Or edit/publish in the Web UI under /service/web/pipelines.
+# Agent skill: docs/skills/pipeline/
 
-# Example pipeline definitions.
-# Each pipeline has a unique name, an event trigger, and an ordered sequence of steps
-# that invoke capability operations with optional retry configuration.
-#
-# Schema:
-#   name:        string    Unique pipeline name (used as consumer_name for idempotency)
+# Schema (EditorDefinition):
+#   name:        string    Unique pipeline name
 #   description: string    Human-readable description
-#   enabled:     bool      false to skip loading this pipeline
+#   enabled:     bool      false skips engine load
 #   resumable:   bool      Enable checkpoint + restart recovery
-#   trigger:
-#     event:     string    DataEvent.EventType to match
+#   triggers:    []        event | cron | webhook entries
 #   steps:
-#     - name:       string    Step name (must be unique within pipeline)
-#       capability: string    Capability type (e.g. rss, notify, bookmark)
-#       operation:  string    Operation name (e.g. fetch, send, create)
+#     - name:       string    Step name (unique within pipeline)
+#       capability: string    Capability type (e.g. core, karakeep)
+#       operation:  string    Operation name
 #       params:     map       Template-rendered input. Supports {{event.field}}, {{step "name" "field"}}
 #       retry:                Optional step-level retry
-#         max_attempts: int      Maximum retry attempts. 0 disables retry.
-#         delay:        string   Initial delay before first retry (e.g. "1s", "5m")
+#         max_attempts: int
+#         delay:        string
 #         backoff:      string   fixed | linear | exponential
-#         max_delay:    string   Caps the delay between retries
-#         jitter:       bool     Adds +/-50% randomization to delay
-#         retry_on:     []string Filter: only retry errors matching these codes
+#         max_delay:    string
+#         jitter:       bool
+#         retry_on:     []string
 
-- name: rss_fetch_and_notify
-  description: "Fetch RSS feeds and send notification"
-  enabled: false
-  resumable: true
-  trigger:
+name: rss_fetch_and_notify
+description: "Fetch RSS feeds and send notification"
+enabled: false
+resumable: true
+triggers:
+  - type: event
+    enabled: true
     event: rss.fetch.requested
-  steps:
-    - name: fetch_feeds
-      capability: rss
-      operation: fetch
-      params:
-        url: "{{event.url}}"
-        max_items: 10
-      retry:
-        max_attempts: 3
-        delay: "1s"
-        backoff: exponential
-        max_delay: "60s"
-        jitter: true
-        retry_on:
-          - timeout
-          - rate_limited
+steps:
+  - name: fetch_feeds
+    capability: rss
+    operation: fetch
+    params:
+      url: "{{event.url}}"
+      max_items: 10
+    retry:
+      max_attempts: 3
+      delay: "1s"
+      backoff: exponential
+      max_delay: "60s"
+      jitter: true
+      retry_on:
+        - timeout
+        - rate_limited
 
-    - name: send_notification
-      capability: core
-      operation: notify_send
-      params:
-        template_id: "rss.new_feeds"
-        channels: ["slack"]
-        payload:
-          count: '{{step "fetch_feeds" "count"}}'
+  - name: send_notification
+    capability: core
+    operation: notify_send
+    params:
+      template_id: "rss.new_feeds"
+      channels: ["slack"]
+      payload:
+        count: '{{step "fetch_feeds" "count"}}'
 
-# Cron-triggered pipeline example.
-# cron uses standard 5-field syntax (minute hour dom month dow)
-# plus optional seconds and descriptors (@every 1h, @daily).
-# cron_timeout defaults to 10m if omitted.
-- name: daily_cleanup
-  description: "Daily cleanup job at 3 AM"
-  enabled: false
-  resumable: false
-  trigger:
-    cron: "0 3 * * *"
-    cron_timeout: "30m"
-  steps:
-    - name: cleanup
-      capability: system
-      operation: cleanup
-      params: {}
-
-# Mixed trigger example — fires on event or schedule.
-- name: periodic_sync
-  description: "Sync on event or every 6 hours"
-  enabled: false
-  resumable: true
-  trigger:
-    event: data.sync.requested
-    cron: "0 */6 * * *"
-  steps:
-    - name: sync
-      capability: data
-      operation: sync
-      params:
-        full: true
+# ---
+# Cron-triggered example (separate file when applying — apply accepts one definition):
+#
+# name: daily_cleanup
+# description: "Daily cleanup job at 3 AM"
+# enabled: false
+# resumable: false
+# triggers:
+#   - type: cron
+#     enabled: true
+#     cron: "0 3 * * *"
+#     cron_timeout: "30m"
+# steps:
+#   - name: mark_tick
+#     capability: core
+#     operation: kv_set
+#     params:
+#       namespace: "pipeline_examples"
+#       key: "last_cleanup"
+#       value: "{{now}}"

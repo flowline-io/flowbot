@@ -736,6 +736,26 @@ func TestPipelineDefinitionStore_ListAndDelete(t *testing.T) {
 	assert.Equal(t, int64(0), count)
 }
 
+func TestPipelineDefinitionStore_DeleteCascadesCompoundRuns(t *testing.T) {
+	client := getTestClient(t)
+	store := NewPipelineStore(client)
+	ctx := context.Background()
+
+	require.NoError(t, store.CreateDefinition(ctx, "compound-del", "", ""))
+	_, err := store.CreateRun(ctx, "compound-del", "ev-exact", "test.event", "manual")
+	require.NoError(t, err)
+	_, err = store.CreateRun(ctx, "compound-del__trigger_event_0", "ev-compound", "test.event", "manual")
+	require.NoError(t, err)
+
+	count, err := store.DeleteDefinitionByName(ctx, "compound-del")
+	require.NoError(t, err)
+	assert.Equal(t, int64(2), count)
+
+	runs, err := store.GetRunsByParentName(ctx, "compound-del")
+	require.NoError(t, err)
+	assert.Empty(t, runs)
+}
+
 func TestPipelineStore_GetStepRunsByRunID(t *testing.T) {
 	client := getTestClient(t)
 	store := NewPipelineStore(client)

@@ -510,6 +510,7 @@ var metaSpecs = []metaSpec{
 // platformSpecs lists non-capability (platform) skills generated alongside metaSpecs.
 var platformSpecs = []platformSpec{
 	platformWorkflowSpec(),
+	platformPipelineSpec(),
 }
 
 // extractOperations walks a *cobra.Command tree recursively and returns all

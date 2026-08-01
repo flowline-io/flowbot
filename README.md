@@ -101,23 +101,25 @@ Standard errors, unified pagination, provider adapters behind `pkg/capability/<p
 
 ### Declarative Pipeline
 
-Cross-service data flows defined in `pipelines.yaml`, triggered by durable events:
+Cross-service data flows stored in PostgreSQL (apply via `flowbot pipeline apply` or the Web UI), triggered by durable events:
 
 ```yaml
 # When a new bookmark is saved, notify
-- name: bookmark_notify
-  enabled: true
-  trigger:
+name: bookmark_notify
+enabled: true
+triggers:
+  - type: event
+    enabled: true
     event: bookmark.created
-  steps:
-    - name: send_notification
-      capability: core
-      operation: notify_send
-      params:
-        template_id: "bookmark.saved"
-        channels: ["slack"]
-        payload:
-          url: "{{event.url}}"
+steps:
+  - name: send_notification
+    capability: core
+    operation: notify_send
+    params:
+      template_id: "bookmark.saved"
+      channels: ["slack"]
+      payload:
+        url: "{{event.url}}"
 ```
 
 Every pipeline run is persisted, idempotent, and audited. Events flow: DataEvent → PostgreSQL `data_events` → Redis Stream → pipeline handler → `pipeline_runs`.

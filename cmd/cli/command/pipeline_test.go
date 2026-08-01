@@ -13,18 +13,20 @@ func TestPipelineCommand(t *testing.T) {
 	}{
 		{name: "pipeline command has correct use and subcommands"},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cmd := PipelineCommand()
-
+			require.NotNil(t, cmd)
 			require.Equal(t, "pipeline", cmd.Use)
-			require.True(t, cmd.HasSubCommands())
-
-			subNames := subcommandNames(cmd)
-			require.Contains(t, subNames, "list")
-			require.Contains(t, subNames, "run")
+			require.NotNil(t, cmd.Commands())
+			names := map[string]bool{}
+			for _, c := range cmd.Commands() {
+				names[c.Name()] = true
+			}
+			for _, want := range []string{"apply", "list", "get", "export", "delete", "run", "runs"} {
+				require.True(t, names[want], "missing subcommand %s", want)
+			}
 		})
 	}
 }
@@ -36,17 +38,13 @@ func TestPipelineListCommand(t *testing.T) {
 	}{
 		{name: "pipeline list command has correct flags"},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cmd := PipelineCommand()
-			listCmd := findSubcommand(cmd, "list")
-			require.NotNil(t, listCmd)
-			require.NotNil(t, listCmd.RunE)
-
-			output := listCmd.Flags().Lookup("output")
-			require.NotNil(t, output)
+			listCmd, _, err := cmd.Find([]string{"list"})
+			require.NoError(t, err)
+			require.NotNil(t, listCmd.Flags().Lookup("output"))
 		})
 	}
 }
@@ -58,15 +56,15 @@ func TestPipelineRunCommand(t *testing.T) {
 	}{
 		{name: "pipeline run command has correct use and RunE"},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			cmd := PipelineCommand()
-			runCmd := findSubcommand(cmd, "run")
-			require.NotNil(t, runCmd)
-			require.Contains(t, runCmd.Use, "run")
+			runCmd, _, err := cmd.Find([]string{"run"})
+			require.NoError(t, err)
+			require.Equal(t, "run <name>", runCmd.Use)
 			require.NotNil(t, runCmd.RunE)
+			require.NotNil(t, runCmd.Flags().Lookup("event"))
 		})
 	}
 }

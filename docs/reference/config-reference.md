@@ -61,7 +61,7 @@ Covers:
 - Third-party vendor stubs
 - Capability invocation (`ability`)
 
-Pipelines load from a separate `pipelines.yaml`. Notification templates/rules live in the UI / PostgreSQL (not in this file).
+Pipeline definitions are stored in PostgreSQL (published YAML); manage via Web UI or `flowbot pipeline`. See [pipelines.yaml](pipelines.yaml) for schema/examples and [user-guide/pipeline.md](../user-guide/pipeline.md). Notification templates/rules live in the UI / PostgreSQL (not in this file).
 
 ### Workflow Examples
 

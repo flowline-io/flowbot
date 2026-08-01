@@ -1,0 +1,18 @@
+name: event_notify_example
+description: "Notify on a synthetic event (teaching example)"
+enabled: true
+resumable: false
+triggers:
+  - type: event
+    enabled: true
+    event: demo.item.created
+steps:
+  - name: send_notification
+    capability: core
+    operation: notify_send
+    params:
+      template_id: "demo.new_item"
+      channels: ["slack"]
+      payload:
+        title: '{{event "title"}}'
+        url: '{{event "url"}}'

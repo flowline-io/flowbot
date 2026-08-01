@@ -1050,9 +1050,11 @@ func TestSkillsActionIncludesPlatformWorkflow(t *testing.T) {
 				for _, m := range metaSpecs {
 					require.NotEqual(t, "workflow", m.Name)
 				}
-				require.NotEmpty(t, platformSpecs)
+				require.GreaterOrEqual(t, len(platformSpecs), 2)
 				require.Equal(t, "workflow", platformSpecs[0].Name)
+				require.Equal(t, "pipeline", platformSpecs[1].Name)
 				require.Equal(t, "workflow", platformWorkflowSpec().Name)
+				require.Equal(t, "pipeline", platformPipelineSpec().Name)
 				return
 			}
 

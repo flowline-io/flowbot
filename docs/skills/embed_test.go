@@ -37,6 +37,16 @@ func TestEmbeddedSkillTrees(t *testing.T) {
 				"examples/parallel_example.yaml",
 			},
 		},
+		{
+			name: "pipeline",
+			dir:  "pipeline",
+			extraPaths: []string{
+				"references/steps.md",
+				"references/schema.md",
+				"examples/event_notify.yaml",
+				"examples/cron_cleanup.yaml",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -41,9 +41,11 @@ type platformSpec struct {
 	Workflows                []workflowSpec
 	StepTypes                []stepTypeSpec
 	IncludeCapabilityCatalog bool
-	CommandFn                func() *cobra.Command
-	ExampleFS                embed.FS
-	ExampleDir               string
+	// Kind selects template set: "workflow" (default) or "pipeline".
+	Kind      string
+	CommandFn func() *cobra.Command
+	ExampleFS embed.FS
+	ExampleDir string
 }
 
 // platformSkillData is the template context for platform SKILL.md and references.
@@ -721,7 +723,11 @@ func generatePlatformSkill(meta platformSpec, outputDir string) error {
 		data.Capabilities = workflowCapabilityCatalog()
 	}
 
-	if err := writePlatformSkillFiles(dirPath, data, meta.IncludeCapabilityCatalog); err != nil {
+	kind := meta.Kind
+	if kind == "" {
+		kind = "workflow"
+	}
+	if err := writePlatformSkillFiles(dirPath, data, meta.IncludeCapabilityCatalog, kind); err != nil {
 		return err
 	}
 	for _, name := range exampleFiles {
@@ -730,9 +736,22 @@ func generatePlatformSkill(meta platformSpec, outputDir string) error {
 	return nil
 }
 
-func writePlatformSkillFiles(dirPath string, data platformSkillData, withCapabilities bool) error {
+func writePlatformSkillFiles(dirPath string, data platformSkillData, withCapabilities bool, kind string) error {
 	funcs := newTemplateFuncs()
-	skillTmpl, err := template.New("platform_skill").Funcs(funcs).Parse(platformSkillTemplate)
+	skillBody := platformSkillTemplate
+	stepsBody := platformStepsTemplate
+	schemaBody := platformSchemaTemplate
+	capsIndexBody := platformCapabilitiesIndexTemplate
+	capFileBody := platformCapabilityFileTemplate
+	if kind == "pipeline" {
+		skillBody = pipelineSkillTemplate
+		stepsBody = pipelineStepsTemplate
+		schemaBody = pipelineSchemaTemplate
+		capsIndexBody = pipelineCapabilitiesIndexTemplate
+		capFileBody = pipelineCapabilityFileTemplate
+	}
+
+	skillTmpl, err := template.New("platform_skill").Funcs(funcs).Parse(skillBody)
 	if err != nil {
 		return fmt.Errorf("parse platform skill template: %w", err)
 	}
@@ -740,7 +759,7 @@ func writePlatformSkillFiles(dirPath string, data platformSkillData, withCapabil
 	if err != nil {
 		return fmt.Errorf("parse platform cli template: %w", err)
 	}
-	stepsTmpl, err := template.New("platform_steps").Funcs(funcs).Parse(platformStepsTemplate)
+	stepsTmpl, err := template.New("platform_steps").Funcs(funcs).Parse(stepsBody)
 	if err != nil {
 		return fmt.Errorf("parse platform steps template: %w", err)
 	}
@@ -765,14 +784,14 @@ func writePlatformSkillFiles(dirPath string, data platformSkillData, withCapabil
 	if !withCapabilities {
 		return nil
 	}
-	if err := writePlatformSchemaFile(dirPath, funcs); err != nil {
+	if err := writePlatformSchemaFile(dirPath, funcs, schemaBody); err != nil {
 		return err
 	}
-	return writePlatformCapabilitiesFile(dirPath, data, funcs)
+	return writePlatformCapabilitiesFile(dirPath, data, funcs, capsIndexBody, capFileBody)
 }
 
-func writePlatformSchemaFile(dirPath string, funcs template.FuncMap) error {
-	schemaTmpl, err := template.New("platform_schema").Funcs(funcs).Parse(platformSchemaTemplate)
+func writePlatformSchemaFile(dirPath string, funcs template.FuncMap, schemaBody string) error {
+	schemaTmpl, err := template.New("platform_schema").Funcs(funcs).Parse(schemaBody)
 	if err != nil {
 		return fmt.Errorf("parse platform schema template: %w", err)
 	}
@@ -784,13 +803,13 @@ func writePlatformSchemaFile(dirPath string, funcs template.FuncMap) error {
 	return nil
 }
 
-func writePlatformCapabilitiesFile(dirPath string, data platformSkillData, funcs template.FuncMap) error {
+func writePlatformCapabilitiesFile(dirPath string, data platformSkillData, funcs template.FuncMap, indexBody, fileBody string) error {
 	capsDir := filepath.Join(dirPath, "references", "capabilities")
 	if err := os.MkdirAll(capsDir, 0o750); err != nil {
 		return fmt.Errorf("create capabilities directory: %w", err)
 	}
 
-	indexTmpl, err := template.New("platform_capabilities_index").Funcs(funcs).Parse(platformCapabilitiesIndexTemplate)
+	indexTmpl, err := template.New("platform_capabilities_index").Funcs(funcs).Parse(indexBody)
 	if err != nil {
 		return fmt.Errorf("parse platform capabilities index template: %w", err)
 	}
@@ -800,7 +819,7 @@ func writePlatformCapabilitiesFile(dirPath string, data platformSkillData, funcs
 	}
 	_, _ = fmt.Printf("  generated: %s\n", indexPath)
 
-	fileTmpl, err := template.New("platform_capability_file").Funcs(funcs).Parse(platformCapabilityFileTemplate)
+	fileTmpl, err := template.New("platform_capability_file").Funcs(funcs).Parse(fileBody)
 	if err != nil {
 		return fmt.Errorf("parse platform capability file template: %w", err)
 	}

@@ -646,13 +646,14 @@ func renameCompoundResourceLinks(ctx context.Context, tx *gen.Tx, oldName, newNa
 }
 
 // DeleteDefinitionByName removes a pipeline definition and its associated runs.
+// Runs match the parent name and compound trigger engine names (name__trigger_*).
 // Returns the number of pipeline runs that were deleted.
 func (s *PipelineStore) DeleteDefinitionByName(ctx context.Context, name string) (int64, error) {
 	if s == nil || s.client == nil {
 		return 0, nil
 	}
 	runCount, err := s.client.PipelineRun.Delete().
-		Where(pipelinerun.PipelineName(name)).
+		Where(pipelineRunByParentName(name)).
 		Exec(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("delete runs for %s: %w", name, err)

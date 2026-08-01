@@ -231,8 +231,9 @@ homelab:
     # When true, label-derived data overrides probe results
     label_priority: true
 
-# Pipeline definitions are loaded from a separate pipelines.yaml file.
-# See docs/reference/pipelines.yaml for the pipeline schema and examples.
+# Pipeline definitions are stored in PostgreSQL (published YAML).
+# Manage via Web UI (/service/web/pipelines) or CLI: flowbot pipeline apply|list|get|export|delete|run|runs.
+# Schema / examples: docs/reference/pipelines.yaml and docs/skills/pipeline/.
 
 # Notification templates and rules are managed via the Notifications UI
 # (/service/web/notifications) and persisted in PostgreSQL. See docs/user-guide/notification-gateway.md.
@@ -305,6 +306,12 @@ modules:
   - name: life
     enabled: true
     default_class: Architect
+
+  - name: workflow
+    enabled: true
+
+  - name: pipeline
+    enabled: true
 
 # Third-party service configuration
 vendors:
