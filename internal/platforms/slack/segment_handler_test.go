@@ -1,7 +1,10 @@
 package slack
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/slack-go/slack"
 
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
 )
@@ -113,7 +116,7 @@ func TestHandleSegTable(t *testing.T) {
 					"rows":    [][]any{{"CPU", "80%"}, {"Mem", "60%"}},
 				},
 			},
-			wantBlocks: 2, // header + section
+			wantBlocks: 2, // header + table
 		},
 		{
 			name: "table without title",
@@ -124,7 +127,7 @@ func TestHandleSegTable(t *testing.T) {
 					"rows":    [][]any{{"val"}},
 				},
 			},
-			wantBlocks: 1, // section only
+			wantBlocks: 1, // table only
 		},
 		{
 			name: "table with empty data",
@@ -197,6 +200,20 @@ func TestHandleSegForm(t *testing.T) {
 				},
 			},
 			wantBlocks: 3, // header + divider + section
+		},
+		{
+			name: "form with id adds context",
+			segment: protocol.MessageSegment{
+				Type: "form",
+				Data: map[string]any{
+					"title": "Settings",
+					"id":    "form-1",
+					"fields": []any{
+						map[string]any{"label": "Name", "key": "name", "type": "text"},
+					},
+				},
+			},
+			wantBlocks: 4, // header + context + divider + section
 		},
 		{
 			name: "form with no fields",
@@ -334,6 +351,7 @@ func TestHandleSegLink(t *testing.T) {
 		name       string
 		segment    protocol.MessageSegment
 		wantBlocks int
+		wantURL    string
 	}{
 		{
 			name: "link with title and cover",
@@ -357,6 +375,7 @@ func TestHandleSegLink(t *testing.T) {
 				},
 			},
 			wantBlocks: 1, // sectionWithButton
+			wantURL:    "https://github.com",
 		},
 		{
 			name: "link without title uses url as title",
@@ -367,6 +386,7 @@ func TestHandleSegLink(t *testing.T) {
 				},
 			},
 			wantBlocks: 1,
+			wantURL:    "https://example.com",
 		},
 		{
 			name: "link without url returns no blocks",
@@ -392,6 +412,19 @@ func TestHandleSegLink(t *testing.T) {
 			_, blocks, _ := handleSegLink(tt.segment)
 			if len(blocks) != tt.wantBlocks {
 				t.Errorf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
+			}
+			if tt.wantURL == "" || len(blocks) == 0 {
+				return
+			}
+			sec, ok := blocks[0].(*slack.SectionBlock)
+			if !ok {
+				t.Fatalf("expected *slack.SectionBlock, got %T", blocks[0])
+			}
+			if sec.Accessory == nil || sec.Accessory.ButtonElement == nil {
+				t.Fatal("expected button accessory")
+			}
+			if sec.Accessory.ButtonElement.URL != tt.wantURL {
+				t.Errorf("expected button URL %q, got %q", tt.wantURL, sec.Accessory.ButtonElement.URL)
 			}
 		})
 	}
@@ -441,6 +474,51 @@ func TestHandleSegMarkdownVarious(t *testing.T) {
 			_, blocks, _ := handleSegMarkdown(tt.segment)
 			if len(blocks) != tt.wantBlocks {
 				t.Errorf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
+			}
+		})
+	}
+}
+
+func TestHandleSegHtml(t *testing.T) {
+	tests := []struct {
+		name       string
+		segment    protocol.MessageSegment
+		wantBlocks int
+		wantSubstr string
+	}{
+		{
+			name: "bold html to mrkdwn",
+			segment: protocol.MessageSegment{
+				Type: "html",
+				Data: map[string]any{"text": "<b>bold</b>"},
+			},
+			wantBlocks: 1,
+			wantSubstr: "*bold*",
+		},
+		{
+			name: "empty html",
+			segment: protocol.MessageSegment{
+				Type: "html",
+				Data: map[string]any{"text": "   "},
+			},
+			wantBlocks: 0,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, blocks, _ := handleSegHtml(tt.segment)
+			if len(blocks) != tt.wantBlocks {
+				t.Fatalf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
+			}
+			if tt.wantSubstr == "" || len(blocks) == 0 {
+				return
+			}
+			sec, ok := blocks[0].(*slack.SectionBlock)
+			if !ok || sec.Text == nil {
+				t.Fatalf("expected section block with text")
+			}
+			if !strings.Contains(sec.Text.Text, tt.wantSubstr) {
+				t.Errorf("expected text to contain %q, got %q", tt.wantSubstr, sec.Text.Text)
 			}
 		})
 	}

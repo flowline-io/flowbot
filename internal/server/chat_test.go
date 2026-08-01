@@ -145,7 +145,7 @@ func TestBuildHelpMessage(t *testing.T) {
 		isHelp bool
 	}{
 		{
-			name:   "help command builds InfoMsg with module rules",
+			name:   "help command builds MarkdownMsg with module rules",
 			msgAlt: "help",
 			isHelp: true,
 		},
@@ -171,12 +171,54 @@ func TestBuildHelpMessage(t *testing.T) {
 			got := buildHelpMessage(tt.msgAlt, nil)
 			if tt.isHelp {
 				require.NotNil(t, got)
-				info, ok := got.(types.InfoMsg)
-				assert.True(t, ok)
-				assert.Equal(t, "Help", info.Title)
+				md, ok := got.(types.MarkdownMsg)
+				require.True(t, ok)
+				assert.Equal(t, "Help", md.Title)
+				assert.Contains(t, md.Raw, "*"+modName+"*")
+				assert.Contains(t, md.Raw, "`/test_cmd` — Test command")
 			} else {
 				assert.Nil(t, got)
 			}
+		})
+	}
+}
+
+func TestFormatGroupedHelpMarkdown(t *testing.T) {
+	tests := []struct {
+		name     string
+		byModule map[string][]command.Rule
+		want     string
+	}{
+		{
+			name: "groups and sorts modules and commands",
+			byModule: map[string][]command.Rule{
+				"hub": {
+					{Define: "version", Help: "Print version"},
+					{Define: "deploy", Help: "deploy server"},
+				},
+				"example": {
+					{Define: "event test", Help: "event example"},
+				},
+			},
+			want: "*example*\n`/event test` — event example\n\n*hub*\n`/deploy` — deploy server\n`/version` — Print version",
+		},
+		{
+			name:     "empty map returns empty string",
+			byModule: map[string][]command.Rule{},
+			want:     "",
+		},
+		{
+			name: "modules with no rules are skipped",
+			byModule: map[string][]command.Rule{
+				"empty": {},
+				"keep":  {{Define: "ping", Help: "Ping"}},
+			},
+			want: "*keep*\n`/ping` — Ping",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, formatGroupedHelpMarkdown(tt.byModule))
 		})
 	}
 }

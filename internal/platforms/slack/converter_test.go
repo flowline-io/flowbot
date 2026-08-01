@@ -204,6 +204,18 @@ func TestToFormFieldDefs(t *testing.T) {
 			},
 		},
 		{
+			name: "nil type does not become <nil>",
+			v: []any{
+				map[string]any{"label": "Name", "key": "name", "type": nil},
+			},
+			want: 1,
+			check: func(t *testing.T, f FormFieldDef) {
+				if f.Type != "" {
+					t.Errorf("expected empty type, got %q", f.Type)
+				}
+			},
+		},
+		{
 			name: "[]FormFieldDef",
 			v: []FormFieldDef{
 				{Label: "Email", Key: "email", Type: "email"},

@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
@@ -85,25 +86,54 @@ func handleChatPlanCommands(ctx types.Context, msgAlt, session string, uid types
 }
 
 func buildHelpMessage(msgAlt string, payload types.MsgPayload) types.MsgPayload {
-	if strings.ToLower(msgAlt) == "help" {
-		m := make(types.KV)
-		for name, handle := range module.List() {
-			for _, item := range handle.Rules() {
-				if v, ok := item.([]command.Rule); ok {
-					for _, rule := range v {
-						m[fmt.Sprintf("[%s] /%s", name, rule.Define)] = rule.Help
-					}
-				}
-			}
-		}
-		if len(m) > 0 {
-			payload = types.InfoMsg{
-				Title: "Help",
-				Model: m,
+	if strings.ToLower(msgAlt) != "help" {
+		return payload
+	}
+
+	byModule := make(map[string][]command.Rule)
+	for name, handle := range module.List() {
+		for _, item := range handle.Rules() {
+			if v, ok := item.([]command.Rule); ok {
+				byModule[name] = append(byModule[name], v...)
 			}
 		}
 	}
-	return payload
+	raw := formatGroupedHelpMarkdown(byModule)
+	if raw == "" {
+		return payload
+	}
+	return types.MarkdownMsg{
+		Title: "Help",
+		Raw:   raw,
+	}
+}
+
+func formatGroupedHelpMarkdown(byModule map[string][]command.Rule) string {
+	names := make([]string, 0, len(byModule))
+	for name, rules := range byModule {
+		if len(rules) > 0 {
+			names = append(names, name)
+		}
+	}
+	if len(names) == 0 {
+		return ""
+	}
+	slices.Sort(names)
+
+	sections := make([]string, 0, len(names))
+	for _, name := range names {
+		rules := slices.Clone(byModule[name])
+		slices.SortFunc(rules, func(a, c command.Rule) int {
+			return strings.Compare(a.Define, c.Define)
+		})
+		lines := make([]string, 0, len(rules)+1)
+		lines = append(lines, "*"+name+"*")
+		for _, rule := range rules {
+			lines = append(lines, rule.FormatHelpLine())
+		}
+		sections = append(sections, strings.Join(lines, "\n"))
+	}
+	return strings.Join(sections, "\n\n")
 }
 
 func dispatchToModules(ctx types.Context, msgAlt string) types.MsgPayload {

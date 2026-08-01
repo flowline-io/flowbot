@@ -220,7 +220,7 @@ func TestResolveDirectModulePayload(t *testing.T) {
 			name:        "help keeps aggregated commands from all modules",
 			msgAlt:      "help",
 			sessionID:   "",
-			wantHelpKey: "[help-mod-a] /alpha-cmd",
+			wantHelpKey: "`/alpha-cmd` — alpha help",
 		},
 		{
 			name:      "non-help command dispatches when payload is nil",
@@ -268,11 +268,14 @@ func TestResolveDirectModulePayload(t *testing.T) {
 				assert.Equal(t, tt.wantText, text.Text)
 				return
 			}
-			info, ok := got.(types.InfoMsg)
+			md, ok := got.(types.MarkdownMsg)
 			require.True(t, ok)
-			assert.Contains(t, info.Model, tt.wantHelpKey)
+			assert.Equal(t, "Help", md.Title)
+			assert.Contains(t, md.Raw, tt.wantHelpKey)
 			if tt.msgAlt == "help" {
-				assert.Contains(t, info.Model, "[help-mod-b] /beta-cmd")
+				assert.Contains(t, md.Raw, "*help-mod-a*")
+				assert.Contains(t, md.Raw, "*help-mod-b*")
+				assert.Contains(t, md.Raw, "`/beta-cmd` — beta help")
 			}
 		})
 	}

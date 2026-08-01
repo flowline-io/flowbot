@@ -48,9 +48,14 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "No apps registered"}
 			}
 
-			return types.InfoMsg{
-				Title: "Homelab Apps",
-				Model: apps,
+			rows := make([][]any, 0, len(apps))
+			for _, app := range apps {
+				rows = append(rows, []any{app.Name, string(app.Status), string(app.Health)})
+			}
+			return types.TableMsg{
+				Title:  "Homelab Apps",
+				Header: []string{"Name", "Status", "Health"},
+				Row:    rows,
 			}
 		},
 	},
@@ -66,7 +71,14 @@ var commandRules = []command.Rule{
 
 			return types.InfoMsg{
 				Title: fmt.Sprintf("App: %s", name),
-				Model: app,
+				Model: types.KV{
+					"Name":     app.Name,
+					"Path":     app.Path,
+					"Status":   string(app.Status),
+					"Health":   string(app.Health),
+					"Services": fmt.Sprintf("%d", len(app.Services)),
+					"Ports":    formatAppPorts(app.Ports),
+				},
 			}
 		},
 	},
@@ -79,9 +91,14 @@ var commandRules = []command.Rule{
 				return types.TextMsg{Text: "No capabilities registered"}
 			}
 
-			return types.InfoMsg{
-				Title: "Hub Capabilities",
-				Model: bindings,
+			rows := make([][]any, 0, len(bindings))
+			for _, b := range bindings {
+				rows = append(rows, []any{string(b.Capability), b.App, b.Healthy})
+			}
+			return types.TableMsg{
+				Title:  "Hub Capabilities",
+				Header: []string{"Capability", "App", "Healthy"},
+				Row:    rows,
 			}
 		},
 	},
@@ -370,4 +387,25 @@ func checkLifecycleOp(name, operation string) (homelab.App, error) {
 	}
 
 	return app, nil
+}
+
+func formatAppPorts(ports []homelab.PortMapping) string {
+	if len(ports) == 0 {
+		return "-"
+	}
+	parts := make([]string, 0, len(ports))
+	for _, p := range ports {
+		host := p.HostPort
+		if host == "" {
+			host = p.Host
+		}
+		if host == "" {
+			continue
+		}
+		parts = append(parts, host)
+	}
+	if len(parts) == 0 {
+		return "-"
+	}
+	return strings.Join(parts, ", ")
 }

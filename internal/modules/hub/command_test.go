@@ -187,7 +187,7 @@ func TestHubAppsHandler(t *testing.T) {
 		isTextMsg bool
 	}{
 		{
-			name: "with registered apps returns InfoMsg",
+			name: "with registered apps returns TableMsg",
 			apps: []homelab.App{
 				{Name: "archivebox", Status: homelab.AppStatusRunning, Health: homelab.HealthHealthy},
 				{Name: "karakeep", Status: homelab.AppStatusStopped, Health: homelab.HealthUnhealthy},
@@ -229,9 +229,11 @@ func TestHubAppsHandler(t *testing.T) {
 				require.True(t, ok)
 				assert.Equal(t, tt.wantText, msg.Text)
 			} else {
-				msg, ok := payload.(types.InfoMsg)
+				msg, ok := payload.(types.TableMsg)
 				require.True(t, ok)
 				assert.Equal(t, tt.wantTitle, msg.Title)
+				assert.Equal(t, []string{"Name", "Status", "Health"}, msg.Header)
+				assert.Len(t, msg.Row, len(tt.apps))
 			}
 		})
 	}
@@ -336,7 +338,7 @@ func TestHubCapabilitiesHandler(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
-		{name: "hub capabilities handler returns InfoMsg with title"},
+		{name: "hub capabilities handler returns TableMsg with curated columns"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -368,9 +370,11 @@ func TestHubCapabilitiesHandler(t *testing.T) {
 			payload := capRule.Handler(ctx, tokens)
 			require.NotNil(t, payload)
 
-			msg, ok := payload.(types.InfoMsg)
+			msg, ok := payload.(types.TableMsg)
 			require.True(t, ok)
 			assert.Equal(t, "Hub Capabilities", msg.Title)
+			assert.Equal(t, []string{"Capability", "App", "Healthy"}, msg.Header)
+			assert.NotEmpty(t, msg.Row)
 		})
 	}
 }

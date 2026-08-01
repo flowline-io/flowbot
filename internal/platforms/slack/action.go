@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/pkg/flog"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/protocol"
+	"github.com/flowline-io/flowbot/pkg/utils"
 )
 
 func safeStr(data map[string]any, key string) string {
@@ -199,6 +200,7 @@ var segHandlers = map[string]func(protocol.MessageSegment) (string, []slack.Bloc
 	"status":      handleSegStatus,
 	"link":        handleSegLink,
 	"markdown":    handleSegMarkdown,
+	"html":        handleSegHtml,
 	"kv":          handleSegKV,
 }
 
@@ -235,10 +237,20 @@ func (*Action) buildMsgOptions(content protocol.Message) ([]slack.MsgOption, []s
 	}
 
 	if len(blocks) > 0 {
+		blocks = clampBlocks(blocks)
 		msgOptions = append(msgOptions, slack.MsgOptionBlocks(blocks...))
 	}
 
 	return msgOptions, fileIDs
+}
+
+// clampBlocks enforces Slack's 50-block message limit.
+func clampBlocks(blocks []slack.Block) []slack.Block {
+	if len(blocks) <= slackMaxBlocks {
+		return blocks
+	}
+	kept := blocks[:slackMaxBlocks-1]
+	return append(kept, contextBlock("_… truncated_"))
 }
 
 // ──────────────────────────────────────────
@@ -335,19 +347,29 @@ func handleSegTable(segment protocol.MessageSegment) (string, []slack.Block, []s
 
 func handleSegForm(segment protocol.MessageSegment) (string, []slack.Block, []string) {
 	title := safeStr(segment.Data, "title")
+	formID := safeStr(segment.Data, "id")
 	fields := toFormFieldDefs(segment.Data["fields"])
 	var blocks []slack.Block
 	if title != "" {
 		blocks = append(blocks, header(title))
 	}
+	if formID != "" {
+		blocks = append(blocks, contextBlock(fmt.Sprintf("Form `%s` — view only in Slack; submit via web UI", formID)))
+	}
 	blocks = append(blocks, divider())
 	for _, f := range fields {
 		fieldText := fmt.Sprintf("*%s*", f.Label)
+		if f.Type != "" {
+			fieldText += fmt.Sprintf("  `%s`", f.Type)
+		}
 		if f.Placeholder != "" {
-			fieldText += fmt.Sprintf("  _%s_", f.Placeholder)
+			fieldText += fmt.Sprintf("\n_%s_", f.Placeholder)
 		}
 		if f.InitialVal != "" {
 			fieldText += fmt.Sprintf("\nCurrent: `%s`", f.InitialVal)
+		}
+		if len(f.Options) > 0 {
+			fieldText += fmt.Sprintf("\nOptions: %s", strings.Join(f.Options, ", "))
 		}
 		blocks = append(blocks, section(fieldText))
 	}
@@ -393,7 +415,7 @@ func handleSegLink(segment protocol.MessageSegment) (string, []slack.Block, []st
 	if cover != "" {
 		return "", []slack.Block{imageSection(linkText, cover, title)}, nil
 	}
-	return "", []slack.Block{sectionWithButton(linkText, "Open Link", "link_open", url, slack.StylePrimary)}, nil
+	return "", []slack.Block{sectionWithButton(linkText, "Open Link", "link_open", url, url, slack.StylePrimary)}, nil
 }
 
 func handleSegMarkdown(segment protocol.MessageSegment) (string, []slack.Block, []string) {
@@ -403,16 +425,22 @@ func handleSegMarkdown(segment protocol.MessageSegment) (string, []slack.Block, 
 	if title != "" {
 		blocks = append(blocks, header(title))
 	}
-	if text != "" {
-		blocks = append(blocks, section(text))
-	}
+	blocks = append(blocks, markdownTextBlocks(text)...)
 	return "", blocks, nil
+}
+
+func handleSegHtml(segment protocol.MessageSegment) (string, []slack.Block, []string) {
+	text := utils.HTMLToMrkdwn(safeStr(segment.Data, "text"))
+	if strings.TrimSpace(text) == "" {
+		return "", nil, nil
+	}
+	return "", markdownTextBlocks(text), nil
 }
 
 func handleSegKV(segment protocol.MessageSegment) (string, []slack.Block, []string) {
 	fieldsRaw := toStringMap(segment.Data["fields"])
 	if len(fieldsRaw) > 0 {
-		return "", []slack.Block{sectionFields(fieldsRaw)}, nil
+		return "", sectionFields(fieldsRaw), nil
 	}
 	return "", nil, nil
 }
@@ -543,6 +571,17 @@ func toStringMap(v any) map[string]string {
 	return result
 }
 
+func mapString(m map[string]any, key string) string {
+	v, ok := m[key]
+	if !ok || v == nil {
+		return ""
+	}
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return fmt.Sprintf("%v", v)
+}
+
 func toFormFieldDefs(v any) []FormFieldDef {
 	if v == nil {
 		return nil
@@ -555,10 +594,10 @@ func toFormFieldDefs(v any) []FormFieldDef {
 		for _, item := range s {
 			if m, ok := item.(map[string]any); ok {
 				f := FormFieldDef{
-					Label:       fmt.Sprintf("%v", m["label"]),
-					Key:         fmt.Sprintf("%v", m["key"]),
-					Type:        fmt.Sprintf("%v", m["type"]),
-					Placeholder: fmt.Sprintf("%v", m["placeholder"]),
+					Label:       mapString(m, "label"),
+					Key:         mapString(m, "key"),
+					Type:        mapString(m, "type"),
+					Placeholder: mapString(m, "placeholder"),
 				}
 				if val, ok := m["initial_value"].(string); ok {
 					f.InitialVal = val

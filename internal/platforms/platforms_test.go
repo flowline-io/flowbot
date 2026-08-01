@@ -45,17 +45,22 @@ func assertNilMessage(t *testing.T, msg protocol.Message) {
 
 func TestMessageConvertText(t *testing.T) {
 	tests := []struct {
-		name  string
-		input types.TextMsg
-		want  string
+		name    string
+		input   types.TextMsg
+		want    string
+		wantNil bool
 	}{
 		{name: "with content", input: types.TextMsg{Text: "hello world"}, want: "hello world"},
-		{name: "with empty text", input: types.TextMsg{Text: ""}, want: ""},
+		{name: "with empty text", input: types.TextMsg{Text: ""}, wantNil: true},
 		{name: "with special chars", input: types.TextMsg{Text: "hi!"}, want: "hi!"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := MessageConvert(tt.input)
+			if tt.wantNil {
+				assertNilMessage(t, msg)
+				return
+			}
 			assertSingleSegment(t, msg, "text")
 			assertSegmentData(t, msg[0].Data, "text", tt.want)
 		})
@@ -98,19 +103,67 @@ func TestMessageConvertTable(t *testing.T) {
 
 func TestMessageConvertInfo(t *testing.T) {
 	tests := []struct {
-		name  string
-		input types.InfoMsg
+		name       string
+		input      types.InfoMsg
+		wantType   string
+		wantFields map[string]any
 	}{
-		{name: "map[string]any model", input: types.InfoMsg{Title: "Info", Model: map[string]any{"k": "v"}}},
-		{name: "map[string]string model", input: types.InfoMsg{Title: "S", Model: map[string]string{"cpu": "10%"}}},
-		{name: "nil model", input: types.InfoMsg{Title: "Empty"}},
-		{name: "struct model", input: types.InfoMsg{Title: "Struct", Model: struct{ Key string }{Key: "val"}}},
+		{
+			name:       "map[string]any model",
+			input:      types.InfoMsg{Title: "Info", Model: map[string]any{"k": "v"}},
+			wantType:   "action_card",
+			wantFields: map[string]any{"k": "v"},
+		},
+		{
+			name:       "types.KV model uses structured fields",
+			input:      types.InfoMsg{Title: "KV", Model: types.KV{"cpu": "10%"}},
+			wantType:   "action_card",
+			wantFields: map[string]any{"cpu": "10%"},
+		},
+		{
+			name:       "map[string]string model",
+			input:      types.InfoMsg{Title: "S", Model: map[string]string{"cpu": "10%"}},
+			wantType:   "action_card",
+			wantFields: map[string]any{"cpu": "10%"},
+		},
+		{name: "nil model", input: types.InfoMsg{Title: "Empty"}, wantType: "action_card"},
+		{
+			name:       "struct model flattens to fields",
+			input:      types.InfoMsg{Title: "Struct", Model: struct{ Key string `json:"key"` }{Key: "val"}},
+			wantType:   "action_card",
+			wantFields: map[string]any{"key": "val"},
+		},
+		{
+			name: "slice model becomes table",
+			input: types.InfoMsg{Title: "Apps", Model: []struct {
+				Name string `json:"name"`
+			}{{Name: "a"}, {Name: "b"}}},
+			wantType: "table",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := MessageConvert(tt.input)
-			assertSingleSegment(t, msg, "action_card")
+			assertSingleSegment(t, msg, tt.wantType)
 			assertSegmentData(t, msg[0].Data, "title", tt.input.Title)
+			if tt.wantFields != nil {
+				fields, ok := msg[0].Data["fields"].(map[string]any)
+				if !ok {
+					t.Fatalf("expected fields map, got %T", msg[0].Data["fields"])
+				}
+				for k, want := range tt.wantFields {
+					if fields[k] != want {
+						t.Errorf("fields[%q]: expected %v, got %v", k, want, fields[k])
+					}
+				}
+				desc, ok := msg[0].Data["description"].(string)
+				if !ok {
+					t.Fatalf("expected description string, got %T", msg[0].Data["description"])
+				}
+				if desc != "" {
+					t.Errorf("expected empty description for structured fields, got %q", desc)
+				}
+			}
 		})
 	}
 }
@@ -135,17 +188,24 @@ func TestMessageConvertChart(t *testing.T) {
 
 func TestMessageConvertHtml(t *testing.T) {
 	tests := []struct {
-		name  string
-		input types.HtmlMsg
+		name    string
+		input   types.HtmlMsg
+		want    string
+		wantNil bool
 	}{
-		{name: "with content", input: types.HtmlMsg{Raw: "<b>bold</b>"}},
-		{name: "empty raw", input: types.HtmlMsg{Raw: ""}},
-		{name: "multiline html", input: types.HtmlMsg{Raw: "<p>\nhello\n</p>"}},
+		{name: "with content", input: types.HtmlMsg{Raw: "<b>bold</b>"}, want: "<b>bold</b>"},
+		{name: "empty raw", input: types.HtmlMsg{Raw: ""}, wantNil: true},
+		{name: "multiline html", input: types.HtmlMsg{Raw: "<p>hello</p>"}, want: "<p>hello</p>"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := MessageConvert(tt.input)
-			assertSingleSegment(t, msg, "markdown")
+			if tt.wantNil {
+				assertNilMessage(t, msg)
+				return
+			}
+			assertSingleSegment(t, msg, "html")
+			assertSegmentData(t, msg[0].Data, "text", tt.want)
 		})
 	}
 }

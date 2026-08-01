@@ -160,10 +160,11 @@ func TestHelpVariants(t *testing.T) {
 				assert.Nil(t, got)
 				return
 			}
-			info, ok := got.(types.InfoMsg)
+			md, ok := got.(types.MarkdownMsg)
 			require.True(t, ok)
-			assert.Equal(t, tt.wantTitle, info.Title)
-			assert.NotEmpty(t, info.Model)
+			assert.Equal(t, tt.wantTitle, md.Title)
+			assert.Contains(t, md.Raw, "`/alpha` — Alpha help")
+			assert.Contains(t, md.Raw, "`/beta` — Beta help")
 		})
 	}
 }

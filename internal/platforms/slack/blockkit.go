@@ -13,14 +13,13 @@ import (
 // Block Kit builder helpers
 // ──────────────────────────────────────────
 
-// header creates a header block.
+// header creates a header block (Slack plain_text max 150 runes).
 func header(text string) *slack.HeaderBlock {
 	return slack.NewHeaderBlock(
-		slack.NewTextBlockObject(slack.PlainTextType, text, false, false),
+		slack.NewTextBlockObject(slack.PlainTextType, truncateRunes(text, slackHeaderMaxLen), false, false),
 	)
 }
 
-// section creates a section block with markdown text.
 func section(text string) *slack.SectionBlock {
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(slack.MarkdownType, text, false, false),
@@ -29,12 +28,16 @@ func section(text string) *slack.SectionBlock {
 }
 
 // sectionWithButton creates a section block with a button accessory.
-func sectionWithButton(text, btnText, actionID, value string, style slack.Style) *slack.SectionBlock {
+// When url is non-empty, Slack opens it in the browser (link button).
+func sectionWithButton(text, btnText, actionID, value, url string, style slack.Style) *slack.SectionBlock {
 	btn := slack.NewButtonBlockElement(actionID, value,
 		slack.NewTextBlockObject(slack.PlainTextType, btnText, true, false),
 	)
 	if style != "" {
 		btn.Style = style
+	}
+	if url != "" {
+		btn.URL = url
 	}
 	return slack.NewSectionBlock(
 		slack.NewTextBlockObject(slack.MarkdownType, text, false, false),
@@ -42,22 +45,111 @@ func sectionWithButton(text, btnText, actionID, value string, style slack.Style)
 	)
 }
 
-// sectionFields creates a section block with field pairs in deterministic order.
-func sectionFields(fields map[string]string) *slack.SectionBlock {
-	// Sort keys for deterministic rendering order
+// slackMaxSectionFields is Slack's limit for fields in a single section block.
+const (
+	slackMaxSectionFields = 10
+	slackHeaderMaxLen     = 150
+	slackFieldValueMaxLen = 500
+	slackSectionTextMax   = 2900
+	slackMaxBlocks        = 50
+)
+
+func truncateRunes(s string, limit int) string {
+	if limit <= 0 || s == "" {
+		return s
+	}
+	runes := []rune(s)
+	if len(runes) <= limit {
+		return s
+	}
+	if limit == 1 {
+		return "…"
+	}
+	return string(runes[:limit-1]) + "…"
+}
+
+func runeLen(s string) int {
+	return len([]rune(s))
+}
+
+// sectionFields creates section blocks with field pairs in deterministic order.
+// Fields are split into chunks of slackMaxSectionFields to respect the Slack API limit.
+// Long values are rendered as full-width sections instead of cramped field cells.
+func sectionFields(fields map[string]string) []slack.Block {
+	if len(fields) == 0 {
+		return nil
+	}
 	keys := make([]string, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
 	}
 	slices.Sort(keys)
 
-	textFields := make([]*slack.TextBlockObject, 0, len(keys))
+	var blocks []slack.Block
+	var shortKeys []string
 	for _, k := range keys {
-		textFields = append(textFields, slack.NewTextBlockObject(
-			slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", k, fields[k]), false, false,
-		))
+		v := fields[k]
+		if runeLen(v) > slackFieldValueMaxLen {
+			budget := max(slackSectionTextMax-runeLen(k)-10, 1)
+			blocks = append(blocks, section(fmt.Sprintf("*%s:*\n%s", k, truncateRunes(v, budget))))
+			continue
+		}
+		shortKeys = append(shortKeys, k)
 	}
-	return slack.NewSectionBlock(nil, textFields, nil)
+
+	for i := 0; i < len(shortKeys); i += slackMaxSectionFields {
+		end := min(i+slackMaxSectionFields, len(shortKeys))
+		chunk := shortKeys[i:end]
+		textFields := make([]*slack.TextBlockObject, 0, len(chunk))
+		for _, k := range chunk {
+			textFields = append(textFields, slack.NewTextBlockObject(
+				slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", k, fields[k]), false, false,
+			))
+		}
+		blocks = append(blocks, slack.NewSectionBlock(nil, textFields, nil))
+	}
+	return blocks
+}
+
+// markdownMaxBlockLen keeps section text under Slack's 3000-character limit.
+const markdownMaxBlockLen = slackSectionTextMax
+
+func markdownTextBlocks(text string) []slack.Block {
+	if text == "" {
+		return nil
+	}
+	lines := strings.Split(text, "\n")
+	var blocks []slack.Block
+	var chunk []string
+	chunkLen := 0
+	for _, line := range lines {
+		for runeLen(line) > markdownMaxBlockLen {
+			runes := []rune(line)
+			part := string(runes[:markdownMaxBlockLen])
+			if chunkLen+markdownMaxBlockLen+1 > markdownMaxBlockLen && len(chunk) > 0 {
+				blocks = append(blocks, section(strings.Join(chunk, "\n")))
+				chunk = nil
+				chunkLen = 0
+			}
+			chunk = append(chunk, part)
+			blocks = append(blocks, section(strings.Join(chunk, "\n")))
+			chunk = nil
+			chunkLen = 0
+			line = string(runes[markdownMaxBlockLen:])
+		}
+		extra := runeLen(line) + 1
+		if chunkLen+extra > markdownMaxBlockLen && len(chunk) > 0 {
+			blocks = append(blocks, section(strings.Join(chunk, "\n")))
+			chunk = nil
+			chunkLen = 0
+		}
+		chunk = append(chunk, line)
+		chunkLen += extra
+	}
+	if len(chunk) > 0 {
+		blocks = append(blocks, section(strings.Join(chunk, "\n")))
+	}
+	return blocks
 }
 
 // contextBlock creates a context block with multiple text elements.
@@ -214,7 +306,7 @@ func renderPieChart(title string, labels []string, values []float64) []slack.Blo
 		total = 1
 	}
 
-	pieEmojis := []string{"🔵", "🟢", "🟡", "🟠", "🔴", "🟣", "⚫", "⚪"}
+	pieMarks := []string{"(1)", "(2)", "(3)", "(4)", "(5)", "(6)", "(7)", "(8)"}
 
 	var lines []string
 	for i, label := range labels {
@@ -222,11 +314,11 @@ func renderPieChart(title string, labels []string, values []float64) []slack.Blo
 			break
 		}
 		pct := values[i] / total * 100
-		emoji := pieEmojis[i%len(pieEmojis)]
+		mark := pieMarks[i%len(pieMarks)]
 		// proportional bar
 		fillCount := int(math.Round(pct / 5)) // each block = 5%
 		bar := strings.Repeat("■", fillCount) + strings.Repeat("□", 20-fillCount)
-		lines = append(lines, fmt.Sprintf("%s *%s*  `%s`  %.1f%%", emoji, label, bar, pct))
+		lines = append(lines, fmt.Sprintf("%s *%s*  `%s`  %.1f%%", mark, label, bar, pct))
 	}
 
 	blocks = append(blocks, section(strings.Join(lines, "\n")))
@@ -240,7 +332,7 @@ func renderPieChart(title string, labels []string, values []float64) []slack.Blo
 // statusBlocks returns blocks showing a "thinking" / processing indicator.
 func statusBlocks(statusText string) []slack.Block {
 	return []slack.Block{
-		contextBlock(fmt.Sprintf("⏳ _%s_", statusText)),
+		contextBlock(fmt.Sprintf("_%s_", statusText)),
 	}
 }
 
@@ -258,33 +350,11 @@ type ActionCardDef struct {
 	Footer      string
 }
 
-const actionCardMaxBlockLen = 2900
+const actionCardMaxBlockLen = slackSectionTextMax
 
-// descriptionBlocks renders action-card body text in fenced code blocks so YAML
-// and other structured content is not parsed as Slack mrkdwn.
+// descriptionBlocks renders action-card body text as Slack mrkdwn sections.
 func descriptionBlocks(description string) []slack.Block {
-	if description == "" {
-		return nil
-	}
-
-	lines := strings.Split(description, "\n")
-	var blocks []slack.Block
-	var chunk []string
-	chunkLen := 0
-	for _, line := range lines {
-		extra := len(line) + 1
-		if chunkLen+extra > actionCardMaxBlockLen && len(chunk) > 0 {
-			blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
-			chunk = nil
-			chunkLen = 0
-		}
-		chunk = append(chunk, line)
-		chunkLen += extra
-	}
-	if len(chunk) > 0 {
-		blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
-	}
-	return blocks
+	return markdownTextBlocks(description)
 }
 
 // buildActionCard builds an action card from the definition.
@@ -299,7 +369,8 @@ func buildActionCard(card ActionCardDef) []slack.Block {
 		blocks = append(blocks, imageBlock(card.ImageURL, card.Title, card.Title))
 	}
 	if len(card.Fields) > 0 {
-		blocks = append(blocks, divider(), sectionFields(card.Fields))
+		blocks = append(blocks, divider())
+		blocks = append(blocks, sectionFields(card.Fields)...)
 	}
 	if len(card.Buttons) > 0 {
 		blocks = append(blocks, divider(), actionButtons(card.Buttons...))
@@ -315,89 +386,130 @@ func buildActionCard(card ActionCardDef) []slack.Block {
 // Table builder
 // ──────────────────────────────────────────
 
-// buildTableBlocks renders a table using mrkdwn in section blocks.
+// Slack table block limits (see Block Kit table-block docs).
+const (
+	slackTableMaxRows = 100
+	slackTableMaxCols = 20
+)
+
+// buildTableBlocks renders a table with Slack's native table block.
 func buildTableBlocks(title string, headers []string, rows [][]any) []slack.Block {
 	var blocks []slack.Block
-
 	if title != "" {
 		blocks = append(blocks, header(title))
 	}
-
 	if len(headers) == 0 && len(rows) == 0 {
 		return blocks
 	}
 
-	colWidths := calcColumnWidths(headers, rows)
-	lines := buildTableLines(headers, colWidths, rows)
-	blocks = append(blocks, tableLinesToBlocks(lines)...)
+	colCount := tableColumnCount(headers, rows)
+	if colCount == 0 {
+		return blocks
+	}
 
-	return blocks
+	table := slack.NewTableBlock("")
+	if len(headers) > 0 {
+		table.AddRow(tableHeaderRow(headers, colCount)...)
+	}
+	for _, row := range clampTableRows(rows, len(headers) > 0) {
+		table.AddRow(tableDataRow(row, colCount)...)
+	}
+	table.WithColumnSettings(tableColumnSettings(colCount)...)
+	return append(blocks, table)
 }
 
-const tableMaxBlockLen = 2900
-
-func calcColumnWidths(headers []string, rows [][]any) []int {
-	colWidths := make([]int, len(headers))
-	for i, h := range headers {
-		colWidths[i] = len(h)
-	}
-	for _, row := range rows {
-		for i, cell := range row {
-			if i < len(colWidths) {
-				s := fmt.Sprintf("%v", cell)
-				if len(s) > colWidths[i] {
-					colWidths[i] = len(s)
-				}
+func tableColumnCount(headers []string, rows [][]any) int {
+	colCount := len(headers)
+	if colCount == 0 {
+		for _, row := range rows {
+			if len(row) > colCount {
+				colCount = len(row)
 			}
 		}
 	}
-	return colWidths
+	if colCount > slackTableMaxCols {
+		return slackTableMaxCols
+	}
+	return colCount
 }
 
-func buildTableLines(headers []string, colWidths []int, rows [][]any) []string {
-	var lines []string
-
-	var headerParts []string
-	for i, h := range headers {
-		headerParts = append(headerParts, fmt.Sprintf("*%-*s*", colWidths[i], h))
+func clampTableRows(rows [][]any, hasHeader bool) [][]any {
+	maxDataRows := slackTableMaxRows
+	if hasHeader {
+		maxDataRows--
 	}
-	lines = append(lines, strings.Join(headerParts, " │ "))
-
-	var sepParts []string
-	for _, w := range colWidths {
-		sepParts = append(sepParts, strings.Repeat("─", w))
+	if maxDataRows < 0 {
+		maxDataRows = 0
 	}
-	lines = append(lines, strings.Join(sepParts, "─┼─"))
-
-	for _, row := range rows {
-		var parts []string
-		for i, cell := range row {
-			w := 0
-			if i < len(colWidths) {
-				w = colWidths[i]
-			}
-			parts = append(parts, fmt.Sprintf("%-*v", w, cell))
-		}
-		lines = append(lines, strings.Join(parts, " │ "))
+	if len(rows) > maxDataRows {
+		return rows[:maxDataRows]
 	}
-	return lines
+	return rows
 }
 
-func tableLinesToBlocks(lines []string) []slack.Block {
-	var blocks []slack.Block
-	var chunk []string
-	chunkLen := 0
-	for _, line := range lines {
-		if chunkLen+len(line)+1 > tableMaxBlockLen && len(chunk) > 0 {
-			blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
-			chunk = nil
-			chunkLen = 0
+func tableHeaderRow(headers []string, colCount int) []slack.TableCell {
+	cells := make([]slack.TableCell, 0, colCount)
+	for i := range colCount {
+		text := ""
+		if i < len(headers) {
+			text = headers[i]
 		}
-		chunk = append(chunk, line)
-		chunkLen += len(line) + 1
+		cells = append(cells, tableHeaderCell(text))
 	}
-	if len(chunk) > 0 {
-		blocks = append(blocks, section("```\n"+strings.Join(chunk, "\n")+"\n```"))
+	return cells
+}
+
+func tableDataRow(row []any, colCount int) []slack.TableCell {
+	cells := make([]slack.TableCell, 0, colCount)
+	for i := range colCount {
+		text := ""
+		if i < len(row) && row[i] != nil {
+			text = fmt.Sprintf("%v", row[i])
+		}
+		cells = append(cells, tableDataCell(text))
 	}
-	return blocks
+	return cells
+}
+
+func tableColumnSettings(colCount int) []slack.ColumnSetting {
+	settings := make([]slack.ColumnSetting, colCount)
+	for i := range settings {
+		settings[i] = slack.ColumnSetting{
+			Align:     slack.ColumnAlignmentLeft,
+			IsWrapped: true,
+		}
+	}
+	return settings
+}
+
+func tableHeaderCell(text string) slack.TableCell {
+	return slack.NewTableRichTextCell(
+		&slack.RichTextSection{
+			Type: slack.RTESection,
+			Elements: []slack.RichTextSectionElement{
+				slack.NewRichTextSectionTextElement(text, &slack.RichTextSectionTextStyle{Bold: true}),
+			},
+		},
+	)
+}
+
+const slackTableCellMaxLen = 256
+
+func tableDataCell(text string) slack.TableCell {
+	text = truncateRunes(text, slackTableCellMaxLen)
+	if looksLikeHTTPURL(text) {
+		return slack.NewTableRichTextCell(
+			&slack.RichTextSection{
+				Type: slack.RTESection,
+				Elements: []slack.RichTextSectionElement{
+					slack.NewRichTextSectionLinkElement(text, text, nil),
+				},
+			},
+		)
+	}
+	return slack.NewTableRawTextCell(text)
+}
+
+func looksLikeHTTPURL(s string) bool {
+	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }

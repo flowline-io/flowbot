@@ -80,6 +80,14 @@ func TestSegHandlersDispatch(t *testing.T) {
 			segment:     protocol.MessageSegment{Type: "markdown", Data: map[string]any{"text": "content"}},
 		},
 		{
+			name:        "html segment converts to mrkdwn blocks",
+			segmentType: "html",
+			wantText:    "",
+			wantBlocks:  1,
+			wantFiles:   0,
+			segment:     protocol.MessageSegment{Type: "html", Data: map[string]any{"text": "<b>bold</b>"}},
+		},
+		{
 			name:        "file segment",
 			segmentType: "file",
 			wantText:    "",

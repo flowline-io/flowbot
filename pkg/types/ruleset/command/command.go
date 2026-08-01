@@ -2,7 +2,7 @@
 package command
 
 import (
-	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/flowline-io/flowbot/pkg/parser"
@@ -23,21 +23,36 @@ func (Rule) TYPE() types.RulesetType {
 	return types.CommandRule
 }
 
+// FormatHelpLine formats a single command help entry for MarkdownMsg.
+func (r Rule) FormatHelpLine() string {
+	return "`/" + r.Define + "` — " + r.Help
+}
+
 type Ruleset []Rule
 
 func (r Ruleset) Help(in string) (types.MsgPayload, error) {
-	if strings.ToLower(in) == "help" || strings.ToLower(in) == "h" {
-		m := make(types.KV)
-		for _, rule := range r {
-			m[fmt.Sprintf("/%s", rule.Define)] = rule.Help
-		}
-
-		return types.InfoMsg{
-			Title: "Help",
-			Model: m,
-		}, nil
+	lower := strings.ToLower(in)
+	if lower != "help" && lower != "h" {
+		return nil, nil
 	}
-	return nil, nil
+	if len(r) == 0 {
+		return nil, nil
+	}
+
+	rules := slices.Clone(r)
+	slices.SortFunc(rules, func(a, b Rule) int {
+		return strings.Compare(a.Define, b.Define)
+	})
+
+	lines := make([]string, 0, len(rules))
+	for _, rule := range rules {
+		lines = append(lines, rule.FormatHelpLine())
+	}
+
+	return types.MarkdownMsg{
+		Title: "Help",
+		Raw:   strings.Join(lines, "\n"),
+	}, nil
 }
 
 func (r Ruleset) ProcessCommand(ctx types.Context, in string) (types.MsgPayload, error) {

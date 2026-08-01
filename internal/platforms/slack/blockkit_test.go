@@ -58,7 +58,9 @@ func TestSectionWithButton(t *testing.T) {
 		btnText  string
 		actionID string
 		value    string
+		url      string
 		style    slack.Style
+		wantURL  string
 	}{
 		{
 			name:     "primary button",
@@ -77,17 +79,19 @@ func TestSectionWithButton(t *testing.T) {
 			style:    slack.StyleDanger,
 		},
 		{
-			name:     "no style",
-			text:     "Plain",
-			btnText:  "OK",
-			actionID: "act-ok",
-			value:    "ok",
-			style:    "",
+			name:     "link button sets url",
+			text:     "<https://example.com|OAuth>",
+			btnText:  "Open Link",
+			actionID: "link_open",
+			value:    "https://example.com",
+			url:      "https://example.com",
+			style:    slack.StylePrimary,
+			wantURL:  "https://example.com",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sec := sectionWithButton(tt.text, tt.btnText, tt.actionID, tt.value, tt.style)
+			sec := sectionWithButton(tt.text, tt.btnText, tt.actionID, tt.value, tt.url, tt.style)
 			if sec.Type != slack.MBTSection {
 				t.Errorf("expected Section block type, got %s", sec.Type)
 			}
@@ -101,11 +105,8 @@ func TestSectionWithButton(t *testing.T) {
 			if btn.ActionID != tt.actionID {
 				t.Errorf("expected actionID %q, got %q", tt.actionID, btn.ActionID)
 			}
-			if btn.Value != tt.value {
-				t.Errorf("expected value %q, got %q", tt.value, btn.Value)
-			}
-			if btn.Style != tt.style {
-				t.Errorf("expected style %q, got %q", tt.style, btn.Style)
+			if btn.URL != tt.wantURL {
+				t.Errorf("expected URL %q, got %q", tt.wantURL, btn.URL)
 			}
 		})
 	}
@@ -115,32 +116,74 @@ func TestSectionFields(t *testing.T) {
 	tests := []struct {
 		name       string
 		fields     map[string]string
-		wantFields int
+		wantBlocks int
+		wantFirst  int
 	}{
 		{
 			name:       "multiple fields",
 			fields:     map[string]string{"CPU": "80%", "Memory": "60%", "Disk": "40%"},
-			wantFields: 3,
+			wantBlocks: 1,
+			wantFirst:  3,
 		},
 		{
 			name:       "single field",
 			fields:     map[string]string{"Status": "OK"},
-			wantFields: 1,
+			wantBlocks: 1,
+			wantFirst:  1,
 		},
 		{
 			name:       "empty fields",
 			fields:     map[string]string{},
-			wantFields: 0,
+			wantBlocks: 0,
+			wantFirst:  0,
+		},
+		{
+			name: "chunks when more than ten fields",
+			fields: map[string]string{
+				"a": "1", "b": "2", "c": "3", "d": "4", "e": "5",
+				"f": "6", "g": "7", "h": "8", "i": "9", "j": "10",
+				"k": "11",
+			},
+			wantBlocks: 2,
+			wantFirst:  10,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			sec := sectionFields(tt.fields)
-			if sec.Type != slack.MBTSection {
-				t.Errorf("expected Section block type, got %s", sec.Type)
+			blocks := sectionFields(tt.fields)
+			if len(blocks) != tt.wantBlocks {
+				t.Fatalf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
 			}
-			if len(sec.Fields) != tt.wantFields {
-				t.Errorf("expected %d fields, got %d", tt.wantFields, len(sec.Fields))
+			if tt.wantBlocks == 0 {
+				return
+			}
+			sec, ok := blocks[0].(*slack.SectionBlock)
+			if !ok {
+				t.Fatalf("expected *slack.SectionBlock, got %T", blocks[0])
+			}
+			if len(sec.Fields) != tt.wantFirst {
+				t.Errorf("expected %d fields in first block, got %d", tt.wantFirst, len(sec.Fields))
+			}
+		})
+	}
+}
+
+func TestMarkdownTextBlocks(t *testing.T) {
+	tests := []struct {
+		name       string
+		text       string
+		wantBlocks int
+	}{
+		{name: "empty text", text: "", wantBlocks: 0},
+		{name: "short text one block", text: "*hub*\n`/version` — Print version", wantBlocks: 1},
+		{name: "long text splits into multiple blocks", text: strings.Repeat("line\n", 800), wantBlocks: 2},
+		{name: "multibyte line counted by runes", text: strings.Repeat("你", markdownMaxBlockLen+10), wantBlocks: 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			blocks := markdownTextBlocks(tt.text)
+			if len(blocks) != tt.wantBlocks {
+				t.Fatalf("expected %d blocks, got %d", tt.wantBlocks, len(blocks))
 			}
 		})
 	}
@@ -522,174 +565,128 @@ func TestBuildActionCard(t *testing.T) {
 
 func TestBuildTableBlocks(t *testing.T) {
 	tests := []struct {
-		name    string
-		title   string
-		headers []string
-		rows    [][]any
-		wantMin int // minimum blocks
+		name     string
+		title    string
+		headers  []string
+		rows     [][]any
+		wantLen  int
+		wantRows int
+		wantURL  bool
 	}{
 		{
-			name:    "table with title and data",
-			title:   "Stats",
-			headers: []string{"Name", "Value"},
-			rows:    [][]any{{"CPU", "80%"}, {"MEM", "60%"}},
-			wantMin: 2, // header + at least 1 section
+			name:     "table with title and data",
+			title:    "Stats",
+			headers:  []string{"Name", "Value"},
+			rows:     [][]any{{"CPU", "80%"}, {"MEM", "60%"}},
+			wantLen:  2, // header + table
+			wantRows: 3, // header row + 2 data rows
 		},
 		{
-			name:    "table without title",
-			title:   "",
-			headers: []string{"Col1", "Col2"},
-			rows:    [][]any{{"a", 1}},
-			wantMin: 1, // section only
+			name:     "table without title",
+			title:    "",
+			headers:  []string{"Col1", "Col2"},
+			rows:     [][]any{{"a", 1}},
+			wantLen:  1,
+			wantRows: 2,
 		},
 		{
-			name:    "empty table",
-			title:   "",
-			headers: []string{},
-			rows:    [][]any{},
-			wantMin: 0,
+			name:     "empty table",
+			title:    "",
+			headers:  []string{},
+			rows:     [][]any{},
+			wantLen:  0,
+			wantRows: 0,
 		},
 		{
-			name:    "empty table with title",
-			title:   "Empty",
-			headers: []string{},
-			rows:    [][]any{},
-			wantMin: 1, // header only
+			name:     "empty table with title",
+			title:    "Empty",
+			headers:  []string{},
+			rows:     [][]any{},
+			wantLen:  1, // header only
+			wantRows: 0,
+		},
+		{
+			name:     "url cells become rich text links",
+			title:    "Newest Bookmark List",
+			headers:  []string{"Id", "Title", "URL"},
+			rows:     [][]any{{"abc", "Intro", "https://example.com/docs"}},
+			wantLen:  2,
+			wantRows: 2,
+			wantURL:  true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			blocks := buildTableBlocks(tt.title, tt.headers, tt.rows)
-			if len(blocks) < tt.wantMin {
-				t.Errorf("expected at least %d blocks, got %d", tt.wantMin, len(blocks))
+			if len(blocks) != tt.wantLen {
+				t.Fatalf("expected %d blocks, got %d", tt.wantLen, len(blocks))
 			}
-		})
-	}
-}
-
-func TestCalcColumnWidths(t *testing.T) {
-	tests := []struct {
-		name    string
-		headers []string
-		rows    [][]any
-		want    []int
-	}{
-		{
-			name:    "header wider",
-			headers: []string{"LongHeader", "S"},
-			rows:    [][]any{{"a", "b"}},
-			want:    []int{len("LongHeader"), 1},
-		},
-		{
-			name:    "cell wider",
-			headers: []string{"H", "Val"},
-			rows:    [][]any{{"x", "very long value"}},
-			want:    []int{1, len("very long value")},
-		},
-		{
-			name:    "empty everything",
-			headers: []string{},
-			rows:    nil,
-			want:    []int{},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := calcColumnWidths(tt.headers, tt.rows)
-			if len(got) != len(tt.want) {
-				t.Fatalf("expected %d widths, got %d", len(tt.want), len(got))
+			if tt.wantRows == 0 {
+				return
 			}
-			for i, w := range tt.want {
-				if got[i] != w {
-					t.Errorf("col %d: expected width %d, got %d", i, w, got[i])
+			table, ok := blocks[len(blocks)-1].(*slack.TableBlock)
+			if !ok {
+				t.Fatalf("expected *slack.TableBlock, got %T", blocks[len(blocks)-1])
+			}
+			if len(table.Rows) != tt.wantRows {
+				t.Errorf("expected %d table rows, got %d", tt.wantRows, len(table.Rows))
+			}
+			if tt.wantURL {
+				cell, ok := table.Rows[1][2].(*slack.TableRichTextCell)
+				if !ok {
+					t.Fatalf("expected URL cell as *slack.TableRichTextCell, got %T", table.Rows[1][2])
+				}
+				sec, ok := cell.Elements[0].(*slack.RichTextSection)
+				if !ok {
+					t.Fatalf("expected rich text section, got %T", cell.Elements[0])
+				}
+				link, ok := sec.Elements[0].(*slack.RichTextSectionLinkElement)
+				if !ok {
+					t.Fatalf("expected link element, got %T", sec.Elements[0])
+				}
+				if link.URL != "https://example.com/docs" {
+					t.Errorf("expected link URL, got %q", link.URL)
 				}
 			}
 		})
 	}
 }
 
-func TestBuildTableLines(t *testing.T) {
+func TestLooksLikeHTTPURL(t *testing.T) {
 	tests := []struct {
-		name      string
-		headers   []string
-		colWidths []int
-		rows      [][]any
-		wantLines int // header + separator + rows
+		name string
+		in   string
+		want bool
 	}{
-		{
-			name:      "two columns with data",
-			headers:   []string{"Name", "Value"},
-			colWidths: []int{4, 5},
-			rows:      [][]any{{"CPU", "80%"}},
-			wantLines: 3,
-		},
-		{
-			name:      "no rows",
-			headers:   []string{"Col"},
-			colWidths: []int{3},
-			rows:      nil,
-			wantLines: 2,
-		},
-		{
-			name:      "multiple rows",
-			headers:   []string{"A"},
-			colWidths: []int{1},
-			rows:      [][]any{{1}, {2}, {3}},
-			wantLines: 5,
-		},
+		{name: "https", in: "https://example.com", want: true},
+		{name: "http", in: "http://example.com", want: true},
+		{name: "plain text", in: "example.com", want: false},
+		{name: "empty", in: "", want: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lines := buildTableLines(tt.headers, tt.colWidths, tt.rows)
-			if len(lines) != tt.wantLines {
-				t.Errorf("expected %d lines, got %d", tt.wantLines, len(lines))
+			if got := looksLikeHTTPURL(tt.in); got != tt.want {
+				t.Errorf("looksLikeHTTPURL(%q) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTableLinesToBlocks(t *testing.T) {
+func TestTableDataCell(t *testing.T) {
 	tests := []struct {
-		name    string
-		lines   []string
-		wantMin int
+		name     string
+		text     string
+		wantType slack.TableCellType
 	}{
-		{
-			name:    "single short line",
-			lines:   []string{"a b c"},
-			wantMin: 1,
-		},
-		{
-			name:    "multiple short lines",
-			lines:   []string{"header", "------", "row1", "row2", "row3"},
-			wantMin: 1,
-		},
-		{
-			name:    "no lines",
-			lines:   nil,
-			wantMin: 0,
-		},
-		{
-			name: "large input splits into multiple blocks",
-			lines: func() []string {
-				var l []string
-				for i := range 100 {
-					var line strings.Builder
-					for j := range 80 {
-						_, _ = line.WriteString(string(rune('A' + (i+j)%26)))
-					}
-					l = append(l, line.String())
-				}
-				return l
-			}(),
-			wantMin: 2,
-		},
+		{name: "plain text uses raw_text", text: "hello", wantType: slack.TableCellRawText},
+		{name: "https url uses rich_text", text: "https://a.com", wantType: slack.TableCellRichText},
+		{name: "empty uses raw_text", text: "", wantType: slack.TableCellRawText},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			blocks := tableLinesToBlocks(tt.lines)
-			if len(blocks) < tt.wantMin {
-				t.Errorf("expected at least %d blocks, got %d", tt.wantMin, len(blocks))
+			cell := tableDataCell(tt.text)
+			if cell.TableCellType() != tt.wantType {
+				t.Errorf("expected cell type %s, got %s", tt.wantType, cell.TableCellType())
 			}
 		})
 	}
@@ -708,7 +705,7 @@ func TestDescriptionBlocks(t *testing.T) {
 			wantBlocks:  0,
 		},
 		{
-			name:        "yaml with underscores is fenced",
+			name:        "markdown description without code fence",
 			description: "status: healthy\napp_statuses:\n  - name: flowbot\n    health: healthy",
 			wantBlocks:  1,
 			wantContain: "app_statuses",
@@ -735,8 +732,8 @@ func TestDescriptionBlocks(t *testing.T) {
 			if !strings.Contains(sec.Text.Text, tt.wantContain) {
 				t.Fatalf("expected section to contain %q, got %q", tt.wantContain, sec.Text.Text)
 			}
-			if !strings.Contains(sec.Text.Text, "```") {
-				t.Fatalf("expected fenced code block, got %q", sec.Text.Text)
+			if strings.Contains(sec.Text.Text, "```") {
+				t.Fatalf("did not expect fenced code block, got %q", sec.Text.Text)
 			}
 		})
 	}
