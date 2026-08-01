@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
+	"github.com/flowline-io/flowbot/internal/store/ent/schema"
 	"github.com/flowline-io/flowbot/pkg/agent/approval"
 	"github.com/flowline-io/flowbot/pkg/agent/dcg"
 	"github.com/flowline-io/flowbot/pkg/agent/hooks"
@@ -236,4 +239,70 @@ func TestAutonomousIgnoresAutoMode(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Block)
+}
+
+// TestPlatformRunUsesResolvedApprovalMode mirrors Slack/platform runs: no ConfirmGate
+// and no ChatHookDeps.ApprovalMode override — mode must come from ResolveRunApprovalMode.
+func TestPlatformRunUsesResolvedApprovalMode(t *testing.T) {
+	setupApprovalHookTest(t)
+	ctx := context.Background()
+	uid := types.Uid("user-platform-approval")
+	sessionID := "sess-platform-approval"
+	require.NoError(t, store.ChatStoreFromDB().CreateChatSession(ctx, &gen.ChatSession{
+		Flag: sessionID, UID: uid.String(), State: int(schema.ChatSessionActive),
+	}))
+	require.NoError(t, SaveUserApprovalMode(ctx, uid, approval.ModeAuto))
+
+	emitLS := func(t *testing.T) *hooks.ToolCallResult {
+		t.Helper()
+		reg := hooks.NewRegistry()
+		RegisterHooks(reg, ChatHookDeps{
+			SessionID: sessionID,
+			UID:       uid,
+			Service:   NewService(),
+			Kind:      RunKindInteractive,
+			DCG:       dcg.AllowAllChecker{},
+			// No ApprovalMode, no Confirm — same as runChatAgent / Slack.
+		})
+		result, err := reg.EmitToolCall(ctx, hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+			Args:     map[string]any{"command": "ls -all"},
+		})
+		require.NoError(t, err)
+		return result
+	}
+
+	t.Run("user auto allows unflagged terminal without confirm gate", func(t *testing.T) {
+		result := emitLS(t)
+		if result != nil {
+			assert.False(t, result.Block, "reason=%s", result.Reason)
+		}
+	})
+
+	t.Run("session manual override still asks without confirm gate", func(t *testing.T) {
+		require.NoError(t, SaveSessionApprovalMode(ctx, sessionID, approval.ModeManual))
+		result := emitLS(t)
+		require.NotNil(t, result)
+		assert.True(t, result.Block)
+		assert.Contains(t, result.Reason, "requires approval")
+	})
+}
+
+// TestPlatformUserWithoutWebApprovalStaysManual documents that approval mode is per uid.
+// After sole-web-account relink, new Slack sessions use the web uid; sessions created
+// under an orphan uid keep that uid until platform "end" then "chat".
+func TestPlatformUserWithoutWebApprovalStaysManual(t *testing.T) {
+	setupApprovalHookTest(t)
+	ctx := context.Background()
+	webUID := types.Uid("user-admin")
+	slackUID := types.Uid("orphan-slack-uid")
+	require.NoError(t, SaveUserApprovalMode(ctx, webUID, approval.ModeAuto))
+
+	mode, err := ResolveRunApprovalMode(ctx, "", slackUID)
+	require.NoError(t, err)
+	assert.Equal(t, approval.ModeManual, mode)
+
+	mode, err = ResolveRunApprovalMode(ctx, "", webUID)
+	require.NoError(t, err)
+	assert.Equal(t, approval.ModeAuto, mode)
 }

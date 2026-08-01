@@ -83,6 +83,26 @@ func (s *WebAccountStore) GetByUID(ctx context.Context, uid string) (*gen.WebAcc
 	return row, nil
 }
 
+// SoleAccount returns the only web account when exactly one exists.
+// Homelab installs typically have a single admin; platform chat identities can share it.
+func (s *WebAccountStore) SoleAccount(ctx context.Context) (*gen.WebAccount, bool, error) {
+	n, err := s.Count(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+	if n != 1 {
+		return nil, false, nil
+	}
+	row, err := s.client.WebAccount.Query().Only(ctx)
+	if err != nil {
+		if gen.IsNotFound(err) {
+			return nil, false, nil
+		}
+		return nil, false, fmt.Errorf("web account: sole account: %w", err)
+	}
+	return row, true, nil
+}
+
 // CreateAccountInput holds fields for creating a web account and ensuring a users row.
 type CreateAccountInput struct {
 	Username     string

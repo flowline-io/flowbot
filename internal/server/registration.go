@@ -30,45 +30,55 @@ func resolvePlatformUserFlag(data protocol.MessageEventData) string {
 // It checks if the platform user already exists by its flag, and if found, retrieves the existing user flag.
 // If the platform user does not exist, it creates a new user and platform user entry in the database.
 // It also associates the platform user with the platform.
+//
+// Single-web-account (homelab) installs attach platform identities to that account's user so
+// Chat Agent Permissions / approval mode configured in the Web UI apply to Slack/Discord chat.
+// Relink updates platform_users only; chat sessions created under an orphan uid keep that uid
+// until the user runs platform "end" then "chat" (or otherwise starts a new session).
 // Returns the user flag and an error if any operation fails.
 func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
-	platform, err := store.PlatformStoreFromDB().GetPlatformByName(context.Background(), data.Self.Platform)
+	ctx := context.Background()
+	platform, err := store.PlatformStoreFromDB().GetPlatformByName(ctx, data.Self.Platform)
 	if err != nil {
 		return "", err
 	}
 
 	platformUserFlag := resolvePlatformUserFlag(data)
 
-	platformUser, err := store.UserStoreFromDB().GetPlatformUserByFlag(context.Background(), platformUserFlag)
+	platformUser, err := store.UserStoreFromDB().GetPlatformUserByFlag(ctx, platformUserFlag)
 	if err != nil && !errors.Is(err, types.ErrNotFound) {
 		return "", err
 	}
 
 	if platformUser != nil && platformUser.ID > 0 {
-		user, err := store.UserStoreFromDB().GetUserById(context.Background(), platformUser.UserID)
+		user, err := store.UserStoreFromDB().GetUserById(ctx, platformUser.UserID)
 		if err == nil {
+			user, err = maybeRelinkPlatformUserToSoleWebAccount(ctx, platformUser, user)
+			if err != nil {
+				return "", err
+			}
 			return types.Uid(user.Flag), nil
 		}
 		if !errors.Is(err, types.ErrNotFound) {
 			return "", err
 		}
-		user, err = newUserRecord()
+		user, err = soleWebAccountOrNewUser(ctx)
 		if err != nil {
 			return "", err
 		}
 		platformUser.UserID = user.ID
-		if err = store.UserStoreFromDB().UpdatePlatformUser(context.Background(), platformUser); err != nil {
+		if err = store.UserStoreFromDB().UpdatePlatformUser(ctx, platformUser); err != nil {
 			return "", err
 		}
 		return types.Uid(user.Flag), nil
 	}
-	user, err := newUserRecord()
+	user, err := soleWebAccountOrNewUser(ctx)
 	if err != nil {
 		return "", err
 	}
 
 	email, avatarURL := platformUserProfileDefaults(data.Self.Platform, platformUserFlag)
-	_, err = store.UserStoreFromDB().CreatePlatformUser(context.Background(), &gen.PlatformUser{
+	_, err = store.UserStoreFromDB().CreatePlatformUser(ctx, &gen.PlatformUser{
 		PlatformID: platform.ID,
 		UserID:     user.ID,
 		Flag:       platformUserFlag,
@@ -81,6 +91,58 @@ func registerPlatformUser(data protocol.MessageEventData) (types.Uid, error) {
 		return "", err
 	}
 	return types.Uid(user.Flag), nil
+}
+
+func soleWebAccountOrNewUser(ctx context.Context) (*gen.User, error) {
+	if accountUser, ok, err := soleWebAccountUser(ctx); err != nil {
+		return nil, err
+	} else if ok {
+		return accountUser, nil
+	}
+	return newUserRecord()
+}
+
+func soleWebAccountUser(ctx context.Context) (*gen.User, bool, error) {
+	account, ok, err := store.WebAccountStoreFromDB().SoleAccount(ctx)
+	if err != nil || !ok {
+		return nil, ok, err
+	}
+	user, err := store.UserStoreFromDB().UserGet(ctx, types.Uid(account.UID))
+	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return user, true, nil
+}
+
+// maybeRelinkPlatformUserToSoleWebAccount rewrites orphan platform identities onto the
+// sole web account so Web UI permission/approval settings apply to existing Slack users.
+// Platform users already linked to a web account are left unchanged (multi-user safe).
+func maybeRelinkPlatformUserToSoleWebAccount(ctx context.Context, platformUser *gen.PlatformUser, current *gen.User) (*gen.User, error) {
+	if platformUser == nil || current == nil {
+		return current, nil
+	}
+	_, err := store.WebAccountStoreFromDB().GetByUID(ctx, current.Flag)
+	if err == nil {
+		return current, nil
+	}
+	if !errors.Is(err, types.ErrNotFound) {
+		return nil, err
+	}
+	accountUser, ok, err := soleWebAccountUser(ctx)
+	if err != nil || !ok {
+		return current, err
+	}
+	if accountUser.ID == current.ID {
+		return current, nil
+	}
+	platformUser.UserID = accountUser.ID
+	if err := store.UserStoreFromDB().UpdatePlatformUser(ctx, platformUser); err != nil {
+		return nil, err
+	}
+	return accountUser, nil
 }
 
 // newUserRecord creates a flowbot user row for first-time platform registration.

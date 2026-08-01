@@ -12,6 +12,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/config"
+	"github.com/flowline-io/flowbot/pkg/webauth"
 )
 
 func setupSQLiteTestDB(t *testing.T) {
@@ -117,6 +118,37 @@ func seedTestUser(t *testing.T, flag string) *gen.User {
 	}
 	require.NoError(t, store.UserStoreFromDB().UserCreate(context.Background(), user))
 	return user
+}
+
+func seedSoleWebAccount(t *testing.T, username string) *gen.WebAccount {
+	t.Helper()
+	hash, err := webauth.HashPassword("flowbot-dev-pass")
+	require.NoError(t, err)
+	row, err := store.WebAccountStoreFromDB().CreateFirstAccount(context.Background(), store.CreateAccountInput{
+		Username:     username,
+		PasswordHash: hash,
+	})
+	require.NoError(t, err)
+	return row
+}
+
+func seedExtraWebAccount(t *testing.T, username string) *gen.WebAccount {
+	t.Helper()
+	ctx := context.Background()
+	hash, err := webauth.HashPassword("flowbot-dev-pass")
+	require.NoError(t, err)
+	uid := webauth.UIDForUsername(username)
+	ws := store.WebAccountStoreFromDB()
+	row, err := ws.Client().WebAccount.Create().
+		SetUsername(username).
+		SetUID(uid).
+		SetPasswordHash(hash).
+		SetTotpEnabled(false).
+		SetBackupCodeHashes([]string{}).
+		Save(ctx)
+	require.NoError(t, err)
+	require.NoError(t, ws.EnsureUser(ctx, uid, username))
+	return row
 }
 
 func seedTestPlatformUser(t *testing.T, platformID, userID int64, flag, email, avatarURL string) *gen.PlatformUser {

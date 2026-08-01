@@ -99,13 +99,14 @@ func TestPlatformUserProfileDefaults(t *testing.T) {
 
 func TestRegisterPlatformUser(t *testing.T) {
 	tests := []struct {
-		name        string
-		seed        func(t *testing.T) protocol.MessageEventData
-		wantUID     string
-		wantEmail   string
-		wantErr     bool
-		wantCreated bool
-		checkRepair bool
+		name         string
+		seed         func(t *testing.T) protocol.MessageEventData
+		wantUID      string
+		wantUIDNotIn []string
+		wantEmail    string
+		wantErr      bool
+		wantCreated  bool
+		checkRepair  bool
 	}{
 		{
 			name: "new slack user gets placeholder profile fields",
@@ -118,6 +119,63 @@ func TestRegisterPlatformUser(t *testing.T) {
 			},
 			wantEmail:   "U01DMQDTV5W@slack.local",
 			wantCreated: true,
+		},
+		{
+			name: "new slack user attaches to sole web account",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				seedTestPlatform(t, "slack")
+				seedSoleWebAccount(t, "admin")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
+			},
+			wantUID:     "user-admin",
+			wantEmail:   "U01DMQDTV5W@slack.local",
+			wantCreated: true,
+		},
+		{
+			name: "orphan platform user relinks to sole web account",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				seedSoleWebAccount(t, "admin")
+				orphan := seedTestUser(t, "orphan-slack-user")
+				seedTestPlatformUser(t, platformID, orphan.ID, "U01DMQDTV5W", "", "")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
+			},
+			wantUID: "user-admin",
+		},
+		{
+			name: "new slack user stays independent with multiple web accounts",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				seedTestPlatform(t, "slack")
+				seedSoleWebAccount(t, "admin")
+				seedExtraWebAccount(t, "other")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
+			},
+			wantUIDNotIn: []string{"user-admin", "user-other"},
+			wantCreated:  true,
+		},
+		{
+			name: "orphan does not relink with multiple web accounts",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				seedSoleWebAccount(t, "admin")
+				seedExtraWebAccount(t, "other")
+				orphan := seedTestUser(t, "orphan-slack-user")
+				seedTestPlatformUser(t, platformID, orphan.ID, "U01DMQDTV5W", "", "")
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
+			},
+			wantUID: "orphan-slack-user",
 		},
 		{
 			name: "existing platform user returns linked user flag",
@@ -158,6 +216,22 @@ func TestRegisterPlatformUser(t *testing.T) {
 			checkRepair: true,
 		},
 		{
+			name: "broken platform user link repairs onto sole web account",
+			seed: func(t *testing.T) protocol.MessageEventData {
+				platformID := seedTestPlatform(t, "slack")
+				seedSoleWebAccount(t, "admin")
+				user := seedTestUser(t, "orphan-user")
+				seedTestPlatformUser(t, platformID, user.ID, "U01DMQDTV5W", "", "")
+				require.NoError(t, store.UserStoreFromDB().UserDelete(context.Background(), types.Uid(user.Flag), true))
+				return protocol.MessageEventData{
+					Self:   protocol.Self{Platform: "slack"},
+					UserId: "U01DMQDTV5W",
+				}
+			},
+			wantUID:     "user-admin",
+			checkRepair: true,
+		},
+		{
 			name: "missing user id gets generated platform flag",
 			seed: func(t *testing.T) protocol.MessageEventData {
 				seedTestPlatform(t, "slack")
@@ -183,6 +257,9 @@ func TestRegisterPlatformUser(t *testing.T) {
 				assert.Equal(t, types.Uid(tt.wantUID), uid)
 			} else {
 				assert.NotEmpty(t, uid.String())
+			}
+			for _, blocked := range tt.wantUIDNotIn {
+				assert.NotEqual(t, types.Uid(blocked), uid)
 			}
 			if tt.wantCreated {
 				user, err := store.UserStoreFromDB().UserGet(context.Background(), uid)
