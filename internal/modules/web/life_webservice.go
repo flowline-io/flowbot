@@ -119,16 +119,16 @@ func mapLifeCharacterData(uid string, char *lifemod.CharacterView, pendingCount 
 	planTree := make([]pages.LifePlanNodeRow, 0, len(char.PlanTree))
 	planParents := make([]pages.LifePlanParentOption, 0)
 	master, minor := "Set a Project goal", "Set an Area goal"
-	for _, g := range char.Goals {
-		if g.Status != "Active" {
+	for _, g := range goals {
+		if g.Status != pkglife.GoalStatusActive {
 			continue
 		}
 		switch g.Category {
-		case "Project":
+		case pkglife.GoalCategoryProject:
 			if master == "Set a Project goal" {
 				master = g.Title
 			}
-		case "Area":
+		case pkglife.GoalCategoryArea:
 			if minor == "Set an Area goal" {
 				minor = g.Title
 			}
@@ -335,7 +335,7 @@ func lifeGoalsPageData(uid string) (pages.LifeGoalsData, error) {
 	}
 	activeAreas := make([]pages.LifeGoalRow, 0)
 	for _, g := range identity.Goals {
-		if g.Category == "Area" && g.Status == "Active" {
+		if g.Category == pkglife.GoalCategoryArea && g.Status == pkglife.GoalStatusActive {
 			activeAreas = append(activeAreas, g)
 		}
 	}
@@ -643,20 +643,13 @@ func buildLifeQuestsData(
 }
 
 func mapLifeGoalRows(goals []*gen.LifeGoal) []pages.LifeGoalRow {
-	byID := make(map[int64]*gen.LifeGoal, len(goals))
-	for _, g := range goals {
-		byID[g.ID] = g
-	}
-	rows := make([]pages.LifeGoalRow, 0, len(goals))
-	for _, g := range goals {
-		row := pages.LifeGoalRow{Flag: g.Flag, Title: g.Title, Category: g.Category, Status: g.Status}
-		if g.AreaID != nil {
-			if area, ok := byID[*g.AreaID]; ok && area != nil {
-				row.AreaFlag = area.Flag
-				row.AreaTitle = area.Title
-			}
-		}
-		rows = append(rows, row)
+	views := lifemod.MapGoalViews(goals)
+	rows := make([]pages.LifeGoalRow, 0, len(views))
+	for _, g := range views {
+		rows = append(rows, pages.LifeGoalRow{
+			Flag: g.Flag, Title: g.Title, Category: g.Category, Status: g.Status,
+			AreaFlag: g.AreaFlag, AreaTitle: g.AreaTitle,
+		})
 	}
 	return rows
 }
@@ -665,7 +658,7 @@ func mapActiveGoalRows(char *lifemod.CharacterView) []pages.LifeGoalRow {
 	all := mapLifeGoalRows(char.Goals)
 	goalRows := make([]pages.LifeGoalRow, 0, len(all))
 	for _, g := range all {
-		if g.Status != "Active" {
+		if g.Status != pkglife.GoalStatusActive {
 			continue
 		}
 		goalRows = append(goalRows, g)

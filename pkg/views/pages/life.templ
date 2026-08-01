@@ -241,7 +241,10 @@ templ lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) {
 				class="btn btn-ghost btn-sm life-goal-delete"
 				hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
 				hx-swap="none"
-				hx-confirm="Delete this goal?"
+				data-confirm="Delete this goal?"
+				data-confirm-title="Delete Goal"
+				data-confirm-btn="Delete"
+				data-confirm-class="btn-error"
 				data-testid={ "life-goal-delete-" + g.Flag }
 			>Delete</button>
 		</div>
@@ -1240,7 +1243,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 										<p class="life-inv-title">
 											{ it.Name }
 											if it.Equipped {
-												<span class="flowbot-chip flowbot-chip-info text-xs ml-1 align-middle">Equipped</span>
+												<span class="life-meta-chip life-meta-chip-ok text-xs ml-1 align-middle">Equipped</span>
 											}
 										</p>
 										<div class="life-quest-meta">
@@ -1322,9 +1325,9 @@ templ LifeAchievementsPage(data LifeAchievementsData) {
 									<div class="life-achievement-head">
 										<h2 class="life-achievement-name">{ item.Name }</h2>
 										if item.Unlocked {
-											<span class="flowbot-chip flowbot-chip-success">Unlocked</span>
+											<span class="life-meta-chip life-meta-chip-ok">Unlocked</span>
 										} else {
-											<span class="flowbot-chip">Locked</span>
+											<span class="life-meta-chip">Locked</span>
 										}
 									</div>
 									<p class="life-achievement-desc">{ item.Description }</p>

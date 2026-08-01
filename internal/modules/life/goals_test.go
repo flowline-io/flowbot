@@ -43,6 +43,21 @@ func TestGoalContextTitle(t *testing.T) {
 	}
 }
 
+func TestMapGoalViewsResolvesArea(t *testing.T) {
+	t.Parallel()
+	areaID := int64(10)
+	views := MapGoalViews([]*gen.LifeGoal{
+		{ID: 10, Flag: "area-1", Title: "Health", Category: "Area", Status: "Active"},
+		{ID: 11, Flag: "proj-1", Title: "Run 5k", Category: "Project", Status: "Active", AreaID: &areaID},
+		{ID: 12, Flag: "proj-2", Title: "Orphan", Category: "Project", Status: "Active", AreaID: new(int64(99))},
+	})
+	require.Len(t, views, 3)
+	assert.Empty(t, views[0].AreaFlag)
+	assert.Equal(t, "area-1", views[1].AreaFlag)
+	assert.Equal(t, "Health", views[1].AreaTitle)
+	assert.Empty(t, views[2].AreaFlag)
+}
+
 //go:fix inline
 func int64Ptr(v int64) *int64 { return new(v) }
 

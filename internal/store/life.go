@@ -144,6 +144,16 @@ func (s *LifeStore) ready() bool {
 	return s != nil && s.client != nil
 }
 
+func lifePageBounds(limit, offset int) (lim, off int, ok bool) {
+	if limit <= 0 {
+		return 0, 0, false
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	return limit, offset, true
+}
+
 // GetProfileByUserID returns the life profile for a platform user id.
 func (s *LifeStore) GetProfileByUserID(ctx context.Context, userID string) (*gen.LifeProfile, error) {
 	if !s.ready() {
@@ -857,11 +867,8 @@ func (s *LifeStore) ListQuestsPage(ctx context.Context, profileID int64, status 
 	} else {
 		q = q.Order(gen.Desc(lifequest.FieldCreatedAt), gen.Desc(lifequest.FieldID))
 	}
-	if limit > 0 {
-		if offset < 0 {
-			offset = 0
-		}
-		q = q.Limit(limit).Offset(offset)
+	if lim, off, ok := lifePageBounds(limit, offset); ok {
+		q = q.Limit(lim).Offset(off)
 	}
 	rows, err := q.All(ctx)
 	if err != nil {
@@ -1240,11 +1247,8 @@ func (s *LifeStore) ListInventoryPage(ctx context.Context, profileID int64, limi
 		return nil, 0, fmt.Errorf("life: count inventory: %w", err)
 	}
 	q = q.Order(gen.Desc(lifeinventory.FieldAcquiredAt), gen.Desc(lifeinventory.FieldID))
-	if limit > 0 {
-		if offset < 0 {
-			offset = 0
-		}
-		q = q.Limit(limit).Offset(offset)
+	if lim, off, ok := lifePageBounds(limit, offset); ok {
+		q = q.Limit(lim).Offset(off)
 	}
 	rows, err := q.All(ctx)
 	if err != nil {
@@ -1348,11 +1352,8 @@ func (s *LifeStore) ListActionLogsPage(ctx context.Context, profileID int64, lim
 		return nil, 0, fmt.Errorf("life: count action logs: %w", err)
 	}
 	q = q.Order(gen.Desc(lifeactionlog.FieldCreatedAt), gen.Desc(lifeactionlog.FieldID))
-	if limit > 0 {
-		if offset < 0 {
-			offset = 0
-		}
-		q = q.Limit(limit).Offset(offset)
+	if lim, off, ok := lifePageBounds(limit, offset); ok {
+		q = q.Limit(lim).Offset(off)
 	}
 	rows, err := q.All(ctx)
 	if err != nil {

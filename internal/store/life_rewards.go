@@ -78,11 +78,8 @@ func (s *LifeStore) ListRewardsPage(ctx context.Context, profileID int64, active
 		return nil, 0, fmt.Errorf("life: count rewards: %w", err)
 	}
 	q = q.Order(gen.Desc(lifereward.FieldCreatedAt), gen.Desc(lifereward.FieldID))
-	if limit > 0 {
-		if offset < 0 {
-			offset = 0
-		}
-		q = q.Limit(limit).Offset(offset)
+	if lim, off, ok := lifePageBounds(limit, offset); ok {
+		q = q.Limit(lim).Offset(off)
 	}
 	rows, err := q.All(ctx)
 	if err != nil {
@@ -184,11 +181,8 @@ func (s *LifeStore) ListRewardRedemptionsPage(ctx context.Context, profileID int
 		return nil, 0, fmt.Errorf("life: count reward redemptions: %w", err)
 	}
 	q = q.Order(gen.Desc(liferewardredemption.FieldRedeemedAt), gen.Desc(liferewardredemption.FieldID))
-	if limit > 0 {
-		if offset < 0 {
-			offset = 0
-		}
-		q = q.Limit(limit).Offset(offset)
+	if lim, off, ok := lifePageBounds(limit, offset); ok {
+		q = q.Limit(lim).Offset(off)
 	}
 	rows, err := q.All(ctx)
 	if err != nil {

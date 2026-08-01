@@ -173,11 +173,11 @@ func LifeGoalGroupTestID(group LifeGoalGroup) string {
 // LifeGoalStatusClass maps goal status to a life-meta-chip modifier.
 func LifeGoalStatusClass(status string) string {
 	switch strings.TrimSpace(status) {
-	case "Active":
+	case pkglife.GoalStatusActive:
 		return "life-meta-chip-ok"
-	case "Paused":
+	case pkglife.GoalStatusPaused:
 		return "life-meta-chip-warn"
-	case "Completed":
+	case pkglife.GoalStatusCompleted:
 		return "life-meta-chip-diff"
 	default:
 		return ""
@@ -196,7 +196,7 @@ func LifeGoalAreaOptions(active []LifeGoalRow, currentFlag, currentTitle string)
 	}
 	out := make([]LifeGoalRow, 0, len(active)+1)
 	out = append(out, active...)
-	out = append(out, LifeGoalRow{Flag: currentFlag, Title: currentTitle, Category: "Area"})
+	out = append(out, LifeGoalRow{Flag: currentFlag, Title: currentTitle, Category: pkglife.GoalCategoryArea})
 	return out
 }
 
@@ -204,7 +204,7 @@ func LifeGoalAreaOptions(active []LifeGoalRow, currentFlag, currentTitle string)
 func LifeGroupGoals(goals []LifeGoalRow) []LifeGoalGroup {
 	areas := make([]LifeGoalRow, 0)
 	for _, g := range goals {
-		if g.Category == "Area" {
+		if g.Category == pkglife.GoalCategoryArea {
 			areas = append(areas, g)
 		}
 	}
@@ -214,7 +214,7 @@ func LifeGroupGoals(goals []LifeGoalRow) []LifeGoalGroup {
 		area := areas[i]
 		children := make([]LifeGoalRow, 0)
 		for _, g := range goals {
-			if g.Category == "Area" {
+			if g.Category == pkglife.GoalCategoryArea {
 				continue
 			}
 			if g.AreaFlag == area.Flag {
@@ -226,7 +226,7 @@ func LifeGroupGoals(goals []LifeGoalRow) []LifeGoalGroup {
 	}
 	ungrouped := make([]LifeGoalRow, 0)
 	for _, g := range goals {
-		if g.Category == "Area" {
+		if g.Category == pkglife.GoalCategoryArea {
 			continue
 		}
 		if !used[g.Flag] {
@@ -641,18 +641,12 @@ func LifeBuildPageInfo(page, perPage, total int) LifePageInfo {
 
 // LifeNormalizeHistoryTab returns a valid history tab id.
 func LifeNormalizeHistoryTab(tab string) string {
-	if strings.EqualFold(strings.TrimSpace(tab), LifeHistoryTabActionLogs) {
-		return LifeHistoryTabActionLogs
-	}
-	return LifeHistoryTabCompleted
+	return lifeNormalizeAltTab(tab, LifeHistoryTabActionLogs, LifeHistoryTabCompleted)
 }
 
 // LifeHistoryTabClass returns the CSS class for one history tab control.
 func LifeHistoryTabClass(activeTab, tab string) string {
-	if LifeNormalizeHistoryTab(activeTab) == tab {
-		return "life-tab is-active"
-	}
-	return "life-tab"
+	return lifeTabClass(LifeNormalizeHistoryTab(activeTab), tab)
 }
 
 // LifeQuestsListURL builds the quests page URL with optional page/tab query params and fragment.
@@ -679,40 +673,30 @@ func LifeQuestsListURL(completedPage, logsPage int, tab, anchor string) string {
 
 // LifeWithCompletedPager attaches prev/next URLs for the completed quests tab.
 func LifeWithCompletedPager(info LifePageInfo, logsPage int) LifePageInfo {
-	if info.HasPrev {
-		info.PrevURL = LifeQuestsListURL(info.Page-1, logsPage, LifeHistoryTabCompleted, LifeHistoryAnchor)
-	}
-	if info.HasNext {
-		info.NextURL = LifeQuestsListURL(info.Page+1, logsPage, LifeHistoryTabCompleted, LifeHistoryAnchor)
-	}
-	return info
+	return lifeAttachPager(
+		info,
+		LifeQuestsListURL(info.Page-1, logsPage, LifeHistoryTabCompleted, LifeHistoryAnchor),
+		LifeQuestsListURL(info.Page+1, logsPage, LifeHistoryTabCompleted, LifeHistoryAnchor),
+	)
 }
 
 // LifeWithActionLogsPager attaches prev/next URLs for the action log tab.
 func LifeWithActionLogsPager(info LifePageInfo, completedPage int) LifePageInfo {
-	if info.HasPrev {
-		info.PrevURL = LifeQuestsListURL(completedPage, info.Page-1, LifeHistoryTabActionLogs, LifeHistoryAnchor)
-	}
-	if info.HasNext {
-		info.NextURL = LifeQuestsListURL(completedPage, info.Page+1, LifeHistoryTabActionLogs, LifeHistoryAnchor)
-	}
-	return info
+	return lifeAttachPager(
+		info,
+		LifeQuestsListURL(completedPage, info.Page-1, LifeHistoryTabActionLogs, LifeHistoryAnchor),
+		LifeQuestsListURL(completedPage, info.Page+1, LifeHistoryTabActionLogs, LifeHistoryAnchor),
+	)
 }
 
 // LifeNormalizeRewardsArchiveTab returns a valid rewards archive tab id.
 func LifeNormalizeRewardsArchiveTab(tab string) string {
-	if strings.EqualFold(strings.TrimSpace(tab), LifeRewardsTabDeactivated) {
-		return LifeRewardsTabDeactivated
-	}
-	return LifeRewardsTabRedemptions
+	return lifeNormalizeAltTab(tab, LifeRewardsTabDeactivated, LifeRewardsTabRedemptions)
 }
 
 // LifeRewardsArchiveTabClass returns the CSS class for one rewards archive tab control.
 func LifeRewardsArchiveTabClass(activeTab, tab string) string {
-	if LifeNormalizeRewardsArchiveTab(activeTab) == tab {
-		return "life-tab is-active"
-	}
-	return "life-tab"
+	return lifeTabClass(LifeNormalizeRewardsArchiveTab(activeTab), tab)
 }
 
 // LifeRewardsListURL builds the rewards page URL with optional page/tab query params and fragment.
@@ -739,24 +723,20 @@ func LifeRewardsListURL(redemptionsPage, inactivePage int, tab, anchor string) s
 
 // LifeWithRedemptionsPager attaches prev/next URLs for the redemptions tab.
 func LifeWithRedemptionsPager(info LifePageInfo, inactivePage int) LifePageInfo {
-	if info.HasPrev {
-		info.PrevURL = LifeRewardsListURL(info.Page-1, inactivePage, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor)
-	}
-	if info.HasNext {
-		info.NextURL = LifeRewardsListURL(info.Page+1, inactivePage, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor)
-	}
-	return info
+	return lifeAttachPager(
+		info,
+		LifeRewardsListURL(info.Page-1, inactivePage, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor),
+		LifeRewardsListURL(info.Page+1, inactivePage, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor),
+	)
 }
 
 // LifeWithInactiveRewardsPager attaches prev/next URLs for the deactivated tab.
 func LifeWithInactiveRewardsPager(info LifePageInfo, redemptionsPage int) LifePageInfo {
-	if info.HasPrev {
-		info.PrevURL = LifeRewardsListURL(redemptionsPage, info.Page-1, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor)
-	}
-	if info.HasNext {
-		info.NextURL = LifeRewardsListURL(redemptionsPage, info.Page+1, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor)
-	}
-	return info
+	return lifeAttachPager(
+		info,
+		LifeRewardsListURL(redemptionsPage, info.Page-1, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor),
+		LifeRewardsListURL(redemptionsPage, info.Page+1, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor),
+	)
 }
 
 // LifeInventoryListURL builds the inventory page URL with optional backpack page and fragment.
@@ -773,13 +753,35 @@ func LifeInventoryListURL(backpackPage int, anchor string) string {
 
 // LifeWithBackpackPager attaches prev/next URLs for the backpack section.
 func LifeWithBackpackPager(info LifePageInfo) LifePageInfo {
+	return lifeAttachPager(
+		info,
+		LifeInventoryListURL(info.Page-1, LifeBackpackAnchor),
+		LifeInventoryListURL(info.Page+1, LifeBackpackAnchor),
+	)
+}
+
+func lifeAttachPager(info LifePageInfo, prevURL, nextURL string) LifePageInfo {
 	if info.HasPrev {
-		info.PrevURL = LifeInventoryListURL(info.Page-1, LifeBackpackAnchor)
+		info.PrevURL = prevURL
 	}
 	if info.HasNext {
-		info.NextURL = LifeInventoryListURL(info.Page+1, LifeBackpackAnchor)
+		info.NextURL = nextURL
 	}
 	return info
+}
+
+func lifeNormalizeAltTab(tab, alt, defaultTab string) string {
+	if strings.EqualFold(strings.TrimSpace(tab), alt) {
+		return alt
+	}
+	return defaultTab
+}
+
+func lifeTabClass(activeTab, tab string) string {
+	if activeTab == tab {
+		return "life-tab is-active"
+	}
+	return "life-tab"
 }
 
 // LifeOccurrenceKindLabel returns a human label for one occurrence kind.

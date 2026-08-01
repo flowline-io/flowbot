@@ -214,7 +214,7 @@ func (s *Service) CreateQuestFromPrompt(ctx context.Context, userID, prompt, goa
 }
 
 func (s *Service) resolveGoalBinding(ctx context.Context, profileID int64, goalFlag string) (*int64, []string, error) {
-	goals, err := s.store.ListGoals(ctx, profileID, "Active")
+	goals, err := s.store.ListGoals(ctx, profileID, pkglife.GoalStatusActive)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -233,7 +233,7 @@ func (s *Service) resolveGoalBinding(ctx context.Context, profileID int64, goalF
 	if err != nil {
 		return nil, nil, err
 	}
-	if g == nil || g.Status != "Active" {
+	if g == nil || g.Status != pkglife.GoalStatusActive {
 		return nil, nil, lifeNotFound("goal not found")
 	}
 	return &g.ID, titles, nil
@@ -253,8 +253,43 @@ func goalContextTitle(g *gen.LifeGoal, byID map[int64]*gen.LifeGoal) string {
 	return g.Title + " · " + area.Title
 }
 
+// GoalView is a UI-ready goal row with optional Area parent labels resolved.
+type GoalView struct {
+	Flag      string
+	Title     string
+	Category  string
+	Status    string
+	AreaFlag  string
+	AreaTitle string
+}
+
+// MapGoalViews maps goal entities to view rows, resolving Area parents within the slice.
+func MapGoalViews(goals []*gen.LifeGoal) []GoalView {
+	byID := make(map[int64]*gen.LifeGoal, len(goals))
+	for _, g := range goals {
+		if g != nil {
+			byID[g.ID] = g
+		}
+	}
+	rows := make([]GoalView, 0, len(goals))
+	for _, g := range goals {
+		if g == nil {
+			continue
+		}
+		row := GoalView{Flag: g.Flag, Title: g.Title, Category: g.Category, Status: g.Status}
+		if g.AreaID != nil {
+			if area, ok := byID[*g.AreaID]; ok && area != nil {
+				row.AreaFlag = area.Flag
+				row.AreaTitle = area.Title
+			}
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
 func (s *Service) resolveAreaID(ctx context.Context, profileID int64, category, areaFlag string) (*int64, error) {
-	if category != "Project" && category != "Resource" {
+	if category != pkglife.GoalCategoryProject && category != pkglife.GoalCategoryResource {
 		return nil, nil
 	}
 	areaFlag = strings.TrimSpace(areaFlag)
@@ -265,7 +300,7 @@ func (s *Service) resolveAreaID(ctx context.Context, profileID int64, category, 
 	if err != nil {
 		return nil, err
 	}
-	if area == nil || area.Category != "Area" || area.Status != "Active" {
+	if area == nil || area.Category != pkglife.GoalCategoryArea || area.Status != pkglife.GoalStatusActive {
 		return nil, lifeInvalid("area not found or not active")
 	}
 	return &area.ID, nil
@@ -371,9 +406,9 @@ func (s *Service) CreateGoal(ctx context.Context, userID, title, category, areaF
 		return nil, lifeInvalid("goal title required")
 	}
 	switch category {
-	case "Project", "Area", "Resource":
+	case pkglife.GoalCategoryProject, pkglife.GoalCategoryArea, pkglife.GoalCategoryResource:
 	default:
-		category = "Project"
+		category = pkglife.GoalCategoryProject
 	}
 	areaID, err := s.resolveAreaID(ctx, p.ID, category, areaFlag)
 	if err != nil {
@@ -401,7 +436,7 @@ func (s *Service) SetGoalStatus(ctx context.Context, userID, goalFlag, status st
 		return lifeNotFound("goal not found")
 	}
 	switch status {
-	case "Active", "Paused", "Completed":
+	case pkglife.GoalStatusActive, pkglife.GoalStatusPaused, pkglife.GoalStatusCompleted:
 	default:
 		return lifeInvalid("invalid goal status")
 	}
@@ -423,12 +458,12 @@ func (s *Service) UpdateGoal(ctx context.Context, userID, goalFlag, title, categ
 		return lifeInvalid("goal title required")
 	}
 	switch category {
-	case "Project", "Area", "Resource":
+	case pkglife.GoalCategoryProject, pkglife.GoalCategoryArea, pkglife.GoalCategoryResource:
 	default:
 		category = g.Category
 	}
-	wasArea := g.Category == "Area"
-	if wasArea && category != "Area" {
+	wasArea := g.Category == pkglife.GoalCategoryArea
+	if wasArea && category != pkglife.GoalCategoryArea {
 		if err := s.store.ClearGoalAreaRefs(ctx, g.ID); err != nil {
 			return err
 		}
@@ -457,7 +492,7 @@ func (s *Service) DeleteGoal(ctx context.Context, userID, goalFlag string) error
 	if err != nil || g == nil {
 		return lifeNotFound("goal not found")
 	}
-	if g.Category == "Area" {
+	if g.Category == pkglife.GoalCategoryArea {
 		if err := s.store.ClearGoalAreaRefs(ctx, g.ID); err != nil {
 			return err
 		}

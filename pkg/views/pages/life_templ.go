@@ -868,14 +868,14 @@ func lifeGoalCard(g LifeGoalRow, activeAreas []LifeGoalRow) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "\" hx-swap=\"none\" hx-confirm=\"Delete this goal?\" data-testid=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 79, "\" hx-swap=\"none\" data-confirm=\"Delete this goal?\" data-confirm-title=\"Delete Goal\" data-confirm-btn=\"Delete\" data-confirm-class=\"btn-error\" data-testid=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var40 string
 		templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-goal-delete-" + g.Flag)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 245, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 248, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var40)
 		if templ_7745c5c3_Err != nil {
@@ -946,7 +946,7 @@ func LifePlanPage(data LifePlanData) templ.Component {
 					var templ_7745c5c3_Var44 string
 					templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.PlanTree)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 261, Col: 78}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 264, Col: 78}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 					if templ_7745c5c3_Err != nil {
@@ -977,7 +977,7 @@ func LifePlanPage(data LifePlanData) templ.Component {
 					var templ_7745c5c3_Var45 string
 					templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(data.BreakdownPreview.RootTitle)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 299, Col: 89}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 302, Col: 89}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 					if templ_7745c5c3_Err != nil {
@@ -995,7 +995,7 @@ func LifePlanPage(data LifePlanData) templ.Component {
 						var templ_7745c5c3_Var46 string
 						templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(data.BreakdownPreview.Description)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 301, Col: 71}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 304, Col: 71}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 						if templ_7745c5c3_Err != nil {
@@ -1021,7 +1021,7 @@ func LifePlanPage(data LifePlanData) templ.Component {
 					var templ_7745c5c3_Var47 string
 					templ_7745c5c3_Var47, templ_7745c5c3_Err = templ.ResolveAttributeValue(data.BreakdownPreview.PayloadJSON)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 312, Col: 90}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 315, Col: 90}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var47)
 					if templ_7745c5c3_Err != nil {
@@ -1133,7 +1133,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 				var templ_7745c5c3_Var51 string
 				templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.ActiveLeafCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 345, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 348, Col: 76}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 				if templ_7745c5c3_Err != nil {
@@ -1146,7 +1146,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 				var templ_7745c5c3_Var52 string
 				templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.TrackedLeafCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 346, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 349, Col: 77}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 				if templ_7745c5c3_Err != nil {
@@ -1194,7 +1194,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 					var templ_7745c5c3_Var53 string
 					templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(LifeSkillMonogram(data.SelectedNode.Title))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 380, Col: 111}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 383, Col: 111}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 					if templ_7745c5c3_Err != nil {
@@ -1207,7 +1207,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 					var templ_7745c5c3_Var54 string
 					templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelectedNode.Title)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 382, Col: 71}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 385, Col: 71}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
 					if templ_7745c5c3_Err != nil {
@@ -1225,7 +1225,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 						var templ_7745c5c3_Var55 string
 						templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelectedNode.Subtitle)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 384, Col: 78}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 387, Col: 78}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 						if templ_7745c5c3_Err != nil {
@@ -1265,7 +1265,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 					var templ_7745c5c3_Var58 string
 					templ_7745c5c3_Var58, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelectedNode.Status)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 389, Col: 117}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 392, Col: 117}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var58))
 					if templ_7745c5c3_Err != nil {
@@ -1278,7 +1278,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 					var templ_7745c5c3_Var59 string
 					templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.SelectedNode.PracticeCount))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 390, Col: 91}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 393, Col: 91}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 					if templ_7745c5c3_Err != nil {
@@ -1291,7 +1291,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 					var templ_7745c5c3_Var60 string
 					templ_7745c5c3_Var60, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.SelectedNode.SkillCount))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 391, Col: 88}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 394, Col: 88}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var60))
 					if templ_7745c5c3_Err != nil {
@@ -1309,7 +1309,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 						var templ_7745c5c3_Var61 string
 						templ_7745c5c3_Var61, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelectedNode.LastActivityLabel)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 395, Col: 95}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 398, Col: 95}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var61))
 						if templ_7745c5c3_Err != nil {
@@ -1342,7 +1342,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 							var templ_7745c5c3_Var62 string
 							templ_7745c5c3_Var62, templ_7745c5c3_Err = templ.JoinStringErrs(LifeSkillMonogram(evidence.Title))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 406, Col: 107}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 409, Col: 107}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var62))
 							if templ_7745c5c3_Err != nil {
@@ -1355,7 +1355,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 							var templ_7745c5c3_Var63 string
 							templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(evidence.Title)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 408, Col: 67}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 411, Col: 67}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 							if templ_7745c5c3_Err != nil {
@@ -1373,7 +1373,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 								var templ_7745c5c3_Var64 string
 								templ_7745c5c3_Var64, templ_7745c5c3_Err = templ.JoinStringErrs(evidence.Detail)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 410, Col: 70}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 413, Col: 70}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var64))
 								if templ_7745c5c3_Err != nil {
@@ -1391,7 +1391,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 							var templ_7745c5c3_Var65 string
 							templ_7745c5c3_Var65, templ_7745c5c3_Err = templ.JoinStringErrs(evidence.SourceType)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 415, Col: 63}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 418, Col: 63}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var65))
 							if templ_7745c5c3_Err != nil {
@@ -1404,7 +1404,7 @@ func LifeSkillsPage(data LifeSkillTreeData) templ.Component {
 							var templ_7745c5c3_Var66 string
 							templ_7745c5c3_Var66, templ_7745c5c3_Err = templ.JoinStringErrs(evidence.When)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 416, Col: 57}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 419, Col: 57}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var66))
 							if templ_7745c5c3_Err != nil {
@@ -1470,7 +1470,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var68 string
 			templ_7745c5c3_Var68, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(LifeIndentStyle(depth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 433, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 436, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var68))
 			if templ_7745c5c3_Err != nil {
@@ -1493,7 +1493,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var69 string
 			templ_7745c5c3_Var69, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-plan-node-" + node.Flag)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 433, Col: 160}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 436, Col: 160}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var69)
 			if templ_7745c5c3_Err != nil {
@@ -1506,7 +1506,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var70 string
 			templ_7745c5c3_Var70, templ_7745c5c3_Err = templ.JoinStringErrs(node.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 437, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 440, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var70))
 			if templ_7745c5c3_Err != nil {
@@ -1524,7 +1524,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var71 string
 				templ_7745c5c3_Var71, templ_7745c5c3_Err = templ.JoinStringErrs(node.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 439, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 442, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var71))
 				if templ_7745c5c3_Err != nil {
@@ -1542,7 +1542,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var72 string
 			templ_7745c5c3_Var72, templ_7745c5c3_Err = templ.JoinStringErrs(LifePlanNodeTypeLabel(node.NodeType))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 443, Col: 73}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 446, Col: 73}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var72))
 			if templ_7745c5c3_Err != nil {
@@ -1555,7 +1555,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var73 string
 			templ_7745c5c3_Var73, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(node.Children)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 444, Col: 74}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 447, Col: 74}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var73))
 			if templ_7745c5c3_Err != nil {
@@ -1573,7 +1573,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var74 string
 				templ_7745c5c3_Var74, templ_7745c5c3_Err = templ.JoinStringErrs(LifeTaskTypeLabel(node.TaskType))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 446, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 449, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var74))
 				if templ_7745c5c3_Err != nil {
@@ -1606,7 +1606,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var75 string
 			templ_7745c5c3_Var75, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(LifeIndentStyle(depth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 458, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 461, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var75))
 			if templ_7745c5c3_Err != nil {
@@ -1619,7 +1619,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var76 string
 			templ_7745c5c3_Var76, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-plan-node-" + node.Flag)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 458, Col: 121}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 461, Col: 121}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var76)
 			if templ_7745c5c3_Err != nil {
@@ -1632,7 +1632,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var77 string
 			templ_7745c5c3_Var77, templ_7745c5c3_Err = templ.JoinStringErrs(node.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 461, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 464, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var77))
 			if templ_7745c5c3_Err != nil {
@@ -1650,7 +1650,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var78 string
 				templ_7745c5c3_Var78, templ_7745c5c3_Err = templ.JoinStringErrs(node.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 463, Col: 57}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 466, Col: 57}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var78))
 				if templ_7745c5c3_Err != nil {
@@ -1668,7 +1668,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var79 string
 			templ_7745c5c3_Var79, templ_7745c5c3_Err = templ.JoinStringErrs(LifePlanNodeTypeLabel(node.NodeType))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 467, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 470, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var79))
 			if templ_7745c5c3_Err != nil {
@@ -1686,7 +1686,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var80 string
 				templ_7745c5c3_Var80, templ_7745c5c3_Err = templ.JoinStringErrs(LifeTaskTypeLabel(node.TaskType))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 469, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 472, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var80))
 				if templ_7745c5c3_Err != nil {
@@ -1705,7 +1705,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var81 string
 				templ_7745c5c3_Var81, templ_7745c5c3_Err = templ.JoinStringErrs(node.SuggestedCadence)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 472, Col: 58}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 475, Col: 58}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var81))
 				if templ_7745c5c3_Err != nil {
@@ -1724,7 +1724,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var82 string
 				templ_7745c5c3_Var82, templ_7745c5c3_Err = templ.JoinStringErrs(node.TrackingMode)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 475, Col: 54}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 478, Col: 54}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var82))
 				if templ_7745c5c3_Err != nil {
@@ -1743,7 +1743,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var83 string
 				templ_7745c5c3_Var83, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.Exp))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 478, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 481, Col: 76}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var83))
 				if templ_7745c5c3_Err != nil {
@@ -1762,7 +1762,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var84 string
 				templ_7745c5c3_Var84, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.Gold))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 481, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 484, Col: 77}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var84))
 				if templ_7745c5c3_Err != nil {
@@ -1785,7 +1785,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var85 string
 				templ_7745c5c3_Var85, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/character/plan/" + node.Flag + "/confirm-habit")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 490, Col: 82}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 493, Col: 82}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var85)
 				if templ_7745c5c3_Err != nil {
@@ -1798,7 +1798,7 @@ func lifePlanNode(node LifePlanNodeRow, depth int) templ.Component {
 				var templ_7745c5c3_Var86 string
 				templ_7745c5c3_Var86, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-plan-confirm-" + node.Flag)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 492, Col: 52}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 495, Col: 52}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var86)
 				if templ_7745c5c3_Err != nil {
@@ -1846,7 +1846,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 		var templ_7745c5c3_Var88 string
 		templ_7745c5c3_Var88, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(LifeIndentStyle(depth))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 501, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 504, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var88))
 		if templ_7745c5c3_Err != nil {
@@ -1859,7 +1859,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 		var templ_7745c5c3_Var89 string
 		templ_7745c5c3_Var89, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-breakdown-node-" + node.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 501, Col: 111}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 504, Col: 111}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var89)
 		if templ_7745c5c3_Err != nil {
@@ -1872,7 +1872,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 		var templ_7745c5c3_Var90 string
 		templ_7745c5c3_Var90, templ_7745c5c3_Err = templ.JoinStringErrs(node.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 504, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 507, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var90))
 		if templ_7745c5c3_Err != nil {
@@ -1890,7 +1890,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 			var templ_7745c5c3_Var91 string
 			templ_7745c5c3_Var91, templ_7745c5c3_Err = templ.JoinStringErrs(node.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 506, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 509, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var91))
 			if templ_7745c5c3_Err != nil {
@@ -1908,7 +1908,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 		var templ_7745c5c3_Var92 string
 		templ_7745c5c3_Var92, templ_7745c5c3_Err = templ.JoinStringErrs(LifePlanNodeTypeLabel(node.NodeType))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 510, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 513, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var92))
 		if templ_7745c5c3_Err != nil {
@@ -1926,7 +1926,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 			var templ_7745c5c3_Var93 string
 			templ_7745c5c3_Var93, templ_7745c5c3_Err = templ.JoinStringErrs(LifeTaskTypeLabel(node.TaskType))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 512, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 515, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var93))
 			if templ_7745c5c3_Err != nil {
@@ -1945,7 +1945,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 			var templ_7745c5c3_Var94 string
 			templ_7745c5c3_Var94, templ_7745c5c3_Err = templ.JoinStringErrs(node.SuggestedCadence)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 515, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 518, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var94))
 			if templ_7745c5c3_Err != nil {
@@ -1964,7 +1964,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 			var templ_7745c5c3_Var95 string
 			templ_7745c5c3_Var95, templ_7745c5c3_Err = templ.JoinStringErrs(node.Difficulty)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 518, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 521, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var95))
 			if templ_7745c5c3_Err != nil {
@@ -1983,7 +1983,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 			var templ_7745c5c3_Var96 string
 			templ_7745c5c3_Var96, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.Exp))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 521, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 524, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var96))
 			if templ_7745c5c3_Err != nil {
@@ -2002,7 +2002,7 @@ func lifeBreakdownSuggestion(node LifeBreakdownSuggestionRow, depth int) templ.C
 			var templ_7745c5c3_Var97 string
 			templ_7745c5c3_Var97, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.Gold))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 524, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 527, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var97))
 			if templ_7745c5c3_Err != nil {
@@ -2104,7 +2104,7 @@ func lifeModuleShell(active string, pendingCount int) templ.Component {
 			var templ_7745c5c3_Var103 string
 			templ_7745c5c3_Var103, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", pendingCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 551, Col: 72}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 554, Col: 72}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var103))
 			if templ_7745c5c3_Err != nil {
@@ -2336,7 +2336,7 @@ func lifeSkillTreeNode(node LifeSkillTreeNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var121 string
 			templ_7745c5c3_Var121, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(LifeIndentStyle(depth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 604, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 607, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var121))
 			if templ_7745c5c3_Err != nil {
@@ -2359,7 +2359,7 @@ func lifeSkillTreeNode(node LifeSkillTreeNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var122 string
 			templ_7745c5c3_Var122, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-skill-node-" + node.Key)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 604, Col: 167}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 607, Col: 167}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var122)
 			if templ_7745c5c3_Err != nil {
@@ -2395,7 +2395,7 @@ func lifeSkillTreeNode(node LifeSkillTreeNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var123 string
 			templ_7745c5c3_Var123, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(LifeIndentStyle(depth))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 615, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 618, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var123))
 			if templ_7745c5c3_Err != nil {
@@ -2408,7 +2408,7 @@ func lifeSkillTreeNode(node LifeSkillTreeNodeRow, depth int) templ.Component {
 			var templ_7745c5c3_Var124 string
 			templ_7745c5c3_Var124, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-skill-node-" + node.Key)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 615, Col: 121}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 618, Col: 121}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var124)
 			if templ_7745c5c3_Err != nil {
@@ -2464,7 +2464,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 		var templ_7745c5c3_Var127 templ.SafeURL
 		templ_7745c5c3_Var127, templ_7745c5c3_Err = templ.JoinURLErrs("/service/web/life/skills?node=" + node.Key)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 623, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 626, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var127))
 		if templ_7745c5c3_Err != nil {
@@ -2490,7 +2490,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 		var templ_7745c5c3_Var129 string
 		templ_7745c5c3_Var129, templ_7745c5c3_Err = templ.JoinStringErrs(LifeSkillMonogram(node.Title))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 627, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 630, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var129))
 		if templ_7745c5c3_Err != nil {
@@ -2503,7 +2503,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 		var templ_7745c5c3_Var130 string
 		templ_7745c5c3_Var130, templ_7745c5c3_Err = templ.JoinStringErrs(node.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 629, Col: 43}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 632, Col: 43}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var130))
 		if templ_7745c5c3_Err != nil {
@@ -2521,7 +2521,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 			var templ_7745c5c3_Var131 string
 			templ_7745c5c3_Var131, templ_7745c5c3_Err = templ.JoinStringErrs(node.Subtitle)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 631, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 634, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var131))
 			if templ_7745c5c3_Err != nil {
@@ -2561,7 +2561,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 		var templ_7745c5c3_Var134 string
 		templ_7745c5c3_Var134, templ_7745c5c3_Err = templ.JoinStringErrs(node.Status)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 636, Col: 84}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 639, Col: 84}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var134))
 		if templ_7745c5c3_Err != nil {
@@ -2574,7 +2574,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 		var templ_7745c5c3_Var135 string
 		templ_7745c5c3_Var135, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.PracticeCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 637, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 640, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var135))
 		if templ_7745c5c3_Err != nil {
@@ -2592,7 +2592,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 			var templ_7745c5c3_Var136 string
 			templ_7745c5c3_Var136, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", node.SkillCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 639, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 642, Col: 69}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var136))
 			if templ_7745c5c3_Err != nil {
@@ -2611,7 +2611,7 @@ func lifeSkillTreeNodeCard(node LifeSkillTreeNodeRow) templ.Component {
 			var templ_7745c5c3_Var137 string
 			templ_7745c5c3_Var137, templ_7745c5c3_Err = templ.JoinStringErrs(node.LastActivityLabel)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 642, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 645, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var137))
 			if templ_7745c5c3_Err != nil {
@@ -2658,7 +2658,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var139 string
 		templ_7745c5c3_Var139, templ_7745c5c3_Err = templ.JoinStringErrs(data.Nickname)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 659, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 662, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var139))
 		if templ_7745c5c3_Err != nil {
@@ -2671,7 +2671,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var140 string
 		templ_7745c5c3_Var140, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.Level))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 661, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 664, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var140))
 		if templ_7745c5c3_Err != nil {
@@ -2684,7 +2684,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var141 string
 		templ_7745c5c3_Var141, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.Gold))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 663, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 666, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var141))
 		if templ_7745c5c3_Err != nil {
@@ -2714,7 +2714,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var142 string
 		templ_7745c5c3_Var142, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d", data.HPCurrent, data.HPMax))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 676, Col: 103}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 679, Col: 103}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var142))
 		if templ_7745c5c3_Err != nil {
@@ -2727,7 +2727,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var143 string
 		templ_7745c5c3_Var143, templ_7745c5c3_Err = templ.JoinStringErrs(data.MasterObjective)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 681, Col: 92}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 684, Col: 92}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var143))
 		if templ_7745c5c3_Err != nil {
@@ -2740,7 +2740,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var144 string
 		templ_7745c5c3_Var144, templ_7745c5c3_Err = templ.JoinStringErrs(data.MinorObjective)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 685, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 688, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var144))
 		if templ_7745c5c3_Err != nil {
@@ -2753,7 +2753,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var145 string
 		templ_7745c5c3_Var145, templ_7745c5c3_Err = templ.JoinStringErrs(data.Strength)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 689, Col: 77}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 692, Col: 77}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var145))
 		if templ_7745c5c3_Err != nil {
@@ -2766,7 +2766,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var146 string
 		templ_7745c5c3_Var146, templ_7745c5c3_Err = templ.JoinStringErrs(data.Weakness)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 693, Col: 77}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 696, Col: 77}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var146))
 		if templ_7745c5c3_Err != nil {
@@ -2796,7 +2796,7 @@ func lifeProfileSummary(data LifeCharacterData) templ.Component {
 		var templ_7745c5c3_Var147 string
 		templ_7745c5c3_Var147, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d", data.Exp, data.ExpToNext))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 707, Col: 80}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 710, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var147))
 		if templ_7745c5c3_Err != nil {
@@ -2911,7 +2911,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 			var templ_7745c5c3_Var150 string
 			templ_7745c5c3_Var150, templ_7745c5c3_Err = templ.ResolveAttributeValue(testID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 736, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 739, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var150)
 			if templ_7745c5c3_Err != nil {
@@ -2929,7 +2929,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 				var templ_7745c5c3_Var151 templ.SafeURL
 				templ_7745c5c3_Var151, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(info.PrevURL))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 738, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 741, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var151))
 				if templ_7745c5c3_Err != nil {
@@ -2942,7 +2942,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 				var templ_7745c5c3_Var152 string
 				templ_7745c5c3_Var152, templ_7745c5c3_Err = templ.ResolveAttributeValue(testID + "-prev")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 738, Col: 93}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 741, Col: 93}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var152)
 				if templ_7745c5c3_Err != nil {
@@ -2965,7 +2965,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 			var templ_7745c5c3_Var153 string
 			templ_7745c5c3_Var153, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", info.Page))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 743, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 746, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var153))
 			if templ_7745c5c3_Err != nil {
@@ -2978,7 +2978,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 			var templ_7745c5c3_Var154 string
 			templ_7745c5c3_Var154, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", info.TotalPages))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 743, Col: 81}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 746, Col: 81}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var154))
 			if templ_7745c5c3_Err != nil {
@@ -2996,7 +2996,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 				var templ_7745c5c3_Var155 templ.SafeURL
 				templ_7745c5c3_Var155, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(info.NextURL))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 746, Col: 60}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 749, Col: 60}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var155))
 				if templ_7745c5c3_Err != nil {
@@ -3009,7 +3009,7 @@ func lifeListPager(info LifePageInfo, testID string) templ.Component {
 				var templ_7745c5c3_Var156 string
 				templ_7745c5c3_Var156, templ_7745c5c3_Err = templ.ResolveAttributeValue(testID + "-next")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 746, Col: 93}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 749, Col: 93}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var156)
 				if templ_7745c5c3_Err != nil {
@@ -3096,7 +3096,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var160 string
 						templ_7745c5c3_Var160, templ_7745c5c3_Err = templ.ResolveAttributeValue(g.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 789, Col: 32}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 792, Col: 32}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var160)
 						if templ_7745c5c3_Err != nil {
@@ -3109,7 +3109,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var161 string
 						templ_7745c5c3_Var161, templ_7745c5c3_Err = templ.JoinStringErrs(g.Category)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 789, Col: 47}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 792, Col: 47}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var161))
 						if templ_7745c5c3_Err != nil {
@@ -3122,7 +3122,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var162 string
 						templ_7745c5c3_Var162, templ_7745c5c3_Err = templ.JoinStringErrs(g.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 789, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 792, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var162))
 						if templ_7745c5c3_Err != nil {
@@ -3153,7 +3153,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var163 string
 				templ_7745c5c3_Var163, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.TodayActions)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 807, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 810, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var163))
 				if templ_7745c5c3_Err != nil {
@@ -3181,7 +3181,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var164 string
 						templ_7745c5c3_Var164, templ_7745c5c3_Err = templ.JoinStringErrs(a.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 816, Col: 46}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 819, Col: 46}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var164))
 						if templ_7745c5c3_Err != nil {
@@ -3199,7 +3199,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var165 string
 							templ_7745c5c3_Var165, templ_7745c5c3_Err = templ.JoinStringErrs(a.ContextPath)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 818, Col: 74}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 821, Col: 74}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var165))
 							if templ_7745c5c3_Err != nil {
@@ -3218,7 +3218,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var166 string
 							templ_7745c5c3_Var166, templ_7745c5c3_Err = templ.JoinStringErrs(a.Description)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 821, Col: 60}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 824, Col: 60}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var166))
 							if templ_7745c5c3_Err != nil {
@@ -3236,7 +3236,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var167 string
 						templ_7745c5c3_Var167, templ_7745c5c3_Err = templ.JoinStringErrs(LifeTaskTypeLabel(a.TaskType))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 824, Col: 70}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 827, Col: 70}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var167))
 						if templ_7745c5c3_Err != nil {
@@ -3249,7 +3249,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var168 string
 						templ_7745c5c3_Var168, templ_7745c5c3_Err = templ.JoinStringErrs(LifeOccurrenceKindLabel(a.Kind))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 825, Col: 72}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 828, Col: 72}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var168))
 						if templ_7745c5c3_Err != nil {
@@ -3267,7 +3267,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var169 string
 							templ_7745c5c3_Var169, templ_7745c5c3_Err = templ.JoinStringErrs(a.SuggestedCadence)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 827, Col: 60}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 830, Col: 60}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var169))
 							if templ_7745c5c3_Err != nil {
@@ -3286,7 +3286,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var170 string
 							templ_7745c5c3_Var170, templ_7745c5c3_Err = templ.JoinStringErrs(a.TrackingMode)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 830, Col: 56}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 833, Col: 56}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var170))
 							if templ_7745c5c3_Err != nil {
@@ -3305,7 +3305,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var171 string
 							templ_7745c5c3_Var171, templ_7745c5c3_Err = templ.JoinStringErrs(a.Difficulty)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 833, Col: 54}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 836, Col: 54}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var171))
 							if templ_7745c5c3_Err != nil {
@@ -3324,7 +3324,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var172 string
 							templ_7745c5c3_Var172, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", a.Exp))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 836, Col: 78}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 839, Col: 78}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var172))
 							if templ_7745c5c3_Err != nil {
@@ -3343,7 +3343,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var173 string
 							templ_7745c5c3_Var173, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", a.Gold))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 839, Col: 79}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 842, Col: 79}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var173))
 							if templ_7745c5c3_Err != nil {
@@ -3362,7 +3362,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var174 string
 							templ_7745c5c3_Var174, templ_7745c5c3_Err = templ.JoinStringErrs(a.DueLabel)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 842, Col: 56}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 845, Col: 56}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var174))
 							if templ_7745c5c3_Err != nil {
@@ -3380,7 +3380,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var175 string
 						templ_7745c5c3_Var175, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/actions/" + a.Flag + "/complete")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 847, Col: 123}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 850, Col: 123}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var175)
 						if templ_7745c5c3_Err != nil {
@@ -3393,7 +3393,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var176 string
 						templ_7745c5c3_Var176, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-action-complete-" + a.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 847, Col: 187}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 850, Col: 187}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var176)
 						if templ_7745c5c3_Err != nil {
@@ -3414,7 +3414,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var177 string
 						templ_7745c5c3_Var177, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/actions/" + a.Flag + "/skip")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 851, Col: 117}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 854, Col: 117}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var177)
 						if templ_7745c5c3_Err != nil {
@@ -3427,7 +3427,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var178 string
 						templ_7745c5c3_Var178, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-action-skip-" + a.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 851, Col: 177}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 854, Col: 177}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var178)
 						if templ_7745c5c3_Err != nil {
@@ -3458,7 +3458,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var179 string
 				templ_7745c5c3_Var179, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.TodayHabits)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 865, Col: 80}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 868, Col: 80}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var179))
 				if templ_7745c5c3_Err != nil {
@@ -3486,7 +3486,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var180 string
 						templ_7745c5c3_Var180, templ_7745c5c3_Err = templ.JoinStringErrs(h.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 874, Col: 48}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 877, Col: 48}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var180))
 						if templ_7745c5c3_Err != nil {
@@ -3499,7 +3499,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var181 string
 						templ_7745c5c3_Var181, templ_7745c5c3_Err = templ.JoinStringErrs(LifeTaskTypeLabel(h.TaskType))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 876, Col: 70}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 879, Col: 70}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var181))
 						if templ_7745c5c3_Err != nil {
@@ -3517,7 +3517,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var182 string
 							templ_7745c5c3_Var182, templ_7745c5c3_Err = templ.JoinStringErrs(h.SuggestedCadence)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 878, Col: 60}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 881, Col: 60}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var182))
 							if templ_7745c5c3_Err != nil {
@@ -3546,7 +3546,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var183 string
 							templ_7745c5c3_Var183, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/habits/" + h.NodeFlag + "/checkin")
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 887, Col: 126}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 890, Col: 126}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var183)
 							if templ_7745c5c3_Err != nil {
@@ -3559,7 +3559,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var184 string
 							templ_7745c5c3_Var184, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-habit-checkin-" + h.NodeFlag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 887, Col: 192}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 890, Col: 192}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var184)
 							if templ_7745c5c3_Err != nil {
@@ -3595,7 +3595,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var185 string
 				templ_7745c5c3_Var185, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.Pending)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 902, Col: 109}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 905, Col: 109}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var185))
 				if templ_7745c5c3_Err != nil {
@@ -3623,7 +3623,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var186 string
 						templ_7745c5c3_Var186, templ_7745c5c3_Err = templ.JoinStringErrs(q.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 911, Col: 46}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 914, Col: 46}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var186))
 						if templ_7745c5c3_Err != nil {
@@ -3641,7 +3641,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var187 string
 							templ_7745c5c3_Var187, templ_7745c5c3_Err = templ.ResolveAttributeValue(q.Prompt)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 913, Col: 55}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 916, Col: 55}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var187)
 							if templ_7745c5c3_Err != nil {
@@ -3654,7 +3654,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var188 string
 							templ_7745c5c3_Var188, templ_7745c5c3_Err = templ.JoinStringErrs(q.Prompt)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 913, Col: 68}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 916, Col: 68}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var188))
 							if templ_7745c5c3_Err != nil {
@@ -3672,7 +3672,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var189 string
 						templ_7745c5c3_Var189, templ_7745c5c3_Err = templ.JoinStringErrs(q.Type)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 916, Col: 47}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 919, Col: 47}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var189))
 						if templ_7745c5c3_Err != nil {
@@ -3685,7 +3685,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var190 string
 						templ_7745c5c3_Var190, templ_7745c5c3_Err = templ.JoinStringErrs(q.Difficulty)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 917, Col: 73}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 920, Col: 73}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var190))
 						if templ_7745c5c3_Err != nil {
@@ -3698,7 +3698,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var191 string
 						templ_7745c5c3_Var191, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Fear))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 918, Col: 71}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 921, Col: 71}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var191))
 						if templ_7745c5c3_Err != nil {
@@ -3733,7 +3733,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var194 string
 						templ_7745c5c3_Var194, templ_7745c5c3_Err = templ.JoinStringErrs(q.DropTier)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 919, Col: 104}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 922, Col: 104}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var194))
 						if templ_7745c5c3_Err != nil {
@@ -3746,7 +3746,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var195 string
 						templ_7745c5c3_Var195, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Exp))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 922, Col: 77}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 925, Col: 77}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var195))
 						if templ_7745c5c3_Err != nil {
@@ -3759,7 +3759,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var196 string
 						templ_7745c5c3_Var196, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Gold))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 923, Col: 78}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 926, Col: 78}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var196))
 						if templ_7745c5c3_Err != nil {
@@ -3772,7 +3772,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var197 string
 						templ_7745c5c3_Var197, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.0f%%", q.DropChance*100))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 924, Col: 92}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 927, Col: 92}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var197))
 						if templ_7745c5c3_Err != nil {
@@ -3785,7 +3785,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var198 string
 						templ_7745c5c3_Var198, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(q.Evidence)))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 930, Col: 80}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 933, Col: 80}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var198))
 						if templ_7745c5c3_Err != nil {
@@ -3813,7 +3813,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 								var templ_7745c5c3_Var199 string
 								templ_7745c5c3_Var199, templ_7745c5c3_Err = templ.JoinStringErrs(ev.SourceType)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 939, Col: 59}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 942, Col: 59}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var199))
 								if templ_7745c5c3_Err != nil {
@@ -3826,7 +3826,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 								var templ_7745c5c3_Var200 string
 								templ_7745c5c3_Var200, templ_7745c5c3_Err = templ.JoinStringErrs(ev.Content)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 940, Col: 66}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 943, Col: 66}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var200))
 								if templ_7745c5c3_Err != nil {
@@ -3844,7 +3844,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 									var templ_7745c5c3_Var201 templ.SafeURL
 									templ_7745c5c3_Var201, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(ev.SourceURL))
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 942, Col: 49}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 945, Col: 49}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var201))
 									if templ_7745c5c3_Err != nil {
@@ -3862,7 +3862,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 								var templ_7745c5c3_Var202 string
 								templ_7745c5c3_Var202, templ_7745c5c3_Err = templ.JoinStringErrs(ev.When)
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 945, Col: 62}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 948, Col: 62}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var202))
 								if templ_7745c5c3_Err != nil {
@@ -3885,7 +3885,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var203 string
 						templ_7745c5c3_Var203, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/quests/" + q.Flag + "/evidence")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 953, Col: 70}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 956, Col: 70}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var203)
 						if templ_7745c5c3_Err != nil {
@@ -3898,7 +3898,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var204 string
 						templ_7745c5c3_Var204, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-quest-add-evidence-" + q.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 983, Col: 113}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 986, Col: 113}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var204)
 						if templ_7745c5c3_Err != nil {
@@ -3919,7 +3919,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var205 string
 						templ_7745c5c3_Var205, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/quests/" + q.Flag + "/adjudicate")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 990, Col: 74}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 993, Col: 74}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var205)
 						if templ_7745c5c3_Err != nil {
@@ -3932,7 +3932,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var206 string
 						templ_7745c5c3_Var206, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-quest-adjudicate-" + q.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 993, Col: 59}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 996, Col: 59}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var206)
 						if templ_7745c5c3_Err != nil {
@@ -3980,7 +3980,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var209 string
 							templ_7745c5c3_Var209, templ_7745c5c3_Err = templ.JoinStringErrs(q.Adjudication.Verdict)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1004, Col: 115}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1007, Col: 115}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var209))
 							if templ_7745c5c3_Err != nil {
@@ -3993,7 +3993,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var210 string
 							templ_7745c5c3_Var210, templ_7745c5c3_Err = templ.JoinStringErrs(q.Adjudication.Status)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1005, Col: 64}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1008, Col: 64}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var210))
 							if templ_7745c5c3_Err != nil {
@@ -4006,7 +4006,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var211 string
 							templ_7745c5c3_Var211, templ_7745c5c3_Err = templ.JoinStringErrs(q.Adjudication.When)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1006, Col: 62}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1009, Col: 62}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var211))
 							if templ_7745c5c3_Err != nil {
@@ -4019,7 +4019,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var212 string
 							templ_7745c5c3_Var212, templ_7745c5c3_Err = templ.JoinStringErrs(q.Adjudication.Reason)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1008, Col: 70}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1011, Col: 70}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var212))
 							if templ_7745c5c3_Err != nil {
@@ -4032,7 +4032,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var213 string
 							templ_7745c5c3_Var213, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Adjudication.SuggestedExp))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1010, Col: 111}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1013, Col: 111}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var213))
 							if templ_7745c5c3_Err != nil {
@@ -4045,7 +4045,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var214 string
 							templ_7745c5c3_Var214, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Adjudication.SuggestedGold))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1011, Col: 112}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1014, Col: 112}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var214))
 							if templ_7745c5c3_Err != nil {
@@ -4068,7 +4068,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 									var templ_7745c5c3_Var215 string
 									templ_7745c5c3_Var215, templ_7745c5c3_Err = templ.JoinStringErrs(step)
 									if templ_7745c5c3_Err != nil {
-										return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1016, Col: 24}
+										return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1019, Col: 24}
 									}
 									_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var215))
 									if templ_7745c5c3_Err != nil {
@@ -4101,7 +4101,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var216 string
 							templ_7745c5c3_Var216, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/quests/" + q.Flag + "/adjudication/" + q.Adjudication.Flag + "/apply")
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1028, Col: 110}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1031, Col: 110}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var216)
 							if templ_7745c5c3_Err != nil {
@@ -4114,7 +4114,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var217 string
 							templ_7745c5c3_Var217, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-quest-apply-" + q.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1031, Col: 54}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1034, Col: 54}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var217)
 							if templ_7745c5c3_Err != nil {
@@ -4140,7 +4140,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var218 string
 						templ_7745c5c3_Var218, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/quests/" + q.Flag + "/dismiss")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1040, Col: 70}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1043, Col: 70}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var218)
 						if templ_7745c5c3_Err != nil {
@@ -4153,7 +4153,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var219 string
 						templ_7745c5c3_Var219, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-quest-dismiss-" + q.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1044, Col: 55}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1047, Col: 55}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var219)
 						if templ_7745c5c3_Err != nil {
@@ -4184,7 +4184,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var220 string
 				templ_7745c5c3_Var220, templ_7745c5c3_Err = templ.ResolveAttributeValue(LifeHistoryAnchor)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1057, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1060, Col: 34}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var220)
 				if templ_7745c5c3_Err != nil {
@@ -4219,7 +4219,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var223 templ.SafeURL
 				templ_7745c5c3_Var223, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(LifeQuestsListURL(data.CompletedPage.Page, data.ActionLogsPage.Page, LifeHistoryTabCompleted, LifeHistoryAnchor)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1062, Col: 136}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1065, Col: 136}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var223))
 				if templ_7745c5c3_Err != nil {
@@ -4247,7 +4247,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var224 string
 				templ_7745c5c3_Var224, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.CompletedPage.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1071, Col: 80}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1074, Col: 80}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var224))
 				if templ_7745c5c3_Err != nil {
@@ -4282,7 +4282,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var227 templ.SafeURL
 				templ_7745c5c3_Var227, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(LifeQuestsListURL(data.CompletedPage.Page, data.ActionLogsPage.Page, LifeHistoryTabActionLogs, LifeHistoryAnchor)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1076, Col: 137}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1079, Col: 137}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var227))
 				if templ_7745c5c3_Err != nil {
@@ -4310,7 +4310,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 				var templ_7745c5c3_Var228 string
 				templ_7745c5c3_Var228, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.ActionLogsPage.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1085, Col: 81}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1088, Col: 81}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var228))
 				if templ_7745c5c3_Err != nil {
@@ -4348,7 +4348,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var229 string
 						templ_7745c5c3_Var229, templ_7745c5c3_Err = templ.ResolveAttributeValue(q.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1105, Col: 55}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1108, Col: 55}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var229)
 						if templ_7745c5c3_Err != nil {
@@ -4361,7 +4361,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var230 string
 						templ_7745c5c3_Var230, templ_7745c5c3_Err = templ.JoinStringErrs(q.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1105, Col: 67}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1108, Col: 67}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var230))
 						if templ_7745c5c3_Err != nil {
@@ -4379,7 +4379,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var231 string
 							templ_7745c5c3_Var231, templ_7745c5c3_Err = templ.ResolveAttributeValue(q.Prompt)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1107, Col: 58}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1110, Col: 58}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var231)
 							if templ_7745c5c3_Err != nil {
@@ -4392,7 +4392,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var232 string
 							templ_7745c5c3_Var232, templ_7745c5c3_Err = templ.JoinStringErrs(q.Prompt)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1107, Col: 71}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1110, Col: 71}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var232))
 							if templ_7745c5c3_Err != nil {
@@ -4410,7 +4410,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var233 string
 						templ_7745c5c3_Var233, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Exp))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1111, Col: 77}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1114, Col: 77}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var233))
 						if templ_7745c5c3_Err != nil {
@@ -4423,7 +4423,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var234 string
 						templ_7745c5c3_Var234, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", q.Gold))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1112, Col: 78}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1115, Col: 78}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var234))
 						if templ_7745c5c3_Err != nil {
@@ -4436,7 +4436,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var235 string
 						templ_7745c5c3_Var235, templ_7745c5c3_Err = templ.JoinStringErrs(q.Difficulty)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1113, Col: 73}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1116, Col: 73}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var235))
 						if templ_7745c5c3_Err != nil {
@@ -4488,7 +4488,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var236 string
 						templ_7745c5c3_Var236, templ_7745c5c3_Err = templ.ResolveAttributeValue(l.QuestTitle)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1138, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1141, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var236)
 						if templ_7745c5c3_Err != nil {
@@ -4501,7 +4501,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var237 string
 						templ_7745c5c3_Var237, templ_7745c5c3_Err = templ.JoinStringErrs(l.QuestTitle)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1138, Col: 77}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1141, Col: 77}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var237))
 						if templ_7745c5c3_Err != nil {
@@ -4514,7 +4514,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var238 string
 						templ_7745c5c3_Var238, templ_7745c5c3_Err = templ.JoinStringErrs(LifeActionLogSourceLabel(l.SourceType))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1139, Col: 81}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1142, Col: 81}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var238))
 						if templ_7745c5c3_Err != nil {
@@ -4527,7 +4527,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var239 string
 						templ_7745c5c3_Var239, templ_7745c5c3_Err = templ.JoinStringErrs(l.When)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1139, Col: 95}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1142, Col: 95}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var239))
 						if templ_7745c5c3_Err != nil {
@@ -4540,7 +4540,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var240 string
 						templ_7745c5c3_Var240, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", l.GainedExp))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1142, Col: 83}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1145, Col: 83}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var240))
 						if templ_7745c5c3_Err != nil {
@@ -4553,7 +4553,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 						var templ_7745c5c3_Var241 string
 						templ_7745c5c3_Var241, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", l.GainedGold))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1143, Col: 84}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1146, Col: 84}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var241))
 						if templ_7745c5c3_Err != nil {
@@ -4571,7 +4571,7 @@ func LifeQuestsPage(data LifeQuestsData) templ.Component {
 							var templ_7745c5c3_Var242 string
 							templ_7745c5c3_Var242, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", l.Dice))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1145, Col: 74}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1148, Col: 74}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var242))
 							if templ_7745c5c3_Err != nil {
@@ -4674,7 +4674,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 				var templ_7745c5c3_Var246 string
 				templ_7745c5c3_Var246, templ_7745c5c3_Err = templ.JoinStringErrs(lifeEquippedCount(data.Slots))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1177, Col: 70}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1180, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var246))
 				if templ_7745c5c3_Err != nil {
@@ -4714,7 +4714,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 					var templ_7745c5c3_Var249 string
 					templ_7745c5c3_Var249, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-equip-slot-" + strings.ToLower(slot.Label))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1188, Col: 70}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1191, Col: 70}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var249)
 					if templ_7745c5c3_Err != nil {
@@ -4735,7 +4735,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 					var templ_7745c5c3_Var250 string
 					templ_7745c5c3_Var250, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Label)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1194, Col: 54}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1197, Col: 54}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var250))
 					if templ_7745c5c3_Err != nil {
@@ -4753,7 +4753,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var251 string
 						templ_7745c5c3_Var251, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Item.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1197, Col: 57}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1200, Col: 57}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var251))
 						if templ_7745c5c3_Err != nil {
@@ -4788,7 +4788,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var254 string
 						templ_7745c5c3_Var254, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Item.Rarity)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1199, Col: 116}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1202, Col: 116}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var254))
 						if templ_7745c5c3_Err != nil {
@@ -4806,7 +4806,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var255 string
 							templ_7745c5c3_Var255, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Item.BuffText)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1201, Col: 60}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1204, Col: 60}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var255))
 							if templ_7745c5c3_Err != nil {
@@ -4825,7 +4825,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var256 string
 							templ_7745c5c3_Var256, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Item.PerkText)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1204, Col: 65}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1207, Col: 65}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var256))
 							if templ_7745c5c3_Err != nil {
@@ -4849,7 +4849,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var257 string
 						templ_7745c5c3_Var257, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/slots/" + slot.SlotField + "/unequip")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1213, Col: 86}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1216, Col: 86}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var257)
 						if templ_7745c5c3_Err != nil {
@@ -4862,7 +4862,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var258 string
 						templ_7745c5c3_Var258, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-slot-unequip-" + strings.ToLower(slot.Label))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1215, Col: 74}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1218, Col: 74}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var258)
 						if templ_7745c5c3_Err != nil {
@@ -4890,7 +4890,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 				var templ_7745c5c3_Var259 string
 				templ_7745c5c3_Var259, templ_7745c5c3_Err = templ.ResolveAttributeValue(LifeBackpackAnchor)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1225, Col: 36}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1228, Col: 36}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var259)
 				if templ_7745c5c3_Err != nil {
@@ -4903,7 +4903,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 				var templ_7745c5c3_Var260 string
 				templ_7745c5c3_Var260, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.BackpackPage.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1228, Col: 83}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1231, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var260))
 				if templ_7745c5c3_Err != nil {
@@ -4957,7 +4957,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var263 string
 						templ_7745c5c3_Var263, templ_7745c5c3_Err = templ.JoinStringErrs(it.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1241, Col: 20}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1244, Col: 20}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var263))
 						if templ_7745c5c3_Err != nil {
@@ -4968,7 +4968,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						if it.Equipped {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 480, "<span class=\"flowbot-chip flowbot-chip-info text-xs ml-1 align-middle\">Equipped</span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 480, "<span class=\"life-meta-chip life-meta-chip-ok text-xs ml-1 align-middle\">Equipped</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -5002,7 +5002,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var266 string
 						templ_7745c5c3_Var266, templ_7745c5c3_Err = templ.JoinStringErrs(it.Rarity)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1247, Col: 103}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1250, Col: 103}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var266))
 						if templ_7745c5c3_Err != nil {
@@ -5015,7 +5015,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var267 string
 						templ_7745c5c3_Var267, templ_7745c5c3_Err = templ.JoinStringErrs(it.Slot)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1248, Col: 49}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1251, Col: 49}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var267))
 						if templ_7745c5c3_Err != nil {
@@ -5033,7 +5033,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var268 string
 							templ_7745c5c3_Var268, templ_7745c5c3_Err = templ.JoinStringErrs(it.BuffText)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1250, Col: 54}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1253, Col: 54}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var268))
 							if templ_7745c5c3_Err != nil {
@@ -5052,7 +5052,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var269 string
 							templ_7745c5c3_Var269, templ_7745c5c3_Err = templ.JoinStringErrs(it.PerkText)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1253, Col: 59}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1256, Col: 59}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var269))
 							if templ_7745c5c3_Err != nil {
@@ -5070,7 +5070,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 						var templ_7745c5c3_Var270 string
 						templ_7745c5c3_Var270, templ_7745c5c3_Err = templ.JoinStringErrs(it.LoreStatus)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1255, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1258, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var270))
 						if templ_7745c5c3_Err != nil {
@@ -5098,7 +5098,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var271 string
 							templ_7745c5c3_Var271, templ_7745c5c3_Err = templ.JoinStringErrs(it.Lore)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1261, Col: 45}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1264, Col: 45}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var271))
 							if templ_7745c5c3_Err != nil {
@@ -5121,7 +5121,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var272 string
 							templ_7745c5c3_Var272, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/slots/" + it.SlotField + "/unequip")
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1269, Col: 86}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1272, Col: 86}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var272)
 							if templ_7745c5c3_Err != nil {
@@ -5134,7 +5134,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var273 string
 							templ_7745c5c3_Var273, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-unequip-" + it.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1271, Col: 51}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1274, Col: 51}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var273)
 							if templ_7745c5c3_Err != nil {
@@ -5152,7 +5152,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var274 string
 							templ_7745c5c3_Var274, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/inventory/" + it.Flag + "/equip")
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1277, Col: 73}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1280, Col: 73}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var274)
 							if templ_7745c5c3_Err != nil {
@@ -5165,7 +5165,7 @@ func LifeInventoryPage(data LifeInventoryData) templ.Component {
 							var templ_7745c5c3_Var275 string
 							templ_7745c5c3_Var275, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-equip-" + it.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1279, Col: 49}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1282, Col: 49}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var275)
 							if templ_7745c5c3_Err != nil {
@@ -5262,7 +5262,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 				var templ_7745c5c3_Var279 string
 				templ_7745c5c3_Var279, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d unlocked", data.UnlockedCount, len(data.Items)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1304, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1307, Col: 76}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var279))
 				if templ_7745c5c3_Err != nil {
@@ -5311,7 +5311,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 						var templ_7745c5c3_Var282 string
 						templ_7745c5c3_Var282, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-achievement-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1320, Col: 54}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1323, Col: 54}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var282)
 						if templ_7745c5c3_Err != nil {
@@ -5324,7 +5324,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 						var templ_7745c5c3_Var283 string
 						templ_7745c5c3_Var283, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1323, Col: 55}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1326, Col: 55}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var283))
 						if templ_7745c5c3_Err != nil {
@@ -5335,12 +5335,12 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 							return templ_7745c5c3_Err
 						}
 						if item.Unlocked {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 514, "<span class=\"flowbot-chip flowbot-chip-success\">Unlocked</span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 514, "<span class=\"life-meta-chip life-meta-chip-ok\">Unlocked</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
 						} else {
-							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 515, "<span class=\"flowbot-chip\">Locked</span>")
+							templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 515, "<span class=\"life-meta-chip\">Locked</span>")
 							if templ_7745c5c3_Err != nil {
 								return templ_7745c5c3_Err
 							}
@@ -5352,7 +5352,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 						var templ_7745c5c3_Var284 string
 						templ_7745c5c3_Var284, templ_7745c5c3_Err = templ.JoinStringErrs(item.Description)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1330, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1333, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var284))
 						if templ_7745c5c3_Err != nil {
@@ -5370,7 +5370,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 							var templ_7745c5c3_Var285 string
 							templ_7745c5c3_Var285, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-achievement-progress-" + item.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1332, Col: 103}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1335, Col: 103}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var285)
 							if templ_7745c5c3_Err != nil {
@@ -5383,7 +5383,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 							var templ_7745c5c3_Var286 string
 							templ_7745c5c3_Var286, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(fmt.Sprintf("width:%d%%", lifeAchievementProgressPct(item.Current, item.Target)))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1336, Col: 101}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1339, Col: 101}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var286))
 							if templ_7745c5c3_Err != nil {
@@ -5396,7 +5396,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 							var templ_7745c5c3_Var287 string
 							templ_7745c5c3_Var287, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d / %d", item.Current, item.Target))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1339, Col: 90}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1342, Col: 90}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var287))
 							if templ_7745c5c3_Err != nil {
@@ -5415,7 +5415,7 @@ func LifeAchievementsPage(data LifeAchievementsData) templ.Component {
 							var templ_7745c5c3_Var288 string
 							templ_7745c5c3_Var288, templ_7745c5c3_Err = templ.JoinStringErrs(item.UnlockedAt)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1343, Col: 69}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1346, Col: 69}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var288))
 							if templ_7745c5c3_Err != nil {
@@ -5514,7 +5514,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 				var templ_7745c5c3_Var292 string
 				templ_7745c5c3_Var292, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.Gold))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1369, Col: 77}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1372, Col: 77}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var292))
 				if templ_7745c5c3_Err != nil {
@@ -5540,7 +5540,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 					var templ_7745c5c3_Var293 string
 					templ_7745c5c3_Var293, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", len(data.Active)))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1425, Col: 75}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1428, Col: 75}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var293))
 					if templ_7745c5c3_Err != nil {
@@ -5573,7 +5573,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var294 string
 						templ_7745c5c3_Var294, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1433, Col: 77}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1436, Col: 77}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var294)
 						if templ_7745c5c3_Err != nil {
@@ -5586,7 +5586,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var295 string
 						templ_7745c5c3_Var295, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1437, Col: 52}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1440, Col: 52}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var295))
 						if templ_7745c5c3_Err != nil {
@@ -5599,7 +5599,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var296 string
 						templ_7745c5c3_Var296, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-price-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1438, Col: 87}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1441, Col: 87}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var296)
 						if templ_7745c5c3_Err != nil {
@@ -5612,7 +5612,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var297 string
 						templ_7745c5c3_Var297, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d gold", item.Price))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1439, Col: 49}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1442, Col: 49}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var297))
 						if templ_7745c5c3_Err != nil {
@@ -5630,7 +5630,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var298 string
 							templ_7745c5c3_Var298, templ_7745c5c3_Err = templ.JoinStringErrs(item.Notes)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1443, Col: 53}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1446, Col: 53}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var298))
 							if templ_7745c5c3_Err != nil {
@@ -5653,7 +5653,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var299 string
 							templ_7745c5c3_Var299, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-cooldown-" + item.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1447, Col: 111}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1450, Col: 111}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var299)
 							if templ_7745c5c3_Err != nil {
@@ -5667,7 +5667,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 								var templ_7745c5c3_Var300 string
 								templ_7745c5c3_Var300, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Cooldown · until %s", item.CooldownEndsAt))
 								if templ_7745c5c3_Err != nil {
-									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1449, Col: 73}
+									return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1452, Col: 73}
 								}
 								_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var300))
 								if templ_7745c5c3_Err != nil {
@@ -5691,7 +5691,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var301 string
 							templ_7745c5c3_Var301, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%dh cooldown", item.CooldownHours))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1455, Col: 91}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1458, Col: 91}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var301))
 							if templ_7745c5c3_Err != nil {
@@ -5715,7 +5715,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var302 string
 							templ_7745c5c3_Var302, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-unaffordable-" + item.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1460, Col: 95}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1463, Col: 95}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var302)
 							if templ_7745c5c3_Err != nil {
@@ -5738,7 +5738,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var303 string
 							templ_7745c5c3_Var303, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/rewards/" + item.Flag + "/redeem")
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1467, Col: 75}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1470, Col: 75}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var303)
 							if templ_7745c5c3_Err != nil {
@@ -5751,7 +5751,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var304 string
 							templ_7745c5c3_Var304, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-redeem-" + item.Flag)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1469, Col: 60}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1472, Col: 60}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var304)
 							if templ_7745c5c3_Err != nil {
@@ -5782,7 +5782,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var305 string
 						templ_7745c5c3_Var305, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-edit-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1482, Col: 89}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1485, Col: 89}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var305)
 						if templ_7745c5c3_Err != nil {
@@ -5795,7 +5795,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var306 string
 						templ_7745c5c3_Var306, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/rewards/" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1486, Col: 62}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1489, Col: 62}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var306)
 						if templ_7745c5c3_Err != nil {
@@ -5808,7 +5808,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var307 string
 						templ_7745c5c3_Var307, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1492, Col: 95}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1495, Col: 95}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var307)
 						if templ_7745c5c3_Err != nil {
@@ -5821,7 +5821,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var308 string
 						templ_7745c5c3_Var308, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", item.Price))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1496, Col: 125}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1499, Col: 125}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var308)
 						if templ_7745c5c3_Err != nil {
@@ -5834,7 +5834,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var309 string
 						templ_7745c5c3_Var309, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("%d", item.CooldownHours))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1500, Col: 142}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1503, Col: 142}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var309)
 						if templ_7745c5c3_Err != nil {
@@ -5847,7 +5847,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var310 string
 						templ_7745c5c3_Var310, templ_7745c5c3_Err = templ.ResolveAttributeValue(item.Notes)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1504, Col: 97}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1507, Col: 97}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var310)
 						if templ_7745c5c3_Err != nil {
@@ -5868,7 +5868,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var311 string
 						templ_7745c5c3_Var311, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/rewards/" + item.Flag + "/deactivate")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1515, Col: 77}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1518, Col: 77}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var311)
 						if templ_7745c5c3_Err != nil {
@@ -5881,7 +5881,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var312 string
 						templ_7745c5c3_Var312, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-deactivate-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1518, Col: 62}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1521, Col: 62}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var312)
 						if templ_7745c5c3_Err != nil {
@@ -5904,7 +5904,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 				var templ_7745c5c3_Var313 string
 				templ_7745c5c3_Var313, templ_7745c5c3_Err = templ.ResolveAttributeValue(LifeRewardsArchiveAnchor)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1527, Col: 42}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1530, Col: 42}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var313)
 				if templ_7745c5c3_Err != nil {
@@ -5939,7 +5939,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 				var templ_7745c5c3_Var316 templ.SafeURL
 				templ_7745c5c3_Var316, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(LifeRewardsListURL(data.RedemptionsPage.Page, data.InactivePage.Page, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1532, Col: 147}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1535, Col: 147}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var316))
 				if templ_7745c5c3_Err != nil {
@@ -5967,7 +5967,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 				var templ_7745c5c3_Var317 string
 				templ_7745c5c3_Var317, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.RedemptionsPage.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1541, Col: 83}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1544, Col: 83}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var317))
 				if templ_7745c5c3_Err != nil {
@@ -6002,7 +6002,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 				var templ_7745c5c3_Var320 templ.SafeURL
 				templ_7745c5c3_Var320, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(LifeRewardsListURL(data.RedemptionsPage.Page, data.InactivePage.Page, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1546, Col: 147}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1549, Col: 147}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var320))
 				if templ_7745c5c3_Err != nil {
@@ -6030,7 +6030,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 				var templ_7745c5c3_Var321 string
 				templ_7745c5c3_Var321, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", data.InactivePage.Total))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1555, Col: 80}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1558, Col: 80}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var321))
 				if templ_7745c5c3_Err != nil {
@@ -6068,7 +6068,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var322 string
 						templ_7745c5c3_Var322, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-redemption-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1573, Col: 57}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1576, Col: 57}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var322)
 						if templ_7745c5c3_Err != nil {
@@ -6081,7 +6081,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var323 string
 						templ_7745c5c3_Var323, templ_7745c5c3_Err = templ.JoinStringErrs(item.RewardName)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1574, Col: 66}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1577, Col: 66}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var323))
 						if templ_7745c5c3_Err != nil {
@@ -6094,7 +6094,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var324 string
 						templ_7745c5c3_Var324, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("−%d gold", item.PricePaid))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1576, Col: 94}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1579, Col: 94}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var324))
 						if templ_7745c5c3_Err != nil {
@@ -6107,7 +6107,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var325 string
 						templ_7745c5c3_Var325, templ_7745c5c3_Err = templ.JoinStringErrs(item.RedeemedAt)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1577, Col: 67}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1580, Col: 67}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var325))
 						if templ_7745c5c3_Err != nil {
@@ -6159,7 +6159,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var326 string
 						templ_7745c5c3_Var326, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-inactive-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1600, Col: 99}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1603, Col: 99}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var326)
 						if templ_7745c5c3_Err != nil {
@@ -6172,7 +6172,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var327 string
 						templ_7745c5c3_Var327, templ_7745c5c3_Err = templ.JoinStringErrs(item.Name)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1604, Col: 53}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1607, Col: 53}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var327))
 						if templ_7745c5c3_Err != nil {
@@ -6185,7 +6185,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var328 string
 						templ_7745c5c3_Var328, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d gold", item.Price))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1605, Col: 78}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1608, Col: 78}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var328))
 						if templ_7745c5c3_Err != nil {
@@ -6203,7 +6203,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 							var templ_7745c5c3_Var329 string
 							templ_7745c5c3_Var329, templ_7745c5c3_Err = templ.JoinStringErrs(item.Notes)
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1608, Col: 54}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1611, Col: 54}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var329))
 							if templ_7745c5c3_Err != nil {
@@ -6221,7 +6221,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var330 string
 						templ_7745c5c3_Var330, templ_7745c5c3_Err = templ.ResolveAttributeValue("/service/web/life/rewards/" + item.Flag + "/restore")
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1612, Col: 75}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1615, Col: 75}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var330)
 						if templ_7745c5c3_Err != nil {
@@ -6234,7 +6234,7 @@ func LifeRewardsPage(data LifeRewardsData) templ.Component {
 						var templ_7745c5c3_Var331 string
 						templ_7745c5c3_Var331, templ_7745c5c3_Err = templ.ResolveAttributeValue("life-reward-restore-" + item.Flag)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1614, Col: 60}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/views/pages/life.templ`, Line: 1617, Col: 60}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var331)
 						if templ_7745c5c3_Err != nil {

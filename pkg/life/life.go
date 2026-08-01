@@ -24,6 +24,20 @@ var DefaultCharacteristics = []struct {
 	{Code: "FOC", Name: "Focus"},
 }
 
+// PARA goal categories (life_goals.category).
+const (
+	GoalCategoryProject  = "Project"
+	GoalCategoryArea     = "Area"
+	GoalCategoryResource = "Resource"
+)
+
+// Goal lifecycle statuses (life_goals.status).
+const (
+	GoalStatusActive    = "Active"
+	GoalStatusPaused    = "Paused"
+	GoalStatusCompleted = "Completed"
+)
+
 // ExpToNextLevel returns exp required to advance from the given level.
 func ExpToNextLevel(level int) int64 {
 	if level < 1 {

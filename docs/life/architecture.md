@@ -22,10 +22,10 @@ HTML UI lives in `internal/modules/web` under `/service/web/life*` (same pattern
 ## 2. Package map
 
 ```text
-internal/modules/life/          # Service, Bootstrap, outbox consumer, config
+internal/modules/life/          # Service, Bootstrap, outbox consumer, notify, config
 internal/modules/life/seed/     # embed JSON (equipment, loot tables)
 internal/modules/fx.go          # Register()
-pkg/life/                       # cascade, loot, buffs (no I/O)
+pkg/life/                       # cascade, loot, buffs, PARA constants (no I/O)
 pkg/capability/life/            # EvaluateQuest, GenerateInstanceLore
 internal/store/ent/schema/      # life_*.go (int64 PK + string flag)
 internal/store/life.go         # LifeStore facade (package store)
@@ -57,9 +57,10 @@ public/css/custom.css           # Life page styles (`.life-*`)
 | Full AI always | `EvaluateQuest` / `GenerateInstanceLore` require chat LLM; errors surface to caller |
 | AIContext unused | Loaded into EvaluateQuest (personality, completion rate, mood) |
 | Gear AI privilege unused | Equipped `ai_unlocked_privilege` merged into EvaluateQuest |
-| LifeGoal CRUD | Create / edit / pause / delete on Goals; optional `goal_flag` on quest create |
+| LifeGoal CRUD | Create / edit / pause / delete on Goals; optional `goal_flag` on quest create; Project/Resource may link `area_id` / `area_flag` |
 | Drop rate preview | Toast on create + pending card `~N% drop` |
 | AI lore on every drop | Lore outbox only for Boss quests or difficulty SS/SSS |
+| Ops `PageHeader` / `.flowbot-surface` / `.flowbot-chip` | Life UI uses `life-shell-header` + `life-panel` + `life-meta-chip` (gamified chrome, not ops console) |
 
 ## 5. ER / tables
 
@@ -68,7 +69,7 @@ public/css/custom.css           # Life page styles (`.life-*`)
 | `life_profiles` | level, exp, gold, class_type, base_drop_rate_bonus, pity_by_tier |
 | `life_characteristics` | INT / PHY / WIL / CHA / CRE / FIN / WRI / FOC per profile |
 | `life_skills` | skills under a characteristic |
-| `life_goals` | PARA LifeGoal |
+| `life_goals` | PARA LifeGoal (`Project` / `Area` / `Resource`); optional `area_id` FK to parent Area |
 | `life_quests` | One-Time / Daily / Boss quests; stores AI `title` plus original user `prompt` |
 | `life_ai_contexts` | DM personality + mood JSON (1:1 profile) |
 | `life_equipments` | Catalog templates (seeded) |
@@ -102,17 +103,19 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | `CompleteQuest` | Cascade + loot + action log + achievements + optional lore outbox + Daily respawn (one DB tx; loot resolved in-tx from live pity) |
 | `FailQuest` | Mark failed + 24h equipment rust (one DB tx) |
 | `DismissQuest` | Mark dismissed with no rust or completion-rate penalty |
-| `CreateGoal` / `UpdateGoal` / `SetGoalStatus` / `DeleteGoal` | PARA goal CRUD + pause/activate (Goals page) |
-| `ListActionLogs` | Recent completion audit for Quests UI |
+| `CreateGoal` / `UpdateGoal` / `SetGoalStatus` / `DeleteGoal` | PARA goal CRUD + pause/activate; optional `area_flag` for Project/Resource (Goals page) |
+| `MapGoalViews` | Resolve Area parent flag/title for UI rows |
+| `ListActionLogs` / `ListActionLogsPage` | Recent or paged completion audit for Quests UI |
+| `ListCompletedQuestsPage` | Paged completed quests for Quests history |
 | `ListAchievements` | Catalog + progress/unlock state for Achievements UI |
-| `ListRewardsPage` / `CreateReward` / `UpdateReward` / `DeactivateReward` / `RestoreReward` / `RedeemReward` | Real-life rewards market (gold sink) |
+| `ListRewardsPage` / `CreateReward` / `UpdateReward` / `DeactivateReward` / `RestoreReward` / `RedeemReward` | Real-life rewards market (gold sink); inactive + redemptions are paged |
 | `GetStatsPage` | 30-day analytics aggregates for Stats UI |
 | `BuildSkillTree` | Skill-tree evidence UI model |
 | `CreatePlanNode` / `ConfirmHabitAction` / `PreviewGoalBreakdown` / `ImportGoalBreakdown` | Plan tree + AI breakdown |
 | `ListTodayActions` / `CompleteActionOccurrence` / `SkipActionOccurrence` / `CheckInHabit` | Today board execution |
 | `SubmitQuestEvidence` / `AdjudicateQuest` / `ApplyQuestAdjudication` | Quest evidence + DM ruling |
 | `Equip` / `Unequip` | Update `life_equipped_slots` |
-| `ListQuests` / `ListPendingQuestDMViews` / `ListInventory` / `GetCharacter` | Read models for UI |
+| `ListQuests` / `ListPendingQuestDMViews` / `ListInventory` / `ListInventoryPage` / `GetCharacter` | Read models for UI (backpack paged) |
 | `SetClassType` | Update class (default `Architect`) |
 | `ProcessPendingLore` | Outbox consumer for lore (retries on LLM failure) |
 
@@ -144,7 +147,7 @@ Prefix: `/service/web`
 | POST | `/life/character/class` | Set class type |
 | GET | `/life/goals` | PARA goals CRUD |
 | POST | `/life/goals` | Create goal |
-| POST | `/life/goals/:flag` | Update goal title/category |
+| POST | `/life/goals/:flag` | Update goal title/category/`area_flag` |
 | POST | `/life/goals/:flag/status` | Pause / activate goal |
 | POST | `/life/goals/:flag/delete` | Delete goal |
 | GET | `/life/plan` | Plan tree + AI breakdown |
@@ -152,7 +155,7 @@ Prefix: `/service/web`
 | POST | `/life/character/plan/:flag/confirm-habit` | Confirm habit candidate |
 | POST | `/life/character/plan/breakdown/preview` | AI plan breakdown preview |
 | POST | `/life/character/plan/breakdown/import` | Import AI plan breakdown |
-| GET | `/life/quests` | Quest list + today board + evidence/DM |
+| GET | `/life/quests` | Quest list + today board + evidence/DM; query `completed_page`, `logs_page`, `history_tab` |
 | POST | `/life/quests` | Create quest from prompt |
 | POST | `/life/quests/:flag/complete` | Complete quest (cascade + loot) |
 | POST | `/life/quests/:flag/fail` | Fail quest (24h gear rust) |
@@ -164,11 +167,11 @@ Prefix: `/service/web`
 | POST | `/life/actions/:flag/skip` | Skip today action occurrence |
 | POST | `/life/habits/:flag/checkin` | Habit check-in |
 | GET | `/life/skills` | Skill tree |
-| GET | `/life/inventory` | Backpack |
+| GET | `/life/inventory` | Backpack; query `backpack_page` |
 | POST | `/life/inventory/:flag/equip` | Equip inventory item |
 | POST | `/life/inventory/slots/:slot/unequip` | Clear equipped slot |
 | GET | `/life/achievements` | Memorial achievements |
-| GET | `/life/rewards` | Player-defined real-life rewards market |
+| GET | `/life/rewards` | Player-defined real-life rewards market; query `redemptions_page`, `inactive_page`, `archive_tab` |
 | POST | `/life/rewards` | Create reward |
 | POST | `/life/rewards/:flag` | Update reward |
 | POST | `/life/rewards/:flag/deactivate` | Soft-delete reward |
@@ -211,10 +214,12 @@ In one transaction:
 8. Update achievement progress / unlocks.
 
 HTMX returns immediate feedback (exp/gold/drop). Lore fills later. Completion-rate blend runs after commit.
+After commit, `notify.go` enqueues an in-app inbox notification (`GatewaySend`, non-blocking).
 
 ### Fail quest
 
 In one transaction: mark quest `Failed` and set 24h `tarnished_until` on equipped slots + equipped inventory. Completion-rate blend runs after commit.
+After commit, `notify.go` enqueues an in-app inbox notification (rust warning).
 
 ### Dismiss quest
 
