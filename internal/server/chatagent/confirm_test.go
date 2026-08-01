@@ -303,6 +303,7 @@ func TestConfirmGatePendingEvent(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			lockStoreDatabaseForTest(t)
 			pub := NewChannelPublisher(8)
 			gate := NewConfirmGate("sess-pending-event", pub, nil)
 			gate.timeout = 2 * time.Second

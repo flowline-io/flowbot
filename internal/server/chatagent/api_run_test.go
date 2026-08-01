@@ -3,10 +3,14 @@ package chatagent
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/flowline-io/flowbot/pkg/agent"
 	"github.com/flowline-io/flowbot/pkg/agent/harness"
+	"github.com/flowline-io/flowbot/pkg/agent/hooks"
 	agentllm "github.com/flowline-io/flowbot/pkg/agent/llm"
+	"github.com/flowline-io/flowbot/pkg/agent/msg"
+	"github.com/flowline-io/flowbot/pkg/agent/permission"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -128,6 +132,39 @@ func TestClearAPIRunStateWithoutExpected(t *testing.T) {
 	svc.ClearAPIRunState(sessionID, nil)
 	_, ok := svc.GetAPIRunState(sessionID)
 	assert.False(t, ok)
+}
+
+func TestClearAPIRunStateCancelsMatchingGate(t *testing.T) {
+	lockStoreDatabaseForTest(t)
+	svc := NewService()
+	sessionID := "sess-clear-cancels-gate"
+	pub := NewChannelPublisher(8)
+	gate := NewConfirmGate(sessionID, pub, nil)
+	gate.timeout = 30 * time.Second
+	state := NewAPIRunState(pub, gate)
+	require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+
+	done := make(chan struct{})
+	go func() {
+		_, _ = gate.Wait(context.Background(), hooks.ToolCallEvent{
+			ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
+			Args:     map[string]any{"command": "ls"},
+		}, testEvalResult())
+		close(done)
+	}()
+	waitConfirmEvent(t, pub)
+
+	svc.ClearAPIRunState(sessionID, state)
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("ConfirmGate.Wait did not return after ClearAPIRunState")
+	}
+	assert.False(t, gate.IsWaiting())
+	_, ok := svc.GetAPIRunState(sessionID)
+	assert.False(t, ok)
+	WaitApprovalNotifyForTest()
 }
 
 func TestTrySetAPIRunState(t *testing.T) {

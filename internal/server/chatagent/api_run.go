@@ -41,10 +41,15 @@ func (s *Service) TrySetAPIRunState(sessionID string, state *APIRunState) error 
 }
 
 // ClearAPIRunState removes run state only when it matches the active connection.
+// Matching clears also cancel the confirm gate so Wait returns and does not outlive
+// the test (or SSE connection) while still touching store.Database.
 func (s *Service) ClearAPIRunState(sessionID string, expected *APIRunState) {
 	if expected != nil {
-		s.activeAPIRuns.CompareAndDelete(sessionID, expected)
+		if !s.activeAPIRuns.CompareAndDelete(sessionID, expected) {
+			return
+		}
 		if expected.gate != nil {
+			expected.gate.Cancel()
 			s.sessionConfirmGates.CompareAndDelete(sessionID, expected.gate)
 		}
 		return

@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
-	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -117,13 +116,7 @@ func TestLoadSessionModeDefaults(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			origDB := store.Database
-			chatagent.WaitApprovalNotifyForTest()
-			store.Database = nil
-			t.Cleanup(func() {
-				chatagent.WaitApprovalNotifyForTest()
-				store.Database = origDB
-			})
+			chatagent.InstallTestDatabaseForTest(t, nil)
 			assert.Equal(t, tt.want, chatagent.LoadSessionMode(context.Background(), tt.sessionID))
 		})
 	}

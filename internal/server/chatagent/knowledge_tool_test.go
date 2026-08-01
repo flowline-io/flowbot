@@ -9,7 +9,6 @@ import (
 	"github.com/flowline-io/flowbot/internal/server/chatagent"
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
-	"github.com/flowline-io/flowbot/internal/store/postgres"
 	"github.com/flowline-io/flowbot/pkg/agent/msg"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,13 +21,7 @@ func seedKnowledgeDoc(t *testing.T, doc *gen.AgentKnowledge) {
 
 func setupKnowledgeTestDB(t *testing.T) {
 	t.Helper()
-	orig := store.Database
-	chatagent.WaitApprovalNotifyForTest()
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() {
-		chatagent.WaitApprovalNotifyForTest()
-		store.Database = orig
-	})
+	chatagent.InstallSQLiteTestDatabaseForTest(t)
 }
 
 func TestSearchKnowledgeTool(t *testing.T) {

@@ -32,6 +32,7 @@ func TestTruncateInboxLabel(t *testing.T) {
 
 func TestSessionInboxSourceLabelWithoutDB(t *testing.T) {
 	t.Parallel()
+	lockStoreDatabaseForTest(t)
 	got := sessionInboxSourceLabel(context.Background(), "session-id-abcdefgh")
 	want := truncateInboxLabel("session-id-abcdefgh", 12)
 	if got != want {

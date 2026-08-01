@@ -29,16 +29,19 @@ func LockAppConfigForTest(t *testing.T) {
 }
 
 // installTestDatabase replaces store.Database for the test lifetime.
-// It drains approval-notify goroutines before each swap so fire-and-forget
-// work cannot race the package-level adapter pointer.
+// It holds storeDatabaseTestMu for the whole test and drains approval-notify
+// goroutines before each swap so parallel tests cannot race the package-level
+// adapter pointer.
 func installTestDatabase(t *testing.T, db store.Adapter) {
 	t.Helper()
+	storeDatabaseTestMu.Lock()
 	WaitApprovalNotifyForTest()
 	orig := store.Database
 	store.Database = db
 	t.Cleanup(func() {
 		WaitApprovalNotifyForTest()
 		store.Database = orig
+		storeDatabaseTestMu.Unlock()
 	})
 }
 
@@ -48,10 +51,33 @@ func installSQLiteTestDatabase(t *testing.T) {
 	installTestDatabase(t, postgres.NewSQLiteTestAdapter(t))
 }
 
+// InstallSQLiteTestDatabaseForTest installs an in-memory SQLite adapter for tests
+// in external packages (package chatagent_test).
+func InstallSQLiteTestDatabaseForTest(t *testing.T) {
+	installSQLiteTestDatabase(t)
+}
+
+// InstallTestDatabaseForTest replaces store.Database for the test lifetime.
+func InstallTestDatabaseForTest(t *testing.T, db store.Adapter) {
+	installTestDatabase(t, db)
+}
+
 // restoreTestDatabase drains approval notify then assigns store.Database.
+// Callers must already hold storeDatabaseTestMu via installTestDatabase.
 func restoreTestDatabase(db store.Adapter) {
 	WaitApprovalNotifyForTest()
 	store.Database = db
+}
+
+// lockStoreDatabaseForTest serializes store.Database access for tests that read it
+// (for example ConfirmGate approval notify) without installing a replacement.
+func lockStoreDatabaseForTest(t *testing.T) {
+	t.Helper()
+	storeDatabaseTestMu.Lock()
+	t.Cleanup(func() {
+		WaitApprovalNotifyForTest()
+		storeDatabaseTestMu.Unlock()
+	})
 }
 
 // withIsolatedTestStore swaps store.Database for an in-memory SQLite adapter for the
@@ -59,13 +85,5 @@ func restoreTestDatabase(db store.Adapter) {
 // package-level store.Database pointer.
 func withIsolatedTestStore(t *testing.T) {
 	t.Helper()
-	storeDatabaseTestMu.Lock()
-	WaitApprovalNotifyForTest()
-	origDB := store.Database
-	store.Database = postgres.NewSQLiteTestAdapter(t)
-	t.Cleanup(func() {
-		WaitApprovalNotifyForTest()
-		store.Database = origDB
-		storeDatabaseTestMu.Unlock()
-	})
+	installSQLiteTestDatabase(t)
 }

@@ -36,8 +36,10 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 				gate.timeout = 2 * time.Second
 				state := NewAPIRunState(pub, gate)
 				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				done := make(chan struct{})
 				t.Cleanup(func() {
 					svc.ClearAPIRunState(sessionID, state)
+					<-done
 					WaitApprovalNotifyForTest()
 				})
 				go func() {
@@ -45,6 +47,7 @@ func TestCountPendingApprovalSessions(t *testing.T) {
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
 						Args:     map[string]any{"command": "ls"},
 					}, testEvalResult())
+					close(done)
 				}()
 				waitConfirmEvent(t, pub)
 				return sessionID
@@ -113,8 +116,10 @@ func TestSessionActivity(t *testing.T) {
 				gate.timeout = 2 * time.Second
 				state := NewAPIRunState(pub, gate)
 				require.NoError(t, svc.TrySetAPIRunState(sessionID, state))
+				done := make(chan struct{})
 				t.Cleanup(func() {
 					svc.ClearAPIRunState(sessionID, state)
+					<-done
 					WaitApprovalNotifyForTest()
 				})
 				go func() {
@@ -122,6 +127,7 @@ func TestSessionActivity(t *testing.T) {
 						ToolCall: msg.ToolCallPart{Name: permission.ToolRunTerminal},
 						Args:     map[string]any{"command": "ls"},
 					}, testEvalResult())
+					close(done)
 				}()
 				waitConfirmEvent(t, pub)
 				return sessionID
@@ -200,6 +206,7 @@ func TestConfirmGateIsWaiting(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			lockStoreDatabaseForTest(t)
 			pub := NewChannelPublisher(8)
 			gate := NewConfirmGate("sess-waiting", pub, nil)
 			gate.timeout = 2 * time.Second
