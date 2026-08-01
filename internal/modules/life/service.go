@@ -443,20 +443,49 @@ func (s *Service) FailQuest(ctx context.Context, userID, questFlag string) error
 	flog.InfoFields("life: quest failed", map[string]any{
 		"uid": userID, "profile_id": p.ID, "quest_flag": questFlag, "tarnished_until": until,
 	})
+	notifyQuestFailed(userID, q.Title)
+	return nil
+}
+
+// DismissQuest removes a pending quest without rust or completion-rate penalty.
+func (s *Service) DismissQuest(ctx context.Context, userID, questFlag string) error {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return err
+	}
+	q, err := s.store.GetQuestByFlag(ctx, p.ID, questFlag)
+	if err != nil || q == nil {
+		return lifeNotFound("quest not found")
+	}
+	if q.Status != "Pending" {
+		return lifeConflict("quest not pending")
+	}
+	if err := s.store.MarkQuestStatus(ctx, q.ID, "Dismissed"); err != nil {
+		return err
+	}
+	flog.InfoFields("life: quest dismissed", map[string]any{
+		"uid": userID, "profile_id": p.ID, "quest_flag": questFlag,
+	})
 	return nil
 }
 
 // CompleteResult is returned to the UI after completion.
 type CompleteResult struct {
-	Quest         *gen.LifeQuest
-	GainedExp     int
-	GainedGold    int
-	Dropped       bool
-	ItemName      string
-	ItemFlag      string
-	Dice          float64
-	PityForced    bool
-	NewlyUnlocked []UnlockedAchievement
+	Quest              *gen.LifeQuest
+	GainedExp          int
+	GainedGold         int
+	Dropped            bool
+	ItemName           string
+	ItemFlag           string
+	ItemRarity         string
+	Dice               float64
+	PityForced         bool
+	NewlyUnlocked      []UnlockedAchievement
+	ProfileLevelBefore int
+	ProfileLevelAfter  int
+	SkillName          string
+	SkillLevelBefore   int
+	SkillLevelAfter    int
 }
 
 // UnlockedAchievement is one memorial unlock surfaced to the UI.
@@ -560,15 +589,31 @@ func (s *Service) CompleteQuest(ctx context.Context, userID, questFlag string) (
 			"profile_id": p.ID, "error": err.Error(),
 		})
 	}
-	result := fillCompleteResult(q, casc, persisted.Loot, persisted.Dice, persisted)
+	result := fillCompleteResult(q, skill, p.Level, casc, persisted.Loot, persisted.Dice, persisted)
 	logQuestCompleted(userID, p.ID, casc.Profile.Level, result)
+	notifyQuestCompleted(userID, result)
 	return result, nil
 }
 
-func fillCompleteResult(q *gen.LifeQuest, casc pkglife.CascadeResult, loot pkglife.LootResult, roll float64, persisted *store.LifeCompleteResult) *CompleteResult {
+func fillCompleteResult(
+	q *gen.LifeQuest,
+	skill *gen.LifeSkill,
+	profileLevelBefore int,
+	casc pkglife.CascadeResult,
+	loot pkglife.LootResult,
+	roll float64,
+	persisted *store.LifeCompleteResult,
+) *CompleteResult {
 	result := &CompleteResult{
 		Quest: q, GainedExp: casc.GainedExp, GainedGold: casc.GainedGold,
 		Dice: roll, PityForced: loot.ForcedPity,
+		ProfileLevelBefore: profileLevelBefore,
+		ProfileLevelAfter:  casc.Profile.Level,
+		SkillLevelAfter:    casc.Skill.Level,
+	}
+	if skill != nil {
+		result.SkillName = skill.Name
+		result.SkillLevelBefore = skill.Level
 	}
 	q.Status = "Completed"
 	if persisted != nil && persisted.Inventory != nil {
@@ -576,6 +621,7 @@ func fillCompleteResult(q *gen.LifeQuest, casc pkglife.CascadeResult, loot pkgli
 		result.ItemFlag = persisted.Inventory.Flag
 		if persisted.Equipment != nil {
 			result.ItemName = persisted.Equipment.Name
+			result.ItemRarity = persisted.Equipment.Rarity
 		}
 	}
 	if persisted != nil {
@@ -1211,10 +1257,14 @@ func normalizeEvidenceSourceType(raw string) string {
 
 func summarizeEvidence(content string) string {
 	content = strings.TrimSpace(content)
-	if len(content) <= 120 {
+	if content == "" {
+		return ""
+	}
+	runes := []rune(content)
+	if len(runes) <= 120 {
 		return content
 	}
-	return content[:120]
+	return string(runes[:120])
 }
 
 // ListActionLogs returns recent completion audit rows for the user.

@@ -165,6 +165,53 @@ func TestLifeSubmitQuestEvidenceRedirectsAndPersists(t *testing.T) {
 	require.Contains(t, rows[0].Content, "wrote tests")
 }
 
+func TestLifeDismissQuestRedirectsAndClearsPending(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		setWebEncryptor(nil)
+		SetLifeService(nil)
+	}()
+	ls := store.NewLifeStore(client)
+	SetLifeService(lifemod.NewService(ls))
+	svc := lifeService()
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "testuser", "", "")
+	require.NoError(t, err)
+	chars, err := ls.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := ls.CreateSkill(ctx, profile.ID, chars[0].ID, "Focus", 0.5)
+	require.NoError(t, err)
+	quest, err := ls.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID:         profile.ID,
+		SkillID:               skill.ID,
+		Title:                 "Dismiss me",
+		Prompt:                "Clear stuck quest",
+		Type:                  "One-Time",
+		AiEvaluatedDifficulty: "E",
+		BaseExpReward:         10,
+		BaseGoldReward:        3,
+		DropTier:              "Common",
+	})
+	require.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodPost, "/service/web/life/quests/"+quest.Flag+"/dismiss", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Equal(t, "/service/web/life/quests", resp.Header.Get("HX-Redirect"))
+
+	got, err := ls.GetQuestByFlag(ctx, profile.ID, quest.Flag)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	require.Equal(t, "Dismissed", got.Status)
+}
+
 func TestLifeQuestsPageShowsQuestDMControls(t *testing.T) {
 	app, _, client := setupTestAppWithDB(t)
 	defer func() {
@@ -210,4 +257,6 @@ func TestLifeQuestsPageShowsQuestDMControls(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 	require.Contains(t, string(body), "Submit evidence")
 	require.Contains(t, string(body), "Request ruling")
+	require.Contains(t, string(body), "Dismiss")
+	require.Contains(t, string(body), `data-testid="life-quest-dismiss-`)
 }

@@ -834,7 +834,7 @@ templ LifeQuestsPage(data LifeQuestsData) {
 				} else {
 					<ul class="life-quest-list" data-testid="life-quests-pending">
 						for _, q := range data.Pending {
-							<li class="life-quest-card">
+							<li class="life-quest-card life-quest-card-dm">
 								<div class="life-quest-card-body">
 									<p class="life-quest-title">{ q.Title }</p>
 									if q.Prompt != "" {
@@ -851,61 +851,64 @@ templ LifeQuestsPage(data LifeQuestsData) {
 										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
 										<span class="life-quest-reward">~<strong>{ fmt.Sprintf("%.0f%%", q.DropChance*100) }</strong> drop</span>
 									</div>
-									<div class="mt-4">
-										<p class="life-quest-prompt">Quest evidence</p>
+
+									<section class="life-quest-evidence">
+										<header class="life-quest-block-head">
+											<span>Quest evidence</span>
+											<span class="life-section-count">{ fmt.Sprintf("%d", len(q.Evidence)) }</span>
+										</header>
 										if len(q.Evidence) == 0 {
 											<p class="life-empty">No evidence submitted yet.</p>
 										} else {
-											<ul class="life-done-list">
+											<ul class="life-quest-evidence-list">
 												for _, ev := range q.Evidence {
-													<li class="life-done-row">
-														<div class="life-done-main">
-															<span class="life-done-title">{ ev.SourceType }</span>
-															<span class="life-done-prompt">{ ev.Content }</span>
+													<li class="life-quest-evidence-row">
+														<div class="life-quest-evidence-main">
+															<span class="life-meta-chip">{ ev.SourceType }</span>
+															<p class="life-quest-evidence-content">{ ev.Content }</p>
 															if ev.SourceURL != "" {
-																<a href={ ev.SourceURL } class="life-done-prompt" target="_blank" rel="noreferrer">Open source</a>
+																<a href={ templ.URL(ev.SourceURL) } class="life-quest-evidence-link" target="_blank" rel="noreferrer">Open source</a>
 															}
 														</div>
-														<div class="life-done-meta">
-															<span>{ ev.When }</span>
-														</div>
+														<span class="life-quest-evidence-when">{ ev.When }</span>
 													</li>
 												}
 											</ul>
 										}
-									</div>
+									</section>
+
 									<form
 										hx-post={ "/service/web/life/quests/" + q.Flag + "/evidence" }
 										hx-swap="none"
 										hx-disabled-elt="find button[type='submit'], find textarea, find input, find select"
-										class="mt-4"
+										class="life-quest-evidence-form"
 									>
-										<label class="form-control w-full">
-											<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">Submit evidence</span>
+										<label class="life-quest-field">
+											<span class="life-quest-field-label">Submit evidence</span>
 											<textarea
 												name="content"
-												class="textarea textarea-bordered w-full mt-1"
+												class="life-quest-textarea"
 												rows="3"
 												required
 												placeholder="Describe what you shipped, learned, or produced."
 											></textarea>
 										</label>
-										<div class="grid grid-cols-1 gap-2 mt-2 md:grid-cols-2">
-											<label class="form-control w-full">
-												<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">Evidence type</span>
-												<select name="source_type" class="select select-bordered select-sm w-full mt-1">
+										<div class="life-quest-field-grid">
+											<label class="life-quest-field">
+												<span class="life-quest-field-label">Evidence type</span>
+												<select name="source_type" class="life-quest-select">
 													<option value="note">note</option>
 													<option value="link">link</option>
 													<option value="artifact">artifact</option>
 												</select>
 											</label>
-											<label class="form-control w-full">
-												<span class="label-text text-xs font-medium tracking-wide uppercase opacity-70">Source URL (optional)</span>
-												<input name="source_url" class="input input-bordered input-sm w-full mt-1" placeholder="https://..." />
+											<label class="life-quest-field">
+												<span class="life-quest-field-label">Source URL (optional)</span>
+												<input name="source_url" class="life-quest-input" placeholder="https://..." />
 											</label>
 										</div>
-										<div class="life-quest-actions mt-3">
-											<button type="submit" class="btn btn-sm btn-outline">
+										<div class="life-quest-toolbar">
+											<button type="submit" class="btn btn-sm btn-outline" data-testid={ "life-quest-add-evidence-" + q.Flag }>
 												@partials.HtmxIndicator()
 												Add evidence
 											</button>
@@ -915,48 +918,63 @@ templ LifeQuestsPage(data LifeQuestsData) {
 												hx-post={ "/service/web/life/quests/" + q.Flag + "/adjudicate" }
 												hx-swap="none"
 												hx-disabled-elt="this"
+												data-testid={ "life-quest-adjudicate-" + q.Flag }
 											>
 												@partials.HtmxIndicator()
 												Request ruling
 											</button>
 										</div>
 									</form>
+
 									if q.Adjudication != nil {
-										<div class="mt-4 rounded-box border border-base-300 p-3">
+										<section class="life-quest-ruling">
 											<div class="life-quest-meta">
-												<span class="life-meta-chip">{ q.Adjudication.Verdict }</span>
+												<span class={ "life-meta-chip", LifeVerdictChipClass(q.Adjudication.Verdict) }>{ q.Adjudication.Verdict }</span>
 												<span class="life-meta-chip">{ q.Adjudication.Status }</span>
 												<span class="life-meta-chip">{ q.Adjudication.When }</span>
 											</div>
-											<p class="life-quest-prompt mt-2">{ q.Adjudication.Reason }</p>
-											<div class="life-quest-rewards mt-2">
+											<p class="life-quest-ruling-reason">{ q.Adjudication.Reason }</p>
+											<div class="life-quest-rewards">
 												<span class="life-quest-reward">Suggested +<strong>{ fmt.Sprintf("%d", q.Adjudication.SuggestedExp) }</strong> EXP</span>
 												<span class="life-quest-reward">Suggested +<strong>{ fmt.Sprintf("%d", q.Adjudication.SuggestedGold) }</strong> gold</span>
 											</div>
 											if len(q.Adjudication.SuggestedNextSteps) > 0 {
-												<ul class="mt-2 list-disc pl-5 text-sm">
+												<ul class="life-quest-ruling-steps">
 													for _, step := range q.Adjudication.SuggestedNextSteps {
 														<li>{ step }</li>
 													}
 												</ul>
 											}
-										</div>
+										</section>
 									}
-								</div>
-								<div class="life-quest-actions">
-									if q.Adjudication != nil && q.Adjudication.Status == "suggested" {
+
+									<div class="life-quest-toolbar life-quest-card-actions">
+										if q.Adjudication != nil && q.Adjudication.Status == "suggested" {
+											<button
+												type="button"
+												class="btn btn-sm btn-primary"
+												hx-post={ "/service/web/life/quests/" + q.Flag + "/adjudication/" + q.Adjudication.Flag + "/apply" }
+												hx-swap="none"
+												hx-disabled-elt="this"
+												data-testid={ "life-quest-apply-" + q.Flag }
+											>
+												@partials.HtmxIndicator()
+												Apply ruling
+											</button>
+										}
 										<button
 											type="button"
-											class="btn btn-sm btn-primary"
-											hx-post={ "/service/web/life/quests/" + q.Flag + "/adjudication/" + q.Adjudication.Flag + "/apply" }
+											class="btn btn-sm btn-ghost"
+											hx-post={ "/service/web/life/quests/" + q.Flag + "/dismiss" }
 											hx-swap="none"
 											hx-disabled-elt="this"
-											data-testid={ "life-quest-apply-" + q.Flag }
+											data-confirm="Dismiss this quest? No penalty."
+											data-testid={ "life-quest-dismiss-" + q.Flag }
 										>
 											@partials.HtmxIndicator()
-											Apply ruling
+											Dismiss
 										</button>
-									}
+									</div>
 								</div>
 							</li>
 						}

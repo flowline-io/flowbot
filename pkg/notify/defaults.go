@@ -24,6 +24,14 @@ const (
 	AgentApprovalTemplateID = "agent.approval"
 	// AgentApprovalTemplateBody is the default body for AgentApprovalTemplateID.
 	AgentApprovalTemplateBody = "{{ .summary }}"
+	// LifeQuestCompletedTemplateID is the seeded template for life quest completion inbox alerts.
+	LifeQuestCompletedTemplateID = "life.quest.completed"
+	// LifeQuestCompletedTemplateBody is the default body for LifeQuestCompletedTemplateID.
+	LifeQuestCompletedTemplateBody = "{{ .summary }}"
+	// LifeQuestFailedTemplateID is the seeded template for life quest failure inbox alerts.
+	LifeQuestFailedTemplateID = "life.quest.failed"
+	// LifeQuestFailedTemplateBody is the default body for LifeQuestFailedTemplateID.
+	LifeQuestFailedTemplateBody = "{{ .summary }}"
 	// InappChannelURI is the seeded URI for the system inapp channel.
 	InappChannelURI = "inapp://inbox"
 )
@@ -137,6 +145,18 @@ func SeedAgentNotifyTemplate(ctx context.Context) error {
 func SeedAgentApprovalTemplate(ctx context.Context) error {
 	return seedNotifyTemplate(ctx, AgentApprovalTemplateID, "Agent approval",
 		"Chatagent tool-approval inbox template ({{ .summary }})", AgentApprovalTemplateBody)
+}
+
+// SeedLifeQuestCompletedTemplate ensures the life.quest.completed template exists.
+func SeedLifeQuestCompletedTemplate(ctx context.Context) error {
+	return seedNotifyTemplate(ctx, LifeQuestCompletedTemplateID, "Life quest completed",
+		"Life quest settlement inbox template ({{ .summary }})", LifeQuestCompletedTemplateBody)
+}
+
+// SeedLifeQuestFailedTemplate ensures the life.quest.failed template exists.
+func SeedLifeQuestFailedTemplate(ctx context.Context) error {
+	return seedNotifyTemplate(ctx, LifeQuestFailedTemplateID, "Life quest failed",
+		"Life quest failure inbox template ({{ .summary }})", LifeQuestFailedTemplateBody)
 }
 
 func seedNotifyTemplate(ctx context.Context, templateID, name, description, body string) error {

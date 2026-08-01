@@ -133,11 +133,11 @@ func invokeAdjudicate(svc Service) capability.Invoker {
 			Difficulty:    optionalStringParam(params, "difficulty"),
 			AIPersonality: optionalStringParam(params, "ai_personality"),
 		}
-		if v, ok := params["base_exp"].(float64); ok {
-			req.BaseExp = int(v)
+		if v, ok := capability.IntParam(params, "base_exp"); ok {
+			req.BaseExp = v
 		}
-		if v, ok := params["base_gold"].(float64); ok {
-			req.BaseGold = int(v)
+		if v, ok := capability.IntParam(params, "base_gold"); ok {
+			req.BaseGold = v
 		}
 		if v, ok := params["completion_rate"].(float64); ok {
 			req.CompletionRate = v
@@ -155,12 +155,8 @@ func invokeAdjudicate(svc Service) capability.Invoker {
 		if arr, ok := params["active_goals"].([]string); ok {
 			req.ActiveGoals = append(req.ActiveGoals, arr...)
 		}
-		if arr, ok := params["recent_action_log"].([]any); ok {
-			req.RecentActionLog = appendActionLogMaps(req.RecentActionLog, arr)
-		}
-		if arr, ok := params["evidence"].([]any); ok {
-			req.Evidence = appendEvidence(req.Evidence, arr)
-		}
+		req.RecentActionLog = appendActionLogParam(req.RecentActionLog, params["recent_action_log"])
+		req.Evidence = appendEvidenceParam(req.Evidence, params["evidence"])
 		adjudication, err := svc.AdjudicateQuest(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("life capability: adjudicate: %w", err)
@@ -229,6 +225,17 @@ func optionalStringParam(params map[string]any, key string) string {
 	return v
 }
 
+func appendActionLogParam(dst []map[string]any, raw any) []map[string]any {
+	switch items := raw.(type) {
+	case []map[string]any:
+		return append(dst, items...)
+	case []any:
+		return appendActionLogMaps(dst, items)
+	default:
+		return dst
+	}
+}
+
 func appendActionLogMaps(dst []map[string]any, items []any) []map[string]any {
 	for _, item := range items {
 		if m, ok := item.(map[string]any); ok {
@@ -238,21 +245,38 @@ func appendActionLogMaps(dst []map[string]any, items []any) []map[string]any {
 	return dst
 }
 
+func appendEvidenceParam(dst []QuestEvidence, raw any) []QuestEvidence {
+	switch items := raw.(type) {
+	case []map[string]any:
+		for _, m := range items {
+			dst = append(dst, questEvidenceFromMap(m))
+		}
+		return dst
+	case []any:
+		return appendEvidence(dst, items)
+	default:
+		return dst
+	}
+}
+
 func appendEvidence(dst []QuestEvidence, items []any) []QuestEvidence {
 	for _, item := range items {
 		m, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
-		ev := QuestEvidence{
-			SourceType: optionalStringFromMap(m, "source_type"),
-			Content:    optionalStringFromMap(m, "content"),
-			SourceURL:  optionalStringFromMap(m, "source_url"),
-			Summary:    optionalStringFromMap(m, "summary"),
-		}
-		dst = append(dst, ev)
+		dst = append(dst, questEvidenceFromMap(m))
 	}
 	return dst
+}
+
+func questEvidenceFromMap(m map[string]any) QuestEvidence {
+	return QuestEvidence{
+		SourceType: optionalStringFromMap(m, "source_type"),
+		Content:    optionalStringFromMap(m, "content"),
+		SourceURL:  optionalStringFromMap(m, "source_url"),
+		Summary:    optionalStringFromMap(m, "summary"),
+	}
 }
 
 func optionalStringFromMap(m map[string]any, key string) string {

@@ -95,6 +95,15 @@ func TestLifeRarityClass(t *testing.T) {
 	}))
 }
 
+func TestLifeVerdictChipClass(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "life-meta-chip-ok", pages.LifeVerdictChipClass("completed"))
+	assert.Equal(t, "life-meta-chip-diff", pages.LifeVerdictChipClass("partial"))
+	assert.Equal(t, "life-meta-chip-danger", pages.LifeVerdictChipClass("failed"))
+	assert.Equal(t, "life-meta-chip-warn", pages.LifeVerdictChipClass("needs_more_evidence"))
+	assert.Empty(t, pages.LifeVerdictChipClass(""))
+}
+
 func TestLifeHPFromStats(t *testing.T) {
 	t.Parallel()
 	stats := []pages.LifeStatRow{pages.LifeBuildStatRow("WIL", "Willpower", 4, 20)}

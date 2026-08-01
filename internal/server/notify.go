@@ -53,6 +53,12 @@ func initNotificationGateway(lc fx.Lifecycle, store *cache.RedisStore) {
 			if err := notify.SeedAgentApprovalTemplate(ctx); err != nil {
 				flog.Warn("failed to seed agent.approval template: %v", err)
 			}
+			if err := notify.SeedLifeQuestCompletedTemplate(ctx); err != nil {
+				flog.Warn("failed to seed life.quest.completed template: %v", err)
+			}
+			if err := notify.SeedLifeQuestFailedTemplate(ctx); err != nil {
+				flog.Warn("failed to seed life.quest.failed template: %v", err)
+			}
 			if reloaded, loadErr := loadNotifyTemplatesFromDB(ctx); loadErr == nil {
 				if initErr := notifytmpl.Init(reloaded); initErr != nil {
 					flog.Warn("failed to reload notify templates after seed: %v", initErr)

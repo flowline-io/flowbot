@@ -14,6 +14,7 @@ import (
 	lifemod "github.com/flowline-io/flowbot/internal/modules/life"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
+	"github.com/flowline-io/flowbot/pkg/flog"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
 	"github.com/flowline-io/flowbot/pkg/types"
 	"github.com/flowline-io/flowbot/pkg/types/ruleset/webservice"
@@ -44,6 +45,7 @@ var lifeWebserviceRules = []webservice.Rule{
 	webservice.Post("/life/quests/:flag/adjudication/:adjudicationFlag/apply", lifeApplyQuestAdjudication),
 	webservice.Post("/life/quests/:flag/complete", lifeCompleteQuest),
 	webservice.Post("/life/quests/:flag/fail", lifeFailQuest),
+	webservice.Post("/life/quests/:flag/dismiss", lifeDismissQuest),
 	webservice.Post("/life/actions/:flag/complete", lifeCompleteActionOccurrence),
 	webservice.Post("/life/actions/:flag/skip", lifeSkipActionOccurrence),
 	webservice.Post("/life/habits/:flag/checkin", lifeCheckInHabit),
@@ -796,7 +798,9 @@ func lifeSubmitQuestEvidence(ctx fiber.Ctx) error {
 	content := strings.TrimSpace(ctx.FormValue("content"))
 	sourceType := strings.TrimSpace(ctx.FormValue("source_type"))
 	sourceURL := strings.TrimSpace(ctx.FormValue("source_url"))
-	if _, err := lifeService().SubmitQuestEvidence(context.Background(), uid, ctx.Params("flag"), sourceType, content, sourceURL); err != nil {
+	questFlag := ctx.Params("flag")
+	if _, err := lifeService().SubmitQuestEvidence(context.Background(), uid, questFlag, sourceType, content, sourceURL); err != nil {
+		flog.Warn("[web] life quest evidence failed uid=%s flag=%s source_type=%s: %v", uid, questFlag, sourceType, err)
 		return toastError(ctx, lifeUserError(err))
 	}
 	setShowToast(ctx, "success", "Evidence recorded for the quest.")
@@ -922,6 +926,22 @@ func lifeFailQuest(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(err))
 	}
 	setShowToast(ctx, "warning", "Quest failed — equipped gear tarnished for 24h")
+	ctx.Set("HX-Redirect", "/service/web/life/quests")
+	return ctx.SendStatus(http.StatusOK)
+}
+
+func lifeDismissQuest(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	if err := lifeService().DismissQuest(context.Background(), uid, ctx.Params("flag")); err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	setShowToast(ctx, "success", "Quest dismissed.")
 	ctx.Set("HX-Redirect", "/service/web/life/quests")
 	return ctx.SendStatus(http.StatusOK)
 }

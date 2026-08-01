@@ -2,7 +2,9 @@ package life
 
 import (
 	"context"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -268,6 +270,90 @@ func TestSubmitQuestEvidenceStoresPendingQuestProof(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rows, 1)
 	assert.Equal(t, "note", rows[0].SourceType)
+}
+
+func TestDismissQuestMarksPendingWithoutRust(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "dismiss-user", "", "")
+	require.NoError(t, err)
+	chars, err := svc.store.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := svc.store.CreateSkill(ctx, profile.ID, chars[0].ID, "Focus", 0.5)
+	require.NoError(t, err)
+	quest, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID:         profile.ID,
+		SkillID:               skill.ID,
+		Title:                 "Stuck quest to dismiss",
+		Prompt:                "Clear a stuck pending quest",
+		Type:                  "One-Time",
+		AiEvaluatedDifficulty: "E",
+		BaseExpReward:         10,
+		BaseGoldReward:        3,
+		DropTier:              "Common",
+	})
+	require.NoError(t, err)
+
+	err = svc.DismissQuest(ctx, "dismiss-user", quest.Flag)
+	require.NoError(t, err)
+
+	got, err := svc.store.GetQuestByFlag(ctx, profile.ID, quest.Flag)
+	require.NoError(t, err)
+	require.NotNil(t, got)
+	assert.Equal(t, "Dismissed", got.Status)
+
+	slots, err := svc.store.GetEquippedSlots(ctx, profile.ID)
+	require.NoError(t, err)
+	assert.Nil(t, slots.TarnishedUntil)
+
+	err = svc.DismissQuest(ctx, "dismiss-user", quest.Flag)
+	require.Error(t, err)
+}
+
+func TestSummarizeEvidenceKeepsValidUTF8(t *testing.T) {
+	t.Parallel()
+	long := "Notice of Assessment from IRAS: " + strings.Repeat("x", 90) + "完成报税流程验证并核对税额"
+	sum := summarizeEvidence(long)
+	require.True(t, utf8.ValidString(sum))
+	assert.LessOrEqual(t, len([]rune(sum)), 120)
+	assert.Contains(t, sum, "Notice of Assessment")
+}
+
+func TestSubmitQuestEvidenceAcceptsLongMixedScriptContent(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "mixed-evidence-user", "", "")
+	require.NoError(t, err)
+	chars, err := svc.store.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := svc.store.CreateSkill(ctx, profile.ID, chars[0].ID, "Tax", 0.5)
+	require.NoError(t, err)
+	quest, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+		LifeProfileID:         profile.ID,
+		SkillID:               skill.ID,
+		Title:                 "完成上笔报税流程",
+		Prompt:                "完成上个的报税流程",
+		Type:                  "One-Time",
+		AiEvaluatedDifficulty: "B",
+		BaseExpReward:         40,
+		BaseGoldReward:        12,
+		DropTier:              "Rare",
+	})
+	require.NoError(t, err)
+
+	content := "Notice of Assessment from IRAS: " + strings.Repeat("x", 90) + "完成报税流程验证并核对税额"
+	view, err := svc.SubmitQuestEvidence(ctx, "mixed-evidence-user", quest.Flag, "note", content, "")
+	require.NoError(t, err)
+	require.True(t, utf8.ValidString(view.Summary))
+	assert.Equal(t, content, view.Content)
 }
 
 func TestApplyQuestAdjudicationCompletesQuest(t *testing.T) {

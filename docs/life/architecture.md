@@ -101,6 +101,7 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | `CreateQuestFromPrompt` | Evaluate via capability → persist quest |
 | `CompleteQuest` | Cascade + loot + action log + achievements + optional lore outbox + Daily respawn (one DB tx; loot resolved in-tx from live pity) |
 | `FailQuest` | Mark failed + 24h equipment rust (one DB tx) |
+| `DismissQuest` | Mark dismissed with no rust or completion-rate penalty |
 | `CreateGoal` / `UpdateGoal` / `SetGoalStatus` / `DeleteGoal` | PARA goal CRUD + pause/activate (Goals page) |
 | `ListActionLogs` | Recent completion audit for Quests UI |
 | `ListAchievements` | Catalog + progress/unlock state for Achievements UI |
@@ -155,6 +156,7 @@ Prefix: `/service/web`
 | POST | `/life/quests` | Create quest from prompt |
 | POST | `/life/quests/:flag/complete` | Complete quest (cascade + loot) |
 | POST | `/life/quests/:flag/fail` | Fail quest (24h gear rust) |
+| POST | `/life/quests/:flag/dismiss` | Dismiss pending quest (no penalty) |
 | POST | `/life/quests/:flag/evidence` | Submit quest evidence |
 | POST | `/life/quests/:flag/adjudicate` | Request AI adjudication |
 | POST | `/life/quests/:flag/adjudication/:adjudicationFlag/apply` | Apply adjudication verdict |
@@ -213,6 +215,10 @@ HTMX returns immediate feedback (exp/gold/drop). Lore fills later. Completion-ra
 ### Fail quest
 
 In one transaction: mark quest `Failed` and set 24h `tarnished_until` on equipped slots + equipped inventory. Completion-rate blend runs after commit.
+
+### Dismiss quest
+
+Mark a `Pending` quest `Dismissed` with no rust and no completion-rate blend. Used to clear stuck or unwanted quests from the board.
 
 ### Outbox
 

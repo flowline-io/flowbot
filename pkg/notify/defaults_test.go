@@ -248,3 +248,31 @@ func TestSeedAgentNotifyTemplate(t *testing.T) {
 		})
 	}
 }
+
+func TestSeedLifeQuestTemplates(t *testing.T) {
+	tests := []struct {
+		name       string
+		templateID string
+		seedFn     func(context.Context) error
+	}{
+		{
+			name:       "completed",
+			templateID: LifeQuestCompletedTemplateID,
+			seedFn:     SeedLifeQuestCompletedTemplate,
+		},
+		{
+			name:       "failed",
+			templateID: LifeQuestFailedTemplateID,
+			seedFn:     SeedLifeQuestFailedTemplate,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setupNotifySQLiteDB(t)
+			require.NoError(t, tt.seedFn(context.Background()))
+			_, err := store.NotifyConfigStoreFromDB().GetNotifyTemplateByTemplateID(context.Background(), tt.templateID)
+			require.NoError(t, err)
+			require.NoError(t, tt.seedFn(context.Background()))
+		})
+	}
+}

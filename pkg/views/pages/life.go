@@ -430,6 +430,22 @@ func LifeRarityClass(rarity string) string {
 	}
 }
 
+// LifeVerdictChipClass maps an adjudication verdict to a meta-chip modifier.
+func LifeVerdictChipClass(verdict string) string {
+	switch strings.ToLower(strings.TrimSpace(verdict)) {
+	case "completed":
+		return "life-meta-chip-ok"
+	case "partial":
+		return "life-meta-chip-diff"
+	case "failed":
+		return "life-meta-chip-danger"
+	case "needs_more_evidence":
+		return "life-meta-chip-warn"
+	default:
+		return ""
+	}
+}
+
 // LifeSlotRarityClass returns the rarity CSS class for a filled equip slot.
 func LifeSlotRarityClass(slot LifeEquipSlot) string {
 	if slot.Item == nil {
