@@ -299,7 +299,7 @@ templ LifeSkillsPage(data LifeSkillTreeData) {
 						<header class="life-goals-head">
 							<div>
 								<h2 class="life-goals-title">Growth Map</h2>
-								<p class="life-goals-sub">The whole tree stays visible; active branches are highlighted by recent practice.</p>
+								<p class="life-goals-sub">Expand branches to explore; active ones are highlighted by recent practice.</p>
 							</div>
 						</header>
 						if len(data.Roots) == 0 {
@@ -549,7 +549,7 @@ templ lifeModuleShell(active string, pendingCount int) {
 
 templ lifeSkillTreeNode(node LifeSkillTreeNodeRow, depth int) {
 	if len(node.Children) > 0 {
-		<details class="life-tree-node life-tree-branch" style={ LifeIndentStyle(depth) } open?={ depth < 1 } data-testid={ "life-skill-node-" + node.Key }>
+		<details class="life-tree-node life-tree-branch" style={ LifeIndentStyle(depth) } open?={ LifeSkillTreeBranchOpen(node) } data-testid={ "life-skill-node-" + node.Key }>
 			<summary class="life-tree-summary">
 				@lifeSkillTreeNodeCard(node)
 			</summary>
@@ -1170,10 +1170,10 @@ templ LifeInventoryPage(data LifeInventoryData) {
 					</div>
 				</section>
 
-				<section class="life-panel life-section" data-testid="life-inventory">
+				<section id={ LifeBackpackAnchor } class="life-panel life-section life-anchor-target" data-testid="life-inventory">
 					<div class="life-section-head">
 						<h2>Backpack</h2>
-						<span class="life-section-count">{ fmt.Sprintf("%d", len(data.Items)) }</span>
+						<span class="life-section-count">{ fmt.Sprintf("%d", data.BackpackPage.Total) }</span>
 					</div>
 					if len(data.Items) == 0 {
 						<p class="life-empty">Backpack empty — complete quests to earn loot.</p>
@@ -1231,6 +1231,7 @@ templ LifeInventoryPage(data LifeInventoryData) {
 								</li>
 							}
 						</ul>
+						@lifeListPager(data.BackpackPage, "life-backpack-pager")
 					}
 				</section>
 			</div>
@@ -1471,68 +1472,108 @@ templ LifeRewardsPage(data LifeRewardsData) {
 					}
 				</section>
 
-				<section class="life-panel life-section" data-testid="life-rewards-history">
-					<header class="life-goals-head">
-						<div>
-							<h2 class="life-goals-title">Recent redemptions</h2>
-							<p class="life-goals-sub">Snapshot of what you claimed.</p>
-						</div>
-						if len(data.Redemptions) > 0 {
-							<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Redemptions)) }</span>
-						}
-					</header>
-					if len(data.Redemptions) == 0 {
-						<p class="life-empty">No redemptions yet.</p>
-					} else {
-						<ul class="life-reward-history" data-testid="life-rewards-history-list">
-							for _, item := range data.Redemptions {
-								<li data-testid={ "life-redemption-" + item.Flag }>
-									<span class="life-reward-history-name">{ item.RewardName }</span>
-									<span class="life-reward-history-meta">
-										<span class="life-reward-history-price">{ fmt.Sprintf("−%d gold", item.PricePaid) }</span>
-										<span class="life-reward-history-time">{ item.RedeemedAt }</span>
-									</span>
-								</li>
+				<section id={ LifeRewardsArchiveAnchor } class="life-panel life-section life-anchor-target" data-testid="life-rewards-archive">
+					<div class="life-tabs" role="tablist" aria-label="Rewards archive" data-testid="life-rewards-archive-tabs">
+						<a
+							role="tab"
+							class={ LifeRewardsArchiveTabClass(data.ArchiveTab, LifeRewardsTabRedemptions) }
+							href={ templ.URL(LifeRewardsListURL(data.RedemptionsPage.Page, data.InactivePage.Page, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor)) }
+							if data.ArchiveTab == LifeRewardsTabRedemptions {
+								aria-selected="true"
+							} else {
+								aria-selected="false"
 							}
-						</ul>
-					}
-				</section>
+							data-testid="life-rewards-tab-redemptions"
+						>
+							Recent redemptions
+							<span class="life-tab-count">{ fmt.Sprintf("%d", data.RedemptionsPage.Total) }</span>
+						</a>
+						<a
+							role="tab"
+							class={ LifeRewardsArchiveTabClass(data.ArchiveTab, LifeRewardsTabDeactivated) }
+							href={ templ.URL(LifeRewardsListURL(data.RedemptionsPage.Page, data.InactivePage.Page, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor)) }
+							if data.ArchiveTab == LifeRewardsTabDeactivated {
+								aria-selected="true"
+							} else {
+								aria-selected="false"
+							}
+							data-testid="life-rewards-tab-deactivated"
+						>
+							Deactivated
+							<span class="life-tab-count">{ fmt.Sprintf("%d", data.InactivePage.Total) }</span>
+						</a>
+					</div>
 
-				if len(data.Inactive) > 0 {
-					<details class="life-panel life-section life-rewards-inactive" data-testid="life-rewards-inactive">
-						<summary class="life-rewards-inactive-summary">
-							<span class="life-goals-title">Deactivated</span>
-							<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Inactive)) }</span>
-						</summary>
-						<ul class="life-reward-list">
-							for _, item := range data.Inactive {
-								<li class="life-reward-card is-inactive" data-testid={ "life-reward-inactive-" + item.Flag }>
-									<div class="life-reward-main">
-										<div class="life-reward-copy">
-											<div class="life-reward-head">
-												<h3 class="life-reward-name">{ item.Name }</h3>
-												<span class="life-meta-chip">{ fmt.Sprintf("%d gold", item.Price) }</span>
+					<div
+						role="tabpanel"
+						class="life-tab-panel"
+						id="life-rewards-redemptions"
+						data-testid="life-rewards-history"
+						if data.ArchiveTab != LifeRewardsTabRedemptions {
+							hidden
+						}
+					>
+						if len(data.Redemptions) == 0 {
+							<p class="life-empty">No redemptions yet.</p>
+						} else {
+							<ul class="life-reward-history" data-testid="life-rewards-history-list">
+								for _, item := range data.Redemptions {
+									<li data-testid={ "life-redemption-" + item.Flag }>
+										<span class="life-reward-history-name">{ item.RewardName }</span>
+										<span class="life-reward-history-meta">
+											<span class="life-reward-history-price">{ fmt.Sprintf("−%d gold", item.PricePaid) }</span>
+											<span class="life-reward-history-time">{ item.RedeemedAt }</span>
+										</span>
+									</li>
+								}
+							</ul>
+							@lifeListPager(data.RedemptionsPage, "life-redemptions-pager")
+						}
+					</div>
+
+					<div
+						role="tabpanel"
+						class="life-tab-panel"
+						id="life-rewards-deactivated"
+						data-testid="life-rewards-inactive"
+						if data.ArchiveTab != LifeRewardsTabDeactivated {
+							hidden
+						}
+					>
+						if len(data.Inactive) == 0 {
+							<p class="life-empty">No deactivated rewards.</p>
+						} else {
+							<ul class="life-reward-list">
+								for _, item := range data.Inactive {
+									<li class="life-reward-card is-inactive" data-testid={ "life-reward-inactive-" + item.Flag }>
+										<div class="life-reward-main">
+											<div class="life-reward-copy">
+												<div class="life-reward-head">
+													<h3 class="life-reward-name">{ item.Name }</h3>
+													<span class="life-meta-chip">{ fmt.Sprintf("%d gold", item.Price) }</span>
+												</div>
+												if item.Notes != "" {
+													<p class="life-reward-notes">{ item.Notes }</p>
+												}
 											</div>
-											if item.Notes != "" {
-												<p class="life-reward-notes">{ item.Notes }</p>
-											}
+											<form
+												hx-post={ "/service/web/life/rewards/" + item.Flag + "/restore" }
+												hx-swap="none"
+												data-testid={ "life-reward-restore-" + item.Flag }
+											>
+												<button type="submit" class="btn btn-sm btn-primary">
+													@partials.HtmxIndicator()
+													Restore
+												</button>
+											</form>
 										</div>
-										<form
-											hx-post={ "/service/web/life/rewards/" + item.Flag + "/restore" }
-											hx-swap="none"
-											data-testid={ "life-reward-restore-" + item.Flag }
-										>
-											<button type="submit" class="btn btn-sm btn-primary">
-												@partials.HtmxIndicator()
-												Restore
-											</button>
-										</form>
-									</div>
-								</li>
-							}
-						</ul>
-					</details>
-				}
+									</li>
+								}
+							</ul>
+							@lifeListPager(data.InactivePage, "life-inactive-pager")
+						}
+					</div>
+				</section>
 			</div>
 		}
 	}

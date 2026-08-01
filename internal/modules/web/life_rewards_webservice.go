@@ -19,7 +19,12 @@ func lifeRewardsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	page, err := lifeService().ListRewardsPage(context.Background(), uid)
+	redemptionsPage := parsePositiveIntQuery(ctx, "redemptions_page", 1)
+	inactivePage := parsePositiveIntQuery(ctx, "inactive_page", 1)
+	archiveTab := pages.LifeNormalizeRewardsArchiveTab(ctx.Query("archive_tab"))
+	page, err := lifeService().ListRewardsPage(
+		context.Background(), uid, redemptionsPage, inactivePage, pages.LifeDefaultListPerPage,
+	)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
@@ -28,7 +33,8 @@ func lifeRewardsPage(ctx fiber.Ctx) error {
 		return toastError(ctx, lifeUserError(err))
 	}
 	ctx.Type("html")
-	return pages.LifeRewardsPage(mapLifeRewardsData(page, len(pending))).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifeRewardsPage(mapLifeRewardsData(page, len(pending), redemptionsPage, inactivePage, archiveTab)).
+		Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func lifeCreateReward(ctx fiber.Ctx) error {
@@ -131,16 +137,31 @@ func parseLifeRewardForm(ctx fiber.Ctx) (lifemod.CreateRewardInput, error) {
 	}, nil
 }
 
-func mapLifeRewardsData(page *lifemod.RewardsPage, pendingCount int) pages.LifeRewardsData {
+func mapLifeRewardsData(
+	page *lifemod.RewardsPage,
+	pendingCount, redemptionsPage, inactivePage int,
+	archiveTab string,
+) pages.LifeRewardsData {
 	if page == nil {
-		return pages.LifeRewardsData{PendingCount: pendingCount}
+		return pages.LifeRewardsData{PendingCount: pendingCount, ArchiveTab: pages.LifeNormalizeRewardsArchiveTab(archiveTab)}
 	}
+	redemptionsInfo := pages.LifeWithRedemptionsPager(
+		pages.LifeBuildPageInfo(redemptionsPage, pages.LifeDefaultListPerPage, page.RedemptionsTotal),
+		inactivePage,
+	)
+	inactiveInfo := pages.LifeWithInactiveRewardsPager(
+		pages.LifeBuildPageInfo(inactivePage, pages.LifeDefaultListPerPage, page.InactiveTotal),
+		redemptionsPage,
+	)
 	return pages.LifeRewardsData{
-		Gold:          page.Gold,
-		Active:        mapLifeRewardRows(page.Active),
-		Inactive:      mapLifeRewardRows(page.Inactive),
-		Redemptions:   mapLifeRedemptionRows(page.Redemptions),
-		PendingCount:  pendingCount,
+		Gold:            page.Gold,
+		Active:          mapLifeRewardRows(page.Active),
+		Inactive:        mapLifeRewardRows(page.Inactive),
+		Redemptions:     mapLifeRedemptionRows(page.Redemptions),
+		RedemptionsPage: redemptionsInfo,
+		InactivePage:    inactiveInfo,
+		ArchiveTab:      pages.LifeNormalizeRewardsArchiveTab(archiveTab),
+		PendingCount:    pendingCount,
 	}
 }
 

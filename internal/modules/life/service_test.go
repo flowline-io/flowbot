@@ -527,3 +527,31 @@ func TestListCompletedQuestsPageAndActionLogsPage(t *testing.T) {
 	assert.Equal(t, "Done 2", logs[0].QuestTitle)
 	assert.Equal(t, "Done 1", logs[1].QuestTitle)
 }
+
+func TestListInventoryPageKeepsEquippedAcrossPages(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "inv-page-user", "", "")
+	require.NoError(t, err)
+	var firstFlag string
+	for i := range 5 {
+		eq, err := svc.store.UpsertEquipment(ctx, fmt.Sprintf("svc-eq-%d", i), fmt.Sprintf("Gear %d", i), "Common", "Armor", "", nil, nil)
+		require.NoError(t, err)
+		inv, err := svc.store.CreateInventory(ctx, profile.ID, eq.ID, nil, "none")
+		require.NoError(t, err)
+		if i == 0 {
+			firstFlag = inv.Flag
+		}
+	}
+	require.NoError(t, svc.Equip(ctx, "inv-page-user", firstFlag))
+
+	page, err := svc.ListInventoryPage(ctx, "inv-page-user", 2, 2)
+	require.NoError(t, err)
+	assert.Equal(t, 5, page.Total)
+	require.Len(t, page.Items, 2)
+	require.Len(t, page.Equipped, 1)
+	assert.Equal(t, firstFlag, page.Equipped[0].Inv.Flag)
+}

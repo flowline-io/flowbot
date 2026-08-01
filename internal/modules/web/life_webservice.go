@@ -985,31 +985,57 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	items, slots, err := lifeService().ListInventory(context.Background(), uid)
+	backpackPage := parsePositiveIntQuery(ctx, "backpack_page", 1)
+	page, err := lifeService().ListInventoryPage(context.Background(), uid, backpackPage, pages.LifeDefaultListPerPage)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
+	equippedByID := lifeEquippedSlotFields(page.Slots)
+	backpackRows := mapLifeInventoryRows(page.Items, equippedByID)
+	equipRows := mapLifeInventoryRows(page.Equipped, equippedByID)
+	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
+	if err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	ctx.Type("html")
+	return pages.LifeInventoryPage(pages.LifeInventoryData{
+		Slots:        pages.LifeBuildEquipSlots(equipRows),
+		Items:        backpackRows,
+		BackpackPage: pages.LifeWithBackpackPager(pages.LifeBuildPageInfo(backpackPage, pages.LifeDefaultListPerPage, page.Total)),
+		PendingCount: len(pending),
+	}).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+func lifeEquippedSlotFields(slots *gen.LifeEquippedSlots) map[int64]string {
 	equipped := map[int64]string{}
-	if slots != nil {
-		slotPairs := []struct {
-			id    *int64
-			field string
-		}{
-			{slots.HeadSlot, "head_slot"},
-			{slots.WeaponSlot, "weapon_slot"},
-			{slots.ArmorSlot, "armor_slot"},
-			{slots.ShoesSlot, "shoes_slot"},
-			{slots.AccessorySlot, "accessory_slot"},
-			{slots.ArtifactSlot, "artifact_slot"},
-		}
-		for _, sp := range slotPairs {
-			if sp.id != nil {
-				equipped[*sp.id] = sp.field
-			}
+	if slots == nil {
+		return equipped
+	}
+	slotPairs := []struct {
+		id    *int64
+		field string
+	}{
+		{slots.HeadSlot, "head_slot"},
+		{slots.WeaponSlot, "weapon_slot"},
+		{slots.ArmorSlot, "armor_slot"},
+		{slots.ShoesSlot, "shoes_slot"},
+		{slots.AccessorySlot, "accessory_slot"},
+		{slots.ArtifactSlot, "artifact_slot"},
+	}
+	for _, sp := range slotPairs {
+		if sp.id != nil {
+			equipped[*sp.id] = sp.field
 		}
 	}
+	return equipped
+}
+
+func mapLifeInventoryRows(items []lifemod.InventoryItem, equipped map[int64]string) []pages.LifeInventoryRow {
 	rows := make([]pages.LifeInventoryRow, 0, len(items))
 	for _, it := range items {
+		if it.Inv == nil || it.Equip == nil {
+			continue
+		}
 		name := it.Equip.Name
 		if it.Inv.InstanceName != "" {
 			name = it.Inv.InstanceName
@@ -1029,14 +1055,7 @@ func lifeInventoryPage(ctx fiber.Ctx) error {
 			Equipped:   slotField != "", Tarnished: pkglife.IsTarnished(it.Inv.TarnishedUntil, time.Now()),
 		})
 	}
-	pending, err := lifeService().ListQuests(context.Background(), uid, "Pending")
-	if err != nil {
-		return toastError(ctx, lifeUserError(err))
-	}
-	ctx.Type("html")
-	return pages.LifeInventoryPage(pages.LifeInventoryData{
-		Slots: pages.LifeBuildEquipSlots(rows), Items: rows, PendingCount: len(pending),
-	}).Render(context.Background(), ctx.Response().BodyWriter())
+	return rows
 }
 
 func lifeAchievementsPage(ctx fiber.Ctx) error {

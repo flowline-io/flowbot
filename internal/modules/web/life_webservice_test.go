@@ -339,3 +339,101 @@ func TestLifeQuestsPagePaginatesCompletedAndActionLogs(t *testing.T) {
 	require.Contains(t, html, `href="/service/web/life/quests?completed_page=2&amp;history_tab=logs#life-history"`)
 	require.Contains(t, html, `href="/service/web/life/quests?completed_page=2&amp;logs_page=2#life-history"`)
 }
+
+func TestLifeRewardsPagePaginatesArchiveTabs(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		setWebEncryptor(nil)
+		SetLifeService(nil)
+	}()
+	ls := store.NewLifeStore(client)
+	SetLifeService(lifemod.NewService(ls))
+	svc := lifeService()
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "testuser", "", "")
+	require.NoError(t, err)
+	require.NoError(t, ls.SetProfileGold(ctx, profile.ID, 1000))
+
+	base := time.Date(2026, 8, 1, 12, 0, 0, 0, time.UTC)
+	total := pages.LifeDefaultListPerPage + 1
+	for i := range total {
+		reward, err := svc.CreateReward(ctx, "testuser", lifemod.CreateRewardInput{
+			Name: fmt.Sprintf("Archive %02d", i), Price: 10,
+		})
+		require.NoError(t, err)
+		require.NoError(t, svc.DeactivateReward(ctx, "testuser", reward.Flag))
+		_, err = ls.CreateRewardRedemption(ctx, profile.ID, reward.ID, reward.Name, 10, base.Add(time.Duration(i)*time.Minute))
+		require.NoError(t, err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/life/rewards?redemptions_page=2&inactive_page=2&archive_tab=deactivated", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	html := string(body)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Contains(t, html, `id="life-rewards-archive"`)
+	require.Contains(t, html, `data-testid="life-rewards-archive-tabs"`)
+	require.Contains(t, html, `data-testid="life-rewards-tab-deactivated"`)
+	require.Contains(t, html, "Archive 00")
+	require.NotContains(t, html, "Archive 10")
+	require.Contains(t, html, `data-testid="life-inactive-pager"`)
+	require.Contains(t, html, `href="/service/web/life/rewards?archive_tab=deactivated&amp;redemptions_page=2#life-rewards-archive"`)
+	require.Contains(t, html, `href="/service/web/life/rewards?inactive_page=2&amp;redemptions_page=2#life-rewards-archive"`)
+}
+
+func TestLifeInventoryPagePaginatesBackpack(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		setWebEncryptor(nil)
+		SetLifeService(nil)
+	}()
+	ls := store.NewLifeStore(client)
+	SetLifeService(lifemod.NewService(ls))
+	svc := lifeService()
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "testuser", "", "")
+	require.NoError(t, err)
+	total := pages.LifeDefaultListPerPage + 1
+	var firstFlag string
+	for i := range total {
+		eq, err := ls.UpsertEquipment(ctx, fmt.Sprintf("web-eq-%d", i), fmt.Sprintf("Pack %02d", i), "Common", "Armor", "", nil, nil)
+		require.NoError(t, err)
+		inv, err := ls.CreateInventory(ctx, profile.ID, eq.ID, nil, "none")
+		require.NoError(t, err)
+		if i == 0 {
+			firstFlag = inv.Flag
+		}
+	}
+	require.NoError(t, svc.Equip(ctx, "testuser", firstFlag))
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/life/inventory?backpack_page=2", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	html := string(body)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Contains(t, html, `id="life-backpack"`)
+	require.Contains(t, html, `data-testid="life-backpack-pager"`)
+	require.Contains(t, html, "Pack 00")
+	require.NotContains(t, html, "Pack 10")
+	require.Contains(t, html, `href="/service/web/life/inventory#life-backpack"`)
+	require.Contains(t, html, `data-testid="life-equip-slot-armor"`)
+	require.Contains(t, html, "Pack 00") // equipped board still shows oldest item when paging
+}

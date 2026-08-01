@@ -974,29 +974,102 @@ func (s *Service) ListAchievements(ctx context.Context, userID string) ([]Achiev
 	return out, nil
 }
 
+// InventoryPage is one backpack page plus currently equipped items for the board.
+type InventoryPage struct {
+	Items    []InventoryItem
+	Equipped []InventoryItem
+	Slots    *gen.LifeEquippedSlots
+	Total    int
+}
+
 // ListInventory returns inventory with templates.
 func (s *Service) ListInventory(ctx context.Context, userID string) ([]InventoryItem, *gen.LifeEquippedSlots, error) {
-	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	page, err := s.ListInventoryPage(ctx, userID, 1, 0)
 	if err != nil {
 		return nil, nil, err
 	}
-	rows, err := s.store.ListInventory(ctx, p.ID)
+	return page.Items, page.Slots, nil
+}
+
+// ListInventoryPage returns one backpack page, equipped items, slots, and total count.
+// A non-positive perPage returns the full backpack on page 1.
+func (s *Service) ListInventoryPage(ctx context.Context, userID string, page, perPage int) (*InventoryPage, error) {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	slots, err := s.store.GetEquippedSlots(ctx, p.ID)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
+	var rows []*gen.LifeInventory
+	var total int
+	if perPage < 1 {
+		rows, total, err = s.store.ListInventoryPage(ctx, p.ID, 0, 0)
+	} else {
+		page, perPage, offset := normalizeLifeListPage(page, perPage)
+		rows, total, err = s.store.ListInventoryPage(ctx, p.ID, perPage, offset)
+		if err == nil && total > 0 {
+			maxPage := (total + perPage - 1) / perPage
+			if page > maxPage {
+				page = maxPage
+				offset = (page - 1) * perPage
+				rows, total, err = s.store.ListInventoryPage(ctx, p.ID, perPage, offset)
+			}
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.mapInventoryItems(ctx, rows)
+	if err != nil {
+		return nil, err
+	}
+	equippedRows, err := s.loadEquippedInventory(ctx, p.ID, slots)
+	if err != nil {
+		return nil, err
+	}
+	equipped, err := s.mapInventoryItems(ctx, equippedRows)
+	if err != nil {
+		return nil, err
+	}
+	return &InventoryPage{Items: items, Equipped: equipped, Slots: slots, Total: total}, nil
+}
+
+func (s *Service) mapInventoryItems(ctx context.Context, rows []*gen.LifeInventory) ([]InventoryItem, error) {
 	out := make([]InventoryItem, 0, len(rows))
 	for _, inv := range rows {
 		eq, err := s.store.GetEquipment(ctx, inv.EquipmentID)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 		out = append(out, InventoryItem{Inv: inv, Equip: eq})
 	}
-	return out, slots, nil
+	return out, nil
+}
+
+func (s *Service) loadEquippedInventory(ctx context.Context, profileID int64, slots *gen.LifeEquippedSlots) ([]*gen.LifeInventory, error) {
+	if slots == nil {
+		return nil, nil
+	}
+	ids := make([]int64, 0, 6)
+	for _, id := range []*int64{slots.HeadSlot, slots.WeaponSlot, slots.ArmorSlot, slots.ShoesSlot, slots.AccessorySlot, slots.ArtifactSlot} {
+		if id != nil {
+			ids = append(ids, *id)
+		}
+	}
+	out := make([]*gen.LifeInventory, 0, len(ids))
+	for _, id := range ids {
+		inv, err := s.store.GetInventory(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		if inv == nil || inv.LifeProfileID != profileID {
+			continue
+		}
+		out = append(out, inv)
+	}
+	return out, nil
 }
 
 // Equip wears an inventory item into its slot.

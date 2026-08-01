@@ -2,6 +2,7 @@ package life
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -71,9 +72,10 @@ func TestRedeemReward_HappyPathAndGuards(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, 60, updated.Gold)
 
-		page, err := svc.ListRewardsPage(ctx, "reward-redeem-user")
+		page, err := svc.ListRewardsPage(ctx, "reward-redeem-user", 1, 1, 10)
 		require.NoError(t, err)
 		require.Len(t, page.Redemptions, 1)
+		assert.Equal(t, 1, page.RedemptionsTotal)
 		assert.Equal(t, "Milk tea", page.Redemptions[0].RewardName)
 		assert.Equal(t, 40, page.Redemptions[0].PricePaid)
 		var milk *RewardView
@@ -102,7 +104,7 @@ func TestRedeemReward_HappyPathAndGuards(t *testing.T) {
 
 	t.Run("restore keeps cooldown", func(t *testing.T) {
 		require.NoError(t, svc.RestoreReward(ctx, "reward-redeem-user", reward.Flag))
-		page, err := svc.ListRewardsPage(ctx, "reward-redeem-user")
+		page, err := svc.ListRewardsPage(ctx, "reward-redeem-user", 1, 1, 10)
 		require.NoError(t, err)
 		var found bool
 		for _, item := range page.Active {
@@ -122,7 +124,7 @@ func TestRedeemReward_HappyPathAndGuards(t *testing.T) {
 		require.NoError(t, ls.SetProfileGold(ctx, profile.ID, 100))
 		require.NoError(t, svc.RedeemReward(ctx, "reward-redeem-user", reward.Flag))
 
-		page, err := svc.ListRewardsPage(ctx, "reward-redeem-user")
+		page, err := svc.ListRewardsPage(ctx, "reward-redeem-user", 1, 1, 10)
 		require.NoError(t, err)
 		require.GreaterOrEqual(t, len(page.Redemptions), 2)
 		assert.Equal(t, "Fancy milk tea", page.Redemptions[0].RewardName)
@@ -130,6 +132,38 @@ func TestRedeemReward_HappyPathAndGuards(t *testing.T) {
 		assert.Equal(t, "Milk tea", page.Redemptions[1].RewardName)
 		assert.Equal(t, 40, page.Redemptions[1].PricePaid)
 	})
+}
+
+func TestListRewardsPagePaginatesArchive(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	ls := store.NewLifeStore(client)
+	svc := NewService(ls)
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "reward-page-user", "", "")
+	require.NoError(t, err)
+	require.NoError(t, ls.SetProfileGold(ctx, profile.ID, 1000))
+
+	base := time.Date(2026, 8, 1, 12, 0, 0, 0, time.UTC)
+	for i := range 5 {
+		reward, err := svc.CreateReward(ctx, "reward-page-user", CreateRewardInput{
+			Name: fmt.Sprintf("Treat %d", i), Price: 10,
+		})
+		require.NoError(t, err)
+		require.NoError(t, svc.DeactivateReward(ctx, "reward-page-user", reward.Flag))
+		_, err = ls.CreateRewardRedemption(ctx, profile.ID, reward.ID, reward.Name, 10, base.Add(time.Duration(i)*time.Minute))
+		require.NoError(t, err)
+	}
+
+	page, err := svc.ListRewardsPage(ctx, "reward-page-user", 2, 2, 2)
+	require.NoError(t, err)
+	assert.Equal(t, 5, page.InactiveTotal)
+	assert.Equal(t, 5, page.RedemptionsTotal)
+	require.Len(t, page.Inactive, 2)
+	require.Len(t, page.Redemptions, 2)
+	assert.Equal(t, "Treat 2", page.Redemptions[0].RewardName)
+	assert.Equal(t, "Treat 1", page.Redemptions[1].RewardName)
 }
 
 func TestParseRewardPriceAndCooldown(t *testing.T) {

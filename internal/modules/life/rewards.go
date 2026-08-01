@@ -36,10 +36,12 @@ type RedemptionView struct {
 
 // RewardsPage is the full Rewards page model.
 type RewardsPage struct {
-	Gold        int
-	Active      []RewardView
-	Inactive    []RewardView
-	Redemptions []RedemptionView
+	Gold             int
+	Active           []RewardView
+	Inactive         []RewardView
+	Redemptions      []RedemptionView
+	InactiveTotal    int
+	RedemptionsTotal int
 }
 
 // CreateRewardInput is the write-set for creating or updating a reward.
@@ -50,36 +52,66 @@ type CreateRewardInput struct {
 	CooldownHours int
 }
 
-// ListRewardsPage returns gold, active/inactive rewards, and recent redemptions.
-func (s *Service) ListRewardsPage(ctx context.Context, userID string) (*RewardsPage, error) {
+// ListRewardsPage returns gold, active rewards, and paged inactive/redemption lists.
+func (s *Service) ListRewardsPage(ctx context.Context, userID string, redemptionsPage, inactivePage, perPage int) (*RewardsPage, error) {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
 		return nil, err
 	}
-	all, err := s.store.ListRewards(ctx, p.ID, nil)
+	activeOnly := true
+	activeRows, err := s.store.ListRewards(ctx, p.ID, &activeOnly)
 	if err != nil {
 		return nil, err
 	}
-	redemptions, err := s.store.ListRewardRedemptions(ctx, p.ID, 20)
+	inactiveOnly := false
+	inactivePage, perPage, inactiveOffset := normalizeLifeListPage(inactivePage, perPage)
+	inactiveRows, inactiveTotal, err := s.store.ListRewardsPage(ctx, p.ID, &inactiveOnly, perPage, inactiveOffset)
 	if err != nil {
 		return nil, err
+	}
+	if inactiveTotal > 0 {
+		maxPage := (inactiveTotal + perPage - 1) / perPage
+		if inactivePage > maxPage {
+			inactivePage = maxPage
+			inactiveOffset = (inactivePage - 1) * perPage
+			inactiveRows, inactiveTotal, err = s.store.ListRewardsPage(ctx, p.ID, &inactiveOnly, perPage, inactiveOffset)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	redemptionsPage, perPage, redemptionsOffset := normalizeLifeListPage(redemptionsPage, perPage)
+	redemptionRows, redemptionsTotal, err := s.store.ListRewardRedemptionsPage(ctx, p.ID, perPage, redemptionsOffset)
+	if err != nil {
+		return nil, err
+	}
+	if redemptionsTotal > 0 {
+		maxPage := (redemptionsTotal + perPage - 1) / perPage
+		if redemptionsPage > maxPage {
+			redemptionsPage = maxPage
+			redemptionsOffset = (redemptionsPage - 1) * perPage
+			redemptionRows, redemptionsTotal, err = s.store.ListRewardRedemptionsPage(ctx, p.ID, perPage, redemptionsOffset)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 	now := time.Now()
 	page := &RewardsPage{
-		Gold:        p.Gold,
-		Active:      make([]RewardView, 0),
-		Inactive:    make([]RewardView, 0),
-		Redemptions: make([]RedemptionView, 0, len(redemptions)),
+		Gold:             p.Gold,
+		Active:           make([]RewardView, 0, len(activeRows)),
+		Inactive:         make([]RewardView, 0, len(inactiveRows)),
+		Redemptions:      make([]RedemptionView, 0, len(redemptionRows)),
+		InactiveTotal:    inactiveTotal,
+		RedemptionsTotal: redemptionsTotal,
 	}
-	for _, row := range all {
-		view := rewardToView(row, p.Gold, now)
-		if row.Active {
-			page.Active = append(page.Active, view)
-		} else {
-			page.Inactive = append(page.Inactive, view)
-		}
+	for _, row := range activeRows {
+		page.Active = append(page.Active, rewardToView(row, p.Gold, now))
 	}
-	for _, row := range redemptions {
+	for _, row := range inactiveRows {
+		page.Inactive = append(page.Inactive, rewardToView(row, p.Gold, now))
+	}
+	for _, row := range redemptionRows {
 		page.Redemptions = append(page.Redemptions, RedemptionView{
 			Flag:       row.Flag,
 			RewardName: row.RewardName,

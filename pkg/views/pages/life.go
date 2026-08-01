@@ -23,6 +23,16 @@ const (
 	LifeHistoryTabActionLogs = "logs"
 )
 
+// Archive section anchor and tab ids on the Life rewards page.
+const (
+	LifeRewardsArchiveAnchor  = "life-rewards-archive"
+	LifeRewardsTabRedemptions = "redemptions"
+	LifeRewardsTabDeactivated = "deactivated"
+)
+
+// LifeBackpackAnchor is the backpack section fragment on the inventory page.
+const LifeBackpackAnchor = "life-backpack"
+
 // LifeDashboardData is the Life home dashboard model.
 type LifeDashboardData = LifeCharacterData
 
@@ -321,6 +331,7 @@ type LifeEquipSlot struct {
 type LifeInventoryData struct {
 	Slots        []LifeEquipSlot
 	Items        []LifeInventoryRow
+	BackpackPage LifePageInfo
 	PendingCount int
 }
 
@@ -367,11 +378,14 @@ type LifeRedemptionRow struct {
 
 // LifeRewardsData is the Rewards market page model.
 type LifeRewardsData struct {
-	Gold         int
-	Active       []LifeRewardRow
-	Inactive     []LifeRewardRow
-	Redemptions  []LifeRedemptionRow
-	PendingCount int
+	Gold            int
+	Active          []LifeRewardRow
+	Inactive        []LifeRewardRow
+	Redemptions     []LifeRedemptionRow
+	RedemptionsPage LifePageInfo
+	InactivePage    LifePageInfo
+	ArchiveTab      string
+	PendingCount    int
 }
 
 // LifeStatsShellData is the Stats page shell before the HTMX panel loads.
@@ -595,6 +609,89 @@ func LifeWithActionLogsPager(info LifePageInfo, completedPage int) LifePageInfo 
 	return info
 }
 
+// LifeNormalizeRewardsArchiveTab returns a valid rewards archive tab id.
+func LifeNormalizeRewardsArchiveTab(tab string) string {
+	if strings.EqualFold(strings.TrimSpace(tab), LifeRewardsTabDeactivated) {
+		return LifeRewardsTabDeactivated
+	}
+	return LifeRewardsTabRedemptions
+}
+
+// LifeRewardsArchiveTabClass returns the CSS class for one rewards archive tab control.
+func LifeRewardsArchiveTabClass(activeTab, tab string) string {
+	if LifeNormalizeRewardsArchiveTab(activeTab) == tab {
+		return "life-tab is-active"
+	}
+	return "life-tab"
+}
+
+// LifeRewardsListURL builds the rewards page URL with optional page/tab query params and fragment.
+func LifeRewardsListURL(redemptionsPage, inactivePage int, tab, anchor string) string {
+	u := "/service/web/life/rewards"
+	q := url.Values{}
+	if redemptionsPage > 1 {
+		q.Set("redemptions_page", strconv.Itoa(redemptionsPage))
+	}
+	if inactivePage > 1 {
+		q.Set("inactive_page", strconv.Itoa(inactivePage))
+	}
+	if LifeNormalizeRewardsArchiveTab(tab) == LifeRewardsTabDeactivated {
+		q.Set("archive_tab", LifeRewardsTabDeactivated)
+	}
+	if enc := q.Encode(); enc != "" {
+		u += "?" + enc
+	}
+	if anchor != "" {
+		u += "#" + anchor
+	}
+	return u
+}
+
+// LifeWithRedemptionsPager attaches prev/next URLs for the redemptions tab.
+func LifeWithRedemptionsPager(info LifePageInfo, inactivePage int) LifePageInfo {
+	if info.HasPrev {
+		info.PrevURL = LifeRewardsListURL(info.Page-1, inactivePage, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor)
+	}
+	if info.HasNext {
+		info.NextURL = LifeRewardsListURL(info.Page+1, inactivePage, LifeRewardsTabRedemptions, LifeRewardsArchiveAnchor)
+	}
+	return info
+}
+
+// LifeWithInactiveRewardsPager attaches prev/next URLs for the deactivated tab.
+func LifeWithInactiveRewardsPager(info LifePageInfo, redemptionsPage int) LifePageInfo {
+	if info.HasPrev {
+		info.PrevURL = LifeRewardsListURL(redemptionsPage, info.Page-1, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor)
+	}
+	if info.HasNext {
+		info.NextURL = LifeRewardsListURL(redemptionsPage, info.Page+1, LifeRewardsTabDeactivated, LifeRewardsArchiveAnchor)
+	}
+	return info
+}
+
+// LifeInventoryListURL builds the inventory page URL with optional backpack page and fragment.
+func LifeInventoryListURL(backpackPage int, anchor string) string {
+	u := "/service/web/life/inventory"
+	if backpackPage > 1 {
+		u += "?backpack_page=" + strconv.Itoa(backpackPage)
+	}
+	if anchor != "" {
+		u += "#" + anchor
+	}
+	return u
+}
+
+// LifeWithBackpackPager attaches prev/next URLs for the backpack section.
+func LifeWithBackpackPager(info LifePageInfo) LifePageInfo {
+	if info.HasPrev {
+		info.PrevURL = LifeInventoryListURL(info.Page-1, LifeBackpackAnchor)
+	}
+	if info.HasNext {
+		info.NextURL = LifeInventoryListURL(info.Page+1, LifeBackpackAnchor)
+	}
+	return info
+}
+
 // LifeOccurrenceKindLabel returns a human label for one occurrence kind.
 func LifeOccurrenceKindLabel(kind string) string {
 	switch strings.ToLower(strings.TrimSpace(kind)) {
@@ -637,6 +734,17 @@ func LifeIndentStyle(depth int) string {
 		return ""
 	}
 	return fmt.Sprintf("margin-left:%drem;", depth*1)
+}
+
+// LifeSkillTreeBranchOpen reports whether a skill-tree branch should start expanded
+// so the path to a selected descendant stays visible.
+func LifeSkillTreeBranchOpen(node LifeSkillTreeNodeRow) bool {
+	for _, child := range node.Children {
+		if child.IsSelected || LifeSkillTreeBranchOpen(child) {
+			return true
+		}
+	}
+	return false
 }
 
 // LifeFormatBuffText formats equipment stat buffs for UI chips.

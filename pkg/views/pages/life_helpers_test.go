@@ -152,6 +152,68 @@ func TestLifePlanLabelsAndIndent(t *testing.T) {
 	assert.Equal(t, "margin-left:2rem;", pages.LifeIndentStyle(2))
 }
 
+func TestLifeSkillTreeBranchOpen(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		node pages.LifeSkillTreeNodeRow
+		want bool
+	}{
+		{
+			name: "no selection",
+			node: pages.LifeSkillTreeNodeRow{
+				Key: "root",
+				Children: []pages.LifeSkillTreeNodeRow{
+					{Key: "a"},
+					{Key: "b", Children: []pages.LifeSkillTreeNodeRow{{Key: "b1"}}},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "self selected keeps closed",
+			node: pages.LifeSkillTreeNodeRow{
+				Key:        "root",
+				IsSelected: true,
+				Children:   []pages.LifeSkillTreeNodeRow{{Key: "a"}},
+			},
+			want: false,
+		},
+		{
+			name: "direct child selected",
+			node: pages.LifeSkillTreeNodeRow{
+				Key: "root",
+				Children: []pages.LifeSkillTreeNodeRow{
+					{Key: "a", IsSelected: true},
+					{Key: "b"},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "deep descendant selected",
+			node: pages.LifeSkillTreeNodeRow{
+				Key: "root",
+				Children: []pages.LifeSkillTreeNodeRow{
+					{
+						Key: "branch",
+						Children: []pages.LifeSkillTreeNodeRow{
+							{Key: "leaf", IsSelected: true},
+						},
+					},
+				},
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.want, pages.LifeSkillTreeBranchOpen(tt.node))
+		})
+	}
+}
+
 func TestLifeBuildPageInfo(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -200,4 +262,34 @@ func TestLifeQuestsListURLAndPagers(t *testing.T) {
 	logs := pages.LifeWithActionLogsPager(pages.LifeBuildPageInfo(2, 10, 25), 4)
 	assert.Equal(t, "/service/web/life/quests?completed_page=4&history_tab=logs#life-history", logs.PrevURL)
 	assert.Equal(t, "/service/web/life/quests?completed_page=4&history_tab=logs&logs_page=3#life-history", logs.NextURL)
+}
+
+func TestLifeRewardsListURLAndPagers(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "redemptions", pages.LifeNormalizeRewardsArchiveTab(""))
+	assert.Equal(t, "deactivated", pages.LifeNormalizeRewardsArchiveTab("deactivated"))
+	assert.Equal(t, "life-tab is-active", pages.LifeRewardsArchiveTabClass("deactivated", "deactivated"))
+	assert.Equal(t, "life-tab", pages.LifeRewardsArchiveTabClass("deactivated", "redemptions"))
+
+	assert.Equal(t, "/service/web/life/rewards", pages.LifeRewardsListURL(1, 1, "", ""))
+	assert.Equal(t, "/service/web/life/rewards?redemptions_page=2#life-rewards-archive", pages.LifeRewardsListURL(2, 1, pages.LifeRewardsTabRedemptions, pages.LifeRewardsArchiveAnchor))
+	assert.Equal(t, "/service/web/life/rewards?archive_tab=deactivated&inactive_page=3#life-rewards-archive", pages.LifeRewardsListURL(1, 3, pages.LifeRewardsTabDeactivated, pages.LifeRewardsArchiveAnchor))
+
+	redemptions := pages.LifeWithRedemptionsPager(pages.LifeBuildPageInfo(2, 10, 25), 3)
+	assert.Equal(t, "/service/web/life/rewards?inactive_page=3#life-rewards-archive", redemptions.PrevURL)
+	assert.Equal(t, "/service/web/life/rewards?inactive_page=3&redemptions_page=3#life-rewards-archive", redemptions.NextURL)
+
+	inactive := pages.LifeWithInactiveRewardsPager(pages.LifeBuildPageInfo(2, 10, 25), 4)
+	assert.Equal(t, "/service/web/life/rewards?archive_tab=deactivated&redemptions_page=4#life-rewards-archive", inactive.PrevURL)
+	assert.Equal(t, "/service/web/life/rewards?archive_tab=deactivated&inactive_page=3&redemptions_page=4#life-rewards-archive", inactive.NextURL)
+}
+
+func TestLifeInventoryListURLAndBackpackPager(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "/service/web/life/inventory", pages.LifeInventoryListURL(1, ""))
+	assert.Equal(t, "/service/web/life/inventory?backpack_page=2#life-backpack", pages.LifeInventoryListURL(2, pages.LifeBackpackAnchor))
+
+	pager := pages.LifeWithBackpackPager(pages.LifeBuildPageInfo(2, 10, 25))
+	assert.Equal(t, "/service/web/life/inventory#life-backpack", pager.PrevURL)
+	assert.Equal(t, "/service/web/life/inventory?backpack_page=3#life-backpack", pager.NextURL)
 }

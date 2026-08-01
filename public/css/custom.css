@@ -4951,6 +4951,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-inv-card {
+  --life-rarity-accent: color-mix(
+    in oklab,
+    var(--color-base-content) 22%,
+    transparent
+  );
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -4960,20 +4965,35 @@ body:has(.chatagent-page) > main {
   border-radius: var(--flowbot-radius, 0.375rem);
   background: var(--color-base-100, #fff);
   border-left-width: 3px;
-  border-left-color: color-mix(
-    in oklab,
-    var(--color-base-content) 18%,
-    transparent
-  );
+  border-left-color: var(--life-rarity-accent);
   transition:
     border-color 120ms ease,
     background-color 120ms ease;
 }
 
-.life-inv-card.is-equipped {
+.life-inv-card.rarity-common {
+  --life-rarity-accent: color-mix(
+    in oklab,
+    var(--color-base-content) 28%,
+    transparent
+  );
   background: color-mix(
     in oklab,
-    var(--color-primary, #0f766e) 6%,
+    var(--color-base-200, #f3f4f6) 45%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-base-content) 12%,
+    var(--color-base-300)
+  );
+}
+
+.life-inv-card.rarity-uncommon {
+  --life-rarity-accent: var(--color-primary, #0f766e);
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 10%,
     var(--color-base-100, #fff)
   );
   border-color: color-mix(
@@ -4983,32 +5003,79 @@ body:has(.chatagent-page) > main {
   );
 }
 
-.life-inv-card.rarity-uncommon {
-  border-left-color: var(--color-primary, #0f766e);
-}
-
 .life-inv-card.rarity-rare {
-  border-left-color: color-mix(
+  --life-rarity-accent: var(--color-info, #0284c7);
+  background: color-mix(
     in oklab,
-    var(--color-info, #0284c7) 85%,
-    var(--color-primary, #0f766e)
+    var(--color-info, #0284c7) 10%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 28%,
+    var(--color-base-300)
   );
 }
 
 .life-inv-card.rarity-epic {
-  border-left-color: var(--color-warning, #ca8a04);
+  --life-rarity-accent: var(--color-warning, #d97706);
+  background: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 12%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 32%,
+    var(--color-base-300)
+  );
 }
 
 .life-inv-card.rarity-legendary {
-  border-left-color: color-mix(
+  --life-rarity-accent: color-mix(
     in oklab,
-    var(--color-warning, #ca8a04) 70%,
+    var(--color-warning, #d97706) 55%,
     var(--color-error, #dc2626)
+  );
+  background: color-mix(
+    in oklab,
+    color-mix(
+      in oklab,
+      var(--color-warning, #d97706) 55%,
+      var(--color-error, #dc2626)
+    )
+    12%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    color-mix(
+      in oklab,
+      var(--color-warning, #d97706) 55%,
+      var(--color-error, #dc2626)
+    )
+    34%,
+    var(--color-base-300)
   );
 }
 
 .life-inv-card.rarity-mythic {
-  border-left-color: var(--color-error, #dc2626);
+  --life-rarity-accent: var(--color-error, #dc2626);
+  background: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 12%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 32%,
+    var(--color-base-300)
+  );
+}
+
+.life-inv-card.is-equipped {
+  box-shadow: inset 0 0 0 1px
+    color-mix(in oklab, var(--life-rarity-accent) 35%, transparent);
 }
 
 .life-inv-icon {
@@ -5018,26 +5085,17 @@ body:has(.chatagent-page) > main {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--flowbot-radius, 0.375rem);
-  border: 1px solid var(--color-base-300, #d1d5db);
+  border: 1px solid
+    color-mix(in oklab, var(--life-rarity-accent) 28%, var(--color-base-300));
   background: color-mix(
     in oklab,
-    var(--color-base-200, #f3f4f6) 55%,
+    var(--life-rarity-accent) 12%,
     var(--color-base-100, #fff)
   );
-  color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
-}
-
-.life-inv-card.is-equipped .life-inv-icon {
-  border-color: color-mix(
+  color: color-mix(
     in oklab,
-    var(--color-primary, #0f766e) 35%,
-    var(--color-base-300)
-  );
-  color: var(--color-primary, #0f766e);
-  background: color-mix(
-    in oklab,
-    var(--color-primary, #0f766e) 10%,
-    var(--color-base-100, #fff)
+    var(--life-rarity-accent) 70%,
+    var(--color-base-content)
   );
 }
 
@@ -5137,9 +5195,15 @@ body:has(.chatagent-page) > main {
 }
 
 .life-equip-slot.is-filled {
+  --life-rarity-accent: color-mix(
+    in oklab,
+    var(--color-base-content) 28%,
+    transparent
+  );
   border-style: solid;
   border-color: var(--color-base-300, #d1d5db);
   border-left-width: 3px;
+  border-left-color: var(--life-rarity-accent);
   background: var(--color-base-100, #fff);
   box-shadow: var(
     --flowbot-shadow,
@@ -5147,32 +5211,101 @@ body:has(.chatagent-page) > main {
   );
 }
 
+.life-equip-slot.is-filled.rarity-common {
+  --life-rarity-accent: color-mix(
+    in oklab,
+    var(--color-base-content) 28%,
+    transparent
+  );
+  background: color-mix(
+    in oklab,
+    var(--color-base-200, #f3f4f6) 45%,
+    var(--color-base-100, #fff)
+  );
+}
+
 .life-equip-slot.is-filled.rarity-uncommon {
-  border-left-color: var(--color-primary, #0f766e);
+  --life-rarity-accent: var(--color-primary, #0f766e);
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 10%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 28%,
+    var(--color-base-300)
+  );
 }
 
 .life-equip-slot.is-filled.rarity-rare {
-  border-left-color: color-mix(
+  --life-rarity-accent: var(--color-info, #0284c7);
+  background: color-mix(
     in oklab,
-    var(--color-info, #0284c7) 85%,
-    var(--color-primary, #0f766e)
+    var(--color-info, #0284c7) 10%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 28%,
+    var(--color-base-300)
   );
 }
 
 .life-equip-slot.is-filled.rarity-epic {
-  border-left-color: var(--color-warning, #ca8a04);
+  --life-rarity-accent: var(--color-warning, #d97706);
+  background: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 12%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 32%,
+    var(--color-base-300)
+  );
 }
 
 .life-equip-slot.is-filled.rarity-legendary {
-  border-left-color: color-mix(
+  --life-rarity-accent: color-mix(
     in oklab,
-    var(--color-warning, #ca8a04) 70%,
+    var(--color-warning, #d97706) 55%,
     var(--color-error, #dc2626)
+  );
+  background: color-mix(
+    in oklab,
+    color-mix(
+      in oklab,
+      var(--color-warning, #d97706) 55%,
+      var(--color-error, #dc2626)
+    )
+    12%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    color-mix(
+      in oklab,
+      var(--color-warning, #d97706) 55%,
+      var(--color-error, #dc2626)
+    )
+    34%,
+    var(--color-base-300)
   );
 }
 
 .life-equip-slot.is-filled.rarity-mythic {
-  border-left-color: var(--color-error, #dc2626);
+  --life-rarity-accent: var(--color-error, #dc2626);
+  background: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 12%,
+    var(--color-base-100, #fff)
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 32%,
+    var(--color-base-300)
+  );
 }
 
 .life-equip-slot-top {
@@ -5197,12 +5330,18 @@ body:has(.chatagent-page) > main {
 }
 
 .life-equip-slot.is-filled .life-equip-slot-icon {
-  color: var(--color-primary, #0f766e);
+  color: color-mix(
+    in oklab,
+    var(--life-rarity-accent) 70%,
+    var(--color-base-content)
+  );
   background: color-mix(
     in oklab,
-    var(--color-primary, #0f766e) 12%,
+    var(--life-rarity-accent) 14%,
     var(--color-base-100, #fff)
   );
+  border: 1px solid
+    color-mix(in oklab, var(--life-rarity-accent) 28%, var(--color-base-300));
 }
 
 .life-equip-icon {
@@ -5250,7 +5389,26 @@ body:has(.chatagent-page) > main {
   align-self: flex-start;
 }
 
+.life-rarity-chip.rarity-common {
+  background: color-mix(
+    in oklab,
+    var(--color-base-content) 6%,
+    transparent
+  );
+  border-color: color-mix(
+    in oklab,
+    var(--color-base-content) 18%,
+    var(--color-base-300)
+  );
+  color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+}
+
 .life-rarity-chip.rarity-uncommon {
+  background: color-mix(
+    in oklab,
+    var(--color-primary, #0f766e) 12%,
+    transparent
+  );
   border-color: color-mix(
     in oklab,
     var(--color-primary, #0f766e) 40%,
@@ -5260,6 +5418,11 @@ body:has(.chatagent-page) > main {
 }
 
 .life-rarity-chip.rarity-rare {
+  background: color-mix(
+    in oklab,
+    var(--color-info, #0284c7) 12%,
+    transparent
+  );
   border-color: color-mix(
     in oklab,
     var(--color-info, #0284c7) 45%,
@@ -5273,28 +5436,48 @@ body:has(.chatagent-page) > main {
 }
 
 .life-rarity-chip.rarity-epic {
+  background: color-mix(
+    in oklab,
+    var(--color-warning, #d97706) 14%,
+    transparent
+  );
   border-color: color-mix(
     in oklab,
-    var(--color-warning, #ca8a04) 50%,
+    var(--color-warning, #d97706) 50%,
     var(--color-base-300)
   );
-  color: var(--color-warning, #a16207);
+  color: var(--color-warning, #d97706);
 }
 
 .life-rarity-chip.rarity-legendary {
+  background: color-mix(
+    in oklab,
+    color-mix(
+      in oklab,
+      var(--color-warning, #d97706) 55%,
+      var(--color-error, #dc2626)
+    )
+    14%,
+    transparent
+  );
   border-color: color-mix(
     in oklab,
-    var(--color-warning, #ca8a04) 55%,
+    var(--color-warning, #d97706) 55%,
     var(--color-error, #dc2626)
   );
   color: color-mix(
     in oklab,
-    var(--color-warning, #a16207) 55%,
+    var(--color-warning, #d97706) 55%,
     var(--color-error, #b91c1c)
   );
 }
 
 .life-rarity-chip.rarity-mythic {
+  background: color-mix(
+    in oklab,
+    var(--color-error, #dc2626) 14%,
+    transparent
+  );
   border-color: color-mix(
     in oklab,
     var(--color-error, #dc2626) 50%,

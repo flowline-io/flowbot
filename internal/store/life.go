@@ -1221,13 +1221,33 @@ func (s *LifeStore) CreateInventory(ctx context.Context, profileID, equipmentID 
 
 // ListInventory lists inventory for a profile.
 func (s *LifeStore) ListInventory(ctx context.Context, profileID int64) ([]*gen.LifeInventory, error) {
+	rows, _, err := s.ListInventoryPage(ctx, profileID, 0, 0)
+	return rows, err
+}
+
+// ListInventoryPage returns a page of inventory rows and the total count.
+// A non-positive limit returns all matching rows (offset ignored).
+func (s *LifeStore) ListInventoryPage(ctx context.Context, profileID int64, limit, offset int) ([]*gen.LifeInventory, int, error) {
 	if !s.ready() {
-		return nil, nil
+		return nil, 0, nil
 	}
-	return s.client.LifeInventory.Query().
-		Where(lifeinventory.LifeProfileIDEQ(profileID)).
-		Order(gen.Desc(lifeinventory.FieldAcquiredAt)).
-		All(ctx)
+	q := s.client.LifeInventory.Query().Where(lifeinventory.LifeProfileIDEQ(profileID))
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: count inventory: %w", err)
+	}
+	q = q.Order(gen.Desc(lifeinventory.FieldAcquiredAt), gen.Desc(lifeinventory.FieldID))
+	if limit > 0 {
+		if offset < 0 {
+			offset = 0
+		}
+		q = q.Limit(limit).Offset(offset)
+	}
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: list inventory page: %w", err)
+	}
+	return rows, total, nil
 }
 
 // GetInventoryByFlag returns inventory by flag scoped to profile.

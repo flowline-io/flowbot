@@ -59,20 +59,36 @@ func (s *LifeStore) GetRewardByFlag(ctx context.Context, profileID int64, flag s
 // ListRewards lists rewards for a profile, newest first.
 // When activeOnly is non-nil, filters by active status.
 func (s *LifeStore) ListRewards(ctx context.Context, profileID int64, activeOnly *bool) ([]*gen.LifeReward, error) {
+	rows, _, err := s.ListRewardsPage(ctx, profileID, activeOnly, 0, 0)
+	return rows, err
+}
+
+// ListRewardsPage returns a page of rewards and the total matching count.
+// A non-positive limit returns all matching rows (offset ignored).
+func (s *LifeStore) ListRewardsPage(ctx context.Context, profileID int64, activeOnly *bool, limit, offset int) ([]*gen.LifeReward, int, error) {
 	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
+		return nil, 0, fmt.Errorf("life: store not available")
 	}
-	q := s.client.LifeReward.Query().
-		Where(lifereward.LifeProfileIDEQ(profileID)).
-		Order(gen.Desc(lifereward.FieldCreatedAt))
+	q := s.client.LifeReward.Query().Where(lifereward.LifeProfileIDEQ(profileID))
 	if activeOnly != nil {
 		q = q.Where(lifereward.ActiveEQ(*activeOnly))
 	}
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: count rewards: %w", err)
+	}
+	q = q.Order(gen.Desc(lifereward.FieldCreatedAt), gen.Desc(lifereward.FieldID))
+	if limit > 0 {
+		if offset < 0 {
+			offset = 0
+		}
+		q = q.Limit(limit).Offset(offset)
+	}
 	rows, err := q.All(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("life: list rewards: %w", err)
+		return nil, 0, fmt.Errorf("life: list rewards page: %w", err)
 	}
-	return rows, nil
+	return rows, total, nil
 }
 
 // UpdateReward updates mutable catalog fields for a reward.
@@ -149,19 +165,34 @@ func (s *LifeStore) CreateRewardRedemption(ctx context.Context, profileID, rewar
 
 // ListRewardRedemptions returns recent redemptions newest first.
 func (s *LifeStore) ListRewardRedemptions(ctx context.Context, profileID int64, limit int) ([]*gen.LifeRewardRedemption, error) {
-	if !s.ready() {
-		return nil, fmt.Errorf("life: store not available")
-	}
 	if limit <= 0 {
 		limit = 20
 	}
-	rows, err := s.client.LifeRewardRedemption.Query().
-		Where(liferewardredemption.LifeProfileIDEQ(profileID)).
-		Order(gen.Desc(liferewardredemption.FieldRedeemedAt)).
-		Limit(limit).
-		All(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("life: list reward redemptions: %w", err)
+	rows, _, err := s.ListRewardRedemptionsPage(ctx, profileID, limit, 0)
+	return rows, err
+}
+
+// ListRewardRedemptionsPage returns a page of redemptions and the total count.
+// A non-positive limit returns all matching rows (offset ignored).
+func (s *LifeStore) ListRewardRedemptionsPage(ctx context.Context, profileID int64, limit, offset int) ([]*gen.LifeRewardRedemption, int, error) {
+	if !s.ready() {
+		return nil, 0, fmt.Errorf("life: store not available")
 	}
-	return rows, nil
+	q := s.client.LifeRewardRedemption.Query().Where(liferewardredemption.LifeProfileIDEQ(profileID))
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: count reward redemptions: %w", err)
+	}
+	q = q.Order(gen.Desc(liferewardredemption.FieldRedeemedAt), gen.Desc(liferewardredemption.FieldID))
+	if limit > 0 {
+		if offset < 0 {
+			offset = 0
+		}
+		q = q.Limit(limit).Offset(offset)
+	}
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: list reward redemptions page: %w", err)
+	}
+	return rows, total, nil
 }
