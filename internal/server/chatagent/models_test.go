@@ -79,6 +79,26 @@ func TestAgentLoopConfig(t *testing.T) {
 			assert.Equal(t, tt.wantChatCfg, cfg.ChatModel)
 			assert.Equal(t, tt.wantToolCfg, cfg.ToolModel)
 			assert.Equal(t, tt.wantChatModel, cfg.ModelName)
+			assert.Equal(t, 80, cfg.MaxSteps)
+		})
+	}
+}
+
+func TestRunMaxSteps(t *testing.T) {
+	tests := []struct {
+		name     string
+		maxSteps int
+		want     int
+	}{
+		{name: "default when unset", maxSteps: 0, want: 80},
+		{name: "default when negative", maxSteps: -1, want: 80},
+		{name: "custom", maxSteps: 50, want: 50},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			LockAppConfigForTest(t)
+			config.App.ChatAgent.MaxSteps = tt.maxSteps
+			assert.Equal(t, tt.want, runMaxSteps())
 		})
 	}
 }

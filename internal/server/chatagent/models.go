@@ -64,7 +64,7 @@ func multimodalConvertToLLM(chatModel string) msg.ConvertToLLMFn {
 func runMaxSteps() int {
 	maxSteps := config.App.ChatAgent.MaxSteps
 	if maxSteps <= 0 {
-		return 30
+		return 80
 	}
 	return maxSteps
 }
