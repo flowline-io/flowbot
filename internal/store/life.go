@@ -830,14 +830,41 @@ func (s *LifeStore) CreateQuest(ctx context.Context, q *gen.LifeQuest) (*gen.Lif
 
 // ListQuests lists quests for a profile, optional status filter.
 func (s *LifeStore) ListQuests(ctx context.Context, profileID int64, status string) ([]*gen.LifeQuest, error) {
+	rows, _, err := s.ListQuestsPage(ctx, profileID, status, 0, 0)
+	return rows, err
+}
+
+// ListQuestsPage returns a page of quests and the total matching count.
+// Completed quests are ordered by completed_at descending; others by created_at descending.
+// A non-positive limit returns all matching rows (offset ignored).
+func (s *LifeStore) ListQuestsPage(ctx context.Context, profileID int64, status string, limit, offset int) ([]*gen.LifeQuest, int, error) {
 	if !s.ready() {
-		return nil, nil
+		return nil, 0, nil
 	}
-	q := s.client.LifeQuest.Query().Where(lifequest.LifeProfileIDEQ(profileID)).Order(gen.Desc(lifequest.FieldCreatedAt))
+	q := s.client.LifeQuest.Query().Where(lifequest.LifeProfileIDEQ(profileID))
 	if status != "" {
 		q = q.Where(lifequest.StatusEQ(status))
 	}
-	return q.All(ctx)
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: count quests: %w", err)
+	}
+	if status == "Completed" {
+		q = q.Order(gen.Desc(lifequest.FieldCompletedAt), gen.Desc(lifequest.FieldID))
+	} else {
+		q = q.Order(gen.Desc(lifequest.FieldCreatedAt), gen.Desc(lifequest.FieldID))
+	}
+	if limit > 0 {
+		if offset < 0 {
+			offset = 0
+		}
+		q = q.Limit(limit).Offset(offset)
+	}
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: list quests page: %w", err)
+	}
+	return rows, total, nil
 }
 
 // GetQuestByFlag returns a quest by flag scoped to profile.
@@ -1282,16 +1309,33 @@ func (s *LifeStore) CreateActionLog(ctx context.Context, profileID, questID int6
 
 // ListActionLogs returns recent action logs.
 func (s *LifeStore) ListActionLogs(ctx context.Context, profileID int64, limit int) ([]*gen.LifeActionLog, error) {
+	rows, _, err := s.ListActionLogsPage(ctx, profileID, limit, 0)
+	return rows, err
+}
+
+// ListActionLogsPage returns a page of action logs and the total count.
+// A non-positive limit returns all matching rows (offset ignored).
+func (s *LifeStore) ListActionLogsPage(ctx context.Context, profileID int64, limit, offset int) ([]*gen.LifeActionLog, int, error) {
 	if !s.ready() {
-		return nil, nil
+		return nil, 0, nil
 	}
-	q := s.client.LifeActionLog.Query().
-		Where(lifeactionlog.LifeProfileIDEQ(profileID)).
-		Order(gen.Desc(lifeactionlog.FieldCreatedAt))
+	q := s.client.LifeActionLog.Query().Where(lifeactionlog.LifeProfileIDEQ(profileID))
+	total, err := q.Clone().Count(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: count action logs: %w", err)
+	}
+	q = q.Order(gen.Desc(lifeactionlog.FieldCreatedAt), gen.Desc(lifeactionlog.FieldID))
 	if limit > 0 {
-		q = q.Limit(limit)
+		if offset < 0 {
+			offset = 0
+		}
+		q = q.Limit(limit).Offset(offset)
 	}
-	return q.All(ctx)
+	rows, err := q.All(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("life: list action logs page: %w", err)
+	}
+	return rows, total, nil
 }
 
 // AppendLoreOutbox writes an unpublished outbox row for lore generation.

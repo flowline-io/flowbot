@@ -2,8 +2,10 @@ package life
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
@@ -14,6 +16,7 @@ import (
 	"github.com/flowline-io/flowbot/internal/store/sqlitetest"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
+	"github.com/flowline-io/flowbot/pkg/types"
 )
 
 func TestParseLoreInventoryID(t *testing.T) {
@@ -457,4 +460,70 @@ func TestCompleteActionOccurrenceGrantsRewards(t *testing.T) {
 	require.Len(t, logs, 1)
 	assert.Equal(t, 80, logs[0].GainedExp)
 	assert.Equal(t, 25, logs[0].GainedGold)
+}
+
+func TestListCompletedQuestsPageAndActionLogsPage(t *testing.T) {
+	t.Parallel()
+	client := sqlitetest.OpenClient(t, t.Name())
+	svc := NewService(store.NewLifeStore(client))
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "quests-logs-page-user", "", "")
+	require.NoError(t, err)
+	chars, err := svc.store.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := svc.store.CreateSkill(ctx, profile.ID, chars[0].ID, "Focus", 0.5)
+	require.NoError(t, err)
+
+	base := time.Date(2026, 8, 1, 12, 0, 0, 0, time.UTC)
+	for i := range 5 {
+		quest, err := svc.store.CreateQuest(ctx, &gen.LifeQuest{
+			LifeProfileID:         profile.ID,
+			SkillID:               skill.ID,
+			Title:                 fmt.Sprintf("Done %d", i),
+			Prompt:                "prompt",
+			Type:                  "One-Time",
+			AiEvaluatedDifficulty: "B",
+			BaseExpReward:         10,
+			BaseGoldReward:        5,
+			DropTier:              "Common",
+		})
+		require.NoError(t, err)
+		_, err = client.LifeQuest.UpdateOneID(quest.ID).
+			SetStatus("Completed").
+			SetCompletedAt(base.Add(time.Duration(i) * time.Minute)).
+			Save(ctx)
+		require.NoError(t, err)
+		_, err = client.LifeActionLog.Create().
+			SetFlag(types.Id()).
+			SetLifeProfileID(profile.ID).
+			SetQuestID(quest.ID).
+			SetSourceType("quest").
+			SetSummary(fmt.Sprintf("Log %d", i)).
+			SetGainedExp(10).
+			SetGainedGold(5).
+			SetCreatedAt(base.Add(time.Duration(i) * time.Minute)).
+			Save(ctx)
+		require.NoError(t, err)
+	}
+
+	quests, total, err := svc.ListCompletedQuestsPage(ctx, "quests-logs-page-user", 2, 2)
+	require.NoError(t, err)
+	assert.Equal(t, 5, total)
+	require.Len(t, quests, 2)
+	assert.Equal(t, "Done 2", quests[0].Title)
+
+	clamped, total, err := svc.ListCompletedQuestsPage(ctx, "quests-logs-page-user", 99, 2)
+	require.NoError(t, err)
+	assert.Equal(t, 5, total)
+	require.Len(t, clamped, 1)
+	assert.Equal(t, "Done 0", clamped[0].Title)
+
+	logs, logTotal, err := svc.ListActionLogsPage(ctx, "quests-logs-page-user", 2, 2)
+	require.NoError(t, err)
+	assert.Equal(t, 5, logTotal)
+	require.Len(t, logs, 2)
+	assert.Equal(t, "Done 2", logs[0].QuestTitle)
+	assert.Equal(t, "Done 1", logs[1].QuestTitle)
 }

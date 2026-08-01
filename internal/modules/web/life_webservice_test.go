@@ -2,21 +2,25 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
 	lifemod "github.com/flowline-io/flowbot/internal/modules/life"
-	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store"
+	"github.com/flowline-io/flowbot/internal/store/ent/gen"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeplannode"
 	"github.com/flowline-io/flowbot/internal/store/ent/gen/lifeprofile"
 	lifecap "github.com/flowline-io/flowbot/pkg/capability/life"
+	"github.com/flowline-io/flowbot/pkg/types"
+	"github.com/flowline-io/flowbot/pkg/views/pages"
 )
 
 func TestLifeImportBreakdownRefreshesPage(t *testing.T) {
@@ -259,4 +263,79 @@ func TestLifeQuestsPageShowsQuestDMControls(t *testing.T) {
 	require.Contains(t, string(body), "Request ruling")
 	require.Contains(t, string(body), "Dismiss")
 	require.Contains(t, string(body), `data-testid="life-quest-dismiss-`)
+}
+
+func TestLifeQuestsPagePaginatesCompletedAndActionLogs(t *testing.T) {
+	app, _, client := setupTestAppWithDB(t)
+	defer func() {
+		store.Database = nil
+		handler = moduleHandler{}
+		config = configType{}
+		setWebEncryptor(nil)
+		SetLifeService(nil)
+	}()
+	ls := store.NewLifeStore(client)
+	SetLifeService(lifemod.NewService(ls))
+	svc := lifeService()
+	ctx := context.Background()
+
+	profile, err := svc.EnsureProfile(ctx, "testuser", "", "")
+	require.NoError(t, err)
+	chars, err := ls.ListCharacteristics(ctx, profile.ID)
+	require.NoError(t, err)
+	require.NotEmpty(t, chars)
+	skill, err := ls.CreateSkill(ctx, profile.ID, chars[0].ID, "Focus", 0.5)
+	require.NoError(t, err)
+
+	base := time.Date(2026, 8, 1, 12, 0, 0, 0, time.UTC)
+	total := pages.LifeDefaultListPerPage + 1
+	for i := range total {
+		quest, err := ls.CreateQuest(ctx, &gen.LifeQuest{
+			LifeProfileID:         profile.ID,
+			SkillID:               skill.ID,
+			Title:                 fmt.Sprintf("Completed %02d", i),
+			Prompt:                "prompt",
+			Type:                  "One-Time",
+			AiEvaluatedDifficulty: "B",
+			BaseExpReward:         10,
+			BaseGoldReward:        5,
+			DropTier:              "Common",
+		})
+		require.NoError(t, err)
+		_, err = client.LifeQuest.UpdateOneID(quest.ID).
+			SetStatus("Completed").
+			SetCompletedAt(base.Add(time.Duration(i) * time.Minute)).
+			Save(ctx)
+		require.NoError(t, err)
+		_, err = client.LifeActionLog.Create().
+			SetFlag(types.Id()).
+			SetLifeProfileID(profile.ID).
+			SetQuestID(quest.ID).
+			SetSourceType("quest").
+			SetSummary(fmt.Sprintf("Log %02d", i)).
+			SetGainedExp(10).
+			SetGainedGold(5).
+			SetCreatedAt(base.Add(time.Duration(i) * time.Minute)).
+			Save(ctx)
+		require.NoError(t, err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/service/web/life/quests?completed_page=2&logs_page=2&history_tab=logs", http.NoBody)
+	addWebAuth(req)
+	resp, err := app.Test(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	html := string(body)
+	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Contains(t, html, `id="life-history"`)
+	require.Contains(t, html, `data-testid="life-history-tabs"`)
+	require.Contains(t, html, `data-testid="life-history-tab-logs"`)
+	require.Contains(t, html, "Completed 00")
+	require.NotContains(t, html, "Completed 10")
+	require.Contains(t, html, `data-testid="life-action-logs-pager"`)
+	require.Contains(t, html, `href="/service/web/life/quests?completed_page=2&amp;history_tab=logs#life-history"`)
+	require.Contains(t, html, `href="/service/web/life/quests?completed_page=2&amp;logs_page=2#life-history"`)
 }

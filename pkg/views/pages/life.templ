@@ -679,6 +679,26 @@ templ lifeStatIcon(code string) {
 	}
 }
 
+templ lifeListPager(info LifePageInfo, testID string) {
+	if info.TotalPages > 1 {
+		<nav class="life-pager" data-testid={ testID }>
+			if info.HasPrev {
+				<a class="life-pager-btn" href={ templ.URL(info.PrevURL) } data-testid={ testID + "-prev" }>Prev</a>
+			} else {
+				<span class="life-pager-btn is-disabled" aria-disabled="true">Prev</span>
+			}
+			<span class="life-pager-status">
+				Page { fmt.Sprintf("%d", info.Page) } of { fmt.Sprintf("%d", info.TotalPages) }
+			</span>
+			if info.HasNext {
+				<a class="life-pager-btn" href={ templ.URL(info.NextURL) } data-testid={ testID + "-next" }>Next</a>
+			} else {
+				<span class="life-pager-btn is-disabled" aria-disabled="true">Next</span>
+			}
+		</nav>
+	}
+}
+
 templ LifeQuestsPage(data LifeQuestsData) {
 	@layout.Base("Quests — Life") {
 		@lifeModuleShell("quests", data.PendingCount) {
@@ -982,63 +1002,106 @@ templ LifeQuestsPage(data LifeQuestsData) {
 				}
 			</section>
 
-			<section class="life-panel life-section">
-				<div class="life-section-head">
-					<h2>Recently completed</h2>
-					<span class="life-section-count">{ fmt.Sprintf("%d", len(data.Completed)) }</span>
-				</div>
-				if len(data.Completed) == 0 {
-					<p class="life-empty">Nothing completed yet.</p>
-				} else {
-					<ul class="life-done-list" data-testid="life-quests-completed">
-						for _, q := range data.Completed {
-							<li class="life-done-row">
-								<div class="life-done-main">
-									<span class="life-done-title" title={ q.Title }>{ q.Title }</span>
-									if q.Prompt != "" {
-										<span class="life-done-prompt" title={ q.Prompt }>{ q.Prompt }</span>
-									}
-								</div>
-								<div class="life-done-meta">
-									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>
-									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
-									<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
-								</div>
-							</li>
+			<section id={ LifeHistoryAnchor } class="life-panel life-section life-anchor-target" data-testid="life-history-section">
+				<div class="life-tabs" role="tablist" aria-label="Quest history" data-testid="life-history-tabs">
+					<a
+						role="tab"
+						class={ LifeHistoryTabClass(data.HistoryTab, LifeHistoryTabCompleted) }
+						href={ templ.URL(LifeQuestsListURL(data.CompletedPage.Page, data.ActionLogsPage.Page, LifeHistoryTabCompleted, LifeHistoryAnchor)) }
+						if data.HistoryTab == LifeHistoryTabCompleted {
+							aria-selected="true"
+						} else {
+							aria-selected="false"
 						}
-					</ul>
-				}
-			</section>
+						data-testid="life-history-tab-completed"
+					>
+						Recently completed
+						<span class="life-tab-count">{ fmt.Sprintf("%d", data.CompletedPage.Total) }</span>
+					</a>
+					<a
+						role="tab"
+						class={ LifeHistoryTabClass(data.HistoryTab, LifeHistoryTabActionLogs) }
+						href={ templ.URL(LifeQuestsListURL(data.CompletedPage.Page, data.ActionLogsPage.Page, LifeHistoryTabActionLogs, LifeHistoryAnchor)) }
+						if data.HistoryTab == LifeHistoryTabActionLogs {
+							aria-selected="true"
+						} else {
+							aria-selected="false"
+						}
+						data-testid="life-history-tab-logs"
+					>
+						Action log
+						<span class="life-tab-count">{ fmt.Sprintf("%d", data.ActionLogsPage.Total) }</span>
+					</a>
+				</div>
 
-			<section class="life-panel life-section">
-				<div class="life-section-head">
-					<h2>Action log</h2>
-					<span class="life-section-count">{ fmt.Sprintf("%d", len(data.ActionLogs)) }</span>
+				<div
+					role="tabpanel"
+					class="life-tab-panel"
+					id="life-history-completed"
+					data-testid="life-quests-completed-section"
+					if data.HistoryTab != LifeHistoryTabCompleted {
+						hidden
+					}
+				>
+					if len(data.Completed) == 0 {
+						<p class="life-empty">Nothing completed yet.</p>
+					} else {
+						<ul class="life-done-list" data-testid="life-quests-completed">
+							for _, q := range data.Completed {
+								<li class="life-done-row">
+									<div class="life-done-main">
+										<span class="life-done-title" title={ q.Title }>{ q.Title }</span>
+										if q.Prompt != "" {
+											<span class="life-done-prompt" title={ q.Prompt }>{ q.Prompt }</span>
+										}
+									</div>
+									<div class="life-done-meta">
+										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Exp) }</strong> EXP</span>
+										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", q.Gold) }</strong> gold</span>
+										<span class="life-meta-chip life-meta-chip-diff">{ q.Difficulty }</span>
+									</div>
+								</li>
+							}
+						</ul>
+						@lifeListPager(data.CompletedPage, "life-completed-pager")
+					}
 				</div>
-				if len(data.ActionLogs) == 0 {
-					<p class="life-empty">No completions logged yet.</p>
-				} else {
-					<ul class="life-done-list" data-testid="life-action-logs">
-						for _, l := range data.ActionLogs {
-							<li class="life-done-row">
-								<div class="life-done-main">
-									<span class="life-done-title" title={ l.QuestTitle }>{ l.QuestTitle }</span>
-									<span class="life-done-prompt">{ LifeActionLogSourceLabel(l.SourceType) } · { l.When }</span>
-								</div>
-								<div class="life-done-meta">
-									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedExp) }</strong> EXP</span>
-									<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedGold) }</strong> gold</span>
-									if l.HasDice {
-										<span class="life-meta-chip">dice { fmt.Sprintf("%.2f", l.Dice) }</span>
-									}
-									if l.Dropped {
-										<span class="life-meta-chip">drop</span>
-									}
-								</div>
-							</li>
-						}
-					</ul>
-				}
+
+				<div
+					role="tabpanel"
+					class="life-tab-panel"
+					id="life-history-logs"
+					data-testid="life-action-logs-section"
+					if data.HistoryTab != LifeHistoryTabActionLogs {
+						hidden
+					}
+				>
+					if len(data.ActionLogs) == 0 {
+						<p class="life-empty">No completions logged yet.</p>
+					} else {
+						<ul class="life-done-list" data-testid="life-action-logs">
+							for _, l := range data.ActionLogs {
+								<li class="life-done-row">
+									<div class="life-done-main">
+										<span class="life-done-title" title={ l.QuestTitle }>{ l.QuestTitle }</span>
+										<span class="life-done-prompt">{ LifeActionLogSourceLabel(l.SourceType) } · { l.When }</span>
+									</div>
+									<div class="life-done-meta">
+										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedExp) }</strong> EXP</span>
+										<span class="life-quest-reward">+<strong>{ fmt.Sprintf("%d", l.GainedGold) }</strong> gold</span>
+										if l.HasDice {
+											<span class="life-meta-chip">dice { fmt.Sprintf("%.2f", l.Dice) }</span>
+										}
+										if l.Dropped {
+											<span class="life-meta-chip">drop</span>
+										}
+									</div>
+								</li>
+							}
+						</ul>
+						@lifeListPager(data.ActionLogsPage, "life-action-logs-pager")
+					}
+				</div>
 			</section>
 		</div>
 		}

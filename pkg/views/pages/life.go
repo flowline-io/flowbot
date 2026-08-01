@@ -3,12 +3,24 @@ package pages
 import (
 	"fmt"
 	"math"
+	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/bytedance/sonic"
 
 	pkglife "github.com/flowline-io/flowbot/pkg/life"
+)
+
+// LifeDefaultListPerPage is the default page size for Life list sections.
+const LifeDefaultListPerPage = 10
+
+// History section anchor and tab ids on the Life quests page.
+const (
+	LifeHistoryAnchor        = "life-history"
+	LifeHistoryTabCompleted  = "completed"
+	LifeHistoryTabActionLogs = "logs"
 )
 
 // LifeDashboardData is the Life home dashboard model.
@@ -174,15 +186,30 @@ type LifeQuestRow struct {
 	Adjudication *LifeQuestAdjudicationRow
 }
 
+// LifePageInfo holds pagination state for one Life list section.
+type LifePageInfo struct {
+	Page       int
+	PerPage    int
+	Total      int
+	TotalPages int
+	HasPrev    bool
+	HasNext    bool
+	PrevURL    string
+	NextURL    string
+}
+
 // LifeQuestsData is the quests page model.
 type LifeQuestsData struct {
-	Pending      []LifeQuestRow
-	Completed    []LifeQuestRow
-	Goals        []LifeGoalRow
-	TodayActions []LifeTodayActionRow
-	TodayHabits  []LifeTodayHabitRow
-	ActionLogs   []LifeActionLogRow
-	PendingCount int
+	Pending        []LifeQuestRow
+	Completed      []LifeQuestRow
+	Goals          []LifeGoalRow
+	TodayActions   []LifeTodayActionRow
+	TodayHabits    []LifeTodayHabitRow
+	ActionLogs     []LifeActionLogRow
+	CompletedPage  LifePageInfo
+	ActionLogsPage LifePageInfo
+	HistoryTab     string
+	PendingCount   int
 }
 
 // LifeQuestEvidenceRow is one submitted evidence item.
@@ -478,6 +505,94 @@ func LifeTaskTypeLabel(taskType string) string {
 // LifeActionLogSourceLabel returns a concise label for one audit source.
 func LifeActionLogSourceLabel(sourceType string) string {
 	return pkglife.SourceTypeLabel(sourceType)
+}
+
+// LifeBuildPageInfo builds pagination state for a list section.
+func LifeBuildPageInfo(page, perPage, total int) LifePageInfo {
+	if perPage < 1 {
+		perPage = LifeDefaultListPerPage
+	}
+	if page < 1 {
+		page = 1
+	}
+	if total < 0 {
+		total = 0
+	}
+	totalPages := 0
+	if total > 0 {
+		totalPages = (total + perPage - 1) / perPage
+	}
+	if totalPages > 0 && page > totalPages {
+		page = totalPages
+	}
+	return LifePageInfo{
+		Page:       page,
+		PerPage:    perPage,
+		Total:      total,
+		TotalPages: totalPages,
+		HasPrev:    totalPages > 0 && page > 1,
+		HasNext:    totalPages > 0 && page < totalPages,
+	}
+}
+
+// LifeNormalizeHistoryTab returns a valid history tab id.
+func LifeNormalizeHistoryTab(tab string) string {
+	if strings.EqualFold(strings.TrimSpace(tab), LifeHistoryTabActionLogs) {
+		return LifeHistoryTabActionLogs
+	}
+	return LifeHistoryTabCompleted
+}
+
+// LifeHistoryTabClass returns the CSS class for one history tab control.
+func LifeHistoryTabClass(activeTab, tab string) string {
+	if LifeNormalizeHistoryTab(activeTab) == tab {
+		return "life-tab is-active"
+	}
+	return "life-tab"
+}
+
+// LifeQuestsListURL builds the quests page URL with optional page/tab query params and fragment.
+func LifeQuestsListURL(completedPage, logsPage int, tab, anchor string) string {
+	u := "/service/web/life/quests"
+	q := url.Values{}
+	if completedPage > 1 {
+		q.Set("completed_page", strconv.Itoa(completedPage))
+	}
+	if logsPage > 1 {
+		q.Set("logs_page", strconv.Itoa(logsPage))
+	}
+	if LifeNormalizeHistoryTab(tab) == LifeHistoryTabActionLogs {
+		q.Set("history_tab", LifeHistoryTabActionLogs)
+	}
+	if enc := q.Encode(); enc != "" {
+		u += "?" + enc
+	}
+	if anchor != "" {
+		u += "#" + anchor
+	}
+	return u
+}
+
+// LifeWithCompletedPager attaches prev/next URLs for the completed quests tab.
+func LifeWithCompletedPager(info LifePageInfo, logsPage int) LifePageInfo {
+	if info.HasPrev {
+		info.PrevURL = LifeQuestsListURL(info.Page-1, logsPage, LifeHistoryTabCompleted, LifeHistoryAnchor)
+	}
+	if info.HasNext {
+		info.NextURL = LifeQuestsListURL(info.Page+1, logsPage, LifeHistoryTabCompleted, LifeHistoryAnchor)
+	}
+	return info
+}
+
+// LifeWithActionLogsPager attaches prev/next URLs for the action log tab.
+func LifeWithActionLogsPager(info LifePageInfo, completedPage int) LifePageInfo {
+	if info.HasPrev {
+		info.PrevURL = LifeQuestsListURL(completedPage, info.Page-1, LifeHistoryTabActionLogs, LifeHistoryAnchor)
+	}
+	if info.HasNext {
+		info.NextURL = LifeQuestsListURL(completedPage, info.Page+1, LifeHistoryTabActionLogs, LifeHistoryAnchor)
+	}
+	return info
 }
 
 // LifeOccurrenceKindLabel returns a human label for one occurrence kind.

@@ -679,6 +679,31 @@ func (s *Service) ListQuests(ctx context.Context, userID, status string) ([]*gen
 	return s.store.ListQuests(ctx, p.ID, status)
 }
 
+// ListCompletedQuestsPage returns one page of completed quests and the total count.
+func (s *Service) ListCompletedQuestsPage(ctx context.Context, userID string, page, perPage int) ([]*gen.LifeQuest, int, error) {
+	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
+	if err != nil {
+		return nil, 0, err
+	}
+	page, perPage, offset := normalizeLifeListPage(page, perPage)
+	rows, total, err := s.store.ListQuestsPage(ctx, p.ID, "Completed", perPage, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	if total > 0 {
+		maxPage := (total + perPage - 1) / perPage
+		if page > maxPage {
+			page = maxPage
+			offset = (page - 1) * perPage
+			rows, total, err = s.store.ListQuestsPage(ctx, p.ID, "Completed", perPage, offset)
+			if err != nil {
+				return nil, 0, err
+			}
+		}
+	}
+	return rows, total, nil
+}
+
 // ListPendingQuestDMViews returns pending quests with evidence and latest rulings.
 func (s *Service) ListPendingQuestDMViews(ctx context.Context, userID string) ([]QuestDMView, error) {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
@@ -1269,14 +1294,53 @@ func summarizeEvidence(content string) string {
 
 // ListActionLogs returns recent completion audit rows for the user.
 func (s *Service) ListActionLogs(ctx context.Context, userID string, limit int) ([]ActionLogView, error) {
+	if limit < 1 {
+		limit = 20
+	}
+	items, _, err := s.ListActionLogsPage(ctx, userID, 1, limit)
+	return items, err
+}
+
+// ListActionLogsPage returns one page of completion audit rows and the total count.
+func (s *Service) ListActionLogsPage(ctx context.Context, userID string, page, perPage int) ([]ActionLogView, int, error) {
 	p, err := s.EnsureProfile(ctx, userID, "", config.DefaultClass)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	rows, err := s.store.ListActionLogs(ctx, p.ID, limit)
+	page, perPage, offset := normalizeLifeListPage(page, perPage)
+	rows, total, err := s.store.ListActionLogsPage(ctx, p.ID, perPage, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
+	if total > 0 {
+		maxPage := (total + perPage - 1) / perPage
+		if page > maxPage {
+			page = maxPage
+			offset = (page - 1) * perPage
+			rows, total, err = s.store.ListActionLogsPage(ctx, p.ID, perPage, offset)
+			if err != nil {
+				return nil, 0, err
+			}
+		}
+	}
+	out, err := s.mapActionLogViews(ctx, rows)
+	if err != nil {
+		return nil, 0, err
+	}
+	return out, total, nil
+}
+
+func normalizeLifeListPage(page, perPage int) (int, int, int) {
+	if perPage < 1 {
+		perPage = 10
+	}
+	if page < 1 {
+		page = 1
+	}
+	return page, perPage, (page - 1) * perPage
+}
+
+func (s *Service) mapActionLogViews(ctx context.Context, rows []*gen.LifeActionLog) ([]ActionLogView, error) {
 	out := make([]ActionLogView, 0, len(rows))
 	for _, row := range rows {
 		view := ActionLogView{

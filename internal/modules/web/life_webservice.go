@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -560,12 +561,15 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	completedPage := parsePositiveIntQuery(ctx, "completed_page", 1)
+	logsPage := parsePositiveIntQuery(ctx, "logs_page", 1)
+	historyTab := pages.LifeNormalizeHistoryTab(ctx.Query("history_tab"))
 	svc := lifeService()
 	pending, err := svc.ListPendingQuestDMViews(context.Background(), uid)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	done, err := svc.ListQuests(context.Background(), uid, "Completed")
+	done, doneTotal, err := svc.ListCompletedQuestsPage(context.Background(), uid, completedPage, pages.LifeDefaultListPerPage)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
@@ -577,24 +581,54 @@ func lifeQuestsPage(ctx fiber.Ctx) error {
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	logs, err := svc.ListActionLogs(context.Background(), uid, 20)
+	logs, logsTotal, err := svc.ListActionLogsPage(context.Background(), uid, logsPage, pages.LifeDefaultListPerPage)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	data := buildLifeQuestsData(char, pending, done, today, logs)
+	data := buildLifeQuestsData(char, pending, done, today, logs, completedPage, doneTotal, logsPage, logsTotal, historyTab)
 	ctx.Type("html")
 	return pages.LifeQuestsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
-func buildLifeQuestsData(char *lifemod.CharacterView, pending []lifemod.QuestDMView, done []*gen.LifeQuest, today *lifemod.TodayBoardView, logs []lifemod.ActionLogView) pages.LifeQuestsData {
+func parsePositiveIntQuery(ctx fiber.Ctx, key string, fallback int) int {
+	raw := strings.TrimSpace(ctx.Query(key))
+	if raw == "" {
+		return fallback
+	}
+	v, err := strconv.Atoi(raw)
+	if err != nil || v < 1 {
+		return fallback
+	}
+	return v
+}
+
+func buildLifeQuestsData(
+	char *lifemod.CharacterView,
+	pending []lifemod.QuestDMView,
+	done []*gen.LifeQuest,
+	today *lifemod.TodayBoardView,
+	logs []lifemod.ActionLogView,
+	completedPage, doneTotal, logsPage, logsTotal int,
+	historyTab string,
+) pages.LifeQuestsData {
 	goalRows := mapActiveGoalRows(char)
 	rowsPending := mapPendingQuestRows(pending)
 	rowsDone := mapCompletedQuestRows(done)
 	logRows := mapActionLogRows(logs)
 	todayActions := mapTodayActionRows(today, char.PlanTree)
 	todayHabits := mapTodayHabitRows(today)
+	completedInfo := pages.LifeWithCompletedPager(
+		pages.LifeBuildPageInfo(completedPage, pages.LifeDefaultListPerPage, doneTotal),
+		logsPage,
+	)
+	logsInfo := pages.LifeWithActionLogsPager(
+		pages.LifeBuildPageInfo(logsPage, pages.LifeDefaultListPerPage, logsTotal),
+		completedPage,
+	)
 	return pages.LifeQuestsData{
 		Pending: rowsPending, Completed: rowsDone, Goals: goalRows, TodayActions: todayActions, TodayHabits: todayHabits, ActionLogs: logRows,
+		CompletedPage: completedInfo, ActionLogsPage: logsInfo,
+		HistoryTab: pages.LifeNormalizeHistoryTab(historyTab),
 		PendingCount: len(rowsPending),
 	}
 }
@@ -633,11 +667,8 @@ func mapPendingQuestRows(pending []lifemod.QuestDMView) []pages.LifeQuestRow {
 }
 
 func mapCompletedQuestRows(done []*gen.LifeQuest) []pages.LifeQuestRow {
-	rows := make([]pages.LifeQuestRow, 0, min(len(done), 20))
+	rows := make([]pages.LifeQuestRow, 0, len(done))
 	for _, q := range done {
-		if len(rows) >= 20 {
-			break
-		}
 		rows = append(rows, pages.LifeQuestRow{
 			Flag: q.Flag, Title: q.Title, Prompt: q.Prompt, Type: q.Type, Difficulty: q.AiEvaluatedDifficulty,
 			Fear: q.AiEvaluatedFear, Exp: q.BaseExpReward, Gold: q.BaseGoldReward, DropTier: q.DropTier, Status: q.Status,

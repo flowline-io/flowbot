@@ -151,3 +151,53 @@ func TestLifePlanLabelsAndIndent(t *testing.T) {
 	assert.Empty(t, pages.LifeIndentStyle(0))
 	assert.Equal(t, "margin-left:2rem;", pages.LifeIndentStyle(2))
 }
+
+func TestLifeBuildPageInfo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name               string
+		page, perPage, total int
+		wantPage, wantPages  int
+		wantPrev, wantNext   bool
+	}{
+		{name: "empty", page: 1, perPage: 10, total: 0, wantPage: 1, wantPages: 0},
+		{name: "first of many", page: 1, perPage: 10, total: 25, wantPage: 1, wantPages: 3, wantNext: true},
+		{name: "middle", page: 2, perPage: 10, total: 25, wantPage: 2, wantPages: 3, wantPrev: true, wantNext: true},
+		{name: "last", page: 3, perPage: 10, total: 25, wantPage: 3, wantPages: 3, wantPrev: true},
+		{name: "clamp high page", page: 9, perPage: 10, total: 25, wantPage: 3, wantPages: 3, wantPrev: true},
+		{name: "normalize low page", page: 0, perPage: 10, total: 5, wantPage: 1, wantPages: 1},
+		{name: "default per page", page: 1, perPage: 0, total: 11, wantPage: 1, wantPages: 2, wantNext: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := pages.LifeBuildPageInfo(tt.page, tt.perPage, tt.total)
+			assert.Equal(t, tt.wantPage, got.Page)
+			assert.Equal(t, tt.wantPages, got.TotalPages)
+			assert.Equal(t, tt.total, got.Total)
+			assert.Equal(t, tt.wantPrev, got.HasPrev)
+			assert.Equal(t, tt.wantNext, got.HasNext)
+		})
+	}
+}
+
+func TestLifeQuestsListURLAndPagers(t *testing.T) {
+	t.Parallel()
+	assert.Equal(t, "completed", pages.LifeNormalizeHistoryTab(""))
+	assert.Equal(t, "logs", pages.LifeNormalizeHistoryTab("logs"))
+	assert.Equal(t, "life-tab is-active", pages.LifeHistoryTabClass("logs", "logs"))
+	assert.Equal(t, "life-tab", pages.LifeHistoryTabClass("logs", "completed"))
+
+	assert.Equal(t, "/service/web/life/quests", pages.LifeQuestsListURL(1, 1, "", ""))
+	assert.Equal(t, "/service/web/life/quests?completed_page=2#life-history", pages.LifeQuestsListURL(2, 1, pages.LifeHistoryTabCompleted, pages.LifeHistoryAnchor))
+	assert.Equal(t, "/service/web/life/quests?history_tab=logs&logs_page=3#life-history", pages.LifeQuestsListURL(1, 3, pages.LifeHistoryTabActionLogs, pages.LifeHistoryAnchor))
+	assert.Equal(t, "/service/web/life/quests?completed_page=2&logs_page=3#life-history", pages.LifeQuestsListURL(2, 3, pages.LifeHistoryTabCompleted, pages.LifeHistoryAnchor))
+
+	completed := pages.LifeWithCompletedPager(pages.LifeBuildPageInfo(2, 10, 25), 3)
+	assert.Equal(t, "/service/web/life/quests?logs_page=3#life-history", completed.PrevURL)
+	assert.Equal(t, "/service/web/life/quests?completed_page=3&logs_page=3#life-history", completed.NextURL)
+
+	logs := pages.LifeWithActionLogsPager(pages.LifeBuildPageInfo(2, 10, 25), 4)
+	assert.Equal(t, "/service/web/life/quests?completed_page=4&history_tab=logs#life-history", logs.PrevURL)
+	assert.Equal(t, "/service/web/life/quests?completed_page=4&history_tab=logs&logs_page=3#life-history", logs.NextURL)
+}
