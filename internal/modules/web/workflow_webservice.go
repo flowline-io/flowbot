@@ -61,7 +61,20 @@ func getWorkflowService() *pkgworkflow.Service {
 		return nil
 	}
 	// Local fallback for tests / when server lifecycle has not wired ActiveService.
-	return pkgworkflow.NewService(ws, rs, nil, nil)
+	// Must be registered: callers may ReloadTriggers, which starts a cron goroutine
+	// that would otherwise leak on every fresh NewService.
+	svc := pkgworkflow.NewService(ws, rs, nil, nil)
+	pkgworkflow.SetReloadService(svc)
+	return svc
+}
+
+func stopFallbackWorkflowService() {
+	svc := pkgworkflow.ActiveService()
+	if svc == nil {
+		return
+	}
+	svc.Stop()
+	pkgworkflow.SetReloadService(nil)
 }
 
 // workflowNameParam returns the decoded :name path parameter for workflow routes.

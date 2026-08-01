@@ -150,6 +150,9 @@ func TestApprovalBadge(t *testing.T) {
 }
 
 func TestHomeTokenUsage(t *testing.T) {
+	app, _, _ := setupTestAppWithDB(t)
+	defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
+
 	tests := []struct {
 		name         string
 		path         string
@@ -191,9 +194,6 @@ func TestHomeTokenUsage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			app, _, _ := setupTestAppWithDB(t)
-			defer func() { store.Database = nil; handler = moduleHandler{}; config = configType{} }()
-
 			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			if tt.cookie != "" {
 				req.AddCookie(&http.Cookie{Name: "accessToken", Value: tt.cookie})

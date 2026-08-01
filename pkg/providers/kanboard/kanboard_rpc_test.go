@@ -92,10 +92,15 @@ func TestAuthTransport_RoundTrip(t *testing.T) {
 				gotAuth = r.Header.Get("Authorization")
 				w.WriteHeader(http.StatusOK)
 			}))
-			defer srv.Close()
+			t.Cleanup(srv.Close)
+
+			// Private transport: httptest.Server.Close calls
+			// DefaultTransport.CloseIdleConnections, which races parallel tests.
+			base := &http.Transport{}
+			t.Cleanup(base.CloseIdleConnections)
 
 			transport := &AuthTransport{
-				Transport: http.DefaultTransport,
+				Transport: base,
 				Username:  tt.username,
 				Password:  tt.password,
 			}

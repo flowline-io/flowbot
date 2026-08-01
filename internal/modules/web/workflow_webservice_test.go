@@ -7,15 +7,18 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/flowline-io/flowbot/internal/store"
 	"github.com/flowline-io/flowbot/pkg/types"
+	pkgworkflow "github.com/flowline-io/flowbot/pkg/workflow"
 )
 
 func TestWorkflowWebserviceRoutes(t *testing.T) {
@@ -253,6 +256,32 @@ func TestWorkflowWebserviceRoutes(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetWorkflowServiceReusesFallbackAndStopsCron(t *testing.T) {
+	_, _, _ = setupTestAppWithDB(t)
+	pkgworkflow.SetReloadService(nil)
+
+	first := getWorkflowService()
+	require.NotNil(t, first)
+	second := getWorkflowService()
+	require.Same(t, first, second, "fallback workflow service must be reused to avoid cron leaks")
+
+	before := runtime.NumGoroutine()
+	for range 15 {
+		require.NoError(t, getWorkflowService().ReloadTriggers(context.Background()))
+	}
+	// Allow cron goroutines a moment to settle; growth must stay tiny when reusing one Service.
+	deadline := time.Now().Add(2 * time.Second)
+	var grew int
+	for {
+		grew = runtime.NumGoroutine() - before
+		if grew < 5 || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	require.Less(t, grew, 5, "ReloadTriggers on fallback service leaked goroutines: before=%d grew=%d", before, grew)
 }
 
 func TestSetWorkflowEnabledDisableAndEnable(t *testing.T) {
