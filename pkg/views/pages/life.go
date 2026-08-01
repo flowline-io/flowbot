@@ -74,6 +74,22 @@ type LifeCharacterData struct {
 	BreakdownPreview *LifeBreakdownPreviewData
 }
 
+// LifeGoalsData is the Goals page model.
+type LifeGoalsData struct {
+	Goals         []LifeGoalRow
+	DropRateBonus float64
+	GoldMult      float64
+	PendingCount  int
+}
+
+// LifePlanData is the Plan Tree page model.
+type LifePlanData struct {
+	PlanTree         []LifePlanNodeRow
+	PlanParents      []LifePlanParentOption
+	BreakdownPreview *LifeBreakdownPreviewData
+	PendingCount     int
+}
+
 // LifeSkillTreeNodeRow is one rendered tree node.
 type LifeSkillTreeNodeRow struct {
 	Key               string
@@ -106,7 +122,7 @@ type LifeSkillEvidenceRow struct {
 	When       string
 }
 
-// LifeGoalRow is one PARA goal for Character / Quests UI.
+// LifeGoalRow is one PARA goal for Goals / Quests UI.
 type LifeGoalRow struct {
 	Flag     string
 	Title    string

@@ -91,7 +91,7 @@ func (s *Service) ensureDefaultCharacteristics(ctx context.Context, profileID in
 	return nil
 }
 
-// CharacterView is the character page model.
+// CharacterView is the character / identity aggregate (also feeds Goals, Plan, Quests).
 type CharacterView struct {
 	Profile         *gen.LifeProfile
 	Characteristics []*gen.LifeCharacteristic

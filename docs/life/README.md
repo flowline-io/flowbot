@@ -32,7 +32,7 @@ pkg/views/pages|partials/       # life_*.templ
 
 ## UI entry
 
-Signed-in **User** nav (session badge): opens Life. Module sidebar: Life, Stats, Quests, Skills, Inventory, Achievements, Rewards, Character — under `/service/web/life*`.
+Signed-in **User** nav (session badge): opens Life. Module sidebar (by usage frequency): Life, Quests, Rewards, Skills, Inventory, Goals, Plan, Stats, Character, Achievements — under `/service/web/life*`.
 
 ## Reference docs
 

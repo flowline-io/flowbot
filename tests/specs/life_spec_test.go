@@ -106,6 +106,37 @@ var _ = Describe("Life Pages", Label("module", "web", "life"), func() {
 			resp, err := App.Test(req)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			body := string(ReadBody(resp))
+			Expect(body).To(ContainSubstring("life-character"))
+			Expect(body).To(ContainSubstring("life-class-form"))
+			Expect(body).NotTo(ContainSubstring("life-goals-page"))
+			Expect(body).NotTo(ContainSubstring("life-plan-page"))
+		})
+
+		It("renders goals page", func() {
+			req := MakeRequest(http.MethodGet, "/service/web/life/goals", nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "life-token"})
+			webmod.AttachCSRFForTest(req)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			body := string(ReadBody(resp))
+			Expect(body).To(ContainSubstring("life-goals-page"))
+			Expect(body).To(ContainSubstring("life-goal-form"))
+			Expect(body).To(ContainSubstring("life-goto-goals"))
+		})
+
+		It("renders plan page", func() {
+			req := MakeRequest(http.MethodGet, "/service/web/life/plan", nil)
+			req.AddCookie(&http.Cookie{Name: "accessToken", Value: "life-token"})
+			webmod.AttachCSRFForTest(req)
+			resp, err := App.Test(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
+			body := string(ReadBody(resp))
+			Expect(body).To(ContainSubstring("life-plan-page"))
+			Expect(body).To(ContainSubstring("life-plan-tree"))
+			Expect(body).To(ContainSubstring("life-goto-plan"))
 		})
 
 		It("renders quests page", func() {

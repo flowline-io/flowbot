@@ -81,182 +81,199 @@ templ LifeCharacterPage(data LifeCharacterData) {
 						</label>
 						<button type="submit" class="btn btn-sm btn-primary" data-testid="life-class-save">Save</button>
 					</form>
-					<section class="life-goals" data-testid="life-goals">
-						<header class="life-goals-head">
-							<div>
-								<h2 class="life-goals-title">Goals</h2>
-								<p class="life-goals-sub">PARA · Project, Area, Resource</p>
-							</div>
-							if len(data.Goals) > 0 {
-								<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.Goals)) }</span>
-							}
-						</header>
-						<form
-							hx-post="/service/web/life/goals"
-							hx-swap="none"
-							hx-disabled-elt="find button[type='submit'], find input, find select"
-							class="life-goals-compose"
-							data-testid="life-goal-form"
-						>
-							<input
-								name="title"
-								class="life-goals-compose-title"
-								required
-								placeholder="Ship the book this year"
-								autocomplete="off"
-								data-testid="life-goal-title"
-							/>
-							<select name="category" class="life-goals-compose-cat" data-testid="life-goal-category" aria-label="Category">
-								<option value="Project">Project</option>
-								<option value="Area">Area</option>
-								<option value="Resource">Resource</option>
-							</select>
-							<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-goal-create">
-								@partials.HtmxIndicator()
-								Add
-							</button>
-						</form>
-						if len(data.Goals) == 0 {
-							<p class="life-goals-empty">No goals yet — add one above.</p>
-						} else {
-							<ul class="life-goal-list">
-								for _, g := range data.Goals {
-									<li class="life-goal-card" data-testid={ "life-goal-card-" + g.Flag }>
-										<form
-											hx-post={ "/service/web/life/goals/" + g.Flag }
-											hx-swap="none"
-											hx-disabled-elt="find button, find input, find select"
-											class="life-goal-card-main"
-											data-testid={ "life-goal-edit-" + g.Flag }
-										>
-											<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label="Goal title"/>
-											<div class="life-goal-card-meta">
-												<select name="category" class="life-goal-card-cat" aria-label="Category">
-													<option value="Project" selected?={ g.Category == "Project" }>Project</option>
-													<option value="Area" selected?={ g.Category == "Area" }>Area</option>
-													<option value="Resource" selected?={ g.Category == "Resource" }>Resource</option>
-												</select>
-												<span class="life-meta-chip">{ g.Status }</span>
-											</div>
-											<button type="submit" class="life-goal-link" data-testid={ "life-goal-save-" + g.Flag }>
-												@partials.HtmxIndicator()
-												Save
-											</button>
-										</form>
-										<div class="life-goal-actions">
-											if g.Status == "Active" {
-												<button
-													type="button"
-													class="life-goal-link"
-													hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
-													hx-vals='{"status":"Paused"}'
-													hx-swap="none"
-													data-testid={ "life-goal-pause-" + g.Flag }
-												>Pause</button>
-											}
-											if g.Status == "Paused" {
-												<button
-													type="button"
-													class="life-goal-link"
-													hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
-													hx-vals='{"status":"Active"}'
-													hx-swap="none"
-													data-testid={ "life-goal-resume-" + g.Flag }
-												>Resume</button>
-											}
+				</section>
+			</div>
+		}
+	}
+}
+
+templ LifeGoalsPage(data LifeGoalsData) {
+	@layout.Base("Goals — Life") {
+		@lifeModuleShell("goals", data.PendingCount) {
+			<div class="life-shell" data-testid="life-goals-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Goals</h1>
+						<p>PARA · Project, Area, Resource — the objectives that steer quests and buffs.</p>
+					</div>
+					if len(data.Goals) > 0 {
+						<span class="life-section-count">{ fmt.Sprintf("%d", len(data.Goals)) }</span>
+					}
+				</header>
+				<section class="life-panel life-section life-goals" data-testid="life-goals">
+					<form
+						hx-post="/service/web/life/goals"
+						hx-swap="none"
+						hx-disabled-elt="find button[type='submit'], find input, find select"
+						class="life-goals-compose"
+						data-testid="life-goal-form"
+					>
+						<input
+							name="title"
+							class="life-goals-compose-title"
+							required
+							placeholder="Ship the book this year"
+							autocomplete="off"
+							data-testid="life-goal-title"
+						/>
+						<select name="category" class="life-goals-compose-cat" data-testid="life-goal-category" aria-label="Category">
+							<option value="Project">Project</option>
+							<option value="Area">Area</option>
+							<option value="Resource">Resource</option>
+						</select>
+						<button type="submit" class="btn btn-sm btn-primary life-goals-compose-btn" data-testid="life-goal-create">
+							@partials.HtmxIndicator()
+							Add
+						</button>
+					</form>
+					if len(data.Goals) == 0 {
+						<p class="life-goals-empty">No goals yet — add one above.</p>
+					} else {
+						<ul class="life-goal-list">
+							for _, g := range data.Goals {
+								<li class="life-goal-card" data-testid={ "life-goal-card-" + g.Flag }>
+									<form
+										hx-post={ "/service/web/life/goals/" + g.Flag }
+										hx-swap="none"
+										hx-disabled-elt="find button, find input, find select"
+										class="life-goal-card-main"
+										data-testid={ "life-goal-edit-" + g.Flag }
+									>
+										<input name="title" class="life-goal-card-title" required value={ g.Title } aria-label="Goal title"/>
+										<div class="life-goal-card-meta">
+											<select name="category" class="life-goal-card-cat" aria-label="Category">
+												<option value="Project" selected?={ g.Category == "Project" }>Project</option>
+												<option value="Area" selected?={ g.Category == "Area" }>Area</option>
+												<option value="Resource" selected?={ g.Category == "Resource" }>Resource</option>
+											</select>
+											<span class="life-meta-chip">{ g.Status }</span>
+										</div>
+										<button type="submit" class="life-goal-link" data-testid={ "life-goal-save-" + g.Flag }>
+											@partials.HtmxIndicator()
+											Save
+										</button>
+									</form>
+									<div class="life-goal-actions">
+										if g.Status == "Active" {
 											<button
 												type="button"
-												class="life-goal-link life-goal-link-danger"
-												hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
+												class="life-goal-link"
+												hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
+												hx-vals='{"status":"Paused"}'
 												hx-swap="none"
-												hx-confirm="Delete this goal?"
-												data-testid={ "life-goal-delete-" + g.Flag }
-											>Delete</button>
-										</div>
-									</li>
-								}
-							</ul>
-						}
-						<p class="life-goals-foot">
-							Drop buff +{ fmt.Sprintf("%.0f%%", data.DropRateBonus*100) } · Gold ×{ fmt.Sprintf("%.2f", data.GoldMult) }
-						</p>
-					</section>
-					<section class="life-goals" data-testid="life-plan-tree">
-						<header class="life-goals-head">
-							<div>
-								<h2 class="life-goals-title">Plan Tree</h2>
-								<p class="life-goals-sub">Goal -> Milestone -> Project -> Action · generated by AI</p>
-							</div>
-							if len(data.PlanTree) > 0 {
-								<span class="life-goals-count">{ fmt.Sprintf("%d", len(data.PlanTree)) }</span>
-							}
-						</header>
-						<p class="life-goals-sub">Describe a concrete result goal, let the Life DM suggest the tree, then confirm import.</p>
-						<form
-							hx-post="/service/web/life/character/plan/breakdown/preview"
-							hx-target="[data-testid='life-plan-tree']"
-							hx-select="[data-testid='life-plan-tree']"
-							hx-swap="outerHTML"
-							class="life-breakdown-compose"
-							data-testid="life-breakdown-preview-form"
-						>
-							<div class="life-breakdown-compose-row">
-								<input
-									name="root_title"
-									class="life-goals-compose-title"
-									required
-									placeholder="Ask AI to decompose a concrete goal"
-									autocomplete="off"
-									data-testid="life-breakdown-root-title"
-								/>
-								<button type="submit" class="btn btn-sm btn-secondary life-goals-compose-btn" data-testid="life-breakdown-preview">
-									@partials.HtmxIndicator()
-									Preview AI breakdown
-								</button>
-							</div>
-							<textarea
-								name="description"
-								class="life-goals-compose-title life-plan-compose-textarea"
-								rows="2"
-								placeholder="Optional outcome / constraints"
-								data-testid="life-breakdown-description"
-							></textarea>
-						</form>
-						if data.BreakdownPreview != nil && data.BreakdownPreview.Tree != nil {
-							<div class="life-goal-card" data-testid="life-breakdown-preview-card">
-								<div class="life-goal-card-main">
-									<div>
-										<p class="life-goal-card-title">AI suggestion: { data.BreakdownPreview.RootTitle }</p>
-										if data.BreakdownPreview.Description != "" {
-											<p class="life-goals-sub">{ data.BreakdownPreview.Description }</p>
+												data-testid={ "life-goal-pause-" + g.Flag }
+											>Pause</button>
 										}
+										if g.Status == "Paused" {
+											<button
+												type="button"
+												class="life-goal-link"
+												hx-post={ "/service/web/life/goals/" + g.Flag + "/status" }
+												hx-vals='{"status":"Active"}'
+												hx-swap="none"
+												data-testid={ "life-goal-resume-" + g.Flag }
+											>Resume</button>
+										}
+										<button
+											type="button"
+											class="life-goal-link life-goal-link-danger"
+											hx-post={ "/service/web/life/goals/" + g.Flag + "/delete" }
+											hx-swap="none"
+											hx-confirm="Delete this goal?"
+											data-testid={ "life-goal-delete-" + g.Flag }
+										>Delete</button>
 									</div>
+								</li>
+							}
+						</ul>
+					}
+					<p class="life-goals-foot">
+						Drop buff +{ fmt.Sprintf("%.0f%%", data.DropRateBonus*100) } · Gold ×{ fmt.Sprintf("%.2f", data.GoldMult) }
+					</p>
+				</section>
+			</div>
+		}
+	}
+}
+
+templ LifePlanPage(data LifePlanData) {
+	@layout.Base("Plan — Life") {
+		@lifeModuleShell("plan", data.PendingCount) {
+			<div class="life-shell" data-testid="life-plan-page">
+				<header class="life-shell-header">
+					<div>
+						<h1>Plan Tree</h1>
+						<p>Goal → Milestone → Project → Action · decompose with the Life DM, then confirm import.</p>
+					</div>
+					if len(data.PlanTree) > 0 {
+						<span class="life-section-count">{ fmt.Sprintf("%d", len(data.PlanTree)) }</span>
+					}
+				</header>
+				<section class="life-panel life-section life-goals" data-testid="life-plan-tree">
+					<form
+						hx-post="/service/web/life/character/plan/breakdown/preview"
+						hx-target="[data-testid='life-plan-tree']"
+						hx-select="[data-testid='life-plan-tree']"
+						hx-swap="outerHTML"
+						class="life-breakdown-compose"
+						data-testid="life-breakdown-preview-form"
+					>
+						<div class="life-breakdown-compose-row">
+							<input
+								name="root_title"
+								class="life-goals-compose-title"
+								required
+								placeholder="Ask AI to decompose a concrete goal"
+								autocomplete="off"
+								data-testid="life-breakdown-root-title"
+							/>
+							<button type="submit" class="btn btn-sm btn-secondary life-goals-compose-btn" data-testid="life-breakdown-preview">
+								@partials.HtmxIndicator()
+								Preview AI breakdown
+							</button>
+						</div>
+						<textarea
+							name="description"
+							class="life-goals-compose-title life-plan-compose-textarea"
+							rows="2"
+							placeholder="Optional outcome / constraints"
+							data-testid="life-breakdown-description"
+						></textarea>
+					</form>
+					if data.BreakdownPreview != nil && data.BreakdownPreview.Tree != nil {
+						<div class="life-goal-card" data-testid="life-breakdown-preview-card">
+							<div class="life-goal-card-main">
+								<div>
+									<p class="life-goal-card-title">AI suggestion: { data.BreakdownPreview.RootTitle }</p>
+									if data.BreakdownPreview.Description != "" {
+										<p class="life-goals-sub">{ data.BreakdownPreview.Description }</p>
+									}
 								</div>
-								<div class="life-goal-list">
-									@lifeBreakdownSuggestion(*data.BreakdownPreview.Tree, 0)
-								</div>
-								<form
-									method="post"
-									action="/service/web/life/character/plan/breakdown/import"
-								>
-									<input type="hidden" name="payload_json" value={ data.BreakdownPreview.PayloadJSON }/>
-									<button type="submit" class="btn btn-sm btn-primary" data-testid="life-breakdown-import">
-										@partials.HtmxIndicator()
-										Import suggestion
-									</button>
-								</form>
 							</div>
-						}
-						if len(data.PlanTree) == 0 {
-							<p class="life-goals-empty">No plan nodes yet — create a goal to start the tree.</p>
-						} else {
 							<div class="life-goal-list">
-								for _, node := range data.PlanTree {
-									@lifePlanNode(node, 0)
-								}
+								@lifeBreakdownSuggestion(*data.BreakdownPreview.Tree, 0)
 							</div>
-						}
-					</section>
+							<form
+								method="post"
+								action="/service/web/life/character/plan/breakdown/import"
+							>
+								<input type="hidden" name="payload_json" value={ data.BreakdownPreview.PayloadJSON }/>
+								<button type="submit" class="btn btn-sm btn-primary" data-testid="life-breakdown-import">
+									@partials.HtmxIndicator()
+									Import suggestion
+								</button>
+							</form>
+						</div>
+					}
+					if len(data.PlanTree) == 0 {
+						<p class="life-goals-empty">No plan nodes yet — preview an AI breakdown to start the tree.</p>
+					} else {
+						<div class="life-goal-list">
+							for _, node := range data.PlanTree {
+								@lifePlanNode(node, 0)
+							}
+						</div>
+					}
 				</section>
 			</div>
 		}
@@ -473,11 +490,6 @@ templ lifeModuleShell(active string, pendingCount int) {
 					data-testid="life-goto-home"
 				>Life</a>
 				<a
-					href="/service/web/life/stats"
-					class={ "life-sidebar-link", templ.KV("is-active", active == "stats") }
-					data-testid="life-goto-stats"
-				>Stats</a>
-				<a
 					href="/service/web/life/quests"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "quests") }
 					data-testid="life-goto-quests"
@@ -487,6 +499,11 @@ templ lifeModuleShell(active string, pendingCount int) {
 						<span class="life-sidebar-badge">{ fmt.Sprintf("%d", pendingCount) }</span>
 					}
 				</a>
+				<a
+					href="/service/web/life/rewards"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "rewards") }
+					data-testid="life-goto-rewards"
+				>Rewards</a>
 				<a
 					href="/service/web/life/skills"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "skills") }
@@ -498,20 +515,30 @@ templ lifeModuleShell(active string, pendingCount int) {
 					data-testid="life-goto-inventory"
 				>Inventory</a>
 				<a
-					href="/service/web/life/achievements"
-					class={ "life-sidebar-link", templ.KV("is-active", active == "achievements") }
-					data-testid="life-goto-achievements"
-				>Achievements</a>
+					href="/service/web/life/goals"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "goals") }
+					data-testid="life-goto-goals"
+				>Goals</a>
 				<a
-					href="/service/web/life/rewards"
-					class={ "life-sidebar-link", templ.KV("is-active", active == "rewards") }
-					data-testid="life-goto-rewards"
-				>Rewards</a>
+					href="/service/web/life/plan"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "plan") }
+					data-testid="life-goto-plan"
+				>Plan</a>
+				<a
+					href="/service/web/life/stats"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "stats") }
+					data-testid="life-goto-stats"
+				>Stats</a>
 				<a
 					href="/service/web/life/character"
 					class={ "life-sidebar-link", templ.KV("is-active", active == "character") }
 					data-testid="life-goto-character"
 				>Character</a>
+				<a
+					href="/service/web/life/achievements"
+					class={ "life-sidebar-link", templ.KV("is-active", active == "achievements") }
+					data-testid="life-goto-achievements"
+				>Achievements</a>
 			</nav>
 		</aside>
 		<div class="life-module-main">

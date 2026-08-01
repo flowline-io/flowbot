@@ -25,6 +25,8 @@ var lifeWebserviceRules = []webservice.Rule{
 	webservice.Get("/life/stats", lifeStatsPage),
 	webservice.Get("/life/stats/panel", lifeStatsPanel),
 	webservice.Get("/life/character", lifeCharacterPage),
+	webservice.Get("/life/goals", lifeGoalsPage),
+	webservice.Get("/life/plan", lifePlanPage),
 	webservice.Get("/life/skills", lifeSkillsPage),
 	webservice.Post("/life/character/class", lifeSetClass),
 	webservice.Post("/life/character/plan", lifeCreatePlanNode),
@@ -292,6 +294,63 @@ func lifeCharacterPage(ctx fiber.Ctx) error {
 	return pages.LifeCharacterPage(data).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
+func lifeGoalsPage(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	data, err := lifeGoalsPageData(uid)
+	if err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	ctx.Type("html")
+	return pages.LifeGoalsPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+func lifePlanPage(ctx fiber.Ctx) error {
+	if err := authenticateWeb(ctx); err != nil {
+		return err
+	}
+	uid, err := lifeUID(ctx)
+	if err != nil {
+		return err
+	}
+	data, err := lifePlanPageData(uid)
+	if err != nil {
+		return toastError(ctx, lifeUserError(err))
+	}
+	ctx.Type("html")
+	return pages.LifePlanPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+}
+
+func lifeGoalsPageData(uid string) (pages.LifeGoalsData, error) {
+	identity, err := lifeIdentityData(uid, false)
+	if err != nil {
+		return pages.LifeGoalsData{}, err
+	}
+	return pages.LifeGoalsData{
+		Goals:         identity.Goals,
+		DropRateBonus: identity.DropRateBonus,
+		GoldMult:      identity.GoldMult,
+		PendingCount:  identity.PendingCount,
+	}, nil
+}
+
+func lifePlanPageData(uid string) (pages.LifePlanData, error) {
+	identity, err := lifeIdentityData(uid, false)
+	if err != nil {
+		return pages.LifePlanData{}, err
+	}
+	return pages.LifePlanData{
+		PlanTree:     identity.PlanTree,
+		PlanParents:  identity.PlanParents,
+		PendingCount: identity.PendingCount,
+	}, nil
+}
+
 func lifeSetClass(ctx fiber.Ctx) error {
 	if err := authenticateWeb(ctx); err != nil {
 		return err
@@ -336,7 +395,7 @@ func lifeCreatePlanNode(ctx fiber.Ctx) error {
 	if _, err := lifeService().CreatePlanNode(context.Background(), uid, parentFlag, nodeType, title, description, action); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("HX-Redirect", "/service/web/life/character")
+	ctx.Set("HX-Redirect", "/service/web/life/plan")
 	return ctx.SendStatus(http.StatusOK)
 }
 
@@ -366,7 +425,7 @@ func lifeConfirmHabit(ctx fiber.Ctx) error {
 	if err := lifeService().ConfirmHabitAction(context.Background(), uid, ctx.Params("flag")); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("HX-Redirect", "/service/web/life/character")
+	ctx.Set("HX-Redirect", "/service/web/life/plan")
 	return ctx.SendStatus(http.StatusOK)
 }
 
@@ -384,7 +443,7 @@ func lifePreviewBreakdown(ctx fiber.Ctx) error {
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	data, err := lifeIdentityData(uid, true)
+	data, err := lifePlanPageData(uid)
 	if err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
@@ -399,7 +458,7 @@ func lifePreviewBreakdown(ctx fiber.Ctx) error {
 		Tree:        mapLifeBreakdownSuggestionRow(suggestion),
 	}
 	ctx.Type("html")
-	return pages.LifeCharacterPage(data).Render(context.Background(), ctx.Response().BodyWriter())
+	return pages.LifePlanPage(data).Render(context.Background(), ctx.Response().BodyWriter())
 }
 
 func lifeImportBreakdown(ctx fiber.Ctx) error {
@@ -421,7 +480,7 @@ func lifeImportBreakdown(ctx fiber.Ctx) error {
 	if err := lifeService().ImportGoalBreakdown(context.Background(), uid, &suggestion); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("Location", "/service/web/life/character")
+	ctx.Set("Location", "/service/web/life/plan")
 	ctx.Status(http.StatusSeeOther)
 	return ctx.SendString("redirect")
 }
@@ -439,7 +498,7 @@ func lifeCreateGoal(ctx fiber.Ctx) error {
 	if _, err := lifeService().CreateGoal(context.Background(), uid, title, category); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("HX-Redirect", "/service/web/life/character")
+	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
 }
 
@@ -456,7 +515,7 @@ func lifeUpdateGoal(ctx fiber.Ctx) error {
 	if err := lifeService().UpdateGoal(context.Background(), uid, ctx.Params("flag"), title, category); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("HX-Redirect", "/service/web/life/character")
+	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
 }
 
@@ -472,7 +531,7 @@ func lifeSetGoalStatus(ctx fiber.Ctx) error {
 	if err := lifeService().SetGoalStatus(context.Background(), uid, ctx.Params("flag"), status); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("HX-Redirect", "/service/web/life/character")
+	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
 }
 
@@ -487,7 +546,7 @@ func lifeDeleteGoal(ctx fiber.Ctx) error {
 	if err := lifeService().DeleteGoal(context.Background(), uid, ctx.Params("flag")); err != nil {
 		return toastError(ctx, lifeUserError(err))
 	}
-	ctx.Set("HX-Redirect", "/service/web/life/character")
+	ctx.Set("HX-Redirect", "/service/web/life/goals")
 	return ctx.SendStatus(http.StatusOK)
 }
 

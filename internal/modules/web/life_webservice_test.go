@@ -72,7 +72,7 @@ func TestLifeImportBreakdownRefreshesPage(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, http.StatusSeeOther, resp.StatusCode)
-	require.Equal(t, "/service/web/life/character", resp.Header.Get("Location"))
+	require.Equal(t, "/service/web/life/plan", resp.Header.Get("Location"))
 	require.Equal(t, "redirect", string(body))
 
 	profile, err := client.LifeProfile.Query().Where(lifeprofile.UserIDEQ("testuser")).Only(req.Context())

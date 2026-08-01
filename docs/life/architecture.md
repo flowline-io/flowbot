@@ -57,7 +57,7 @@ public/css/custom.css           # Life page styles (`.life-*`)
 | Full AI always | `EvaluateQuest` / `GenerateInstanceLore` require chat LLM; errors surface to caller |
 | AIContext unused | Loaded into EvaluateQuest (personality, completion rate, mood) |
 | Gear AI privilege unused | Equipped `ai_unlocked_privilege` merged into EvaluateQuest |
-| LifeGoal CRUD | Create / edit / pause / delete on Character; optional `goal_flag` on quest create |
+| LifeGoal CRUD | Create / edit / pause / delete on Goals; optional `goal_flag` on quest create |
 | Drop rate preview | Toast on create + pending card `~N% drop` |
 | AI lore on every drop | Lore outbox only for Boss quests or difficulty SS/SSS |
 
@@ -101,7 +101,7 @@ Reserved on inventory/slots: `tarnished_until` (nullable time). Lore: `lore_stat
 | `CreateQuestFromPrompt` | Evaluate via capability → persist quest |
 | `CompleteQuest` | Cascade + loot + action log + achievements + optional lore outbox + Daily respawn (one DB tx; loot resolved in-tx from live pity) |
 | `FailQuest` | Mark failed + 24h equipment rust (one DB tx) |
-| `CreateGoal` / `UpdateGoal` / `SetGoalStatus` / `DeleteGoal` | PARA goal CRUD + pause/activate |
+| `CreateGoal` / `UpdateGoal` / `SetGoalStatus` / `DeleteGoal` | PARA goal CRUD + pause/activate (Goals page) |
 | `ListActionLogs` | Recent completion audit for Quests UI |
 | `ListAchievements` | Catalog + progress/unlock state for Achievements UI |
 | `ListRewardsPage` / `CreateReward` / `UpdateReward` / `DeactivateReward` / `RestoreReward` / `RedeemReward` | Real-life rewards market (gold sink) |
@@ -139,16 +139,18 @@ Prefix: `/service/web`
 | GET | `/life` | Dashboard |
 | GET | `/life/stats` | Stats shell (30-day analytics) |
 | GET | `/life/stats/panel` | Stats HTMX panel (`tz` IANA query) |
-| GET | `/life/character` | Stats, class, goals, equipped, plan tree |
+| GET | `/life/character` | Class + profile identity |
 | POST | `/life/character/class` | Set class type |
-| POST | `/life/character/plan` | Create plan node |
-| POST | `/life/character/plan/:flag/confirm-habit` | Confirm habit candidate |
-| POST | `/life/character/plan/breakdown/preview` | AI plan breakdown preview |
-| POST | `/life/character/plan/breakdown/import` | Import AI plan breakdown |
+| GET | `/life/goals` | PARA goals CRUD |
 | POST | `/life/goals` | Create goal |
 | POST | `/life/goals/:flag` | Update goal title/category |
 | POST | `/life/goals/:flag/status` | Pause / activate goal |
 | POST | `/life/goals/:flag/delete` | Delete goal |
+| GET | `/life/plan` | Plan tree + AI breakdown |
+| POST | `/life/character/plan` | Create plan node |
+| POST | `/life/character/plan/:flag/confirm-habit` | Confirm habit candidate |
+| POST | `/life/character/plan/breakdown/preview` | AI plan breakdown preview |
+| POST | `/life/character/plan/breakdown/import` | Import AI plan breakdown |
 | GET | `/life/quests` | Quest list + today board + evidence/DM |
 | POST | `/life/quests` | Create quest from prompt |
 | POST | `/life/quests/:flag/complete` | Complete quest (cascade + loot) |
@@ -171,7 +173,7 @@ Prefix: `/service/web`
 | POST | `/life/rewards/:flag/restore` | Restore soft-deleted reward |
 | POST | `/life/rewards/:flag/redeem` | Spend gold (honor system) |
 
-Nav: Life module sidebar — Life, Stats, Quests, Skills, Inventory, Achievements, Rewards, Character.
+Nav: Life module sidebar (by usage frequency) — Life, Quests, Rewards, Skills, Inventory, Goals, Plan, Stats, Character, Achievements.
 
 ## 9. Core flows and outbox contract
 
