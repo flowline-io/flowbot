@@ -35,7 +35,7 @@ type Cache struct {
 func NewCache(_ *config.Type) (*Cache, error) {
 	cache, err := ristretto.NewCache(&ristretto.Config[string, any]{
 		NumCounters: 1e7,     // number of keys to track frequency of (10M).
-		MaxCost:     1 << 30, // maximum cost of cache (1GB).
+		MaxCost:     1 << 28, // maximum cost of cache (256MB).
 		BufferItems: 64,      // number of keys per Get buffer.
 	})
 	if err != nil {

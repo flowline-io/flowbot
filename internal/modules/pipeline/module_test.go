@@ -10,8 +10,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func resetPipelineModuleState(t *testing.T) {
+	t.Helper()
+	handler = moduleHandler{}
+	config = configType{}
+}
+
 func TestModuleInitAndRoutes(t *testing.T) {
-	t.Parallel()
+	resetPipelineModuleState(t)
+	t.Cleanup(func() { resetPipelineModuleState(t) })
+
 	require.NoError(t, InitForE2E(json.RawMessage(`{"enabled":true}`)))
 	assert.True(t, handler.IsReady())
 
