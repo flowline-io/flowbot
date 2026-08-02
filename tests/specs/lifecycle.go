@@ -142,10 +142,14 @@ var _ = SynchronizedBeforeSuite(
 		Expect(store.Store.Open(config.App.Store)).To(Succeed())
 		Expect(store.Migrate()).To(Succeed())
 
-		// Production wires these via fx; BDD must do it explicitly so Authorize
-		// and module data helpers can resolve tokens after the store decoupling.
+		// Production wires these via fx; BDD must do it explicitly so Authorize,
+		// module data, and notify helpers resolve after the store decoupling.
 		server.WireAccessTokenStore()
 		server.WireModuleDataStore()
+		server.WireNotifyStores()
+		server.WireMessageDestinations()
+		server.WireOAuthTokenStore()
+		server.WireFileMetaStore()
 
 		App = setupTestApp()
 
