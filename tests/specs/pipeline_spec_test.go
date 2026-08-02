@@ -250,8 +250,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 	Describe("Engine handler creation", func() {
 		It("creates engine with definitions and store", func() {
 			defs := []pipeline.Definition{}
-			pipelineStore := store.NewPipelineStore(EntClient)
-			eng := pipeline.NewEngine(defs, pipelineStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			runStore := store.NewPipelineRunStoreAdapter(store.NewPipelineStore(EntClient))
+			eng := pipeline.NewEngine(defs, runStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 			Expect(eng).NotTo(BeNil())
 
 			handler := eng.Handler()
@@ -261,8 +261,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 
 	Describe("ResumePipeline", func() {
 		It("handles non-existent run gracefully", func() {
-			pipelineStore := store.NewPipelineStore(EntClient)
-			eng := pipeline.NewEngine([]pipeline.Definition{}, pipelineStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			runStore := store.NewPipelineRunStoreAdapter(store.NewPipelineStore(EntClient))
+			eng := pipeline.NewEngine([]pipeline.Definition{}, runStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 
 			err := eng.ResumePipeline(context.Background(), 99999)
 			Expect(err).To(HaveOccurred())
@@ -279,8 +279,8 @@ var _ = Describe("Pipeline Engine", Label("pipeline"), func() {
 					Steps:   []pipeline.Step{},
 				},
 			}
-			pipelineStore := store.NewPipelineStore(EntClient)
-			eng := pipeline.NewEngine(defs, pipelineStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
+			runStore := store.NewPipelineRunStoreAdapter(store.NewPipelineStore(EntClient))
+			eng := pipeline.NewEngine(defs, runStore, audit.Auditor(nil), metrics.NewPipelineCollector(nil), metrics.NewEventCollector(nil))
 			defer eng.Stop()
 			Expect(eng).NotTo(BeNil())
 
@@ -409,7 +409,7 @@ var _ = Describe("Webhook trigger", Label("pipeline"), func() {
 		if store.Database == nil {
 			Skip("database store not available")
 		}
-		runStore := store.PipelineStoreFromDB()
+		runStore := store.NewPipelineRunStoreAdapter(store.PipelineStoreFromDB())
 
 		def := pipeline.Definition{
 			Name:    "webhook-spec-record-" + types.Id(),
